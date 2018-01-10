@@ -244,19 +244,13 @@ module.exports = {
   leaveSession: function(options, cb){
     var socket = options.socket;
 
-    var user = sessionManager.getUserBySocket(socket);
-
     var session = sessionManager.disconnect({
       socket: socket
     });
 
     sessionManager.pruneDeadSessions();
 
-    if (user){
-      session.leaveUser(user, cb);
-    } else {
-      cb(null, session);
-    }
+    session.endSession(cb);
   },
 
   // Get list of all sessions that are not ended, with recent activity
