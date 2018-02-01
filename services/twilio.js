@@ -59,3 +59,5 @@ module.exports  = {
 				.then(message => console.log(`Message sent to ${phoneNumber} with message id \n` + message.sid));  		
 
 		}
+	}
+}
