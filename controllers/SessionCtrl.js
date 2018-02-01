@@ -1,6 +1,7 @@
 var Q = require('q');
 
 var Session = require('../models/Session');
+var twilioService = require('../services/twilio')
 
 // A socket session tracks a session with its users and sockets
 var SocketSession = function(options){
@@ -190,7 +191,7 @@ module.exports = {
       student: userId,
       type: type
     });
-
+    twilioService.notify(type);
     session.save(cb);
   },
 
