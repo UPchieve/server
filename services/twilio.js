@@ -3,7 +3,7 @@ var mongoose = require('mongoose')
 var config = require('../config.js')
 var User = require('../models/User')
 var twilio = require('twilio')
-const client = twilio(config.accountSid,config.authToken)
+const twilioClient = twilio(config.accountSid,config.authToken)
 
 module.exports  = {
 
@@ -29,36 +29,36 @@ module.exports  = {
 		var time = `${hour-12}-${hour -11}`;
 		var avail = `availability.${days[day]}.${hour}`;
 
-
-		//Connection variables
 		var query = User.find({'serviceInterests': type,
 								[avail]: 'true'
 		})
-
+		const PERSON_LIMIT = 3;
 		query.exec(function (err, persons) {
 			if (err){
 				console.log('Error conducting query: ' + err);
 			}
-			for(var i =0; i< Math.min(persons.length,3);i++){
-				var phoneNumber = persons[i].phone;
-				var name = persons[i].firstname;
-				if (phoneNumber != undefined) {
-					send(phoneNumber,name);
+			var c = 0;
+			for (var i = 0; i < persons.length; i++) {
+				if (c === PERSON_LIMIT){
+					break;
 				}
-				};
-				})
+				else if (persons[i].phone != undefined){
+					var phoneNumber = persons[i].phone;
+					var name = persons[i].firstname;
+					send(phoneNumber,name);
+					c++;
+				}
+			};
+		});
 
 
 		function send(phoneNumber,name){
-		// require the Twilio module and create a REST client
-		var phoneNumber = '+1' + phoneNumber
-		client.messages.create({
-				to: phoneNumber,
-				from: config.sendingNumber,
-				body: `Hi ${name}, A student is waiting for help in ${type} at app.upchieve.org`,
-			})
-			.then(message => console.log(`Message sent to ${phoneNumber} with message id \n` + message.sid));  		
+			var phoneNumber = '+1' + phoneNumber
+			client.messages.create({
+					to: phoneNumber,
+					from: config.sendingNumber,
+					body: `Hi ${name}, A student is waiting for help in ${type} at app.upchieve.org`,
+				})
+				.then(message => console.log(`Message sent to ${phoneNumber} with message id \n` + message.sid));  		
 
 		}
-//	}
-//}
