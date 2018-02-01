@@ -17,5 +17,10 @@ module.exports = {
 	client: {
 		host: 'localhost:8080'
 	},
-	socketsPort: 3001
+	socketsPort: 3001,
+	
+	//Twilio Credentials
+	accountSid: '',
+	authToken: '',
+	sendingNumber: ''
 };
