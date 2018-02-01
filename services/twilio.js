@@ -38,11 +38,8 @@ module.exports  = {
 				console.log('Error conducting query: ' + err);
 			}
 			var c = 0;
-			for (var i = 0; i < persons.length; i++) {
-				if (c === PERSON_LIMIT){
-					break;
-				}
-				else if (persons[i].phone != undefined){
+			for (var i = 0; i < persons.length && c < PERSON_LIMIT; i++) {
+				if (persons[i].phone != undefined){
 					var phoneNumber = persons[i].phone;
 					var name = persons[i].firstname;
 					send(phoneNumber,name);
