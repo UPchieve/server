@@ -61,7 +61,7 @@ module.exports = {
       subject: '[UPchieve] Verify your email address'
     });
 
-    var templatedMail = getTemplateMailHelper(mail, config.sendgrid.verifyTemplateId, {
+    var templatedMail = getTemplateMailHelper(mail, config.sendgrid.templateId, {
       '-userEmail-': email,
       '-verifyLink-': url
     });
