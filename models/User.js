@@ -214,11 +214,11 @@ userSchema.methods.verifyPassword = function(candidatePassword, cb){
 // Static method to determine if a registration code is valid
 userSchema.statics.checkCode = function(code, cb){
   var studentCodes = [
-    'UPBOUND', 'UPCHIEVE2017', 'OASIS' , 'ONLINEAPP'
+    'STUDENTTESTING18', 'OASIS18' , 'ONLINEAPP'
   ];
 
   var volunteerCodes = [
-    'VOLUNTEER2017'
+    'COACH18','VOLUNTEERTESTING18'
   ];
 
   var isStudentCode = studentCodes.some(function(studentCode){
