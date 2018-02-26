@@ -12,7 +12,7 @@ var numQuestions = {
   esl: 3,
   planning: 4,
   essay: 3,
-  apphelp: 2,
+  application: 2,
   biology: 1,
   chemistry: 2
 }
