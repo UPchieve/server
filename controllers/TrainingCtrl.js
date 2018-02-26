@@ -4,12 +4,17 @@ var ObjectId = require('mongodb').ObjectID;
 
 // change depending on how many of each subcategory are wanted
 var numQuestions = {
-  algebra: 1,
-  geometry: 1,
-  trigonometry: 1,
-  esl: 1,
-  precalculus: 1,
-  calculus: 1
+  algebra: 2,
+  geometry: 2,
+  trigonometry: 2,
+  precalculus: 2,
+  calculus: 3,
+  esl: 3,
+  planning: 4,
+  essay: 3,
+  apphelp: 2,
+  biology: 1,
+  chemistry: 2
 }
 const PASS_THRESHOLD = 0.80;
 
