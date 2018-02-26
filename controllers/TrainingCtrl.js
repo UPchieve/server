@@ -3,7 +3,14 @@ var User = require('../models/User');
 var ObjectId = require('mongodb').ObjectID;
 
 // change depending on how many of each subcategory are wanted
-const NUM_QUESTIONS = 1;
+var numQuestions = {
+  algebra: 1,
+  geometry: 1,
+  trigonometry: 1,
+  esl: 1,
+  precalculus: 1,
+  calculus: 1
+}
 const PASS_THRESHOLD = 0.80;
 
 // Fisher-Yates shuffle
@@ -55,7 +62,8 @@ module.exports = {
         subcategories.map(function(subcategory) {
           var questions = questionsBySubcategory[subcategory];
           questions = shuffle(questions);
-          randomQuestions = randomQuestions.concat(questions.slice(0, NUM_QUESTIONS));
+          var minQuestions = Math.min(questions.length,numQuestions[options.category])
+          randomQuestions = randomQuestions.concat(questions.slice(0, minQuestions));
         });
 
         randomQuestions = shuffle(randomQuestions);
