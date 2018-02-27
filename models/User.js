@@ -29,6 +29,7 @@ var userSchema = new mongoose.Schema({
   // Profile data
   firstname: String,
   lastname: String,
+  nickname: String,
   serviceInterests: [String],
   picture: String,
   birthdate: String,
@@ -37,7 +38,7 @@ var userSchema = new mongoose.Schema({
   groupIdentification: [String],
   computerAccess: [String],
   preferredTimes: [String],
-
+  phone: String,
   highschool: String,
   currentGrade: String,
   expectedGraduation: String,
@@ -45,7 +46,7 @@ var userSchema = new mongoose.Schema({
   difficultCollegeProcess: [String],
   highestLevelEducation: [String],
   hasGuidanceCounselor: String,
-
+  favoriteAcademicSubject: String,
   gpa: String,
   collegeApplicationsText: String,
   commonCollegeDocs: [String],

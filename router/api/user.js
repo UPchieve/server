@@ -16,12 +16,12 @@ module.exports = function(router){
 
 	router.put('/user', function(req, res){
 		var data = req.body || {};
-
 		UserCtrl.update({
 			userId: req.user._id,
 			data: {
 				firstname: data.firstname,
 				lastname: data.lastname,
+				nickname: data.nickname,
 				picture: data.picture,
 				birthdate: data.birthdate,
 				serviceInterests: data.serviceInterests,
@@ -30,6 +30,7 @@ module.exports = function(router){
 				groupIdentification: data.groupIdentification,
 				computerAccess: data.computerAccess,
 				preferredTimes: data.preferredTimes,
+				phone: data.phone,
 				highschool: data.highschool,
 				currentGrade: data.currentGrade,
 				expectedGraduation: data.expectedGraduation,
@@ -43,6 +44,7 @@ module.exports = function(router){
 				academicInterestsText: data.academicInterestsText,
 				testScoresText: data.testScoresText,
 				advancedCoursesText: data.advancedCoursesText,
+				favoriteAcademicSubject: data.favoriteAcademicSubject,
 				extracurricularActivitesText: data.extracurricularActivitesText
 			}
 		}, function(err, user){
