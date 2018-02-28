@@ -41,13 +41,16 @@ module.exports = function(router){
 				highestLevelEducation: data.highestLevelEducation,
 				hasGuidanceCounselor: data.hasGuidanceCounselor,
 				gpa: data.gpa,
+				college: data.colleg,
 				collegeApplicationsText: data.collegeApplicationsText,
 				commonCollegeDocs: data.commonCollegeDocs,
 				academicInterestsText: data.academicInterestsText,
 				testScoresText: data.testScoresText,
 				advancedCoursesText: data.advancedCoursesText,
 				favoriteAcademicSubject: data.favoriteAcademicSubject,
-				extracurricularActivitesText: data.extracurricularActivitesText
+				extracurricularActivitesText: data.extracurricularActivitesText,
+				referred: data.referred
+
 			}
 		}, function(err, user){
 			if (err){
