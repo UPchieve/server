@@ -29,6 +29,7 @@ var userSchema = new mongoose.Schema({
   // Profile data
   firstname: String,
   lastname: String,
+  nickname: String,
   serviceInterests: [String],
   picture: String,
   birthdate: String,
@@ -37,7 +38,7 @@ var userSchema = new mongoose.Schema({
   groupIdentification: [String],
   computerAccess: [String],
   preferredTimes: [String],
-
+  phone: String,
   highschool: String,
   currentGrade: String,
   expectedGraduation: String,
@@ -45,14 +46,16 @@ var userSchema = new mongoose.Schema({
   difficultCollegeProcess: [String],
   highestLevelEducation: [String],
   hasGuidanceCounselor: String,
-
+  favoriteAcademicSubject: String,
   gpa: String,
   collegeApplicationsText: String,
   commonCollegeDocs: [String],
+  college: String,
   academicInterestsText: String,
   testScoresText: String,
   advancedCoursesText: String,
   extracurricularActivitesText: String,
+  referred: String,
   availability: {
     Sunday: { '12a': Boolean, '1a': Boolean, '2a': Boolean, '3a': Boolean, '4a': Boolean,
       '5a': Boolean, '6a': Boolean, '7a': Boolean, '8a': Boolean, '9a': Boolean,
@@ -142,9 +145,11 @@ userSchema.methods.parseProfile = function(){
     verified: this.verified,
     firstname: this.firstname,
     lastname: this.lastname,
+    nickname: this.nickname,
     picture: this.picture,
     isVolunteer: this.isVolunteer,
     isAdmin: this.isAdmin,
+    referred: this.referred,
     createdAt: this.createdAt,
 
     birthdate: this.birthdate,
@@ -154,7 +159,7 @@ userSchema.methods.parseProfile = function(){
     groupIdentification: this.groupIdentification,
     computerAccess: this.computerAccess,
     preferredTimes: this.preferredTimes,
-
+    phone: this.phone,
     availability: this.availability,
     hasSchedule: this.hasSchedule,
 
@@ -166,12 +171,14 @@ userSchema.methods.parseProfile = function(){
     highestLevelEducation: this.highestLevelEducation,
     hasGuidanceCounselor: this.hasGuidanceCounselor,
     gpa: this.gpa,
+    college: this.college,
     collegeApplicationsText: this.collegeApplicationsText,
     commonCollegeDocs: this.commonCollegeDocs,
     academicInterestsText: this.academicInterestsText,
     testScoresText: this.testScoresText,
     advancedCoursesText: this.advancedCoursesText,
     extracurricularActivitesText: this.extracurricularActivitesText,
+    favoriteAcademicSubject: this.favoriteAcademicSubject,
 
     algebra: this.algebra,
     geometry: this.geometry,
