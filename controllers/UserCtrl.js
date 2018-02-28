@@ -23,8 +23,8 @@ module.exports = {
       'firstname', 'lastname','nickname', 'picture', 'birthdate', 'serviceInterests', 'gender', 'race',
       'groupIdentification', 'computerAccess', 'preferredTimes','phone', 'highschool', 'currentGrade',
       'expectedGraduation', 'difficultAcademicSubject', 'difficultCollegeProcess', 'highestLevelEducation',
-      'hasGuidanceCounselor', 'gpa', 'collegeApplicationsText', 'commonCollegeDocs', 'academicInterestsText',
-      'testScoresText', 'advancedCoursesText','favoriteAcademicSubject', 'extracurricularActivitesText'
+      'hasGuidanceCounselor', 'gpa', 'college', 'collegeApplicationsText', 'commonCollegeDocs', 'academicInterestsText',
+      'testScoresText', 'advancedCoursesText','favoriteAcademicSubject', 'extracurricularActivitesText', 'referred'
     ].forEach(function(key){
       if (data[key]){
         update[key] = data[key];

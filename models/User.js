@@ -171,6 +171,7 @@ userSchema.methods.parseProfile = function(){
     highestLevelEducation: this.highestLevelEducation,
     hasGuidanceCounselor: this.hasGuidanceCounselor,
     gpa: this.gpa,
+    college: this.college,
     collegeApplicationsText: this.collegeApplicationsText,
     commonCollegeDocs: this.commonCollegeDocs,
     academicInterestsText: this.academicInterestsText,

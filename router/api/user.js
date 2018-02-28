@@ -16,7 +16,6 @@ module.exports = function(router){
 
 	router.put('/user', function(req, res){
 		var data = req.body || {};
-		console.log('Test string');
 		console.log(data);
 		UserCtrl.update({
 			userId: req.user._id,
@@ -41,7 +40,7 @@ module.exports = function(router){
 				highestLevelEducation: data.highestLevelEducation,
 				hasGuidanceCounselor: data.hasGuidanceCounselor,
 				gpa: data.gpa,
-				college: data.colleg,
+				college: data.college,
 				collegeApplicationsText: data.collegeApplicationsText,
 				commonCollegeDocs: data.commonCollegeDocs,
 				academicInterestsText: data.academicInterestsText,
