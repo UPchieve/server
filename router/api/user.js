@@ -16,6 +16,8 @@ module.exports = function(router){
 
 	router.put('/user', function(req, res){
 		var data = req.body || {};
+		console.log('Test string');
+		console.log(data);
 		UserCtrl.update({
 			userId: req.user._id,
 			data: {
