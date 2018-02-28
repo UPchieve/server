@@ -17,7 +17,6 @@ module.exports = {
     var data = options.data || {},
         update = {},
         hasUpdate = false;
-    console.log(data.phone);
     // Define and iterate through keys to add to update object
 
     [
@@ -32,7 +31,6 @@ module.exports = {
         hasUpdate = true;
       }
     });
-
     if (!hasUpdate){
       return callback('No fields defined to update');
     }
