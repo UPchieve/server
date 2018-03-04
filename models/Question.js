@@ -26,7 +26,12 @@ questionSchema.statics.getSubcategories = function(category){
     trigonometry: ['angles', 'triangles', 'right triangles', 'quadrants', 'radians', 'unit circle', 'inequalities'],
     esl: ['Reading', 'Writing', 'Writing - vocabulary', 'Reading & Writing', 'Speaking - conversational'],
     precalculus: ['rectangular coordinates', 'linear inequalities', 'functions', 'rational exponents', 'quadratic functions', 'logarithms and exponents'],
-    calculus: ['antiderivatives', 'derivatives', 'limits', 'critical numbers', 'functions']
+    calculus: ['antiderivatives', 'derivatives', 'limits', 'critical numbers', 'functions'],
+    planning: ['exam','type','LOR','basic'],
+    essay: ['basic','commonapp','answer','dhistory','optional','supplemental'],
+    application: ['timeline','resume','schools','fees','FinAid','LOR','basic'],
+    biology: ['biochemistry', 'cell', 'celldivision', 'cellrespiration', 'photosynthesis', 'classicalgenetics', 'moleculargenetics', 'plants', 'animalphysiology', 'humanphysiology', 'reproduction', 'immunesystem', 'behavior', 'evolution', 'taxonomy', 'ecology'],
+    chemistry: ['structure of matter', 'States of matter', 'Reaction types', 'Stoichiometry', 'Equilibrium and reaction rates', 'Thermochemistry', 'Descriptive chemistry', 'Laboratory']
   };
   var subcategories = categoryToSubcategoryMap[category];
   return subcategories;
