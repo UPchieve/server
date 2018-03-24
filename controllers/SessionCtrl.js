@@ -176,7 +176,8 @@ module.exports = {
   create: function(options, cb){
     var user = options.user || {},
         userId = user._id,
-        type = options.type;
+        type = options.type,
+        subTopic = options.subTopic;
 
 
     if (!userId){
@@ -189,7 +190,8 @@ module.exports = {
 
     var session = new Session({
       student: userId,
-      type: type
+      type: type,
+      subTopic: subTopic
     });
     twilioService.notify(type);
     session.save(cb);

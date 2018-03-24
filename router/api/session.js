@@ -5,11 +5,12 @@ module.exports = function(router){
 		.post(function(req, res){
 			var data = req.body || {},
 					sessionType = data.sessionType,
+					sessionSubTopic = data.sessionSubTopic,
 					user = req.user;
-
 			SessionCtrl.create({
 				user: user,
-				type: sessionType
+				type: sessionType,
+				subTopic: sessionSubTopic
 			}, function(err, session){
 				if (err){
 					res.json({
