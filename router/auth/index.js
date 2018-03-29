@@ -50,7 +50,8 @@ module.exports = function(app){
 router.post('/register', function(req, res){
   var email = req.body.email,
   password = req.body.password,
-  code = req.body.code;
+  code = req.body.code,
+  terms = req.body.terms;
 
   if (!email || !password){
     return res.json({
@@ -59,6 +60,10 @@ router.post('/register', function(req, res){
   } else if (!code){
     return res.json({
       err: 'Must provide a code to register'
+    });
+  } else if (terms === false) {
+    return res.json({
+      err: 'Must accept the user agreement to register'
     });
   }
 
