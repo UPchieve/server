@@ -30,6 +30,11 @@ var sessionSchema = new mongoose.Schema({
     }
   },
 
+  subTopic: {
+    type: String,
+    default: ''
+  },
+
   messages: [Message.schema],
   // whiteboardImg: Buffer,
 

@@ -96,28 +96,69 @@ var userSchema = new mongoose.Schema({
   hasSchedule: false,
 
   algebra: {
-    passed: Boolean,
-    tries: Number
+    passed: {
+      type: Boolean,
+      default: false
+    },
+    tries: {
+      type: Number,
+      default: 0
+    }
   },
+
   geometry: {
-    passed: Boolean,
-    tries: Number
+    passed: {
+      type: Boolean,
+      default: false
+    },
+    tries: {
+      type: Number,
+      default: 0
+    }
   },
+
   trigonometry: {
-    passed: Boolean,
-    tries: Number
+    passed: {
+      type: Boolean,
+      default: false
+    },
+    tries: {
+      type: Number,
+      default: 0
+    }
   },
+
   esl: {
-    passed: Boolean,
-    tries: Number
+    passed: {
+      type: Boolean,
+      default: false
+    },
+    tries: {
+      type: Number,
+      default: 0
+    }
   },
+
   precalculus: {
-    passed: Boolean,
-    tries: Number
+    passed: {
+      type: Boolean,
+      default: false
+    },
+    tries: {
+      type: Number,
+      default: 0
+    }
   },
+
   calculus: {
-    passed: Boolean,
-    tries: Number
+    passed: {
+      type: Boolean,
+      default: false
+    },
+    tries: {
+      type: Number,
+      default: 0
+    }
   },
 
   // User status
