@@ -98,7 +98,7 @@ var userSchema = new mongoose.Schema({
   algebra: {
     passed: {
       type: Boolean,
-      default: true
+      default: false
     },
     tries: {
       type: Number,
