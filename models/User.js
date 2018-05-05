@@ -105,8 +105,49 @@ var userSchema = new mongoose.Schema({
       default: 0
     }
   },
+  application: {
+   passed: {
+    type: Boolean,
+    default: false
+   },
+   tries: {
+    type: Number,
+    default: 0
+   }
+ },
+biology: {
+   passed: {
+    type: Boolean,
+    default: false
+   },
+   tries: {
+    type: Number,
+    default: 0
+   }
+ },
+chemistry: {
+   passed: {
+    type: Boolean,
+    default: false
+   },
+   tries: {
+    type: Number,
+    default: 0
+   }
+ },
 
-  geometry: {
+  essay: {
+   passed: {
+    type: Boolean,
+    default: false
+   },
+   tries: {
+    type: Number,
+    default: 0
+   }
+ },
+
+geometry: {
     passed: {
       type: Boolean,
       default: false
@@ -117,7 +158,17 @@ var userSchema = new mongoose.Schema({
     }
   },
 
-  trigonometry: {
+planning: {
+   passed: {
+    type: Boolean,
+    default: false
+   },
+   tries: {
+    type: Number,
+    default: 0
+   }
+ },
+ trigonometry: {
     passed: {
       type: Boolean,
       default: false
