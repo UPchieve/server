@@ -12,6 +12,7 @@ module.exports = function(app){
 	require('./calendar')(router);
 	require('./training')(router);
 	require('./sockets')(app);
+  require('./moderate')(router);
 
 	app.use('/api', passport.isAuthenticated, router);
 };
