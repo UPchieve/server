@@ -6,10 +6,10 @@ module.exports = (router) => {
     ModerationCtrl.moderateMessage(req.body, (err, isClean) => {
       if (err) {
         console.log(err);
-        res.json({ 'err': err });
+        res.json({err});
       }
       else {
-        res.json({ 'isClean': isClean });
+        res.json({isClean});
       }
     });
   });
