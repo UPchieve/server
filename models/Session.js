@@ -56,13 +56,14 @@ var sessionSchema = new mongoose.Schema({
 });
 
 sessionSchema.methods.saveMessage = function(messageObj, cb){
+  var session = this;
   this.messages.push({
     user: messageObj.user._id,
     contents: messageObj.contents
   });
 
   var messageId = this.messages[this.messages.length - 1]._id;
-  this.save(function(err, session){
+  this.save(function(err){
     var savedMessageIndex = session.messages.findIndex(function(message){
       return message._id === messageId
     });
@@ -84,8 +85,8 @@ sessionSchema.methods.joinUser = function(user, cb){
 };
 sessionSchema.methods.leaveUser = function(user, cb){
   // below should not save volunteer/user to null, we need to be able to see who the volunteer and student user were
-  // should set this.endedAt to Date.now and end the session, both users see the session ended regardless of who ended it 
-  // student can receive a message telling them they can request help again 
+  // should set this.endedAt to Date.now and end the session, both users see the session ended regardless of who ended it
+  // student can receive a message telling them they can request help again
   if (user.isVolunteer){
     this.volunteer = user;
   } else {
