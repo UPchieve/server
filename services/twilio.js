@@ -48,6 +48,7 @@ var getAvailableVolunteersFromDb = function(subtopic){
 		var user_query = {};
 		user_query[certification_passed] = true
 		user_query[availability] = true;
+		user_query[registrationCode] = “COACH18”
 
 		var query = User.find(user_query).select({phone: 1, firstname: 1}).limit(3);
 
