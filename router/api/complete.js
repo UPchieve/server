@@ -1,4 +1,4 @@
-const completeCtrl = require('../../controllers/complete');
+const completeCtrl = require('../../controllers/CompleteCtrl');
 
 module.exports = (router) => {
   
