@@ -2,13 +2,17 @@ const School = require('../models/School');
 
 module.exports = {
 
-  getSuggestions: (query, callback) => {    
+  getSuggestions: (query, callback) => {
     School.find({$text: {$search: query}}).limit(10).exec((err, results) => {
       if (err) {
         callback(err);
       }
       else {
-        callback(null, results);
+        let suggestions = [];
+        results.map((result) => {
+          suggestions.push(result.SCH_NAME);
+        });
+        callback(null, suggestions);
       }
     });
   }
