@@ -22,5 +22,7 @@ module.exports = {
 	//Twilio Credentials
 	accountSid: '',
 	authToken: '',
-	sendingNumber: ''
+	sendingNumber: '',
+
+	cleanSpeakApiKey: ''
 };

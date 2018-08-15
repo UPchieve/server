@@ -116,3 +116,22 @@ Accepts a token used to verify the current user.
   "token": "String"
 }
 ```
+
+### POST /moderate/message
+
+Expects the following request body:
+```json
+{
+  "content": "string with the content of a message"
+}
+```
+
+Makes a call to [CleanSpeak's Filter Content API](https://www.inversoft.com/docs/cleanspeak/3.x/tech/tutorials/filtering-content#using-the-filter-content-api), analyzes the API's response, and returns a boolean indicating whether or not the message is clean.
+
+The response body looks like this if no error occurred:
+
+```javascript
+{
+  "isClean": true // or false
+}
+```
