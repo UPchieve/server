@@ -47,6 +47,101 @@ module.exports = function(app){
   }
 );
 
+router.post('/register/student/create', function(req, res){
+  var email = req.body.email,
+    password = req.body.password,
+    code = req.body.code,
+    highSchool = req.body.highSchool,
+    firstName = req.body.firstName,
+    lastName = req.body.lastName;
+
+  if (!email || !password){
+    return res.json({
+      err: 'Must supply an email and password for registration'
+    });
+  }
+
+  // Verify password for registration
+  if (password.length < 8) {
+    return res.json({
+      err: 'Password must be 8 characters or longer'
+    });
+  }
+
+  var numUpper = 0;
+  var numLower = 0;
+  var numNumber = 0;
+  for (var i = 0; i < password.length; i++) {
+    if (!isNaN(password[i])) {
+      numNumber += 1;
+    } else if (password[i].toUpperCase() == password[i]) {
+      numUpper += 1;
+    } else if (password[i].toLowerCase() == password[i]) {
+      numLower += 1;
+    }
+  }
+
+  if (numUpper == 0) {
+    return res.json({
+      err: 'Password must contain at least one uppercase letter'
+    });
+  }
+  if (numLower == 0) {
+    return res.json({
+      err: 'Password must contain at least one lowercase letter'
+    });
+  }
+  if (numNumber == 0) {
+    return res.json({
+      err: 'Password must contain at least one number'
+    });
+  }
+
+  var user = new User();
+  user.email = email;
+  user.isVolunteer = false;
+  user.registrationCode = code;
+  user.highschool = highSchool;
+  user.firstname = firstName;
+  user.lastname = lastName;
+  user.verified = true;
+
+  user.hashPassword(password, function(err, hash){
+    user.password = hash; // Note the salt is embedded in the final hash
+
+    if (err){
+      res.json({
+        err: 'Could not hash password'
+      });
+      return;
+    }
+
+    user.save(function(err){
+      if (err){
+        res.json({
+          err: err.message
+        });
+      } else {
+        req.login(user, function(err){
+          if (err){
+            console.log(err);
+            res.json({
+              // msg: msg,
+              err: err
+            });
+          } else {
+            res.json({
+              // msg: msg,
+              user: user
+            });
+          }
+        });
+      }
+    });
+  });
+
+});
+
 router.post('/register', function(req, res){
   var email = req.body.email,
   password = req.body.password,
