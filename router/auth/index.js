@@ -47,7 +47,67 @@ module.exports = function(app){
   }
 );
 
-router.post('/register/student/create', function(req, res){
+router.post('/register/checkcred', function(req, res){
+  var email = req.body.email,
+    password = req.body.password
+
+  if (!email || !password){
+    return res.json({
+      err: 'Must supply an email and password for registration'
+    });
+  }
+
+  // Verify password for registration
+  if (password.length < 8) {
+    return res.json({
+      err: 'Password must be 8 characters or longer'
+    });
+  }
+
+  var numUpper = 0;
+  var numLower = 0;
+  var numNumber = 0;
+  for (var i = 0; i < password.length; i++) {
+    if (!isNaN(password[i])) {
+      numNumber += 1;
+    } else if (password[i].toUpperCase() == password[i]) {
+      numUpper += 1;
+    } else if (password[i].toLowerCase() == password[i]) {
+      numLower += 1;
+    }
+  }
+
+  if (numUpper == 0) {
+    return res.json({
+      err: 'Password must contain at least one uppercase letter'
+    });
+  }
+  if (numLower == 0) {
+    return res.json({
+      err: 'Password must contain at least one lowercase letter'
+    });
+  }
+  if (numNumber == 0) {
+    return res.json({
+      err: 'Password must contain at least one number'
+    });
+  }
+
+  User.find({'email': email}, function(req, users) {
+    if (users.length == 0) {
+      return res.json({
+        checked: true
+      });
+    } else {
+      return res.json({
+        err: 'The email address you entered is already in use'
+      });
+    }
+  });
+
+});
+
+router.post('/register/create', function(req, res){
   var email = req.body.email,
     password = req.body.password,
     code = req.body.code,
@@ -99,12 +159,12 @@ router.post('/register/student/create', function(req, res){
 
   var user = new User();
   user.email = email;
-  user.isVolunteer = false;
+  user.isVolunteer = !(code === undefined);
   user.registrationCode = code;
   user.highschool = highSchool;
   user.firstname = firstName;
   user.lastname = lastName;
-  user.verified = true;
+  user.verified = (code === undefined);
 
   user.hashPassword(password, function(err, hash){
     user.password = hash; // Note the salt is embedded in the final hash
@@ -130,10 +190,38 @@ router.post('/register/student/create', function(req, res){
               err: err
             });
           } else {
-            res.json({
-              // msg: msg,
-              user: user
-            });
+            if (user.isVolunteer) {
+              VerificationCtrl.initiateVerification({
+                userId: user._id,
+                email: user.email
+              }, function(err, email){
+                var msg;
+                if (err){
+                  msg = 'Registration successful. Error sending verification email: ' + err;
+                } else {
+                  msg = 'Registration successful. Verification email sent to ' + email;
+                }
+
+                req.login(user, function(err){
+                  if (err){
+                    res.json({
+                      msg: msg,
+                      err: err
+                    });
+                  } else {
+                    res.json({
+                      msg: msg,
+                      user: user
+                    });
+                  }
+                });
+              });
+            } else {
+              res.json({
+                // msg: msg,
+                user: user
+              });
+            }
           }
         });
       }
