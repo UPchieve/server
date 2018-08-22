@@ -10,6 +10,36 @@ var ResetPasswordCtrl = require('../../controllers/ResetPasswordCtrl');
 var config = require('../../config.js');
 var User = require('../../models/User.js');
 
+function checkPassword(password) {
+  if (password.length < 8) {
+    return 'Password must be 8 characters or longer';
+  }
+
+  var numUpper = 0;
+  var numLower = 0;
+  var numNumber = 0;
+  for (var i = 0; i < password.length; i++) {
+    if (!isNaN(password[i])) {
+      numNumber += 1;
+    } else if (password[i].toUpperCase() == password[i]) {
+      numUpper += 1;
+    } else if (password[i].toLowerCase() == password[i]) {
+      numLower += 1;
+    }
+  }
+
+  if (numUpper == 0) {
+    return 'Password must contain at least one uppercase letter';
+  }
+  if (numLower == 0) {
+    return 'Password must contain at least one lowercase letter';
+  }
+  if (numNumber == 0) {
+      return 'Password must contain at least one number';
+  }
+  return true;
+}
+
 module.exports = function(app){
   console.log('Auth module');
 
@@ -58,38 +88,10 @@ router.post('/register/checkcred', function(req, res){
   }
 
   // Verify password for registration
-  if (password.length < 8) {
+  let checkResult = checkPassword(password);
+  if (checkResult !== true) {
     return res.json({
-      err: 'Password must be 8 characters or longer'
-    });
-  }
-
-  var numUpper = 0;
-  var numLower = 0;
-  var numNumber = 0;
-  for (var i = 0; i < password.length; i++) {
-    if (!isNaN(password[i])) {
-      numNumber += 1;
-    } else if (password[i].toUpperCase() == password[i]) {
-      numUpper += 1;
-    } else if (password[i].toLowerCase() == password[i]) {
-      numLower += 1;
-    }
-  }
-
-  if (numUpper == 0) {
-    return res.json({
-      err: 'Password must contain at least one uppercase letter'
-    });
-  }
-  if (numLower == 0) {
-    return res.json({
-      err: 'Password must contain at least one lowercase letter'
-    });
-  }
-  if (numNumber == 0) {
-    return res.json({
-      err: 'Password must contain at least one number'
+      err: checkResult
     });
   }
 
@@ -107,7 +109,7 @@ router.post('/register/checkcred', function(req, res){
 
 });
 
-router.post('/register/create', function(req, res){
+router.post('/register', function(req, res){
   var email = req.body.email,
     password = req.body.password,
     code = req.body.code,
@@ -122,38 +124,10 @@ router.post('/register/create', function(req, res){
   }
 
   // Verify password for registration
-  if (password.length < 8) {
+  let checkResult = checkPassword(password);
+  if (checkResult !== true) {
     return res.json({
-      err: 'Password must be 8 characters or longer'
-    });
-  }
-
-  var numUpper = 0;
-  var numLower = 0;
-  var numNumber = 0;
-  for (var i = 0; i < password.length; i++) {
-    if (!isNaN(password[i])) {
-      numNumber += 1;
-    } else if (password[i].toUpperCase() == password[i]) {
-      numUpper += 1;
-    } else if (password[i].toLowerCase() == password[i]) {
-      numLower += 1;
-    }
-  }
-
-  if (numUpper == 0) {
-    return res.json({
-      err: 'Password must contain at least one uppercase letter'
-    });
-  }
-  if (numLower == 0) {
-    return res.json({
-      err: 'Password must contain at least one lowercase letter'
-    });
-  }
-  if (numNumber == 0) {
-    return res.json({
-      err: 'Password must contain at least one number'
+      err: checkResult
     });
   }
 
@@ -228,129 +202,6 @@ router.post('/register/create', function(req, res){
     });
   });
 
-});
-
-router.post('/register', function(req, res){
-  var email = req.body.email,
-  password = req.body.password,
-  code = req.body.code,
-  terms = req.body.terms;
-
-  if (!email || !password){
-    return res.json({
-      err: 'Must supply an email and password for registration'
-    });
-  } else if (!code){
-    return res.json({
-      err: 'Must provide a code to register'
-    });
-  } else if (terms === false) {
-    return res.json({
-      err: 'Must accept the user agreement to register'
-    });
-  }
-
-  // Verify password for registration
-  if (password.length < 8) {
-    return res.json({
-      err: 'Password must be 8 characters or longer'
-    });
-  }
-
-  var numUpper = 0;
-  var numLower = 0;
-  var numNumber = 0;
-  for (var i = 0; i < password.length; i++) {
-    if (!isNaN(password[i])) {
-      numNumber += 1;
-    } else if (password[i].toUpperCase() == password[i]) {
-      numUpper += 1;
-    } else if (password[i].toLowerCase() == password[i]) {
-      numLower += 1;
-    }
-  }
-
-  if (numUpper == 0) {
-    return res.json({
-      err: 'Password must contain at least one uppercase letter'
-    });
-  }
-  if (numLower == 0) {
-    return res.json({
-      err: 'Password must contain at least one lowercase letter'
-    });
-  }
-  if (numNumber == 0) {
-    return res.json({
-      err: 'Password must contain at least one number'
-    });
-  }
-
-  var user = new User();
-  user.email = email,
-
-  User.checkCode(code, function(err, data){
-    if (err){
-      res.json({
-        err: err
-      });
-    } else if (!data.studentCode && !data.volunteerCode){
-      res.json({
-        err: 'Invalid registation code'
-      });
-    } else {
-      var user = new User();
-      user.email = email;
-      user.isVolunteer = data.volunteerCode === true;
-      user.registrationCode = code;
-
-      user.hashPassword(password, function(err, hash){
-        user.password = hash; // Note the salt is embedded in the final hash
-
-        if (err){
-          res.json({
-            err: 'Could not hash password'
-          });
-          return;
-        }
-
-        user.save(function(err){
-          if (err){
-            res.json({
-              err: err.message
-            });
-          } else {
-
-            VerificationCtrl.initiateVerification({
-              userId: user._id,
-              email: user.email
-            }, function(err, email){
-              var msg;
-              if (err){
-                msg = 'Registration successful. Error sending verification email: ' + err;
-              } else {
-                msg = 'Registration successful. Verification email sent to ' + email;
-              }
-
-              req.login(user, function(err){
-                if (err){
-                  res.json({
-                    msg: msg,
-                    err: err
-                  });
-                } else {
-                  res.json({
-                    msg: msg,
-                    user: user
-                  });
-                }
-              });
-            });
-          }
-        });
-      });
-    }
-  })
 });
 
 router.post('/register/check', function(req, res){

@@ -29,7 +29,6 @@ var getTemplateMailHelper = function(mail, id, substitutions) {
 };
 
 var sendEmail = function(mail, callback) {
-  // console.log(mail.toJSON());
   var request = sendgrid.emptyRequest({
     method: 'POST',
     path: '/v3/mail/send',

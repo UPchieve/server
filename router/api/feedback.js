@@ -9,7 +9,7 @@ module.exports = function(router){
       responseData: body['responseData']
     });
     console.log(feedback);
-    feedback.saveData(function(err, session){
+    feedback.save(function(err, session){
       if (err){
         console.log(err);
         res.json({
