@@ -55,6 +55,7 @@ var userSchema = new mongoose.Schema({
   testScoresText: String,
   advancedCoursesText: String,
   extracurricularActivitesText: String,
+  heardFrom: String,
   referred: String,
   preferredContactMethod: [String],
   availability: {
@@ -273,6 +274,7 @@ userSchema.methods.parseProfile = function(){
     advancedCoursesText: this.advancedCoursesText,
     extracurricularActivitesText: this.extracurricularActivitesText,
     favoriteAcademicSubject: this.favoriteAcademicSubject,
+    heardFrom: this.heardFrom,
 
     algebra: this.algebra,
     geometry: this.geometry,
