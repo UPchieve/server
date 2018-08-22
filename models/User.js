@@ -56,6 +56,7 @@ var userSchema = new mongoose.Schema({
   advancedCoursesText: String,
   extracurricularActivitesText: String,
   referred: String,
+  preferredContactMethod: [String],
   availability: {
     Sunday: { '12a': Boolean, '1a': Boolean, '2a': Boolean, '3a': Boolean, '4a': Boolean,
       '5a': Boolean, '6a': Boolean, '7a': Boolean, '8a': Boolean, '9a': Boolean,
@@ -252,6 +253,7 @@ userSchema.methods.parseProfile = function(){
     computerAccess: this.computerAccess,
     preferredTimes: this.preferredTimes,
     phone: this.phone,
+    preferredContactMethod: this.preferredContactMethod,
     availability: this.availability,
     hasSchedule: this.hasSchedule,
 
