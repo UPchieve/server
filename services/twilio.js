@@ -51,7 +51,7 @@ var getAvailableVolunteersFromDb = function(subtopic){
 			registrationCode: "COACH18"
 		};
 
-		var query = User.find(userQuery).select({phone: 1, firstname: 1}).limit(3);
+		var query = User.find(userQuery).select({phone: 1, firstname: 1}).limit(5);
 
 		return query;
 		
