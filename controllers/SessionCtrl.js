@@ -193,7 +193,8 @@ module.exports = {
       type: type,
       subTopic: subTopic
     });
-    twilioService.notify(type);
+
+    twilioService.notify(type, subTopic);
     session.save(cb);
   },
 
