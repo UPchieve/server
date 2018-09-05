@@ -53,27 +53,24 @@ var getAvailableVolunteersFromDb = function(subtopic){
 
 		var query = User.find(userQuery).select({phone: 1, firstname: 1}).limit(5);
 
-		return query;
-		
-	
+		return query;	
 }
 
 function send(phoneNumber, name, subtopic){
-	var phoneNumber = '+1' + phoneNumber
-	client.messages.create({
-			to: phoneNumber,
+	client.messages
+		.create({
+			to: `+1${phoneNumber}`,
 			from: config.sendingNumber,
 			body: `Hi ${name}, A student is waiting for help in ${subtopic} at app.upchieve.org`,
 		})
-		.then(message => console.log(`Message sent to ${phoneNumber} with message id \n` + message.sid));  		
+		.then(message => console.log(`Message sent to ${phoneNumber} with message id \n` + message.sid))
+		.catch(err => console.log(err));  		
 }
 
 
 module.exports = {
 
 	notify: function(type, subtopic){
-
-	
 
 		getAvailableVolunteersFromDb(subtopic).exec(function (err, persons) {
 
@@ -84,7 +81,6 @@ module.exports = {
 				})
 
 		})
-
 
 	}
 }
