@@ -1,6 +1,7 @@
 node_modules
 npm-debug.log
 config.js
+"config copy.js"
 dist
 sendgrid.env
 *.swp
