@@ -107,7 +107,7 @@ var userSchema = new mongoose.Schema({
       default: 0
     }
   },
-  application: {
+  applications: {
    passed: {
     type: Boolean,
     default: false
@@ -138,7 +138,7 @@ chemistry: {
    }
  },
 
-  essay: {
+  essays: {
    passed: {
     type: Boolean,
     default: false
