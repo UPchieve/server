@@ -79,6 +79,111 @@ Possible errors:
 - Email is not valid
 - Email already exists
 
+### POST /auth/register/checkcred
+
+```json
+{
+  "email": "String",
+  "password": "String",
+  "code": "String",
+  "highSchool": "String",
+  "firstName": "String",
+  "lastName": "String"
+}
+```
+
+Possible errors:
+- Email is not valid
+- Email already exists
+
+### POST /auth/reset/send
+
+```json
+{
+  "email": "String"
+}
+```
+
+### POST /auth/reset/confirm
+
+```json
+{
+  "email": "String",
+  "password": "String",
+  "newpassword": "String",
+  "token": "String"
+}
+```
+
+### POST /api/session/new
+
+```json
+{
+  "sessionType": "String",
+  "sessionSubTopic": "String"
+}
+```
+
+### POST /api/session/check
+
+```json
+{
+  "sessionId": "String"
+}
+```
+
+### POST /api/training/questions
+
+```json
+{
+  "category": "String"
+}
+```
+
+### POST /api/training/score
+
+```json
+{
+  "userid": "String",
+  "idAnswerMap": "String",
+  "category": "String"
+}
+```
+
+### POST /api/calendar/init
+
+```json
+{
+  "userid": "String"
+}
+```
+
+### POST /api/calendar/get
+
+```json
+{
+  "userid": "String"
+}
+```
+
+### POST /api/calendar/save
+
+```json
+{
+  "userid": "String",
+  "availability": "String"
+}
+```
+
+### POST /api/feedback
+
+```json
+{
+  "sessionId": "String",
+  "responseData": "String"
+}
+```
+
 ### GET /api/user
 
 Returns a sanitized public user record for the currently authenticated user
