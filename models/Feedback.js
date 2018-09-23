@@ -10,6 +10,21 @@ var feedbackSchema = new mongoose.Schema({
   responseData: {
     type: Object,
     default: ''
+  },
+
+  userType: {
+    type: String,
+    default: ''
+  },
+
+  studentId: {
+    type: String,
+    default: ''
+  },
+
+  volunteerId: {
+    type: String,
+    default: ''
   }
   
 });
