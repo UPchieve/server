@@ -66,7 +66,10 @@ Authenticates the user with a session if credentials are correct.
 
 Removes the user's current session.
 
-### POST /auth/register
+### POST /auth/register/checkcred
+
+Check whether the credential user entered is valid. (first step of registeration)
+The server will check is there any duplications for email and validate the password.
 
 ```json
 {
@@ -76,10 +79,14 @@ Removes the user's current session.
 ```
 
 Possible errors:
+- Email/password not provided
+- Password does not meet requirements
 - Email is not valid
 - Email already exists
 
-### POST /auth/register/checkcred
+### POST /auth/register
+
+Create a new account based on the information posted.
 
 ```json
 {
@@ -93,8 +100,12 @@ Possible errors:
 ```
 
 Possible errors:
+- Email/password not provided
+- Password does not meet requirements
 - Email is not valid
 - Email already exists
+- Could not hash password
+- Could not send verification email (for volunteers)
 
 ### POST /auth/reset/send
 
