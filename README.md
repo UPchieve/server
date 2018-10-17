@@ -66,7 +66,10 @@ Authenticates the user with a session if credentials are correct.
 
 Removes the user's current session.
 
-### POST /auth/register
+### POST /auth/register/checkcred
+
+Check whether the credential user entered is valid. (first step of registeration)
+The server will check is there any duplications for email and validate the password.
 
 ```json
 {
@@ -76,8 +79,121 @@ Removes the user's current session.
 ```
 
 Possible errors:
+- Email/password not provided
+- Password does not meet requirements
 - Email is not valid
 - Email already exists
+
+### POST /auth/register
+
+Create a new account based on the information posted.
+
+```json
+{
+  "email": "String",
+  "password": "String",
+  "code": "String",
+  "highSchool": "String",
+  "firstName": "String",
+  "lastName": "String"
+}
+```
+
+Possible errors:
+- Email/password not provided
+- Password does not meet requirements
+- Email is not valid
+- Email already exists
+- Could not hash password
+- Could not send verification email (for volunteers)
+
+### POST /auth/reset/send
+
+```json
+{
+  "email": "String"
+}
+```
+
+### POST /auth/reset/confirm
+
+```json
+{
+  "email": "String",
+  "password": "String",
+  "newpassword": "String",
+  "token": "String"
+}
+```
+
+### POST /api/session/new
+
+```json
+{
+  "sessionType": "String",
+  "sessionSubTopic": "String"
+}
+```
+
+### POST /api/session/check
+
+```json
+{
+  "sessionId": "String"
+}
+```
+
+### POST /api/training/questions
+
+```json
+{
+  "category": "String"
+}
+```
+
+### POST /api/training/score
+
+```json
+{
+  "userid": "String",
+  "idAnswerMap": "String",
+  "category": "String"
+}
+```
+
+### POST /api/calendar/init
+
+```json
+{
+  "userid": "String"
+}
+```
+
+### POST /api/calendar/get
+
+```json
+{
+  "userid": "String"
+}
+```
+
+### POST /api/calendar/save
+
+```json
+{
+  "userid": "String",
+  "availability": "String"
+}
+```
+
+### POST /api/feedback
+
+```json
+{
+  "sessionId": "String",
+  "responseData": "String"
+}
+```
 
 ### GET /api/user
 
