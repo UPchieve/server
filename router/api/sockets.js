@@ -77,6 +77,8 @@ module.exports = function(app) {
             io.to(data.sessionId).emit("messageSend", {
               contents: savedMessage.contents,
               name: data.user.firstname,
+              email: data.user.email,
+              isVolunteer: data.user.isVolunteer,
               picture: data.user.picture,
               time: savedMessage.createdAt
             });
