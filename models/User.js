@@ -223,6 +223,10 @@ planning: {
     type: Boolean,
     default: false
   },
+  isTestUser: {
+    type: Boolean,
+    default: false
+  },
 
   createdAt: {
     type: Date,
