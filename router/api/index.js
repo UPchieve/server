@@ -11,6 +11,7 @@ module.exports = function(app){
   require('./session')(router);
   require('./calendar')(router);
   require('./training')(router);
+  require('./feedback')(router);
   require('./sockets')(app);
   require('./moderate')(router);
 
