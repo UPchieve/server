@@ -8,10 +8,7 @@ module.exports = {
         callback(err);
       }
       else {
-        let suggestions = [];
-        results.map((result) => {
-          suggestions.push(result.SCH_NAME);
-        });
+        const suggestions = results.map((result) => result.SCH_NAME);
         callback(null, suggestions);
       }
     });
