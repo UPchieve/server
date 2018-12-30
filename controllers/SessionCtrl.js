@@ -193,7 +193,11 @@ module.exports = {
       type: type,
       subTopic: subTopic
     });
-    twilioService.notify(type);
+
+    if (!user.isTestUser) {
+      twilioService.notify(type, subTopic);
+    }
+
     session.save(cb);
   },
 

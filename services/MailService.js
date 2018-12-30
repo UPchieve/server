@@ -29,7 +29,6 @@ var getTemplateMailHelper = function(mail, id, substitutions) {
 };
 
 var sendEmail = function(mail, callback) {
-  console.log(mail.toJSON());
   var request = sendgrid.emptyRequest({
     method: 'POST',
     path: '/v3/mail/send',
@@ -55,6 +54,8 @@ module.exports = {
         token = options.token;
 
     var url = 'http://' + config.client.host + '/#/action/verify/' + token;
+
+    console.log(url);
 
   	var mail = getMailHelper({
       to: email,

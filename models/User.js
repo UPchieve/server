@@ -55,7 +55,9 @@ var userSchema = new mongoose.Schema({
   testScoresText: String,
   advancedCoursesText: String,
   extracurricularActivitesText: String,
+  heardFrom: String,
   referred: String,
+  preferredContactMethod: [String],
   availability: {
     Sunday: { '12a': Boolean, '1a': Boolean, '2a': Boolean, '3a': Boolean, '4a': Boolean,
       '5a': Boolean, '6a': Boolean, '7a': Boolean, '8a': Boolean, '9a': Boolean,
@@ -105,7 +107,7 @@ var userSchema = new mongoose.Schema({
       default: 0
     }
   },
-  application: {
+  applications: {
    passed: {
     type: Boolean,
     default: false
@@ -136,7 +138,7 @@ chemistry: {
    }
  },
 
-  essay: {
+  essays: {
    passed: {
     type: Boolean,
     default: false
@@ -221,6 +223,10 @@ planning: {
     type: Boolean,
     default: false
   },
+  isTestUser: {
+    type: Boolean,
+    default: false
+  },
 
   createdAt: {
     type: Date,
@@ -252,6 +258,7 @@ userSchema.methods.parseProfile = function(){
     computerAccess: this.computerAccess,
     preferredTimes: this.preferredTimes,
     phone: this.phone,
+    preferredContactMethod: this.preferredContactMethod,
     availability: this.availability,
     hasSchedule: this.hasSchedule,
 
@@ -271,6 +278,7 @@ userSchema.methods.parseProfile = function(){
     advancedCoursesText: this.advancedCoursesText,
     extracurricularActivitesText: this.extracurricularActivitesText,
     favoriteAcademicSubject: this.favoriteAcademicSubject,
+    heardFrom: this.heardFrom,
 
     algebra: this.algebra,
     geometry: this.geometry,
