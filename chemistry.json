@@ -69,36 +69,12 @@
 "subcategory": "States of matter"
 },
 {
-"questionText": "Which of the following must be measured in order to calculate the molality of a solution? I. Mass of the solute. II. Mass of the solvent. III. Total volume of the solution.",
-"possibleAnswers": [{"txt": "I only", "val": "a"}, {"txt": "I and III only", "val": "b"}, {"txt": "II and III only", "val": "c"}, {"txt": "I and II only", "val": "d"}, {"txt": "I, II, and III", "val": "e"}],
-"correctAnswer": "d",
-"category": "chemistry",
-"subcategory": "States of matter"
-},
-{
 "questionText": "When the following equation is balanced, what is the sum of the coefficients?
 Al2(CO3)3 + Mg(OH)2 -> Al(OH)3 + MgCO3",
 "possibleAnswers": [{"txt": "3", "val": "a"}, {"txt": "4", "val": "b"}, {"txt": "8", "val": "c"}, {"txt": "9", "val": "d"}, {"txt": "10", "val": "e"}],
 "correctAnswer": "d",
 "category": "chemistry",
 "subcategory": "States of matter"
-},
-{
-"questionText": "When the following equation is balanced, what is the sum of the coefficients?
-Al2(CO3)3 + Mg(OH)2 -> Al(OH)3 + MgCO3",
-"possibleAnswers": [{"txt": "3", "val": "a"}, {"txt": "4", "val": "b"}, {"txt": "8", "val": "c"}, {"txt": "9", "val": "d"}, {"txt": "10", "val": "e"}],
-"correctAnswer": "d",
-"category": "chemistry",
-"subcategory": "States of matter"
-},
-{
-"questionText": "When the following equation is balanced, what is the sum of the coefficients?
-Al2(CO3)3 + Mg(OH)2 -> Al(OH)3 + MgCO3",
-"possibleAnswers": [{"txt": "3", "val": "a"}, {"txt": "4", "val": "b"},
-  {"txt": "8", "val": "c"}, {"txt": "9", "val": "d"}, {"txt": "10", "val": "e"}],
-"correctAnswer": "d",
-"category": "chemistry",
-"subcategory": "Reaction types"
 },
 {
 "questionText": "The balanced net ionic equation for the reaction of aluminum sulfate and sodium hydroxide contains which of the following terms?",
@@ -174,13 +150,6 @@ Al2(CO3)3 + Mg(OH)2 -> Al(OH)3 + MgCO3",
 "questionText": "The catalyzed pathway in a reaction mechanism has a _____ activation energy and thus causes a _____ reaction rate.",
 "possibleAnswers": [{"txt": "higher, lower", "val": "a"}, {"txt": "higher, higher", "val": "b"}, {"txt": "lower, higher", "val": "c"}, {"txt": "lower, steady", "val": "d"}, {"txt": "higher, steady", "val": "e"}],
 "correctAnswer": "b",
-"category": "chemistry",
-"subcategory": "Equilibrium and reaction rates"
-},
-{
-"questionText": "The value of the equilibrium constant, K, is dependent on: I. The temperature of the system. II. The concentration of the reactants. III. The concentration of the product. IV. The nature of the reactants and products.",
-"possibleAnswers": [{"txt": "I, II", "val": "a"}, {"txt": "II, III", "val": "b"}, {"txt": "III, IV", "val": "c"}, {"txt": "I and IV", "val": "d"}, {"txt": "I, II, and IV", "val": "e"}],
-"correctAnswer": "d",
 "category": "chemistry",
 "subcategory": "Equilibrium and reaction rates"
 },

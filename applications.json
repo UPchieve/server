@@ -73,14 +73,6 @@
 },
 
 {
-"questionText": "Question?",
-"possibleAnswers": [{"txt": "answer1", "val": "a"}, {"txt": "answer2", "val": "b"}, {"txt": "answer3", "val": "c"}, {"txt": "answer4", "val": "d"}, {"txt": "answer5", "val": "e"}],
-"correctAnswer": "letter",
-"category": "applications",
-"subcategory": "FinAid"
-},
-
-{
 "questionText": "Do financial aid packages include loans?",
 "possibleAnswers": [{"txt": "Always.", "val": "a"}, {"txt": "Some of them.", "val": "b"}, {"txt": "Never", "val": "c"}],
 "correctAnswer": "b",
