@@ -147,14 +147,6 @@
 "image": "Geometry_11.png"
 },
 {
-"questionText": "Which of the following in the image below are complementary angles?",
-"possibleAnswers": [{"txt": "71 degrees and 19 degrees", "val": "a"}, {"txt": "18 degrees and 180 degrees", "val": "b"}, {"txt": "90 degrees and 90 degrees", "val": "c"}, {"txt": "90 degrees and 45 degrees", "val": "d"}],
-"correctAnswer": "a",
-"category": "geometry",
-"subcategory": "angles",
-"image": "Geometry_11.png"
-},
-{
 "questionText": "Which of the following letters has a vertical line of symmetry?",
 "possibleAnswers": [{"txt": "A", "val": "a"}, {"txt": "B", "val": "b"}, {"txt": "C", "val": "c"}, {"txt": "D", "val": "d"}],
 "correctAnswer": "a",
