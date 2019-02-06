@@ -108,7 +108,7 @@
 {
   "questionText": "Write the equation in slope-intercept form:  9x + 5y = 5",
   "possibleAnswers": [{"txt": "y=9x-5", "val": "a"}, {"txt": "y=9/5x -1", "val": "b"}, {"txt": "y = -9/5x+1", "val": "c"}, {"txt": "y=9/5x+1", "val": "d"}],
-  "correctAnswer": "b",
+  "correctAnswer": "c",
   "category": "algebra",
   "subcategory": "two variable equations"
 },
