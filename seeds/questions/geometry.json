@@ -132,7 +132,7 @@
 },
 {
 "questionText": "Lines AC and BD intersect at point E.  Angle BEC is 45 degrees.  What is the measure of angle AEB?",
-"possibleAnswers": [{"txt": "Angle AEB is 900", "val": "a"}, {"txt": "Angle AEB is 1150", "val": "b"}, {"txt": "Angle AEB is 1350", "val": "c"}, {"txt": "Angle AEB is 1800", "val": "d"}],
+"possibleAnswers": [{"txt": "Angle AEB is 90°", "val": "a"}, {"txt": "Angle AEB is 115°", "val": "b"}, {"txt": "Angle AEB is 135°", "val": "c"}, {"txt": "Angle AEB is 180°", "val": "d"}],
 "correctAnswer": "c",
 "category": "geometry",
 "subcategory": "angles",
