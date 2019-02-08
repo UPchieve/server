@@ -13,7 +13,7 @@ db.once('open', function(){
 	var jsonArr = ['geometry', 'algebra', 'trigonometry', 'esl', 'precalculus', 'calculus', 'planning', 'essays', 'applications'];
 	for (var i = 0; i < jsonArr.length; i++) {
 		try {
-			var json = require('./' + jsonArr[i] + '.json');
+			var json = require('./seeds/questions/' + jsonArr[i] + '.json');
 			console.log(json);
 		} catch (e) {
 			console.log(e);
