@@ -3,6 +3,7 @@ var mongoose = require('mongoose')
 var config = require('../config.js')
 var User = require('../models/User')
 var twilio = require('twilio')
+var moment = require('moment-timezone');
 const client = twilio(config.accountSid,config.authToken)
 
 //todo
@@ -16,23 +17,23 @@ const client = twilio(config.accountSid,config.authToken)
 
 function getAvailability(){
 
-		var date = new Date()
-		var day = date.getDay();
-		var hour = date.getHours();
-		var min = date.getMinutes()/60
+		var date_string = new Date().toUTCString();
+		var date = moment.utc(date_string).tz("America/New_York");
+		var day = date.isoWeekday() - 1;
+		var hour = date.hour();
+		var min = date.minute() / 60;
 
-
-		if(min >= .5){
+		if (min >= .5) {
 			hour++;
 		}
-		if(hour > 12){
+		if (hour > 12) {
 			hour = `${hour - 12}p`
 		}
 		else {
 			hour = `${hour}a`
 		}
 
-		var days = ['Sunday', 'Monday', 'Tuesday','Wednesday','Thursday','Friday','Saturday']
+		var days = ['Monday', 'Tuesday','Wednesday','Thursday','Friday','Saturday', 'Sunday']
 		var time = `${hour-12}-${hour -11}`;
 		return `availability.${days[day]}.${hour}`;
 
@@ -75,9 +76,7 @@ module.exports = {
 		getAvailableVolunteersFromDb(subtopic).exec(function (err, persons) {
 
 				persons.forEach(function(person){
-
 					send(person.phone, person.firstname, subtopic);
-
 				})
 
 		})
