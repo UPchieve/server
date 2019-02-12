@@ -52,13 +52,7 @@ var getAvailableVolunteersFromDb = function(subtopic){
 			registrationCode: "COACH18"
 		};
 
-		var query = User.find(userQuery).limit(5);
-
-		query.exec(function (err, persons) {
-
-			console.log(persons);
-
-	   })
+		var query = User.find(userQuery).select({phone: 1, firstname: 1}).limit(5);
 
 		return query;	
 }
@@ -79,12 +73,10 @@ module.exports = {
 
 	notify: function(type, subtopic){
 
-
 		getAvailableVolunteersFromDb(subtopic).exec(function (err, persons) {
 
 				persons.forEach(function(person){
 					send(person.phone, person.firstname, subtopic);
-
 				})
 
 		})
