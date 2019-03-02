@@ -79,9 +79,9 @@ router
     let volunteerId = null;
 
     if (is_volunteer) {
-      volunteerId = user_id
+      volunteerId = ObjectId(user_id)
     } else {
-      studentId = user_id
+      studentId = ObjectId(user_id)
     }
 
     SessionCtrl
@@ -91,8 +91,8 @@ router
             { endedAt: null },
             {
               $or: [
-                { student: ObjectId(studentId) },
-                { volunteer: ObjectId(volunteerId) }
+                { student: studentId },
+                { volunteer: volunteerId }
               ]
             }
           ]
