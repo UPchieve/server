@@ -1,53 +1,135 @@
-# UPchieve web server
+UPchieve web server
+===================
 
 > Web server providing endpoints for the UPchieve web client
 
-## Build Setup
+**Table of Contents**
 
-1. Install NodeJS either via [binary](https://nodejs.org/en/) or [Homebrew](http://brew.sh) (`brew install node`)
+- [Local Development](#local-development)
+    - [Dependencies](#dependencies)
+    - [Build Setup](#build-setup)
+    - [Test Users](#test-users)
+- [Structure](#structure)
+    - [config.js](#configjs)
+    - [models](#models)
+    - [router](#router)
+    - [controllers](#controllers)
+    - [services](#services)
+- [Endpoints](#endpoints)
+    - [POST /auth/login](#post-authlogin)
+    - [GET /auth/logout](#get-authlogout)
+    - [POST /auth/register/checkcred](#post-authregistercheckcred)
+    - [POST /auth/register](#post-authregister)
+    - [POST /auth/reset/send](#post-authresetsend)
+    - [POST /auth/reset/confirm](#post-authresetconfirm)
+    - [POST /api/session/new](#post-apisessionnew)
+    - [POST /api/session/check](#post-apisessioncheck)
+    - [POST /api/training/questions](#post-apitrainingquestions)
+    - [POST /api/training/score](#post-apitrainingscore)
+    - [POST /api/calendar/init](#post-apicalendarinit)
+    - [POST /api/calendar/get](#post-apicalendarget)
+    - [POST /api/calendar/save](#post-apicalendarsave)
+    - [POST /api/feedback](#post-apifeedback)
+    - [GET /api/user](#get-apiuser)
+    - [PUT /api/user](#put-apiuser)
+    - [GET /api/user/:id](#get-apiuserid)
+    - [POST /api/verify/send](#post-apiverifysend)
+    - [POST /api/verify/confirm](#post-apiverifyconfirm)
+    - [POST /moderate/message](#post-moderatemessage)
 
-2. Clone repository
 
-3. Copy `config.example.js` to `config.js` and setup handle to database and SMTP server.
+Local Development
+-----------------
 
-4. In repository folder:
+### Dependencies
 
-``` bash
-# install dependencies
-npm install
+1. Node.js 6.10.0
+2. MongoDB 3.6.6
 
-# optionally, set session secret
-setenv SESSION_SECRET='secret'
+### Version management
 
-# start server on localhost:3000
-npm start
+The recommended tool for version managment is [`asdf`][asdf].
+
+To install the appropriate versions of Node and Mongo, ensure their asdf plugins
+are installed. (See their repos for complete installation instructions.)
+
+- [`asdf-nodejs`][asdf-nodejs]
+
+```shell-script
+asdf plugin-add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
+asdf install nodejs 6.10.0
 ```
 
-## Structure
+- [`asdf-mongodb`][asdf-mongodb]
 
-The root folder of the repository provides the bootstrap file `main.js` and a package definitions file.
+```shell-script
+asdf plugin-add mongodb https://github.com/jmromer/asdf-mongodb
+asdf install mongodb 3.6.6
+```
+
+[asdf]: https://github.com/asdf-vm/asdf
+[asdf-nodejs]: https://github.com/asdf-vm/asdf-nodejs
+[asdf-mongodb]: https://github.com/jmromer/asdf-mongodb
+
+### Setup
+
+1. Run `bin/setup` to set up database with test users and install dependencies.
+   Run with `--verbose` to debug if needed.
+2. Populate `config.js` with auth tokens (ask a teammate if you need
+   any--improvements forthcoming).
+3. Run `npm run dev` to start the dev server on `http://localhost:3000`.
+4. See [the web client repo](https://github.com/UPchieve/web) for client
+   installation
+
+
+### Test Users
+
+The database is populated with the following users for local development:
+
+| email                     | password      |
+|:--------------------------|:--------------|
+| `student1@upchieve.org`   | `Password123` |
+| `volunteer1@upchieve.org` | `Password123` |
+| `volunteer2@upchieve.org` | `Password123` |
+
+Structure
+---------
+
+The root folder of the repository provides the bootstrap file `main.js` and a
+package definitions file.
 
 ### config.js
 
-`config.js` contains a map of configuration keys for running the server. All keys and sensitive information should be placed in this file.
+`config.js` contains a map of configuration keys for running the server. All
+keys and sensitive information should be placed in this file.
 
 ### models
 
-Model definitions that map to database models, along with related methods to act on those models, such as parsing, validation, and data transformations.
+Model definitions that map to database models, along with related methods to act
+on those models, such as parsing, validation, and data transformations.
 
 ### router
 
-Directory structure mimics the endpoint structure exposed by the server. Each file provides one or more endpoint routes, responsible for request acceptance/rejection and error handling.
+Directory structure mimics the endpoint structure exposed by the server. Each
+file provides one or more endpoint routes, responsible for request
+acceptance/rejection and error handling.
 
 ### controllers
 
-Routes use controllers to perform the business logic of the server, providing separation of concerns: the controllers have no need to be aware of how the endpoints work. Instead, a controller provides ways to allow the routes to trigger something (a user update, )
+Routes use controllers to perform the business logic of the server, providing
+separation of concerns: the controllers have no need to be aware of how the
+endpoints work. Instead, a controller provides ways to allow the routes to
+trigger something (a user update, e.g.)
 
 ### services
 
-A service is a step higher than a controller. Services provide abstract functions to one or many controllers, often to interface with third party services.
+A service is a step higher than a controller. Services provide abstract
+functions to one or many controllers, often to interface with third party
+services.
 
-## Endpoints
+Endpoints
+---------
 
 ### POST /auth/login
 
@@ -79,6 +161,7 @@ The server will check is there any duplications for email and validate the passw
 ```
 
 Possible errors:
+
 - Email/password not provided
 - Password does not meet requirements
 - Email is not valid
@@ -100,6 +183,7 @@ Create a new account based on the information posted.
 ```
 
 Possible errors:
+
 - Email/password not provided
 - Password does not meet requirements
 - Email is not valid
@@ -201,7 +285,8 @@ Returns a sanitized public user record for the currently authenticated user
 
 ### PUT /api/user
 
-Accepts a request body with fields mapping to profile fields to update for the currently authenticated user:
+Accepts a request body with fields mapping to profile fields to update for the
+currently authenticated user:
 
 ```json
 {
@@ -211,11 +296,14 @@ Accepts a request body with fields mapping to profile fields to update for the c
 
 ### GET /api/user/:id
 
-Returns a sanitized public user record for a user with the given id. May perform checks on the authorization level of the current user to strip out priveliged information.
+Returns a sanitized public user record for a user with the given id. May perform
+checks on the authorization level of the current user to strip out priveliged
+information.
 
 ### POST /api/verify/send
 
-Sends an email to verify the current user with unique hash. The email provided will overwrite the user record's email, in the event that the two do not match.
+Sends an email to verify the current user with unique hash. The email provided
+will overwrite the user record's email, in the event that the two do not match.
 
 ```json
 {
@@ -236,13 +324,18 @@ Accepts a token used to verify the current user.
 ### POST /moderate/message
 
 Expects the following request body:
+
 ```json
 {
   "content": "string with the content of a message"
 }
 ```
 
-Makes a call to [CleanSpeak's Filter Content API](https://www.inversoft.com/docs/cleanspeak/3.x/tech/tutorials/filtering-content#using-the-filter-content-api), analyzes the API's response, and returns a boolean indicating whether or not the message is clean.
+Makes a call to [CleanSpeak's Filter Content API][cleanspeak], analyzes the
+API's response, and returns a boolean indicating whether or not the message is
+clean.
+
+[cleanspeak]: https://www.inversoft.com/docs/cleanspeak/3.x/tech/tutorials/filtering-content#using-the-filter-content-api
 
 The response body looks like this if no error occurred:
 
