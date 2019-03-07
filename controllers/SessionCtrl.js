@@ -112,27 +112,29 @@ SessionManager.prototype.disconnect = function(options){
   return session;
 }
 
-// A dead session is a session with no connected to it
-SessionManager.prototype.pruneDeadSessions = function(){
+// Delete any SocketSessions that are dead.
+// A dead session is a session with no users connected to it.
+//
+// Return a reference to the SocketSession instance.
+SessionManager.prototype.pruneDeadSessions = () => {
+  if (!this._sessions) {
+    return this
+  }
 
-  var activeSessions = Object.keys(this._sessions)
-    // Filter out inactive sessionIds
-    .filter(function(sessionId){
-      var socketSession = this._sessions[sessionId]
-      console.log(socketSession.session._id, 'socketSession.isDead() => ', socketSession.isDead())
-      return !socketSession.isDead();
-    }, this)
-    .map(function(activeSessionId){
-      return this._sessions[activeSessionId];
-    }, this);
+  const sessionIds = Object.keys(this._sessions)
+  const deadSessionIds =
+        sessionIds
+        .filter(sessionId => this._sessions[sessionId].isDead())
 
-  this._sessions = activeSessions;
-};
+  deadSessionIds
+    .forEach(sessionId => delete this._sessions[sessionId])
+
+  return this
+}
 
 SessionManager.prototype.list = function(){
   var sessions = this._sessions;
   return Object.keys(sessions).map(function(id){
-    console.log(sessions[id].session);
     return sessions[id].session;
   });
 };
