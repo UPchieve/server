@@ -3,6 +3,8 @@ UPchieve web server
 
 > Web server providing endpoints for the UPchieve web client
 
+[![CircleCI](https://circleci.com/gh/UPchieve/server.svg?style=svg)](https://circleci.com/gh/UPchieve/server)
+
 **Table of Contents**
 
 - [Local Development](#local-development)
