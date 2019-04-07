@@ -39,9 +39,37 @@ passport.use(
 /**
  * Login Required middleware.
  */
-exports.isAuthenticated = function (req, res, next) {
+const isAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
     return next()
   }
   return res.status(401).json({ err: 'Not authenticated' })
+}
+
+const isAdmin = (req, res, next) => {
+  if (req.user.isAdmin) {
+    return next()
+  }
+  return res.status(401).json({ err: 'Unauthorized' })
+}
+
+const isAuthenticatedRedirect = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next()
+  }
+  return res.redirect('/')
+}
+
+const isAdminRedirect = (req, res, next) => {
+  if (req.user.isAdmin) {
+    return next()
+  }
+  return res.redirect('/')
+}
+
+module.exports = {
+  isAuthenticated,
+  isAdmin,
+  isAuthenticatedRedirect,
+  isAdminRedirect
 }
