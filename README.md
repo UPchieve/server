@@ -66,13 +66,13 @@ asdf install nodejs 6.10.0
 - [`asdf-mongodb`][asdf-mongodb]
 
 ```shell-script
-asdf plugin-add mongodb https://github.com/jmromer/asdf-mongodb
+asdf plugin-add mongodb https://github.com/UPchieve/asdf-mongodb
 asdf install mongodb 3.6.6
 ```
 
 [asdf]: https://github.com/asdf-vm/asdf
 [asdf-nodejs]: https://github.com/asdf-vm/asdf-nodejs
-[asdf-mongodb]: https://github.com/jmromer/asdf-mongodb
+[asdf-mongodb]: https://github.com/UPchieve/asdf-mongodb
 
 ### Setup
 
