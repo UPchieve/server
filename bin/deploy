@@ -141,7 +141,3 @@ slack_notify "<!here> Deploying web/$WEB_BRANCH and server/$SERVER_BRANCH to $UP
   deploy_repos &&
     slack_notify "<!here> Deploy complete. web/$WEB_BRANCH and server/$SERVER_BRANCH are live on $UPCHIEVE_ENV."
 }|| slack_notify "<!here> Deploy failed. Check deployment logs."
-
-hrule
-step "Inspecting logs..."
-pm2 logs
