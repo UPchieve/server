@@ -45,8 +45,10 @@ Local Development
 
 ### Dependencies
 
-1. Node.js 6.10.0
-2. MongoDB 3.6.6
+1. Node.js
+2. MongoDB 
+
+See `.tools-versions` for version info.
 
 ### Version management
 
@@ -60,14 +62,14 @@ are installed. (See their repos for complete installation instructions.)
 ```shell-script
 asdf plugin-add nodejs https://github.com/asdf-vm/asdf-nodejs.git
 bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
-asdf install nodejs 6.10.0
+asdf install nodejs [VERSION]
 ```
 
 - [`asdf-mongodb`][asdf-mongodb]
 
 ```shell-script
 asdf plugin-add mongodb https://github.com/UPchieve/asdf-mongodb
-asdf install mongodb 3.6.6
+asdf install mongodb [VERSION]
 ```
 
 [asdf]: https://github.com/asdf-vm/asdf
