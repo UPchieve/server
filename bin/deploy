@@ -63,6 +63,9 @@ switch_to_branch_and_setup() {
   step "git reset --hard"
   git reset --hard
 
+  step "git clean -df"
+  git clean -df
+
   step "git checkout master"
   git checkout master
 
@@ -94,7 +97,7 @@ switch_to_branch_and_setup() {
 
 deploy_repos() {
   # Deploy the requested branches of the server and web client repositories.
-  rm "${ERROR_LOG}" 2>/dev/null
+  pm2 flush
 
   hrule
   step "Checking env vars..."
