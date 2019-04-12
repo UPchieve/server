@@ -94,7 +94,7 @@ switch_to_branch_and_setup() {
 
 deploy_repos() {
   # Deploy the requested branches of the server and web client repositories.
-  rm "${ERROR_LOG}"
+  rm "${ERROR_LOG}" 2>/dev/null
 
   hrule
   step "Checking env vars..."
