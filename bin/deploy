@@ -27,8 +27,6 @@ cd "$root_dir" || exit 1
 # shellcheck source=./utilities.sh
 . "${root_dir}/bin/utilities.sh"
 
-ERROR_LOG=/root/.pm2/logs/main-error-0.log
-
 usage() {
   grep '^#' < "$0" | tail -n +2 | head -15 | cut -c 3-
 }
@@ -135,9 +133,9 @@ while getopts 'e:w:s:h' flag; do
   esac
 done
 
-slack_notify "<!here> Deploying web/$WEB_BRANCH and server/$SERVER_BRANCH to $UPCHIEVE_ENV..."
+slack_notify "[$UPCHIEVE_ENV] Deploying web/$WEB_BRANCH and server/$SERVER_BRANCH..."
 
 {
   deploy_repos &&
-    slack_notify "<!here> Deploy complete. web/$WEB_BRANCH and server/$SERVER_BRANCH are live on $UPCHIEVE_ENV."
-}|| slack_notify "<!here> Deploy failed. Check deployment logs."
+    slack_notify "[$UPCHIEVE_ENV] Deploy complete. web/$WEB_BRANCH and server/$SERVER_BRANCH are live."
+}|| slack_notify "[$UPCHIEVE_ENV] Deploy failed. Check deployment logs."
