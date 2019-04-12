@@ -48,7 +48,7 @@ Local Development
 1. Node.js
 2. MongoDB 
 
-See `.tools-versions` for version info.
+See `.tool-versions` for version info.
 
 ### Version management
 
