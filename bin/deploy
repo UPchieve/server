@@ -27,6 +27,8 @@ cd "$root_dir" || exit 1
 # shellcheck source=./utilities.sh
 . "${root_dir}/bin/utilities.sh"
 
+BUILD_TIMESTAMP="$(date +'%s')"
+
 usage() {
   grep '^#' < "$0" | tail -n +2 | head -15 | cut -c 3-
 }
@@ -97,8 +99,10 @@ switch_to_branch_and_setup() {
 
 deploy_repos() {
   # Deploy the requested branches of the server and web client repositories.
+  slack_notify "[Build $BUILD_TIMESTAMP] Flushing logs..."
   pm2 flush
 
+  slack_notify "[Build $BUILD_TIMESTAMP] Checking ENV vars..."
   hrule
   step "Checking env vars..."
   ensure_var_is_set "UPCHIEVE_ENV"
@@ -107,12 +111,14 @@ deploy_repos() {
   ensure_var_is_set "SERVER_ROOT"
   ensure_var_is_set "SLACK_DEPLOY_WEBHOOK_URL"
 
+  slack_notify "[Build $BUILD_TIMESTAMP] Deploying web/$WEB_BRANCH to $UPCHIEVE_ENV..."
   hrule
   step "Setting up web client repo..."
   cd ../web
   switch_to_branch_and_setup "$WEB_BRANCH"
   npm run build
 
+  slack_notify "[Build $BUILD_TIMESTAMP] Deploying server/$SERVER_BRANCH to $UPCHIEVE_ENV..."
   hrule
   step "Setting up server repo..."
   cd ../server
@@ -136,9 +142,9 @@ while getopts 'e:w:s:h' flag; do
   esac
 done
 
-slack_notify "[$UPCHIEVE_ENV] Deploying web/$WEB_BRANCH and server/$SERVER_BRANCH..."
+slack_notify "[Build $BUILD_TIMESTAMP] Deploying web/$WEB_BRANCH and server/$SERVER_BRANCH to $UPCHIEVE_ENV..."
 
 {
   deploy_repos &&
-    slack_notify "[$UPCHIEVE_ENV] Deploy complete. web/$WEB_BRANCH and server/$SERVER_BRANCH are live."
-}|| slack_notify "[$UPCHIEVE_ENV] Deploy failed. Check deployment logs."
+    slack_notify "[Build $BUILD_TIMESTAMP] Deploy complete. web/$WEB_BRANCH and server/$SERVER_BRANCH are live on $UPCHIEVE_ENV."
+}|| slack_notify "[Build $BUILD_TIMESTAMP] Deploy failed. Check deployment logs by with 'pm2 logs' on $UPCHIEVE_ENV."
