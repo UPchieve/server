@@ -124,6 +124,7 @@ deploy_repos() {
   cd ../server
   switch_to_branch_and_setup "$SERVER_BRANCH"
 
+  slack_notify "[Build $BUILD_TIMESTAMP] Restarting server..."
   hrule
   step "Restarting server..."
   pm2 restart main
@@ -145,6 +146,9 @@ done
 slack_notify "[Build $BUILD_TIMESTAMP] Deploying web/$WEB_BRANCH and server/$SERVER_BRANCH to $UPCHIEVE_ENV..."
 
 {
-  deploy_repos &&
-    slack_notify "[Build $BUILD_TIMESTAMP] Deploy complete. web/$WEB_BRANCH and server/$SERVER_BRANCH are live on $UPCHIEVE_ENV."
+  deploy_repos && \
+    {
+      slack_notify \
+        "[Build $BUILD_TIMESTAMP] Deploy complete. web/$WEB_BRANCH and server/$SERVER_BRANCH are live on $UPCHIEVE_ENV."
+    }
 }|| slack_notify "[Build $BUILD_TIMESTAMP] Deploy failed. Check deployment logs by with 'pm2 logs' on $UPCHIEVE_ENV."
