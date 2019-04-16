@@ -17,8 +17,6 @@
 #        deploy -w master -s feature_branch
 #
 
-set -e
-
 # switch to projct root directory
 root_dir=$(git rev-parse --show-toplevel)
 cd "$root_dir" || exit 1
@@ -39,7 +37,9 @@ ensure_var_is_set() {
   step "$env_var_name: $env_var_val"
 
   if [[ -z "$env_var_val" ]]; then
-    echo "Error: $env_var_name is unset"
+    msg="Error: $env_var_name is unset"
+    echo "$msg"
+    notify_failure "$msg"
     exit 1
   fi
 }
@@ -84,7 +84,9 @@ switch_to_branch_and_setup() {
 
   available_branches="$(git branch --all | grep remotes/origin | awk '{ print $1 }' | tr '\n' ' ')"
   if [[ ! $available_branches =~ $branch_name ]]; then
-    echo "Error: The provided branch does not exist at remote 'origin'."
+    msg="Error: '$branch_name' does not exist at remote 'origin'."
+    echo "$msg"
+    notify_failure "$msg"
     exit 1
   fi
 
@@ -98,6 +100,8 @@ switch_to_branch_and_setup() {
 }
 
 deploy_repos() {
+  slack_notify "[Build $BUILD_TIMESTAMP] Deploying web/$WEB_BRANCH and server/$SERVER_BRANCH to $UPCHIEVE_ENV..."
+
   # Deploy the requested branches of the server and web client repositories.
   slack_notify "[Build $BUILD_TIMESTAMP] Flushing logs..."
   pm2 flush
@@ -128,8 +132,17 @@ deploy_repos() {
   hrule
   step "Restarting server..."
   pm2 restart main
+
+  slack_notify "[Build $BUILD_TIMESTAMP] Deploy complete. web/$WEB_BRANCH and server/$SERVER_BRANCH are live on $UPCHIEVE_ENV."
 }
 
+notify_failure () {
+  local msg="${1}"
+  if [[ -z "${msg}" ]]; then
+    msg="Check deployment logs by with 'pm2 logs' on ${UPCHIEVE_ENV}."
+  fi
+  slack_notify "[Build $BUILD_TIMESTAMP] Deploy failed. ${msg}"
+}
 
 WEB_BRANCH="master"
 SERVER_BRANCH="master"
@@ -143,12 +156,4 @@ while getopts 'e:w:s:h' flag; do
   esac
 done
 
-slack_notify "[Build $BUILD_TIMESTAMP] Deploying web/$WEB_BRANCH and server/$SERVER_BRANCH to $UPCHIEVE_ENV..."
-
-{
-  deploy_repos && \
-    {
-      slack_notify \
-        "[Build $BUILD_TIMESTAMP] Deploy complete. web/$WEB_BRANCH and server/$SERVER_BRANCH are live on $UPCHIEVE_ENV."
-    }
-}|| slack_notify "[Build $BUILD_TIMESTAMP] Deploy failed. Check deployment logs by with 'pm2 logs' on $UPCHIEVE_ENV."
+deploy_repos || notify_failure
