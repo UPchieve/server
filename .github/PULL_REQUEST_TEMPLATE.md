@@ -6,7 +6,9 @@ Related PRs: _Links to related PRs and how they're related (if none, remove this
 
 Description
 -----------
-_High-level summary of the changes, plus any relevant background or context_
+- _High-level summary_
+- _of all the changes,_
+- _plus any relevant background or context._
 
 Developer self-review checklist
 -------------------------------
