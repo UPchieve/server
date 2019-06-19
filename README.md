@@ -333,7 +333,10 @@ Expects the following request body:
 }
 ```
 
-TODO: re-implement the moderation/fitlering at this endpoint. We need to roll our own regex solution to replace what CleanSpeak previously provided. Main thing to filter is contact info (emails, phone numbers, etc). Also filter the worst slurs.
+Returns a boolean indicating whether or not the message is
+clean.
+
+The response body looks like this if no error occurred:
 
 ```javascript
 {
