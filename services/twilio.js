@@ -5,6 +5,7 @@ var moment = require('moment-timezone')
 const async = require('async')
 const client = twilio(config.accountSid, config.authToken)
 
+const Session = require('../models/Session')
 const Notification = require('../models/Notification')
 
 // todo
@@ -172,16 +173,23 @@ function sendFailsafe (phoneNumber, name, options) {
 
   const firstTimeNotice = isFirstTimeRequester ? 'for the first time ' : ''
 
+  const numOfRegularVolunteersNotified = options.numOfRegularVolunteersNotified
+
+  const numberOfVolunteersNotifiedMessage = `${numOfRegularVolunteersNotified} ` +
+    `regular volunteer${numOfRegularVolunteersNotified === 1 ? ' has' : 's have'} been notified.`
+
   let messageText
   if (desperate) {
     messageText = `Hi ${name}, student ${studentFirstname} ${studentLastname} ` +
       `from ${studentHighSchool} really needs your ${type} help ` +
-      `on ${subtopic}. Please log in to app.upchieve.org and join the session ASAP!`
+      `on ${subtopic}. ${numberOfVolunteersNotifiedMessage} ` +
+      `Please log in to app.upchieve.org and join the session ASAP!`
   } else {
     messageText = `Hi ${name}, student ${studentFirstname} ${studentLastname} ` +
       `from ${studentHighSchool} has requested ${type} help ` +
       `${firstTimeNotice}at app.upchieve.org ` +
-      `on ${subtopic}. Please log in if you can to help them out.`
+      `on ${subtopic}. ${numberOfVolunteersNotifiedMessage} ` +
+      `Please log in if you can to help them out.`
   }
 
   if (voice) {
@@ -259,9 +267,15 @@ module.exports = {
 
           // save notifications to Session instance
           session.addNotifications(notifications)
+            // retrieve the updated session document
+            .then(() => Session.findById(session._id))
+            .then((modifiedSession) => {
+              options.session = modifiedSession
 
-          // failsafe notifications
-          this.notifyFailsafe(student, type, subtopic, options)
+              // failsafe notifications
+              this.notifyFailsafe(student, type, subtopic, options)
+            })
+            .catch(err => console.log(err))
         })
       })
   },
@@ -269,8 +283,19 @@ module.exports = {
   notifyFailsafe: function (student, type, subtopic, options) {
     const session = options && options.session
 
-    getFailsafeVolunteersFromDb().exec()
-      .then(function (persons) {
+    session.populate('notifications')
+      .execPopulate()
+      .then((populatedSession) => {
+        return Promise.all([
+          getFailsafeVolunteersFromDb().exec(),
+          populatedSession.notifications
+            .filter(notification => notification.type === 'REGULAR' && notification.wasSuccessful)
+            .length
+        ])
+      })
+      .then(function (results) {
+        const [persons, numOfRegularVolunteersNotified] = results
+
         // notifications to record in the Session instance
         const notifications = []
 
@@ -300,7 +325,8 @@ module.exports = {
               subtopic,
               desperate: options && options.desperate,
               voice: options && options.voice,
-              isTestUserRequest: options && options.isTestUserRequest
+              isTestUserRequest: options && options.isTestUserRequest,
+              numOfRegularVolunteersNotified: numOfRegularVolunteersNotified
             })
           // wait for recordNotification to succeed or fail before callback,
           // and don't break loop if only one message fails
@@ -316,6 +342,9 @@ module.exports = {
           // add the notifications to the Session object
           session.addNotifications(notifications)
         })
+      })
+      .catch (err => {
+        console.log(err)
       })
   }
 }
