@@ -53,8 +53,7 @@ var getAvailableVolunteersFromDb = function (subtopic, options) {
   var availability = getAvailability()
   console.log(availability)
 
-  var certificationPassed = subtopic + '.passed'
-  console.log(certificationPassed)
+  var certificationPassed = `certifications.${subtopic}.passed`
 
   // Only notify admins about requests from test users (for manual testing)
   var shouldOnlyGetAdmins = options.isTestUserRequest || false
