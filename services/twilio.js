@@ -76,10 +76,10 @@ function filterAvailableVolunteers (subtopic, options) {
 }
 
 // get next wave of non-failsafe volunteers to notify
-var getNextVolunteersFromDb = function (subtopic, notifiedUserIds, options) {
+var getNextVolunteersFromDb = function (subtopic, notifiedUserIds, userIdsInSessions, options) {
   const userQuery = filterAvailableVolunteers(subtopic, options)
 
-  userQuery._id = { $nin: notifiedUserIds }
+  userQuery._id = { $nin: notifiedUserIds.concat(userIdsInSessions) }
 
   const query = User.aggregate([
     { $match: userQuery },
@@ -287,23 +287,25 @@ module.exports = {
   // optionally executes a callback passing the updated session document after notifications are sent,
   // and the number of volunteers notified in this wave
   notifyWave: function (student, type, subtopic, session, options, cb) {
-    // find previously sent notifications for the session
-    Session.findById(session._id)
-      .populate('notifications')
-      .exec((err, populatedSession) => {
-        if (err) {
-          // early exit
-          console.log(err)
-          return
-        }
-
+    Promise.all([
+      // find previously sent notifications for the session
+      Session.findById(session._id).populate('notifications').exec(),
+      // find active sessions
+      Session.find({ endedAt: { $exists: false } }).exec()
+    ])
+      .then(([populatedSession, activeSessions]) => {
         // previously notified volunteers
         const notifiedUsers = populatedSession.notifications.map((notification) => notification.volunteer)
+
+        // volunteers in active sessions
+        const userIdsInSessions = activeSessions
+          .filter((activeSession) => !!activeSession.volunteer)
+          .map((activeSession) => activeSession.volunteer)
 
         const isTestUserRequest = options.isTestUserRequest
 
         // notify the next wave of volunteers that haven't already been notified
-        getNextVolunteersFromDb(subtopic, notifiedUsers, {
+        getNextVolunteersFromDb(subtopic, notifiedUsers, userIdsInSessions, {
           isTestUserRequest
         })
           .exec((err, persons) => {
@@ -350,6 +352,7 @@ module.exports = {
             })
           })
       })
+      .catch((err) => console.log(err))
   },
 
   // notify failsafe volunteers
