@@ -50,6 +50,7 @@
     "nodemailer": "^2.7.0",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
+    "passport.socketio": "^3.7.0",
     "q": "^1.4.1",
     "socket.io": "^2.2.0",
     "twilio": "^3.28.1",

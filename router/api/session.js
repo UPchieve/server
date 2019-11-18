@@ -1,105 +1,91 @@
+const Session = require('../../models/Session')
+
 var SessionCtrl = require('../../controllers/SessionCtrl')
+
+var SocketService = require('../../services/SocketService')
 
 var ObjectId = require('mongodb').ObjectId
 
-module.exports = function (router) {
-  router.route('/session/new').post(function (req, res) {
+module.exports = function (router, io) {
+  // io is now passed to this module so that API events can trigger socket events as needed
+  const socketService = SocketService(io)
+  const sessionCtrl = SessionCtrl(socketService)
+
+  router.route('/session/new').post(async function (req, res) {
     var data = req.body || {}
     var sessionType = data.sessionType
     var sessionSubTopic = data.sessionSubTopic
     var user = req.user
 
-    SessionCtrl.create(
-      {
-        user: user,
-        type: sessionType,
-        subTopic: sessionSubTopic
-      },
-      function (err, session) {
-        if (err) {
-          res.json({
-            err: err
-          })
-        } else {
-          res.json({
-            sessionId: session._id
-          })
-        }
-      }
-    )
+    try {
+      const session = await sessionCtrl.create(
+        {
+          user: user,
+          type: sessionType,
+          subTopic: sessionSubTopic
+        })
+      res.json({ sessionId: session._id })
+    } catch (err) {
+      res.json({ err: err.toString() })
+    }
   })
 
-  router.route('/session/end').post(function (req, res) {
+  router.route('/session/end').post(async function (req, res) {
     var data = req.body || {}
     var sessionId = data.sessionId
     var user = req.user
-    SessionCtrl.end(
-      {
-        sessionId: sessionId,
-        user: user
-      },
-      function (err, session) {
-        if (err) {
-          res.json({ err: err })
-        } else {
-          res.json({ sessionId: session._id })
+
+    try {
+      const session = await sessionCtrl.end(
+        {
+          sessionId: sessionId,
+          user: user
         }
-      }
-    )
+      )
+      res.json({ sessionId: session._id })
+    } catch (err) {
+      res.json({ err: err.toString() })
+    }
   })
 
-  router.route('/session/check').post(function (req, res) {
-    var data = req.body || {}
-    var sessionId = data.sessionId
+  router.route('/session/check').post(async function (req, res) {
+    const data = req.body || {}
+    const sessionId = data.sessionId
 
-    SessionCtrl.get(
-      {
-        sessionId: sessionId
-      },
-      function (err, session) {
-        if (err) {
-          res.json({
-            err: err
-          })
-        } else if (!session) {
-          res.json({
-            err: 'No session found'
-          })
-        } else {
-          res.json({
-            sessionId: session._id,
-            whiteboardUrl: session.whiteboardUrl
-          })
-        }
+    try {
+      const session = await Session.findById(sessionId).exec()
+
+      if (!session) {
+        res.json({
+          err: 'No session found'
+        })
+      } else {
+        res.json({
+          sessionId: session._id,
+          whiteboardUrl: session.whiteboardUrl
+        })
       }
-    )
+    } catch (err) {
+      res.json({ err: err.toString() })
+    }
   })
 
-  router.route('/session/current').post(function (req, res) {
+  router.route('/session/current').post(async function (req, res) {
     const data = req.body || {}
     const userId = ObjectId(data.user_id)
 
-    SessionCtrl.findLatest(
-      {
-        $and: [
-          { endedAt: { $exists: false } },
-          {
-            $or: [{ student: userId }, { volunteer: userId }]
-          }
-        ]
-      },
-      function (err, session) {
-        if (err) {
-          res.json({ err: err })
-        } else if (!session) {
-          res.json({ err: 'No session found' })
-        } else {
-          res.json({
-            sessionId: session._id,
-            data: session
-          })
-        }
+    try {
+      const currentSession = await Session.current(userId)
+      if (!currentSession) {
+        res.json({ err: 'No current session' })
+      } else {
+        res.json({
+          sessionId: currentSession._id,
+          data: currentSession
+        })
       }
-    )
+    } catch (err) {
+      res.json({ err: err.toString() })
+    }
   })
 }

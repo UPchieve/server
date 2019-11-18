@@ -2,7 +2,6 @@ var config = require('../config.js')
 var User = require('../models/User')
 var twilio = require('twilio')
 var moment = require('moment-timezone')
-const async = require('async')
 const client = twilio(config.accountSid, config.authToken)
 const base64url = require('base64url')
 const _ = require('lodash')
@@ -19,6 +18,15 @@ const Notification = require('../models/Notification')
 // ensureindex
 // logging
 
+const SessionTimeout = function (sessionId, timeouts, intervals) {
+  this.sessionId = sessionId
+  this.timeouts = timeouts
+  this.intervals = intervals
+}
+
+const sessionTimeouts = {} // sessionId => SessionTimeout
+
+// get the availability field to query for the current time
 function getAvailability () {
   var dateString = new Date().toUTCString()
   var date = moment.utc(dateString).tz('America/New_York')
@@ -57,20 +65,16 @@ function filterAvailableVolunteers (subtopic, options) {
 
   var certificationPassed = `certifications.${subtopic}.passed`
 
-  // Only notify admins about requests from test users (for manual testing)
-  var shouldOnlyGetAdmins = options.isTestUserRequest || false
+  // Only notify volunteer test users about requests from student test users (for manual testing)
+  var shouldOnlyGetTestUsers = options.isTestUserRequest || false
 
   var userQuery = {
     isVolunteer: true,
     [certificationPassed]: true,
     [availability]: true,
-    isTestUser: false,
+    isTestUser: shouldOnlyGetTestUsers,
     isFakeUser: false,
     isFailsafeVolunteer: false
-  }
-
-  if (shouldOnlyGetAdmins) {
-    userQuery.isAdmin = true
   }
 
   return userQuery
@@ -88,6 +92,7 @@ var getNextVolunteersFromDb = function (subtopic, notifiedUserIds, userIdsInSess
   return query
 }
 
+// query failsafe volunteers to notify
 var getFailsafeVolunteersFromDb = function () {
   var userQuery = {
     'isFailsafeVolunteer': true
@@ -159,64 +164,162 @@ function getSessionUrl (sessionId) {
   return `${protocol}://${config.client.host}/s/${sessionIdEncoded}`
 }
 
-function send (phoneNumber, name, subtopic, isTestUserRequest, sessionId) {
-  const callToActionWordings = ['Start', 'Click here to start', 'Click this link to start', 'Tap here to start', 'Follow this link to start']
-  const callToAction = _.sample(callToActionWordings)
+const notifyRegular = async function (session) {
+  const populatedSession = await Session.findById(session._id).populate('student notifications').exec()
 
-  const sessionUrl = getSessionUrl(sessionId)
-  const messageText = `Hi ${name}, a student needs help in ${subtopic} on UPchieve! ${callToAction} helping them now: ${sessionUrl}`
+  const subtopic = session.subTopic
 
-  return sendTextMessage(phoneNumber, messageText, isTestUserRequest)
+  // previously sent notifications for this session
+  const notificationsSent = populatedSession.notifications
+
+  // currently active sessions
+  const activeSessions = await Session.find({ endedAt: { $exists: false } }).exec()
+
+  // previously notified volunteers for this session
+  const notifiedUserIds = notificationsSent.map((notification) => notification.volunteer)
+
+  // volunteers in active sessions
+  const userIdsInSessions = activeSessions
+    .filter((activeSession) => !!activeSession.volunteer)
+    .map((activeSession) => activeSession.volunteer)
+
+  // query the database for the next wave
+  const waveVolunteers = await getNextVolunteersFromDb(subtopic, notifiedUserIds, userIdsInSessions, {
+    isTestUserRequest: populatedSession.student.isTestUser
+  })
+    .exec()
+
+  // people to whom to send notifications to
+  const volunteersByPriority = waveVolunteers
+    .filter(v => v.volunteerPointRank >= 0)
+    .sort((v1, v2) => v2.volunteerPointRank - v1.volunteerPointRank)
+
+  const volunteersToNotify = volunteersByPriority.slice(0, 5)
+
+  // notifications to record in the database
+  const notifications = []
+
+  // notify the volunteers
+  for (const volunteer of volunteersToNotify) {
+    // record notification in database
+    const notification = new Notification({
+      volunteer: volunteer,
+      type: 'REGULAR',
+      method: 'SMS'
+    })
+
+    const name = volunteer.firstname
+
+    const phoneNumber = volunteer.phone
+
+    const isTestUserRequest = session.student.isTestUser
+
+    // format message
+    const callToActionWordings = ['Start', 'Click here to start', 'Click this link to start', 'Tap here to start', 'Follow this link to start']
+    const callToAction = _.sample(callToActionWordings)
+    const sessionUrl = getSessionUrl(session._id)
+    const messageText = `Hi ${name}, a student needs help in ${subtopic} on UPchieve! ${callToAction} helping them now: ${sessionUrl}`
+
+    const sendPromise = sendTextMessage(phoneNumber, messageText, isTestUserRequest)
+
+    try {
+      notifications.push(await recordNotification(sendPromise, notification))
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  // save notifications to Session instance
+  await session.addNotifications(notifications)
+  return notifications.length
 }
 
-function sendFailsafe (phoneNumber, name, options) {
-  var studentFirstname = options.studentFirstname
+const notifyFailsafe = async function (session, options) {
+  const populatedSession = await Session.findById(session._id).populate('student notifications').exec()
 
-  var studentLastname = options.studentLastname
+  const populatedStudent = await User.populate(populatedSession.student, { path: 'approvedHighschool' })
 
-  var studentHighSchool = options.studentHighSchool
+  var studentFirstname = populatedSession.student.firstname
 
-  var isFirstTimeRequester = options.isFirstTimeRequester
+  var studentLastname = populatedSession.student.lastname
 
-  var type = options.type
+  var studentHighSchool = populatedStudent.highschoolName
 
-  var subtopic = options.subtopic
+  var isFirstTimeRequester = !populatedSession.student.pastSessions || !populatedSession.student.pastSessions.length
+
+  var type = session.type
+
+  var subtopic = session.subTopic
 
   var desperate = options.desperate
 
   var voice = options.voice
 
-  var isTestUserRequest = options.isTestUserRequest
+  var isTestUserRequest = populatedSession.student.isTestUser
 
   const firstTimeNotice = isFirstTimeRequester ? 'for the first time ' : ''
 
-  const numOfRegularVolunteersNotified = options.numOfRegularVolunteersNotified
+  const volunteerIdsNotified = populatedSession.notifications.map((notification) => notification.volunteer)
+
+  const numOfRegularVolunteersNotified = await User.countDocuments({
+    _id: { $in: volunteerIdsNotified },
+    isFailsafeVolunteer: false
+  })
+    .exec()
 
   const numberOfVolunteersNotifiedMessage = `${numOfRegularVolunteersNotified} ` +
     `regular volunteer${numOfRegularVolunteersNotified === 1 ? ' has' : 's have'} been notified.`
 
-  const sessionUrl = getSessionUrl(options.sessionId)
+  const sessionUrl = getSessionUrl(session._id)
 
-  let messageText
-  if (desperate) {
-    messageText = `Hi ${name}, student ${studentFirstname} ${studentLastname} ` +
-      `from ${studentHighSchool} really needs your ${type} help ` +
-      `on ${subtopic}. ${numberOfVolunteersNotifiedMessage} ` +
-      `Please log in to app.upchieve.org and join the session ASAP!`
-  } else {
-    messageText = `Hi ${name}, student ${studentFirstname} ${studentLastname} ` +
-      `from ${studentHighSchool} has requested ${type} help ` +
-      `${firstTimeNotice}at app.upchieve.org ` +
-      `on ${subtopic}. ${numberOfVolunteersNotifiedMessage} ` +
-      `Please log in if you can to help them out.`
+  // query the failsafe volunteers to notify
+  const volunteersToNotify = await getFailsafeVolunteersFromDb().exec()
+
+  // notifications to record
+  const notifications = []
+
+  for (const volunteer of volunteersToNotify) {
+    const name = volunteer.firstname
+
+    const phoneNumber = volunteer.phone
+
+    let messageText
+    if (desperate) {
+      messageText = `Hi ${name}, student ${studentFirstname} ${studentLastname} ` +
+        `from ${studentHighSchool} really needs your ${type} help ` +
+        `on ${subtopic}. ${numberOfVolunteersNotifiedMessage} ` +
+        `Please log in to app.upchieve.org and join the session ASAP!`
+    } else {
+      messageText = `Hi ${name}, student ${studentFirstname} ${studentLastname} ` +
+        `from ${studentHighSchool} has requested ${type} help ` +
+        `${firstTimeNotice}at app.upchieve.org ` +
+        `on ${subtopic}. ${numberOfVolunteersNotifiedMessage} ` +
+        `Please log in if you can to help them out.`
+    }
+
+    if (!voice) {
+      messageText = messageText + ` ${sessionUrl}`
+    }
+
+    const sendPromise = voice ? sendVoiceMessage(phoneNumber, messageText)
+      : sendTextMessage(phoneNumber, messageText, isTestUserRequest)
+
+    // record notification to database
+    const notification = new Notification({
+      volunteer: volunteer,
+      type: 'FAILSAFE',
+      method: voice ? 'VOICE' : 'SMS'
+    })
+
+    try {
+      notifications.push(await recordNotification(sendPromise, notification))
+    } catch (err) {
+      console.log(err)
+    }
   }
 
-  if (voice) {
-    return sendVoiceMessage(phoneNumber, messageText)
-  } else {
-    messageText = messageText + ` ${sessionUrl}`
-    return sendTextMessage(phoneNumber, messageText, isTestUserRequest)
-  }
+  // save notifications to session object
+  await session.addNotifications(notifications)
 }
 
 /**
@@ -244,6 +347,17 @@ function recordNotification (sendPromise, notification) {
   })
 }
 
+/**
+ * Helper function that gets the SessionTimeout object corresponding
+ * to the given session
+ */
+function getSessionTimeoutFor (session) {
+  if (!(session._id in sessionTimeouts)) {
+    sessionTimeouts[session._id] = new SessionTimeout(session._id, [], [])
+  }
+  return sessionTimeouts[session._id]
+}
+
 module.exports = {
   // get total number of available, non-failsafe volunteers in the database
   // return Promise that resolves to count
@@ -269,166 +383,54 @@ module.exports = {
       })
   },
 
-  // notify both standard and failsafe volunteers
-  notify: function (student, type, subtopic, options, cb) {
-    const session = options.session
+  // begin notifying non-failsafe volunteers for a session
+  beginRegularNotifications: async function (session) {
+    // initial wave
+    await notifyRegular(session)
 
-    // send first wave of notifications to non-failsafe volunteers
-    this.notifyWave(student, type, subtopic, session, options, (modifiedSession) => {
-      // send failsafe notifications
-      options.session = modifiedSession
-      this.notifyFailsafe(student, type, subtopic, options)
-      cb(modifiedSession)
+    // set 3-minute notification interval
+    const interval = setInterval(async (session) => {
+      const numVolunteersNotified = await notifyRegular(session)
+      if (numVolunteersNotified === 0) {
+        clearInterval(interval)
+      }
+    }, 180000, session)
+
+    // store interval in memory
+    getSessionTimeoutFor(session).intervals.push(interval)
+  },
+
+  // begin notifying failsafe volunteers for a session
+  beginFailsafeNotifications: async function (session) {
+    // initial notifications
+    await notifyFailsafe(session, {
+      desperate: false,
+      voice: false
     })
+
+    // timeout for desperate SMS notification
+    const desperateTimeout = setTimeout(notifyFailsafe, config.desperateSMSTimeout, session, {
+      desperate: true,
+      voice: false
+    })
+    getSessionTimeoutFor(session).timeouts.push(desperateTimeout)
+
+    // timeout for desperate voice notification
+    const desperateVoiceTimeout = setTimeout(notifyFailsafe, config.desperateVoiceTimeout, session, {
+      desperate: true,
+      voice: true
+    })
+    getSessionTimeoutFor(session).timeouts.push(desperateVoiceTimeout)
   },
 
-  // notify the next wave of volunteers, selected from those that have
-  // not already been notified of the session
-  // optionally executes a callback passing the updated session document after notifications are sent,
-  // and the number of volunteers notified in this wave
-  notifyWave: function (student, type, subtopic, session, options, cb) {
-    Promise.all([
-      // find previously sent notifications for the session
-      Session.findById(session._id).populate('notifications').exec(),
-      // find active sessions
-      Session.find({ endedAt: { $exists: false } }).exec()
-    ])
-      .then(([populatedSession, activeSessions]) => {
-        // previously notified volunteers
-        const notifiedUsers = populatedSession.notifications.map((notification) => notification.volunteer)
+  stopNotifications: function (session) {
+    const sessionTimeout = getSessionTimeoutFor(session)
 
-        // volunteers in active sessions
-        const userIdsInSessions = activeSessions
-          .filter((activeSession) => !!activeSession.volunteer)
-          .map((activeSession) => activeSession.volunteer)
+    // clear all timeouts and intervals
+    sessionTimeout.timeouts.forEach((timeout) => clearTimeout(timeout))
+    sessionTimeout.intervals.forEach((interval) => clearInterval(interval))
 
-        const isTestUserRequest = options.isTestUserRequest
-
-        // notify the next wave of volunteers that haven't already been notified
-        getNextVolunteersFromDb(subtopic, notifiedUsers, userIdsInSessions, {
-          isTestUserRequest
-        })
-          .exec((err, persons) => {
-            if (err) {
-              // early exit
-              console.log(err)
-              return
-            }
-
-            const volunteersByPriority = persons
-              .filter(v => v.volunteerPointRank >= 0)
-              .sort((v1, v2) => v2.volunteerPointRank - v1.volunteerPointRank)
-
-            const volunteersToNotify = volunteersByPriority.slice(0, 5)
-
-            // notifications to record in the database
-            const notifications = []
-
-            async.each(volunteersToNotify, (person, cb) => {
-              // record notification in database
-              const notification = new Notification({
-                volunteer: person,
-                type: 'REGULAR',
-                method: 'SMS'
-              })
-
-              const sendPromise = send(person.phone, person.firstname, subtopic, isTestUserRequest, session._id)
-              // wait for recordNotification to succeed or fail before callback,
-              // and don't break loop if only one message fails
-              recordNotification(sendPromise, notification)
-                .then(notification => notifications.push(notification))
-                .catch(err => console.log(err))
-                .finally(cb)
-            },
-            (err) => {
-              if (err) {
-                console.log(err)
-              }
-
-              // save notifications to Session instance
-              session.addNotifications(notifications)
-                // retrieve the updated session document to pass to callback
-                .then(() => Session.findById(session._id))
-                .then((modifiedSession) => {
-                  if (cb) {
-                    cb(modifiedSession, notifications.length)
-                  }
-                })
-                .catch(err => console.log(err))
-            })
-          })
-      })
-      .catch((err) => console.log(err))
-  },
-
-  // notify failsafe volunteers
-  notifyFailsafe: function (student, type, subtopic, options) {
-    const session = options && options.session
-
-    session.populate('notifications')
-      .execPopulate()
-      .then((populatedSession) => {
-        return Promise.all([
-          student.populateForHighschoolName().execPopulate(),
-          getFailsafeVolunteersFromDb().exec(),
-          populatedSession.notifications
-            .filter(notification => notification.type === 'REGULAR' && notification.wasSuccessful)
-            .length
-        ])
-      })
-      .then(function (results) {
-        const [populatedStudent, persons, numOfRegularVolunteersNotified] = results
-
-        // notifications to record in the Session instance
-        const notifications = []
-
-        async.each(persons, (person, cb) => {
-          var isFirstTimeRequester = !student.pastSessions || !student.pastSessions.length
-
-          const notification = new Notification({
-            volunteer: person,
-            type: 'FAILSAFE'
-          })
-
-          if (options.voice) {
-            notification.method = 'VOICE'
-          } else {
-            notification.method = 'SMS'
-          }
-
-          const sendPromise = sendFailsafe(
-            person.phone,
-            person.firstname,
-            {
-              studentFirstname: populatedStudent.firstname,
-              studentLastname: populatedStudent.lastname,
-              studentHighSchool: populatedStudent.highschoolName,
-              isFirstTimeRequester,
-              type,
-              subtopic,
-              desperate: options && options.desperate,
-              voice: options && options.voice,
-              isTestUserRequest: options && options.isTestUserRequest,
-              numOfRegularVolunteersNotified: numOfRegularVolunteersNotified,
-              sessionId: session._id
-            })
-          // wait for recordNotification to succeed or fail before callback,
-          // and don't break loop if only one message fails
-          recordNotification(sendPromise, notification, session)
-            .then(notification => notifications.push(notification))
-            .catch(err => console.log(err))
-            .finally(cb)
-        }, (err) => {
-          if (err) {
-            console.log(err)
-          }
-
-          // add the notifications to the Session object
-          session.addNotifications(notifications)
-        })
-      })
-      .catch(err => {
-        console.log(err)
-      })
+    // remove them from memory
+    delete sessionTimeouts[session._id]
   }
 }

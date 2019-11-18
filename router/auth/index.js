@@ -1,8 +1,6 @@
 const express = require('express')
-const session = require('express-session')
 const flash = require('express-flash')
 const passport = require('passport')
-const MongoStore = require('connect-mongo')(session)
 
 const VerificationCtrl = require('../../controllers/VerificationCtrl')
 const ResetPasswordCtrl = require('../../controllers/ResetPasswordCtrl')
@@ -47,21 +45,6 @@ module.exports = function (app) {
 
   require('./passport')
 
-  app.use(
-    session({
-      resave: true,
-      saveUninitialized: true,
-      secret: config.sessionSecret,
-      store: new MongoStore({
-        url: config.database,
-        autoReconnect: true,
-        collection: 'auth-sessions'
-      }),
-      cookie: {
-        httpOnly: false
-      }
-    })
-  )
   app.use(passport.initialize())
   app.use(passport.session())
   app.use(flash())
