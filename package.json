@@ -5,9 +5,10 @@
   "scripts": {
     "start": "node main.js",
     "dev": "nodemon main",
+    "dev:autolint": "nodemon main --exec 'npm run lint && node'",
     "test": "nyc ava --verbose",
-    "format": "prettier-standard '*.js' '{controllers,models,router,services,seeds}/**/*.js'",
-    "lint-standard": "eslint ."
+    "lint": "eslint '*.js' '{controllers,models,router,services,seeds}/**/*.js' --fix",
+    "lint:prod": "eslint '*.js' '{controllers,models,router,services,seeds}/**/*.js' --max-warnings 0"
   },
   "nyc": {
     "check-coverage": true,
@@ -41,6 +42,14 @@
     "crypto": "0.0.3",
     "csv-parse": "^4.4.6",
     "ejs": "^2.6.1",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-config-prettier-standard": "^3.0.1",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
     "express": "^4.16.4",
     "express-ejs-layouts": "^2.5.0",
     "express-flash": "0.0.2",
@@ -54,6 +63,8 @@
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "passport.socketio": "^3.7.0",
+    "prettier": "1.19.1",
+    "prettier-config-standard": "^1.0.1",
     "q": "^1.4.1",
     "socket.io": "^2.2.0",
     "twilio": "^3.28.1",
@@ -62,24 +73,20 @@
   "devDependencies": {
     "ava": "^1.3.1",
     "eslint": "^5.15.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.16.0",
-    "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
     "nodemon": "^1.18.10",
     "nyc": "^13.3.0",
     "prettier-standard": "^9.1.1"
   },
   "eslintConfig": {
     "extends": [
-      "standard"
+      "prettier-standard"
     ],
     "rules": {
       "handle-callback-err": [
         "error",
         "^(err|error)$"
-      ]
+      ],
+      "no-debugger": "warn"
     }
   },
   "standard": {

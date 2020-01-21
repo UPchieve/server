@@ -1,7 +1,7 @@
 var VerificationCtrl = require('../../controllers/VerificationCtrl')
 
-module.exports = function (router) {
-  router.post('/verify/send', function (req, res, next) {
+module.exports = function(router) {
+  router.post('/verify/send', function(req, res, next) {
     var userId = req.user && req.user._id
 
     if (!userId) {
@@ -14,7 +14,7 @@ module.exports = function (router) {
       {
         userId: userId
       },
-      function (err, email) {
+      function(err, email) {
         if (err) {
           next(err)
         } else {
@@ -24,13 +24,13 @@ module.exports = function (router) {
     )
   })
 
-  router.post('/verify/confirm', function (req, res, next) {
+  router.post('/verify/confirm', function(req, res, next) {
     var token = req.body.token
     VerificationCtrl.finishVerification(
       {
         token: token
       },
-      function (err, user) {
+      function(err, user) {
         if (err) {
           next(err)
         } else {

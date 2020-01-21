@@ -1,10 +1,10 @@
 var CalendarCtrl = require('../../controllers/CalendarCtrl')
 
-module.exports = function (router) {
-  router.post('/calendar/save', function (req, res, next) {
+module.exports = function(router) {
+  router.post('/calendar/save', function(req, res, next) {
     CalendarCtrl.updateAvailability(
       { userid: req.user._id, availability: req.body.availability },
-      function (err, avail) {
+      function(err, avail) {
         if (err) {
           next(err)
         } else {
@@ -15,10 +15,10 @@ module.exports = function (router) {
       }
     )
   })
-  router.post('/calendar/tz/save', function (req, res, next) {
+  router.post('/calendar/tz/save', function(req, res, next) {
     CalendarCtrl.updateTimezone(
       { userid: req.user._id, tz: req.body.tz },
-      function (err, tz) {
+      function(err, tz) {
         if (err) {
           next(err)
         } else {

@@ -1,37 +1,30 @@
 var VolunteersCtrl = require('../../controllers/VolunteersCtrl')
 var passport = require('../auth/passport')
 
-module.exports = function (router) {
-  router.get('/volunteers',
-    passport.isAdmin,
-    function (req, res, next) {
-      VolunteersCtrl.getVolunteers(function (
-        volunteers,
-        err
-      ) {
-        if (err) {
-          next(err)
-        } else {
-          res.json({
-            msg: 'Users retreived from database',
-            volunteers: volunteers
-          })
-        }
-      })
+module.exports = function(router) {
+  router.get('/volunteers', passport.isAdmin, function(req, res, next) {
+    VolunteersCtrl.getVolunteers(function(volunteers, err) {
+      if (err) {
+        next(err)
+      } else {
+        res.json({
+          msg: 'Users retreived from database',
+          volunteers: volunteers
+        })
+      }
     })
+  })
 
-  router.get('/volunteers/availability/:certifiedSubject',
+  router.get(
+    '/volunteers/availability/:certifiedSubject',
     passport.isAdmin,
-    function (req, res, next) {
+    function(req, res, next) {
       var certifiedSubject = req.params.certifiedSubject
       VolunteersCtrl.getVolunteersAvailability(
         {
           certifiedSubject: certifiedSubject
         },
-        function (
-          aggAvailabilities,
-          err
-        ) {
+        function(aggAvailabilities, err) {
           if (err) {
             next(err)
           } else {
@@ -40,6 +33,8 @@ module.exports = function (router) {
               aggAvailabilities: aggAvailabilities
             })
           }
-        })
-    })
+        }
+      )
+    }
+  )
 }
