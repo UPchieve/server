@@ -1,4 +1,6 @@
-var TrainingCtrl = require('../../controllers/TrainingCtrl')
+const TrainingCtrl = require('../../controllers/TrainingCtrl')
+const UserActionCtrl = require('../../controllers/UserActionCtrl')
+const Sentry = require('@sentry/node')
 
 module.exports = function(router) {
   router.post('/training/questions', function(req, res, next) {
@@ -27,6 +29,17 @@ module.exports = function(router) {
         if (err) {
           next(err)
         } else {
+          const { id } = req.user
+          const { category } = req.body
+
+          data.passed
+            ? UserActionCtrl.passedQuiz(id, category).catch(error =>
+                Sentry.captureException(error)
+              )
+            : UserActionCtrl.failedQuiz(id, category).catch(error =>
+                Sentry.captureException(error)
+              )
+
           res.json({
             msg: 'Score calculated and saved',
             tries: data.tries,
