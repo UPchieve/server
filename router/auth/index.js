@@ -116,6 +116,7 @@ module.exports = function(app) {
     const studentPartnerOrg = req.body.studentPartnerOrg
     const partnerUserId = req.body.partnerUserId
     const highSchoolUpchieveId = req.body.highSchoolId
+    const zipCode = req.body.zipCode
     const college = req.body.college
     const phone = req.body.phone
     const favoriteAcademicSubject = req.body.favoriteAcademicSubject
@@ -135,8 +136,11 @@ module.exports = function(app) {
       })
     }
 
-    // Student partner org check (if no high school provided)
-    if (!isVolunteer && !highSchoolUpchieveId) {
+    const isStudentPartnerSignup =
+      !isVolunteer && !highSchoolUpchieveId && !zipCode
+
+    // Student partner org check (if no high school or zip code provided)
+    if (isStudentPartnerSignup) {
       const allStudentPartnerManifests = config.studentPartnerManifests
       const studentPartnerManifest =
         allStudentPartnerManifests[studentPartnerOrg]
@@ -182,6 +186,8 @@ module.exports = function(app) {
       })
     }
 
+    const highSchoolApprovalNotRequired = !!studentPartnerOrg || !!zipCode
+
     // Look up high school
     const highschoolLookupPromise = new Promise((resolve, reject) => {
       if (isVolunteer) {
@@ -192,8 +198,8 @@ module.exports = function(app) {
 
         // early exit
         return
-      } else if (studentPartnerOrg && !highSchoolUpchieveId) {
-        // don't require valid high school for students referred from partner
+      } else if (highSchoolApprovalNotRequired) {
+        // Don't require valid high school for students referred from partner or with eligible zip code
         resolve({
           isVolunteer: false
         })
@@ -226,6 +232,7 @@ module.exports = function(app) {
         user.studentPartnerOrg = studentPartnerOrg
         user.partnerUserId = partnerUserId
         user.approvedHighschool = school
+        user.zipCode = zipCode
         user.college = college
         user.phonePretty = phone
         user.favoriteAcademicSubject = favoriteAcademicSubject
