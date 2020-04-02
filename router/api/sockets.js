@@ -59,7 +59,7 @@ module.exports = function(io, sessionStore) {
     })
 
     socket.on('disconnect', function() {
-      console.log('Client disconnected')
+      console.log('Client disconnected. User ID:', socket.request.user._id)
 
       socketService.disconnectUser(socket)
     })
