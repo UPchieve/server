@@ -162,10 +162,10 @@ var userSchema = new mongoose.Schema(
       type: String,
       enum: [
         USER_BAN_REASON.NON_US_SIGNUP,
-        USER_BAN_REASON.MANUAL,
         USER_BAN_REASON.BANNED_IP,
         USER_BAN_REASON.SESSION_REPORT
-      ]
+      ],
+      select: false
     },
 
     /**
@@ -200,6 +200,12 @@ var userSchema = new mongoose.Schema(
     referredBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      select: false
+    },
+
+    ipAddresses: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'IpAddress' }],
+      default: [],
       select: false
     },
 
