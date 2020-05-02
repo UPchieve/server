@@ -83,6 +83,14 @@ module.exports = {
   authToken: '',
   sendingNumber: '',
 
+  notificationSchedule: [
+    30 * 1000,
+    30 * 1000,
+    30 * 1000,
+    2 * 60 * 1000,
+    30 * 1000,
+    30 * 1000
+  ],
   // Failsafe notification options
   // time until second (desperate) SMS message is sent
   desperateSMSTimeout: 300000,

@@ -69,8 +69,6 @@ module.exports = function(socketService) {
 
       socketService.emitSessionEnd(options.sessionId)
 
-      twilioService.stopNotifications(session)
-
       WhiteboardCtrl.saveDocToSession(options.sessionId).then(() => {
         WhiteboardCtrl.clearDocFromCache(options.sessionId)
       })
@@ -111,8 +109,6 @@ module.exports = function(socketService) {
         await session.joinUser(user)
 
         if (isInitialVolunteerJoin) {
-          twilioService.stopNotifications(session)
-
           UserActionCtrl.joinedSession(
             user._id,
             session._id,
