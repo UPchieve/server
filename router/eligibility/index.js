@@ -1,11 +1,12 @@
 const express = require('express')
 const passport = require('../auth/passport')
-
-const SchoolCtrl = require('../../controllers/SchoolCtrl')
+const Sentry = require('@sentry/node')
+const SchoolService = require('../../services/SchoolService')
 const UserCtrl = require('../../controllers/UserCtrl')
 const School = require('../../models/School')
 const ZipCode = require('../../models/ZipCode')
 const IneligibleStudent = require('../../models/IneligibleStudent')
+const IneligibleStudentService = require('../../services/IneligibleStudentService')
 
 module.exports = function(app) {
   const router = new express.Router()
@@ -44,7 +45,7 @@ module.exports = function(app) {
   router.route('/school/search').get(function(req, res, next) {
     const q = req.query.q
 
-    SchoolCtrl.search(q, function(err, results) {
+    SchoolService.search(q, function(err, results) {
       if (err) {
         next(err)
       } else {
@@ -126,6 +127,53 @@ module.exports = function(app) {
           }
         })
     })
+
+  router.get('/school/:schoolId', passport.isAdmin, async function(
+    req,
+    res,
+    next
+  ) {
+    const { schoolId } = req.params
+
+    try {
+      const school = await SchoolService.getSchool(schoolId)
+      res.json({ school })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  })
+
+  router.post('/school/approval', passport.isAdmin, async function(req, res) {
+    const { schoolId, isApproved } = req.body
+
+    try {
+      await SchoolService.updateApproval(schoolId, isApproved)
+      res.sendStatus(200)
+    } catch (err) {
+      Sentry.captureException(err)
+      res.sendStatus(500)
+    }
+  })
+
+  router.get('/ineligible-students', passport.isAdmin, async function(
+    req,
+    res,
+    next
+  ) {
+    const page = parseInt(req.query.page) || 1
+
+    try {
+      const {
+        ineligibleStudents,
+        isLastPage
+      } = await IneligibleStudentService.getStudents(page)
+
+      res.json({ ineligibleStudents, isLastPage })
+    } catch (err) {
+      next(err)
+    }
+  })
 
   app.use('/eligibility', router)
 }
