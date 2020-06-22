@@ -1,4 +1,3 @@
-const test = require('ava')
 const Volunteer = require('../../../models/Volunteer')
 const UserCtrl = require('../../../controllers/UserCtrl')
 const {
@@ -213,7 +212,7 @@ const goodUser = new Volunteer({
 })
 
 
-test('Elapsed availability for partially onboarded users', async t => {
+test('Elapsed availability for partially onboarded users', () => {
   // EST Time Zone for dates
   const lastModifiedDate = '2020-02-06T00:52:59.538-05:00'
   const newModifiedDate = '2020-02-09T12:40:00.000-05:00'
@@ -224,10 +223,10 @@ test('Elapsed availability for partially onboarded users', async t => {
     goodUser.toObject(),
     newModifiedDate
   )
-  t.is(expected, result)
+  expect(expected).toBe(result);
 })
 
-test('Elapsed availability over 3 days with no hours available', t => {
+test('Elapsed availability over 3 days with no hours available', () => {
   // EST Time Zone for dates
   const lastModifiedDate = '2020-02-06T12:52:59.538-05:00'
   const newModifiedDate = '2020-02-09T13:40:00.000-05:00'
@@ -238,10 +237,10 @@ test('Elapsed availability over 3 days with no hours available', t => {
     goodUser.toObject(),
     newModifiedDate
   )
-  t.is(expected, result)
+  expect(expected).toBe(result);
 })
 
-test('Elapsed availability over 3 days with all hours available and 7 hours out of range', async t => {
+test('Elapsed availability over 3 days with all hours available and 7 hours out of range', () => {
   // EST Time Zone for dates
   const lastModifiedDate = '2020-02-06T00:52:59.538-05:00'
   const newModifiedDate = '2020-02-09T19:40:00.000-05:00'
@@ -257,7 +256,7 @@ test('Elapsed availability over 3 days with all hours available and 7 hours out 
     goodUser.toObject(),
     newModifiedDate
   )
-  t.is(expected, result)
+  expect(expected).toBe(result);
 
   // set user back to default
   goodUser.isVolunteer = false
@@ -265,7 +264,7 @@ test('Elapsed availability over 3 days with all hours available and 7 hours out 
   goodUser.isOnboarded = false
 })
 
-test('Elapsed availability over 3 days with flexible hours available', async t => {
+test('Elapsed availability over 3 days with flexible hours available', () => {
   // EST Time Zone for dates
   const lastModifiedDate = '2020-02-06T00:52:59.538-05:00'
   const newModifiedDate = '2020-02-09T12:40:00.000-05:00'
@@ -281,7 +280,7 @@ test('Elapsed availability over 3 days with flexible hours available', async t =
     goodUser.toObject(),
     newModifiedDate
   )
-  t.is(expected, result)
+  expect(expected).toBe(result);
 
   // set user back to default
   goodUser.isVolunteer = false
@@ -299,7 +298,7 @@ test('Elapsed availability over 3 days with flexible hours available', async t =
   Friday: 6,
   Saturday: 5 }
 **/
-test('Elapsed availability over 23 days with flexible hours available', async t => {
+test('Elapsed availability over 23 days with flexible hours available', () => {
   // EST Time Zone for dates
   const lastModifiedDate = '2020-02-02T05:21:39.538-05:00'
   const newModifiedDate = '2020-02-25T16:20:42.000-05:00'
@@ -316,7 +315,7 @@ test('Elapsed availability over 23 days with flexible hours available', async t 
     goodUser.toObject(),
     newModifiedDate
   )
-  t.is(expected, result)
+  expect(expected).toBe(result);
 
   // set user back to default
   goodUser.isVolunteer = false
