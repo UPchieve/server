@@ -1,5 +1,4 @@
 const Sentry = require('@sentry/node')
-const Session = require('../models/Session')
 
 // @todo: store in redis or mongodb, not in-memory
 const whiteboardDocCache = {}
@@ -32,10 +31,5 @@ module.exports = {
 
   clearDocFromCache(sessionId) {
     delete whiteboardDocCache[sessionId]
-  },
-
-  saveDocToSession(sessionId) {
-    const doc = this.getDoc(sessionId)
-    return Session.updateOne({ _id: sessionId }, { whiteboardDoc: doc })
   }
 }
