@@ -72,7 +72,14 @@ const sessionSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Notification'
     }
-  ]
+  ],
+
+  isReported: {
+    type: Boolean,
+    default: false
+  },
+  reportReason: String,
+  reportMessage: String
 })
 
 sessionSchema.methods.saveMessage = function(messageObj, cb) {
