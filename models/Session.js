@@ -80,6 +80,7 @@ const sessionSchema = new mongoose.Schema({
     }
   ],
 
+  photos: [String],
   isReported: {
     type: Boolean,
     default: false

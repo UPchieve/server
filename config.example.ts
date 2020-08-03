@@ -125,7 +125,8 @@ const config: Static<typeof Config> = {
     accessKeyId: 'ACCESSKEY123',
     secretAccessKey: 'SECRETACCESSKEY789',
     region: 'us-east-2',
-    photoIdBucket: 'photo-id-bucket'
+    photoIdBucket: 'photo-id-bucket',
+    sessionPhotoBucket: 'session-photo-bucket'
   }
 };
 

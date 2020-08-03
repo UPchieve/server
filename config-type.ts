@@ -102,6 +102,7 @@ export const Config = Record({
     accessKeyId: String,
     secretAccessKey: String,
     region: String,
-    photoIdBucket: String
+    photoIdBucket: String,
+    sessionPhotoBucket: String
   })
 });

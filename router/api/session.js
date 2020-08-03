@@ -6,6 +6,7 @@ const SessionCtrl = require('../../controllers/SessionCtrl')
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
 const SocketService = require('../../services/SocketService')
 const SessionService = require('../../services/SessionService')
+const AwsService = require('../../services/AwsService')
 const recordIpAddress = require('../../middleware/record-ip-address')
 const passport = require('../auth/passport')
 const mapMultiWordSubtopic = require('../../utils/map-multi-word-subtopic')
@@ -154,6 +155,21 @@ module.exports = function(router, io) {
     }
   })
 
+  router.get('/session/:sessionId/photo-url', async function(req, res, next) {
+    try {
+      const { sessionId } = req.params
+      const sessionPhotoS3Key = await SessionService.getSessionPhotoUploadUrl(
+        sessionId
+      )
+      const uploadUrl = await AwsService.getSessionPhotoUploadUrl(
+        sessionPhotoS3Key
+      )
+      res.json({ uploadUrl })
+    } catch (error) {
+      next(error)
+    }
+  })
+
   router.post('/session/:sessionId/report', async function(req, res) {
     const { sessionId } = req.params
     const { reportReason, reportMessage } = req.body
@@ -210,6 +226,10 @@ module.exports = function(router, io) {
 
       session.userAgent = sessionUserAgent
       session.feedbacks = await Feedback.find({ sessionId })
+      session.photos = await AwsService.getObjects({
+        bucket: 'sessionPhotoBucket',
+        s3Keys: session.photos
+      })
 
       res.json({ session })
     } catch (err) {

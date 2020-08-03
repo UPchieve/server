@@ -1,6 +1,7 @@
 const Session = require('../models/Session')
 const User = require('../models/User')
 const WhiteboardService = require('../services/WhiteboardService')
+const crypto = require('crypto')
 const QuillDocService = require('../services/QuillDocService')
 const UserService = require('./UserService')
 const MailService = require('./MailService')
@@ -106,5 +107,16 @@ module.exports = {
     })
       .lean()
       .exec()
+  },
+
+  getSessionPhotoUploadUrl: async sessionId => {
+    const sessionPhotoS3Key = `${sessionId}${crypto
+      .randomBytes(8)
+      .toString('hex')}`
+    await Session.updateOne(
+      { _id: sessionId },
+      { $push: { photos: sessionPhotoS3Key } }
+    )
+    return sessionPhotoS3Key
   }
 }
