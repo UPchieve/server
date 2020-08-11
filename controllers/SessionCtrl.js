@@ -179,6 +179,11 @@ module.exports = function(socketService) {
       sessionActivityFrom,
       sessionActivityTo,
       minMessagesSent,
+      studentRating,
+      volunteerRating,
+      firstTimeStudent,
+      firstTimeVolunteer,
+      isReported,
       page
     }) {
       const PER_PAGE = 15
@@ -190,6 +195,42 @@ module.exports = function(socketService) {
       // Add a day to the sessionActivityTo to make it inclusive for the activity range: [sessionActivityFrom, sessionActivityTo]
       const inclusiveSessionActivityTo =
         new Date(sessionActivityTo).getTime() + oneDayInMS
+
+      const sessionQueryFilter = {
+        // Filter by the length of a session
+        sessionLength: { $gte: parseInt(minSessionLength) * 60000 }, // convert mins to milliseconds
+        // Filter by a specific date range the sessions took place
+        createdAtEstTime: {
+          $gte: new Date(sessionActivityFrom),
+          $lte: new Date(inclusiveSessionActivityTo)
+        },
+        // Filter a session by the amount of messages sent
+        $expr: {
+          $gte: [{ $size: '$messages' }, parseInt(minMessagesSent)]
+        }
+      }
+
+      if (Number(studentRating))
+        sessionQueryFilter.studentRating = Number(studentRating)
+      if (Number(volunteerRating))
+        sessionQueryFilter.volunteerRating = Number(volunteerRating)
+      if (isReported) sessionQueryFilter.isReported = true
+
+      const userQueryFilter = {
+        'student.isBanned': showBannedUsers ? { $in: [true, false] } : false,
+        'student.isTestUser': showTestUsers ? { $in: [true, false] } : false
+      }
+
+      if (firstTimeStudent && firstTimeVolunteer) {
+        userQueryFilter.$or = [
+          { 'student.pastSessions': { $size: 1 } },
+          { 'volunteer.pastSessions': { $size: 1 } }
+        ]
+      } else if (firstTimeStudent) {
+        userQueryFilter['student.pastSessions'] = { $size: 1 }
+      } else if (firstTimeVolunteer) {
+        userQueryFilter['volunteer.pastSessions'] = { $size: 1 }
+      }
 
       try {
         const sessions = await Session.aggregate([
@@ -206,47 +247,97 @@ module.exports = function(socketService) {
               },
               createdAtEstTime: {
                 $subtract: ['$createdAt', estTimeOffset]
-              }
-            }
-          },
-          {
-            $match: {
-              // Filter by the length of a session
-              sessionLength: { $gte: parseInt(minSessionLength) * 60000 }, // convert mins to milliseconds
-              // Filter by a specific date range the sessions took place
-              createdAtEstTime: {
-                $gte: new Date(sessionActivityFrom),
-                $lte: new Date(inclusiveSessionActivityTo)
               },
-              // Filter a session by the amount of messages sent
-              $expr: {
-                $gte: [{ $size: '$messages' }, parseInt(minMessagesSent)]
+              stringSessionId: { $toString: '$_id' }
+            }
+          },
+          {
+            $lookup: {
+              from: 'feedbacks',
+              localField: 'stringSessionId',
+              foreignField: 'sessionId',
+              as: 'feedbacks'
+            }
+          },
+          // add student and volunteer feedback if present
+          {
+            $addFields: {
+              studentFeedback: {
+                $filter: {
+                  input: '$feedbacks',
+                  as: 'feedback',
+                  cond: { $eq: ['$$feedback.userType', 'student'] }
+                }
+              },
+              volunteerFeedback: {
+                $filter: {
+                  input: '$feedbacks',
+                  as: 'feedback',
+                  cond: { $eq: ['$$feedback.userType', 'volunteer'] }
+                }
               }
             }
           },
           {
-            // Populate the student on the session document
+            $unwind: {
+              path: '$studentFeedback',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $unwind: {
+              path: '$volunteerFeedback',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $addFields: {
+              studentRating: {
+                $cond: {
+                  if: '$studentFeedback.responseData.rate-session.rating',
+                  then: '$studentFeedback.responseData.rate-session.rating',
+                  else: null
+                }
+              },
+              volunteerRating: {
+                $cond: {
+                  if: '$volunteerFeedback.responseData.rate-session.rating',
+                  then: '$volunteerFeedback.responseData.rate-session.rating',
+                  else: null
+                }
+              }
+            }
+          },
+          {
+            $match: sessionQueryFilter
+          },
+          {
             $lookup: {
               from: 'users',
-              // reference student on the session document and store the id as studentId
-              let: { studentId: '$student' },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      // Match a student _id to the studentId
-                      $eq: ['$_id', '$$studentId']
-                    },
-                    isBanned: showBannedUsers ? { $in: [true, false] } : false,
-                    isTestUser: showTestUsers ? { $in: [true, false] } : false
-                  }
-                }
-              ],
+              localField: 'student',
+              foreignField: '_id',
               as: 'student'
             }
           },
           {
             $unwind: '$student'
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'volunteer',
+              foreignField: '_id',
+              as: 'volunteer'
+            }
+          },
+          {
+            $unwind: {
+              path: '$volunteer',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $match: userQueryFilter
           },
           {
             $project: {
@@ -256,7 +347,9 @@ module.exports = function(socketService) {
               messages: 1,
               notifications: 1,
               type: 1,
-              subTopic: 1
+              subTopic: 1,
+              studentFirstName: '$student.firstname',
+              studentRating: 1
             }
           }
         ])
