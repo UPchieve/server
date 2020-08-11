@@ -271,7 +271,7 @@ module.exports = {
       firstname: firstName,
       lastname: lastName,
       email,
-      isVerified,
+      verified: isVerified,
       isBanned,
       isDeactivated,
       $unset: {}
