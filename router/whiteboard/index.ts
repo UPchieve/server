@@ -239,6 +239,11 @@ const whiteboardRouter = function(app): void {
     }, 30 * 1000);
 
     wsClient.on('message', rawMessage => {
+      if (rawMessage === "p1ng") {
+        // Respond to ping and exit early
+        wsClient.send("p0ng");
+        return;
+      }
       let message = decode(rawMessage as Uint8Array);
       if (!message || !message.messageType) {
         console.log(`unsupported zwibbler client in session ${sessionId}`);
