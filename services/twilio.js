@@ -49,6 +49,7 @@ const getNextVolunteer = async ({ subtopic, priorityFilter = {} }) => {
   const certificationPath = `certifications.${subtopic}.passed`
 
   const filter = {
+    isApproved: true,
     [availabilityPath]: true,
     [certificationPath]: true,
     phone: { $exists: true },
