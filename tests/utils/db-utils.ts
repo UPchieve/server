@@ -84,3 +84,9 @@ export const insertSessionWithVolunteer = async (
   // Return the session and the student
   return { session: createdSession.toObject(), student, volunteer };
 };
+
+export const getVolunteer = (query): Promise<Partial<Volunteer>> => {
+  return VolunteerModel.findOne(query)
+    .lean()
+    .exec();
+};

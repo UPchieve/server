@@ -46,12 +46,11 @@ function getCurrentAvailabilityPath() {
 
 const getNextVolunteer = async ({ subtopic, priorityFilter = {} }) => {
   const availabilityPath = getCurrentAvailabilityPath()
-  const certificationPath = `certifications.${subtopic}.passed`
 
   const filter = {
     isApproved: true,
     [availabilityPath]: true,
-    [certificationPath]: true,
+    subjects: subtopic,
     phone: { $exists: true },
     isTestUser: false,
     isFakeUser: false,

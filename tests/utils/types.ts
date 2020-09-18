@@ -1,4 +1,11 @@
 import { Types } from 'mongoose';
+import {
+  TRAINING,
+  MATH_CERTS,
+  SCIENCE_CERTS,
+  COLLEGE_CERTS,
+  SAT_CERTS
+} from '../../constants';
 
 export interface User {
   _id: Types.ObjectId;
@@ -43,7 +50,7 @@ export interface Volunteer extends User {
   zipCode: string;
   college: string;
   volunteerPartnerOrg?: string;
-  favoriteAcademicSubject: string;
+  favoriteAcademicSubject?: string;
   phone: string;
   references?: Array<Reference>;
   photoIdS3Key?: string;
@@ -64,6 +71,8 @@ export interface Volunteer extends User {
   city?: string;
   certifications: Certifications;
   availability: Availability;
+  subjects: Array<string>;
+  trainingCourses: TrainingCourses;
   sentReadyToCoachEmail: boolean;
 }
 
@@ -112,25 +121,6 @@ export enum HOURS {
   '11PM' = '11p'
 }
 
-export enum SUBJECTS {
-  PREALGREBA = 'prealgebra',
-  ALGREBA = 'algebra',
-  GEOMETRY = 'geometry',
-  TRIGONOMETRY = 'trigonometry',
-  PRECALCULUS = 'precalculus',
-  CALCULUS = 'calculus',
-  INTEGRATED_MATH_ONE = 'integratedMathOne',
-  INTEGRATED_MATH_TWO = 'integratedMathTwo',
-  INTEGRATED_MATH_THREE = 'integratedMathThree',
-  INTEGRATED_MATH_FOUR = 'integratedMathFour',
-  APPLICATIONS = 'applications',
-  ESSAYS = 'essays',
-  PLANNING = 'planning',
-  BIOLOGY = 'biology',
-  CHEMISTRY = 'chemistry',
-  PHYSICS_ONE = 'physicsOne'
-}
-
 export interface CertificationInfo {
   passed: boolean;
   tries: number;
@@ -138,22 +128,29 @@ export interface CertificationInfo {
 }
 
 export interface Certifications {
-  [SUBJECTS.PREALGREBA]: CertificationInfo;
-  [SUBJECTS.ALGREBA]: CertificationInfo;
-  [SUBJECTS.GEOMETRY]: CertificationInfo;
-  [SUBJECTS.TRIGONOMETRY]: CertificationInfo;
-  [SUBJECTS.PRECALCULUS]: CertificationInfo;
-  [SUBJECTS.CALCULUS]: CertificationInfo;
-  [SUBJECTS.INTEGRATED_MATH_ONE]: CertificationInfo;
-  [SUBJECTS.INTEGRATED_MATH_TWO]: CertificationInfo;
-  [SUBJECTS.INTEGRATED_MATH_THREE]: CertificationInfo;
-  [SUBJECTS.INTEGRATED_MATH_FOUR]: CertificationInfo;
-  [SUBJECTS.APPLICATIONS]: CertificationInfo;
-  [SUBJECTS.ESSAYS]: CertificationInfo;
-  [SUBJECTS.PLANNING]: CertificationInfo;
-  [SUBJECTS.BIOLOGY]: CertificationInfo;
-  [SUBJECTS.CHEMISTRY]: CertificationInfo;
-  [SUBJECTS.PHYSICS_ONE]: CertificationInfo;
+  [MATH_CERTS.PREALGREBA]: CertificationInfo;
+  [MATH_CERTS.ALGEBRA]: CertificationInfo;
+  [MATH_CERTS.GEOMETRY]: CertificationInfo;
+  [MATH_CERTS.TRIGONOMETRY]: CertificationInfo;
+  [MATH_CERTS.PRECALCULUS]: CertificationInfo;
+  [MATH_CERTS.CALCULUS_AB]: CertificationInfo;
+  [MATH_CERTS.CALCULUS_BC]: CertificationInfo;
+  [MATH_CERTS.STATISTICS]: CertificationInfo;
+  [SCIENCE_CERTS.BIOLOGY]: CertificationInfo;
+  [SCIENCE_CERTS.CHEMISTRY]: CertificationInfo;
+  [SCIENCE_CERTS.PHYSICS_ONE]: CertificationInfo;
+  [SCIENCE_CERTS.PHYSICS_TWO]: CertificationInfo;
+  [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: CertificationInfo;
+  [COLLEGE_CERTS.ESSAYS]: CertificationInfo;
+  [COLLEGE_CERTS.FINANCIAL_AID]: CertificationInfo;
+  [COLLEGE_CERTS.SPORTS_RECRUITMENT_PLANNING]: CertificationInfo;
+  [SAT_CERTS.SAT_MATH]: CertificationInfo;
+  [SAT_CERTS.SAT_READING]: CertificationInfo;
+  [TRAINING.UPCHIEVE_101]: CertificationInfo;
+  [TRAINING.TUTORING_SKILLS]: CertificationInfo;
+  [TRAINING.COLLEGE_COUNSELING]: CertificationInfo;
+  [TRAINING.COLLEGE_SKILLS]: CertificationInfo;
+  [TRAINING.SAT_STRATEGIES]: CertificationInfo;
 }
 
 export type AvailabilityDay = {
@@ -163,6 +160,20 @@ export type AvailabilityDay = {
 export type Availability = {
   [day in DAYS]: AvailabilityDay;
 };
+
+interface TrainingCourseData {
+  isComplete: boolean;
+  progress: number;
+  completedMaterials: Array<string>;
+}
+
+export interface TrainingCourses {
+  [TRAINING.UPCHIEVE_101]: TrainingCourseData;
+  [TRAINING.TUTORING_SKILLS]: TrainingCourseData;
+  [TRAINING.COLLEGE_COUNSELING]: TrainingCourseData;
+  [TRAINING.COLLEGE_SKILLS]: TrainingCourseData;
+  [TRAINING.SAT_STRATEGIES]: TrainingCourseData;
+}
 
 export interface Message {
   user: User;

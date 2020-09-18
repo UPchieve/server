@@ -1,6 +1,7 @@
+const Sentry = require('@sentry/node')
 const TrainingCtrl = require('../../controllers/TrainingCtrl')
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
-const Sentry = require('@sentry/node')
+const TrainingCourseService = require('../../services/TrainingCourseService')
 
 module.exports = function(router) {
   router.post('/training/questions', async function(req, res, next) {
@@ -16,6 +17,7 @@ module.exports = function(router) {
       next(err)
     }
   })
+
   router.post('/training/score', async function(req, res, next) {
     try {
       const { user, ip } = req
@@ -63,5 +65,29 @@ module.exports = function(router) {
     )
 
     res.sendStatus(204)
+  })
+
+  router.get('/training/course/:courseKey', function(req, res, next) {
+    const { user } = req
+    const { courseKey } = req.params
+    const course = TrainingCourseService.getCourse(user, courseKey)
+    if (!course) return res.sendStatus(404)
+    res.status(200).json({ course })
+  })
+
+  router.post('/training/course/:courseKey/progress', async function(
+    req,
+    res,
+    next
+  ) {
+    const { user } = req
+    const { courseKey } = req.params
+    const { materialKey } = req.body
+    const { progress, isComplete } = await TrainingCourseService.recordProgress(
+      user,
+      courseKey,
+      materialKey
+    )
+    res.status(200).json({ progress, isComplete })
   })
 }

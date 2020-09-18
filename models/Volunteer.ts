@@ -1,5 +1,16 @@
 import mongoose from 'mongoose';
-import { PHOTO_ID_STATUS, REFERENCE_STATUS } from '../constants';
+import { values } from 'lodash';
+import {
+  PHOTO_ID_STATUS,
+  REFERENCE_STATUS,
+  SUBJECTS,
+  TRAINING,
+  MATH_CERTS,
+  COLLEGE_CERTS,
+  SCIENCE_CERTS,
+  SAT_CERTS,
+  COLLEGE_SUBJECTS
+} from '../constants';
 import User from './User';
 
 const weeksSince = (date): number => {
@@ -124,6 +135,21 @@ const referenceSchema = new mongoose.Schema({
   additionalInfo: String
 });
 
+const trainingCourseSchema = new mongoose.Schema({
+  isComplete: {
+    type: Boolean,
+    default: false
+  },
+  progress: {
+    type: Number,
+    default: 0
+  },
+  completedMaterials: {
+    type: [String],
+    default: []
+  }
+});
+
 const volunteerSchemaOptions = {
   toJSON: {
     virtuals: true
@@ -189,8 +215,30 @@ const volunteerSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    trainingCourses: {
+      [TRAINING.UPCHIEVE_101]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      },
+      [TRAINING.TUTORING_SKILLS]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      },
+      [TRAINING.COLLEGE_COUNSELING]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      },
+      [TRAINING.COLLEGE_SKILLS]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      },
+      [TRAINING.SAT_STRATEGIES]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      }
+    },
     certifications: {
-      prealgebra: {
+      [MATH_CERTS.PREALGREBA]: {
         passed: {
           type: Boolean,
           default: false
@@ -201,7 +249,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      algebra: {
+      [MATH_CERTS.ALGEBRA]: {
         passed: {
           type: Boolean,
           default: false
@@ -212,7 +260,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      geometry: {
+      [MATH_CERTS.GEOMETRY]: {
         passed: {
           type: Boolean,
           default: false
@@ -223,7 +271,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      trigonometry: {
+      [MATH_CERTS.TRIGONOMETRY]: {
         passed: {
           type: Boolean,
           default: false
@@ -234,7 +282,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      precalculus: {
+      [MATH_CERTS.PRECALCULUS]: {
         passed: {
           type: Boolean,
           default: false
@@ -245,7 +293,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      calculus: {
+      [MATH_CERTS.CALCULUS_AB]: {
         passed: {
           type: Boolean,
           default: false
@@ -256,7 +304,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      integratedMathOne: {
+      [MATH_CERTS.CALCULUS_BC]: {
         passed: {
           type: Boolean,
           default: false
@@ -267,7 +315,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      integratedMathTwo: {
+      [MATH_CERTS.STATISTICS]: {
         passed: {
           type: Boolean,
           default: false
@@ -278,7 +326,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      integratedMathThree: {
+      [COLLEGE_CERTS.ESSAYS]: {
         passed: {
           type: Boolean,
           default: false
@@ -289,7 +337,8 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      integratedMathFour: {
+      // @todo: remove once college counseling required training is created
+      [COLLEGE_SUBJECTS.PLANNING]: {
         passed: {
           type: Boolean,
           default: false
@@ -300,7 +349,8 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      applications: {
+      // @todo: remove once college counseling required training is created
+      [SUBJECTS.APPLICATIONS]: {
         passed: {
           type: Boolean,
           default: false
@@ -311,7 +361,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      essays: {
+      [COLLEGE_CERTS.FINANCIAL_AID]: {
         passed: {
           type: Boolean,
           default: false
@@ -322,7 +372,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      planning: {
+      [COLLEGE_CERTS.SPORTS_RECRUITMENT_PLANNING]: {
         passed: {
           type: Boolean,
           default: false
@@ -333,7 +383,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      biology: {
+      [SCIENCE_CERTS.BIOLOGY]: {
         passed: {
           type: Boolean,
           default: false
@@ -344,7 +394,7 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      chemistry: {
+      [SCIENCE_CERTS.CHEMISTRY]: {
         passed: {
           type: Boolean,
           default: false
@@ -355,7 +405,106 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      physicsOne: {
+      [SCIENCE_CERTS.PHYSICS_ONE]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [SCIENCE_CERTS.PHYSICS_TWO]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.UPCHIEVE_101]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.TUTORING_SKILLS]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.COLLEGE_COUNSELING]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.COLLEGE_SKILLS]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.SAT_STRATEGIES]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [SAT_CERTS.SAT_MATH]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [SAT_CERTS.SAT_READING]: {
         passed: {
           type: Boolean,
           default: false
@@ -366,6 +515,10 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       }
+    },
+    subjects: {
+      type: [String],
+      enum: values(SUBJECTS)
     }
   },
   volunteerSchemaOptions

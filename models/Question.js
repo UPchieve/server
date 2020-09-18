@@ -1,4 +1,11 @@
 const mongoose = require('mongoose')
+const {
+  TRAINING,
+  MATH_CERTS,
+  SCIENCE_CERTS,
+  COLLEGE_CERTS,
+  COLLEGE_SUBJECTS
+} = require('../constants')
 
 const questionSchema = new mongoose.Schema({
   questionText: String,
@@ -21,7 +28,15 @@ questionSchema.methods.parseQuestion = function() {
 
 questionSchema.statics.getSubcategories = function(category) {
   const categoryToSubcategoryMap = {
-    algebra: [
+    [MATH_CERTS.PREALGREBA]: [
+      'numbers',
+      'arithmetic properties',
+      'exponents',
+      'exponents and radicals',
+      'polynomials',
+      'fractions'
+    ],
+    [MATH_CERTS.ALGEBRA]: [
       'linear equations',
       'rational exponents and radicals',
       'application of linear equations',
@@ -29,7 +44,7 @@ questionSchema.statics.getSubcategories = function(category) {
       'rational expressions',
       'complex numbers'
     ],
-    geometry: [
+    [MATH_CERTS.GEOMETRY]: [
       'congruence and similarity',
       'vertices',
       'angles',
@@ -37,7 +52,7 @@ questionSchema.statics.getSubcategories = function(category) {
       'triangles',
       'rectangles'
     ],
-    trigonometry: [
+    [MATH_CERTS.TRIGONOMETRY]: [
       'angles',
       'triangles',
       'right triangles',
@@ -46,7 +61,28 @@ questionSchema.statics.getSubcategories = function(category) {
       'unit circle',
       'inequalities'
     ],
-    precalculus: [
+    [MATH_CERTS.STATISTICS]: [
+      'representing data numerically',
+      'representing data graphically',
+      'two means',
+      'two proportions',
+      'levels of measurement',
+      'types of sampling',
+      'finding probability',
+      'finding x from z score',
+      'z score',
+      'basic set operations',
+      'compound events',
+      'conditional probability',
+      'independent probability',
+      'permutations and combinations',
+      'random variables distributions',
+      'relationships between variables',
+      'confidence intervals',
+      'interpreting pvalue',
+      'finding the test statistic'
+    ],
+    [MATH_CERTS.PRECALCULUS]: [
       'rectangular coordinates',
       'linear inequalities',
       'functions',
@@ -54,15 +90,44 @@ questionSchema.statics.getSubcategories = function(category) {
       'quadratic functions',
       'logarithms and exponents'
     ],
-    calculus: [
+    [MATH_CERTS.CALCULUS_AB]: [
+      'absolute extrema',
       'antiderivatives',
+      'area between curves',
+      'chain rule',
+      'concavity',
+      'continuity',
       'derivatives',
-      'limits',
-      'critical numbers',
-      'functions'
+      'differential equations',
+      'fundamental theorem',
+      'lhopitals rule',
+      'implicit differentiation',
+      'mean value theorem',
+      'optimization',
+      'reimann sums',
+      'related rates',
+      'relative extrema'
     ],
-    planning: ['exam', 'type', 'LOR', 'basic'],
-    essays: [
+    [MATH_CERTS.CALCULUS_BC]: [
+      'absolute extrema',
+      'antiderivatives',
+      'area between curves',
+      'chain rule',
+      'derivatives',
+      'differential equations',
+      'fundamental theorem of calculus',
+      'implicit differentiation',
+      'infinite sequences',
+      'limits',
+      'integration by parts',
+      'mean value theorem',
+      'optimization',
+      'parametric',
+      'reimann sums',
+      'relative extrema',
+      'taylor polynomials'
+    ],
+    [COLLEGE_CERTS.ESSAYS]: [
       'basic',
       'commonapp',
       'answer',
@@ -70,7 +135,9 @@ questionSchema.statics.getSubcategories = function(category) {
       'optional',
       'supplemental'
     ],
-    applications: [
+    // @note: Once College Counseling is implemented Planning and Applications will be phased to subjects that are unlocked instead of certs
+    [COLLEGE_SUBJECTS.PLANNING]: ['exam', 'type', 'LOR', 'basic'],
+    [COLLEGE_SUBJECTS.APPLICATIONS]: [
       'timeline',
       'resume',
       'schools',
@@ -79,15 +146,7 @@ questionSchema.statics.getSubcategories = function(category) {
       'LOR',
       'basic'
     ],
-    prealgebra: [
-      'numbers',
-      'arithmetic properties',
-      'exponents',
-      'exponents and radicals',
-      'polynomials',
-      'fractions'
-    ],
-    biology: [
+    [SCIENCE_CERTS.BIOLOGY]: [
       'biochemistry',
       'the cell',
       'cell division',
@@ -100,7 +159,7 @@ questionSchema.statics.getSubcategories = function(category) {
       'human physiology and anatomy',
       'evolution and taxonomy'
     ],
-    chemistry: [
+    [SCIENCE_CERTS.CHEMISTRY]: [
       'chemical reactions',
       'atoms, compounds, and ions',
       'stoichiometry',
@@ -118,7 +177,7 @@ questionSchema.statics.getSubcategories = function(category) {
       'nuclear chemistry',
       'kinematics'
     ],
-    physicsOne: [
+    [SCIENCE_CERTS.PHYSICS_ONE]: [
       'kinematics',
       // eslint-disable-next-line quotes
       "newton's laws",
@@ -131,7 +190,37 @@ questionSchema.statics.getSubcategories = function(category) {
       'waves and sound',
       'refraction and reflection',
       'gravity/gen relativity'
-    ]
+    ],
+    [SCIENCE_CERTS.PHYSICS_TWO]: [
+      'Fluids - density and pressure',
+      'Fluids - dynamics',
+      'THD - Ideal Gases',
+      'thermodynamics',
+      'Electric Field',
+      'Electric Potential',
+      'Magnetic Fields',
+      'Magnetic Induction',
+      'Electromagnetic Waves',
+      'Optics - refraction and reflection',
+      'Quantum & Atomic Physics',
+      'dynamics 2',
+      'Electric Circuits'
+    ],
+    [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: [
+      'earth systems and resources',
+      'ecology',
+      'energy resources and consumption',
+      'global change',
+      'impact of human health and environment',
+      'interdependence of organisms',
+      'land and water resources and use',
+      'introduction to environmental science',
+      'natural biogeochemical cycles',
+      'pollution',
+      'populations',
+      'the atmosphere'
+    ],
+    [TRAINING.UPCHIEVE_101]: ['upchieve']
   }
 
   if (typeof category !== 'string') {
