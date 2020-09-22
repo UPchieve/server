@@ -81,5 +81,12 @@ module.exports = {
     }
 
     return didBanUser
+  },
+
+  unbanUserIps: async user => {
+    await IpAddress.updateMany(
+      { users: user._id },
+      { status: IP_ADDRESS_STATUS.OK }
+    )
   }
 }
