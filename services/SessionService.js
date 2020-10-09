@@ -47,11 +47,19 @@ module.exports = {
         userId: session.student,
         banReason: USER_BAN_REASON.SESSION_REPORTED
       })
+      MailService.sendBannedUserAlert({
+        userId: session.student,
+        banReason: USER_BAN_REASON.SESSION_REPORTED,
+        sessionId: session._id
+      })
       UserActionCtrl.accountBanned(
         session.student,
         session._id,
         USER_BAN_REASON.SESSION_REPORTED
       )
+      const student = await UserService.getUser({ _id: session.student })
+      // Update user in the SendGrid contact list with banned status
+      MailService.createContact(student)
     }
 
     MailService.sendReportedSessionAlert({
