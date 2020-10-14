@@ -28,8 +28,10 @@ module.exports = {
 
   parseUser: user => {
     // Approved volunteer
-    if (user.isVolunteer && user.isApproved)
+    if (user.isVolunteer && user.isApproved) {
+      user.hoursTutored = user.hoursTutored.toString()
       return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
+    }
 
     // Student or unapproved volunteer
     return user
