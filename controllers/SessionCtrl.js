@@ -12,17 +12,15 @@ module.exports = function(socketService) {
       const userId = user._id
       const type = options.type
       const subTopic = options.subTopic
-      const currentSession = await Session.current(userId)
 
-      if (!userId) {
-        throw new Error('Cannot create a session without a user id')
-      } else if (user.isVolunteer) {
+      if (!userId) throw new Error('Cannot create a session without a user id')
+      if (user.isVolunteer)
         throw new Error('Volunteers cannot create new sessions')
-      } else if (!type) {
-        throw new Error('Must provide a type for a new session')
-      } else if (currentSession) {
+      if (!type) throw new Error('Must provide a type for a new session')
+
+      const currentSession = await Session.current(userId)
+      if (currentSession)
         throw new Error('Student already has an active session')
-      }
 
       const session = new Session({
         student: userId,

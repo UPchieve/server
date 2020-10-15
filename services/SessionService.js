@@ -170,15 +170,23 @@ module.exports = {
   },
 
   /**
+   * The worker runs this function every 2 hours at minute 0
+   *
    * Get open sessions that were started longer ago than staleThreshold (ms)
+   * but no later than the staleThreshold - cron job schedule time
+   *
    * Defaults to 12 hours old
    */
   getStaleSessions: async (staleThreshold = 43200000) => {
-    const cutoffDate = new Date(Date.now() - staleThreshold)
+    const cutoffDate = Date.now() - staleThreshold
+    const cronJobScheduleTime = 1000 * 60 * 60 * 2 // 2 hours
+    const lastCheckedCreatedAtTime = cutoffDate - cronJobScheduleTime
+
     return Session.find({
       endedAt: { $exists: false },
-      $expr: {
-        $lt: ['$createdAt', cutoffDate]
+      createdAt: {
+        $lte: new Date(cutoffDate),
+        $gte: new Date(lastCheckedCreatedAtTime)
       }
     })
       .lean()
