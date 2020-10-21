@@ -243,6 +243,17 @@ module.exports = {
     )
   },
 
+  sendRejectedPhotoSubmission: volunteer => {
+    return sendEmail(
+      volunteer.email,
+      config.mail.senders.support,
+      'The UPchieve Team',
+      config.sendgrid.rejectedPhotoSubmissionTemplate,
+      { firstName: volunteer.firstname },
+      config.sendgrid.unsubscribeGroup.account
+    )
+  },
+
   createContact: async user => {
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(user.isBanned),
