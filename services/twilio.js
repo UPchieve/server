@@ -55,6 +55,7 @@ const getNextVolunteer = async ({ priorityFilter = {} }) => {
     isFakeUser: false,
     isDeactivated: false,
     isFailsafeVolunteer: false,
+    isBanned: false,
     ...priorityFilter
   }
 

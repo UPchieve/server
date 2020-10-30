@@ -58,6 +58,7 @@ module.exports = function(socketService) {
       const userAgent = socket.request.headers['user-agent']
       const ipAddress = socket.handshake.address
 
+      // @todo: handle these unhandled errors
       if (!user) {
         throw new Error('User not authenticated')
       }
