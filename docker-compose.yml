@@ -10,6 +10,7 @@ services:
             - db
             - cache
     db:
+        hostname: 'mongodb'
         image: mongo:4.2.3-bionic
         environment:
             - MONGO_INITDB_DATABASE=upchieve
