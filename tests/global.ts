@@ -16,6 +16,8 @@ jest.mock('../config', () => {
       photoIdBucket: 'photo-id-bucket',
       sessionPhotoBucket: 'session-photo-bucket'
     },
+    volunteerPartnerManifestPath: 'localManifests/volunteer.yaml',
+    studentPartnerManifestPath:'localManifests/student.yaml',
     sendgrid: {
       apiKey: ''
     },
