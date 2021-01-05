@@ -1,0 +1,11 @@
+example:
+  name: Example - Regular
+example2:
+  name: Example - Email Requirement
+  requiredEmailDomains:
+    - example.com
+example3:
+  name: Example - Email Requirement & Math Only
+  requiredEmailDomains:
+    - example.org
+    - example.net

@@ -31,7 +31,6 @@ cache:
 variables:
   AUTO_DEVOPS_BUILD_IMAGE_CNB_ENABLED: "true"
   AUTO_DEVOPS_BUILD_IMAGE_CNB_BUILDER: "heroku/buildpacks:20"
-  BUILDPACK_URL: "heroku/nodejs"
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
 
 test:

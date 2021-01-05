@@ -11,7 +11,7 @@ import {
 } from 'runtypes';
 
 export const Config = Record({
-  NODE_ENV: Union(Literal('dev'), Literal('staging'), Literal('production')),
+  NODE_ENV: String,
   SSL_CERT_PATH: String,
   host: String,
   database: String,
@@ -63,26 +63,8 @@ export const Config = Record({
     host: String
   }),
   socketsPort: Number,
-  volunteerPartnerManifests: Dictionary(
-    Record({
-      name: String
-    }).And(
-      Partial({
-        requiredEmailDomains: Array(String),
-        mathCoachingOnly: Boolean
-      })
-    )
-  ),
-  studentPartnerManifests: Dictionary(
-    Partial({
-      name: String,
-      signupCode: String,
-      highSchoolSignup: Boolean,
-      collegeSignup: Boolean,
-      schoolSignupRequired: Boolean,
-      sites: Array(String)
-    })
-  ),
+  volunteerPartnerManifestPath: String,
+  studentPartnerManifestPath: String,
 
   // Sentry Data Source Name
   sentryDsn: String,
@@ -93,11 +75,6 @@ export const Config = Record({
   sendingNumber: String,
 
   notificationSchedule: Array(Number),
-  // Failsafe notification options
-  // time until second (desperate) SMS message is sent
-  desperateSMSTimeout: Number,
-  // time until voice call is made
-  desperateVoiceTimeout: Number,
   // voice to use to render speech
   voice: Literal('man'),
 

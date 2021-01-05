@@ -17,3 +17,5 @@ export interface Reference extends Document {
 export interface Volunteer extends User {
   references: [Reference];
 }
+
+export type Student = User;
