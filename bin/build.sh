@@ -13,7 +13,6 @@ if [[ -n "$CI_REGISTRY" && -n "$CI_REGISTRY_USER" ]]; then
   echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
 fi
 
-image_previous="$CI_APPLICATION_REPOSITORY:$CI_COMMIT_BEFORE_SHA"
 image_tagged="$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
 image_latest="$CI_APPLICATION_REPOSITORY:latest"
 
@@ -34,6 +33,9 @@ pack build "$image_tagged" \
   --builder "$builder" \
   "${env_args[@]}" \
   "${buildpack_args[@]}" \
+  --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
+  --buildpack heroku/nodejs \
+  --buildpack heroku/procfile \
   --env HTTP_PROXY \
   --env http_proxy \
   --env HTTPS_PROXY \
