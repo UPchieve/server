@@ -10,9 +10,9 @@ const mongoPass = process.env.SUBWAY_DB_PASS;
 const mongoUser = process.env.SUBWAY_DB_USER;
 let mongoConn;
 if (mongoPass === '') {
-  mongoConn = `mongdb://${mongoHost}:${mongoPort}/${mongoName}`;
+  mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`;
 } else {
-  mongoConn = `mongdb://${mongoUser}:${mongoPass}@${mongoHost}:${mongoPort}/${mongoName}`;
+  mongoConn = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}:${mongoPort}/${mongoName}`;
 }
 
 const redisHost = process.env.SUBWAY_REDIS_HOST || '127.0.0.1';
@@ -30,13 +30,13 @@ const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example';
 const bannedServiceProviders = bannedServiceProviderList.split(',');
 
-let node_env = process.env.NODE_ENV;
-if (node_env !== 'dev' && node_env !== 'staging' && node_env !== 'production') {
-  node_env = 'dev';
+let nodeEnv = process.env.NODE_ENV;
+if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
+  nodeEnv = 'dev';
 }
 
 const config: Static<typeof Config> = {
-  NODE_ENV: node_env,
+  NODE_ENV: nodeEnv,
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
   host: process.env.SUBWAY_SERVER_HOST || 'localhost:3000',
