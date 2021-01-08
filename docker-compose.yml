@@ -9,7 +9,7 @@ services:
         depends_on:
             - db
             - cache
-        command: local-web
+        entrypoint: local-web
     db:
         hostname: 'mongodb'
         image: mongo:4.2.3
