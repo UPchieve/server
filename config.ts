@@ -12,7 +12,7 @@ let mongoConn;
 if (mongoPass === '') {
   mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`;
 } else {
-  mongoConn = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}:${mongoPort}/${mongoName}`;
+  mongoConn = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/${mongoName}`;
 }
 
 const redisHost = process.env.SUBWAY_REDIS_HOST || '127.0.0.1';
