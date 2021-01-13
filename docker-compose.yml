@@ -7,11 +7,12 @@ services:
         expose:
             - "3000-3001"
         depends_on:
-            - db
+            - mongodb
             - cache
         entrypoint: local-web
-    db:
-        hostname: 'mongodb'
+    mongodb:
+        ports:
+          - "27017"
         image: mongo:4.2.3
         environment:
             - MONGO_INITDB_DATABASE=upchieve
