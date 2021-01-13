@@ -316,8 +316,7 @@ module.exports = function(app) {
     }
 
     // Volunteer partner org check
-    const allVolunteerPartnerManifests =
-      volunteerPartnerManifests
+    const allVolunteerPartnerManifests = volunteerPartnerManifests
     const volunteerPartnerManifest =
       allVolunteerPartnerManifests[volunteerPartnerOrg]
 
