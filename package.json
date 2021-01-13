@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r localManifests build/localManifests",
     "start": "node build/main",
+    "start-local": "ts-node init.ts && node build/main",
     "dev": "ts-node-dev main",
     "dev:autolint": "nodemon main --exec 'npm run lint && node'",
     "test": "jest --runInBand --detectOpenHandles --forceExit",
@@ -12,6 +13,7 @@
     "lint": "eslint . --fix",
     "lint:prod": "eslint . --fix --max-warnings 0",
     "worker": "node build/worker",
+    "worker-local": "ts-node init.ts && node build/worker",
     "worker:dev": "ts-node-dev worker"
   },
   "nyc": {
@@ -79,6 +81,7 @@
     "runtypes": "^4.2.0",
     "socket.io": "^2.3.0",
     "socket.io-redis": "^5.4.0",
+    "ts-node": "^8.9.0",
     "twilio": "^3.28.1",
     "typescript": "^3.8.3",
     "ua-parser-js": "^0.7.21",
@@ -118,7 +121,6 @@
     "prettier-standard": "^9.1.1",
     "supertest": "^4.0.2",
     "ts-jest": "^26.4.0",
-    "ts-node": "^8.9.0",
     "ts-node-dev": "^1.0.0-pre.44"
   },
   "standard": {
