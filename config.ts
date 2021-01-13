@@ -17,13 +17,7 @@ if (mongoPass === '') {
 
 const redisHost = process.env.SUBWAY_REDIS_HOST || '127.0.0.1';
 const redisPort = process.env.SUBWAY_REDIS_PORT || '6379';
-const redisPass = process.env.SUBWAY_REDIS_PASS;
-let redisConn;
-if (redisPass === '') {
-  redisConn = `redis://${redisHost}:${redisPort}`;
-} else {
-  redisConn = `redis://${redisHost}:${redisPort}&password=${redisPass}`;
-}
+const redisConn = `redis://${redisHost}:${redisPort}`;
 
 const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example';
