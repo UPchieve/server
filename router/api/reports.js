@@ -1,5 +1,6 @@
 const passport = require('../auth/passport')
 const ReportService = require('../../services/ReportService')
+import timeout from 'connect-timeout';
 
 module.exports = function(router) {
   router.get('/reports/session-report', passport.isAdmin, async function(
