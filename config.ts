@@ -58,9 +58,12 @@ const config: Static<typeof Config> = {
     rejectedReferenceTemplate: 'd-9afea0862a264bbb93ed6a2c074fd6b4',
     waitingOnReferencesTemplate: 'd-65bf8204d28746f58ad28a4aa92407c7',
     niceToMeetYouTemplate: 'd-8afee528e5184d8797c50c109d6b631b',
+    weeklyHourSummaryEmailTemplate: 'd-19a5fbe8656249d2822c8bde1c2ab086',
+    weeklyHourSummaryIntroEmailTemplate: 'd-4d8394e4da3847eabdfd23f257f7a8d3',
     unsubscribeGroup: {
       newsletter: 12567,
-      account: 12570
+      account: 12570,
+      volunteerSummary: 14543
     },
     contactList: {
       students:
@@ -158,7 +161,12 @@ const config: Static<typeof Config> = {
     photoIdBucket: process.env.SUBWAY_PHOTO_ID_BUCKET || 'photo-id-bucket',
     sessionPhotoBucket:
       process.env.SUBWAY_SESSION_PHOTO_BUCKET || 'session-photo-bucket'
-  }
+  },
+  unleashId: process.env.SUBWAY_UNLEASH_ID || 'djwdKPaf7s3oxMgDrRrd',
+  unleashName: process.env.SUBWAY_UNLEASH_NAME || 'dev',
+  unleashUrl:
+    process.env.SUBWAY_UNLEASH_URL ||
+    'https://gitlab.com/api/v4/feature_flags/unleash/23285197'
 };
 
 module.exports = config;

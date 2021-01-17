@@ -1,14 +1,4 @@
-import {
-  Record,
-  Union,
-  Literal,
-  String,
-  Number,
-  Array,
-  Dictionary,
-  Boolean,
-  Partial
-} from 'runtypes';
+import { Record, Literal, String, Number, Array } from 'runtypes';
 
 export const Config = Record({
   NODE_ENV: String,
@@ -37,9 +27,12 @@ export const Config = Record({
     rejectedReferenceTemplate: String,
     waitingOnReferencesTemplate: String,
     niceToMeetYouTemplate: String,
+    weeklyHourSummaryEmailTemplate: String,
+    weeklyHourSummaryIntroEmailTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
-      account: Number
+      account: Number,
+      volunteerSummary: Number
     }),
     contactList: Record({
       students: String,
@@ -90,5 +83,8 @@ export const Config = Record({
     region: String,
     photoIdBucket: String,
     sessionPhotoBucket: String
-  })
+  }),
+  unleashId: String,
+  unleashName: String,
+  unleashUrl: String
 });

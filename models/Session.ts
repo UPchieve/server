@@ -31,6 +31,7 @@ export interface Session {
   flags: string[];
   reviewedStudent: boolean;
   reviewedVolunteer: boolean;
+  timeTutored: number;
 }
 
 export type SessionDocument = Session & Document;
@@ -122,7 +123,8 @@ const sessionSchema = new Schema({
     enum: values(SESSION_FLAGS)
   },
   reviewedStudent: Boolean,
-  reviewedVolunteer: Boolean
+  reviewedVolunteer: Boolean,
+  timeTutored: { type: Number, default: 0 }
 });
 
 sessionSchema.methods.addNotifications = function(
