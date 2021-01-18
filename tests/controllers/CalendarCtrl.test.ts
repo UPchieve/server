@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import CalendarCtrl from '../../controllers/CalendarCtrl';
+import * as CalendarCtrl from '../../controllers/CalendarCtrl';
 import {
   insertAvailabilitySnapshot,
   insertVolunteer,
@@ -10,9 +10,8 @@ import {
   buildVolunteer,
   buildCertifications
 } from '../generate';
-import VolunteerModel from '../../models/Volunteer';
+import VolunteerModel, { Volunteer } from '../../models/Volunteer';
 import UserActionModel from '../../models/UserAction';
-import { Volunteer } from '../types';
 import { USER_ACTION, SUBJECTS } from '../../constants';
 import * as AvailabilityService from '../../services/AvailabilityService';
 
@@ -34,7 +33,9 @@ beforeEach(async () => {
 describe('Save availability and time zone', () => {
   test('Should throw error when not provided an availability', async () => {
     const input = {
-      tz: 'American/New York'
+      user: await insertVolunteer(),
+      tz: 'American/New York',
+      ip: ''
     };
 
     await expect(CalendarCtrl.updateSchedule(input)).rejects.toThrow(
@@ -43,13 +44,14 @@ describe('Save availability and time zone', () => {
   });
 
   test('Should throw error when provided availability with missing keys', async () => {
-    const volunteer = await insertVolunteer();
+    const volunteer: Volunteer = await insertVolunteer();
     const availability = buildAvailability();
     availability.Saturday = undefined;
     const input = {
       user: volunteer,
       tz: 'American/New York',
-      availability
+      availability,
+      ip: ''
     };
 
     await expect(CalendarCtrl.updateSchedule(input)).rejects.toThrow(
@@ -66,7 +68,8 @@ describe('Save availability and time zone', () => {
     const input = {
       user: volunteer,
       tz: 'American/New York',
-      availability
+      availability,
+      ip: ''
     };
     await CalendarCtrl.updateSchedule(input);
 
@@ -114,7 +117,8 @@ describe('Save availability and time zone', () => {
     const input = {
       user: volunteer,
       tz: 'American/New York',
-      availability
+      availability,
+      ip: ''
     };
     await CalendarCtrl.updateSchedule(input);
 
