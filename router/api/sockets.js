@@ -78,7 +78,7 @@ module.exports = function(io, sessionStore) {
     // Tutor session management
     socket.on('join', async function(data) {
       newrelic.startWebTransaction(
-        '/socket-io/join',
+        'socket-io/join',
         () =>
           new Promise(async (resolve, reject) => {
             if (!data || !data.sessionId) {
@@ -157,20 +157,20 @@ module.exports = function(io, sessionStore) {
     })
 
     socket.on('typing', data => {
-      newrelic.startWebTransaction('/socket-io/typing', () => {
+      newrelic.startWebTransaction('socket-io/typing', () => {
         socket.to(getSessionRoom(data.sessionId)).emit('is-typing')
       })
     })
 
     socket.on('notTyping', data => {
-      newrelic.startWebTransaction('/socket-io/notTyping', () => {
+      newrelic.startWebTransaction('socket-io/notTyping', () => {
         socket.to(getSessionRoom(data.sessionId)).emit('not-typing')
       })
     })
 
     socket.on('message', async data => {
       newrelic.startWebTransaction(
-        '/socket-io/message',
+        'socket-io/message',
         () =>
           new Promise(async (resolve, reject) => {
             const { user, sessionId, message } = data
@@ -212,7 +212,7 @@ module.exports = function(io, sessionStore) {
 
     socket.on('requestQuillState', async ({ sessionId }) => {
       newrelic.startWebTransaction(
-        '/socket-io/requestQuillState',
+        'socket-io/requestQuillState',
         () =>
           new Promise(async (resolve, reject) => {
             try {
@@ -232,7 +232,7 @@ module.exports = function(io, sessionStore) {
 
     socket.on('transmitQuillDelta', async ({ sessionId, delta }) => {
       newrelic.startWebTransaction(
-        '/socket-io/transmitQuillDelta',
+        'socket-io/transmitQuillDelta',
         () =>
           new Promise(async (resolve, reject) => {
             QuillDocService.appendToDoc(sessionId, delta)
@@ -245,7 +245,7 @@ module.exports = function(io, sessionStore) {
     })
 
     socket.on('transmitQuillSelection', async ({ sessionId, range }) => {
-      newrelic.startWebTransaction('/socket-io/transmitQuillSelection', () => {
+      newrelic.startWebTransaction('socket-io/transmitQuillSelection', () => {
         socket.to(getSessionRoom(sessionId)).emit('quillPartnerSelection', {
           range
         })
@@ -253,14 +253,14 @@ module.exports = function(io, sessionStore) {
     })
 
     socket.on('error', function(error) {
-      newrelic.startWebTransaction('/socket-io/error', () => {
+      newrelic.startWebTransaction('socket-io/error', () => {
         console.log('Socket error: ', error)
         Sentry.captureException(error)
       })
     })
 
     socket.on('resetWhiteboard', async ({ sessionId }) => {
-      newrelic.startWebTransaction('/socket-io/resetWhiteboard', () => {
+      newrelic.startWebTransaction('socket-io/resetWhiteboard', () => {
         socket.to(getSessionRoom(sessionId)).emit('resetWhiteboard')
       })
     })
