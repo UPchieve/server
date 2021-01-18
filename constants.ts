@@ -76,13 +76,13 @@ export const USER_ACTION = {
   }
 };
 
-export const USER_BAN_REASON = {
-  NON_US_SIGNUP: 'NON US SIGNUP',
-  BANNED_IP: 'USED BANNED IP',
-  SESSION_REPORTED: 'SESSION REPORTED',
-  BANNED_SERVICE_PROVIDER: 'BANNED SERVICE PROVIDER',
-  ADMIN: 'ADMIN'
-};
+export enum USER_BAN_REASON {
+  NON_US_SIGNUP = 'NON US SIGNUP',
+  BANNED_IP = 'USED BANNED IP',
+  SESSION_REPORTED = 'SESSION REPORTED',
+  BANNED_SERVICE_PROVIDER = 'BANNED SERVICE PROVIDER',
+  ADMIN = 'ADMIN'
+}
 
 export enum IP_ADDRESS_STATUS {
   OK = 'OK',
@@ -193,13 +193,13 @@ export enum COLLEGE_CERTS {
   SPORTS_RECRUITMENT_PLANNING = 'sportsRecruitmentPlanning'
 }
 
-export const COLLEGE_SUBJECTS = {
-  ESSAYS: 'essays',
-  FINANCIAL_AID: 'financialAid',
-  SPORTS_RECRUITMENT_PLANNING: 'sportsRecruitmentPlanning',
-  PLANNING: 'planning',
-  APPLICATIONS: 'applications'
-};
+export enum COLLEGE_SUBJECTS {
+  ESSAYS = 'essays',
+  FINANCIAL_AID = 'financialAid',
+  SPORTS_RECRUITMENT_PLANNING = 'sportsRecruitmentPlanning',
+  PLANNING = 'planning',
+  APPLICATIONS = 'applications'
+}
 
 export enum SAT_CERTS {
   SAT_MATH = 'satMath',
