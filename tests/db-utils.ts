@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import UserModel from '../models/User';
-import VolunteerModel from '../models/Volunteer';
+import VolunteerModel, { Volunteer } from '../models/Volunteer';
 import StudentModel from '../models/Student';
 import UserActionModel from '../models/UserAction';
 import SessionModel from '../models/Session';
@@ -13,7 +13,7 @@ import AvailabilityHistoryModel, {
   AvailabilityHistory
 } from '../models/Availability/History';
 import { UserAction } from '../services/UserActionService';
-import { Volunteer, Student, Session } from './types';
+import { Student, Session } from './types';
 import {
   buildNotification,
   buildSession,
