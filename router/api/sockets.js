@@ -142,7 +142,7 @@ module.exports = function(io, sessionStore) {
 
     socket.on('list', () => {
       newrelic.startWebTransaction(
-        '/socket-io/list',
+        'socket-io/list',
         () =>
           new Promise(async (resolve, reject) => {
             try {
