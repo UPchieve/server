@@ -6,7 +6,7 @@ const passport = require('../../auth/passport')
 const Question = require('../../../models/Question')
 const QuestionCtrl = require('../../../controllers/QuestionCtrl')
 const { questionsPath, isActivePage, frontEndPath } = require('./helpers')
-const logger = require("../../../logger")
+const logger = require('../../../logger')
 
 const edu = express()
 edu.set('view engine', 'ejs')

@@ -1,5 +1,4 @@
 const Question = require('../models/Question')
-const logger = require('../logger')
 
 const list = async (filters, cb) => {
   return Question.find(filters)
