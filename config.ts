@@ -74,6 +74,7 @@ const config: Static<typeof Config> = {
         '1111111a-111b-111c-111d-11111111111e'
     }
   },
+  logLevel: process.env.SUBWAY_LOG_LEVEL || 'debug',
   mail: {
     senders: {
       noreply: process.env.SUBWAY_NOREPLY_EMAIL_SENDER || 'example@example.org',

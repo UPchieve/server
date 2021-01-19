@@ -1,6 +1,6 @@
 import { Document, model, Schema, Types } from 'mongoose';
 import { School } from './School';
-import { User } from './types';
+import { User } from './User';
 
 export interface IneligibleStudent {
   _id: Types.ObjectId;

@@ -6,11 +6,12 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Request } from 'express';
 import expressWs from '@small-tech/express-ws';
-import logger from 'morgan';
 import config from './config';
 import router from './router';
 import cacheControl from 'express-cache-controller';
 import timeout from 'connect-timeout';
+import logger from './logger';
+import expressPino from 'express-pino-logger';
 
 function haltOnTimedout (req, res, next) {
   if (!req.timedout) next()
@@ -30,6 +31,9 @@ Sentry.init({
 // Express App
 const app = express();
 
+const expressLogger = expressPino({ logger })
+app.use(expressLogger)
+
 app.use(timeout(300000));
 
 /**
@@ -40,7 +44,6 @@ app.set('trust proxy', true);
 
 // Setup middleware
 app.use(Sentry.Handlers.requestHandler()); // The Sentry request handler must be the first middleware on the app
-app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser(config.sessionSecret));
