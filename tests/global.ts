@@ -33,6 +33,8 @@ jest.mock('../config', () => {
       }
     },
 
+    logLevel: 'info',
+
     studentPartnerManifests: {
       example: {
         name: 'Example - No School',

@@ -1,13 +1,12 @@
 const express = require('express')
 const expressLayouts = require('express-ejs-layouts')
 
-const config = require('../../config')
-const passport = require('../auth/passport')
-const Question = require('../../models/Question')
-const QuestionCtrl = require('../../controllers/QuestionCtrl')
+const config = require('../../../config')
+const passport = require('../../auth/passport')
+const Question = require('../../../models/Question')
+const QuestionCtrl = require('../../../controllers/QuestionCtrl')
 const { questionsPath, isActivePage, frontEndPath } = require('./helpers')
-
-console.log('Edu Admin module')
+const logger = require('../../../logger')
 
 const edu = express()
 edu.set('view engine', 'ejs')
@@ -39,6 +38,7 @@ edu.get('/', async (req, res) => {
       isActive: isActivePage(req)
     })
   } catch (error) {
+    logger.error(error)
     res.status(500).send(`<h1>Internal Server Error</h1> <pre>${error}</pre>`)
   }
 })
