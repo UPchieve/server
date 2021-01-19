@@ -1,7 +1,7 @@
 import { values } from 'lodash';
 import { Document, model, Schema, Types } from 'mongoose';
-import { User } from './types';
 import { SURVEY_TYPES } from '../constants';
+import { User } from './User';
 
 export interface Survey {
   _id: Types.ObjectId;

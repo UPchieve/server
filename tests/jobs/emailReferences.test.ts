@@ -2,11 +2,10 @@ import mongoose, { Aggregate } from 'mongoose';
 import emailReferences from '../../worker/jobs/emailReferences';
 import { insertVolunteer, resetDb } from '../db-utils';
 import { buildVolunteer, buildReference } from '../generate';
-import VolunteerModel from '../../models/Volunteer';
+import VolunteerModel, { Reference } from '../../models/Volunteer';
 import MailService from '../../services/MailService';
 import { Volunteer } from '../types';
 import { REFERENCE_STATUS } from '../../constants';
-import { Reference } from '../../models/types';
 jest.mock('../../services/MailService');
 
 const buildVolunteerWithReferences = (): Volunteer => {
