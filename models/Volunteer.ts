@@ -155,7 +155,9 @@ export interface Volunteer extends User {
   subjects: string[];
   trainingCourses: TrainingCourses;
   linkedInUrl: string;
-  hoursTutored: number;
+  hoursTutored: Types.Decimal128;
+  timeTutored: number;
+  sentHourSummaryIntroEmail: boolean;
 }
 
 export type VolunteerDocument = Volunteer & Document;

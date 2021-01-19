@@ -4,7 +4,7 @@
  *
  */
 import { Document, model, Schema, Types } from 'mongoose';
-import { User } from './types';
+import { User } from './User';
 
 export interface PushToken {
   user: Types.ObjectId | User;

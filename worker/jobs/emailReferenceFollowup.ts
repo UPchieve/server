@@ -1,6 +1,5 @@
 import { log } from '../logger';
-import VolunteerModel from '../../models/Volunteer';
-import { Reference } from '../../models/types';
+import VolunteerModel, { Reference } from '../../models/Volunteer';
 import { REFERENCE_STATUS } from '../../constants';
 import MailService from '../../services/MailService';
 

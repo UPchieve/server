@@ -10,7 +10,7 @@ import AvailabilityHistoryModel, {
 import { AvailabilityDay } from '../models/Availability/types';
 
 export const getAvailability = (
-  query: Partial<AvailabilitySnapshot>,
+  query,
   projection = {}
 ): Promise<AvailabilitySnapshot> => {
   return AvailabilitySnapshotModel.findOne(query)
@@ -20,7 +20,7 @@ export const getAvailability = (
 };
 
 export const getAvailabilities = (
-  query: Partial<AvailabilitySnapshot>,
+  query,
   projection = {}
 ): Promise<AvailabilitySnapshot[]> => {
   return AvailabilitySnapshotModel.find(query)
@@ -30,7 +30,7 @@ export const getAvailabilities = (
 };
 
 export const getAvailabilityHistory = (
-  query: Partial<AvailabilityHistory>,
+  query,
   projection = {}
 ): Promise<AvailabilityHistory> => {
   return AvailabilityHistoryModel.findOne(query)

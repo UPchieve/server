@@ -17,7 +17,7 @@ import { Message } from '../models/Message';
 import { Notification } from '../models/Notification';
 import { AvailabilitySnapshot } from '../models/Availability/Snapshot';
 import { AvailabilityHistory } from '../models/Availability/History';
-import { UserAction } from '../services/UserActionService';
+import { UserAction } from '../models/UserAction';
 import { AvailabilityDay } from '../models/Availability/types';
 import {
   User,
