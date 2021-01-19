@@ -1,7 +1,6 @@
 import { map } from 'lodash';
 import moment from 'moment-timezone';
-import VolunteerModel from '../../models/Volunteer';
-import { Volunteer } from '../../models/types';
+import VolunteerModel, { Volunteer } from '../../models/Volunteer';
 import { log } from '../logger';
 import { AvailabilitySnapshot } from '../../models/Availability/Snapshot';
 import {

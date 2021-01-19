@@ -5,7 +5,7 @@
  */
 import { values } from 'lodash';
 import { Document, model, Schema, Types } from 'mongoose';
-import { User } from './types';
+import { User } from './User';
 
 enum NotificationType {
   REGULAR = 'REGULAR',

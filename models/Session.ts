@@ -4,8 +4,9 @@ import { Document, model, Model, Schema, Types } from 'mongoose';
 import { SESSION_FLAGS } from '../constants';
 import MessageModel, { Message } from './Message';
 import { Notification, NotificationDocument } from './Notification';
-// @todo: use types from respective model files once they are converted
-import { User, Student, Volunteer } from './types';
+import { User } from './User';
+import { Student } from './Student';
+import { Volunteer } from './Volunteer';
 
 const validTypes = ['Math', 'College', 'Science'];
 
