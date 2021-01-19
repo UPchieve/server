@@ -1,6 +1,7 @@
 import { ProcessPromiseFunction, Queue } from 'bull';
 import { map } from 'lodash';
 import * as Sentry from '@sentry/node';
+import newrelic from 'newrelic';
 import { log } from '../logger';
 import notifyTutors from './notifyTutors';
 import updateElapsedAvailability from './updateElapsedAvailability';
@@ -78,15 +79,20 @@ const jobProcessors: JobProcessor[] = [
 export const addJobProcessors = (queue: Queue): void => {
   map(jobProcessors, jobProcessor =>
     queue.process(jobProcessor.name, async job => {
-      log(`Processing job: ${job.name}`);
-      try {
-        await jobProcessor.processor(job);
-        log(`Completed job: ${job.name}`);
-      } catch (error) {
-        log(`Error processing job: ${job.name}`);
-        log(error);
-        Sentry.captureException(error);
-      }
+      newrelic.startBackgroundTransaction(`job:${job.name}`, async () => {
+        const transaction = newrelic.getTransaction();
+        log(`Processing job: ${job.name}`);
+        try {
+          await jobProcessor.processor(job);
+          log(`Completed job: ${job.name}`);
+        } catch (error) {
+          log(`Error processing job: ${job.name}`);
+          log(error);
+          Sentry.captureException(error);
+        } finally {
+          transaction.end();
+        }
+      });
     })
   );
 };
