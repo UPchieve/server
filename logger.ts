@@ -1,9 +1,10 @@
 import pino from 'pino';
+import config from './config'
 
 function newLogger() {
   let logger
 
-  if (process.env.NODE_ENV === 'development') {
+  if (config.NODE_ENV === 'development') {
     logger = pino({ prettyPrint: {
       colorize: true,
     },
@@ -11,7 +12,7 @@ function newLogger() {
   })
   } else {
     logger = pino({
-      level: 'debug'
+      level: config.logLevel
     })
   }
 

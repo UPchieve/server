@@ -39,6 +39,7 @@ export const Config = Record({
       volunteers: String
     })
   }),
+  logLevel: String,
   mail: Record({
     senders: Record({
       noreply: String,
