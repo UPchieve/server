@@ -4,7 +4,7 @@ import config from './config'
 function newLogger() {
   let logger
 
-  if (config.NODE_ENV === 'development') {
+  if (config.NODE_ENV === 'dev') {
     logger = pino({ prettyPrint: {
       colorize: true,
     },
