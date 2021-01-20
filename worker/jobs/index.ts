@@ -79,19 +79,19 @@ const jobProcessors: JobProcessor[] = [
 export const addJobProcessors = (queue: Queue): void => {
   map(jobProcessors, jobProcessor =>
     queue.process(jobProcessor.name, job => {
-      newrelic.startBackgroundTransaction(`job:${job.name}`, () => {
-        return new Promise(async (resolve, reject) => {
-          log(`Processing job: ${job.name}`);
-          try {
-            await jobProcessor.processor(job);
-            resolve(log(`Completed job: ${job.name}`));
-          } catch (error) {
-            log(`Error processing job: ${job.name}`);
-            log(error);
-            Sentry.captureException(error);
-            reject(error);
-          }
-        });
+      newrelic.startBackgroundTransaction(`job:${job.name}`, async () => {
+        const transaction = newrelic.getTransaction();
+        log(`Processing job: ${job.name}`);
+        try {
+          await jobProcessor.processor(job);
+          log(`Completed job: ${job.name}`);
+        } catch (error) {
+          log(`Error processing job: ${job.name}`);
+          log(error);
+          Sentry.captureException(error);
+        } finally {
+          transaction.end();
+        }
       });
     })
   );
