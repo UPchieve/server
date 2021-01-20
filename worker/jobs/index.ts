@@ -78,7 +78,7 @@ const jobProcessors: JobProcessor[] = [
 
 export const addJobProcessors = (queue: Queue): void => {
   map(jobProcessors, jobProcessor =>
-    queue.process(jobProcessor.name, async job => {
+    queue.process(jobProcessor.name, job => {
       newrelic.startBackgroundTransaction(`job:${job.name}`, async () => {
         const transaction = newrelic.getTransaction();
         log(`Processing job: ${job.name}`);
