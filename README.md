@@ -106,16 +106,20 @@ docker run -i --rm --name redis -p 6379:6379 -v <Absolute Path to directory on y
 [Docker]: https://www.docker.com/products/docker-desktop
 
 ### Setup
+The below steps are tested on a Macintosh.
 
+1. Confirm that Mongo and Redis container dependencies above are running.
+1. Custom properties are currently required for the server to connect data sources on a desktop computer, so run or add to your profile the below commands.
+    1. `export SUBWAY_REDIS_HOST=localhost`
+    1. `export SUBWAY_DB_HOST=localhost`
 1. Try connecting to your database container by running `mongo` (see Mongo dependency if this will not connect). Run `quit()` to exit the shell. You can also interface with the database using a free MongoDB GUI such as [MongoDB Compass Community](https://docs.mongodb.com/manual/administration/install-community/)
-1. Run `cp config.example.ts config.ts` to copy the default config as your own config.
-1. Run `npm install` to install the required dependancies.
+1. Run `npm install` to install the required dependencies.
 1. Run `npx ts-node init` to seed the database with users, quiz questions, schools, and zip codes.
 1. If you want to test Twilio voice calling functionality, set the `host` property to `[your public IP address]:3000` (minus the brackets), and configure your router/firewall to allow connections to port 3000 from the Internet. Twilio will need to connect to your system to obtain TwiML instructions.
-1. Run `npm run dev` to start the dev server on `http://localhost:3000`. If you get a [`bcrypt`][bcrypt] compilement error, run `npm rebuild`.
+1. Run `npm run dev` to start the dev server on `http://localhost:3000`. If you get a [`bcrypt`][bcrypt] compilation error, run `npm rebuild`.
 1. See [the web client repo](https://github.com/UPchieve/web) for client
    installation.
-1. (optional) Run `redis-server` and `npm run worker:dev` to start the redis database and dev worker. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `ts-node ./scripts/add-cron-jobs.ts` to add all repeatable jobs to the job queue.
+1. (optional) Run `npm run worker:dev` to start the redis database and dev worker. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `ts-node ./scripts/add-cron-jobs.ts` to add all repeatable jobs to the job queue.
 
 [bcrypt]: https://www.npmjs.com/package/bcrypt
 
