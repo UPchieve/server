@@ -159,7 +159,9 @@ module.exports = {
       'UPchieve',
       config.sendgrid.openVolunteerWelcomeTemplate,
       { volunteerName },
-      config.sendgrid.unsubscribeGroup.account
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      { categories: ['volunteer welcome email'] }
     )
   },
 
@@ -170,7 +172,9 @@ module.exports = {
       'UPchieve',
       config.sendgrid.partnerVolunteerWelcomeTemplate,
       { volunteerName },
-      config.sendgrid.unsubscribeGroup.account
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      { categories: ['partner volunteer welcome email'] }
     )
   },
 
@@ -181,7 +185,9 @@ module.exports = {
       'UPchieve',
       config.sendgrid.studentWelcomeTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      { categories: ['student welcome email'] }
     )
   },
 
@@ -221,7 +227,9 @@ module.exports = {
       'UPchieve',
       config.sendgrid.referenceFormTemplate,
       emailData,
-      config.sendgrid.unsubscribeGroup.account
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      { categories: ['reference form email'] }
     )
   },
 
@@ -232,7 +240,9 @@ module.exports = {
       'UPchieve',
       config.sendgrid.approvedNotOnboardedTemplate,
       { volunteerName: volunteer.firstname },
-      config.sendgrid.unsubscribeGroup.account
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      { categories: ['approved not onboarded email'] }
     )
   },
 
@@ -246,7 +256,9 @@ module.exports = {
       'UPchieve',
       readyToCoachTemplate,
       { volunteerName: volunteer.firstname },
-      config.sendgrid.unsubscribeGroup.account
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      { categories: ['ready to coach email'] }
     )
   },
 
@@ -276,7 +288,9 @@ module.exports = {
       'The UPchieve Team',
       config.sendgrid.rejectedPhotoSubmissionTemplate,
       { firstName: volunteer.firstname },
-      config.sendgrid.unsubscribeGroup.account
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      { categories: ['photo rejected email'] }
     )
   },
 
@@ -295,7 +309,9 @@ module.exports = {
       'The UPchieve Team',
       config.sendgrid.rejectedReferenceTemplate,
       emailData,
-      config.sendgrid.unsubscribeGroup.account
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      { categories: ['reference rejected email'] }
     )
   },
 
@@ -311,7 +327,8 @@ module.exports = {
     const overrides = {
       reply_to: {
         email: config.mail.receivers.recruitment
-      }
+      },
+      categories: ['reference followup email']
     }
 
     return sendEmail(
@@ -336,7 +353,8 @@ module.exports = {
         firstName: capitalize(volunteer.firstname)
       },
       config.sendgrid.unsubscribeGroup.account,
-      null
+      null,
+      { categories: ['waiting on references email'] }
     )
   },
 
@@ -345,7 +363,8 @@ module.exports = {
     const overrides = {
       reply_to: {
         email: teamMemberEmail
-      }
+      },
+      categories: ['nice to meet you email']
     }
 
     return sendEmail(
@@ -388,7 +407,8 @@ module.exports = {
           // @todo: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
           config.sendgrid.unsubscribeGroup.volunteerSummary
         ]
-      }
+      },
+      categories: ['weekly hour summary email']
     }
 
     return sendEmail(
