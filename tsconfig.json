@@ -6,8 +6,9 @@
       "resolveJsonModule": true,
       "allowJs": true,
       "skipLibCheck": true,
-      "target":"ES2019",
+      "target":"es2019",
       "moduleResolution": "node",
+      "module": "commonjs",
       "lib":[
         "es2019", "dom"
       ]
