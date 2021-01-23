@@ -376,6 +376,7 @@ module.exports = {
   },
 
   getUsers: async function({
+    userId,
     firstName,
     lastName,
     email,
@@ -388,6 +389,7 @@ module.exports = {
     const PER_PAGE = 15
     const skip = (pageNum - 1) * PER_PAGE
 
+    if (userId) query._id = ObjectId(userId)
     if (firstName) query.firstname = { $regex: firstName, $options: 'i' }
     if (lastName) query.lastname = { $regex: lastName, $options: 'i' }
     if (email) query.email = { $regex: email, $options: 'i' }
