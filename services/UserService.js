@@ -24,8 +24,9 @@ const getVolunteer = async volunteerId => {
 }
 
 module.exports = {
-  getUser: query => {
+  getUser: (query, projection) => {
     return User.findOne(query)
+      .select(projection)
       .lean()
       .exec()
   },
