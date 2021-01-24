@@ -3,7 +3,7 @@ import {
   unlockedSubject,
   accountOnboarded
 } from '../controllers/UserActionCtrl';
-import QuestionModel from '../models/Question';
+import QuestionModel, { QuestionDocument } from '../models/Question';
 import {
   CERT_UNLOCKING,
   COMPUTED_CERTS,
@@ -67,7 +67,7 @@ interface GetQuestionsOptions {
 
 export async function getQuestions(
   options: GetQuestionsOptions
-): Promise<string[]> {
+): Promise<QuestionDocument[]> {
   const { category } = options;
   const subcategories = QuestionModel.getSubcategories(category);
 
