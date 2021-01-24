@@ -106,6 +106,7 @@
     "@types/mongoose": "^5.7.10",
     "@types/morgan": "^1.9.0",
     "@types/supertest": "^2.0.9",
+    "@types/socket.io": "1.4.33",
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
     "babel-jest": "^26.0.1",

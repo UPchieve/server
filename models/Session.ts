@@ -199,7 +199,7 @@ sessionSchema.statics.getUnfulfilledSessions = async function(): Promise<
 export interface SessionModelType extends Model<SessionDocument> {
   addNotifications(): Promise<NotificationDocument[]>;
   findLatest(): Promise<SessionDocument>;
-  current(): Promise<SessionDocument>;
+  current(userId: Types.ObjectId): Promise<SessionDocument>;
   getUnfulfilledSessions(): Promise<SessionDocument[]>;
 }
 
