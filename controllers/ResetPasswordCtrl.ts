@@ -2,21 +2,13 @@ import { randomBytes } from 'crypto';
 import { sendReset } from '../services/MailService';
 import UserModel from '../models/User';
 
-export interface InitiateResetOptions {
-  email: string;
-}
-
 export interface FinishResetOptions {
   email: string;
   password: string;
   token: string;
 }
 
-export async function initiateReset(
-  options: InitiateResetOptions
-): Promise<void> {
-  const email = options.email;
-
+export async function initiateReset(email: string): Promise<void> {
   const user = await UserModel.findOne({ email });
   if (!user) {
     throw new Error('No account with that id found.');

@@ -496,7 +496,7 @@ module.exports = function(app) {
       })
     }
     try {
-      await ResetPasswordCtrl.initiateReset({ email })
+      await ResetPasswordCtrl.initiateReset(email)
       res.json({
         msg: 'Password reset email sent'
       })

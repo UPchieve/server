@@ -5,8 +5,8 @@ module.exports = router => {
     try {
       const isClean = ModerationCtrl.moderateMessage(req.body)
       res.json({ isClean })
-    } catch (e) {
-      next(e)
+    } catch (error) {
+      next(error)
     }
   })
 }

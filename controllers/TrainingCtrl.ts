@@ -260,7 +260,7 @@ export async function getQuizScore(
 
   const tries = user.certifications[cert]['tries'] + 1;
 
-  const userUpdates: Partial<VolunteerDocument> = {
+  const userUpdates: Partial<VolunteerDocument> & { $addToSet?: any } = {
     [`certifications.${cert}.passed`]: passed,
     [`certifications.${cert}.tries`]: tries,
     [`certifications.${cert}.lastAttemptedAt`]: new Date()
@@ -278,8 +278,6 @@ export async function getQuizScore(
         unlockedSubject(user._id, subject, ip);
     }
 
-    // I think TS doesn't like this mongo-magic
-    // @ts-ignore
     userUpdates.$addToSet = { subjects: unlockedSubjects };
 
     if (
