@@ -23,10 +23,10 @@ export interface CreateSessionOptions {
 export async function create(
   options: CreateSessionOptions
 ): Promise<SessionDocument> {
-  const user: User = options.user;
-  const userId: Types.ObjectId = user._id;
-  const type: string = options.type;
-  const subTopic: string = options.subTopic;
+  const user = options.user;
+  const userId = user._id;
+  const type = options.type;
+  const subTopic = options.subTopic;
 
   if (!userId) throw new Error('Cannot create a session without a user id');
   if (user.isVolunteer)
@@ -99,7 +99,7 @@ export async function join(options: SessionJoinOptions): Promise<void> {
   if (
     user.isVolunteer &&
     session.volunteer &&
-    session.volunteer.toString() !== user._id.toHexString()
+    session.volunteer.toString() !== user._id.toString()
   ) {
     addFailedJoins({
       userId: user._id,
