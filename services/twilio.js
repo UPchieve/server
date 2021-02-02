@@ -175,6 +175,20 @@ const getVolunteersNotifiedSince = async sinceDate => {
   return notifications.map(notif => notif.volunteer)
 }
 
+const sendFollowupText = async ({ session, volunteerId, volunteerPhone }) => {
+  const messageText = `Head's up: this student is still waiting for help!`
+  const sendPromise = sendTextMessage(volunteerPhone, messageText)
+  const notification = new Notification({
+    volunteer: volunteerId,
+    type: 'REGULAR',
+    method: 'SMS',
+    priorityGroup: 'follow-up'
+  })
+
+  await recordNotification(sendPromise, notification)
+  await session.addNotifications([notification])
+}
+
 const notifyVolunteer = async session => {
   let subtopic = session.subTopic
   const activeSessionVolunteers = await getActiveSessionVolunteers()
@@ -408,5 +422,7 @@ module.exports = {
 
   beginFailsafeNotifications: async session => {
     await notifyFailsafe({ session, voice: false })
-  }
+  },
+
+  sendFollowupText
 }

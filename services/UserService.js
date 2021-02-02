@@ -21,16 +21,16 @@ const {
 const AnalyticsService = require('./AnalyticsService')
 const ObjectId = require('mongodb').ObjectId
 
-const getVolunteer = async volunteerId => {
-  return Volunteer.findOne({ _id: volunteerId })
-}
-
 module.exports = {
   getUser: (query, projection) => {
     return User.findOne(query)
       .select(projection)
       .lean()
       .exec()
+  },
+
+  getVolunteer: (query, projection) => {
+    return Volunteer.findOne(query, projection)
   },
 
   getReferredFriends: (userId, projection) => {
@@ -241,7 +241,7 @@ module.exports = {
     photoIdStatus,
     referencesStatus
   }) {
-    const volunteerBeforeUpdate = await getVolunteer(volunteerId)
+    const volunteerBeforeUpdate = await this.getVolunteer({ _id: volunteerId })
     const hasCompletedBackgroundInfo =
       volunteerBeforeUpdate.occupation &&
       volunteerBeforeUpdate.occupation.length > 0 &&
@@ -307,7 +307,9 @@ module.exports = {
   },
 
   addBackgroundInfo: async function({ volunteerId, update, ip }) {
-    const { volunteerPartnerOrg } = await getVolunteer(volunteerId)
+    const { volunteerPartnerOrg } = await this.getVolunteer({
+      _id: volunteerId
+    })
     if (volunteerPartnerOrg) {
       update.isApproved = true
       UserActionCtrl.accountApproved(volunteerId)
