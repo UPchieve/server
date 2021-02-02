@@ -105,6 +105,11 @@ module.exports = {
         joinedFrom
       })
 
+      AnalyticsService.captureEvent(session.student, EVENTS.SESSION_MATCHED, {
+        event: EVENTS.SESSION_MATCHED,
+        sessionId: session._id.toString()
+      })
+
       const pushTokens = await PushToken.find({ user: session.student })
         .lean()
         .exec()
