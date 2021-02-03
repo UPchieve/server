@@ -76,6 +76,21 @@ export const USER_ACTION = {
   }
 };
 
+// new format to move to from USER_ACTIONS
+// user events in a [noun][verb] format
+export const EVENTS = {
+  ACCOUNT_APPROVED: 'ACCOUNT_APPROVED',
+  ACCOUNT_ONBOARDED: 'ACCOUNT_ONBOARDED',
+  ACCOUNT_BANNED: 'ACCOUNT_BANNED',
+  PHOTO_ID_REJECTED: 'PHOTO_ID_REJECTED',
+  REFERENCE_DELETED: 'REFERENCE_DELETED',
+  REFERENCE_REJECTED: 'REFERENCE_REJECTED',
+  SESSION_JOINED: 'SESSION_JOINED',
+  SESSION_REJOINED: 'SESSION_REJOINED',
+  SUBJECT_UNLOCKED: 'SUBJECT_UNLOCKED',
+  SESSION_REPLIED_YES_TO_TEXT: 'SESSION_REPLIED_YES_TO_TEXT' // @note: currently deprecated
+};
+
 export enum USER_BAN_REASON {
   NON_US_SIGNUP = 'NON US SIGNUP',
   BANNED_IP = 'USED BANNED IP',
@@ -289,13 +304,7 @@ export const COMPUTED_CERTS = {
     MATH_CERTS.PRECALCULUS,
     MATH_CERTS.STATISTICS
   ],
-  [SUBJECTS.INTEGRATED_MATH_FOUR]: [MATH_CERTS.PRECALCULUS],
-  // Calculus AB, Calculus BC, or Precalculus can also unlock SAT Math
-  [SUBJECTS.SAT_MATH]: [
-    SUBJECTS.ALGEBRA_ONE,
-    MATH_CERTS.TRIGONOMETRY,
-    MATH_CERTS.GEOMETRY
-  ]
+  [SUBJECTS.INTEGRATED_MATH_FOUR]: [MATH_CERTS.PRECALCULUS]
   // @note: temporarily hide these computed certs for when the college counseling course is added
   // [SUBJECTS.PLANNING]: [TRAINING.COLLEGE_COUNSELING],
   // [SUBJECTS.APPLICATIONS]: [TRAINING.COLLEGE_COUNSELING]
@@ -329,6 +338,16 @@ export const FORMAT_ALGEBRA = {
   [MATH_SUBJECTS.ALGEBRA_TWO]: 'Algebra 2'
 };
 
+export const SAT_MAPPING = {
+  satmath: SAT_SUBJECTS.SAT_MATH,
+  satreading: SAT_SUBJECTS.SAT_READING
+};
+
+export const FORMAT_SAT = {
+  [SAT_SUBJECTS.SAT_MATH]: 'SAT Math',
+  [SAT_SUBJECTS.SAT_READING]: 'SAT Reading'
+};
+
 export enum SURVEY_TYPES {
   STUDENT_PRESESSION = 'student pre-session',
   STUDENT_POSTSESSION = 'student post-session'
@@ -345,3 +364,6 @@ export enum SESSION_FLAGS {
   VOLUNTEER_RATING = 'VOLUNTEER_RATING',
   UNMATCHED = 'UNMATCHED'
 }
+
+// amount of volunteers to text notifications to per session
+export const TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP = 20;

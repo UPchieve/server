@@ -87,7 +87,7 @@ module.exports = function(io, sessionStore) {
               return
             }
 
-            const { sessionId } = data
+            const { sessionId, joinedFrom } = data
             const {
               request: { user }
             } = socket
@@ -110,7 +110,11 @@ module.exports = function(io, sessionStore) {
             }
 
             try {
-              await SessionCtrl.join({ socket, session, user })
+              await SessionCtrl.join(socket, {
+                session,
+                user,
+                joinedFrom
+              })
 
               const sessionRoom = getSessionRoom(sessionId)
               const socketIds = await getSocketIdsFromRoom(user._id.toString())

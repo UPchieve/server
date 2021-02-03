@@ -175,17 +175,34 @@ const getVolunteersNotifiedSince = async sinceDate => {
   return notifications.map(notif => notif.volunteer)
 }
 
+const sendFollowupText = async ({ session, volunteerId, volunteerPhone }) => {
+  const messageText = `Head's up: this student is still waiting for help!`
+  const sendPromise = sendTextMessage(volunteerPhone, messageText)
+  const notification = new Notification({
+    volunteer: volunteerId,
+    type: 'REGULAR',
+    method: 'SMS',
+    priorityGroup: 'follow-up'
+  })
+
+  await recordNotification(sendPromise, notification)
+  await session.addNotifications([notification])
+}
+
 const notifyVolunteer = async session => {
   let subtopic = session.subTopic
   const activeSessionVolunteers = await getActiveSessionVolunteers()
   const notifiedLastFifteenMins = await getVolunteersNotifiedSince(
     relativeDate(15 * 60 * 1000)
   )
+  const notifiedLastSixtyMins = await getVolunteersNotifiedSince(
+    relativeDate(60 * 60 * 1000)
+  )
+  const notifiedLastTwentyFourHours = await getVolunteersNotifiedSince(
+    relativeDate(24 * 60 * 60 * 1000)
+  )
   const notifiedLastThreeDays = await getVolunteersNotifiedSince(
     relativeDate(3 * 24 * 60 * 60 * 1000)
-  )
-  const notifiedLastSevenDays = await getVolunteersNotifiedSince(
-    relativeDate(7 * 24 * 60 * 60 * 1000)
   )
 
   // Prioritize volunteers who do not have high-level subjects to avoid
@@ -193,38 +210,21 @@ const notifyVolunteer = async session => {
   const highLevelSubjects = ['calculusAB', 'chemistry', 'statistics']
   const isHighLevelSubject = highLevelSubjects.includes(subtopic)
   const subjectsFilter = { $eq: subtopic }
+  // If the current subject is not a high level subject,
+  // filter out volunteers who have high level subjects
   if (!isHighLevelSubject) subjectsFilter['$nin'] = highLevelSubjects
 
   /**
-   * 1. Partner volunteers - not notified in the last 7 days
-   * 2. Regular volunteers - not notified in the last 7 days
-   * 3. Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
-   * 4. Regular volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
-   * 5. Partner volunteers - not notified in the last 3 days
-   * 6. All volunteers - not notified in the last 15 mins who don't have "high level subjects"
+   * 1. Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
+   * 2. Regular volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
+   * 3. Partner volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"
+   * 4. Regular volunteers - not notified in the last 24 hours AND they don’t have " high level subjects"
+   * 5. All volunteers - not notified in the last 24 hours
+   * 6. All volunteers - not notified in the last 60 mins
    * 7. All volunteers - not notified in the last 15 mins
    */
+
   const volunteerPriority = [
-    {
-      groupName: 'Partner volunteers - not notified in the last 7 days',
-      filter: {
-        volunteerPartnerOrg: {
-          $exists: true
-        },
-        subjects: subtopic,
-        _id: { $nin: activeSessionVolunteers.concat(notifiedLastSevenDays) }
-      }
-    },
-    {
-      groupName: 'Regular volunteers - not notified in the last 7 days',
-      filter: {
-        volunteerPartnerOrg: {
-          $exists: false
-        },
-        subjects: subtopic,
-        _id: { $nin: activeSessionVolunteers.concat(notifiedLastSevenDays) }
-      }
-    },
     {
       groupName:
         'Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"',
@@ -244,19 +244,43 @@ const notifyVolunteer = async session => {
       }
     },
     {
-      groupName: 'Partner volunteers - not notified in the last 3 days',
+      groupName:
+        'Partner volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"',
       filter: {
         volunteerPartnerOrg: { $exists: true },
-        subjects: subtopic,
-        _id: { $nin: activeSessionVolunteers.concat(notifiedLastThreeDays) }
+        subjects: subjectsFilter,
+        _id: {
+          $nin: activeSessionVolunteers.concat(notifiedLastTwentyFourHours)
+        }
       }
     },
     {
       groupName:
-        'All volunteers - not notified in the last 15 mins who don\'t have "high level subjects"',
+        'Regular volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"',
       filter: {
+        volunteerPartnerOrg: {
+          $exists: false
+        },
         subjects: subjectsFilter,
-        _id: { $nin: activeSessionVolunteers.concat(notifiedLastFifteenMins) }
+        _id: {
+          $nin: activeSessionVolunteers.concat(notifiedLastTwentyFourHours)
+        }
+      }
+    },
+    {
+      groupName: 'All volunteers - not notified in the last 24 hours',
+      filter: {
+        subjects: subtopic,
+        _id: {
+          $nin: activeSessionVolunteers.concat(notifiedLastTwentyFourHours)
+        }
+      }
+    },
+    {
+      groupName: 'All volunteers - not notified in the last 60 mins',
+      filter: {
+        subjects: subtopic,
+        _id: { $nin: activeSessionVolunteers.concat(notifiedLastSixtyMins) }
       }
     },
     {
@@ -385,13 +409,9 @@ module.exports = {
 
     if (student.isTestUser) return
 
-    const isNewStudent = !student.pastSessions || !student.pastSessions.length
-
-    // Delay initial wave of notifications by 1 min if new student or
-    // send initial wave of notifications (right now)
+    // Delay initial wave of notifications by 1 min to give
+    // volunteers on the dashboard time to pick up the request
     const notificationSchedule = config.notificationSchedule.slice()
-    if (isNewStudent) notificationSchedule.unshift(1000 * 60)
-    else notifyVolunteer(session)
     const delay = notificationSchedule.shift()
     queue.add(
       'NotifyTutors',
@@ -402,5 +422,7 @@ module.exports = {
 
   beginFailsafeNotifications: async session => {
     await notifyFailsafe({ session, voice: false })
-  }
+  },
+
+  sendFollowupText
 }

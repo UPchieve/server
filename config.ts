@@ -114,32 +114,44 @@ const config: Static<typeof Config> = {
   sendingNumber: process.env.SUBWAY_TWILIO_SENDING_NUMBER || '',
 
   notificationSchedule: [
+    // Minute 1 (the time after a session request is made)
+    1 * 60 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
+    // Minute 2
+    1 * 60 * 1000,
+    5 * 1000,
+    5 * 1000,
+    5 * 1000,
+    5 * 1000,
+    // Minute 3
+    1 * 60 * 1000,
+    5 * 1000,
+    5 * 1000,
+    5 * 1000,
+    5 * 1000,
+    // Minute 4
+    1 * 60 * 1000,
+    5 * 1000,
+    5 * 1000,
+    5 * 1000,
+    5 * 1000,
+    // Minute 7
     3 * 60 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
-    3 * 60 * 1000,
+    // Minute 8
+    1 * 60 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
-    3 * 60 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
+    // Minute 9
+    1 * 60 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
@@ -167,7 +179,8 @@ const config: Static<typeof Config> = {
   unleashName: process.env.SUBWAY_UNLEASH_NAME || 'dev',
   unleashUrl:
     process.env.SUBWAY_UNLEASH_URL ||
-    'https://gitlab.com/api/v4/feature_flags/unleash/23285197'
+    'https://gitlab.com/api/v4/feature_flags/unleash/23285197',
+  posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus'
 };
 
 module.exports = config;

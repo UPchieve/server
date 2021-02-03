@@ -3,6 +3,7 @@ import {
   unlockedSubject,
   accountOnboarded
 } from '../controllers/UserActionCtrl';
+import { captureEvent } from '../services/AnalyticsService';
 import QuestionModel, { QuestionDocument } from '../models/Question';
 import {
   CERT_UNLOCKING,
@@ -13,7 +14,8 @@ import {
   SAT_CERTS,
   SUBJECT_TYPES,
   COLLEGE_CERTS,
-  COLLEGE_SUBJECTS
+  COLLEGE_SUBJECTS,
+  EVENTS
 } from '../constants';
 import getSubjectType from '../utils/getSubjectType';
 import { createContact } from '../services/MailService';
@@ -42,7 +44,9 @@ const numQuestions = {
   [SCIENCE_CERTS.PHYSICS_ONE]: 1,
   [SCIENCE_CERTS.PHYSICS_TWO]: 1,
   [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: 1,
-  [TRAINING.UPCHIEVE_101]: 27
+  [TRAINING.UPCHIEVE_101]: 27,
+  [SAT_CERTS.SAT_MATH]: 1,
+  [SAT_CERTS.SAT_READING]: 1
 };
 const SUBJECT_THRESHOLD = 0.8;
 const TRAINING_THRESHOLD = 1.0;
@@ -155,7 +159,8 @@ export function getUnlockedSubjects(
     [cert]: { passed: true },
     // @note: temporarily bypass training requirements until these training courses are added
     [TRAINING.TUTORING_SKILLS]: { passed: true },
-    [TRAINING.COLLEGE_COUNSELING]: { passed: true }
+    [TRAINING.COLLEGE_COUNSELING]: { passed: true },
+    [TRAINING.SAT_STRATEGIES]: { passed: true }
   });
 
   // UPchieve 101 must be completed before a volunteer can be onboarded
@@ -199,14 +204,6 @@ export function getUnlockedSubjects(
     for (let i = 0; i < prerequisiteCerts.length; i++) {
       const prereqCert = prerequisiteCerts[i];
 
-      // SAT Math can be unlocked from taking Geometry, Trigonometry, and Algebra or
-      // from Calculus AB, Calculus BC, and Precalculus - none of which unlock Geometry
-      if (
-        cert === SAT_CERTS.SAT_MATH &&
-        currentSubjects.has(MATH_CERTS.PRECALCULUS)
-      )
-        break;
-
       if (!currentSubjects.has(prereqCert)) {
         meetsRequirements = false;
         break;
@@ -216,18 +213,12 @@ export function getUnlockedSubjects(
     if (meetsRequirements) currentSubjects.add(cert);
   }
 
-  // SAT Math is a special case, it can be unlocked by multiple math certs, but must have SAT Strategies completed
-  if (
-    currentSubjects.has(SAT_CERTS.SAT_MATH) &&
-    !userCertifications[TRAINING.SAT_STRATEGIES].passed
-  )
-    currentSubjects.delete(SAT_CERTS.SAT_MATH);
-
   return Array.from(currentSubjects);
 }
 
 export interface GetQuizScoreOptions {
   user: Volunteer;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   idAnswerMap: any;
   category: TRAINING;
   ip: string;
@@ -237,6 +228,7 @@ export interface GetQuizScoreOutput {
   tries: number;
   passed: boolean;
   score: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   idCorrectAnswerMap: any;
 }
 
@@ -274,8 +266,13 @@ export async function getQuizScore(
 
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
-      if (!user.subjects.includes(subject))
+      if (!user.subjects.includes(subject)) {
         unlockedSubject(user._id, subject, ip);
+        captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {
+          event: EVENTS.SUBJECT_UNLOCKED,
+          subject
+        });
+      }
     }
 
     userUpdates.$addToSet = { subjects: unlockedSubjects };
@@ -287,6 +284,9 @@ export async function getQuizScore(
     ) {
       userUpdates.isOnboarded = true;
       accountOnboarded(user._id, ip);
+      captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
+        event: EVENTS.ACCOUNT_ONBOARDED
+      });
     }
   }
 
