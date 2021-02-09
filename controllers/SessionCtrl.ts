@@ -9,7 +9,7 @@ import {
   beginFailsafeNotifications
 } from '../services/twilio';
 import { addFailedJoins } from '../services/SessionService';
-import service from '../services/PushTokenService';
+import PushTokenService from '../services/PushTokenService';
 import PushTokenModel from '../models/PushToken';
 import { MessageDocument } from '../models/Message';
 import { StudentDocument } from '../models/Student';
@@ -140,7 +140,7 @@ export async function join(options: SessionJoinOptions): Promise<void> {
       .exec();
     if (pushTokens && pushTokens.length > 0) {
       const tokens = pushTokens.map(token => token.token);
-      service.sendVolunteerJoined(session, tokens);
+      PushTokenService.sendVolunteerJoined(session, tokens);
     }
   }
 
@@ -149,7 +149,7 @@ export async function join(options: SessionJoinOptions): Promise<void> {
   const thirtySecondsElapsed = 1000 * 30;
   if (
     !isInitialVolunteerJoin &&
-    session.createdAt.getMilliseconds() + thirtySecondsElapsed < Date.now()
+    session.createdAt.getTime() + thirtySecondsElapsed < Date.now()
   ) {
     rejoinedSession(user._id, session._id, userAgent, ipAddress).catch(error =>
       captureException(error)
