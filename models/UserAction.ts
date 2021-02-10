@@ -7,7 +7,15 @@
 import { Schema, Types, Document, model } from 'mongoose';
 import { USER_ACTION } from '../constants';
 
-export interface UserAction extends Document {
+export interface UserActionAgent {
+  device: string;
+  browser: string;
+  browserVersion: string;
+  operatingSystem: string;
+  operatingSystemVersion: string;
+}
+
+export interface UserAction extends Document, UserActionAgent {
   _id: Types.ObjectId;
   user: Types.ObjectId;
   session: Types.ObjectId;
@@ -16,11 +24,6 @@ export interface UserAction extends Document {
   action: string;
   quizCategory: string;
   quizSubcategory: string;
-  device: string;
-  browser: string;
-  browserVersion: string;
-  operatingSystem: string;
-  operatingSystemVersion: string;
   ipAddress: string;
   referenceEmail: string;
   banReason: string;

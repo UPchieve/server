@@ -50,12 +50,14 @@ module.exports = function(router, io) {
           { delay }
         )
 
-        UserActionCtrl.requestedSession(
+        new UserActionCtrl.SessionActionCreator(
           user._id,
           session._id,
           userAgent,
           ip
-        ).catch(error => Sentry.captureException(error))
+        )
+          .requestedSession()
+          .catch(error => Sentry.captureException(error))
 
         res.json({ sessionId: session._id })
       } catch (err) {
@@ -76,14 +78,16 @@ module.exports = function(router, io) {
         endedBy: user
       })
       socketService.emitSessionChange(sessionId)
-      UserActionCtrl.endedSession(
+      new UserActionCtrl.SessionActionCreator(
         user._id,
         sessionId,
         userAgent,
         ipAddress
-      ).catch(error => {
-        Sentry.captureException(error)
-      })
+      )
+        .endedSession()
+        .catch(error => {
+          Sentry.captureException(error)
+        })
       res.json({ sessionId })
     } catch (err) {
       next(err)
@@ -241,7 +245,12 @@ module.exports = function(router, io) {
     const { timeout } = req.body
     const { user, ip } = req
     const userAgent = req.get('User-Agent')
-    UserActionCtrl.timedOutSession(user._id, sessionId, timeout, userAgent, ip)
+    new UserActionCtrl.SessionActionCreator(
+      user._id,
+      sessionId,
+      userAgent,
+      ip
+    ).timedOutSession(timeout)
     res.sendStatus(200)
   })
 
