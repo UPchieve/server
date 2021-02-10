@@ -108,7 +108,10 @@ module.exports = function(app) {
     res.end(twiml.toString())
 
     if (isYesMessage && session._id) {
-      UserActionCtrl.repliedYesToSession(userId, session._id)
+      new UserActionCtrl.SessionActionCreator(
+        userId,
+        session._id
+      ).repliedYesToSession()
     }
   })
 

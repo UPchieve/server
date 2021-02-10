@@ -3,7 +3,7 @@ import { UpdateQuery } from 'mongoose';
 import { Socket } from 'socket.io';
 import SessionModel, { SessionDocument } from '../models/Session';
 import { User } from '../models/User';
-import { joinedSession, rejoinedSession } from '../controllers/UserActionCtrl';
+import { SessionActionCreator } from '../controllers/UserActionCtrl';
 import {
   beginRegularNotifications,
   beginFailsafeNotifications
@@ -120,9 +120,9 @@ export async function join(options: SessionJoinOptions): Promise<void> {
         volunteer: user._id
       }
     );
-    joinedSession(user._id, session._id, userAgent, ipAddress).catch(error =>
-      captureException(error)
-    );
+    new SessionActionCreator(user._id, session._id, userAgent, ipAddress)
+      .joinedSession()
+      .catch(error => captureException(error));
 
     captureEvent(user._id, EVENTS.SESSION_JOINED, {
       event: EVENTS.SESSION_JOINED,
@@ -151,9 +151,9 @@ export async function join(options: SessionJoinOptions): Promise<void> {
     !isInitialVolunteerJoin &&
     session.createdAt.getTime() + thirtySecondsElapsed < Date.now()
   ) {
-    rejoinedSession(user._id, session._id, userAgent, ipAddress).catch(error =>
-      captureException(error)
-    );
+    new SessionActionCreator(user._id, session._id, userAgent, ipAddress)
+      .rejoinedSession()
+      .catch(error => captureException(error));
     captureEvent(user._id, EVENTS.SESSION_REJOINED, {
       event: EVENTS.SESSION_REJOINED,
       sessionId: session._id.toString()

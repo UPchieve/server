@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import {
-  unlockedSubject,
-  accountOnboarded
+  AccountActionCreator,
+  QuizActionCreator
 } from '../controllers/UserActionCtrl';
 import { captureEvent } from '../services/AnalyticsService';
 import QuestionModel, { QuestionDocument } from '../models/Question';
@@ -266,13 +266,12 @@ export async function getQuizScore(
 
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
-      if (!user.subjects.includes(subject)) {
-        unlockedSubject(user._id, subject, ip);
-        captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {
-          event: EVENTS.SUBJECT_UNLOCKED,
-          subject
-        });
-      }
+      if (!user.subjects.includes(subject))
+        new QuizActionCreator(user._id, subject, ip).unlockedSubject();
+      captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {
+        event: EVENTS.SUBJECT_UNLOCKED,
+        subject
+      });
     }
 
     userUpdates.$addToSet = { subjects: unlockedSubjects };
@@ -283,7 +282,7 @@ export async function getQuizScore(
       unlockedSubjects.length > 0
     ) {
       userUpdates.isOnboarded = true;
-      accountOnboarded(user._id, ip);
+      new AccountActionCreator(user._id, ip).accountOnboarded();
       captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
         event: EVENTS.ACCOUNT_ONBOARDED
       });
