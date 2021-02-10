@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/node';
-import { Types, UpdateQuery } from 'mongoose';
+import { UpdateQuery } from 'mongoose';
 import { Socket } from 'socket.io';
 import SessionModel, { SessionDocument } from '../models/Session';
 import { User } from '../models/User';
@@ -9,10 +9,12 @@ import {
   beginFailsafeNotifications
 } from '../services/twilio';
 import { addFailedJoins } from '../services/SessionService';
-import service from '../services/PushTokenService';
+import PushTokenService from '../services/PushTokenService';
 import PushTokenModel from '../models/PushToken';
 import { MessageDocument } from '../models/Message';
 import { StudentDocument } from '../models/Student';
+import { captureEvent } from '../services/AnalyticsService';
+import { EVENTS } from '../constants';
 
 export interface CreateSessionOptions {
   user: User;
@@ -68,10 +70,11 @@ export interface SessionJoinOptions {
   socket: Socket;
   session: SessionDocument;
   user: User;
+  joinedFrom: string;
 }
 
 export async function join(options: SessionJoinOptions): Promise<void> {
-  const { socket, session, user } = options;
+  const { socket, session, user, joinedFrom } = options;
   const userAgent = socket.request.headers['user-agent'];
   const ipAddress = socket.handshake.address;
 
@@ -121,12 +124,23 @@ export async function join(options: SessionJoinOptions): Promise<void> {
       captureException(error)
     );
 
+    captureEvent(user._id, EVENTS.SESSION_JOINED, {
+      event: EVENTS.SESSION_JOINED,
+      sessionId: session._id.toString(),
+      joinedFrom: joinedFrom || ''
+    });
+
+    captureEvent(session.student.toString(), EVENTS.SESSION_MATCHED, {
+      event: EVENTS.SESSION_MATCHED,
+      sessionId: session._id.toString()
+    });
+
     const pushTokens = await PushTokenModel.find({ user: session.student })
       .lean()
       .exec();
     if (pushTokens && pushTokens.length > 0) {
       const tokens = pushTokens.map(token => token.token);
-      service.sendVolunteerJoined(session, tokens);
+      PushTokenService.sendVolunteerJoined(session, tokens);
     }
   }
 
@@ -135,11 +149,15 @@ export async function join(options: SessionJoinOptions): Promise<void> {
   const thirtySecondsElapsed = 1000 * 30;
   if (
     !isInitialVolunteerJoin &&
-    session.createdAt.getMilliseconds() + thirtySecondsElapsed < Date.now()
+    session.createdAt.getTime() + thirtySecondsElapsed < Date.now()
   ) {
     rejoinedSession(user._id, session._id, userAgent, ipAddress).catch(error =>
       captureException(error)
     );
+    captureEvent(user._id, EVENTS.SESSION_REJOINED, {
+      event: EVENTS.SESSION_REJOINED,
+      sessionId: session._id.toString()
+    });
   }
 }
 
