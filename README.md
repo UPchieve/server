@@ -1,7 +1,7 @@
-UPchieve web server
+UPchieve Web App
 ===================
 
-> Web server providing endpoints for the UPchieve web client
+> Web app providing api endpoints and serving a SPA frontend.
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
@@ -77,10 +77,10 @@ The recommended tool for runtime version management is [`nvm`][nvm] and [`Docker
 
 #### Local Node
 
-We currently run on Node v12.20.0, you can switch to this using
+We currently run on Node v12.20.1, you can switch to this using
 
 ```shell
-$ nvm install v12.20.0 && nvm use v12.20.0
+$ nvm install v12.20.1 && nvm use v12.20.1
 ```
 
 After switching npm versions using nvm, you will need to rerun `$ npm install`.
@@ -105,6 +105,24 @@ docker run -i --rm --name redis -p 6379:6379 -v <Absolute Path to directory on y
 [nvm]: https://github.com/nvm-sh/nvm
 [Docker]: https://www.docker.com/products/docker-desktop
 
+#### Running dev
+
+Once you have the dependencies running, you can run
+
+```
+$ npm run dev:frontend
+```
+
+This will kick off a build of the frontend assets and watch the frontend files to rebuild. Once the first build is one, you can run
+
+```
+$ npm run dev:backend
+```
+
+to start the dev server and a watch process. Then you can visit `http://localhost:3000` and you're good to go!
+
+Even though the frontend is doing a production build, Vue dev tools should still be available as long as your NODE_ENV is `dev` which is the default.
+
 ### Setup
 The below steps are tested on a Macintosh.
 
@@ -117,8 +135,6 @@ The below steps are tested on a Macintosh.
 1. Run `npx ts-node init` to seed the database with users, quiz questions, schools, and zip codes.
 1. If you want to test Twilio voice calling functionality, set the `host` property to `[your public IP address]:3000` (minus the brackets), and configure your router/firewall to allow connections to port 3000 from the Internet. Twilio will need to connect to your system to obtain TwiML instructions.
 1. Run `npm run dev` to start the dev server on `http://localhost:3000`. If you get a [`bcrypt`][bcrypt] compilation error, run `npm rebuild`.
-1. See [the web client repo](https://github.com/UPchieve/web) for client
-   installation.
 1. (optional) Run `npm run worker:dev` to start the redis database and dev worker. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `ts-node ./scripts/add-cron-jobs.ts` to add all repeatable jobs to the job queue.
 
 [bcrypt]: https://www.npmjs.com/package/bcrypt
@@ -139,33 +155,41 @@ By default, none of the test users have an `approvedHighschool` set. The volunte
 Structure
 ---------
 
-The root folder of the repository provides the bootstrap file `main.js` and a
+The repo is split into two components, the server, and the frontend Vue SPA.
+
+Server code is found in the `server` directory, and SPA code in the `src` directory.
+
+The SPA is managed using the vue-cli-service which is opinionated about directory structure.
+
+## Server
+
+The `server` folder of the repository provides the bootstrap file `main.ts` and a
 package definitions file.
 
-## Config
+### Config
 
 `config.ts` contains a map of configuration keys for running the server. All
 keys and sensitive information should be placed in this file.
 
-## Models
+### Models
 
 Model definitions that map to database models, along with related methods to act
 on those models, such as parsing, validation, and data transformations.
 
-## Router
+### Router
 
 Directory structure mimics the endpoint structure exposed by the server. Each
 file provides one or more endpoint routes, responsible for request
 acceptance/rejection and error handling.
 
-## Controllers
+### Controllers
 
 Routes use controllers to perform the business logic of the server, providing
 separation of concerns: the controllers have no need to be aware of how the
 endpoints work. Instead, a controller provides ways to allow the routes to
 trigger something (a user update, e.g.)
 
-## Services
+### Services
 
 A service is a step higher than a controller. Services provide abstract
 functions to one or many controllers, often to interface with third party
