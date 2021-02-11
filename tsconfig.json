@@ -14,9 +14,14 @@
       ]
   },
   "exclude": [
-    "dbutils/",
-    "tests/",
+    "server/dbutils",
+    "server/tests",
     "node_modules/",
-    "build/"
+    "build/",
+    "src/",
+    "tests/",
+    "dist/",
+    "public",
+    "./*.js"
   ]
 }
