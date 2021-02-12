@@ -1,5 +1,3 @@
-/* eslint-disable no-async-promise-executor */
-
 /**
  * Processes incoming socket messages
  */
@@ -112,11 +110,7 @@ module.exports = function(io, sessionStore) {
             }
 
             try {
-              await SessionCtrl.join(socket, {
-                session,
-                user,
-                joinedFrom
-              })
+              await SessionCtrl.join({ socket, session, user, joinedFrom })
 
               const sessionRoom = getSessionRoom(sessionId)
               const socketIds = await getSocketIdsFromRoom(user._id.toString())
