@@ -169,10 +169,9 @@ test('Notifies only the failsafe volunteers', async () => {
   await insertVolunteer(buildVolunteer())
   const { session } = await insertSession()
 
-  let notifications
-  session.addNotifications = async n => (notifications = n)
+  session.addNotifications = jest.fn()
 
   await TwilioService.beginFailsafeNotifications(session)
 
-  expect(notifications).toHaveLength(1)
+  expect(session.addNotifications).toHaveBeenCalledTimes(1)
 })

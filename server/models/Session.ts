@@ -35,7 +35,7 @@ export interface Session {
   timeTutored: number
   addNotifications(
     notificationsToAdd: NotificationDocument[]
-  ): Promise<NotificationDocument[]>
+  ): Promise<SessionDocument>
 }
 
 export type SessionDocument = Session & Document
@@ -202,9 +202,9 @@ sessionSchema.statics.getUnfulfilledSessions = async function(): Promise<
 export interface SessionStaticModel extends Model<SessionDocument> {
   addNotifications(
     notificationsToAdd: NotificationDocument[]
-  ): Promise<NotificationDocument[]>
+  ): Promise<SessionDocument>
   findLatest(): Promise<SessionDocument>
-  current(): Promise<SessionDocument>
+  current(userId: Types.ObjectId): Promise<SessionDocument>
   getUnfulfilledSessions(): Promise<SessionDocument[]>
 }
 
