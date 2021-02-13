@@ -338,6 +338,7 @@ export const buildSession = (overrides = {}): Partial<Session> => {
     type: 'math',
     subTopic: 'algebra',
     messages: [],
+    hasWhiteboardDoc: false,
     whiteboardDoc: '',
     quillDoc: '',
     createdAt: new Date(),
