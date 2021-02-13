@@ -17,6 +17,7 @@ export interface Session {
   type: string
   subTopic: string
   messages: Message[]
+  hasWhiteboardDoc?: boolean
   whiteboardDoc: string
   quillDoc: string
   createdAt: Date
@@ -70,6 +71,10 @@ const sessionSchema = new Schema({
   },
 
   messages: [MessageModel.schema],
+
+  hasWhiteboardDoc: {
+    type: Boolean
+  },
 
   whiteboardDoc: {
     type: String,
