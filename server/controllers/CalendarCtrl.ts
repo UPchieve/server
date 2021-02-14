@@ -4,7 +4,7 @@ import { Availability } from '../models/Availability/types'
 import { updateAvailabilitySnapshot } from '../services/AvailabilityService'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS } from '../constants'
-import * as UserActionCtrl from './UserActionCtrl'
+import { AccountActionCreator } from './UserActionCtrl'
 
 export interface UpdateScheduleOptions {
   ip: string
@@ -56,7 +56,7 @@ export async function updateSchedule(
   // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
   if (!user.isOnboarded && user.subjects.length > 0) {
     volunteerUpdates.isOnboarded = true;
-    new UserActionCtrl.AccountActionCreator(user._id, ip).accountOnboarded();
+    new AccountActionCreator(user._id, ip).accountOnboarded();
     captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
       event: EVENTS.ACCOUNT_ONBOARDED
     })
