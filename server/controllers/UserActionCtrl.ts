@@ -151,7 +151,7 @@ export class AccountActionCreator {
   }
 
   completedBackgroundInfo(): Promise<UserActionDocument> {
-    return this.createAccountAction(USER_ACTION.ACCOUNT.DELETED_REFERENCE);
+    return this.createAccountAction(USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO);
   }
 
   deletedReference(): Promise<UserActionDocument> {

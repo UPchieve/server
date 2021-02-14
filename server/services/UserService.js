@@ -294,7 +294,7 @@ module.exports = {
         referencesStatus[i] === REFERENCE_STATUS.REJECTED &&
         reference.status !== REFERENCE_STATUS.REJECTED
       ) {
-        new UserActionCtrl.AccountActionCreator(volunteerId, {
+        new UserActionCtrl.AccountActionCreator(volunteerId, '', {
           referenceEmail: reference.email
         }).rejectedReference()
         AnalyticsService.captureEvent(volunteerId, EVENTS.REFERENCE_REJECTED, {
