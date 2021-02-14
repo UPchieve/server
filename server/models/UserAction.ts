@@ -8,25 +8,25 @@ import { Schema, Types, Document, model } from 'mongoose'
 import { USER_ACTION } from '../constants'
 
 export interface UserActionAgent {
-  device: string;
-  browser: string;
-  browserVersion: string;
-  operatingSystem: string;
-  operatingSystemVersion: string;
+  device: string
+  browser: string
+  browserVersion: string
+  operatingSystem: string
+  operatingSystemVersion: string
 }
 
 export interface UserAction extends Document, UserActionAgent {
-  _id: Types.ObjectId;
-  user: Types.ObjectId;
-  session: Types.ObjectId;
-  createdAt: Date;
-  actionType: string;
-  action: string;
-  quizCategory: string;
-  quizSubcategory: string;
-  ipAddress: string;
-  referenceEmail: string;
-  banReason: string;
+  _id: Types.ObjectId
+  user: Types.ObjectId
+  session: Types.ObjectId
+  createdAt: Date
+  actionType: string
+  action: string
+  quizCategory: string
+  quizSubcategory: string
+  ipAddress: string
+  referenceEmail: string
+  banReason: string
 }
 
 export type UserActionDocument = UserAction & Document

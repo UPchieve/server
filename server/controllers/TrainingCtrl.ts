@@ -1,10 +1,10 @@
-import _ from 'lodash';
+import _ from 'lodash'
 import {
   AccountActionCreator,
   QuizActionCreator
-} from '../controllers/UserActionCtrl';
-import { captureEvent } from '../services/AnalyticsService';
-import QuestionModel, { QuestionDocument } from '../models/Question';
+} from '../controllers/UserActionCtrl'
+import { captureEvent } from '../services/AnalyticsService'
+import QuestionModel, { QuestionDocument } from '../models/Question'
 import {
   CERT_UNLOCKING,
   COMPUTED_CERTS,
@@ -24,7 +24,6 @@ import VolunteerModel, {
   Volunteer,
   VolunteerDocument
 } from '../models/Volunteer'
-import { unlockedSubject, accountOnboarded } from './UserActionCtrl'
 
 // change depending on how many of each subcategory are wanted
 const numQuestions = {
@@ -268,11 +267,11 @@ export async function getQuizScore(
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
       if (!user.subjects.includes(subject))
-        new QuizActionCreator(user._id, subject, ip).unlockedSubject();
+        new QuizActionCreator(user._id, subject, ip).unlockedSubject()
       captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {
         event: EVENTS.SUBJECT_UNLOCKED,
         subject
-      });
+      })
     }
 
     userUpdates.$addToSet = { subjects: unlockedSubjects }
@@ -282,8 +281,8 @@ export async function getQuizScore(
       user.availabilityLastModifiedAt &&
       unlockedSubjects.length > 0
     ) {
-      userUpdates.isOnboarded = true;
-      new AccountActionCreator(user._id, ip).accountOnboarded();
+      userUpdates.isOnboarded = true
+      new AccountActionCreator(user._id, ip).accountOnboarded()
       captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
         event: EVENTS.ACCOUNT_ONBOARDED
       })
