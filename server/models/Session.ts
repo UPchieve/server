@@ -18,6 +18,7 @@ export interface Session {
   subTopic: string
   messages: Message[]
   hasWhiteboardDoc?: boolean
+  // @todo: make optional once whiteboard docs are in azure storage
   whiteboardDoc: string
   quillDoc: string
   createdAt: Date
@@ -76,6 +77,7 @@ const sessionSchema = new Schema({
     type: Boolean
   },
 
+  // @todo: remove once whiteboard docs are in azure storage
   whiteboardDoc: {
     type: String,
     default: '',
