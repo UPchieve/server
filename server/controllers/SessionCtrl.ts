@@ -31,8 +31,7 @@ export async function create(
   const subTopic = options.subTopic
 
   if (!userId) throw new Error('Cannot create a session without a user id')
-  if (user.isVolunteer)
-    throw new Error('Volunteers cannot create new sessions')
+  if (user.isVolunteer) throw new Error('Volunteers cannot create new sessions')
   if (!type) throw new Error('Must provide a type for a new session')
 
   const currentSession = await SessionModel.current(userId)

@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-constructor */
 import UAParser from 'ua-parser-js'
 import { Types } from 'mongoose'
 import UserAction, {
@@ -151,7 +152,9 @@ export class AccountActionCreator {
   }
 
   completedBackgroundInfo(): Promise<UserActionDocument> {
-    return this.createAccountAction(USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO)
+    return this.createAccountAction(
+      USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO
+    )
   }
 
   deletedReference(): Promise<UserActionDocument> {

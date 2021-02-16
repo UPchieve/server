@@ -87,7 +87,7 @@ module.exports = function(io, sessionStore) {
               return
             }
 
-            const { sessionId } = data
+            const { sessionId, joinedFrom } = data
             const {
               request: { user }
             } = socket
