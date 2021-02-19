@@ -15,6 +15,8 @@ const { USER_BAN_REASON } = require('../../constants')
 const authPassport = require('./passport')
 const UserCtrl = require('../../controllers/UserCtrl')
 const MailService = require('../../services/MailService')
+const { EVENTS } = require('../../constants')
+const AnalyticsService = require('../../services/AnalyticsService')
 
 // Validation functions
 function checkPassword(password) {
@@ -186,6 +188,9 @@ module.exports = function(app) {
     }
 
     const referredBy = await UserCtrl.checkReferral(referredByCode)
+    AnalyticsService.captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
+      event: EVENTS.FRIEND_REFERRED
+    })
     const studentData = {
       firstname: firstName.trim(),
       lastname: lastName.trim(),
