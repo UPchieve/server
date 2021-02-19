@@ -188,9 +188,11 @@ module.exports = function(app) {
     }
 
     const referredBy = await UserCtrl.checkReferral(referredByCode)
-    AnalyticsService.captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
-      event: EVENTS.FRIEND_REFERRED
-    })
+    if (referredBy) {
+      AnalyticsService.captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
+        event: EVENTS.FRIEND_REFERRED
+      })
+    }
     const studentData = {
       firstname: firstName.trim(),
       lastname: lastName.trim(),
