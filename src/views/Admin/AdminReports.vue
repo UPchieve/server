@@ -2,7 +2,7 @@
   <div class="admin-reports">
     <div class="filter-panel">
       <div class="col">
-        <div class="filter-panel__joined">
+        <div class="filter-panel__row">
           <label for="joined-after" class="col">
             Joined after
             <input id="joined-after" type="date" v-model="joinedAfter" />
@@ -16,7 +16,21 @@
       </div>
 
       <div class="col">
-        <div class="filter-panel__session-range">
+        <div class="filter-panel__row">
+          <label for="parter-report-from" class="col">
+            Partner Report From
+            <input id="parter-report-from" type="date" v-model="fromDate" />
+          </label>
+
+          <label for="parter-report-to" class="col">
+            Partner Report To
+            <input id="parter-report-to" type="date" v-model="toDate" />
+          </label>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="filter-panel__row">
           <label for="session-range-from" class="col">
             Session from
             <input
@@ -40,7 +54,7 @@
             <v-select
               id="student-partner-org"
               class="filter-panel__partner-select"
-              :options="listedPartnerOrgs"
+              :options="studentPartnerOrgs"
               label="displayName"
               v-model="studentPartnerOrg"
             />
@@ -54,6 +68,20 @@
             :options="partnerSites"
             v-model="studentPartnerSite"
           />
+        </div>
+      </div>
+      <div class="col">
+        <div>
+          <label for="student-partner-org" class="col">
+            Volunteer partner org
+            <v-select
+              id="student-partner-org"
+              class="filter-panel__partner-select"
+              :options="volunteerPartnerOrgs"
+              label="displayName"
+              v-model="volunteerPartnerOrg"
+            />
+          </label>
         </div>
       </div>
       <div class="col">
@@ -72,6 +100,15 @@
 
     <p class="error">{{ error }}</p>
     <Loader v-if="isGeneratingReport" />
+
+    <button
+      type="button"
+      class="report-btn"
+      @click="generateVolunteerPartnerReport"
+      :disabled="isGeneratingReport"
+    >
+      Generate Volunteer Partner Report
+    </button>
 
     <button
       type="button"
@@ -111,17 +148,33 @@ export default {
       highSchool: '',
       studentPartnerOrg: {},
       studentPartnerSite: '',
-      listedPartnerOrgs: [],
       error: '',
-      isGeneratingReport: false
+      isGeneratingReport: false,
+      studentPartnerOrgs: [],
+      volunteerPartnerOrgs: [],
+      volunteerPartnerOrg: {},
+      fromDate: '',
+      toDate: ''
     }
   },
   async mounted() {
-    const response = await NetworkService.adminGetStudentPartners()
+    const [
+      studentPartnersResponse,
+      volunteerPartnersResponse
+    ] = await Promise.all([
+      NetworkService.adminGetStudentPartners(),
+      NetworkService.adminGetVolunteerPartners()
+    ])
+
     const {
-      body: { partnerOrgs }
-    } = response
-    this.listedPartnerOrgs = partnerOrgs
+      body: { partnerOrgs: studentPartnerOrgs }
+    } = studentPartnersResponse
+    const {
+      body: { partnerOrgs: volunteerPartnerOrgs }
+    } = volunteerPartnersResponse
+
+    this.studentPartnerOrgs = studentPartnerOrgs
+    this.volunteerPartnerOrgs = volunteerPartnerOrgs
   },
   methods: {
     async generateSessionReport() {
@@ -197,6 +250,45 @@ export default {
           this.exportToCsv(
             `${this.fileTitle} ${this.todaysDate} Usage Report`,
             students
+          )
+        }
+        this.isGeneratingReport = false
+      } catch (error) {
+        this.isGeneratingReport = false
+      }
+    },
+
+    async generateVolunteerPartnerReport() {
+      if (this.isGeneratingReport) return
+      this.isGeneratingReport = true
+      this.error = ''
+
+      const query = {
+        fromDate: moment(this.fromDate)
+          .utc()
+          .startOf('day'),
+        toDate: moment(this.toDate)
+          .utc()
+          .startOf('day'),
+        partnerOrg: this.isValidVolunteerPartnerOrg
+          ? this.volunteerPartnerOrg.key
+          : ''
+      }
+
+      try {
+        const response = await NetworkService.adminGetVolunteerPartnerReport(
+          query
+        )
+        const {
+          body: { data }
+        } = response
+
+        if (data.length === 0) {
+          this.error = 'Unable to find any data that meets your request'
+        } else {
+          this.exportToCsv(
+            `${this.todaysDate}_${this.volunteerPartnerOrg.displayName}_Report`,
+            data
           )
         }
         this.isGeneratingReport = false
@@ -283,6 +375,9 @@ export default {
     },
     isValidStudentPartnerOrg() {
       return this.studentPartnerOrg && this.studentPartnerOrg.key
+    },
+    isValidVolunteerPartnerOrg() {
+      return this.volunteerPartnerOrg && this.volunteerPartnerOrg.key
     }
   }
 }
@@ -301,12 +396,16 @@ export default {
   }
 }
 
+input {
+  min-width: 180px;
+}
+
 .filter-panel {
-  @include flex-container(row, space-between, flex-start);
+  @include flex-container(column, space-between, flex-start);
   flex-wrap: wrap;
   border-radius: 8px;
 
-  &__joined {
+  &__row {
     @include flex-container(row);
   }
 
