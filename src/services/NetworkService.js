@@ -432,6 +432,18 @@ export default {
       })
       .then(this._successHandler, this._errorHandler)
   },
+  adminGetVolunteerPartnerReport({ fromDate, toDate, partnerOrg }) {
+    const queryParams = new URLSearchParams({
+      fromDate,
+      toDate,
+      partnerOrg
+    }).toString()
+    return Vue.http
+      .get(`${API_ROOT}/reports/volunteer-partner-report?${queryParams}`, {
+        timeout: 300000
+      })
+      .then(this._successHandler, this._errorHandler)
+  },
   adminGetStudentPartners() {
     return Vue.http
       .get(`${AUTH_ROOT}/partner/student-partners`)
