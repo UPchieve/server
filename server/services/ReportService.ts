@@ -1,8 +1,19 @@
 import moment from 'moment-timezone'
 import mongoose, { Types } from 'mongoose'
-import _ from 'lodash'
+import _, { capitalize } from 'lodash'
 import User from '../models/User'
-import { studentPartnerManifests } from '../partnerManifests'
+import {
+  studentPartnerManifests,
+  volunteerPartnerManifests
+} from '../partnerManifests'
+import { USER_ACTION } from '../constants'
+import roundUpToNearestInterval from '../utils/round-up-to-nearest-interval'
+import countCerts from '../utils/count-certs'
+import logger from '../logger'
+import * as VolunteerService from './VolunteerService'
+import * as UserActionService from './UserActionService'
+import SessionService from './SessionService'
+import * as AvailabilityService from './AvailabilityService'
 
 const ObjectId = mongoose.Types.ObjectId
 
@@ -462,4 +473,262 @@ export const usageReport = async ({
   })
 
   return studentUsage
+}
+
+const subjectMappings = {
+  prealgebra: 1718,
+  algebraOne: 1719,
+  algebra: 1719,
+  algebraTwo: 1719,
+  geometry: 406,
+  trigonometry: 406,
+  precalculus: 406,
+  calculusAB: 2862,
+  essays: 1720,
+  planning: 1720,
+  applications: 1720,
+  biology: 2211,
+  chemistry: 2211,
+  integratedMathOne: 406,
+  integratedMathTwo: 406,
+  integratedMathThree: 406,
+  integratedMathFour: 406,
+  statistics: 2865,
+  environmentalScience: 2863,
+  physicsOne: 2864,
+  physicsTwo: 2864,
+  calculusBC: 2862,
+  upchieve101: 406,
+  calculus: 2862,
+  physics: 2864
+}
+
+export const generateVolunteerPartnerReport = async ({
+  partnerOrg,
+  fromDate,
+  toDate
+}) => {
+  try {
+    const subjectMappingsCapped = {}
+    for (const key in subjectMappings) {
+      subjectMappingsCapped[key.toUpperCase()] = subjectMappings[key]
+    }
+    const dateQuery = { $gt: new Date(fromDate), $lte: new Date(toDate) }
+    const volunteers = await VolunteerService.getVolunteers(
+      {
+        isTestUser: false,
+        isFakeUser: false,
+        volunteerPartnerOrg: partnerOrg,
+        isOnboarded: true,
+        isApproved: true
+      },
+      {
+        _id: 1,
+        createdAt: 1,
+        firstname: 1,
+        lastname: 1,
+        email: 1,
+        certifications: 1,
+        volunteerPartnerOrg: 1,
+        elapsedAvailability: 1
+      }
+    )
+    const volunteerPartnerReport = []
+
+    for (const volunteer of volunteers) {
+      const totalCerts = countCerts(volunteer.certifications)
+      if (totalCerts === 0) continue
+
+      const volunteerFirstName = capitalize(volunteer.firstname)
+      const volunterLastName = capitalize(volunteer.lastname)
+      const partnerOrgName =
+        volunteerPartnerManifests[volunteer.volunteerPartnerOrg].name
+
+      // Add a row for each quiz a volunteer has passed during the given time period
+      // @todo: figure out how the type annotation
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const quizPassedActions: any = await UserActionService.getActionsWithPipeline(
+        [
+          {
+            $match: {
+              user: ObjectId(volunteer._id),
+              action: USER_ACTION.QUIZ.PASSED,
+              createdAt: dateQuery
+            }
+          },
+          {
+            $addFields: {
+              isoWeekOfYear: {
+                $isoWeek: '$createdAt'
+              }
+            }
+          },
+          {
+            $sort: {
+              createdAt: 1
+            }
+          }
+        ]
+      )
+
+      for (const quizPassed of quizPassedActions) {
+        const row = {}
+        row['Event ID'] = subjectMappingsCapped[quizPassed.quizSubcategory]
+        // use the following Monday of the createdAt as the Date Volunteered
+        row['Date Volunteered'] = moment(quizPassed.createdAt)
+          .isoWeek(quizPassed.isoWeekOfYear)
+          .day('Monday')
+          .add(1, 'week')
+          .format('MM/DD/YYYY')
+        row['Hours Credited'] = 1.0
+        row['Start Time'] = null
+        row['End Time'] = null
+        row['Full Employee Name'] = `${volunteerFirstName} ${volunterLastName}`
+        row[`External ${partnerOrgName} Email`] = volunteer.email
+        row['Classification'] = 'Training Event'
+        volunteerPartnerReport.push(row)
+      }
+
+      // Add a row for each session a volunteer has had during the given time period
+      const sessions = await SessionService.getSessionsWithPipeline([
+        {
+          $sort: {
+            createdAt: 1
+          }
+        },
+        {
+          $match: {
+            volunteer: ObjectId(volunteer._id),
+            createdAt: dateQuery
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'student',
+            foreignField: '_id',
+            as: 'student'
+          }
+        },
+        {
+          $unwind: '$student'
+        },
+        {
+          $match: {
+            'student.isFakeUser': false,
+            'student.isTestUser': false
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            createdAt: 1,
+            subTopic: 1,
+            timeTutored: 1,
+            isoWeekOfYear: {
+              $isoWeek: '$createdAt'
+            }
+          }
+        }
+      ])
+
+      for (const session of sessions) {
+        const timeTutoredInMins = session.timeTutored / (1000 * 60)
+        // @todo: make a param to change the interval based on query
+        const roundedTimeTutoredInMins = roundUpToNearestInterval(
+          timeTutoredInMins,
+          15
+        )
+        const row = {}
+        row['Event ID'] = subjectMappings[session.subTopic]
+        row['Date Volunteered'] = moment(session.createdAt)
+          .isoWeek(session.isoWeekOfYear)
+          .day('Monday')
+          .add(1, 'week')
+          .format('MM/DD/YYYY')
+        row['Hours Credited'] = Number(
+          (roundedTimeTutoredInMins / 60).toFixed(2)
+        )
+        row['Start Time'] = null
+        row['End Time'] = null
+        row['Full Employee Name'] = `${volunteerFirstName} ${volunterLastName}`
+        row[`External ${partnerOrgName} Email`] = volunteer.email
+        row['Classification'] = 'Tutoring Event'
+        volunteerPartnerReport.push(row)
+      }
+
+      // @todo: figure out how to properly type and cast
+      const weeksOfElapsedAvailability: any = await AvailabilityService.getAvailabilityHistoryWithPipeline(
+        [
+          {
+            $match: {
+              volunteerId: volunteer._id,
+              date: dateQuery
+            }
+          },
+          {
+            $addFields: {
+              isoWeekOfYear: {
+                $isoWeek: '$date'
+              }
+            }
+          },
+          {
+            $sort: {
+              date: 1
+            }
+          },
+          {
+            $group: {
+              _id: '$isoWeekOfYear',
+              isoWeekOfYear: {
+                $first: '$isoWeekOfYear'
+              },
+              daysOfElapsedAvailability: {
+                $push: '$$ROOT'
+              },
+              date: {
+                $first: '$date'
+              }
+            }
+          },
+          {
+            $sort: {
+              isoWeekOfYear: 1
+            }
+          }
+        ]
+      )
+
+      for (const week of weeksOfElapsedAvailability) {
+        let elapsedAvailabilityForTheWeek = 0
+        for (const day of week.daysOfElapsedAvailability) {
+          elapsedAvailabilityForTheWeek += AvailabilityService.getElapsedAvailability(
+            day.availability
+          )
+        }
+        if (elapsedAvailabilityForTheWeek === 0) continue
+
+        const row = {}
+        row['Event ID'] = 406
+        row['Date Volunteered'] = moment(week.date)
+          .isoWeek(week.isoWeekOfYear)
+          .day('Monday')
+          .add(1, 'week')
+          .format('MM/DD/YYYY')
+        // @todo: add a function param to change the ratio of elapsed availability
+        row['Hours Credited'] = elapsedAvailabilityForTheWeek
+        row['Start Time'] = null
+        row['End Time'] = null
+        row['Full Employee Name'] = `${volunteerFirstName} ${volunterLastName}`
+        row[`External ${partnerOrgName} Email`] = volunteer.email
+        row['Classification'] = 'Weekly Elapsed Availability'
+        volunteerPartnerReport.push(row)
+      }
+    }
+    return volunteerPartnerReport
+  } catch (error) {
+    logger.error(error)
+    throw new Error(error.message)
+  }
 }

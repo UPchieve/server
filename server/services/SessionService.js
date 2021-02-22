@@ -176,6 +176,8 @@ const getSession = async (sessionId, projection = {}) => {
     .exec()
 }
 
+const getSessionsWithPipeline = pipeline => Session.aggregate(pipeline)
+
 const addFailedJoins = async ({ userId, sessionId }) => {
   await Session.update(
     { _id: sessionId },
@@ -914,6 +916,7 @@ module.exports = {
   updateSession,
   addFailedJoins,
   getTimeTutoredForDateRange,
+  getSessionsWithPipeline,
 
   // Session Service helpers exposed for testing
   didParticipantsChat,

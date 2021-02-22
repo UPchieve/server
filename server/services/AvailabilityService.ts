@@ -1,4 +1,4 @@
-import { Query, Types } from 'mongoose'
+import { Query, Types, Aggregate } from 'mongoose'
 import AvailabilitySnapshotModel, {
   AvailabilitySnapshot,
   AvailabilitySnapshotDocument
@@ -38,6 +38,11 @@ export const getAvailabilityHistory = (
     .lean()
     .exec()
 }
+
+export const getAvailabilityHistoryWithPipeline = (
+  pipeline
+): Aggregate<AvailabilityHistory[]> =>
+  AvailabilityHistoryModel.aggregate(pipeline)
 
 // @todo: Create a compound index on date and volunteerId
 export const getRecentAvailabilityHistory = async (
