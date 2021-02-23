@@ -212,7 +212,8 @@ const config: Static<typeof Config> = {
   whiteboardStorageAccountName:
     process.env.SUBWAY_WHITEBOARD_STORAGE_ACCOUNT_NAME || 'bogus',
   whiteboardStorageContainer:
-    process.env.SUBWAY_WHITEBOARD_STORAGE_CONTAINER || 'bogus'
+    process.env.SUBWAY_WHITEBOARD_STORAGE_CONTAINER || 'bogus',
+  version: process.env.SUBWAY_VERSION || 'development'
 }
 
 module.exports = config
