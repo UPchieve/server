@@ -109,5 +109,6 @@ export const Config = Record({
   whiteboardStorageSecret: String,
   whiteboardStorageSubscriptionId: String,
   whiteboardStorageAccountName: String,
-  whiteboardStorageContainer: String
+  whiteboardStorageContainer: String,
+  version: String
 })
