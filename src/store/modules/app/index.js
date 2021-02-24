@@ -28,7 +28,8 @@ export default {
       (state.windowHeight = Math.max(0, height)),
     setIsMobileApp: (state, isMobileApp) => (state.isMobileApp = isMobileApp),
     setVersion: (state, version) => (state.version = version),
-    setCurrentServerVersion: (state, version) => (state.currentServerVersion = version),
+    setCurrentServerVersion: (state, version) =>
+      (state.currentServerVersion = version),
     isWebPageHidden: (state, isVisible) => (state.isWebPageHidden = isVisible)
   },
   actions: {
