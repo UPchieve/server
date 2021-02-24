@@ -29,6 +29,7 @@ import PortalService from '@/services/PortalService'
 import getOperatingSystem from '@/utils/get-operating-system'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
 import AnalyticsService from '@/services/AnalyticsService'
+import config from '@/config'
 
 export default {
   name: 'App',
@@ -51,7 +52,10 @@ export default {
     await this.$store.dispatch('app/checkEnvironment', this)
     PortalService.call('app.isLoaded')
 
-    this.$store.dispatch('app/getCurrentVersion', this)
+    // set version on initial load
+    this.$store.commit('app/setVersion', config.version)
+
+    // this.$store.dispatch('app/getCurrentVersion', this)
 
     this.setVisibilityListener()
 
