@@ -48,7 +48,9 @@ function renderIndexHtml() {
     newRelicBrowserAgentId: config.newRelicBrowserAgentId,
     newRelicBrowserLicenseKey: config.newRelicBrowserLicenseKey,
     newRelicBrowserAppId: config.newRelicBrowserAppId,
-    devtools: config.vueDevtools
+    devtools: config.vueDevtools,
+    nodeEnv: config.NODE_ENV,
+    version: config.version
   }
 
   return Mustache.render(template, frontendConfig)
@@ -66,7 +68,8 @@ interface LoadedRequest extends Request {
 // Set up Sentry error tracking
 Sentry.init({
   dsn: config.sentryDsn,
-  environment: config.NODE_ENV
+  environment: config.NODE_ENV,
+  release: `uc-server@${config.version}`
 })
 
 // Express App

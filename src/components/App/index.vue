@@ -20,6 +20,7 @@
 <script>
 import * as Sentry from '@sentry/browser'
 import { mapState, mapGetters } from 'vuex'
+import { crono } from 'vue-crono'
 import '@/scss/main.scss'
 import AppHeader from './AppHeader'
 import AppSidebar from './AppSidebar'
@@ -29,6 +30,7 @@ import PortalService from '@/services/PortalService'
 import getOperatingSystem from '@/utils/get-operating-system'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
 import AnalyticsService from '@/services/AnalyticsService'
+import config from '@/config'
 
 export default {
   name: 'App',
@@ -38,6 +40,7 @@ export default {
     AppModal,
     AppBanner
   },
+  mixins: [crono],
   data() {
     return {
       isIOS: false,
@@ -50,6 +53,9 @@ export default {
     this.handleResize()
     await this.$store.dispatch('app/checkEnvironment', this)
     PortalService.call('app.isLoaded')
+
+    // set version on initial load
+    this.$store.commit('app/setVersion', config.version)
 
     this.setVisibilityListener()
 
@@ -86,6 +92,9 @@ export default {
     }
   },
   methods: {
+    getCurrentServerVersion() {
+      this.$store.dispatch('app/getCurrentServerVersion', this)
+    },
     iOSFocusElements(e) {
       if (!e) {
         return
@@ -168,6 +177,12 @@ export default {
       isVolunteer: 'user/isVolunteer',
       mobileMode: 'app/mobileMode'
     })
+  },
+  // https://github.com/BrianRosamilia/vue-crono
+  cron: {
+    /// every 10 minutes, check the current server version
+    time: 600000,
+    method: 'getCurrentServerVersion'
   },
   watch: {
     user(currentUserValue, previousUserValue) {
