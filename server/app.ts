@@ -69,7 +69,7 @@ interface LoadedRequest extends Request {
 Sentry.init({
   dsn: config.sentryDsn,
   environment: config.NODE_ENV,
-  release: `subway@${config.version}`
+  release: `uc-server@${config.version}`
 })
 
 // Express App
