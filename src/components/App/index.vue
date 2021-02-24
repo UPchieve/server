@@ -4,6 +4,20 @@
     <app-sidebar v-if="showSidebar" />
     <app-modal v-if="showModal" />
     <app-banner v-if="showBanner" />
+    <b-alert
+      dismissible
+      variant="warning"
+      v-model="showRefreshAlert"
+    >
+      There is a new version of the app available, please
+      <b-button
+        v-on:click="refreshPage"
+        variant="primary"
+      >
+        refresh
+      </b-button>
+      !
+    </b-alert>
 
     <div
       :class="{
@@ -26,6 +40,7 @@ import AppHeader from './AppHeader'
 import AppSidebar from './AppSidebar'
 import AppModal from './AppModal'
 import AppBanner from './AppBanner'
+import { BAlert, BButton } from 'bootstrap-vue'
 import PortalService from '@/services/PortalService'
 import getOperatingSystem from '@/utils/get-operating-system'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
@@ -38,13 +53,16 @@ export default {
     AppHeader,
     AppSidebar,
     AppModal,
-    AppBanner
+    AppBanner,
+    BAlert,
+    BButton
   },
   mixins: [crono],
   data() {
     return {
       isIOS: false,
-      docHiddenProperty: ''
+      docHiddenProperty: '',
+      showRefreshAlert: true,
     }
   },
   async created() {
@@ -92,8 +110,11 @@ export default {
     }
   },
   methods: {
-    getCurrentServerVersion() {
-      this.$store.dispatch('app/getCurrentServerVersion', this)
+    async getCurrentServerVersion() {
+      await this.$store.dispatch('app/getCurrentServerVersion', this)
+      // if (this.$store.state.version !== this.$store.state.currentServerVersion) {
+      //   this.showRefreshToast = true
+      // }
     },
     iOSFocusElements(e) {
       if (!e) {
@@ -137,6 +158,9 @@ export default {
         error.message === 'xhr poll error' ||
         error.message === 'websocket error'
       )
+    },
+    refreshPage() {
+      window.location.reload()
     },
     setVisibilityListener() {
       let visibilityChange
