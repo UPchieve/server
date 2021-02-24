@@ -70,7 +70,8 @@ Sentry.init({
   integrations: [
     new Integrations.Vue({ Vue, attachProps: true, logErrors: true })
   ],
-  environment: process.env.NODE_ENV
+  environment: config.nodeEnv,
+  release: `subway@${config.version}`
 })
 
 // Set up vue-headful

@@ -48,7 +48,9 @@ function renderIndexHtml() {
     newRelicBrowserAgentId: config.newRelicBrowserAgentId,
     newRelicBrowserLicenseKey: config.newRelicBrowserLicenseKey,
     newRelicBrowserAppId: config.newRelicBrowserAppId,
-    devtools: config.vueDevtools
+    devtools: config.vueDevtools,
+    nodeEnv: config.NODE_ENV,
+    version: config.version
   }
 
   return Mustache.render(template, frontendConfig)
