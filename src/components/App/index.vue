@@ -92,8 +92,8 @@ export default {
     }
   },
   methods: {
-    checkCurrentServerVersion() {
-      this.$store.dispatch('app/checkCurrentServerVersion', this)
+    getCurrentServerVersion() {
+      this.$store.dispatch('app/getCurrentServerVersion', this)
     },
     iOSFocusElements(e) {
       if (!e) {
@@ -182,7 +182,7 @@ export default {
   cron: {
     /// every 10 minutes, check the current server version
     time: 600000,
-    method: 'checkCurrentServerVersion'
+    method: 'getCurrentServerVersion'
   },
   watch: {
     user(currentUserValue, previousUserValue) {
