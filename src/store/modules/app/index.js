@@ -3,6 +3,7 @@ import header from './header'
 import sidebar from './sidebar'
 import modal from './modal'
 import banner from './banner'
+import VersionService from '../../../services/VersionService'
 
 export default {
   namespaced: true,
@@ -16,7 +17,8 @@ export default {
     windowWidth: 0,
     windowHeight: 0,
     isMobileApp: false,
-    isWebPageHidden: false
+    isWebPageHidden: false,
+    version: ''
   },
   mutations: {
     setWindowWidth: (state, width = 0) =>
@@ -24,6 +26,7 @@ export default {
     setWindowHeight: (state, height = 0) =>
       (state.windowHeight = Math.max(0, height)),
     setIsMobileApp: (state, isMobileApp) => (state.isMobileApp = isMobileApp),
+    setVersion: (state, version) => (state.version = version),
     isWebPageHidden: (state, isVisible) => (state.isWebPageHidden = isVisible)
   },
   actions: {
@@ -47,6 +50,11 @@ export default {
         navigator.userAgent.indexOf(mobileAppDetectionString) !== -1
 
       commit('setIsMobileApp', isMobileApp)
+    },
+
+    getCurrentVersion: async ({ commit }) => {
+      const version = await VersionService.getCurrentVersion()
+      commit('setVersion', version)
     },
 
     updateWebPageVisibility: ({ commit }, hiddenProperty) => {
