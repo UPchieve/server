@@ -68,7 +68,8 @@ interface LoadedRequest extends Request {
 // Set up Sentry error tracking
 Sentry.init({
   dsn: config.sentryDsn,
-  environment: config.NODE_ENV
+  environment: config.NODE_ENV,
+  release: `subway@${config.version}`
 })
 
 // Express App
