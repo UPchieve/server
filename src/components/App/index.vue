@@ -20,6 +20,7 @@
 <script>
 import * as Sentry from '@sentry/browser'
 import { mapState, mapGetters } from 'vuex'
+import { crono } from 'vue-crono'
 import '@/scss/main.scss'
 import AppHeader from './AppHeader'
 import AppSidebar from './AppSidebar'
@@ -39,6 +40,7 @@ export default {
     AppModal,
     AppBanner
   },
+  mixins: [crono],
   data() {
     return {
       isIOS: false,
@@ -54,8 +56,6 @@ export default {
 
     // set version on initial load
     this.$store.commit('app/setVersion', config.version)
-
-    // this.$store.dispatch('app/getCurrentVersion', this)
 
     this.setVisibilityListener()
 
@@ -92,6 +92,9 @@ export default {
     }
   },
   methods: {
+    checkCurrentServerVersion() {
+      this.$store.dispatch('app/checkCurrentServerVersion', this)
+    },
     iOSFocusElements(e) {
       if (!e) {
         return
@@ -174,6 +177,12 @@ export default {
       isVolunteer: 'user/isVolunteer',
       mobileMode: 'app/mobileMode'
     })
+  },
+  // https://github.com/BrianRosamilia/vue-crono
+  cron: {
+    /// every 10 minutes, check the current server version
+    time: 600000,
+    method: 'checkCurrentServerVersion'
   },
   watch: {
     user(currentUserValue, previousUserValue) {
