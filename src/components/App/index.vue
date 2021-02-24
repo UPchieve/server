@@ -51,6 +51,8 @@ export default {
     await this.$store.dispatch('app/checkEnvironment', this)
     PortalService.call('app.isLoaded')
 
+    this.$store.dispatch('app/getCurrentVersion', this)
+
     this.setVisibilityListener()
 
     if (this.isMobileApp) {
