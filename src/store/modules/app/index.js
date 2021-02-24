@@ -18,7 +18,8 @@ export default {
     windowHeight: 0,
     isMobileApp: false,
     isWebPageHidden: false,
-    version: ''
+    version: '',
+    currentServerVersion: ''
   },
   mutations: {
     setWindowWidth: (state, width = 0) =>
@@ -27,6 +28,7 @@ export default {
       (state.windowHeight = Math.max(0, height)),
     setIsMobileApp: (state, isMobileApp) => (state.isMobileApp = isMobileApp),
     setVersion: (state, version) => (state.version = version),
+    setCurrentServerVersion: (state, version) => (state.currentServerVersion = version),
     isWebPageHidden: (state, isVisible) => (state.isWebPageHidden = isVisible)
   },
   actions: {
@@ -52,9 +54,9 @@ export default {
       commit('setIsMobileApp', isMobileApp)
     },
 
-    getCurrentVersion: async ({ commit }) => {
-      const version = await VersionService.getCurrentVersion()
-      commit('setVersion', version)
+    getCurrentServerVersion: async ({ commit }) => {
+      const version = await VersionService.getCurrentServerVersion()
+      commit('setCurrentServerVersion', version)
     },
 
     updateWebPageVisibility: ({ commit }, hiddenProperty) => {
