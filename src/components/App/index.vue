@@ -4,7 +4,7 @@
     <app-sidebar v-if="showSidebar" />
     <app-modal v-if="showModal" />
     <app-banner v-if="showBanner" />
-    <b-alert dismissible variant="warning" v-model="showRefreshAlert">
+    <b-alert id="refresh-alert" dismissible variant="warning" v-model="showRefreshAlert">
       There is a new version of the app available, please
       <b-button v-on:click="refreshPage" variant="primary">
         refresh
@@ -295,5 +295,9 @@ export default {
     @include bind-app-sidebar-width(padding-left);
     padding-left: 0;
   }
+}
+
+#refresh-alert {
+  z-index: 999;
 }
 </style>
