@@ -11,11 +11,11 @@ import cacheControl from 'express-cache-controller'
 import timeout from 'connect-timeout'
 import expressPino from 'express-pino-logger'
 import Mustache from 'mustache'
+import swaggerUi from 'swagger-ui-express'
+import YAML from 'yaml'
 import logger from './logger'
 import router from './router'
 import config from './config'
-import swaggerUi from 'swagger-ui-express'
-import YAML from 'yaml'
 
 const distDir = '../dist'
 
