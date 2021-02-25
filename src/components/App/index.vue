@@ -4,16 +4,9 @@
     <app-sidebar v-if="showSidebar" />
     <app-modal v-if="showModal" />
     <app-banner v-if="showBanner" />
-    <b-alert
-      dismissible
-      variant="warning"
-      v-model="showRefreshAlert"
-    >
+    <b-alert dismissible variant="warning" v-model="showRefreshAlert">
       There is a new version of the app available, please
-      <b-button
-        v-on:click="refreshPage"
-        variant="primary"
-      >
+      <b-button v-on:click="refreshPage" variant="primary">
         refresh
       </b-button>
       !
@@ -62,7 +55,7 @@ export default {
     return {
       isIOS: false,
       docHiddenProperty: '',
-      showRefreshAlert: false,
+      showRefreshAlert: false
     }
   },
   async created() {
@@ -111,9 +104,11 @@ export default {
   },
   methods: {
     async getCurrentServerVersion() {
-      this.$store.dispatch('app/getCurrentServerVersion', this)
-      .then(() => {
-        if (this.$store.state.app.version !== this.$store.state.app.currentServerVersion) {
+      this.$store.dispatch('app/getCurrentServerVersion', this).then(() => {
+        if (
+          this.$store.state.app.version !==
+          this.$store.state.app.currentServerVersion
+        ) {
           this.showRefreshAlert = true
         }
       })
