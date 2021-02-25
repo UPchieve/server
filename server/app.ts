@@ -14,6 +14,8 @@ import Mustache from 'mustache'
 import logger from './logger'
 import router from './router'
 import config from './config'
+import swaggerUi from 'swagger-ui-express'
+import YAML from 'yaml'
 
 const distDir = '../dist'
 
@@ -123,6 +125,11 @@ app.use((req: LoadedRequest, res, next): void => {
 
 // The error handler must be before any other error middleware and after all controllers
 app.use(Sentry.Handlers.errorHandler())
+
+// Swagger docs
+const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')
+const swaggerYaml = YAML.parse(swaggerDoc)
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 
 // initialize Express WebSockets
 expressWs(app)

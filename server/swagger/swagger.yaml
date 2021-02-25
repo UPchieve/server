@@ -1,0 +1,159 @@
+openapi: 3.0.0
+info:
+  description: |
+    UPchieve backend API
+    [http://swagger.io](http://swagger.io) or on
+    [irc.freenode.net, #swagger](http://swagger.io/irc/).
+  version: "1.0.0"
+  title: UPchieve
+  contact:
+    email: tech@upchieve.org
+  license:
+    name: Non-Profit Open Software License 3.0
+    url: 'https://gitlab.com/upchieve/subway/-/blob/main/LICENSE'
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/upchieveorg/subway/1.0.0
+  - url: 'https://app.upchieve.org/v1'
+tags:
+  - name: students
+    description: Actions taken on or for a student user
+  - name: utility
+    description: Infrastructure/Metadata
+paths:
+  /healthz:
+    get:
+      tags:
+        - utility
+      summary: Healthcheck and Metadata
+      operationId: healthcheck
+      description: |
+        Confirms the service is up and provides data like the version
+      responses:
+        '200':
+          description: successful health check
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/Healthcheck'
+                example:
+                  version: "2.0.0"
+  /students/{studentId}/favorites:
+    get:
+      tags:
+        - students
+      summary: Gets the list of a student's favorited volunteers
+      responses:
+        '200':
+          description: The list is returned in the body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavoritedVolunteerList'
+        '401':
+          description: User was unauthorized to make the request
+        '404':
+          description: Student id not found or invalid
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          description: ID of student to get favorite list of
+          required: true
+          schema:
+            type: string
+            format: uuid
+    post:
+      tags:
+        - students
+      summary: Adds a volunteer to a student's favorites list
+      responses:
+        '201':
+          description: The volunteer was added or removed from the student's liter
+        '400':
+          description: Request body was invalid or malformed
+        '401':
+          description: User was unauthorized to make the request
+        '404':
+          description: Student id not found or invalid
+      security:
+        - cookieAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/FavoritesAction'
+      parameters:
+        - name: studentId
+          in: path
+          description: ID of student to modify favorite list of
+          required: true
+          schema:
+            type: string
+            format: uuid
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+components:
+  schemas:
+    Healthcheck:
+      type: object
+      required:
+        - version
+      properties:
+        version:
+          type: string
+    VolunteerId:
+      type: string
+      format: uuid
+    VolunteerIdList:
+      type: array
+      items:
+        $ref: '#/components/schemas/VolunteerId'
+    FavoritedVolunteer:
+      type: object
+      required:
+        - firstName
+        - id
+        - sessionCount
+        - subjects
+      properties:
+        firstName:
+          type: string
+          minimum: 1
+        id:
+          type: string
+          minimum: 24
+          maximum: 24
+        sessionCount:
+          type: integer
+          format: int64
+        subjects:
+          type: array
+          items:
+            type: string
+    FavoritedVolunteerList:
+      type: array
+      items:
+        $ref: '#/components/schemas/FavoritedVolunteer'
+  requestBodies:
+    FavoritesAction:
+      content:
+        applicaton/json:
+          schema:
+            type: object
+            required:
+              - action
+              - ids
+            properties:
+              action:
+                type: string
+                enum: ['add', 'remove']
+              ids:
+                $ref: '#/components/schemas/VolunteerIdList'
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
