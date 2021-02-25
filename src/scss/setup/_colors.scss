@@ -44,3 +44,12 @@ $c-shadow: #1855D1;
 
 // Override default bootstrap variables
 $success: $c-success-green;
+$theme-colors: () !default;
+$theme-colors: map-merge(
+  (
+    'primary': #16D2AA,
+    'warning': #FF8C5F,
+    'danger': #F44747
+  ),
+  $theme-colors
+);
