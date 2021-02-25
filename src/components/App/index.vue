@@ -4,6 +4,18 @@
     <app-sidebar v-if="showSidebar" />
     <app-modal v-if="showModal" />
     <app-banner v-if="showBanner" />
+    <b-alert
+      id="refresh-alert"
+      dismissible
+      variant="warning"
+      v-model="showRefreshAlert"
+    >
+      There is a new version of the app available, please
+      <b-button v-on:click="refreshPage" variant="primary">
+        refresh
+      </b-button>
+      !
+    </b-alert>
 
     <div
       :class="{
@@ -26,6 +38,7 @@ import AppHeader from './AppHeader'
 import AppSidebar from './AppSidebar'
 import AppModal from './AppModal'
 import AppBanner from './AppBanner'
+import { BAlert, BButton } from 'bootstrap-vue'
 import PortalService from '@/services/PortalService'
 import getOperatingSystem from '@/utils/get-operating-system'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
@@ -38,13 +51,16 @@ export default {
     AppHeader,
     AppSidebar,
     AppModal,
-    AppBanner
+    AppBanner,
+    BAlert,
+    BButton
   },
   mixins: [crono],
   data() {
     return {
       isIOS: false,
-      docHiddenProperty: ''
+      docHiddenProperty: '',
+      showRefreshAlert: false
     }
   },
   async created() {
@@ -92,8 +108,15 @@ export default {
     }
   },
   methods: {
-    getCurrentServerVersion() {
-      this.$store.dispatch('app/getCurrentServerVersion', this)
+    async getCurrentServerVersion() {
+      this.$store.dispatch('app/getCurrentServerVersion', this).then(() => {
+        if (
+          this.$store.state.app.version !==
+          this.$store.state.app.currentServerVersion
+        ) {
+          this.showRefreshAlert = true
+        }
+      })
     },
     iOSFocusElements(e) {
       if (!e) {
@@ -137,6 +160,9 @@ export default {
         error.message === 'xhr poll error' ||
         error.message === 'websocket error'
       )
+    },
+    refreshPage() {
+      window.location.reload()
     },
     setVisibilityListener() {
       let visibilityChange
@@ -274,5 +300,9 @@ export default {
     @include bind-app-sidebar-width(padding-left);
     padding-left: 0;
   }
+}
+
+#refresh-alert {
+  z-index: 999;
 }
 </style>
