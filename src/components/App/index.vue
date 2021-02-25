@@ -62,7 +62,7 @@ export default {
     return {
       isIOS: false,
       docHiddenProperty: '',
-      showRefreshAlert: true,
+      showRefreshAlert: false,
     }
   },
   async created() {
@@ -111,10 +111,12 @@ export default {
   },
   methods: {
     async getCurrentServerVersion() {
-      await this.$store.dispatch('app/getCurrentServerVersion', this)
-      // if (this.$store.state.version !== this.$store.state.currentServerVersion) {
-      //   this.showRefreshToast = true
-      // }
+      this.$store.dispatch('app/getCurrentServerVersion', this)
+      .then(() => {
+        if (this.$store.state.app.version !== this.$store.state.app.currentServerVersion) {
+          this.showRefreshAlert = true
+        }
+      })
     },
     iOSFocusElements(e) {
       if (!e) {
@@ -205,7 +207,7 @@ export default {
   // https://github.com/BrianRosamilia/vue-crono
   cron: {
     /// every 10 minutes, check the current server version
-    time: 600000,
+    time: 1000,
     method: 'getCurrentServerVersion'
   },
   watch: {
