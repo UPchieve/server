@@ -207,7 +207,7 @@ export default {
   // https://github.com/BrianRosamilia/vue-crono
   cron: {
     /// every 10 minutes, check the current server version
-    time: 1000,
+    time: 600000,
     method: 'getCurrentServerVersion'
   },
   watch: {
