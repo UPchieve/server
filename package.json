@@ -112,6 +112,7 @@
     "socket.io-client": "^2.3.0",
     "socket.io-redis": "^5.4.0",
     "style-resources-loader": "^1.2.1",
+    "swagger-ui-express": "^4.1.6",
     "ts-node": "^8.9.0",
     "twilio": "^3.28.1",
     "typeface-work-sans": "0.0.72",
