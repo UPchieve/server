@@ -1,4 +1,3 @@
-import Session from '../models/Session'
 import config from '../config'
 import logger from '../logger'
 import { redisGet, redisSet, redisDel, redisAppend } from './RedisService'
@@ -28,16 +27,6 @@ export const appendToDoc = (sessionId, docAddition): Promise<void> => {
 
 export const deleteDoc = (sessionId): Promise<void> => {
   return redisDel(sessionIdToKey(sessionId))
-}
-
-// @todo: remove once whiteboard docs are in azure storage
-export const getFinalDocState = async (sessionId): Promise<string> => {
-  const { whiteboardDoc } = await Session.findOne({ _id: sessionId })
-    .select('whiteboardDoc')
-    .lean()
-    .exec()
-
-  return whiteboardDoc
 }
 
 export const uploadedToStorage = async (

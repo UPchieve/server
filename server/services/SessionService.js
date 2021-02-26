@@ -17,7 +17,6 @@ const ObjectId = require('mongodb').ObjectId
 const { USER_ACTION } = require('../constants')
 const VolunteerModel = require('../models/Volunteer')
 const { SESSION_FLAGS } = require('../constants')
-const { isEnabled } = require('unleash-client')
 
 const hasReviewTriggerFlags = flags => {
   const excludedFlags = [
@@ -487,14 +486,10 @@ module.exports = {
       const whiteboardDoc = await WhiteboardService.getDoc(
         session._id.toString()
       )
-      update.hasWhiteboardDoc = false
-      if (isEnabled('upload-whiteboard-doc'))
-        update.hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
-          sessionId,
-          whiteboardDoc
-        )
-      // @todo: remove once whiteboard docs are in azure storage
-      update.whiteboardDoc = whiteboardDoc
+      update.hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
+        sessionId,
+        whiteboardDoc
+      )
     }
 
     await Session.updateOne(
