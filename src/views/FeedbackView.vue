@@ -155,7 +155,11 @@
       </tr>
       <tr class="submit-button-row">
         <td class="submit-button-cell">
-          <button class="submit-button" type="button" v-on:click="submitFeedback">
+          <button
+            class="submit-button"
+            type="button"
+            v-on:click="submitFeedback"
+          >
             SUBMIT
           </button>
         </td>

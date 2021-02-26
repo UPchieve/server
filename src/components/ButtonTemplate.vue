@@ -32,7 +32,7 @@ export default {
     showArrow: Boolean,
     buttonType: {
       type: String,
-      default: "button"
+      default: 'button'
     }
   }
 }

@@ -18,7 +18,11 @@
         </p>
       </div>
 
-      <button @click="handleCloseModal" class="volunteer-welcome-modal-btn" type="button">
+      <button
+        @click="handleCloseModal"
+        class="volunteer-welcome-modal-btn"
+        type="button"
+      >
         Get started <arrow-icon class="volunteer-welcome-modal-arrow-icon" />
       </button>
     </div>

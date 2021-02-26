@@ -6,7 +6,11 @@
       :click-handler="clickHandlers.second"
       btn-options-second
     />
-    <btn type="button" :label="mainBtnLabel" :click-handler="clickHandlers.main" />
+    <btn
+      type="button"
+      :label="mainBtnLabel"
+      :click-handler="clickHandlers.main"
+    />
   </div>
 </template>
 

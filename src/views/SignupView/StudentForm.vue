@@ -202,7 +202,11 @@
       parent/guardian to answer some more questions first!
     </p>
 
-    <button class="uc-form-button-big" type="button" @click="ineligibleContinue">
+    <button
+      class="uc-form-button-big"
+      type="button"
+      @click="ineligibleContinue"
+    >
       Continue
     </button>
   </div>
