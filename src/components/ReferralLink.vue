@@ -1,6 +1,6 @@
 <template>
   <div class="referral-link" @click="copyLink">
-    <input :value="referralLink" class="referral-link__link" disabled />
+    <input type="text" :value="referralLink" class="referral-link__link" disabled />
     <span class="referral-link__copy-message">
       {{ copyMessage }}
     </span>

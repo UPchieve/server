@@ -56,6 +56,7 @@
         v-if="this.material.isRequired"
         :disabled="this.material.isCompleted"
         class="material__complete-btn"
+        type="button"
         @click="materialClicked"
       >
         Mark as complete

@@ -9,7 +9,7 @@
   </div>
   <div v-else-if="volunteer._id" class="user-detail">
     <div class="user-detail__body">
-      <button class="edit-btn btn" @click="toggleEditMode()">
+      <button class="edit-btn btn" type="button" @click="toggleEditMode()">
         Edit
       </button>
       <div class="user-detail__title">

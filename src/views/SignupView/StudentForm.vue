@@ -22,12 +22,12 @@
         Do you have a sign-up code?
       </div>
       <div class="uc-column">
-        <button class="uc-form-button" @click="signupCodeYes">
+        <button class="uc-form-button" type="button" @click="signupCodeYes">
           Yes
         </button>
       </div>
       <div class="uc-column">
-        <button class="uc-form-button" @click="eligibilityPage">
+        <button class="uc-form-button" type="button" @click="eligibilityPage">
           No
         </button>
       </div>
@@ -180,7 +180,7 @@
       </p>
     </div>
     <div>
-      <button class="uc-form-button-big" @click="accountPage">
+      <button class="uc-form-button-big" type="button" @click="accountPage">
         Continue
       </button>
     </div>
@@ -202,7 +202,7 @@
       parent/guardian to answer some more questions first!
     </p>
 
-    <button class="uc-form-button-big" @click="ineligibleContinue">
+    <button class="uc-form-button-big" type="button" @click="ineligibleContinue">
       Continue
     </button>
   </div>
@@ -303,7 +303,7 @@
     </div>
 
     <div>
-      <button class="uc-form-button-big">
+      <button type="button" class="uc-form-button-big">
         Continue
       </button>
     </div>

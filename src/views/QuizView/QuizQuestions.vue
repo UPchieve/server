@@ -33,7 +33,7 @@
         <button
           v-if="showPrevious"
           class="prev btn"
-          type="previous"
+          type="button"
           @click.prevent="previous()"
         >
           PREVIOUS
@@ -41,7 +41,7 @@
         <button
           v-if="showNext"
           class="next btn"
-          type="next"
+          type="button"
           @click.prevent="next()"
         >
           NEXT
