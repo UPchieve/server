@@ -23,7 +23,7 @@ export default {
     showArrow: { type: Boolean, default: true },
     buttonType: {
       type: String,
-      required: true
+      default: 'button'
     }
   },
   computed: {

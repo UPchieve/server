@@ -26,7 +26,7 @@ export default {
     },
     buttonType: {
       type: String,
-      required: true
+      default: 'button'
     }
   },
   computed: {
