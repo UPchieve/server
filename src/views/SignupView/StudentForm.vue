@@ -417,8 +417,10 @@ import Autocomplete from '@trevoreyre/autocomplete-vue'
 import * as Sentry from '@sentry/browser'
 import AuthService from '@/services/AuthService'
 import NetworkService from '@/services/NetworkService'
+import AnalyticsService from '@/services/AnalyticsService'
 import VerificationBadge from '@/assets/verification.svg'
 import ErrorBadge from '@/assets/error_badge.svg'
+import { EVENTS } from '@/consts'
 
 export default {
   components: {
@@ -562,11 +564,17 @@ export default {
           if (isEligible) {
             this.step = 'eligible'
             this.$router.push('/sign-up/student/eligible')
+            AnalyticsService.captureEvent(EVENTS.ELIGIBILITY_ELIGIBLE, {
+              event: EVENTS.ELIGIBILITY_ELIGIBLE
+            })
             // autofill the user's email
             this.credentials.email = this.eligibility.email
           } else {
             this.step = 'ineligible'
             this.$router.push('/sign-up/student/ineligible')
+            AnalyticsService.captureEvent(EVENTS.ELIGIBILITY_INELIGIBLE, {
+              event: EVENTS.ELIGIBILITY_INELIGIBLE
+            })
           }
         })
         .catch(res => {
