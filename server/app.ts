@@ -11,6 +11,8 @@ import cacheControl from 'express-cache-controller'
 import timeout from 'connect-timeout'
 import expressPino from 'express-pino-logger'
 import Mustache from 'mustache'
+import swaggerUi from 'swagger-ui-express'
+import YAML from 'yaml'
 import logger from './logger'
 import router from './router'
 import config from './config'
@@ -48,7 +50,9 @@ function renderIndexHtml() {
     newRelicBrowserAgentId: config.newRelicBrowserAgentId,
     newRelicBrowserLicenseKey: config.newRelicBrowserLicenseKey,
     newRelicBrowserAppId: config.newRelicBrowserAppId,
-    devtools: config.vueDevtools
+    devtools: config.vueDevtools,
+    nodeEnv: config.NODE_ENV,
+    version: config.version
   }
 
   return Mustache.render(template, frontendConfig)
@@ -66,7 +70,8 @@ interface LoadedRequest extends Request {
 // Set up Sentry error tracking
 Sentry.init({
   dsn: config.sentryDsn,
-  environment: config.NODE_ENV
+  environment: config.NODE_ENV,
+  release: `uc-server@${config.version}`
 })
 
 // Express App
@@ -120,6 +125,11 @@ app.use((req: LoadedRequest, res, next): void => {
 
 // The error handler must be before any other error middleware and after all controllers
 app.use(Sentry.Handlers.errorHandler())
+
+// Swagger docs
+const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')
+const swaggerYaml = YAML.parse(swaggerDoc)
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 
 // initialize Express WebSockets
 expressWs(app)

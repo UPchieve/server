@@ -1,3 +1,5 @@
+const config = require('../config')
+
 module.exports = function(app) {
   console.log('Initializing server routing')
 
@@ -17,6 +19,6 @@ module.exports = function(app) {
   require('./referral')(app)
 
   app.get('/healthz', function(req, res) {
-    res.sendStatus(200)
+    res.status(200).json({ version: config.version })
   })
 }

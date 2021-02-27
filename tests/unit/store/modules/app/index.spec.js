@@ -18,7 +18,9 @@ describe("`app` store module", () => {
       windowWidth: 0,
       windowHeight: 0,
       isMobileApp: false,
-      isWebPageHidden: false
+      isWebPageHidden: false,
+      version: "",
+      currentServerVersion: ""
     });
   });
 

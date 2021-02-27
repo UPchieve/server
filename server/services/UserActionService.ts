@@ -1,6 +1,9 @@
-import { Types } from 'mongoose'
+import { Types, Aggregate } from 'mongoose'
 import { USER_ACTION } from '../constants'
-import UserActionModel from '../models/UserAction'
+import UserActionModel, { UserAction } from '../models/UserAction'
+
+export const getActionsWithPipeline = (pipeline): Aggregate<UserAction[]> =>
+  UserActionModel.aggregate(pipeline)
 
 export const getQuizzesPassedForDateRange = (
   volunteerId: Types.ObjectId | string,

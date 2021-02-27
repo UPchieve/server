@@ -1,7 +1,7 @@
 import express from 'express'
 import ws from 'ws'
 import * as Sentry from '@sentry/node'
-import WhiteboardService from '../../services/WhiteboardService.js'
+import * as WhiteboardService from '../../services/WhiteboardService'
 import {
   decode,
   encode,
@@ -277,9 +277,9 @@ const whiteboardRouter = function(app): void {
       if (message.messageType === MessageType.INIT) {
         // Active session's document
         let document = await WhiteboardService.getDoc(sessionId)
-        // Completed session's document
+        // Get the completed session's whiteboard document from storage
         if (!document)
-          document = await WhiteboardService.getFinalDocState(sessionId)
+          document = await WhiteboardService.getDocFromStorage(sessionId)
         return wsClient.send(
           encode({
             messageType: MessageType.APPEND,

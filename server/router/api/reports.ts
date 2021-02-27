@@ -27,4 +27,19 @@ module.exports = function(router) {
       next(error)
     }
   })
+
+  router.get(
+    '/reports/volunteer-partner-report',
+    passport.isAdmin,
+    async function(req, res, next) {
+      try {
+        const data = await ReportService.generateVolunteerPartnerReport(
+          req.query
+        )
+        res.json({ data })
+      } catch (error) {
+        next(error)
+      }
+    }
+  )
 }

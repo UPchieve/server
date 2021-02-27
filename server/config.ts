@@ -116,42 +116,36 @@ const config: Static<typeof Config> = {
   notificationSchedule: [
     // Minute 1 (the time after a session request is made)
     1 * 60 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
+    12 * 1000,
+    12 * 1000,
+    12 * 1000,
+    12 * 1000,
     // Minute 2
-    1 * 60 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
+    12 * 1000,
+    12 * 1000,
+    12 * 1000,
+    12 * 1000,
+    12 * 1000,
     // Minute 3
-    1 * 60 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    // Minute 4
-    1 * 60 * 1000,
+    12 * 1000,
+    12 * 1000,
+    12 * 1000,
+    12 * 1000,
+    12 * 1000,
+    // Minute 6
+    2 * 12 * 60 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     // Minute 7
-    3 * 60 * 1000,
+    40 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     // Minute 8
-    1 * 60 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    5 * 1000,
-    // Minute 9
-    1 * 60 * 1000,
+    40 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
@@ -200,7 +194,26 @@ const config: Static<typeof Config> = {
     process.env.VUE_APP_NEW_RELIC_LICENSE_KEY || 'bogus',
   newRelicBrowserAppId: process.env.VUE_APP_NEW_RELIC_APP_ID || 'bogus',
   papercupsId: process.env.VUE_APP_PAPERCUPS_ID || 'bogus',
-  vueDevtools: nodeEnv === 'dev'
+  vueDevtools: nodeEnv === 'dev',
+  /**
+   *
+   * @note: DefaultAzureCredential() requires AZURE_CLIENT_ID, AZURE_TENANT_ID, and AZURE_CLIENT_SECRET.
+   * https://github.com/Azure/azure-sdk-for-js/blob/master/sdk/identity/identity/README.md#environment-variables
+   *
+   * To combine multiple credential instances please see:
+   * https://github.com/Azure/azure-sdk-for-js/blob/master/sdk/identity/identity/README.md#define-a-custom-authentication-flow-with-the-chainedtokencredential
+   *
+   **/
+  whiteboardStorageAppId: process.env.AZURE_CLIENT_ID || 'bogus',
+  whiteboardStorageTenantId: process.env.AZURE_TENANT_ID || 'bogus',
+  whiteboardStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
+  whiteboardStorageSubscriptionId:
+    process.env.SUBWAY_AZURE_WHITEBOARD_SUBSCRIPTION_ID || 'bogus',
+  whiteboardStorageAccountName:
+    process.env.SUBWAY_WHITEBOARD_STORAGE_ACCOUNT_NAME || 'bogus',
+  whiteboardStorageContainer:
+    process.env.SUBWAY_WHITEBOARD_STORAGE_CONTAINER || 'bogus',
+  version: process.env.SUBWAY_VERSION || 'development'
 }
 
 module.exports = config
