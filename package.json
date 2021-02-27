@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "tsc && cp -r server/localManifests build/localManifests && cp -rn server/views build",
+    "build:backend": "tsc && cp -r server/localManifests build/localManifests && cp -r server/swagger build/swagger && cp -rn server/views build",
     "build:frontend": "vue-cli-service build",
     "cypress": "npx cypress run",
     "start": "node build/main",
