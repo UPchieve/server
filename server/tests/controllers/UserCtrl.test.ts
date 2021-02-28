@@ -28,7 +28,7 @@ beforeEach(async () => {
 describe('createVolunteer', () => {
   test('Should create a volunteer and availability', async () => {
     const newVolunteer = buildVolunteer()
-    const createdAccountMockMethod = AccountActionCreator.prototype.createdAccount = jest.fn();
+    const createdAccountMockMethod = (AccountActionCreator.prototype.createdAccount = jest.fn())
     await createVolunteer(newVolunteer)
     const einstein = await getVolunteer({ _id: newVolunteer._id })
     const newAvailability = await getAvailability({
