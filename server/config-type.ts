@@ -29,6 +29,9 @@ export const Config = Record({
     niceToMeetYouTemplate: String,
     weeklyHourSummaryEmailTemplate: String,
     weeklyHourSummaryIntroEmailTemplate: String,
+    studentUseCasesTemplate: String,
+    meetOurVolunteersTemplate: String,
+    studentIndependentLearningTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
@@ -44,13 +47,17 @@ export const Config = Record({
     senders: Record({
       noreply: String,
       support: String,
-      recruitment: String
+      recruitment: String,
+      students: String,
+      volunteerManager: String
     }),
     receivers: Record({
       contact: String,
       staff: String,
       support: String,
-      recruitment: String
+      recruitment: String,
+      students: String,
+      volunteerManager: String
     })
   }),
   client: Record({

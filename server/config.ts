@@ -60,6 +60,9 @@ const config: Static<typeof Config> = {
     niceToMeetYouTemplate: 'd-8afee528e5184d8797c50c109d6b631b',
     weeklyHourSummaryEmailTemplate: 'd-19a5fbe8656249d2822c8bde1c2ab086',
     weeklyHourSummaryIntroEmailTemplate: 'd-4d8394e4da3847eabdfd23f257f7a8d3',
+    studentUseCasesTemplate: 'd-53b05a9788d044dab4c3e0f5e8a2250b',
+    meetOurVolunteersTemplate: 'd-799e0195f78d4732a5adc36216a488f7',
+    studentIndependentLearningTemplate: 'd-3167ea240a27471597d849cbae4b8437',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -80,7 +83,12 @@ const config: Static<typeof Config> = {
       noreply: process.env.SUBWAY_NOREPLY_EMAIL_SENDER || 'example@example.org',
       support: process.env.SUBWAY_SUPPORT_EMAIL_SENDER || 'example@example.org',
       recruitment:
-        process.env.SUBWAY_RECRUITMENT_EMAIL_SENDER || 'example@example.org'
+        process.env.SUBWAY_RECRUITMENT_EMAIL_SENDER || 'example@example.org',
+      students:
+        process.env.SUBWAY_STUDENTS_EMAIL_SENDER || 'example@example.org',
+      volunteerManager:
+        process.env.SUBWAY_VOLUNTEER_MANAGER_EMAIL_SENDER ||
+        'example@example.org'
     },
     receivers: {
       contact:
@@ -89,7 +97,12 @@ const config: Static<typeof Config> = {
       support:
         process.env.SUBWAY_SUPPORT_EMAIL_RECEIVER || 'example@example.org',
       recruitment:
-        process.env.SUBWAY_RECRUITMENT_EMAIL_RECEIVER || 'example@example.org'
+        process.env.SUBWAY_RECRUITMENT_EMAIL_RECEIVER || 'example@example.org',
+      students:
+        process.env.SUBWAY_STUDENTS_EMAIL_RECEIVER || 'example@example.org',
+      volunteerManager:
+        process.env.SUBWAY_VOLUNTEER_MANAGER_EMAIL_RECEIVER ||
+        'example@example.org'
     }
   },
   client: {
