@@ -179,15 +179,78 @@ module.exports = {
   },
 
   sendStudentWelcomeEmail: ({ email, firstName }) => {
+    const overrides = {
+      reply_to: {
+        email: config.mail.receivers.students
+      },
+      categories: ['student welcome email']
+    }
     sendEmail(
       email,
-      config.mail.senders.noreply,
-      'UPchieve',
+      config.mail.senders.students,
+      'UPchieve Student Success Team',
       config.sendgrid.studentWelcomeTemplate,
       { firstName },
       config.sendgrid.unsubscribeGroup.account,
       null,
-      { categories: ['student welcome email'] }
+      overrides
+    )
+  },
+
+  sendStudentUseCases: ({ email, firstName }) => {
+    const overrides = {
+      reply_to: {
+        email: config.mail.receivers.students
+      },
+      categories: ['student welcome email - student use cases']
+    }
+    sendEmail(
+      email,
+      config.mail.senders.students,
+      'UPchieve Student Success Team',
+      config.sendgrid.studentUseCasesTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendMeetOurVolunteers: ({ email, firstName }) => {
+    const overrides = {
+      reply_to: {
+        email: config.mail.receivers.students
+      },
+      categories: ['student welcome email - meet our volunteers']
+    }
+    sendEmail(
+      email,
+      config.mail.senders.volunteerManager,
+      'Mark',
+      config.sendgrid.meetOurVolunteersTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendIndependentLearning: ({ email, firstName }) => {
+    const overrides = {
+      reply_to: {
+        email: config.mail.receivers.students
+      },
+      categories: ['student welcome email - independent learning']
+    }
+    sendEmail(
+      email,
+      config.mail.senders.students,
+      'UPchieve Student Success Team',
+      config.sendgrid.studentIndependentLearningTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
     )
   },
 
@@ -359,17 +422,16 @@ module.exports = {
   },
 
   sendNiceToMeetYou: volunteer => {
-    const teamMemberEmail = 'mark.espinoza@upchieve.org'
     const overrides = {
       reply_to: {
-        email: teamMemberEmail
+        email: config.mail.senders.volunteerManager
       },
       categories: ['nice to meet you email']
     }
 
     return sendEmail(
       volunteer.email,
-      teamMemberEmail,
+      config.mail.senders.volunteerManager,
       'Mark',
       config.sendgrid.niceToMeetYouTemplate,
       {

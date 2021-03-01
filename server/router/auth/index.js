@@ -17,6 +17,7 @@ const UserCtrl = require('../../controllers/UserCtrl')
 const MailService = require('../../services/MailService')
 const { EVENTS } = require('../../constants')
 const AnalyticsService = require('../../services/AnalyticsService')
+const StudentService = require('../../services/StudentService')
 
 // Validation functions
 function checkPassword(password) {
@@ -212,8 +213,9 @@ module.exports = function(app) {
       ip
     }
 
+    let student
     try {
-      const student = await UserCtrl.createStudent(studentData)
+      student = await UserCtrl.createStudent(studentData)
       if (isBanned)
         MailService.sendBannedUserAlert({
           userId: student._id,
@@ -221,12 +223,22 @@ module.exports = function(app) {
         })
 
       await req.login(student)
-      return res.json({
+      res.json({
         user: student
       })
     } catch (err) {
       Sentry.captureException(err)
       return res.status(422).json({ err: err.message })
+    }
+
+    try {
+      MailService.sendStudentWelcomeEmail({
+        email: student.email,
+        firstName: student.firstname
+      })
+      StudentService.queueWelcomeEmails(student._id)
+    } catch (err) {
+      Sentry.captureException(err)
     }
   })
 
