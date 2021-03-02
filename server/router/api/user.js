@@ -29,7 +29,8 @@ module.exports = function(router) {
       const updatedUser = Object.assign(req.user, { isDeactivated })
       MailService.createContact(updatedUser)
 
-      if (isDeactivated) UserActionCtrl.accountDeactivated(_id, ip)
+      if (isDeactivated)
+        new UserActionCtrl.AccountActionCreator(_id, ip).accountDeactivated()
     }
 
     try {

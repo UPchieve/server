@@ -7,16 +7,16 @@ function addUserAction(req, res, next) {
     const { ip: ipAddress } = req
 
     if (req.url === '/api/calendar/save') {
-      UserActionCtrl.updatedAvailability(_id, ipAddress).catch(error =>
-        Sentry.captureException(error)
-      )
+      new UserActionCtrl.AccountActionCreator(_id, ipAddress)
+        .updatedAvailability()
+        .catch(error => Sentry.captureException(error))
     }
 
     if (req.url === '/api/training/questions') {
       const { category } = req.body
-      UserActionCtrl.startedQuiz(_id, category, ipAddress).catch(error =>
-        Sentry.captureException(error)
-      )
+      new UserActionCtrl.QuizActionCreator(_id, category, ipAddress)
+        .startedQuiz()
+        .catch(error => Sentry.captureException(error))
     }
 
     // add user action 'updated profile' only from /profile request route
@@ -26,9 +26,9 @@ function addUserAction(req, res, next) {
       req.method === 'PUT' &&
       referer.includes('profile')
     ) {
-      UserActionCtrl.updatedProfile(_id, ipAddress).catch(error =>
-        Sentry.captureException(error)
-      )
+      new UserActionCtrl.AccountActionCreator(_id, ipAddress)
+        .updatedProfile()
+        .catch(error => Sentry.captureException(error))
     }
   }
 

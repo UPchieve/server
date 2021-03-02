@@ -408,11 +408,10 @@ module.exports = {
         banReason: USER_BAN_REASON.SESSION_REPORTED,
         sessionId: session._id
       })
-      UserActionCtrl.accountBanned(
-        session.student,
-        session._id,
-        USER_BAN_REASON.SESSION_REPORTED
-      )
+      new UserActionCtrl.AccountActionCreator(session.student, '', {
+        session: session._id,
+        banReason: USER_BAN_REASON.SESSION_REPORTED
+      }).accountBanned()
       AnalyticsService.captureEvent(session.student, EVENTS.ACCOUNT_BANNED, {
         event: EVENTS.ACCOUNT_BANNED,
         sessionId: session._id.toString(),

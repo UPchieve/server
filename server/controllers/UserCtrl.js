@@ -49,7 +49,10 @@ module.exports = {
     }
 
     try {
-      await UserActionCtrl.createdAccount(student._id, ip)
+      await new UserActionCtrl.AccountActionCreator(
+        student._id,
+        ip
+      ).createdAccount()
     } catch (err) {
       Sentry.captureException(err)
     }
@@ -85,7 +88,10 @@ module.exports = {
     }
 
     try {
-      await UserActionCtrl.createdAccount(volunteer._id, ip)
+      await new UserActionCtrl.AccountActionCreator(
+        volunteer._id,
+        ip
+      ).createdAccount()
     } catch (err) {
       Sentry.captureException(err)
     }
