@@ -49,15 +49,6 @@ module.exports = {
     }
 
     try {
-      MailService.sendStudentWelcomeEmail({
-        email: student.email,
-        firstName: student.firstname
-      })
-    } catch (err) {
-      Sentry.captureException(err)
-    }
-
-    try {
       await new UserActionCtrl.AccountActionCreator(
         student._id,
         ip
