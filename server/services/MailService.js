@@ -496,6 +496,104 @@ module.exports = {
     )
   },
 
+  sendOnboardingReminderOne: ({
+    firstName,
+    email,
+    hasCompletedBackgroundInfo,
+    hasCompletedUpchieve101,
+    hasUnlockedASubject,
+    hasSelectedAvailability
+  }) => {
+    const overrides = {
+      asm: {
+        group_id: config.sendgrid.unsubscribeGroup.account,
+        groups_to_display: [
+          config.sendgrid.unsubscribeGroup.newsletter,
+          // @todo: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
+          config.sendgrid.unsubscribeGroup.volunteerSummary
+        ]
+      },
+      categories: ['onboarding reminder one email']
+    }
+
+    return sendEmail(
+      email,
+      config.mail.senders.support,
+      'The UPchieve Team',
+      config.sendgrid.onboardingReminderOneTemplate,
+      {
+        firstName: capitalize(firstName),
+        hasCompletedBackgroundInfo,
+        hasCompletedUpchieve101,
+        hasUnlockedASubject,
+        hasSelectedAvailability
+      },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendOnboardingReminderTwo: ({ firstName, email }) => {
+    const overrides = {
+      asm: {
+        group_id: config.sendgrid.unsubscribeGroup.account,
+        groups_to_display: [
+          config.sendgrid.unsubscribeGroup.newsletter,
+          // @todo: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
+          config.sendgrid.unsubscribeGroup.volunteerSummary
+        ]
+      },
+      categories: ['onboarding reminder two email']
+    }
+
+    return sendEmail(
+      email,
+      config.mail.senders.support,
+      'The UPchieve Team',
+      config.sendgrid.onboardingReminderTwoTemplate,
+      {
+        firstName: capitalize(firstName)
+      },
+      // @note: see @todo for sendEmail
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendOnboardingReminderThree: ({ firstName, email }) => {
+    const teamMemberEmail = config.mail.senders.volunteerManager
+    const overrides = {
+      reply_to: {
+        email: teamMemberEmail
+      },
+      asm: {
+        group_id: config.sendgrid.unsubscribeGroup.account,
+        groups_to_display: [
+          config.sendgrid.unsubscribeGroup.newsletter,
+          // @todo: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
+          config.sendgrid.unsubscribeGroup.volunteerSummary
+        ]
+      },
+      categories: ['onboarding reminder three email']
+    }
+
+    return sendEmail(
+      email,
+      teamMemberEmail,
+      'Mark',
+      config.sendgrid.onboardingReminderThreeTemplate,
+      {
+        firstName: capitalize(firstName)
+      },
+      // @note: see @todo for sendEmail
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
   createContact: async user => {
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(user.isBanned),

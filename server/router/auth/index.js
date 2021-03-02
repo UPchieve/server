@@ -17,6 +17,7 @@ const UserCtrl = require('../../controllers/UserCtrl')
 const MailService = require('../../services/MailService')
 const { EVENTS } = require('../../constants')
 const AnalyticsService = require('../../services/AnalyticsService')
+const VolunteerService = require('../../services/VolunteerService')
 const StudentService = require('../../services/StudentService')
 
 // Validation functions
@@ -292,9 +293,11 @@ module.exports = function(app) {
     try {
       const volunteer = await UserCtrl.createVolunteer(volunteerData)
       await req.login(volunteer)
-      return res.json({
+      res.json({
         user: volunteer
       })
+
+      VolunteerService.queueOnboardingReminderOneEmail(volunteer._id)
     } catch (err) {
       Sentry.captureException(err)
       return res.status(422).json({ err: err.message })
@@ -377,9 +380,10 @@ module.exports = function(app) {
     try {
       const volunteer = await UserCtrl.createVolunteer(volunteerData)
       await req.login(volunteer)
-      return res.json({
+      res.json({
         user: volunteer
       })
+      VolunteerService.queueOnboardingReminderOneEmail(volunteer._id)
     } catch (err) {
       Sentry.captureException(err)
       return res.status(422).json({ err: err.message })
