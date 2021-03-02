@@ -1,13 +1,6 @@
 <template>
   <div class="volunteer-dashboard">
     <dashboard-banner />
-    <div
-      v-if="downtimeMessage"
-      class="dashboard-notice"
-      :class="'dashboard-notice--info'"
-    >
-      {{ downtimeMessage }}
-    </div>
 
     <div v-if="showUpchieve101Notice" class="dashboard-notice">
       <router-link to="training/course/upchieve101"
@@ -156,8 +149,6 @@ import TrainingIcon from '@/assets/training_icon.svg'
 import { allSubtopicNames } from '@/utils/topics'
 import WebNotificationsButton from '@/components/WebNotificationsButton.vue'
 import ArrowIcon from '@/assets/arrow.svg'
-import moment from 'moment-timezone'
-import { isEnabled } from 'unleash-client'
 
 const headerData = {
   component: 'RejoinSessionHeader',
@@ -217,22 +208,6 @@ export default {
       hasCertification: 'user/hasCertification',
       hasSelectedAvailability: 'user/hasSelectedAvailability'
     }),
-
-    downtimeMessage() {
-      const downtimeStartDate = moment.utc('2021-01-16 21:30:00')
-      const localStartDate = moment(downtimeStartDate).local()
-      const downtimeEndDate = moment.utc('2021-01-17 00:30:00')
-      const localEndDate = moment(downtimeEndDate).local()
-      if (isEnabled('downtime-banner-1-16')) {
-        return `UPchieve will be down for maintenance ${localStartDate.format(
-          'LT'
-        )} - ${localEndDate.format('LT')} on ${localStartDate.format(
-          'dddd'
-        )}, ${localStartDate.format('LL')}`
-      } else {
-        return ''
-      }
-    },
 
     isNewVolunteer() {
       return !this.user.pastSessions || !this.user.pastSessions.length
