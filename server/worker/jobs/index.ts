@@ -13,6 +13,7 @@ import emailReferenceFollowup from './emailReferenceFollowup'
 import emailWaitingOnReferences from './emailWaitingOnReferences'
 import emailNiceToMeetYou from './emailNiceToMeetYou'
 import emailWeeklyHourSummary from './emailWeeklyHourSummary'
+import emailOnboardingReminder from './volunteer-emails/emailOnboardingReminder'
 import emailStudentWelcomeSeries from './student-emails/emailStudentWelcomeSeries'
 
 export enum Jobs {
@@ -23,9 +24,12 @@ export enum Jobs {
   EmailReferences = 'EmailReferences',
   EmailReadyToCoach = 'EmailReadyToCoach',
   EmailReferenceFollowup = 'EmailReferenceFollowup',
-  EmailWaitingOnReferences = 'emailWaitingOnReferences',
-  EmailNiceToMeetYou = 'emailNiceToMeetYou',
-  EmailWeeklyHourSummary = 'emailWeeklyHourSummary',
+  EmailWaitingOnReferences = 'EmailWaitingOnReferences',
+  EmailNiceToMeetYou = 'EmailNiceToMeetYou',
+  EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
+  EmailOnboardingReminderOne = 'EmailOnboardingReminderOne',
+  EmailOnboardingReminderTwo = 'EmailOnboardingReminderTwo',
+  EmailOnboardingReminderThree = 'EmailOnboardingReminderThree',
   EmailStudentUseCases = 'EmailStudentUseCases',
   EmailIndependentLearning = 'EmailIndependentLearning',
   EmailMeetOurVolunteers = 'EmailMeetOurVolunteers'
@@ -77,6 +81,18 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailWeeklyHourSummary,
     processor: emailWeeklyHourSummary
+  },
+  {
+    name: Jobs.EmailOnboardingReminderOne,
+    processor: emailOnboardingReminder
+  },
+  {
+    name: Jobs.EmailOnboardingReminderTwo,
+    processor: emailOnboardingReminder
+  },
+  {
+    name: Jobs.EmailOnboardingReminderThree,
+    processor: emailOnboardingReminder
   },
   {
     name: Jobs.EmailStudentUseCases,
