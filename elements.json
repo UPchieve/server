@@ -1,0 +1,58 @@
+{
+  "btn": {
+    "inherit": "button"
+  },
+  "autocomplete": {
+    "flow": true,
+    "permittedContent": [ "@flow" ]
+  },
+  "modal": {
+    "flow": true,
+    "permittedContent": [ "@flow" ]
+  },
+  "separator": {
+    "flow": true
+  },
+  "loader": {
+    "flow": true
+  },
+  "module": {
+    "flow": true
+  },
+  "material": {
+    "flow": true
+  },
+  "whiteboard": {
+    "flow": true
+  },
+  "selectionicon": {
+    "flow": true
+  },
+  "penicon": {
+    "flow": true
+  },
+  "shapesicon": {
+    "flow": true
+  },
+  "texticon": {
+    "flow": true
+  },
+  "colorpickericon": {
+    "flow": true
+  },
+  "undoicon": {
+    "flow": true
+  },
+  "redoicon": {
+    "flow": true
+  },
+  "photouploadicon": {
+    "flow": true
+  },
+  "clearicon": {
+    "flow": true
+  },
+  "reseticon": {
+    "flow": true
+  }
+}
