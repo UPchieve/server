@@ -1,4 +1,5 @@
 import posthog from 'posthog-js'
+import { EVENTS } from '../consts'
 
 export default {
   identify(userId) {
@@ -16,6 +17,30 @@ export default {
   // unset any of the user's distinctive ids
   reset() {
     posthog.reset()
+  },
+
+  registerStudent(student) {
+    const userProperties = {
+      userType: 'student'
+    }
+    if (student.studentPartnerOrg)
+      userProperties.partner = student.studentPartnerOrg
+    this.updateUser(userProperties)
+    this.captureEvent(EVENTS.ACCOUNT_CREATED, {
+      event: EVENTS.ACCOUNT_CREATED
+    })
+  },
+
+  registerVolunteer(volunteer) {
+    const userProperties = {
+      userType: 'volunteer'
+    }
+    if (volunteer.volunteerPartnerOrg)
+      userProperties.partner = volunteer.volunteerPartnerOrg
+    this.updateUser(userProperties)
+    this.captureEvent(EVENTS.ACCOUNT_CREATED, {
+      event: EVENTS.ACCOUNT_CREATED
+    })
   },
 
   // tracking the information from the feedback form

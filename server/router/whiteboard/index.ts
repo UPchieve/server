@@ -277,10 +277,7 @@ const whiteboardRouter = function(app): void {
       if (message.messageType === MessageType.INIT) {
         // Active session's document
         let document = await WhiteboardService.getDoc(sessionId)
-        // Completed session's document
-        // @todo: remove once whiteboard docs are in azure storage
-        if (!document)
-          document = await WhiteboardService.getFinalDocState(sessionId)
+        // Get the completed session's whiteboard document from storage
         if (!document)
           document = await WhiteboardService.getDocFromStorage(sessionId)
         return wsClient.send(

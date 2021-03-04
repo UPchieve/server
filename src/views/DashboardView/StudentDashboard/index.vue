@@ -2,18 +2,11 @@
   <div class="student-dashboard">
     <dashboard-banner />
     <div
-      v-if="!downtimeMessage && noticeMessage"
+      v-if="noticeMessage"
       class="dashboard-notice"
       :class="isLowCoachHour && 'dashboard-notice--warn'"
     >
       {{ noticeMessage }}
-    </div>
-    <div
-      v-if="downtimeMessage"
-      class="dashboard-notice"
-      :class="'dashboard-notice--info'"
-    >
-      {{ downtimeMessage }}
     </div>
     <subject-selection />
     <first-session-congrats-modal
@@ -29,7 +22,6 @@ import DashboardBanner from '../DashboardBanner'
 import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
-import { isEnabled } from 'unleash-client'
 
 const headerData = {
   component: 'RejoinSessionHeader',
@@ -76,32 +68,17 @@ export default {
       return this.currentHour < 12
     },
     noticeMessage() {
-      // if (this.currentHour >= 12 && this.currentHour <= 23)
-      //   return "Heads up: this is a great time to make a request! We have plenty of coaches available between 12pm - 12 am ET.";
-      // if (this.currentHour >= 3 && this.currentHour <= 9)
-      //   return "Heads up: we have very few coaches available right now. Try making requests between 12pm-12am ET when possible";
-      // if (
-      //   (this.currentHour >= 0 && this.currentHour < 3) ||
-      //   (this.currentHour >= 9 && this.currentHour < 12)
-      // )
-      //   return "Heads up: we have less coaches available than normal right now. Try making requests between 12pm-12am ET when possible!";
+      if (this.currentHour >= 12 && this.currentHour <= 23)
+        return 'Heads up: this is a great time to make a request! We have plenty of coaches available between 12pm - 12 am ET.'
+      if (this.currentHour >= 3 && this.currentHour <= 9)
+        return 'Heads up: we have very few coaches available right now. Try making requests between 12pm-12am ET when possible'
+      if (
+        (this.currentHour >= 0 && this.currentHour < 3) ||
+        (this.currentHour >= 9 && this.currentHour < 12)
+      )
+        return 'Heads up: we have less coaches available than normal right now. Try making requests between 12pm-12am ET when possible!'
 
       return ''
-    },
-    downtimeMessage() {
-      const downtimeStartDate = moment.utc('2021-01-16 21:30:00')
-      const localStartDate = moment(downtimeStartDate).local()
-      const downtimeEndDate = moment.utc('2021-01-17 00:30:00')
-      const localEndDate = moment(downtimeEndDate).local()
-      if (isEnabled('downtime-banner-1-16')) {
-        return `UPchieve will be down for maintenance ${localStartDate.format(
-          'LT'
-        )} - ${localEndDate.format('LT')} on ${localStartDate.format(
-          'dddd'
-        )}, ${localStartDate.format('LL')}`
-      } else {
-        return ''
-      }
     },
     hasSeenFirstSessionCongratsModal() {
       return (

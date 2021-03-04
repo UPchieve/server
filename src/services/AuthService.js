@@ -1,5 +1,4 @@
 import Validator from 'validator'
-import { EVENTS } from '../consts'
 import errorFromHttpResponse from '../utils/error-from-http-response'
 import AnalyticsService from './AnalyticsService'
 import NetworkService from './NetworkService'
@@ -33,10 +32,7 @@ export default {
         if (!data) {
           throw new Error('No user returned from auth service')
         }
-        AnalyticsService.updateUser({ userType: 'volunteer' })
-        AnalyticsService.captureEvent(EVENTS.ACCOUNT_CREATED, {
-          event: EVENTS.ACCOUNT_CREATED
-        })
+        AnalyticsService.registerVolunteer(data.user)
       })
       .catch(res => {
         throw errorFromHttpResponse(res)
@@ -50,10 +46,7 @@ export default {
         if (!data) {
           throw new Error('No user returned from auth service')
         }
-        AnalyticsService.updateUser({ userType: 'volunteer' })
-        AnalyticsService.captureEvent(EVENTS.ACCOUNT_CREATED, {
-          event: EVENTS.ACCOUNT_CREATED
-        })
+        AnalyticsService.registerVolunteer(data.user)
       })
       .catch(res => {
         throw errorFromHttpResponse(res)
@@ -67,10 +60,7 @@ export default {
         if (!data) {
           throw new Error('No user returned from auth service')
         }
-        AnalyticsService.updateUser({ userType: 'student' })
-        AnalyticsService.captureEvent(EVENTS.ACCOUNT_CREATED, {
-          event: EVENTS.ACCOUNT_CREATED
-        })
+        AnalyticsService.registerStudent(data.user)
       })
       .catch(res => {
         throw errorFromHttpResponse(res)

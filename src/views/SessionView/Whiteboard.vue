@@ -583,6 +583,11 @@ export default {
         this.hadConnectionIssue = true
         window.clearInterval(this.pingPongInterval)
         this.zwibblerCtx.setConfig('readOnly', true)
+        Sentry.captureException(new Error('Zwibbler connection error'), {
+          tags: {
+            sessionId: this.sessionId
+          }
+        })
       })
 
       // disallow dragging and pasting to the whiteboard

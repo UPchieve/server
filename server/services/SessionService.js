@@ -17,7 +17,6 @@ const ObjectId = require('mongodb').ObjectId
 const { USER_ACTION } = require('../constants')
 const VolunteerModel = require('../models/Volunteer')
 const { SESSION_FLAGS } = require('../constants')
-const { isEnabled } = require('unleash-client')
 
 const hasReviewTriggerFlags = flags => {
   const excludedFlags = [
@@ -409,11 +408,10 @@ module.exports = {
         banReason: USER_BAN_REASON.SESSION_REPORTED,
         sessionId: session._id
       })
-      UserActionCtrl.accountBanned(
-        session.student,
-        session._id,
-        USER_BAN_REASON.SESSION_REPORTED
-      )
+      new UserActionCtrl.AccountActionCreator(session.student, '', {
+        session: session._id,
+        banReason: USER_BAN_REASON.SESSION_REPORTED
+      }).accountBanned()
       AnalyticsService.captureEvent(session.student, EVENTS.ACCOUNT_BANNED, {
         event: EVENTS.ACCOUNT_BANNED,
         sessionId: session._id.toString(),
@@ -487,14 +485,10 @@ module.exports = {
       const whiteboardDoc = await WhiteboardService.getDoc(
         session._id.toString()
       )
-      update.hasWhiteboardDoc = false
-      if (isEnabled('upload-whiteboard-doc'))
-        update.hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
-          sessionId,
-          whiteboardDoc
-        )
-      // @todo: remove once whiteboard docs are in azure storage
-      update.whiteboardDoc = whiteboardDoc
+      update.hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
+        sessionId,
+        whiteboardDoc
+      )
     }
 
     await Session.updateOne(

@@ -5,7 +5,7 @@ import { buildVolunteer } from '../generate'
 import { getAvailability } from '../../services/AvailabilityService'
 import { createContact } from '../../services/MailService'
 import { initiateVerification } from '../../controllers/VerificationCtrl'
-import { createdAccount } from '../../controllers/UserActionCtrl'
+import { AccountActionCreator } from '../../controllers/UserActionCtrl'
 jest.mock('../../services/MailService')
 jest.mock('../../controllers/VerificationCtrl')
 jest.mock('../../controllers/UserActionCtrl')
@@ -28,6 +28,7 @@ beforeEach(async () => {
 describe('createVolunteer', () => {
   test('Should create a volunteer and availability', async () => {
     const newVolunteer = buildVolunteer()
+    const createdAccountMockMethod = (AccountActionCreator.prototype.createdAccount = jest.fn())
     await createVolunteer(newVolunteer)
     const einstein = await getVolunteer({ _id: newVolunteer._id })
     const newAvailability = await getAvailability({
@@ -38,6 +39,7 @@ describe('createVolunteer', () => {
     expect(newAvailability.volunteerId).toEqual(newVolunteer._id)
     expect((initiateVerification as jest.Mock).mock.calls.length).toBe(1)
     expect((createContact as jest.Mock).mock.calls.length).toBe(1)
-    expect((createdAccount as jest.Mock).mock.calls.length).toBe(1)
+    expect((AccountActionCreator as jest.Mock).mock.calls.length).toBe(1)
+    expect(createdAccountMockMethod).toHaveBeenCalledTimes(1)
   })
 })
