@@ -42,7 +42,7 @@ export const getAvailabilityHistory = (
 export const getAvailabilityHistoryWithPipeline = (
   pipeline
 ): Aggregate<AvailabilityHistory[]> =>
-  AvailabilityHistoryModel.aggregate(pipeline)
+  AvailabilityHistoryModel.aggregate(pipeline).read('secondaryPreferred')
 
 // @todo: Create a compound index on date and volunteerId
 export const getRecentAvailabilityHistory = async (
@@ -87,7 +87,7 @@ export const getElapsedAvailabilityForDateRange = async (
         availability: 1
       }
     }
-  ])
+  ]).read('secondaryPreferred')
 
   let totalElapsedAvailability = 0
   for (const doc of historyDocs) {
