@@ -1,8 +1,10 @@
 import { Types } from 'mongoose'
 import VolunteerModel from '../models/Volunteer'
+import { Jobs } from '../worker/jobs'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getElapsedAvailabilityForDateRange } from './AvailabilityService'
 import { getQuizzesPassedForDateRange } from './UserActionService'
+import QueueService from './QueueService'
 
 export const getVolunteers = async (
   query,
@@ -48,4 +50,15 @@ export const getHourSummaryStats = async (
     totalElapsedAvailability: elapsedAvailability,
     totalVolunteerHours: Number(totalVolunteerHours)
   }
+}
+
+export const queueOnboardingReminderOneEmail = async (
+  volunteerId: string | Types.ObjectId
+): Promise<void> => {
+  const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7
+  QueueService.add(
+    Jobs.EmailOnboardingReminderOne,
+    { volunteerId },
+    { delay: sevenDaysInMs }
+  )
 }

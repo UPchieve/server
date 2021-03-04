@@ -60,7 +60,7 @@ module.exports = {
 
   addPhotoId: async ({ userId, ip }) => {
     const photoIdS3Key = crypto.randomBytes(32).toString('hex')
-    UserActionCtrl.addedPhotoId(userId, ip)
+    new UserActionCtrl.AccountActionCreator(userId, ip).addedPhotoId()
     await Volunteer.updateOne(
       { _id: userId },
       { $set: { photoIdS3Key, photoIdStatus: PHOTO_ID_STATUS.SUBMITTED } }
@@ -84,9 +84,9 @@ module.exports = {
       { _id: userId },
       { $push: { references: referenceData } }
     )
-    UserActionCtrl.addedReference(userId, ip, {
+    new UserActionCtrl.AccountActionCreator(userId, ip, {
       referenceEmail
-    })
+    }).addedReference()
   },
 
   saveReferenceForm: async ({
@@ -108,7 +108,9 @@ module.exports = {
       trustworthyWithChildren
     } = referenceFormData
 
-    UserActionCtrl.submittedReferenceForm(userId, ip, { referenceEmail })
+    new UserActionCtrl.AccountActionCreator(userId, ip, {
+      referenceEmail
+    }).submittedReferenceForm()
 
     // See: https://docs.mongodb.com/manual/reference/operator/update/positional/#up._S_
     return Volunteer.updateOne(
@@ -145,7 +147,9 @@ module.exports = {
   },
 
   deleteReference: async ({ userId, referenceEmail, ip }) => {
-    UserActionCtrl.deletedReference(userId, ip, { referenceEmail })
+    new UserActionCtrl.AccountActionCreator(userId, ip, {
+      referenceEmail
+    }).deletedReference()
     AnalyticsService.captureEvent(userId, EVENTS.REFERENCE_DELETED, {
       event: EVENTS.REFERENCE_DELETED,
       referenceEmail
@@ -268,7 +272,7 @@ module.exports = {
       photoIdStatus === PHOTO_ID_STATUS.REJECTED &&
       volunteerBeforeUpdate.photoIdStatus !== PHOTO_ID_STATUS.REJECTED
     ) {
-      UserActionCtrl.rejectedPhotoId(volunteerId)
+      new UserActionCtrl.AccountActionCreator(volunteerId).rejectedPhotoId()
       AnalyticsService.captureEvent(volunteerId, EVENTS.PHOTO_ID_REJECTED, {
         event: EVENTS.PHOTO_ID_REJECTED
       })
@@ -276,12 +280,11 @@ module.exports = {
     }
 
     const isNewlyApproved = isApproved && !volunteerBeforeUpdate.isApproved
-    if (isNewlyApproved) {
-      UserActionCtrl.accountApproved(volunteerId)
-      AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_APPROVED, {
-        event: EVENTS.ACCOUNT_APPROVED
-      })
-    }
+    if (isNewlyApproved)
+      new UserActionCtrl.AccountActionCreator(volunteerId).accountApproved()
+    AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_APPROVED, {
+      event: EVENTS.ACCOUNT_APPROVED
+    })
     if (isNewlyApproved && !volunteerBeforeUpdate.isOnboarded)
       MailService.sendApprovedNotOnboardedEmail(volunteerBeforeUpdate)
 
@@ -291,9 +294,9 @@ module.exports = {
         referencesStatus[i] === REFERENCE_STATUS.REJECTED &&
         reference.status !== REFERENCE_STATUS.REJECTED
       ) {
-        UserActionCtrl.rejectedReference(volunteerId, {
+        new UserActionCtrl.AccountActionCreator(volunteerId, '', {
           referenceEmail: reference.email
-        })
+        }).rejectedReference()
         AnalyticsService.captureEvent(volunteerId, EVENTS.REFERENCE_REJECTED, {
           event: EVENTS.REFERENCE_REJECTED,
           referenceEmail: reference.email
@@ -312,7 +315,7 @@ module.exports = {
     })
     if (volunteerPartnerOrg) {
       update.isApproved = true
-      UserActionCtrl.accountApproved(volunteerId)
+      new UserActionCtrl.AccountActionCreator(volunteerId).accountApproved()
       // @todo: if not onboarded, send a partner-specific version of the "approved but not onboarded" email
     }
 
@@ -325,7 +328,10 @@ module.exports = {
         delete update[field]
     }
 
-    UserActionCtrl.completedBackgroundInfo(volunteerId, ip)
+    new UserActionCtrl.AccountActionCreator(
+      volunteerId,
+      ip
+    ).completedBackgroundInfo()
     return Volunteer.update({ _id: volunteerId }, update)
   },
 
@@ -387,7 +393,7 @@ module.exports = {
 
     if (isBanned) update.banReason = USER_BAN_REASON.ADMIN
     if (isDeactivated && !userBeforeUpdate.isDeactivated)
-      UserActionCtrl.adminDeactivatedAccount(userId)
+      new UserActionCtrl.AdminActionCreator(userId).adminDeactivatedAccount()
 
     // Remove $unset property if it has no properties to remove
     if (Object.keys(update.$unset).length === 0) delete update.$unset

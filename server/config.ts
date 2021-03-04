@@ -60,6 +60,12 @@ const config: Static<typeof Config> = {
     niceToMeetYouTemplate: 'd-8afee528e5184d8797c50c109d6b631b',
     weeklyHourSummaryEmailTemplate: 'd-19a5fbe8656249d2822c8bde1c2ab086',
     weeklyHourSummaryIntroEmailTemplate: 'd-4d8394e4da3847eabdfd23f257f7a8d3',
+    onboardingReminderOneTemplate: 'd-9af291b6d0e94f7ebf0133be2c7176e3',
+    onboardingReminderTwoTemplate: 'd-23681dc2dc0647e0bd7a57a6f328e00b',
+    onboardingReminderThreeTemplate: 'd-d7ff9f33620842508de0030c84da9425',
+    studentUseCasesTemplate: 'd-53b05a9788d044dab4c3e0f5e8a2250b',
+    meetOurVolunteersTemplate: 'd-799e0195f78d4732a5adc36216a488f7',
+    studentIndependentLearningTemplate: 'd-3167ea240a27471597d849cbae4b8437',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -80,7 +86,12 @@ const config: Static<typeof Config> = {
       noreply: process.env.SUBWAY_NOREPLY_EMAIL_SENDER || 'example@example.org',
       support: process.env.SUBWAY_SUPPORT_EMAIL_SENDER || 'example@example.org',
       recruitment:
-        process.env.SUBWAY_RECRUITMENT_EMAIL_SENDER || 'example@example.org'
+        process.env.SUBWAY_RECRUITMENT_EMAIL_SENDER || 'example@example.org',
+      students:
+        process.env.SUBWAY_STUDENTS_EMAIL_SENDER || 'example@example.org',
+      volunteerManager:
+        process.env.SUBWAY_VOLUNTEER_MANAGER_EMAIL_SENDER ||
+        'example@example.org'
     },
     receivers: {
       contact:
@@ -89,7 +100,12 @@ const config: Static<typeof Config> = {
       support:
         process.env.SUBWAY_SUPPORT_EMAIL_RECEIVER || 'example@example.org',
       recruitment:
-        process.env.SUBWAY_RECRUITMENT_EMAIL_RECEIVER || 'example@example.org'
+        process.env.SUBWAY_RECRUITMENT_EMAIL_RECEIVER || 'example@example.org',
+      students:
+        process.env.SUBWAY_STUDENTS_EMAIL_RECEIVER || 'example@example.org',
+      volunteerManager:
+        process.env.SUBWAY_VOLUNTEER_MANAGER_EMAIL_RECEIVER ||
+        'example@example.org'
     }
   },
   client: {
@@ -121,31 +137,31 @@ const config: Static<typeof Config> = {
     12 * 1000,
     12 * 1000,
     // Minute 2
-    1 * 60 * 1000,
+    12 * 1000,
     12 * 1000,
     12 * 1000,
     12 * 1000,
     12 * 1000,
     // Minute 3
-    1 * 60 * 1000,
+    12 * 1000,
     12 * 1000,
     12 * 1000,
     12 * 1000,
     12 * 1000,
     // Minute 6
-    3 * 60 * 1000,
+    2 * 12 * 60 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     // Minute 7
-    1 * 60 * 1000,
+    40 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
     // Minute 8
-    1 * 60 * 1000,
+    40 * 1000,
     5 * 1000,
     5 * 1000,
     5 * 1000,
@@ -212,7 +228,8 @@ const config: Static<typeof Config> = {
   whiteboardStorageAccountName:
     process.env.SUBWAY_WHITEBOARD_STORAGE_ACCOUNT_NAME || 'bogus',
   whiteboardStorageContainer:
-    process.env.SUBWAY_WHITEBOARD_STORAGE_CONTAINER || 'bogus'
+    process.env.SUBWAY_WHITEBOARD_STORAGE_CONTAINER || 'bogus',
+  version: process.env.SUBWAY_VERSION || 'development'
 }
 
 module.exports = config

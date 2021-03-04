@@ -23,10 +23,6 @@ if (config.posthogToken) {
   })
 }
 
-if (config.devtools) {
-  Vue.config.devtools = true
-}
-
 if (config.unleashId) {
   initialize({
     url: config.unleashUrl,
@@ -74,7 +70,8 @@ Sentry.init({
   integrations: [
     new Integrations.Vue({ Vue, attachProps: true, logErrors: true })
   ],
-  environment: process.env.NODE_ENV
+  environment: config.nodeEnv,
+  release: `uc-web@${config.version}`
 })
 
 // Set up vue-headful

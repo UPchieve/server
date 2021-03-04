@@ -35,13 +35,18 @@ module.exports = function(router) {
         ip
       })
 
+      const quizActionCreator = new UserActionCtrl.QuizActionCreator(
+        user._id,
+        category,
+        ip
+      )
       passed
-        ? UserActionCtrl.passedQuiz(user._id, category, ip).catch(error =>
-            Sentry.captureException(error)
-          )
-        : UserActionCtrl.failedQuiz(user._id, category, ip).catch(error =>
-            Sentry.captureException(error)
-          )
+        ? quizActionCreator
+            .passedQuiz()
+            .catch(error => Sentry.captureException(error))
+        : quizActionCreator
+            .failedQuiz()
+            .catch(error => Sentry.captureException(error))
 
       res.json({
         msg: 'Score calculated and saved',
@@ -60,9 +65,9 @@ module.exports = function(router) {
     const { category } = req.params
     const { ip: ipAddress } = req
 
-    UserActionCtrl.viewedMaterials(_id, category, ipAddress).catch(error =>
-      Sentry.captureException(error)
-    )
+    new UserActionCtrl.QuizActionCreator(_id, category, ipAddress)
+      .viewedMaterials()
+      .catch(error => Sentry.captureException(error))
 
     res.sendStatus(204)
   })

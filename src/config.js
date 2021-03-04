@@ -39,6 +39,12 @@ if (configElement !== null) {
   passedConfig.devtools.includes('{{')
     ? (config.devtools = process.env.VUE_APP_DEVTOOLS)
     : (config.devtools = passedConfig.devtools)
+  passedConfig.nodeEnv.includes('{{')
+    ? (config.nodeEnv = process.env.NODE_ENV)
+    : (config.nodeEnv = passedConfig.nodeEnv)
+  passedConfig.version.includes('{{')
+    ? (config.version = process.env.SUBWAY_VERSION)
+    : (config.version = passedConfig.version)
 } else {
   // tests don't include the index.html file
   // so we have to populate these without it
@@ -52,6 +58,8 @@ if (configElement !== null) {
   config.unleashName = process.env.VUE_APP_UNLEASH_NAME
   config.unleashId = process.env.VUE_APP_UNLEASH_ID
   config.devtools = process.env.VUE_APP_DEVTOOLS
+  config.nodeEnv = process.env.NODE_ENV
+  config.version = process.env.SUBWAY_VERSION
 }
 
 export default config

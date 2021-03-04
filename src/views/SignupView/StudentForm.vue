@@ -112,7 +112,11 @@
           v-if="eligibility.noSchoolResults"
           class="school-search__no-results"
         >
-          <a href="https://upchieve.org/cant-find-school" target="_blank">
+          <a
+            href="https://upchieve.org/cant-find-school"
+            target="_blank"
+            @click="cantFindSchool"
+          >
             Can't find your high school?
           </a>
         </div>
@@ -421,8 +425,10 @@ import Autocomplete from '@trevoreyre/autocomplete-vue'
 import * as Sentry from '@sentry/browser'
 import AuthService from '@/services/AuthService'
 import NetworkService from '@/services/NetworkService'
+import AnalyticsService from '@/services/AnalyticsService'
 import VerificationBadge from '@/assets/verification.svg'
 import ErrorBadge from '@/assets/error_badge.svg'
+import { EVENTS } from '@/consts'
 
 export default {
   components: {
@@ -452,7 +458,13 @@ export default {
         firstName: '',
         lastName: ''
       },
-      step: ''
+      step: '',
+      hasStartedSearchingForSchool: false,
+      hasEnteredEmail: false,
+      hasEnteredZipCode: false,
+      hasEnteredFirstName: false,
+      hasEnteredLastName: false,
+      hasEnteredPassword: false
     }
   },
   mounted() {
@@ -465,6 +477,43 @@ export default {
     ...mapState({
       isMobileApp: state => state.app.isMobileApp
     })
+  },
+  watch: {
+    'eligibility.email': function(currentValue, oldValue) {
+      if (currentValue && !oldValue) {
+        if (!this.hasEnteredEmail)
+          AnalyticsService.captureEvent(EVENTS.STUDENT_ENTERED_EMAIL)
+        this.hasEnteredEmail = true
+      }
+    },
+    'eligibility.zipCode': function(currentValue, oldValue) {
+      if (currentValue && !oldValue) {
+        if (!this.hasEnteredZipCode)
+          AnalyticsService.captureEvent(EVENTS.STUDENT_ENTERED_ZIP_CODE)
+        this.hasEnteredZipCode = true
+      }
+    },
+    'profile.firstName'(currentValue, oldValue) {
+      if (currentValue && !oldValue) {
+        if (!this.hasEnteredFirstName)
+          AnalyticsService.captureEvent(EVENTS.STUDENT_ENTERED_FIRST_NAME)
+        this.hasEnteredFirstName = true
+      }
+    },
+    'profile.lastName'(currentValue, oldValue) {
+      if (currentValue && !oldValue) {
+        if (!this.hasEnteredLastName)
+          AnalyticsService.captureEvent(EVENTS.STUDENT_ENTERED_LAST_NAME)
+        this.hasEnteredLastName = true
+      }
+    },
+    'credentials.password'(currentValue, oldValue) {
+      if (currentValue && !oldValue) {
+        if (!this.hasEnteredPassword)
+          AnalyticsService.captureEvent(EVENTS.STUDENT_ENTERED_PASSWORD)
+        this.hasEnteredPassword = true
+      }
+    }
   },
   methods: {
     partnerCodePage() {
@@ -542,6 +591,7 @@ export default {
     },
 
     submitEligibility() {
+      AnalyticsService.captureEvent(EVENTS.STUDENT_CLICKED_CHECK_MY_ELIGIBILITY)
       if (this.isReferred) {
         this.step = 'eligible'
         this.$router.push('/sign-up/student/eligible')
@@ -566,11 +616,17 @@ export default {
           if (isEligible) {
             this.step = 'eligible'
             this.$router.push('/sign-up/student/eligible')
+            AnalyticsService.captureEvent(EVENTS.ELIGIBILITY_ELIGIBLE, {
+              event: EVENTS.ELIGIBILITY_ELIGIBLE
+            })
             // autofill the user's email
             this.credentials.email = this.eligibility.email
           } else {
             this.step = 'ineligible'
             this.$router.push('/sign-up/student/ineligible')
+            AnalyticsService.captureEvent(EVENTS.ELIGIBILITY_INELIGIBLE, {
+              event: EVENTS.ELIGIBILITY_INELIGIBLE
+            })
           }
         })
         .catch(res => {
@@ -582,6 +638,7 @@ export default {
       this.$router.push('/sign-up/student/account')
     },
     ineligibleContinue() {
+      AnalyticsService.captureEvent(EVENTS.STUDENT_CLICKED_STUDENT_ACCESS_PAGE)
       window.location = 'https://upchieve.org/request-access'
     },
     autocompleteSchool(input) {
@@ -592,6 +649,10 @@ export default {
           this.eligibility.noSchoolResults = false
           return resolve([])
         }
+
+        if (!this.hasStartedSearchingForSchool)
+          AnalyticsService.captureEvent(EVENTS.STUDENT_SEARCHED_SCHOOL)
+        this.hasStartedSearchingForSchool = true
 
         NetworkService.searchSchool(this, { query: input })
           .then(response => response.body.results)
@@ -605,6 +666,7 @@ export default {
       return `${school.name} (${school.city}, ${school.state})`
     },
     handleSelectHighSchool(school) {
+      AnalyticsService.captureEvent(EVENTS.STUDENT_SELECTED_SCHOOL)
       this.eligibility.highSchool = school || {}
     },
     submitAccountForm() {
@@ -649,10 +711,17 @@ export default {
         })
         .catch(err => {
           this.errors.push(err.message)
+          if (err.message.match(/^Password/))
+            AnalyticsService.captureEvent(
+              EVENTS.STUDENT_ENTERED_INVALID_PASSWORD
+            )
           if (err.status !== 422) {
             Sentry.captureException(err)
           }
         })
+    },
+    cantFindSchool() {
+      AnalyticsService.captureEvent(EVENTS.STUDENT_CLICKED_CANT_FIND_SCHOOL)
     }
   }
 }

@@ -10,6 +10,7 @@ const CONTACT_API_ROOT = `${config.serverRoot}/api-public/contact`
 const REFERENCE_API_ROOT = `${config.serverRoot}/api-public/reference`
 const REFERRAL_API_ROOT = `${config.serverRoot}/api-public/referral`
 const WHITEBOARD_ROOT = `${config.serverRoot}/whiteboard`
+const HEALTH_ROOT = `${config.serverRoot}/healthz`
 
 const FAULT_TOLERANT_HTTP_TIMEOUT = 10000
 const FAULT_TOLERANT_HTTP_MAX_RETRY_TIMEOUT = 100000
@@ -105,6 +106,11 @@ export default {
           partnerId
         )}`
       )
+      .then(this._successHandler, this._errorHandler)
+  },
+  checkHealth() {
+    return Vue.http
+      .get(`${HEALTH_ROOT}`)
       .then(this._successHandler, this._errorHandler)
   },
   registerOpenVolunteer(context, data) {
