@@ -213,7 +213,7 @@ export const sessionReport = async ({
     {
       $sort: { createdAt: 1 }
     }
-  ])
+  ]).read('secondaryPreferred')
 
   const formattedSessions = sessions.map(session => {
     return {
@@ -438,7 +438,7 @@ export const usageReport = async ({
         joinDate: 1
       }
     }
-  ])
+  ]).read('secondaryPreferred')
 
   const partnerSites =
     studentPartnerManifests[studentPartnerOrg] &&
