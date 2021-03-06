@@ -645,6 +645,9 @@ export default {
     )
     window.removeEventListener('resize', this.handleWindowResize, false)
     window.clearInterval(this.pingPongInterval)
+    // zwibbler cleanup
+    this.zwibblerCtx.leaveSharedSession()
+    this.zwibblerCtx.destroy()
   },
   watch: {
     shapeNodes() {
