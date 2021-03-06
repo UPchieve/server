@@ -136,8 +136,16 @@ export default {
             }
           ]
           break
-        case 'environmentalScience':
         case 'satMath':
+          this.reviewMaterials = [
+            {
+              title: 'SAT Math Review Guide',
+              pdf: `${this.hostPath}/sat-math-review-guide.pdf`,
+              image: `${this.hostPath}/sat-math-review-guide.png`
+            }
+          ]
+          break
+        case 'environmentalScience':
           this.reviewMaterials = []
           break
         // case for a user entering a subject that we do not support
