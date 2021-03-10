@@ -5,6 +5,13 @@
       :setShouldResetWhiteboard="setShouldResetWhiteboard"
       :closeModal="toggleResetWhiteboardModal"
     />
+    <transition name="whiteboard-warning">
+      <loading-message
+        message="Attempting to connect the whiteboard"
+        class="whiteboard-warning whiteboard-warning--connection"
+        v-show="!isConnected"
+      />
+    </transition>
     <div
       id="zwib-div"
       :class="{ 'whiteboard-open': isWhiteboardOpen }"
@@ -196,6 +203,7 @@ import LineIcon from '@/assets/whiteboard_icons/line.svg'
 import ResetIcon from '@/assets/whiteboard_icons/reset.svg'
 import Loader from '@/components/Loader'
 import ResetWhiteboardModal from './ResetWhiteboardModal'
+import LoadingMessage from '@/components/LoadingMessage'
 import * as Sentry from '@sentry/browser'
 import config from '../../config'
 
@@ -216,7 +224,8 @@ export default {
     LineIcon,
     ResetIcon,
     Loader,
-    ResetWhiteboardModal
+    ResetWhiteboardModal,
+    LoadingMessage
   },
   props: {
     sessionId: {
@@ -956,6 +965,25 @@ export default {
   &-enter,
   &-leave-to {
     top: -64px;
+  }
+}
+
+.whiteboard-warning {
+  width: 100%;
+  background-color: $c-shadow-warn;
+  color: #fff;
+  font-weight: normal;
+  min-height: 40px;
+  // !important is used to override the position specified in the LoadingMessage component
+  position: absolute !important;
+  left: 0;
+  top: 0;
+  padding: 12px;
+  z-index: 1000;
+  transition: all 0.15s ease-in;
+
+  &--connection {
+    background-color: rgba(110, 140, 171, 0.87);
   }
 }
 </style>

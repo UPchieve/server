@@ -23,7 +23,7 @@
       </transition>
       <transition name="chat-warning">
         <loading-message
-          message="Attempting to connect"
+          message="Attempting to connect the chat"
           class="chat-warning chat-warning--connection"
           v-show="isSessionConnectionFailure"
         />
@@ -86,6 +86,7 @@
 import { setTimeout, clearTimeout } from 'timers'
 import _ from 'lodash'
 import { mapState, mapGetters } from 'vuex'
+import * as Sentry from '@sentry/browser'
 
 import ChatBot from './ChatBot'
 import LoadingMessage from '@/components/LoadingMessage'
@@ -140,7 +141,15 @@ export default {
       isSessionAlive: 'user/isSessionAlive'
     }),
     isSessionConnectionFailure: function() {
-      return !this.isSessionConnectionAlive && this.isSessionAlive
+      const isConnectionFailure =
+        !this.isSessionConnectionAlive && this.isSessionAlive
+      if (isConnectionFailure)
+        Sentry.captureException(new Error('Attempting to connect the chat'), {
+          tags: {
+            sessionId: this.currentSession._id
+          }
+        })
+      return isConnectionFailure
     }
   },
   methods: {
