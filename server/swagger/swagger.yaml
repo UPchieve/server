@@ -92,18 +92,331 @@ paths:
           schema:
             type: string
             format: uuid
+  /auth/login:
+    post:
+      tags:
+        - authorization
+      summary: Validates user email and password for login
+      description: |
+        Authenticates the user and grants a session if credentials are correct for login
+      security:
+        - cookieAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/EmailPassword'
+      responses:
+        '200':
+          description: Authenticates the user with a session if credentials are correct and returns a user object
+        '401':
+          description: Unsuccessful authentication of user credentials
+  /auth/logout:
+    get:
+      tags:
+        - authorization
+      summary: User logout
+      description: |
+        Removes the user's current session.
+      security:
+        - cookieAuth: []
+      responses: 
+        '200':
+          description: User is logged out and session is ended
+          content:
+            application/json:
+              example:
+                msg: "You have been logged out"
+  /auth/register/checkcred:
+    post:
+      tags:
+        - authorization
+      summary: Validate user credentials for registration
+      description: |
+        Check whether the credential user entered is valid. (first step of registration) The server will check for email duplications and validate the password.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        $ref: '#/components/requestBodies/EmailPassword'
+      responses: 
+        '200':
+          description: Email is not already in use and password is validated
+        '409':
+          description: Email already exists
+        '422':
+          description: Email/password not provided or password is not valid
+  /auth/register/student:
+    post:
+      tags:
+        - authorization
+      summary: Register new student account
+      description: |
+        Creates a new account for a student from given parameters in request body
+      security:
+        - cookieAuth: []
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  password:
+                    type: string
+                  studentPartnerOrg: 
+                    type: string
+                  partnerUserId: 
+                    type: string
+                  highSchoolId: 
+                    type: string
+                  partnerSite:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  college: 
+                    type: string
+                  terms:
+                    type: boolean
+      responses: 
+        '200':
+          description: Successful student registration and log in
+        '422':
+          description: |
+            Any of the following can generate status code 422:
+             - Missing value for term agreement
+             - Missing email or password
+             - Invalid password
+             - Student school is not an approved partner
+             - Partner school is invalid
+  /auth/register/volunteer/open:
+    post:
+      tags:
+        - authorization
+      summary: Register new open volunteer account
+      description: |
+        Creates an open volunteer account
+      security:
+        - cookieAuth: []
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  password:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  phone: 
+                    type: string
+                  terms:
+                    type: boolean
+      responses: 
+        '200':
+          description: Successful volunteer registration and log in
+        '422':
+          description: |
+            Any of the following can generate status code 422:
+             - Missing value for term agreement
+             - Missing email or password
+             - Invalid password
+  /auth/register/volunteer/partner:
+    post:
+      tags:
+        - authorization
+      summary: Register new partner volunteer account
+      description: |
+        Creates an partner volunteer account
+      security:
+        - cookieAuth: []
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  password:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  phone: 
+                    type: string
+                  terms:
+                    type: boolean
+                  volunteerPartnerOrg:
+                    type: string
+                  referredByCode:
+                    type: string
+      responses: 
+        '200':
+          description: Successful volunteer registration and log in
+        '422':
+          description: |
+            Any of the following can generate status code 422:
+             - Missing value for term agreement
+             - Missing email or password
+             - Invalid password
+             - Invalid volunteer Partner
+             - Invalid partner domain
+  /auth/partner/volunteer:
+    get:
+      tags:
+        - authorization
+      summary: Get partner manifest for volunteer sign-up
+      description: |
+        Confirms partner id from link and return partner manifest
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: partnerId
+          in: query
+          description: Where `PARTNER_ID` is the key name of the volunteer partner organization defined in `config.ts` under `volunteerPartnerManifests`
+          schema:
+            type: string
+            example: "example3"
+      responses:
+        '200':
+          description: Returns a volunteer partner manifest object
+        '404':
+          description: No manifest found for volunteer partner id
+  /auth/partner/student:
+    get:
+      tags:
+        - authorization
+      summary: Get partner manifest for student sign-up
+      description: |
+        Confirms partner id from link and return partner manifest
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: partnerId
+          in: query
+          description: Where `PARTNER_ID` is the key name of the volunteer partner organization defined in `config.ts` under `volunteerPartnerManifests`
+          schema:
+            type: string
+            example: "example3"
+      responses:
+        '200':
+          description: Returns a student partner manifest object
+        '404':
+          description: No manifest found for student partner id
+  /auth/reset/send:
+    post:
+      tags:
+        - authorization
+      summary: Requests a password reset email
+      description: |
+        Sends an email to verify the current user with unique hash. The email provided
+        will overwrite the user record's email, in the event that the two do not match.
+      security: 
+        - cookieAuth: []
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties: 
+                  email: 
+                    $ref: '#/components/schemas/Email'
+      responses:
+        '200':
+          description: Request successful and password reset instructions sent
+        '422':
+          description: Missing email for password reset
+  /auth/reset/confirm:
+    post:
+      tags:
+        - authorization
+      summary: Password verification
+      description: |
+        Confirms new password during reset
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties: 
+                  email: 
+                    $ref: '#/components/schemas/Email'
+                  password:
+                    $ref: "#/components/schemas/Email"
+                  newpassword:
+                    type: string
+                  token:
+                    type: string
+      responses:
+        '200':
+          description: Token is accepted and password is changed
+        '422':
+          description: |
+            The following will generate status code 422:
+            - No token given in request body
+            - Missing email or password
+            - Must reenter password
+            - Passwords do not match
+  /auth/reset/verify:
+    post:
+      tags:
+        - authorization
+      summary: Verify password reset token
+      description: |
+        Verify token for password reset
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties: 
+                  token:
+                    type: string
+      responses:
+        '204':
+          description: Token is valid
+        '404':
+          description: URL no longer valid
+        '422':
+          description: URL doesn't match link provided in email
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
 components:
   schemas:
+    Email:
+      type: string
+      example: "student1@upchieve.org"
     Healthcheck:
       type: object
       required:
         - version
       properties:
         version:
-          type: string
+          type: string 
+    Password: 
+      type: string
+      example: "Password123"
     VolunteerId:
       type: string
       format: uuid
@@ -152,7 +465,18 @@ components:
                 enum: ['add', 'remove']
               ids:
                 $ref: '#/components/schemas/VolunteerIdList'
-  securitySchemes:
+    EmailPassword:
+      required: true
+      content:
+        application/json:
+          schema:
+              type: object
+              properties:
+                email:
+                  $ref: '#/components/schemas/Email'
+                password:
+                  $ref: '#/components/schemas/Password'
+securitySchemes:
     cookieAuth:
       type: apiKey
       in: cookie
