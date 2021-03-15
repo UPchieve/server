@@ -22,7 +22,9 @@ interface SessionReport {
   Subtopic: string
   'Created at': string | Date
   Messages: string
-  Student: string
+  'First name': string
+  'Last name': string
+  Email: string
   Volunteer: string
   'Volunteer join date': string | Date
   'Ended at': string | Date
@@ -108,6 +110,8 @@ export const sessionReport = async ({
     },
     {
       $project: {
+        firstname: 1,
+        lastname: 1,
         email: 1,
         pastSessions: 1
       }
@@ -169,7 +173,11 @@ export const sessionReport = async ({
         topic: '$session.type',
         subtopic: '$session.subTopic',
         messages: { $size: '$session.messages' },
-        student: '$email',
+        student: {
+          firstName: '$firstname',
+          lastName: '$lastname',
+          email: '$email'
+        },
         volunteer: {
           $cond: {
             if: '$session.volunteer',
@@ -221,7 +229,9 @@ export const sessionReport = async ({
       Subtopic: session.subtopic,
       'Created at': formatDate(session.createdAt),
       Messages: session.messages,
-      Student: session.student,
+      'First name': session.student.firstName,
+      'Last name': session.student.lastName,
+      Email: session.student.email,
       Volunteer: session.volunteer,
       'Volunteer join date': formatDate(session.volunteerJoinedAt),
       'Ended at': formatDate(session.endedAt),
