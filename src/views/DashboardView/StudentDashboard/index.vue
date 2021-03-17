@@ -1,12 +1,16 @@
 <template>
   <div class="student-dashboard">
     <dashboard-banner />
-    <div
-      v-if="noticeMessage"
-      class="dashboard-notice"
-      :class="isLowCoachHour && 'dashboard-notice--warn'"
-    >
-      {{ noticeMessage }}
+    <!--    <div-->
+    <!--      v-if="noticeMessage"-->
+    <!--      class="dashboard-notice"-->
+    <!--      :class="isLowCoachHour && 'dashboard-notice&#45;&#45;warn'"-->
+    <!--    >-->
+    <!--      {{ noticeMessage }}-->
+    <!--    </div>-->
+    <div class="dashboard-notice" :class="'dashboard-notice--warn'">
+      UPchieve will be down for maintenance Saturday, March 27, from 9-10 AM
+      Eastern Time.
     </div>
     <subject-selection />
     <first-session-congrats-modal

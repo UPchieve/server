@@ -2,10 +2,15 @@
   <div class="volunteer-dashboard">
     <dashboard-banner />
 
-    <div v-if="showUpchieve101Notice" class="dashboard-notice">
-      <router-link to="training/course/upchieve101"
-        >Please complete UPchieve 101 to remain an active coach →</router-link
-      >
+    <!--    <div v-if="showUpchieve101Notice" class="dashboard-notice">-->
+    <!--      <router-link to="training/course/upchieve101"-->
+    <!--        >Please complete UPchieve 101 to remain an active coach →</router-link-->
+    <!--      >-->
+    <!--    </div>-->
+
+    <div class="dashboard-notice">
+      UPchieve will be down for maintenance Saturday, March 27, from 9-10 AM
+      Eastern Time.
     </div>
 
     <div class="volunteer-dashboard__body">
