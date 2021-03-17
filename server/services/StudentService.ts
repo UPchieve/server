@@ -36,4 +36,10 @@ export const queueWelcomeEmails = async (
     // process job 10 days after the student account is created
     { delay: 1000 * 60 * 60 * 24 * 10 }
   )
+  QueueService.add(
+    Jobs.EmailStudentGoalSetting,
+    { studentId },
+    // process job 14 days after the student account is created
+    { delay: 1000 * 60 * 60 * 24 * 14 }
+  )
 }

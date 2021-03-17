@@ -32,7 +32,8 @@ export enum Jobs {
   EmailOnboardingReminderThree = 'EmailOnboardingReminderThree',
   EmailStudentUseCases = 'EmailStudentUseCases',
   EmailIndependentLearning = 'EmailIndependentLearning',
-  EmailMeetOurVolunteers = 'EmailMeetOurVolunteers'
+  EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
+  EmailStudentGoalSetting = 'EmailStudentGoalSetting'
 }
 
 // register new job processors here
@@ -104,6 +105,10 @@ const jobProcessors: JobProcessor[] = [
   },
   {
     name: Jobs.EmailIndependentLearning,
+    processor: emailStudentWelcomeSeries
+  },
+  {
+    name: Jobs.EmailStudentGoalSetting,
     processor: emailStudentWelcomeSeries
   }
 ]

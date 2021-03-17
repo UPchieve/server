@@ -35,6 +35,7 @@ export const Config = Record({
     studentUseCasesTemplate: String,
     meetOurVolunteersTemplate: String,
     studentIndependentLearningTemplate: String,
+    studentGoalSettingTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,

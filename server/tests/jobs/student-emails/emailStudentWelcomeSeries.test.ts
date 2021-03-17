@@ -26,14 +26,15 @@ describe('Student welcome email series', () => {
   const studentWelcomeSeriesJobs = [
     Jobs.EmailStudentUseCases,
     Jobs.EmailMeetOurVolunteers,
-    Jobs.EmailIndependentLearning
+    Jobs.EmailIndependentLearning,
+    Jobs.EmailStudentGoalSetting
   ]
 
   beforeEach(async () => {
     jest.resetAllMocks()
   })
 
-  test(`Should send ${Jobs.EmailStudentUseCases}, ${Jobs.EmailMeetOurVolunteers}, and ${Jobs.EmailIndependentLearning}`, async () => {
+  test('Should send all student welcome series jobs', async () => {
     const student = await insertStudent()
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
@@ -52,13 +53,14 @@ describe('Student welcome email series', () => {
     }
   })
 
-  test(`Should catch error for ${Jobs.EmailStudentUseCases}, ${Jobs.EmailMeetOurVolunteers}, and ${Jobs.EmailIndependentLearning}`, async () => {
+  test('Should catch error for student welcome series jobs', async () => {
     const student = await insertStudent()
     const errorMessage = 'Error sending email'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
     MailService.sendStudentUseCases = rejectionFn
     MailService.sendMeetOurVolunteers = rejectionFn
     MailService.sendIndependentLearning = rejectionFn
+    MailService.sendStudentGoalSetting = rejectionFn
 
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
