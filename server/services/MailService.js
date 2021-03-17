@@ -254,6 +254,25 @@ module.exports = {
     )
   },
 
+  sendStudentGoalSetting: ({ email, firstName }) => {
+    const overrides = {
+      reply_to: {
+        email: config.mail.receivers.students
+      },
+      categories: ['student welcome email - goal setting']
+    }
+    sendEmail(
+      email,
+      config.mail.senders.students,
+      'UPchieve Student Success Team',
+      config.sendgrid.studentGoalSettingTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
   sendReportedSessionAlert: ({
     sessionId,
     reportedByEmail,

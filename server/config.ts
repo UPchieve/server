@@ -66,6 +66,7 @@ const config: Static<typeof Config> = {
     studentUseCasesTemplate: 'd-53b05a9788d044dab4c3e0f5e8a2250b',
     meetOurVolunteersTemplate: 'd-799e0195f78d4732a5adc36216a488f7',
     studentIndependentLearningTemplate: 'd-3167ea240a27471597d849cbae4b8437',
+    studentGoalSettingTemplate: 'd-c5671abc76884180b6912729190b7078',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,

@@ -36,6 +36,8 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
         await MailService.sendMeetOurVolunteers(mailData)
       if (currentJob === Jobs.EmailIndependentLearning)
         await MailService.sendIndependentLearning(mailData)
+      if (currentJob === Jobs.EmailStudentGoalSetting)
+        await MailService.sendStudentGoalSetting(mailData)
 
       logger.info(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {
