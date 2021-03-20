@@ -1,7 +1,8 @@
+import expressWs from '@small-tech/express-ws'
 import * as FeedbackService from '../../services/FeedbackService'
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-module.exports = function(router) {
+export function routeFeedback(router: expressWs.Router): void {
   router.post('/feedback', async (req, res, next) => {
     const {
       sessionId,

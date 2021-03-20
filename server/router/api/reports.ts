@@ -1,7 +1,9 @@
+import expressWs from '@small-tech/express-ws'
+
 const passport = require('../auth/passport')
 const ReportService = require('../../services/ReportService')
 
-module.exports = function(router) {
+export function routeReports(router: expressWs.Router): void {
   router.get('/reports/session-report', passport.isAdmin, async function(
     req,
     res,
