@@ -1,6 +1,6 @@
-const mongoose = require('mongoose')
-const dbconnect = require('./dbconnect')
-const User = require('../models/User')
+import mongoose from 'mongoose'
+import User from '../models/User'
+import dbconnect from './dbconnect'
 
 const main = async () => {
   try {
