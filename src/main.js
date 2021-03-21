@@ -36,7 +36,8 @@ Vue.config.productionTip = false
 
 // Set up SocketIO
 const socket = Socket.connect(config.socketAddress, {
-  autoConnect: false
+  autoConnect: false,
+  transports: ['websocket']
 })
 Vue.use(VueSocketIO, socket)
 
