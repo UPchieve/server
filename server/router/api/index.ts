@@ -1,6 +1,7 @@
 import { Express, Router } from 'express'
 import { MongoStore } from 'connect-mongo'
 import expressWs from '@small-tech/express-ws'
+import { Server } from 'socket.io'
 import passport from '../auth/passport'
 import addLastActivity from '../../middleware/add-last-activity'
 import addUserAction from '../../middleware/add-user-action'
@@ -21,7 +22,7 @@ import { routeSurvey } from './survey'
 module.exports = function(app: Express, sessionStore: MongoStore): void {
   console.log('API module')
 
-  const io: SocketIO.Server = socketServer(app)
+  const io: Server = socketServer(app)
 
   const router: expressWs.Router = Router()
 
