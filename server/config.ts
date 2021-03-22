@@ -67,6 +67,7 @@ const config: Static<typeof Config> = {
     meetOurVolunteersTemplate: 'd-799e0195f78d4732a5adc36216a488f7',
     studentIndependentLearningTemplate: 'd-3167ea240a27471597d849cbae4b8437',
     studentGoalSettingTemplate: 'd-c5671abc76884180b6912729190b7078',
+    studentFirstSessionCongratsTemplate: 'd-8c54307ace4a498f800185f0e540b8ea',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -92,6 +93,9 @@ const config: Static<typeof Config> = {
         process.env.SUBWAY_STUDENTS_EMAIL_SENDER || 'example@example.org',
       volunteerManager:
         process.env.SUBWAY_VOLUNTEER_MANAGER_EMAIL_SENDER ||
+        'example@example.org',
+      studentOutreachManager:
+        process.env.SUBWAY_STUDENT_OUTREACH_MANAGER_EMAIL_SENDER ||
         'example@example.org'
     },
     receivers: {
@@ -106,6 +110,9 @@ const config: Static<typeof Config> = {
         process.env.SUBWAY_STUDENTS_EMAIL_RECEIVER || 'example@example.org',
       volunteerManager:
         process.env.SUBWAY_VOLUNTEER_MANAGER_EMAIL_RECEIVER ||
+        'example@example.org',
+      studentOutreachManager:
+        process.env.SUBWAY_STUDENT_OUTREACH_MANAGER_EMAIL_RECEIVER ||
         'example@example.org'
     }
   },

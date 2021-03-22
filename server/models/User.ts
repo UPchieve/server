@@ -25,7 +25,7 @@ export interface User {
   isTestUser: boolean
   isFakeUser: boolean
   isDeactivated: boolean
-  pastSessions: Session[]
+  pastSessions: Session[] | Types.ObjectId[]
   partnerUserId: string
   lastActivityAt: Date
   referralCode: string
