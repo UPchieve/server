@@ -29,11 +29,7 @@ module.exports = function(app) {
     // in 3.0 they're increasing it again
     // (default interval is 25000)
     pingInterval: 25000,
-    pingTimeout: 30000,
-    // we're shifting to only using websockets
-    // no http long-polling
-    allowUpgrades: false,
-    transports: ['websocket']
+    pingTimeout: 30000
   })
   if (process.env.NODE_ENV === 'test') return io
 
