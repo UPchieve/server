@@ -432,7 +432,7 @@ module.exports = {
 
   endSession: async ({ sessionId, endedBy = null, isAdmin = false }) => {
     const session = await Session.findOne({ _id: sessionId })
-      .populate({ path: 'student', select: 'pastSessions' })
+      .populate({ path: 'student', select: 'pastSessions firstname email' })
       .populate({ path: 'volunteer', select: 'pastSessions' })
       .lean()
       .exec()
@@ -475,6 +475,16 @@ module.exports = {
       )
 
       if (isReviewNeeded) update.reviewedVolunteer = false
+
+      const thirtyMinutes = 1000 * 60 * 30
+      const sendStudentFirstSessionCongrats =
+        session.student.pastSessions.length === 0 &&
+        timeTutored >= thirtyMinutes
+      if (sendStudentFirstSessionCongrats)
+        MailService.sendStudentFirstSessionCongrats({
+          email: session.student.email,
+          firstName: session.student.firstname
+        })
     }
 
     // Only college subjects use the Quill document editor

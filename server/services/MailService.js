@@ -273,6 +273,26 @@ module.exports = {
     )
   },
 
+  sendStudentFirstSessionCongrats: ({ email, firstName }) => {
+    const sender = config.mail.senders.studentOutreachManager
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['student cultivation email - first session congrats']
+    }
+    sendEmail(
+      email,
+      sender,
+      'Cinthia Fabian',
+      config.sendgrid.studentFirstSessionCongratsTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
   sendReportedSessionAlert: ({
     sessionId,
     reportedByEmail,

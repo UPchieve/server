@@ -36,6 +36,7 @@ export const Config = Record({
     meetOurVolunteersTemplate: String,
     studentIndependentLearningTemplate: String,
     studentGoalSettingTemplate: String,
+    studentFirstSessionCongratsTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
@@ -53,7 +54,8 @@ export const Config = Record({
       support: String,
       recruitment: String,
       students: String,
-      volunteerManager: String
+      volunteerManager: String,
+      studentOutreachManager: String
     }),
     receivers: Record({
       contact: String,
@@ -61,7 +63,8 @@ export const Config = Record({
       support: String,
       recruitment: String,
       students: String,
-      volunteerManager: String
+      volunteerManager: String,
+      studentOutreachManager: String
     })
   }),
   client: Record({
