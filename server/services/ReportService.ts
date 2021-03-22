@@ -6,7 +6,7 @@ import {
   studentPartnerManifests,
   volunteerPartnerManifests
 } from '../partnerManifests'
-import { USER_ACTION } from '../constants'
+import { USER_ACTION, UTC_TO_HOUR_MAPPING } from '../constants'
 import roundUpToNearestInterval from '../utils/round-up-to-nearest-interval'
 import countCerts from '../utils/count-certs'
 import logger from '../logger'
@@ -567,13 +567,6 @@ export const generateVolunteerPartnerReport = async ({
             }
           },
           {
-            $addFields: {
-              isoWeekOfYear: {
-                $isoWeek: '$createdAt'
-              }
-            }
-          },
-          {
             $sort: {
               createdAt: 1
             }
@@ -581,15 +574,29 @@ export const generateVolunteerPartnerReport = async ({
         ]
       )
 
+      // @note: Keep track of total active volunteer hours for a given hour. This helps ensure that
+      //        the elapsed availability hours do not overlap with the other active volunteer hours
+      //        that are credited to the volunteer
+      // [month-day-year-hour]: number
+      const accumulatedVolunteerHoursForHour = {}
+
       for (const quizPassed of quizPassedActions) {
+        // @note: Availability is stored in EST time. In order to match to one's
+        //        availability hours, createdAt must be in EST time as well.
+        const createdAtFormatted = moment(quizPassed.createdAt)
+          .tz('America/New_York')
+          .format('MM-DD-YYYY')
+        const createdAtHour = moment(quizPassed.createdAt)
+          .tz('America/New_York')
+          .format('H')
+        const createdAtHourFormatted = UTC_TO_HOUR_MAPPING[createdAtHour]
+        const hourKey = `${createdAtFormatted}-${createdAtHourFormatted}`
         const row = {}
         row['Event ID'] = subjectMappingsCapped[quizPassed.quizSubcategory]
         // use the following Monday of the createdAt as the Date Volunteered
-        row['Date Volunteered'] = moment(quizPassed.createdAt)
-          .isoWeek(quizPassed.isoWeekOfYear)
-          .day('Monday')
-          .add(1, 'week')
-          .format('MM/DD/YYYY')
+        row['Date Volunteered'] = moment(quizPassed.createdAt).format(
+          'MM/DD/YYYY'
+        )
         row['Hours Credited'] = 1.0
         row['Start Time'] = null
         row['End Time'] = null
@@ -597,6 +604,7 @@ export const generateVolunteerPartnerReport = async ({
         row[`External ${partnerOrgName} Email`] = volunteer.email
         row['Classification'] = 'Training Event'
         volunteerPartnerReport.push(row)
+        accumulatedVolunteerHoursForHour[hourKey] = 1
       }
 
       // Add a row for each session a volunteer has had during the given time period
@@ -634,10 +642,7 @@ export const generateVolunteerPartnerReport = async ({
             _id: 1,
             createdAt: 1,
             subTopic: 1,
-            timeTutored: 1,
-            isoWeekOfYear: {
-              $isoWeek: '$createdAt'
-            }
+            timeTutored: 1
           }
         }
       ])
@@ -649,13 +654,23 @@ export const generateVolunteerPartnerReport = async ({
           timeTutoredInMins,
           15
         )
+        const timeTutoredInHours = Number(
+          (roundedTimeTutoredInMins / 60).toFixed(2)
+        )
+        // @note: Availability is stored in EST time. In order to match to one's
+        //        availability hours, createdAt must be in EST time as well.
+        const createdAtFormatted = moment(session.createdAt)
+          .tz('America/New_York')
+          .format('MM-DD-YYYY')
+        const createdAtHour = moment(session.createdAt)
+          .tz('America/New_York')
+          .format('H')
+        const createdAtHourFormatted = UTC_TO_HOUR_MAPPING[createdAtHour]
+        const hourKey = `${createdAtFormatted}-${createdAtHourFormatted}`
+
         const row = {}
         row['Event ID'] = subjectMappings[session.subTopic]
-        row['Date Volunteered'] = moment(session.createdAt)
-          .isoWeek(session.isoWeekOfYear)
-          .day('Monday')
-          .add(1, 'week')
-          .format('MM/DD/YYYY')
+        row['Date Volunteered'] = moment(session.createdAt).format('MM/DD/YYYY')
         row['Hours Credited'] = Number(
           (roundedTimeTutoredInMins / 60).toFixed(2)
         )
@@ -665,10 +680,13 @@ export const generateVolunteerPartnerReport = async ({
         row[`External ${partnerOrgName} Email`] = volunteer.email
         row['Classification'] = 'Tutoring Event'
         volunteerPartnerReport.push(row)
+        if (accumulatedVolunteerHoursForHour[hourKey])
+          accumulatedVolunteerHoursForHour[hourKey] += timeTutoredInHours
+        else accumulatedVolunteerHoursForHour[hourKey] = timeTutoredInHours
       }
 
       // @todo: figure out how to properly type and cast
-      const weeksOfElapsedAvailability: any = await AvailabilityService.getAvailabilityHistoryWithPipeline(
+      const availabilityForDateRange: any = await AvailabilityService.getAvailabilityHistoryWithPipeline(
         [
           {
             $match: {
@@ -677,57 +695,37 @@ export const generateVolunteerPartnerReport = async ({
             }
           },
           {
-            $addFields: {
-              isoWeekOfYear: {
-                $isoWeek: '$date'
-              }
-            }
-          },
-          {
             $sort: {
               date: 1
-            }
-          },
-          {
-            $group: {
-              _id: '$isoWeekOfYear',
-              isoWeekOfYear: {
-                $first: '$isoWeekOfYear'
-              },
-              daysOfElapsedAvailability: {
-                $push: '$$ROOT'
-              },
-              date: {
-                $first: '$date'
-              }
-            }
-          },
-          {
-            $sort: {
-              isoWeekOfYear: 1
             }
           }
         ]
       )
 
-      for (const week of weeksOfElapsedAvailability) {
-        let elapsedAvailabilityForTheWeek = 0
-        for (const day of week.daysOfElapsedAvailability) {
-          elapsedAvailabilityForTheWeek += AvailabilityService.getElapsedAvailability(
-            day.availability
-          )
+      for (const availability of availabilityForDateRange) {
+        let elapsedAvailabilityForDay = AvailabilityService.getElapsedAvailability(
+          availability.availability
+        )
+
+        if (elapsedAvailabilityForDay === 0) continue
+
+        const createdAtFormatted = moment(availability.date)
+          .tz('America/New_York')
+          .format('MM-DD-YYYY')
+
+        const availabilityHours = Object.entries(availability.availability)
+        for (const [hour, isAvailable] of availabilityHours) {
+          const hourKey = `${createdAtFormatted}-${hour}`
+          if (isAvailable && accumulatedVolunteerHoursForHour[hourKey])
+            elapsedAvailabilityForDay -=
+              accumulatedVolunteerHoursForHour[hourKey]
         }
-        if (elapsedAvailabilityForTheWeek === 0) continue
 
         const row = {}
         row['Event ID'] = 406
-        row['Date Volunteered'] = moment(week.date)
-          .isoWeek(week.isoWeekOfYear)
-          .day('Monday')
-          .add(1, 'week')
-          .format('MM/DD/YYYY')
+        row['Date Volunteered'] = moment(availability.date).format('MM/DD/YYYY')
         // @todo: add a function param to change the ratio of elapsed availability
-        row['Hours Credited'] = elapsedAvailabilityForTheWeek
+        row['Hours Credited'] = elapsedAvailabilityForDay
         row['Start Time'] = null
         row['End Time'] = null
         row['Full Employee Name'] = `${volunteerFirstName} ${volunterLastName}`
