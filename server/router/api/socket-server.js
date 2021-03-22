@@ -23,7 +23,18 @@ module.exports = function(app) {
 
   console.log('Sockets.io listening on port ' + port)
 
-  const io = socket(server)
+  const io = socket(server, {
+    // set pingTimeout longer than pingInterval
+    // 60s used to be the default but they dropped it
+    // in 3.0 they're increasing it again
+    // (default interval is 25000)
+    pingInterval: 25000,
+    pingTimeout: 30000,
+    // we're shifting to only using websockets
+    // no http long-polling
+    allowUpgrades: false,
+    transports: ['websocket']
+  })
   if (process.env.NODE_ENV === 'test') return io
 
   const redisUrl = new URL(config.redisConnectionString)
