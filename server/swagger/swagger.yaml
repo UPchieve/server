@@ -514,6 +514,48 @@ paths:
       responses:
         '200':
           description: Returns feedback id to confirm data is accepted
+  /api/moderate/message:
+    post:
+      tags:
+        - moderate message
+      summary: Moderates messages
+      description: |
+        Check if message sent is appropriate language
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Returns a boolean object that determines whether message is clean or not
+  /api/push-token/save:
+    post:
+      tags:
+        - notification
+      summary: Saves token
+      description: |
+        Saves push token for notifications
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Empty response with OK status code
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
