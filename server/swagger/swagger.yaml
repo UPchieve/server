@@ -556,6 +556,130 @@ paths:
       responses:
         '200':
           description: Empty response with OK status code
+  /api/reports/session-report:
+    get:
+      tags:
+        - reports
+      summary: Retrieves session report
+      description: |
+        Return all reports from session complete
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: joinedBefore
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: joinedAfter
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: sessionRangeFrom
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: sessionRangeTo
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: highSchoolId
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: studentPartnerOrg
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: studentPartnerOrg
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns an object with an array of sessions
+  /api/reports/usage-report: 
+    get:
+      tags:
+        - reports
+      summary: Retrieves usage report
+      description: |
+        Retrieves usage report
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: joinedBefore
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: joinedAfter
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: sessionRangeFrom
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: sessionRangeTo
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: highSchoolId
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: studentPartnerOrg
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: studentPartnerOrg
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns an object with a list of student usage reports
+  /api/reports/volunteer-partner-report:
+    post:
+      tags:
+        - reports
+      summary: Retrieves volunteer partner reports
+      description: |
+        Retrieves volunteer partner reports
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: fromDate
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: toDate
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: partnerOrg
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns an object (data) with an array of volunteer partner reports 
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
