@@ -440,7 +440,7 @@ paths:
   /api/calendar/clear:
     post:
       tags:
-        - Clear calendar
+        - calendar
       summary: Available in backend tests only
       description: |
         Removed all preset schedule on calendar
@@ -461,7 +461,7 @@ paths:
   /api/feedback:
     get:
       tags:
-        - Feedback
+        - feedback
       summary:
         - Retrieve feedback information
       description:
@@ -484,7 +484,7 @@ paths:
           description: Returns an object of feedback details
     post:
       tags:
-        - Feedback
+        - feedback
       summary: Submits new feedback
       description: |
         Submits feedback survey data 
