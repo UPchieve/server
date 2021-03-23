@@ -399,11 +399,121 @@ paths:
           description: URL no longer valid
         '422':
           description: URL doesn't match link provided in email
+  /api/calendar/save:
+    post:
+      tags:
+        - calendar
+      summary: Creates a schedule
+      description: |
+        Makes a schedule based on availability
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                availability:
+                  type: object
+                  properties: 
+                    Friday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Monday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Saturday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Sunday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Tuesday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Thursday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Wednesday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                tz: 
+                  $ref: "#/components/schemas/TZ"
+      responses:
+        '200':
+          description: Schedule is saved
+  /api/calendar/clear:
+    post:
+      tags:
+        - Clear calendar
+      summary: Available in backend tests only
+      description: |
+        Removed all preset schedule on calendar
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tz: 
+                  $ref: "#/components/schemas/TZ"
+      responses:
+        '200':
+          description: Schedule is cleared
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
 components:
   schemas:
+    ScheduleDay: 
+      type: object
+      properties:
+        1a:
+          $ref: "#/components/schemas/UnavailableHour"
+        1p:
+          $ref: "#/components/schemas/UnavailableHour"
+        2a: 
+          $ref: "#/components/schemas/UnavailableHour"
+        2p:
+          $ref: "#/components/schemas/UnavailableHour"
+        3a:
+          $ref: "#/components/schemas/UnavailableHour"
+        3p:
+          $ref: "#/components/schemas/AvailableHour"
+        4a:
+          $ref: "#/components/schemas/UnavailableHour"
+        4p:
+          $ref: "#/components/schemas/AvailableHour"
+        5a:
+          $ref: "#/components/schemas/UnavailableHour"
+        5p:
+          $ref: "#/components/schemas/AvailableHour"
+        6a:
+          $ref: "#/components/schemas/UnavailableHour"
+        6p:
+          $ref: "#/components/schemas/AvailableHour"
+        7a:
+          $ref: "#/components/schemas/UnavailableHour"
+        7p:
+          $ref: "#/components/schemas/UnavailableHour"
+        8a:
+          $ref: "#/components/schemas/UnavailableHour"
+        8p:
+          $ref: "#/components/schemas/UnavailableHour"
+        9a:
+          $ref: "#/components/schemas/UnavailableHour"
+        9p:
+          $ref: "#/components/schemas/UnavailableHour"
+        10a:
+          $ref: "#/components/schemas/UnavailableHour"
+        10p:
+          $ref: "#/components/schemas/UnavailableHour"
+        11a:
+          $ref: "#/components/schemas/UnavailableHour"
+        11p:
+          $ref: "#/components/schemas/UnavailableHour"
+        12a:
+          $ref: "#/components/schemas/UnavailableHour"
+        12p: 
+          $ref: "#/components/schemas/UnavailableHour"
     Email:
       type: string
       example: "student1@upchieve.org"
@@ -414,9 +524,18 @@ components:
       properties:
         version:
           type: string 
+    AvailableHour:
+      type: boolean
+      example: true
+    UnavailableHour:
+      type: boolean
+      example: false
     Password: 
       type: string
       example: "Password123"
+    TZ: 
+      type: string
+      example: "US/Arizona"
     VolunteerId:
       type: string
       format: uuid
