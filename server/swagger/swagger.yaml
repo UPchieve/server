@@ -458,11 +458,109 @@ paths:
       responses:
         '200':
           description: Schedule is cleared
+  /api/feedback:
+    get:
+      tags:
+        - Feedback
+      summary:
+        - Retrieve feedback information
+      description:
+        - Returns feedback from given session ID and user type in query params
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: query
+          schema:
+            $ref: "#/components/schemas/SessionId"
+        - name: userType
+          required: true
+          in: query
+          schema:
+            $ref: "#/components/schemas/UserType"
+      responses:
+        '200':
+          description: Returns an object of feedback details
+    post:
+      tags:
+        - Feedback
+      summary: Submits new feedback
+      description: |
+        Submits feedback survey data 
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  $ref: "#/components/schemas/SessionId"
+                topic:
+                  type: string
+                subTopic:
+                  type: string
+                responseData:
+                  type: string
+                studentId:
+                  $ref: "#/components/schemas/StudentId"
+                volunteerId:
+                  $ref: "#/components/schemas/VolunteerId"
+                userType:
+                  $ref: "#/components/schemas/UserType"
+      responses:
+        '200':
+          description: Returns feedback id to confirm data is accepted
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
 components:
   schemas:
+    AvailableHour:
+      type: boolean
+      example: true
+    Email:
+      type: string
+      example: "student1@upchieve.org"
+    FavoritedVolunteer:
+      type: object
+      required:
+        - firstName
+        - id
+        - sessionCount
+        - subjects
+      properties:
+        firstName:
+          type: string
+          minimum: 1
+        id:
+          type: string
+          minimum: 24
+          maximum: 24
+        sessionCount:
+          type: integer
+          format: int64
+        subjects:
+          type: array
+          items:
+            type: string
+    FavoritedVolunteerList:
+      type: array
+      items:
+        $ref: '#/components/schemas/FavoritedVolunteer'
+    Healthcheck:
+      type: object
+      required:
+        - version
+      properties:
+        version:
+          type: string 
+    Password: 
+      type: string
+      example: "Password123"
     ScheduleDay: 
       type: object
       properties:
@@ -514,28 +612,23 @@ components:
           $ref: "#/components/schemas/UnavailableHour"
         12p: 
           $ref: "#/components/schemas/UnavailableHour"
-    Email:
+    SessionId:
       type: string
-      example: "student1@upchieve.org"
-    Healthcheck:
-      type: object
-      required:
-        - version
-      properties:
-        version:
-          type: string 
-    AvailableHour:
-      type: boolean
-      example: true
-    UnavailableHour:
-      type: boolean
-      example: false
-    Password: 
+      example: "605a43e4bf39966c0e3c59ce"
+      format: uuid
+    StudentId:
       type: string
-      example: "Password123"
+      example: "605a355a3bc29882261d3594"
+      format: uuid
     TZ: 
       type: string
       example: "US/Arizona"
+    UnavailableHour:
+      type: boolean
+      example: false
+    UserType: 
+      type: string
+      example: "volunteer"
     VolunteerId:
       type: string
       format: uuid
@@ -543,32 +636,6 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/VolunteerId'
-    FavoritedVolunteer:
-      type: object
-      required:
-        - firstName
-        - id
-        - sessionCount
-        - subjects
-      properties:
-        firstName:
-          type: string
-          minimum: 1
-        id:
-          type: string
-          minimum: 24
-          maximum: 24
-        sessionCount:
-          type: integer
-          format: int64
-        subjects:
-          type: array
-          items:
-            type: string
-    FavoritedVolunteerList:
-      type: array
-      items:
-        $ref: '#/components/schemas/FavoritedVolunteer'
   requestBodies:
     FavoritesAction:
       content:
