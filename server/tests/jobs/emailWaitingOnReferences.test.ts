@@ -4,9 +4,10 @@ import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer, buildReference } from '../generate'
 import MailService from '../../services/MailService'
 import { REFERENCE_STATUS } from '../../constants'
-import { log } from '../../worker/logger'
+import logger, { logEmailJobSent, logEmailJobError } from '../../logger'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
-jest.mock('../../worker/logger')
+jest.mock('../../logger')
 
 const oneHour = 1000 * 60 * 60 * 1
 const oneDay = oneHour * 24 * 1
@@ -80,10 +81,13 @@ describe('Email waiting on references to volunteer', () => {
     await emailWaitingOnReferences()
 
     const expectedEmailsSent = 1
-    expect(log).toHaveBeenCalledWith(
-      `Emailed ${expectedEmailsSent} volunteers that we're waiting on their reference(s)`
+    expect(logEmailJobSent).toHaveBeenCalledWith({
+      job: Jobs.EmailWaitingOnReferences,
+      userId: volunteerOne._id
+    })
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailWaitingOnReferences} to ${expectedEmailsSent} volunteers`
     )
-
     expect(
       (MailService.sendWaitingOnReferences as jest.Mock).mock.calls.length
     ).toBe(expectedEmailsSent)
@@ -111,12 +115,13 @@ describe('Email waiting on references to volunteer', () => {
     await emailWaitingOnReferences()
 
     const expectedEmailsSent = 0
-    expect((log as jest.Mock).mock.calls[0][0]).toBe(
-      `Failed to send "waiting on references" email to volunteer ${volunteer._id}: Error: ${customErrorMessage}`
+    expect(logEmailJobError).toHaveBeenCalledWith({
+      job: Jobs.EmailWaitingOnReferences,
+      userId: volunteer._id,
+      error: new Error(customErrorMessage)
+    })
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailWaitingOnReferences} to ${expectedEmailsSent} volunteers`
     )
-    expect((log as jest.Mock).mock.calls[1][0]).toBe(
-      `Emailed ${expectedEmailsSent} volunteers that we're waiting on their reference(s)`
-    )
-    expect(log).toHaveBeenCalledTimes(2)
   })
 })

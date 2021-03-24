@@ -1,5 +1,9 @@
 import moment from 'moment-timezone'
-import { log } from '../logger'
+import logger, {
+  logEmailJobSent,
+  logEmailJobError,
+  LogEmailJob
+} from '../../logger'
 import {
   getVolunteers,
   getHourSummaryStats
@@ -7,6 +11,7 @@ import {
 import MailService from '../../services/MailService'
 import VolunteerModel from '../../models/Volunteer'
 import { volunteerPartnerManifests } from '../../partnerManifests'
+import { Jobs } from '.'
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
@@ -48,6 +53,10 @@ export default async (): Promise<void> => {
       email,
       sentHourSummaryIntroEmail
     } = volunteer
+    const logData: LogEmailJob = {
+      job: Jobs.EmailWeeklyHourSummary,
+      userId: volunteer._id
+    }
     try {
       const summaryStats = await getHourSummaryStats(
         _id,
@@ -72,12 +81,14 @@ export default async (): Promise<void> => {
           { sentHourSummaryIntroEmail: true }
         )
       totalEmailed++
+      logEmailJobSent(logData)
     } catch (error) {
-      log(
-        `Failed to send weekly hour summary email to volunteer ${_id}: ${error}`
-      )
+      logData.error = error
+      logEmailJobError(logData)
     }
   }
 
-  return log(`Emailed weekly hour summary email to ${totalEmailed} volunteers`)
+  return logger.info(
+    `Sent ${Jobs.EmailWeeklyHourSummary} to ${totalEmailed} volunteers`
+  )
 }

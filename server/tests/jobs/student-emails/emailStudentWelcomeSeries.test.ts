@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { resetDb, insertStudent } from '../../db-utils'
 import emailStudentWelcomeSeries from '../../../worker/jobs/student-emails/emailStudentWelcomeSeries'
-import logger from '../../../logger'
+import { logEmailJobSent, logEmailJobError } from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
 jest.mock('../../../logger')
@@ -47,9 +47,10 @@ describe('Student welcome email series', () => {
       }
 
       await emailStudentWelcomeSeries(job)
-      expect(logger.info).toHaveBeenCalledWith(
-        `Emailed ${currentJob} to student ${student._id}`
-      )
+      expect(logEmailJobSent).toHaveBeenCalledWith({
+        job: currentJob,
+        userId: student._id
+      })
     }
   })
 
@@ -73,9 +74,11 @@ describe('Student welcome email series', () => {
       }
 
       await emailStudentWelcomeSeries(job)
-      expect(logger.error).toHaveBeenCalledWith(
-        `Failed to email ${currentJob} to student ${student._id}: ${errorMessage}`
-      )
+      expect(logEmailJobError).toHaveBeenCalledWith({
+        job: currentJob,
+        userId: student._id,
+        error: errorMessage
+      })
     }
   })
 
@@ -92,8 +95,8 @@ describe('Student welcome email series', () => {
       }
 
       await emailStudentWelcomeSeries(job)
-      expect(logger.info).not.toHaveBeenCalled()
-      expect(logger.error).not.toHaveBeenCalled()
+      expect(logEmailJobSent).not.toHaveBeenCalled()
+      expect(logEmailJobError).not.toHaveBeenCalled()
     }
   })
 })

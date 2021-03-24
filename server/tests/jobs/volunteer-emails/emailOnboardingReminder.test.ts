@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { resetDb, insertVolunteer } from '../../db-utils'
 import emailOnboardingReminder from '../../../worker/jobs/volunteer-emails/emailOnboardingReminder'
-import logger from '../../../logger'
+import { logEmailJobSent, logEmailJobError } from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
 jest.mock('../../../logger')
@@ -52,9 +52,10 @@ describe('Volunteer onboarding email reminders', () => {
       }
 
       await emailOnboardingReminder(job)
-      expect(logger.info).toHaveBeenCalledWith(
-        `Emailed ${currentJob.name} to volunteer ${volunteer._id}`
-      )
+      expect(logEmailJobSent).toHaveBeenCalledWith({
+        job: currentJob.name,
+        userId: volunteer._id
+      })
       if (currentJob.name === Jobs.EmailOnboardingReminderThree)
         expect(job.queue.add).not.toHaveBeenCalled()
       else
@@ -87,9 +88,11 @@ describe('Volunteer onboarding email reminders', () => {
       }
 
       await emailOnboardingReminder(job)
-      expect(logger.error).toHaveBeenCalledWith(
-        `Failed to email ${currentJob.name} to volunteer ${volunteer._id}: ${errorMessage}`
-      )
+      expect(logEmailJobError).toHaveBeenCalledWith({
+        job: currentJob.name,
+        userId: volunteer._id,
+        error: errorMessage
+      })
     }
   })
 
@@ -106,8 +109,8 @@ describe('Volunteer onboarding email reminders', () => {
       }
 
       await emailOnboardingReminder(job)
-      expect(logger.info).not.toHaveBeenCalled()
-      expect(logger.error).not.toHaveBeenCalled()
+      expect(logEmailJobSent).not.toHaveBeenCalled()
+      expect(logEmailJobSent).not.toHaveBeenCalled()
     }
   })
 })

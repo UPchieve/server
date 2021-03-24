@@ -1,6 +1,11 @@
-import { log } from '../logger'
+import logger, {
+  logEmailJobSent,
+  logEmailJobError,
+  LogEmailJob
+} from '../../logger'
 import VolunteerModel from '../../models/Volunteer'
 import MailService from '../../services/MailService'
+import { Jobs } from '.'
 
 // Runs every day at 10am EST
 export default async (): Promise<void> => {
@@ -23,15 +28,21 @@ export default async (): Promise<void> => {
   let totalEmailed = 0
 
   for (const volunteer of volunteers) {
+    const logData: LogEmailJob = {
+      job: Jobs.EmailNiceToMeetYou,
+      userId: volunteer._id
+    }
     try {
       await MailService.sendNiceToMeetYou(volunteer)
+      logEmailJobSent(logData)
       totalEmailed++
     } catch (error) {
-      log(
-        `Failed to email "nice to meet you" to volunteer ${volunteer._id}: ${error}`
-      )
+      logData.error = error
+      logEmailJobError(logData)
     }
   }
 
-  return log(`Emailed "nice to meet you" to ${totalEmailed} volunteers`)
+  return logger.info(
+    `Sent ${Jobs.EmailNiceToMeetYou} to ${totalEmailed} volunteers`
+  )
 }

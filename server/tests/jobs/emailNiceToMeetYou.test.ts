@@ -3,9 +3,10 @@ import emailNiceToMeetYou from '../../worker/jobs/emailNiceToMeetYou'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
 import MailService from '../../services/MailService'
-import { log } from '../../worker/logger'
+import logger, { logEmailJobSent, logEmailJobError } from '../../logger'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
-jest.mock('../../worker/logger')
+jest.mock('../../logger')
 
 const oneHour = 1000 * 60 * 60 * 1
 const oneDay = oneHour * 24 * 1
@@ -30,6 +31,8 @@ describe('Email nice to meet you to volunteers', () => {
     jest.clearAllMocks()
   })
 
+  const JOB_NAME = Jobs.EmailNiceToMeetYou
+
   test('Should only send emails to volunteers created a day ago', async () => {
     const volunteerOne = buildVolunteer()
     const volunteerTwo = buildVolunteer({
@@ -46,10 +49,13 @@ describe('Email nice to meet you to volunteers', () => {
     await emailNiceToMeetYou()
 
     const expectedEmailsSent = 1
-    expect(log).toHaveBeenCalledWith(
-      `Emailed "nice to meet you" to ${expectedEmailsSent} volunteers`
+    expect(logEmailJobSent).toHaveBeenCalledWith({
+      job: JOB_NAME,
+      userId: volunteerTwo._id
+    })
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${JOB_NAME} to ${expectedEmailsSent} volunteers`
     )
-
     expect((MailService.sendNiceToMeetYou as jest.Mock).mock.calls.length).toBe(
       expectedEmailsSent
     )
@@ -69,12 +75,13 @@ describe('Email nice to meet you to volunteers', () => {
     await emailNiceToMeetYou()
 
     const expectedEmailsSent = 0
-    expect((log as jest.Mock).mock.calls[0][0]).toBe(
-      `Failed to email "nice to meet you" to volunteer ${volunteer._id}: Error: ${customErrorMessage}`
+    expect(logEmailJobError).toHaveBeenCalledWith({
+      job: JOB_NAME,
+      userId: volunteer._id,
+      error: new Error(customErrorMessage)
+    })
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${JOB_NAME} to ${expectedEmailsSent} volunteers`
     )
-    expect((log as jest.Mock).mock.calls[1][0]).toBe(
-      `Emailed "nice to meet you" to ${expectedEmailsSent} volunteers`
-    )
-    expect(log).toHaveBeenCalledTimes(2)
   })
 })

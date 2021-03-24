@@ -1,6 +1,11 @@
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import MailService from '../../services/MailService'
-import { log } from '../logger'
+import logger, {
+  logEmailJobSent,
+  logEmailJobError,
+  LogEmailJob
+} from '../../logger'
+import { Jobs } from '.'
 
 export default async (): Promise<void> => {
   const volunteers = (await VolunteerModel.find({
@@ -12,7 +17,17 @@ export default async (): Promise<void> => {
     .exec()) as Volunteer[]
 
   for (const volunteer of volunteers) {
-    await MailService.sendReadyToCoachEmail(volunteer)
+    const logData: LogEmailJob = {
+      job: Jobs.EmailReadyToCoach,
+      userId: volunteer._id
+    }
+    try {
+      await MailService.sendReadyToCoachEmail(volunteer)
+      logEmailJobSent(logData)
+    } catch (error) {
+      logData.error = error
+      logEmailJobError(logData)
+    }
   }
 
   await VolunteerModel.updateMany(
@@ -24,5 +39,7 @@ export default async (): Promise<void> => {
     { sentReadyToCoachEmail: true }
   )
 
-  log(`sent ready-to-coach email to ${volunteers.length} volunteers`)
+  logger.info(
+    `Sent ${Jobs.EmailReadyToCoach} to ${volunteers.length} volunteers`
+  )
 }

@@ -4,9 +4,10 @@ import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer, buildReference } from '../generate'
 import MailService from '../../services/MailService'
 import { REFERENCE_STATUS } from '../../constants'
-import { log } from '../../worker/logger'
+import logger, { logEmailJobSent, logEmailJobError } from '../../logger'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
-jest.mock('../../worker/logger')
+jest.mock('../../logger')
 
 const oneHour = 1000 * 60 * 60 * 1
 const oneDay = oneHour * 24 * 1
@@ -46,9 +47,14 @@ describe('Follow-up email to references', () => {
     await emailReferenceFollowup()
 
     const expectedEmailsSent = 1
-    expect(log).toHaveBeenCalledWith(
-      `Emailed ${expectedEmailsSent} references a follow-up`
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailReferenceFollowup} to ${expectedEmailsSent} references`
     )
+    expect(logEmailJobSent).toHaveBeenCalledWith({
+      job: Jobs.EmailReferenceFollowup,
+      userId: references[0]._id,
+      userType: 'reference'
+    })
 
     expect(
       (MailService.sendReferenceFollowup as jest.Mock).mock.calls.length
@@ -70,7 +76,9 @@ describe('Follow-up email to references', () => {
     await emailReferenceFollowup()
 
     const expectedEmailsSent = 0
-    expect(log).toHaveBeenCalledWith('No references to email for a follow-up')
+    expect(logger.info).toHaveBeenCalledWith(
+      `No references to send ${Jobs.EmailReferenceFollowup}`
+    )
     expect(
       (MailService.sendReferenceFollowup as jest.Mock).mock.calls.length
     ).toBe(expectedEmailsSent)
@@ -99,12 +107,14 @@ describe('Follow-up email to references', () => {
     await emailReferenceFollowup()
 
     const expectedEmailsSent = 0
-    expect((log as jest.Mock).mock.calls[0][0]).toBe(
-      `Error notifying reference ${referenceOne._id}: Error: ${customErrorMessage}`
+    expect(logEmailJobError).toHaveBeenCalledWith({
+      job: Jobs.EmailReferenceFollowup,
+      userId: referenceOne._id,
+      userType: 'reference',
+      error: new Error(customErrorMessage)
+    })
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailReferenceFollowup} to ${expectedEmailsSent} references`
     )
-    expect((log as jest.Mock).mock.calls[1][0]).toBe(
-      `Emailed ${expectedEmailsSent} references a follow-up`
-    )
-    expect(log).toHaveBeenCalledTimes(2)
   })
 })

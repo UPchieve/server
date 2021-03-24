@@ -1,7 +1,12 @@
-import { log } from '../logger'
 import VolunteerModel, { Reference } from '../../models/Volunteer'
 import { REFERENCE_STATUS } from '../../constants'
 import MailService from '../../services/MailService'
+import logger, {
+  LogEmailJob,
+  logEmailJobError,
+  logEmailJobSent
+} from '../../logger'
+import { Jobs } from '.'
 
 // @note: uses firstName instead of firstname because of the $project aggregation stage
 // @todo: clean up Volunteer model to use firstName instead of firstname
@@ -60,16 +65,25 @@ export default async (): Promise<void> => {
   let totalEmailed = 0
 
   if (referencesToEmail.length === 0)
-    return log('No references to email for a follow-up')
+    return logger.info(`No references to send ${Jobs.EmailReferenceFollowup}`)
 
   for (const ref of referencesToEmail) {
+    const logData: LogEmailJob = {
+      job: Jobs.EmailReferenceFollowup,
+      userId: ref.reference._id,
+      userType: 'reference'
+    }
     try {
       await MailService.sendReferenceFollowup(ref)
+      logEmailJobSent(logData)
       totalEmailed++
     } catch (error) {
-      log(`Error notifying reference ${ref.reference._id}: ${error}`)
+      logData.error = error
+      logEmailJobError(logData)
     }
   }
 
-  return log(`Emailed ${totalEmailed} references a follow-up`)
+  return logger.info(
+    `Sent ${Jobs.EmailReferenceFollowup} to ${totalEmailed} references`
+  )
 }

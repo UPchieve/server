@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
-import logger from '../../../logger'
+import { logEmailJobSent, logEmailJobError, LogEmailJob } from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getVolunteer } from '../../../services/UserService'
 import { Jobs } from '../index'
@@ -33,6 +33,10 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
   )
 
   if (volunteer) {
+    const logData: LogEmailJob = {
+      job: currentJob as Jobs,
+      userId: volunteer._id
+    }
     try {
       let delay = 0
       let nextJob = ''
@@ -68,12 +72,11 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
         // Volunteer has not completed onboarding 10 days after sending onboarding reminder two
         await MailService.sendOnboardingReminderThree(contactInfo)
       }
-      logger.info(`Emailed ${currentJob} to volunteer ${volunteerId}`)
+      logEmailJobSent(logData)
       if (nextJob) job.queue.add(nextJob, { volunteerId }, { delay })
     } catch (error) {
-      logger.error(
-        `Failed to email ${currentJob} to volunteer ${volunteerId}: ${error}`
-      )
+      logData.error = error
+      logEmailJobError(logData)
     }
   }
 }

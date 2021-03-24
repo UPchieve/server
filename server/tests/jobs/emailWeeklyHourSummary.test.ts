@@ -3,10 +3,11 @@ import emailWeeklyHourSummary from '../../worker/jobs/emailWeeklyHourSummary'
 import { getVolunteer, insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
 import MailService from '../../services/MailService'
-import { log } from '../../worker/logger'
+import logger, { logEmailJobSent, logEmailJobError } from '../../logger'
 import * as VolunteerService from '../../services/VolunteerService'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
-jest.mock('../../worker/logger')
+jest.mock('../../logger')
 
 // db connection
 beforeAll(async () => {
@@ -66,9 +67,10 @@ describe('emailWeeklyHourSummary', () => {
     await emailWeeklyHourSummary()
 
     const expectedEmailsSent = 2
-    expect(log).toHaveBeenCalledWith(
-      `Emailed weekly hour summary email to ${expectedEmailsSent} volunteers`
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailWeeklyHourSummary} to ${expectedEmailsSent} volunteers`
     )
+    expect(logEmailJobSent).toHaveBeenCalledTimes(2)
     expect(
       (MailService.sendHourSummaryEmail as jest.Mock).mock.calls.length
     ).toBe(2)
@@ -134,11 +136,13 @@ describe('emailWeeklyHourSummary', () => {
     await emailWeeklyHourSummary()
 
     const expectedEmailsSent = 0
-    expect(log).toHaveBeenCalledWith(
-      `Emailed weekly hour summary email to ${expectedEmailsSent} volunteers`
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailWeeklyHourSummary} to ${expectedEmailsSent} volunteers`
     )
-    expect((log as jest.Mock).mock.calls[0][0]).toBe(
-      `Failed to send weekly hour summary email to volunteer ${jackson._id}: Error: ${customErrorMessage}`
-    )
+    expect(logEmailJobError).toHaveBeenCalledWith({
+      job: Jobs.EmailWeeklyHourSummary,
+      userId: jackson._id,
+      error: new Error(customErrorMessage)
+    })
   })
 })

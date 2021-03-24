@@ -1,6 +1,6 @@
 import { Types } from 'mongoose'
 import { Job } from 'bull'
-import logger from '../../../logger'
+import { LogEmailJob, logEmailJobError, logEmailJobSent } from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getStudent } from '../../../services/StudentService'
 import { Jobs } from '../index'
@@ -27,6 +27,10 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
   )
 
   if (student) {
+    const logData: LogEmailJob = {
+      job: currentJob as Jobs,
+      userId: studentId
+    }
     try {
       const { firstname: firstName, email } = student
       const mailData = { firstName, email }
@@ -39,11 +43,10 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
       if (currentJob === Jobs.EmailStudentGoalSetting)
         await MailService.sendStudentGoalSetting(mailData)
 
-      logger.info(`Emailed ${currentJob} to student ${studentId}`)
+      logEmailJobSent(logData)
     } catch (error) {
-      logger.error(
-        `Failed to email ${currentJob} to student ${studentId}: ${error}`
-      )
+      logData.error = error
+      logEmailJobError(logData)
     }
   }
 }
