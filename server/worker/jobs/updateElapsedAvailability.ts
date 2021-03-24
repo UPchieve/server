@@ -1,13 +1,14 @@
 import { map } from 'lodash'
 import moment from 'moment-timezone'
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
-import { log } from '../logger'
+import logger from '../../logger'
 import { AvailabilitySnapshot } from '../../models/Availability/Snapshot'
 import {
   createAvailabilityHistory,
   getAvailability,
   getElapsedAvailability
 } from '../../services/AvailabilityService'
+import { Jobs } from '.'
 
 export default async (): Promise<void> => {
   const volunteers = await VolunteerModel.find({
@@ -56,5 +57,5 @@ export default async (): Promise<void> => {
       return createAvailabilityHistory(newAvailabilityHistory)
     })
   )
-  log(`updated ${totalUpdated} volunteers`)
+  logger.info(`Job ${Jobs.UpdateElapsedAvailability} - updated ${totalUpdated} volunteers`)
 }

@@ -2,14 +2,14 @@ import Queue from 'bull'
 import config from '../config'
 import dbconnect from '../dbutils/dbconnect'
 import initializeUnleash from '../utils/initialize-unleash'
-import { log } from './logger'
+import logger from '../logger'
 import { addJobProcessors } from './jobs'
 
 const main = async (): Promise<void> => {
   try {
     initializeUnleash()
     await dbconnect()
-    log('Starting queue')
+    logger.info('Starting queue')
     const queue = new Queue(
       config.workerQueueName,
       config.redisConnectionString,
@@ -24,7 +24,7 @@ const main = async (): Promise<void> => {
     addJobProcessors(queue)
   } catch (error) {
     if (error.code === 'ECONNREFUSED') {
-      log(`Could not connect to redis server: ${config.redisConnectionString}`)
+      logger.error(`Could not connect to redis server: ${config.redisConnectionString}`)
     }
   }
 }

@@ -2,7 +2,7 @@ import { ProcessPromiseFunction, Queue } from 'bull'
 import { map } from 'lodash'
 import * as Sentry from '@sentry/node'
 import newrelic from 'newrelic'
-import { log } from '../logger'
+import logger from '../../logger'
 import notifyTutors from './notifyTutors'
 import updateElapsedAvailability from './updateElapsedAvailability'
 import endStaleSessions from './endStaleSessions'
@@ -118,13 +118,13 @@ export const addJobProcessors = (queue: Queue): void => {
     queue.process(jobProcessor.name, job => {
       newrelic.startBackgroundTransaction(`job:${job.name}`, async () => {
         const transaction = newrelic.getTransaction()
-        log(`Processing job: ${job.name}`)
+        logger.info(`Processing job: ${job.name}`)
         try {
           await jobProcessor.processor(job)
-          log(`Completed job: ${job.name}`)
+          logger.info(`Completed job: ${job.name}`)
         } catch (error) {
-          log(`Error processing job: ${job.name}`)
-          log(error)
+          logger.error(`Error processing job: ${job.name}`)
+          logger.error(error)
           Sentry.captureException(error)
         } finally {
           transaction.end()

@@ -6,9 +6,9 @@ import {
   getSession
 } from '../db-utils'
 import endUnmatchedSession from '../../worker/jobs/endUnmatchedSession'
-import { log } from '../../worker/logger'
+import logger from '../../logger'
 import SessionService from '../../services/SessionService'
-jest.mock('../../worker/logger')
+jest.mock('../../logger')
 
 // db connection
 beforeAll(async () => {
@@ -41,7 +41,7 @@ describe('End unmatched session', () => {
     }
 
     await endUnmatchedSession(job)
-    expect(log).toHaveBeenCalledWith(`session ${_id} not found`)
+    expect(logger.info).toHaveBeenCalledWith(`session ${_id} not found`)
   })
 
   test('Should not end session when session is fulfilled', async () => {
@@ -55,7 +55,7 @@ describe('End unmatched session', () => {
     }
 
     await endUnmatchedSession(job)
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `session ${session._id} fulfilled, cancel ending unmatched session`
     )
   })
@@ -76,7 +76,7 @@ describe('End unmatched session', () => {
 
     await endUnmatchedSession(job)
     mockedEndSession.mockRestore()
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.error).toHaveBeenCalledWith(
       `Failed to end unmatched session: ${session._id}: ${error}`
     )
   })
@@ -98,6 +98,6 @@ describe('End unmatched session', () => {
     const updatedSession = await getSession(query, projection)
 
     expect(updatedSession.endedAt).toBeTruthy()
-    expect(log).toHaveBeenCalledWith(`Ended unmatched session: ${session._id}`)
+    expect(logger.info).toHaveBeenCalledWith(`Ended unmatched session: ${session._id}`)
   })
 })

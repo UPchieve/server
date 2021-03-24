@@ -8,10 +8,11 @@ import {
   resetDb
 } from '../db-utils'
 import { buildAvailability, buildVolunteer } from '../generate'
-import { log } from '../../worker/logger'
+import logger from '../../logger'
 import * as AvailabilityService from '../../services/AvailabilityService'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
-jest.mock('../../worker/logger')
+jest.mock('../../logger')
 
 // db connection
 beforeAll(async () => {
@@ -39,8 +40,8 @@ describe('updateElapsedAvailability', () => {
     await updateElapsedAvailability()
 
     const expectedUpdatedVolunteers = 0
-    expect(log).toHaveBeenCalledWith(
-      `updated ${expectedUpdatedVolunteers} volunteers`
+    expect(logger.info).toHaveBeenCalledWith(
+      `Job ${Jobs.UpdateElapsedAvailability} - updated ${expectedUpdatedVolunteers} volunteers`
     )
   })
 
@@ -110,8 +111,8 @@ describe('updateElapsedAvailability', () => {
     )
 
     const expectedUpdatedVolunteers = 1
-    expect(log).toHaveBeenCalledWith(
-      `updated ${expectedUpdatedVolunteers} volunteers`
+    expect(logger.info).toHaveBeenCalledWith(
+      `Job ${Jobs.UpdateElapsedAvailability} - updated ${expectedUpdatedVolunteers} volunteers`
     )
   })
 })

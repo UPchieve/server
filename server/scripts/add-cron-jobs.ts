@@ -1,8 +1,8 @@
 import Queue from 'bull'
 import { find, map } from 'lodash'
 import config from '../config'
-import { log } from '../worker/logger'
 import { Jobs } from '../worker/jobs'
+import logger from '../logger'
 
 interface JobTemplate {
   name: Jobs
@@ -57,13 +57,13 @@ const main = async (): Promise<void> => {
     await Promise.all(
       map(repeatableJobs, async job => {
         if (find(jobTemplates, template => template.name === job.name)) {
-          log(`Stopping jobs: \n${JSON.stringify(job, null, ' ')}`)
+          logger.info(`Stopping jobs: \n${JSON.stringify(job, null, ' ')}`)
           await queue.removeRepeatableByKey(job.key)
         }
       })
     )
 
-    log(`Starting jobs: \n${JSON.stringify(jobTemplates, null, ' ')}`)
+    logger.info(`Starting jobs: \n${JSON.stringify(jobTemplates, null, ' ')}`)
     await Promise.all(
       map(jobTemplates, job => queue.add(job.name, job.data, job.options))
     )
