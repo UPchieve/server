@@ -1045,6 +1045,198 @@ paths:
       responses:
         '200':
           description: Session has timed out
+  /api/survey/presession/{:sessionId}:
+    get:
+      tags:
+        - survey
+      summary: Gets presession survey
+      description: Gets presession survey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Responds with an object of the survey
+    post:
+      tags:
+        - survey
+      summary:  Sends answers to survey
+      description: Sends answers to survey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                responseData:
+                  type: object
+                  properties:
+                    primary-goal:
+                      type: object
+                      properties:
+                        answer:
+                          type: string
+                          example: 'test-prep'
+                    topic-understanding:
+                      type: object
+                      properties:
+                        answer:
+                          type: integer
+                          example: 1
+      responses:
+        '200':
+          description: OK
+  /api/training/course/{:courseKey}:
+    get:
+      tags:
+        - training
+      summary:  Retrieves course details
+      description: Retrieves course details based on given coursekey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: courseKey
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/CourseKey'
+      responses:
+        '200':
+          description: OK
+  /api/training/course/{:courseKey}/progress:
+    post:
+      tags:
+        - training
+      summary:  Sends information to get progress on course
+      description: Sends for progress details based on given material key and course key
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: courseKey
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/CourseKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                materialKey:
+                  type: string
+                  example: '31rgp3'
+      responses:
+        '200':
+          description: Responds with object detailing progress section and if the course has been completed
+  /api/training/questions:
+    post:
+      tags:
+        - training
+      summary:  Requests for questions for training
+      description: Sends a request for given category questions
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  $ref: "#/components/schemas/Category"
+      responses:
+        '200':
+          description: Responds with an object of a list of question/answer objects
+  /api/training/review/{:category}:
+    get:
+      tags:
+        - training
+      summary:  Retrieve review materials
+      description: Sets category for retrieving review materials
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: category
+          required: true
+          in: path
+          schema:
+            $ref: "#/components/schemas/Category"
+      responses:
+        '204':
+          description: No content
+  /training/score:
+    post:
+      tags:
+        - training
+      summary:  Sends answers from quiz 
+      description: Sends answers from training quiz and returns a score
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  $ref: '#/components/schemas/Category'
+                idAnswerMap:
+                  type: object
+                  properties: 
+                    605a355b3bc29882261d35b4: 
+                      type: string
+                      example: "c"
+                    605a355b3bc29882261d35c2: 
+                      type: string
+                      example: "c"
+                    605a355b3bc29882261d35cc: 
+                      type: string
+                      example: "c"
+                    605a355b3bc29882261d35d1: 
+                      type: string
+                      example: "a"
+                    605a355b3bc29882261d35d5: 
+                      type: string
+                      example: "a"
+                    605a355b3bc29882261d35e4: 
+                      type: string
+                      example: "c"
+                    605a355b3bc29882261d35e5: 
+                      type: string
+                      example: "b"
+                    605a355b3bc29882261d35f0: 
+                      type: string
+                      example: "b"
+                    605a355b3bc29882261d3601: 
+                      type: string
+                      example: "b"
+                    605a355b3bc29882261d3612:
+                      type: string
+                      example: "c"
+                    605a355b3bc29882261d3625: 
+                      type: string
+                      example: "b"
+      responses:
+        '200':
+          description: Responds with an object of the quiz score calculation
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
@@ -1053,6 +1245,12 @@ components:
     AvailableHour:
       type: boolean
       example: true
+    Category:
+      type: string
+      example: 'geometry'
+    CourseKey:
+      type: string
+      example: 'upchieve101'
     Email:
       type: string
       example: "student1@upchieve.org"
