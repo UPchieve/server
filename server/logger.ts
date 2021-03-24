@@ -6,6 +6,7 @@ import { Jobs } from './worker/jobs'
 export interface LogEmailJob {
   job: Jobs
   userId: Types.ObjectId | string
+  userType?: string
   error?: Error
 }
 
@@ -30,10 +31,18 @@ function newLogger() {
 
 const logger = newLogger()
 
-export const logEmailJobSent = ({ job, userId }: LogEmailJob) =>
-  logger.info(`Sent ${job} to user ${userId}`)
+export const logEmailJobSent = ({
+  job,
+  userId,
+  userType = 'user'
+}: LogEmailJob) => logger.info(`Sent ${job} to ${userType} ${userId}`)
 
-export const logEmailJobError = ({ job, userId, error }: LogEmailJob) =>
-  logger.error(`Failed to send ${job} to user ${userId}: ${error}`)
+export const logEmailJobError = ({
+  job,
+  userId,
+  userType = 'user',
+  error
+}: LogEmailJob) =>
+  logger.error(`Failed to send ${job} to ${userType} ${userId}: ${error}`)
 
 export default logger
