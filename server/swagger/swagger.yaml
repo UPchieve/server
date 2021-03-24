@@ -679,7 +679,147 @@ paths:
             type: string
       responses:
         '200':
-          description: Returns an object (data) with an array of volunteer partner reports 
+          description: Returns an object (data) with an array of volunteer partner reports
+  /api/session/new:
+    post:
+      tags:
+        - session
+      summary: Starts a new session
+      description: |
+        Submits details to establish and create a session ID
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                sessionType:
+                  $ref: '#/components/schemas/SessionType'
+                sessionSubTopic:
+                  $ref: '#/components/schemas/SessionSubTopic'
+      responses:
+        '200':
+          description: Returns an object with a session Id
+        '500':
+          description: |
+            - If request for new session is from volunteer
+            - Bad json request body
+  /api/session/current:
+    post:
+      tags:
+        - session
+      summary: Looks for a current session in progress
+      description: |
+        Looks for current session in progress and retrieve details on session
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                user_id:
+                  $ref: '#/components/schemas/UserId'
+                is_volunteer:
+                  $ref: '#/components/schemas/IsVolunteer'
+      responses:
+        '200':
+          description: Returns an object (data) with session details and the current session Id
+        '404':
+          description: No current session
+  /api/session/latest:
+    post:
+      tags:
+        - session
+      summary: Retrieves latest session
+      description: |
+        Checks and retreieves the latest completed session
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                user_id:
+                  $ref: '#/components/schemas/UserId'
+      responses:
+        '200':
+          description: Returns an object (data) with the details of the latest completed session and session Id
+        '404':
+          description: No latest session
+  /api/session/check:
+    post:
+      tags:
+        - session
+      summary: Checks for existing session  
+      description: |
+        Checks session based on sessionId; if there is a session in progress use that session
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                sessionId:
+                  $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns the session id confirming the session existss
+        '404':
+          description: No session found
+  /api/session/end:
+    post:
+      tags:
+        - session
+      summary: Ends a session
+      description: |
+        End the current session in progress
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                sessionId:
+                  $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns the session id confirming the session has ended
+        '404':
+          description: No session found
+  /api/session/end-all:
+    post:
+      tags:
+        - session
+      summary: Ends all student sessions
+      description: |
+        - Ends all student sessions 
+        - For Cypress tests
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Returns an object with a boolean value
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
@@ -724,6 +864,9 @@ components:
       properties:
         version:
           type: string 
+    IsVolunteer:
+      type: boolean
+      example: false
     Password: 
       type: string
       example: "Password123"
@@ -782,6 +925,12 @@ components:
       type: string
       example: "605a43e4bf39966c0e3c59ce"
       format: uuid
+    SessionSubTopic:
+      type: string
+      example: 'algebraone'
+    SessionType:
+      type: string
+      example: "math"
     StudentId:
       type: string
       example: "605a355a3bc29882261d3594"
@@ -792,6 +941,9 @@ components:
     UnavailableHour:
       type: boolean
       example: false
+    UserId:
+      type: string
+      example: "605a355a3bc29882261d3594"
     UserType: 
       type: string
       example: "volunteer"
