@@ -820,6 +820,231 @@ paths:
       responses:
         '200':
           description: Returns an object with a boolean value
+  /api/sessions:
+    get:
+      tags:
+        - session
+      summary: Get all sessions
+      description: Retrieves all session completed by user
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: string
+        - name: showBannedUsers
+          in: query
+          schema:
+            type: string
+        - name: showTestUsers
+          in: query
+          schema:
+            type: string
+        - name: showTestUsers
+          in: query
+          schema:
+            type: string
+        - name: sessionActivityFrom
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: sessionActivityTo
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: minMessagesSent
+          in: query
+          schema:
+            type: string
+        - name: minSessionLength
+          in: query
+          schema:
+            type: string
+        - name: studentRating
+          in: query
+          schema:
+            type: string
+        - name: volunteerRating
+          in: query
+          schema:
+            type: string
+        - name: firstTimeStudent
+          in: query
+          schema:
+            type: string
+        - name: firstTimeVolunteer
+          in: query
+          schema:
+            type: string
+        - name: isReported
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns an object with a list of session objects
+  /api/session/review:
+    get:
+      tags:
+        - session
+      summary: Retrieves session report
+      description: Retrieves session report
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: users
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns a object with a list of sessions and page location
+  /api/session/{sessionId}:
+    put:
+      tags:
+        - session
+      summary: Updates session
+      description: Updates session
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reviewedStudent:
+                  type: boolean
+                reviewedVolunteer:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Returns OK message when session has been updated
+  /api/session/{sessionId}/admin:
+    get:
+      tags:
+        - session
+      summary: Retrieves session details
+      description: Retrieves session details of specific session id for admin
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns a object with details on the specified session
+  /api/session/{sessionId}/notifications:
+    get:
+      tags:
+        - session
+      summary: Retrieves session notifications
+      description: Retrieves a list of session notifications that were sent
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns a object with a list of notifications for specified session
+  /api/session/{sessionId}/photo-url:
+    get:
+      tags:
+        - session
+      summary: Retrieves an image url
+      description: Retrieves an upload url to upload image in the session
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns a object with assigned image url and upload url
+  /api/session/{sessionId}/report:
+    post:
+      tags:
+        - session
+      summary: Reports a session
+      description: Sends details for reporting a session
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reportReason:
+                  type: string
+                reportMessage:
+                  type: string
+      responses:
+        '200':
+          description: Report has been submitted for the session
+        '401':
+          description: |
+            - Missing session ID or session
+            - Missing volunteer
+            - Missing user ID
+  /api/session/{sessionId}/timed-out:
+    post:
+      tags:
+        - session
+      summary: Times out a session 
+      description: Sets a session time out after 15 or 45 minutes in session
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timeout:
+                  type: integer
+      responses:
+        '200':
+          description: Session has timed out
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
