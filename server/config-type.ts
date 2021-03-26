@@ -99,6 +99,7 @@ export const Config = Record({
   unleashName: String,
   unleashUrl: String,
   posthogToken: String,
+  posthogPersonalApiToken: String,
   vueAppUnleashUrl: String,
   vueAppUnleashId: String,
   vueAppUnleashName: String,
