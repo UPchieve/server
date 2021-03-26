@@ -226,7 +226,7 @@ module.exports = {
     sendEmail(
       email,
       config.mail.senders.volunteerManager,
-      'Mark',
+      config.mail.people.volunteerManager.firstName,
       config.sendgrid.meetOurVolunteersTemplate,
       { firstName },
       config.sendgrid.unsubscribeGroup.account,
@@ -284,7 +284,7 @@ module.exports = {
     sendEmail(
       email,
       sender,
-      'Cinthia Fabian',
+      `${config.mail.people.studentOutreachManager.firstName} ${config.mail.people.studentOutreachManager.lastName}`,
       config.sendgrid.studentFirstSessionCongratsTemplate,
       { firstName },
       config.sendgrid.unsubscribeGroup.account,
@@ -436,7 +436,7 @@ module.exports = {
     return sendEmail(
       reference.email,
       config.mail.senders.recruitment,
-      'Mark at UPchieve',
+      `${config.mail.people.volunteerManager.firstName} at UPchieve`,
       config.sendgrid.referenceFollowupTemplate,
       emailData,
       config.sendgrid.unsubscribeGroup.account,
@@ -471,7 +471,7 @@ module.exports = {
     return sendEmail(
       volunteer.email,
       config.mail.senders.volunteerManager,
-      'Mark',
+      config.mail.people.volunteerManager.firstName,
       config.sendgrid.niceToMeetYouTemplate,
       {
         firstName: capitalize(volunteer.firstname)
@@ -621,12 +621,236 @@ module.exports = {
     return sendEmail(
       email,
       teamMemberEmail,
-      'Mark',
+      config.mail.people.volunteerManager.firstName,
       config.sendgrid.onboardingReminderThreeTemplate,
       {
         firstName: capitalize(firstName)
       },
       // @note: see @todo for sendEmail
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendVolunteerQuickTips: ({ email, firstName }) => {
+    const sender = config.mail.senders.volunteerManager
+    const overrides = {
+      reply_to: {
+        email: config.mail.receivers.support
+      },
+      categories: ['volunteer - quick tips']
+    }
+    sendEmail(
+      email,
+      sender,
+      `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
+      config.sendgrid.volunteerQuickTipsTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendPartnerVolunteerOnlyCollegeCerts: ({ email, firstName }) => {
+    const sender = config.mail.senders.volunteerManager
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      cc: {
+        email: config.mail.receivers.support
+      },
+      categories: ['partner volunteer - only college certs']
+    }
+    sendEmail(
+      email,
+      sender,
+      `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
+      config.sendgrid.partnerVolunteerOnlyCollegeCertsTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendPartnerVolunteerLowHoursSelected: ({ email, firstName }) => {
+    const sender = config.mail.receivers.support
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['partner volunteer - low hours']
+    }
+    sendEmail(
+      email,
+      sender,
+      'The UPchieve Team',
+      config.sendgrid.partnerVolunteerLowHoursSelectedTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendVolunteerFirstSessionCongrats: ({ email, firstName }) => {
+    const sender = config.mail.senders.volunteerManager
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      cc: {
+        email: config.mail.receivers.support
+      },
+      categories: ['volunteer - first session congrats']
+    }
+    sendEmail(
+      email,
+      sender,
+      `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
+      config.sendgrid.volunteerFirstSessionCongratsTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendPartnerVolunteerReferACoworker: ({
+    email,
+    firstName,
+    partnerOrg,
+    partnerOrgDisplay
+  }) => {
+    const partnerOrgSignupLink = buildLink(`signup/volunteer/${partnerOrg}`)
+    const sender = config.mail.senders.corporatePartnershipsManager
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      cc: {
+        email: config.mail.receivers.support
+      },
+      categories: ['partner volunteer - refer a coworker']
+    }
+    sendEmail(
+      email,
+      sender,
+      `${config.mail.people.corporatePartnershipsManager.firstName} ${config.mail.people.corporatePartnershipsManager.lastName}`,
+      config.sendgrid.partnerVolunteerReferACoworkerTemplate,
+      { firstName, partnerOrgSignupLink, partnerOrgDisplay },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendPartnerVolunteerTenSessionMilestone: ({ email, firstName }) => {
+    const sender = config.mail.senders.corporatePartnershipsManager
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      cc: {
+        email: config.mail.receivers.support
+      },
+      categories: ['partner volunteer - ten session milestone']
+    }
+    sendEmail(
+      email,
+      sender,
+      `${config.mail.people.corporatePartnershipsManager.firstName} ${config.mail.people.corporatePartnershipsManager.lastName}`,
+      config.sendgrid.partnerVolunteerTenSessionMilestoneTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendVolunteerGentleWarning: ({ email, firstName }) => {
+    const sender = config.mail.senders.volunteerManager
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      cc: {
+        email: config.mail.receivers.support
+      },
+      categories: ['volunteer - gentle warning']
+    }
+    sendEmail(
+      email,
+      sender,
+      config.mail.people.volunteerManager.firstName,
+      config.sendgrid.volunteerGentleWarningTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendVolunteerInactiveThirtyDays: ({ email, firstName }) => {
+    const sender = config.mail.senders.volunteerManager
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      cc: {
+        email: config.mail.receivers.support
+      },
+      categories: ['volunteer - inactive thirty days']
+    }
+    sendEmail(
+      email,
+      sender,
+      config.mail.people.volunteerManager.firstName,
+      config.sendgrid.volunteerInactiveThirtyDaysTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendVolunteerInactiveSixtyDays: ({ email, firstName }) => {
+    const sender = config.mail.senders.support
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['volunteer - inactive sixty days']
+    }
+    sendEmail(
+      email,
+      sender,
+      'The UPchieve Team',
+      config.sendgrid.volunteerInactiveSixtyDaysTemplate,
+      { firstName },
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      overrides
+    )
+  },
+
+  sendVolunteerInactiveNinetyDays: ({ email, firstName }) => {
+    const sender = config.mail.senders.support
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['volunteer - inactive ninety days']
+    }
+    sendEmail(
+      email,
+      sender,
+      'The UPchieve Team',
+      config.sendgrid.volunteerInactiveNinetyDaysTemplate,
+      { firstName },
       config.sendgrid.unsubscribeGroup.account,
       null,
       overrides

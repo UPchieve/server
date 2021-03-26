@@ -68,6 +68,20 @@ const config: Static<typeof Config> = {
     studentIndependentLearningTemplate: 'd-3167ea240a27471597d849cbae4b8437',
     studentGoalSettingTemplate: 'd-c5671abc76884180b6912729190b7078',
     studentFirstSessionCongratsTemplate: 'd-8c54307ace4a498f800185f0e540b8ea',
+    volunteerQuickTipsTemplate: 'd-b85620ef95b443878a6aeca1e99c94ef',
+    partnerVolunteerOnlyCollegeCertsTemplate:
+      'd-031f89e788c2481ea912e5840e7d92e1',
+    partnerVolunteerLowHoursSelectedTemplate:
+      'd-476522cdd78e4c4ebc2af51a2086a640',
+    volunteerFirstSessionCongratsTemplate: 'd-ebd561df99a7497d9401cec3f54ef23a',
+    partnerVolunteerReferACoworkerTemplate:
+      'd-f129a964b34446e3962433851459b17a',
+    partnerVolunteerTenSessionMilestoneTemplate:
+      'd-0447cf80536a430881262f8f92044b73',
+    volunteerGentleWarningTemplate: 'd-5f7366fbde7841beb757b8694afdc6a4',
+    volunteerInactiveThirtyDaysTemplate: 'd-e2c9917e22c24d72a187ff00a5eff5e9',
+    volunteerInactiveSixtyDaysTemplate: 'd-659b7e8d08754ef58d9b6e594f748e19',
+    volunteerInactiveNinetyDaysTemplate: 'd-1bb491dbb4a044f5a4cd9cd926eacf38',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -96,6 +110,9 @@ const config: Static<typeof Config> = {
         'example@example.org',
       studentOutreachManager:
         process.env.SUBWAY_STUDENT_OUTREACH_MANAGER_EMAIL_SENDER ||
+        'example@example.org',
+      corporatePartnershipsManager:
+        process.env.SUBWAY_CORPORATE_PARTNERSHIPS_MANAGER_EMAIL_SENDER ||
         'example@example.org'
     },
     receivers: {
@@ -113,7 +130,26 @@ const config: Static<typeof Config> = {
         'example@example.org',
       studentOutreachManager:
         process.env.SUBWAY_STUDENT_OUTREACH_MANAGER_EMAIL_RECEIVER ||
+        'example@example.org',
+      corporatePartnershipsManager:
+        process.env.SUBWAY_CORPORATE_PARTNERSHIPS_MANAGER_EMAIL_RECEIVER ||
         'example@example.org'
+    },
+    people: {
+      volunteerManager: {
+        firstName: process.env.SUBWAY_VOLUNTEER_MANAGER_FIRST_NAME || '',
+        lastName: process.env.SUBWAY_VOLUNTEER_MANAGER_LAST_NAME || ''
+      },
+      studentOutreachManager: {
+        firstName: process.env.SUBWAY_STUDENT_OUTREACH_MANAGER_FIRST_NAME || '',
+        lastName: process.env.SUBWAY_STUDENT_OUTREACH_MANAGER_LAST_NAME || ''
+      },
+      corporatePartnershipsManager: {
+        firstName:
+          process.env.SUBWAY_CORPORATE_PARTNERSHIPS_MANAGER_FIRST_NAME || '',
+        lastName:
+          process.env.SUBWAY_CORPORATE_PARTNERSHIPS_MANAGER_LAST_NAME || ''
+      }
     }
   },
   client: {

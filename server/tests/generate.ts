@@ -33,6 +33,7 @@ import {
 import { User } from '../models/User'
 import { Student } from '../models/Student'
 import { Session } from '../models/Session'
+import { Feedback } from '../models/Feedback'
 import { StudentRegistrationForm, VolunteerRegistrationForm } from './types'
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
@@ -458,6 +459,25 @@ export const buildAvailabilityDay = (overrides = {}): AvailabilityDay => {
   }
 
   return availabilityDay
+}
+
+export const buildFeedback = (
+  overrides: Partial<Feedback> = {}
+): Partial<Feedback> => {
+  const feedback = {
+    _id: Types.ObjectId(),
+    createdAt: new Date(),
+    sessionId: null,
+    userType: null,
+    type: null,
+    subTopic: null,
+    responseData: {},
+    volunteerId: null,
+    studentId: null,
+    ...overrides
+  }
+
+  return feedback
 }
 
 export const authLogin = (agent, { email, password }: Partial<User>): Test =>
