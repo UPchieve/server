@@ -240,6 +240,8 @@ const config: Static<typeof Config> = {
   vueAppUnleashId: process.env.VUE_APP_UNLEASH_ID || '4ygySARxzu-yDxejd5sw',
   vueAppUnleashName: process.env.VUE_APP_UNLEASH_NAME || 'dev',
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
+  posthogPersonalApiToken:
+    process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
   zwibblerUrl:
     process.env.VUE_APP_ZWIBBLER_URL || '/static/js/zwibbler-demo.js',
   websocketRoot: process.env.VUE_APP_WEBSOCKET_ROOT || 'ws://localhost:3000',
