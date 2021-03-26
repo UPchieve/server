@@ -37,6 +37,16 @@ export const Config = Record({
     studentIndependentLearningTemplate: String,
     studentGoalSettingTemplate: String,
     studentFirstSessionCongratsTemplate: String,
+    volunteerQuickTipsTemplate: String,
+    partnerVolunteerOnlyCollegeCertsTemplate: String,
+    partnerVolunteerLowHoursSelectedTemplate: String,
+    volunteerFirstSessionCongratsTemplate: String,
+    partnerVolunteerReferACoworkerTemplate: String,
+    partnerVolunteerTenSessionMilestoneTemplate: String,
+    volunteerGentleWarningTemplate: String,
+    volunteerInactiveThirtyDaysTemplate: String,
+    volunteerInactiveSixtyDaysTemplate: String,
+    volunteerInactiveNinetyDaysTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
@@ -55,7 +65,8 @@ export const Config = Record({
       recruitment: String,
       students: String,
       volunteerManager: String,
-      studentOutreachManager: String
+      studentOutreachManager: String,
+      corporatePartnershipsManager: String
     }),
     receivers: Record({
       contact: String,
@@ -64,7 +75,22 @@ export const Config = Record({
       recruitment: String,
       students: String,
       volunteerManager: String,
-      studentOutreachManager: String
+      studentOutreachManager: String,
+      corporatePartnershipsManager: String
+    }),
+    people: Record({
+      volunteerManager: Record({
+        firstName: String,
+        lastName: String
+      }),
+      studentOutreachManager: Record({
+        firstName: String,
+        lastName: String
+      }),
+      corporatePartnershipsManager: Record({
+        firstName: String,
+        lastName: String
+      })
     })
   }),
   client: Record({

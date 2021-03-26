@@ -5,6 +5,7 @@ import StudentModel, { Student } from '../models/Student'
 import UserActionModel, { UserAction } from '../models/UserAction'
 import SessionModel, { Session } from '../models/Session'
 import NotificationModel from '../models/Notification'
+import FeedbackModel, { Feedback } from '../models/Feedback'
 import config from '../config'
 import AvailabilitySnapshotModel, {
   AvailabilitySnapshot
@@ -19,7 +20,8 @@ import {
   buildVolunteer,
   buildAvailabilitySnapshot,
   buildAvailabilityHistory,
-  buildUserAction
+  buildUserAction,
+  buildFeedback
 } from './generate'
 
 const hashPassword = async function(password): Promise<Error | string> {
@@ -89,6 +91,13 @@ export const insertSession = async (
   const createdSession = await SessionModel.create(session)
   // Return the session and the student
   return { session: createdSession.toObject(), student }
+}
+
+export const insertSessionMany = async (
+  sessions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> => {
+  return SessionModel.collection.insertMany(sessions)
 }
 
 // @todo: make the student and volunteer configurable
@@ -190,4 +199,19 @@ export const insertUserAction = async (
   const userAction = buildUserAction(overrides)
   const createdUserAction = await UserActionModel.create(userAction)
   return { ...createdUserAction.toObject() }
+}
+
+export const insertFeedback = async (
+  overrides: Partial<Feedback> = {}
+): Promise<Feedback> => {
+  const feedback = buildFeedback(overrides)
+  const createdFeedback = await FeedbackModel.create(feedback)
+  return { ...createdFeedback.toObject() }
+}
+
+export const insertFeedbackMany = async (
+  feedback
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> => {
+  return FeedbackModel.collection.insertMany(feedback)
 }
