@@ -44,7 +44,9 @@
                       v-model="availability[day][sortedTime]"
                       type="checkbox"
                     />
-                    <label for="sortedTime" />
+                    <label for="sortedTime"
+                      v-bind:style="{'background-color':heat[day][sortedTime]}"
+                    />
                   </div>
                 </div>
               </div>
@@ -106,7 +108,8 @@ export default {
       timeRange,
       tzList: moment.tz.names(),
       selectedTz: '',
-      saveState: saveStates.UNSAVED
+      saveState: saveStates.UNSAVED,
+      heat: {}
     }
   },
   computed: {
@@ -150,6 +153,7 @@ export default {
       var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
       var offset = (estUtcOffset - userUtcOffset) / 60
       this.availability = this.convertAvailability(originalAvailability, offset)
+      this.heat = this.dummyHeat(originalAvailability)
     },
     sortTimes() {
       const keysMap = {}
@@ -259,6 +263,20 @@ export default {
         }
       }
       return convertedAvailability
+    },
+    dummyHeat(availability) {
+      var dummyHeat = {}
+      for (const day in availability) {
+        const times = availability[day]
+        dummyHeat[day] = {}
+        for (const time in times) {
+          const heatInt = Math.floor(Math.random() * 20)
+          const heatRatio = heatInt/20
+          var hue=((1-heatRatio)*120).toString(10);
+          dummyHeat[day][time] = ["hsla(",hue,",100%,50%,.15)"].join("")
+        }
+      }
+      return dummyHeat
     },
     save() {
       this.saveState = saveStates.SAVING
@@ -398,7 +416,7 @@ label {
 }
 
 input[type='checkbox']:checked + label {
-  background-color: rgba(22, 210, 170, 0.5);
+  background-color: rgba(22, 210, 170, 0.5) !important;
 }
 
 .tz-selector-container {
