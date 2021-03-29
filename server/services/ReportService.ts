@@ -113,7 +113,8 @@ export const sessionReport = async ({
         firstname: 1,
         lastname: 1,
         email: 1,
-        pastSessions: 1
+        pastSessions: 1,
+        partnerSite: 1
       }
     },
     {
@@ -176,7 +177,8 @@ export const sessionReport = async ({
         student: {
           firstName: '$firstname',
           lastName: '$lastname',
-          email: '$email'
+          email: '$email',
+          partnerSite: '$partnerSite'
         },
         volunteer: {
           $cond: {
@@ -232,6 +234,9 @@ export const sessionReport = async ({
       'First name': session.student.firstName,
       'Last name': session.student.lastName,
       Email: session.student.email,
+      'Partner site': session.student.partnerSite
+        ? session.student.partnerSite
+        : '-',
       Volunteer: session.volunteer,
       'Volunteer join date': formatDate(session.volunteerJoinedAt),
       'Ended at': formatDate(session.endedAt),
