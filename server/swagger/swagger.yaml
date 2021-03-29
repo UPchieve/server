@@ -399,6 +399,78 @@ paths:
           description: URL no longer valid
         '422':
           description: URL doesn't match link provided in email
+  /auth/partner/student/code:
+    get:
+      tags:
+        - authorization
+      summary: Retrieves student partner code
+      description: |
+        Retrieves student partner code
+        Where `PARTNER_SIGNUP_CODE` is equal to a `signupCode` defined in `config.ts` under `studentPartnerManifests`
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: partnerSignupCode
+          required: true
+          in: query
+          schema:
+            type: string
+            example: 'EX1'
+      responses:
+        '200':
+          description: Returns object with studentPartnerKey 
+  /auth/partner/student-partners:
+    get:
+      tags:
+        - authorization
+      summary: Retrieves a list of student partners
+      description: |
+        - For admin only
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns object with a list of all student partners
+  /auth/partner/volunteer-partners:
+    get:
+      tags:
+        - authorization
+      summary: Retrieves a list of volunteer partners
+      description: |
+        - For admin only 
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns object with a list of all volunteer partners
+  /auth/register:
+    post:
+      tags:
+        - authorization
+      summary: Creates new account
+      description: Create a new account based on given information
+      deprecated: true
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties: 
+                  email:
+                    type: string
+                  password:
+                    type: string
+                  code:
+                    type: string
+                  highSchool:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
   /api/calendar/save:
     post:
       tags:
@@ -1420,7 +1492,7 @@ paths:
       responses:
         '200':
           description: OK; Volunteer data accepted
-  /user/volunteer-approval/photo-url:
+  /api/user/volunteer-approval/photo-url:
     get:
       tags:
         - user
@@ -1433,7 +1505,7 @@ paths:
           description: |
             Will return an object with a boolean value if url is generated successfully or not
             - Return an object with `success: false` or `success: true` with url
-  /user/volunteer-approval/reference:
+  /api/user/volunteer-approval/reference:
     post:
       tags:
         - user
@@ -1457,32 +1529,31 @@ paths:
       responses:
         '200':
           description: OK; Reference accepted
-  /user/volunteer-approval/reference/delete:
-      post:
-        tags:
-          - user
-        summary: Removes reference
-        description: Remove reference from given reference email address
-        security:
-          - cookieAuth: []
-        requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  referenceEmail:
-                    type: string
-        responses:
-          '200':
-            description: OK; deleted
+  /api/user/volunteer-approval/reference/delete:
+    post:
+      tags:
+        - user
+      summary: Removes reference
+      description: Remove reference from given reference email address
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                referenceEmail:
+                  type: string
+      responses:
+        '200':
+          description: OK; deleted
   /users:
     get:
       tags:
         - user
-      summary: Retrieves photo upload url
-      description: Retrieves photo upload url
+      summary: Retrieves a list of users
       security:
         - cookieAuth: []
       parameters:
@@ -1510,6 +1581,61 @@ paths:
       responses:
         '200':
           description: Returns and object of users and page marker
+  /api/verificationtoken:
+    get:
+      tags:
+        - verification
+      summary: Retrieves verification token
+      description: |
+        - Admin only
+        - Retrieves verification token for given userid
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: userid
+          required: true
+          in: query
+          schema:
+            $ref: '#/components/schemas/userId'
+      responses:
+        '200':
+          description: Returns an object with `verificationToken`
+  /api/verify/send:
+    post:
+      tags:
+        - verification
+      summary: Sends verication email
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Verification email sent
+        '404': 
+          description: |
+            - If user is already verified
+            - Invalid email
+  /api/verify/confirm:
+    post:
+      tags:
+        - verification
+      summary: Confirms verification
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Verification confirmed
+        '404': 
+          description: |
+            - Invalid token
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
