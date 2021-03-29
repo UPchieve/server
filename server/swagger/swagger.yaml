@@ -1636,6 +1636,105 @@ paths:
         '404': 
           description: |
             - Invalid token
+  /api/volunteers:
+    get:
+      tags:
+        - volunteers
+      summary: Gets volunteers
+      description: |
+        - Admin only
+        - Gets a list of all volunteers
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns an object with a list of all volunteer user ids
+    post:
+      tags:
+        - volunteers
+      summary: Gets a list of volunteers
+      description: |
+        - Admin only
+        - Replaced by GET api/volunteers
+      depcrecated: true
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description:  Returns an object with a list of all volunteer user ids
+  /api/volunteers/availability:
+    post: 
+      tags: 
+        - volunteers
+      summary: Gets a map of volunteer availability
+      deprecated: true
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns a map of all volunteer availability by user id
+  /api/volunteers/availability/{certifiedSubject}:
+    get: 
+      tags: 
+        - volunteers
+      summary: Gets a map of volunteer availability
+      description: |
+        - Admin only
+        -  Gets a map of volunteer availabilities by given certified subject
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: certifiedSubject
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Returns an object of aggregated volunteer availabilities by user id
+  /api/volunteers/review:
+    get: 
+      tags: 
+        - volunteers
+      summary: Gets volunteer details by page
+      description: |
+        - Admin only
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          required: true
+          in: query
+      responses:
+        '200':
+          description: Returns an object of volunteers, paginated
+  /api/volunteers/review/{id}:
+    post: 
+      tags: 
+        - volunteers
+      summary: Submits volunteer details by given id
+      description: |
+        - Admin only
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                photoIdStatus:
+                  type: string
+                referencesStatus:
+                  type: string
+      responses:
+        '200':
+          description: OK
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
