@@ -907,6 +907,22 @@ paths:
         '200':
           description: Returns a object with a list of sessions and page location
   /api/session/{sessionId}:
+    get:
+      tags:
+        - session
+      summary: Retrieves a session ID
+      description: Retrieves a session ID
+      security: 
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns a session object
     put:
       tags:
         - session
@@ -1237,6 +1253,263 @@ paths:
       responses:
         '200':
           description: Responds with an object of the quiz score calculation
+  /api/user:
+    get:
+      tags:
+        - user
+      summary:  Retrieves a user profile
+      description: Retrieves user detail using authenticated req.user object
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Responds with user details object
+        '401':
+          description: User isn't authenticated
+    put:
+      tags:
+        - user
+      summary:  Updates a user profile
+      description: Accepts a request body with fields mapping to profile fields to update for the currently authenticated user
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                isDeactivated:
+                  type: boolean
+      responses:
+        '200':
+          description: OK, user profile is updated
+    delete:
+      tags:
+        - user
+      summary:  Deletes user
+      description: |
+        - Removes a user
+        - This is a utility route used by Cypress to clean up after e2e tests
+        - Not available in production
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Responds with object of how many users are deleted
+        '405':
+          description: Responds with message endpoint is not allowed to use in production
+  /api/user/{userId}:
+    get:
+      tags:
+        - user
+      summary:  Retrieves a user profile 
+      description: Retrieves a user profile based on given userID
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/userId'
+        - name: page
+          required: true
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Returns a sanitized public user record for a user with the given id.
+    put:
+      tags:
+        - user
+      summary:  Updates a user profile 
+      description: Updates a user profile based on given userID
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                partnerOrg:
+                  type: string
+                partnerSite:
+                  type: string
+                isVerified: 
+                  type: boolean
+                isBanned: 
+                  type: boolean
+                isDeactivated:
+                  type: boolean
+                isApproved:
+                  type: boolean    
+      responses:
+        '200':
+          description: OK; Record is updated
+  /api/user/referred-friends:
+    get:
+      tags:
+        - user
+      summary: Retrieves a list of referred friends
+      description: Retrieves a list of referred friends with given req.user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns an object with a list of referred friends
+  /api/user/volunteer-approval/background-information:
+    post:
+      tags:
+        - user
+      summary: Submits background information
+      description: Accepts volunteer's background information 
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                occupation:
+                  type: string
+                experience:
+                  type: string
+                company:
+                  type: string
+                college:
+                  type: string
+                linkedInUrl:
+                  type: string
+                languages:
+                  type: string
+                country:
+                  type: string
+                state:
+                  type: string
+                city:
+                  type: string
+      responses:
+        '200':
+          description: OK; Volunteer data accepted
+  /user/volunteer-approval/photo-url:
+    get:
+      tags:
+        - user
+      summary: Retrieves photo upload url
+      description: Retrieves photo upload url
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            Will return an object with a boolean value if url is generated successfully or not
+            - Return an object with `success: false` or `success: true` with url
+  /user/volunteer-approval/reference:
+    post:
+      tags:
+        - user
+      summary: Submits information for reference
+      description: Submits information for reference 
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                referenceFirstName:
+                  type: string
+                referenceLastName:
+                  type: string
+                referenceEmail:
+                  type: string
+      responses:
+        '200':
+          description: OK; Reference accepted
+  /user/volunteer-approval/reference/delete:
+      post:
+        tags:
+          - user
+        summary: Removes reference
+        description: Remove reference from given reference email address
+        security:
+          - cookieAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  referenceEmail:
+                    type: string
+        responses:
+          '200':
+            description: OK; deleted
+  /users:
+    get:
+      tags:
+        - user
+      summary: Retrieves photo upload url
+      description: Retrieves photo upload url
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          required: true
+          in: query
+        - name: userId
+          required: true
+          in: query
+        - name: firstName
+          required: true
+          in: query
+        - name: lastName
+          required: true
+          in: query
+        - name: email
+          required: true
+          in: query
+        - name: partnerOrg
+          required: true
+          in: query
+        - name: highSchool
+          required: true
+          in: query
+      responses:
+        '200':
+          description: Returns and object of users and page marker
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
