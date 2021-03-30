@@ -1772,11 +1772,11 @@ paths:
               type: object
               properties:
                 schoolUpchieveId:
-                  type: object
+                  type: string
                 email:
-                  type: object
+                  type: string
                 referredByCode:
-                  type: object                 
+                  type: string                 
       responses:
         '200':
           description: Returns an object with boolean `isEligible`
@@ -1816,6 +1816,7 @@ paths:
       summary:  List all students registered with a school
       description: |
         - Admin only
+        - Based off of given school id
       security:
         - cookieAuth: []
       parameters:
@@ -1824,7 +1825,414 @@ paths:
           in: path                  
       responses:
         '200':
-          description: Returns an object with student details from given upchieve school id
+          description: Returns an object with student details 
+  /api-public/eligibility/schoold/{schoolId}:
+    get: 
+      tags: 
+        - eligibility
+      summary:  Gets an eligible school
+      description: |
+        - Admin only
+        - Checks eligibility of school from given school id
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: schoolId
+          required: true
+          in: path                  
+      responses:
+        '200':
+          description: Returns an object with school details
+  put:
+    tags:
+      - eligibility
+    summary: Updates school eligibility
+    description: |
+      - Admin only
+      - Updates school based on given school id
+    security:
+      - cookieAuth: []
+    parameters:
+      - name: schoolId
+        required: true
+        in: path  
+    requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                city:
+                  type: string
+                state:
+                  type: string
+                zipCode:
+                  type: string
+                isApproved:
+                  type: boolean                 
+    responses:
+      '200':
+        description: OK
+  /api-public/eligibility/schools:
+    get: 
+      tags: 
+        - eligibility
+      summary:  Gets eligible schools
+      description: |
+        - Admin only
+        - Gets a list of all eligible schools
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: name
+          required: true
+          in: query
+        - name: state
+          required: true
+          in: city 
+        - name: page
+          required: true
+          in: query                   
+      responses:
+        '200':
+          description: Returns an array of school objects
+  /api-public/eligibility/school/new:
+    post: 
+      tags: 
+        - eligibility
+      summary:  Creates new eligible school
+      description: |
+        - Admin only
+        - Submits given body of new school for eligibility
+      security:
+        - cookieAuth: []  
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                city:
+                  type: string
+                state:
+                  type: string
+                zipCode:
+                  type: string
+                isApproved:
+                  type: boolean                
+      responses:
+        '200':
+          description: Returns new school id
+  /api-public/eligibility/school/approval:
+    post: 
+      tags: 
+        - eligibility
+      summary:  Approves school
+      description: |
+        - Admin only
+        - Sets approval for eligible with given school id
+      security:
+        - cookieAuth: []  
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schoolId:
+                  type: string
+                isApproved:
+                  type: boolean                
+      responses:
+        '200':
+          description: OK
+  /api-public/eligibility/ineligible-students:
+    get: 
+      tags: 
+        - eligibility
+      summary:  Gets ineligible students
+      description: |
+        - Admin only
+        - Gets a list of all ineligible students
+      security:
+        - cookieAuth: []    
+      parameters:
+        - name: page
+          required: true
+          in: query            
+      responses:
+        '200':
+          description: Returns an object with a paginated list of ineligible students
+  /api-public/eligibility/zip-codes/{zipCode}:
+    get: 
+      tags: 
+        - eligibility
+      summary: Checks an eligible zipcode
+      description: |
+        - Admin only
+        - Checks eligibility based on given zipcode
+      security:
+        - cookieAuth: []    
+      parameters:
+        - name: zipCode
+          required: true
+          in: path            
+      responses:
+        '200':
+          description: Returns an object with zipcode details
+  /api-public/reference/{referenceId}:
+    get: 
+      tags: 
+        - reference
+      summary: Gets reference 
+      description: |
+        - Gets reference based on given id
+      security:
+        - cookieAuth: []    
+      parameters:
+        - name: referenceId
+          required: true
+          in: path            
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: User not found
+  /api-public/reference/${referenceId}/submit:
+    post: 
+      tags: 
+        - reference
+      summary:  Creates new reference 
+      description: |
+        - Admin only
+        - Submits new reference based on submitted form information 
+      security:
+        - cookieAuth: []  
+      parameters:
+        - name: referenceId
+          required: true
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                affiliation:
+                  type: string
+                relationshipLength:
+                  type: string 
+                rejectionReason:
+                  type: string
+                additionalInfo:
+                  type: string
+                patient:
+                  type: boolean
+                positiveRoleModel:
+                  type: boolean
+                agreeableAndApproachable:
+                  type: boolean
+                communicatesEffectively:
+                  type: boolean
+                trustworthyWithChildren:
+                  type: boolean             
+      responses:
+        '200':
+          description: OK
+  /api-public/referral/{referralCode}:
+    get: 
+      tags: 
+        - referral
+      summary: Gets referral 
+      description: |
+        - Gets referral based on given code
+      security:
+        - cookieAuth: []    
+      parameters:
+        - name: referralCode
+          required: true
+          in: path            
+      responses:
+        '200':
+          description: Returns an object of user details
+  /whiteboard/reset:
+    post: 
+      tags: 
+        - whiteboard
+      summary:  Resets whiteboard
+      security:
+        - cookieAuth: []  
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: string          
+      responses:
+        '200':
+          description: OK
+  /edu:
+    get: 
+      tags: 
+        - education
+      summary:  Gets all courses
+      description: |
+        - Returns information of course categories and subcategories
+        - Categories link to questions
+      security:
+        - cookieAuth: []         
+      responses:
+        '304':
+          description: Responds with view of categories and subcategories
+  /edu/questions:
+    get:
+      tags: 
+        - education
+      summary:  Gets all questions
+      security:
+        - cookieAuth: []         
+      responses:
+        '304':
+          description: Responds with questions view
+    post:
+      tags:
+        - education
+      summary: Creates a question in edu admin
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                questions:
+                  type: object   
+                  properties:
+                    category: 
+                      type: string
+                    correctAnswer: 
+                      type: string
+                    imageSrc: 
+                      type: string
+                    questionText: 
+                      type: string  
+                    subcategory:
+                      type: string
+                    possibleAnswers:
+                      type: array
+                      items: 
+                        type: object
+                        properties:
+                          txt:
+                            type: string
+                          val:  
+                            type: string      
+      responses:
+        '200':
+          description: Returns with object of created question
+  /edu/questions/new:
+    get:
+      tags: 
+        - education
+      summary:  Gets new question form     
+      responses:
+        '304':
+          description: |
+            - Responds with view of new question form
+            - Routes to `edu/questions/new`  
+  /edu/categoryquestions:
+    post:
+      tags: 
+        - education
+      summary:  Submits details for category specific questions
+      security:
+        - cookieAuth: []   
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string   
+                skip:
+                  type: string
+                limit:
+                  type: string     
+      responses:
+        '200':
+          description: Returns object with questions of given category
+  /edu/questions/{id}:
+    put:
+      tags: 
+        - education
+      summary: Updates a question
+      descripttion: Submits details for question update
+      security:
+        - cookieAuth: []   
+      parameters:
+        - name: id
+          required: true
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                questions:
+                  type: object   
+                  properties:
+                    category: 
+                      type: string
+                    correctAnswer: 
+                      type: string
+                    imageSrc: 
+                      type: string
+                    questionText: 
+                      type: string  
+                    subcategory:
+                      type: string
+                    possibleAnswers:
+                      type: array
+                      items: 
+                        type: object
+                        properties:
+                          txt:
+                            type: string
+                          val:  
+                            type: string
+      responses:
+        '200':
+          description: Returns object of updated question
+    delete:
+      tags: 
+        - education
+      summary: Deletes a question from given id
+      security:
+        - cookieAuth: []   
+      parameters:
+        - name: id
+          required: true
+          in: path
+      responses:
+        '200':
+          description: Returns question that is deleted
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
