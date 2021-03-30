@@ -8,24 +8,11 @@
     <!--    >-->
     <!--      {{ noticeMessage }}-->
     <!--    </div>-->
-    <div class="dashboard-notice" :class="'dashboard-notice--warn'">
+    <!-- <div class="dashboard-notice" :class="'dashboard-notice--warn'">
       UPchieve will be down for maintenance Saturday, March 27, from 9-10 AM
       Eastern Time.
-    </div>
-    <div
-      class="dashboard-notice dashboard-notice--gift-card-giveaway"
-      :class="'dashboard-notice--info'"
-      @click="toggleGiftCardGiveawayModal"
-      v-if="showGiftCardBanner"
-    >
-      Click here to participate in our very first social media giveaway ✨✨
-      <arrow-icon class="dashboard-notice--arrow" />
-    </div>
+    </div> -->
     <subject-selection />
-    <gift-card-giveaway-modal
-      v-if="showGiftCardGiveawayModal"
-      :closeModal="toggleGiftCardGiveawayModal"
-    />
     <first-session-congrats-modal
       v-if="showFirstSessionCongratsModal"
       :closeModal="toggleFirstSessionCongratsModal"
@@ -39,8 +26,6 @@ import DashboardBanner from '../DashboardBanner'
 import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
-import GiftCardGiveawayModal from './GiftCardGiveawayModal'
-import ArrowIcon from '@/assets/arrow.svg'
 
 const headerData = {
   component: 'RejoinSessionHeader',
@@ -52,9 +37,7 @@ export default {
   components: {
     DashboardBanner,
     SubjectSelection,
-    FirstSessionCongratsModal,
-    GiftCardGiveawayModal,
-    ArrowIcon
+    FirstSessionCongratsModal
   },
   created() {
     if (this.isSessionAlive) {
@@ -80,8 +63,7 @@ export default {
   data() {
     return {
       currentHour: 0,
-      showFirstSessionCongratsModal: false,
-      showGiftCardGiveawayModal: false
+      showFirstSessionCongratsModal: false
     }
   },
   computed: {
@@ -112,19 +94,11 @@ export default {
         this.user.pastSessions.length === 1 &&
         !localStorage.getItem('viewedFirstSessionCongratsModal')
       )
-    },
-    showGiftCardBanner() {
-      // Midnight EST Time
-      const lastDayToShowBanner = '2021-03-29T03:59:59.999+00:00'
-      return new Date().getTime() < new Date(lastDayToShowBanner).getTime()
     }
   },
   methods: {
     toggleFirstSessionCongratsModal() {
       this.showFirstSessionCongratsModal = !this.showFirstSessionCongratsModal
-    },
-    toggleGiftCardGiveawayModal() {
-      this.showGiftCardGiveawayModal = !this.showGiftCardGiveawayModal
     }
   },
   watch: {
@@ -168,20 +142,6 @@ export default {
 
   &--info {
     background-color: $c-information-blue;
-  }
-
-  &--gift-card-giveaway {
-    @include flex-container(row, center, center);
-    margin-top: 2em;
-
-    &:hover {
-      cursor: pointer;
-    }
-  }
-
-  &--arrow {
-    fill: #fff;
-    width: 20px;
   }
 }
 </style>

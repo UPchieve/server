@@ -8,10 +8,10 @@
     <!--      >-->
     <!--    </div>-->
 
-    <div class="dashboard-notice">
+    <!-- <div class="dashboard-notice">
       UPchieve will be down for maintenance Saturday, March 27, from 9-10 AM
       Eastern Time.
-    </div>
+    </div> -->
 
     <div class="volunteer-dashboard__body">
       <template v-if="user.isApproved && user.isOnboarded">
