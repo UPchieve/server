@@ -1735,6 +1735,96 @@ paths:
       responses:
         '200':
           description: OK
+  /api-public/contact/send:
+    post: 
+      tags: 
+        - contact
+      summary: Sends contact form
+      description: |
+        - Currently not used in front end
+        - Submits given response data and sends contact form
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                responseData:
+                  type: object
+      responses:
+        '200':
+          description: Contact form sent
+  /api-public/eligibility/check:
+    post: 
+      tags: 
+        - eligibility
+      summary: Checks if student is eligible
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schoolUpchieveId:
+                  type: object
+                email:
+                  type: object
+                referredByCode:
+                  type: object                 
+      responses:
+        '200':
+          description: Returns an object with boolean `isEligible`
+        '422':
+          description: Returned if email already in use
+  /api-public/eligibility/school/search:
+    get: 
+      tags: 
+        - eligibility
+      summary: Checks if student is eligible
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: q
+          required: true
+          in: query        
+      responses:
+        '200':
+          description: Returns an object of school results
+  /api-public/eligibility/findeligible:
+    get: 
+      tags: 
+        - eligibility
+      summary: Paginate eligible high schools
+      description: |
+        - Available in tests only
+        - Admin only
+      security:
+        - cookieAuth: []    
+      responses:
+        '200':
+          description: Returns an object of paginated eligible schools
+  /api-public/eligibility/school/studentusers/{schoolUpchieveId}:
+    get: 
+      tags: 
+        - eligibility
+      summary:  List all students registered with a school
+      description: |
+        - Admin only
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: schoolUpchieveId
+          required: true
+          in: path                  
+      responses:
+        '200':
+          description: Returns an object with student details from given upchieve school id
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
