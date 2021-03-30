@@ -1,5 +1,5 @@
-import { Types } from 'mongoose'
-import VolunteerModel from '../models/Volunteer'
+import { Aggregate, Types } from 'mongoose'
+import VolunteerModel, { Volunteer } from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getElapsedAvailabilityForDateRange } from './AvailabilityService'
@@ -9,13 +9,17 @@ import QueueService from './QueueService'
 export const getVolunteers = async (
   query,
   projection = {}
-  // @todo: Use Volunteer interface once converted inside /models/Volunteer
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any[]> =>
   VolunteerModel.find(query)
     .select(projection)
     .lean()
     .exec()
+
+export const getVolunteersWithPipeline = (
+  pipeline
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Aggregate<Volunteer[]> => VolunteerModel.aggregate(pipeline)
 
 export const getHourSummaryStats = async (
   volunteerId: Types.ObjectId | string,
@@ -60,5 +64,33 @@ export const queueOnboardingReminderOneEmail = async (
     Jobs.EmailOnboardingReminderOne,
     { volunteerId },
     { delay: sevenDaysInMs }
+  )
+}
+
+export const queueOnboardingEventEmails = async (
+  volunteerId: string | Types.ObjectId
+): Promise<void> => {
+  QueueService.add(
+    Jobs.EmailVolunteerQuickTips,
+    { volunteerId },
+    // process job 5 days after the volunteer is onboarded
+    { delay: 1000 * 60 * 60 * 24 * 5 }
+  )
+}
+
+export const queuePartnerOnboardingEventEmails = async (
+  volunteerId: string | Types.ObjectId
+): Promise<void> => {
+  QueueService.add(
+    Jobs.EmailPartnerVolunteerLowHoursSelected,
+    { volunteerId },
+    // process job 10 days after the volunteer is onboarded
+    { delay: 1000 * 60 * 60 * 24 * 10 }
+  )
+  QueueService.add(
+    Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
+    { volunteerId },
+    // process job 15 days after the volunteer is onboarded
+    { delay: 1000 * 60 * 60 * 24 * 15 }
   )
 }

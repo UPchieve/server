@@ -4,6 +4,10 @@ import { Availability } from '../models/Availability/types'
 import { updateAvailabilitySnapshot } from '../services/AvailabilityService'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS } from '../constants'
+import {
+  queueOnboardingEventEmails,
+  queuePartnerOnboardingEventEmails
+} from '../services/VolunteerService'
 import { AccountActionCreator } from './UserActionCtrl'
 
 export interface UpdateScheduleOptions {
@@ -56,6 +60,8 @@ export async function updateSchedule(
   // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
   if (!user.isOnboarded && user.subjects.length > 0) {
     volunteerUpdates.isOnboarded = true
+    queueOnboardingEventEmails(user._id)
+    if (user.volunteerPartnerOrg) queuePartnerOnboardingEventEmails(user._id)
     new AccountActionCreator(user._id, ip).accountOnboarded()
     captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
       event: EVENTS.ACCOUNT_ONBOARDED

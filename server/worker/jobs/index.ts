@@ -14,6 +14,9 @@ import emailWaitingOnReferences from './emailWaitingOnReferences'
 import emailNiceToMeetYou from './emailNiceToMeetYou'
 import emailWeeklyHourSummary from './emailWeeklyHourSummary'
 import emailOnboardingReminder from './volunteer-emails/emailOnboardingReminder'
+import emailQuickTips from './volunteer-emails/emailQuickTips'
+import emailPartnerVolunteerOnlyCollegeCerts from './partner-volunteer-emails/emailOnlyCollegeCerts'
+import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
 import emailStudentWelcomeSeries from './student-emails/emailStudentWelcomeSeries'
 
 export enum Jobs {
@@ -33,7 +36,10 @@ export enum Jobs {
   EmailStudentUseCases = 'EmailStudentUseCases',
   EmailIndependentLearning = 'EmailIndependentLearning',
   EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
-  EmailStudentGoalSetting = 'EmailStudentGoalSetting'
+  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
+  EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
+  EmailPartnerVolunteerOnlyCollegeCerts = 'EmailVolunteerCollegeCertsOnly',
+  EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected'
 }
 
 // register new job processors here
@@ -110,6 +116,18 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailStudentGoalSetting,
     processor: emailStudentWelcomeSeries
+  },
+  {
+    name: Jobs.EmailVolunteerQuickTips,
+    processor: emailQuickTips
+  },
+  {
+    name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
+    processor: emailPartnerVolunteerOnlyCollegeCerts
+  },
+  {
+    name: Jobs.EmailPartnerVolunteerLowHoursSelected,
+    processor: emailPartnerVolunteerLowHoursSelected
   }
 ]
 

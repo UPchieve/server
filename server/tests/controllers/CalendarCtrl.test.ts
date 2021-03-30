@@ -14,6 +14,8 @@ import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import UserActionModel from '../../models/UserAction'
 import { USER_ACTION, SUBJECTS } from '../../constants'
 import * as AvailabilityService from '../../services/AvailabilityService'
+import * as VolunteerService from '../../services/VolunteerService'
+jest.mock('../../services/VolunteerService')
 
 // db connection
 beforeAll(async () => {
@@ -107,7 +109,8 @@ describe('Save availability and time zone', () => {
           SUBJECTS.ALGEBRA_TWO,
           SUBJECTS.ALGEBRA_ONE,
           SUBJECTS.PREALGREBA
-        ]
+        ],
+        volunteerPartnerOrg: 'example'
       })
     )
     await insertAvailabilitySnapshot({ volunteerId: volunteer._id })
@@ -148,6 +151,10 @@ describe('Save availability and time zone', () => {
     expect(availabilitySnapshot.onCallAvailability).toMatchObject(availability)
     expect(isOnboarded).toBeTruthy()
     expect(userAction).toMatchObject(expectedUserAction)
+    expect(VolunteerService.queueOnboardingEventEmails).toBeCalledTimes(1)
+    expect(VolunteerService.queuePartnerOnboardingEventEmails).toBeCalledTimes(
+      1
+    )
   })
 })
 

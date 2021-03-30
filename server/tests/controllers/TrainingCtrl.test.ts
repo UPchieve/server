@@ -20,7 +20,9 @@ import Question from '../../models/Question'
 import algebraQuestions from '../../seeds/questions/algebra.json'
 import { Certifications } from '../../models/Volunteer'
 import UserActionModel from '../../models/UserAction'
+import * as VolunteerService from '../../services/VolunteerService'
 jest.mock('../../services/MailService')
+jest.mock('../../services/VolunteerService')
 
 const buildCertificationsWithUpchieve101 = (options = {}): Certifications => {
   return buildCertifications({
@@ -91,7 +93,10 @@ describe('getQuizScore', () => {
 
   test('Should onboard a user after completing a math certification, then UPchieve 101, and then Tutoring Skills', async () => {
     const volunteer = await insertVolunteer(
-      buildVolunteer({ availabilityLastModifiedAt: new Date() })
+      buildVolunteer({
+        availabilityLastModifiedAt: new Date(),
+        volunteerPartnerOrg: 'example'
+      })
     )
 
     // Volunteer completes a quiz in Statistics
@@ -135,6 +140,10 @@ describe('getQuizScore', () => {
     expect(
       updatedVolunteer.certifications[TRAINING.UPCHIEVE_101].passed
     ).toBeTruthy()
+    expect(VolunteerService.queueOnboardingEventEmails).toBeCalledTimes(1)
+    expect(VolunteerService.queuePartnerOnboardingEventEmails).toBeCalledTimes(
+      1
+    )
 
     // Volunteer then completes required training for math, Tutoring Skills, to become onboarded
     // @note: Leave commented out until Tutoring Skills course is added
