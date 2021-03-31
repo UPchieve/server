@@ -3,47 +3,47 @@ import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
 import store from './store'
 import { topics } from './utils/topics'
-import LoginView from './views/LoginView'
-
-import ContactView from './views/ContactView'
-import LegalView from './views/LegalView'
-import LogoutView from './views/LogoutView'
-import SignupView from './views/SignupView'
-import VolunteerPartnerSignupView from './views/VolunteerPartnerSignupView'
-import StudentPartnerSignupView from './views/StudentPartnerSignupView'
-import ResetPasswordView from './views/ResetPasswordView'
-import SetPasswordView from './views/SetPasswordView'
-import OnboardingView from './views/OnboardingView'
-import DashboardView from './views/DashboardView'
-import SessionView from './views/SessionView'
 import ActionView from './views/ActionView'
-import ResourcesView from './views/ResourcesView'
-import FeedbackView from './views/FeedbackView'
-import TrainingView from './views/TrainingView'
-import QuizView from './views/QuizView'
-import ProfileView from './views/ProfileView'
-import CalendarView from './views/CalendarView'
 import AdminView from './views/Admin'
-import VolunteerCoverage from './views/Admin/VolunteerCoverage'
-import AdminSessions from './views/Admin/AdminSessions'
-import AdminSessionNotifications from './views/Admin/AdminSessionNotifications'
-import AdminSessionDetail from './views/Admin/AdminSessionDetail'
-import AdminSessionReview from './views/Admin/AdminSessionReview'
-import AdminUsers from './views/Admin/AdminUsers'
-import AdminUserDetail from './views/Admin/AdminUserDetail'
-import AdminPendingVolunteers from './views/Admin/AdminPendingVolunteers'
-import AdminIneligibleStudents from './views/Admin/AdminIneligibleStudents'
-import AdminSchoolDetail from './views/Admin/AdminSchoolDetail'
-import AdminSchools from './views/Admin/AdminSchools'
 import AdminAddSchool from './views/Admin/AdminAddSchool'
 import AdminEditSchool from './views/Admin/AdminEditSchool'
+import AdminIneligibleStudents from './views/Admin/AdminIneligibleStudents'
+import AdminPendingVolunteers from './views/Admin/AdminPendingVolunteers'
 import AdminReports from './views/Admin/AdminReports'
+import AdminSchoolDetail from './views/Admin/AdminSchoolDetail'
+import AdminSchools from './views/Admin/AdminSchools'
+import AdminSessionDetail from './views/Admin/AdminSessionDetail'
+import AdminSessionNotifications from './views/Admin/AdminSessionNotifications'
+import AdminSessionReview from './views/Admin/AdminSessionReview'
+import AdminSessions from './views/Admin/AdminSessions'
+import AdminUserDetail from './views/Admin/AdminUserDetail'
+import AdminUsers from './views/Admin/AdminUsers'
 import AdminZipCodes from './views/Admin/AdminZipCodes'
-import ReviewMaterialsView from './views/ReviewMaterialsView'
-import ReferenceView from './views/ReferenceView'
+import VolunteerCoverage from './views/Admin/VolunteerCoverage'
 import BackgroundInfoView from './views/BackgroundInfoView'
-import TrainingCourseView from './views/TrainingCourseView'
+import CalendarView from './views/CalendarView'
+import ContactView from './views/ContactView'
+import DashboardView from './views/DashboardView'
+import FeedbackView from './views/FeedbackView'
+import LegalView from './views/LegalView'
+import LoginView from './views/LoginView'
+import LogoutView from './views/LogoutView'
+import OnboardingView from './views/OnboardingView'
+import ProfileView from './views/ProfileView'
+import QuizView from './views/QuizView'
+import ReferenceView from './views/ReferenceView'
 import ReferFriendsView from './views/ReferFriendsView'
+import ResetPasswordView from './views/ResetPasswordView'
+import ResourcesView from './views/ResourcesView'
+import ReviewMaterialsView from './views/ReviewMaterialsView'
+import SessionView from './views/SessionView'
+import SetPasswordView from './views/SetPasswordView'
+import SignupView from './views/SignupView'
+import StudentPartnerSignupView from './views/StudentPartnerSignupView'
+import StudentVerificationView from './views/StudentVerificationView'
+import TrainingCourseView from './views/TrainingCourseView'
+import TrainingView from './views/TrainingView'
+import VolunteerPartnerSignupView from './views/VolunteerPartnerSignupView'
 
 Vue.use(VueResource)
 Vue.http.options.credentials = true
@@ -194,7 +194,22 @@ const routes = [
     meta: { protected: true },
     beforeEnter: (to, from, next) => {
       getUser().then(() => {
-        if (store.getters['user/isEmailVerified']) {
+        if (store.getters['user/isVerified']) {
+          next('/dashboard')
+        } else {
+          next()
+        }
+      })
+    }
+  },
+  {
+    path: '/users/verify',
+    name: 'StudentVerificationView',
+    component: StudentVerificationView,
+    meta: { protected: true },
+    beforeEnter: (to, from, next) => {
+      getUser().then(() => {
+        if (store.getters['user/isVerified']) {
           next('/dashboard')
         } else {
           next()
@@ -386,20 +401,21 @@ router.beforeEach((to, from, next) => {
             redirect: to.fullPath
           }
         })
-      } else if (!store.getters['user/isEmailVerified']) {
-        const route = '/onboarding/verify'
+      } else if (!store.getters['user/isVerified']) {
+        const isVolunteer = store.getters['user/isVolunteer']
+        // @todo: have the verification under one path
+        const route = isVolunteer ? '/onboarding/verify' : '/users/verify'
         if (
           to.path.indexOf(route) !== -1 ||
           to.matched.some(route => route.meta.bypassOnboarding)
         ) {
           next()
         } else {
-          next({
-            path: route,
-            query: {
-              redirect: to.fullPath
-            }
-          })
+          const location = {
+            path: route
+          }
+          if (isVolunteer) location.query.redirect = to.fullPath
+          next(location)
         }
       } else {
         next()

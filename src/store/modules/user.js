@@ -1,10 +1,9 @@
-import * as Sentry from '@sentry/browser'
-import _ from 'lodash'
-
-import UserService from '@/services/UserService'
-import SessionService from '@/services/SessionService'
 import StudentAvatarUrl from '@/assets/defaultavatar3.png'
 import VolunteerAvatarUrl from '@/assets/defaultavatar4.png'
+import SessionService from '@/services/SessionService'
+import UserService from '@/services/UserService'
+import * as Sentry from '@sentry/browser'
+import _ from 'lodash'
 
 export default {
   namespaced: true,
@@ -170,7 +169,7 @@ export default {
 
     isAuthenticated: state => !!(state.user && state.user._id),
 
-    isEmailVerified: state => state.user.verified,
+    isVerified: state => state.user.verified,
 
     hasCertification: state => {
       return _.some(state.user.certifications, { passed: true })
