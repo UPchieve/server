@@ -21,6 +21,44 @@ tags:
     description: Actions taken on or for a student user
   - name: utility
     description: Infrastructure/Metadata
+  - name: authorization
+    description: Authentication actions to validate user
+  - name: calendar
+    description: Things to do with calendar and scheduling 
+  - name: feedback
+    description: Actions on gathering session feedback
+  - name: moderate message
+    description: In session message moderation
+  - name: notification
+    description: Handling push notifications
+  - name: reports
+    description: Actions on gathering and setting session feedback
+  - name: session
+    description: Session management
+  - name: survey
+    description: Gathering and submitting surveys
+  - name: training
+    description: Actions for executing training 
+  - name: user
+    description: Actions taken on users
+  - name: verification
+    description: Validates user actions
+  - name: volunteers
+    description: Actions taken on volunteers
+  - name: contact
+    description: How to handle sending contact forms
+  - name: eligibility
+    description: Handling eligibility of schools, students and volunteers
+  - name: reference
+    description: Submitting and getting references
+  - name: referral
+    description: Handling referral codes
+  - name: whiteboard
+    description: Actions for whiteboard section
+  - name: education
+    description: Edu admin actions
+  - name: twilio  
+    description: Endpoints only used by Twilio API
 paths:
   /healthz:
     get:
@@ -1396,7 +1434,7 @@ paths:
           required: true
           in: path
           schema:
-            $ref: '#/components/schemas/userId'
+            $ref: '#/components/schemas/UserId'
         - name: page
           required: true
           in: query
@@ -1416,7 +1454,7 @@ paths:
           required: true
           in: path
           schema:
-            $ref: '#/components/schemas/userId'
+            $ref: '#/components/schemas/UserId'
       requestBody:
         required: true
         content:
@@ -1596,7 +1634,7 @@ paths:
           required: true
           in: query
           schema:
-            $ref: '#/components/schemas/userId'
+            $ref: '#/components/schemas/UserId'
       responses:
         '200':
           description: Returns an object with `verificationToken`
