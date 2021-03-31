@@ -17,48 +17,48 @@ servers:
     url: https://virtserver.swaggerhub.com/upchieveorg/subway/1.0.0
   - url: 'https://app.upchieve.org/v1'
 tags:
-  - name: students
-    description: Actions taken on or for a student user
-  - name: utility
-    description: Infrastructure/Metadata
   - name: authorization
     description: Authentication actions to validate user
   - name: calendar
     description: Things to do with calendar and scheduling 
+  - name: contact
+    description: How to handle sending contact forms
+  - name: education
+    description: Edu admin actions
+  - name: eligibility
+    description: Handling eligibility of schools, students and volunteers
   - name: feedback
     description: Actions on gathering session feedback
   - name: moderate message
     description: In session message moderation
   - name: notification
     description: Handling push notifications
+  - name: reference
+    description: Submitting and getting references
+  - name: referral
+    description: Handling referral codes
   - name: reports
     description: Actions on gathering and setting session feedback
   - name: session
     description: Session management
+  - name: students
+    description: Actions taken on or for a student user
   - name: survey
     description: Gathering and submitting surveys
   - name: training
     description: Actions for executing training 
+  - name: twilio  
+    description: Endpoints only used by Twilio API
+  - name: utility
+    description: Infrastructure/Metadata
   - name: user
     description: Actions taken on users
   - name: verification
     description: Validates user actions
   - name: volunteers
     description: Actions taken on volunteers
-  - name: contact
-    description: How to handle sending contact forms
-  - name: eligibility
-    description: Handling eligibility of schools, students and volunteers
-  - name: reference
-    description: Submitting and getting references
-  - name: referral
-    description: Handling referral codes
   - name: whiteboard
     description: Actions for whiteboard section
-  - name: education
-    description: Edu admin actions
-  - name: twilio  
-    description: Endpoints only used by Twilio API
 paths:
   /healthz:
     get:
