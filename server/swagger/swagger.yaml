@@ -672,7 +672,8 @@ paths:
         - reports
       summary: Retrieves session report
       description: |
-        Return all reports from session complete
+        - Admin only
+        - Return all reports from session complete
       security: 
         - cookieAuth: []
       parameters:
@@ -720,7 +721,8 @@ paths:
         - reports
       summary: Retrieves usage report
       description: |
-        Retrieves usage report
+        - Admin only
+        - Retrieves usage report
       security: 
         - cookieAuth: []
       parameters:
@@ -768,7 +770,8 @@ paths:
         - reports
       summary: Retrieves volunteer partner reports
       description: |
-        Retrieves volunteer partner reports
+        - Admin only
+        - Retrieves volunteer partner reports
       security: 
         - cookieAuth: []
       parameters:
@@ -935,7 +938,9 @@ paths:
       tags:
         - session
       summary: Get all sessions
-      description: Retrieves all session completed by user
+      description: |
+        - Admin only
+        - Retrieves all session completed by user
       security: 
         - cookieAuth: []
       parameters:
@@ -1001,7 +1006,9 @@ paths:
       tags:
         - session
       summary: Retrieves session report
-      description: Retrieves session report
+      description: |
+        - Admin only
+        - Retrieves session report
       security: 
         - cookieAuth: []
       parameters:
@@ -1021,7 +1028,9 @@ paths:
       tags:
         - session
       summary: Retrieves a session ID
-      description: Retrieves a session ID
+      description: |
+        - Admin only
+        - Retrieves a session ID
       security: 
         - cookieAuth: []
       parameters:
@@ -1066,7 +1075,9 @@ paths:
       tags:
         - session
       summary: Retrieves session details
-      description: Retrieves session details of specific session id for admin
+      description: |
+        - Admin only
+        - Retrieves session details of specific session id for admin
       security: 
         - cookieAuth: []
       parameters:
@@ -1083,7 +1094,9 @@ paths:
       tags:
         - session
       summary: Retrieves session notifications
-      description: Retrieves a list of session notifications that were sent
+      description: |
+        - Admin only
+        - Retrieves a list of session notifications that were sent
       security: 
         - cookieAuth: []
       parameters:
@@ -1368,7 +1381,9 @@ paths:
       tags:
         - user
       summary:  Retrieves a user profile
-      description: Retrieves user detail using authenticated req.user object
+      description: |
+        - Admin only
+        - Retrieves user details using authenticated req.user object
       security:
         - cookieAuth: []
       responses:
@@ -1426,7 +1441,9 @@ paths:
       tags:
         - user
       summary:  Retrieves a user profile 
-      description: Retrieves a user profile based on given userID
+      description: |
+        - Admin only
+        - Retrieves a user profile based on given userID
       security:
         - cookieAuth: []
       parameters:
@@ -1446,7 +1463,9 @@ paths:
       tags:
         - user
       summary:  Updates a user profile 
-      description: Updates a user profile based on given userID
+      description: |
+        - Admin only
+        - Updates a user profile based on given userID
       security:
         - cookieAuth: []
       parameters:
@@ -1592,6 +1611,9 @@ paths:
       tags:
         - user
       summary: Retrieves a list of users
+      description: |
+        - Admin only
+        - Gets a list of users from given parameters
       security:
         - cookieAuth: []
       parameters:
