@@ -6,6 +6,7 @@ const QuillDocService = require('./QuillDocService')
 const AnalyticsService = require('./AnalyticsService')
 const UserService = require('./UserService')
 const MailService = require('./MailService')
+const QueueService = require('../services/QueueService')
 const {
   USER_BAN_REASON,
   SESSION_REPORT_REASON,
@@ -433,7 +434,10 @@ module.exports = {
   endSession: async ({ sessionId, endedBy = null, isAdmin = false }) => {
     const session = await Session.findOne({ _id: sessionId })
       .populate({ path: 'student', select: 'pastSessions firstname email' })
-      .populate({ path: 'volunteer', select: 'pastSessions' })
+      .populate({
+        path: 'volunteer',
+        select: 'pastSessions firstname email volunteerPartnerOrg'
+      })
       .lean()
       .exec()
 
@@ -461,8 +465,26 @@ module.exports = {
     let timeTutored = 0
     if (session.volunteer) {
       // Calculate time tutored if both users were present in the session
-      if (!reviewFlags.includes(SESSION_FLAGS.ABSENT_USER))
+      if (!reviewFlags.includes(SESSION_FLAGS.ABSENT_USER)) {
         timeTutored = calculateTimeTutored({ ...session, endedAt })
+        const fifteenMinutes = 1000 * 60 * 15
+        const sendStudentFirstSessionCongrats =
+          session.student.pastSessions.length === 0 &&
+          timeTutored >= fifteenMinutes
+        const sendVolunteerFirstSessionCongrats =
+          session.volunteer.pastSessions.length === 0 &&
+          timeTutored >= fifteenMinutes
+        if (sendStudentFirstSessionCongrats)
+          MailService.sendStudentFirstSessionCongrats({
+            email: session.student.email,
+            firstName: session.student.firstname
+          })
+        if (sendVolunteerFirstSessionCongrats)
+          MailService.sendVolunteerFirstSessionCongrats({
+            email: session.volunteer.email,
+            firstName: session.volunteer.firstname
+          })
+      }
       await VolunteerModel.updateOne(
         { _id: session.volunteer._id },
         {
@@ -475,16 +497,30 @@ module.exports = {
       )
 
       if (isReviewNeeded) update.reviewedVolunteer = false
+      if (session.volunteer.volunteerPartnerOrg) {
+        if (session.volunteer.pastSessions.length === 4)
+          QueueService.add(
+            'EmailPartnerVolunteerReferACoworker',
+            {
+              volunteerId: session.volunteer._id,
+              firstName: session.volunteer.firstname,
+              email: session.volunteer.email,
+              partnerOrg: session.volunteer.volunteerPartnerOrg
+            },
+            { delay: 1000 * 60 * 5 }
+          )
 
-      const thirtyMinutes = 1000 * 60 * 30
-      const sendStudentFirstSessionCongrats =
-        session.student.pastSessions.length === 0 &&
-        timeTutored >= thirtyMinutes
-      if (sendStudentFirstSessionCongrats)
-        MailService.sendStudentFirstSessionCongrats({
-          email: session.student.email,
-          firstName: session.student.firstname
-        })
+        if (session.volunteer.pastSessions.length === 9)
+          QueueService.add(
+            'EmailPartnerVolunteerTenSessionMilestone',
+            {
+              volunteerId: session.volunteer._id,
+              firstName: session.volunteer.firstname,
+              email: session.volunteer.email
+            },
+            { delay: 1000 * 60 * 5 }
+          )
+      }
     }
 
     // Only college subjects use the Quill document editor

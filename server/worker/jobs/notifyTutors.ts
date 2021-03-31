@@ -1,6 +1,7 @@
 import { Job } from 'bull'
 import Session from '../../models/Session'
 import SessionService from '../../services/SessionService'
+import QueueService from '../../services/QueueService'
 import TwilioService from '../../services/twilio'
 import { getNotificationWithVolunteer } from '../../services/NotificationService'
 import { Volunteer } from '../../models/Volunteer'
@@ -18,8 +19,13 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   const session = await Session.findById(sessionId)
   if (!session) return log(`session ${sessionId} not found`)
   const fulfilled = SessionService.isSessionFulfilled(session)
-  if (fulfilled)
+  if (fulfilled) {
+    QueueService.add(Jobs.EmailVolunteerGentleWarning, {
+      sessionId,
+      notifications: session.notifications
+    })
     return log(`session ${sessionId} fulfilled, cancelling notifications`)
+  }
   const delay = notificationSchedule.shift()
   if (delay)
     job.queue.add(

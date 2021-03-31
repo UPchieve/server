@@ -1,4 +1,4 @@
-import { Aggregate, Types } from 'mongoose'
+import { Aggregate, Types, Query } from 'mongoose'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
 import { getTimeTutoredForDateRange } from './SessionService'
@@ -20,6 +20,12 @@ export const getVolunteersWithPipeline = (
   pipeline
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Aggregate<Volunteer[]> => VolunteerModel.aggregate(pipeline)
+
+export const updateVolunteer = (
+  query,
+  update: Partial<Volunteer>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Query<Volunteer> => VolunteerModel.updateOne(query, update)
 
 export const getHourSummaryStats = async (
   volunteerId: Types.ObjectId | string,

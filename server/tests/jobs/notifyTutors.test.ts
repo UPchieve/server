@@ -14,7 +14,9 @@ import { buildVolunteer, buildNotification } from '../generate'
 import { log } from '../../worker/logger'
 import { Volunteer } from '../../models/Volunteer'
 import { Notification } from '../../models/Notification'
+import QueueService from '../../services/QueueService'
 jest.mock('../../services/twilio')
+jest.mock('../../services/QueueService')
 jest.mock('../../worker/logger')
 
 // db connection
@@ -90,6 +92,7 @@ describe('Notify tutors', () => {
     expect(log).toHaveBeenCalledWith(
       `session ${session._id} fulfilled, cancelling notifications`
     )
+    expect(QueueService.add).toHaveBeenCalledTimes(1)
   })
 
   test('Should not notify volunteers when notification schedule is empty', async () => {
