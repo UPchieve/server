@@ -128,6 +128,16 @@ export default {
       .post(`${AUTH_ROOT}/register/student`, data)
       .then(this._successHandler, this._errorHandler)
   },
+  sendStudentVerification(data) {
+    return Vue.http
+      .post(`${API_ROOT}/verify/student/send`, data)
+      .then(this._successHandler, this._errorHandler)
+  },
+  confirmStudentVerification(data) {
+    return Vue.http
+      .post(`${API_ROOT}/verify/student/confirm`, data)
+      .then(this._successHandler, this._errorHandler)
+  },
   sendReset(context, data) {
     return context.$http
       .post(`${AUTH_ROOT}/reset/send`, data)
