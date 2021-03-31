@@ -117,7 +117,7 @@
     "style-resources-loader": "^1.2.1",
     "swagger-ui-express": "^4.1.6",
     "ts-node": "^8.9.0",
-    "twilio": "^3.28.1",
+    "twilio": "^3.58.0",
     "typeface-work-sans": "0.0.72",
     "typescript": "^3.9.6",
     "ua-parser-js": "^0.7.21",

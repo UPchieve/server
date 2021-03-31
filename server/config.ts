@@ -172,6 +172,8 @@ const config: Static<typeof Config> = {
   accountSid: process.env.SUBWAY_TWILIO_ACCOUNT_SID || '',
   authToken: process.env.SUBWAY_TWILIO_AUTH_TOKEN || '',
   sendingNumber: process.env.SUBWAY_TWILIO_SENDING_NUMBER || '',
+  twilioStudentVerificationServiceSid:
+    process.env.SUBWAY_TWILIO_STUDENT_VERIFICATION_SERVICE_SID || '',
 
   notificationSchedule: [
     // Minute 1 (the time after a session request is made)

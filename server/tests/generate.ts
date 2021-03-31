@@ -50,6 +50,12 @@ export const getDayOfWeek = (): string => {
     .format('dddd')
 }
 
+export const getPhoneNumber = (): string => {
+  const phoneNumber = faker.phone.phoneNumberFormat(0)
+  const formattedPhoneNumber = phoneNumber.replace(/-/g, '')
+  return `+1${formattedPhoneNumber}`
+}
+
 // @todo: Figure out how to use with MATH_CERTS, SCIENCE_CERTS
 export const buildCertifications = (overrides = {}): Certifications => {
   const certifications = {
@@ -201,7 +207,7 @@ export const buildVolunteer = (overrides = {}): Partial<Volunteer> => {
     zipCode: '11201',
     referredByCode: '',
     college: 'Columbia University',
-    phone: '+12345678910',
+    phone: getPhoneNumber(),
     referralCode: generateReferralCode(_id.toString()),
     isApproved: false,
     isOnboarded: false,
