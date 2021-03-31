@@ -2233,6 +2233,57 @@ paths:
       responses:
         '200':
           description: Returns question that is deleted
+  /twiml/message/{message}:
+    post:
+      tags: 
+        - twilio
+      summary:  Text to speech conversion
+      description: |
+        - When message text is sent, Twilio will call this endpoint 
+        - This endpoints sets TwiML instructions for text to speech conversation
+        - Converts text message to voice message
+        - Responds with TwiML containing the decoded message text and the configured voice for the text-to-speech conversion
+      security:
+        - cookieAuth: [] 
+      parameters:
+        - name: message
+          required: true
+          in: path  
+      responses:
+        '200':
+          description: Returns TwiML in text/xml 
+  /twiml/message/incoming-sms:
+    post:
+      tags: 
+        - twilio
+      summary:  Twilio SMS messages
+      description: |
+        - Handles SMS messages sent to Twilio numbers
+        - Twilio calls this endpoint to generate a message response
+        - Server will send a TwiML message 
+      security:
+        - cookieAuth: [] 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Body:
+                  type: string
+                From: 
+                  type: string
+      responses:
+        '200':
+          description: |
+            Sends message (see types below) and returns object with content type of xml
+            - Message with session url (successful)
+            - No session found
+            - Volunteer already joined session
+            - Student ended/cancelled their session
+        '404': 
+          description: Missing phone number
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
