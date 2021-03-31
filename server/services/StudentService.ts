@@ -15,6 +15,9 @@ export const getStudents = async (query, projection = {}): Promise<Student[]> =>
     .lean()
     .exec()
 
+export const updateStudent = (query, update) =>
+  StudentModel.updateOne(query, update)
+
 export const queueWelcomeEmails = async (
   studentId: Types.ObjectId | string
 ): Promise<void> => {

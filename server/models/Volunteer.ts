@@ -128,7 +128,6 @@ export interface TrainingCourses {
 export interface Volunteer extends User {
   volunteerPartnerOrg: string
   isFailsafeVolunteer: boolean
-  phone: string
   favoriteAcademicSubject: string
   availability: Availability
   timezone: string
@@ -344,12 +343,6 @@ const volunteerSchema = new Schema(
     isFailsafeVolunteer: {
       type: Boolean,
       default: false
-    },
-    phone: {
-      type: String,
-      required: true,
-      trim: true
-      // @todo: server-side validation of international phone format
     },
     occupation: [String],
     experience: {

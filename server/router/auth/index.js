@@ -18,7 +18,8 @@ const MailService = require('../../services/MailService')
 const { EVENTS } = require('../../constants')
 const AnalyticsService = require('../../services/AnalyticsService')
 const VolunteerService = require('../../services/VolunteerService')
-const StudentService = require('../../services/StudentService')
+const UserService = require('../../services/UserService')
+const isValidInternationalPhoneNumber = require('../../utils/is-valid-international-phone-number')
 
 // Validation functions
 function checkPassword(password) {
@@ -206,7 +207,7 @@ module.exports = function(app) {
       approvedHighschool: school,
       college,
       isVolunteer: false,
-      verified: true, // Students are automatically verified
+      verified: false,
       referredBy,
       isBanned,
       banReason,
@@ -230,16 +231,6 @@ module.exports = function(app) {
     } catch (err) {
       Sentry.captureException(err)
       return res.status(422).json({ err: err.message })
-    }
-
-    try {
-      MailService.sendStudentWelcomeEmail({
-        email: student.email,
-        firstName: student.firstname
-      })
-      StudentService.queueWelcomeEmails(student._id)
-    } catch (err) {
-      Sentry.captureException(err)
     }
   })
 
@@ -266,6 +257,17 @@ module.exports = function(app) {
         err: 'Must supply an email and password for registration'
       })
     }
+
+    if (!isValidInternationalPhoneNumber(phone))
+      return res.status(422).json({
+        err: 'Must supply a valid phone number'
+      })
+
+    const existingUser = await UserService.getUser({ phone }, { _id: 1 })
+    if (existingUser)
+      return res.status(409).json({
+        err: 'The phone number you entered is already in use'
+      })
 
     // Verify password for registration
     const checkResult = checkPassword(password)
@@ -329,6 +331,11 @@ module.exports = function(app) {
       })
     }
 
+    if (!isValidInternationalPhoneNumber(phone))
+      return res.status(422).json({
+        err: 'Must supply a valid phone number'
+      })
+
     // Verify password for registration
     const checkResult = checkPassword(password)
     if (checkResult !== true) {
@@ -336,6 +343,12 @@ module.exports = function(app) {
         err: checkResult
       })
     }
+
+    const existingUser = await UserService.getUser({ phone }, { _id: 1 })
+    if (existingUser)
+      return res.status(409).json({
+        err: 'The phone number you entered is already in use'
+      })
 
     // Volunteer partner org check
     const allVolunteerPartnerManifests = volunteerPartnerManifests

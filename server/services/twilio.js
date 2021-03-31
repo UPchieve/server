@@ -397,6 +397,26 @@ function recordNotification(sendPromise, notification) {
     })
 }
 
+function sendStudentVerification({ sendTo, verificationMethod, firstName }) {
+  return twilioClient.verify
+    .services(config.twilioStudentVerificationServiceSid)
+    .verifications.create({
+      to: sendTo,
+      channel: verificationMethod,
+      channelConfiguration: {
+        substitutions: {
+          firstName
+        }
+      }
+    })
+}
+
+function confirmStudentVerification(to, code) {
+  return twilioClient.verify
+    .services(config.twilioStudentVerificationServiceSid)
+    .verificationChecks.create({ to, code })
+}
+
 module.exports = {
   notifyVolunteer,
 
@@ -424,5 +444,7 @@ module.exports = {
     await notifyFailsafe({ session, voice: false })
   },
 
-  sendFollowupText
+  sendFollowupText,
+  sendStudentVerification,
+  confirmStudentVerification
 }

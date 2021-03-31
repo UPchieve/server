@@ -369,3 +369,8 @@ export enum SESSION_FLAGS {
 
 // amount of volunteers to text notifications to per session
 export const TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP = 15
+
+export enum VERIFICATION_METHOD {
+  SMS = 'sms',
+  EMAIL = 'email'
+}

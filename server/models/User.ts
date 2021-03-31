@@ -13,10 +13,13 @@ export interface User {
   email: string
   password: string
   verified: boolean
+  verifiedEmail: boolean
+  verifiedPhone: boolean
   verificationToken: string
   passwordResetToken: string
   firstname: string
   lastname: string
+  phone: string
   college: string
   isVolunteer: boolean
   isAdmin: boolean
@@ -78,6 +81,14 @@ const baseUserSchema = new Schema(
       type: Boolean,
       default: false
     },
+    verifiedEmail: {
+      type: Boolean,
+      default: false
+    },
+    verifiedPhone: {
+      type: Boolean,
+      default: false
+    },
     verificationToken: {
       type: String,
       select: false
@@ -93,6 +104,10 @@ const baseUserSchema = new Schema(
     lastname: {
       type: String,
       required: [true, 'Last name is required.']
+    },
+    phone: {
+      type: String,
+      trim: true
     },
     college: String,
 
