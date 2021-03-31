@@ -18,6 +18,10 @@ import emailQuickTips from './volunteer-emails/emailQuickTips'
 import emailPartnerVolunteerOnlyCollegeCerts from './partner-volunteer-emails/emailOnlyCollegeCerts'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
 import emailStudentWelcomeSeries from './student-emails/emailStudentWelcomeSeries'
+import emailPartnerVolunteerReferACoworker from './partner-volunteer-emails/emailReferACoworker'
+import emailPartnerVolunteerTenSessionMilestone from './partner-volunteer-emails/emailTenSessionMilestone'
+import emailVolunteerGentleWarning from './volunteer-emails/emailGentleWarning'
+import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -39,7 +43,14 @@ export enum Jobs {
   EmailStudentGoalSetting = 'EmailStudentGoalSetting',
   EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
   EmailPartnerVolunteerOnlyCollegeCerts = 'EmailVolunteerCollegeCertsOnly',
-  EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected'
+  EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
+  EmailPartnerVolunteerReferACoworker = 'EmailPartnerVolunteerReferACoworker',
+  EmailPartnerVolunteerTenSessionMilestone = 'EmailPartnerVolunteerTenSessionMilestone',
+  EmailVolunteerGentleWarning = 'EmailVolunteerGentleWarning',
+  EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
+  EmailVolunteerInactiveSixtyDays = 'EmailVolunteerInactiveSixtyDays',
+  EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
+  EmailVolunteerInactive = 'EmailVolunteerInactive'
 }
 
 // register new job processors here
@@ -128,6 +139,22 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailPartnerVolunteerLowHoursSelected,
     processor: emailPartnerVolunteerLowHoursSelected
+  },
+  {
+    name: Jobs.EmailPartnerVolunteerReferACoworker,
+    processor: emailPartnerVolunteerReferACoworker
+  },
+  {
+    name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
+    processor: emailPartnerVolunteerTenSessionMilestone
+  },
+  {
+    name: Jobs.EmailVolunteerGentleWarning,
+    processor: emailVolunteerGentleWarning
+  },
+  {
+    name: Jobs.EmailVolunteerInactive,
+    processor: emailVolunteerInactive
   }
 ]
 

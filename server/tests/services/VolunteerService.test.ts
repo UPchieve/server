@@ -16,6 +16,7 @@ import SessionModel from '../../models/Session'
 import AvailabilityHistoryModel from '../../models/Availability/History'
 import UserActionModel from '../../models/UserAction'
 import { USER_ACTION } from '../../constants'
+jest.setTimeout(1000 * 15)
 
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
