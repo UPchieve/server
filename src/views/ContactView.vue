@@ -1,9 +1,14 @@
 <template>
   <div
     class="contact-wrapper"
-    :class="{ 'contact-wrapper--noAuth': !isAuthenticated }"
+    :class="{
+      'contact-wrapper--noAuth': !isAuthenticated || !isVerifiedStudent
+    }"
   >
-    <div class="contact" :class="{ 'contact--noAuth': !isAuthenticated }">
+    <div
+      class="contact"
+      :class="{ 'contact--noAuth': !isAuthenticated || !verifiedStudent }"
+    >
       <div class="contact__header">
         Contact Us
       </div>
@@ -76,7 +81,7 @@ export default {
   name: 'contact-view',
   components: { LargeButton },
   created() {
-    if (!this.isAuthenticated) {
+    if (!this.isAuthenticated || !this.isVerifiedStudent) {
       this.$store.dispatch('app/hideNavigation')
     }
   },
@@ -101,7 +106,9 @@ export default {
   },
   computed: {
     ...mapGetters({
-      isAuthenticated: 'user/isAuthenticated'
+      isAuthenticated: 'user/isAuthenticated',
+      isVolunteer: 'user/isVolunteer',
+      isVerified: 'user/isVerified'
     }),
     sendLabel() {
       switch (this.sendState) {
@@ -115,6 +122,9 @@ export default {
       if (!this.isAuthenticated) return false
 
       return this.isValidEmail(this.$store.state.user.user.email)
+    },
+    isVerifiedStudent() {
+      return !this.isVolunteer && this.isVerified
     }
   },
   watch: {

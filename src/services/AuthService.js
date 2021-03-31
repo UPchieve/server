@@ -121,6 +121,18 @@ export default {
     })
   },
 
+  initiateStudentVerification(data) {
+    return NetworkService.sendStudentVerification(data).catch(err => {
+      throw errorFromHttpResponse(err)
+    })
+  },
+
+  confirmStudentVerification(data) {
+    return NetworkService.confirmStudentVerification(data).catch(err => {
+      throw errorFromHttpResponse(err)
+    })
+  },
+
   logout(context) {
     if (context) {
       NetworkService.logout(context)
