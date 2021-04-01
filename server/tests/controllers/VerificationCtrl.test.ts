@@ -1,9 +1,15 @@
 import mongoose from 'mongoose'
-import { getStudent, insertStudent, resetDb } from '../db-utils'
+import {
+  getStudent,
+  insertStudent,
+  insertVolunteer,
+  resetDb
+} from '../db-utils'
 import { getEmail, getPhoneNumber } from '../generate'
 import { confirmVerification } from '../../controllers/VerificationCtrl'
 import TwilioService from '../../services/twilio'
 import { VERIFICATION_METHOD } from '../../constants'
+import { getVolunteer } from '../../services/UserService'
 jest.mock('../../services/twilio')
 
 beforeAll(async () => {
@@ -73,5 +79,27 @@ describe('confirmVerification', () => {
     expect(result).toBeTruthy()
     expect(updatedStudent.verified).toBeTruthy()
     expect(updatedStudent.verifiedPhone).toBeTruthy()
+  })
+
+  test('Should update to new email address when given', async () => {
+    TwilioService.confirmVerification = jest.fn(
+      () => Promise.resolve({ valid: true }) as any
+    )
+    const volunteer = await insertVolunteer()
+    const newEmail = 'volunteer@example.com'
+    const result = await confirmVerification({
+      userId: volunteer._id,
+      verificationMethod: VERIFICATION_METHOD.EMAIL,
+      sendTo: newEmail,
+      verificationCode: '123456'
+    })
+    const updatedVolunteer = await getVolunteer(
+      { _id: volunteer._id },
+      { verified: 1, verifiedPhone: 1, email: 1 }
+    )
+    expect(result).toBeTruthy()
+    expect(updatedVolunteer.verified).toBeTruthy()
+    expect(updatedVolunteer.email).toBeTruthy()
+    expect(updatedVolunteer.email).toEqual(newEmail)
   })
 })
