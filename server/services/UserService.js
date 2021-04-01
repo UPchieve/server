@@ -40,6 +40,8 @@ module.exports = {
       .exec()
   },
 
+  updateUser: (query, update) => User.updateOne(query, update),
+
   parseUser: user => {
     // Approved volunteer
     if (user.isVolunteer && user.isApproved) {
