@@ -36,7 +36,8 @@ export function routeVerify(router) {
     const existingUser = await UserService.getUser(existingUserQuery, {
       _id: 1
     })
-    if (existingUser)
+
+    if (existingUser && !user._id.equals(existingUser._id))
       return res.status(409).json({
         err: existingUserErrorMessage
       })
