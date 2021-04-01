@@ -1,4 +1,4 @@
-import Sentry from '@sentry/node'
+import * as Sentry from '@sentry/node'
 import * as VerificationCtrl from '../../controllers/VerificationCtrl'
 import { VERIFICATION_METHOD } from '../../constants'
 import isValidInternationalPhoneNumber from '../../utils/is-valid-international-phone-number'
@@ -36,7 +36,8 @@ export function routeVerify(router) {
     const existingUser = await UserService.getUser(existingUserQuery, {
       _id: 1
     })
-    if (existingUser)
+
+    if (existingUser && !user._id.equals(existingUser._id))
       return res.status(409).json({
         err: existingUserErrorMessage
       })

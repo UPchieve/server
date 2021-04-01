@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import request, { Test } from 'supertest'
 import app from '../../app'
 import { VERIFICATION_METHOD } from '../../constants'
-import VerificationCtrl from '../../controllers/VerificationCtrl'
+import * as VerificationCtrl from '../../controllers/VerificationCtrl'
 import { insertStudent, resetDb } from '../db-utils'
 import { authLogin, getPhoneNumber } from '../generate'
 import MailService from '../../services/MailService'
@@ -28,13 +28,13 @@ const agent = request.agent(app)
 
 const sendVerificationCode = (data: SendVerificationOptions): Test =>
   agent
-    .post('/api/verify/student/send')
+    .post('/api/verify/send')
     .set('Accept', 'application/json')
     .send(data)
 
 const confirmVerificationCode = (data: ConfirmVerificationOptions): Test =>
   agent
-    .post('/api/verify/student/confirm')
+    .post('/api/verify/confirm')
     .set('Accept', 'application/json')
     .send(data)
 
@@ -75,11 +75,11 @@ describe('/verify/student/send', () => {
     expect(err).toEqual(expected)
   })
 
-  test('Should see error that asks for a valid phone number', async () => {
+  test('Should see error that asks for a valid email address', async () => {
     const student = await insertStudent({ verified: false })
     const input = {
-      sendTo: '1234567891',
-      verificationMethod: VERIFICATION_METHOD.SMS
+      sendTo: 'student1@',
+      verificationMethod: VERIFICATION_METHOD.EMAIL
     }
 
     await authLogin(agent, student)
@@ -88,12 +88,16 @@ describe('/verify/student/send', () => {
       body: { err }
     } = response
 
-    const expected = 'Must enter a valid phone number'
+    const expected = 'Must enter a valid email address'
     expect(err).toEqual(expected)
   })
 
   test('Should see error when too many attempts for a verification code are made', async () => {
-    VerificationCtrl.initiateStudentVerification = jest.fn(() => {
+    const initiateVerification = jest.spyOn(
+      VerificationCtrl,
+      'initiateVerification'
+    )
+    initiateVerification.mockImplementation(() => {
       // eslint-disable-next-line no-throw-literal
       throw {
         status: 429,
@@ -120,9 +124,17 @@ describe('/verify/student/send', () => {
   })
 
   test('Should see error when Twilio Verify Service is not found', async () => {
-    VerificationCtrl.initiateStudentVerification = jest.fn(() => {
+    const initiateVerification = jest.spyOn(
+      VerificationCtrl,
+      'initiateVerification'
+    )
+    initiateVerification.mockImplementation(() => {
       // eslint-disable-next-line no-throw-literal
-      throw { status: 404, message: 'Service was not found' }
+      throw {
+        status: 404,
+        message: 'Service was not found',
+        name: 'VerificationError'
+      }
     })
     const student = await insertStudent()
     const input = {
@@ -142,8 +154,12 @@ describe('/verify/student/send', () => {
   })
 
   test('Should email the verification code', async () => {
-    VerificationCtrl.initiateStudentVerification = jest.fn(
-      async () =>
+    const initiateVerification = jest.spyOn(
+      VerificationCtrl,
+      'initiateVerification'
+    )
+    initiateVerification.mockImplementation(
+      () =>
         Promise.resolve({
           sid: 'VAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"',
           status: 'pending'
@@ -160,8 +176,12 @@ describe('/verify/student/send', () => {
   })
 
   test('Should text the verification code', async () => {
-    VerificationCtrl.initiateStudentVerification = jest.fn(
-      async () =>
+    const initiateVerification = jest.spyOn(
+      VerificationCtrl,
+      'initiateVerification'
+    )
+    initiateVerification.mockImplementation(
+      () =>
         Promise.resolve({
           sid: 'VAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"',
           status: 'pending'
@@ -171,6 +191,28 @@ describe('/verify/student/send', () => {
     const input = {
       sendTo: getPhoneNumber(),
       verificationMethod: VERIFICATION_METHOD.SMS
+    }
+
+    await authLogin(agent, student)
+    await sendVerificationCode(input).expect(200)
+  })
+
+  test('Should text the verification code when the user changes their email', async () => {
+    const initiateVerification = jest.spyOn(
+      VerificationCtrl,
+      'initiateVerification'
+    )
+    initiateVerification.mockImplementation(
+      () =>
+        Promise.resolve({
+          sid: 'VAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"',
+          status: 'pending'
+        }) as any
+    )
+    const student = await insertStudent()
+    const input = {
+      sendTo: 'newemail@example.com',
+      verificationMethod: VERIFICATION_METHOD.EMAIL
     }
 
     await authLogin(agent, student)
@@ -219,10 +261,12 @@ describe('/verify/student/confirm', () => {
     expect(err).toEqual(expected)
   })
 
-  test('Should send verified value from confirmStudentVerification', async () => {
-    VerificationCtrl.confirmStudentVerification = jest.fn(() =>
-      Promise.resolve(false)
+  test('Should send verified value from confirmVerification', async () => {
+    const confirmVerification = jest.spyOn(
+      VerificationCtrl,
+      'confirmVerification'
     )
+    confirmVerification.mockImplementation(() => Promise.resolve(false))
     const student = await insertStudent({ verified: false })
     const input = {
       verificationCode: '123456',
@@ -242,7 +286,11 @@ describe('/verify/student/confirm', () => {
   })
 
   test('Should catch internal error', async () => {
-    VerificationCtrl.confirmStudentVerification = jest.fn(() => {
+    const confirmVerification = jest.spyOn(
+      VerificationCtrl,
+      'confirmVerification'
+    )
+    confirmVerification.mockImplementation(() => {
       throw new Error('Internal server error')
     })
     const student = await insertStudent({ verified: false })

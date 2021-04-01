@@ -1,3 +1,4 @@
+import { Types } from 'mongoose'
 import UserService from '../services/UserService'
 import TwilioService from '../services/twilio'
 import { VERIFICATION_METHOD } from '../constants'
@@ -9,7 +10,7 @@ export interface InitiateVerificationOptions {
 }
 
 export interface ConfirmVerificationOptions {
-  userId: string
+  userId: Types.ObjectId | string
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
@@ -20,7 +21,7 @@ export const initiateVerification = ({
   sendTo,
   verificationMethod
 }: InitiateVerificationOptions) =>
-  TwilioService.sendStudentVerification({
+  TwilioService.sendVerification({
     sendTo,
     verificationMethod,
     firstName
@@ -34,7 +35,7 @@ export const confirmVerification = async ({
 }: ConfirmVerificationOptions) => {
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
   try {
-    const verificationResult = await TwilioService.confirmStudentVerification(
+    const verificationResult = await TwilioService.confirmVerification(
       sendTo,
       verificationCode
     )
