@@ -1,14 +1,12 @@
-const passport = require('../auth/passport')
-const VerificationCtrl = require('../../controllers/VerificationCtrl')
-const User = require('../../models/User')
-const { VERIFICATION_METHOD } = require('../../constants')
-const isValidInternationalPhoneNumber = require('../../utils/is-valid-international-phone-number')
-const UserService = require('../../services/UserService')
-const MailService = require('../../services/MailService')
-const StudentService = require('../../services/StudentService')
-const Sentry = require('@sentry/node')
+import Sentry from '@sentry/node'
+import * as VerificationCtrl from '../../controllers/VerificationCtrl'
+import { VERIFICATION_METHOD } from '../../constants'
+import isValidInternationalPhoneNumber from '../../utils/is-valid-international-phone-number'
+import UserService from '../../services/UserService'
+import MailService from '../../services/MailService'
+import * as StudentService from '../../services/StudentService'
 
-module.exports = function(router) {
+export function routeVerify(router) {
   router.post('/verify/send', async function(req, res, next) {
     const { user } = req
     const { sendTo, verificationMethod } = req.body
@@ -41,6 +39,7 @@ module.exports = function(router) {
       if (error.status === 429)
         return res.status(error.status).json({
           err:
+            // eslint-disable-next-line quotes
             "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
         })
 
