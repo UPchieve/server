@@ -397,7 +397,7 @@ function recordNotification(sendPromise, notification) {
     })
 }
 
-function sendStudentVerification({ sendTo, verificationMethod, firstName }) {
+function sendVerification({ sendTo, verificationMethod, firstName }) {
   return twilioClient.verify
     .services(config.twilioStudentVerificationServiceSid)
     .verifications.create({
@@ -411,7 +411,7 @@ function sendStudentVerification({ sendTo, verificationMethod, firstName }) {
     })
 }
 
-function confirmStudentVerification(to, code) {
+function confirmVerification(to, code) {
   return twilioClient.verify
     .services(config.twilioStudentVerificationServiceSid)
     .verificationChecks.create({ to, code })
@@ -445,6 +445,6 @@ module.exports = {
   },
 
   sendFollowupText,
-  sendStudentVerification,
-  confirmStudentVerification
+  sendVerification,
+  confirmVerification
 }

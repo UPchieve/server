@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { getStudent, insertStudent, resetDb } from '../db-utils'
 import { getEmail, getPhoneNumber } from '../generate'
-import { confirmStudentVerification } from '../../controllers/VerificationCtrl'
+import { confirmVerification } from '../../controllers/VerificationCtrl'
 import TwilioService from '../../services/twilio'
 import { VERIFICATION_METHOD } from '../../constants'
 jest.mock('../../services/twilio')
@@ -21,12 +21,12 @@ beforeEach(async () => {
   jest.clearAllMocks()
 })
 
-describe('confirmStudentVerification', () => {
+describe('confirmVerification', () => {
   test('Should return false for a verification code that is not valid', async () => {
-    TwilioService.confirmStudentVerification = jest.fn(
+    TwilioService.confirmVerification = jest.fn(
       () => Promise.resolve({ valid: false }) as any
     )
-    const result = await confirmStudentVerification({
+    const result = await confirmVerification({
       userId: mongoose.Types.ObjectId(),
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: getEmail(),
@@ -36,11 +36,11 @@ describe('confirmStudentVerification', () => {
   })
 
   test('Should update verified/verifiedEmail when email is verified', async () => {
-    TwilioService.confirmStudentVerification = jest.fn(
+    TwilioService.confirmVerification = jest.fn(
       () => Promise.resolve({ valid: true }) as any
     )
     const student = await insertStudent()
-    const result = await confirmStudentVerification({
+    const result = await confirmVerification({
       userId: student._id,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: student.email,
@@ -56,11 +56,11 @@ describe('confirmStudentVerification', () => {
   })
 
   test('Should update verified/verifiedPhone when phone is verified', async () => {
-    TwilioService.confirmStudentVerification = jest.fn(
+    TwilioService.confirmVerification = jest.fn(
       () => Promise.resolve({ valid: true }) as any
     )
     const student = await insertStudent()
-    const result = await confirmStudentVerification({
+    const result = await confirmVerification({
       userId: student._id,
       verificationMethod: VERIFICATION_METHOD.SMS,
       sendTo: getPhoneNumber(),
