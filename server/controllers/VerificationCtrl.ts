@@ -44,12 +44,16 @@ export const confirmVerification = async ({
         verified: boolean
         phone?: string
         verifiedPhone?: boolean
+        email?: string
         verifiedEmail?: boolean
       } = { verified: true }
       if (isPhoneVerification) {
         update.verifiedPhone = true
         update.phone = sendTo
-      } else update.verifiedEmail = true
+      } else {
+        update.verifiedEmail = true
+        update.email = sendTo
+      }
       await UserService.updateUser({ _id: userId }, update)
     }
     return isVerified
