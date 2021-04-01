@@ -28,7 +28,6 @@ import FeedbackView from './views/FeedbackView'
 import LegalView from './views/LegalView'
 import LoginView from './views/LoginView'
 import LogoutView from './views/LogoutView'
-import OnboardingView from './views/OnboardingView'
 import ProfileView from './views/ProfileView'
 import QuizView from './views/QuizView'
 import ReferenceView from './views/ReferenceView'
@@ -40,9 +39,9 @@ import SessionView from './views/SessionView'
 import SetPasswordView from './views/SetPasswordView'
 import SignupView from './views/SignupView'
 import StudentPartnerSignupView from './views/StudentPartnerSignupView'
-import StudentVerificationView from './views/StudentVerificationView'
 import TrainingCourseView from './views/TrainingCourseView'
 import TrainingView from './views/TrainingView'
+import VerificationView from './views/VerificationView'
 import VolunteerPartnerSignupView from './views/VolunteerPartnerSignupView'
 
 Vue.use(VueResource)
@@ -188,24 +187,9 @@ const routes = [
     meta: { bypassOnboarding: true }
   },
   {
-    path: '/onboarding/:step?',
-    name: 'OnboardingView',
-    component: OnboardingView,
-    meta: { protected: true },
-    beforeEnter: (to, from, next) => {
-      getUser().then(() => {
-        if (store.getters['user/isVerified']) {
-          next('/dashboard')
-        } else {
-          next()
-        }
-      })
-    }
-  },
-  {
     path: '/users/verify',
-    name: 'StudentVerificationView',
-    component: StudentVerificationView,
+    name: 'VerificationView',
+    component: VerificationView,
     meta: { protected: true },
     beforeEnter: (to, from, next) => {
       getUser().then(() => {
@@ -402,21 +386,17 @@ router.beforeEach((to, from, next) => {
           }
         })
       } else if (!store.getters['user/isVerified']) {
-        const isVolunteer = store.getters['user/isVolunteer']
-        // @todo: have the verification under one path
-        const route = isVolunteer ? '/onboarding/verify' : '/users/verify'
+        const route = '/users/verify'
         if (
           to.path.indexOf(route) !== -1 ||
           to.matched.some(route => route.meta.bypassOnboarding)
-        ) {
+        )
           next()
-        } else {
-          const location = {
-            path: route
-          }
-          if (isVolunteer) location.query.redirect = to.fullPath
-          next(location)
-        }
+        else
+          next({
+            path: route,
+            redirect: to.fullPath
+          })
       } else {
         next()
       }
