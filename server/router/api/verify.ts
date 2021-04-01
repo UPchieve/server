@@ -2,31 +2,44 @@ import Sentry from '@sentry/node'
 import * as VerificationCtrl from '../../controllers/VerificationCtrl'
 import { VERIFICATION_METHOD } from '../../constants'
 import isValidInternationalPhoneNumber from '../../utils/is-valid-international-phone-number'
+import isValidEmail from '../../utils/is-valid-email'
 import UserService from '../../services/UserService'
 import MailService from '../../services/MailService'
 import * as StudentService from '../../services/StudentService'
+import { User } from '../../models/User'
 
 export function routeVerify(router) {
   router.post('/verify/send', async function(req, res, next) {
     const { user } = req
     const { sendTo, verificationMethod } = req.body
     const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
-
+    const existingUserQuery: Partial<User> = {}
+    let existingUserErrorMessage = ''
     if (isPhoneVerification) {
       if (!isValidInternationalPhoneNumber(sendTo))
         return res.status(422).json({
           err: 'Must enter a valid phone number'
         })
-
-      const existingUser = await UserService.getUser(
-        { phone: sendTo },
-        { _id: 1 }
-      )
-      if (existingUser)
-        return res.status(409).json({
-          err: 'The phone number you entered is already in use'
+      existingUserQuery.phone = sendTo
+      existingUserErrorMessage =
+        'The phone number you entered is already in use'
+    } else {
+      if (!isValidEmail(sendTo))
+        return res.status(422).json({
+          err: 'Must enter a valid email address'
         })
+      existingUserQuery.email = sendTo
+      existingUserErrorMessage =
+        'The email address you entered is already in use'
     }
+
+    const existingUser = await UserService.getUser(existingUserQuery, {
+      _id: 1
+    })
+    if (existingUser)
+      return res.status(409).json({
+        err: existingUserErrorMessage
+      })
 
     try {
       await VerificationCtrl.initiateVerification({
