@@ -9,51 +9,7 @@ const StudentService = require('../../services/StudentService')
 const Sentry = require('@sentry/node')
 
 module.exports = function(router) {
-  router.post('/verify/send', async function(req, res) {
-    const { user } = req
-
-    try {
-      await VerificationCtrl.initiateVerification({ user })
-
-      return res.json({ msg: 'Verification email sent' })
-    } catch (error) {
-      return res.status(404).json({ err: error.toString() })
-    }
-  })
-
-  router.post('/verify/confirm', async function(req, res) {
-    const token = req.body.token
-
-    try {
-      await VerificationCtrl.finishVerification({ token })
-
-      return res.json({
-        msg: 'Verification successful'
-      })
-    } catch (error) {
-      return res.status(404).json({ err: error.toString() })
-    }
-  })
-
-  // Get verification token for a user id (admins only)
-  router
-    .route('/verificationtoken')
-    .all(passport.isAdmin)
-    .get(async function(req, res, next) {
-      const userId = req.query.userid
-
-      try {
-        const user = await User.findOne({ _id: userId }, '+verificationToken')
-
-        return res.json({
-          verificationToken: user.verificationToken
-        })
-      } catch (err) {
-        return next(err)
-      }
-    })
-
-  router.post('/verify/student/send', async function(req, res, next) {
+  router.post('/verify/send', async function(req, res, next) {
     const { user } = req
     const { sendTo, verificationMethod } = req.body
     const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
@@ -75,7 +31,7 @@ module.exports = function(router) {
     }
 
     try {
-      await VerificationCtrl.initiateStudentVerification({
+      await VerificationCtrl.initiateVerification({
         firstName: user.firstname,
         sendTo,
         verificationMethod
@@ -100,7 +56,7 @@ module.exports = function(router) {
     }
   })
 
-  router.post('/verify/student/confirm', async function(req, res, next) {
+  router.post('/verify/confirm', async function(req, res, next) {
     const { user } = req
     const { verificationCode, sendTo, verificationMethod } = req.body
     const VERIFICATION_CODE_LENGTH = 6
@@ -112,7 +68,7 @@ module.exports = function(router) {
         err: 'Must enter a valid 6-digit validation code'
       })
     try {
-      const isVerified = await VerificationCtrl.confirmStudentVerification({
+      const isVerified = await VerificationCtrl.confirmVerification({
         userId: user._id,
         verificationCode,
         sendTo,
@@ -120,11 +76,25 @@ module.exports = function(router) {
       })
       res.json({ success: isVerified })
 
-      MailService.sendStudentWelcomeEmail({
-        email: user.email,
-        firstName: user.firstname
-      })
-      StudentService.queueWelcomeEmails(user._id)
+      if (user.isVolunteer) {
+        if (user.volunteerPartnerOrg) {
+          MailService.sendPartnerVolunteerWelcomeEmail({
+            email: user.email,
+            volunteerName: user.firstname
+          })
+        } else {
+          MailService.sendOpenVolunteerWelcomeEmail({
+            email: user.email,
+            volunteerName: user.firstname
+          })
+        }
+      } else {
+        MailService.sendStudentWelcomeEmail({
+          email: user.email,
+          firstName: user.firstname
+        })
+        StudentService.queueWelcomeEmails(user._id)
+      }
     } catch (error) {
       next(error)
     }
