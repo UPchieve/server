@@ -15,6 +15,7 @@
           v-if="error || $route.query['401'] === 'true'"
           class="alert alert-danger"
           role="alert"
+          data-whoop-whoop="loginErrorMessage"
         >
           {{ error }}
         </div>

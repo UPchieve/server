@@ -1,5 +1,5 @@
 <template>
-  <div class="volunteer-dashboard">
+  <div class="volunteer-dashboard" data-whoop-whoop="volunteerDashboard">
     <dashboard-banner />
 
     <!--    <div v-if="showUpchieve101Notice" class="dashboard-notice">-->

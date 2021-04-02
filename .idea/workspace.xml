@@ -2,14 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9d20231e-9143-40c9-9b1a-85eeaa314b48" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/dev_backend.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/dev_frontend.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/dev_init.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/test.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/test_backend.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/test_frontend.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/App/AppSidebar/SidebarLinks.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/App/AppSidebar/SidebarLinks.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/DashboardView/VolunteerDashboard/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/DashboardView/VolunteerDashboard/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/LoginView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/LoginView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,7 +50,7 @@
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
-  <component name="RunManager" selected="Docker.Redis Container">
+  <component name="RunManager" selected="npm.dev:backend">
     <configuration default="true" type="js.build_tools.npm">
       <package-json value="$PROJECT_DIR$/package.json" />
       <command value="run" />
@@ -107,7 +104,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617379497016</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="add run configs to git">
+      <created>1617380887909</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1617380887909</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -129,6 +133,7 @@
     <MESSAGE value="updates package-lock.json" />
     <MESSAGE value="removes idea workspace from gitignore so run configurations can be shared" />
     <MESSAGE value="adds more run configurations" />
-    <option name="LAST_COMMIT_MESSAGE" value="adds more run configurations" />
+    <MESSAGE value="add run configs to git" />
+    <option name="LAST_COMMIT_MESSAGE" value="add run configs to git" />
   </component>
 </project>
