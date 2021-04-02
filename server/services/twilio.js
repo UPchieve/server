@@ -399,7 +399,7 @@ function recordNotification(sendPromise, notification) {
 
 function sendVerification({ sendTo, verificationMethod, firstName }) {
   return twilioClient.verify
-    .services(config.twilioStudentVerificationServiceSid)
+    .services(config.twilioAccountVerificationServiceSid)
     .verifications.create({
       to: sendTo,
       channel: verificationMethod,
@@ -413,7 +413,7 @@ function sendVerification({ sendTo, verificationMethod, firstName }) {
 
 function confirmVerification(to, code) {
   return twilioClient.verify
-    .services(config.twilioStudentVerificationServiceSid)
+    .services(config.twilioAccountVerificationServiceSid)
     .verificationChecks.create({ to, code })
 }
 
