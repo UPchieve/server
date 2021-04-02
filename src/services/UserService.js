@@ -1,7 +1,6 @@
 import moment from 'moment'
-import NetworkService from './NetworkService'
 import AuthService from './AuthService'
-import OnboardingService from './OnboardingService'
+import NetworkService from './NetworkService'
 
 export default {
   getAuth(context) {
@@ -22,14 +21,6 @@ export default {
     }
 
     return true // No validation errors
-  },
-  getOnboardingServiceInterest() {
-    return this.getUser().then(
-      user => (user && user.onboardingServiceInterest) || []
-    )
-  },
-  getOnboarding() {
-    return OnboardingService.status
   },
   setProfile(data) {
     return NetworkService.setProfile(data)

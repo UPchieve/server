@@ -3,7 +3,6 @@ import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
 import store from './store'
 import { topics } from './utils/topics'
-import ActionView from './views/ActionView'
 import AdminView from './views/Admin'
 import AdminAddSchool from './views/Admin/AdminAddSchool'
 import AdminEditSchool from './views/Admin/AdminEditSchool'
@@ -165,7 +164,7 @@ const routes = [
     path: '/resources',
     name: 'ResourcesView',
     component: ResourcesView,
-    meta: { protected: true, bypassOnboarding: true }
+    meta: { protected: true }
   },
   {
     path: '/refer-friends',
@@ -179,12 +178,6 @@ const routes = [
     name: 'FeedbackView',
     component: FeedbackView,
     meta: { protected: true }
-  },
-  {
-    path: '/action/:action/:data?',
-    name: 'ActionView',
-    component: ActionView,
-    meta: { bypassOnboarding: true }
   },
   {
     path: '/users/verify',
@@ -387,11 +380,7 @@ router.beforeEach((to, from, next) => {
         })
       } else if (!store.getters['user/isVerified']) {
         const route = '/users/verify'
-        if (
-          to.path.indexOf(route) !== -1 ||
-          to.matched.some(route => route.meta.bypassOnboarding)
-        )
-          next()
+        if (to.path.indexOf(route) !== -1) next()
         else
           next({
             path: route,
