@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9d20231e-9143-40c9-9b1a-85eeaa314b48" name="Default Changelist" comment="removes idea workspace from gitignore so run configurations can be shared">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+    <list default="true" id="9d20231e-9143-40c9-9b1a-85eeaa314b48" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/DashboardView/StudentDashboard/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/DashboardView/StudentDashboard/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/LoginView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/LoginView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,18 +48,7 @@
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
-  <component name="RunManager" selected="npm.dev:frontend">
-    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
-      <option name="arquillianRunConfiguration">
-        <value>
-          <option name="containerStateName" value="" />
-        </value>
-      </option>
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="npm.dev:backend">
     <configuration name="Mongo Container" type="docker-deploy" factoryName="docker-image" singleton="false" server-name="Docker">
       <deployment type="docker-image">
         <settings>
@@ -151,6 +143,16 @@
       <envs />
       <method v="2" />
     </configuration>
+    <configuration name="dev:init" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev:init" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
     <configuration name="test" type="js.build_tools.npm" nameIsGenerated="true">
       <package-json value="$PROJECT_DIR$/package.json" />
       <command value="run" />
@@ -184,11 +186,12 @@
     <list>
       <item itemvalue="Docker.Mongo Container" />
       <item itemvalue="Docker.Redis Container" />
+      <item itemvalue="npm.dev:backend" />
+      <item itemvalue="npm.dev:frontend" />
       <item itemvalue="npm.test" />
       <item itemvalue="npm.test:backend" />
       <item itemvalue="npm.test:frontend" />
-      <item itemvalue="npm.dev:frontend" />
-      <item itemvalue="npm.dev:backend" />
+      <item itemvalue="npm.dev:init" />
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -200,7 +203,7 @@
       <option name="presentableId" value="Default" />
       <updated>1617294029077</updated>
       <workItem from="1617294032296" duration="7344000" />
-      <workItem from="1617328997613" duration="272000" />
+      <workItem from="1617328997613" duration="5904000" />
     </task>
     <task id="LOCAL-00001" summary="updates package-lock.json">
       <created>1617329132408</created>
