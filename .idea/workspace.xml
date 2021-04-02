@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9d20231e-9143-40c9-9b1a-85eeaa314b48" name="Default Changelist" comment="">
+    <list default="true" id="b72a44b3-f538-4777-809c-e7f7af71a711" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/App/AppSidebar/SidebarLinks.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/App/AppSidebar/SidebarLinks.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/DashboardView/VolunteerDashboard/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/DashboardView/VolunteerDashboard/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/LoginView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/LoginView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
