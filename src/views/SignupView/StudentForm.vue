@@ -702,8 +702,7 @@ export default {
       })
         .then(() => {
           window.localStorage.removeItem('upcReferredByCode')
-          this.$store.dispatch('user/firstDashboardVisit', true)
-          this.$router.push('/dashboard')
+          this.$router.push('/users/verify')
         })
         .catch(err => {
           this.errors.push(err.message)
