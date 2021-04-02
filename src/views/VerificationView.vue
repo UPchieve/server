@@ -57,11 +57,11 @@
             <vue-phone-number-input
               class="verification__phone-input"
               v-model="phoneNational"
-              :required="true"
               color="#555"
               valid-color="#16ba97"
               @update="onPhoneInputUpdate"
               @click="clickedPhone"
+              :default-country-code="internationalPhoneInfo.country"
             />
           </label>
         </div>
@@ -150,8 +150,10 @@ import LargeButton from '@/components/LargeButton'
 import * as Sentry from '@sentry/browser'
 import AnalyticsService from '@/services/AnalyticsService'
 import { EVENTS } from '@/consts'
+import PhoneNumber from 'awesome-phonenumber'
 
 export default {
+  name: 'VerificationView',
   components: {
     FormPageTemplate,
     FormFooter,
@@ -175,6 +177,13 @@ export default {
   mounted() {
     this.$store.dispatch('app/hideNavigation')
     this.email = this.user.email || ''
+    const phoneNumber = new PhoneNumber(this.user.phone || '')
+    this.phoneNational = phoneNumber.getNumber('national')
+    // Hack to initially mock the vue-phone-number-input data
+    this.phoneInputInfo = {
+      isValid: true,
+      e164: phoneNumber.getNumber('e164')
+    }
   },
   computed: {
     ...mapState({
@@ -209,6 +218,13 @@ export default {
         return 'Please enter a valid email address'
 
       return 'Send my code'
+    },
+    internationalPhoneInfo() {
+      const phoneNumber = new PhoneNumber(this.user.phone || '')
+      return {
+        number: phoneNumber.getNumber('international'),
+        country: phoneNumber.getRegionCode()
+      }
     }
   },
   methods: {
