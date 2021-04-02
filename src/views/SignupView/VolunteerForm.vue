@@ -221,6 +221,7 @@ export default {
       // validate input
       this.errors = []
       this.invalidInputs = []
+      this.msg = ''
       if (!this.credentials.email) {
         this.errors.push('An email address is required.')
         this.invalidInputs.push('inputEmail')
@@ -285,6 +286,7 @@ export default {
       }
     },
     submit() {
+      this.msg = ''
       if (this.isRegistering) return
       this.isRegistering = true
       AuthService.registerOpenVolunteer(this, {
