@@ -180,7 +180,7 @@ const routes = [
     meta: { protected: true }
   },
   {
-    path: '/users/verify',
+    path: '/verify',
     name: 'VerificationView',
     component: VerificationView,
     meta: { protected: true },
@@ -379,7 +379,7 @@ router.beforeEach((to, from, next) => {
           }
         })
       } else if (!store.getters['user/isVerified']) {
-        const route = '/users/verify'
+        const route = '/verify'
         if (to.path.indexOf(route) !== -1) next()
         else
           next({

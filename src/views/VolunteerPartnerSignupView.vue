@@ -405,7 +405,7 @@ export default {
       })
         .then(() => {
           this.isRegistering = false
-          this.$router.push('/users/verify')
+          this.$router.push('/verify')
         })
         .catch(err => {
           this.isRegistering = false

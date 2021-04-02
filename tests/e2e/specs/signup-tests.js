@@ -81,7 +81,7 @@ describe("Student and volunteer signup", () => {
 
         cy.get("button[type=submit]").click();
 
-        cy.location("pathname").should("eq", "/users/verify");
+        cy.location("pathname").should("eq", "/verify");
       });
     });
 
@@ -163,7 +163,7 @@ describe("Student and volunteer signup", () => {
         .its("responseBody.user._id")
         .as("userId");
 
-      cy.location("pathname").should("eq", "/users/verify");
+      cy.location("pathname").should("eq", "/verify");
     });
   });
 });
