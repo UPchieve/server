@@ -107,7 +107,7 @@ export const Config = Record({
   accountSid: String,
   authToken: String,
   sendingNumber: String,
-  twilioStudentVerificationServiceSid: String,
+  twilioAccountVerificationServiceSid: String,
 
   notificationSchedule: Array(Number),
   // voice to use to render speech
