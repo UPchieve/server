@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="9d20231e-9143-40c9-9b1a-85eeaa314b48" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/config.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/views/DashboardView/StudentDashboard/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/DashboardView/StudentDashboard/index.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/views/LoginView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/LoginView.vue" afterDir="false" />
     </list>
@@ -203,7 +202,7 @@
       <option name="presentableId" value="Default" />
       <updated>1617294029077</updated>
       <workItem from="1617294032296" duration="7344000" />
-      <workItem from="1617328997613" duration="5904000" />
+      <workItem from="1617328997613" duration="6258000" />
     </task>
     <task id="LOCAL-00001" summary="updates package-lock.json">
       <created>1617329132408</created>
@@ -219,7 +218,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617329211107</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="adds more run configurations">
+      <created>1617379497016</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1617379497016</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -239,6 +245,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="updates package-lock.json" />
     <MESSAGE value="removes idea workspace from gitignore so run configurations can be shared" />
-    <option name="LAST_COMMIT_MESSAGE" value="removes idea workspace from gitignore so run configurations can be shared" />
+    <MESSAGE value="adds more run configurations" />
+    <option name="LAST_COMMIT_MESSAGE" value="adds more run configurations" />
   </component>
 </project>

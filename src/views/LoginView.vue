@@ -28,6 +28,7 @@
             class="uc-form-input"
             required
             autofocus
+            data-whoop-whoop="loginPageEmailInput"
           />
         </div>
 
@@ -39,13 +40,14 @@
             type="password"
             class="uc-form-input"
             required
+            data-whoop-whoop="loginPagePasswordInput"
           />
-          <router-link to="/resetpassword" class="uc-form-subtext">
+          <router-link to="/resetpassword" class="uc-form-subtext" data-whoop-whoop="loginPageForgotPasswordLink">
             Forgot password?
           </router-link>
         </div>
 
-        <button class="uc-form-button" type="submit" @click.prevent="submit">
+        <button class="uc-form-button" type="submit" @click.prevent="submit" data-whoop-whoop="loginPageSubmitButton">
           Login
         </button>
       </div>

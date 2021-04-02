@@ -1,5 +1,5 @@
 <template>
-  <div class="student-dashboard">
+  <div class="student-dashboard" data-whoop-whoop="studentDashboard">
     <dashboard-banner />
     <!--    <div-->
     <!--      v-if="noticeMessage"-->
