@@ -405,12 +405,12 @@ export default {
       })
         .then(() => {
           this.isRegistering = false
-          this.formStep = 'success'
+          this.$router.push('/users/verify')
         })
         .catch(err => {
           this.isRegistering = false
           this.serverErrorMsg = err.message
-          if (err.status !== 422) {
+          if (err.status !== 409 && err.status !== 422) {
             Sentry.captureException(err)
           }
         })
