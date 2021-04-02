@@ -4,7 +4,6 @@ const Volunteer = require('../models/Volunteer')
 const Sentry = require('@sentry/node')
 const base64url = require('base64url')
 const MailService = require('../services/MailService')
-const VerificationCtrl = require('./VerificationCtrl')
 const UserActionCtrl = require('./UserActionCtrl')
 const {
   createAvailabilitySnapshot
@@ -79,12 +78,6 @@ module.exports = {
       ])
     } catch (error) {
       throw new Error(error)
-    }
-
-    try {
-      await VerificationCtrl.initiateVerification({ user: volunteer })
-    } catch (err) {
-      Sentry.captureException(err)
     }
 
     try {
