@@ -15,6 +15,7 @@
           v-if="error || $route.query['401'] === 'true'"
           class="alert alert-danger"
           role="alert"
+          data-whoop-whoop="loginPageErrorMessage"
         >
           {{ error }}
         </div>
@@ -26,6 +27,7 @@
             v-model="credentials.email"
             type="email"
             class="uc-form-input"
+            data-whoop-whoop="loginPageEmailInput"
             required
             autofocus
           />
@@ -38,14 +40,15 @@
             v-model="credentials.password"
             type="password"
             class="uc-form-input"
+            data-whoop-whoop="loingPagePasswordInput"
             required
           />
-          <router-link to="/resetpassword" class="uc-form-subtext">
+          <router-link to="/resetpassword" class="uc-form-subtext" data-whoop-whoop="loginPageForgotPasswordLink">
             Forgot password?
           </router-link>
         </div>
 
-        <button class="uc-form-button" type="submit" @click.prevent="submit">
+        <button class="uc-form-button" type="submit" @click.prevent="submit" data-whoop-whoop="loingPageSubmitButton">
           Login
         </button>
       </div>

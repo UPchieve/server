@@ -15,7 +15,7 @@
         <calendar-icon class="icon" />
       </sidebar-link>
 
-      <sidebar-link v-if="isAdmin" to="/admin" text="Admin">
+      <sidebar-link v-if="isAdmin" to="/admin" text="Admin" data-whoop-whoop="sidebarAdminLink">
         <folder-icon class="icon" />
       </sidebar-link>
 
