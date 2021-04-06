@@ -2,7 +2,10 @@
   <div class="volunteer-dashboard">
     <dashboard-banner />
 
-    <div v-if="!downtimeMessage && showUpchieve101Notice" class="dashboard-notice">
+    <div
+      v-if="!downtimeMessage && showUpchieve101Notice"
+      class="dashboard-notice"
+    >
       <router-link to="training/course/upchieve101">
         Please complete UPchieve 101 to remain an active coach
       </router-link>

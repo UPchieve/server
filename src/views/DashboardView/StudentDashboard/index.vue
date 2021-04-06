@@ -16,7 +16,7 @@
     >
       {{ downtimeMessage }}
     </div>
-    
+
     <subject-selection />
     <first-session-congrats-modal
       v-if="showFirstSessionCongratsModal"
