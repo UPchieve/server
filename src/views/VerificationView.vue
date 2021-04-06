@@ -21,8 +21,9 @@
           You’re almost there!
         </h1>
         <p>
-          Confirm you’re not a 🤖 by verifying your account. Please select how
-          you would like to receive your verification code.
+          Confirm you're not a <span v-if="showEmoji">🤖</span
+          ><span v-else>robot</span> by verifying your account. Please select
+          how you would like to receive your verification code.
         </p>
         <div class="verification__container">
           <input
@@ -121,7 +122,7 @@
       <div v-if="step === 3" class="uc-form-body uc-form-body--center">
         <div>
           <verification-badge />
-          <h3>You’re verified 😎</h3>
+          <h3>You’re verified <span v-if="showEmoji">😎</span></h3>
           <p>
             Woohoo! Welcome to UPchieve.
           </p>
@@ -225,6 +226,9 @@ export default {
         number: phoneNumber.getNumber('international'),
         country: phoneNumber.getRegionCode()
       }
+    },
+    showEmoji() {
+      return !this.user.isVolunteer
     }
   },
   methods: {
