@@ -1,17 +1,22 @@
 <template>
   <div class="student-dashboard">
     <dashboard-banner />
-    <!--    <div-->
-    <!--      v-if="noticeMessage"-->
-    <!--      class="dashboard-notice"-->
-    <!--      :class="isLowCoachHour && 'dashboard-notice&#45;&#45;warn'"-->
-    <!--    >-->
-    <!--      {{ noticeMessage }}-->
-    <!--    </div>-->
-    <!-- <div class="dashboard-notice" :class="'dashboard-notice--warn'">
-      UPchieve will be down for maintenance Saturday, March 27, from 9-10 AM
-      Eastern Time.
-    </div> -->
+    <div
+      v-if="!downtimeMessage && noticeMessage"
+      class="dashboard-notice"
+      :class="isLowCoachHour && 'dashboard-notice--warn'"
+    >
+      {{ noticeMessage }}
+    </div>
+
+    <div
+      v-if="downtimeMessage"
+      class="dashboard-notice"
+      :class="'dashboard-notice--info'"
+    >
+      {{ downtimeMessage }}
+    </div>
+
     <subject-selection />
     <first-session-congrats-modal
       v-if="showFirstSessionCongratsModal"
@@ -26,6 +31,7 @@ import DashboardBanner from '../DashboardBanner'
 import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
+import { isEnabled } from 'unleash-client'
 
 const headerData = {
   component: 'RejoinSessionHeader',
@@ -87,6 +93,13 @@ export default {
         return 'Heads up: we have less coaches available than normal right now. Try making requests between 12pm-12am ET when possible!'
 
       return ''
+    },
+    downtimeMessage() {
+      if (isEnabled('downtime-banner-4-10')) {
+        return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
+      } else {
+        return ''
+      }
     },
     hasSeenFirstSessionCongratsModal() {
       return (
