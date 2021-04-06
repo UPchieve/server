@@ -11,6 +11,8 @@ variables:
   AUTO_DEVOPS_BUILD_IMAGE_CNB_ENABLED: "true"
   AUTO_DEVOPS_BUILD_IMAGE_CNB_BUILDER: "heroku/buildpacks:20"
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  NEW_RELIC_ENABLED: "false"
+  NEW_RELIC_NO_CONFIG_FILE: "true"
 
 build:
   stage: build
