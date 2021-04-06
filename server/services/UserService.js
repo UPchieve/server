@@ -34,7 +34,7 @@ module.exports = {
   },
 
   getReferredFriends: (userId, projection) => {
-    return User.find({ referredBy: userId })
+    return User.find({ referredBy: userId, verified: true })
       .select(projection)
       .lean()
       .exec()
