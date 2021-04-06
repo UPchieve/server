@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { resetDb, insertSession } from '../db-utils'
 import SessionModel from '../../models/Session'
 import endStaleSessions from '../../worker/jobs/endStaleSessions'
+jest.setTimeout(15000)
 
 // db connection
 beforeAll(async () => {

@@ -1,10 +1,4 @@
-jest.mock('redis', () => {
-  const redisMock = require('fakeredis')
-  return {
-    __esModule: true,
-    default: redisMock
-  }
-})
+jest.mock('ioredis', () => require('ioredis-mock/jest'))
 
 jest.mock('posthog-node')
 jest.mock('../services/AnalyticsService')
