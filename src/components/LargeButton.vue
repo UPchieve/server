@@ -4,6 +4,7 @@
     :routeTo="routeTo"
     :class="buttonClasses"
     :showArrow="showArrow"
+    :buttonType="buttonType"
   >
     <slot />
   </button-template>
@@ -22,6 +23,10 @@ export default {
     showArrow: {
       type: Boolean,
       default: true
+    },
+    buttonType: {
+      type: String,
+      default: 'button'
     }
   },
   computed: {

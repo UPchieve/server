@@ -28,6 +28,7 @@
             <div v-if="isSessionAlive">
               <button
                 class="btn rejoinSessionBtn"
+                type="button"
                 @click.prevent="rejoinHelpSession()"
               >
                 Rejoin your coaching session

@@ -8,6 +8,7 @@
     <div class="header">
       Your profile
       <button
+        type="button"
         v-if="user.isVolunteer"
         class="editBtn btn"
         @click="editProfile()"

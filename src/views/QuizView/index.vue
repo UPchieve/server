@@ -43,7 +43,7 @@
               </p>
               <p>Once you feel ready, press "Start Quiz" below!</p>
             </div>
-            <button class="btn" type="start" @click.prevent="startQuiz()">
+            <button class="btn" type="button" @click.prevent="startQuiz()">
               Start Quiz
             </button>
           </div>
