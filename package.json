@@ -148,6 +148,7 @@
     "@types/express-ws": "^3.0.0",
     "@types/jest": "^25.2.1",
     "@types/lodash": "^4.14.149",
+    "@types/mongodb": "^3.6.9",
     "@types/mongoose": "^5.7.10",
     "@types/morgan": "^1.9.0",
     "@types/socket.io": "1.4.33",

@@ -11,7 +11,7 @@ const IpAddressService = require('../../services/IpAddressService')
 const config = require('../../config')
 const User = require('../../models/User')
 const School = require('../../models/School')
-const { USER_BAN_REASON } = require('../../constants')
+const { USER_BAN_REASON, IP_ADDRESS_STATUS } = require('../../constants')
 const authPassport = require('./passport')
 const UserCtrl = require('../../controllers/UserCtrl')
 const MailService = require('../../services/MailService')
@@ -212,7 +212,9 @@ module.exports = function(app) {
       isBanned,
       banReason,
       password,
-      ip
+      ipAddresses: [
+        { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
+      ]
     }
 
     let student
@@ -289,7 +291,9 @@ module.exports = function(app) {
       verified: false,
       referredBy,
       password,
-      ip
+      ipAddresses: [
+        { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
+      ]
     }
 
     try {
