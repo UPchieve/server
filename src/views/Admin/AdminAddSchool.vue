@@ -48,7 +48,7 @@
       </div>
 
       <p v-if="error" class="error">{{ error }}</p>
-      <button class="uc-form-button" :disabled="invalidForm">
+      <button type="submit" class="uc-form-button" :disabled="invalidForm">
         Create
       </button>
     </form>

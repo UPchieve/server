@@ -1,5 +1,5 @@
 <template>
-  <button :class="classes" @click="clickHandler">
+  <button :type="type" :class="classes" @click="clickHandler">
     {{ label }}
   </button>
 </template>
@@ -21,6 +21,10 @@ export default {
     },
     clickHandler: {
       type: Function,
+      required: true
+    },
+    type: {
+      type: String,
       required: true
     }
   },

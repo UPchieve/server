@@ -13,7 +13,7 @@
     />
     <template v-else>
       <div class="user-detail__body">
-        <button class="edit-btn btn" @click="toggleEditMode()">
+        <button type="button" class="edit-btn btn" @click="toggleEditMode()">
           Edit
         </button>
         <div>

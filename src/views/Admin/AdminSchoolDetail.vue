@@ -13,6 +13,7 @@
             <span>← Back</span>
           </div>
           <button
+            type="button"
             class="page-control__edit-button btn"
             @click="toggleEditMode()"
           >

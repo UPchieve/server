@@ -29,7 +29,7 @@
             class="photo-id-input"
             @change="addPhoto"
           />
-          <button class="upload-photo-btn">Upload Photo</button>
+          <button class="upload-photo-btn" type="button">Upload Photo</button>
         </label>
         <p v-if="error" class="error">{{ error }}</p>
 

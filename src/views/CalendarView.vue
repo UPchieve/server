@@ -11,7 +11,7 @@
             request to come in—we'll text you if a student needs your help!
           </p>
         </div>
-        <button v-bind:class="saveButtonClass" @click="save()">
+        <button v-bind:class="saveButtonClass" type="button" @click="save()">
           <span v-html="saveLabel"></span>
         </button>
       </div>
