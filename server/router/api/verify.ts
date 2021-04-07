@@ -67,6 +67,7 @@ export function routeVerify(router) {
             'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
         })
       }
+      Sentry.captureException(error)
       next(error)
     }
   })
@@ -112,6 +113,7 @@ export function routeVerify(router) {
       }
     } catch (error) {
       logger.error(error)
+      Sentry.captureException(error)
       next(error)
     }
   })
