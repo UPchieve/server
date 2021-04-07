@@ -2,16 +2,22 @@
   <div class="volunteer-dashboard">
     <dashboard-banner />
 
-    <!--    <div v-if="showUpchieve101Notice" class="dashboard-notice">-->
-    <!--      <router-link to="training/course/upchieve101"-->
-    <!--        >Please complete UPchieve 101 to remain an active coach →</router-link-->
-    <!--      >-->
-    <!--    </div>-->
+    <div
+      v-if="!downtimeMessage && showUpchieve101Notice"
+      class="dashboard-notice"
+    >
+      <router-link to="training/course/upchieve101">
+        Please complete UPchieve 101 to remain an active coach
+      </router-link>
+    </div>
 
-    <!-- <div class="dashboard-notice">
-      UPchieve will be down for maintenance Saturday, March 27, from 9-10 AM
-      Eastern Time.
-    </div> -->
+    <div
+      v-if="downtimeMessage"
+      class="dashboard-notice"
+      :class="'dashboard-notice--info'"
+    >
+      {{ downtimeMessage }}
+    </div>
 
     <div class="volunteer-dashboard__body">
       <template v-if="user.isApproved && user.isOnboarded">
@@ -154,6 +160,7 @@ import TrainingIcon from '@/assets/training_icon.svg'
 import { allSubtopicNames } from '@/utils/topics'
 import WebNotificationsButton from '@/components/WebNotificationsButton.vue'
 import ArrowIcon from '@/assets/arrow.svg'
+import { isEnabled } from 'unleash-client'
 
 const headerData = {
   component: 'RejoinSessionHeader',
@@ -222,6 +229,14 @@ export default {
       if (!this.user.isApproved || !this.user.isOnboarded) return false
       if (this.user.certifications.upchieve101.passed) return false
       return new Date(this.user.createdAt) < new Date('9/18/20')
+    },
+
+    downtimeMessage() {
+      if (isEnabled('downtime-banner-4-10')) {
+        return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
+      } else {
+        return ''
+      }
     },
 
     photoIdAction() {
