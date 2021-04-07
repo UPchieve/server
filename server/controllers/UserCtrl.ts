@@ -8,7 +8,6 @@ import Volunteer, {
   VolunteerDocument
 } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
-import { initiateVerification } from './VerificationCtrl'
 import { AccountActionCreator } from './UserActionCtrl'
 
 const {
@@ -90,12 +89,6 @@ export async function createVolunteer(
     ])
   } catch (error) {
     throw new Error(error)
-  }
-
-  try {
-    await initiateVerification({ user: volunteer })
-  } catch (err) {
-    captureException(err)
   }
 
   try {
