@@ -1,11 +1,16 @@
 <template>
   <div class="btn-options">
     <btn
+      type="button"
       :label="secondBtnLabel"
       :click-handler="clickHandlers.second"
       btn-options-second
     />
-    <btn :label="mainBtnLabel" :click-handler="clickHandlers.main" />
+    <btn
+      type="button"
+      :label="mainBtnLabel"
+      :click-handler="clickHandlers.main"
+    />
   </div>
 </template>
 

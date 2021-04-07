@@ -89,7 +89,7 @@
         </select>
       </div>
       <p class="error" v-if="error">{{ error }}</p>
-      <button class="uc-form-button">
+      <button class="uc-form-button" type="submit">
         Update
       </button>
     </form>

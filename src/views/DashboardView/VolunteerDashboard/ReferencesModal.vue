@@ -123,6 +123,7 @@
 
         <button
           class="add-reference-btn"
+          type="button"
           @click="toggleAddReferenceMode"
           v-if="!isAddReferenceMode && references.length < 2"
         >

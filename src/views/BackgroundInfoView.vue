@@ -264,7 +264,11 @@
           </li>
         </ol>
         <p class="error form-error" v-if="formError">{{ formError }}</p>
-        <button class="uc-form-button submit-btn" :disabled="invalidForm()">
+        <button
+          class="uc-form-button submit-btn"
+          type="submit"
+          :disabled="invalidForm()"
+        >
           Submit
         </button>
       </form>
