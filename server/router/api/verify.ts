@@ -6,6 +6,7 @@ import UserService from '../../services/UserService'
 import MailService from '../../services/MailService'
 import * as StudentService from '../../services/StudentService'
 import { User } from '../../models/User'
+import logger from '../../logger'
 
 export function routeVerify(router) {
   router.post('/verify/send', async function(req, res, next) {
@@ -49,6 +50,8 @@ export function routeVerify(router) {
       })
       res.sendStatus(200)
     } catch (error) {
+      logger.error({ error_name: 'test-dev twilio verification', ...error })
+      logger.error({ error_name: 'test-dev-2 twilio verification', error: error })
       if (error.status === 429)
         return res.status(error.status).json({
           err:
@@ -107,6 +110,8 @@ export function routeVerify(router) {
         StudentService.queueWelcomeEmails(user._id)
       }
     } catch (error) {
+      logger.error({ error_name: 'test-dev twilio verification', ...error })
+      logger.error({ error_name: 'test-dev-2 twilio verification', error: error })
       next(error)
     }
   })
