@@ -175,12 +175,8 @@
       Sign Up
     </button>
     <loader class="register-loader" v-if="isRegistering" />
+    <div v-if="msg" role="alert">{{ msg }}</div>
   </form>
-
-  <div v-else-if="step == 'success-message'" class="uc-form-body">
-    You've been sent a verification email! Please check your inbox to finish
-    creating your account.
-  </div>
 
   <div v-else class="uc-form-body">Unexpected Error</div>
 </template>
@@ -225,6 +221,7 @@ export default {
       // validate input
       this.errors = []
       this.invalidInputs = []
+      this.msg = ''
       if (!this.credentials.email) {
         this.errors.push('An email address is required.')
         this.invalidInputs.push('inputEmail')
@@ -289,6 +286,7 @@ export default {
       }
     },
     submit() {
+      this.msg = ''
       if (this.isRegistering) return
       this.isRegistering = true
       AuthService.registerOpenVolunteer(this, {
@@ -301,12 +299,12 @@ export default {
       })
         .then(() => {
           this.isRegistering = false
-          this.step = 'success-message'
+          this.$router.push('/verify')
         })
         .catch(err => {
           this.isRegistering = false
           this.msg = err.message
-          if (err.status !== 422) {
+          if (err.status !== 409 && err.status !== 422) {
             Sentry.captureException(err)
           }
         })

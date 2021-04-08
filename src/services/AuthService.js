@@ -121,14 +121,14 @@ export default {
     })
   },
 
-  initiateStudentVerification(data) {
-    return NetworkService.sendStudentVerification(data).catch(err => {
+  initiateVerification(data) {
+    return NetworkService.sendVerification(data).catch(err => {
       throw errorFromHttpResponse(err)
     })
   },
 
-  confirmStudentVerification(data) {
-    return NetworkService.confirmStudentVerification(data).catch(err => {
+  confirmVerification(data) {
+    return NetworkService.confirmVerification(data).catch(err => {
       throw errorFromHttpResponse(err)
     })
   },

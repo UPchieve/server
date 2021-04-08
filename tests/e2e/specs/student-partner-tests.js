@@ -44,7 +44,7 @@ describe("Student partner activity", () => {
 
       cy.get("button[type=submit]").click();
 
-      cy.location("pathname").should("eq", "/dashboard");
+      cy.location("pathname").should("eq", "/verify");
     });
   });
 });

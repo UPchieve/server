@@ -21,8 +21,9 @@
           You’re almost there!
         </h1>
         <p>
-          Confirm you’re not a 🤖 by verifying your account. Please select how
-          you would like to receive your verification code.
+          Confirm you're not a <span v-if="showEmoji">🤖</span
+          ><span v-else>robot</span> by verifying your account. Please select
+          how you would like to receive your verification code.
         </p>
         <div class="verification__container">
           <input
@@ -34,7 +35,13 @@
           />
           <label for="verification-email" class="verification__radio-label">
             <span class="verification__label">By email</span>
-            <span class="verification__field">{{ user.email }}</span>
+            <input
+              class="uc-form-input verification__field"
+              type="email"
+              v-model="email"
+              id="verification-email"
+              aria-label="Email"
+            />
           </label>
         </div>
 
@@ -51,11 +58,11 @@
             <vue-phone-number-input
               class="verification__phone-input"
               v-model="phoneNational"
-              :required="true"
               color="#555"
               valid-color="#16ba97"
               @update="onPhoneInputUpdate"
               @click="clickedPhone"
+              :default-country-code="internationalPhoneInfo.country"
             />
           </label>
         </div>
@@ -115,7 +122,7 @@
       <div v-if="step === 3" class="uc-form-body uc-form-body--center">
         <div>
           <verification-badge />
-          <h3>You’re verified 😎</h3>
+          <h3>You’re verified <span v-if="showEmoji">😎</span></h3>
           <p>
             Woohoo! Welcome to UPchieve.
           </p>
@@ -144,8 +151,10 @@ import LargeButton from '@/components/LargeButton'
 import * as Sentry from '@sentry/browser'
 import AnalyticsService from '@/services/AnalyticsService'
 import { EVENTS } from '@/consts'
+import PhoneNumber from 'awesome-phonenumber'
 
 export default {
+  name: 'VerificationView',
   components: {
     FormPageTemplate,
     FormFooter,
@@ -158,19 +167,24 @@ export default {
       verificationMethod: '',
       phoneInputInfo: {},
       phoneNational: '',
-      credentials: {
-        email: '',
-        password: ''
-      },
       step: 1,
       verificationCode: '',
       sendTo: '',
       error: '',
-      isSubmitting: false
+      isSubmitting: false,
+      email: ''
     }
   },
-  created() {
+  mounted() {
     this.$store.dispatch('app/hideNavigation')
+    this.email = this.user.email || ''
+    const phoneNumber = new PhoneNumber(this.user.phone || '')
+    this.phoneNational = phoneNumber.getNumber('national')
+    // Hack to initially mock the vue-phone-number-input data
+    this.phoneInputInfo = {
+      isValid: true,
+      e164: phoneNumber.getNumber('e164')
+    }
   },
   computed: {
     ...mapState({
@@ -181,6 +195,7 @@ export default {
       if (this.isTextMessageSelected && !this.phoneInputInfo.e164) return false
       if (this.isTextMessageSelected && !this.phoneInputInfo.isValid)
         return false
+      if (!this.isTextMessageSelected && !this.isValidEmail) return false
       return true
     },
     isValidVerificationCode() {
@@ -188,6 +203,9 @@ export default {
         this.verificationCode.length !== 6 ||
         isNaN(Number(this.verificationCode))
       )
+    },
+    isValidEmail() {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)
     },
     isTextMessageSelected() {
       return this.verificationMethod === VERIFICATION_METHOD.SMS
@@ -197,8 +215,20 @@ export default {
         return 'Please enter a phone number'
       if (this.isTextMessageSelected && !this.phoneInputInfo.isValid)
         return 'Please enter a valid phone number'
+      if (!this.isTextMessageSelected && !this.isValidEmail)
+        return 'Please enter a valid email address'
 
       return 'Send my code'
+    },
+    internationalPhoneInfo() {
+      const phoneNumber = new PhoneNumber(this.user.phone || '')
+      return {
+        number: phoneNumber.getNumber('international'),
+        country: phoneNumber.getRegionCode()
+      }
+    },
+    showEmoji() {
+      return !this.user.isVolunteer
     }
   },
   methods: {
@@ -218,10 +248,12 @@ export default {
         return
       }
       if (this.isTextMessageSelected) this.sendTo = this.phoneInputInfo.e164
-      else this.sendTo = this.user.email
+      else {
+        if (this.isValidEmail) this.sendTo = this.email
+      }
 
       try {
-        await AuthService.initiateStudentVerification({
+        await AuthService.initiateVerification({
           sendTo: this.sendTo,
           verificationMethod: this.verificationMethod
         })
@@ -245,7 +277,7 @@ export default {
       try {
         const {
           data: { success }
-        } = await AuthService.confirmStudentVerification({
+        } = await AuthService.confirmVerification({
           verificationCode: this.verificationCode,
           sendTo: this.sendTo,
           verificationMethod: this.verificationMethod
@@ -342,6 +374,7 @@ export default {
     text-align: left;
     width: 300px;
     border-bottom: 3px solid $c-success-green;
+    padding: initial;
   }
 }
 

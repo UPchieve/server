@@ -3,7 +3,6 @@ import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
 import store from './store'
 import { topics } from './utils/topics'
-import ActionView from './views/ActionView'
 import AdminView from './views/Admin'
 import AdminAddSchool from './views/Admin/AdminAddSchool'
 import AdminEditSchool from './views/Admin/AdminEditSchool'
@@ -28,7 +27,6 @@ import FeedbackView from './views/FeedbackView'
 import LegalView from './views/LegalView'
 import LoginView from './views/LoginView'
 import LogoutView from './views/LogoutView'
-import OnboardingView from './views/OnboardingView'
 import ProfileView from './views/ProfileView'
 import QuizView from './views/QuizView'
 import ReferenceView from './views/ReferenceView'
@@ -40,9 +38,9 @@ import SessionView from './views/SessionView'
 import SetPasswordView from './views/SetPasswordView'
 import SignupView from './views/SignupView'
 import StudentPartnerSignupView from './views/StudentPartnerSignupView'
-import StudentVerificationView from './views/StudentVerificationView'
 import TrainingCourseView from './views/TrainingCourseView'
 import TrainingView from './views/TrainingView'
+import VerificationView from './views/VerificationView'
 import VolunteerPartnerSignupView from './views/VolunteerPartnerSignupView'
 
 Vue.use(VueResource)
@@ -166,7 +164,7 @@ const routes = [
     path: '/resources',
     name: 'ResourcesView',
     component: ResourcesView,
-    meta: { protected: true, bypassOnboarding: true }
+    meta: { protected: true }
   },
   {
     path: '/refer-friends',
@@ -182,30 +180,9 @@ const routes = [
     meta: { protected: true }
   },
   {
-    path: '/action/:action/:data?',
-    name: 'ActionView',
-    component: ActionView,
-    meta: { bypassOnboarding: true }
-  },
-  {
-    path: '/onboarding/:step?',
-    name: 'OnboardingView',
-    component: OnboardingView,
-    meta: { protected: true },
-    beforeEnter: (to, from, next) => {
-      getUser().then(() => {
-        if (store.getters['user/isVerified']) {
-          next('/dashboard')
-        } else {
-          next()
-        }
-      })
-    }
-  },
-  {
-    path: '/users/verify',
-    name: 'StudentVerificationView',
-    component: StudentVerificationView,
+    path: '/verify',
+    name: 'VerificationView',
+    component: VerificationView,
     meta: { protected: true },
     beforeEnter: (to, from, next) => {
       getUser().then(() => {
@@ -402,21 +379,13 @@ router.beforeEach((to, from, next) => {
           }
         })
       } else if (!store.getters['user/isVerified']) {
-        const isVolunteer = store.getters['user/isVolunteer']
-        // @todo: have the verification under one path
-        const route = isVolunteer ? '/onboarding/verify' : '/users/verify'
-        if (
-          to.path.indexOf(route) !== -1 ||
-          to.matched.some(route => route.meta.bypassOnboarding)
-        ) {
-          next()
-        } else {
-          const location = {
-            path: route
-          }
-          if (isVolunteer) location.query.redirect = to.fullPath
-          next(location)
-        }
+        const route = '/verify'
+        if (to.path.indexOf(route) !== -1) next()
+        else
+          next({
+            path: route,
+            redirect: to.fullPath
+          })
       } else {
         next()
       }

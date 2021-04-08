@@ -128,16 +128,6 @@ export default {
       .post(`${AUTH_ROOT}/register/student`, data)
       .then(this._successHandler, this._errorHandler)
   },
-  sendStudentVerification(data) {
-    return Vue.http
-      .post(`${API_ROOT}/verify/student/send`, data)
-      .then(this._successHandler, this._errorHandler)
-  },
-  confirmStudentVerification(data) {
-    return Vue.http
-      .post(`${API_ROOT}/verify/student/confirm`, data)
-      .then(this._successHandler, this._errorHandler)
-  },
   sendReset(context, data) {
     return context.$http
       .post(`${AUTH_ROOT}/reset/send`, data)
@@ -163,13 +153,13 @@ export default {
       .get(`${API_ROOT}/user`)
       .then(this._successHandler, this._errorHandler)
   },
-  sendVerification(context) {
-    return context.$http
-      .post(`${API_ROOT}/verify/send`)
+  sendVerification(data) {
+    return Vue.http
+      .post(`${API_ROOT}/verify/send`, data)
       .then(this._successHandler, this._errorHandler)
   },
-  confirmVerification(context, data) {
-    return context.$http
+  confirmVerification(data) {
+    return Vue.http
       .post(`${API_ROOT}/verify/confirm`, data)
       .then(this._successHandler, this._errorHandler)
   },
