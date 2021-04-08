@@ -61,23 +61,9 @@ describe("Training quizzes", function() {
                 cy.login(adminVolunteer)
               );
 
-              cy.getVerificationToken(user._id).then(token => {
-                cy.logout();
-
-                const verifyUserUrl = `${Cypress.env(
-                  "SERVER_ROOT"
-                )}/api/verify/confirm?userid=${user._id}`;
-
-                cy.get("@untrainedVolunteer").then(untrainedVolunteer =>
-                  cy.login(untrainedVolunteer)
-                );
-
-                cy.request({
-                  method: "POST",
-                  url: verifyUserUrl,
-                  body: { token }
-                });
-              });
+              cy.get("@untrainedVolunteer").then(untrainedVolunteer =>
+                cy.login(untrainedVolunteer)
+              );
             });
         }
       });

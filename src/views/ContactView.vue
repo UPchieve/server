@@ -2,12 +2,12 @@
   <div
     class="contact-wrapper"
     :class="{
-      'contact-wrapper--noAuth': !isAuthenticated || !isVerifiedStudent
+      'contact-wrapper--noAuth': !isAuthenticated || !isVerified
     }"
   >
     <div
       class="contact"
-      :class="{ 'contact--noAuth': !isAuthenticated || !verifiedStudent }"
+      :class="{ 'contact--noAuth': !isAuthenticated || !isVerified }"
     >
       <div class="contact__header">
         Contact Us
@@ -81,7 +81,7 @@ export default {
   name: 'contact-view',
   components: { LargeButton },
   created() {
-    if (!this.isAuthenticated || !this.isVerifiedStudent) {
+    if (!this.isAuthenticated || !this.isVerified) {
       this.$store.dispatch('app/hideNavigation')
     }
   },
@@ -122,9 +122,6 @@ export default {
       if (!this.isAuthenticated) return false
 
       return this.isValidEmail(this.$store.state.user.user.email)
-    },
-    isVerifiedStudent() {
-      return !this.isVolunteer && this.isVerified
     }
   },
   watch: {

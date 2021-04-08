@@ -8,7 +8,7 @@ import addUserAction from '../../middleware/add-user-action'
 import socketServer from './socket-server'
 import volunteers from './volunteers'
 import user from './user'
-import verify from './verify'
+import { routeVerify } from './verify'
 import session from './session'
 import calendar from './calendar'
 import training from './training'
@@ -28,7 +28,7 @@ module.exports = function(app: Express, sessionStore: MongoStore): void {
 
   volunteers(router)
   user(router)
-  verify(router)
+  routeVerify(router)
   session(router, io)
   calendar(router)
   training(router)

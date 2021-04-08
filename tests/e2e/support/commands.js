@@ -75,17 +75,6 @@ Cypress.Commands.add("createOpenVolunteer", userObj => {
   });
 });
 
-Cypress.Commands.add("getVerificationToken", userid => {
-  const verificationTokenUrl = `${Cypress.env(
-    "SERVER_ROOT"
-  )}/api/verificationtoken`;
-
-  cy.request({
-    url: verificationTokenUrl,
-    qs: { userid }
-  }).its("body.verificationToken");
-});
-
 Cypress.Commands.add("getSessionId", url => {
   let index = url.length - 1;
 

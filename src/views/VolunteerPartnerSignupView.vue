@@ -308,6 +308,7 @@ export default {
       // validate input
       this.errors = []
       this.invalidInputs = []
+      this.serverErrorMsg = ''
 
       if (!this.formData.email) {
         this.errors.push('An email address is required.')
@@ -391,6 +392,7 @@ export default {
     },
 
     register() {
+      this.serverErrorMsg = ''
       if (this.isRegistering) return
       this.isRegistering = true
       AuthService.registerPartnerVolunteer(this, {
@@ -405,12 +407,12 @@ export default {
       })
         .then(() => {
           this.isRegistering = false
-          this.formStep = 'success'
+          this.$router.push('/verify')
         })
         .catch(err => {
           this.isRegistering = false
           this.serverErrorMsg = err.message
-          if (err.status !== 422) {
+          if (err.status !== 409 && err.status !== 422) {
             Sentry.captureException(err)
           }
         })

@@ -4,10 +4,8 @@ import { getVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
 import { getAvailability } from '../../services/AvailabilityService'
 import { createContact } from '../../services/MailService'
-import { initiateVerification } from '../../controllers/VerificationCtrl'
 import { AccountActionCreator } from '../../controllers/UserActionCtrl'
 jest.mock('../../services/MailService')
-jest.mock('../../controllers/VerificationCtrl')
 jest.mock('../../controllers/UserActionCtrl')
 
 beforeAll(async () => {
@@ -37,7 +35,6 @@ describe('createVolunteer', () => {
 
     expect(einstein._id).toEqual(newVolunteer._id)
     expect(newAvailability.volunteerId).toEqual(newVolunteer._id)
-    expect((initiateVerification as jest.Mock).mock.calls.length).toBe(1)
     expect((createContact as jest.Mock).mock.calls.length).toBe(1)
     expect((AccountActionCreator as jest.Mock).mock.calls.length).toBe(1)
     expect(createdAccountMockMethod).toHaveBeenCalledTimes(1)

@@ -532,7 +532,7 @@ export default {
         terms: this.formData.terms
       })
         .then(() => {
-          this.$router.push('/dashboard')
+          this.$router.push('/verify')
         })
         .catch(err => {
           this.serverErrorMsg = err.message
