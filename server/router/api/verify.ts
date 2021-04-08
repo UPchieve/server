@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/node'
 import * as VerificationCtrl from '../../controllers/VerificationCtrl'
 import { VERIFICATION_METHOD } from '../../constants'
 import isValidInternationalPhoneNumber from '../../utils/is-valid-international-phone-number'
@@ -7,7 +6,6 @@ import UserService from '../../services/UserService'
 import MailService from '../../services/MailService'
 import * as StudentService from '../../services/StudentService'
 import { User } from '../../models/User'
-import logger from '../../logger'
 
 export function routeVerify(router) {
   router.post('/verify/send', async function(req, res, next) {
@@ -51,7 +49,6 @@ export function routeVerify(router) {
       })
       res.sendStatus(200)
     } catch (error) {
-      logger.error(error)
       if (error.status === 429)
         return res.status(error.status).json({
           err:
@@ -61,13 +58,11 @@ export function routeVerify(router) {
 
       // Twilio verification resoure was not found
       if (error.status === 404) {
-        Sentry.captureException(error)
         return res.status(error.status).json({
           err:
             'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
         })
       }
-      Sentry.captureException(error)
       next(error)
     }
   })
@@ -112,8 +107,6 @@ export function routeVerify(router) {
         StudentService.queueWelcomeEmails(user._id)
       }
     } catch (error) {
-      logger.error(error)
-      Sentry.captureException(error)
       next(error)
     }
   })
