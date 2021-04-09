@@ -29,7 +29,7 @@ if (process.env.SUBWAY_REDIS_USE_SECURE) {
   const redisUsername = process.env.SUBWAY_REDIS_USERNAME || ''
   const redisPassword = process.env.SUBWAY_REDIS_PASSWORD || ''
   // https://github.com/luin/ioredis#connect-to-redis
-  redisConn = `rediss://${redisUsername}:${redisPassword}@${redisHost}:${redisPort}/?allowUsernameInURI=true`
+  redisConn = `rediss://${redisUsername}:${redisPassword}@${redisHost}:${redisPort}`
 } else {
   redisConn = `redis://${redisHost}:${redisPort}`
 }
