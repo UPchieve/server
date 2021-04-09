@@ -18,6 +18,7 @@ const ObjectId = require('mongodb').ObjectId
 const { USER_ACTION } = require('../constants')
 const VolunteerModel = require('../models/Volunteer')
 const { SESSION_FLAGS } = require('../constants')
+const moment = require('moment')
 
 const hasReviewTriggerFlags = flags => {
   const excludedFlags = [
@@ -474,16 +475,32 @@ module.exports = {
         const sendVolunteerFirstSessionCongrats =
           session.volunteer.pastSessions.length === 0 &&
           timeTutored >= fifteenMinutes
+        // send at 11 am EST tomorrow
+        const hourToSendTomorrow = moment()
+          .utc()
+          .startOf('day')
+          .add(1, 'day')
+          .add(15, 'hour')
+        const hourToSendTomorrowInMS = new Date(hourToSendTomorrow).getTime()
+        const nowInMS = new Date().getTime()
+        const firstSessionEmailDelay = hourToSendTomorrowInMS - nowInMS
         if (sendStudentFirstSessionCongrats)
-          MailService.sendStudentFirstSessionCongrats({
-            email: session.student.email,
-            firstName: session.student.firstname
-          })
-        if (sendVolunteerFirstSessionCongrats)
-          MailService.sendVolunteerFirstSessionCongrats({
-            email: session.volunteer.email,
-            firstName: session.volunteer.firstname
-          })
+          QueueService.add(
+            'EmailStudentFirstSessionCongrats',
+            {
+              sessionId: session._id
+            },
+            { delay: firstSessionEmailDelay }
+          )
+        if (sendVolunteerFirstSessionCongrats) {
+          QueueService.add(
+            'EmailVolunteerFirstSessionCongrats',
+            {
+              sessionId: session._id
+            },
+            { delay: firstSessionEmailDelay }
+          )
+        }
       }
       await VolunteerModel.updateOne(
         { _id: session.volunteer._id },

@@ -22,6 +22,8 @@ import emailPartnerVolunteerReferACoworker from './partner-volunteer-emails/emai
 import emailPartnerVolunteerTenSessionMilestone from './partner-volunteer-emails/emailTenSessionMilestone'
 import emailVolunteerGentleWarning from './volunteer-emails/emailGentleWarning'
 import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
+import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVolunteerFirstSessionCongrats'
+import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -50,7 +52,9 @@ export enum Jobs {
   EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
   EmailVolunteerInactiveSixtyDays = 'EmailVolunteerInactiveSixtyDays',
   EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
-  EmailVolunteerInactive = 'EmailVolunteerInactive'
+  EmailVolunteerInactive = 'EmailVolunteerInactive',
+  EmailVolunteerFirstSessionCongrats = 'EmailVolunteerFirstSessionCongrats',
+  EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats'
 }
 
 // register new job processors here
@@ -155,6 +159,14 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailVolunteerInactive,
     processor: emailVolunteerInactive
+  },
+  {
+    name: Jobs.EmailVolunteerFirstSessionCongrats,
+    processor: emailVolunteerFirstSessionCongrats
+  },
+  {
+    name: Jobs.EmailStudentFirstSessionCongrats,
+    processor: emailStudentFirstSessionCongrats
   }
 ]
 

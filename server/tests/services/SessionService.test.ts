@@ -25,9 +25,12 @@ import { Message } from '../../models/Message'
 import { SESSION_FLAGS } from '../../constants'
 import { convertObjectIdListToStringList } from '../utils'
 import * as WhiteboardService from '../../services/WhiteboardService'
+import QueueService from '../../services/QueueService'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
 jest.mock('../../services/WhiteboardService')
 jest.mock('../../services/QuillDocService')
+jest.mock('../../services/QueueService')
 
 /**
  * @todo refactor
@@ -742,6 +745,20 @@ describe('endSession', () => {
       expect(WhiteboardService.deleteDoc).toHaveBeenCalledTimes(1)
       expect(updatedStudent.pastSessions.length).toEqual(1)
       expect(updatedVolunteer.pastSessions.length).toEqual(1)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailStudentFirstSessionCongrats,
+        {
+          sessionId: session._id
+        },
+        expect.anything()
+      )
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailVolunteerFirstSessionCongrats,
+        {
+          sessionId: session._id
+        },
+        expect.anything()
+      )
       expect(updatedStudentPastSessions).toContain(session._id.toString())
       expect(updatedVolunteerPastSessions).toContain(session._id.toString())
       expect(Number(updatedHoursTutored)).toBeGreaterThan(0)
