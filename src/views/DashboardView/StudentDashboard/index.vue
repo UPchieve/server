@@ -32,6 +32,7 @@ import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
 import { isEnabled } from 'unleash-client'
+import { FEATURE_FLAGS } from '@/consts'
 
 const headerData = {
   component: 'RejoinSessionHeader',
@@ -59,7 +60,10 @@ export default {
       })
     }
 
-    if (this.hasSeenFirstSessionCongratsModal)
+    if (
+      isEnabled(FEATURE_FLAGS.REFER_FRIENDS) &&
+      this.hasSeenFirstSessionCongratsModal
+    )
       this.toggleFirstSessionCongratsModal()
 
     this.currentHour = moment()
@@ -118,7 +122,11 @@ export default {
     isSessionAlive(isAlive, prevIsAlive) {
       if (!isAlive) {
         this.$store.dispatch('app/header/show')
-        if (prevIsAlive && this.hasSeenFirstSessionCongratsModal)
+        if (
+          isEnabled(FEATURE_FLAGS.REFER_FRIENDS) &&
+          prevIsAlive &&
+          this.hasSeenFirstSessionCongratsModal
+        )
           this.toggleFirstSessionCongratsModal()
       } else {
         this.$store.dispatch('app/header/show', headerData)

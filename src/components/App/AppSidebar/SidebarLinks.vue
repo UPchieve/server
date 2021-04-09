@@ -24,7 +24,7 @@
       </sidebar-link>
 
       <sidebar-link
-        v-if="!isVolunteer"
+        v-if="!isVolunteer && showReferFriends"
         to="/refer-friends"
         text="Refer friends"
       >
@@ -52,6 +52,8 @@ import WordBubblesIcon from '@/assets/sidebar_icons/word-bubbles.svg'
 import EnvelopeIcon from '@/assets/sidebar_icons/envelope.svg'
 import ExclamationIcon from '@/assets/sidebar_icons/exclamation.svg'
 import PortraitIcon from '@/assets/sidebar_icons/portrait.svg'
+import { isEnabled } from 'unleash-client'
+import { FEATURE_FLAGS } from '@/consts'
 
 export default {
   components: {
@@ -70,6 +72,11 @@ export default {
     isVolunteer: Boolean,
     isAdmin: Boolean,
     mobileMode: Boolean
+  },
+  computed: {
+    showReferFriends() {
+      return isEnabled(FEATURE_FLAGS.REFER_FRIENDS)
+    }
   }
 }
 </script>
