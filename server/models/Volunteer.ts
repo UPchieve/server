@@ -157,6 +157,9 @@ export interface Volunteer extends User {
   hoursTutored: Types.Decimal128
   timeTutored: number
   sentHourSummaryIntroEmail: boolean
+  sentInactiveThirtyDayEmail: boolean
+  sentInactiveSixtyDayEmail: boolean
+  sentInactiveNinetyDayEmail: boolean
 }
 
 export type VolunteerDocument = Volunteer & Document
@@ -675,6 +678,18 @@ const volunteerSchema = new Schema(
       enum: values(SUBJECTS)
     },
     sentHourSummaryIntroEmail: {
+      type: Boolean,
+      default: false
+    },
+    sentInactiveThirtyDayEmail: {
+      type: Boolean,
+      default: false
+    },
+    sentInactiveSixtyDayEmail: {
+      type: Boolean,
+      default: false
+    },
+    sentInactiveNinetyDayEmail: {
       type: Boolean,
       default: false
     }
