@@ -33,9 +33,19 @@ async function sendEmailToInactiveVolunteers({
     try {
       const contactInfo = { email, firstName }
       await mailHandler(contactInfo)
+      if (group === InactiveGroup.inactiveThirtyDays)
+        await updateVolunteer({ _id }, { sentInactiveThirtyDayEmail: true })
+      if (group === InactiveGroup.inactiveSixtyDays)
+        await updateVolunteer({ _id }, { sentInactiveSixtyDayEmail: true })
       if (group === InactiveGroup.inactiveNinetyDays) {
         const clearedAvailability = createNewAvailability()
-        await updateVolunteer({ _id }, { availability: clearedAvailability })
+        await updateVolunteer(
+          { _id },
+          {
+            availability: clearedAvailability,
+            sentInactiveNinetyDayEmail: true
+          }
+        )
         await updateAvailabilitySnapshot(_id, {
           onCallAvailability: clearedAvailability
         })
@@ -49,10 +59,8 @@ async function sendEmailToInactiveVolunteers({
 
 function getLastActivityAtQuery(fromDate, toDate) {
   return {
-    lastActivityAt: {
-      $gte: new Date(fromDate),
-      $lt: new Date(toDate)
-    }
+    $gte: new Date(fromDate),
+    $lt: new Date(toDate)
   }
 }
 
@@ -81,18 +89,27 @@ export default async (): Promise<void> => {
   const sixtyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(60)
   const ninetyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(90)
   const ninetyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(90)
-  const thirtyDaysAgoQuery = getLastActivityAtQuery(
-    thirtyDaysAgoStartOfDay,
-    thirtyDaysAgoEndOfDay
-  )
-  const sixtyDaysAgoQuery = getLastActivityAtQuery(
-    sixtyDaysAgoStartOfDay,
-    sixtyDaysAgoEndOfDay
-  )
-  const ninetyDaysAgoQuery = getLastActivityAtQuery(
-    ninetyDaysAgoStartOfDay,
-    ninetyDaysAgoEndOfDay
-  )
+  const thirtyDaysAgoQuery = {
+    sentInactiveThirtyDayEmail: false,
+    lastActivityAt: getLastActivityAtQuery(
+      thirtyDaysAgoStartOfDay,
+      thirtyDaysAgoEndOfDay
+    )
+  }
+  const sixtyDaysAgoQuery = {
+    sentInactiveSixtyDayEmail: false,
+    lastActivityAt: getLastActivityAtQuery(
+      sixtyDaysAgoStartOfDay,
+      sixtyDaysAgoEndOfDay
+    )
+  }
+  const ninetyDaysAgoQuery = {
+    sentInactiveNinetyDayEmail: false,
+    lastActivityAt: getLastActivityAtQuery(
+      ninetyDaysAgoStartOfDay,
+      ninetyDaysAgoEndOfDay
+    )
+  }
 
   // @todo: properly type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -80,6 +80,33 @@ describe('Volunteer inactive emails', () => {
     )
   })
 
+  test('Should not send to volunteers who have already received an inactive email', async () => {
+    const angelou = buildVolunteer({
+      lastActivityAt: new Date(thirtyDaysAgo),
+      sentInactiveThirtyDayEmail: true
+    })
+    const dickens = buildVolunteer({
+      lastActivityAt: new Date(sixtyDaysAgo),
+      sentInactiveSixtyDayEmail: true
+    })
+    const twain = buildVolunteer({
+      lastActivityAt: new Date(ninetyDaysAgo),
+      sentInactiveNinetyDayEmail: true
+    })
+    const faulkner = buildVolunteer({ lastActivityAt: new Date(ninetyDaysAgo) })
+    const volunteers = [angelou, dickens, twain, faulkner]
+    // @todo: figure out why getVolunteersMany does not work
+    await VolunteerModel.insertMany(volunteers)
+    await emailVolunteerInactive()
+
+    expect(MailService.sendVolunteerInactiveThirtyDays).toHaveBeenCalledTimes(0)
+    expect(MailService.sendVolunteerInactiveSixtyDays).toHaveBeenCalledTimes(0)
+    expect(MailService.sendVolunteerInactiveNinetyDays).toHaveBeenCalledTimes(1)
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailVolunteerInactiveNinetyDays} to volunteer ${faulkner._id}`
+    )
+  })
+
   test('Should clear the availability of a volunteer who has been inactive for 90 days', async () => {
     const availability = buildAvailability({
       Wednesday: { '1p': true, '2p': true }
