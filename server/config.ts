@@ -238,8 +238,8 @@ const config: Static<typeof Config> = {
     'https://gitlab.com/api/v4/feature_flags/unleash/23285197',
   vueAppUnleashUrl:
     process.env.VUE_APP_UNLEASH_URL ||
-    'https://gitlab.com/api/v4/feature_flags/unleash/23281505',
-  vueAppUnleashId: process.env.VUE_APP_UNLEASH_ID || '4ygySARxzu-yDxejd5sw',
+    'https://gitlab.com/api/v4/feature_flags/unleash/23285197',
+  vueAppUnleashId: process.env.VUE_APP_UNLEASH_ID || 'djwdKPaf7s3oxMgDrRrd',
   vueAppUnleashName: process.env.VUE_APP_UNLEASH_NAME || 'dev',
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
   posthogPersonalApiToken:

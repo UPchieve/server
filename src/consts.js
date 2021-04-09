@@ -420,3 +420,7 @@ export const VERIFICATION_METHOD = {
   SMS: 'sms',
   EMAIL: 'email'
 }
+
+export const FEATURE_FLAGS = {
+  REFER_FRIENDS: 'refer-friends'
+}

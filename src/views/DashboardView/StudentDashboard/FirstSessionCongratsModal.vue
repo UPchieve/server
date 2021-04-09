@@ -29,7 +29,7 @@ import LargeButton from '@/components/LargeButton'
 import HeavyCrossIcon from '@/assets/heavy-cross.svg'
 
 export default {
-  name: 'volunteer-dashboard',
+  name: 'FirstSessionCongratsModal',
   components: { Modal, LargeButton, HeavyCrossIcon },
   props: {
     closeModal: { type: Function, required: true }

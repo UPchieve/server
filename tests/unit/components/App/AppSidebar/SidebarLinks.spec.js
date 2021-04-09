@@ -15,11 +15,6 @@ const LEGAL_LINK = {
   text: "Legal policy"
 };
 const PROFILE_LINK = { to: "/profile", text: "Profile" };
-const REFERRAL_LINK = {
-  to: "/refer-friends",
-
-  text: "Refer friends"
-};
 
 // Volunteer links
 const CALENDAR_LINK = { to: "/calendar", text: "Schedule" };
@@ -39,7 +34,6 @@ const links = {
     student: [
       DASHBOARD_LINK,
       PROFILE_LINK,
-      REFERRAL_LINK,
       CONTACT_LINK,
       LEGAL_LINK
     ],
@@ -55,7 +49,6 @@ const links = {
       DASHBOARD_LINK,
       ADMIN_LINK,
       PROFILE_LINK,
-      REFERRAL_LINK,
       CONTACT_LINK,
       LEGAL_LINK
     ]

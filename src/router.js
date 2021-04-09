@@ -1,6 +1,8 @@
+import { isEnabled } from 'unleash-client'
 import Vue from 'vue'
 import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
+import { FEATURE_FLAGS } from './consts'
 import store from './store'
 import { topics } from './utils/topics'
 import AdminView from './views/Admin'
@@ -170,7 +172,11 @@ const routes = [
     path: '/refer-friends',
     name: 'ReferFriendsView',
     component: ReferFriendsView,
-    meta: { protected: true }
+    meta: { protected: true },
+    beforeEnter: (to, from, next) => {
+      if (isEnabled(FEATURE_FLAGS.REFER_FRIENDS)) next()
+      else next('/dashboard')
+    }
   },
   {
     path:
