@@ -55,15 +55,9 @@ const sendEmail = (
   fromName,
   templateId,
   dynamicData,
-  unsubscribeGroupId,
   callback,
   overrides = {}
 ) => {
-  // Unsubscribe email preferences
-  const asm = {
-    group_id: unsubscribeGroupId,
-    groups_to_display: [config.sendgrid.unsubscribeGroup.newsletter]
-  }
   const msg = {
     to: toEmail,
     from: {
@@ -75,7 +69,6 @@ const sendEmail = (
     },
     templateId: templateId,
     dynamic_template_data: dynamicData,
-    asm,
     ...overrides
   }
 
@@ -107,6 +100,11 @@ module.exports = {
   sendVerification: ({ email, token }) => {
     const url = 'http://' + config.client.host + '/action/verify/' + token
 
+    const overrides = {
+      categories: ['account verification'],
+      mail_settings: { bypass_list_management: { enable: true } }
+    }
+
     sendEmail(
       email,
       config.mail.senders.noreply,
@@ -116,26 +114,33 @@ module.exports = {
         userEmail: email,
         verifyLink: url
       },
-      config.sendgrid.unsubscribeGroup.account,
       null,
-      { mail_settings: { bypass_list_management: { enable: true } } }
+      overrides
     )
   },
 
   sendContactForm: ({ responseData }, callback) => {
+    const overrides = {
+      // ensure staff members always get contact form submissions
+      mail_settings: { bypass_list_management: { enable: true } }
+    }
+
     sendEmail(
       config.mail.receivers.contact,
       config.mail.senders.noreply,
       'UPchieve',
       config.sendgrid.contactTemplate,
       responseData,
-      config.sendgrid.unsubscribeGroup.account,
-      callback
+      callback,
+      overrides
     )
   },
 
   sendReset: ({ email, token }, callback) => {
     const url = 'http://' + config.client.host + '/setpassword/' + token
+    const overrides = {
+      mail_settings: { bypass_list_management: { enable: true } }
+    }
 
     sendEmail(
       email,
@@ -146,35 +151,40 @@ module.exports = {
         userEmail: email,
         resetLink: url
       },
-      config.sendgrid.unsubscribeGroup.account,
       callback,
-      { mail_settings: { bypass_list_management: { enable: true } } }
+      overrides
     )
   },
 
   sendOpenVolunteerWelcomeEmail: ({ email, volunteerName }) => {
+    const overrides = {
+      categories: ['volunteer welcome email']
+    }
+
     sendEmail(
       email,
       config.mail.senders.support,
       'UPchieve',
       config.sendgrid.openVolunteerWelcomeTemplate,
       { volunteerName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
-      { categories: ['volunteer welcome email'] }
+      overrides
     )
   },
 
   sendPartnerVolunteerWelcomeEmail: ({ email, volunteerName }) => {
+    const overrides = {
+      categories: ['partner volunteer welcome email']
+    }
+
     sendEmail(
       email,
       config.mail.senders.support,
       'UPchieve',
       config.sendgrid.partnerVolunteerWelcomeTemplate,
       { volunteerName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
-      { categories: ['partner volunteer welcome email'] }
+      overrides
     )
   },
 
@@ -191,7 +201,6 @@ module.exports = {
       'UPchieve Student Success Team',
       config.sendgrid.studentWelcomeTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -204,13 +213,13 @@ module.exports = {
       },
       categories: ['student welcome email - student use cases']
     }
+
     sendEmail(
       email,
       config.mail.senders.students,
       'UPchieve Student Success Team',
       config.sendgrid.studentUseCasesTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -223,13 +232,13 @@ module.exports = {
       },
       categories: ['student welcome email - meet our volunteers']
     }
+
     sendEmail(
       email,
       config.mail.senders.volunteerManager,
       config.mail.people.volunteerManager.firstName,
       config.sendgrid.meetOurVolunteersTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -242,13 +251,13 @@ module.exports = {
       },
       categories: ['student welcome email - independent learning']
     }
+
     sendEmail(
       email,
       config.mail.senders.students,
       'UPchieve Student Success Team',
       config.sendgrid.studentIndependentLearningTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -267,7 +276,6 @@ module.exports = {
       'UPchieve Student Success Team',
       config.sendgrid.studentGoalSettingTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -287,7 +295,6 @@ module.exports = {
       `${config.mail.people.studentOutreachManager.firstName} ${config.mail.people.studentOutreachManager.lastName}`,
       config.sendgrid.studentFirstSessionCongratsTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -300,6 +307,9 @@ module.exports = {
     reportMessage
   }) => {
     const sessionAdminLink = buildLink(`admin/sessions/${sessionId}`)
+    const overrides = {
+      mail_settings: { bypass_list_management: { enable: true } }
+    }
     return sendEmail(
       config.mail.receivers.staff,
       config.mail.senders.noreply,
@@ -312,7 +322,8 @@ module.exports = {
         reportReason,
         reportMessage
       },
-      config.sendgrid.unsubscribeGroup.account
+      null,
+      overrides
     )
   },
 
@@ -322,6 +333,9 @@ module.exports = {
       referenceName: reference.firstName,
       volunteerName: `${volunteer.firstname} ${volunteer.lastname}`
     }
+    const overrides = {
+      categories: ['reference form email']
+    }
 
     return sendEmail(
       reference.email,
@@ -329,22 +343,24 @@ module.exports = {
       'UPchieve',
       config.sendgrid.referenceFormTemplate,
       emailData,
-      config.sendgrid.unsubscribeGroup.account,
       null,
-      { categories: ['reference form email'] }
+      overrides
     )
   },
 
   sendApprovedNotOnboardedEmail: volunteer => {
+    const overrides = {
+      categories: ['approved not onboarded email']
+    }
+
     return sendEmail(
       volunteer.email,
       config.mail.senders.support,
       'UPchieve',
       config.sendgrid.approvedNotOnboardedTemplate,
       { volunteerName: volunteer.firstname },
-      config.sendgrid.unsubscribeGroup.account,
       null,
-      { categories: ['approved not onboarded email'] }
+      overrides
     )
   },
 
@@ -352,21 +368,27 @@ module.exports = {
     const readyToCoachTemplate = volunteer.volunteerPartnerOrg
       ? config.sendgrid.partnerReadyToCoachTemplate
       : config.sendgrid.openReadyToCoachTemplate
+    const overrides = {
+      categories: ['ready to coach email']
+    }
+
     return sendEmail(
       volunteer.email,
       config.mail.senders.support,
       'UPchieve',
       readyToCoachTemplate,
       { volunteerName: volunteer.firstname },
-      config.sendgrid.unsubscribeGroup.account,
       null,
-      { categories: ['ready to coach email'] }
+      overrides
     )
   },
 
   sendBannedUserAlert: ({ userId, banReason, sessionId }) => {
     const userAdminLink = buildLink(`admin/users/${userId}`)
     const sessionAdminLink = buildLink(`admin/sessions/${sessionId}`)
+    const overrides = {
+      mail_settings: { bypass_list_management: { enable: true } }
+    }
     return sendEmail(
       config.mail.receivers.staff,
       config.mail.senders.noreply,
@@ -379,20 +401,24 @@ module.exports = {
         userAdminLink,
         sessionAdminLink
       },
-      config.sendgrid.unsubscribeGroup.account
+      null,
+      overrides
     )
   },
 
   sendRejectedPhotoSubmission: volunteer => {
+    const overrides = {
+      categories: ['photo rejected email']
+    }
+
     return sendEmail(
       volunteer.email,
       config.mail.senders.support,
       'The UPchieve Team',
       config.sendgrid.rejectedPhotoSubmissionTemplate,
       { firstName: volunteer.firstname },
-      config.sendgrid.unsubscribeGroup.account,
       null,
-      { categories: ['photo rejected email'] }
+      overrides
     )
   },
 
@@ -404,6 +430,9 @@ module.exports = {
       )}`,
       firstName
     }
+    const overrides = {
+      categories: ['reference rejected email']
+    }
 
     return sendEmail(
       volunteer.email,
@@ -411,9 +440,8 @@ module.exports = {
       'The UPchieve Team',
       config.sendgrid.rejectedReferenceTemplate,
       emailData,
-      config.sendgrid.unsubscribeGroup.account,
       null,
-      { categories: ['reference rejected email'] }
+      overrides
     )
   },
 
@@ -446,6 +474,10 @@ module.exports = {
   },
 
   sendWaitingOnReferences: volunteer => {
+    const overrides = {
+      categories: ['waiting on references email']
+    }
+
     return sendEmail(
       volunteer.email,
       config.mail.senders.support,
@@ -454,9 +486,8 @@ module.exports = {
       {
         firstName: capitalize(volunteer.firstname)
       },
-      config.sendgrid.unsubscribeGroup.account,
       null,
-      { categories: ['waiting on references email'] }
+      overrides
     )
   },
 
@@ -476,7 +507,6 @@ module.exports = {
       {
         firstName: capitalize(volunteer.firstname)
       },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -528,8 +558,6 @@ module.exports = {
         totalQuizzesPassed,
         totalVolunteerTime: formattedVolunteerHours
       },
-      // @note: see @todo for sendEmail
-      config.sendgrid.unsubscribeGroup.volunteerSummary,
       null,
       overrides
     )
@@ -544,14 +572,6 @@ module.exports = {
     hasSelectedAvailability
   }) => {
     const overrides = {
-      asm: {
-        group_id: config.sendgrid.unsubscribeGroup.account,
-        groups_to_display: [
-          config.sendgrid.unsubscribeGroup.newsletter,
-          // @todo: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
-          config.sendgrid.unsubscribeGroup.volunteerSummary
-        ]
-      },
       categories: ['onboarding reminder one email']
     }
 
@@ -567,7 +587,6 @@ module.exports = {
         hasUnlockedASubject,
         hasSelectedAvailability
       },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -575,14 +594,6 @@ module.exports = {
 
   sendOnboardingReminderTwo: ({ firstName, email }) => {
     const overrides = {
-      asm: {
-        group_id: config.sendgrid.unsubscribeGroup.account,
-        groups_to_display: [
-          config.sendgrid.unsubscribeGroup.newsletter,
-          // @todo: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
-          config.sendgrid.unsubscribeGroup.volunteerSummary
-        ]
-      },
       categories: ['onboarding reminder two email']
     }
 
@@ -594,8 +605,6 @@ module.exports = {
       {
         firstName: capitalize(firstName)
       },
-      // @note: see @todo for sendEmail
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -606,14 +615,6 @@ module.exports = {
     const overrides = {
       reply_to: {
         email: teamMemberEmail
-      },
-      asm: {
-        group_id: config.sendgrid.unsubscribeGroup.account,
-        groups_to_display: [
-          config.sendgrid.unsubscribeGroup.newsletter,
-          // @todo: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
-          config.sendgrid.unsubscribeGroup.volunteerSummary
-        ]
       },
       categories: ['onboarding reminder three email']
     }
@@ -626,8 +627,6 @@ module.exports = {
       {
         firstName: capitalize(firstName)
       },
-      // @note: see @todo for sendEmail
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -647,7 +646,6 @@ module.exports = {
       `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
       config.sendgrid.volunteerQuickTipsTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -670,7 +668,6 @@ module.exports = {
       `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
       config.sendgrid.partnerVolunteerOnlyCollegeCertsTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -690,7 +687,6 @@ module.exports = {
       'The UPchieve Team',
       config.sendgrid.partnerVolunteerLowHoursSelectedTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -713,7 +709,6 @@ module.exports = {
       `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
       config.sendgrid.volunteerFirstSessionCongratsTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -742,7 +737,6 @@ module.exports = {
       `${config.mail.people.corporatePartnershipsManager.firstName} ${config.mail.people.corporatePartnershipsManager.lastName}`,
       config.sendgrid.partnerVolunteerReferACoworkerTemplate,
       { firstName, partnerOrgSignupLink, partnerOrgDisplay },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -765,7 +759,6 @@ module.exports = {
       `${config.mail.people.corporatePartnershipsManager.firstName} ${config.mail.people.corporatePartnershipsManager.lastName}`,
       config.sendgrid.partnerVolunteerTenSessionMilestoneTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -788,7 +781,6 @@ module.exports = {
       config.mail.people.volunteerManager.firstName,
       config.sendgrid.volunteerGentleWarningTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -811,7 +803,6 @@ module.exports = {
       config.mail.people.volunteerManager.firstName,
       config.sendgrid.volunteerInactiveThirtyDaysTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -831,7 +822,6 @@ module.exports = {
       'The UPchieve Team',
       config.sendgrid.volunteerInactiveSixtyDaysTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
@@ -851,7 +841,6 @@ module.exports = {
       'The UPchieve Team',
       config.sendgrid.volunteerInactiveNinetyDaysTemplate,
       { firstName },
-      config.sendgrid.unsubscribeGroup.account,
       null,
       overrides
     )
