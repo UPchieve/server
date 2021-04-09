@@ -16,18 +16,26 @@ if (mongoPass) {
   mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`
 }
 
-const redisHost = process.env.SUBWAY_REDIS_HOST || 'cache'
-const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
-const redisConn = `redis://${redisHost}:${redisPort}`
-
-const bannedServiceProviderList =
-  process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example'
-const bannedServiceProviders = bannedServiceProviderList.split(',')
-
 let nodeEnv = process.env.NODE_ENV
 if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
   nodeEnv = 'dev'
 }
+
+let redisConn = ''
+const redisHost = process.env.SUBWAY_REDIS_HOST || 'cache'
+const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
+// staging and production use a tls/auth secured Redis
+if (process.env.SUBWAY_REDIS_USE_SECURE) {
+  const redisUsername = process.env.SUBWAY_REDIS_USERNAME || ''
+  const redisPassword = process.env.SUBWAY_REDIS_PASSWORD || ''
+  redisConn = `rediss://${redisUsername}:${redisPassword}@${redisHost}:${redisPort}/?allowUsernameInURI=true`
+} else {
+  redisConn = `redis://${redisHost}:${redisPort}`
+}
+
+const bannedServiceProviderList =
+  process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example'
+const bannedServiceProviders = bannedServiceProviderList.split(',')
 
 const config: Static<typeof Config> = {
   NODE_ENV: nodeEnv,
