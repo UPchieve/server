@@ -5,7 +5,10 @@ import * as http from 'http'
 import socket from 'socket.io'
 import redisAdapter from 'socket.io-redis'
 import config from '../../config'
-const { socketIoPubClient, socketIoSubClient } = require('../../services/RedisService')
+const {
+  socketIoPubClient,
+  socketIoSubClient
+} = require('../../services/RedisService')
 
 // Create an HTTPS server if in production, otherwise use HTTP.
 const createServer = app => {
@@ -34,6 +37,8 @@ export default function(app) {
   })
   if (process.env.NODE_ENV === 'test') return io
 
-  io.adapter(redisAdapter({pubClient: socketIoPubClient, subClient: socketIoSubClient}))
+  io.adapter(
+    redisAdapter({ pubClient: socketIoPubClient, subClient: socketIoSubClient })
+  )
   return io
 }
