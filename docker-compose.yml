@@ -9,13 +9,16 @@ services:
         depends_on:
             - mongodb
             - cache
+        environment:
+          SUBWAY_DB_HOST: mongodb
+          SUBWAY_REDIS_HOST: cache
     mongodb:
         ports:
           - "27017"
-        image: mongo:4.2.3
+        image: mongo:4.4.5-bionic
         environment:
             - MONGO_INITDB_DATABASE=upchieve
         volumes:
             - ./mongo-volume:/data/db
     cache:
-        image: redis:5.0.8
+        image: redis:6.2.1

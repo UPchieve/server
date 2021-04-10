@@ -3,7 +3,7 @@
 import { Static } from 'runtypes'
 import { Config } from './config-type'
 
-const mongoHost = process.env.SUBWAY_DB_HOST || 'mongodb'
+const mongoHost = process.env.SUBWAY_DB_HOST || 'localhost'
 const mongoPort = process.env.SUBWAY_DB_PORT || '27017'
 const mongoName = process.env.SUBWAY_DB_NAME || 'upchieve'
 const mongoPass = process.env.SUBWAY_DB_PASS
