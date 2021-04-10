@@ -21,17 +21,11 @@ if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
   nodeEnv = 'dev'
 }
 
-let redisConn = ''
-const redisHost = process.env.SUBWAY_REDIS_HOST || 'cache'
-const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
-// staging and production use a tls/auth secured Redis
-if (process.env.SUBWAY_REDIS_USE_SECURE) {
-  const redisUsername = process.env.SUBWAY_REDIS_USERNAME || ''
-  const redisPassword = process.env.SUBWAY_REDIS_PASSWORD || ''
-  // https://github.com/luin/ioredis#connect-to-redis
-  redisConn = `rediss://${redisUsername}:${redisPassword}@${redisHost}:${redisPort}`
+let redisUseTls: boolean
+if (process.env.SUBWAY_REDIS_USE_TLS === 'true') {
+  redisUseTls = true
 } else {
-  redisConn = `redis://${redisHost}:${redisPort}`
+  redisUseTls = false
 }
 
 const bannedServiceProviderList =
@@ -226,7 +220,10 @@ const config: Static<typeof Config> = {
   voice: 'man',
 
   workerQueueName: 'main',
-  redisConnectionString: redisConn,
+  redisHost: process.env.SUBWAY_REDIS_HOST || 'localhost',
+  redisPassword: process.env.SUBWAY_REDIS_PASSWORD || '',
+  redisPort: process.env.SUBWAY_REDIS_PORT || '6379',
+  redisUseTls,
   firebase: {
     projectId: Number(process.env.SUBWAY_FIREBASE_PROJECT_ID) || 123456789012
   },
