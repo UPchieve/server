@@ -151,7 +151,6 @@
     "@types/mongodb": "^3.6.9",
     "@types/mongoose": "^5.7.10",
     "@types/morgan": "^1.9.0",
-    "@types/newrelic": "^7.0.0",
     "@types/socket.io": "1.4.33",
     "@types/socket.io-redis": "^1.0.27",
     "@types/supertest": "^2.0.9",
