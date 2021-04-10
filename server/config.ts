@@ -16,11 +16,13 @@ if (mongoPass) {
   mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`
 }
 
-let redisUseTls: boolean
+let redisConnectionString
+const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
+const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
 if (process.env.SUBWAY_REDIS_USE_TLS === 'true') {
-  redisUseTls = true
+  redisConnectionString = `rediss://:${process.env.SUBWAY_REDIS_PASSWORD}@${redisHost}:${redisPort}`
 } else {
-  redisUseTls = false
+  redisConnectionString = `redis://${redisHost}:${redisPort}`
 }
 
 const bannedServiceProviderList =
@@ -220,10 +222,7 @@ const config: Static<typeof Config> = {
   voice: 'man',
 
   workerQueueName: 'main',
-  redisHost: process.env.SUBWAY_REDIS_HOST || 'localhost',
-  redisPassword: process.env.SUBWAY_REDIS_PASSWORD || '',
-  redisPort: process.env.SUBWAY_REDIS_PORT || '6379',
-  redisUseTls,
+  redisConnectionString,
   firebase: {
     projectId: Number(process.env.SUBWAY_FIREBASE_PROJECT_ID) || 123456789012
   },

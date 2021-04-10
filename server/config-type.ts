@@ -114,10 +114,7 @@ export const Config = Record({
   voice: Literal('man'),
 
   workerQueueName: String,
-  redisHost: String,
-  redisPassword: String,
-  redisPort: String,
-  redisUseTls: Boolean,
+  redisConnectionString: String,
   firebase: Record({
     projectId: Number
   }),
