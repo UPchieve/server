@@ -2,10 +2,8 @@
   <configuration default="false" name="MongoDB" type="docker-deploy" factoryName="docker-image" singleton="false" server-name="Docker">
     <deployment type="docker-image">
       <settings>
-        <option name="imageTag" value="mongodb-bionic:4.2.3" />
-        <option name="command" value="" />
+        <option name="imageTag" value="mongo:4.4.5-bionic" />
         <option name="containerName" value="" />
-        <option name="entrypoint" value="" />
         <option name="portBindings">
           <list>
             <DockerPortBindingImpl>
@@ -22,7 +20,6 @@
             </DockerPortBindingImpl>
           </list>
         </option>
-        <option name="commandLineOptions" value="" />
         <option name="volumeBindings">
           <list>
             <DockerVolumeBindingImpl>
