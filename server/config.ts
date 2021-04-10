@@ -16,11 +16,6 @@ if (mongoPass) {
   mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`
 }
 
-let nodeEnv = process.env.NODE_ENV
-if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
-  nodeEnv = 'dev'
-}
-
 let redisUseTls: boolean
 if (process.env.SUBWAY_REDIS_USE_TLS === 'true') {
   redisUseTls = true
@@ -31,6 +26,11 @@ if (process.env.SUBWAY_REDIS_USE_TLS === 'true') {
 const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example'
 const bannedServiceProviders = bannedServiceProviderList.split(',')
+
+let nodeEnv = process.env.NODE_ENV
+if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
+  nodeEnv = 'dev'
+}
 
 const config: Static<typeof Config> = {
   NODE_ENV: nodeEnv,
