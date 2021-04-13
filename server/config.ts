@@ -3,7 +3,7 @@
 import { Static } from 'runtypes'
 import { Config } from './config-type'
 
-const mongoHost = process.env.SUBWAY_DB_HOST || 'mongodb'
+const mongoHost = process.env.SUBWAY_DB_HOST || 'localhost'
 const mongoPort = process.env.SUBWAY_DB_PORT || '27017'
 const mongoName = process.env.SUBWAY_DB_NAME || 'upchieve'
 const mongoPass = process.env.SUBWAY_DB_PASS
@@ -16,9 +16,14 @@ if (mongoPass) {
   mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`
 }
 
-const redisHost = process.env.SUBWAY_REDIS_HOST || 'cache'
+let redisConnectionString
+const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
 const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
-const redisConn = `redis://${redisHost}:${redisPort}`
+if (process.env.SUBWAY_REDIS_USE_TLS === 'true') {
+  redisConnectionString = `rediss://:${process.env.SUBWAY_REDIS_PASSWORD}@${redisHost}:${redisPort}`
+} else {
+  redisConnectionString = `redis://${redisHost}:${redisPort}`
+}
 
 const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example'
@@ -217,7 +222,7 @@ const config: Static<typeof Config> = {
   voice: 'man',
 
   workerQueueName: 'main',
-  redisConnectionString: redisConn,
+  redisConnectionString,
   firebase: {
     projectId: Number(process.env.SUBWAY_FIREBASE_PROJECT_ID) || 123456789012
   },

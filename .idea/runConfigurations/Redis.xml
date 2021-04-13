@@ -2,10 +2,8 @@
   <configuration default="false" name="Redis" type="docker-deploy" factoryName="docker-image" singleton="false" server-name="Docker">
     <deployment type="docker-image">
       <settings>
-        <option name="imageTag" value="redis:6.0.9" />
-        <option name="command" value="" />
+        <option name="imageTag" value="redis:6.2.1" />
         <option name="containerName" value="subway-redis" />
-        <option name="entrypoint" value="" />
         <option name="portBindings">
           <list>
             <DockerPortBindingImpl>
@@ -14,7 +12,6 @@
             </DockerPortBindingImpl>
           </list>
         </option>
-        <option name="commandLineOptions" value="" />
         <option name="volumeBindings">
           <list>
             <DockerVolumeBindingImpl>

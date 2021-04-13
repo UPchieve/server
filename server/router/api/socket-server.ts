@@ -1,17 +1,21 @@
 /**
  * Creates the socket server and returns the Server instance
  */
-const http = require('http')
-const socket = require('socket.io')
-const redisAdapter = require('socket.io-redis')
-const config = require('../../config')
+import * as http from 'http'
+import socket from 'socket.io'
+import redisAdapter from 'socket.io-redis'
+import config from '../../config'
+const {
+  socketIoPubClient,
+  socketIoSubClient
+} = require('../../services/RedisService')
 
 // Create an HTTPS server if in production, otherwise use HTTP.
 const createServer = app => {
   return http.createServer(app)
 }
 
-module.exports = function(app) {
+export default function(app) {
   const server = createServer(app)
 
   const port =
@@ -33,7 +37,8 @@ module.exports = function(app) {
   })
   if (process.env.NODE_ENV === 'test') return io
 
-  const redisUrl = new URL(config.redisConnectionString)
-  io.adapter(redisAdapter({ host: redisUrl.hostname, port: redisUrl.port }))
+  io.adapter(
+    redisAdapter({ pubClient: socketIoPubClient, subClient: socketIoSubClient })
+  )
   return io
 }
