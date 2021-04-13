@@ -10,7 +10,7 @@ import volunteers from './volunteers'
 import user from './user'
 import { routeVerify } from './verify'
 import session from './session'
-import calendar from './calendar'
+import { routeCalendar } from './calendar'
 import training from './training'
 import { routeFeedback } from './feedback'
 import sockets from './sockets'
@@ -30,7 +30,7 @@ module.exports = function(app: Express, sessionStore: MongoStore): void {
   user(router)
   routeVerify(router)
   session(router, io)
-  calendar(router)
+  routeCalendar(router)
   training(router)
   routeFeedback(router)
   sockets(io, sessionStore)

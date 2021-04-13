@@ -21,6 +21,8 @@ import {
 import AvailabilityHistoryModel from '../../models/Availability/History'
 import AvailabilitySnapshotModel from '../../models/Availability/Snapshot'
 
+jest.setTimeout(15000) // db queries can run slow on local dev environments
+
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true

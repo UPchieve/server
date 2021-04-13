@@ -1,9 +1,10 @@
-const CalendarCtrl = require('../../controllers/CalendarCtrl')
+import expressWs from '@small-tech/express-ws'
+import { updateSchedule, clearSchedule } from '../../controllers/CalendarCtrl'
 
-module.exports = function(router) {
+export function routeCalendar(router: expressWs.Router): void {
   router.post('/calendar/save', async function(req, res, next) {
     try {
-      await CalendarCtrl.updateSchedule({
+      await updateSchedule({
         user: req.user,
         availability: req.body.availability,
         tz: req.body.tz,
@@ -19,7 +20,7 @@ module.exports = function(router) {
 
   router.post('/calendar/clear', async function(req, res, next) {
     try {
-      await CalendarCtrl.clearSchedule(req.user, req.body.tz)
+      await clearSchedule(req.user, req.body.tz)
       res.json({
         msg: 'Schedule cleared'
       })
