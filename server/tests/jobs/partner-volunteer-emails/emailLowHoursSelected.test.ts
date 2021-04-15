@@ -148,7 +148,7 @@ describe('Partner volunteer low hours selected email', () => {
     expect(logger.info).not.toHaveBeenCalledWith()
   })
 
-  test('Should catch error when sending email', async () => {
+  test('Should throw error when sending email fails', async () => {
     const pastSessions = [buildSession()._id]
     const availability = buildAvailability({
       Saturday: { '1p': true, '2p': true }
@@ -171,9 +171,8 @@ describe('Partner volunteer low hours selected email', () => {
       }
     }
 
-    await emailLowHoursSelected(job)
-    expect(logger.error).toHaveBeenCalledWith(
-      `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
+    await expect(emailLowHoursSelected(job)).rejects.toEqual(
+      Error(`Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`)
     )
   })
 })

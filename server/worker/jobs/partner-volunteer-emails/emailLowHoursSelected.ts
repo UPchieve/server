@@ -15,11 +15,12 @@ import countAvailabilitySelected from '../../../utils/count-availability-selecte
  * - has had less than 2 sessions
  *
  */
-export default async (
-  job: Job<{
-    volunteerId: string | Types.ObjectId
-  }>
-): Promise<void> => {
+
+interface EmailLowHoursJobData {
+  volunteerId: string | Types.ObjectId
+}
+
+export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
   const {
     data: { volunteerId },
     name: currentJob
@@ -53,9 +54,7 @@ export default async (
         await MailService.sendPartnerVolunteerLowHoursSelected(contactInfo)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
-        logger.error(
-          `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
-        )
+        throw new Error(`Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`)
       }
     }
   }

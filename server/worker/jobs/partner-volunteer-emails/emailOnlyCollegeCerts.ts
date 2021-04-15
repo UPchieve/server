@@ -18,11 +18,12 @@ import { getVolunteer } from '../../../services/UserService'
  * - has received less than 2 text messages
  *
  */
-export default async (
-  job: Job<{
-    volunteerId: string | Types.ObjectId
-  }>
-): Promise<void> => {
+
+interface EmailOnlyCollegeCertsJobData {
+  volunteerId: string | Types.ObjectId
+}
+
+export default async (job: Job<EmailOnlyCollegeCertsJobData>): Promise<void> => {
   const {
     data: { volunteerId },
     name: currentJob
@@ -57,10 +58,8 @@ export default async (
         const contactInfo = { firstName, email }
         await MailService.sendPartnerVolunteerOnlyCollegeCerts(contactInfo)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
-      } catch (error) {
-        logger.error(
-          `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
-        )
+      } catch(error) {
+        throw new Error(`Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`)
       }
     }
   }

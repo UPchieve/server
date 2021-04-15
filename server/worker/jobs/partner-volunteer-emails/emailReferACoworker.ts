@@ -14,14 +14,15 @@ import { SESSION_FLAGS } from '../../../constants'
  * - must have not left 2 ratings of 1 - 3 session ratings
  *
  */
-export default async (
-  job: Job<{
-    volunteerId: string
-    firstName: string
-    email: string
-    partnerOrg: string
-  }>
-): Promise<void> => {
+
+interface EmailReferCoworkerJobData {
+  volunteerId: string | Types.ObjectId,
+  firstName: string,
+  email: string,
+  partnerOrg: string
+}
+
+export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
   const {
     data: { volunteerId, firstName, email, partnerOrg },
     name: currentJob
@@ -31,7 +32,7 @@ export default async (
   const sessions = await getSessionsWithPipeline([
     {
       $match: {
-        volunteer: Types.ObjectId(volunteerId),
+        volunteer: volunteerId,
         timeTutored: { $gte: fifteenMins },
         reviewFlags: { $ne: SESSION_FLAGS.ABSENT_USER }
       }
@@ -104,9 +105,7 @@ export default async (
       await MailService.sendPartnerVolunteerReferACoworker(contactInfo)
       logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
-      logger.error(
-        `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
-      )
+      throw new Error(`Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`)
     }
   }
 }

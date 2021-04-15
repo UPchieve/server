@@ -233,7 +233,7 @@ describe('Partner volunteer refer a coworker email', () => {
     expect(logger.info).not.toHaveBeenCalled()
   })
 
-  test('Should catch error when sending email', async () => {
+  test('Should throw error when sending email fails', async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       volunteerPartnerOrg: 'example'
@@ -271,9 +271,9 @@ describe('Partner volunteer refer a coworker email', () => {
         partnerOrg: volunteer.volunteerPartnerOrg
       }
     }
-    await emailPartnerVolunteerReferACoworker(job)
-    expect(logger.error).toHaveBeenCalledWith(
-      `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
+
+    await expect(emailPartnerVolunteerReferACoworker(job)).rejects.toEqual(
+      Error(`Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`)
     )
   })
 })

@@ -129,7 +129,7 @@ describe('Parnter volunteer only college certs email', () => {
     expect(logger.info).not.toHaveBeenCalledWith()
   })
 
-  test('Should catch error when sending email', async () => {
+  test('Should throw error when sending email fails', async () => {
     const subjects = [SUBJECTS.PLANNING]
     const volunteer = await insertVolunteer({
       isOnboarded: true,
@@ -148,9 +148,8 @@ describe('Parnter volunteer only college certs email', () => {
       }
     }
 
-    await emailOnlyCollegeCerts(job)
-    expect(logger.error).toHaveBeenCalledWith(
-      `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
+    await expect(emailOnlyCollegeCerts(job)).rejects.toEqual(
+      Error(`Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`)
     )
   })
 })
