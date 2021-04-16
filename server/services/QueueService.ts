@@ -1,7 +1,10 @@
 import Queue from 'bull'
+import Redis from 'ioredis'
 import config from '../config'
 
-const queue = new Queue(config.workerQueueName, config.redisConnectionString)
+const queue = new Queue(config.workerQueueName, {
+  createClient: () => new Redis(config.redisConnectionString)
+})
 
 module.exports = queue
 export default queue
