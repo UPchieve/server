@@ -11,13 +11,13 @@ import notifyTutors from '../../worker/jobs/notifyTutors'
 import config from '../../config'
 import TwilioService from '../../services/twilio'
 import { buildVolunteer, buildNotification } from '../generate'
-import { log } from '../../worker/logger'
+import logger from '../../logger'
 import { Volunteer } from '../../models/Volunteer'
 import { Notification } from '../../models/Notification'
 import QueueService from '../../services/QueueService'
 jest.mock('../../services/twilio')
 jest.mock('../../services/QueueService')
-jest.mock('../../worker/logger')
+jest.mock('../../logger')
 
 // db connection
 beforeAll(async () => {
@@ -74,7 +74,7 @@ describe('Notify tutors', () => {
     }
 
     await notifyTutors(job)
-    expect(log).toHaveBeenCalledWith(`session ${_id} not found`)
+    expect(logger.info).toHaveBeenCalledWith(`session ${_id} not found`)
   })
 
   test('Should not notify volunteers when session is fulfilled', async () => {
@@ -89,7 +89,7 @@ describe('Notify tutors', () => {
     }
 
     await notifyTutors(job)
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `session ${session._id} fulfilled, cancelling notifications`
     )
     expect(QueueService.add).toHaveBeenCalledTimes(1)
@@ -113,7 +113,7 @@ describe('Notify tutors', () => {
     await notifyTutors(job)
 
     expect(job.queue.add).toHaveBeenCalledTimes(0)
-    expect(log).toHaveBeenCalledWith('No volunteer notified')
+    expect(logger.info).toHaveBeenCalledWith('No volunteer notified')
   })
 
   test('Should notify volunteers', async () => {
@@ -136,7 +136,9 @@ describe('Notify tutors', () => {
 
     expect(job.queue.add).toHaveBeenCalledTimes(1)
     expect(job.data.notificationSchedule.length).toBe(1)
-    expect(log).toHaveBeenCalledWith(`Volunteer notified: ${volunteer._id}`)
+    expect(logger.info).toHaveBeenCalledWith(
+      `Volunteer notified: ${volunteer._id}`
+    )
   })
 
   test('Should notify a volunteer who has already been texted with a follow-up text once total volunteers to text has been passed', async () => {
@@ -165,7 +167,7 @@ describe('Notify tutors', () => {
     const expectedVolunteer = volunteers[expectedVolunteerIndex]
 
     expect(TwilioService.sendFollowupText).toHaveBeenCalledTimes(1)
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Sent follow-up notification to: ${expectedVolunteer._id}`
     )
   })

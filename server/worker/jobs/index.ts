@@ -1,8 +1,7 @@
 import { ProcessPromiseFunction, Queue } from 'bull'
 import { map } from 'lodash'
-import * as Sentry from '@sentry/node'
 import newrelic from 'newrelic'
-import { log } from '../logger'
+import logger from '../../logger'
 import notifyTutors from './notifyTutors'
 import updateElapsedAvailability from './updateElapsedAvailability'
 import endStaleSessions from './endStaleSessions'
@@ -171,22 +170,33 @@ const jobProcessors: JobProcessor[] = [
 ]
 
 export const addJobProcessors = (queue: Queue): void => {
-  map(jobProcessors, jobProcessor =>
-    queue.process(jobProcessor.name, job => {
-      newrelic.startBackgroundTransaction(`job:${job.name}`, async () => {
-        const transaction = newrelic.getTransaction()
-        log(`Processing job: ${job.name}`)
-        try {
-          await jobProcessor.processor(job)
-          log(`Completed job: ${job.name}`)
-        } catch (error) {
-          log(`Error processing job: ${job.name}`)
-          log(error)
-          Sentry.captureException(error)
-        } finally {
-          transaction.end()
-        }
+  try {
+    map(jobProcessors, jobProcessor =>
+      queue.process(jobProcessor.name, job => {
+        newrelic
+          .startBackgroundTransaction(`job:${job.name}`, async () => {
+            const transaction = newrelic.getTransaction()
+            logger.info(`Processing job: ${job.name}`)
+            try {
+              await jobProcessor.processor(job)
+              logger.info(`Completed job: ${job.name}`)
+            } catch (error) {
+              logger.error(`Error processing job: ${job.name}\n${error}`)
+              newrelic.noticeError(error)
+            } finally {
+              transaction.end()
+            }
+          })
+          .catch(error => {
+            logger.error(
+              `error in job processor newrelic transaction: ${error}`
+            )
+            newrelic.noticeError(error)
+          })
       })
-    })
-  )
+    )
+  } catch (error) {
+    logger.error(`error adding job processors: ${error}`)
+    newrelic.noticeError(error)
+  }
 }
