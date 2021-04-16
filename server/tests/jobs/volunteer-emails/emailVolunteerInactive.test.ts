@@ -16,18 +16,23 @@ jest.setTimeout(1000 * 15)
 const fifteenDaysAgo = moment()
   .utc()
   .subtract(15, 'days')
+  .toDate()
 const thirtyDaysAgo = moment()
   .utc()
   .subtract(30, 'days')
+  .toDate()
 const fourtyDaysAgo = moment()
   .utc()
   .subtract(40, 'days')
+  .toDate()
 const sixtyDaysAgo = moment()
   .utc()
   .subtract(60, 'days')
+  .toDate()
 const ninetyDaysAgo = moment()
   .utc()
   .subtract(90, 'days')
+  .toDate()
 
 // db connection
 beforeAll(async () => {
@@ -51,13 +56,13 @@ describe('Volunteer inactive emails', () => {
 
   test('Should send to volunteers who fall on inactive period of 30, 60, or 90 days ago', async () => {
     const hemingway = buildVolunteer({
-      lastActivityAt: new Date(fifteenDaysAgo)
+      lastActivityAt: fifteenDaysAgo
     })
-    const angelou = buildVolunteer({ lastActivityAt: new Date(thirtyDaysAgo) })
-    const woolf = buildVolunteer({ lastActivityAt: new Date(fourtyDaysAgo) })
-    const dickens = buildVolunteer({ lastActivityAt: new Date(sixtyDaysAgo) })
-    const twain = buildVolunteer({ lastActivityAt: new Date(ninetyDaysAgo) })
-    const faulkner = buildVolunteer({ lastActivityAt: new Date(ninetyDaysAgo) })
+    const angelou = buildVolunteer({ lastActivityAt: thirtyDaysAgo })
+    const woolf = buildVolunteer({ lastActivityAt: fourtyDaysAgo })
+    const dickens = buildVolunteer({ lastActivityAt: sixtyDaysAgo })
+    const twain = buildVolunteer({ lastActivityAt: ninetyDaysAgo })
+    const faulkner = buildVolunteer({ lastActivityAt: ninetyDaysAgo })
     const volunteers = [hemingway, angelou, woolf, dickens, twain, faulkner]
     // @todo: figure out why getVolunteersMany does not work
     await VolunteerModel.insertMany(volunteers)
@@ -82,18 +87,18 @@ describe('Volunteer inactive emails', () => {
 
   test('Should not send to volunteers who have already received an inactive email', async () => {
     const angelou = buildVolunteer({
-      lastActivityAt: new Date(thirtyDaysAgo),
+      lastActivityAt: thirtyDaysAgo,
       sentInactiveThirtyDayEmail: true
     })
     const dickens = buildVolunteer({
-      lastActivityAt: new Date(sixtyDaysAgo),
+      lastActivityAt: sixtyDaysAgo,
       sentInactiveSixtyDayEmail: true
     })
     const twain = buildVolunteer({
-      lastActivityAt: new Date(ninetyDaysAgo),
+      lastActivityAt: ninetyDaysAgo,
       sentInactiveNinetyDayEmail: true
     })
-    const faulkner = buildVolunteer({ lastActivityAt: new Date(ninetyDaysAgo) })
+    const faulkner = buildVolunteer({ lastActivityAt: ninetyDaysAgo })
     const volunteers = [angelou, dickens, twain, faulkner]
     // @todo: figure out why getVolunteersMany does not work
     await VolunteerModel.insertMany(volunteers)
@@ -112,7 +117,7 @@ describe('Volunteer inactive emails', () => {
       Wednesday: { '1p': true, '2p': true }
     })
     const twain = buildVolunteer({
-      lastActivityAt: new Date(ninetyDaysAgo),
+      lastActivityAt: ninetyDaysAgo,
       availability
     })
     await insertVolunteer(twain)
@@ -125,24 +130,24 @@ describe('Volunteer inactive emails', () => {
     expect(updatedTwain.availability).toMatchObject(noHoursSelected)
   })
 
-  test('Should catch error when sending email to inactive volunteers', async () => {
-    const angelou = buildVolunteer({ lastActivityAt: new Date(thirtyDaysAgo) })
-    const hemingway = buildVolunteer({ lastActivityAt: new Date(sixtyDaysAgo) })
+  test('Should throw error when sending email to inactive volunteers fails', async () => {
+    const angelou = buildVolunteer({ lastActivityAt: thirtyDaysAgo })
+    const hemingway = buildVolunteer({ lastActivityAt: sixtyDaysAgo })
     await Promise.all([insertVolunteer(angelou), insertVolunteer(hemingway)])
 
     const errorMessage = 'Unable to send'
+    const inactiveSixtyDayError = `${Jobs.EmailVolunteerInactiveSixtyDays} to volunteer ${hemingway._id}: ${errorMessage}`
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
     MailService.sendVolunteerInactiveSixtyDays = rejectionFn
 
-    await emailVolunteerInactive()
+    await expect(emailVolunteerInactive()).rejects.toEqual(
+      Error(`Failed to send inactivity emails: ${[inactiveSixtyDayError]}`)
+    )
     expect(MailService.sendVolunteerInactiveThirtyDays).toHaveBeenCalledTimes(1)
     expect(MailService.sendVolunteerInactiveSixtyDays).toHaveBeenCalledTimes(1)
     expect(MailService.sendVolunteerInactiveNinetyDays).not.toHaveBeenCalled()
     expect(logger.info).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveThirtyDays} to volunteer ${angelou._id}`
-    )
-    expect(logger.error).toHaveBeenCalledWith(
-      `Failed to send ${Jobs.EmailVolunteerInactiveSixtyDays} to volunteer ${hemingway._id}: ${errorMessage}`
     )
   })
 })

@@ -309,7 +309,9 @@ describe('Partner volunteer ten session milestone email', () => {
     }
 
     await expect(emailTenSessionMilestone(job)).rejects.toEqual(
-      Error(`Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`)
+      Error(
+        `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
+      )
     )
   })
 })

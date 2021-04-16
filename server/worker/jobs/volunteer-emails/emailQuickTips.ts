@@ -6,11 +6,11 @@ import { getNotifications } from '../../../services/NotificationService'
 import { getVolunteer } from '../../../services/UserService'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
 
-export default async (
-  job: Job<{
-    volunteerId: string | Types.ObjectId
-  }>
-): Promise<void> => {
+interface EmailQuickTipsJobData {
+  volunteerId: string | Types.ObjectId
+}
+
+export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
   const {
     data: { volunteerId },
     name: currentJob
@@ -42,7 +42,7 @@ export default async (
         await MailService.sendVolunteerQuickTips(contactInfo)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
-        logger.error(
+        throw new Error(
           `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
         )
       }

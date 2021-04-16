@@ -170,6 +170,16 @@ const jobProcessors: JobProcessor[] = [
   }
 ]
 
+/**
+ * Job processors should throw an error when they fail perform an expected action.
+ * The thrown error should include a message about which documents (if any) were
+ * affected so failed actions can be backfilled.
+ *
+ * They can additionally log internal state but all thrown errors will be logged
+ * in a consistent format with a Sentry capture so we can create effective
+ * monitoring alerts on jobs.
+ */
+
 export const addJobProcessors = (queue: Queue): void => {
   map(jobProcessors, jobProcessor =>
     queue.process(jobProcessor.name, job => {

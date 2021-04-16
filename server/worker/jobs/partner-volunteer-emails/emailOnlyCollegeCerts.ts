@@ -23,7 +23,9 @@ interface EmailOnlyCollegeCertsJobData {
   volunteerId: string | Types.ObjectId
 }
 
-export default async (job: Job<EmailOnlyCollegeCertsJobData>): Promise<void> => {
+export default async (
+  job: Job<EmailOnlyCollegeCertsJobData>
+): Promise<void> => {
   const {
     data: { volunteerId },
     name: currentJob
@@ -58,8 +60,10 @@ export default async (job: Job<EmailOnlyCollegeCertsJobData>): Promise<void> => 
         const contactInfo = { firstName, email }
         await MailService.sendPartnerVolunteerOnlyCollegeCerts(contactInfo)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
-      } catch(error) {
-        throw new Error(`Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`)
+      } catch (error) {
+        throw new Error(
+          `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
+        )
       }
     }
   }

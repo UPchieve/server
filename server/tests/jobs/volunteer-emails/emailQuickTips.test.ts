@@ -82,7 +82,7 @@ describe('Volunteer quick tips email', () => {
     expect(logger.info).not.toHaveBeenCalledWith()
   })
 
-  test('Should catch error when sending email', async () => {
+  test('Should throw error when sending email fails', async () => {
     const availability = buildAvailability({
       Saturday: { '1p': true, '2p': true }
     })
@@ -99,9 +99,10 @@ describe('Volunteer quick tips email', () => {
       }
     }
 
-    await emailQuickTips(job)
-    expect(logger.error).toHaveBeenCalledWith(
-      `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
+    await expect(emailQuickTips(job)).rejects.toEqual(
+      Error(
+        `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
+      )
     )
   })
 })

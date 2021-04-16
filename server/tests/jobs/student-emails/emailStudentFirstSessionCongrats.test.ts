@@ -63,7 +63,7 @@ describe('Student first session congrats email', () => {
     expect(MailService.sendStudentFirstSessionCongrats).toHaveBeenCalledTimes(0)
   })
 
-  test('Should catch error when sending email', async () => {
+  test('Should throw error when sending email fails', async () => {
     const { session, student } = await insertSessionWithVolunteer()
     const errorMessage = 'Unable to send'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
@@ -77,9 +77,10 @@ describe('Student first session congrats email', () => {
       }
     }
 
-    await emailStudentFirstSessionCongrats(job)
-    expect(logger.error).toHaveBeenCalledWith(
-      `Failed to send ${job.name} to student ${student._id}: ${errorMessage}`
+    await expect(emailStudentFirstSessionCongrats(job)).rejects.toEqual(
+      Error(
+        `Failed to send ${job.name} to student ${student._id}: ${errorMessage}`
+      )
     )
   })
 })

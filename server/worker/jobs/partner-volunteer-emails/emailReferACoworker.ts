@@ -16,9 +16,9 @@ import { SESSION_FLAGS } from '../../../constants'
  */
 
 interface EmailReferCoworkerJobData {
-  volunteerId: string | Types.ObjectId,
-  firstName: string,
-  email: string,
+  volunteerId: string | Types.ObjectId
+  firstName: string
+  email: string
   partnerOrg: string
 }
 
@@ -105,7 +105,9 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
       await MailService.sendPartnerVolunteerReferACoworker(contactInfo)
       logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
-      throw new Error(`Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`)
+      throw new Error(
+        `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
+      )
     }
   }
 }

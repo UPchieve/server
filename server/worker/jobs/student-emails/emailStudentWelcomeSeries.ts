@@ -41,7 +41,7 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
 
       logger.info(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {
-      logger.error(
+      throw new Error(
         `Failed to email ${currentJob} to student ${studentId}: ${error}`
       )
     }

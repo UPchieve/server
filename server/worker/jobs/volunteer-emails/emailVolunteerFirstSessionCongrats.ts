@@ -5,12 +5,12 @@ import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
 
-const ObjectId = Types.ObjectId
+interface EmailVolunteerFirstSessionJobData {
+  sessionId: string | Types.ObjectId
+}
 
 export default async (
-  job: Job<{
-    sessionId: string
-  }>
+  job: Job<EmailVolunteerFirstSessionJobData>
 ): Promise<void> => {
   const {
     data: { sessionId },
@@ -19,7 +19,7 @@ export default async (
   const [session] = await getSessionsWithPipeline([
     {
       $match: {
-        _id: ObjectId(sessionId),
+        _id: sessionId,
         flags: {
           $nin: [
             SESSION_FLAGS.ABSENT_USER,
@@ -52,7 +52,7 @@ export default async (
       await MailService.sendVolunteerFirstSessionCongrats(contactInfo)
       logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
-      logger.error(
+      throw new Error(
         `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
       )
     }

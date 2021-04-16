@@ -11,6 +11,7 @@ import notifyTutors from '../../worker/jobs/notifyTutors'
 import config from '../../config'
 import TwilioService from '../../services/twilio'
 import { buildVolunteer, buildNotification } from '../generate'
+import { Jobs } from '../../worker/jobs'
 import { log } from '../../worker/logger'
 import { Volunteer } from '../../models/Volunteer'
 import { Notification } from '../../models/Notification'
@@ -62,21 +63,6 @@ describe('Notify tutors', () => {
     jest.resetAllMocks()
   })
 
-  test('Should not notify volunteers when empty session', async () => {
-    const _id = mongoose.Types.ObjectId()
-    // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const job: any = {
-      data: {
-        sessionId: _id,
-        notificationSchedule: config.notificationSchedule
-      }
-    }
-
-    await notifyTutors(job)
-    expect(log).toHaveBeenCalledWith(`session ${_id} not found`)
-  })
-
   test('Should not notify volunteers when session is fulfilled', async () => {
     const { session } = await insertSessionWithVolunteer()
     // @todo: figure out how to properly type
@@ -90,7 +76,7 @@ describe('Notify tutors', () => {
 
     await notifyTutors(job)
     expect(log).toHaveBeenCalledWith(
-      `session ${session._id} fulfilled, cancelling notifications`
+      `Cancel ${Jobs.NotifyTutors} for ${session._id}: fulfilled`
     )
     expect(QueueService.add).toHaveBeenCalledTimes(1)
   })
@@ -113,7 +99,9 @@ describe('Notify tutors', () => {
     await notifyTutors(job)
 
     expect(job.queue.add).toHaveBeenCalledTimes(0)
-    expect(log).toHaveBeenCalledWith('No volunteer notified')
+    expect(log).toHaveBeenCalledWith(
+      `Unable to ${Jobs.NotifyTutors} for session ${session._id}: no volunteers available`
+    )
   })
 
   test('Should notify volunteers', async () => {
@@ -136,7 +124,9 @@ describe('Notify tutors', () => {
 
     expect(job.queue.add).toHaveBeenCalledTimes(1)
     expect(job.data.notificationSchedule.length).toBe(1)
-    expect(log).toHaveBeenCalledWith(`Volunteer notified: ${volunteer._id}`)
+    expect(log).toHaveBeenCalledWith(
+      `Successfully ${Jobs.NotifyTutors} for session ${session._id}: volunteer ${volunteer._id}`
+    )
   })
 
   test('Should notify a volunteer who has already been texted with a follow-up text once total volunteers to text has been passed', async () => {
@@ -166,7 +156,7 @@ describe('Notify tutors', () => {
 
     expect(TwilioService.sendFollowupText).toHaveBeenCalledTimes(1)
     expect(log).toHaveBeenCalledWith(
-      `Sent follow-up notification to: ${expectedVolunteer._id}`
+      `Successfully ${Jobs.NotifyTutors} for session ${session._id}: follow-up to volunteer ${expectedVolunteer._id}`
     )
   })
 })

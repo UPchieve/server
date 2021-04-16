@@ -53,7 +53,7 @@ describe('Student welcome email series', () => {
     }
   })
 
-  test('Should catch error for student welcome series jobs', async () => {
+  test('Should throw error when sending student welcome series email fails', async () => {
     const student = await insertStudent()
     const errorMessage = 'Error sending email'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
@@ -72,9 +72,10 @@ describe('Student welcome email series', () => {
         }
       }
 
-      await emailStudentWelcomeSeries(job)
-      expect(logger.error).toHaveBeenCalledWith(
-        `Failed to email ${currentJob} to student ${student._id}: ${errorMessage}`
+      await expect(emailStudentWelcomeSeries(job)).rejects.toEqual(
+        Error(
+          `Failed to email ${currentJob} to student ${student._id}: ${errorMessage}`
+        )
       )
     }
   })

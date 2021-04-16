@@ -12,17 +12,17 @@ interface GentleWarningAggregation {
   email: string
 }
 
+interface EmailGentleWarningJobData {
+  sessionId: string | Types.ObjectId
+}
+
 /**
  *
  * conditions for sending email:
  * - Volunteer received 5 texts and completed 0 tutoring sessions
  *
  */
-export default async (
-  job: Job<{
-    sessionId: string
-  }>
-): Promise<void> => {
+export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
   const {
     data: { sessionId },
     name: currentJob
@@ -30,7 +30,7 @@ export default async (
   const documentsWithVolunteerIds = await getSessionsWithPipeline([
     {
       $match: {
-        _id: Types.ObjectId(sessionId)
+        _id: sessionId
       }
     },
     {
@@ -100,6 +100,7 @@ export default async (
     }
   ])
 
+  const errors = []
   for (const volunteer of volunteerNotifications as GentleWarningAggregation[]) {
     if (volunteer.totalNotifications === 5) {
       const { firstName, email, _id } = volunteer
@@ -108,10 +109,11 @@ export default async (
         await MailService.sendVolunteerGentleWarning(contactInfo)
         logger.info(`Sent ${currentJob} to volunteer ${_id}`)
       } catch (error) {
-        logger.error(
-          `Failed to send ${currentJob} to volunteer ${_id}: ${error}`
-        )
+        errors.push(`volunteer ${_id}: ${error}`)
       }
     }
+  }
+  if (errors.length) {
+    throw new Error(`Failed to send ${currentJob} to: ${[errors]}`)
   }
 }

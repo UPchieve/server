@@ -149,7 +149,9 @@ describe('Parnter volunteer only college certs email', () => {
     }
 
     await expect(emailOnlyCollegeCerts(job)).rejects.toEqual(
-      Error(`Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`)
+      Error(
+        `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
+      )
     )
   })
 })

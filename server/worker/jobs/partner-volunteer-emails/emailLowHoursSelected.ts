@@ -54,7 +54,9 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
         await MailService.sendPartnerVolunteerLowHoursSelected(contactInfo)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
-        throw new Error(`Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`)
+        throw new Error(
+          `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
+        )
       }
     }
   }

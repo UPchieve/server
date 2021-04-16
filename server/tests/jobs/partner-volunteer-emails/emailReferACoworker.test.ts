@@ -273,7 +273,9 @@ describe('Partner volunteer refer a coworker email', () => {
     }
 
     await expect(emailPartnerVolunteerReferACoworker(job)).rejects.toEqual(
-      Error(`Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`)
+      Error(
+        `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
+      )
     )
   })
 })

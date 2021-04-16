@@ -9,6 +9,8 @@ import { log } from '../logger'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
 import { Jobs } from '.'
 
+jest.setTimeout(15000)
+
 interface NotifyTutorsJobData {
   sessionId: string
   notificationSchedule: number[]
@@ -17,14 +19,14 @@ interface NotifyTutorsJobData {
 export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   const { sessionId, notificationSchedule } = job.data
   const session = await Session.findById(sessionId)
-  if (!session) return log(`session ${sessionId} not found`)
+  if (!session) return
   const fulfilled = SessionService.isSessionFulfilled(session)
   if (fulfilled) {
     QueueService.add(Jobs.EmailVolunteerGentleWarning, {
       sessionId,
       notifications: session.notifications
     })
-    return log(`session ${sessionId} fulfilled, cancelling notifications`)
+    return log(`Cancel ${Jobs.NotifyTutors} for ${sessionId}: fulfilled`)
   }
   const delay = notificationSchedule.shift()
   if (delay)
@@ -44,16 +46,36 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
     const notification = await getNotificationWithVolunteer(notificationId)
     const volunteer = notification.volunteer as Volunteer
 
-    await TwilioService.sendFollowupText({
-      session,
-      volunteerId: volunteer._id,
-      volunteerPhone: volunteer.phone
-    })
-    log(`Sent follow-up notification to: ${volunteer._id}`)
+    try {
+      await TwilioService.sendFollowupText({
+        session,
+        volunteerId: volunteer._id,
+        volunteerPhone: volunteer.phone
+      })
+      log(
+        `Successfully ${Jobs.NotifyTutors} for session ${session._id}: follow-up to volunteer ${volunteer._id}`
+      )
+    } catch (error) {
+      throw new Error(
+        `Failed to ${Jobs.NotifyTutors} for session ${session._id}: ${error}`
+      )
+    }
   } else {
-    const volunteerNotified = await TwilioService.notifyVolunteer(session)
+    try {
+      const volunteerNotified = await TwilioService.notifyVolunteer(session)
 
-    if (volunteerNotified) log(`Volunteer notified: ${volunteerNotified._id}`)
-    else log('No volunteer notified')
+      if (volunteerNotified)
+        log(
+          `Successfully ${Jobs.NotifyTutors} for session ${session._id}: volunteer ${volunteerNotified._id}`
+        )
+      else
+        log(
+          `Unable to ${Jobs.NotifyTutors} for session ${session._id}: no volunteers available`
+        )
+    } catch (error) {
+      throw new Error(
+        `Failed to ${Jobs.NotifyTutors} for session ${session._id}: ${error}`
+      )
+    }
   }
 }

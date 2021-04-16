@@ -15,9 +15,9 @@ import { SESSION_FLAGS } from '../../../constants'
  */
 
 interface EmailTenSessionJobData {
-  volunteerId: string | Types.ObjectId,
-  firstName: string,
-  email: string,
+  volunteerId: string | Types.ObjectId
+  firstName: string
+  email: string
 }
 
 export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
@@ -100,7 +100,9 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
       await MailService.sendPartnerVolunteerTenSessionMilestone(contactInfo)
       logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
-      throw new Error(`Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`)
+      throw new Error(
+        `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
+      )
     }
   }
 }

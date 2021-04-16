@@ -68,7 +68,7 @@ describe('Volunteer onboarding email reminders', () => {
     }
   })
 
-  test('Should catch error from onboarding email reminder jobs', async () => {
+  test('Should throw error when sending onboarding email reminder fails', async () => {
     const volunteer = await insertVolunteer()
     const errorMessage = 'Error sending onboarding reminder email'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
@@ -86,9 +86,10 @@ describe('Volunteer onboarding email reminders', () => {
         }
       }
 
-      await emailOnboardingReminder(job)
-      expect(logger.error).toHaveBeenCalledWith(
-        `Failed to email ${currentJob.name} to volunteer ${volunteer._id}: ${errorMessage}`
+      await expect(emailOnboardingReminder(job)).rejects.toEqual(
+        Error(
+          `Failed to email ${currentJob.name} to volunteer ${volunteer._id}: ${errorMessage}`
+        )
       )
     }
   })
