@@ -9,8 +9,6 @@ import { log } from '../logger'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
 import { Jobs } from '.'
 
-jest.setTimeout(15000)
-
 interface NotifyTutorsJobData {
   sessionId: string
   notificationSchedule: number[]

@@ -20,6 +20,8 @@ jest.mock('../../services/twilio')
 jest.mock('../../services/QueueService')
 jest.mock('../../worker/logger')
 
+jest.setTimeout(15000)
+
 // db connection
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
