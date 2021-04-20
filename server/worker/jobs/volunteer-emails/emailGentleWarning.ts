@@ -30,7 +30,8 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
   const documentsWithVolunteerIds = await getSessionsWithPipeline([
     {
       $match: {
-        _id: sessionId
+        _id:
+          typeof sessionId === 'string' ? Types.ObjectId(sessionId) : sessionId
       }
     },
     {

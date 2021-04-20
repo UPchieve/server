@@ -30,7 +30,10 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
   const sessions = await getSessionsWithPipeline([
     {
       $match: {
-        volunteer: volunteerId,
+        volunteer:
+          typeof volunteerId === 'string'
+            ? Types.ObjectId(volunteerId)
+            : volunteerId,
         timeTutored: { $gte: fifteenMins },
         reviewFlags: { $ne: SESSION_FLAGS.ABSENT_USER }
       }

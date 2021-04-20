@@ -19,7 +19,8 @@ export default async (
   const [session] = await getSessionsWithPipeline([
     {
       $match: {
-        _id: sessionId,
+        _id:
+          typeof sessionId === 'string' ? Types.ObjectId(sessionId) : sessionId,
         flags: {
           $nin: [
             SESSION_FLAGS.ABSENT_USER,
