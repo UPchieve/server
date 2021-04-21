@@ -1,5 +1,4 @@
 import { Job } from 'bull'
-import newrelic from 'newrelic'
 import Session from '../../models/Session'
 import SessionService from '../../services/SessionService'
 import QueueService from '../../services/QueueService'
@@ -7,7 +6,7 @@ import TwilioService from '../../services/twilio'
 import { getNotificationWithVolunteer } from '../../services/NotificationService'
 import { Volunteer } from '../../models/Volunteer'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
-import logger from '../../logger'
+import { log } from '../logger'
 import { Jobs } from '.'
 
 interface NotifyTutorsJobData {
