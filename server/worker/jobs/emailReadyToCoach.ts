@@ -1,6 +1,7 @@
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import MailService from '../../services/MailService'
 import { log } from '../logger'
+import { Jobs } from '.'
 
 export default async (): Promise<void> => {
   const volunteers = (await VolunteerModel.find({
@@ -11,18 +12,31 @@ export default async (): Promise<void> => {
     .lean()
     .exec()) as Volunteer[]
 
+  const errors = []
+  const failedVolunteers = []
+  let successVolunteers = 0
   for (const volunteer of volunteers) {
-    await MailService.sendReadyToCoachEmail(volunteer)
+    try {
+      await MailService.sendReadyToCoachEmail(volunteer)
+      successVolunteers += 1
+    } catch (error) {
+      errors.push(`volunteer ${volunteer._id}: ${error}`)
+      failedVolunteers.push(volunteer._id)
+    }
   }
 
   await VolunteerModel.updateMany(
     {
       isOnboarded: true,
       isApproved: true,
-      sentReadyToCoachEmail: false
+      sentReadyToCoachEmail: false,
+      _id: { $nin: failedVolunteers }
     },
     { sentReadyToCoachEmail: true }
   )
+  log(`Sent ${Jobs.EmailReadyToCoach} to ${successVolunteers} volunteers`)
 
-  log(`sent ready-to-coach email to ${volunteers.length} volunteers`)
+  if (errors.length) {
+    throw new Error(`Failed to send ${Jobs.EmailReadyToCoach} to ${errors}`)
+  }
 }

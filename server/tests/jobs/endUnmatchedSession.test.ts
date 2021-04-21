@@ -8,6 +8,7 @@ import {
 import endUnmatchedSession from '../../worker/jobs/endUnmatchedSession'
 import { log } from '../../worker/logger'
 import SessionService from '../../services/SessionService'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../worker/logger')
 jest.setTimeout(15000)
 
@@ -31,20 +32,6 @@ describe('End unmatched session', () => {
     jest.resetAllMocks()
   })
 
-  test('Should log when no session is found', async () => {
-    const _id = mongoose.Types.ObjectId()
-    // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const job: any = {
-      data: {
-        sessionId: _id
-      }
-    }
-
-    await endUnmatchedSession(job)
-    expect(log).toHaveBeenCalledWith(`session ${_id} not found`)
-  })
-
   test('Should not end session when session is fulfilled', async () => {
     const { session } = await insertSessionWithVolunteer()
     // @todo: figure out how to properly type
@@ -57,11 +44,11 @@ describe('End unmatched session', () => {
 
     await endUnmatchedSession(job)
     expect(log).toHaveBeenCalledWith(
-      `session ${session._id} fulfilled, cancel ending unmatched session`
+      `Cancel ${Jobs.EndUnmatchedSession}: session ${session._id} fulfilled`
     )
   })
 
-  test('Should catch error when ending a session', async () => {
+  test('Should throw error when ending a session fails', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,16 +57,17 @@ describe('End unmatched session', () => {
         sessionId: session._id
       }
     }
-    const error = new Error('unable to end session')
-    const mockedEndSession = jest
+    const errorMessage = 'unable to end session'
+    const mockEndSession = jest
       .spyOn(SessionService, 'endSession')
-      .mockRejectedValueOnce(error)
+      .mockRejectedValueOnce(errorMessage)
 
-    await endUnmatchedSession(job)
-    mockedEndSession.mockRestore()
-    expect(log).toHaveBeenCalledWith(
-      `Failed to end unmatched session: ${session._id}: ${error}`
+    await expect(endUnmatchedSession(job)).rejects.toEqual(
+      Error(
+        `Failed to ${Jobs.EndUnmatchedSession}: session ${session._id}: ${errorMessage}`
+      )
     )
+    mockEndSession.mockRestore()
   })
 
   test('Should end session unmatched session', async () => {
@@ -94,11 +82,13 @@ describe('End unmatched session', () => {
 
     await endUnmatchedSession(job)
 
-    const query = { _id: session._id.toString() }
+    const query = { _id: session._id }
     const projection = { endedAt: 1 }
     const updatedSession = await getSession(query, projection)
 
     expect(updatedSession.endedAt).toBeTruthy()
-    expect(log).toHaveBeenCalledWith(`Ended unmatched session: ${session._id}`)
+    expect(log).toHaveBeenCalledWith(
+      `Successfuly ${Jobs.EndUnmatchedSession}: session ${session._id}`
+    )
   })
 })

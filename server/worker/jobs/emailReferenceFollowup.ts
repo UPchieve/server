@@ -2,6 +2,7 @@ import { log } from '../logger'
 import VolunteerModel, { Reference } from '../../models/Volunteer'
 import { REFERENCE_STATUS } from '../../constants'
 import MailService from '../../services/MailService'
+import { Jobs } from '.'
 
 // @note: uses firstName instead of firstname because of the $project aggregation stage
 // @todo: clean up Volunteer model to use firstName instead of firstname
@@ -58,6 +59,7 @@ export default async (): Promise<void> => {
   )
 
   let totalEmailed = 0
+  const errors = []
 
   if (referencesToEmail.length === 0)
     return log('No references to email for a follow-up')
@@ -67,9 +69,14 @@ export default async (): Promise<void> => {
       await MailService.sendReferenceFollowup(ref)
       totalEmailed++
     } catch (error) {
-      log(`Error notifying reference ${ref.reference._id}: ${error}`)
+      errors.push(`reference ${ref.reference._id}: ${error}`)
     }
   }
 
-  return log(`Emailed ${totalEmailed} references a follow-up`)
+  log(`Sent ${Jobs.EmailReferenceFollowup} to ${totalEmailed} references.`)
+  if (errors.length) {
+    throw new Error(
+      `Failed to send ${Jobs.EmailReferenceFollowup} to: ${errors}`
+    )
+  }
 }

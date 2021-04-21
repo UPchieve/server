@@ -30,6 +30,7 @@ async function sendEmailToInactiveVolunteers({
 }) {
   for (const volunteer of volunteers) {
     const { email, firstname: firstName, _id } = volunteer
+    const errors = []
     try {
       const contactInfo = { email, firstName }
       await mailHandler(contactInfo)
@@ -52,7 +53,10 @@ async function sendEmailToInactiveVolunteers({
       }
       logger.info(`Sent ${currentJob} to volunteer ${_id}`)
     } catch (error) {
-      logger.error(`Failed to send ${currentJob} to volunteer ${_id}: ${error}`)
+      errors.push(`${currentJob} to volunteer ${_id}: ${error}`)
+    }
+    if (errors.length) {
+      throw errors
     }
   }
 }
@@ -65,21 +69,19 @@ function getLastActivityAtQuery(fromDate, toDate) {
 }
 
 function getStartOfDayFromDaysAgo(daysAgo) {
-  return new Date(
-    moment()
-      .utc()
-      .subtract(daysAgo, 'days')
-      .startOf('day')
-  )
+  return moment()
+    .utc()
+    .subtract(daysAgo, 'days')
+    .startOf('day')
+    .toDate()
 }
 
 function getEndOfDayFromDaysAgo(daysAgo) {
-  return new Date(
-    moment()
-      .utc()
-      .subtract(daysAgo, 'days')
-      .endOf('day')
-  )
+  return moment()
+    .utc()
+    .subtract(daysAgo, 'days')
+    .endOf('day')
+    .toDate()
 }
 
 export default async (): Promise<void> => {
@@ -174,25 +176,39 @@ export default async (): Promise<void> => {
       inactiveSixtyDays,
       inactiveNinetyDays
     } = volunteers as InactiveVolunteersAggregation
-    await sendEmailToInactiveVolunteers({
-      volunteers: inactiveThirtyDays,
-      currentJob: Jobs.EmailVolunteerInactiveThirtyDays,
-      mailHandler: MailService.sendVolunteerInactiveThirtyDays,
-      group: InactiveGroup.inactiveThirtyDays
-    })
-
-    await sendEmailToInactiveVolunteers({
-      volunteers: inactiveSixtyDays,
-      currentJob: Jobs.EmailVolunteerInactiveSixtyDays,
-      mailHandler: MailService.sendVolunteerInactiveSixtyDays,
-      group: InactiveGroup.inactiveSixtyDays
-    })
-
-    await sendEmailToInactiveVolunteers({
-      volunteers: inactiveNinetyDays,
-      currentJob: Jobs.EmailVolunteerInactiveNinetyDays,
-      mailHandler: MailService.sendVolunteerInactiveNinetyDays,
-      group: InactiveGroup.inactiveNinetyDays
-    })
+    const errors = []
+    try {
+      await sendEmailToInactiveVolunteers({
+        volunteers: inactiveThirtyDays,
+        currentJob: Jobs.EmailVolunteerInactiveThirtyDays,
+        mailHandler: MailService.sendVolunteerInactiveThirtyDays,
+        group: InactiveGroup.inactiveThirtyDays
+      })
+    } catch (error) {
+      errors.push(...error)
+    }
+    try {
+      await sendEmailToInactiveVolunteers({
+        volunteers: inactiveSixtyDays,
+        currentJob: Jobs.EmailVolunteerInactiveSixtyDays,
+        mailHandler: MailService.sendVolunteerInactiveSixtyDays,
+        group: InactiveGroup.inactiveSixtyDays
+      })
+    } catch (error) {
+      errors.push(...error)
+    }
+    try {
+      await sendEmailToInactiveVolunteers({
+        volunteers: inactiveNinetyDays,
+        currentJob: Jobs.EmailVolunteerInactiveNinetyDays,
+        mailHandler: MailService.sendVolunteerInactiveNinetyDays,
+        group: InactiveGroup.inactiveNinetyDays
+      })
+    } catch (error) {
+      errors.push(...error)
+    }
+    if (errors.length) {
+      throw new Error(`Failed to send inactivity emails: ${errors}`)
+    }
   }
 }

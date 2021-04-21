@@ -5,6 +5,7 @@ import { buildVolunteer, buildReference } from '../generate'
 import MailService from '../../services/MailService'
 import { REFERENCE_STATUS } from '../../constants'
 import { log } from '../../worker/logger'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 
@@ -81,7 +82,7 @@ describe('Email waiting on references to volunteer', () => {
 
     const expectedEmailsSent = 1
     expect(log).toHaveBeenCalledWith(
-      `Emailed ${expectedEmailsSent} volunteers that we're waiting on their reference(s)`
+      `Sent ${Jobs.EmailWaitingOnReferences} to ${expectedEmailsSent}`
     )
 
     expect(
@@ -89,7 +90,7 @@ describe('Email waiting on references to volunteer', () => {
     ).toBe(expectedEmailsSent)
   })
 
-  test('Should catch error when a problem with sending the email occurs', async () => {
+  test('Should throw error when sending email fails', async () => {
     const volunteer = buildVolunteer({
       references: [
         buildReference({
@@ -103,20 +104,21 @@ describe('Email waiting on references to volunteer', () => {
     })
 
     await insertVolunteer(volunteer)
-    const customErrorMessage = 'Unable to send'
+    const errorMessage = 'Unable to send'
+    const volunteerError = `volunteer ${volunteer._id}: ${errorMessage}`
+    MailService.sendWaitingOnReferences = jest.fn(() =>
+      Promise.reject(errorMessage)
+    )
 
-    MailService.sendWaitingOnReferences = jest.fn(() => {
-      throw new Error(customErrorMessage)
-    })
-    await emailWaitingOnReferences()
+    await expect(emailWaitingOnReferences()).rejects.toEqual(
+      Error(
+        `Failed to send ${Jobs.EmailWaitingOnReferences} to: ${volunteerError}`
+      )
+    )
 
     const expectedEmailsSent = 0
-    expect((log as jest.Mock).mock.calls[0][0]).toBe(
-      `Failed to send "waiting on references" email to volunteer ${volunteer._id}: Error: ${customErrorMessage}`
+    expect(log).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailWaitingOnReferences} to ${expectedEmailsSent}`
     )
-    expect((log as jest.Mock).mock.calls[1][0]).toBe(
-      `Emailed ${expectedEmailsSent} volunteers that we're waiting on their reference(s)`
-    )
-    expect(log).toHaveBeenCalledTimes(2)
   })
 })

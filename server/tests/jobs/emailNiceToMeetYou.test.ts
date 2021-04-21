@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import emailNiceToMeetYou from '../../worker/jobs/emailNiceToMeetYou'
+import { Jobs } from '../../worker/jobs'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
 import MailService from '../../services/MailService'
@@ -47,7 +48,7 @@ describe('Email nice to meet you to volunteers', () => {
 
     const expectedEmailsSent = 1
     expect(log).toHaveBeenCalledWith(
-      `Emailed "nice to meet you" to ${expectedEmailsSent} volunteers`
+      `Sent ${Jobs.EmailNiceToMeetYou} to ${expectedEmailsSent} volunteers`
     )
 
     expect((MailService.sendNiceToMeetYou as jest.Mock).mock.calls.length).toBe(
@@ -55,26 +56,24 @@ describe('Email nice to meet you to volunteers', () => {
     )
   })
 
-  test('Should catch error when a problem with sending the email occurs', async () => {
+  test('Should throw error when sending email fails', async () => {
     const volunteer = buildVolunteer({
       createdAt: new Date(Date.now() - oneDay)
     })
     await insertVolunteer(volunteer)
 
-    const customErrorMessage = 'Unable to send'
-    MailService.sendNiceToMeetYou = jest.fn(() => {
-      throw new Error(customErrorMessage)
-    })
+    const errorMessage = 'Unable to send'
+    const volunteerError = `volunteer ${volunteer._id}: ${errorMessage}`
+    MailService.sendNiceToMeetYou = jest.fn(() => Promise.reject(errorMessage))
 
-    await emailNiceToMeetYou()
+    await expect(emailNiceToMeetYou()).rejects.toEqual(
+      Error(`Failed to send ${Jobs.EmailNiceToMeetYou} to: ${volunteerError}`)
+    )
 
     const expectedEmailsSent = 0
-    expect((log as jest.Mock).mock.calls[0][0]).toBe(
-      `Failed to email "nice to meet you" to volunteer ${volunteer._id}: Error: ${customErrorMessage}`
+    expect(log).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailNiceToMeetYou} to ${expectedEmailsSent} volunteers`
     )
-    expect((log as jest.Mock).mock.calls[1][0]).toBe(
-      `Emailed "nice to meet you" to ${expectedEmailsSent} volunteers`
-    )
-    expect(log).toHaveBeenCalledTimes(2)
+    expect(log).toHaveBeenCalledTimes(1)
   })
 })

@@ -5,8 +5,11 @@ import { buildVolunteer } from '../generate'
 import MailService from '../../services/MailService'
 import { log } from '../../worker/logger'
 import * as VolunteerService from '../../services/VolunteerService'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
+
+jest.setTimeout(15000)
 
 // db connection
 beforeAll(async () => {
@@ -67,7 +70,7 @@ describe('emailWeeklyHourSummary', () => {
 
     const expectedEmailsSent = 2
     expect(log).toHaveBeenCalledWith(
-      `Emailed weekly hour summary email to ${expectedEmailsSent} volunteers`
+      `Sent ${Jobs.EmailWeeklyHourSummary} to ${expectedEmailsSent} volunteers`
     )
     expect(
       (MailService.sendHourSummaryEmail as jest.Mock).mock.calls.length
@@ -118,7 +121,7 @@ describe('emailWeeklyHourSummary', () => {
     expect(updatedWarwick.sentHourSummaryIntroEmail).toBeTruthy()
   })
 
-  test('Should catch error and log failed to send to volunteer', async () => {
+  test('Should throw error when sending emails fails', async () => {
     const jackson = buildVolunteer({ sentHourSummaryIntroEmail: true })
     await insertVolunteer(jackson)
 
@@ -126,19 +129,19 @@ describe('emailWeeklyHourSummary', () => {
       VolunteerService,
       'getHourSummaryStats'
     )
-    const customErrorMessage = 'Server error'
-    getHourSummaryStats.mockImplementationOnce(() => {
-      throw new Error(customErrorMessage)
-    })
+    const errorMessage = 'Server error'
+    const jacksonError = `volunteer ${jackson._id}: ${errorMessage}`
+    getHourSummaryStats.mockImplementationOnce(() =>
+      Promise.reject(errorMessage)
+    )
 
-    await emailWeeklyHourSummary()
+    await expect(emailWeeklyHourSummary()).rejects.toEqual(
+      Error(`Failed to send ${Jobs.EmailWeeklyHourSummary} to: ${jacksonError}`)
+    )
 
     const expectedEmailsSent = 0
     expect(log).toHaveBeenCalledWith(
-      `Emailed weekly hour summary email to ${expectedEmailsSent} volunteers`
-    )
-    expect((log as jest.Mock).mock.calls[0][0]).toBe(
-      `Failed to send weekly hour summary email to volunteer ${jackson._id}: Error: ${customErrorMessage}`
+      `Sent ${Jobs.EmailWeeklyHourSummary} to ${expectedEmailsSent} volunteers`
     )
   })
 })

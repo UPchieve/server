@@ -5,6 +5,7 @@ import { buildVolunteer, buildReference } from '../generate'
 import MailService from '../../services/MailService'
 import { REFERENCE_STATUS } from '../../constants'
 import { log } from '../../worker/logger'
+import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 
@@ -47,7 +48,7 @@ describe('Follow-up email to references', () => {
 
     const expectedEmailsSent = 1
     expect(log).toHaveBeenCalledWith(
-      `Emailed ${expectedEmailsSent} references a follow-up`
+      `Sent ${Jobs.EmailReferenceFollowup} to ${expectedEmailsSent} references.`
     )
 
     expect(
@@ -76,7 +77,7 @@ describe('Follow-up email to references', () => {
     ).toBe(expectedEmailsSent)
   })
 
-  test('Should catch error when a problem with sending the email occurs', async () => {
+  test('Should throw error when sending email fails', async () => {
     const referenceOne = buildReference({
       status: REFERENCE_STATUS.SENT,
       sentAt: new Date(Date.now() - threeDays - oneHour * 3)
@@ -89,22 +90,22 @@ describe('Follow-up email to references', () => {
       })
     ]
 
-    const customErrorMessage = 'Unable to send'
-
-    MailService.sendReferenceFollowup = jest.fn(() => {
-      throw new Error(customErrorMessage)
-    })
+    const errorMessage = 'Unable to send'
+    const referenceOneError = `reference ${referenceOne._id}: ${errorMessage}`
+    MailService.sendReferenceFollowup = jest.fn(() =>
+      Promise.reject(errorMessage)
+    )
 
     await Promise.all([insertVolunteer(buildVolunteer({ references }))])
-    await emailReferenceFollowup()
+    await expect(emailReferenceFollowup()).rejects.toEqual(
+      Error(
+        `Failed to send ${Jobs.EmailReferenceFollowup} to: ${referenceOneError}`
+      )
+    )
 
     const expectedEmailsSent = 0
-    expect((log as jest.Mock).mock.calls[0][0]).toBe(
-      `Error notifying reference ${referenceOne._id}: Error: ${customErrorMessage}`
+    expect(log).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailReferenceFollowup} to ${expectedEmailsSent} references.`
     )
-    expect((log as jest.Mock).mock.calls[1][0]).toBe(
-      `Emailed ${expectedEmailsSent} references a follow-up`
-    )
-    expect(log).toHaveBeenCalledTimes(2)
   })
 })

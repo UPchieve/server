@@ -3,6 +3,7 @@ import { log } from '../logger'
 import VolunteerModel, { Volunteer, Reference } from '../../models/Volunteer'
 import UserService from '../../services/UserService'
 import { REFERENCE_STATUS } from '../../constants'
+import { Jobs } from '.'
 
 interface UnsentReference {
   reference: Reference
@@ -29,16 +30,22 @@ export default async (): Promise<void> => {
 
   if (unsent.length === 0) return log('No references to email')
 
+  const errors = []
+  let totalEmailed = 0
   for (const u of unsent) {
     try {
       await UserService.notifyReference({
         reference: u.reference,
         volunteer: u.volunteer
       })
+      totalEmailed += 1
     } catch (error) {
-      log(`Error notifying reference ${u.reference._id}: ${error}`)
+      errors.push(`reference ${u.reference._id}: ${error}`)
     }
   }
 
-  return log(`Emailed ${unsent.length} references`)
+  log(`Sent ${Jobs.EmailReferences} to ${totalEmailed} references`)
+  if (errors.length) {
+    throw new Error(`Failed to send ${Jobs.EmailReferences} to: ${errors}`)
+  }
 }

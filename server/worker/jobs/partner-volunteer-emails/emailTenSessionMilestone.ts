@@ -13,13 +13,14 @@ import { SESSION_FLAGS } from '../../../constants'
  * - must have not left 3 ratings of 1 - 3 session ratings
  *
  */
-export default async (
-  job: Job<{
-    volunteerId: string
-    firstName: string
-    email: string
-  }>
-): Promise<void> => {
+
+interface EmailTenSessionJobData {
+  volunteerId: string | Types.ObjectId
+  firstName: string
+  email: string
+}
+
+export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
   const {
     data: { volunteerId, firstName, email },
     name: currentJob
@@ -29,7 +30,10 @@ export default async (
   const sessions = await getSessionsWithPipeline([
     {
       $match: {
-        volunteer: Types.ObjectId(volunteerId),
+        volunteer:
+          typeof volunteerId === 'string'
+            ? Types.ObjectId(volunteerId)
+            : volunteerId,
         timeTutored: { $gte: fifteenMins },
         reviewFlags: { $ne: SESSION_FLAGS.ABSENT_USER }
       }
@@ -99,7 +103,7 @@ export default async (
       await MailService.sendPartnerVolunteerTenSessionMilestone(contactInfo)
       logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
-      logger.error(
+      throw new Error(
         `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
       )
     }

@@ -78,7 +78,7 @@ describe('Volunteer gentle warning email', () => {
     )
   })
 
-  test('Should catch error when sending email', async () => {
+  test('Should throw error when sending email fails', async () => {
     const plato = buildVolunteer()
     const kant = buildVolunteer()
     const sartre = buildVolunteer({
@@ -87,6 +87,7 @@ describe('Volunteer gentle warning email', () => {
     const platoNotifications = createNotifications(5, plato._id)
     const kantNotification = buildNotification({ volunteer: kant._id })
     const errorMessage = 'Unable to send'
+    const platoError = `volunteer ${plato._id}: ${errorMessage}`
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
     MailService.sendVolunteerGentleWarning = rejectionFn
     await insertNotificationMany([...platoNotifications, kantNotification])
@@ -103,9 +104,8 @@ describe('Volunteer gentle warning email', () => {
       }
     }
 
-    await emailGentleWarning(job)
-    expect(logger.error).toHaveBeenCalledWith(
-      `Failed to send ${job.name} to volunteer ${plato._id}: ${errorMessage}`
+    await expect(emailGentleWarning(job)).rejects.toEqual(
+      Error(`Failed to send ${job.name} to: ${[platoError]}`)
     )
   })
 })

@@ -71,7 +71,7 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
       logger.info(`Emailed ${currentJob} to volunteer ${volunteerId}`)
       if (nextJob) job.queue.add(nextJob, { volunteerId }, { delay })
     } catch (error) {
-      logger.error(
+      throw new Error(
         `Failed to email ${currentJob} to volunteer ${volunteerId}: ${error}`
       )
     }

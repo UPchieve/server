@@ -7,6 +7,7 @@ import {
 import MailService from '../../services/MailService'
 import VolunteerModel from '../../models/Volunteer'
 import { volunteerPartnerManifests } from '../../partnerManifests'
+import { Jobs } from '.'
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
@@ -40,7 +41,9 @@ export default async (): Promise<void> => {
     .utc()
     .subtract(1, 'weeks')
     .endOf('isoWeek')
+
   let totalEmailed = 0
+  const errors = []
   for (const volunteer of volunteers) {
     const {
       _id,
@@ -51,8 +54,8 @@ export default async (): Promise<void> => {
     try {
       const summaryStats = await getHourSummaryStats(
         _id,
-        lastMonday,
-        lastSunday
+        lastMonday.toDate(),
+        lastSunday.toDate()
       )
       // A volunteer must have non-zero totalVolunteerHours for the prior week (Monday-Sunday) to receive an email
       if (!summaryStats.totalVolunteerHours) continue
@@ -73,11 +76,14 @@ export default async (): Promise<void> => {
         )
       totalEmailed++
     } catch (error) {
-      log(
-        `Failed to send weekly hour summary email to volunteer ${_id}: ${error}`
-      )
+      errors.push(`volunteer ${_id}: ${error}`)
     }
   }
 
-  return log(`Emailed weekly hour summary email to ${totalEmailed} volunteers`)
+  log(`Sent ${Jobs.EmailWeeklyHourSummary} to ${totalEmailed} volunteers`)
+  if (errors.length) {
+    throw new Error(
+      `Failed to send ${Jobs.EmailWeeklyHourSummary} to: ${errors}`
+    )
+  }
 }

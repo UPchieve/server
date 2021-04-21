@@ -9,6 +9,7 @@ import {
 } from '../db-utils'
 import { buildAvailability, buildVolunteer } from '../generate'
 import { log } from '../../worker/logger'
+import { Jobs } from '../../worker/jobs'
 import * as AvailabilityService from '../../services/AvailabilityService'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
@@ -40,7 +41,7 @@ describe('updateElapsedAvailability', () => {
 
     const expectedUpdatedVolunteers = 0
     expect(log).toHaveBeenCalledWith(
-      `updated ${expectedUpdatedVolunteers} volunteers`
+      `Successfully ${Jobs.UpdateElapsedAvailability} for ${expectedUpdatedVolunteers} volunteers`
     )
   })
 
@@ -111,7 +112,7 @@ describe('updateElapsedAvailability', () => {
 
     const expectedUpdatedVolunteers = 1
     expect(log).toHaveBeenCalledWith(
-      `updated ${expectedUpdatedVolunteers} volunteers`
+      `Successfully ${Jobs.UpdateElapsedAvailability} for ${expectedUpdatedVolunteers} volunteers`
     )
   })
 })
