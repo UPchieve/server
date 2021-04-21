@@ -204,7 +204,6 @@ tags
 .history
 
 ### Vuejs ###
-node_modules
 .DS_Store
 docs/_book
 test/
