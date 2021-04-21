@@ -18,7 +18,7 @@ import { Notification } from '../../models/Notification'
 import QueueService from '../../services/QueueService'
 jest.mock('../../services/twilio')
 jest.mock('../../services/QueueService')
-jest.mock('../../worker/logger')
+jest.mock('../../logger')
 
 jest.setTimeout(15000)
 
