@@ -19,7 +19,14 @@
         <a href="mailto:support@upchieve.org">support@upchieve.org</a>.
       </div>
 
-      <div class="contact-form contact__form">
+      <div class="contact__description" v-if="sendState === sendStates.SENT">
+        Thank you for contacting us! We'll get back to you as soon as possible.
+      </div>
+
+      <div
+        class="contact-form contact__form"
+        v-if="sendState !== sendStates.SENT"
+      >
         <div v-if="!hasValidEmail" class="contact-form__section">
           <div class="contact-form__label">Your email</div>
           <input
@@ -48,7 +55,7 @@
           />
         </div>
 
-        <div v-if="this.sendState == 'Error'" class="errors">
+        <div v-if="this.sendState === sendStates.ERROR" class="errors">
           There was an error sending your feedback
         </div>
 
@@ -58,7 +65,7 @@
             primary
             @click.native="submitContactUs"
           >
-            <span v-html="sendLabel"></span>
+            Send
           </large-button>
         </div>
       </div>
@@ -87,7 +94,8 @@ export default {
   },
   data() {
     const contactTopics = [
-      'Feedback',
+      'General question',
+      'General feedback',
       'Technical issue',
       'Feature request',
       'Subject suggestion',
@@ -101,7 +109,12 @@ export default {
         topic: contactTopics[0],
         message: ''
       },
-      sendState: sendStates.UNSENT
+      sendState: sendStates.UNSENT,
+      sendStates: {
+        UNSENT: 'Unsent',
+        SENT: 'Sent',
+        ERROR: 'Error'
+      }
     }
   },
   computed: {
@@ -110,14 +123,6 @@ export default {
       isVolunteer: 'user/isVolunteer',
       isVerified: 'user/isVerified'
     }),
-    sendLabel() {
-      switch (this.sendState) {
-        case sendStates.SENT:
-          return 'Thank you for your feedback'
-        default:
-          return 'Send'
-      }
-    },
     hasValidEmail() {
       if (!this.isAuthenticated) return false
 
@@ -140,7 +145,7 @@ export default {
         !this.isValidEmail(this.contactFormData.email)
       ) {
         alert('A valid email is required.')
-        this.sendState = sendStates.ERROR
+        this.sendState = this.sendStates.ERROR
       } else {
         if (this.hasValidEmail) {
           this.contactFormData.email = this.$store.state.user.user.email
@@ -149,11 +154,11 @@ export default {
         NetworkService.sendContact(this, {
           responseData: this.contactFormData
         })
-        this.sendState = sendStates.SENT
+        this.sendState = this.sendStates.SENT
       }
     },
     isValidEmail(address) {
-      var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       return re.test(String(address).toLowerCase())
     }
   }
