@@ -34,15 +34,15 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
       { delay }
     )
 
-    // After 20 text notifications are sent, start contacting the same volunteers again in order
-    if (session.notifications.length >= TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP) {
-      // Wrap around the notifications list to get a notification we've sent before
-      const notificationId =
-        session.notifications[
-          session.notifications.length % TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP
-        ]
-      const notification = await getNotificationWithVolunteer(notificationId)
-      const volunteer = notification.volunteer as Volunteer
+  // After 20 text notifications are sent, start contacting the same volunteers again in order
+  if (session.notifications.length >= TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP) {
+    // Wrap around the notifications list to get a notification we've sent before
+    const notificationId =
+      session.notifications[
+        session.notifications.length % TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP
+      ]
+    const notification = await getNotificationWithVolunteer(notificationId)
+    const volunteer = notification.volunteer as Volunteer
 
     try {
       await TwilioService.sendFollowupText({
