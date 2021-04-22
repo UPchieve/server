@@ -1,29 +1,17 @@
-import {Document, model, Model, Schema, Types} from 'mongoose'
-import UserModel, {User, UserDocument} from './User'
-import {DocCreationError, InvalidEmailError, InvalidIdError, UserNotFoundError} from './Errors'
-import mongoose from 'mongoose'
-import isEmail from 'validator/lib/isEmail'
-import isLength from 'validator/lib/isLength'
-import {CustomError} from 'ts-custom-error'
+import { Document, model, Model, Schema, Types } from 'mongoose'
+import UserModel, { User, UserDocument } from './User'
+import { DocCreationError, UserNotFoundError } from './Errors'
 
 export type ContactFormSubmissionDocument = ContactFormSubmission & Document
 
 export class ContactFormSubmission {
   _id: Types.ObjectId
   createdAt: Date
-  userEmail: string
+  email: string
   userId: Types.ObjectId | User
   topic: string
   content: string
-  model: Model<ContactFormSubmissionDocument>
-  private topics = [
-    'General question',
-    'General feedback',
-    'Technical issue',
-    'Feature request',
-    'Subject suggestion',
-    'Other'
-  ]
+  Model: Model<ContactFormSubmissionDocument>
 
   static schema = new Schema({
     createdAt: {
@@ -34,9 +22,9 @@ export class ContactFormSubmission {
       type: Schema.Types.ObjectId,
       ref: 'User'
     },
-    userEmail: {
+    email: {
       type: String,
-      default: '',
+      default: ''
     },
     topic: {
       type: String,
@@ -51,41 +39,36 @@ export class ContactFormSubmission {
   })
 
   constructor() {
-    this.model = model('ContactFormSubmission', ContactFormSubmission.schema)
+    this.Model = model('ContactFormSubmission', ContactFormSubmission.schema)
   }
 
-  async saveContactFormSubmission(content, topic, userEmail?, userId?: string) {
-    // validate main args
-    if (!this.topicIsValid(topic)) {
-      throw new InvalidTopicError(topic)
-    }
-    if (!ContactFormSubmission.contentIsValid(content)) {
-      throw new InvalidContentError()
-    }
+  async saveContactFormSubmission(content, topic, email, userId?: string) {
+    // we validate args at the service level, so at this point we can assume that the args are valid
     // if we don't pass the user id at all, we'll assume we want to use the email
     // instead, as the form probably came from a non-logged-in user
     if (userId === undefined) {
       // validate that the email is good, otherwise we don't have enough information
       // to handle the form
-      if (!ContactFormSubmission.emailIsValid(userEmail)) {
-        throw new InvalidEmailError(userEmail)
-      }
-      return this.saveFormWithEmail(content, topic, userEmail)
+      return this.saveFormWithEmail(content, topic, email)
     } else {
       let user
       try {
         user = await ContactFormSubmission.getUserIdAndEmail(userId)
-      } catch (err: InvalidIdError | UserNotFoundError) {
+      } catch (err) {
         throw err
       }
       return this.saveFormWithUser(content, topic, user.email, user.id)
     }
   }
 
-  private async saveFormWithEmail(content, topic, userEmail: string) {
-    const cfs = new this.model({
+  private async saveFormWithEmail(
+    content,
+    topic,
+    email: string
+  ): Promise<ContactFormSubmission & Document> {
+    const cfs = new this.Model({
       content,
-      userEmail,
+      email,
       topic
     })
     let createdDoc
@@ -97,10 +80,15 @@ export class ContactFormSubmission {
     return createdDoc
   }
 
-  private async saveFormWithUser(content, topic, userEmail: string, userId: Types.ObjectId) {
-    const cfs = new this.model({
+  private async saveFormWithUser(
+    content,
+    topic,
+    email: string,
+    userId: Types.ObjectId
+  ): Promise<ContactFormSubmission & Document> {
+    const cfs = new this.Model({
       content,
-      userEmail,
+      email,
       userId,
       topic
     })
@@ -114,13 +102,9 @@ export class ContactFormSubmission {
   }
 
   private static async getUserIdAndEmail(id: string) {
-    if (!ContactFormSubmission.userIdIsValid(id)) {
-      throw new InvalidIdError()
-    }
-
     let user: UserDocument
     try {
-      user = await UserModel.findById(id, {_id: 1, email: 1})
+      user = await UserModel.findById(id, { _id: 1, email: 1 })
     } catch (err) {
       throw new UserNotFoundError('_id', id)
     }
@@ -128,36 +112,5 @@ export class ContactFormSubmission {
       id: user._id as Types.ObjectId,
       email: user.email
     }
-  }
-
-  private static userIdIsValid(id: string) {
-    return mongoose.Types.ObjectId.isValid(id)
-  }
-
-  private static emailIsValid(email: string) {
-    return isEmail(email)
-  }
-
-  private static contentIsValid(content: string) {
-    return isLength(content, {
-      min: 1,
-      max: 500
-    })
-  }
-
-  private topicIsValid(topic: string) {
-    return this.topics.includes(topic)
-  }
-}
-
-export class InvalidTopicError extends CustomError {
-  constructor(topic: string) {
-    super(`${topic} is not a valid contact form topic`)
-  }
-}
-
-export class InvalidContentError extends CustomError {
-  constructor() {
-    super('content was less than 1 character or more than 500 characters')
   }
 }
