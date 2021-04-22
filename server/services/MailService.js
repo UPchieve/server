@@ -119,7 +119,7 @@ module.exports = {
     )
   },
 
-  sendContactForm: ({ responseData }, callback) => {
+  sendContactForm: (requestData, callback) => {
     const overrides = {
       // ensure staff members always get contact form submissions
       mail_settings: { bypass_list_management: { enable: true } }
@@ -130,7 +130,7 @@ module.exports = {
       config.mail.senders.noreply,
       'UPchieve',
       config.sendgrid.contactTemplate,
-      responseData,
+      requestData,
       callback,
       overrides
     )
