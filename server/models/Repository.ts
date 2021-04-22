@@ -1,20 +1,24 @@
-import * as mongoose from 'mongoose'
-import { ContactFormSubmission} from "./ContactFormSubmission";
+import { Document } from 'mongoose'
+import { ContactFormSubmission } from './ContactFormSubmission'
 
-class Repository {
-  private conn: mongoose.Mongoose
+export class Repository {
   private ContactFormSubmission: ContactFormSubmission
 
-  async constructor(connString: string) {
-    this.conn = await mongoose.connect(connString, {
-      poolSize: 50,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    })
+  constructor() {
     this.ContactFormSubmission = new ContactFormSubmission()
   }
 
-  async saveContactFormSubmission(content, topic, email?, userId?: string) {
-    return this.ContactFormSubmission.saveContactFormSubmission(content, topic, email, userId)
+  async saveContactFormSubmission(
+    content,
+    topic,
+    email?,
+    userId?: string
+  ): Promise<ContactFormSubmission & Document> {
+    return this.ContactFormSubmission.saveContactFormSubmission(
+      content,
+      topic,
+      email,
+      userId
+    )
   }
 }
