@@ -106,6 +106,7 @@ export default {
       contactTopics,
       contactFormData: {
         email: '',
+        userId: '',
         topic: contactTopics[0],
         message: ''
       },
@@ -150,10 +151,11 @@ export default {
         if (this.hasValidEmail) {
           this.contactFormData.email = this.$store.state.user.user.email
         }
+        if (this.isAuthenticated) {
+          this.contactFormData.userId = this.$store.state.user.user.id
+        }
 
-        NetworkService.sendContact(this, {
-          responseData: this.contactFormData
-        })
+        NetworkService.sendContact(this, this.contactFormData)
         this.sendState = this.sendStates.SENT
       }
     },
