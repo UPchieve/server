@@ -13,9 +13,14 @@
     />
     <template v-else>
       <div class="user-detail__body">
-        <button type="button" class="edit-btn btn" @click="toggleEditMode()">
-          Edit
-        </button>
+        <div class="user-detail__buttons-section">
+          <button class="back-button" @click="goBack()" type="button">
+            ← Back
+          </button>
+          <button type="button" class="edit-btn btn" @click="toggleEditMode()">
+            Edit
+          </button>
+        </div>
         <div>
           <span
             v-if="user.isAdmin"
@@ -130,14 +135,9 @@ export default {
   },
 
   async created() {
-    window.addEventListener('keyup', this.goBack)
     const { page } = this.$route.query
     this.page = parseInt(page) || this.page
     this.getUser()
-  },
-
-  beforeDestroy() {
-    window.removeEventListener('keyup', this.goBack)
   },
 
   computed: {
@@ -183,9 +183,8 @@ export default {
     previousPage() {
       this.setPage(this.page - 1)
     },
-    goBack(event) {
-      // If backspace button is pressed go back
-      if (event.keyCode === 8) this.$router.go(-1)
+    goBack() {
+      this.$router.go(-1)
     },
     async getUser() {
       const pageLimit = 10
@@ -224,6 +223,12 @@ export default {
     @include breakpoint-above('medium') {
       padding: 40px;
     }
+  }
+
+  &__buttons-section {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
   }
 
   &__title {
@@ -280,6 +285,20 @@ export default {
   &__section-title {
     color: $c-secondary-grey;
     font-size: 16px;
+  }
+}
+
+.back-button {
+  border: none;
+  background-color: transparent;
+  color: #417db1;
+  padding: 0.4em 1em;
+  margin-bottom: 2em;
+  cursor: pointer;
+
+  &:hover {
+    border-radius: 20px;
+    background: #f7fcfe;
   }
 }
 
