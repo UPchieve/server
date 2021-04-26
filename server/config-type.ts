@@ -98,6 +98,7 @@ export const Config = Record({
   }),
   socketsPort: Number,
   volunteerPartnerManifestPath: String,
+  customPartnerVolunteerReport: String,
   studentPartnerManifestPath: String,
 
   // Sentry Data Source Name
