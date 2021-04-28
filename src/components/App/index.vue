@@ -5,16 +5,19 @@
     <app-modal v-if="showModal" />
     <app-banner v-if="showBanner" />
     <b-alert
-      id="refresh-alert"
+      class="refresh-alert"
       dismissible
       variant="warning"
       v-model="showRefreshAlert"
     >
       There is a new version of the app available, please
-      <b-button v-on:click="refreshPage" variant="primary">
-        refresh
-      </b-button>
-      !
+      <large-button
+        class="refresh-alert__refresh-button"
+        @click="refreshPage"
+        primary
+        :showArrow="false"
+        >refresh</large-button
+      >
     </b-alert>
 
     <div
@@ -38,12 +41,13 @@ import AppHeader from './AppHeader'
 import AppSidebar from './AppSidebar'
 import AppModal from './AppModal'
 import AppBanner from './AppBanner'
-import { BAlert, BButton } from 'bootstrap-vue'
+import { BAlert } from 'bootstrap-vue'
 import PortalService from '@/services/PortalService'
 import getOperatingSystem from '@/utils/get-operating-system'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
 import AnalyticsService from '@/services/AnalyticsService'
 import config from '@/config'
+import LargeButton from '@/components/LargeButton'
 
 export default {
   name: 'App',
@@ -53,7 +57,7 @@ export default {
     AppModal,
     AppBanner,
     BAlert,
-    BButton
+    LargeButton
   },
   mixins: [crono],
   data() {
@@ -302,7 +306,19 @@ export default {
   }
 }
 
-#refresh-alert {
+.refresh-alert {
   z-index: 999;
+  position: fixed;
+  width: 100%;
+
+  &__refresh-button {
+    display: initial;
+  }
+}
+
+.alert-warning {
+  color: initial;
+  background-color: #fff;
+  border-color: transparent;
 }
 </style>
