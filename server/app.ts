@@ -16,8 +16,6 @@ import YAML from 'yaml'
 import logger from './logger'
 import router from './router'
 import config from './config'
-import { Repository } from './models/Repository'
-import { ContactFormService } from './services/ContactFormService'
 
 const distDir = '../dist'
 
@@ -136,11 +134,8 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 // initialize Express WebSockets
 expressWs(app)
 
-const repo = new Repository()
-const contactFormSubmissionSvc = new ContactFormService(repo)
-
 // Load server router
-router(app, contactFormSubmissionSvc)
+router(app)
 app.use(haltOnTimedout)
 
 // Send error responses to API requests after they are passed to Sentry

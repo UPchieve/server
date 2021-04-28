@@ -1,12 +1,9 @@
 import { Express } from 'express'
 import config from '../config'
-import { ContactFormService } from '../services/ContactFormService'
-import { ContactFormRouter } from './contact'
+import * as ContactFormRouter from './contact'
 
-export default function(app: Express, contactFormSvc: ContactFormService) {
+export default function(app: Express) {
   console.log('Initializing server routing')
-
-  const contactFormRouter = new ContactFormRouter(contactFormSvc)
 
   require('./whiteboard')(app)
 
@@ -17,7 +14,7 @@ export default function(app: Express, contactFormSvc: ContactFormService) {
   require('./edu')(app)
   require('./eligibility')(app)
   require('./twiml')(app)
-  contactFormRouter.routes(app)
+  ContactFormRouter.routes(app)
   require('./metrics')(app)
   require('./mobile')(app)
   require('./reference')(app)
