@@ -150,6 +150,7 @@
     "@types/express-pino-logger": "^4.0.2",
     "@types/express-session": "^1.17.3",
     "@types/express-ws": "^3.0.0",
+    "@types/faker": "^5.5.3",
     "@types/jest": "^25.2.1",
     "@types/lodash": "^4.14.149",
     "@types/mongodb": "^3.6.9",

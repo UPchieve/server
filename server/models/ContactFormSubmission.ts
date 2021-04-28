@@ -1,6 +1,7 @@
 import { Document, model, Schema, Types } from 'mongoose'
 import UserModel, { User, UserDocument } from './User'
 import { DocCreationError, UserNotFoundError } from './Errors'
+import isEmail from 'validator/lib/isEmail'
 
 interface ContactFormSubmission {
   _id: Types.ObjectId
@@ -8,7 +9,7 @@ interface ContactFormSubmission {
   email: string
   userId: Types.ObjectId | User
   topic: string
-  content: string
+  message: string
 }
 
 export type ContactFormSubmissionDocument = ContactFormSubmission & Document
@@ -24,17 +25,34 @@ const contactFormSubmissionSchema = new Schema({
   },
   email: {
     type: String,
-    default: ''
+    default: '',
+    required: [true, 'email is required'],
+    validate: {
+      validator: (v) => {
+        return isEmail(v)
+      },
+      message: props => `${props.value} is not a valid email`
+    }
   },
   topic: {
     type: String,
     default: '',
-    required: true
+    required: true,
+    enum: [
+      'General question',
+      'General feedback',
+      'Technical issue',
+      'Feature request',
+      'Subject suggestion',
+      'Other'
+    ]
   },
-  content: {
+  message: {
     type: String,
     default: '',
-    required: true
+    required: [true, 'message is required'],
+    minLength: 1,
+    maxLength: 300
   }
 })
 
@@ -54,24 +72,25 @@ async function getUserIdAndEmail(id: string) {
 }
 
 export async function saveFormWithUser(
-  content,
+  message,
   topic,
   userId: string
 ): Promise<ContactFormSubmissionDocument> {
   // validate that the user exists
   let email: string
+  let userObjectId: Types.ObjectId
   try {
     const data = await getUserIdAndEmail(userId)
-    userId = data.id.toString()
+    userObjectId = data.id
     email = data.email
   } catch (err) {
     throw err
   }
   // use validated data on the form
   const cfs = new contactFormSubmissionModel({
-    content,
+    message,
     email,
-    userId,
+    userId: userObjectId,
     topic
   })
   let createdDoc
@@ -84,12 +103,12 @@ export async function saveFormWithUser(
 }
 
 export async function saveFormWithEmail(
-  content,
+  message,
   topic,
   email: string
 ): Promise<ContactFormSubmissionDocument> {
   const cfs = new contactFormSubmissionModel({
-    content,
+    message,
     email,
     topic
   })
