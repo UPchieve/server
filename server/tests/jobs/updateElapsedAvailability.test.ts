@@ -17,7 +17,8 @@ jest.mock('../../worker/logger')
 // db connection
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
-    useNewUrlParser: true
+    useNewUrlParser: true,
+    useUnifiedTopology: true
   })
 })
 
