@@ -20,7 +20,7 @@ tags:
   - name: authorization
     description: Authentication actions to validate user
   - name: calendar
-    description: Things to do with calendar and scheduling 
+    description: Things to do with calendar and scheduling
   - name: contact
     description: How to handle sending contact forms
   - name: education
@@ -46,8 +46,8 @@ tags:
   - name: survey
     description: Gathering and submitting surveys
   - name: training
-    description: Actions for executing training 
-  - name: twilio  
+    description: Actions for executing training
+  - name: twilio
     description: Endpoints only used by Twilio API
   - name: utility
     description: Infrastructure/Metadata
@@ -155,7 +155,7 @@ paths:
         Removes the user's current session.
       security:
         - cookieAuth: []
-      responses: 
+      responses:
         '200':
           description: User is logged out and session is ended
           content:
@@ -174,7 +174,7 @@ paths:
       requestBody:
         required: true
         $ref: '#/components/requestBodies/EmailPassword'
-      responses: 
+      responses:
         '200':
           description: Email is not already in use and password is validated
         '409':
@@ -202,11 +202,11 @@ paths:
                     type: string
                   password:
                     type: string
-                  studentPartnerOrg: 
+                  studentPartnerOrg:
                     type: string
-                  partnerUserId: 
+                  partnerUserId:
                     type: string
-                  highSchoolId: 
+                  highSchoolId:
                     type: string
                   partnerSite:
                     type: string
@@ -214,11 +214,11 @@ paths:
                     type: string
                   lastName:
                     type: string
-                  college: 
+                  college:
                     type: string
                   terms:
                     type: boolean
-      responses: 
+      responses:
         '200':
           description: Successful student registration and log in
         '422':
@@ -254,11 +254,11 @@ paths:
                     type: string
                   lastName:
                     type: string
-                  phone: 
+                  phone:
                     type: string
                   terms:
                     type: boolean
-      responses: 
+      responses:
         '200':
           description: Successful volunteer registration and log in
         '422':
@@ -292,7 +292,7 @@ paths:
                     type: string
                   lastName:
                     type: string
-                  phone: 
+                  phone:
                     type: string
                   terms:
                     type: boolean
@@ -300,7 +300,7 @@ paths:
                     type: string
                   referredByCode:
                     type: string
-      responses: 
+      responses:
         '200':
           description: Successful volunteer registration and log in
         '422':
@@ -361,7 +361,7 @@ paths:
       description: |
         Sends an email to verify the current user with unique hash. The email provided
         will overwrite the user record's email, in the event that the two do not match.
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         description: Object is created after a form is correctly completed
@@ -370,8 +370,8 @@ paths:
           application/json:
             schema:
                 type: object
-                properties: 
-                  email: 
+                properties:
+                  email:
                     $ref: '#/components/schemas/Email'
       responses:
         '200':
@@ -385,7 +385,7 @@ paths:
       summary: Password verification
       description: |
         Confirms new password during reset
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -393,8 +393,8 @@ paths:
           application/json:
             schema:
                 type: object
-                properties: 
-                  email: 
+                properties:
+                  email:
                     $ref: '#/components/schemas/Email'
                   password:
                     $ref: "#/components/schemas/Email"
@@ -419,7 +419,7 @@ paths:
       summary: Verify password reset token
       description: |
         Verify token for password reset
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -427,7 +427,7 @@ paths:
           application/json:
             schema:
                 type: object
-                properties: 
+                properties:
                   token:
                     type: string
       responses:
@@ -456,7 +456,7 @@ paths:
             example: 'EX1'
       responses:
         '200':
-          description: Returns object with studentPartnerKey 
+          description: Returns object with studentPartnerKey
   /auth/partner/student-partners:
     get:
       tags:
@@ -475,7 +475,7 @@ paths:
         - authorization
       summary: Retrieves a list of volunteer partners
       description: |
-        - For admin only 
+        - For admin only
       security:
         - cookieAuth: []
       responses:
@@ -488,7 +488,7 @@ paths:
       summary: Creates new account
       description: Create a new account based on given information
       deprecated: true
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -496,7 +496,7 @@ paths:
           application/json:
             schema:
                 type: object
-                properties: 
+                properties:
                   email:
                     type: string
                   password:
@@ -527,7 +527,7 @@ paths:
               properties:
                 availability:
                   type: object
-                  properties: 
+                  properties:
                     Friday:
                       $ref: "#/components/schemas/ScheduleDay"
                     Monday:
@@ -542,7 +542,7 @@ paths:
                       $ref: "#/components/schemas/ScheduleDay"
                     Wednesday:
                       $ref: "#/components/schemas/ScheduleDay"
-                tz: 
+                tz:
                   $ref: "#/components/schemas/TZ"
       responses:
         '200':
@@ -563,7 +563,7 @@ paths:
             schema:
               type: object
               properties:
-                tz: 
+                tz:
                   $ref: "#/components/schemas/TZ"
       responses:
         '200':
@@ -597,8 +597,8 @@ paths:
         - feedback
       summary: Submits new feedback
       description: |
-        Submits feedback survey data 
-      security: 
+        Submits feedback survey data
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -631,7 +631,7 @@ paths:
       summary: Moderates messages
       description: |
         Check if message sent is appropriate language
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -639,7 +639,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 content:
                   type: string
       responses:
@@ -652,7 +652,7 @@ paths:
       summary: Saves token
       description: |
         Saves push token for notifications
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -660,7 +660,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 token:
                   type: string
       responses:
@@ -674,7 +674,7 @@ paths:
       description: |
         - Admin only
         - Return all reports from session complete
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: joinedBefore
@@ -715,7 +715,7 @@ paths:
       responses:
         '200':
           description: Returns an object with an array of sessions
-  /api/reports/usage-report: 
+  /api/reports/usage-report:
     get:
       tags:
         - reports
@@ -723,7 +723,7 @@ paths:
       description: |
         - Admin only
         - Retrieves usage report
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: joinedBefore
@@ -772,7 +772,7 @@ paths:
       description: |
         - Admin only
         - Retrieves volunteer partner reports
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: fromDate
@@ -800,7 +800,7 @@ paths:
       summary: Starts a new session
       description: |
         Submits details to establish and create a session ID
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -808,7 +808,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 sessionType:
                   $ref: '#/components/schemas/SessionType'
                 sessionSubTopic:
@@ -827,7 +827,7 @@ paths:
       summary: Looks for a current session in progress
       description: |
         Looks for current session in progress and retrieve details on session
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -835,7 +835,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 user_id:
                   $ref: '#/components/schemas/UserId'
                 is_volunteer:
@@ -852,7 +852,7 @@ paths:
       summary: Retrieves latest session
       description: |
         Checks and retreieves the latest completed session
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -860,7 +860,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 user_id:
                   $ref: '#/components/schemas/UserId'
       responses:
@@ -872,10 +872,10 @@ paths:
     post:
       tags:
         - session
-      summary: Checks for existing session  
+      summary: Checks for existing session
       description: |
         Checks session based on sessionId; if there is a session in progress use that session
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -883,7 +883,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 sessionId:
                   $ref: '#/components/schemas/SessionId'
       responses:
@@ -898,7 +898,7 @@ paths:
       summary: Ends a session
       description: |
         End the current session in progress
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: true
@@ -906,7 +906,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 sessionId:
                   $ref: '#/components/schemas/SessionId'
       responses:
@@ -920,9 +920,9 @@ paths:
         - session
       summary: Ends all student sessions
       description: |
-        - Ends all student sessions 
+        - Ends all student sessions
         - For Cypress tests
-      security: 
+      security:
         - cookieAuth: []
       requestBody:
         required: false
@@ -941,7 +941,7 @@ paths:
       description: |
         - Admin only
         - Retrieves all session completed by user
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: page
@@ -1009,7 +1009,7 @@ paths:
       description: |
         - Admin only
         - Retrieves session report
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: users
@@ -1031,7 +1031,7 @@ paths:
       description: |
         - Admin only
         - Retrieves a session ID
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: sessionId
@@ -1047,7 +1047,7 @@ paths:
         - session
       summary: Updates session
       description: Updates session
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: sessionId
@@ -1078,7 +1078,7 @@ paths:
       description: |
         - Admin only
         - Retrieves session details of specific session id for admin
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: sessionId
@@ -1097,7 +1097,7 @@ paths:
       description: |
         - Admin only
         - Retrieves a list of session notifications that were sent
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: sessionId
@@ -1114,7 +1114,7 @@ paths:
         - session
       summary: Retrieves an image url
       description: Retrieves an upload url to upload image in the session
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: sessionId
@@ -1131,7 +1131,7 @@ paths:
         - session
       summary: Reports a session
       description: Sends details for reporting a session
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: sessionId
@@ -1162,9 +1162,9 @@ paths:
     post:
       tags:
         - session
-      summary: Times out a session 
+      summary: Times out a session
       description: Sets a session time out after 15 or 45 minutes in session
-      security: 
+      security:
         - cookieAuth: []
       parameters:
         - name: sessionId
@@ -1324,7 +1324,7 @@ paths:
     post:
       tags:
         - training
-      summary:  Sends answers from quiz 
+      summary:  Sends answers from quiz
       description: Sends answers from training quiz and returns a score
       security:
         - cookieAuth: []
@@ -1339,38 +1339,38 @@ paths:
                   $ref: '#/components/schemas/Category'
                 idAnswerMap:
                   type: object
-                  properties: 
-                    605a355b3bc29882261d35b4: 
+                  properties:
+                    605a355b3bc29882261d35b4:
                       type: string
                       example: "c"
-                    605a355b3bc29882261d35c2: 
+                    605a355b3bc29882261d35c2:
                       type: string
                       example: "c"
-                    605a355b3bc29882261d35cc: 
+                    605a355b3bc29882261d35cc:
                       type: string
                       example: "c"
-                    605a355b3bc29882261d35d1: 
+                    605a355b3bc29882261d35d1:
                       type: string
                       example: "a"
-                    605a355b3bc29882261d35d5: 
+                    605a355b3bc29882261d35d5:
                       type: string
                       example: "a"
-                    605a355b3bc29882261d35e4: 
+                    605a355b3bc29882261d35e4:
                       type: string
                       example: "c"
-                    605a355b3bc29882261d35e5: 
+                    605a355b3bc29882261d35e5:
                       type: string
                       example: "b"
-                    605a355b3bc29882261d35f0: 
+                    605a355b3bc29882261d35f0:
                       type: string
                       example: "b"
-                    605a355b3bc29882261d3601: 
+                    605a355b3bc29882261d3601:
                       type: string
                       example: "b"
                     605a355b3bc29882261d3612:
                       type: string
                       example: "c"
-                    605a355b3bc29882261d3625: 
+                    605a355b3bc29882261d3625:
                       type: string
                       example: "b"
       responses:
@@ -1440,7 +1440,7 @@ paths:
     get:
       tags:
         - user
-      summary:  Retrieves a user profile 
+      summary:  Retrieves a user profile
       description: |
         - Admin only
         - Retrieves a user profile based on given userID
@@ -1462,7 +1462,7 @@ paths:
     put:
       tags:
         - user
-      summary:  Updates a user profile 
+      summary:  Updates a user profile
       description: |
         - Admin only
         - Updates a user profile based on given userID
@@ -1491,14 +1491,14 @@ paths:
                   type: string
                 partnerSite:
                   type: string
-                isVerified: 
+                isVerified:
                   type: boolean
-                isBanned: 
+                isBanned:
                   type: boolean
                 isDeactivated:
                   type: boolean
                 isApproved:
-                  type: boolean    
+                  type: boolean
       responses:
         '200':
           description: OK; Record is updated
@@ -1518,7 +1518,7 @@ paths:
       tags:
         - user
       summary: Submits background information
-      description: Accepts volunteer's background information 
+      description: Accepts volunteer's background information
       security:
         - cookieAuth: []
       requestBody:
@@ -1567,7 +1567,7 @@ paths:
       tags:
         - user
       summary: Submits information for reference
-      description: Submits information for reference 
+      description: Submits information for reference
       security:
         - cookieAuth: []
       requestBody:
@@ -1670,7 +1670,7 @@ paths:
       responses:
         '200':
           description: Verification email sent
-        '404': 
+        '404':
           description: |
             - If user is already verified
             - Invalid email
@@ -1693,7 +1693,7 @@ paths:
       responses:
         '200':
           description: Verification confirmed
-        '404': 
+        '404':
           description: |
             - Invalid token
   /api/volunteers:
@@ -1723,8 +1723,8 @@ paths:
         '200':
           description:  Returns an object with a list of all volunteer user ids
   /api/volunteers/availability:
-    post: 
-      tags: 
+    post:
+      tags:
         - volunteers
       summary: Gets a map of volunteer availability
       deprecated: true
@@ -1734,8 +1734,8 @@ paths:
         '200':
           description: Returns a map of all volunteer availability by user id
   /api/volunteers/availability/{certifiedSubject}:
-    get: 
-      tags: 
+    get:
+      tags:
         - volunteers
       summary: Gets a map of volunteer availability
       description: |
@@ -1753,8 +1753,8 @@ paths:
         '200':
           description: Returns an object of aggregated volunteer availabilities by user id
   /api/volunteers/review:
-    get: 
-      tags: 
+    get:
+      tags:
         - volunteers
       summary: Gets volunteer details by page
       description: |
@@ -1769,8 +1769,8 @@ paths:
         '200':
           description: Returns an object of volunteers, paginated
   /api/volunteers/review/{id}:
-    post: 
-      tags: 
+    post:
+      tags:
         - volunteers
       summary: Submits volunteer details by given id
       description: |
@@ -1796,13 +1796,13 @@ paths:
         '200':
           description: OK
   /api-public/contact/send:
-    post: 
-      tags: 
+    post:
+      tags:
         - contact
       summary: Sends contact form
       description: |
-        - Currently not used in front end
-        - Submits given response data and sends contact form
+        - This is where contact form submissions are sent
+        - Submits given response data and sends contact form via email service
       security:
         - cookieAuth: []
       requestBody:
@@ -1812,14 +1812,24 @@ paths:
             schema:
               type: object
               properties:
-                responseData:
-                  type: object
+                userId:
+                  type: string
+                userEmail:
+                  type: string
+                topic:
+                  type: string
+                message:
+                  type: string
       responses:
         '200':
-          description: Contact form sent
+          description: Contact form saved in db and sent
+        '400':
+          description: Invalid data was sent in the request
+        '500':
+          description: Internal server error
   /api-public/eligibility/check:
-    post: 
-      tags: 
+    post:
+      tags:
         - eligibility
       summary: Checks if student is eligible
       security:
@@ -1836,15 +1846,15 @@ paths:
                 email:
                   type: string
                 referredByCode:
-                  type: string                 
+                  type: string
       responses:
         '200':
           description: Returns an object with boolean `isEligible`
         '422':
           description: Returned if email already in use
   /api-public/eligibility/school/search:
-    get: 
-      tags: 
+    get:
+      tags:
         - eligibility
       summary: Checks if student is eligible
       security:
@@ -1852,26 +1862,26 @@ paths:
       parameters:
         - name: q
           required: true
-          in: query        
+          in: query
       responses:
         '200':
           description: Returns an object of school results
   /api-public/eligibility/findeligible:
-    get: 
-      tags: 
+    get:
+      tags:
         - eligibility
       summary: Paginate eligible high schools
       description: |
         - Available in tests only
         - Admin only
       security:
-        - cookieAuth: []    
+        - cookieAuth: []
       responses:
         '200':
           description: Returns an object of paginated eligible schools
   /api-public/eligibility/school/studentusers/{schoolUpchieveId}:
-    get: 
-      tags: 
+    get:
+      tags:
         - eligibility
       summary:  List all students registered with a school
       description: |
@@ -1882,13 +1892,13 @@ paths:
       parameters:
         - name: schoolUpchieveId
           required: true
-          in: path                  
+          in: path
       responses:
         '200':
-          description: Returns an object with student details 
+          description: Returns an object with student details
   /api-public/eligibility/schoold/{schoolId}:
-    get: 
-      tags: 
+    get:
+      tags:
         - eligibility
       summary:  Gets an eligible school
       description: |
@@ -1899,7 +1909,7 @@ paths:
       parameters:
         - name: schoolId
           required: true
-          in: path                  
+          in: path
       responses:
         '200':
           description: Returns an object with school details
@@ -1915,7 +1925,7 @@ paths:
     parameters:
       - name: schoolId
         required: true
-        in: path  
+        in: path
     requestBody:
         required: true
         content:
@@ -1932,13 +1942,13 @@ paths:
                 zipCode:
                   type: string
                 isApproved:
-                  type: boolean                 
+                  type: boolean
     responses:
       '200':
         description: OK
   /api-public/eligibility/schools:
-    get: 
-      tags: 
+    get:
+      tags:
         - eligibility
       summary:  Gets eligible schools
       description: |
@@ -1952,23 +1962,23 @@ paths:
           in: query
         - name: state
           required: true
-          in: city 
+          in: city
         - name: page
           required: true
-          in: query                   
+          in: query
       responses:
         '200':
           description: Returns an array of school objects
   /api-public/eligibility/school/new:
-    post: 
-      tags: 
+    post:
+      tags:
         - eligibility
       summary:  Creates new eligible school
       description: |
         - Admin only
         - Submits given body of new school for eligibility
       security:
-        - cookieAuth: []  
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -1985,20 +1995,20 @@ paths:
                 zipCode:
                   type: string
                 isApproved:
-                  type: boolean                
+                  type: boolean
       responses:
         '200':
           description: Returns new school id
   /api-public/eligibility/school/approval:
-    post: 
-      tags: 
+    post:
+      tags:
         - eligibility
       summary:  Approves school
       description: |
         - Admin only
         - Sets approval for eligible with given school id
       security:
-        - cookieAuth: []  
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -2009,72 +2019,72 @@ paths:
                 schoolId:
                   type: string
                 isApproved:
-                  type: boolean                
+                  type: boolean
       responses:
         '200':
           description: OK
   /api-public/eligibility/ineligible-students:
-    get: 
-      tags: 
+    get:
+      tags:
         - eligibility
       summary:  Gets ineligible students
       description: |
         - Admin only
         - Gets a list of all ineligible students
       security:
-        - cookieAuth: []    
+        - cookieAuth: []
       parameters:
         - name: page
           required: true
-          in: query            
+          in: query
       responses:
         '200':
           description: Returns an object with a paginated list of ineligible students
   /api-public/eligibility/zip-codes/{zipCode}:
-    get: 
-      tags: 
+    get:
+      tags:
         - eligibility
       summary: Checks an eligible zipcode
       description: |
         - Admin only
         - Checks eligibility based on given zipcode
       security:
-        - cookieAuth: []    
+        - cookieAuth: []
       parameters:
         - name: zipCode
           required: true
-          in: path            
+          in: path
       responses:
         '200':
           description: Returns an object with zipcode details
   /api-public/reference/{referenceId}:
-    get: 
-      tags: 
+    get:
+      tags:
         - reference
-      summary: Gets reference 
+      summary: Gets reference
       description: |
         - Gets reference based on given id
       security:
-        - cookieAuth: []    
+        - cookieAuth: []
       parameters:
         - name: referenceId
           required: true
-          in: path            
+          in: path
       responses:
         '200':
           description: OK
         '404':
           description: User not found
   /api-public/reference/${referenceId}/submit:
-    post: 
-      tags: 
+    post:
+      tags:
         - reference
-      summary:  Creates new reference 
+      summary:  Creates new reference
       description: |
         - Admin only
-        - Submits new reference based on submitted form information 
+        - Submits new reference based on submitted form information
       security:
-        - cookieAuth: []  
+        - cookieAuth: []
       parameters:
         - name: referenceId
           required: true
@@ -2089,7 +2099,7 @@ paths:
                 affiliation:
                   type: string
                 relationshipLength:
-                  type: string 
+                  type: string
                 rejectionReason:
                   type: string
                 additionalInfo:
@@ -2103,33 +2113,33 @@ paths:
                 communicatesEffectively:
                   type: boolean
                 trustworthyWithChildren:
-                  type: boolean             
+                  type: boolean
       responses:
         '200':
           description: OK
   /api-public/referral/{referralCode}:
-    get: 
-      tags: 
+    get:
+      tags:
         - referral
-      summary: Gets referral 
+      summary: Gets referral
       description: |
         - Gets referral based on given code
       security:
-        - cookieAuth: []    
+        - cookieAuth: []
       parameters:
         - name: referralCode
           required: true
-          in: path            
+          in: path
       responses:
         '200':
           description: Returns an object of user details
   /whiteboard/reset:
-    post: 
-      tags: 
+    post:
+      tags:
         - whiteboard
       summary:  Resets whiteboard
       security:
-        - cookieAuth: []  
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -2138,30 +2148,30 @@ paths:
               type: object
               properties:
                 sessionId:
-                  type: string          
+                  type: string
       responses:
         '200':
           description: OK
   /edu:
-    get: 
-      tags: 
+    get:
+      tags:
         - education
       summary:  Gets all courses
       description: |
         - Returns information of course categories and subcategories
         - Categories link to questions
       security:
-        - cookieAuth: []         
+        - cookieAuth: []
       responses:
         '304':
           description: Responds with view of categories and subcategories
   /edu/questions:
     get:
-      tags: 
+      tags:
         - education
       summary:  Gets all questions
       security:
-        - cookieAuth: []         
+        - cookieAuth: []
       responses:
         '304':
           description: Responds with questions view
@@ -2179,47 +2189,47 @@ paths:
               type: object
               properties:
                 questions:
-                  type: object   
+                  type: object
                   properties:
-                    category: 
+                    category:
                       type: string
-                    correctAnswer: 
+                    correctAnswer:
                       type: string
-                    imageSrc: 
+                    imageSrc:
                       type: string
-                    questionText: 
-                      type: string  
+                    questionText:
+                      type: string
                     subcategory:
                       type: string
                     possibleAnswers:
                       type: array
-                      items: 
+                      items:
                         type: object
                         properties:
                           txt:
                             type: string
-                          val:  
-                            type: string      
+                          val:
+                            type: string
       responses:
         '200':
           description: Returns with object of created question
   /edu/questions/new:
     get:
-      tags: 
+      tags:
         - education
-      summary:  Gets new question form     
+      summary:  Gets new question form
       responses:
         '304':
           description: |
             - Responds with view of new question form
-            - Routes to `edu/questions/new`  
+            - Routes to `edu/questions/new`
   /edu/categoryquestions:
     post:
-      tags: 
+      tags:
         - education
       summary:  Submits details for category specific questions
       security:
-        - cookieAuth: []   
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -2228,22 +2238,22 @@ paths:
               type: object
               properties:
                 category:
-                  type: string   
+                  type: string
                 skip:
                   type: string
                 limit:
-                  type: string     
+                  type: string
       responses:
         '200':
           description: Returns object with questions of given category
   /edu/questions/{id}:
     put:
-      tags: 
+      tags:
         - education
       summary: Updates a question
       descripttion: Submits details for question update
       security:
-        - cookieAuth: []   
+        - cookieAuth: []
       parameters:
         - name: id
           required: true
@@ -2256,36 +2266,36 @@ paths:
               type: object
               properties:
                 questions:
-                  type: object   
+                  type: object
                   properties:
-                    category: 
+                    category:
                       type: string
-                    correctAnswer: 
+                    correctAnswer:
                       type: string
-                    imageSrc: 
+                    imageSrc:
                       type: string
-                    questionText: 
-                      type: string  
+                    questionText:
+                      type: string
                     subcategory:
                       type: string
                     possibleAnswers:
                       type: array
-                      items: 
+                      items:
                         type: object
                         properties:
                           txt:
                             type: string
-                          val:  
+                          val:
                             type: string
       responses:
         '200':
           description: Returns object of updated question
     delete:
-      tags: 
+      tags:
         - education
       summary: Deletes a question from given id
       security:
-        - cookieAuth: []   
+        - cookieAuth: []
       parameters:
         - name: id
           required: true
@@ -2295,34 +2305,34 @@ paths:
           description: Returns question that is deleted
   /twiml/message/{message}:
     post:
-      tags: 
+      tags:
         - twilio
       summary:  Text to speech conversion
       description: |
-        - When message text is sent, Twilio will call this endpoint 
+        - When message text is sent, Twilio will call this endpoint
         - This endpoints sets TwiML instructions for text to speech conversation
         - Converts text message to voice message
         - Responds with TwiML containing the decoded message text and the configured voice for the text-to-speech conversion
       security:
-        - cookieAuth: [] 
+        - cookieAuth: []
       parameters:
         - name: message
           required: true
-          in: path  
+          in: path
       responses:
         '200':
-          description: Returns TwiML in text/xml 
+          description: Returns TwiML in text/xml
   /twiml/message/incoming-sms:
     post:
-      tags: 
+      tags:
         - twilio
       summary:  Twilio SMS messages
       description: |
         - Handles SMS messages sent to Twilio numbers
         - Twilio calls this endpoint to generate a message response
-        - Server will send a TwiML message 
+        - Server will send a TwiML message
       security:
-        - cookieAuth: [] 
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -2332,7 +2342,7 @@ paths:
               properties:
                 Body:
                   type: string
-                From: 
+                From:
                   type: string
       responses:
         '200':
@@ -2342,7 +2352,7 @@ paths:
             - No session found
             - Volunteer already joined session
             - Student ended/cancelled their session
-        '404': 
+        '404':
           description: Missing phone number
 externalDocs:
   description: Find out more about Swagger
@@ -2393,21 +2403,21 @@ components:
         - version
       properties:
         version:
-          type: string 
+          type: string
     IsVolunteer:
       type: boolean
       example: false
-    Password: 
+    Password:
       type: string
       example: "Password123"
-    ScheduleDay: 
+    ScheduleDay:
       type: object
       properties:
         1a:
           $ref: "#/components/schemas/UnavailableHour"
         1p:
           $ref: "#/components/schemas/UnavailableHour"
-        2a: 
+        2a:
           $ref: "#/components/schemas/UnavailableHour"
         2p:
           $ref: "#/components/schemas/UnavailableHour"
@@ -2449,7 +2459,7 @@ components:
           $ref: "#/components/schemas/UnavailableHour"
         12a:
           $ref: "#/components/schemas/UnavailableHour"
-        12p: 
+        12p:
           $ref: "#/components/schemas/UnavailableHour"
     SessionId:
       type: string
@@ -2465,7 +2475,7 @@ components:
       type: string
       example: "605a355a3bc29882261d3594"
       format: uuid
-    TZ: 
+    TZ:
       type: string
       example: "US/Arizona"
     UnavailableHour:
@@ -2474,7 +2484,7 @@ components:
     UserId:
       type: string
       example: "605a355a3bc29882261d3594"
-    UserType: 
+    UserType:
       type: string
       example: "volunteer"
     VolunteerId:

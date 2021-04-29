@@ -1,20 +1,20 @@
 import { CustomError } from 'ts-custom-error'
-import mongoose from 'mongoose'
+import { Types } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
 import isLength from 'validator/lib/isLength'
-import MailService from '../services/MailService'
 import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission'
+import MailService from './MailService'
 
 interface ContactFormSubmissionData {
   message: string
   topic: string
-  email: string
+  userEmail: string
   userId?: string
 }
 
 export class ContactFormDataValidationError extends CustomError {
-  constructor() {
-    super('contact form data was invalid')
+  constructor(errors: string[]) {
+    super(`contact form data was invalid: ${errors}`)
   }
 }
 
@@ -38,7 +38,7 @@ function topicIsValid(topic: string) {
 }
 
 function userIdIsValid(id: string) {
-  return mongoose.Types.ObjectId.isValid(id)
+  return Types.ObjectId.isValid(id)
 }
 
 function emailIsValid(email: string) {
@@ -52,60 +52,92 @@ function messageIsValid(message: string) {
   })
 }
 
-function requestBodyIsValid(data: unknown) {
-  let hasMessage = false
-  let hasTopic = false
-  let hasUserEmail = false
-  let hasUserId = false
+function requestBodyIsValid(
+  data: unknown
+): { valid: boolean; errors: string[] } {
+  let validMessage = false
+  let validTopic = false
+  let validUserEmail = false
+  let validUserId = false
+
+  let valid = false
+  const errors: string[] = []
 
   if (
     Object.prototype.hasOwnProperty.call(data, 'message') &&
-    messageIsValid(data.message)
+    messageIsValid((data as ContactFormSubmissionData).message)
   ) {
-    hasMessage = true
+    validMessage = true
+  } else {
+    errors.push('message is invalid')
   }
   if (
     Object.prototype.hasOwnProperty.call(data, 'topic') &&
-    topicIsValid(data.topic)
+    topicIsValid((data as ContactFormSubmissionData).topic)
   ) {
-    hasTopic = true
+    validTopic = true
+  } else {
+    errors.push('topic is invalid')
   }
   if (
     Object.prototype.hasOwnProperty.call(data, 'userEmail') &&
-    emailIsValid(data.email)
+    emailIsValid((data as ContactFormSubmissionData).userEmail)
   ) {
-    hasUserEmail = true
+    validUserEmail = true
+  } else {
+    errors.push('email is invalid')
   }
   if (
     Object.prototype.hasOwnProperty.call(data, 'userId') &&
-    userIdIsValid(data.userId)
+    userIdIsValid((data as ContactFormSubmissionData).userId)
   ) {
-    hasUserId = true
+    validUserId = true
+  } else {
+    errors.push('user id is invalid')
   }
 
-  return hasMessage && hasTopic && (hasUserEmail || hasUserId)
+  if (validMessage && validTopic && (validUserEmail || validUserId)) {
+    valid = true
+  }
+
+  return {
+    valid,
+    errors
+  }
 }
 
-function sendContactForm(data: ContactFormSubmissionData, callback: Function) {
+function sendContactForm(
+  data: { topic: string; message: string; email: string },
+  callback: Function
+) {
   return MailService.sendContactForm(data, callback)
 }
 
 export async function saveContactFormSubmission(data: unknown) {
-  if (!requestBodyIsValid(data)) {
-    throw new ContactFormDataValidationError()
+  const validity = requestBodyIsValid(data)
+  if (!validity.valid) {
+    throw new ContactFormDataValidationError(validity.errors)
   }
   const validatedData = data as ContactFormSubmissionData
   try {
     if (validatedData.userId === undefined) {
-      await ContactFormSubmissionRepo.saveFormWithEmail(validatedData.message, validatedData.topic, validatedData.email)
+      await ContactFormSubmissionRepo.createFormWithEmail(
+        validatedData.message,
+        validatedData.topic,
+        validatedData.userEmail
+      )
     } else {
-      await ContactFormSubmissionRepo.saveFormWithUser(validatedData.message, validatedData.topic, validatedData.userId)
+      await ContactFormSubmissionRepo.createFormWithUser(
+        validatedData.message,
+        validatedData.topic,
+        validatedData.userId
+      )
     }
   } catch (err) {
     throw err
   }
   const mailData = {
-    email: validatedData.email,
+    email: validatedData.userEmail,
     message: validatedData.message,
     topic: validatedData.topic
   }

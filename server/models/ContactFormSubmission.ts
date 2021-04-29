@@ -1,18 +1,16 @@
-import { Document, model, Schema, Types } from 'mongoose'
-import UserModel, { User, UserDocument } from './User'
-import { DocCreationError, UserNotFoundError } from './Errors'
+import { model, Schema, Types } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
+import UserModel, { UserDocument } from './User'
+import { DocCreationError, UserNotFoundError } from './Errors'
 
-interface ContactFormSubmission {
-  _id: Types.ObjectId
+export interface ContactFormSubmission {
+  id: string
   createdAt: Date
-  email: string
-  userId: Types.ObjectId | User
+  userEmail: string
+  userId?: string
   topic: string
   message: string
 }
-
-export type ContactFormSubmissionDocument = ContactFormSubmission & Document
 
 const contactFormSubmissionSchema = new Schema({
   createdAt: {
@@ -23,12 +21,12 @@ const contactFormSubmissionSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  email: {
+  userEmail: {
     type: String,
     default: '',
     required: [true, 'email is required'],
     validate: {
-      validator: (v) => {
+      validator: v => {
         return isEmail(v)
       },
       message: props => `${props.value} is not a valid email`
@@ -56,8 +54,12 @@ const contactFormSubmissionSchema = new Schema({
   }
 })
 
-const contactFormSubmissionModel = model('ContactFormSubmission', contactFormSubmissionSchema)
+const ContactFormSubmissionModel = model(
+  'ContactFormSubmission',
+  contactFormSubmissionSchema
+)
 
+// TODO: put this in the User Repo once we have that refactored
 async function getUserIdAndEmail(id: string) {
   let user: UserDocument
   try {
@@ -67,29 +69,29 @@ async function getUserIdAndEmail(id: string) {
   }
   return {
     id: user._id as Types.ObjectId,
-    email: user.email
+    userEmail: user.email
   }
 }
 
-export async function saveFormWithUser(
+export async function createFormWithUser(
   message,
   topic,
   userId: string
-): Promise<ContactFormSubmissionDocument> {
+): Promise<ContactFormSubmission> {
   // validate that the user exists
-  let email: string
+  let userEmail: string
   let userObjectId: Types.ObjectId
   try {
     const data = await getUserIdAndEmail(userId)
     userObjectId = data.id
-    email = data.email
+    userEmail = data.userEmail
   } catch (err) {
     throw err
   }
   // use validated data on the form
-  const cfs = new contactFormSubmissionModel({
+  const cfs = new ContactFormSubmissionModel({
     message,
-    email,
+    userEmail,
     userId: userObjectId,
     topic
   })
@@ -99,17 +101,24 @@ export async function saveFormWithUser(
   } catch (err) {
     throw new DocCreationError(err.message)
   }
-  return createdDoc
+  return {
+    id: createdDoc._id.toString(),
+    createdAt: createdDoc.createdAt,
+    userEmail: createdDoc.userEmail,
+    userId: createdDoc.userId.toString(),
+    topic: createdDoc.topic,
+    message: createdDoc.message
+  }
 }
 
-export async function saveFormWithEmail(
+export async function createFormWithEmail(
   message,
   topic,
-  email: string
-): Promise<ContactFormSubmissionDocument> {
-  const cfs = new contactFormSubmissionModel({
+  userEmail: string
+): Promise<ContactFormSubmission> {
+  const cfs = new ContactFormSubmissionModel({
     message,
-    email,
+    userEmail,
     topic
   })
   let createdDoc
@@ -118,5 +127,11 @@ export async function saveFormWithEmail(
   } catch (err) {
     throw new DocCreationError(err.message)
   }
-  return createdDoc
+  return {
+    id: createdDoc._id.toString(),
+    createdAt: createdDoc.createdAt,
+    userEmail: createdDoc.userEmail,
+    topic: createdDoc.topic,
+    message: createdDoc.message
+  }
 }
