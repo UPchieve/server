@@ -20,7 +20,11 @@ const main = (): void => {
   initializeUnleash()
 
   // Database
-  mongoose.connect(config.database, { useNewUrlParser: true, useUnifiedTopology: true })
+  mongoose.connect(config.database, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true
+  })
   const db = mongoose.connection
   db.on('error', console.error.bind(console, 'connection error:'))
   db.once('open', () => {

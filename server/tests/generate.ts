@@ -1,9 +1,9 @@
 import moment from 'moment-timezone'
 import faker from 'faker'
-import {Test} from 'supertest'
-import {Types} from 'mongoose'
+import { Test } from 'supertest'
+import { Types } from 'mongoose'
 import base64url from 'base64url'
-import {merge} from 'lodash'
+import { merge } from 'lodash'
 import {
   COLLEGE_CERTS,
   COLLEGE_SUBJECTS,
@@ -14,17 +14,27 @@ import {
   SCIENCE_CERTS,
   TRAINING
 } from '../constants'
-import {Message} from '../models/Message'
-import {AvailabilitySnapshot} from '../models/Availability/Snapshot'
-import {AvailabilityHistory} from '../models/Availability/History'
-import {UserAction} from '../models/UserAction'
-import {Availability, AvailabilityDay, DAYS, HOURS} from '../models/Availability/types'
-import {Certifications, Reference, TrainingCourses, Volunteer} from '../models/Volunteer'
-import {User} from '../models/User'
-import {Student} from '../models/Student'
-import {Session} from '../models/Session'
-import {Feedback} from '../models/Feedback'
-import {StudentRegistrationForm, VolunteerRegistrationForm} from './types'
+import { Message } from '../models/Message'
+import { AvailabilitySnapshot } from '../models/Availability/Snapshot'
+import { AvailabilityHistory } from '../models/Availability/History'
+import { UserAction } from '../models/UserAction'
+import {
+  Availability,
+  AvailabilityDay,
+  DAYS,
+  HOURS
+} from '../models/Availability/types'
+import {
+  Certifications,
+  Reference,
+  TrainingCourses,
+  Volunteer
+} from '../models/Volunteer'
+import { User } from '../models/User'
+import { Student } from '../models/Student'
+import { Session } from '../models/Session'
+import { Feedback } from '../models/Feedback'
+import { StudentRegistrationForm, VolunteerRegistrationForm } from './types'
 
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
@@ -54,31 +64,31 @@ export function hugeText() {
 // @todo: Figure out how to use with MATH_CERTS, SCIENCE_CERTS
 export const buildCertifications = (overrides = {}): Certifications => {
   return {
-    [MATH_CERTS.PREALGREBA]: {passed: false, tries: 0},
-    [MATH_CERTS.ALGEBRA]: {passed: false, tries: 0},
-    [MATH_CERTS.GEOMETRY]: {passed: false, tries: 0},
-    [MATH_CERTS.TRIGONOMETRY]: {passed: false, tries: 0},
-    [MATH_CERTS.PRECALCULUS]: {passed: false, tries: 0},
-    [MATH_CERTS.CALCULUS_AB]: {passed: false, tries: 0},
-    [MATH_CERTS.CALCULUS_BC]: {passed: false, tries: 0},
-    [MATH_CERTS.STATISTICS]: {passed: false, tries: 0},
-    [SCIENCE_CERTS.BIOLOGY]: {passed: false, tries: 0},
-    [SCIENCE_CERTS.CHEMISTRY]: {passed: false, tries: 0},
-    [SCIENCE_CERTS.PHYSICS_ONE]: {passed: false, tries: 0},
-    [SCIENCE_CERTS.PHYSICS_TWO]: {passed: false, tries: 0},
-    [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: {passed: false, tries: 0},
-    [COLLEGE_CERTS.ESSAYS]: {passed: false, tries: 0},
-    [COLLEGE_CERTS.FINANCIAL_AID]: {passed: false, tries: 0},
-    [COLLEGE_CERTS.SPORTS_RECRUITMENT_PLANNING]: {passed: false, tries: 0},
-    [COLLEGE_SUBJECTS.PLANNING]: {passed: false, tries: 0},
-    [COLLEGE_SUBJECTS.APPLICATIONS]: {passed: false, tries: 0},
-    [SAT_CERTS.SAT_MATH]: {passed: false, tries: 0},
-    [SAT_CERTS.SAT_READING]: {passed: false, tries: 0},
-    [TRAINING.UPCHIEVE_101]: {passed: false, tries: 0},
-    [TRAINING.TUTORING_SKILLS]: {passed: false, tries: 0},
-    [TRAINING.COLLEGE_COUNSELING]: {passed: false, tries: 0},
-    [TRAINING.COLLEGE_SKILLS]: {passed: false, tries: 0},
-    [TRAINING.SAT_STRATEGIES]: {passed: false, tries: 0},
+    [MATH_CERTS.PREALGREBA]: { passed: false, tries: 0 },
+    [MATH_CERTS.ALGEBRA]: { passed: false, tries: 0 },
+    [MATH_CERTS.GEOMETRY]: { passed: false, tries: 0 },
+    [MATH_CERTS.TRIGONOMETRY]: { passed: false, tries: 0 },
+    [MATH_CERTS.PRECALCULUS]: { passed: false, tries: 0 },
+    [MATH_CERTS.CALCULUS_AB]: { passed: false, tries: 0 },
+    [MATH_CERTS.CALCULUS_BC]: { passed: false, tries: 0 },
+    [MATH_CERTS.STATISTICS]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.BIOLOGY]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.CHEMISTRY]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.PHYSICS_ONE]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.PHYSICS_TWO]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: { passed: false, tries: 0 },
+    [COLLEGE_CERTS.ESSAYS]: { passed: false, tries: 0 },
+    [COLLEGE_CERTS.FINANCIAL_AID]: { passed: false, tries: 0 },
+    [COLLEGE_CERTS.SPORTS_RECRUITMENT_PLANNING]: { passed: false, tries: 0 },
+    [COLLEGE_SUBJECTS.PLANNING]: { passed: false, tries: 0 },
+    [COLLEGE_SUBJECTS.APPLICATIONS]: { passed: false, tries: 0 },
+    [SAT_CERTS.SAT_MATH]: { passed: false, tries: 0 },
+    [SAT_CERTS.SAT_READING]: { passed: false, tries: 0 },
+    [TRAINING.UPCHIEVE_101]: { passed: false, tries: 0 },
+    [TRAINING.TUTORING_SKILLS]: { passed: false, tries: 0 },
+    [TRAINING.COLLEGE_COUNSELING]: { passed: false, tries: 0 },
+    [TRAINING.COLLEGE_SKILLS]: { passed: false, tries: 0 },
+    [TRAINING.SAT_STRATEGIES]: { passed: false, tries: 0 },
     ...overrides
   }
 }

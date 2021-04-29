@@ -153,7 +153,12 @@ app.use((req, res, next) => {
   next()
 })
 
-function defaultErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
+function defaultErrorHandler(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   res.status(err.httpStatus || 500).json({ err: err.message || err })
   next()
 }

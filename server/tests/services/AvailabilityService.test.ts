@@ -26,7 +26,8 @@ jest.setTimeout(15000) // db queries can run slow on local dev environments
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useCreateIndex: true
   })
 })
 
