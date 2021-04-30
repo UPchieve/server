@@ -140,7 +140,7 @@ export default {
     }
   },
   methods: {
-    submitContactUs() {
+    async submitContactUs() {
       if (
         !this.isAuthenticated &&
         !this.isValidEmail(this.contactFormData.email)
@@ -155,7 +155,14 @@ export default {
           this.contactFormData.userId = this.$store.state.user.user.id
         }
 
-        NetworkService.sendContact(this, this.contactFormData)
+        try {
+          await NetworkService.sendContact(this, this.contactFormData)
+        } catch {
+          err
+        }
+        {
+        }
+
         this.sendState = this.sendStates.SENT
       }
     },

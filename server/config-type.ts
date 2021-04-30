@@ -8,6 +8,13 @@ export const Config = Record({
   sessionSecret: String,
   sessionCookieMaxAge: Number,
   saltRounds: Number,
+  smtp: Record({
+    host: String,
+    port: Number,
+    secure: Boolean,
+    user: String,
+    password: String
+  }),
   sendgrid: Record({
     apiKey: String,
     contactTemplate: String,

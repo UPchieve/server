@@ -127,7 +127,7 @@ test('contact form returns 500 with invalid data', async () => {
   mockedContactFormService.saveContactFormSubmission.mockImplementationOnce(
     () => {
       return new Promise((resolve, reject) => {
-        reject(new MailSendError('contact form submission'))
+        reject(new MailSendError('contact form submission', 'an error'))
       })
     }
   )

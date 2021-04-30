@@ -16,6 +16,23 @@ jest.mock('../config', () => {
     },
     volunteerPartnerManifestPath: 'localManifests/volunteer.yaml',
     studentPartnerManifestPath: 'localManifests/student.yaml',
+    smtp: {
+      host: 'smtp.mailtrap.io',
+      port: 2525,
+      secure: false,
+      user: process.env.SUBWAY_SMTP_USER,
+      password: process.env.SUBWAY_SMTP_PASSWORD
+    },
+    mail: {
+      senders: {
+        noreply:
+          process.env.SUBWAY_NOREPLY_EMAIL_SENDER || 'example@example.org'
+      },
+      receivers: {
+        contact:
+          process.env.SUBWAY_CONTACT_EMAIL_RECEIVER || 'example@example.org'
+      }
+    },
     sendgrid: {
       apiKey: ''
     },

@@ -3,7 +3,7 @@ import { Types } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
 import isLength from 'validator/lib/isLength'
 import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission'
-import MailService from './MailService'
+import * as MailService from './MailService/smtp'
 
 interface ContactFormSubmissionData {
   message: string
@@ -19,8 +19,8 @@ export class ContactFormDataValidationError extends CustomError {
 }
 
 export class MailSendError extends CustomError {
-  constructor(mailType: string) {
-    super(`failed to send ${mailType} through email provider`)
+  constructor(mailType, err: string) {
+    super(`failed to send ${mailType} through email provider: ${err}`)
   }
 }
 
@@ -106,11 +106,16 @@ function requestBodyIsValid(
   }
 }
 
-function sendContactForm(
-  data: { topic: string; message: string; email: string },
-  callback: Function
-) {
-  return MailService.sendContactForm(data, callback)
+async function sendContactForm(data: {
+  topic: string
+  message: string
+  email: string
+}) {
+  try {
+    await MailService.sendContactFormEmail(data)
+  } catch (err) {
+    throw new MailSendError('contact form submission', err.message)
+  }
 }
 
 export async function saveContactFormSubmission(data: unknown) {
@@ -142,10 +147,8 @@ export async function saveContactFormSubmission(data: unknown) {
     topic: validatedData.topic
   }
   try {
-    await sendContactForm(mailData, function(err) {
-      throw err
-    })
+    await sendContactForm(mailData)
   } catch (err) {
-    throw new MailSendError('contact form submission')
+    throw err
   }
 }
