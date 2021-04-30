@@ -145,6 +145,7 @@ export const Config = Record({
   newRelicBrowserAgentId: String,
   newRelicBrowserLicenseKey: String,
   newRelicBrowserAppId: String,
+  newRelicApprovedOrigin: String,
   papercupsId: String,
   vueDevtools: Boolean,
   whiteboardStorageAppId: String,
