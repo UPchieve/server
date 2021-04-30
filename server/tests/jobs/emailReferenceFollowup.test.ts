@@ -16,7 +16,9 @@ const threeDays = oneDay * 3
 // db connection
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
-    useNewUrlParser: true
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true
   })
 })
 

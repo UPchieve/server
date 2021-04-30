@@ -3,7 +3,9 @@ import ejson from 'mongodb-extended-json'
 import config from './config'
 
 // Database
-mongoose.connect(config.database, { useNewUrlParser: true })
+mongoose.connect(config.database, { useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true })
 const db = mongoose.connection
 
 db.on('error', console.error.bind(console, 'connection error:'))

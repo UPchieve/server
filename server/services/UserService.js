@@ -268,7 +268,7 @@ module.exports = {
       'references.1.status': referenceTwoStatus
     }
 
-    await Volunteer.update({ _id: volunteerId }, update)
+    await Volunteer.updateOne({ _id: volunteerId }, update)
 
     if (
       photoIdStatus === PHOTO_ID_STATUS.REJECTED &&
@@ -334,7 +334,7 @@ module.exports = {
       volunteerId,
       ip
     ).completedBackgroundInfo()
-    return Volunteer.update({ _id: volunteerId }, update)
+    return Volunteer.updateOne({ _id: volunteerId }, update)
   },
 
   adminUpdateUser: async function({

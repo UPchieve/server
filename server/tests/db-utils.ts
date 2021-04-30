@@ -35,12 +35,11 @@ const hashPassword = async function(password): Promise<Error | string> {
 }
 
 export const resetDb = async (): Promise<void> => {
-  await NotificationModel.remove({})
-  await SessionModel.remove({})
-  await UserModel.remove({})
-  await VolunteerModel.remove({})
-
-  await UserActionModel.remove({})
+  await NotificationModel.deleteMany({})
+  await SessionModel.deleteMany({})
+  await UserModel.deleteMany({})
+  await VolunteerModel.deleteMany({})
+  await UserActionModel.deleteMany({})
 }
 
 export const insertVolunteer = async (
