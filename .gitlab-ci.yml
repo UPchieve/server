@@ -44,8 +44,8 @@ build:
         --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
         --buildpack heroku/nodejs \
         --buildpack heroku/procfile@0.6.2 \
-        --cache-image "image_cache"
-        --env "NODE_ENV=production"
+        --cache-image "image_cache" \
+        --env "NODE_ENV=production" \
         --publish
     - docker tag "$image_tagged" "$image_latest"
     - docker push "$image_latest"
