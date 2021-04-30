@@ -261,7 +261,8 @@ const config: Static<typeof Config> = {
   newRelicBrowserAccountId: process.env.VUE_APP_NEW_RELIC_ACCOUNT_ID || 'bogus',
   newRelicBrowserTrustKey: process.env.VUE_APP_NEW_RELIC_TRUST_KEY || 'bogus',
   newRelicBrowserAgentId: process.env.VUE_APP_NEW_RELIC_AGENT_ID || 'bogus',
-  newRelicApprovedOrigin: process.env.VUE_APP_NEW_RELIC_APPROVED_ORIGIN || 'bogus',
+  newRelicApprovedOrigin:
+    process.env.VUE_APP_NEW_RELIC_APPROVED_ORIGIN || 'bogus',
   newRelicBrowserLicenseKey:
     process.env.VUE_APP_NEW_RELIC_LICENSE_KEY || 'bogus',
   newRelicBrowserAppId: process.env.VUE_APP_NEW_RELIC_APP_ID || 'bogus',
