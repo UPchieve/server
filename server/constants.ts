@@ -35,6 +35,33 @@ export const UTC_TO_HOUR_MAPPING = {
   23: '11p'
 }
 
+export const HOUR_TO_UTC_MAPPING = {
+  '12a': 0,
+  '1a': 1,
+  '2a': 2,
+  '3a': 3,
+  '4a': 4,
+  '5a': 5,
+  '6a': 6,
+  '7a': 7,
+  '8a': 8,
+  '9a': 9,
+  '10a': 10,
+  '11a': 11,
+  '12p': 12,
+  '1p': 13,
+  '2p': 14,
+  '3p': 15,
+  '4p': 16,
+  '5p': 17,
+  '6p': 18,
+  '7p': 19,
+  '8p': 20,
+  '9p': 21,
+  '10p': 22,
+  '11p': 23
+}
+
 export const USER_ACTION = {
   TYPE: {
     QUIZ: 'QUIZ',

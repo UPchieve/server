@@ -10,6 +10,8 @@ import { USER_ACTION, UTC_TO_HOUR_MAPPING } from '../constants'
 import roundUpToNearestInterval from '../utils/round-up-to-nearest-interval'
 import countCerts from '../utils/count-certs'
 import logger from '../logger'
+import config from '../config'
+import { generateCustomPartnerReport } from '../utils/reportUtils'
 import * as VolunteerService from './VolunteerService'
 import * as UserActionService from './UserActionService'
 import SessionService from './SessionService'
@@ -548,6 +550,12 @@ export const generateVolunteerPartnerReport = async ({
         elapsedAvailability: 1
       }
     )
+
+    // Generate custom volunteer report
+    if (partnerOrg === config.customPartnerVolunteerReport) {
+      return await generateCustomPartnerReport(volunteers, dateQuery)
+    }
+
     const volunteerPartnerReport = []
 
     for (const volunteer of volunteers) {
@@ -721,6 +729,8 @@ export const generateVolunteerPartnerReport = async ({
         const availabilityHours = Object.entries(availability.availability)
         for (const [hour, isAvailable] of availabilityHours) {
           const hourKey = `${createdAtFormatted}-${hour}`
+          // If we've already counted tutoring during the hour we subtract it
+          // from elapsed availability so we don't double count
           if (isAvailable && accumulatedVolunteerHoursForHour[hourKey])
             elapsedAvailabilityForDay -=
               accumulatedVolunteerHoursForHour[hourKey]

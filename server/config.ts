@@ -173,6 +173,8 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
     'localManifests/volunteer.yaml',
 
+  customPartnerVolunteerReport: process.env.SUBWAY_CUSTOM_PARTNER_REPORT || '',
+
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
     'localManifests/student.yaml',
@@ -266,6 +268,8 @@ const config: Static<typeof Config> = {
   newRelicBrowserAccountId: process.env.VUE_APP_NEW_RELIC_ACCOUNT_ID || 'bogus',
   newRelicBrowserTrustKey: process.env.VUE_APP_NEW_RELIC_TRUST_KEY || 'bogus',
   newRelicBrowserAgentId: process.env.VUE_APP_NEW_RELIC_AGENT_ID || 'bogus',
+  newRelicApprovedOrigin:
+    process.env.VUE_APP_NEW_RELIC_APPROVED_ORIGIN || 'bogus',
   newRelicBrowserLicenseKey:
     process.env.VUE_APP_NEW_RELIC_LICENSE_KEY || 'bogus',
   newRelicBrowserAppId: process.env.VUE_APP_NEW_RELIC_APP_ID || 'bogus',

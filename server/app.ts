@@ -50,6 +50,7 @@ function renderIndexHtml() {
     newRelicBrowserAgentId: config.newRelicBrowserAgentId,
     newRelicBrowserLicenseKey: config.newRelicBrowserLicenseKey,
     newRelicBrowserAppId: config.newRelicBrowserAppId,
+    newRelicApprovedOrigin: config.newRelicApprovedOrigin,
     devtools: config.vueDevtools,
     nodeEnv: config.NODE_ENV,
     version: config.version
