@@ -167,7 +167,10 @@ const addFeedbackFlags = async ({ sessionId, flags }) => {
 }
 
 const addPastSession = async ({ userId, sessionId }) => {
-  await User.update({ _id: userId }, { $addToSet: { pastSessions: sessionId } })
+  await User.updateOne(
+    { _id: userId },
+    { $addToSet: { pastSessions: sessionId } }
+  )
 }
 
 const getSession = async (sessionId, projection = {}) => {
@@ -180,7 +183,7 @@ const getSession = async (sessionId, projection = {}) => {
 const getSessionsWithPipeline = pipeline => Session.aggregate(pipeline)
 
 const addFailedJoins = async ({ userId, sessionId }) => {
-  await Session.update(
+  await Session.updateOne(
     { _id: sessionId },
     { $addToSet: { failedJoins: userId } }
   )

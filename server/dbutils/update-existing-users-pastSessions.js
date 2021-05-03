@@ -13,7 +13,7 @@ var Session = require('../models/Session')
 
 function addSession(user, session) {
   // pushes the session on to the users pastSessions array only if new session
-  User.update(
+  User.updateOne(
     { _id: user._id },
     { $addToSet: { pastSessions: session._id } },
     function(err, results) {
@@ -37,7 +37,7 @@ dbconnect(mongoose, function() {
     [
       function(callback) {
         // finds users that don't have pastSessions and initializes as an array
-        User.update(
+        User.updateMany(
           { pastSessions: { $exists: false } },
           { $set: { pastSessions: [] } },
           { upsert: false, multi: true }

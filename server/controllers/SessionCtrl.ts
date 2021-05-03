@@ -55,7 +55,7 @@ export async function create(
 
 // Currently exposed for Cypress e2e tests
 export async function endAll(user: User): Promise<void> {
-  await SessionModel.update(
+  await SessionModel.updateMany(
     {
       $and: [{ student: user._id }, { endedAt: { $exists: false } }]
     },

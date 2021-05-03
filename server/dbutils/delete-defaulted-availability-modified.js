@@ -9,7 +9,7 @@ dbconnect(mongoose, function() {
   console.log('Migrating db...')
 
   // Delete availabilityLastModifiedAt from all student accounts
-  User.update(
+  User.updateMany(
     { isVolunteer: false },
     { $unset: { availabilityLastModifiedAt: '' } },
     { multi: true }
@@ -28,7 +28,7 @@ dbconnect(mongoose, function() {
           user: user.id
         })
         if (!userAction) {
-          return User.update(
+          return User.updateOne(
             { _id: user._id },
             { $unset: { availabilityLastModifiedAt: '' } }
           )
