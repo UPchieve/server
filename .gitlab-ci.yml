@@ -39,16 +39,14 @@ build:
     - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.18.1/pack-v0.18.1-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
     - |
       pack build "$image_tagged" \
-        --clear-cache \
         --builder heroku/buildpacks:20 \
         --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
         --buildpack heroku/nodejs \
         --buildpack heroku/procfile@0.6.2 \
-        --cache-image "image_cache" \
         --env "NODE_ENV=production" \
+        --cache-image "$image_cache" \
         --publish
-    - docker tag "$image_tagged" "$image_latest"
-    - docker push "$image_latest"
+      
   rules:
     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
 

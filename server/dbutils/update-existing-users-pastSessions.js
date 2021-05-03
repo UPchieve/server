@@ -37,7 +37,7 @@ dbconnect(mongoose, function() {
     [
       function(callback) {
         // finds users that don't have pastSessions and initializes as an array
-        User.updateOne(
+        User.updateMany(
           { pastSessions: { $exists: false } },
           { $set: { pastSessions: [] } },
           { upsert: false, multi: true }
