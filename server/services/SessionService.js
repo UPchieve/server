@@ -167,7 +167,10 @@ const addFeedbackFlags = async ({ sessionId, flags }) => {
 }
 
 const addPastSession = async ({ userId, sessionId }) => {
-  await User.updateOne({ _id: userId }, { $addToSet: { pastSessions: sessionId } })
+  await User.updateOne(
+    { _id: userId },
+    { $addToSet: { pastSessions: sessionId } }
+  )
 }
 
 const getSession = async (sessionId, projection = {}) => {
