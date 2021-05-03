@@ -13,7 +13,7 @@
       There is a new version of the app available, please
       <large-button
         class="refresh-alert__refresh-button"
-        @click="refreshPage"
+        @click.native="refreshPage"
         primary
         :showArrow="false"
         >refresh</large-button
