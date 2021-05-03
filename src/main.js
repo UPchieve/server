@@ -66,11 +66,11 @@ PortalService.call('top.onData', handlePortalData)
 // Set up Sentry error tracking
 Sentry.init({
   // Our Sentry project is configured to only accept calls from app.upchieve.org
-  dsn: 'https://0300061759f44def9726bcd3c0ed5611@sentry.io/1819161',
+  dsn: config.sentryDsn,
   integrations: [
     new Integrations.Vue({ Vue, attachProps: true, logErrors: true })
   ],
-  environment: config.nodeEnv,
+  environment: config.sentryEnv,
   release: `uc-web@${config.version}`
 })
 

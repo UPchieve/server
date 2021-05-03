@@ -53,7 +53,9 @@ function renderIndexHtml() {
     newRelicApprovedOrigin: config.newRelicApprovedOrigin,
     devtools: config.vueDevtools,
     nodeEnv: config.NODE_ENV,
-    version: config.version
+    version: config.version,
+    sentryEnv: config.vueAppSentryEnv,
+    sentryDsn: config.vueAppSentryDsn
   }
 
   return Mustache.render(template, frontendConfig)

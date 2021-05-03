@@ -248,6 +248,8 @@ const config: Static<typeof Config> = {
     'https://gitlab.com/api/v4/feature_flags/unleash/23285197',
   vueAppUnleashId: process.env.VUE_APP_UNLEASH_ID || 'djwdKPaf7s3oxMgDrRrd',
   vueAppUnleashName: process.env.VUE_APP_UNLEASH_NAME || 'dev',
+  vueAppSentryEnv: process.env.VUE_APP_SENTRY_ENV || 'development',
+  vueAppSentryDsn: process.env.VUE_APP_SENTRY_DSN || 'bogus',
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',

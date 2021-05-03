@@ -135,6 +135,8 @@ export const Config = Record({
   vueAppUnleashUrl: String,
   vueAppUnleashId: String,
   vueAppUnleashName: String,
+  vueAppSentryEnv: String,
+  vueAppSentryDsn: String,
   zwibblerUrl: String,
   websocketRoot: String,
   serverRoot: String,
