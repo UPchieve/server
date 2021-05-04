@@ -3,8 +3,8 @@ import { Types } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
 import isLength from 'validator/lib/isLength'
 import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission'
-import * as MailService from './MailService/smtp'
 import logger from '../logger'
+import * as MailService from './MailService/smtp'
 
 interface ContactFormSubmissionData {
   message: string

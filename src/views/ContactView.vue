@@ -27,7 +27,11 @@
         class="contact-form contact__form"
         v-if="sendState !== sendStates.SENT"
       >
-        <div v-if="!hasValidEmail" class="contact-form__section" id="contact-form-email">
+        <div
+          v-if="!hasValidEmail"
+          class="contact-form__section"
+          id="contact-form-email"
+        >
           <div class="contact-form__label">Your email</div>
           <input
             class="contact-form__text"
@@ -158,7 +162,7 @@ export default {
 
         try {
           await NetworkService.sendContact(this, this.contactFormData)
-        } catch(err) {
+        } catch (err) {
           this.sendState = this.sendStates.ERROR
           return
         }
