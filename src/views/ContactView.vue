@@ -27,7 +27,7 @@
         class="contact-form contact__form"
         v-if="sendState !== sendStates.SENT"
       >
-        <div v-if="!hasValidEmail" class="contact-form__section">
+        <div v-if="!hasValidEmail" class="contact-form__section" id="contact-form-email">
           <div class="contact-form__label">Your email</div>
           <input
             class="contact-form__text"
