@@ -249,7 +249,7 @@ const config: Static<typeof Config> = {
   vueAppUnleashId: process.env.VUE_APP_UNLEASH_ID || 'djwdKPaf7s3oxMgDrRrd',
   vueAppUnleashName: process.env.VUE_APP_UNLEASH_NAME || 'dev',
   vueAppSentryEnv: process.env.VUE_APP_SENTRY_ENV || 'development',
-  vueAppSentryDsn: process.env.VUE_APP_SENTRY_DSN || 'bogus',
+  vueAppSentryDsn: process.env.VUE_APP_SENTRY_DSN || '',
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',

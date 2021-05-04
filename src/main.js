@@ -63,16 +63,18 @@ PortalService.call('top.getData').then(handlePortalData)
 // Called any time app is running (warm start) & push notification is received
 PortalService.call('top.onData', handlePortalData)
 
-// Set up Sentry error tracking
-Sentry.init({
-  // Our Sentry project is configured to only accept calls from app.upchieve.org
-  dsn: config.sentryDsn,
-  integrations: [
-    new Integrations.Vue({ Vue, attachProps: true, logErrors: true })
-  ],
-  environment: config.sentryEnv,
-  release: `uc-web@${config.version}`
-})
+if (config.sentryDsn) {
+  // Set up Sentry error tracking
+  Sentry.init({
+    // Our Sentry project is configured to only accept calls from app.upchieve.org
+    dsn: config.sentryDsn,
+    integrations: [
+      new Integrations.Vue({ Vue, attachProps: true, logErrors: true })
+    ],
+    environment: config.sentryEnv,
+    release: `uc-web@${config.version}`
+  })
+}
 
 // Set up vue-headful
 Vue.component('vue-headful', VueHeadful)
