@@ -5,9 +5,12 @@ import {
   saveContactFormSubmission
 } from '../../services/ContactFormService'
 import { DocCreationError, UserNotFoundError } from '../../models/Errors'
+import logger from '../../logger'
 
 function submissionHandler(req: Request, res: Response) {
   const requestData = req.body as unknown
+
+  logger.debug(requestData)
 
   return saveContactFormSubmission(requestData)
     .then(() => {
@@ -23,6 +26,7 @@ function submissionHandler(req: Request, res: Response) {
           | DocCreationError
           | MailSendError
       ) => {
+        logger.error(err)
         if (
           err instanceof ContactFormDataValidationError ||
           err instanceof UserNotFoundError

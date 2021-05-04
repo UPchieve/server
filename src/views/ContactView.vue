@@ -32,7 +32,7 @@
           <input
             class="contact-form__text"
             type="text"
-            v-model="contactFormData.email"
+            v-model="contactFormData.userEmail"
           />
         </div>
 
@@ -77,6 +77,7 @@
 import { mapGetters } from 'vuex'
 import NetworkService from '../services/NetworkService'
 import LargeButton from '@/components/LargeButton'
+import isEmail from 'validator/lib/isEmail'
 
 const sendStates = {
   UNSENT: 'Unsent',
@@ -105,7 +106,7 @@ export default {
     return {
       contactTopics,
       contactFormData: {
-        email: '',
+        userEmail: '',
         userId: '',
         topic: contactTopics[0],
         message: ''
@@ -143,13 +144,13 @@ export default {
     async submitContactUs() {
       if (
         !this.isAuthenticated &&
-        !this.isValidEmail(this.contactFormData.email)
+        !this.isValidEmail(this.contactFormData.userEmail)
       ) {
         alert('A valid email is required.')
         this.sendState = this.sendStates.ERROR
       } else {
         if (this.hasValidEmail) {
-          this.contactFormData.email = this.$store.state.user.user.email
+          this.contactFormData.userEmail = this.$store.state.user.user.email
         }
         if (this.isAuthenticated) {
           this.contactFormData.userId = this.$store.state.user.user.id
@@ -157,18 +158,16 @@ export default {
 
         try {
           await NetworkService.sendContact(this, this.contactFormData)
-        } catch {
-          err
-        }
-        {
+        } catch(err) {
+          this.sendState = this.sendStates.ERROR
+          return
         }
 
         this.sendState = this.sendStates.SENT
       }
     },
     isValidEmail(address) {
-      const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      return re.test(String(address).toLowerCase())
+      return isEmail(String(address).toLowerCase())
     }
   }
 }

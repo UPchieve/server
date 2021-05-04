@@ -3,10 +3,10 @@ import { Types } from 'mongoose'
 import * as ContactFormSubmissionRepo from '../../models/ContactFormSubmission'
 import * as ContactFormService from '../../services/ContactFormService'
 import { hugeText } from '../generate'
-import * as MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService/smtp'
 import { ContactFormDataValidationError } from '../../services/ContactFormService'
 jest.mock('../../models/ContactFormSubmission')
-jest.mock('../../services/MailService')
+jest.mock('../../services/MailService/smtp')
 
 const mockedContactFormSubmissionRepo = mocked(ContactFormSubmissionRepo, true)
 const mockedMailService = mocked(MailService, true)
@@ -75,8 +75,10 @@ test('contact form service saves form submission with email', async () => {
       })
     }
   )
-  mockedMailService.sendContactForm.mockImplementationOnce(() => {
-    return null
+  mockedMailService.sendContactFormEmail.mockImplementationOnce(() => {
+    return new Promise(resolve => {
+      resolve()
+    })
   })
   try {
     await ContactFormService.saveContactFormSubmission(validEmailData)
@@ -102,8 +104,10 @@ test('contact form service saves form submission with user id', async () => {
       })
     }
   )
-  mockedMailService.sendContactForm.mockImplementationOnce(() => {
-    return null
+  mockedMailService.sendContactFormEmail.mockImplementationOnce(() => {
+    return new Promise(resolve => {
+      resolve()
+    })
   })
   try {
     await ContactFormService.saveContactFormSubmission(validUserIdData)

@@ -1,5 +1,8 @@
 import { sendContactFormEmail } from '../../services/MailService/smtp'
 
+/**
+ * @group email
+ */
 test('contact form email sends correctly', async () => {
   try {
     await sendContactFormEmail({

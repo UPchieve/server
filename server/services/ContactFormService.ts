@@ -4,6 +4,7 @@ import isEmail from 'validator/lib/isEmail'
 import isLength from 'validator/lib/isLength'
 import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission'
 import * as MailService from './MailService/smtp'
+import logger from '../logger'
 
 interface ContactFormSubmissionData {
   message: string
@@ -120,12 +121,13 @@ async function sendContactForm(data: {
 
 export async function saveContactFormSubmission(data: unknown) {
   const validity = requestBodyIsValid(data)
+  logger.debug(validity)
   if (!validity.valid) {
     throw new ContactFormDataValidationError(validity.errors)
   }
   const validatedData = data as ContactFormSubmissionData
   try {
-    if (validatedData.userId === undefined) {
+    if (!validatedData.userId) {
       await ContactFormSubmissionRepo.createFormWithEmail(
         validatedData.message,
         validatedData.topic,
