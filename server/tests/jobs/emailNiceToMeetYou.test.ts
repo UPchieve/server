@@ -8,6 +8,8 @@ import { log } from '../../worker/logger'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 
+jest.setTimeout(1000 * 15)
+
 const oneHour = 1000 * 60 * 60 * 1
 const oneDay = oneHour * 24 * 1
 
