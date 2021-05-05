@@ -80,6 +80,13 @@ export interface School {
   GSHI?: number
   LEVEL?: string
   IGOFFERED?: string
+
+  //  virtuals
+  name?: string
+  districtName?: string
+  city?: string
+  state?: string
+  searchableName?: string
 }
 
 export type SchoolDocument = School & Document
