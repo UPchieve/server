@@ -637,8 +637,11 @@ module.exports = {
       },
       {
         $project: {
-          student: '$student.firstname',
-          volunteer: '$volunteer.firstname',
+          student: { _id: '$student._id', firstName: '$student.firstname' },
+          volunteer: {
+            _id: '$volunteer._id',
+            firstName: '$volunteer.firstname'
+          },
           type: 1,
           subTopic: 1,
           createdAt: 1,

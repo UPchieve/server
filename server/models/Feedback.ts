@@ -30,27 +30,53 @@ const feedbackSchema = new Schema({
   },
 
   /**
-   * Keys found in responseData
+   * Keys found when a student submits a feedback form for a
+   * a math or science tutoring session: (Current)
    *
    * session-goal: number
-   * session-goal: string (legacy. only in college sessions currently)
    * subject-understanding: number
    * coach-rating: number
-   * other-feedback: string
    * coach-feedback: string
+   * other-feedback: string
+   *
+   *
+   * Keys found when a volunteer submits a feedback form: (Current)
+   *
+   * session-enjoyable: number
+   * session-improvements: string
+   * student-understanding: number (volunteer counter-part of subject-understanding)
+   * session-obstacles: number[]
+   * other-feedback: string
+   *
+   *
+   * Keys found when a student submits a feedback form for a
+   * college counseling session: (Current)
+   *
    * rate-session: { rating: number }
-   * coach-ratings: (legacy. only in college session currently) {
+   * session-goal: string
+   * coach-ratings: {
    *    coach-knowedgable: number,
    *    coach-friendly: number,
    *    coach-help-again: number
    * }
-   * session-experience: {
+   * other-feedback: string
+   *
+   *
+   * Old volunteer feedback form submission:
+   *
+   * rate-session: { rating: number }
+   * session-experience: { (Deprecated)
    *    easy-to-answer-questions: number,
    *    feel-like-helped-student: number,
    *    feel-more-fulfilled: number,
    *    good-use-of-time: number,
    *    plan-on-volunteering-again: number
    * }
+   * other-feedback: string
+   *
+   *
+   * Below are the deprecated keys:
+   *
    * rate-upchieve: {
    *    achieve-goal: number,
    *    easy-to-use: number,
@@ -67,6 +93,7 @@ const feedbackSchema = new Schema({
    * technical-difficulties: string,
    * asked-unprepared-questions: string,
    * app-features-needed: string
+   *
    *
    */
   responseData: {
