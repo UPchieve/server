@@ -223,7 +223,39 @@ export default {
       this.reconnectAttemptMsg = ''
       this.connectionMsgType = ''
     },
+    isAbsentUser() {
+      const { student, volunteer } = this.session
+      if (!volunteer) return true
+
+      const messages = this.getMessagesAfterVolunteerJoined()
+      let isAbsentStudent = true
+      let isAbsentVolunteer = true
+      for (const message of messages) {
+        if (message.userId === student._id) isAbsentStudent = false
+        if (message.userId === volunteer._id) isAbsentVolunteer = false
+        if (!isAbsentStudent && !isAbsentVolunteer) break
+      }
+      return isAbsentStudent || isAbsentVolunteer
+    },
+    getMessagesAfterVolunteerJoined() {
+      return this.session.messages.filter(
+        message =>
+          new Date(message.createdAt).getTime() >=
+          new Date(this.session.volunteerJoinedAt).getTime()
+      )
+    },
     goToFeedbackPage() {
+      // redirect to the home page if there is an absent user
+      // or if the student was not paired with a tutor
+      if (this.isAbsentUser()) return this.$router.push('/')
+
+      if (!this.user.isVolunteer && this.session.type === 'college') {
+        this.goToStudentCounselingFeedbackPage()
+        return
+      }
+      router.push(`/feedback/${this.session._id}`)
+    },
+    goToStudentCounselingFeedbackPage() {
       const sessionId = this.session._id
       let studentId = ''
       let volunteerId = null

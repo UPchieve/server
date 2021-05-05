@@ -39,6 +39,7 @@ import ReviewMaterialsView from './views/ReviewMaterialsView'
 import SessionView from './views/SessionView'
 import SetPasswordView from './views/SetPasswordView'
 import SignupView from './views/SignupView'
+import StudentCounselingFeedbackView from './views/StudentCounselingFeedbackView'
 import StudentPartnerSignupView from './views/StudentPartnerSignupView'
 import TrainingCourseView from './views/TrainingCourseView'
 import TrainingView from './views/TrainingView'
@@ -179,10 +180,16 @@ const routes = [
     }
   },
   {
-    path:
-      '/feedback/:sessionId/:topic/:subTopic/:userType/:studentId/:volunteerId',
+    path: '/feedback/:sessionId',
     name: 'FeedbackView',
     component: FeedbackView,
+    meta: { protected: true }
+  },
+  {
+    path:
+      '/feedback/:sessionId/:topic/:subTopic/:userType/:studentId/:volunteerId',
+    name: 'StudentCounselingFeedbackView',
+    component: StudentCounselingFeedbackView,
     meta: { protected: true }
   },
   {
