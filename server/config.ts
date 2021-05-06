@@ -44,6 +44,13 @@ const config: Static<typeof Config> = {
   sessionCookieMaxAge:
     parseInt(process.env.SUBWAY_SESSION_COOKIE_MAX_AGE) || 5184000000,
   saltRounds: 10,
+  smtp: {
+    host: process.env.SUBWAY_SMTP_HOST || 'smtp.mailtrap.io',
+    port: parseInt(process.env.SUBWAY_SMTP_PORT) || 2525,
+    secure: ((process.env.SUBWAY_SMTP_SECURE as unknown) as boolean) || false,
+    user: process.env.SUBWAY_SMTP_USER || '',
+    password: process.env.SUBWAY_SMTP_PASSWORD || ''
+  },
   sendgrid: {
     apiKey: process.env.SUBWAY_SENDGRID_API_KEY || '',
     contactTemplate: 'd-e79546f380874c58965c163f45df2ef4',

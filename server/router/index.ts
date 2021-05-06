@@ -1,6 +1,8 @@
-const config = require('../config')
+import { Express } from 'express'
+import config from '../config'
+import * as ContactFormRouter from './contact'
 
-module.exports = function(app) {
+export default function(app: Express) {
   console.log('Initializing server routing')
 
   require('./whiteboard')(app)
@@ -12,7 +14,7 @@ module.exports = function(app) {
   require('./edu')(app)
   require('./eligibility')(app)
   require('./twiml')(app)
-  require('./contact')(app)
+  ContactFormRouter.routes(app)
   require('./metrics')(app)
   require('./mobile')(app)
   require('./reference')(app)

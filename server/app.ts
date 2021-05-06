@@ -5,7 +5,7 @@ import * as Sentry from '@sentry/node'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express, { Request } from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import expressWs from '@small-tech/express-ws'
 import cacheControl from 'express-cache-controller'
 import timeout from 'connect-timeout'
@@ -85,7 +85,7 @@ const indexHtml = renderIndexHtml()
 const expressLogger = expressPino({ logger })
 app.use(expressLogger)
 
-app.use(timeout(300000))
+app.use(timeout('300000'))
 
 /**
  * Account for nginx proxy when getting client's IP address
@@ -144,12 +144,9 @@ app.use(haltOnTimedout)
 // Send error responses to API requests after they are passed to Sentry
 app.use(
   ['/api', '/auth', '/contact', '/school', '/twiml', '/whiteboard'],
-  haltOnTimedout,
-  (err, req, res, next) => {
-    res.status(err.httpStatus || 500).json({ err: err.message || err })
-    next()
-  }
+  haltOnTimedout
 )
+
 app.use(haltOnTimedout)
 
 app.use(express.static(path.join(__dirname, distDir), { index: indexHtml }))
@@ -158,5 +155,16 @@ app.use((req, res, next) => {
   res.send(indexHtml).status(200)
   next()
 })
+
+function defaultErrorHandler(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  res.status(err.httpStatus || 500).json({ err: err.message || err })
+  next()
+}
+app.use(defaultErrorHandler)
 
 export default app

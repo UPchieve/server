@@ -9,6 +9,7 @@
       class="contact"
       :class="{ 'contact--noAuth': !isAuthenticated || !isVerified }"
     >
+      <Loader :overlay="true" v-if="isSendingForm" />
       <div class="contact__header">
         Contact Us
       </div>
@@ -27,12 +28,16 @@
         class="contact-form contact__form"
         v-if="sendState !== sendStates.SENT"
       >
-        <div v-if="!hasValidEmail" class="contact-form__section">
+        <div
+          v-if="!hasValidEmail"
+          class="contact-form__section"
+          id="contact-form-email"
+        >
           <div class="contact-form__label">Your email</div>
           <input
             class="contact-form__text"
             type="text"
-            v-model="contactFormData.email"
+            v-model="contactFormData.userEmail"
           />
         </div>
 
@@ -64,6 +69,7 @@
             class="contact-form__submit"
             primary
             @click.native="submitContactUs"
+            :disabled="isSendingForm"
           >
             Send
           </large-button>
@@ -77,6 +83,8 @@
 import { mapGetters } from 'vuex'
 import NetworkService from '../services/NetworkService'
 import LargeButton from '@/components/LargeButton'
+import Loader from '@/components/Loader'
+import isEmail from 'validator/lib/isEmail'
 
 const sendStates = {
   UNSENT: 'Unsent',
@@ -86,7 +94,7 @@ const sendStates = {
 
 export default {
   name: 'contact-view',
-  components: { LargeButton },
+  components: { LargeButton, Loader },
   created() {
     if (!this.isAuthenticated || !this.isVerified) {
       this.$store.dispatch('app/hideNavigation')
@@ -104,8 +112,10 @@ export default {
 
     return {
       contactTopics,
+      isSendingForm: false,
       contactFormData: {
-        email: '',
+        userEmail: '',
+        userId: '',
         topic: contactTopics[0],
         message: ''
       },
@@ -139,27 +149,37 @@ export default {
     }
   },
   methods: {
-    submitContactUs() {
+    async submitContactUs() {
       if (
         !this.isAuthenticated &&
-        !this.isValidEmail(this.contactFormData.email)
+        !this.isValidEmail(this.contactFormData.userEmail)
       ) {
         alert('A valid email is required.')
         this.sendState = this.sendStates.ERROR
       } else {
         if (this.hasValidEmail) {
-          this.contactFormData.email = this.$store.state.user.user.email
+          this.contactFormData.userEmail = this.$store.state.user.user.email
+        }
+        if (this.isAuthenticated) {
+          this.contactFormData.userId = this.$store.state.user.user.id
         }
 
-        NetworkService.sendContact(this, {
-          responseData: this.contactFormData
-        })
+        this.isSendingForm = true
+
+        try {
+          await NetworkService.sendContact(this, this.contactFormData)
+        } catch (err) {
+          this.sendState = this.sendStates.ERROR
+          this.isSendingForm = false
+          return
+        }
+
         this.sendState = this.sendStates.SENT
+        this.isSendingForm = false
       }
     },
     isValidEmail(address) {
-      const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      return re.test(String(address).toLowerCase())
+      return isEmail(String(address).toLowerCase())
     }
   }
 }

@@ -1,11 +1,11 @@
-const config = require('../config')
+const config = require('../../config')
 const sgMail = require('@sendgrid/mail')
 const axios = require('axios')
 const { capitalize } = require('lodash')
 const {
   volunteerPartnerManifests,
   studentPartnerManifests
-} = require('../partnerManifests')
+} = require('../../partnerManifests')
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -119,7 +119,7 @@ module.exports = {
     )
   },
 
-  sendContactForm: ({ responseData }, callback) => {
+  sendContactForm: (requestData, callback) => {
     const overrides = {
       // ensure staff members always get contact form submissions
       mail_settings: { bypass_list_management: { enable: true } }
@@ -130,7 +130,7 @@ module.exports = {
       config.mail.senders.noreply,
       'UPchieve',
       config.sendgrid.contactTemplate,
-      responseData,
+      requestData,
       callback,
       overrides
     )

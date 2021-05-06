@@ -5,36 +5,37 @@ import { Types } from 'mongoose'
 import base64url from 'base64url'
 import { merge } from 'lodash'
 import {
-  PHOTO_ID_STATUS,
-  REFERENCE_STATUS,
-  TRAINING,
-  MATH_CERTS,
-  SCIENCE_CERTS,
   COLLEGE_CERTS,
   COLLEGE_SUBJECTS,
-  SAT_CERTS
+  MATH_CERTS,
+  PHOTO_ID_STATUS,
+  REFERENCE_STATUS,
+  SAT_CERTS,
+  SCIENCE_CERTS,
+  TRAINING
 } from '../constants'
 import { Message } from '../models/Message'
 import { AvailabilitySnapshot } from '../models/Availability/Snapshot'
 import { AvailabilityHistory } from '../models/Availability/History'
 import { UserAction } from '../models/UserAction'
 import {
-  AvailabilityDay,
   Availability,
+  AvailabilityDay,
   DAYS,
   HOURS
 } from '../models/Availability/types'
 import {
-  Volunteer,
+  Certifications,
   Reference,
   TrainingCourses,
-  Certifications
+  Volunteer
 } from '../models/Volunteer'
 import { User } from '../models/User'
 import { Student } from '../models/Student'
 import { Session } from '../models/Session'
 import { Feedback } from '../models/Feedback'
 import { StudentRegistrationForm, VolunteerRegistrationForm } from './types'
+
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
@@ -56,9 +57,13 @@ export const getPhoneNumber = (): string => {
   return `+1${formattedPhoneNumber}`
 }
 
+export function hugeText() {
+  return faker.lorem.words(300)
+}
+
 // @todo: Figure out how to use with MATH_CERTS, SCIENCE_CERTS
 export const buildCertifications = (overrides = {}): Certifications => {
-  const certifications = {
+  return {
     [MATH_CERTS.PREALGREBA]: { passed: false, tries: 0 },
     [MATH_CERTS.ALGEBRA]: { passed: false, tries: 0 },
     [MATH_CERTS.GEOMETRY]: { passed: false, tries: 0 },
@@ -86,12 +91,10 @@ export const buildCertifications = (overrides = {}): Certifications => {
     [TRAINING.SAT_STRATEGIES]: { passed: false, tries: 0 },
     ...overrides
   }
-
-  return certifications
 }
 
 export const buildTrainingCourses = (overrides = {}): TrainingCourses => {
-  const trainingCourses = {
+  return {
     [TRAINING.UPCHIEVE_101]: {
       isComplete: false,
       progress: 0,
@@ -119,7 +122,6 @@ export const buildTrainingCourses = (overrides = {}): TrainingCourses => {
     },
     ...overrides
   }
-  return trainingCourses
 }
 
 export const buildAvailability = (overrides = {}): Availability => {
