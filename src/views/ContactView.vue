@@ -9,6 +9,7 @@
       class="contact"
       :class="{ 'contact--noAuth': !isAuthenticated || !isVerified }"
     >
+      <Loader v-if="isSendingForm" />
       <div class="contact__header">
         Contact Us
       </div>
@@ -81,6 +82,7 @@
 import { mapGetters } from 'vuex'
 import NetworkService from '../services/NetworkService'
 import LargeButton from '@/components/LargeButton'
+import Loader from '@/components/Loader'
 import isEmail from 'validator/lib/isEmail'
 
 const sendStates = {
@@ -91,7 +93,7 @@ const sendStates = {
 
 export default {
   name: 'contact-view',
-  components: { LargeButton },
+  components: { LargeButton, Loader },
   created() {
     if (!this.isAuthenticated || !this.isVerified) {
       this.$store.dispatch('app/hideNavigation')
@@ -109,6 +111,7 @@ export default {
 
     return {
       contactTopics,
+      isSendingForm: false,
       contactFormData: {
         userEmail: '',
         userId: '',
@@ -160,14 +163,18 @@ export default {
           this.contactFormData.userId = this.$store.state.user.user.id
         }
 
+        this.isSendingForm = true
+
         try {
           await NetworkService.sendContact(this, this.contactFormData)
         } catch (err) {
           this.sendState = this.sendStates.ERROR
+          this.isSendingForm = false
           return
         }
 
         this.sendState = this.sendStates.SENT
+        this.isSendingForm = false
       }
     },
     isValidEmail(address) {
