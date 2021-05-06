@@ -9,7 +9,7 @@
       class="contact"
       :class="{ 'contact--noAuth': !isAuthenticated || !isVerified }"
     >
-      <Loader v-if="isSendingForm" />
+      <Loader :overlay="true" v-if="isSendingForm" />
       <div class="contact__header">
         Contact Us
       </div>
@@ -69,6 +69,7 @@
             class="contact-form__submit"
             primary
             @click.native="submitContactUs"
+            :disabled="isSendingForm"
           >
             Send
           </large-button>
