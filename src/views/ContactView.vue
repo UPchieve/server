@@ -81,7 +81,6 @@
 import { mapGetters } from 'vuex'
 import NetworkService from '../services/NetworkService'
 import LargeButton from '@/components/LargeButton'
-import Loader from '@/components/Loader'
 import isEmail from 'validator/lib/isEmail'
 
 const sendStates = {
@@ -92,7 +91,7 @@ const sendStates = {
 
 export default {
   name: 'contact-view',
-  components: { LargeButton, Loader },
+  components: { LargeButton },
   created() {
     if (!this.isAuthenticated || !this.isVerified) {
       this.$store.dispatch('app/hideNavigation')

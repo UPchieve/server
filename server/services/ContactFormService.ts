@@ -2,10 +2,9 @@ import { CustomError } from 'ts-custom-error'
 import { Types } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
 import isLength from 'validator/lib/isLength'
-import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission'
-import logger from '../logger'
-import * as MailService from './MailService/smtp'
 import nr from 'newrelic'
+import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission'
+import * as MailService from './MailService/smtp'
 
 interface ContactFormSubmissionData {
   message: string
@@ -126,36 +125,44 @@ export async function saveContactFormSubmission(data: unknown) {
     throw new ContactFormDataValidationError(validity.errors)
   }
   const validatedData = data as ContactFormSubmissionData
-  await nr.startSegment('service:contactFormSubmission:saveToDatabase', true, async () => {
-    try {
-      if (!validatedData.userId) {
-        await ContactFormSubmissionRepo.createFormWithEmail(
-          validatedData.message,
-          validatedData.topic,
-          validatedData.userEmail
-        )
-      } else {
-        await ContactFormSubmissionRepo.createFormWithUser(
-          validatedData.message,
-          validatedData.topic,
-          validatedData.userId
-        )
+  await nr.startSegment(
+    'service:contactFormSubmission:saveToDatabase',
+    true,
+    async () => {
+      try {
+        if (!validatedData.userId) {
+          await ContactFormSubmissionRepo.createFormWithEmail(
+            validatedData.message,
+            validatedData.topic,
+            validatedData.userEmail
+          )
+        } else {
+          await ContactFormSubmissionRepo.createFormWithUser(
+            validatedData.message,
+            validatedData.topic,
+            validatedData.userId
+          )
+        }
+      } catch (err) {
+        throw err
       }
-    } catch (err) {
-      throw err
     }
-  })
+  )
 
   const mailData = {
     email: validatedData.userEmail,
     message: validatedData.message,
     topic: validatedData.topic
   }
-  await nr.startSegment('service:contactFormSubmission:sendEmail', true, async () => {
-    try {
-      await sendContactForm(mailData)
-    } catch (err) {
-      throw err
+  await nr.startSegment(
+    'service:contactFormSubmission:sendEmail',
+    true,
+    async () => {
+      try {
+        await sendContactForm(mailData)
+      } catch (err) {
+        throw err
+      }
     }
-  })
+  )
 }

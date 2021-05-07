@@ -1,4 +1,5 @@
 import { Express, Request, Response, Router } from 'express'
+import nr from 'newrelic'
 import {
   ContactFormDataValidationError,
   MailSendError,
@@ -6,7 +7,6 @@ import {
 } from '../../services/ContactFormService'
 import { DocCreationError, UserNotFoundError } from '../../models/Errors'
 import logger from '../../logger'
-import nr from 'newrelic'
 
 function submissionHandler(req: Request, res: Response) {
   const requestData = req.body as unknown
