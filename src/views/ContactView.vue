@@ -9,7 +9,6 @@
       class="contact"
       :class="{ 'contact--noAuth': !isAuthenticated || !isVerified }"
     >
-      <Loader :overlay="true" v-if="isSendingForm" />
       <div class="contact__header">
         Contact Us
       </div>
@@ -61,7 +60,7 @@
         </div>
 
         <div v-if="this.sendState === sendStates.ERROR" class="errors">
-          There was an error sending your feedback
+          A valid email is required.
         </div>
 
         <div class="contact-form__section">
@@ -69,7 +68,6 @@
             class="contact-form__submit"
             primary
             @click.native="submitContactUs"
-            :disabled="isSendingForm"
           >
             Send
           </large-button>
@@ -83,7 +81,6 @@
 import { mapGetters } from 'vuex'
 import NetworkService from '../services/NetworkService'
 import LargeButton from '@/components/LargeButton'
-import Loader from '@/components/Loader'
 import isEmail from 'validator/lib/isEmail'
 
 const sendStates = {
@@ -94,7 +91,7 @@ const sendStates = {
 
 export default {
   name: 'contact-view',
-  components: { LargeButton, Loader },
+  components: { LargeButton },
   created() {
     if (!this.isAuthenticated || !this.isVerified) {
       this.$store.dispatch('app/hideNavigation')
@@ -154,28 +151,21 @@ export default {
         !this.isAuthenticated &&
         !this.isValidEmail(this.contactFormData.userEmail)
       ) {
-        alert('A valid email is required.')
         this.sendState = this.sendStates.ERROR
       } else {
         if (this.hasValidEmail) {
           this.contactFormData.userEmail = this.$store.state.user.user.email
         }
         if (this.isAuthenticated) {
-          this.contactFormData.userId = this.$store.state.user.user.id
+          this.contactFormData.userId = this.$store.state.user.user._id
         }
 
-        this.isSendingForm = true
-
-        try {
-          await NetworkService.sendContact(this, this.contactFormData)
-        } catch (err) {
-          this.sendState = this.sendStates.ERROR
-          this.isSendingForm = false
-          return
-        }
+        // there's not much a user can do at this point
+        // if there's an error, so we're catching them on the backend
+        // and otherwise just moving the user on
+        NetworkService.sendContact(this, this.contactFormData)
 
         this.sendState = this.sendStates.SENT
-        this.isSendingForm = false
       }
     },
     isValidEmail(address) {
