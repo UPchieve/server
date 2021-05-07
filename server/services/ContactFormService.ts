@@ -5,6 +5,7 @@ import isLength from 'validator/lib/isLength'
 import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission'
 import logger from '../logger'
 import * as MailService from './MailService/smtp'
+import nr from 'newrelic'
 
 interface ContactFormSubmissionData {
   message: string
@@ -121,36 +122,40 @@ async function sendContactForm(data: {
 
 export async function saveContactFormSubmission(data: unknown) {
   const validity = requestBodyIsValid(data)
-  logger.debug(validity)
   if (!validity.valid) {
     throw new ContactFormDataValidationError(validity.errors)
   }
   const validatedData = data as ContactFormSubmissionData
-  try {
-    if (!validatedData.userId) {
-      await ContactFormSubmissionRepo.createFormWithEmail(
-        validatedData.message,
-        validatedData.topic,
-        validatedData.userEmail
-      )
-    } else {
-      await ContactFormSubmissionRepo.createFormWithUser(
-        validatedData.message,
-        validatedData.topic,
-        validatedData.userId
-      )
+  await nr.startSegment('service:contactFormSubmission:saveToDatabase', true, async () => {
+    try {
+      if (!validatedData.userId) {
+        await ContactFormSubmissionRepo.createFormWithEmail(
+          validatedData.message,
+          validatedData.topic,
+          validatedData.userEmail
+        )
+      } else {
+        await ContactFormSubmissionRepo.createFormWithUser(
+          validatedData.message,
+          validatedData.topic,
+          validatedData.userId
+        )
+      }
+    } catch (err) {
+      throw err
     }
-  } catch (err) {
-    throw err
-  }
+  })
+
   const mailData = {
     email: validatedData.userEmail,
     message: validatedData.message,
     topic: validatedData.topic
   }
-  try {
-    await sendContactForm(mailData)
-  } catch (err) {
-    throw err
-  }
+  await nr.startSegment('service:contactFormSubmission:sendEmail', true, async () => {
+    try {
+      await sendContactForm(mailData)
+    } catch (err) {
+      throw err
+    }
+  })
 }
