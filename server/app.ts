@@ -141,9 +141,20 @@ expressWs(app)
 router(app)
 app.use(haltOnTimedout)
 
+function defaultErrorHandler(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  res.status(err.httpStatus || 500).json({ err: err.message || err })
+  next()
+}
+
 // Send error responses to API requests after they are passed to Sentry
 app.use(
   ['/api', '/auth', '/contact', '/school', '/twiml', '/whiteboard'],
+  defaultErrorHandler,
   haltOnTimedout
 )
 
@@ -155,16 +166,5 @@ app.use((req, res, next) => {
   res.send(indexHtml).status(200)
   next()
 })
-
-function defaultErrorHandler(
-  err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  res.status(err.httpStatus || 500).json({ err: err.message || err })
-  next()
-}
-app.use(defaultErrorHandler)
 
 export default app
