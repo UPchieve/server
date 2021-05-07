@@ -163,7 +163,7 @@ export default {
         // there's not much a user can do at this point
         // if there's an error, so we're catching them on the backend
         // and otherwise just moving the user on
-        await NetworkService.sendContact(this, this.contactFormData)
+        NetworkService.sendContact(this, this.contactFormData)
 
         this.sendState = this.sendStates.SENT
       }
