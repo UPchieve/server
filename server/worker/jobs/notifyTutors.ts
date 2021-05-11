@@ -34,7 +34,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
       { delay }
     )
 
-  // After 20 text notifications are sent, start contacting the same volunteers again in order
+  // After 15 text notifications are sent, start contacting the same volunteers again in order
   if (session.notifications.length >= TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP) {
     // Wrap around the notifications list to get a notification we've sent before
     const notificationId =
