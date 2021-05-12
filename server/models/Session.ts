@@ -127,7 +127,8 @@ const sessionSchema = new Schema({
   },
   reviewedStudent: Boolean,
   reviewedVolunteer: Boolean,
-  timeTutored: { type: Number, default: 0 }
+  timeTutored: { type: Number, default: 0 },
+  isStudentBanned: Boolean
 })
 
 sessionSchema.methods.addNotifications = function(
