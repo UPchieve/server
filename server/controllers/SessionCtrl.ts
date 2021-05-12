@@ -40,7 +40,8 @@ export async function create(
   const session = new SessionModel({
     student: userId,
     type: type,
-    subTopic: subTopic
+    subTopic: subTopic,
+    isStudentBanned: user.isBanned
   })
 
   const savedSession: SessionDocument = await session.save()
