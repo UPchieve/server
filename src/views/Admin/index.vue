@@ -20,8 +20,11 @@
       <router-link to="/admin/schools" class="admin-link btn"
         >Schools</router-link
       >
-      <router-link to="/admin/reports" class="admin-link btn"
-        >Reports</router-link
+      <router-link to="/admin/reports/students" class="admin-link btn"
+        >Student Reports</router-link
+      >
+      <router-link to="/admin/reports/volunteers" class="admin-link btn"
+        >Volunteer Reports</router-link
       >
       <router-link to="/admin/volunteer-coverage" class="admin-link btn"
         >Volunteer Coverage</router-link

@@ -401,3 +401,11 @@ export enum VERIFICATION_METHOD {
   SMS = 'sms',
   EMAIL = 'email'
 }
+
+export enum ONBOARDING_STATUS {
+  ONBOARDED = 'Onboarded',
+  DEACTIVATED = 'Deactivated',
+  INACTIVE = 'Inactive',
+  IN_PROGRESS = 'In progress',
+  NOT_STARTED = 'Not started'
+}

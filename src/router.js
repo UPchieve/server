@@ -10,15 +10,16 @@ import AdminAddSchool from './views/Admin/AdminAddSchool'
 import AdminEditSchool from './views/Admin/AdminEditSchool'
 import AdminIneligibleStudents from './views/Admin/AdminIneligibleStudents'
 import AdminPendingVolunteers from './views/Admin/AdminPendingVolunteers'
-import AdminReports from './views/Admin/AdminReports'
 import AdminSchoolDetail from './views/Admin/AdminSchoolDetail'
 import AdminSchools from './views/Admin/AdminSchools'
 import AdminSessionDetail from './views/Admin/AdminSessionDetail'
 import AdminSessionNotifications from './views/Admin/AdminSessionNotifications'
 import AdminSessionReview from './views/Admin/AdminSessionReview'
 import AdminSessions from './views/Admin/AdminSessions'
+import AdminStudentReports from './views/Admin/AdminStudentReports'
 import AdminUserDetail from './views/Admin/AdminUserDetail'
 import AdminUsers from './views/Admin/AdminUsers'
+import AdminVolunteerReports from './views/Admin/AdminVolunteerReports'
 import AdminZipCodes from './views/Admin/AdminZipCodes'
 import VolunteerCoverage from './views/Admin/VolunteerCoverage'
 import BackgroundInfoView from './views/BackgroundInfoView'
@@ -328,9 +329,15 @@ const routes = [
     meta: { protected: true, requiresAdmin: true }
   },
   {
-    path: '/admin/reports',
-    name: 'AdminReports',
-    component: AdminReports,
+    path: '/admin/reports/students',
+    name: 'AdminStudentReports',
+    component: AdminStudentReports,
+    meta: { protected: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/reports/volunteers',
+    name: 'AdminVolunteerReports',
+    component: AdminVolunteerReports,
     meta: { protected: true, requiresAdmin: true }
   },
   {

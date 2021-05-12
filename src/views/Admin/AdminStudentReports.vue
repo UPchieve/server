@@ -17,20 +17,6 @@
 
       <div class="col">
         <div class="filter-panel__row">
-          <label for="parter-report-from" class="col">
-            Partner Report From
-            <input id="parter-report-from" type="date" v-model="fromDate" />
-          </label>
-
-          <label for="parter-report-to" class="col">
-            Partner Report To
-            <input id="parter-report-to" type="date" v-model="toDate" />
-          </label>
-        </div>
-      </div>
-
-      <div class="col">
-        <div class="filter-panel__row">
           <label for="session-range-from" class="col">
             Session from
             <input
@@ -72,20 +58,6 @@
       </div>
       <div class="col">
         <div>
-          <label for="student-partner-org" class="col">
-            Volunteer partner org
-            <v-select
-              id="student-partner-org"
-              class="filter-panel__partner-select"
-              :options="volunteerPartnerOrgs"
-              label="displayName"
-              v-model="volunteerPartnerOrg"
-            />
-          </label>
-        </div>
-      </div>
-      <div class="col">
-        <div>
           <label for="high-school" class="col">
             High school
             <school-list
@@ -100,15 +72,6 @@
 
     <p class="error">{{ error }}</p>
     <Loader v-if="isGeneratingReport" />
-
-    <button
-      type="button"
-      class="report-btn"
-      @click="generateVolunteerPartnerReport"
-      :disabled="isGeneratingReport"
-    >
-      Generate Volunteer Partner Report
-    </button>
 
     <button
       type="button"
@@ -134,6 +97,7 @@ import NetworkService from '@/services/NetworkService'
 import SchoolList from '@/components/SchoolList'
 import Loader from '@/components/Loader'
 import moment from 'moment'
+import exportToCsv from '@/utils/export-to-csv'
 
 export default {
   name: 'AdminReports',
@@ -150,31 +114,14 @@ export default {
       studentPartnerSite: '',
       error: '',
       isGeneratingReport: false,
-      studentPartnerOrgs: [],
-      volunteerPartnerOrgs: [],
-      volunteerPartnerOrg: {},
-      fromDate: '',
-      toDate: ''
+      studentPartnerOrgs: []
     }
   },
   async mounted() {
-    const [
-      studentPartnersResponse,
-      volunteerPartnersResponse
-    ] = await Promise.all([
-      NetworkService.adminGetStudentPartners(),
-      NetworkService.adminGetVolunteerPartners()
-    ])
-
     const {
       body: { partnerOrgs: studentPartnerOrgs }
-    } = studentPartnersResponse
-    const {
-      body: { partnerOrgs: volunteerPartnerOrgs }
-    } = volunteerPartnersResponse
-
+    } = await NetworkService.adminGetStudentPartners()
     this.studentPartnerOrgs = studentPartnerOrgs
-    this.volunteerPartnerOrgs = volunteerPartnerOrgs
   },
   methods: {
     async generateSessionReport() {
@@ -182,39 +129,22 @@ export default {
       this.isGeneratingReport = true
       this.error = ''
 
-      const data = {
-        joinedBefore: this.joinedBefore,
-        joinedAfter: this.joinedAfter,
-        sessionRangeFrom: this.sessionRangeFrom,
-        sessionRangeTo: this.sessionRangeTo,
-        highSchoolId: this.highSchool._id ? this.highSchool._id : '',
-        // partner org can be "null" from clearing the v-select, check for if exists and then get the partnerOrg
-        studentPartnerOrg: this.isValidStudentPartnerOrg
-          ? this.studentPartnerOrg.key
-          : '',
-        studentPartnerSite: this.isValidPartnerSite
-          ? this.studentPartnerSite
-          : ''
-      }
-
+      const query = this.getQuery()
       try {
-        const response = await NetworkService.adminGetSessionReport(data)
         const {
           body: { sessions }
-        } = response
+        } = await NetworkService.adminGetSessionReport(query)
 
-        if (sessions.length === 0) {
-          this.error = 'No sessions meet the criteria'
-        } else {
-          this.exportToCsv(
-            `${this.fileTitle} ${this.todaysDate} Session Report`,
+        if (sessions.length === 0) this.error = 'No sessions meet the criteria'
+        else
+          exportToCsv(
+            `${this.fileTitle}_Session_Report_${this.todaysDate}`,
             sessions
           )
-        }
 
         this.isGeneratingReport = false
       } catch (error) {
-        this.isGeneratingReport = false
+        this.errorHandler()
       }
     },
 
@@ -223,7 +153,28 @@ export default {
       this.isGeneratingReport = true
       this.error = ''
 
-      const data = {
+      const query = this.getQuery()
+      try {
+        const {
+          body: { students }
+        } = await NetworkService.adminGetUsageReport(query)
+        if (students.length === 0) this.error = 'No students meet the criteria'
+        else
+          exportToCsv(
+            `${this.fileTitle}_Usage_Report_${this.todaysDate}`,
+            students
+          )
+
+        this.isGeneratingReport = false
+      } catch (error) {
+        this.errorHandler()
+      }
+    },
+    setHighSchool(highSchool) {
+      this.highSchool = highSchool
+    },
+    getQuery() {
+      return {
         joinedBefore: this.joinedBefore,
         joinedAfter: this.joinedAfter,
         sessionRangeFrom: this.sessionRangeFrom,
@@ -237,120 +188,15 @@ export default {
           ? this.studentPartnerSite
           : ''
       }
-
-      try {
-        const response = await NetworkService.adminGetUsageReport(data)
-        const {
-          body: { students }
-        } = response
-
-        if (students.length === 0) {
-          this.error = 'No students meet the criteria'
-        } else {
-          this.exportToCsv(
-            `${this.fileTitle} ${this.todaysDate} Usage Report`,
-            students
-          )
-        }
-        this.isGeneratingReport = false
-      } catch (error) {
-        this.isGeneratingReport = false
-      }
     },
-
-    async generateVolunteerPartnerReport() {
-      if (this.isGeneratingReport) return
-      this.isGeneratingReport = true
-      this.error = ''
-
-      const query = {
-        fromDate: moment(this.fromDate)
-          .utc()
-          .startOf('day'),
-        toDate: moment(this.toDate)
-          .utc()
-          .startOf('day'),
-        partnerOrg: this.isValidVolunteerPartnerOrg
-          ? this.volunteerPartnerOrg.key
-          : ''
-      }
-
-      try {
-        const response = await NetworkService.adminGetVolunteerPartnerReport(
-          query
-        )
-        const {
-          body: { data }
-        } = response
-
-        if (data.length === 0) {
-          this.error = 'Unable to find any data that meets your request'
-        } else {
-          this.exportToCsv(
-            `${this.todaysDate}_${this.volunteerPartnerOrg.displayName}_Report`,
-            data
-          )
-        }
-        this.isGeneratingReport = false
-      } catch (error) {
-        this.isGeneratingReport = false
-      }
-    },
-
-    // https://gist.github.com/changhuixu/de092ee55a9e115abba988910bd68d41#file-csv-data-service-ts
-    exportToCsv(filename, rows) {
-      if (!rows || !rows.length) {
-        return
-      }
-      const separator = ','
-      const keys = Object.keys(rows[0])
-      const csvContent =
-        keys.join(separator) +
-        '\n' +
-        rows
-          .map(row => {
-            return keys
-              .map(k => {
-                let cell = row[k] === null || row[k] === undefined ? '' : row[k]
-                cell =
-                  cell instanceof Date
-                    ? cell.toLocaleString()
-                    : cell.toString().replace(/"/g, '""')
-                if (cell.search(/("|,|\n)/g) >= 0) {
-                  cell = `"${cell}"`
-                }
-                return cell
-              })
-              .join(separator)
-          })
-          .join('\n')
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      if (navigator.msSaveBlob) {
-        // IE 10+
-        navigator.msSaveBlob(blob, filename)
-      } else {
-        const link = document.createElement('a')
-        if (link.download !== undefined) {
-          // Browsers that support HTML5 download attribute
-          const url = URL.createObjectURL(blob)
-          link.setAttribute('href', url)
-          link.setAttribute('download', filename)
-          link.style.visibility = 'hidden'
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-        }
-      }
-    },
-
-    setHighSchool(highSchool) {
-      this.highSchool = highSchool
+    errorHandler() {
+      this.isGeneratingReport = false
+      this.error = 'There was a problem with retrieving the report'
     }
   },
   computed: {
     todaysDate() {
-      return moment().format('MMMM D')
+      return moment().format('MMMM_D')
     },
     fileTitle() {
       let title = ''
@@ -375,9 +221,6 @@ export default {
     },
     isValidStudentPartnerOrg() {
       return this.studentPartnerOrg && this.studentPartnerOrg.key
-    },
-    isValidVolunteerPartnerOrg() {
-      return this.volunteerPartnerOrg && this.volunteerPartnerOrg.key
     }
   }
 }
@@ -422,6 +265,7 @@ input {
 .col {
   @include flex-container(column, flex-start, flex-start);
   margin: 0.4em 0;
+  padding-left: 0;
   @include breakpoint-above('medium') {
     margin-right: 10px;
   }

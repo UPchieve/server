@@ -31,14 +31,27 @@ export function routeReports(router: expressWs.Router): void {
   })
 
   router.get(
-    '/reports/volunteer-partner-report',
+    '/reports/volunteer-telecom-report',
     passport.isAdmin,
     async function(req, res, next) {
       try {
-        const data = await ReportService.generateVolunteerPartnerReport(
+        const data = await ReportService.getTelecomReport(req.query)
+        res.json({ data })
+      } catch (error) {
+        next(error)
+      }
+    }
+  )
+
+  router.get(
+    '/reports/partner-analytics-report',
+    passport.isAdmin,
+    async function(req, res, next) {
+      try {
+        const data = await ReportService.generatePartnerAnalyticsReport(
           req.query
         )
-        res.json({ data })
+        res.json(data)
       } catch (error) {
         next(error)
       }
