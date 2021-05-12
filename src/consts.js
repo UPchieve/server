@@ -424,3 +424,48 @@ export const VERIFICATION_METHOD = {
 export const FEATURE_FLAGS = {
   REFER_FRIENDS: 'refer-friends'
 }
+
+export const ANALYTICS_REPORT_ROW = {
+  FIRST_NAME: 'First name',
+  LAST_NAME: 'Last name',
+  EMAIL: 'Email',
+  STATE: 'State of residence',
+  ONBOARDING_STATUS: 'Onboarding status',
+  DATE_ACCOUNT_CREATED: 'Date of account creation',
+  DATE_ONBOARDED: 'Date onboarded',
+  DATE_FIRST_SESSION: 'Date of first session',
+  CERTIFICATIONS_RECEIVED: 'Certifications received',
+  MATH_CERTS_RECEIVED: 'Math certs received',
+  SCIENCE_CERTS_RECEIVED: 'Science certs received',
+  COLLEGE_CERTS_RECEIVED: 'College counseling received',
+  TOTAL_TEXTS_RECEIVED: 'Total texts received',
+  TOTAL_SESSIONS_COMPLETED: 'Total sessions completed',
+  TOTAL_UNIQUE_STUDENTS_HELPED: 'Total unique students helped',
+  TOTAL_TUTORING_HOURS: 'Total tutoring hours',
+  TOTAL_TRAINING_HOURS: 'Total training hours',
+  TOTAL_ELAPSED_AVAILABILITY_HOURS: 'Total elapsed availability hours',
+  TOTAL_VOLUNTEER_HOURS: 'Total hours',
+  DATE_RANGE_TEXTS_RECEIVED: 'Texts received within date range',
+  DATE_RANGE_SESSIONS_COMPLETED: 'Sessions completed within date range',
+  DATE_RANGE_UNIQUE_STUDENTS_HELPED: 'Unique students helped within date range',
+  DATE_RANGE_TUTORING_HOURS: 'Tutoring hours within date range',
+  DATE_RANGE_TRAINING_HOURS: 'Training hours within date range',
+  DATE_RANGE_ELAPSED_AVAILABILITY_HOURS:
+    'Elapsed availability hours within date range',
+  DATE_RANGE_VOLUNTEER_HOURS: 'Total hours within date range'
+}
+
+export const ANALYTICS_REPORT_SUMMARY = {
+  DATE_RANGE_SIGN_UPS: 'New sign-ups',
+  DATE_RANGE_VOLUNTEERS_ONBOARDED: 'Volunteers onboarded',
+  DATE_RANGE_TEXT_RECEIVED: 'Tutoring opportunities provided',
+  DATE_RANGE_SESSIONS_COMPLETED: 'Sessions completed',
+  DATE_RANGE_VOLUNTEER_HOURS: 'Volunteer hours completed',
+  DATE_RANGE_UNIQUE_STUDENTS_HELPED: 'Unique students helped',
+  TOTAL_SIGN_UPS: 'Total sign-ups',
+  TOTAL_VOLUNTEERS_ONBORDED: 'Total volunteers onboarded',
+  TOTAL_TEXTS_RECEIVED: 'Total tutoring opportunities provided',
+  TOTAL_SESSIONS_COMPLETED: 'Total sessions completed',
+  TOTAL_VOLUNTEER_HOURS: 'Total volunteer hours completed',
+  TOTAL_UNIQUE_STUDENTS_HELPED: 'Total unique students helped'
+}

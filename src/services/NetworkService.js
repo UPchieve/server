@@ -438,14 +438,26 @@ export default {
       })
       .then(this._successHandler, this._errorHandler)
   },
-  adminGetVolunteerPartnerReport({ fromDate, toDate, partnerOrg }) {
+  adminGetVolunteerTelecomReport({ fromDate, toDate, partnerOrg }) {
     const queryParams = new URLSearchParams({
       fromDate,
       toDate,
       partnerOrg
     }).toString()
     return Vue.http
-      .get(`${API_ROOT}/reports/volunteer-partner-report?${queryParams}`, {
+      .get(`${API_ROOT}/reports/volunteer-telecom-report?${queryParams}`, {
+        timeout: 300000
+      })
+      .then(this._successHandler, this._errorHandler)
+  },
+  adminGetPartnerAnalyticsReport({ startDate, endDate, partnerOrg }) {
+    const queryParams = new URLSearchParams({
+      startDate,
+      endDate,
+      partnerOrg
+    }).toString()
+    return Vue.http
+      .get(`${API_ROOT}/reports/partner-analytics-report?${queryParams}`, {
         timeout: 300000
       })
       .then(this._successHandler, this._errorHandler)

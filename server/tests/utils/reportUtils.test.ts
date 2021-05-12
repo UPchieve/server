@@ -1,12 +1,70 @@
-// @ts-nocheck
 import moment from 'moment'
-import { generateCustomPartnerReport } from '../../utils/reportUtils'
+import {
+  generateTelecomReport,
+  getAccumulatedSummaryAnalytics,
+  getAnalyticsReportRow,
+  PartnerVolunteerAnalytics
+} from '../../utils/reportUtils'
 import * as UserActionService from '../../services/UserActionService'
 import SessionService from '../../services/SessionService'
 import * as AvailabilityService from '../../services/AvailabilityService'
+import { buildVolunteer } from '../generate'
+
+function buildAnalyticVolunteer(
+  overrides: Partial<PartnerVolunteerAnalytics> = {}
+): PartnerVolunteerAnalytics {
+  const volunteer = buildVolunteer()
+  return {
+    _id: volunteer._id,
+    firstName: volunteer.firstname,
+    lastName: volunteer.lastname,
+    email: volunteer.email,
+    state: volunteer.state,
+    isOnboarded: volunteer.isOnboarded,
+    createdAt: volunteer.createdAt,
+    dateOnboarded: new Date(),
+    firstSessionDate: new Date(),
+    certifications: volunteer.certifications,
+    availabilityLastModifiedAt: new Date(),
+    sessionAnalytics: {
+      uniqueStudentsHelped: [
+        {
+          _id: null,
+          total: 0,
+          totalWithinDateRange: 0
+        }
+      ],
+      sessionStats: [
+        {
+          _id: null,
+          total: 0,
+          totalWithinDateRange: 0,
+          firstSessionDate: new Date()
+        }
+      ]
+    },
+    textNotifications: { _id: null, total: 0, totalWithinDateRange: 0 },
+    isDeactivated: volunteer.isDeactivated,
+    lastActivityAt: volunteer.lastActivityAt,
+    hourSummaryTotal: {
+      totalCoachingHours: 0,
+      totalQuizzesPassed: 0,
+      totalElapsedAvailability: 0,
+      totalVolunteerHours: 0
+    },
+    hourSummaryDateRange: {
+      totalCoachingHours: 0,
+      totalQuizzesPassed: 0,
+      totalElapsedAvailability: 0,
+      totalVolunteerHours: 0
+    },
+    ...overrides
+  }
+}
 
 describe('Generate telecom report', () => {
   test('Test hour sum algorithm', async () => {
+    // @ts-expect-error
     const rootTime = moment('2021-04-20', 'YYYY-MM-DD').tz('America/New_York')
     const certifications = {
       math: {
@@ -103,6 +161,7 @@ describe('Generate telecom report', () => {
 
     jest
       .spyOn(UserActionService, 'getActionsWithPipeline')
+      // @ts-expect-error
       .mockImplementationOnce(() => {
         return actions
       })
@@ -111,11 +170,126 @@ describe('Generate telecom report', () => {
     })
     jest
       .spyOn(AvailabilityService, 'getAvailabilityHistoryWithPipeline')
+      // @ts-expect-error
       .mockImplementationOnce(() => {
         return availabilityDateRange
       })
 
-    const result = await generateCustomPartnerReport(volunteers, [])
+    const result = await generateTelecomReport(volunteers, [])
     expect(result[0].hours).toBe(7)
+  })
+})
+
+describe('getAnalyticsReportRow', () => {
+  test('Should give the shape of the analytic report row ', async () => {
+    const volunteer = buildAnalyticVolunteer()
+    const row = getAnalyticsReportRow(volunteer)
+
+    expect(row).toMatchObject({
+      firstName: volunteer.firstName,
+      certificationsReceived: 0,
+      onboardingStatus: 'In progress',
+      dateRangeTextsReceived: 0
+    })
+  })
+})
+
+describe('getAccumulatedSummaryAnalytics', () => {
+  test('Should return a summary of the analytics report with summed values', async () => {
+    const rowOne = getAnalyticsReportRow(
+      buildAnalyticVolunteer({
+        createdAt: new Date('2021-01-05T00:00:00.000+00:00'),
+        isOnboarded: true,
+        dateOnboarded: new Date('2021-02-01T00:00:00.000+00:00'),
+        sessionAnalytics: {
+          uniqueStudentsHelped: [
+            {
+              _id: null,
+              total: 0,
+              totalWithinDateRange: 0
+            }
+          ],
+          sessionStats: [
+            {
+              _id: null,
+              total: 5,
+              totalWithinDateRange: 2,
+              firstSessionDate: new Date('2021-02-05T00:00:00.000+00:00')
+            }
+          ]
+        },
+        textNotifications: { _id: null, total: 10, totalWithinDateRange: 5 },
+        hourSummaryTotal: {
+          totalCoachingHours: 2,
+          totalQuizzesPassed: 2,
+          totalElapsedAvailability: 1,
+          totalVolunteerHours: 5
+        },
+        hourSummaryDateRange: {
+          totalCoachingHours: 2,
+          totalQuizzesPassed: 1,
+          totalElapsedAvailability: 1,
+          totalVolunteerHours: 4
+        }
+      })
+    )
+    const rowTwo = getAnalyticsReportRow(
+      buildAnalyticVolunteer({
+        createdAt: new Date('2020-09-01T00:00:00.000+00:00'),
+        isOnboarded: true,
+        dateOnboarded: new Date('2020-10-01T00:00:00.000+00:00'),
+        sessionAnalytics: {
+          uniqueStudentsHelped: [
+            {
+              _id: null,
+              total: 0,
+              totalWithinDateRange: 0
+            }
+          ],
+          sessionStats: [
+            {
+              _id: null,
+              total: 12,
+              totalWithinDateRange: 4,
+              firstSessionDate: new Date('2020-10-10T00:00:00.000+00:00')
+            }
+          ]
+        },
+        textNotifications: { _id: null, total: 100, totalWithinDateRange: 30 },
+        hourSummaryTotal: {
+          totalCoachingHours: 10,
+          totalQuizzesPassed: 4,
+          totalElapsedAvailability: 5,
+          totalVolunteerHours: 19
+        },
+        hourSummaryDateRange: {
+          totalCoachingHours: 5,
+          totalQuizzesPassed: 3,
+          totalElapsedAvailability: 3,
+          totalVolunteerHours: 11
+        }
+      })
+    )
+    const report = [rowOne, rowTwo]
+    const startDate = new Date('2021-01-01T00:00:00.000+00:00')
+    const endDate = new Date('2021-03-01T00:00:00.000+00:00')
+    const summary = getAccumulatedSummaryAnalytics(report, startDate, endDate)
+    const expected = {
+      dateRangeSignUps: 1,
+      dateRangeVolunteersOnboarded: 1,
+      dateRangeTextsReceived: 35,
+      dateRangeSessionsCompleted: 6,
+      dateRangeVolunteerHours: 15,
+      // @note: UNIQUE_STUDENTS_HELPED gets summed from the callee of getAccumulatedSummaryAnalytics
+      dateRangeUniqueStudentsHelped: 0,
+      totalSignUps: 2,
+      totalVolunteersOnboarded: 2,
+      totalTextsReceived: 110,
+      totalSessionsCompleted: 17,
+      totalVolunteerHours: 24,
+      totalUniqueStudentsHelped: 0
+    }
+
+    expect(summary).toEqual(expected)
   })
 })

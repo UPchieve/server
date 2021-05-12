@@ -27,16 +27,18 @@ export const updateVolunteer = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Query<Volunteer> => VolunteerModel.updateOne(query, update)
 
-export const getHourSummaryStats = async (
-  volunteerId: Types.ObjectId | string,
-  fromDate: Date,
-  toDate: Date
-): Promise<{
+export interface HourSummaryStats {
   totalCoachingHours: number
   totalQuizzesPassed: number
   totalElapsedAvailability: number
   totalVolunteerHours: number
-}> => {
+}
+
+export const getHourSummaryStats = async (
+  volunteerId: Types.ObjectId | string,
+  fromDate: Date,
+  toDate: Date
+): Promise<HourSummaryStats> => {
   // @todo: promise.all fails fast, do we want this? - handle error
   const [
     quizzesPassed,

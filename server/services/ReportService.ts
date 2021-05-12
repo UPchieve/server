@@ -1,21 +1,19 @@
 import moment from 'moment-timezone'
 import mongoose, { Types } from 'mongoose'
-import _, { capitalize } from 'lodash'
+import _ from 'lodash'
 import User from '../models/User'
-import {
-  studentPartnerManifests,
-  volunteerPartnerManifests
-} from '../partnerManifests'
-import { USER_ACTION, UTC_TO_HOUR_MAPPING } from '../constants'
-import roundUpToNearestInterval from '../utils/round-up-to-nearest-interval'
-import countCerts from '../utils/count-certs'
+import { studentPartnerManifests } from '../partnerManifests'
 import logger from '../logger'
 import config from '../config'
-import { generateCustomPartnerReport } from '../utils/reportUtils'
+import {
+  generateTelecomReport,
+  getAnalyticsReportRow,
+  getSumOperatorForDateRanges,
+  AnalyticsReportRow,
+  PartnerVolunteerAnalytics,
+  getAnalyticsReportSummary
+} from '../utils/reportUtils'
 import * as VolunteerService from './VolunteerService'
-import * as UserActionService from './UserActionService'
-import SessionService from './SessionService'
-import * as AvailabilityService from './AvailabilityService'
 
 const ObjectId = mongoose.Types.ObjectId
 
@@ -492,44 +490,10 @@ export const usageReport = async ({
   return studentUsage
 }
 
-const subjectMappings = {
-  prealgebra: 1718,
-  algebraOne: 1719,
-  algebra: 1719,
-  algebraTwo: 1719,
-  geometry: 406,
-  trigonometry: 406,
-  precalculus: 406,
-  calculusAB: 2862,
-  essays: 1720,
-  planning: 1720,
-  applications: 1720,
-  biology: 2211,
-  chemistry: 2211,
-  integratedMathOne: 406,
-  integratedMathTwo: 406,
-  integratedMathThree: 406,
-  integratedMathFour: 406,
-  statistics: 2865,
-  environmentalScience: 2863,
-  physicsOne: 2864,
-  physicsTwo: 2864,
-  calculusBC: 2862,
-  upchieve101: 406,
-  calculus: 2862,
-  physics: 2864
-}
-
-export const generateVolunteerPartnerReport = async ({
-  partnerOrg,
-  fromDate,
-  toDate
-}) => {
+export const getTelecomReport = async ({ partnerOrg, fromDate, toDate }) => {
+  // Only generate the telecom report for a specific partner
+  if (partnerOrg !== config.customPartnerVolunteerReport) return []
   try {
-    const subjectMappingsCapped = {}
-    for (const key in subjectMappings) {
-      subjectMappingsCapped[key.toUpperCase()] = subjectMappings[key]
-    }
     const dateQuery = { $gt: new Date(fromDate), $lte: new Date(toDate) }
     const volunteers = await VolunteerService.getVolunteers(
       {
@@ -551,207 +515,196 @@ export const generateVolunteerPartnerReport = async ({
       }
     )
 
-    // Generate custom volunteer report
-    if (partnerOrg === config.customPartnerVolunteerReport) {
-      return await generateCustomPartnerReport(volunteers, dateQuery)
-    }
-
-    const volunteerPartnerReport = []
-
-    for (const volunteer of volunteers) {
-      const totalCerts = countCerts(volunteer.certifications)
-      if (totalCerts === 0) continue
-
-      const volunteerFirstName = capitalize(volunteer.firstname)
-      const volunterLastName = capitalize(volunteer.lastname)
-      const partnerOrgName =
-        volunteerPartnerManifests[volunteer.volunteerPartnerOrg].name
-
-      // Add a row for each quiz a volunteer has passed during the given time period
-      // @todo: figure out how the type annotation
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const quizPassedActions: any = await UserActionService.getActionsWithPipeline(
-        [
-          {
-            $match: {
-              user: ObjectId(volunteer._id),
-              action: USER_ACTION.QUIZ.PASSED,
-              createdAt: dateQuery
-            }
-          },
-          {
-            $sort: {
-              createdAt: 1
-            }
-          }
-        ]
-      )
-
-      // @note: Keep track of total active volunteer hours for a given hour. This helps ensure that
-      //        the elapsed availability hours do not overlap with the other active volunteer hours
-      //        that are credited to the volunteer
-      // [month-day-year-hour]: number
-      const accumulatedVolunteerHoursForHour = {}
-
-      for (const quizPassed of quizPassedActions) {
-        // @note: Availability is stored in EST time. In order to match to one's
-        //        availability hours, createdAt must be in EST time as well.
-        const createdAtFormatted = moment(quizPassed.createdAt)
-          .tz('America/New_York')
-          .format('MM-DD-YYYY')
-        const createdAtHour = moment(quizPassed.createdAt)
-          .tz('America/New_York')
-          .format('H')
-        const createdAtHourFormatted = UTC_TO_HOUR_MAPPING[createdAtHour]
-        const hourKey = `${createdAtFormatted}-${createdAtHourFormatted}`
-        const row = {}
-        row['Event ID'] = subjectMappingsCapped[quizPassed.quizSubcategory]
-        // use the following Monday of the createdAt as the Date Volunteered
-        row['Date Volunteered'] = moment(quizPassed.createdAt).format(
-          'MM/DD/YYYY'
-        )
-        row['Hours Credited'] = 1.0
-        row['Start Time'] = null
-        row['End Time'] = null
-        row['Full Employee Name'] = `${volunteerFirstName} ${volunterLastName}`
-        row[`External ${partnerOrgName} Email`] = volunteer.email
-        row['Classification'] = 'Training Event'
-        volunteerPartnerReport.push(row)
-        accumulatedVolunteerHoursForHour[hourKey] = 1
-      }
-
-      // Add a row for each session a volunteer has had during the given time period
-      const sessions = await SessionService.getSessionsWithPipeline([
-        {
-          $sort: {
-            createdAt: 1
-          }
-        },
-        {
-          $match: {
-            volunteer: ObjectId(volunteer._id),
-            createdAt: dateQuery
-          }
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'student',
-            foreignField: '_id',
-            as: 'student'
-          }
-        },
-        {
-          $unwind: '$student'
-        },
-        {
-          $match: {
-            'student.isFakeUser': false,
-            'student.isTestUser': false
-          }
-        },
-        {
-          $project: {
-            _id: 1,
-            createdAt: 1,
-            subTopic: 1,
-            timeTutored: 1
-          }
-        }
-      ])
-
-      for (const session of sessions) {
-        const timeTutoredInMins = session.timeTutored / (1000 * 60)
-        // @todo: make a param to change the interval based on query
-        const roundedTimeTutoredInMins = roundUpToNearestInterval(
-          timeTutoredInMins,
-          15
-        )
-        const timeTutoredInHours = Number(
-          (roundedTimeTutoredInMins / 60).toFixed(2)
-        )
-        // @note: Availability is stored in EST time. In order to match to one's
-        //        availability hours, createdAt must be in EST time as well.
-        const createdAtFormatted = moment(session.createdAt)
-          .tz('America/New_York')
-          .format('MM-DD-YYYY')
-        const createdAtHour = moment(session.createdAt)
-          .tz('America/New_York')
-          .format('H')
-        const createdAtHourFormatted = UTC_TO_HOUR_MAPPING[createdAtHour]
-        const hourKey = `${createdAtFormatted}-${createdAtHourFormatted}`
-
-        const row = {}
-        row['Event ID'] = subjectMappings[session.subTopic]
-        row['Date Volunteered'] = moment(session.createdAt).format('MM/DD/YYYY')
-        row['Hours Credited'] = Number(
-          (roundedTimeTutoredInMins / 60).toFixed(2)
-        )
-        row['Start Time'] = null
-        row['End Time'] = null
-        row['Full Employee Name'] = `${volunteerFirstName} ${volunterLastName}`
-        row[`External ${partnerOrgName} Email`] = volunteer.email
-        row['Classification'] = 'Tutoring Event'
-        volunteerPartnerReport.push(row)
-        if (accumulatedVolunteerHoursForHour[hourKey])
-          accumulatedVolunteerHoursForHour[hourKey] += timeTutoredInHours
-        else accumulatedVolunteerHoursForHour[hourKey] = timeTutoredInHours
-      }
-
-      // @todo: figure out how to properly type and cast
-      const availabilityForDateRange: any = await AvailabilityService.getAvailabilityHistoryWithPipeline(
-        [
-          {
-            $match: {
-              volunteerId: volunteer._id,
-              date: dateQuery
-            }
-          },
-          {
-            $sort: {
-              date: 1
-            }
-          }
-        ]
-      )
-
-      for (const availability of availabilityForDateRange) {
-        let elapsedAvailabilityForDay = AvailabilityService.getElapsedAvailability(
-          availability.availability
-        )
-
-        if (elapsedAvailabilityForDay === 0) continue
-
-        const createdAtFormatted = moment(availability.date)
-          .tz('America/New_York')
-          .format('MM-DD-YYYY')
-
-        const availabilityHours = Object.entries(availability.availability)
-        for (const [hour, isAvailable] of availabilityHours) {
-          const hourKey = `${createdAtFormatted}-${hour}`
-          // If we've already counted tutoring during the hour we subtract it
-          // from elapsed availability so we don't double count
-          if (isAvailable && accumulatedVolunteerHoursForHour[hourKey])
-            elapsedAvailabilityForDay -=
-              accumulatedVolunteerHoursForHour[hourKey]
-        }
-
-        const row = {}
-        row['Event ID'] = 406
-        row['Date Volunteered'] = moment(availability.date).format('MM/DD/YYYY')
-        // @todo: add a function param to change the ratio of elapsed availability
-        row['Hours Credited'] = elapsedAvailabilityForDay
-        row['Start Time'] = null
-        row['End Time'] = null
-        row['Full Employee Name'] = `${volunteerFirstName} ${volunterLastName}`
-        row[`External ${partnerOrgName} Email`] = volunteer.email
-        row['Classification'] = 'Weekly Elapsed Availability'
-        volunteerPartnerReport.push(row)
-      }
-    }
-    return volunteerPartnerReport
+    return await generateTelecomReport(volunteers, dateQuery)
   } catch (error) {
     logger.error(error)
     throw new Error(error.message)
   }
+}
+
+export const generatePartnerAnalyticsReport = async ({
+  partnerOrg,
+  startDate,
+  endDate
+}) => {
+  const start: Date = moment(startDate).toDate()
+  const end: Date = moment(endDate).toDate()
+  const volunteers = ((await VolunteerService.getVolunteersWithPipeline([
+    {
+      $match: {
+        volunteerPartnerOrg: partnerOrg
+      }
+    },
+    // Get the volunteer's user action "ONBOARDED"
+    {
+      $lookup: {
+        from: 'useractions',
+        let: { userId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$action', 'ONBOARDED'] },
+                  { $eq: ['$user', '$$userId'] }
+                ]
+              }
+            }
+          }
+        ],
+        as: 'actionOnboarded'
+      }
+    },
+    {
+      $unwind: {
+        path: '$actionOnboarded',
+        preserveNullAndEmptyArrays: true
+      }
+    },
+
+    /**
+     *
+     * Get analytics for a user's sessions
+     * - How many unique students were helped
+     * - Total amount of sessions they have had
+     * - Amount of sessions that they have had within the date range
+     *
+     */
+    {
+      $lookup: {
+        from: 'sessions',
+        let: { userId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$volunteer', '$$userId']
+              }
+            }
+          },
+          {
+            $facet: {
+              uniqueStudentsHelped: [
+                {
+                  $group: {
+                    _id: '$student',
+                    frequency: { $sum: 1 },
+                    frequencyWitinDateRange: getSumOperatorForDateRanges(
+                      start,
+                      end
+                    )
+                  }
+                },
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: 1 },
+                    totalWithinDateRange: {
+                      $sum: {
+                        $cond: [{ $gte: ['$frequencyWitinDateRange', 1] }, 1, 0]
+                      }
+                    }
+                  }
+                }
+              ],
+              sessionStats: [
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: 1 },
+                    totalWithinDateRange: getSumOperatorForDateRanges(
+                      start,
+                      end
+                    ),
+                    firstSessionDate: { $min: '$createdAt' }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        as: 'sessionAnalytics'
+      }
+    },
+    {
+      $unwind: {
+        path: '$sessionAnalytics',
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    // Get the total amount of text messages that were sent to a volunteer
+    // and the total amount sent within startDate - endDate
+    {
+      $lookup: {
+        from: 'notifications',
+        let: { userId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$volunteer', '$$userId']
+              }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: 1 },
+              totalWithinDateRange: getSumOperatorForDateRanges(start, end)
+            }
+          }
+        ],
+        as: 'textNotifications'
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        firstName: '$firstname',
+        lastName: '$lastname',
+        email: 1,
+        state: 1,
+        isOnboarded: 1,
+        createdAt: 1,
+        dateOnboarded: '$actionOnboarded.createdAt',
+        firstSessionDate: '$firstSession.createdAt',
+        certifications: 1,
+        availabilityLastModifiedAt: 1,
+        sessionAnalytics: 1,
+        textNotifications: { $arrayElemAt: ['$textNotifications', 0] },
+        isDeactivated: 1,
+        activityLastAt: 1
+      }
+    }
+  ])) as unknown) as PartnerVolunteerAnalytics[]
+
+  const report: AnalyticsReportRow[] = []
+  for (const volunteer of volunteers) {
+    // Get all hour summary data for the volunteer
+    const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
+      volunteer._id,
+      new Date(volunteer.createdAt),
+      moment().utc()
+    )
+    const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
+      volunteer._id,
+      start,
+      end
+    )
+    const volunteerWithAnalytics = {
+      ...volunteer,
+      hourSummaryTotal,
+      hourSummaryDateRange
+    }
+    const row = await getAnalyticsReportRow(volunteerWithAnalytics)
+    report.push(row)
+  }
+
+  const summary = await getAnalyticsReportSummary(
+    report,
+    partnerOrg,
+    start,
+    end
+  )
+  return { summary, report }
 }
