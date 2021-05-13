@@ -54,64 +54,9 @@ function readFromAcc(acc, time: moment): number {
   return 0
 }
 
-function telecomTutorTime(
-  sessions,
-  availabilityForDateRange,
-  quizPassedActions
-) {
-  const acc = {} // accumulator { MM-DD-YYYY: {H: time volunteered in minutes } }
-
-  // TODO: double loop on sessions is ugly and inefficient
-  // check if tutoring occured on a day
-  for (const session of sessions) {
-    const startedAt = moment(session.volunteerJoinedAt).tz('America/New_York')
-    acc[startedAt.format('MM-DD-YYYY')] = {}
-  }
-  // Add time spent on call per availability hour
-  for (const availabilityHistory of availabilityForDateRange) {
-    const availability = availabilityHistory.availability
-    for (const hourA of Object.keys(availability)) {
-      if (availability[hourA]) {
-        const temp = moment(availabilityHistory.date)
-        const { day, hour } = formatStamp(temp.hour(HOUR_TO_UTC_MAPPING[hourA]))
-        // If day is not aleady accounted for do not add since no tutoring happened
-        if (day in acc) {
-          acc[day][hour] = 60
-        }
-      }
-    }
-  }
-  // Add time spent in tutoring sessions
-  for (const session of sessions) {
-    if (session.timeTutored === 0) continue
-    const startedAt = moment(session.volunteerJoinedAt).tz('America/New_York')
-    const endedAt = moment(session.endedAt).tz('America/New_York')
-    let counter = moment(startedAt)
-    let contribution = 0
-    while (counter < endedAt) {
-      // Move counter up to the next hour per iteration
-      // Add to the accumulator the number of minutes traversed
-      // If we would have passed 'endedAt' traverse minutes until endedAt
-      let offset = 60 - counter.minutes()
-      const nextHour = moment(counter).add(offset, 'minutes')
-      if (nextHour > endedAt) {
-        offset = endedAt.minutes() - counter.minutes()
-      }
-      // Do not add contribution if hour block already set to 60 by availability
-      if (readFromAcc(acc, counter) < 60) contribution += offset
-      counter = nextHour
-    }
-    // Add extra time to account for rounding duration up to nearest 15
-    contribution = roundUpToNearestInterval(contribution, 15)
-    addToAcc(acc, startedAt, contribution)
-  }
-  // Add time spent on certifications
-  for (const quizPassed of quizPassedActions) {
-    const createdAt = moment(quizPassed.createdAt).tz('America/New_York')
-    // No need to check for tutoring/availability overlap according to spec
-    addToAcc(acc, createdAt, 60)
-  }
-  // Reduce accumulator to single day totals
+// Reduce accumulator to single day totals
+// reduced_acc = { day: number }
+function reduceAcc(acc) {
   const final = {}
   for (const day of Object.keys(acc)) {
     let total = 0
@@ -125,23 +70,102 @@ function telecomTutorTime(
   return final
 }
 
-const eventId = 4003
+function telecomTutorTime(
+  sessions,
+  availabilityForDateRange,
+  quizPassedActions
+) {
+  const acc = {} // accumulator { MM-DD-YYYY: {H: time volunteered in minutes } }
+  const sessionAcc = {}
+  const availabilityAcc = {}
+  const certificationAcc = {}
+  // TODO: double loop on sessions is inefficient
+  // check if tutoring occured on a day
+  for (const session of sessions) {
+    const startedAt = moment(session.volunteerJoinedAt).tz('America/New_York')
+    acc[startedAt.format('MM-DD-YYYY')] = {}
+    // Count tutoring time in accumulator separately
+    if (session.timeTutored !== 0) {
+      addToAcc(
+        sessionAcc,
+        startedAt,
+        roundUpToNearestInterval(session.timeTutored, 15)
+      )
+    }
+  }
+  // Add time spent on call per availability hour
+  for (const availabilityHistory of availabilityForDateRange) {
+    const availability = availabilityHistory.availability
+    for (const hourA of Object.keys(availability)) {
+      if (availability[hourA]) {
+        const temp = moment(availabilityHistory.date)
+        const { day, hour } = formatStamp(temp.hour(HOUR_TO_UTC_MAPPING[hourA]))
+        // If day is not aleady accounted for do not add since no tutoring happened
+        if (day in acc) {
+          acc[day][hour] = 60
+          // Count into availability accumulator separately
+          if (day in availabilityAcc) availabilityAcc[day][hour] = 60
+          else availabilityAcc[day] = { hour: 60 }
+        }
+      }
+    }
+  }
+  // Add time spent in tutoring sessions
+  for (const session of sessions) {
+    if (session.timeTutored === 0) continue
+    const startedAt = moment(session.volunteerJoinedAt).tz('America/New_York')
+    const endedAt = moment(session.endedAt).tz('America/New_York')
+    let counter = moment(startedAt)
+    let contribution = 0
+    let skipped = 0
+    while (counter < endedAt) {
+      // Move counter up to the next hour per iteration
+      // Add to the accumulator the number of minutes traversed
+      // If we would have passed 'endedAt' traverse minutes until endedAt
+      let offset = 60 - counter.minutes()
+      const nextHour = moment(counter).add(offset, 'minutes')
+      if (nextHour > endedAt) {
+        offset = endedAt.minutes() - counter.minutes()
+      }
+      // Do not add contribution if hour block already set to 60 by availability
+      if (readFromAcc(acc, counter) < 60) contribution += offset
+      // remove tutoring time from availability accumulator
+      else skipped += offset
+      counter = nextHour
+    }
+    // Add extra time to account for rounding duration up to nearest 15
+    contribution = roundUpToNearestInterval(contribution, 15)
+    skipped = roundUpToNearestInterval(skipped, 15)
+    addToAcc(acc, startedAt, contribution)
+    addToAcc(availabilityAcc, startedAt, -1 * skipped)
+  }
+  // Add time spent on certifications
+  for (const quizPassed of quizPassedActions) {
+    const createdAt = moment(quizPassed.createdAt).tz('America/New_York')
+    // No need to check for tutoring/availability overlap according to spec
+    addToAcc(acc, createdAt, 60)
+    // Count quiz time in separate accumulator
+    addToAcc(certificationAcc, createdAt, 60)
+  }
+  return {
+    totalTime: reduceAcc(acc),
+    sessionTime: reduceAcc(sessionAcc),
+    availabilityTime: reduceAcc(availabilityAcc),
+    certificationTime: reduceAcc(certificationAcc)
+  }
+}
+
+const eventId = 4003 // telecom custom event id
 
 interface TelecomRow {
-  mame: string
+  name: string
   email: string
   eventId: number
   date: string
   hours: number
 }
 
-async function telecomProcessVolunteer(
-  volunteer,
-  dateQuery
-): Promise<TelecomRow[]> {
-  const totalCerts = countCerts(volunteer.certifications)
-  if (totalCerts === 0) return []
-
+async function getVolunteerData(volunteer, dateQuery) {
   // @todo: figure out how the type annotation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quizPassedActions: any = await UserActionService.getActionsWithPipeline(
@@ -216,6 +240,24 @@ async function telecomProcessVolunteer(
       }
     ]
   )
+  return {
+    sessions,
+    availabilityForDateRange,
+    quizPassedActions
+  }
+}
+
+async function telecomProcessVolunteer(
+  volunteer,
+  dateQuery
+): Promise<TelecomRow[]> {
+  const totalCerts = countCerts(volunteer.certifications)
+  if (totalCerts === 0) return []
+  const {
+    sessions,
+    availabilityForDateRange,
+    quizPassedActions
+  } = await getVolunteerData(volunteer, dateQuery)
   // Accumulate hours into rows
   const rows = []
 
@@ -223,7 +265,7 @@ async function telecomProcessVolunteer(
   const volunterLastName = capitalize(volunteer.lastname)
   const name = volunteerFirstName + ' ' + volunterLastName
   const email = volunteer.email
-  const accumulatedHours = telecomTutorTime(
+  const { totalTime: accumulatedHours } = telecomTutorTime(
     sessions,
     availabilityForDateRange,
     quizPassedActions
@@ -241,7 +283,10 @@ async function telecomProcessVolunteer(
   return rows
 }
 
-export const generateTelecomReport = async (volunteers, dateQuery) => {
+export async function generateTelecomReport(
+  volunteers,
+  dateQuery
+): Promise<TelecomRow[]> {
   const volunteerPartnerReport = []
   const errors = []
   for (const volunteer of volunteers) {
@@ -259,6 +304,76 @@ export const generateTelecomReport = async (volunteers, dateQuery) => {
   }
   logger.info('Telecom report generated')
   return volunteerPartnerReport
+}
+
+interface TelecomAnalyticsRow {
+  name: string
+  email: string
+  totalHours: number
+  sessionHours: number
+  availabilityHours: number
+  certificationHours: number
+}
+
+function sumHours(acc): number {
+  let total = 0
+  for (const day of Object.keys(acc)) {
+    total += acc[day]
+  }
+  return total
+}
+
+// To be used by email/update job(s) for generating telecom volunteer hours
+export async function generateTelecomAnalytics(
+  volunteers,
+  dateQuery
+): Promise<TelecomAnalyticsRow[]> {
+  const rows = []
+  const errors = []
+  for (const volunteer of volunteers) {
+    try {
+      const totalCerts = countCerts(volunteer.certifications)
+      if (totalCerts === 0) continue
+
+      const volunteerFirstName = capitalize(volunteer.firstname)
+      const volunterLastName = capitalize(volunteer.lastname)
+      const name = volunteerFirstName + ' ' + volunterLastName
+
+      const {
+        sessions,
+        availabilityForDateRange,
+        quizPassedActions
+      } = await getVolunteerData(volunteer, dateQuery)
+      const {
+        totalTime,
+        sessionTime,
+        availabilityTime,
+        certificationTime
+      } = telecomTutorTime(
+        sessions,
+        availabilityForDateRange,
+        quizPassedActions
+      )
+      const row = {
+        name: name,
+        email: volunteer.email,
+        totalHours: sumHours(totalTime),
+        sessionHours: sumHours(sessionTime),
+        availabilityHours: sumHours(availabilityTime),
+        certificationHours: sumHours(certificationTime)
+      } as TelecomAnalyticsRow
+      rows.push(row)
+    } catch (error) {
+      errors.push(`volunteer ${volunteer._id}: ${error}`)
+    }
+  }
+  if (errors.length) {
+    throw Error(
+      `Failed to generate telecom analytics with\n ${errors.join('\n')}`
+    )
+  }
+  logger.info('Telecom analytics generated')
+  return rows
 }
 
 export function getSumOperatorForDateRanges(startDate: Date, endDate: Date) {
