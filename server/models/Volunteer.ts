@@ -152,6 +152,7 @@ export interface Volunteer extends User {
   city: string
   sentReadyToCoachEmail: boolean
   subjects: string[]
+  totalVolunteerHours: number
   trainingCourses: TrainingCourses
   linkedInUrl: string
   hoursTutored: Types.Decimal128
