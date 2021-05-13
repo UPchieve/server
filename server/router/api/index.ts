@@ -2,7 +2,7 @@ import { Express, Router } from 'express'
 import { MongoStore } from 'connect-mongo'
 import expressWs from '@small-tech/express-ws'
 import { Server } from 'socket.io'
-import passport from '../auth/passport'
+import { authPassport } from '../../utils/auth-utils'
 import addLastActivity from '../../middleware/add-last-activity'
 import addUserAction from '../../middleware/add-user-action'
 import socketServer from './socket-server'
@@ -41,5 +41,5 @@ module.exports = function(app: Express, sessionStore: MongoStore): void {
 
   app.use(addLastActivity)
   app.use(addUserAction)
-  app.use('/api', passport.isAuthenticated, router)
+  app.use('/api', authPassport.isAuthenticated, router)
 }

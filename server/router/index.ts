@@ -1,15 +1,25 @@
 import { Express } from 'express'
+import passport from 'passport'
 import config from '../config'
+import { authPassport } from '../utils/auth-utils'
 import * as ContactFormRouter from './contact'
+import SessionStore from './api/session-store'
+import * as AuthRouter from './auth'
 
 export default function(app: Express) {
   console.log('Initializing server routing')
 
+  // initialize session store
+  const sessionStore = SessionStore(app)
+
+  // initialize passport AFTER session store (https://stackoverflow.com/a/30882574)
+  authPassport.setupPassport()
+  app.use(passport.initialize())
+  app.use(passport.session())
+
   require('./whiteboard')(app)
 
-  const sessionStore = require('./auth/session-store')(app)
-
-  require('./auth')(app)
+  AuthRouter.routes(app)
   require('./api')(app, sessionStore)
   require('./edu')(app)
   require('./eligibility')(app)

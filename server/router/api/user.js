@@ -3,7 +3,7 @@ const UserService = require('../../services/UserService')
 const MailService = require('../../services/MailService')
 const AwsService = require('../../services/AwsService')
 const Volunteer = require('../../models/Volunteer')
-const passport = require('../auth/passport')
+const { authPassport } = require('../../utils/auth-utils')
 const config = require('../../config')
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
 
@@ -42,7 +42,7 @@ module.exports = function(router) {
   })
 
   // Admin route to update a user
-  router.put('/user/:userId', passport.isAdmin, async (req, res, next) => {
+  router.put('/user/:userId', authPassport.isAdmin, async (req, res, next) => {
     const { userId } = req.params
 
     try {
@@ -153,7 +153,11 @@ module.exports = function(router) {
     }
   })
 
-  router.get('/user/:userId', passport.isAdmin, async function(req, res, next) {
+  router.get('/user/:userId', authPassport.isAdmin, async function(
+    req,
+    res,
+    next
+  ) {
     const { userId } = req.params
     const { page } = req.query
 
@@ -172,7 +176,7 @@ module.exports = function(router) {
     }
   })
 
-  router.get('/users', passport.isAdmin, async function(req, res, next) {
+  router.get('/users', authPassport.isAdmin, async function(req, res, next) {
     try {
       const { users, isLastPage } = await UserService.getUsers(req.query)
       res.json({ users, isLastPage })
@@ -185,7 +189,7 @@ module.exports = function(router) {
    * This is a utility route used by Cypress to clean up after e2e tests
    * Not available for use on production
    */
-  router.delete('/user', passport.isAdmin, async function(req, res) {
+  router.delete('/user', authPassport.isAdmin, async function(req, res) {
     if (config.NODE_ENV === 'production') {
       return res.status(405).json({
         err: 'Deleting users is not allowed on production'

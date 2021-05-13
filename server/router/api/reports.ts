@@ -1,10 +1,10 @@
 import expressWs from '@small-tech/express-ws'
 
-const passport = require('../auth/passport')
+const { authPassport } = require('../../utils/auth-utils')
 const ReportService = require('../../services/ReportService')
 
 export function routeReports(router: expressWs.Router): void {
-  router.get('/reports/session-report', passport.isAdmin, async function(
+  router.get('/reports/session-report', authPassport.isAdmin, async function(
     req,
     res,
     next
@@ -17,7 +17,7 @@ export function routeReports(router: expressWs.Router): void {
     }
   })
 
-  router.get('/reports/usage-report', passport.isAdmin, async function(
+  router.get('/reports/usage-report', authPassport.isAdmin, async function(
     req,
     res,
     next
@@ -32,7 +32,7 @@ export function routeReports(router: expressWs.Router): void {
 
   router.get(
     '/reports/volunteer-telecom-report',
-    passport.isAdmin,
+    authPassport.isAdmin,
     async function(req, res, next) {
       try {
         const data = await ReportService.getTelecomReport(req.query)
@@ -45,7 +45,7 @@ export function routeReports(router: expressWs.Router): void {
 
   router.get(
     '/reports/partner-analytics-report',
-    passport.isAdmin,
+    authPassport.isAdmin,
     async function(req, res, next) {
       try {
         const data = await ReportService.generatePartnerAnalyticsReport(

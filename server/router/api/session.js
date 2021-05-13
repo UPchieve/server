@@ -9,7 +9,7 @@ const SessionService = require('../../services/SessionService')
 const AwsService = require('../../services/AwsService')
 const QuillDocService = require('../../services/QuillDocService')
 const recordIpAddress = require('../../middleware/record-ip-address')
-const passport = require('../auth/passport')
+const { authPassport } = require('../../utils/auth-utils')
 const mapMultiWordSubtopic = require('../../utils/map-multi-word-subtopic')
 const { USER_ACTION } = require('../../constants')
 const NotificationService = require('../../services/NotificationService')
@@ -171,7 +171,7 @@ module.exports = function(router, io) {
     }
   })
 
-  router.get('/session/review', passport.isAdmin, async function(
+  router.get('/session/review', authPassport.isAdmin, async function(
     req,
     res,
     next
@@ -186,7 +186,7 @@ module.exports = function(router, io) {
     }
   })
 
-  router.put('/session/:sessionId', passport.isAdmin, async function(
+  router.put('/session/:sessionId', authPassport.isAdmin, async function(
     req,
     res,
     next
@@ -254,7 +254,7 @@ module.exports = function(router, io) {
     res.sendStatus(200)
   })
 
-  router.get('/sessions', passport.isAdmin, async function(req, res, next) {
+  router.get('/sessions', authPassport.isAdmin, async function(req, res, next) {
     try {
       const { sessions, isLastPage } = await SessionService.getFilteredSessions(
         req.query
@@ -266,7 +266,7 @@ module.exports = function(router, io) {
     }
   })
 
-  router.get('/session/:sessionId/admin', passport.isAdmin, async function(
+  router.get('/session/:sessionId/admin', authPassport.isAdmin, async function(
     req,
     res,
     next
@@ -323,7 +323,7 @@ module.exports = function(router, io) {
 
   router.get(
     '/session/:sessionId/notifications',
-    passport.isAdmin,
+    authPassport.isAdmin,
     async function(req, res, next) {
       const { sessionId } = req.params
       const notifications = await NotificationService.getSessionNotifications(

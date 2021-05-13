@@ -34,8 +34,11 @@ import { User } from '../models/User'
 import { Student } from '../models/Student'
 import { Session } from '../models/Session'
 import { Feedback } from '../models/Feedback'
-import { StudentRegistrationForm, VolunteerRegistrationForm } from './types'
-
+import {
+  StudentRegData,
+  VolunteerRegData,
+  PartnerVolunteerRegData
+} from '../utils/auth-utils'
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
@@ -231,28 +234,28 @@ export const buildVolunteer = (overrides = {}): Partial<Volunteer> => {
 }
 
 export const buildStudentRegistrationForm = (
-  overrides: Partial<StudentRegistrationForm> = {}
-): StudentRegistrationForm => {
+  overrides: Partial<StudentRegData> = {}
+): StudentRegData => {
   const student = buildStudent()
   const form = {
-    zipCode: student.zipCode,
+    ip: '0.0.0.0',
     firstName: student.firstname,
     lastName: student.lastname,
     email: student.email,
     password: student.password,
-    highSchoolId: '11111111',
     terms: true,
     ...overrides
-  }
+  } as StudentRegData
 
   return form
 }
 
 export const buildVolunteerRegistrationForm = (
-  overrides: Partial<VolunteerRegistrationForm> = {}
-): VolunteerRegistrationForm => {
+  overrides: Partial<VolunteerRegData> = {}
+): VolunteerRegData => {
   const volunteer = buildVolunteer()
   const form = {
+    ip: '0.0.0.0',
     firstName: volunteer.firstname,
     lastName: volunteer.lastname,
     email: volunteer.email,
@@ -260,7 +263,26 @@ export const buildVolunteerRegistrationForm = (
     phone: volunteer.phone,
     terms: true,
     ...overrides
-  }
+  } as VolunteerRegData
+
+  return form
+}
+
+export const buildPartnerVolunteerRegistrationForm = (
+  overrides: Partial<PartnerVolunteerRegData> = {}
+): PartnerVolunteerRegData => {
+  const volunteer = buildVolunteer()
+  const form = {
+    ip: '0.0.0.0',
+    volunteerPartnerOrg: 'example',
+    firstName: volunteer.firstname,
+    lastName: volunteer.lastname,
+    email: volunteer.email,
+    password: volunteer.password,
+    phone: volunteer.phone,
+    terms: true,
+    ...overrides
+  } as PartnerVolunteerRegData
 
   return form
 }

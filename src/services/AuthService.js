@@ -77,11 +77,11 @@ export default {
     return NetworkService.sendReset(context, { email })
       .then(res => {
         const data = { ...res.data }
-        if (!data) {
-          throw new Error('No user returned from auth service')
+        if (res.status !== 200) {
+          throw new Error(data.err)
         }
 
-        context.msg = 'Password reset email has been sent!'
+        context.msg = data.msg
 
         if (redirect) {
           setTimeout(() => {
