@@ -306,9 +306,8 @@ export async function generateTelecomReport(
   return volunteerPartnerReport
 }
 
-interface TelecomAnalyticsRow {
-  name: string
-  email: string
+export interface TelecomAnalyticsRow {
+  volunteer: Types.ObjectId
   totalHours: number
   sessionHours: number
   availabilityHours: number
@@ -335,10 +334,6 @@ export async function generateTelecomAnalytics(
       const totalCerts = countCerts(volunteer.certifications)
       if (totalCerts === 0) continue
 
-      const volunteerFirstName = capitalize(volunteer.firstname)
-      const volunterLastName = capitalize(volunteer.lastname)
-      const name = volunteerFirstName + ' ' + volunterLastName
-
       const {
         sessions,
         availabilityForDateRange,
@@ -355,8 +350,7 @@ export async function generateTelecomAnalytics(
         quizPassedActions
       )
       const row = {
-        name: name,
-        email: volunteer.email,
+        volunteer: volunteer._id,
         totalHours: sumHours(totalTime),
         sessionHours: sumHours(sessionTime),
         availabilityHours: sumHours(availabilityTime),

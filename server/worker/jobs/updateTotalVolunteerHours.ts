@@ -3,12 +3,12 @@ import VolunteerModel from '../../models/Volunteer'
 import { getVolunteers } from '../../services/VolunteerService'
 import { log } from '../logger'
 import { generateTelecomAnalytics } from '../../utils/reportUtils'
-import { Jobs } from '.'
+import { Jobs } from './index'
 import config from '../../config'
 
 async function updateTotalVolunteerHours(): Promise<void> {
   const partnerOrg = config.customPartnerVolunteerReport
-  const startDate = moment()  // TODO: track last time this ran
+  const startDate = moment().subtract(1, 'week')  // TODO: track last time this ran
   const endDate = moment()
 
   const dateQuery = { $gt: startDate.toDate(), $lte: endDate.toDate() }
@@ -31,18 +31,25 @@ async function updateTotalVolunteerHours(): Promise<void> {
       elapsedAvailability: 1
     }
   )
-  // TODO: call reportUtils.generateTelecomAnalytics
+
+  const rows = await generateTelecomAnalytics(volunteers, dateQuery)
+  const volunteerMap = {}
+  for (const row of rows) {
+    volunteerMap[row.volunteer.toString()] = row
+  }
+
   let totalUpdated = 0
   let errors = []
   for (const volunteer of volunteers) {
     try {
+      const hours = volunteerMap[volunteer._id.toString()].totalHours
       await VolunteerModel.updateOne(
         { _id: volunteer._id },
-        { totalVolunteerHours: FOO }
+        { $inc: { totalVolunteerHours: hours } }
       )
     } catch (error) {
       errors.push(
-        `Volunteer ${volunteer._id} failed to update total volunteer hours: ${error}`
+        `${volunteer._id} could not update total hours: ${error}`
       )
       continue
     }
@@ -53,7 +60,7 @@ async function updateTotalVolunteerHours(): Promise<void> {
   )
   if (errors.length) {
     throw new Error(
-      `Failed to ${Jobs.UpdateTotalVolunteerHours} for volunteers ${errors}`
+      `Failed to ${Jobs.UpdateTotalVolunteerHours} for volunteers: ${errors}`
     )
   }
 }
