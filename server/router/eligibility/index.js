@@ -1,5 +1,5 @@
 const express = require('express')
-const passport = require('../auth/passport')
+const { authPassport } = require('../../utils/auth-utils')
 const Sentry = require('@sentry/node')
 const SchoolService = require('../../services/SchoolService')
 const UserService = require('../../services/UserService')
@@ -76,7 +76,7 @@ module.exports = function(app) {
   // Paginate eligible high schools (admins only)
   router
     .route('/school/findeligible')
-    .all(passport.isAdmin)
+    .all(authPassport.isAdmin)
     .get(function(req, res, next) {
       School.find(
         {
@@ -98,7 +98,7 @@ module.exports = function(app) {
   // List all students registered with a school (admins only)
   router
     .route('/school/studentusers/:schoolUpchieveId')
-    .all(passport.isAdmin)
+    .all(authPassport.isAdmin)
     .get(function(req, res, next) {
       const upchieveId = req.params.schoolUpchieveId
 
@@ -123,7 +123,7 @@ module.exports = function(app) {
         })
     })
 
-  router.get('/school/:schoolId', passport.isAdmin, async function(
+  router.get('/school/:schoolId', authPassport.isAdmin, async function(
     req,
     res,
     next
@@ -138,7 +138,7 @@ module.exports = function(app) {
       next(err)
     }
   })
-  router.put('/school/:schoolId', passport.isAdmin, async function(
+  router.put('/school/:schoolId', authPassport.isAdmin, async function(
     req,
     res,
     next
@@ -153,7 +153,7 @@ module.exports = function(app) {
     }
   })
 
-  router.get('/schools', passport.isAdmin, async function(req, res, next) {
+  router.get('/schools', authPassport.isAdmin, async function(req, res, next) {
     try {
       const { schools, isLastPage } = await SchoolService.getSchools(req.query)
       res.json({ schools, isLastPage })
@@ -162,7 +162,11 @@ module.exports = function(app) {
     }
   })
 
-  router.post('/school/new', passport.isAdmin, async function(req, res, next) {
+  router.post('/school/new', authPassport.isAdmin, async function(
+    req,
+    res,
+    next
+  ) {
     try {
       const school = await SchoolService.createSchool(req.body)
       res.json({ schoolId: school._id })
@@ -171,7 +175,10 @@ module.exports = function(app) {
     }
   })
 
-  router.post('/school/approval', passport.isAdmin, async function(req, res) {
+  router.post('/school/approval', authPassport.isAdmin, async function(
+    req,
+    res
+  ) {
     const { schoolId, isApproved } = req.body
 
     try {
@@ -183,7 +190,7 @@ module.exports = function(app) {
     }
   })
 
-  router.get('/ineligible-students', passport.isAdmin, async function(
+  router.get('/ineligible-students', authPassport.isAdmin, async function(
     req,
     res,
     next
@@ -202,7 +209,10 @@ module.exports = function(app) {
     }
   })
 
-  router.get('/zip-codes/:zipCode', passport.isAdmin, async function(req, res) {
+  router.get('/zip-codes/:zipCode', authPassport.isAdmin, async function(
+    req,
+    res
+  ) {
     const { zipCode } = req.params
 
     try {

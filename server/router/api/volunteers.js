@@ -1,9 +1,9 @@
 const VolunteersCtrl = require('../../controllers/VolunteersCtrl')
 const UserService = require('../../services/UserService')
-const passport = require('../auth/passport')
+const { authPassport } = require('../../utils/auth-utils')
 
 module.exports = function(router) {
-  router.get('/volunteers', passport.isAdmin, function(req, res, next) {
+  router.get('/volunteers', authPassport.isAdmin, function(req, res, next) {
     VolunteersCtrl.getVolunteers(function(volunteers, err) {
       if (err) {
         next(err)
@@ -18,7 +18,7 @@ module.exports = function(router) {
 
   router.get(
     '/volunteers/availability/:certifiedSubject',
-    passport.isAdmin,
+    authPassport.isAdmin,
     function(req, res, next) {
       var certifiedSubject = req.params.certifiedSubject
       VolunteersCtrl.getVolunteersAvailability(
@@ -39,7 +39,10 @@ module.exports = function(router) {
     }
   )
 
-  router.get('/volunteers/review', passport.isAdmin, async function(req, res) {
+  router.get('/volunteers/review', authPassport.isAdmin, async function(
+    req,
+    res
+  ) {
     try {
       const { page } = req.query
       const {
@@ -54,7 +57,7 @@ module.exports = function(router) {
     }
   })
 
-  router.post('/volunteers/review/:id', passport.isAdmin, async function(
+  router.post('/volunteers/review/:id', authPassport.isAdmin, async function(
     req,
     res
   ) {

@@ -7,6 +7,8 @@ import MailService from '../../services/MailService'
 import { REFERENCE_STATUS } from '../../constants'
 jest.mock('../../services/MailService')
 
+jest.setTimeout(15000)
+
 const buildVolunteerWithReferences = (): Partial<Volunteer> => {
   return buildVolunteer({
     references: [

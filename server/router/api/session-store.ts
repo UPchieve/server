@@ -1,9 +1,10 @@
-const session = require('express-session')
-const MongoStore = require('connect-mongo')(session)
+import session from 'express-session'
+import connectMongo from 'connect-mongo'
+import config from '../../config'
 
-const config = require('../../config')
+const MongoStore = connectMongo(session)
 
-module.exports = function(app) {
+export default function(app) {
   const sessionStore = new MongoStore({
     url: config.database,
     collection: 'auth-sessions'

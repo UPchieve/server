@@ -2,7 +2,7 @@ const express = require('express')
 const expressLayouts = require('express-ejs-layouts')
 
 const config = require('../../config')
-const passport = require('../auth/passport')
+const { authPassport } = require('../../utils/auth-utils')
 const Question = require('../../models/Question')
 const QuestionCtrl = require('../../controllers/QuestionCtrl')
 const { questionsPath, isActivePage, frontEndPath } = require('./helpers')
@@ -132,8 +132,12 @@ eduApi.delete('/questions/:id', async (req, res) => {
 module.exports = rootApp => {
   rootApp.use(
     '/edu',
-    [passport.isAuthenticatedRedirect, passport.isAdminRedirect],
+    [authPassport.isAuthenticatedRedirect, authPassport.isAdminRedirect],
     edu
   )
-  rootApp.use('/edu', [passport.isAuthenticated, passport.isAdmin], eduApi)
+  rootApp.use(
+    '/edu',
+    [authPassport.isAuthenticated, authPassport.isAdmin],
+    eduApi
+  )
 }

@@ -32,7 +32,7 @@ export interface User {
   partnerUserId: string
   lastActivityAt: Date
   referralCode: string
-  referredBy: User
+  referredBy: User | Types.ObjectId
   ipAddresses: IpAddress[]
   type: string
   hashPassword(password: string): string
