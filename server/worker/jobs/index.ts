@@ -27,6 +27,7 @@ import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirst
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
+  UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   EndStaleSessions = 'EndStaleSessions',
   EndUnmatchedSession = 'EndUnmatchedSession',
   EmailReferences = 'EmailReferences',
