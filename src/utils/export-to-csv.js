@@ -6,7 +6,7 @@ export default function exportToCsv(filename, rows) {
   const separator = ','
   let keys
   if (rows[0] instanceof Map) keys = [...rows[0].keys()]
-  else keys = Object.rows[0]
+  else keys = Object.keys(rows[0])
   const csvContent =
     keys.join(separator) +
     '\n' +

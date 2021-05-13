@@ -438,10 +438,10 @@ export default {
       })
       .then(this._successHandler, this._errorHandler)
   },
-  adminGetVolunteerTelecomReport({ fromDate, toDate, partnerOrg }) {
+  adminGetVolunteerTelecomReport({ startDate, endDate, partnerOrg }) {
     const queryParams = new URLSearchParams({
-      fromDate,
-      toDate,
+      startDate,
+      endDate,
       partnerOrg
     }).toString()
     return Vue.http
