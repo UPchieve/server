@@ -490,11 +490,11 @@ export const usageReport = async ({
   return studentUsage
 }
 
-export const getTelecomReport = async ({ partnerOrg, fromDate, toDate }) => {
+export const getTelecomReport = async ({ partnerOrg, startDate, endDate }) => {
   // Only generate the telecom report for a specific partner
   if (partnerOrg !== config.customPartnerVolunteerReport) return []
   try {
-    const dateQuery = { $gt: new Date(fromDate), $lte: new Date(toDate) }
+    const dateQuery = { $gt: new Date(startDate), $lte: new Date(endDate) }
     const volunteers = await VolunteerService.getVolunteers(
       {
         isTestUser: false,
@@ -700,11 +700,8 @@ export const generatePartnerAnalyticsReport = async ({
     report.push(row)
   }
 
-  const summary = await getAnalyticsReportSummary(
-    report,
-    partnerOrg,
-    start,
-    end
-  )
+  let summary = []
+  if (report.length > 0)
+    summary = await getAnalyticsReportSummary(report, partnerOrg, start, end)
   return { summary, report }
 }

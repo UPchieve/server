@@ -561,9 +561,12 @@ export async function getAnalyticsReportSummary(
   )
 
   const summary = getAccumulatedSummaryAnalytics(rows, startDate, endDate)
-  summary.dateRangeUniqueStudentsHelped =
-    uniqueStudentStats.totalWithinDateRange
-  summary.totalUniqueStudentsHelped = uniqueStudentStats.total
+  summary.dateRangeUniqueStudentsHelped = uniqueStudentStats
+    ? uniqueStudentStats.totalWithinDateRange
+    : 0
+  summary.totalUniqueStudentsHelped = uniqueStudentStats
+    ? uniqueStudentStats.total
+    : 0
 
   return [summary]
 }
