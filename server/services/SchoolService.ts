@@ -179,7 +179,7 @@ export const getSchools = async ({ name, state, city, page }) => {
     queries.push(cityQuery)
   }
 
-  const query = queries.length === 0 ? { $and: queries } : {}
+  const query = queries.length === 0 ? {} : { $and: queries }
 
   try {
     const schools = await SchoolModel.aggregate([
