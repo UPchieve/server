@@ -10,7 +10,7 @@
       </thead>
       <tbody>
         <tr
-          v-for="(session, index) in openSessions"
+          v-for="(session, index) in sortedOpenSessions"
           :key="`session-${index}`"
           class="session-row"
           @click="gotoSession(session)"
@@ -50,7 +50,19 @@ export default {
   computed: {
     ...mapState({
       user: state => state.user.user,
-      isWebPageHidden: state => state.app.isWebPageHidden
+      isWebPageHidden: state => state.app.isWebPageHidden,
+      sortedOpenSessions() {
+        // sorts the sessions by createdAt, with oldest sessions coming first
+        return this.openSessions.slice().sort((first, second) => {
+          if (first.createdAt < second.createdAt) {
+            return -1
+          } else if (first.createdAt > second.createdAt) {
+            return 1
+          } else {
+            return 0
+          }
+        })
+      }
     })
   },
   mounted() {
