@@ -3,7 +3,7 @@
     <deployment type="docker-image">
       <settings>
         <option name="imageTag" value="mongo:4.4.5-bionic" />
-        <option name="containerName" value="" />
+        <option name="containerName" value="subway-mongo" />
         <option name="portBindings">
           <list>
             <DockerPortBindingImpl>
