@@ -205,10 +205,11 @@ describe('Generate telecom report', () => {
       })
 
     const result = await generateTelecomAnalytics(volunteers, [])
-    expect(result[0].totalHours).toBe(7)
-    expect(result[0].sessionHours).toBe(3.5) // 3.5hrs in session
-    expect(result[0].availabilityHours).toBe(2.25) // 45min session time subtracted from availability
-    expect(result[0].certificationHours).toBe(1) // 1 quiz
+    const row = result[volunteers[0]._id]
+    expect(row.totalHours).toBe(7)
+    expect(row.sessionHours).toBe(3.5) // 3.5hrs in session
+    expect(row.availabilityHours).toBe(2.25) // 45min session time subtracted from availability
+    expect(row.certificationHours).toBe(1) // 1 quiz
   })
 })
 
