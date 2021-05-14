@@ -27,6 +27,10 @@ export const updateVolunteer = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Query<Volunteer> => VolunteerModel.updateOne(query, update)
 
+export function incrementVolunteer(query, update): Query<Volunteer> {
+  return VolunteerModel.updateOne(query, { $inc: update })
+}
+
 export interface HourSummaryStats {
   totalCoachingHours: number
   totalQuizzesPassed: number

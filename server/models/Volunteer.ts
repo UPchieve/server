@@ -693,6 +693,10 @@ const volunteerSchema = new Schema(
     sentInactiveNinetyDayEmail: {
       type: Boolean,
       default: false
+    },
+    totalVolunteerHours: {
+      type: Number,
+      default: 0
     }
   },
   volunteerSchemaOptions

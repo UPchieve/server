@@ -1,14 +1,16 @@
 import moment from 'moment-timezone'
-import VolunteerModel from '../../models/Volunteer'
-import { getVolunteers } from '../../services/VolunteerService'
+import {
+  incrementVolunteer,
+  getVolunteers
+} from '../../services/VolunteerService'
 import { log } from '../logger'
 import { generateTelecomAnalytics } from '../../utils/reportUtils'
-import { Jobs } from './index'
 import config from '../../config'
+import { Jobs } from './index'
 
 async function updateTotalVolunteerHours(): Promise<void> {
-  const partnerOrg = config.customPartnerVolunteerReport
-  const startDate = moment().subtract(1, 'week')  // TODO: track last time this ran
+  // TODO: track last time this ran to ensure full time coverage
+  const startDate = moment().subtract(1, 'week')
   const endDate = moment()
 
   const dateQuery = { $gt: startDate.toDate(), $lte: endDate.toDate() }
@@ -16,7 +18,7 @@ async function updateTotalVolunteerHours(): Promise<void> {
     {
       isTestUser: false,
       isFakeUser: false,
-      volunteerPartnerOrg: partnerOrg,
+      volunteerPartnerOrg: config.customPartnerVolunteerReport,
       isOnboarded: true,
       isApproved: true
     },
@@ -28,29 +30,24 @@ async function updateTotalVolunteerHours(): Promise<void> {
       email: 1,
       certifications: 1,
       volunteerPartnerOrg: 1,
-      elapsedAvailability: 1
+      elapsedAvailability: 1,
+      totalVolunteerHours: 1
     }
   )
 
   const rows = await generateTelecomAnalytics(volunteers, dateQuery)
-  const volunteerMap = {}
-  for (const row of rows) {
-    volunteerMap[row.volunteer.toString()] = row
-  }
 
   let totalUpdated = 0
-  let errors = []
+  const errors = []
   for (const volunteer of volunteers) {
     try {
-      const hours = volunteerMap[volunteer._id.toString()].totalHours
-      await VolunteerModel.updateOne(
+      const hours = rows[volunteer._id.toString()].totalHours
+      await incrementVolunteer(
         { _id: volunteer._id },
-        { $inc: { totalVolunteerHours: hours } }
+        { totalVolunteerHours: hours }
       )
     } catch (error) {
-      errors.push(
-        `${volunteer._id} could not update total hours: ${error}`
-      )
+      errors.push(`${volunteer._id} could not update total hours: ${error}`)
       continue
     }
     totalUpdated += 1

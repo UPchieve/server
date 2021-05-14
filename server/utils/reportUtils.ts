@@ -307,7 +307,6 @@ export async function generateTelecomReport(
 }
 
 export interface TelecomAnalyticsRow {
-  volunteer: Types.ObjectId
   totalHours: number
   sessionHours: number
   availabilityHours: number
@@ -323,11 +322,8 @@ function sumHours(acc): number {
 }
 
 // To be used by email/update job(s) for generating telecom volunteer hours
-export async function generateTelecomAnalytics(
-  volunteers,
-  dateQuery
-): Promise<TelecomAnalyticsRow[]> {
-  const rows = []
+export async function generateTelecomAnalytics(volunteers, dateQuery) {
+  const rows = {}
   const errors = []
   for (const volunteer of volunteers) {
     try {
@@ -350,13 +346,12 @@ export async function generateTelecomAnalytics(
         quizPassedActions
       )
       const row = {
-        volunteer: volunteer._id,
         totalHours: sumHours(totalTime),
         sessionHours: sumHours(sessionTime),
         availabilityHours: sumHours(availabilityTime),
         certificationHours: sumHours(certificationTime)
       } as TelecomAnalyticsRow
-      rows.push(row)
+      rows[volunteer._id.toString()] = row
     } catch (error) {
       errors.push(`volunteer ${volunteer._id}: ${error}`)
     }
