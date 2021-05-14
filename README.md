@@ -117,6 +117,7 @@ The database is populated with the following users for local development:
 | email                     | password      |
 |:--------------------------|:--------------|
 | `student1@upchieve.org`   | `Password123` |
+| `student2@upchieve.org`   | `Password123` |
 | `volunteer1@upchieve.org` | `Password123` |
 | `volunteer2@upchieve.org` | `Password123` |
 | `volunteer3@upchieve.org` | `Password123` |
