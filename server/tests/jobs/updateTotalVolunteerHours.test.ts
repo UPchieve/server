@@ -1,10 +1,13 @@
 import mongoose from 'mongoose'
+import moment from 'moment'
 import { mocked } from 'ts-jest/utils'
 import UpdateTotalVolunteerHours from '../../worker/jobs/updateTotalVolunteerHours'
 import { resetDb, getVolunteer, insertVolunteer } from '../db-utils'
 import { log } from '../../worker/logger'
 import { Jobs } from '../../worker/jobs'
 import * as reportUtils from '../../utils/reportUtils'
+import * as cache from '../../cache'
+import config from '../../config'
 
 jest.mock('../../worker/logger')
 
@@ -31,6 +34,12 @@ describe('Test updating total volunteer hours', () => {
   beforeEach(async () => {
     await resetDb()
     jest.clearAllMocks()
+    cache.save(
+      config.cacheKeys.updateTotalVolunteerHoursLastRun,
+      moment()
+        .subtract(1, 'week')
+        .toString()
+    )
   })
 
   // test objects

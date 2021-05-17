@@ -1,16 +1,18 @@
 import moment from 'moment-timezone'
 import {
-  incrementVolunteer,
+  incrementTotalVolunteerHours,
   getVolunteers
 } from '../../services/VolunteerService'
 import { log } from '../logger'
 import { generateTelecomAnalytics } from '../../utils/reportUtils'
 import config from '../../config'
+import * as cache from '../../cache'
 import { Jobs } from './index'
 
 async function updateTotalVolunteerHours(): Promise<void> {
-  // TODO: track last time this ran to ensure full time coverage
-  const startDate = moment().subtract(1, 'week')
+  const startDate = moment(
+    cache.get(config.cacheKeys.updateTotalVolunteerHoursLastRun)
+  )
   const endDate = moment()
 
   const dateQuery = { $gt: startDate.toDate(), $lte: endDate.toDate() }
@@ -42,10 +44,7 @@ async function updateTotalVolunteerHours(): Promise<void> {
   for (const volunteer of volunteers) {
     try {
       const hours = rows[volunteer._id.toString()].totalHours
-      await incrementVolunteer(
-        { _id: volunteer._id },
-        { totalVolunteerHours: hours }
-      )
+      await incrementTotalVolunteerHours({ _id: volunteer._id }, hours)
     } catch (error) {
       errors.push(`${volunteer._id} could not update total hours: ${error}`)
       continue
@@ -55,6 +54,11 @@ async function updateTotalVolunteerHours(): Promise<void> {
   log(
     `Successfully ${Jobs.UpdateTotalVolunteerHours} for ${totalUpdated} volunteers`
   )
+  cache.save(
+    config.cacheKeys.updateTotalVolunteerHoursLastRun,
+    endDate.toString()
+  )
+
   if (errors.length) {
     throw new Error(
       `Failed to ${Jobs.UpdateTotalVolunteerHours} for volunteers: ${errors}`

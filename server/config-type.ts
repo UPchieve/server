@@ -108,6 +108,10 @@ export const Config = Record({
   customPartnerVolunteerReport: String,
   studentPartnerManifestPath: String,
 
+  cacheKeys: Record({
+    updateTotalVolunteerHoursLastRun: String
+  }),
+
   // Sentry Data Source Name
   sentryDsn: String,
 

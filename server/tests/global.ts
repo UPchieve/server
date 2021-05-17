@@ -51,6 +51,10 @@ jest.mock('../config', () => {
     customPartnerVolunteerReport:
       process.env.SUBWAY_CUSTOM_PARTNER_REPORT || 'example',
 
+    cacheKeys: {
+      updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEER_HOURS_LAST_RUN'
+    },
+
     logLevel: 'info',
 
     studentPartnerManifests: {
