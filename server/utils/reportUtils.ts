@@ -306,13 +306,6 @@ export async function generateTelecomReport(
   return volunteerPartnerReport
 }
 
-export interface TelecomAnalyticsRow {
-  totalHours: number
-  sessionHours: number
-  availabilityHours: number
-  certificationHours: number
-}
-
 function sumHours(acc): number {
   let total = 0
   for (const day of Object.keys(acc)) {
@@ -346,11 +339,11 @@ export async function generateTelecomAnalytics(volunteers, dateQuery) {
         quizPassedActions
       )
       const row = {
-        totalHours: sumHours(totalTime),
-        sessionHours: sumHours(sessionTime),
-        availabilityHours: sumHours(availabilityTime),
-        certificationHours: sumHours(certificationTime)
-      } as TelecomAnalyticsRow
+        totalVolunteerHours: sumHours(totalTime),
+        totalCoachingHours: sumHours(sessionTime),
+        totalElapsedAvailability: sumHours(availabilityTime),
+        totalQuizzesPassed: sumHours(certificationTime)
+      } as HourSummaryStats
       rows[volunteer._id.toString()] = row
     } catch (error) {
       errors.push(`volunteer ${volunteer._id}: ${error}`)

@@ -37,13 +37,13 @@ async function updateTotalVolunteerHours(): Promise<void> {
     }
   )
 
-  const rows = await generateTelecomAnalytics(volunteers, dateQuery)
+  const stats = await generateTelecomAnalytics(volunteers, dateQuery)
 
   let totalUpdated = 0
   const errors = []
   for (const volunteer of volunteers) {
     try {
-      const hours = rows[volunteer._id.toString()].totalHours
+      const hours = stats[volunteer._id.toString()].totalVolunteerHours
       await incrementTotalVolunteerHours({ _id: volunteer._id }, hours)
     } catch (error) {
       errors.push(`${volunteer._id} could not update total hours: ${error}`)

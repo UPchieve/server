@@ -8,6 +8,7 @@ import { Jobs } from '../../worker/jobs'
 import * as reportUtils from '../../utils/reportUtils'
 import * as cache from '../../cache'
 import config from '../../config'
+import { HourSummaryStats } from '../../services/VolunteerService'
 
 jest.mock('../../worker/logger')
 
@@ -85,11 +86,11 @@ describe('Test updating total volunteer hours', () => {
   test('Should update custom partner volunteers', async () => {
     const preVolunteer = await insertVolunteer(customOverrides)
     const row = {
-      totalHours: 6,
-      sessionHours: 3,
-      availabilityHours: 2,
-      certificationHours: 1
-    } as reportUtils.TelecomAnalyticsRow
+      totalVolunteerHours: 6,
+      totalCoachingHours: 3,
+      totalElapsedAvailability: 2,
+      totalQuizzesPassed: 1
+    } as HourSummaryStats
     mockedReportUtils.generateTelecomAnalytics.mockImplementationOnce(
       async () => {
         return { [preVolunteer._id.toString()]: row }
