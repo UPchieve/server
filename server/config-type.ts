@@ -38,6 +38,7 @@ export const Config = Record({
     weeklyHourSummaryEmailTemplate: String,
     weeklyHourSummaryIntroEmailTemplate: String,
     customWeeklyHourSummaryEmailTemplate: String,
+    customWeeklyHourSummaryIntroEmailTemplate: String,
     onboardingReminderOneTemplate: String,
     onboardingReminderTwoTemplate: String,
     onboardingReminderThreeTemplate: String,
