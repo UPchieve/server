@@ -7,14 +7,14 @@ import {
 import MailService from '../../services/MailService'
 import VolunteerModel from '../../models/Volunteer'
 import { volunteerPartnerManifests } from '../../partnerManifests'
-import { Jobs } from '.'
 import config from '../../config'
 import { generateTelecomAnalytics } from '../../utils/reportUtils'
+import { Jobs } from '.'
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
-    //  Monday-Sunday
-    const lastMonday = moment()
+  //  Monday-Sunday
+  const lastMonday = moment()
     .utc()
     .subtract(1, 'weeks')
     .startOf('isoWeek')
@@ -23,7 +23,7 @@ export default async (): Promise<void> => {
     .subtract(1, 'weeks')
     .endOf('isoWeek')
 
-  const unsubscribedPartners = [config.customPartnerVolunteerReport]
+  const unsubscribedPartners = [config.customVolunteerPartnerOrg]
   for (const partnerOrg in volunteerPartnerManifests) {
     if (!volunteerPartnerManifests[partnerOrg].receiveWeeklyHourSummaryEmail)
       unsubscribedPartners.push(partnerOrg)
@@ -49,9 +49,11 @@ export default async (): Promise<void> => {
     {
       isTestUser: false,
       isFakeUser: false,
-      volunteerPartnerOrg: config.customPartnerVolunteerReport,
+      volunteerPartnerOrg: config.customVolunteerPartnerOrg,
       isOnboarded: true,
-      isApproved: true
+      isApproved: true,
+      isBanned: false,
+      isDeactivated: false
     },
     {
       _id: 1,
@@ -70,8 +72,7 @@ export default async (): Promise<void> => {
   try {
     stats = await generateTelecomAnalytics(volunteers, dateQuery)
   } catch (error) {
-    stats = {}  // do not throw error on access
-    log('Could not generate custom partner org analytics. Will not send custom emails.')
+    log(`Could not generate custom partner org analytics: ${error}`)
   }
 
   let totalEmailed = 0
@@ -85,10 +86,10 @@ export default async (): Promise<void> => {
       volunteerPartnerOrg
     } = volunteer
     try {
-      const customCheck = volunteerPartnerOrg === config.customPartnerVolunteerReport
+      const customCheck =
+        volunteerPartnerOrg === config.customVolunteerPartnerOrg
       let summaryStats
-      if (customCheck)
-        summaryStats = stats[_id.toString()]
+      if (customCheck) summaryStats = stats[_id.toString()]
       else
         summaryStats = await getHourSummaryStats(
           _id,
@@ -115,14 +116,14 @@ export default async (): Promise<void> => {
         )
       totalEmailed++
     } catch (error) {
-      errors.push(`volunteer ${_id}: ${error}`)
+      errors.push(`volunteer ${_id}: ${error}\n`)
     }
   }
 
   log(`Sent ${Jobs.EmailWeeklyHourSummary} to ${totalEmailed} volunteers`)
   if (errors.length) {
     throw new Error(
-      `Failed to send ${Jobs.EmailWeeklyHourSummary} to: ${errors}`
+      `Failed to send ${Jobs.EmailWeeklyHourSummary} to:\n${errors}`
     )
   }
 }

@@ -48,8 +48,8 @@ jest.mock('../config', () => {
       }
     },
 
-    customPartnerVolunteerReport:
-      process.env.SUBWAY_CUSTOM_PARTNER_REPORT || 'example',
+    customVolunteerPartnerOrg:
+      process.env.SUBWAY_CUSTOM_PARTNER_ORG || 'example',
 
     cacheKeys: {
       updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEER_HOURS_LAST_RUN'

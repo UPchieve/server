@@ -492,7 +492,7 @@ export const usageReport = async ({
 
 export const getTelecomReport = async ({ partnerOrg, startDate, endDate }) => {
   // Only generate the telecom report for a specific partner
-  if (partnerOrg !== config.customPartnerVolunteerReport) return []
+  if (partnerOrg !== config.customVolunteerPartnerOrg) return []
   try {
     const dateQuery = { $gt: new Date(startDate), $lte: new Date(endDate) }
     const volunteers = await VolunteerService.getVolunteers(

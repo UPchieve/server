@@ -41,7 +41,6 @@ async function emailCustomWeeklyHourSummary(): Promise<void> {
 
   const rows = await generateTelecomAnalytics(volunteers, dateQuery)
 
-
   let totalEmailed = 0
   const errors = []
   for (const volunteer of volunteers) {

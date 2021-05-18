@@ -107,7 +107,7 @@ export const Config = Record({
   }),
   socketsPort: Number,
   volunteerPartnerManifestPath: String,
-  customPartnerVolunteerReport: String,
+  customVolunteerPartnerOrg: String,
   studentPartnerManifestPath: String,
 
   cacheKeys: Record({

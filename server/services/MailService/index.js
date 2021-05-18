@@ -365,8 +365,8 @@ module.exports = {
   },
 
   sendReadyToCoachEmail: volunteer => {
-    const readyToCoachTemplate = (volunteer.volunteerPartnerOrg)
-      ? (volunteer.volunteerPartnerOrg === config.customPartnerVolunteerReport)
+    const readyToCoachTemplate = volunteer.volunteerPartnerOrg
+      ? volunteer.volunteerPartnerOrg === config.customVolunteerPartnerOrg
         ? config.sendgrid.customPartnerReadyToCoachTemplate
         : config.sendgrid.partnerReadyToCoachTemplate
       : config.sendgrid.openReadyToCoachTemplate
@@ -524,7 +524,7 @@ module.exports = {
     totalElapsedAvailability,
     totalQuizzesPassed,
     totalVolunteerHours,
-    customOrg
+    customOrg = false
   }) => {
     const formattedCoachingHours = getFormattedHourSummaryTime(
       totalCoachingHours
@@ -548,7 +548,7 @@ module.exports = {
     const weeklyTemplate = customOrg
       ? config.sendgrid.customWeeklyHourSummaryEmailTemplate
       : config.sendgrid.weeklyHourSummaryEmailTemplate
-  
+
     const introTemplate = customOrg
       ? config.sendgrid.customWeeklyHourSummaryIntroEmailTemplate
       : config.sendgrid.weeklyHourSummaryIntroEmailTemplate

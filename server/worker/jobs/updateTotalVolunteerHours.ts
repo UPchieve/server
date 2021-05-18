@@ -20,7 +20,7 @@ async function updateTotalVolunteerHours(): Promise<void> {
     {
       isTestUser: false,
       isFakeUser: false,
-      volunteerPartnerOrg: config.customPartnerVolunteerReport,
+      volunteerPartnerOrg: config.customVolunteerPartnerOrg,
       isOnboarded: true,
       isApproved: true
     },

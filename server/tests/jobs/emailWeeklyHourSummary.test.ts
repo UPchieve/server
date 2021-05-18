@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { mocked } from 'ts-jest/utils'
 import emailWeeklyHourSummary from '../../worker/jobs/emailWeeklyHourSummary'
 import { getVolunteer, insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
@@ -6,8 +7,13 @@ import MailService from '../../services/MailService'
 import { log } from '../../worker/logger'
 import * as VolunteerService from '../../services/VolunteerService'
 import { Jobs } from '../../worker/jobs'
+import * as reportUtils from '../../utils/reportUtils'
+import config from '../../config'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
+
+jest.mock('../../utils/reportUtils')
+const mockedReportUtils = mocked(reportUtils, true)
 
 jest.setTimeout(15000)
 
@@ -131,19 +137,100 @@ describe('emailWeeklyHourSummary', () => {
       VolunteerService,
       'getHourSummaryStats'
     )
-    const errorMessage = 'Server error'
-    const jacksonError = `volunteer ${jackson._id}: ${errorMessage}`
-    getHourSummaryStats.mockImplementationOnce(() =>
-      Promise.reject(errorMessage)
-    )
+    const statsError = new Error('Server error')
+    const jacksonError = `volunteer ${jackson._id}: ${statsError}\n`
+    getHourSummaryStats.mockImplementationOnce(() => Promise.reject(statsError))
 
     await expect(emailWeeklyHourSummary()).rejects.toEqual(
-      Error(`Failed to send ${Jobs.EmailWeeklyHourSummary} to: ${jacksonError}`)
+      Error(
+        `Failed to send ${Jobs.EmailWeeklyHourSummary} to:\n${jacksonError}`
+      )
     )
 
     const expectedEmailsSent = 0
     expect(log).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailWeeklyHourSummary} to ${expectedEmailsSent} volunteers`
     )
+  })
+
+  test('Should log error in generating custom analytics', async () => {
+    const pablo = buildVolunteer({
+      volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+      isOnboarded: true,
+      isApproved: true
+    })
+    await insertVolunteer(pablo)
+
+    const analyticsError = new Error('Analytics error')
+    const pabloError = `volunteer ${pablo._id}:` // error will be key error on analytics
+    mockedReportUtils.generateTelecomAnalytics.mockImplementationOnce(() =>
+      Promise.reject(analyticsError)
+    )
+
+    let err
+    try {
+      await emailWeeklyHourSummary()
+    } catch (error) {
+      err = error
+    }
+
+    expect(err.message).toContain(
+      `Failed to send ${Jobs.EmailWeeklyHourSummary} to:\n${pabloError}`
+    )
+
+    const expectedEmailsSent = 0
+    expect(log).toHaveBeenNthCalledWith(
+      1,
+      `Could not generate custom partner org analytics: ${analyticsError}`
+    )
+    expect(log).toHaveBeenNthCalledWith(
+      2,
+      `Sent ${Jobs.EmailWeeklyHourSummary} to ${expectedEmailsSent} volunteers`
+    )
+  })
+
+  test('Should send email to both regular and custom partner volunteers', async () => {
+    const raul = buildVolunteer({
+      volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+      isOnboarded: true,
+      isApproved: true,
+      sentHourSummaryIntroEmail: true
+    })
+    const jackson = buildVolunteer({
+      sentHourSummaryIntroEmail: true
+    })
+    await insertVolunteer(raul)
+    await insertVolunteer(jackson)
+
+    mockedReportUtils.generateTelecomAnalytics.mockImplementationOnce(
+      async () => ({
+        [raul._id.toString()]: {
+          totalVolunteerHours: 6,
+          totalCoachingHours: 3,
+          totalElapsedAvailability: 2,
+          totalQuizzesPassed: 1
+        }
+      })
+    )
+    const getHourSummaryStats = jest.spyOn(
+      VolunteerService,
+      'getHourSummaryStats'
+    )
+    getHourSummaryStats.mockImplementationOnce(async () => ({
+      totalCoachingHours: 1,
+      totalQuizzesPassed: 1,
+      totalElapsedAvailability: 1,
+      totalVolunteerHours: 2.1
+    }))
+
+    await emailWeeklyHourSummary()
+
+    const expectedEmailsSent = 2
+    expect(log).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailWeeklyHourSummary} to ${expectedEmailsSent} volunteers`
+    )
+    expect(
+      (MailService.sendHourSummaryEmail as jest.Mock).mock.calls.length
+    ).toBe(expectedEmailsSent)
   })
 })
