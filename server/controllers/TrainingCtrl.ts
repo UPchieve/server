@@ -53,7 +53,7 @@ const numQuestions = {
   [SAT_CERTS.SAT_READING]: 1
 }
 const SUBJECT_THRESHOLD = 0.8
-const TRAINING_THRESHOLD = 1.0
+const TRAINING_THRESHOLD = 0.9
 
 // Check if a user is certified in a given group of subject certs
 // @todo: understand these types
