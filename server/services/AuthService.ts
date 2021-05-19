@@ -386,7 +386,8 @@ export async function confirmReset(data: unknown): Promise<void> {
   if (!user)
     throw new LookupError('No account found with provided password reset token')
 
-  if (user.email !== email)
+  // case match strings
+  if (user.email !== email.toLowerCase())
     throw new ResetError('Email did not match the password reset token')
 
   checkPassword(password)
