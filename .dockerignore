@@ -1,2 +1,4 @@
-node_modules/bcrypt*
+node_modules/
 mongo-volume/
+dist/
+build/

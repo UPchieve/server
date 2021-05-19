@@ -29,7 +29,8 @@
     "test:frontend": "vue-cli-service test:unit -c jest.config.vue.js",
     "worker": "node build/worker",
     "worker-local": "ts-node server/init.ts && node build/worker",
-    "worker:dev": "ts-node-dev server/worker"
+    "worker:dev": "ts-node-dev server/worker",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@azure/identity": "^1.2.3",
