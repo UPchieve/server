@@ -131,7 +131,7 @@ export function routes(app: Express) {
       const partner = await AuthService.lookupPartnerStudent(
         req.query.partnerId as unknown
       )
-      res.json({ volunteerPartner: partner })
+      res.json({ studentPartner: partner })
     } catch (err) {
       resError(res, err)
     }

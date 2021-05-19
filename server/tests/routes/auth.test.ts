@@ -107,10 +107,10 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
 
     const {
-      body: { volunteerPartner }
+      body: { studentPartner }
     } = response
     expect(AuthService.lookupPartnerStudent).toHaveBeenCalledTimes(1)
-    expect(volunteerPartner).toEqual(payload.partnerId)
+    expect(studentPartner).toEqual(payload.partnerId)
   })
 
   test(`Route ${PARTNER_STUDENT} invalid payload`, async () => {
