@@ -1,13 +1,14 @@
-const VolunteerModel = require('../models/Volunteer')
-const { getAvailabilities } = require('../services/AvailabilityService')
+import VolunteerModel from '../models/Volunteer'
+import { getAvailabilities } from '../services/AvailabilityService'
 
 /**
- * Helper function that, given a single users's
+ * Helper function that, given a single users'
  * availability, adds when they are free to the
  * aggAvailabilities object
  * @param {*} availability
+ * @param {*} aggAvailabilities
  */
-function aggregateAvailabilities(availability, aggAvailabilities) {
+function aggregateAvailabilities(availability: any, aggAvailabilities: any) {
   Object.keys(availability).map(day => {
     Object.keys(availability[day]).map(time => {
       // create headers based on the user's availability object
@@ -30,7 +31,7 @@ function aggregateAvailabilities(availability, aggAvailabilities) {
 }
 
 /**
- * Helper function that finds the minimum and maxmimum number of
+ * Helper function that finds the minimum and maximum number of
  * volunteers who signed up that week
  * @param {*} aggAvailabilities
  */
@@ -73,7 +74,7 @@ module.exports = {
         volunteerId: { $in: volunteerIds }
       })
 
-      let aggAvailabilities = {}
+      let aggAvailabilities: any = {}
       aggAvailabilities.table = Array(7)
         .fill(0)
         .map(() => Array(24).fill(0))
