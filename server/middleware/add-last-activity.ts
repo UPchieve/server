@@ -1,6 +1,6 @@
-const User = require('../models/User')
+import User from '../models/User'
 
-function addLastActivity(req, res, next) {
+export default function addLastActivity(req, res, next) {
   if (req.user) {
     const { _id, lastActivityAt } = req.user
     const todaysDateInMS = Date.now()
@@ -19,5 +19,3 @@ function addLastActivity(req, res, next) {
     next()
   }
 }
-
-module.exports = addLastActivity
