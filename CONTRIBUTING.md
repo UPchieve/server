@@ -2,6 +2,11 @@
 
 Thanks for contributing to the UPchieve subway project. We really appreciate your help, and thank you for the effort you're putting in. In this document you can find out how to: create your own repository, test your additions, and propose your updated code to the UPchieve team. For detailed information about how to install and start servers, see the [README.md](README.md) file.
 
+## Joining the community
+
+Our open source community chats in our Slack org, and we have a weekly Zoom meeting Wednesday nights at 8:30PM ET. To get invites to both,
+please [send us an email](mailto:tech@upchieve.org)!
+
 ## GITLAB
 
 NOTE: Active development on this project has moved to https://gitlab.com/upchieve/subway, no more pushes should go straight to the Github repo.
