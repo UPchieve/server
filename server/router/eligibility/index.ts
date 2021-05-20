@@ -1,16 +1,16 @@
-const express = require('express')
-const { authPassport } = require('../../utils/auth-utils')
-const Sentry = require('@sentry/node')
-const SchoolService = require('../../services/SchoolService')
-const UserService = require('../../services/UserService')
-const UserCtrl = require('../../controllers/UserCtrl')
-const School = require('../../models/School')
-const ZipCode = require('../../models/ZipCode')
-const IneligibleStudent = require('../../models/IneligibleStudent')
-const IneligibleStudentService = require('../../services/IneligibleStudentService')
+import express from 'express'
+import Sentry from '@sentry/node'
+import { authPassport } from '../../utils/auth-utils'
+import * as SchoolService from '../../services/SchoolService'
+import UserService from '../../services/UserService'
+import * as UserCtrl from '../../controllers/UserCtrl'
+import School from '../../models/School'
+import ZipCode from '../../models/ZipCode'
+import IneligibleStudent from '../../models/IneligibleStudent'
+import * as IneligibleStudentService from '../../services/IneligibleStudentService'
 
 module.exports = function(app) {
-  const router = new express.Router()
+  const router: any = express.Router()
 
   // Check if a student is eligible
   router.route('/check').post(async function(req, res, next) {
@@ -33,7 +33,7 @@ module.exports = function(app) {
     if (existingIneligible) return res.json({ isEligible: false })
 
     const schoolFetch = School.findByUpchieveId(schoolUpchieveId).exec()
-    const zipCodeFetch = ZipCode.findByZipCode(zipCodeInput).exec()
+    const zipCodeFetch = ZipCode.findByZipCode(zipCodeInput)
 
     try {
       const [school, zipCode] = await Promise.all([schoolFetch, zipCodeFetch])
@@ -216,7 +216,7 @@ module.exports = function(app) {
     const { zipCode } = req.params
 
     try {
-      const result = await ZipCode.findByZipCode(zipCode).exec()
+      const result = await ZipCode.findByZipCode(zipCode)
       if (!result) res.sendStatus(404)
       else
         res.json({
