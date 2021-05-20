@@ -1,20 +1,20 @@
-const UserActionCtrl = require('../controllers/UserActionCtrl')
-const Sentry = require('@sentry/node')
+import { AccountActionCreator, QuizActionCreator } from '../controllers/UserActionCtrl'
+import Sentry from '@sentry/node'
 
-function addUserAction(req, res, next) {
+export default function addUserAction(req, res, next) {
   if (req.user) {
     const { _id } = req.user
     const { ip: ipAddress } = req
 
     if (req.url === '/api/calendar/save') {
-      new UserActionCtrl.AccountActionCreator(_id, ipAddress)
+      new AccountActionCreator(_id, ipAddress)
         .updatedAvailability()
         .catch(error => Sentry.captureException(error))
     }
 
     if (req.url === '/api/training/questions') {
       const { category } = req.body
-      new UserActionCtrl.QuizActionCreator(_id, category, ipAddress)
+      new QuizActionCreator(_id, category, ipAddress)
         .startedQuiz()
         .catch(error => Sentry.captureException(error))
     }
@@ -26,7 +26,7 @@ function addUserAction(req, res, next) {
       req.method === 'PUT' &&
       referer.includes('profile')
     ) {
-      new UserActionCtrl.AccountActionCreator(_id, ipAddress)
+      new AccountActionCreator(_id, ipAddress)
         .updatedProfile()
         .catch(error => Sentry.captureException(error))
     }
@@ -34,5 +34,3 @@ function addUserAction(req, res, next) {
 
   next()
 }
-
-module.exports = addUserAction
