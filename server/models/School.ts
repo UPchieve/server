@@ -1,5 +1,6 @@
-import { Document, model, Schema, DocumentQuery, Types } from 'mongoose'
+import { Document, model, Model, Schema, DocumentQuery, Types } from 'mongoose'
 import validator from 'validator'
+import { UserDocument } from './User'
 
 export interface School {
   _id: Types.ObjectId
@@ -81,7 +82,8 @@ export interface School {
   LEVEL?: string
   IGOFFERED?: string
 
-  //  virtuals
+  // virtuals
+  studentUsers?: UserDocument[]
   name?: string
   districtName?: string
   city?: string
@@ -274,12 +276,21 @@ schoolSchema.virtual('studentUsers', {
 
 schoolSchema.statics.findByUpchieveId = function(
   id: string,
-  cb: (err: Error, school: SchoolDocument) => void
+  cb?: (err: Error, school: SchoolDocument) => void
 ): DocumentQuery<School, SchoolDocument> {
   return this.findOne({ upchieveId: id }, cb)
 }
 
-const SchoolModel = model<SchoolDocument>('School', schoolSchema)
+export interface SchoolStaticModel extends Model<SchoolDocument> {
+  findByUpchieveId(
+    id: string,
+    cb?: (err: Error, school: SchoolDocument) => void
+  ): DocumentQuery<School, SchoolDocument>
+}
+const SchoolModel = model<SchoolDocument, SchoolStaticModel>(
+  'School',
+  schoolSchema
+)
 
 module.exports = SchoolModel
 export default SchoolModel

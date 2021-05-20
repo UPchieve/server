@@ -6,6 +6,7 @@ export interface ZipCode {
   _id: Types.ObjectId
   zipCode: string
   medianIncome: number
+  isEligible: boolean
 }
 
 export type ZipCodeDocument = ZipCode & Document
