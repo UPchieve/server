@@ -146,7 +146,10 @@ keys and sensitive information should be placed in this file.
 ### Models
 
 Model definitions that map to database models, along with related methods to act
-on those models, such as parsing, validation, and data transformations.
+on those models, such as parsing, validation, and data transformations. Ideally models are
+encapsulated in their files, and only expose methods that return interfaces of data,
+rather than actual Mongo Documents. We are in the process of migrating to this
+practice across all models.
 
 ### Router
 
@@ -154,18 +157,12 @@ Directory structure mimics the endpoint structure exposed by the server. Each
 file provides one or more endpoint routes, responsible for request
 acceptance/rejection and error handling.
 
-### Controllers
-
-Routes use controllers to perform the business logic of the server, providing
-separation of concerns: the controllers have no need to be aware of how the
-endpoints work. Instead, a controller provides ways to allow the routes to
-trigger something (a user update, e.g.)
-
 ### Services
 
-A service is a step higher than a controller. Services provide abstract
-functions to one or many controllers, often to interface with third party
-services.
+Routes use services to perform the business logic of the server, providing
+separation of concerns: the services have no need to be aware of how the
+endpoints work. Instead, a controller provides ways to allow the routes to
+trigger something (a user update, e.g.).
 
 
 ## Endpoints
@@ -179,3 +176,28 @@ A [Bull](https://github.com/OptimalBits/bull) worker reading from a local [Redis
 
 ### Worker Jobs
 - [Update Elapsed Availability](worker/jobs/updateElapsedAvailability.ts): updates all volunteers' elapsed availabilities every day at 4 am.
+
+## Component Library
+
+We are transitioning to [Storybook](https://storybook.js.org/) to manage our frontend component library, with the goal
+of having a cohesive look that is easily expressed by any contributor as we continue to build the site out.
+
+Our Storybook is hosted at the Gitlab pages site for this repository: https://upchieve.gitlab.io/subway/
+
+Each component from `src/components` is imported into a `Component.stories.js` file in `src/stories`. A story
+represents one possible rendered state of that component.
+
+Our goal is to have 100% of our components shifted into Storybook, and do refactoring as we go to make them
+easier/more logical to use.
+
+Storybook is capable of doing nested component testing all the way up through full view rendering. We'll update
+this documentation as we decide how much we want to use storybook beyond atomic components.
+
+All _new_ components should go into Storybook, with stories for each of their states.
+
+### Testing
+
+Story states can be imported into unit tests for a component to check things like applied classes and simple behaviors.
+
+Additionally, we use [Storyshots](https://storybook.js.org/docs/react/workflows/snapshot-testing) to check rendered html for a given component to ensure changes aren't breaking the
+rendering.
