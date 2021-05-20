@@ -1,7 +1,7 @@
-const IpAddressService = require('../services/IpAddressService')
-const Sentry = require('@sentry/node')
+import IpAddressService from '../services/IpAddressService'
+import Sentry from '@sentry/node'
 
-const recordIpAddress = async (req, res, next) => {
+export default async function recordIpAddress(req, res, next) {
   const { user, ip: ipString } = req
 
   try {
@@ -14,5 +14,3 @@ const recordIpAddress = async (req, res, next) => {
 
   next()
 }
-
-module.exports = recordIpAddress
