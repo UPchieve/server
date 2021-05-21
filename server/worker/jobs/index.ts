@@ -4,6 +4,7 @@ import newrelic from 'newrelic'
 import logger from '../../logger'
 import notifyTutors from './notifyTutors'
 import updateElapsedAvailability from './updateElapsedAvailability'
+import updateTotalVolunteerHours from './updateTotalVolunteerHours'
 import endStaleSessions from './endStaleSessions'
 import endUnmatchedSession from './endUnmatchedSession'
 import emailReferences from './emailReferences'
@@ -27,6 +28,7 @@ import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirst
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
+  UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   EndStaleSessions = 'EndStaleSessions',
   EndUnmatchedSession = 'EndUnmatchedSession',
   EmailReferences = 'EmailReferences',
@@ -70,6 +72,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateElapsedAvailability,
     processor: updateElapsedAvailability
+  },
+  {
+    name: Jobs.UpdateTotalVolunteerHours,
+    processor: updateTotalVolunteerHours
   },
   {
     name: Jobs.EndStaleSessions,

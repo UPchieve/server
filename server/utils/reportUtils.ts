@@ -89,7 +89,8 @@ function telecomTutorTime(
       addToAcc(
         sessionAcc,
         startedAt,
-        roundUpToNearestInterval(session.timeTutored, 15)
+        // convert ms -> min
+        roundUpToNearestInterval(session.timeTutored / 60000, 15)
       )
     }
   }
@@ -306,15 +307,6 @@ export async function generateTelecomReport(
   return volunteerPartnerReport
 }
 
-interface TelecomAnalyticsRow {
-  name: string
-  email: string
-  totalHours: number
-  sessionHours: number
-  availabilityHours: number
-  certificationHours: number
-}
-
 function sumHours(acc): number {
   let total = 0
   for (const day of Object.keys(acc)) {
@@ -323,57 +315,45 @@ function sumHours(acc): number {
   return total
 }
 
+export function emptyHours(): HourSummaryStats {
+  return {
+    totalVolunteerHours: 0,
+    totalCoachingHours: 0,
+    totalElapsedAvailability: 0,
+    totalQuizzesPassed: 0
+  }
+}
+
 // To be used by email/update job(s) for generating telecom volunteer hours
-export async function generateTelecomAnalytics(
-  volunteers,
+export async function telecomHourSummaryStats(
+  volunteer,
   dateQuery
-): Promise<TelecomAnalyticsRow[]> {
-  const rows = []
-  const errors = []
-  for (const volunteer of volunteers) {
-    try {
-      const totalCerts = countCerts(volunteer.certifications)
-      if (totalCerts === 0) continue
+): Promise<HourSummaryStats> {
+  try {
+    const totalCerts = countCerts(volunteer.certifications)
+    if (totalCerts === 0) return emptyHours()
 
-      const volunteerFirstName = capitalize(volunteer.firstname)
-      const volunterLastName = capitalize(volunteer.lastname)
-      const name = volunteerFirstName + ' ' + volunterLastName
-
-      const {
-        sessions,
-        availabilityForDateRange,
-        quizPassedActions
-      } = await getVolunteerData(volunteer, dateQuery)
-      const {
-        totalTime,
-        sessionTime,
-        availabilityTime,
-        certificationTime
-      } = telecomTutorTime(
-        sessions,
-        availabilityForDateRange,
-        quizPassedActions
-      )
-      const row = {
-        name: name,
-        email: volunteer.email,
-        totalHours: sumHours(totalTime),
-        sessionHours: sumHours(sessionTime),
-        availabilityHours: sumHours(availabilityTime),
-        certificationHours: sumHours(certificationTime)
-      } as TelecomAnalyticsRow
-      rows.push(row)
-    } catch (error) {
-      errors.push(`volunteer ${volunteer._id}: ${error}`)
-    }
+    const {
+      sessions,
+      availabilityForDateRange,
+      quizPassedActions
+    } = await getVolunteerData(volunteer, dateQuery)
+    const {
+      totalTime,
+      sessionTime,
+      availabilityTime,
+      certificationTime
+    } = telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
+    const row = {
+      totalVolunteerHours: sumHours(totalTime),
+      totalCoachingHours: sumHours(sessionTime),
+      totalElapsedAvailability: sumHours(availabilityTime),
+      totalQuizzesPassed: sumHours(certificationTime)
+    } as HourSummaryStats
+    return row
+  } catch (error) {
+    throw new Error(`Failed to generate hour summary stats: ${error}`)
   }
-  if (errors.length) {
-    throw Error(
-      `Failed to generate telecom analytics with\n ${errors.join('\n')}`
-    )
-  }
-  logger.info('Telecom analytics generated')
-  return rows
 }
 
 export function getSumOperatorForDateRanges(startDate: Date, endDate: Date) {

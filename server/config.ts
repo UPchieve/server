@@ -64,6 +64,7 @@ const config: Static<typeof Config> = {
     approvedNotOnboardedTemplate: 'd-2c7a974fc7084a9eaaa152f3498cc99d',
     openReadyToCoachTemplate: 'd-09ec01c51be54c108b7fae4481acfd38',
     partnerReadyToCoachTemplate: 'd-d2ba9920683b4bd4a159f496a2346583',
+    customPartnerReadyToCoachTemplate: 'd-af9b19d3eef745b69709df7bf0c410c9',
     bannedUserAlertTemplate: 'd-7be8a21a59664f99a1f540e43c79b793',
     referenceFollowupTemplate: 'd-6b0d96c0cf15469db7a5e6ec655cf37a',
     rejectedPhotoSubmissionTemplate: 'd-c6d146a9eb4e44f6acc94a29a131d50d',
@@ -72,6 +73,9 @@ const config: Static<typeof Config> = {
     niceToMeetYouTemplate: 'd-8afee528e5184d8797c50c109d6b631b',
     weeklyHourSummaryEmailTemplate: 'd-19a5fbe8656249d2822c8bde1c2ab086',
     weeklyHourSummaryIntroEmailTemplate: 'd-4d8394e4da3847eabdfd23f257f7a8d3',
+    customWeeklyHourSummaryEmailTemplate: 'd-c07f4bcfed5f4acbba8038edb353866d',
+    customWeeklyHourSummaryIntroEmailTemplate:
+      'd-ada36745cc724549833b867f514435a6',
     onboardingReminderOneTemplate: 'd-9af291b6d0e94f7ebf0133be2c7176e3',
     onboardingReminderTwoTemplate: 'd-23681dc2dc0647e0bd7a57a6f328e00b',
     onboardingReminderThreeTemplate: 'd-d7ff9f33620842508de0030c84da9425',
@@ -173,11 +177,15 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
     'localManifests/volunteer.yaml',
 
-  customPartnerVolunteerReport: process.env.SUBWAY_CUSTOM_PARTNER_REPORT || '',
+  customVolunteerPartnerOrg: process.env.SUBWAY_CUSTOM_PARTNER_ORG || 'bogus',
 
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
     'localManifests/student.yaml',
+
+  cacheKeys: {
+    updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN'
+  },
 
   // Sentry Data Source Name
   sentryDsn: process.env.SUBWAY_SENTRY_DSN || '',

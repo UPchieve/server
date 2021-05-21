@@ -7,10 +7,22 @@ import {
 import MailService from '../../services/MailService'
 import VolunteerModel from '../../models/Volunteer'
 import { volunteerPartnerManifests } from '../../partnerManifests'
+import config from '../../config'
+import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import { Jobs } from '.'
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
+  //  Monday-Sunday
+  const lastMonday = moment()
+    .utc()
+    .subtract(1, 'weeks')
+    .startOf('isoWeek')
+  const lastSunday = moment()
+    .utc()
+    .subtract(1, 'weeks')
+    .endOf('isoWeek')
+
   const unsubscribedPartners = []
   for (const partnerOrg in volunteerPartnerManifests) {
     if (!volunteerPartnerManifests[partnerOrg].receiveWeeklyHourSummaryEmail)
@@ -28,19 +40,13 @@ export default async (): Promise<void> => {
     {
       firstname: 1,
       email: 1,
-      sentHourSummaryIntroEmail: 1
+      sentHourSummaryIntroEmail: 1,
+      volunteerPartnerOrg: 1,
+      certifications: 1
     }
   )
 
-  //  Monday-Sunday
-  const lastMonday = moment()
-    .utc()
-    .subtract(1, 'weeks')
-    .startOf('isoWeek')
-  const lastSunday = moment()
-    .utc()
-    .subtract(1, 'weeks')
-    .endOf('isoWeek')
+  const dateQuery = { $gt: lastMonday.toDate(), $lte: lastSunday.toDate() }
 
   let totalEmailed = 0
   const errors = []
@@ -49,16 +55,23 @@ export default async (): Promise<void> => {
       _id,
       firstname: firstName,
       email,
-      sentHourSummaryIntroEmail
+      sentHourSummaryIntroEmail,
+      volunteerPartnerOrg
     } = volunteer
     try {
-      const summaryStats = await getHourSummaryStats(
-        _id,
-        lastMonday.toDate(),
-        lastSunday.toDate()
-      )
+      const customCheck =
+        volunteerPartnerOrg === config.customVolunteerPartnerOrg
+      let summaryStats
+      if (customCheck)
+        summaryStats = await telecomHourSummaryStats(volunteer, dateQuery)
+      else
+        summaryStats = await getHourSummaryStats(
+          _id,
+          lastMonday.toDate(),
+          lastSunday.toDate()
+        )
       // A volunteer must have non-zero totalVolunteerHours for the prior week (Monday-Sunday) to receive an email
-      if (!summaryStats.totalVolunteerHours) continue
+      if (!summaryStats || !summaryStats.totalVolunteerHours) continue
 
       const data = {
         firstName,
@@ -66,6 +79,7 @@ export default async (): Promise<void> => {
         sentHourSummaryIntroEmail,
         fromDate: lastMonday.format('dddd, MMM D'),
         toDate: lastSunday.format('dddd, MMM D'),
+        customOrg: customCheck,
         ...summaryStats
       }
       await MailService.sendHourSummaryEmail(data)
@@ -76,14 +90,16 @@ export default async (): Promise<void> => {
         )
       totalEmailed++
     } catch (error) {
-      errors.push(`volunteer ${_id}: ${error}`)
+      errors.push(`${_id}: ${error}\n`)
     }
   }
 
-  log(`Sent ${Jobs.EmailWeeklyHourSummary} to ${totalEmailed} volunteers`)
+  log(
+    `Successfully ${Jobs.EmailWeeklyHourSummary} for ${totalEmailed} volunteers`
+  )
   if (errors.length) {
     throw new Error(
-      `Failed to send ${Jobs.EmailWeeklyHourSummary} to: ${errors}`
+      `Failed to ${Jobs.EmailWeeklyHourSummary} for volunteers:\n${errors}`
     )
   }
 }
