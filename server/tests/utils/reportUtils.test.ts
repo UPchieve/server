@@ -1,7 +1,7 @@
 import moment from 'moment'
 import {
   generateTelecomReport,
-  generateTelecomAnalytics,
+  telecomHourSummaryStats,
   getAccumulatedSummaryAnalytics,
   getAnalyticsReportRow,
   PartnerVolunteerAnalytics
@@ -98,25 +98,25 @@ describe('Generate telecom report', () => {
     .minute(0)
   const sessions = [
     {
-      timeTutored: 43,
+      timeTutored: 43 * 60000,
       volunteerJoinedAt: session1Time,
       endedAt: moment(session1Time).add(43, 'minutes'), // contribute 30 min
       name: 'session 1'
     },
     {
-      timeTutored: 12,
+      timeTutored: 12 * 60000,
       volunteerJoinedAt: session2Time,
       endedAt: moment(session2Time).add(12, 'minutes'), // contribute 0 min
       name: 'session 2'
     },
     {
-      timeTutored: 88,
+      timeTutored: 88 * 60000,
       volunteerJoinedAt: session3Time,
       endedAt: moment(session3Time).add(88, 'minutes'), // contribute 90 min
       name: 'session 3'
     },
     {
-      timeTutored: 60,
+      timeTutored: 60 * 60000,
       volunteerJoinedAt: session4Time,
       endedAt: moment(session4Time).add(60, 'minutes'), // contribute 60 min
       name: 'session 4'
@@ -187,7 +187,7 @@ describe('Generate telecom report', () => {
     const result = await generateTelecomReport(volunteers, [])
     expect(result[0].hours).toBe(7)
   })
-  test('Test telecom analytics', async () => {
+  test('Test summary stats', async () => {
     jest
       .spyOn(UserActionService, 'getActionsWithPipeline')
       // @ts-expect-error
@@ -204,11 +204,11 @@ describe('Generate telecom report', () => {
         return availabilityDateRange
       })
 
-    const result = await generateTelecomAnalytics(volunteers, [])
-    expect(result[0].totalHours).toBe(7)
-    expect(result[0].sessionHours).toBe(3.5) // 3.5hrs in session
-    expect(result[0].availabilityHours).toBe(2.25) // 45min session time subtracted from availability
-    expect(result[0].certificationHours).toBe(1) // 1 quiz
+    const row = await telecomHourSummaryStats(volunteers[0], [])
+    expect(row.totalVolunteerHours).toBe(7)
+    expect(row.totalCoachingHours).toBe(3.5) // 3.5hrs in session
+    expect(row.totalElapsedAvailability).toBe(2.25) // 45min session time subtracted from availability
+    expect(row.totalQuizzesPassed).toBe(1) // 1 quiz
   })
 })
 

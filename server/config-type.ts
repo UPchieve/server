@@ -28,6 +28,7 @@ export const Config = Record({
     approvedNotOnboardedTemplate: String,
     openReadyToCoachTemplate: String,
     partnerReadyToCoachTemplate: String,
+    customPartnerReadyToCoachTemplate: String,
     bannedUserAlertTemplate: String,
     referenceFollowupTemplate: String,
     rejectedPhotoSubmissionTemplate: String,
@@ -36,6 +37,8 @@ export const Config = Record({
     niceToMeetYouTemplate: String,
     weeklyHourSummaryEmailTemplate: String,
     weeklyHourSummaryIntroEmailTemplate: String,
+    customWeeklyHourSummaryEmailTemplate: String,
+    customWeeklyHourSummaryIntroEmailTemplate: String,
     onboardingReminderOneTemplate: String,
     onboardingReminderTwoTemplate: String,
     onboardingReminderThreeTemplate: String,
@@ -105,8 +108,12 @@ export const Config = Record({
   }),
   socketsPort: Number,
   volunteerPartnerManifestPath: String,
-  customPartnerVolunteerReport: String,
+  customVolunteerPartnerOrg: String,
   studentPartnerManifestPath: String,
+
+  cacheKeys: Record({
+    updateTotalVolunteerHoursLastRun: String
+  }),
 
   // Sentry Data Source Name
   sentryDsn: String,

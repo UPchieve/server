@@ -366,7 +366,9 @@ module.exports = {
 
   sendReadyToCoachEmail: volunteer => {
     const readyToCoachTemplate = volunteer.volunteerPartnerOrg
-      ? config.sendgrid.partnerReadyToCoachTemplate
+      ? volunteer.volunteerPartnerOrg === config.customVolunteerPartnerOrg
+        ? config.sendgrid.customPartnerReadyToCoachTemplate
+        : config.sendgrid.partnerReadyToCoachTemplate
       : config.sendgrid.openReadyToCoachTemplate
     const overrides = {
       categories: ['ready to coach email']
@@ -521,7 +523,8 @@ module.exports = {
     totalCoachingHours,
     totalElapsedAvailability,
     totalQuizzesPassed,
-    totalVolunteerHours
+    totalVolunteerHours,
+    customOrg = false
   }) => {
     const formattedCoachingHours = getFormattedHourSummaryTime(
       totalCoachingHours
@@ -542,13 +545,19 @@ module.exports = {
       categories: ['weekly hour summary email']
     }
 
+    const weeklyTemplate = customOrg
+      ? config.sendgrid.customWeeklyHourSummaryEmailTemplate
+      : config.sendgrid.weeklyHourSummaryEmailTemplate
+
+    const introTemplate = customOrg
+      ? config.sendgrid.customWeeklyHourSummaryIntroEmailTemplate
+      : config.sendgrid.weeklyHourSummaryIntroEmailTemplate
+
     return sendEmail(
       email,
       config.mail.senders.support,
       'UPchieve',
-      sentHourSummaryIntroEmail
-        ? config.sendgrid.weeklyHourSummaryEmailTemplate
-        : config.sendgrid.weeklyHourSummaryIntroEmailTemplate,
+      sentHourSummaryIntroEmail ? weeklyTemplate : introTemplate,
       {
         firstName: capitalize(firstName),
         fromDate,

@@ -152,6 +152,7 @@ export interface Volunteer extends User {
   city: string
   sentReadyToCoachEmail: boolean
   subjects: string[]
+  totalVolunteerHours: number
   trainingCourses: TrainingCourses
   linkedInUrl: string
   hoursTutored: Types.Decimal128
@@ -692,6 +693,10 @@ const volunteerSchema = new Schema(
     sentInactiveNinetyDayEmail: {
       type: Boolean,
       default: false
+    },
+    totalVolunteerHours: {
+      type: Number,
+      default: 0
     }
   },
   volunteerSchemaOptions
