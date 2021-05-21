@@ -1,8 +1,10 @@
-const VolunteersCtrl = require('../../controllers/VolunteersCtrl')
-const UserService = require('../../services/UserService')
-const { authPassport } = require('../../utils/auth-utils')
+import config from '../../config'
+import * as VolunteersCtrl from '../../controllers/VolunteersCtrl'
+import * as UserService from '../../services/UserService'
+import { authPassport } from '../../utils/auth-utils'
+import * as cache from '../../cache'
 
-module.exports = function(router) {
+export default function(router) {
   router.get('/volunteers', authPassport.isAdmin, function(req, res, next) {
     VolunteersCtrl.getVolunteers(function(volunteers, err) {
       if (err) {
@@ -20,7 +22,7 @@ module.exports = function(router) {
     '/volunteers/availability/:certifiedSubject',
     authPassport.isAdmin,
     function(req, res, next) {
-      var certifiedSubject = req.params.certifiedSubject
+      const certifiedSubject = req.params.certifiedSubject
       VolunteersCtrl.getVolunteersAvailability(
         {
           certifiedSubject: certifiedSubject
@@ -73,6 +75,22 @@ module.exports = function(router) {
       res.sendStatus(200)
     } catch (error) {
       res.status(500).json({ err: error.message })
+    }
+  })
+
+  router.get('/volunteers/hours-last-updated', async function(req, res) {
+    try {
+      const lastUpdated = cache.get(
+        config.cacheKeys.updateTotalVolunteerHoursLastRun
+      )
+      res.json({ lastUpdated })
+    } catch (error) {
+      if (error instanceof cache.KeyNotFoundError) {
+        res.status(409)
+      } else {
+        res.status(500)
+      }
+      res.json({ err: error.message })
     }
   })
 }

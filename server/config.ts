@@ -177,7 +177,8 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
     'localManifests/volunteer.yaml',
 
-  customVolunteerPartnerOrg: process.env.SUBWAY_CUSTOM_PARTNER_ORG || 'bogus',
+  customVolunteerPartnerOrg:
+    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORG || 'bogus',
 
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
