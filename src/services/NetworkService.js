@@ -183,6 +183,11 @@ export default {
       .get(`${API_ROOT}/volunteers`)
       .then(this._successHandler, this._errorHandler)
   },
+  getVolunteerLastUpdated(context) {
+    return context.$http
+      .get(`${API_ROOT}/volunteers/hours-last-updated`)
+      .then(this._successHandler, this._errorHandler)
+  },
   getReferredFriends() {
     return Vue.http
       .get(`${API_ROOT}/user/referred-friends`)

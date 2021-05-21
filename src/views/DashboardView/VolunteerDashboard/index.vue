@@ -57,6 +57,12 @@
                 </div>
                 <div class="volunteer-impact__stat-value">{{ stat.value }}</div>
               </div>
+              <div
+                v-if="isCustomVolunteerPartner"
+                class="volunteer-impact__last-updated"
+              >
+                {{ lastUpdated }}
+              </div>
             </div>
           </div>
 
@@ -162,6 +168,8 @@ import { allSubtopicNames } from '@/utils/topics'
 import WebNotificationsButton from '@/components/WebNotificationsButton.vue'
 import ArrowIcon from '@/assets/arrow.svg'
 import { isEnabled } from 'unleash-client'
+import NetworkService from '../../../services/NetworkService'
+import config from '../../../config'
 
 const headerData = {
   component: 'RejoinSessionHeader',
@@ -194,7 +202,7 @@ export default {
       }
     }
   },
-  created() {
+  async created() {
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', headerData)
     }
@@ -202,12 +210,19 @@ export default {
     if (this.isFirstDashboardVisit) {
       this.toggleWelcomeModal()
     }
+
+    if (this.isCustomVolunteerPartner) {
+      this.impactStats = await this.getCustomImpactStats()
+      this.lastUpdated = await this.getLastUpdated()
+    } else this.impactStats = await this.getImpactStats()
   },
   data() {
     return {
       showPhotoUploadModal: false,
       showReferencesModal: false,
-      showWelcomeModal: false
+      showWelcomeModal: false,
+      lastUpdated: '',
+      impactStats: {}
     }
   },
   computed: {
@@ -221,6 +236,10 @@ export default {
       hasCertification: 'user/hasCertification',
       hasSelectedAvailability: 'user/hasSelectedAvailability'
     }),
+
+    isCustomVolunteerPartner() {
+      return this.user.volunteerPartnerOrg === config.customVolunteerPartnerOrg
+    },
 
     isNewVolunteer() {
       return !this.user.pastSessions || !this.user.pastSessions.length
@@ -380,75 +399,6 @@ export default {
       )
     },
 
-    impactStats() {
-      const user = this.$store.state.user.user
-      // (1) Hours selected
-      const userHasSchedule = _.chain(user)
-        .get('availability.Thursday.5p')
-        .isBoolean()
-        .value()
-
-      let numHoursSelected = 0
-
-      if (userHasSchedule) {
-        numHoursSelected = _.reduce(
-          user.availability,
-          (weeklyHourCount, dayHours) => {
-            // Tally up num hours for each day
-            const hoursSelectedForDay = _.reduce(
-              dayHours,
-              (dailyHourCount, hourVal) => {
-                // Add 1 if hour val is true
-                return dailyHourCount + (hourVal ? 1 : 0)
-              },
-              0
-            )
-
-            return weeklyHourCount + hoursSelectedForDay
-          },
-          0
-        )
-      }
-
-      // (2) Certs obtained
-      const certsObtained = _.filter(upchieveTopics, topic => {
-        return _.get(user, `certifications.${topic}.passed`, false)
-      })
-
-      const numCertsObtained = certsObtained.length
-
-      // (3) Requests filled
-      const numRequestsFilled = _.get(user, 'pastSessions.length', '--')
-
-      // (4) Hours tutored
-      const numHoursTutored = Number(this.user.hoursTutored) || '--'
-
-      const numElapsedAvailabilityHours = user.elapsedAvailability
-
-      return [
-        {
-          label: 'Hours of availability selected',
-          value: `${numHoursSelected} hours selected`
-        },
-        {
-          label: 'Number of certifications obtained',
-          value: `${numCertsObtained} certs obtained`
-        },
-        {
-          label: 'Number of requests filled',
-          value: `${numRequestsFilled} requests filled`
-        },
-        {
-          label: 'Hours of tutoring completed',
-          value: `${numHoursTutored} hours tutored`
-        },
-        {
-          label: 'Hours of elapsed availability',
-          value: `${numElapsedAvailabilityHours} hours elapsed`
-        }
-      ]
-    },
-
     approvalCardSubheader() {
       if (this.user.volunteerPartnerOrg)
         return 'Just one step left to get approved to volunteer with UPchieve!'
@@ -583,6 +533,145 @@ export default {
       if (status === 'PENDING') return 2
       if (status === 'PROGRESS') return 3
       if (status === 'DEFAULT') return 4
+    },
+    async getLastUpdated() {
+      const res = await NetworkService.getVolunteerLastUpdated(this)
+      if (res.data.err) {
+        return 'Error retriving last update time'
+      }
+      const lastUpdated = res.data.lastUpdated
+      return `Last updated on ${lastUpdated}`
+    },
+    getImpactStats() {
+      const user = this.$store.state.user.user
+      // (1) Hours selected
+      const userHasSchedule = _.chain(user)
+        .get('availability.Thursday.5p')
+        .isBoolean()
+        .value()
+
+      let numHoursSelected = 0
+
+      if (userHasSchedule) {
+        numHoursSelected = _.reduce(
+          user.availability,
+          (weeklyHourCount, dayHours) => {
+            // Tally up num hours for each day
+            const hoursSelectedForDay = _.reduce(
+              dayHours,
+              (dailyHourCount, hourVal) => {
+                // Add 1 if hour val is true
+                return dailyHourCount + (hourVal ? 1 : 0)
+              },
+              0
+            )
+
+            return weeklyHourCount + hoursSelectedForDay
+          },
+          0
+        )
+      }
+
+      // (2) Certs obtained
+      const certsObtained = _.filter(upchieveTopics, topic => {
+        return _.get(user, `certifications.${topic}.passed`, false)
+      })
+
+      const numCertsObtained = certsObtained.length
+
+      // (3) Requests filled
+      const numRequestsFilled = _.get(user, 'pastSessions.length', '--')
+
+      // (4) Hours tutored
+      const numHoursTutored = Number(this.user.hoursTutored) || '--'
+
+      // (5) Elapsed availability
+      const numElapsedAvailabilityHours = user.elapsedAvailability
+
+      return [
+        {
+          label: 'Hours of availability selected',
+          value: `${numHoursSelected} hours selected`
+        },
+        {
+          label: 'Number of certifications obtained',
+          value: `${numCertsObtained} certs obtained`
+        },
+        {
+          label: 'Number of requests filled',
+          value: `${numRequestsFilled} requests filled`
+        },
+        {
+          label: 'Hours of tutoring completed',
+          value: `${numHoursTutored} hours tutored`
+        },
+        {
+          label: 'Hours of elapsed availability',
+          value: `${numElapsedAvailabilityHours} hours elapsed`
+        }
+      ]
+    },
+    getCustomImpactStats() {
+      const user = this.$store.state.user.user
+      // (1) Hours selected
+      const userHasSchedule = _.chain(user)
+        .get('availability.Thursday.5p')
+        .isBoolean()
+        .value()
+
+      let numHoursSelected = 0
+
+      if (userHasSchedule) {
+        numHoursSelected = _.reduce(
+          user.availability,
+          (weeklyHourCount, dayHours) => {
+            // Tally up num hours for each day
+            const hoursSelectedForDay = _.reduce(
+              dayHours,
+              (dailyHourCount, hourVal) => {
+                // Add 1 if hour val is true
+                return dailyHourCount + (hourVal ? 1 : 0)
+              },
+              0
+            )
+
+            return weeklyHourCount + hoursSelectedForDay
+          },
+          0
+        )
+      }
+
+      // (2) Certs obtained
+      const certsObtained = _.filter(upchieveTopics, topic => {
+        return _.get(user, `certifications.${topic}.passed`, false)
+      })
+
+      const numCertsObtained = certsObtained.length
+
+      // (3) Requests filled
+      const numRequestsFilled = _.get(user, 'pastSessions.length', '--')
+
+      // (4) Hours volunteered
+      const numHoursVolunteered = Number(user.totalVolunteerHours) || '--'
+
+      return [
+        {
+          label: 'Hours of availability selected',
+          value: `${numHoursSelected} hours selected`
+        },
+        {
+          label: 'Number of certifications obtained',
+          value: `${numCertsObtained} certs obtained`
+        },
+        {
+          label: 'Number of requests filled',
+          value: `${numRequestsFilled} requests filled`
+        },
+        {
+          label: 'Total hours of volunteering completed',
+          value: `${numHoursVolunteered} hours volunteered`
+        }
+      ]
     }
   }
 }
@@ -715,6 +804,13 @@ export default {
   &__stat-value {
     font-weight: bold;
     text-align: right;
+  }
+
+  &__last-updated {
+    width: 100%;
+    text-align: right;
+    padding: 10px 0;
+    font-size: 12px;
   }
 }
 
