@@ -19,8 +19,8 @@ function aggregateAvailabilities(availability: any, aggAvailabilities: any) {
         aggAvailabilities.timesOfDay = Object.keys(availability[day])
       }
       // gets corresponding day and time index inorder to store in aggAvailabilities table
-      let dayIndex = aggAvailabilities.daysOfWeek.indexOf(day)
-      let timeIndex = aggAvailabilities.timesOfDay.indexOf(time)
+      const dayIndex = aggAvailabilities.daysOfWeek.indexOf(day)
+      const timeIndex = aggAvailabilities.timesOfDay.indexOf(time)
 
       if (availability[day][time]) {
         aggAvailabilities.table[dayIndex][timeIndex]++
@@ -36,9 +36,9 @@ function aggregateAvailabilities(availability: any, aggAvailabilities: any) {
  * @param {*} aggAvailabilities
  */
 function findMinAndMax(aggAvailabilities) {
-  let flatTable = aggAvailabilities.table.flat()
-  aggAvailabilities.min = Math.min.apply(Math, flatTable)
-  aggAvailabilities.max = Math.max.apply(Math, flatTable)
+  const flatTable = aggAvailabilities.table.flat()
+  aggAvailabilities.min = Math.min(...flatTable)
+  aggAvailabilities.max = Math.max(...flatTable)
   return aggAvailabilities
 }
 

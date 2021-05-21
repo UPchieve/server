@@ -1,5 +1,5 @@
-import IpAddressService from '../services/IpAddressService'
 import Sentry from '@sentry/node'
+import IpAddressService from '../services/IpAddressService'
 
 export default async function recordIpAddress(req, res, next) {
   const { user, ip: ipString } = req

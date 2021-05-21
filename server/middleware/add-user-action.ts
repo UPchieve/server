@@ -1,5 +1,8 @@
-import { AccountActionCreator, QuizActionCreator } from '../controllers/UserActionCtrl'
 import Sentry from '@sentry/node'
+import {
+  AccountActionCreator,
+  QuizActionCreator
+} from '../controllers/UserActionCtrl'
 
 export default function addUserAction(req, res, next) {
   if (req.user) {
