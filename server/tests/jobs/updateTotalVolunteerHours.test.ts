@@ -35,7 +35,7 @@ describe('Test updating total volunteer hours', () => {
   beforeEach(async () => {
     await resetDb()
     jest.clearAllMocks()
-    cache.save(
+    await cache.save(
       config.cacheKeys.updateTotalVolunteerHoursLastRun,
       moment()
         .subtract(1, 'week')

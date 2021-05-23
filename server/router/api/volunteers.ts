@@ -1,3 +1,4 @@
+import moment from 'moment'
 import config from '../../config'
 import * as VolunteersCtrl from '../../controllers/VolunteersCtrl'
 import * as UserService from '../../services/UserService'
@@ -80,9 +81,10 @@ export default function(router) {
 
   router.get('/volunteers/hours-last-updated', async function(req, res) {
     try {
-      const lastUpdated = cache.get(
+      const cacheValue = await cache.get(
         config.cacheKeys.updateTotalVolunteerHoursLastRun
       )
+      const lastUpdated = moment(cacheValue).format('M/DD/YYYY')
       res.json({ lastUpdated })
     } catch (error) {
       if (error instanceof cache.KeyNotFoundError) {
