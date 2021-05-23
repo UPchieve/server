@@ -6,6 +6,8 @@ import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import MailService from '../../services/MailService'
 jest.mock('../../services/MailService')
 
+jest.setTimeout(1000 * 15)
+
 const buildReadyToSendVolunteer = (): Partial<Volunteer> => {
   return buildVolunteer({
     isOnboarded: true,
