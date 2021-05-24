@@ -17,7 +17,7 @@ const UserActionCtrl = require('../controllers/UserActionCtrl')
 const ObjectId = require('mongodb').ObjectId
 const { USER_ACTION } = require('../constants')
 const VolunteerModel = require('../models/Volunteer')
-const { SESSION_FLAGS } = require('../constants')
+const { SESSION_FLAGS, FEEDBACK_VERSIONS } = require('../constants')
 const moment = require('moment')
 
 const hasReviewTriggerFlags = flags => {
@@ -117,18 +117,12 @@ const getReviewFlags = session => {
 // Get flags for a session if there's a feedback rating <= 3 or a comment was left
 const getFeedbackFlags = feedback => {
   const flags = []
-  const sessionExperience = feedback['session-experience']
   const otherFeedback = feedback['other-feedback']
   const feedbackRatings = {
     studentSessionGoal: feedback['session-goal'],
     studentCoachRating: feedback['coach-rating'],
-    volunteerSessionRating:
-      feedback['rate-session'] && feedback['rate-session'].rating
+    volunteerSessionEnjoyable: feedback['session-enjoyable']
   }
-
-  if (sessionExperience)
-    feedbackRatings.volunteerAgain =
-      sessionExperience['plan-on-volunteering-again']
 
   for (const [key, value] of Object.entries(feedbackRatings)) {
     if (value <= 3) {
@@ -137,8 +131,7 @@ const getFeedbackFlags = feedback => {
         case 'studentCoachRating':
           flags.push(SESSION_FLAGS.STUDENT_RATING)
           break
-        case 'volunteerSessionRating':
-        case 'volunteerAgain':
+        case 'volunteerSessionEnjoyable':
           flags.push(SESSION_FLAGS.VOLUNTEER_RATING)
           break
         default:
@@ -803,15 +796,54 @@ module.exports = {
         {
           $addFields: {
             studentRating: {
-              $cond: {
-                if: '$studentFeedback.responseData.rate-session.rating',
-                then: '$studentFeedback.responseData.rate-session.rating',
-                else: null
+              $switch: {
+                branches: [
+                  {
+                    case: {
+                      $and: [
+                        {
+                          $eq: [
+                            '$studentFeedback.versionNumber',
+                            FEEDBACK_VERSIONS.ONE
+                          ]
+                        },
+                        '$studentFeedback.responseData.rate-session.rating'
+                      ]
+                    },
+                    then: '$studentFeedback.responseData.rate-session.rating'
+                  },
+                  {
+                    case: {
+                      $and: [
+                        {
+                          $eq: [
+                            '$studentFeedback.versionNumber',
+                            FEEDBACK_VERSIONS.TWO
+                          ]
+                        },
+                        '$studentFeedback.studentCounselingFeedback.rate-session.rating'
+                      ]
+                    },
+                    then:
+                      '$studentFeedback.studentCounselingFeedback.rate-session.rating'
+                  }
+                ],
+                default: null
               }
             },
             volunteerRating: {
               $cond: {
-                if: '$volunteerFeedback.responseData.rate-session.rating',
+                if: {
+                  $and: [
+                    {
+                      $eq: [
+                        '$volunteerFeedback.versionNumber',
+                        FEEDBACK_VERSIONS.ONE
+                      ]
+                    },
+                    '$volunteerFeedback.responseData.rate-session.rating'
+                  ]
+                },
                 then: '$volunteerFeedback.responseData.rate-session.rating',
                 else: null
               }

@@ -4,7 +4,7 @@ import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
 import { volunteerPartnerManifests } from '../../../partnerManifests'
-import { SESSION_FLAGS } from '../../../constants'
+import { SESSION_FLAGS, FEEDBACK_VERSIONS } from '../../../constants'
 
 /**
  *
@@ -79,7 +79,35 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
     {
       $project: {
         _id: 1,
-        sessionRating: '$feedback.responseData.session-rating.rating'
+        sessionRating: {
+          $switch: {
+            branches: [
+              {
+                case: {
+                  $and: [
+                    {
+                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.ONE]
+                    },
+                    '$feedback.responseData.session-rating.rating'
+                  ]
+                },
+                then: '$feedback.responseData.session-rating.rating'
+              },
+              {
+                case: {
+                  $and: [
+                    {
+                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.TWO]
+                    },
+                    '$feedback.volunteerFeedback.session-enjoyable'
+                  ]
+                },
+                then: '$feedback.volunteerFeedback.session-enjoyable'
+              }
+            ],
+            default: null
+          }
+        }
       }
     }
   ])

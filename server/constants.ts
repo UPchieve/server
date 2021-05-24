@@ -402,6 +402,11 @@ export enum VERIFICATION_METHOD {
   EMAIL = 'email'
 }
 
+export enum FEEDBACK_VERSIONS {
+  'ONE' = 1,
+  'TWO'
+}
+
 export enum ONBOARDING_STATUS {
   ONBOARDED = 'Onboarded',
   DEACTIVATED = 'Deactivated',

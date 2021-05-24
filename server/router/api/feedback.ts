@@ -9,6 +9,9 @@ export function routeFeedback(router: expressWs.Router): void {
       topic,
       subTopic,
       responseData,
+      studentTutoringFeedback,
+      studentCounselingFeedback,
+      volunteerFeedback,
       userType,
       studentId,
       volunteerId
@@ -19,6 +22,9 @@ export function routeFeedback(router: expressWs.Router): void {
         type: topic,
         subTopic,
         responseData,
+        studentTutoringFeedback,
+        studentCounselingFeedback,
+        volunteerFeedback,
         userType,
         studentId,
         volunteerId

@@ -5,7 +5,10 @@ import StudentModel, { Student } from '../models/Student'
 import UserActionModel, { UserAction } from '../models/UserAction'
 import SessionModel, { Session } from '../models/Session'
 import NotificationModel from '../models/Notification'
-import FeedbackModel, { Feedback } from '../models/Feedback'
+import FeedbackModel, {
+  FeedbackVersionOne,
+  FeedbackVersionTwo
+} from '../models/Feedback'
 import config from '../config'
 import AvailabilitySnapshotModel, {
   AvailabilitySnapshot
@@ -201,8 +204,8 @@ export const insertUserAction = async (
 }
 
 export const insertFeedback = async (
-  overrides: Partial<Feedback> = {}
-): Promise<Feedback> => {
+  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> = {}
+): Promise<FeedbackVersionOne | FeedbackVersionTwo> => {
   const feedback = buildFeedback(overrides)
   const createdFeedback = await FeedbackModel.create(feedback)
   return { ...createdFeedback.toObject() }

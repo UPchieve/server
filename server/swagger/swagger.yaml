@@ -614,7 +614,56 @@ paths:
                 subTopic:
                   type: string
                 responseData:
-                  type: string
+                  type: object
+                studentTutoringFeedback:
+                  type: object
+                  properties:
+                    session-goal:
+                      type: integer
+                    subject-understanding:
+                      type: integer
+                    coach-rating:
+                      type: integer
+                    coach-feedback:
+                      type: integer
+                    other-feedback:
+                      type: string
+                studentCounselingFeedback:
+                  type: object
+                  properties:
+                    rate-session:
+                      type: object
+                      properties:
+                        rating:
+                          type: integer
+                    session-goal:
+                      type: string
+                    coach-ratings:
+                      type: object
+                      properties:
+                        coach-knowedgable:
+                          type: integer
+                        coach-friendly:
+                          type: integer
+                        coach-help-again:
+                          type: integer
+                    other-feedback:
+                      type: string
+                volunteerFeedback:
+                  type: object
+                  properties:
+                    session-enjoyable:
+                      type: integer
+                    session-improvements:
+                      type: integer
+                    student-understanding:
+                      type: integer
+                    session-obstacles:
+                      type: array
+                      items: 
+                        type: integer
+                    other-feedback:
+                      type: string
                 studentId:
                   $ref: "#/components/schemas/StudentId"
                 volunteerId:

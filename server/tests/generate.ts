@@ -33,7 +33,7 @@ import {
 import { User } from '../models/User'
 import { Student } from '../models/Student'
 import { Session } from '../models/Session'
-import { Feedback } from '../models/Feedback'
+import { FeedbackVersionOne, FeedbackVersionTwo } from '../models/Feedback'
 import {
   StudentRegData,
   VolunteerRegData,
@@ -492,8 +492,8 @@ export const buildAvailabilityDay = (overrides = {}): AvailabilityDay => {
 }
 
 export const buildFeedback = (
-  overrides: Partial<Feedback> = {}
-): Partial<Feedback> => {
+  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> = {}
+): Partial<FeedbackVersionOne | FeedbackVersionTwo> => {
   const feedback = {
     _id: Types.ObjectId(),
     createdAt: new Date(),
@@ -501,9 +501,60 @@ export const buildFeedback = (
     userType: null,
     type: null,
     subTopic: null,
-    responseData: {},
+    responseData: {
+      'rate-session': { rating: null },
+      'session-experience': {
+        'easy-to-answer-questions': null,
+        'feel-like-helped-student': null,
+        'feel-more-fulfilled': null,
+        'good-use-of-time': null,
+        'plan-on-volunteering-again': null
+      },
+      'other-feedback': null,
+      'rate-upchieve': {
+        'achieve-goal': null,
+        'easy-to-use': null,
+        'get-help-faster': null,
+        'use-next-time': null
+      },
+      'rate-coach': {
+        'achieve-goal': null,
+        'find-help': null,
+        knowledgeable: null,
+        nice: null,
+        'want-him/her-again': null
+      },
+      'technical-difficulties': null,
+      'asked-unprepared-questions': null,
+      'app-features-needed': null
+    },
+    studentTutoringFeedback: {
+      'session-goal': null,
+      'subject-understanding': null,
+      'coach-rating': null,
+      'coach-feedback': null,
+      'other-feedback': null
+    },
+    studentCounselingFeedback: {
+      'rate-session': { rating: null },
+      'session-goal': null,
+      'coach-ratings': {
+        'coach-knowedgable': null,
+        'coach-friendly': null,
+        'coach-help-again': null
+      },
+      'other-feedback': null
+    },
+    volunteerFeedback: {
+      'session-enjoyable': null,
+      'session-improvements': null,
+      'student-understanding': null,
+      'session-obstacles': [],
+      'other-feedback': null
+    },
     volunteerId: null,
     studentId: null,
+    versionNumber: null,
     ...overrides
   }
 
