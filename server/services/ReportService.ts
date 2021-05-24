@@ -4,6 +4,7 @@ import _ from 'lodash'
 import User from '../models/User'
 import { studentPartnerManifests } from '../partnerManifests'
 import logger from '../logger'
+import { FEEDBACK_VERSIONS } from '../constants'
 import config from '../config'
 import {
   generateTelecomReport,
@@ -57,11 +58,13 @@ function calcAverageRating(allFeedback): number {
 
   for (let i = 0; i < allFeedback.length; i++) {
     const feedback = allFeedback[i]
-    const sessionRating = _.get(
-      feedback,
-      'responseData.rate-session.rating',
-      null
-    )
+    let sessionRatingKey = ''
+
+    if (feedback.versionNumber === FEEDBACK_VERSIONS.ONE)
+      sessionRatingKey = 'responseData.rate-session.rating'
+    else if (feedback.versionNumber === FEEDBACK_VERSIONS.TWO)
+      sessionRatingKey = 'studentCounselingFeedback.rate-session.rating'
+    const sessionRating = _.get(feedback, sessionRatingKey, null)
     if (sessionRating) {
       ratingsSum += sessionRating
       ratingsCount += 1
@@ -212,10 +215,39 @@ export const sessionReport = async ({
           }
         },
         sessionRating: {
-          $cond: {
-            if: '$studentFeedback.responseData.rate-session.rating',
-            then: '$studentFeedback.responseData.rate-session.rating',
-            else: null
+          $switch: {
+            branches: [
+              {
+                case: {
+                  $and: [
+                    {
+                      $eq: [
+                        '$studentFeedback.versionNumber',
+                        FEEDBACK_VERSIONS.ONE
+                      ]
+                    },
+                    '$studentFeedback.responseData.rate-session.rating'
+                  ]
+                },
+                then: '$studentFeedback.responseData.rate-session.rating'
+              },
+              {
+                case: {
+                  $and: [
+                    {
+                      $eq: [
+                        '$studentFeedback.versionNumber',
+                        FEEDBACK_VERSIONS.TWO
+                      ]
+                    },
+                    '$studentFeedback.studentCounselingFeedback.rate-session.rating'
+                  ]
+                },
+                then:
+                  '$studentFeedback.studentCounselingFeedback.rate-session.rating'
+              }
+            ],
+            default: null
           }
         }
       }

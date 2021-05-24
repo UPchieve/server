@@ -309,25 +309,30 @@ export default {
     async submitFeedback() {
       if (this.isSubmittingFeedback) return
       this.error = ''
-      const responseData = {}
+      const data = {
+        sessionId: this.session._id,
+        topic: this.session.type,
+        subTopic: this.session.subTopic,
+        userType: this.userType,
+        studentId: this.session.student._id,
+        volunteerId: this.session.volunteer._id
+      }
+
+      const feedbackPath = this.user.isVolunteer
+        ? 'volunteerFeedback'
+        : 'studentTutoringFeedback'
+      data[feedbackPath] = {}
+
       for (const option of this.filteredQuestions) {
         const { id, answer } = option
-        if (answer) responseData[id] = answer
+        if (answer) data[feedbackPath][id] = answer
         // sort answers with multiple selections
         if (answer && Array.isArray(answer))
-          responseData[id] = answer.sort((a, b) => a - b)
+          data[feedbackPath][id] = answer.sort((a, b) => a - b)
       }
 
       try {
-        await NetworkService.feedback(this, {
-          sessionId: this.session._id,
-          topic: this.session.type,
-          subTopic: this.session.subTopic,
-          responseData,
-          userType: this.userType,
-          studentId: this.session.student._id,
-          volunteerId: this.session.volunteer._id
-        })
+        await NetworkService.feedback(this, data)
         this.$router.push('/')
       } catch (error) {
         this.isSubmittingFeedback = false

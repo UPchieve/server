@@ -11,7 +11,7 @@ import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
 import { buildFeedback, buildSession } from '../../generate'
-import { SESSION_FLAGS } from '../../../constants'
+import { FEEDBACK_VERSIONS, SESSION_FLAGS } from '../../../constants'
 jest.mock('../../../logger')
 jest.mock('../../../services/MailService')
 
@@ -55,11 +55,10 @@ describe('Partner volunteer refer a coworker email', () => {
     await insertFeedback({
       sessionId: sessions[2]._id,
       volunteerId: volunteer._id,
-      responseData: {
-        'session-rating': {
-          rating: 4
-        }
-      }
+      volunteerFeedback: {
+        'session-enjoyable': 4
+      },
+      versionNumber: FEEDBACK_VERSIONS.TWO
     })
 
     // @todo: figure out how to properly type
@@ -102,20 +101,18 @@ describe('Partner volunteer refer a coworker email', () => {
       buildFeedback({
         sessionId: sessions[1]._id,
         volunteerId: volunteer._id,
-        responseData: {
-          'session-rating': {
-            rating: 1
-          }
-        }
+        volunteerFeedback: {
+          'session-enjoyable': 1
+        },
+        versionNumber: FEEDBACK_VERSIONS.TWO
       }),
       buildFeedback({
         sessionId: sessions[2]._id,
         volunteerId: volunteer._id,
-        responseData: {
-          'session-rating': {
-            rating: 2
-          }
-        }
+        volunteerFeedback: {
+          'session-enjoyable': 2
+        },
+        versionNumber: FEEDBACK_VERSIONS.TWO
       })
     ]
     await insertFeedbackMany(feedback)
@@ -162,20 +159,18 @@ describe('Partner volunteer refer a coworker email', () => {
       buildFeedback({
         sessionId: sessions[1]._id,
         volunteerId: volunteer._id,
-        responseData: {
-          'session-rating': {
-            rating: 1
-          }
-        }
+        volunteerFeedback: {
+          'session-enjoyable': 1
+        },
+        versionNumber: FEEDBACK_VERSIONS.TWO
       }),
       buildFeedback({
         sessionId: sessions[2]._id,
         volunteerId: volunteer._id,
-        responseData: {
-          'session-rating': {
-            rating: 2
-          }
-        }
+        volunteerFeedback: {
+          'session-enjoyable': 2
+        },
+        versionNumber: FEEDBACK_VERSIONS.TWO
       })
     ]
     await insertFeedbackMany(feedback)
@@ -253,11 +248,10 @@ describe('Partner volunteer refer a coworker email', () => {
     await insertFeedback({
       sessionId: sessions[2]._id,
       volunteerId: volunteer._id,
-      responseData: {
-        'session-rating': {
-          rating: 4
-        }
-      }
+      volunteerFeedback: {
+        'session-enjoyable': 4
+      },
+      versionNumber: FEEDBACK_VERSIONS.TWO
     })
     const errorMessage = 'Unable to send'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))

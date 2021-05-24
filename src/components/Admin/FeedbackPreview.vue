@@ -25,6 +25,12 @@
         {{ partnerRating.name }}: <strong>{{ partnerRating.value }}/5</strong>
       </template>
     </div>
+    <div v-for="feedback in volunteerFeedback" :key="feedback.key">
+      <p v-if="feedback.value">
+        {{ feedback.key }}:
+        <span class="feedback-preview__value">{{ feedback.value }}</span>
+      </p>
+    </div>
     <div v-if="writtenFeedback" class="feedback-preview__written">
       {{ writtenFeedback }}
     </div>
@@ -46,15 +52,35 @@ export default {
 
   computed: {
     sessionRating() {
-      return get(this.feedback, 'responseData.rate-session.rating', null)
+      const sessionRatingKeys = [
+        'studentCounselingFeedback.rate-session.rating',
+        'responseData.rate-session.rating'
+      ]
+      for (const sessionRatingKey of sessionRatingKeys) {
+        const sessionRating = get(this.feedback, sessionRatingKey, null)
+        if (sessionRating) return sessionRating
+      }
+
+      return ''
     },
 
     writtenFeedback() {
-      return get(this.feedback, 'responseData.other-feedback', null)
+      const otherFeedbackKeys = [
+        'studentTutoringFeedback.other-feedback',
+        'studentCounselingFeedback.other-feedback',
+        'volunteerFeedback.other-feedback',
+        'responseData.other-feedback'
+      ]
+      for (const feedbackKey of otherFeedbackKeys) {
+        const otherFeedback = get(this.feedback, feedbackKey, null)
+        if (otherFeedback) return otherFeedback
+      }
+
+      return ''
     },
 
     coachFeedback() {
-      return get(this.feedback, 'responseData.coach-feedback', null)
+      return get(this.feedback, 'studentTutoringFeedback.coach-feedback', null)
     },
 
     subjectUnderstanding() {
@@ -67,7 +93,7 @@ export default {
       ]
       const path = get(
         this.feedback,
-        'responseData.subject-understanding',
+        'studentTutoringFeedback.subject-understanding',
         null
       )
       if (path) return subjectUnderstandingDisplay[path]
@@ -76,18 +102,87 @@ export default {
 
     partnerRatings() {
       const isStudent = get(this.feedback, 'userType') === 'student'
-      let path = isStudent
-        ? 'responseData.coach-ratings'
-        : 'responseData.session-experience'
+      let path = ''
+      if (isStudent) {
+        if (this.feedback.versionNumber === 1)
+          path = 'responseData.coach-ratings'
+        else if (this.feedback.versionNumber === 2)
+          path = 'studentCounselingFeedback.coach-ratings'
+      } else path = 'responseData.session-experience'
       let ratings = get(this.feedback, path, {})
 
-      if (isStudent && isEmpty(ratings))
-        ratings = get(this.feedback, 'responseData', {})
+      if (isStudent && isEmpty(ratings)) {
+        let updatedPath = 'responseData'
+        if (
+          this.feedback.versionNumber === 2 &&
+          this.feedback.type !== 'college'
+        )
+          updatedPath = 'studentTutoringFeedback'
+        else if (
+          this.feedback.versionNumber === 2 &&
+          this.feedback.type === 'college'
+        )
+          updatedPath = 'studentCounselingFeedback'
+        ratings = get(this.feedback, updatedPath, {})
+      }
+
+      if (isEmpty(ratings)) return []
 
       return Object.keys(ratings).map(r => ({
         name: r,
         value: ratings[r]
       }))
+    },
+
+    volunteerFeedback() {
+      if (this.feedback.volunteerFeedback) {
+        const feedbackData = Object.entries(this.feedback.volunteerFeedback)
+        const formattedFeedbackData = feedbackData.map(([key, value]) => {
+          if (key === 'session-obstacles')
+            return { key, value: this.volunteerSessionObstacles }
+          if (key === 'student-understanding')
+            return { key, value: this.volunteerStudentUnderstanding }
+          if (key === 'other-feedback') return {}
+          return {
+            key,
+            value
+          }
+        })
+
+        return formattedFeedbackData
+      }
+      return []
+    },
+
+    volunteerSessionObstacles() {
+      const options = [
+        'Website/app didn’t fully work',
+        'We ran out of time',
+        'The student was too far behind',
+        'The student didn’t want to participate',
+        'The student requested the wrong subject',
+        'There was a gap in my own knowledge'
+      ]
+      return options
+        .filter((_, index) =>
+          this.feedback.volunteerFeedback['session-obstacles'].includes(
+            index + 1
+          )
+        )
+        .join('. ')
+    },
+
+    volunteerStudentUnderstanding() {
+      const options = [
+        "They don't know how to do this at all",
+        'They have a sense of how to do it, but they still need some help.',
+        'They can do this on their own, but they don’t fully understand it.',
+        'They are very comfortable with the topic.',
+        'N/A - I couldn’t tell.'
+      ]
+      return options[
+        this.feedback.volunteerFeedback['student-understanding'] - 1
+      ]
     }
   }
 }
@@ -111,6 +206,10 @@ export default {
   &__written {
     border-left: solid #ececec 5px;
     padding: 3px 0 3px 8px;
+  }
+
+  &__value {
+    font-weight: 600;
   }
 }
 </style>

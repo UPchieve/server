@@ -508,16 +508,7 @@ describe('getFeedbackFlags', () => {
   })
   test(`Should add ${SESSION_FLAGS.VOLUNTEER_RATING} flag when volunteer leaves a feedback rating with <= 3`, () => {
     const feedback = {
-      'rate-session': {
-        rating: 2
-      },
-      'session-experience': {
-        'easy-to-answer-questions': 1,
-        'feel-like-helped-student': 4,
-        'feel-more-fulfilled': 3,
-        'good-use-of-time': 1,
-        'plan-on-volunteering-again': 1
-      }
+      'session-enjoyable': 3
     }
     const result = SessionService.getFeedbackFlags(feedback)
     const expected = [SESSION_FLAGS.VOLUNTEER_RATING]

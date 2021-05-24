@@ -289,20 +289,23 @@ export default {
   methods: {
     submitFeedback() {
       if (this.isSubmittingFeedback) return
-      const responseData = this.userResponse
-      for (const key in responseData) {
+      const studentCounselingFeedback = this.userResponse
+      for (const key in studentCounselingFeedback) {
         if (
-          Object.prototype.hasOwnProperty.call(responseData, key) &&
-          responseData[key] === ''
+          Object.prototype.hasOwnProperty.call(
+            studentCounselingFeedback,
+            key
+          ) &&
+          studentCounselingFeedback[key] === ''
         )
-          delete responseData[key]
+          delete studentCounselingFeedback[key]
       }
 
       NetworkService.feedback(this, {
         sessionId: this.sessionId,
         topic: this.topic,
         subTopic: this.subTopic,
-        responseData,
+        studentCounselingFeedback,
         userType: this.userType,
         studentId: this.studentId,
         volunteerId: this.volunteerId
