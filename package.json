@@ -133,7 +133,7 @@
     "@babel/core": "^7.14.3",
     "@babel/preset-env": "^7.10.3",
     "@babel/preset-typescript": "^7.10.1",
-    "@shelf/jest-mongodb": "^1.1.5",
+    "@shelf/jest-mongodb": "^1.2.4",
     "@storybook/addon-a11y": "^6.2.9",
     "@storybook/addon-actions": "^6.2.9",
     "@storybook/addon-essentials": "^6.2.9",
