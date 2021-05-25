@@ -6,6 +6,7 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { Request, Response, NextFunction } from 'express'
+import helmet from 'helmet'
 import expressWs from '@small-tech/express-ws'
 import cacheControl from 'express-cache-controller'
 import timeout from 'connect-timeout'
@@ -82,6 +83,8 @@ Sentry.init({
 const app = express()
 
 const indexHtml = renderIndexHtml()
+
+app.use(helmet())
 
 const expressLogger = expressPino({ logger })
 app.use(expressLogger)
