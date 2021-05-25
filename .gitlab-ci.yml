@@ -5,7 +5,6 @@ cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .npm
-    - node_modules
 
 variables:
   AUTO_DEVOPS_BUILD_IMAGE_CNB_ENABLED: "true"
@@ -57,7 +56,6 @@ test:
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
-    - npm install
     - npm run test
   rules:
     - if: '$TEST_DISABLED'
@@ -70,7 +68,6 @@ lint:
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
-    - npm install
     - npm run lint:prod
   rules:
     - if: '$TEST_DISABLED'
@@ -83,7 +80,6 @@ pages:
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
-    - npm install
     - npm run build-storybook -- -o public
   artifacts:
     paths:
