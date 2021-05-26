@@ -6,7 +6,6 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { Request, Response, NextFunction } from 'express'
-import helmet from 'helmet'
 import expressWs from '@small-tech/express-ws'
 import cacheControl from 'express-cache-controller'
 import timeout from 'connect-timeout'
@@ -17,6 +16,7 @@ import YAML from 'yaml'
 import logger from './logger'
 import router from './router'
 import config from './config'
+const helmet = require('helmet')
 
 const distDir = '../dist'
 
