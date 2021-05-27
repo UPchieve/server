@@ -20,15 +20,24 @@ export default {
 
   newSession(context, sessionType, sessionSubTopic, options) {
     const onRetry = options && options.onRetry
+    const data = {
+      sessionType,
+      sessionSubTopic
+    }
+    const studentPartnerOrg = context.$store.state.user.user.studentPartnerOrg
 
-    return NetworkService.newSession(
-      context,
-      {
-        sessionType,
-        sessionSubTopic
-      },
-      onRetry
-    ).then(res => {
+    if (
+      localStorage.getItem('partner') &&
+      studentPartnerOrg === localStorage.getItem('partner')
+    ) {
+      // @todo: change properties depending on backend schema
+      data.assignmentId = localStorage.getItem('assignmentId')
+      data.partner = localStorage.getItem('partner')
+      data.problemId = localStorage.getItem('problemId')
+      data.studentId = localStorage.getItem('studentId')
+    }
+
+    return NetworkService.newSession(context, data, onRetry).then(res => {
       const data = res.data || {}
       const { sessionId } = data
 
@@ -43,6 +52,10 @@ export default {
           subTopic: sessionSubTopic,
           _id: sessionId
         }
+        localStorage.removeItem('assignmentId')
+        localStorage.removeItem('partner')
+        localStorage.removeItem('problemId')
+        localStorage.removeItem('studentId')
         context.$store.dispatch('user/updateSession', sessionData)
         context.$router.replace(context.$store.getters['user/sessionPath'])
       } else {
