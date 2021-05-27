@@ -13,10 +13,11 @@ import expressPino from 'express-pino-logger'
 import Mustache from 'mustache'
 import swaggerUi from 'swagger-ui-express'
 import YAML from 'yaml'
+import helmet from 'helmet' // eslint-disable-line import/default
 import logger from './logger'
 import router from './router'
 import config from './config'
-const helmet = require('helmet')
+import { connectSrc, scriptSrc } from './securitySettings'
 
 const distDir = '../dist'
 
@@ -84,7 +85,17 @@ const app = express()
 
 const indexHtml = renderIndexHtml()
 
-app.use(helmet())
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        connectSrc,
+        scriptSrc
+      }
+    }
+  })
+)
 
 const expressLogger = expressPino({ logger })
 app.use(expressLogger)
