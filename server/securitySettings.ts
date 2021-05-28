@@ -1,5 +1,8 @@
 import config from './config'
 
+// really great csp docs: https://content-security-policy.com/
+// helmet docs: https://helmetjs.github.io/
+
 // script sources
 const googleUrls = [
   'https://www.googletagmanager.com/gtm',
