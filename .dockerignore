@@ -1,2 +1,5 @@
-node_modules/bcrypt*
-mongo-volume/
+node_modules/
+build/
+dist/
+Dockerfile
+.dockerignore
