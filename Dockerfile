@@ -15,9 +15,16 @@ RUN addgroup -S app \
     chown app /app
 
 # We switch to the app user so everything gets created
-# with that user"s permissions set
+# with that user's permissions set
 USER app
 WORKDIR /app
+
+# Get doppler and make it executable
+RUN curl -Ls \
+  -o doppler.tar.gz \
+  https://github.com/DopplerHQ/cli/releases/download/3.24.4/doppler_3.24.4_linux_amd64.tar.gz && \
+  tar -xvf doppler.tar.gz && \
+  chmod +x doppler
 
 # Copy over dependency files and install first
 # to optimize caching layers
@@ -33,16 +40,9 @@ RUN npm run build
 ENV NODE_ENV production
 RUN npm prune
 
-# Get doppler and make it executable
-RUN curl -Ls \
-  -o doppler.tar.gz \
-  https://github.com/DopplerHQ/cli/releases/download/3.24.4/doppler_3.24.4_linux_amd64.tar.gz && \
-  tar -xvf doppler.tar.gz && \
-  chmod +x doppler
-
 ################
 
-FROM node:12.22-alpine3.11
+FROM alpine:3.11
 
 # Set base env vars
 ENV NODE_ENV production
@@ -51,7 +51,7 @@ ENV NEW_RELIC_NO_CONFIG_FILE true
 # same thing as above, establish a non-root user to run as
 USER root
 RUN apk update \
-    && apk upgrade
+    && apk upgrade && apk add --no-cache nodejs linux-headers
 RUN addgroup -S app \
     && adduser -S -G app app && \
     mkdir /app && \
