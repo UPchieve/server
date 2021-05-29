@@ -37,7 +37,7 @@
         </p>
       </transition>
 
-      <div class="messages">
+      <div class="messages" tabindex="0">
         <chat-bot v-if="!user.isVolunteer && isSessionWaitingForVolunteer" />
 
         <template v-for="(message, index) in messages">
