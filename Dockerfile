@@ -51,7 +51,7 @@ ENV NEW_RELIC_NO_CONFIG_FILE true
 # same thing as above, establish a non-root user to run as
 USER root
 RUN apk update \
-    && apk upgrade && apk add --no-cache nodejs linux-headers
+    && apk upgrade && apk add --no-cache nodejs npm
 RUN addgroup -S app \
     && adduser -S -G app app && \
     mkdir /app && \
