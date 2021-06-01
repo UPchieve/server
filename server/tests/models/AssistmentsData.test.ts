@@ -1,15 +1,8 @@
 import mongoose from 'mongoose'
 import * as AssistmentsDataRepo from '../../models/AssistmentsData'
 import SessionModel, { Session } from '../../models/Session'
-import {
-  RepoCreateError,
-  RepoReadError,
-} from '../../models/Errors' 
-import {
-  insertSession,
-  resetDb
-} from '../db-utils'
-
+import { RepoCreateError, RepoReadError } from '../../models/Errors'
+import { insertSession, resetDb } from '../db-utils'
 
 async function resetAD(): Promise<void> {
   await AssistmentsDataRepo.AssistmentsDataModel.deleteMany({})
@@ -48,17 +41,14 @@ describe('Test create AssistmentData objects', () => {
   beforeAll(async () => {
     await resetDb()
     await resetAD()
-    const {
-      session: newSession,
-      student: newStudent
-    } = await insertSession({}, {
-      studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS
-    })
+    const { session: newSession } = await insertSession(
+      {},
+      {
+        studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS
+      }
+    )
     validSession = newSession
-    const {
-      session,
-      student
-    } = await insertSession({}, {})
+    const { session } = await insertSession({}, {})
     invalidSession = session
   })
 
@@ -74,14 +64,18 @@ describe('Test create AssistmentData objects', () => {
       validSession._id
     )
 
-    const ad = await AssistmentsDataRepo.AssistmentsDataModel.findById(createdAD._id).lean().exec()
+    const ad = await AssistmentsDataRepo.AssistmentsDataModel.findById(
+      createdAD._id
+    )
+      .lean()
+      .exec()
     expect(ad.session).toEqual(validSession._id)
   })
 
   test('Create errors with invalid session', async () => {
     let error: RepoCreateError
     try {
-      const failedAD = await AssistmentsDataRepo.createBySession(
+      await AssistmentsDataRepo.createBySession(
         problemId,
         assignmentId,
         invalidSession._id
@@ -98,7 +92,7 @@ describe('Test create AssistmentData objects', () => {
   })
 
   test('Create errors with re-used sessions', async () => {
-    const createdAD = await AssistmentsDataRepo.createBySession(
+    await AssistmentsDataRepo.createBySession(
       problemId,
       assignmentId,
       validSession._id
@@ -106,7 +100,7 @@ describe('Test create AssistmentData objects', () => {
 
     let error: RepoCreateError
     try {
-      const failedAD = await AssistmentsDataRepo.createBySession(
+      await AssistmentsDataRepo.createBySession(
         problemId,
         assignmentId,
         validSession._id
@@ -122,19 +116,16 @@ describe('Test create AssistmentData objects', () => {
   })
 
   test('Create bubbles up errors from database find', async () => {
-    const mockedSessionRepoGetById = jest.spyOn(
-      SessionModel,
-      'findById'
-    )
+    const mockedSessionRepoGetById = jest.spyOn(SessionModel, 'findById')
     const testError = new Error('Test error')
     mockedSessionRepoGetById.mockImplementationOnce(
-      //@ts-expect-error
+      // @ts-expect-error
       mockMongooseQuery(testError)
     )
 
     let error: RepoReadError
     try {
-      const failedAD = await AssistmentsDataRepo.createBySession(
+      await AssistmentsDataRepo.createBySession(
         problemId,
         assignmentId,
         invalidSession._id
@@ -157,12 +148,12 @@ describe('Test read AssistmentData objects', () => {
   beforeAll(async () => {
     await resetDb()
     await resetAD()
-    const {
-      session: newSession,
-      student: newStudent
-    } = await insertSession({}, {
-      studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS
-    })
+    const { session: newSession } = await insertSession(
+      {},
+      {
+        studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS
+      }
+    )
     validSession = newSession
     const newAD = await AssistmentsDataRepo.AssistmentsDataModel.create({
       problemId,
@@ -190,13 +181,13 @@ describe('Test read AssistmentData objects', () => {
     )
     const testError = new Error('Test error')
     mockedAssistmentDataFind.mockImplementationOnce(
-      //@ts-expect-error
+      // @ts-expect-error
       mockMongooseQuery(testError)
     )
 
     let error: RepoReadError
     try {
-      const failedAD = await AssistmentsDataRepo.getById(createdAD._id)
+      await AssistmentsDataRepo.getById(createdAD._id)
     } catch (err) {
       error = err
     }
@@ -207,7 +198,9 @@ describe('Test read AssistmentData objects', () => {
   })
 
   test('GetAll succeeds', async () => {
-    const foundAD = await AssistmentsDataRepo.AssistmentsDataModel.find().lean().exec()
+    const foundAD = await AssistmentsDataRepo.AssistmentsDataModel.find()
+      .lean()
+      .exec()
 
     expect(foundAD.length).toEqual(1)
     expect(foundAD[0]._id).toEqual(createdAD._id)
@@ -221,13 +214,13 @@ describe('Test read AssistmentData objects', () => {
     )
     const testError = new Error('Test error')
     mockedAssistmentDataFind.mockImplementationOnce(
-      //@ts-expect-error
+      // @ts-expect-error
       mockMongooseQuery(testError)
     )
 
     let error: RepoReadError
     try {
-      const failedAD = await AssistmentsDataRepo.getAll()
+      await AssistmentsDataRepo.getAll()
     } catch (err) {
       error = err
     }
@@ -251,13 +244,13 @@ describe('Test read AssistmentData objects', () => {
     )
     const testError = new Error('Test error')
     mockedAssistmentDataFind.mockImplementationOnce(
-      //@ts-expect-error
+      // @ts-expect-error
       mockMongooseQuery(testError)
     )
 
     let error: RepoReadError
     try {
-      const failedAD = await AssistmentsDataRepo.getBySession(validSession._id)
+      await AssistmentsDataRepo.getBySession(validSession._id)
     } catch (err) {
       error = err
     }

@@ -26,7 +26,6 @@ import {
   buildUserAction,
   buildFeedback
 } from './generate'
-import mongoose from 'mongoose'
 
 const hashPassword = async function(password): Promise<Error | string> {
   try {
@@ -88,7 +87,7 @@ export const insertSession = async (
 }> => {
   const student = await insertStudent(studentOverrides)
   const session = buildSession({
-    student: student._id,  // created student can be overridden
+    student: student._id, // created student can be overridden
     ...overrides
   })
   const createdSession = await SessionModel.create(session)
