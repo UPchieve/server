@@ -2,17 +2,14 @@ import { Document, model, Schema, Types } from 'mongoose'
 import _ from 'lodash'
 import SessionModel, { Session } from './Session'
 import StudentModel from './Student'
-import {
-  RepoCreateError,
-  RepoReadError,
-} from './Errors'
+import { RepoCreateError, RepoReadError } from './Errors'
 
 export const ASSISTMENTS = 'assistments'
 
 export interface AssistmentsData {
-  _id: Types.ObjectId,
-  problemId: string,
-  assignmentId: string,
+  _id: Types.ObjectId
+  problemId: string
+  assignmentId: string
   session: Types.ObjectId | Session
 }
 
@@ -43,8 +40,12 @@ export const AssistmentsDataModel = model<AssistmentsDataDocument>(
 
 // Utilities
 async function validSession(sessionId: Types.ObjectId): Promise<boolean> {
-  const session = await SessionModel.findById(sessionId).lean().exec()
-  const student = await StudentModel.findById(session.student).lean().exec()
+  const session = await SessionModel.findById(sessionId)
+    .lean()
+    .exec()
+  const student = await StudentModel.findById(session.student)
+    .lean()
+    .exec()
   if (student.studentPartnerOrg !== ASSISTMENTS) return false
   return true
 }
@@ -55,11 +56,16 @@ export async function createBySession(
   assignmentId: string,
   sessionId: Types.ObjectId
 ): Promise<AssistmentsData> {
+  /* eslint-disable  @typescript-eslint/no-use-before-define */
   const ad = await getBySession(sessionId)
   if (!_.isEmpty(ad))
-    throw new RepoCreateError(`AssistmentsData document for session ${sessionId} already exists`)
-  if (!await validSession(sessionId))
-    throw new RepoCreateError(`Session ${sessionId} is not for an ASSISTments student`)
+    throw new RepoCreateError(
+      `AssistmentsData document for session ${sessionId} already exists`
+    )
+  if (!(await validSession(sessionId)))
+    throw new RepoCreateError(
+      `Session ${sessionId} is not for an ASSISTments student`
+    )
 
   const adModel = new AssistmentsDataModel({
     problemId,
@@ -68,7 +74,7 @@ export async function createBySession(
   })
   let createdDoc: AssistmentsDataDocument
   try {
-    createdDoc = await adModel.save() as AssistmentsDataDocument
+    createdDoc = (await adModel.save()) as AssistmentsDataDocument
   } catch (err) {
     throw new RepoCreateError(err.message)
   }
@@ -76,10 +82,14 @@ export async function createBySession(
 }
 
 // Read functions
-export async function getById(id: Types.ObjectId | string): Promise<AssistmentsData> {
+export async function getById(
+  id: Types.ObjectId | string
+): Promise<AssistmentsData> {
   let doc: AssistmentsData
   try {
-    doc = await AssistmentsDataModel.findById(id).lean().exec() as AssistmentsData
+    doc = (await AssistmentsDataModel.findById(id)
+      .lean()
+      .exec()) as AssistmentsData
   } catch (err) {
     throw new RepoReadError(err.message)
   }
@@ -90,7 +100,9 @@ export async function getById(id: Types.ObjectId | string): Promise<AssistmentsD
 export async function getAll(): Promise<AssistmentsData[]> {
   let docs: AssistmentsData[]
   try {
-    docs = await AssistmentsDataModel.find().lean().exec() as AssistmentsData[]
+    docs = (await AssistmentsDataModel.find()
+      .lean()
+      .exec()) as AssistmentsData[]
   } catch (err) {
     throw new RepoReadError(err.message)
   }
@@ -102,9 +114,11 @@ export async function getBySession(
 ): Promise<AssistmentsData> {
   let data: AssistmentsData
   try {
-    data = await AssistmentsDataModel.findOne({
+    data = (await AssistmentsDataModel.findOne({
       session: sessionId
-    }).lean().exec() as AssistmentsData
+    })
+      .lean()
+      .exec()) as AssistmentsData
   } catch (err) {
     throw new RepoReadError(err.message)
   }
