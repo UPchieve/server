@@ -22,6 +22,8 @@ build:
     DOCKER_BUILDKIT: 1
   services:
     - docker:20.10.6-dind
+  tags:
+    - test
   script:
     - |
       if [[ -z "$CI_COMMIT_TAG" ]]; then
