@@ -1,15 +1,18 @@
+/* eslint @typescript-eslint/no-use-before-define: 0 */
+
 import { Document, model, Schema, Types } from 'mongoose'
 import _ from 'lodash'
+import validator from 'validator'
 import SessionModel, { Session } from './Session'
-import StudentModel from './Student'
 import { RepoCreateError, RepoReadError } from './Errors'
 
 export const ASSISTMENTS = 'assistments'
 
 export interface AssistmentsData {
   _id: Types.ObjectId
-  problemId: string
-  assignmentId: string
+  problemId: number
+  assignmentId: string // UUID
+  studentId: string // UUID
   session: Types.ObjectId | Session
 }
 
@@ -17,96 +20,118 @@ type AssistmentsDataDocument = AssistmentsData & Document
 
 const assistmentsDataSchema = new Schema({
   problemId: {
-    type: String,
-    default: ''
+    type: Number,
+    required: true,
+    validate: {
+      validator: Number.isInteger,
+      message: props => `${props.value} is not an integer`
+    }
   },
   assignmentId: {
     type: String,
-    default: ''
+    required: true,
+    validate: {
+      validator: (v: string) => {
+        return validator.isUUID(v, 'v4')
+      },
+      message: props => `${props.value} is not a valid UUIDv4`
+    }
+  },
+  studentId: {
+    type: String,
+    required: true,
+    validate: {
+      validator: (v: string) => {
+        return validator.isUUID(v, 'v4')
+      },
+      message: props => `${props.value} is not a valid UUIDv4`
+    }
   },
   session: {
     type: Schema.Types.ObjectId,
-    ref: 'Session'
-    // @todo: validate the session exists and student is assistments student
+    ref: 'Session',
+    required: true,
+    validate: {
+      validator: validSession,
+      message: props => `${props.value} is not a valid session`
+    }
   }
 })
 
 const AssistmentsDataCollection = 'AssistmentsData'
 
+// @todo: figure out how to test without exposing the model
 export const AssistmentsDataModel = model<AssistmentsDataDocument>(
   AssistmentsDataCollection,
   assistmentsDataSchema
 )
 
 // Utilities
-async function validSession(sessionId: Types.ObjectId): Promise<boolean> {
+async function validSession(
+  sessionId: Types.ObjectId | string
+): Promise<boolean> {
   const session = await SessionModel.findById(sessionId)
     .lean()
     .exec()
-  const student = await StudentModel.findById(session.student)
-    .lean()
-    .exec()
-  if (student.studentPartnerOrg !== ASSISTMENTS) return false
+  if (_.isEmpty(session)) return false
   return true
 }
 
 // Create functions
 export async function createBySession(
-  problemId: string,
+  problemId: number,
   assignmentId: string,
-  sessionId: Types.ObjectId
+  studentId: string,
+  session: Types.ObjectId | string
 ): Promise<AssistmentsData> {
-  /* eslint-disable  @typescript-eslint/no-use-before-define */
-  const ad = await getBySession(sessionId)
+  const ad = await getBySession(session)
   if (!_.isEmpty(ad))
     throw new RepoCreateError(
-      `AssistmentsData document for session ${sessionId} already exists`
+      `AssistmentsData document for session ${session} already exists`
     )
-  if (!(await validSession(sessionId)))
-    throw new RepoCreateError(
-      `Session ${sessionId} is not for an ASSISTments student`
-    )
+  if (!(await validSession(session)))
+    throw new RepoCreateError(`Session ${session} does not exist`)
 
-  const adModel = new AssistmentsDataModel({
-    problemId,
-    assignmentId,
-    session: sessionId
-  })
-  let createdDoc: AssistmentsDataDocument
+  let data: AssistmentsDataDocument
   try {
-    createdDoc = (await adModel.save()) as AssistmentsDataDocument
+    data = (await AssistmentsDataModel.create({
+      problemId,
+      assignmentId,
+      studentId,
+      session
+    })) as AssistmentsDataDocument
   } catch (err) {
     throw new RepoCreateError(err.message)
   }
-  return createdDoc.toObject() as AssistmentsData
+  return data.toObject() as AssistmentsData
 }
 
 // Read functions
 export async function getById(
   id: Types.ObjectId | string
 ): Promise<AssistmentsData> {
-  let doc: AssistmentsData
+  let data: AssistmentsData
   try {
-    doc = (await AssistmentsDataModel.findById(id)
+    data = (await AssistmentsDataModel.findById(id)
       .lean()
       .exec()) as AssistmentsData
   } catch (err) {
     throw new RepoReadError(err.message)
   }
-  if (!doc) return {} as AssistmentsData
-  return doc
+  if (!data) return {} as AssistmentsData
+  return data
 }
 
 export async function getAll(): Promise<AssistmentsData[]> {
-  let docs: AssistmentsData[]
+  let data: AssistmentsData[]
   try {
-    docs = (await AssistmentsDataModel.find()
+    data = (await AssistmentsDataModel.find()
       .lean()
       .exec()) as AssistmentsData[]
   } catch (err) {
     throw new RepoReadError(err.message)
   }
-  return docs
+  return data
 }
 
 export async function getBySession(
