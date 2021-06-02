@@ -1,5 +1,6 @@
 import Queue from 'bull'
 import { find, map } from 'lodash'
+import Redis from 'ioredis'
 import config from '../config'
 import { log } from '../worker/logger'
 import { Jobs } from '../worker/jobs'
@@ -55,10 +56,14 @@ const jobTemplates: JobTemplate[] = [
 
 const main = async (): Promise<void> => {
   try {
-    const queue = new Queue(
-      config.workerQueueName,
-      config.redisConnectionString
-    )
+    const queue = new Queue(config.workerQueueName, {
+      createClient: () => new Redis(config.redisConnectionString),
+      settings: {
+        // to prevent stalling long jobs
+        stalledInterval: 1000 * 60 * 30,
+        lockDuration: 1000 * 60 * 30
+      }
+    })
 
     const repeatableJobs = await queue.getRepeatableJobs()
 
