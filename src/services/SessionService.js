@@ -24,13 +24,8 @@ export default {
       sessionType,
       sessionSubTopic
     }
-    const studentPartnerOrg = context.$store.state.user.user.studentPartnerOrg
 
-    if (
-      localStorage.getItem('partner') &&
-      studentPartnerOrg === localStorage.getItem('partner')
-    ) {
-      // @todo: change properties depending on backend schema
+    if (localStorage.getItem('assignmentId')) {
       data.assignmentId = localStorage.getItem('assignmentId')
       data.partner = localStorage.getItem('partner')
       data.problemId = localStorage.getItem('problemId')
