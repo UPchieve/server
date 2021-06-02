@@ -8,11 +8,11 @@ async function resetAD(): Promise<void> {
   await AssistmentsDataRepo.AssistmentsDataModel.deleteMany({})
 }
 
-function mockMongooseQuery(error: Error) {
+function mockMongooseFindQuery(fn: Function) {
   return () => ({
     lean: () => ({
       exec: async () => {
-        throw error
+        await fn()
       }
     })
   })
@@ -32,11 +32,13 @@ afterAll(async () => {
   await mongoose.connection.close()
 })
 
+const problemId = 12345
+// UUID generated via online tool
+const assignmentId = 'a63c5239-b2e4-4760-a6b8-fb55b7bb938b'
+const studentId = 'fb2e790c-514d-4936-a6f5-2ef20afe4cf0'
+
 describe('Test create AssistmentData objects', () => {
   let validSession: Session
-  let invalidSession: Session
-  const problemId = 'test problem'
-  const assignmentId = 'test assignment'
 
   beforeAll(async () => {
     await resetDb()
@@ -48,8 +50,6 @@ describe('Test create AssistmentData objects', () => {
       }
     )
     validSession = newSession
-    const { session } = await insertSession({}, {})
-    invalidSession = session
   })
 
   beforeEach(async () => {
@@ -61,6 +61,7 @@ describe('Test create AssistmentData objects', () => {
     const createdAD = await AssistmentsDataRepo.createBySession(
       problemId,
       assignmentId,
+      studentId,
       validSession._id
     )
 
@@ -73,12 +74,15 @@ describe('Test create AssistmentData objects', () => {
   })
 
   test('Create errors with invalid session', async () => {
+    const invalidSessionId = mongoose.Types.ObjectId() // unused Id
+
     let error: RepoCreateError
     try {
       await AssistmentsDataRepo.createBySession(
         problemId,
         assignmentId,
-        invalidSession._id
+        studentId,
+        invalidSessionId
       )
     } catch (err) {
       error = err
@@ -86,15 +90,14 @@ describe('Test create AssistmentData objects', () => {
 
     // Assert error thrown
     expect(error instanceof RepoCreateError).toBeTruthy()
-    expect(error.message).toBe(
-      `Session ${invalidSession._id} is not for an ASSISTments student`
-    )
+    expect(error.message).toBe(`Session ${invalidSessionId} does not exist`)
   })
 
   test('Create errors with re-used sessions', async () => {
     await AssistmentsDataRepo.createBySession(
       problemId,
       assignmentId,
+      studentId,
       validSession._id
     )
 
@@ -103,6 +106,7 @@ describe('Test create AssistmentData objects', () => {
       await AssistmentsDataRepo.createBySession(
         problemId,
         assignmentId,
+        studentId,
         validSession._id
       )
     } catch (err) {
@@ -120,7 +124,9 @@ describe('Test create AssistmentData objects', () => {
     const testError = new Error('Test error')
     mockedSessionRepoGetById.mockImplementationOnce(
       // @ts-expect-error
-      mockMongooseQuery(testError)
+      mockMongooseFindQuery(() => {
+        throw testError
+      })
     )
 
     let error: RepoReadError
@@ -128,22 +134,21 @@ describe('Test create AssistmentData objects', () => {
       await AssistmentsDataRepo.createBySession(
         problemId,
         assignmentId,
-        invalidSession._id
+        studentId,
+        validSession._id
       )
     } catch (err) {
       error = err
     }
 
     expect(error instanceof RepoReadError)
-    expect(error.message).toEqual(testError.message)
+    expect(error.message).toBe(testError.message)
   })
 })
 
 describe('Test read AssistmentData objects', () => {
   let validSession: Session
   let createdAD: AssistmentsDataRepo.AssistmentsData
-  const problemId = 'test problem'
-  const assignmentId = 'test assignment'
 
   beforeAll(async () => {
     await resetDb()
@@ -158,6 +163,7 @@ describe('Test read AssistmentData objects', () => {
     const newAD = await AssistmentsDataRepo.AssistmentsDataModel.create({
       problemId,
       assignmentId,
+      studentId,
       session: validSession._id
     })
     createdAD = newAD.toObject() as AssistmentsDataRepo.AssistmentsData
@@ -182,7 +188,9 @@ describe('Test read AssistmentData objects', () => {
     const testError = new Error('Test error')
     mockedAssistmentDataFind.mockImplementationOnce(
       // @ts-expect-error
-      mockMongooseQuery(testError)
+      mockMongooseFindQuery(() => {
+        throw testError
+      })
     )
 
     let error: RepoReadError
@@ -215,7 +223,9 @@ describe('Test read AssistmentData objects', () => {
     const testError = new Error('Test error')
     mockedAssistmentDataFind.mockImplementationOnce(
       // @ts-expect-error
-      mockMongooseQuery(testError)
+      mockMongooseFindQuery(() => {
+        throw testError
+      })
     )
 
     let error: RepoReadError
@@ -245,7 +255,9 @@ describe('Test read AssistmentData objects', () => {
     const testError = new Error('Test error')
     mockedAssistmentDataFind.mockImplementationOnce(
       // @ts-expect-error
-      mockMongooseQuery(testError)
+      mockMongooseFindQuery(() => {
+        throw testError
+      })
     )
 
     let error: RepoReadError
