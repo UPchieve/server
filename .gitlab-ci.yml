@@ -18,7 +18,7 @@ build:
   image: "docker:20.10.6"
   cache: {}
   variables:
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_TLS_CERTDIR: "/certs"
     DOCKER_BUILDKIT: 1
   services:
     - docker:20.10.6-dind
