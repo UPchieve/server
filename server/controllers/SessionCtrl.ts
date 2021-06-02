@@ -15,20 +15,23 @@ import { MessageDocument } from '../models/Message'
 import { StudentDocument } from '../models/Student'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS } from '../constants'
+import * as AssistmentsDataService from '../services/AssistmentsDataService'
 
 export interface CreateSessionOptions {
   user: User
   type: string
   subTopic: string
+  problemId?: number
+  assignmentId?: string
+  studentId?: string
 }
 
 export async function create(
   options: CreateSessionOptions
 ): Promise<SessionDocument> {
-  const user = options.user
+  const { user, type, subTopic, problemId, assignmentId, studentId } = options
   const userId = user._id
-  const type = options.type
-  const subTopic = options.subTopic
+  const numProblemId = Number(problemId)
 
   if (!userId) throw new Error('Cannot create a session without a user id')
   if (user.isVolunteer) throw new Error('Volunteers cannot create new sessions')
@@ -45,6 +48,13 @@ export async function create(
   })
 
   const savedSession: SessionDocument = await session.save()
+  if (numProblemId && assignmentId)
+    await AssistmentsDataService.create(
+      numProblemId,
+      assignmentId,
+      studentId,
+      session._id
+    )
 
   if (!user.isBanned) {
     beginRegularNotifications(savedSession)
