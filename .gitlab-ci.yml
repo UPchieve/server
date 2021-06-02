@@ -39,7 +39,7 @@ build:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - |
       docker build \
-        --cache-from "$image_latest"
+        --cache-from "$image_latest" \
         -t "$image_tagged" \
         -t "$image_latest" \
         .
