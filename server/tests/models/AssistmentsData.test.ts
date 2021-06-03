@@ -120,9 +120,9 @@ describe('Test create AssistmentData objects', () => {
   })
 
   test('Create bubbles up errors from database find', async () => {
-    const mockedSessionRepoGetById = jest.spyOn(SessionModel, 'findById')
+    const mockedSessionModelFind = jest.spyOn(SessionModel, 'findById')
     const testError = new Error('Test error')
-    mockedSessionRepoGetById.mockImplementationOnce(
+    mockedSessionModelFind.mockImplementationOnce(
       // @ts-expect-error
       mockMongooseFindQuery(() => {
         throw testError
@@ -173,14 +173,14 @@ describe('Test read AssistmentData objects', () => {
     jest.resetAllMocks()
   })
 
-  test('GetById succeeds', async () => {
-    const foundAD = await AssistmentsDataRepo.getById(createdAD._id)
+  test('GetByObjectId succeeds', async () => {
+    const foundAD = await AssistmentsDataRepo.getByObjectId(createdAD._id)
 
     expect(foundAD._id).toEqual(createdAD._id)
     expect(foundAD.session).toEqual(validSession._id)
   })
 
-  test('GetById bubbles up errors from database find', async () => {
+  test('GetByObjectId bubbles up errors from database find', async () => {
     const mockedAssistmentDataFind = jest.spyOn(
       AssistmentsDataRepo.AssistmentsDataModel,
       'findById'
@@ -195,7 +195,7 @@ describe('Test read AssistmentData objects', () => {
 
     let error: RepoReadError
     try {
-      await AssistmentsDataRepo.getById(createdAD._id)
+      await AssistmentsDataRepo.getByObjectId(createdAD._id)
     } catch (err) {
       error = err
     }
