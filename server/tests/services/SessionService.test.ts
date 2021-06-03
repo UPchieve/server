@@ -390,8 +390,14 @@ describe('getReviewFlags', () => {
     const volunteerJoinedAt = new Date('2020-10-05T12:03:30.000Z')
 
     const messages = [
-      buildMessage({ user: student._id, createdAt: new Date('2020-10-05T12:04:30.000Z') }),
-      buildMessage({ user: volunteer._id, createdAt: new Date('2020-10-05T12:05:30.000Z') })
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2020-10-05T12:04:30.000Z')
+      }),
+      buildMessage({
+        user: volunteer._id,
+        createdAt: new Date('2020-10-05T12:05:30.000Z')
+      })
     ]
 
     const { session } = await insertSession({

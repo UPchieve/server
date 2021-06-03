@@ -417,6 +417,7 @@ export const buildSession = (overrides = {}): Session => {
     reviewedStudent: undefined,
     reviewedVolunteer: undefined,
     timeTutored: 0,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     addNotifications: async () => {},
     ...overrides
   }
