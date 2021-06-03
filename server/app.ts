@@ -13,9 +13,24 @@ import expressPino from 'express-pino-logger'
 import Mustache from 'mustache'
 import swaggerUi from 'swagger-ui-express'
 import YAML from 'yaml'
+import helmet from 'helmet' // eslint-disable-line import/default
 import logger from './logger'
 import router from './router'
 import config from './config'
+import {
+  baseUri,
+  blockAllMixedContent,
+  connectSrc,
+  defaultSrc,
+  fontSrc,
+  frameAncestors,
+  imgSrc,
+  objectSrc,
+  scriptSrc,
+  scriptSrcAttr,
+  styleSrc,
+  upgradeInsecureRequests
+} from './securitySettings'
 
 const distDir = '../dist'
 
@@ -82,6 +97,27 @@ Sentry.init({
 const app = express()
 
 const indexHtml = renderIndexHtml()
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        baseUri,
+        blockAllMixedContent,
+        connectSrc,
+        defaultSrc,
+        fontSrc,
+        frameAncestors,
+        imgSrc,
+        objectSrc,
+        scriptSrc,
+        scriptSrcAttr,
+        styleSrc,
+        upgradeInsecureRequests
+      }
+    }
+  })
+)
 
 const expressLogger = expressPino({ logger })
 app.use(expressLogger)
