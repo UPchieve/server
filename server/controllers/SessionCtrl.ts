@@ -22,7 +22,7 @@ export interface CreateSessionOptions {
   user: User
   type: string
   subTopic: string
-  problemId?: number
+  problemId?: string
   assignmentId?: string
   studentId?: string
 }
@@ -59,7 +59,7 @@ export async function create(
       )
     } catch (error) {
       logger.error(
-        `Unable to create ASSISTments data for session: ${session._id}, studentId: ${studentId}, assignmentId: ${assignmentId}, problemId: ${problemId}, error: ${error.message}`
+        `Unable to create ASSISTments data for session: ${session._id}, ASSISTments studentId: ${studentId}, assignmentId: ${assignmentId}, problemId: ${problemId}, error: ${error.message}`
       )
     }
 
