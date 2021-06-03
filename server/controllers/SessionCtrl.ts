@@ -15,7 +15,8 @@ import { MessageDocument } from '../models/Message'
 import { StudentDocument } from '../models/Student'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS } from '../constants'
-import * as AssistmentsDataService from '../services/AssistmentsDataService'
+import * as AssistmentsDataRepo from '../models/AssistmentsData'
+import logger from '../logger'
 
 export interface CreateSessionOptions {
   user: User
@@ -49,12 +50,18 @@ export async function create(
 
   const savedSession: SessionDocument = await session.save()
   if (numProblemId && assignmentId)
-    await AssistmentsDataService.create(
-      numProblemId,
-      assignmentId,
-      studentId,
-      session._id
-    )
+    try {
+      await AssistmentsDataRepo.createBySession(
+        numProblemId,
+        assignmentId,
+        studentId,
+        session._id
+      )
+    } catch (error) {
+      logger.error(
+        `Unable to create ASSISTments data for session: ${session._id}, studentId: ${studentId}, assignmentId: ${assignmentId}, problemId: ${problemId}, error: ${error.message}`
+      )
+    }
 
   if (!user.isBanned) {
     beginRegularNotifications(savedSession)
