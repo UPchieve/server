@@ -42,8 +42,9 @@ import {
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
-export const getId = faker.random.uuid
-export const generateSentence = (): string => faker.lorem.sentence()
+export const generateSentence = faker.lorem.sentence
+export const getObjectId = Types.ObjectId
+export const getUUID = faker.datatype.uuid
 
 const generateReferralCode = (userId): string =>
   base64url(Buffer.from(userId, 'hex'))
@@ -334,7 +335,7 @@ export const buildReferenceWithForm = (overrides = {}): Partial<Reference> => {
 
 export const buildPhotoIdData = (overrides = {}): Partial<Volunteer> => {
   const data = {
-    photoIdS3Key: getId(),
+    photoIdS3Key: getUUID(),
     photoIdStatus: PHOTO_ID_STATUS.SUBMITTED,
     ...overrides
   }
