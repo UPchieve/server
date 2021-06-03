@@ -27,7 +27,6 @@ export default {
 
     if (localStorage.getItem('assignmentId')) {
       data.assignmentId = localStorage.getItem('assignmentId')
-      data.partner = localStorage.getItem('partner')
       data.problemId = localStorage.getItem('problemId')
       data.studentId = localStorage.getItem('studentId')
     }
@@ -48,7 +47,6 @@ export default {
           _id: sessionId
         }
         localStorage.removeItem('assignmentId')
-        localStorage.removeItem('partner')
         localStorage.removeItem('problemId')
         localStorage.removeItem('studentId')
         context.$store.dispatch('user/updateSession', sessionData)

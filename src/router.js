@@ -143,7 +143,6 @@ const routes = [
       } = to
 
       localStorage.setItem('assignmentId', assignmentId)
-      localStorage.setItem('partner', partner)
       localStorage.setItem('problemId', problemId)
       localStorage.setItem('studentId', studentId)
 
