@@ -1,7 +1,6 @@
 /* eslint @typescript-eslint/no-use-before-define: 0 */
 
 import { Document, model, Schema, Types } from 'mongoose'
-import _ from 'lodash'
 import validator from 'validator'
 import SessionModel, { Session } from './Session'
 import { RepoCreateError, RepoReadError } from './Errors'
@@ -73,7 +72,7 @@ async function validSession(
   const session = await SessionModel.findById(sessionId)
     .lean()
     .exec()
-  if (_.isEmpty(session)) return false
+  if (!session) return false
   return true
 }
 
@@ -85,61 +84,54 @@ export async function createBySession(
   session: Types.ObjectId | string
 ): Promise<AssistmentsData> {
   const ad = await getBySession(session)
-  if (!_.isEmpty(ad))
+  if (ad)
     throw new RepoCreateError(
       `AssistmentsData document for session ${session} already exists`
     )
   if (!(await validSession(session)))
     throw new RepoCreateError(`Session ${session} does not exist`)
 
-  let data: AssistmentsDataDocument
   try {
-    data = (await AssistmentsDataModel.create({
+    const data = (await AssistmentsDataModel.create({
       problemId,
       assignmentId,
       studentId,
       session
     })) as AssistmentsDataDocument
+    return data.toObject() as AssistmentsData
   } catch (err) {
     throw new RepoCreateError(err.message)
   }
-  return data.toObject() as AssistmentsData
 }
 
 // Read functions
-export async function getById(
+export async function getByObjectId(
   id: Types.ObjectId | string
 ): Promise<AssistmentsData> {
-  let data: AssistmentsData
   try {
-    data = (await AssistmentsDataModel.findById(id)
+    return (await AssistmentsDataModel.findById(id)
       .lean()
       .exec()) as AssistmentsData
   } catch (err) {
     throw new RepoReadError(err.message)
   }
-  if (!data) return {} as AssistmentsData
-  return data
 }
 
 export async function getAll(): Promise<AssistmentsData[]> {
-  let data: AssistmentsData[]
   try {
-    data = (await AssistmentsDataModel.find()
+    return (await AssistmentsDataModel.find()
       .lean()
       .exec()) as AssistmentsData[]
   } catch (err) {
     throw new RepoReadError(err.message)
   }
-  return data
 }
 
 export async function getBySession(
   sessionId: Types.ObjectId | string
 ): Promise<AssistmentsData> {
-  let data: AssistmentsData
   try {
-    data = (await AssistmentsDataModel.findOne({
+    return (await AssistmentsDataModel.findOne({
       session: sessionId
     })
       .lean()
@@ -147,9 +139,6 @@ export async function getBySession(
   } catch (err) {
     throw new RepoReadError(err.message)
   }
-  // do not return null
-  if (!data) return {} as AssistmentsData
-  return data
 }
 
 // Update functions
