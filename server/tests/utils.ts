@@ -6,13 +6,3 @@ export const convertObjectIdListToStringList = (objectIdList): string[] => {
 
   return arr
 }
-
-export function mockMongooseFindQuery(fn: Function) {
-  return () => ({
-    lean: () => ({
-      exec: async () => {
-        await fn()
-      }
-    })
-  })
-}

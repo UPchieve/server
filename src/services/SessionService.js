@@ -20,18 +20,15 @@ export default {
 
   newSession(context, sessionType, sessionSubTopic, options) {
     const onRetry = options && options.onRetry
-    const data = {
-      sessionType,
-      sessionSubTopic
-    }
 
-    if (localStorage.getItem('assignmentId')) {
-      data.assignmentId = localStorage.getItem('assignmentId')
-      data.problemId = localStorage.getItem('problemId')
-      data.studentId = localStorage.getItem('studentId')
-    }
-
-    return NetworkService.newSession(context, data, onRetry).then(res => {
+    return NetworkService.newSession(
+      context,
+      {
+        sessionType,
+        sessionSubTopic
+      },
+      onRetry
+    ).then(res => {
       const data = res.data || {}
       const { sessionId } = data
 
@@ -46,9 +43,6 @@ export default {
           subTopic: sessionSubTopic,
           _id: sessionId
         }
-        localStorage.removeItem('assignmentId')
-        localStorage.removeItem('problemId')
-        localStorage.removeItem('studentId')
         context.$store.dispatch('user/updateSession', sessionData)
         context.$router.replace(context.$store.getters['user/sessionPath'])
       } else {

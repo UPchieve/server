@@ -9,8 +9,3 @@ export class UserNotFoundError extends CustomError {
 }
 
 export class DocCreationError extends CustomError {}
-
-export class RepoCreateError extends CustomError {}
-export class RepoReadError extends CustomError {}
-export class RepoUpdateError extends CustomError {}
-export class RepoDeleteError extends CustomError {}

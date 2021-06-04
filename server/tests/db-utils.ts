@@ -78,16 +78,16 @@ export const insertStudent = async (
   return { ...createdStudent.toObject(), password: student.password }
 }
 
+// @todo: make the student configurable
 export const insertSession = async (
-  overrides: Partial<Session> = {},
-  studentOverrides: Partial<Student> = {}
+  overrides = {}
 ): Promise<{
   session: Session
   student: Student
 }> => {
-  const student = await insertStudent(studentOverrides)
+  const student = await insertStudent()
   const session = buildSession({
-    student: student._id, // created student can be overridden
+    student: student._id,
     ...overrides
   })
   const createdSession = await SessionModel.create(session)

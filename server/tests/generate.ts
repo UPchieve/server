@@ -39,13 +39,11 @@ import {
   VolunteerRegData,
   PartnerVolunteerRegData
 } from '../utils/auth-utils'
-import { Notification } from '../models/Notification'
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
-export const generateSentence = faker.lorem.sentence
-export const getObjectId = Types.ObjectId
-export const getUUID = faker.datatype.uuid
+export const getId = faker.random.uuid
+export const generateSentence = (): string => faker.lorem.sentence()
 
 const generateReferralCode = (userId): string =>
   base64url(Buffer.from(userId, 'hex'))
@@ -173,58 +171,49 @@ export const buildAvailabilityHistory = (
     ...overrides
   }
 }
-export function buildUser(overrides = {}) {
-  const _id = getObjectId()
-  return {
-    _id,
-    createdAt: new Date(),
-    email: getEmail().toLowerCase(),
-    password: 'Password123',
-    verified: true,
-    verifiedEmail: true,
-    verifiedPhone: true,
-    verificationToken: '',
-    passwordResetToken: '',
-    firstname: getFirstName(),
-    lastname: getLastName(),
-    phone: getPhoneNumber(),
-    college: '',
-    isVolunteer: false,
-    isAdmin: false,
-    isBanned: false,
-    banReason: undefined,
-    isTestUser: false,
-    isFakeUser: false,
-    isDeactivated: false,
-    pastSessions: [],
-    partnerUserId: null,
-    lastActivityAt: new Date(),
-    referralCode: generateReferralCode(_id.toString()),
-    referredBy: null,
-    ipAddresses: [],
-    type: '',
-    hashPassword: () => '',
-    ...overrides
-  }
-}
 
-export const buildStudent = (overrides = {}): Student => {
+export const buildStudent = (overrides = {}): Partial<Student> => {
+  const firstName = getFirstName()
+  const lastName = getLastName()
+  const _id = Types.ObjectId()
   const student = {
-    ...buildUser({ type: 'Student', isVolunteer: false }),
-    approvedHighschool: getObjectId(),
+    _id,
+    email: getEmail().toLowerCase(),
+    firstName,
+    lastName,
+    firstname: firstName,
+    lastname: lastName,
+    highSchoolId: '23456789',
+    password: 'Password123',
     zipCode: '11201',
     studentPartnerOrg: 'example',
-    partnerSite: '',
+    referredByCode: '',
+    referralCode: generateReferralCode(_id.toString()),
+    pastSessions: [],
+    createdAt: new Date(),
     ...overrides
   }
 
   return student
 }
 
-export const buildVolunteer = (overrides = {}): Volunteer => {
-  return {
-    ...buildUser({ type: 'Volunteer', isVolunteer: true }),
+export const buildVolunteer = (overrides = {}): Partial<Volunteer> => {
+  const firstName = getFirstName()
+  const lastName = getLastName()
+  const _id = Types.ObjectId()
+  const volunteer = {
+    _id,
+    email: getEmail().toLowerCase(),
+    firstName,
+    lastName,
+    firstname: firstName,
+    lastname: lastName,
+    password: 'Password123',
+    zipCode: '11201',
+    referredByCode: '',
     college: 'Columbia University',
+    phone: getPhoneNumber(),
+    referralCode: generateReferralCode(_id.toString()),
     isApproved: false,
     isOnboarded: false,
     certifications: buildCertifications(),
@@ -234,34 +223,14 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     sentReadyToCoachEmail: false,
     hoursTutored: Types.Decimal128.fromString('0'),
     timeTutored: 0,
+    pastSessions: [],
+    createdAt: new Date(),
     elapsedAvailability: 0,
     sentHourSummaryIntroEmail: false,
-    volunteerPartnerOrg: undefined,
-    isFailsafeVolunteer: false,
-    favoriteAcademicSubject: '',
-    timezone: 'America/New_York',
-    availabilityLastModifiedAt: new Date(),
-    photoIdS3Key: '',
-    photoIdStatus: undefined,
-    references: [],
-    occupation: [],
-    company: '',
-    experience: {
-      collegeCounseling: '',
-      mentoring: '',
-      tutoring: ''
-    },
-    languages: [],
-    country: '',
-    state: '',
-    city: '',
-    totalVolunteerHours: 0,
-    linkedInUrl: '',
-    sentInactiveThirtyDayEmail: false,
-    sentInactiveSixtyDayEmail: false,
-    sentInactiveNinetyDayEmail: false,
     ...overrides
   }
+
+  return volunteer
 }
 
 export const buildStudentRegistrationForm = (
@@ -365,7 +334,7 @@ export const buildReferenceWithForm = (overrides = {}): Partial<Reference> => {
 
 export const buildPhotoIdData = (overrides = {}): Partial<Volunteer> => {
   const data = {
-    photoIdS3Key: getUUID(),
+    photoIdS3Key: getId(),
     photoIdStatus: PHOTO_ID_STATUS.SUBMITTED,
     ...overrides
   }
@@ -391,7 +360,7 @@ export const buildBackgroundInfo = (overrides = {}): Partial<Volunteer> => {
   return data
 }
 
-export const buildSession = (overrides = {}): Session => {
+export const buildSession = (overrides = {}): Partial<Session> => {
   const _id = Types.ObjectId()
   const session = {
     _id,
@@ -401,35 +370,23 @@ export const buildSession = (overrides = {}): Session => {
     subTopic: 'algebra',
     messages: [],
     hasWhiteboardDoc: false,
-    whiteboardDoc: '',
     quillDoc: '',
     createdAt: new Date(),
     volunteerJoinedAt: null,
-    endedAt: null,
-    endedBy: null,
     failedJoins: [],
     notifications: [],
     photos: [],
     isReported: false,
     reportReason: null,
     reportMessage: null,
-    flags: [],
-    reviewedStudent: undefined,
-    reviewedVolunteer: undefined,
     timeTutored: 0,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    addNotifications: async () => {},
     ...overrides
   }
 
-  // @note: addNotifications expects a SessionDocument to be returned.
-  //        this function is removed from the interface in another merge
-  //        request, effectively allowing us to remove ts-expect-error below
-  // @ts-expect-error
   return session
 }
 
-export const buildMessage = (overrides = {}): Message => {
+export const buildMessage = (overrides = {}): Partial<Message> => {
   const _id = Types.ObjectId()
   const message = {
     _id,
@@ -457,7 +414,7 @@ export const buildPastSessions = (): Types.ObjectId[] => {
  *
  **/
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const buildNotification = (overrides = {}): Notification => {
+export const buildNotification = (overrides = {}): Partial<any> => {
   const _id = Types.ObjectId()
 
   const notification = {
@@ -473,7 +430,7 @@ export const buildNotification = (overrides = {}): Notification => {
     ...overrides
   }
 
-  return notification as Notification
+  return notification
 }
 
 export const buildUserAction = (

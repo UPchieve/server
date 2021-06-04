@@ -42,8 +42,8 @@ beforeEach(async () => {
 const fillNotifications = async (
   amount = TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP
 ): Promise<{
-  notifications: Notification[]
-  volunteers: Volunteer[]
+  notifications: Partial<Notification>[]
+  volunteers: Partial<Volunteer>[]
 }> => {
   const volunteers = []
   const notifications = []

@@ -136,26 +136,6 @@ const routes = [
     }
   },
   {
-    path: '/integration',
-    beforeEnter: (to, from, next) => {
-      const {
-        query: { assignmentId, partner, problemId, studentId }
-      } = to
-
-      localStorage.setItem('assignmentId', assignmentId)
-      localStorage.setItem('problemId', problemId)
-      localStorage.setItem('studentId', studentId)
-
-      getUser().then(() => {
-        if (store.getters['user/isAuthenticated']) {
-          next('/dashboard')
-        } else {
-          next(`/signup/student/${partner}`)
-        }
-      })
-    }
-  },
-  {
     path: '/resetpassword',
     name: 'ResetPasswordView',
     component: ResetPasswordView
