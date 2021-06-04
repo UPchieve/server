@@ -56,7 +56,9 @@ export const imgSrc = [
   "'self'", // eslint-disable-line quotes
   ...googleUrls,
   ...s3PhotoImageUrls,
-  'data:'
+  cdnUrl,
+  'data:',
+  'blob:'
 ]
 
 export const connectSrc = [
