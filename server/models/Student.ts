@@ -3,7 +3,7 @@ import UserModel, { User } from './User'
 import { School } from './School'
 
 export interface Student extends User {
-  approvedHighschool: School
+  approvedHighschool: School | Types.ObjectId
   zipCode: string
   studentPartnerOrg: string
   partnerSite: string

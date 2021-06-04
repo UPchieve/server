@@ -28,10 +28,10 @@ describe('End stale sessions', () => {
 
     await Promise.all([
       insertSession({
-        createdAt: new Date().getTime() - thirteenHours
+        createdAt: new Date(new Date().getTime() - thirteenHours)
       }),
       insertSession({
-        createdAt: new Date().getTime() - twelveHours
+        createdAt: new Date(new Date().getTime() - twelveHours)
       }),
       insertSession()
     ])

@@ -37,7 +37,10 @@ module.exports = function(router, io) {
         const session = await SessionCtrl.create({
           user,
           type: sessionType,
-          subTopic: sessionSubTopic
+          subTopic: sessionSubTopic,
+          problemId: data.problemId,
+          assignmentId: data.assignmentId,
+          studentId: data.studentId
         })
 
         const userAgent = req.get('User-Agent')
