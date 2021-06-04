@@ -52,7 +52,7 @@ export default {
       reviewMaterials: [],
       category: '',
       error: false,
-      hostPath: `https://upchievecdn.blob.core.windows.net/review-materials`
+      hostPath: `https://cdn.upchieve.org/review-materials`
     }
   },
   mounted() {
