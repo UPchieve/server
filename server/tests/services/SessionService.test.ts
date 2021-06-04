@@ -49,8 +49,8 @@ const loadMessages = ({
   volunteerOverrides = {}
 }): {
   messages: Message[]
-  student: Partial<Student>
-  volunteer: Partial<Volunteer>
+  student: Student
+  volunteer: Volunteer
 } => {
   const messages = []
   const student = buildStudent({
@@ -384,12 +384,20 @@ describe('getReviewFlags', () => {
 
   test(`Should trigger ${SESSION_FLAGS.LOW_MESSAGES} flag`, async () => {
     const student = buildStudent({ pastSessions: buildPastSessions() })
-    const volunteer = buildVolunteer({ pastSessions: buildPastSessions() })
+    const volunteer = buildVolunteer({
+      pastSessions: buildPastSessions()
+    }) as Volunteer
     const volunteerJoinedAt = new Date('2020-10-05T12:03:30.000Z')
 
     const messages = [
-      { user: student._id, createdAt: new Date('2020-10-05T12:04:30.000Z') },
-      { user: volunteer._id, createdAt: new Date('2020-10-05T12:05:30.000Z') }
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2020-10-05T12:04:30.000Z')
+      }),
+      buildMessage({
+        user: volunteer._id,
+        createdAt: new Date('2020-10-05T12:05:30.000Z')
+      })
     ]
 
     const { session } = await insertSession({
@@ -443,8 +451,8 @@ describe('getReviewFlags', () => {
       messagesPerUser: 0
     })
     const { session } = await insertSession({
-      createdAt: Date.now(),
-      endedAt: Date.now(),
+      createdAt: new Date(),
+      endedAt: new Date(),
       student: student._id,
       volunteer,
       messages
@@ -468,7 +476,7 @@ describe('getReviewFlags', () => {
     })
     const { session } = await insertSession({
       createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: Date.now(),
+      endedAt: new Date(),
       student: student._id,
       volunteer,
       messages,
@@ -621,7 +629,7 @@ describe('endSession', () => {
 
   test('Should early exit when ending a session that already ended', async () => {
     const { session } = await insertSession({
-      endedAt: Date.now()
+      endedAt: new Date()
     })
     const input = {
       sessionId: session._id
