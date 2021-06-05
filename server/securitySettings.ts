@@ -48,6 +48,7 @@ export const scriptSrc = [
   ...googleUrls,
   cdnUrl,
   mathJaxScriptUrl,
+  posthogUrl,
   ...newrelicUrls,
   "'unsafe-eval'", // eslint-disable-line quotes
   "'unsafe-inline'" // eslint-disable-line quotes
