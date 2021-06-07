@@ -72,7 +72,8 @@ export const connectSrc = [
   ...s3PhotoConnectUrls,
   ...newrelicUrls,
   ...googleUrls,
-  config.vueAppUnleashUrl
+  config.vueAppUnleashUrl,
+  `wss://${config.host}`
 ]
 
 if (config.NODE_ENV !== 'production') {
