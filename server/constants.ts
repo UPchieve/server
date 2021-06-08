@@ -349,6 +349,10 @@ export enum SUBJECT_TYPES {
   READING_WRITING = 'readingWriting'
 }
 
+export const FORMAT_READING_WRITING = {
+  [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays'
+}
+
 export enum SURVEY_TYPES {
   STUDENT_PRESESSION = 'student pre-session',
   STUDENT_POSTSESSION = 'student post-session'
