@@ -23,7 +23,7 @@ import {
   connectSrc,
   defaultSrc,
   fontSrc,
-  frameAncestors,
+  // frameAncestors,
   imgSrc,
   objectSrc,
   scriptSrc,
@@ -107,7 +107,7 @@ app.use(
         connectSrc,
         defaultSrc,
         fontSrc,
-        frameAncestors,
+        // frameAncestors,
         imgSrc,
         objectSrc,
         scriptSrc,
@@ -115,7 +115,8 @@ app.use(
         styleSrc,
         upgradeInsecureRequests
       }
-    }
+    },
+    frameguard: false
   })
 )
 
