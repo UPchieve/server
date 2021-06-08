@@ -12,12 +12,12 @@ import UserService from '../services/UserService'
 import { EVENTS } from '../constants'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
-  LookupError,
   asString,
   asBoolean,
   asFactory,
   asOptional
 } from './type-utils'
+import { LookupError } from '../services/Errors'
 
 // Custom errors
 export class RegistrationError extends CustomError {}

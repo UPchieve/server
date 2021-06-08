@@ -1,5 +1,7 @@
 import { CustomError } from 'ts-custom-error'
 
+// Define errors to be used across repositories
+
 export class UserNotFoundError extends CustomError {
   constructor(attemptedParam, attemptedValue: string) {
     super(

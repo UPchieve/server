@@ -26,7 +26,7 @@ import {
   ResetError,
   checkPassword
 } from '../../utils/auth-utils'
-import { InputError, LookupError } from '../../utils/type-utils'
+import { InputError, LookupError } from '../../services/Errors'
 import { USER_BAN_REASON } from '../../constants'
 
 // Mocks

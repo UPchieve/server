@@ -28,7 +28,8 @@ import {
   hashPassword,
   getReferredBy
 } from '../utils/auth-utils'
-import { InputError, LookupError, asString } from '../utils/type-utils'
+import { asString } from '../utils/type-utils'
+import { InputError, LookupError } from './Errors'
 import * as VolunteerService from './VolunteerService'
 import IpAddressService from './IpAddressService'
 import MailService from './MailService'

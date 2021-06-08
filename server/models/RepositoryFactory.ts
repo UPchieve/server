@@ -114,15 +114,10 @@ export function deleteFactory<T extends Record<string, any>>(
 export function repositoryFactory<T extends Record<string, any>>(
   model: Model<T & Document>
 ): Repository<T> {
-  const create = createFactory<T>(model)
-  const read = readFactory<T>(model)
-  const update = updateFactory<T>(model)
-  const del = deleteFactory<T>(model)
-
   return {
-    ...create,
-    ...read,
-    ...update,
-    ...del
+    ...createFactory<T>(model),
+    ...readFactory<T>(model),
+    ...updateFactory<T>(model),
+    ...deleteFactory<T>(model)
   } as Repository<T>
 }
