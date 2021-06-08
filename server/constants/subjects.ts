@@ -135,6 +135,13 @@ export enum IP_ADDRESS_STATUS {
   BANNED = 'BANNED'
 }
 
+export const INTEGRATED_MATH_MAPPING = {
+  integratedmathone: 'integratedMathOne',
+  integratedmathtwo: 'integratedMathTwo',
+  integratedmaththree: 'integratedMathThree',
+  integratedmathfour: 'integratedMathFour'
+}
+
 export const FORMAT_INTEGRATED_MATH = {
   integratedMathOne: 'Integrated Math 1',
   integratedMathTwo: 'Integrated Math 2',
