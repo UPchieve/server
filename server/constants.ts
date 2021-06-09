@@ -414,3 +414,5 @@ export enum ONBOARDING_STATUS {
   IN_PROGRESS = 'In progress',
   NOT_STARTED = 'Not started'
 }
+
+export const ONE_DAY_ELAPSED_MILLISECONDS = 1000 * 60 * 60 * 24

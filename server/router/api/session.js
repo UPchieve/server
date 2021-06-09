@@ -8,7 +8,7 @@ const SocketService = require('../../services/SocketService')
 const SessionService = require('../../services/SessionService')
 const AwsService = require('../../services/AwsService')
 const QuillDocService = require('../../services/QuillDocService')
-const recordIpAddress = require('../../middleware/record-ip-address')
+const { recordIpAddress } = require('../../middleware/record-ip-address')
 const { authPassport } = require('../../utils/auth-utils')
 const mapMultiWordSubtopic = require('../../utils/map-multi-word-subtopic')
 const { USER_ACTION } = require('../../constants')
@@ -37,7 +37,10 @@ module.exports = function(router, io) {
         const session = await SessionCtrl.create({
           user,
           type: sessionType,
-          subTopic: sessionSubTopic
+          subTopic: sessionSubTopic,
+          problemId: data.problemId,
+          assignmentId: data.assignmentId,
+          studentId: data.studentId
         })
 
         const userAgent = req.get('User-Agent')
