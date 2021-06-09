@@ -13,7 +13,9 @@ export default {
     latestSession: {},
     isFirstDashboardVisit: false,
     isSessionConnectionAlive: false,
-    presessionSurvey: {}
+    presessionSurvey: {},
+    unreadChatMessageIndices: [],
+    chatScrolledToMessageIndex: null
   },
   mutations: {
     setUser: (state, user = {}) => (state.user = user),
@@ -59,7 +61,43 @@ export default {
     },
 
     setPresessionSurvey: (state, presessionSurvey = {}) =>
-      (state.presessionSurvey = presessionSurvey)
+      (state.presessionSurvey = presessionSurvey),
+
+    markChatMessageUnread: (state, index) => {
+      if (typeof index === 'number') {
+        state.unreadChatMessageIndices.push(index)
+      }
+    },
+
+    markChatMessageRead: (state, index) => {
+      if (typeof index === 'number') {
+        state.unreadChatMessageIndices = state.unreadChatMessageIndices.filter(
+          v => v !== index
+        )
+      }
+    },
+
+    markChatMessagesRead: (state, indices) => {
+      if (indices && indices.length > 0) {
+        state.unreadChatMessageIndices = state.unreadChatMessageIndices.filter(
+          v => indices.indexOf(v) === -1
+        )
+      }
+    },
+
+    clearUnreadChatMessages: state => {
+      state.unreadChatMessageIndices = []
+    },
+
+    scrollChatToMessage: (state, index) => {
+      if (typeof index === 'number') {
+        state.chatScrolledToMessageIndex = index
+      }
+    },
+
+    clearChatScrolledToMessageIndex: state => {
+      state.chatScrolledToMessageIndex = null
+    }
   },
   actions: {
     fetch: ({ dispatch }, context) => {
@@ -112,6 +150,8 @@ export default {
 
     sessionDisconnected: ({ commit }) => {
       commit('setIsSessionConnectionAlive', false)
+      commit('clearUnreadChatMessages')
+      commit('clearChatScrolledToMessageIndex')
     },
 
     sessionConnected: ({ commit }) => {
@@ -150,6 +190,26 @@ export default {
 
     clearPresessionSurvey: ({ commit }) => {
       commit('setPresessionSurvey', {})
+    },
+
+    markChatMessageAsUnread: ({ commit }, index) => {
+      commit('markChatMessageUnread', index)
+    },
+
+    markChatMessageAsRead: ({ commit }, index) => {
+      commit('markChatMessageRead', index)
+    },
+
+    markChatMessagesAsRead: ({ commit }, indices) => {
+      commit('markChatMessagesRead', indices)
+    },
+
+    scrollChatToMessage: ({ commit }, index) => {
+      commit('scrollChatToMessage', index)
+    },
+
+    clearChatScrolledToMessageIndex: ({ commit }) => {
+      commit('clearChatScrolledToMessageIndex')
     }
   },
   getters: {
@@ -237,6 +297,10 @@ export default {
 
       // True if the session has ended
       return !!state.session.endedAt
+    },
+
+    numberOfUnreadChatMessages: state => {
+      return state.unreadChatMessageIndices.length
     }
   }
 }

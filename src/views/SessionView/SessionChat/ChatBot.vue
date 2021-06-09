@@ -75,6 +75,8 @@ export default {
       }
 
       this.sentBotMessages.push(newMessage)
+
+      this.$emit('new-bot-message')
     }
   }
 }
