@@ -337,6 +337,10 @@ module.exports = {
     return Volunteer.updateOne({ _id: volunteerId }, update)
   },
 
+  updateLastActivityUser: async function({ userId, lastActivityAt }) {
+    await User.updateOne({ _id: userId }, { lastActivityAt })
+  },
+
   adminUpdateUser: async function({
     userId,
     firstName,
