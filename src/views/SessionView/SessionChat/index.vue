@@ -37,24 +37,44 @@
         </p>
       </transition>
 
-      <div class="messages">
-        <chat-bot v-if="!user.isVolunteer && isSessionWaitingForVolunteer" />
+      <div class="messages-container">
+        <div
+          class="messages-inner-box messages"
+          ref="messages"
+          @scroll="handleScroll"
+        >
+          <chat-bot
+            v-if="!user.isVolunteer && isSessionWaitingForVolunteer"
+            @new-bot-message="handleIncomingMessage"
+          />
 
-        <template v-for="(message, index) in messages">
-          <div
-            :key="`message-${index}`"
-            :class="message.userId === user._id ? 'right' : 'left'"
-            class="message"
+          <template v-for="(message, index) in messages">
+            <div
+              :key="`message-${index}`"
+              :class="message.userId === user._id ? 'right' : 'left'"
+              class="message"
+            >
+              <div class="avatar" :style="message.avatarStyle" />
+              <div class="contents">
+                <span>{{ message.contents }}</span>
+              </div>
+              <div class="time">
+                {{ message.createdAt | formatTime }}
+              </div>
+            </div>
+          </template>
+        </div>
+        <transition name="fade">
+          <button
+            type="button"
+            v-show="numberOfUnreadChatMessages > 0"
+            class="messages-overlay unread-message-indicator"
+            @click="scrollToUnread"
           >
-            <div class="avatar" :style="message.avatarStyle" />
-            <div class="contents">
-              <span>{{ message.contents }}</span>
-            </div>
-            <div class="time">
-              {{ message.createdAt | formatTime }}
-            </div>
-          </div>
-        </template>
+            {{ unreadMessageNote }}
+            <img src="@/assets/down_arrow.png" />
+          </button>
+        </transition>
       </div>
     </div>
 
@@ -74,7 +94,7 @@
       <textarea
         class="message-textarea"
         @keydown.enter.prevent
-        @keyup="handleMessage"
+        @keyup="handleOutgoingMessage"
         v-model="newMessage"
         placeholder="Type a message..."
       />
@@ -113,7 +133,8 @@ export default {
       moderationWarningIsShown: false,
       typingTimeout: null,
       typingIndicatorShown: false,
-      isMessageError: false
+      isMessageError: false,
+      isAutoscrolling: false
     }
   },
   computed: {
@@ -133,12 +154,15 @@ export default {
           message.avatarStyle = { backgroundImage: `url(${picture})` }
           return message
         }),
-      isSessionConnectionAlive: state => state.user.isSessionConnectionAlive
+      isSessionConnectionAlive: state => state.user.isSessionConnectionAlive,
+      unreadChatMessageIndices: state => state.user.unreadChatMessageIndices,
+      chatScrolledToMessageIndex: state => state.user.chatScrolledToMessageIndex
     }),
     ...mapGetters({
       sessionPartner: 'user/sessionPartner',
       isSessionWaitingForVolunteer: 'user/isSessionWaitingForVolunteer',
-      isSessionAlive: 'user/isSessionAlive'
+      isSessionAlive: 'user/isSessionAlive',
+      numberOfUnreadChatMessages: 'user/numberOfUnreadChatMessages'
     }),
     isSessionConnectionFailure: function() {
       const isConnectionFailure =
@@ -150,6 +174,18 @@ export default {
           }
         })
       return isConnectionFailure
+    },
+    unreadMessageNote: function() {
+      return `${this.numberOfUnreadChatMessages} unread message${
+        this.numberOfUnreadChatMessages === 1 ? '' : 's'
+      }`
+    }
+  },
+  mounted() {
+    if (this.chatScrolledToMessageIndex !== null) {
+      const messageElements = this.getUserMessageElements()
+      this.$refs.messages.scrollTop =
+        messageElements[this.chatScrolledToMessageIndex].offsetTop
     }
   },
   methods: {
@@ -175,7 +211,7 @@ export default {
         sessionId: this.currentSession._id
       })
     },
-    handleMessage(event) {
+    handleOutgoingMessage(event) {
       // If key pressed is Enter, send the message
       if (event.key == 'Enter') {
         const message = this.newMessage.trim()
@@ -233,9 +269,95 @@ export default {
         { body: data.contents }
       )
       return
+    },
+    handleScroll() {
+      const messageElements = this.getUserMessageElements()
+
+      if (this.unreadChatMessageIndices.length > 0) {
+        const readMessageIndices = this.unreadChatMessageIndices.filter(index =>
+          this.isMessageElementInView(messageElements[index])
+        )
+        this.$store.dispatch('user/markChatMessagesAsRead', readMessageIndices)
+      }
+
+      const topVisibleMessageElementIndex = messageElements.findIndex(
+        this.isMessageElementInView
+      )
+      this.$store.dispatch(
+        'user/scrollChatToMessage',
+        topVisibleMessageElementIndex
+      )
+
+      this.updateAutoscrolling()
+    },
+    async handleIncomingMessage() {
+      // called whenever a new message enters the chat, either from
+      // a user or from the chatbot
+      await this.$nextTick()
+      if (this.isAutoscrolling) {
+        // autoscroll chat if at bottom
+        this.scrollToBottom()
+      } else if (
+        this.messages[this.messages.length - 1].userId !== this.user._id
+      ) {
+        const messageElements = this.getUserMessageElements()
+
+        if (
+          !this.isMessageElementInView(
+            messageElements[this.messages.length - 1]
+          )
+        ) {
+          this.$store.dispatch(
+            'user/markChatMessageAsUnread',
+            this.messages.length - 1
+          )
+        }
+      }
+
+      this.updateAutoscrolling()
+    },
+    getUserMessageElements() {
+      // the DOM elements corresponding to messages sent by users
+      // (as opposed to the chatbot)
+      return Array.from(this.$refs.messages.children).filter(element =>
+        element.classList.contains('message')
+      )
+    },
+    isMessageElementInView(messageElement) {
+      const messagesBox = this.$refs.messages
+      return (
+        messageElement.offsetTop +
+          messageElement.clientTop +
+          messageElement.clientHeight <
+          messagesBox.scrollTop + messagesBox.clientHeight &&
+        messageElement.offsetTop +
+          messageElement.clientTop +
+          messageElement.clientHeight >
+          messagesBox.scrollTop
+      )
+    },
+    updateAutoscrolling() {
+      // enable autoscrolling if scrolled to bottom
+      const messagesBox = this.$refs.messages
+      this.isAutoscrolling =
+        messagesBox.scrollTop + messagesBox.clientHeight >=
+        messagesBox.lastElementChild.offsetTop +
+          messagesBox.lastElementChild.offsetHeight
+    },
+    scrollToUnread() {
+      const messagesBox = this.$refs.messages
+      const userMessageElements = this.getUserMessageElements()
+      const firstUnreadIndex = Math.min(...this.unreadChatMessageIndices)
+
+      messagesBox.scrollTop = userMessageElements[firstUnreadIndex].offsetTop
+    },
+    scrollToBottom() {
+      const messagesBox = this.$refs.messages
+      messagesBox.scrollTop =
+        messagesBox.lastElementChild.offsetTop +
+        messagesBox.lastElementChild.offsetHeight
     }
   },
-
   sockets: {
     'is-typing'() {
       this.typingIndicatorShown = true
@@ -256,6 +378,8 @@ export default {
         this.triggerAlert(data)
 
       this.$store.dispatch('user/addMessage', data)
+
+      this.handleIncomingMessage()
     },
     messageError() {
       if (this.isMessageError) return
@@ -264,11 +388,6 @@ export default {
         this.isMessageError = false
       }, 1000)
     }
-  },
-
-  updated() {
-    const msgBox = document.querySelector('.messages')
-    msgBox.scrollTop = msgBox.scrollHeight
   }
 }
 </script>
@@ -284,7 +403,6 @@ export default {
 
 .message-box {
   height: 100%;
-  overflow: scroll;
   top: 0;
   position: relative;
   padding-bottom: 20px;
@@ -339,12 +457,42 @@ export default {
   }
 }
 
-.messages {
-  background-color: white;
+.messages-container {
   position: relative;
   height: 100%;
+  overflow: hidden;
+}
+
+.messages-inner-box {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.messages-overlay {
+  z-index: 9;
+}
+
+.messages {
+  background-color: white;
   overflow: auto;
   padding-bottom: 35px;
+}
+
+.unread-message-indicator {
+  background-color: $c-information-blue;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 12px 0 12px;
+  height: 24px;
+  text-align: center;
+  color: white;
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  transition: 0.25s;
 }
 
 .message {
