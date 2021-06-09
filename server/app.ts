@@ -17,6 +17,7 @@ import helmet from 'helmet' // eslint-disable-line import/default
 import logger from './logger'
 import router from './router'
 import config from './config'
+import { LoadedRequest } from './router/app'
 import {
   baseUri,
   blockAllMixedContent,
@@ -79,11 +80,6 @@ function renderIndexHtml() {
 
 function haltOnTimedout(req, res, next) {
   if (!req.timedout) next()
-}
-
-interface LoadedRequest extends Request {
-  user: {}
-  login: Function
 }
 
 // Set up Sentry error tracking
