@@ -1,5 +1,8 @@
 import { Aggregate, Types, Query } from 'mongoose'
-import VolunteerModel, { Volunteer } from '../models/Volunteer'
+import VolunteerModel, {
+  updatePastSessionsAndTimeTutored,
+  Volunteer
+} from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getElapsedAvailabilityForDateRange } from './AvailabilityService'
@@ -111,3 +114,5 @@ export const queuePartnerOnboardingEventEmails = async (
     { delay: 1000 * 60 * 60 * 24 * 15 }
   )
 }
+
+export { updatePastSessionsAndTimeTutored }

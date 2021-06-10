@@ -5,6 +5,7 @@ import { authPassport } from '../utils/auth-utils'
 import * as ContactFormRouter from './contact'
 import SessionStore from './api/session-store'
 import * as AuthRouter from './auth'
+import * as ApiRouter from './api'
 
 export default function(app: Express) {
   console.log('Initializing server routing')
@@ -20,7 +21,7 @@ export default function(app: Express) {
   require('./whiteboard')(app)
 
   AuthRouter.routes(app)
-  require('./api')(app, sessionStore)
+  ApiRouter.routes(app, sessionStore)
   require('./edu')(app)
   require('./eligibility')(app)
   require('./twiml')(app)

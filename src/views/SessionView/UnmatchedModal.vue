@@ -38,8 +38,7 @@ export default {
   name: 'UnmatchedModal',
   components: { LargeButton, Modal, Separator },
   props: {
-    sessionId: { type: String, required: true },
-    endSession: { type: Function, required: true }
+    sessionId: { type: String, required: true }
   },
   computed: {
     ...mapGetters({ mobileMode: 'app/mobileMode' })
@@ -65,7 +64,7 @@ export default {
       AnalyticsService.captureEvent(EVENTS.SESSION_TIMED_OUT_45_MINS, {
         event: EVENTS.SESSION_TIMED_OUT_45_MINS
       })
-      this.endSession()
+      this.$router.push('/dashboard')
     }
   }
 }

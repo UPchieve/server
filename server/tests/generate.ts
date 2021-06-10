@@ -40,12 +40,17 @@ import {
   PartnerVolunteerRegData
 } from '../utils/auth-utils'
 import { Notification } from '../models/Notification'
+import { PushToken } from '../models/PushToken'
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
 export const generateSentence = faker.lorem.sentence
 export const getObjectId = Types.ObjectId
+export const getStringObjectId = () => getObjectId().toString()
 export const getUUID = faker.datatype.uuid
+export const getId = faker.random.uuid
+export const getIpAddress = faker.internet.ip
+export const getUserAgent = faker.internet.userAgent
 
 const generateReferralCode = (userId): string =>
   base64url(Buffer.from(userId, 'hex'))
@@ -417,15 +422,9 @@ export const buildSession = (overrides = {}): Session => {
     reviewedStudent: undefined,
     reviewedVolunteer: undefined,
     timeTutored: 0,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    addNotifications: async () => {},
     ...overrides
   }
 
-  // @note: addNotifications expects a SessionDocument to be returned.
-  //        this function is removed from the interface in another merge
-  //        request, effectively allowing us to remove ts-expect-error below
-  // @ts-expect-error
   return session
 }
 
@@ -602,6 +601,45 @@ export const buildFeedback = (
   }
 
   return feedback
+}
+
+export function buildUserAgent(overrides = {}) {
+  return {
+    device: '',
+    browser: '',
+    browserVersion: '',
+    operatingSystem: '',
+    operatingSystemVersion: '',
+    ...overrides
+  }
+}
+
+// @todo: return PartialSocket or use a mocked socket
+export function buildSocket(overrides = {}) {
+  return {
+    id: getStringObjectId(),
+    connected: true,
+    disconnected: false,
+    request: {
+      headers: {
+        'user-agent': ''
+      }
+    },
+    handshake: {
+      address: ''
+    },
+    ...overrides
+  }
+}
+
+export function buildPushToken(overrides = {}): PushToken {
+  return {
+    _id: getObjectId(),
+    user: getObjectId(),
+    createdAt: new Date(),
+    token: '123',
+    ...overrides
+  }
 }
 
 export const authLogin = (agent, { email, password }: Partial<User>): Test =>

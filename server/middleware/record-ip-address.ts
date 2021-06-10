@@ -1,14 +1,14 @@
 import { captureException } from '@sentry/node'
-import { LoadedRequest } from '../router/app'
+import { Request } from 'express'
 
 import { record, ban } from '../services/IpAddressService'
 
 export const recordIpAddress = async (
-  req: LoadedRequest,
+  req: Request,
   res: Response,
   next: Function
 ): Promise<void> => {
-  const { user, ip: ipString } = req as LoadedRequest
+  const { user, ip: ipString } = req
 
   try {
     const ipAddress = await record({ user, ipString })

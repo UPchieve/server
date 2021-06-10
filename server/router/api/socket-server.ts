@@ -20,7 +20,8 @@ export default function(app) {
 
   const port =
     process.env.NODE_ENV === 'test'
-      ? 4000 + Number(process.env.JEST_WORKER_ID)
+      ? // @todo: utilize the superagent port
+        4000 + Math.floor(Math.random() * 5000) + 1
       : config.socketsPort
 
   server.listen(port)

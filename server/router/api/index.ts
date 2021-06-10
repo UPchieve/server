@@ -9,7 +9,7 @@ import socketServer from './socket-server'
 import volunteers from './volunteers'
 import user from './user'
 import { routeVerify } from './verify'
-import session from './session'
+import { routes as routeSessions } from './session'
 import { routeCalendar } from './calendar'
 import training from './training'
 import { routeFeedback } from './feedback'
@@ -19,7 +19,7 @@ import pushToken from './push-token'
 import { routeReports } from './reports'
 import { routeSurvey } from './survey'
 
-module.exports = function(app: Express, sessionStore: MongoStore): void {
+export function routes(app: Express, sessionStore: MongoStore): void {
   console.log('API module')
 
   const io: Server = socketServer(app)
@@ -29,7 +29,7 @@ module.exports = function(app: Express, sessionStore: MongoStore): void {
   volunteers(router)
   user(router)
   routeVerify(router)
-  session(router, io)
+  routeSessions(router, io)
   routeCalendar(router)
   training(router)
   routeFeedback(router)

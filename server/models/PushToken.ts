@@ -7,6 +7,7 @@ import { Document, model, Schema, Types } from 'mongoose'
 import { User } from './User'
 
 export interface PushToken {
+  _id: Types.ObjectId
   user: Types.ObjectId | User
   createdAt: Date
   token: string
@@ -37,5 +38,14 @@ const pushTokenSchema = new Schema(
 
 const PushTokenModel = model<PushTokenDocument>('PushToken', pushTokenSchema)
 
-module.exports = PushTokenModel
+export async function getAllPushTokensByUserId(userId) {
+  try {
+    return await PushTokenModel.find({ user: userId })
+      .lean()
+      .exec()
+  } catch (error) {
+    throw error
+  }
+}
+
 export default PushTokenModel

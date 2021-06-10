@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import Session from '../../models/Session'
-import SessionService from '../../services/SessionService'
+import * as SessionService from '../../services/SessionService'
 import QueueService from '../../services/QueueService'
 import TwilioService from '../../services/twilio'
 import { getNotificationWithVolunteer } from '../../services/NotificationService'

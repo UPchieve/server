@@ -1,39 +1,10 @@
-import { Express, Router, Response } from 'express'
+import { Express, Router } from 'express'
 import passport from 'passport'
-import Sentry from '@sentry/node'
-import { CustomError } from 'ts-custom-error'
 
 import * as AuthService from '../../services/AuthService'
-import {
-  authPassport,
-  RegistrationError,
-  ResetError
-} from '../../utils/auth-utils'
+import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../utils/type-utils'
-import config from '../../config'
-
-// TODO: move this to a shared place
-function resError(res: Response, err: CustomError, status?: number): void {
-  if (status) {
-    /* keep provided status */
-  }
-  // database lookup returned null
-  else if (err instanceof LookupError) status = 409
-  // business logic errors
-  else if (err instanceof RegistrationError) status = 422
-  else if (err instanceof ResetError) status = 422
-  // bad input
-  else if (err instanceof InputError) status = 422
-  // unknown error
-  else status = 500
-
-  if (config.NODE_ENV === 'production' && status === 500)
-    Sentry.captureException(err)
-
-  res.status(status).json({
-    err: err.message
-  })
-}
+import { resError } from '../res-error'
 
 // TODO: type passport request member methods/variable correctly (login, logout, user)
 export function routes(app: Express) {
@@ -55,7 +26,6 @@ export function routes(app: Express) {
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
     function(req, res) {
-      // @ts-expect-error
       res.json({ user: req.user })
     }
   )

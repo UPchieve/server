@@ -1,6 +1,9 @@
 import { Types, Aggregate } from 'mongoose'
 import { USER_ACTION } from '../constants'
-import UserActionModel, { UserAction } from '../models/UserAction'
+import UserActionModel, {
+  UserAction,
+  UserActionAgent
+} from '../models/UserAction'
 
 export const getActionsWithPipeline = (pipeline): Aggregate<UserAction[]> =>
   UserActionModel.aggregate(pipeline)
@@ -22,3 +25,27 @@ export const getQuizzesPassedForDateRange = (
   })
     .lean()
     .exec()
+
+// @todo: move to UserAction Repo
+export async function getSessionRequestedUserAgentFromSessionId(sessionId) {
+  let doc
+  try {
+    doc = await UserActionModel.findOne({
+      session: sessionId,
+      action: USER_ACTION.SESSION.REQUESTED
+    })
+      .select(
+        '-_id device browser browserVersion operatingSystem operatingSystemVersion'
+      )
+      .lean()
+      .exec()
+    if (!doc) return null
+    return {
+      device: doc.device,
+      browser: doc.browser,
+      browserVersion: doc.browserVersion,
+      operatingSystem: doc.operatingSystem,
+      operatingSystemVersion: doc.operatingSystemVersion
+    } as UserActionAgent
+  } catch (error) {}
+}

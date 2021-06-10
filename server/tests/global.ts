@@ -103,7 +103,10 @@ jest.mock('../config', () => {
       5 * 1000,
       5 * 1000,
       5 * 1000
-    ]
+    ],
+    client: { host: 'localhost' },
+    accountSid: 'AC12345',
+    authToken: '1234567890'
   }
 })
 

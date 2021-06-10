@@ -15,27 +15,27 @@ export interface User {
   verified: boolean
   verifiedEmail: boolean
   verifiedPhone: boolean
-  verificationToken: string
-  passwordResetToken: string
+  verificationToken?: string
+  passwordResetToken?: string
   firstname: string
   lastname: string
-  phone: string
-  college: string
+  phone?: string
+  college?: string
   isVolunteer: boolean
   isAdmin: boolean
   isBanned: boolean
-  banReason: USER_BAN_REASON
+  banReason?: USER_BAN_REASON
   isTestUser: boolean
   isFakeUser: boolean
   isDeactivated: boolean
   pastSessions: Session[] | Types.ObjectId[]
-  partnerUserId: string
+  partnerUserId?: string
   lastActivityAt: Date
   referralCode: string
-  referredBy: User | Types.ObjectId
-  ipAddresses: IpAddress[]
+  referredBy?: User | Types.ObjectId
+  ipAddresses: IpAddress[] | Types.ObjectId
   type: string
-  hashPassword(password: string): string
+  hashPassword?(password: string): string
 }
 
 export type UserDocument = User & Document

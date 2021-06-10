@@ -1,1027 +1,1170 @@
-import mongoose from 'mongoose'
-import SessionService from '../../services/SessionService'
-import SessionModel from '../../models/Session'
-import { Student } from '../../models/Student'
-import { Volunteer } from '../../models/Volunteer'
+import { mocked } from 'ts-jest/utils'
+import * as SessionService from '../../services/SessionService'
 import {
   buildMessage,
   buildStudent,
   buildVolunteer,
+  getObjectId,
+  getStringObjectId,
+  generateSentence,
+  buildFeedback,
+  buildUserAgent,
+  getIpAddress,
+  getUserAgent,
   buildSession,
-  buildPastSessions,
-  generateSentence
+  buildSocket,
+  buildPushToken,
+  getUUID
 } from '../generate'
 import {
-  insertVolunteer,
-  insertSessionWithVolunteer,
-  resetDb,
-  insertStudent,
-  insertSession,
-  getStudent,
-  getVolunteer,
-  getSession
-} from '../db-utils'
-import { Message } from '../../models/Message'
-import { SESSION_FLAGS } from '../../constants'
-import { convertObjectIdListToStringList } from '../utils'
+  mockedGetSessionsToReview,
+  mockedGetSessionById,
+  mockedGetSessionToEnd,
+  mockedGetAdminFilteredSessions,
+  mockedGetSessionByIdWithStudentAndVolunteer,
+  mockedGetCurrentSession,
+  mockedCreateSession,
+  mockedGetStudentLatestSession,
+  mockedGetPublicSession
+} from '../mocks/repos/session-repo'
+import {
+  EVENTS,
+  SESSION_FLAGS,
+  SESSION_REPORT_REASON,
+  SUBJECTS,
+  SUBJECT_TYPES
+} from '../../constants'
 import * as WhiteboardService from '../../services/WhiteboardService'
 import QueueService from '../../services/QueueService'
 import { Jobs } from '../../worker/jobs'
+import * as SessionRepo from '../../models/Session'
+import * as AssistmentsDataRepo from '../../models/AssistmentsData'
+import {
+  EndSessionError,
+  ReportSessionError,
+  StartSessionError
+} from '../../utils/session-utils'
+import MailService from '../../services/MailService'
+import * as AnalyticsService from '../../services/AnalyticsService'
+import * as UserActionCtrl from '../../controllers/UserActionCtrl'
+import UserService from '../../services/UserService'
+import * as QuillDocService from '../../services/QuillDocService'
+import * as VolunteerService from '../../services/VolunteerService'
+import * as AwsService from '../../services/AwsService'
+import * as UserActionService from '../../services/UserActionService'
+import * as FeedbackService from '../../services/FeedbackService'
+import SocketService from '../../services/SocketService'
+import * as PushTokenService from '../../services/PushTokenService'
+import * as SessionUtils from '../../utils/session-utils'
+import TwilioService from '../../services/twilio'
+import { LookupError } from '../../utils/type-utils'
+import { FeedbackVersionTwo } from '../../models/Feedback'
+jest.mock('../../models/Session')
+jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
+jest.mock('../../services/FeedbackService')
+jest.mock('../../services/twilio')
+jest.mock('../../services/AnalyticsService')
+jest.mock('../../controllers/UserActionCtrl')
+jest.mock('../../services/UserActionService')
+jest.mock('../../services/UserService')
 jest.mock('../../services/WhiteboardService')
 jest.mock('../../services/QuillDocService')
+jest.mock('../../services/VolunteerService')
 jest.mock('../../services/QueueService')
+jest.mock('../../services/SocketService')
+jest.mock('../../services/AwsService')
+jest.mock('../../services/PushTokenService')
 
-/**
- * @todo refactor
- * - some of the test cases are getting too complicated to rely on this function anymore
- *
- * some additional notes:
- * an ABSENT_USER flag gets triggered in some test cases because
- * the volunteerJoinedAt is greater than the createdAt of the messages. refactor to
- * allow an easier way to trigger or not trigger ABSENT_USER or LOW_MESSAGES flags
- */
-const loadMessages = ({
-  studentSentMessages,
-  volunteerSentMessages,
-  messagesPerUser = 10,
-  studentOverrides = {},
-  volunteerOverrides = {}
-}): {
-  messages: Message[]
-  student: Student
-  volunteer: Volunteer
-} => {
-  const messages = []
-  const student = buildStudent({
-    pastSessions: buildPastSessions(),
-    ...studentOverrides
-  })
-  const volunteer = buildVolunteer({
-    pastSessions: buildPastSessions(),
-    ...volunteerOverrides
-  })
-
-  for (let i = 0; i < messagesPerUser; i++) {
-    if (studentSentMessages)
-      messages.push(
-        buildMessage({
-          user: student._id
-        })
-      )
-    if (volunteerSentMessages)
-      messages.push(
-        buildMessage({
-          user: volunteer._id
-        })
-      )
-  }
-
-  return { messages, student, volunteer }
-}
-
-beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true
-  })
-})
-
-afterAll(async () => {
-  await mongoose.connection.close()
-})
+const mockedSessionRepo = mocked(SessionRepo, true)
+const mockedUserActionService = mocked(UserActionService, true)
+const mockedFeedbackService = mocked(FeedbackService, true)
+const mockedAwsService = mocked(AwsService, true)
+const mockedPushTokenService = mocked(PushTokenService, true)
 
 beforeEach(async () => {
-  await resetDb()
   jest.clearAllMocks()
+  jest.restoreAllMocks()
 })
 
-describe('calculateTimeTutored', () => {
-  const similarTestCases = [
-    'Return 0ms if no volunteer has joined the session',
-    'Return 0ms if no volunteerJoinedAt and no endedAt',
-    'Return 0ms if no messages were sent during the session'
-  ]
-  for (const testCase of similarTestCases) {
-    test(testCase, async () => {
-      const session = buildSession()
-      const result = SessionService.calculateTimeTutored(session)
-      const expectedTimeTutored = 0
-
-      expect(result).toEqual(expectedTimeTutored)
-    })
-  }
-
-  test('Return 0ms if volunteer joined after session ended', () => {
-    const createdAt = new Date('2020-10-05T12:00:00.000Z')
-    const endedAt = new Date('2020-10-05T12:05:00.000Z')
-    const volunteerJoinedAt = new Date('2020-10-05T12:10:00.000Z')
-    const volunteer = buildVolunteer()
-    const session = buildSession({
-      createdAt,
-      endedAt,
-      volunteerJoinedAt,
-      volunteer: volunteer._id,
-      messages: buildMessage({
-        user: volunteer._id,
-        createdAt: new Date('2020-10-05T12:03:00.000Z')
-      })
-    })
-
-    const result = SessionService.calculateTimeTutored(session)
-    const expectedTimeTutored = 0
-
-    expect(result).toEqual(expectedTimeTutored)
+describe('reviewSession', () => {
+  test('Should not make any updates', async () => {
+    const sessionId = getStringObjectId()
+    const input = {
+      sessionId,
+      reviewedStudent: undefined,
+      reviewedVolunteer: undefined
+    }
+    await SessionService.reviewSession(input)
+    expect(SessionRepo.updateReviewedStudent).toHaveBeenCalledTimes(0)
+    expect(SessionRepo.updateReviewedVolunteer).toHaveBeenCalledTimes(0)
   })
 
-  test('Return 0ms if latest message was sent before a volunteer joined', () => {
-    const createdAt = new Date('2020-10-05T12:00:00.000Z')
-    const endedAt = new Date('2020-10-05T12:05:00.000Z')
-    const volunteerJoinedAt = new Date('2020-10-05T12:10:00.000Z')
-    const student = buildStudent()
-    const volunteer = buildVolunteer()
-    const session = buildSession({
-      createdAt,
-      endedAt,
-      volunteerJoinedAt,
-      volunteer: volunteer._id,
-      student: student._id,
-      messages: buildMessage({
-        user: student._id,
-        createdAt: new Date('2020-10-05T12:03:00.000Z')
-      })
-    })
-
-    const result = SessionService.calculateTimeTutored(session)
-    const expectedTimeTutored = 0
-
-    expect(result).toEqual(expectedTimeTutored)
+  test('Should update reviewedStudent', async () => {
+    const sessionId = getStringObjectId()
+    const input = {
+      sessionId,
+      reviewedStudent: true,
+      reviewedVolunteer: undefined
+    }
+    await SessionService.reviewSession(input)
+    expect(SessionRepo.updateReviewedStudent).toHaveBeenCalledTimes(1)
+    expect(SessionRepo.updateReviewedVolunteer).toHaveBeenCalledTimes(0)
   })
 
-  test('Should return amount of time tutored', () => {
-    const createdAt = new Date('2020-10-05T12:00:00.000Z')
-    const endedAt = new Date('2020-10-05T12:05:00.000Z')
-    const volunteerJoinedAt = new Date('2020-10-05T12:01:00.000Z')
-    const lastMessageSentAt = new Date('2020-10-05T12:03:00.000Z')
-    const volunteer = buildVolunteer()
-    const session = buildSession({
-      createdAt,
-      endedAt,
-      volunteerJoinedAt,
-      volunteer: volunteer._id,
-      messages: [
-        buildMessage({
-          user: volunteer._id,
-          createdAt: lastMessageSentAt
-        })
-      ]
-    })
-
-    const result = SessionService.calculateTimeTutored(session)
-    const expectedTimeTutored =
-      lastMessageSentAt.getTime() - volunteerJoinedAt.getTime()
-
-    expect(result).toEqual(expectedTimeTutored)
-  })
-
-  test('Should calculate time tutored for sessions less than 3 hours', () => {
-    const createdAt = new Date('2020-10-05T11:55:00.000Z')
-    const endedAt = new Date('2020-10-06T14:06:00.000Z')
-    const volunteerJoinedAt = new Date('2020-10-05T12:00:00.000Z')
-    const lastMessageSentAt = new Date('2020-10-05T14:05:00.000Z')
-    const volunteer = buildVolunteer()
-    const session = buildSession({
-      createdAt,
-      endedAt,
-      volunteerJoinedAt,
-      volunteer: volunteer._id,
-      messages: [
-        buildMessage({
-          user: volunteer._id,
-          createdAt: lastMessageSentAt
-        })
-      ]
-    })
-
-    const result = SessionService.calculateTimeTutored(session)
-    const expectedTimeTutored =
-      lastMessageSentAt.getTime() - volunteerJoinedAt.getTime()
-    expect(result).toEqual(expectedTimeTutored)
-  })
-
-  // When sessions are greater than 3 hours, use the last messages that were sent
-  // within a 15 minute window to get an estimate of the session length / hours tutored
-  test('Should calculate time tutored for sessions greater than 3 hours', () => {
-    const createdAt = new Date('2020-10-05T11:55:00.000Z')
-    const endedAt = new Date('2020-10-06T16:00:00.000Z')
-    const volunteerJoinedAt = new Date('2020-10-05T12:00:00.000Z')
-    const lastMessageSentAt = new Date('2020-10-05T15:59:00.000Z')
-    const volunteer = buildVolunteer()
-    const session = buildSession({
-      createdAt,
-      endedAt,
-      volunteerJoinedAt,
-      volunteer: volunteer._id,
-      messages: [
-        buildMessage({
-          user: volunteer._id,
-          createdAt: new Date('2020-10-05T14:05:00.000Z')
-        }),
-        buildMessage({
-          user: volunteer._id,
-          createdAt: new Date('2020-10-05T15:58:00.000Z')
-        }),
-        buildMessage({
-          user: volunteer._id,
-          createdAt: lastMessageSentAt
-        })
-      ]
-    })
-
-    const result = SessionService.calculateTimeTutored(session)
-    const expectedTimeTutored =
-      lastMessageSentAt.getTime() - volunteerJoinedAt.getTime()
-    expect(result).toEqual(expectedTimeTutored)
+  test('Should update reviewedVolunteer', async () => {
+    const sessionId = getStringObjectId()
+    const input = {
+      sessionId,
+      reviewedStudent: undefined,
+      reviewedVolunteer: true
+    }
+    await SessionService.reviewSession(input)
+    expect(SessionRepo.updateReviewedStudent).toHaveBeenCalledTimes(0)
+    expect(SessionRepo.updateReviewedVolunteer).toHaveBeenCalledTimes(1)
   })
 })
 
-describe('didParticipantsChat', () => {
-  test('Should return true when student and volunteer sent messages back and forth', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true
-    })
-
-    const result = SessionService.didParticipantsChat(
-      messages,
-      student._id,
-      volunteer._id
-    )
-    expect(result).toBeTruthy()
-  })
-
-  test('Should return false when only the student sent messages', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: false
-    })
-
-    const result = SessionService.didParticipantsChat(
-      messages,
-      student._id,
-      volunteer._id
-    )
-    expect(result).toBeFalsy()
-  })
-
-  test('Should return false when only the volunteer sent messages', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: true
-    })
-
-    const result = SessionService.didParticipantsChat(
-      messages,
-      student._id,
-      volunteer._id
-    )
-    expect(result).toBeFalsy()
-  })
-
-  test('Should return false when no messages were sent', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: false,
-      messagesPerUser: 0
-    })
-    const result = SessionService.didParticipantsChat(
-      messages,
-      student._id,
-      volunteer._id
-    )
-    expect(result).toBeFalsy()
-  })
-})
-
-describe('getReviewFlags', () => {
-  test(`Should trigger ${SESSION_FLAGS.FIRST_TIME_STUDENT} flag for a student's first session`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      studentOverrides: {
-        pastSessions: []
-      }
-    })
-
-    const { session } = await insertSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer: volunteer._id,
-      messages
-    })
-
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
+describe('sessionsToReview', () => {
+  test('Should get sessions to review the student', async () => {
+    const input = {
+      users: 'students',
+      page: '1'
     }
-
-    const result = SessionService.getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.FIRST_TIME_STUDENT
-    expect(result).toContain(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.FIRST_TIME_VOLUNTEER} flag for a volunteer's first session`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      messagesPerUser: 13,
-      volunteerOverrides: {
-        pastSessions: []
-      }
-    })
-    const { session } = await insertSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer: volunteer._id,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = SessionService.getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.FIRST_TIME_VOLUNTEER
-    expect(result).toContain(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.UNMATCHED} flag when a volunter does not join the session`, async () => {
-    const { messages, student } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: false,
-      messagesPerUser: 0
-    })
-    const { session } = await insertSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student
-    }
-
-    const result = SessionService.getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.UNMATCHED]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.LOW_MESSAGES} flag`, async () => {
-    const student = buildStudent({ pastSessions: buildPastSessions() })
-    const volunteer = buildVolunteer({
-      pastSessions: buildPastSessions()
-    }) as Volunteer
-    const volunteerJoinedAt = new Date('2020-10-05T12:03:30.000Z')
-
-    const messages = [
-      buildMessage({
-        user: student._id,
-        createdAt: new Date('2020-10-05T12:04:30.000Z')
-      }),
-      buildMessage({
-        user: volunteer._id,
-        createdAt: new Date('2020-10-05T12:05:30.000Z')
-      })
+    const mockedSessions = [
+      mockedGetSessionsToReview(),
+      mockedGetSessionsToReview()
     ]
-
-    const { session } = await insertSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer,
-      messages,
-      volunteerJoinedAt
+    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
+      async () => mockedSessions
+    )
+    const { isLastPage, sessions } = await SessionService.sessionsToReview(
+      input
+    )
+    expect(isLastPage).toBeTruthy()
+    expect(sessions).toEqual(mockedSessions)
+    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
+      limit: 15,
+      query: { reviewedStudent: false },
+      skip: 0
     })
-
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = SessionService.getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.LOW_MESSAGES]
-    expect(result).toEqual(expected)
   })
 
-  test(`Should trigger ${SESSION_FLAGS.ABSENT_USER} flag when only one user sends messages`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: false,
-      messagesPerUser: 10
-    })
-    const { session } = await insertSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
+  test('Should get sessions to review the volunteer', async () => {
+    const input = {
+      users: 'volunteers',
+      page: '1'
     }
-
-    const result = SessionService.getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.ABSENT_USER]
-    expect(result).toEqual(expected)
+    const mockedSessions = [
+      mockedGetSessionsToReview(),
+      mockedGetSessionsToReview()
+    ]
+    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
+      async () => mockedSessions
+    )
+    const { isLastPage, sessions } = await SessionService.sessionsToReview(
+      input
+    )
+    expect(isLastPage).toBeTruthy()
+    expect(sessions).toEqual(mockedSessions)
+    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
+      limit: 15,
+      query: { reviewedVolunteer: false },
+      skip: 0
+    })
   })
 
-  test(`Should trigger ${SESSION_FLAGS.ABSENT_USER} flag when no user sends messages`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: false,
-      messagesPerUser: 0
-    })
-    const { session } = await insertSession({
-      createdAt: new Date(),
-      endedAt: new Date(),
-      student: student._id,
-      volunteer,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
+  test('Should get sessions to review both the student and volunteer', async () => {
+    const input = {
+      users: '',
+      page: '1'
     }
-
-    const result = SessionService.getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.ABSENT_USER]
-    expect(result).toEqual(expected)
+    const mockedSessions = [
+      mockedGetSessionsToReview(),
+      mockedGetSessionsToReview()
+    ]
+    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
+      async () => mockedSessions
+    )
+    const { isLastPage, sessions } = await SessionService.sessionsToReview(
+      input
+    )
+    expect(isLastPage).toBeTruthy()
+    expect(sessions).toEqual(mockedSessions)
+    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
+      limit: 15,
+      query: {
+        $or: [{ reviewedStudent: false }, { reviewedVolunteer: false }]
+      },
+      skip: 0
+    })
   })
 
-  test(`Should trigger ${SESSION_FLAGS.REPORTED} flag when a session was reported`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      messagesPerUser: 20
-    })
-    const { session } = await insertSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date(),
-      student: student._id,
-      volunteer,
-      messages,
-      isReported: true
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
+  test('Should not be the last page if the total number of sessions is greater than the limit', async () => {
+    const input = {
+      users: 'volunteers',
+      page: '1'
     }
-
-    const result = SessionService.getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.REPORTED
-    expect(result).toContain(expected)
+    const mockedSessions = []
+    for (let i = 0; i < 20; i++) {
+      mockedSessions.push(mockedGetSessionsToReview())
+    }
+    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
+      async () => mockedSessions
+    )
+    const { isLastPage } = await SessionService.sessionsToReview(input)
+    expect(isLastPage).toBeFalsy()
   })
 })
 
-describe('getFeedbackFlags', () => {
-  test(`Should add ${SESSION_FLAGS.STUDENT_RATING} flag when student leaves a feedback rating with <= 3`, () => {
-    const feedback = {
-      'coach-rating': 1,
-      'session-goal': 4
+describe('sessionsToReview', () => {
+  test('Should not make any updates', async () => {
+    const input = {
+      users: 'volunteers',
+      page: '1'
     }
-    const result = SessionService.getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.STUDENT_RATING]
-    expect(result).toEqual(expected)
+    const mockedSessions = [
+      mockedGetSessionsToReview(),
+      mockedGetSessionsToReview()
+    ]
+    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
+      async () => mockedSessions
+    )
+    const { isLastPage, sessions } = await SessionService.sessionsToReview(
+      input
+    )
+    expect(isLastPage).toBeTruthy()
+    expect(sessions).toEqual(mockedSessions)
+    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
+      limit: 15,
+      query: { reviewedVolunteer: false },
+      skip: 0
+    })
   })
 
-  test(`Should not add ${SESSION_FLAGS.STUDENT_RATING} flag when student leaves feedback ratings > 3`, () => {
-    const feedback = {
-      'coach-rating': 4,
-      'session-goal': 4
+  test('Should not make any updates', async () => {
+    const input = {
+      users: 'students',
+      page: '1'
     }
-    const result = SessionService.getFeedbackFlags(feedback)
-    const expected = []
-    expect(result).toEqual(expected)
-  })
-  test(`Should add ${SESSION_FLAGS.VOLUNTEER_RATING} flag when volunteer leaves a feedback rating with <= 3`, () => {
-    const feedback = {
-      'session-enjoyable': 3
-    }
-    const result = SessionService.getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.VOLUNTEER_RATING]
-    expect(result).toEqual(expected)
-  })
-  test(`Should not add ${SESSION_FLAGS.VOLUNTEER_RATING} flag when student leaves feedback ratings > 3`, () => {
-    const feedback = {
-      'rate-session': {
-        rating: 5
-      }
-    }
-    const result = SessionService.getFeedbackFlags(feedback)
-    const expected = []
-    expect(result).toEqual(expected)
+    const mockedSessions = [
+      mockedGetSessionsToReview(),
+      mockedGetSessionsToReview()
+    ]
+    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
+      async () => mockedSessions
+    )
+    const { isLastPage, sessions } = await SessionService.sessionsToReview(
+      input
+    )
+    expect(isLastPage).toBeTruthy()
+    expect(sessions).toEqual(mockedSessions)
+    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
+      limit: 15,
+      query: { reviewedStudent: false },
+      skip: 0
+    })
   })
 
-  test(`Should add ${SESSION_FLAGS.COMMENT} flag when user leaves a comment`, () => {
-    const comment = generateSentence()
-    const feedback = {
-      'other-feedback': comment
+  test('Should not make any updates', async () => {
+    const input = {
+      users: '',
+      page: '1'
     }
-    const result = SessionService.getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.COMMENT]
-    expect(result).toEqual(expected)
+    const mockedSessions = [
+      mockedGetSessionsToReview(),
+      mockedGetSessionsToReview()
+    ]
+    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
+      async () => mockedSessions
+    )
+    const { isLastPage, sessions } = await SessionService.sessionsToReview(
+      input
+    )
+    expect(isLastPage).toBeTruthy()
+    expect(sessions).toEqual(mockedSessions)
+    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
+      limit: 15,
+      query: {
+        $or: [{ reviewedStudent: false }, { reviewedVolunteer: false }]
+      },
+      skip: 0
+    })
+  })
+
+  test('Should not be last page', async () => {
+    const input = {
+      users: 'volunteer',
+      page: '1'
+    }
+    const mockedSessions = []
+    for (let i = 0; i < 20; i++) {
+      mockedSessions.push(mockedGetSessionsToReview())
+    }
+    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
+      async () => mockedSessions
+    )
+    const { isLastPage } = await SessionService.sessionsToReview(input)
+    expect(isLastPage).toBeFalsy()
   })
 })
 
-describe('addFeedbackFlags', () => {
-  test('Should add student feedback flags to the session and set studentReviewed to false', async () => {
-    const { session } = await insertSessionWithVolunteer({
-      endedAt: Date.now(),
-      flags: [SESSION_FLAGS.FIRST_TIME_STUDENT],
-      reviewedStudent: true
-    })
-    const flags = [SESSION_FLAGS.COMMENT, SESSION_FLAGS.STUDENT_RATING]
+describe('reportSession', () => {
+  test('Should throw ReportSessionError if no volunteer on session', async () => {
     const input = {
-      sessionId: session._id,
-      flags
+      user: buildVolunteer(),
+      sessionId: getStringObjectId(),
+      reportReason: SESSION_REPORT_REASON.STUDENT_MISUSE,
+      reportMessage: generateSentence()
     }
-    await SessionService.addFeedbackFlags(input)
-    const updatedSession = await getSession(
-      { _id: input.sessionId },
-      {
-        flags: 1,
-        reviewedStudent: 1
-      }
+    const mockValue = mockedGetSessionById()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
     )
-    const expectedFlags = [SESSION_FLAGS.FIRST_TIME_STUDENT, ...flags]
-    expect(updatedSession.flags).toEqual(expectedFlags)
-    expect(updatedSession.reviewedStudent).toBeFalsy()
+    try {
+      await SessionService.reportSession(input)
+    } catch (error) {
+      expect(error).toBeInstanceOf(ReportSessionError)
+    }
   })
 
-  test('Should add volunteer feedback flags to the session and set reviewedVolunteer to false', async () => {
-    const { session } = await insertSessionWithVolunteer({
-      endedAt: Date.now(),
-      flags: [SESSION_FLAGS.REPORTED],
-      isReported: true
-    })
-    const flags = [SESSION_FLAGS.VOLUNTEER_RATING]
+  test('Should throw ReportSessionError if the user reporting does not match the volunteer on the session', async () => {
     const input = {
-      sessionId: session._id,
-      flags
+      user: buildVolunteer(),
+      sessionId: getStringObjectId(),
+      reportReason: SESSION_REPORT_REASON.STUDENT_MISUSE,
+      reportMessage: generateSentence()
     }
-    await SessionService.addFeedbackFlags(input)
-    const updatedSession = await getSession(
-      { _id: input.sessionId },
-      {
-        flags: 1,
-        reviewedVolunteer: 1
-      }
+    const mockValue = mockedGetSessionById({ volunteer: getObjectId() })
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
     )
-    const expectedFlags = [SESSION_FLAGS.REPORTED, ...flags]
-    expect(updatedSession.flags).toEqual(expectedFlags)
-    expect(updatedSession.reviewedVolunteer).toBeFalsy()
+    try {
+      await SessionService.reportSession(input)
+    } catch (error) {
+      expect(error).toBeInstanceOf(ReportSessionError)
+    }
   })
 
-  test('Should not add feedback flags to the session', async () => {
-    const { session } = await insertSessionWithVolunteer({
-      endedAt: Date.now(),
-      flags: [SESSION_FLAGS.FIRST_TIME_STUDENT],
-      reviewedStudent: true
-    })
-    const flags = []
+  test('Should report session', async () => {
     const input = {
-      sessionId: session._id,
-      userType: 'student',
-      flags
+      user: buildVolunteer(),
+      sessionId: getStringObjectId(),
+      reportReason: SESSION_REPORT_REASON.STUDENT_MISUSE,
+      reportMessage: generateSentence()
     }
-    await SessionService.addFeedbackFlags(input)
-    const updatedSession = await getSession(
-      { _id: input.sessionId },
-      {
-        flags: 1
-      }
+    const mockValue = mockedGetSessionById({ volunteer: input.user._id })
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
     )
-    const expectedFlags = [SESSION_FLAGS.FIRST_TIME_STUDENT]
-    expect(updatedSession.flags).toEqual(expectedFlags)
+    await SessionService.reportSession(input)
+    expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
+    expect(UserService.banUser).toHaveBeenCalledTimes(1)
+    expect(MailService.sendBannedUserAlert).toHaveBeenCalledTimes(1)
+    expect(UserActionCtrl.AccountActionCreator).toHaveBeenCalledTimes(1)
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledTimes(1)
+    expect(UserService.getUser).toHaveBeenCalledTimes(1)
+    expect(MailService.createContact).toHaveBeenCalledTimes(1)
+    expect(MailService.sendReportedSessionAlert).toHaveBeenCalledTimes(1)
   })
 })
 
 describe('endSession', () => {
-  test('Should throw no session found when cannot find the session', async () => {
-    const expected = 'No session found'
-    const session = buildSession()
+  test('Should throw session has already ended', async () => {
+    const mockedSession = mockedGetSessionToEnd({ endedAt: new Date() })
     const input = {
-      sessionId: session._id
+      sessionId: mockedSession._id.toString(),
+      endedBy: null,
+      isAdmin: false
     }
-    await expect(SessionService.endSession(input)).rejects.toThrow(expected)
+    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+      async () => mockedSession
+    )
+    try {
+      await SessionService.endSession(input)
+      fail('should throw error')
+    } catch (error) {
+      expect(error).toBeInstanceOf(EndSessionError)
+      expect(error.message).toBe('Session has already ended')
+    }
   })
 
-  test('Should early exit when ending a session that already ended', async () => {
-    const { session } = await insertSession({
-      endedAt: new Date()
-    })
+  test('Should throw only session participants can end a session', async () => {
+    const mockedSession = mockedGetSessionToEnd()
     const input = {
-      sessionId: session._id
+      sessionId: mockedSession._id.toString(),
+      endedBy: getObjectId(),
+      isAdmin: false
     }
-
-    const result = await SessionService.endSession(input)
-    expect(result).toBeUndefined()
-  })
-
-  test('Should throw error when a user who was not part of the session tries to end it', async () => {
-    const { session } = await insertSessionWithVolunteer()
-    const outsideStudent = buildStudent()
-    const outsideVolunteer = buildVolunteer()
-    const inputOne = {
-      sessionId: session._id,
-      isAdmin: false,
-      endedBy: outsideStudent
+    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+      async () => mockedSession
+    )
+    const spy = jest.spyOn(SessionUtils, 'isSessionParticipant')
+    spy.mockImplementationOnce(() => false)
+    try {
+      await SessionService.endSession(input)
+      fail('should throw error')
+    } catch (error) {
+      expect(error).toBeInstanceOf(EndSessionError)
+      expect(error.message).toBe('Only session participants can end a session')
     }
-    const inputTwo = {
-      sessionId: session._id,
-      isAdmin: false,
-      endedBy: outsideVolunteer
-    }
-
-    const expected = 'Only session participants can end a session'
-    await expect(SessionService.endSession(inputOne)).rejects.toThrow(expected)
-    await expect(SessionService.endSession(inputTwo)).rejects.toThrow(expected)
   })
 
   describe('Should end session successfully', () => {
-    test('Should add session to past sessions for student', async () => {
-      const { session, student } = await insertSession()
-      expect(student.pastSessions.length).toEqual(0)
-
-      const input = {
-        sessionId: session._id,
-        endedBy: student
-      }
-
-      await SessionService.endSession(input)
-      const updatedSession = await getSession({
-        _id: session._id
-      })
-
-      const queryProjection = { pastSessions: 1 }
-      const updatedStudent = await getStudent(
-        { _id: student._id },
-        queryProjection
+    let spyGetReviewFlags
+    let spyHasReviewTriggerFlags
+    let spyIsSessionParticipant
+    let spyCalculateTimeTutored
+    beforeEach(async () => {
+      spyGetReviewFlags = jest.spyOn(SessionUtils, 'getReviewFlags')
+      spyHasReviewTriggerFlags = jest.spyOn(
+        SessionUtils,
+        'hasReviewTriggerFlags'
       )
-      const updatedStudentPastSessions = convertObjectIdListToStringList(
-        updatedStudent.pastSessions
-      )
-
-      expect(WhiteboardService.getDoc).toHaveBeenCalledTimes(1)
-      expect(WhiteboardService.deleteDoc).toHaveBeenCalledTimes(1)
-      expect(updatedStudent.pastSessions.length).toEqual(1)
-      expect(updatedStudentPastSessions).toContain(session._id.toString())
-      expect(updatedSession.endedAt).toBeTruthy()
+      spyIsSessionParticipant = jest.spyOn(SessionUtils, 'isSessionParticipant')
+      spyCalculateTimeTutored = jest.spyOn(SessionUtils, 'calculateTimeTutored')
     })
-
-    // eslint-disable-next-line quotes
-    test("Should add session to past sessions for student and volunteer and update volunteer's hoursTutored", async () => {
-      const volunteer = await insertVolunteer()
-      const student = await insertStudent()
-      const oneHourAgo = Date.now() - 1000 * 60 * 60 * 1
-      const createdAt = new Date(oneHourAgo)
-      const volunteerJoinedAt = new Date(oneHourAgo + 1000 * 60)
-      const { session } = await insertSession({
-        student: student._id,
-        createdAt,
-        volunteerJoinedAt,
-        volunteer: volunteer._id,
-        messages: [
-          buildMessage({
-            user: volunteer._id,
-            createdAt: new Date()
-          }),
-          buildMessage({
-            user: student._id,
-            createdAt: new Date()
-          })
-        ]
-      })
-      const hoursTutored = volunteer.hoursTutored.toString()
-      expect(student.pastSessions.length).toEqual(0)
-      expect(volunteer.pastSessions.length).toEqual(0)
-      expect(Number(hoursTutored)).toEqual(0)
-
+    test('Should end session and send first session congrats to any user who had their first session', async () => {
+      const mockedSession = mockedGetSessionToEnd()
       const input = {
-        sessionId: session._id,
-        endedBy: student
+        sessionId: mockedSession._id.toString(),
+        endedBy: mockedSession.student,
+        isAdmin: false
       }
+      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+        async () => mockedSession
+      )
+      spyGetReviewFlags.mockImplementationOnce(() => [
+        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+      ])
+      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
+      spyIsSessionParticipant.mockImplementationOnce(() => true)
+      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
       await SessionService.endSession(input)
-      const updatedSession = await getSession({
-        _id: session._id
-      })
-
-      const updatedStudent = await getStudent(
-        { _id: student._id },
-        { pastSessions: 1 }
-      )
-      const updatedVolunteer = await getVolunteer(
-        { _id: volunteer._id },
-        { pastSessions: 1, hoursTutored: 1 }
-      )
-      const updatedStudentPastSessions = convertObjectIdListToStringList(
-        updatedStudent.pastSessions
-      )
-      const updatedVolunteerPastSessions = convertObjectIdListToStringList(
-        updatedVolunteer.pastSessions
-      )
-      const updatedHoursTutored = updatedVolunteer.hoursTutored.toString()
-      expect(WhiteboardService.getDoc).toHaveBeenCalledTimes(1)
-      expect(WhiteboardService.deleteDoc).toHaveBeenCalledTimes(1)
-      expect(updatedStudent.pastSessions.length).toEqual(1)
-      expect(updatedVolunteer.pastSessions.length).toEqual(1)
+      expect(UserService.addPastSession).toHaveBeenCalledTimes(1)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailStudentFirstSessionCongrats,
         {
-          sessionId: session._id
+          sessionId: mockedSession._id
         },
         expect.anything()
       )
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailVolunteerFirstSessionCongrats,
         {
-          sessionId: session._id
+          sessionId: mockedSession._id
         },
         expect.anything()
       )
-      expect(updatedStudentPastSessions).toContain(session._id.toString())
-      expect(updatedVolunteerPastSessions).toContain(session._id.toString())
-      expect(Number(updatedHoursTutored)).toBeGreaterThan(0)
-      expect(updatedSession.endedAt).toBeTruthy()
+      expect(
+        VolunteerService.updatePastSessionsAndTimeTutored
+      ).toHaveBeenCalledTimes(1)
+      expect(WhiteboardService.getDoc).toHaveBeenCalledTimes(1)
+      expect(WhiteboardService.deleteDoc).toHaveBeenCalledTimes(1)
+      expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
+      expect(SessionRepo.updateSessionToEnd).toHaveBeenCalledTimes(1)
     })
 
-    test('Should not add session review flags to the session', async () => {
-      const oneHourAgo = Date.now() - 1000 * 60 * 60 * 1
-      const createdAt = new Date(oneHourAgo)
-      const volunteerJoinedAt = new Date(oneHourAgo + 1000 * 60)
-      const { messages, student, volunteer } = loadMessages({
-        studentSentMessages: true,
-        volunteerSentMessages: true,
-        messagesPerUser: 20
+    test('Should end college counseling subject', async () => {
+      const mockedSession = mockedGetSessionToEnd({
+        type: SUBJECT_TYPES.COLLEGE
       })
-
-      // avoid LOW_MESSAGES flag by having the createdAt of the messages greater
-      // than the volunteerJoinedAt date
-      const updatedMessages = []
-      for (const message of messages) {
-        updatedMessages.push({ ...message, createdAt: new Date(oneHourAgo) })
-      }
-
-      await insertStudent(student)
-      await insertVolunteer(volunteer)
-      const { session } = await insertSession({
-        createdAt,
-        volunteerJoinedAt,
-        student: student._id,
-        volunteer: volunteer._id,
-        messages: messages
-      })
-
       const input = {
-        sessionId: session._id,
-        endedBy: volunteer
+        sessionId: mockedSession._id.toString(),
+        endedBy: mockedSession.student,
+        isAdmin: false
       }
-      await SessionService.endSession(input)
-      const updatedSession = await getSession(
-        {
-          _id: session._id
-        },
-        { flags: 1 }
+      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+        async () => mockedSession
       )
-      expect(updatedSession.flags.length).toEqual(0)
+      spyGetReviewFlags.mockImplementationOnce(() => [
+        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+      ])
+      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
+      spyIsSessionParticipant.mockImplementationOnce(() => true)
+      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
+      await SessionService.endSession(input)
+      expect(UserService.addPastSession).toHaveBeenCalledTimes(1)
+      expect(
+        VolunteerService.updatePastSessionsAndTimeTutored
+      ).toHaveBeenCalledTimes(1)
+      expect(QuillDocService.getDoc).toHaveBeenCalledTimes(1)
+      expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
+      expect(SessionRepo.updateSessionToEnd).toHaveBeenCalledTimes(1)
     })
 
-    test('Should add session review flags to the session', async () => {
-      const volunteer = await insertVolunteer()
-      const oneHourAgo = Date.now() - 1000 * 60 * 60 * 1
-      const createdAt = new Date(oneHourAgo)
-      const volunteerJoinedAt = new Date(oneHourAgo + 1000 * 60)
-      const { session, student } = await insertSession({
-        createdAt,
-        volunteerJoinedAt,
-        volunteer: volunteer._id,
-        messages: [
-          buildMessage({
-            user: volunteer._id,
-            createdAt: new Date()
-          }),
-          buildMessage({
-            user: volunteer._id,
-            createdAt: new Date()
-          })
+    test('Should add a job to queue on the 5th session for the volunteer', async () => {
+      const volunteer = buildVolunteer({
+        pastSessions: [
+          getObjectId(),
+          getObjectId(),
+          getObjectId(),
+          getObjectId()
         ],
-        isReported: true
+        volunteerPartnerOrg: 'example'
+      })
+      const mockedSession = mockedGetSessionToEnd({
+        volunteer
       })
 
       const input = {
-        sessionId: session._id,
-        endedBy: student
+        sessionId: mockedSession._id.toString(),
+        endedBy: mockedSession.student,
+        isAdmin: false
       }
-      await SessionService.endSession(input)
-      const projection = {
-        flags: 1,
-        reviewedStudent: 1,
-        reviewedVolunteer: 1
-      }
-      const updatedSession = await getSession(
-        {
-          _id: session._id
-        },
-        projection
+      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+        async () => mockedSession
       )
-
-      const expectedFlags = [
-        SESSION_FLAGS.ABSENT_USER,
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER,
-        SESSION_FLAGS.REPORTED,
-        SESSION_FLAGS.FIRST_TIME_STUDENT
-      ]
-
-      expect(updatedSession.flags).toEqual(expectedFlags)
-      expect(updatedSession.reviewedStudent).toBeFalsy()
-      expect(updatedSession.reviewedVolunteer).toBeFalsy()
+      spyGetReviewFlags.mockImplementationOnce(() => [
+        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+      ])
+      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
+      spyIsSessionParticipant.mockImplementationOnce(() => true)
+      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
+      await SessionService.endSession(input)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailPartnerVolunteerReferACoworker,
+        {
+          volunteerId: mockedSession.volunteer._id,
+          firstName: mockedSession.volunteer.firstname,
+          email: mockedSession.volunteer.email,
+          partnerOrg: mockedSession.volunteer.volunteerPartnerOrg
+        },
+        expect.anything()
+      )
+      expect(SessionRepo.updateSessionToEnd).toHaveBeenCalledTimes(1)
     })
 
-    test('Should ignore session flags that do not trigger a review', async () => {
-      const { messages, student, volunteer } = loadMessages({
-        studentSentMessages: true,
-        volunteerSentMessages: false,
-        messagesPerUser: 5
+    test('Should add a job to queue on the 10th session for the volunteer', async () => {
+      const volunteer = buildVolunteer({
+        pastSessions: [
+          getObjectId(),
+          getObjectId(),
+          getObjectId(),
+          getObjectId(),
+          getObjectId(),
+          getObjectId(),
+          getObjectId(),
+          getObjectId(),
+          getObjectId()
+        ],
+        volunteerPartnerOrg: 'example'
       })
-      await insertStudent(student)
-      await insertVolunteer(volunteer)
-      const oneHourAgo = Date.now() - 1000 * 60 * 60 * 1
-      const createdAt = new Date(oneHourAgo)
-      const volunteerJoinedAt = new Date(oneHourAgo + 1000 * 60)
-      const { session } = await insertSession({
-        createdAt,
-        student: student._id,
-        volunteerJoinedAt,
+      const mockedSession = mockedGetSessionToEnd({
+        volunteer
+      })
+
+      const input = {
+        sessionId: mockedSession._id.toString(),
+        endedBy: mockedSession.student,
+        isAdmin: false
+      }
+      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+        async () => mockedSession
+      )
+      spyGetReviewFlags.mockImplementationOnce(() => [
+        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+      ])
+      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
+      spyIsSessionParticipant.mockImplementationOnce(() => true)
+      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
+      await SessionService.endSession(input)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailPartnerVolunteerTenSessionMilestone,
+        {
+          volunteerId: mockedSession.volunteer._id,
+          firstName: mockedSession.volunteer.firstname,
+          email: mockedSession.volunteer.email
+        },
+        expect.anything()
+      )
+      expect(SessionRepo.updateSessionToEnd).toHaveBeenCalledTimes(1)
+    })
+  })
+})
+
+describe('getStaleSessions', () => {
+  test('Should get all long running sessions', async () => {
+    await SessionService.getStaleSessions()
+    expect(SessionRepo.getLongRunningSessions).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('getSessionPhotoUploadUrl', () => {
+  test('Should get all long running sessions', async () => {
+    const sessionId = getStringObjectId()
+    await SessionService.getSessionPhotoUploadUrl(sessionId)
+    expect(SessionRepo.addSessionPhotoKey).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('getImageAndUploadUrl', () => {
+  test('Should get an imageUrl and uploadUrl', async () => {
+    const sessionId = getStringObjectId()
+    const mockUploadUrl = 'https://upload.com/example'
+    mockedAwsService.getSessionPhotoUploadUrl.mockImplementationOnce(
+      async () => mockUploadUrl
+    )
+    const { uploadUrl, imageUrl } = await SessionService.getImageAndUploadUrl(
+      sessionId
+    )
+    const expectedImageUrl = new RegExp(
+      'https://session-photo-bucket.s3.amazonaws.com'
+    )
+    expect(uploadUrl).toBe(mockUploadUrl)
+    // @todo: spyOn SessionService's getSessionPhotoUploadUrl to return value we want instead of a regex match
+    expect(imageUrl).toMatch(expectedImageUrl)
+  })
+})
+
+describe('adminFilteredSessions', () => {
+  test('Should get sessions and isLastPage true', async () => {
+    const input = {
+      showBannedUsers: '1',
+      showTestUsers: '',
+      minSessionLength: '',
+      sessionActivityFrom: '',
+      sessionActivityTo: '',
+      minMessagesSent: '10',
+      studentRating: '2',
+      volunteerRating: '2',
+      firstTimeStudent: '1',
+      firstTimeVolunteer: '',
+      isReported: '',
+      page: '1'
+    }
+    const mockValue = [
+      mockedGetAdminFilteredSessions(),
+      mockedGetAdminFilteredSessions(),
+      mockedGetAdminFilteredSessions()
+    ]
+    mockedSessionRepo.getAdminFilteredSessions.mockImplementationOnce(
+      async () => mockValue
+    )
+    const { sessions, isLastPage } = await SessionService.adminFilteredSessions(
+      input
+    )
+    expect(isLastPage).toBeTruthy()
+    expect(sessions).toEqual(mockValue)
+  })
+
+  test('Should get sessions and isLastPage false', async () => {
+    const input = {
+      showBannedUsers: '1',
+      showTestUsers: '',
+      minSessionLength: '',
+      sessionActivityFrom: '',
+      sessionActivityTo: '',
+      minMessagesSent: '10',
+      studentRating: '2',
+      volunteerRating: '2',
+      firstTimeStudent: '1',
+      firstTimeVolunteer: '',
+      isReported: '',
+      page: '1'
+    }
+    const mockValue = []
+    for (let i = 0; i < 20; i++) {
+      mockValue.push(mockedGetAdminFilteredSessions())
+    }
+    mockedSessionRepo.getAdminFilteredSessions.mockImplementationOnce(
+      async () => mockValue
+    )
+    const { sessions, isLastPage } = await SessionService.adminFilteredSessions(
+      input
+    )
+    expect(isLastPage).toBeFalsy()
+    expect(sessions).toEqual(mockValue)
+  })
+})
+
+describe('adminSessionView', () => {
+  test('Should get data for admin session view', async () => {
+    const sessionId = getStringObjectId()
+    const mockSession = mockedGetSessionByIdWithStudentAndVolunteer({
+      type: 'college'
+    })
+    const mockUserAgent = buildUserAgent()
+    const mockFeedback = [buildFeedback() as FeedbackVersionTwo]
+    const mockSessionPhotos = ['12345', '54321']
+    mockedSessionRepo.getSessionByIdWithStudentAndVolunteer.mockImplementationOnce(
+      // @todo: fix
+      // @ts-expect-error
+      async () => mockSession
+    )
+    mockedUserActionService.getSessionRequestedUserAgentFromSessionId.mockImplementationOnce(
+      async () => mockUserAgent
+    )
+    mockedFeedbackService.getFeedbackForSession.mockImplementationOnce(
+      async () => mockFeedback
+    )
+    mockedAwsService.getObjects.mockImplementationOnce(
+      async () => mockSessionPhotos
+    )
+    const result = await SessionService.adminSessionView(sessionId)
+    expect(QuillDocService.getDoc).toHaveBeenCalledTimes(1)
+    expect(result).toEqual({
+      ...mockSession,
+      userAgent: mockUserAgent,
+      feedbacks: mockFeedback,
+      photos: mockSessionPhotos
+    })
+  })
+})
+
+describe('startSession', () => {
+  test('Should throw an error that volunteers cannot create sessions', async () => {
+    const input = {
+      ip: getIpAddress(),
+      user: buildVolunteer(),
+      sessionSubTopic: SUBJECTS.PREALGREBA,
+      sessionType: SUBJECT_TYPES.MATH,
+      userAgent: getUserAgent()
+    }
+    try {
+      await SessionService.startSession(input)
+    } catch (error) {
+      expect(error).toBeInstanceOf(StartSessionError)
+      expect(error.message).toBe('Volunteers cannot create new sessions')
+    }
+  })
+
+  test('Should throw an error if student is already in a session', async () => {
+    const input = {
+      ip: getIpAddress(),
+      user: buildStudent(),
+      sessionSubTopic: SUBJECTS.PREALGREBA,
+      sessionType: SUBJECT_TYPES.MATH,
+      userAgent: getUserAgent()
+    }
+    const mockValue = mockedGetCurrentSession()
+    mockedSessionRepo.getCurrentSession.mockImplementationOnce(
+      async () => mockValue
+    )
+    try {
+      await SessionService.startSession(input)
+    } catch (error) {
+      expect(error).toBeInstanceOf(StartSessionError)
+      expect(error.message).toBe('Student already has an active session')
+    }
+  })
+
+  test('Should not notify volunteers if the student is banned', async () => {
+    const input = {
+      ip: getIpAddress(),
+      user: buildStudent({ isBanned: true }),
+      sessionSubTopic: SUBJECTS.PREALGREBA,
+      sessionType: SUBJECT_TYPES.MATH,
+      userAgent: getUserAgent()
+    }
+    const mockValue = mockedCreateSession()
+    mockedSessionRepo.getCurrentSession.mockImplementationOnce(async () => null)
+    mockedSessionRepo.createSession.mockImplementationOnce(
+      async () => mockValue
+    )
+    await SessionService.startSession(input)
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.EndUnmatchedSession,
+      {
+        sessionId: mockValue._id
+      },
+      expect.anything()
+    )
+    expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
+    expect(TwilioService.beginRegularNotifications).toHaveBeenCalledTimes(0)
+    expect(TwilioService.beginFailsafeNotifications).toHaveBeenCalledTimes(0)
+  })
+
+  test('Should create a new session', async () => {
+    const input = {
+      ip: getIpAddress(),
+      user: buildStudent(),
+      sessionSubTopic: SUBJECTS.PREALGREBA,
+      sessionType: SUBJECT_TYPES.MATH,
+      userAgent: getUserAgent()
+    }
+    const mockValue = mockedCreateSession()
+    mockedSessionRepo.getCurrentSession.mockImplementationOnce(async () => null)
+    mockedSessionRepo.createSession.mockImplementationOnce(
+      async () => mockValue
+    )
+    await SessionService.startSession(input)
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.EndUnmatchedSession,
+      {
+        sessionId: mockValue._id
+      },
+      expect.anything()
+    )
+    expect(AssistmentsDataRepo.createBySession).not.toHaveBeenCalled()
+    expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
+    expect(TwilioService.beginRegularNotifications).toHaveBeenCalledWith(
+      mockValue
+    )
+    expect(TwilioService.beginFailsafeNotifications).toHaveBeenCalledWith(
+      mockValue
+    )
+  })
+
+  test('Should create a new session and create an ASSISTments data record', async () => {
+    const input = {
+      ip: getIpAddress(),
+      user: buildStudent(),
+      sessionSubTopic: SUBJECTS.PREALGREBA,
+      sessionType: SUBJECT_TYPES.MATH,
+      problemId: '12345',
+      assignmentId: getUUID(),
+      studentId: getUUID(),
+      userAgent: getUserAgent()
+    }
+    const mockValue = mockedCreateSession()
+    mockedSessionRepo.getCurrentSession.mockImplementationOnce(async () => null)
+    mockedSessionRepo.createSession.mockImplementationOnce(
+      async () => mockValue
+    )
+    await SessionService.startSession(input)
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.EndUnmatchedSession,
+      {
+        sessionId: mockValue._id
+      },
+      expect.anything()
+    )
+    expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
+    expect(AssistmentsDataRepo.createBySession).toHaveBeenCalled()
+    expect(TwilioService.beginRegularNotifications).toHaveBeenCalledWith(
+      mockValue
+    )
+    expect(TwilioService.beginFailsafeNotifications).toHaveBeenCalledWith(
+      mockValue
+    )
+  })
+})
+
+describe('finishSession', () => {
+  test.todo('endSession should be mocked')
+  test('Should finish a session', async () => {
+    const input = {
+      ip: getIpAddress(),
+      user: buildVolunteer(),
+      sessionId: getStringObjectId(),
+      userAgent: getUserAgent()
+    }
+
+    const socketService = new SocketService({})
+
+    // @todo: call a mocked version or spy of SessionService.endSession
+    const mockedSessionToEnd = mockedGetSessionToEnd({
+      volunteer: input.user,
+      endedBy: input.user._id
+    })
+    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+      async () => mockedSessionToEnd
+    )
+
+    await SessionService.finishSession(input, socketService)
+    expect(socketService.emitSessionChange).toHaveBeenCalledTimes(1)
+    expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('checkSession', () => {
+  test('Should get session', async () => {
+    const mockValue = mockedGetSessionById()
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+    const actual = await SessionService.checkSession(sessionId)
+    expect(SessionRepo.getSessionById).toHaveBeenCalledTimes(1)
+    expect(actual).toEqual(sessionId.toString())
+  })
+})
+
+describe('currentSession', () => {
+  test('Should get session', async () => {
+    const user = buildStudent()
+    const mockValue = mockedGetCurrentSession()
+    mockedSessionRepo.getCurrentSession.mockImplementationOnce(
+      async () => mockValue
+    )
+    const actual = await SessionService.currentSession(user)
+    expect(SessionRepo.getCurrentSession).toHaveBeenCalledTimes(1)
+    expect(actual).toEqual(mockValue)
+  })
+})
+
+describe('studentLatestSession', () => {
+  test('Should get latest session', async () => {
+    const userId = getStringObjectId()
+    const mockValue = mockedGetStudentLatestSession()
+    mockedSessionRepo.getStudentLatestSession.mockImplementationOnce(
+      async () => mockValue
+    )
+    const actual = await SessionService.studentLatestSession(userId)
+    expect(SessionRepo.getStudentLatestSession).toHaveBeenCalledTimes(1)
+    expect(actual).toEqual(mockValue)
+  })
+})
+
+describe('sessionTimedOut', () => {
+  test('Should get latest session', async () => {
+    const input = {
+      ip: getIpAddress(),
+      user: buildVolunteer(),
+      sessionId: getStringObjectId(),
+      userAgent: getUserAgent(),
+      timeout: 15
+    }
+
+    await SessionService.sessionTimedOut(input)
+    expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('publicSession', () => {
+  test('Should get session', async () => {
+    const sessionId = getStringObjectId()
+    const mockValue = mockedGetPublicSession()
+    mockedSessionRepo.getPublicSession.mockImplementationOnce(async () => [
+      mockValue
+    ])
+    const [actual] = await SessionService.publicSession(sessionId)
+    expect(SessionRepo.getPublicSession).toHaveBeenCalledTimes(1)
+    expect(actual).toEqual(mockValue)
+  })
+})
+
+describe('getSessionNotifications', () => {
+  test('Should get session', async () => {
+    const sessionId = getStringObjectId()
+    const mockValue = mockedGetPublicSession()
+    mockedSessionRepo.getPublicSession.mockImplementationOnce(async () => [
+      mockValue
+    ])
+    const [actual] = await SessionService.publicSession(sessionId)
+    expect(SessionRepo.getPublicSession).toHaveBeenCalledTimes(1)
+    expect(actual).toEqual(mockValue)
+  })
+})
+
+describe('joinSession', () => {
+  test('Should throw error that session has ended', async () => {
+    const input = {
+      socket: buildSocket(),
+      session: buildSession({ student: getObjectId(), endedAt: new Date() }),
+      user: buildVolunteer(),
+      joinedFrom: ''
+    }
+    try {
+      await SessionService.joinSession(input)
+      fail('should throw error')
+    } catch (error) {
+      expect(SessionRepo.updateFailedJoins).toBeCalledTimes(1)
+      expect(SessionRepo.updateFailedJoins).toHaveBeenCalledWith(
+        input.session._id.toString(),
+        input.user._id
+      )
+      expect(error.message).toBe('Session has ended')
+    }
+  })
+
+  // eslint-disable-next-line quotes
+  test("Should throw error that astudent cannot join another student's session", async () => {
+    const input = {
+      socket: buildSocket(),
+      session: buildSession({
+        student: getObjectId()
+      }),
+      user: buildStudent(),
+      joinedFrom: ''
+    }
+    try {
+      await SessionService.joinSession(input)
+      fail('should throw error')
+    } catch (error) {
+      expect(SessionRepo.updateFailedJoins).toBeCalledTimes(1)
+      expect(SessionRepo.updateFailedJoins).toHaveBeenCalledWith(
+        input.session._id.toString(),
+        input.user._id
+      )
+      expect(error.message).toBe(
+        // eslint-disable-next-line quotes
+        "A student cannot join another student's session"
+      )
+    }
+  })
+
+  test('Should throw error that a volunteer has already joined the session', async () => {
+    const input = {
+      socket: buildSocket(),
+      session: buildSession({
+        student: getObjectId(),
+        volunteer: getObjectId()
+      }),
+      user: buildVolunteer(),
+      joinedFrom: ''
+    }
+    try {
+      await SessionService.joinSession(input)
+      fail('should throw error')
+    } catch (error) {
+      expect(SessionRepo.updateFailedJoins).toBeCalledTimes(1)
+      expect(SessionRepo.updateFailedJoins).toHaveBeenCalledWith(
+        input.session._id.toString(),
+        input.user._id
+      )
+      expect(error.message).toBe('A volunteer has already joined the session')
+    }
+  })
+
+  test('Volunteer should join session on initial join', async () => {
+    const input = {
+      socket: buildSocket(),
+      session: buildSession({
+        student: getObjectId()
+      }),
+      user: buildVolunteer(),
+      joinedFrom: ''
+    }
+
+    mockedPushTokenService.getAllPushTokensByUserId.mockImplementationOnce(
+      async () => [buildPushToken(), buildPushToken()]
+    )
+
+    await SessionService.joinSession(input)
+    expect(SessionRepo.addVolunteerToSession).toBeCalledTimes(1)
+    expect(SessionRepo.addVolunteerToSession).toHaveBeenCalledWith(
+      input.session._id,
+      input.user._id
+    )
+    expect(UserActionCtrl.SessionActionCreator).toBeCalledTimes(1)
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      input.user._id,
+      EVENTS.SESSION_JOINED,
+      {
+        event: EVENTS.SESSION_JOINED,
+        sessionId: input.session._id.toString(),
+        joinedFrom: input.joinedFrom
+      }
+    )
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      input.session.student.toString(),
+      EVENTS.SESSION_MATCHED,
+      {
+        event: EVENTS.SESSION_MATCHED,
+        sessionId: input.session._id.toString()
+      }
+    )
+    expect(PushTokenService.getAllPushTokensByUserId).toBeCalledTimes(1)
+    expect(PushTokenService.sendVolunteerJoined).toBeCalledTimes(1)
+  })
+
+  test('Should fire off a session rejoined action/event if user is rejoining the session', async () => {
+    const volunteer = buildVolunteer()
+    const input = {
+      socket: buildSocket(),
+      session: buildSession({
+        student: getObjectId(),
         volunteer: volunteer._id,
-        messages
-      })
+        createdAt: new Date(new Date().getTime() - 1000 * 60 * 10)
+      }),
+      user: volunteer,
+      joinedFrom: ''
+    }
 
-      const input = {
-        sessionId: session._id,
-        endedBy: student._id
+    mockedPushTokenService.getAllPushTokensByUserId.mockImplementationOnce(
+      async () => [buildPushToken(), buildPushToken()]
+    )
+
+    await SessionService.joinSession(input)
+    expect(SessionRepo.addVolunteerToSession).not.toHaveBeenCalled()
+    expect(UserActionCtrl.SessionActionCreator).toBeCalledTimes(1)
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      input.user._id,
+      EVENTS.SESSION_REJOINED,
+      {
+        event: EVENTS.SESSION_REJOINED,
+        sessionId: input.session._id.toString()
       }
-      await SessionService.endSession(input)
-      const projection = {
-        flags: 1,
-        reviewedStudent: 1,
-        reviewedVolunteer: 1
-      }
-      const updatedSession = await getSession(
-        {
-          _id: session._id
-        },
-        projection
-      )
+    )
+  })
+})
 
-      const expectedFlags = [SESSION_FLAGS.ABSENT_USER]
-
-      expect(updatedSession.flags).toEqual(expectedFlags)
-      expect(updatedSession.reviewedStudent).toBeUndefined()
-      expect(updatedSession.reviewedVolunteer).toBeUndefined()
+describe('saveMessage', () => {
+  test('Should throw error if no session is found', async () => {
+    const user = buildStudent({
+      _id: getStringObjectId(),
+      createdAt: new Date().toISOString()
     })
+    const input = {
+      sessionId: getStringObjectId(),
+      user,
+      message: buildMessage({ user: user._id })
+    }
+    const errorMessage = 'No session found'
+    mockedSessionRepo.getSessionById.mockImplementationOnce(async () => {
+      throw new LookupError(errorMessage)
+    })
+    try {
+      await SessionService.saveMessage(input)
+    } catch (error) {
+      expect(error).toBeInstanceOf(LookupError)
+      expect(error.message).toBe(errorMessage)
+    }
+  })
 
-    test.todo('Test mock function for QuillDoc was executed')
+  test('Should add new message to the session', async () => {
+    const user = buildStudent({
+      _id: getStringObjectId(),
+      createdAt: new Date().toISOString()
+    })
+    const input = {
+      sessionId: getStringObjectId(),
+      user,
+      message: buildMessage({ user: user._id })
+    }
+    const mockValue = mockedGetSessionById({ student: user._id })
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+
+    await SessionService.saveMessage(input)
+    expect(SessionRepo.addMessage).toHaveBeenCalledTimes(1)
   })
 })
 
 describe('getTimeTutoredForDateRange', () => {
-  test('Should get the total time tutored over a date range', async () => {
-    const { _id: volunteerId } = buildVolunteer()
-    const timeTutoredOneMin = 60000
-    const timeTutoredTwoMins = 120000
-    await SessionModel.insertMany([
-      buildSession({
-        createdAt: new Date('12/10/2020'),
-        volunteer: volunteerId,
-        timeTutored: timeTutoredOneMin
-      }),
-      buildSession({
-        createdAt: new Date('12/14/2020'),
-        volunteer: volunteerId,
-        timeTutored: timeTutoredTwoMins
-      }),
-      buildSession({
-        createdAt: new Date('12/21/2020'),
-        volunteer: volunteerId,
-        timeTutored: timeTutoredOneMin
-      }),
-      buildSession({
-        createdAt: new Date('12/25/2020'),
-        volunteer: volunteerId,
-        timeTutored: timeTutoredTwoMins
-      })
-    ])
-
+  test('Should return 0 if no timeTutored for the date range', async () => {
+    const mockValue = null
+    mockedSessionRepo.getTotalTimeTutoredForDateRange.mockImplementationOnce(
+      async () => [mockValue]
+    )
     const fromDate = new Date('12/13/2020')
     const toDate = new Date('12/25/2020')
-
     const timeTutored = await SessionService.getTimeTutoredForDateRange(
-      volunteerId,
+      getStringObjectId(),
       fromDate,
       toDate
     )
-    const expectedTimeTutored =
-      timeTutoredOneMin + timeTutoredTwoMins + timeTutoredTwoMins
-    expect(timeTutored).toEqual(expectedTimeTutored)
+    expect(timeTutored).toBe(0)
   })
-})
 
-describe('getMessagesAfterDate', () => {
-  test('Should return messages after a given date', async () => {
-    const student = buildStudent()
-    const volunteer = buildVolunteer()
-    const volunteerJoinedAt = new Date('2021-01-14T12:00:00.000Z')
-    const messages = [
-      buildMessage({
-        user: student._id,
-        createdAt: new Date('2021-01-14T11:45:00.000Z')
-      }),
-      buildMessage({
-        user: student._id,
-        createdAt: new Date('2021-01-14T11:55:00.000Z')
-      }),
-      buildMessage({
-        user: student._id,
-        createdAt: new Date('2021-01-14T12:00:00.000Z')
-      }),
-      buildMessage({
-        user: volunteer._id,
-        createdAt: new Date('2021-01-14T12:10:00.000Z')
-      }),
-      buildMessage({
-        user: student._id,
-        createdAt: new Date('2021-01-14T12:15:00.000Z')
-      })
-    ]
-
-    const results = SessionService.getMessagesAfterDate(
-      messages,
-      volunteerJoinedAt
+  test('Should get total timeTutored over a date range', async () => {
+    const mockValue = {
+      _id: null,
+      timeTutored: 1000 * 60 * 10
+    }
+    mockedSessionRepo.getTotalTimeTutoredForDateRange.mockImplementationOnce(
+      async () => [mockValue]
     )
-    expect(results).toHaveLength(3)
-  })
-
-  test('Should return an empty array if no messages were sent', async () => {
-    const volunteerJoinedAt = new Date('2021-01-14T12:00:00.000Z')
-    const messages = []
-
-    const results = SessionService.getMessagesAfterDate(
-      messages,
-      volunteerJoinedAt
+    const fromDate = new Date('12/13/2020')
+    const toDate = new Date('12/25/2020')
+    const timeTutored = await SessionService.getTimeTutoredForDateRange(
+      getStringObjectId(),
+      fromDate,
+      toDate
     )
-
-    expect(results).toHaveLength(0)
-  })
-
-  test('Should return an empty array if no date is provided', async () => {
-    const student = buildStudent()
-    const volunteer = buildVolunteer()
-
-    const messages = [
-      buildMessage({
-        user: student._id,
-        createdAt: new Date('2021-01-14T11:45:00.000Z')
-      }),
-      buildMessage({
-        user: student._id,
-        createdAt: new Date('2021-01-14T11:55:00.000Z')
-      }),
-      buildMessage({
-        user: student._id,
-        createdAt: new Date('2021-01-14T12:00:00.000Z')
-      }),
-      buildMessage({
-        user: volunteer._id,
-        createdAt: new Date('2021-01-14T12:10:00.000Z')
-      }),
-      buildMessage({
-        user: student._id,
-        createdAt: new Date('2021-01-14T12:15:00.000Z')
-      })
-    ]
-
-    const results = SessionService.getMessagesAfterDate(messages)
-    expect(results).toHaveLength(0)
+    expect(timeTutored).toBe(mockValue.timeTutored)
   })
 })

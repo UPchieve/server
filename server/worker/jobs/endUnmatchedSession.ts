@@ -1,26 +1,26 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
-import Session from '../../models/Session'
-import SessionService from '../../services/SessionService'
+import * as SessionService from '../../services/SessionService'
 import { log } from '../logger'
 import { Jobs } from '.'
 
 export interface EndUnmatchedSessionJobData {
-  sessionId: string | Types.ObjectId
+  sessionId: string
 }
 
 export default async (job: Job<EndUnmatchedSessionJobData>): Promise<void> => {
   const { sessionId } = job.data
-  const session = await Session.findById(sessionId)
-    .lean()
-    .exec()
+  const session = await SessionService.getSessionById(sessionId)
   if (session) {
     const fulfilled = SessionService.isSessionFulfilled(session)
     if (fulfilled) {
       log(`Cancel ${Jobs.EndUnmatchedSession}: session ${sessionId} fulfilled`)
     } else {
       try {
-        await SessionService.endSession({ sessionId: sessionId, isAdmin: true })
+        await SessionService.endSession({
+          sessionId: sessionId,
+          isAdmin: true,
+          endedBy: null
+        })
         log(`Successfuly ${Jobs.EndUnmatchedSession}: session ${sessionId}`)
       } catch (error) {
         throw new Error(

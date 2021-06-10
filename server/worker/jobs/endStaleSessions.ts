@@ -1,4 +1,4 @@
-import SessionService from '../../services/SessionService'
+import * as SessionService from '../../services/SessionService'
 import { log } from '../logger'
 import { Jobs } from '.'
 
@@ -8,7 +8,11 @@ export default async (): Promise<void> => {
   const errors = []
   for (const session of staleSessions) {
     try {
-      await SessionService.endSession({ sessionId: session._id, isAdmin: true })
+      await SessionService.endSession({
+        sessionId: session._id,
+        isAdmin: true,
+        endedBy: null
+      })
       totalEnded += 1
     } catch (error) {
       errors.push(`session ${session._id}: ${error}`)

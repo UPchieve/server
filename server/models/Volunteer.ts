@@ -12,6 +12,7 @@ import {
   COLLEGE_SUBJECTS
 } from '../constants'
 import UserModel, { User } from './User'
+import { DocUpdateError } from './Errors'
 
 export enum DAYS {
   SUNDAY = 'Sunday',
@@ -737,5 +738,24 @@ const VolunteerModel = UserModel.discriminator<VolunteerDocument>(
   volunteerSchema
 )
 
-module.exports = VolunteerModel
+export async function updatePastSessionsAndTimeTutored(
+  volunteerId,
+  sessionId,
+  timeTutored
+) {
+  const query = { _id: volunteerId }
+  const update = {
+    $addToSet: { pastSessions: sessionId },
+    $inc: {
+      hoursTutored: Number((timeTutored / 3600000).toFixed(2)),
+      timeTutored
+    }
+  }
+  try {
+    await VolunteerModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
 export default VolunteerModel

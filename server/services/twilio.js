@@ -2,9 +2,9 @@ const twilio = require('twilio')
 const moment = require('moment-timezone')
 const config = require('../config')
 const Student = require('../models/Student')
-const Volunteer = require('../models/Volunteer')
+const Volunteer = require('../models/Volunteer').default
 const queue = require('./QueueService')
-const Session = require('../models/Session')
+const SessionService = require('./SessionService')
 const Notification = require('../models/Notification')
 const twilioClient =
   config.accountSid && config.authToken
@@ -149,14 +149,7 @@ function getSessionUrl(session) {
 }
 
 const getActiveSessionVolunteers = async () => {
-  const activeSessions = await Session.find({
-    endedAt: { $exists: false },
-    volunteer: { $exists: true }
-  })
-    .select('volunteer')
-    .lean()
-    .exec()
-
+  const activeSessions = await SessionService.getActiveSessionsWithVolunteers()
   return activeSessions.map(session => session.volunteer)
 }
 
@@ -186,7 +179,7 @@ const sendFollowupText = async ({ session, volunteerId, volunteerPhone }) => {
   })
 
   await recordNotification(sendPromise, notification)
-  await session.addNotifications([notification])
+  await SessionService.addNotifications(session._id, [notification])
 }
 
 const notifyVolunteer = async session => {
@@ -323,7 +316,7 @@ const notifyVolunteer = async session => {
   })
 
   await recordNotification(sendPromise, notification)
-  await session.addNotifications([notification])
+  await SessionService.addNotifications(session._id, [notification])
 
   return volunteer
 }
@@ -366,7 +359,7 @@ const notifyFailsafe = async function({ session, voice = false }) {
   }
 
   // save notifications to session object
-  await session.addNotifications(notifications)
+  await SessionService.addNotifications(session._id, notifications)
 }
 
 /**

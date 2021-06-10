@@ -105,7 +105,7 @@ export default {
   },
 
   getLatestSession(context, user) {
-    return NetworkService.latestSession(context, { user_id: user._id })
+    return NetworkService.latestSession(context, { userId: user._id })
       .then(resp => {
         const { data } = resp.data || {}
         return Promise.resolve({ sessionData: data })
