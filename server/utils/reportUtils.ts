@@ -7,7 +7,7 @@ import {
   ONBOARDING_STATUS
 } from '../constants'
 import * as UserActionService from '../services/UserActionService'
-import SessionService from '../services/SessionService'
+import * as SessionService from '../services/SessionService'
 import * as AvailabilityService from '../services/AvailabilityService'
 import logger from '../logger'
 import { isCertified } from '../controllers/UserCtrl'

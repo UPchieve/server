@@ -1,6 +1,8 @@
 module.exports = {
   env: {
-    jest: true
+    jest: true,
+    // allows for the use of `fail()` in tests
+    jasmine: true
   },
   extends: ['prettier-standard'],
   rules: {

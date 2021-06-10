@@ -1,5 +1,6 @@
 import { messaging } from 'firebase-admin'
 import { Types } from 'mongoose'
+import { getAllPushTokensByUserId } from '../models/PushToken'
 
 // This interface feels cleaner than inlining it in the
 // sendToUser definition
@@ -62,21 +63,18 @@ const sendToUser = ({ title, text, data, tokens }: SendToUserData) => {
   })
 }
 
-const service = {
-  sendVolunteerJoined: async function(session: Session, tokens: string[]) {
-    const { type, subTopic, _id } = session
-    const data = {
-      title: 'We found a volunteer!',
-      text: 'Start chatting with your coach now.',
-      data: {
-        path: `/session/${type}/${subTopic}/${_id}`
-      },
-      tokens
-    }
-
-    return sendToUser(data)
+export function sendVolunteerJoined(session: Session, tokens: string[]) {
+  const { type, subTopic, _id } = session
+  const data = {
+    title: 'We found a volunteer!',
+    text: 'Start chatting with your coach now.',
+    data: {
+      path: `/session/${type}/${subTopic}/${_id}`
+    },
+    tokens
   }
+
+  return sendToUser(data)
 }
 
-module.exports = service
-export default service
+export { getAllPushTokensByUserId }

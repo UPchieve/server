@@ -5,7 +5,7 @@ const {
 const crypto = require('crypto')
 const { omit } = require('lodash')
 const User = require('../models/User')
-const Volunteer = require('../models/Volunteer')
+const Volunteer = require('../models/Volunteer').default
 const Student = require('../models/Student')
 const MailService = require('./MailService')
 const IpAddressService = require('./IpAddressService')
@@ -20,6 +20,7 @@ const {
 } = require('../constants')
 const AnalyticsService = require('./AnalyticsService')
 const ObjectId = require('mongodb').ObjectId
+const { DocUpdateError } = require('../models/Errors')
 
 module.exports = {
   getUser: (query, projection) => {
@@ -594,5 +595,16 @@ module.exports = {
     }
 
     return user
+  },
+
+  // @todo: move to repo layer once this is converted to TS
+  addPastSession: async function addPastSession(userId, sessionId) {
+    const query = { _id: userId }
+    const update = { $addToSet: { pastSessions: sessionId } }
+    try {
+      await User.updateOne(query, update)
+    } catch (error) {
+      throw new DocUpdateError(error, query, update)
+    }
   }
 }

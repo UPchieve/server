@@ -1,4 +1,4 @@
-const VolunteerModel = require('../models/Volunteer')
+const VolunteerModel = require('../models/Volunteer').default
 const { getAvailabilities } = require('../services/AvailabilityService')
 
 /**

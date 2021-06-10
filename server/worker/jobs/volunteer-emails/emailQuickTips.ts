@@ -35,6 +35,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
 
     if (
       textNotifications.length === 0 &&
+      // @ts-expect-error
       countAvailabilitySelected(availability.toObject())
     ) {
       try {

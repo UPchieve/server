@@ -13,6 +13,7 @@ import { Jobs } from '../../worker/jobs'
 import * as AvailabilityService from '../../services/AvailabilityService'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
+jest.setTimeout(1000 * 15)
 
 // db connection
 beforeAll(async () => {

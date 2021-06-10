@@ -2,7 +2,12 @@ import moment from 'moment'
 import mongoose from 'mongoose'
 import TwilioService from '../../services/twilio'
 import { MATH_SUBJECTS, SAT_SUBJECTS } from '../../constants'
-import { buildAvailability, buildSession, buildVolunteer } from '../generate'
+import {
+  buildAvailability,
+  buildSession,
+  buildVolunteer,
+  getObjectId
+} from '../generate'
 import {
   insertNotification,
   insertSession,
@@ -10,6 +15,7 @@ import {
   insertVolunteer,
   resetDb
 } from '../db-utils'
+import * as SessionService from '../../services/SessionService'
 
 const MOCK_MOMENT = moment.utc('2020-01-01T05:00:00') // Midnight EST
 const MATCHING_AVAILABILITY = buildAvailability({ Wednesday: { '12a': true } })
@@ -18,7 +24,7 @@ const NON_MATCHING_AVAILABILITY = buildAvailability({
 })
 
 const SESSION = buildSession({
-  _id: 'abc123',
+  _id: getObjectId(),
   type: 'college',
   subTopic: SAT_SUBJECTS.SAT_READING,
   addNotifications: jest.fn()
@@ -26,12 +32,6 @@ const SESSION = buildSession({
 
 jest.mock('moment-timezone', () => ({
   utc: jest.fn(() => MOCK_MOMENT)
-}))
-
-jest.mock('../../config', () => ({
-  client: { host: 'localhost' },
-  accountSid: 'AC12345',
-  authToken: '1234567890'
 }))
 
 jest.mock('twilio', () =>
@@ -63,7 +63,7 @@ test('Properly builds a session URL', () => {
   const sessionUrl = TwilioService.getSessionUrl(SESSION)
 
   expect(sessionUrl).toEqual(
-    'http://localhost/session/college/satreading/abc123'
+    `http://localhost/session/college/satreading/${SESSION._id}`
   )
 })
 
@@ -170,10 +170,10 @@ test('Notifies only the failsafe volunteers', async () => {
   )
   await insertVolunteer(buildVolunteer())
   const { session } = await insertSession()
-
-  session.addNotifications = jest.fn()
+  const spyAddNotifications = jest.spyOn(SessionService, 'addNotifications')
 
   await TwilioService.beginFailsafeNotifications(session)
 
-  expect(session.addNotifications).toHaveBeenCalledTimes(1)
+  expect(spyAddNotifications).toHaveBeenCalledTimes(1)
+  spyAddNotifications.mockRestore()
 })
