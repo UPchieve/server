@@ -29,6 +29,7 @@ const s3PhotoConnectUrls = [
 
 const s3PhotoImageUrls = [
   `${config.awsS3.photoIdBucket}.s3.amazonaws.com`,
+  `${config.awsS3.photoIdBucket}.s3.us-east-2.amazonaws.com`,
   `${config.awsS3.sessionPhotoBucket}.s3.amazonaws.com`,
   `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`
 ]
