@@ -758,4 +758,5 @@ export async function updatePastSessionsAndTimeTutored(
   }
 }
 
+module.exports = VolunteerModel
 export default VolunteerModel
