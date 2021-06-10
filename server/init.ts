@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import ejson from 'mongodb-extended-json'
+const ejson = require('mongodb-extended-json')
 import config from './config'
 
 // Database
@@ -64,7 +64,10 @@ db.once('open', function() {
   // For each of the above metadata items, replace each record in each file with the value from seed data
   seedDataMetadata.forEach(seedDataMetadataItem => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const aModel = require('./models/' + seedDataMetadataItem.model)
+    let aModel = require('./models/' + seedDataMetadataItem.model)
+    if (seedDataMetadataItem.model === 'Volunteer') {
+      aModel = aModel.default
+    }
 
     seedDataMetadataItem.files.forEach(file => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
