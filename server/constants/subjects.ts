@@ -175,6 +175,14 @@ export const SESSION_REPORT_REASON = {
   STUDENT_SAFETY: 'I am worried for the immediate safety of this student'
 }
 
+export const PHYSICS_MAPPING = {
+  physicsone: 'physicsOne'
+}
+
+export const FORMAT_PHYSICS = {
+  physicsOne: 'Physics 1'
+}
+
 export enum TRAINING {
   UPCHIEVE_101 = 'upchieve101',
   TUTORING_SKILLS = 'tutoringSkills',
