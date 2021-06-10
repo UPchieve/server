@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
-const ejson = require('mongodb-extended-json')
 import config from './config'
+const ejson = require('mongodb-extended-json')
 
 // Database
 mongoose.connect(config.database, {
