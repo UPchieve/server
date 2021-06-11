@@ -48,6 +48,10 @@
       "trigonometry": {
         "passed": true,
         "tries": 1
+      },
+      "humanitiesEssays": {
+        "passed": true,
+        "tries": 1
       }
     },
     "college": "Volunteer College",
@@ -63,7 +67,7 @@
     "verificationToken": "f8fa9fdc44c7b3c4378eeabefa8bf8ea",
     "verified": true,
     "referralCode": "B",
-    "subjects": ["prealgebra", "algebraOne"]
+    "subjects": ["prealgebra", "algebraOne", "humanitiesEssays"]
   },
   {
     "certifications": {
