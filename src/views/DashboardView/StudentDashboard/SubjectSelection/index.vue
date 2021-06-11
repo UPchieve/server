@@ -48,8 +48,11 @@ export default {
     }
 
     const cards = Object.entries(topics)
-      // @note: temporarily hide SAT card
-      .filter(([key]) => key !== 'training' && key !== 'sat')
+      // @note: temporarily hide SAT card and Reading & Writing card
+      .filter(
+        ([key]) =>
+          key !== 'training' && key !== 'sat' && key != 'readingWriting'
+      )
       .map(([key, topicObj]) => {
         return {
           title: topicObj.displayName,

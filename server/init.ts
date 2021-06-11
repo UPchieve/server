@@ -16,6 +16,7 @@ db.once('open', function() {
   console.log('Connected to database')
 
   const promises = []
+  let totalRecords = 0
 
   // Data about the seed data we intend to import / update from this file
   const seedDataMetadata = [
@@ -94,14 +95,14 @@ db.once('open', function() {
         })
 
         promises.push(replacePromise)
-        console.log(record)
+        totalRecords += 1
       })
     })
   })
 
   Promise.all(promises)
     .then(() => {
-      console.log('Successfully imported data')
+      console.log(`Successfully imported ${totalRecords} records`)
       process.exit()
     })
     .catch(err => {

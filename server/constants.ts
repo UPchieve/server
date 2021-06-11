@@ -234,7 +234,9 @@ export const SCIENCE_SUBJECTS = {
 export enum COLLEGE_CERTS {
   ESSAYS = 'essays',
   FINANCIAL_AID = 'financialAid',
-  SPORTS_RECRUITMENT_PLANNING = 'sportsRecruitmentPlanning'
+  SPORTS_RECRUITMENT_PLANNING = 'sportsRecruitmentPlanning',
+  PLANNING = 'planning',
+  APPLICATIONS = 'applications'
 }
 
 export enum COLLEGE_SUBJECTS {
@@ -255,11 +257,20 @@ export const SAT_SUBJECTS = {
   SAT_READING: 'satReading'
 }
 
+export enum READING_WRITING_CERTS {
+  HUMANITIES_ESSAYS = 'humanitiesEssays'
+}
+
+export enum READING_WRITING_SUBJECTS {
+  HUMANITIES_ESSAYS = 'humanitiesEssays'
+}
+
 export const SUBJECTS = {
   ...MATH_SUBJECTS,
   ...SCIENCE_SUBJECTS,
   ...COLLEGE_SUBJECTS,
-  ...SAT_SUBJECTS
+  ...SAT_SUBJECTS,
+  ...READING_WRITING_SUBJECTS
 }
 
 export const CERT_UNLOCKING = {
@@ -305,15 +316,18 @@ export const CERT_UNLOCKING = {
   ],
   [COLLEGE_CERTS.ESSAYS]: [COLLEGE_SUBJECTS.ESSAYS],
   // @note: move applications and planning to computed certs once College Counseling is added
-  [COLLEGE_SUBJECTS.APPLICATIONS]: [COLLEGE_SUBJECTS.APPLICATIONS],
-  [COLLEGE_SUBJECTS.PLANNING]: [COLLEGE_SUBJECTS.PLANNING],
+  [COLLEGE_CERTS.APPLICATIONS]: [COLLEGE_SUBJECTS.APPLICATIONS],
+  [COLLEGE_CERTS.PLANNING]: [COLLEGE_SUBJECTS.PLANNING],
   [COLLEGE_CERTS.FINANCIAL_AID]: [COLLEGE_SUBJECTS.FINANCIAL_AID],
   [COLLEGE_CERTS.SPORTS_RECRUITMENT_PLANNING]: [
     COLLEGE_SUBJECTS.SPORTS_RECRUITMENT_PLANNING
   ],
   [SAT_CERTS.SAT_MATH]: [SAT_CERTS.SAT_MATH],
   [SAT_CERTS.SAT_READING]: [SAT_CERTS.SAT_READING],
-  [TRAINING.COLLEGE_COUNSELING]: [SUBJECTS.PLANNING, SUBJECTS.APPLICATIONS]
+  [TRAINING.COLLEGE_COUNSELING]: [SUBJECTS.PLANNING, SUBJECTS.APPLICATIONS],
+  [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: [
+    READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS
+  ]
 }
 
 export const COMPUTED_CERTS = {
@@ -344,7 +358,8 @@ export enum SUBJECT_TYPES {
   SCIENCE = 'science',
   COLLEGE = 'college',
   SAT = 'sat',
-  TRAINING = 'training'
+  TRAINING = 'training',
+  READING_WRITING = 'readingWriting'
 }
 
 export const CALCULUS_MAPPING = {
@@ -375,6 +390,10 @@ export const SAT_MAPPING = {
 export const FORMAT_SAT = {
   [SAT_SUBJECTS.SAT_MATH]: 'SAT Math',
   [SAT_SUBJECTS.SAT_READING]: 'SAT Reading'
+}
+
+export const FORMAT_READING_WRITING = {
+  [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays'
 }
 
 export enum SURVEY_TYPES {
@@ -416,3 +435,256 @@ export enum ONBOARDING_STATUS {
 }
 
 export const ONE_DAY_ELAPSED_MILLISECONDS = 1000 * 60 * 60 * 24
+
+export const CATEGORY_TO_SUBCATEGORY_MAP = {
+  [MATH_CERTS.PREALGREBA]: [
+    'numbers',
+    'arithmetic properties',
+    'exponents',
+    'exponents and radicals',
+    'polynomials',
+    'fractions'
+  ],
+  [MATH_CERTS.ALGEBRA]: [
+    'linear equations',
+    'rational exponents and radicals',
+    'application of linear equations',
+    'two variable equations',
+    'rational expressions',
+    'complex numbers'
+  ],
+  [MATH_CERTS.GEOMETRY]: [
+    'congruence and similarity',
+    'vertices',
+    'angles',
+    'circles',
+    'triangles',
+    'rectangles'
+  ],
+  [MATH_CERTS.TRIGONOMETRY]: [
+    'angles',
+    'triangles',
+    'right triangles',
+    'quadrants',
+    'radians',
+    'unit circle',
+    'inequalities'
+  ],
+  [MATH_CERTS.STATISTICS]: [
+    'representing data numerically',
+    'representing data graphically',
+    'two means',
+    'two proportions',
+    'levels of measurement',
+    'types of sampling',
+    'finding probability',
+    'finding x from z score',
+    'z score',
+    'basic set operations',
+    'compound events',
+    'conditional probability',
+    'independent probability',
+    'permutations and combinations',
+    'random variables distributions',
+    'relationships between variables',
+    'confidence intervals',
+    'interpreting pvalue',
+    'finding the test statistic'
+  ],
+  [MATH_CERTS.PRECALCULUS]: [
+    'rectangular coordinates',
+    'linear inequalities',
+    'functions',
+    'rational exponents',
+    'quadratic functions',
+    'logarithms and exponents'
+  ],
+  [MATH_CERTS.CALCULUS_AB]: [
+    'absolute extrema',
+    'antiderivatives',
+    'area between curves',
+    'chain rule',
+    'concavity',
+    'continuity',
+    'derivatives',
+    'differential equations',
+    'fundamental theorem',
+    'lhopitals rule',
+    'implicit differentiation',
+    'mean value theorem',
+    'optimization',
+    'reimann sums',
+    'related rates',
+    'relative extrema'
+  ],
+  [MATH_CERTS.CALCULUS_BC]: [
+    'absolute extrema',
+    'antiderivatives',
+    'area between curves',
+    'chain rule',
+    'derivatives',
+    'differential equations',
+    'fundamental theorem of calculus',
+    'implicit differentiation',
+    'infinite sequences',
+    'limits',
+    'integration by parts',
+    'mean value theorem',
+    'optimization',
+    'parametric',
+    'reimann sums',
+    'relative extrema',
+    'taylor polynomials'
+  ],
+  [COLLEGE_CERTS.ESSAYS]: [
+    'basic',
+    'commonapp',
+    'answer',
+    'dhistory',
+    'optional',
+    'supplemental'
+  ],
+  // @note: Once College Counseling is implemented Planning and Applications will be phased to subjects that are unlocked instead of certs
+  [COLLEGE_CERTS.PLANNING]: ['exam', 'type', 'LOR', 'basic'],
+  [COLLEGE_CERTS.APPLICATIONS]: [
+    'timeline',
+    'resume',
+    'schools',
+    'fees',
+    'FinAid',
+    'LOR',
+    'basic'
+  ],
+  [SCIENCE_CERTS.BIOLOGY]: [
+    'biochemistry',
+    'the cell',
+    'cell division',
+    'cellular respiration',
+    'photosynthesis and plants',
+    'classical genetics',
+    'molecular genetics',
+    'animal behavior and physiology',
+    'ecology',
+    'human physiology and anatomy',
+    'evolution and taxonomy'
+  ],
+  [SCIENCE_CERTS.CHEMISTRY]: [
+    'chemical reactions',
+    'atoms, compounds, and ions',
+    'stoichiometry',
+    'electron structure of atoms',
+    'periodic table',
+    'chemical bonds',
+    'gases',
+    'states of matter and intermolecular forces',
+    'chemical equilibrium',
+    'acids and bases',
+    'buffers, titrations, and solubility equilibria',
+    'thermodynamics',
+    'redox reactions and electrochemistry',
+    'kinetics',
+    'nuclear chemistry',
+    'kinematics'
+  ],
+  [SCIENCE_CERTS.PHYSICS_ONE]: [
+    'kinematics',
+    // eslint-disable-next-line quotes
+    "newton's laws",
+    'rotational mechanics',
+    'work and energy',
+    'momentum and collisions',
+    'thermodynamics',
+    'electrostatics',
+    'magnetism',
+    'waves and sound',
+    'refraction and reflection',
+    'gravity/gen relativity'
+  ],
+  [SCIENCE_CERTS.PHYSICS_TWO]: [
+    'Fluids - density and pressure',
+    'Fluids - dynamics',
+    'THD - Ideal Gases',
+    'thermodynamics',
+    'Electric Field',
+    'Electric Potential',
+    'Magnetic Fields',
+    'Magnetic Induction',
+    'Electromagnetic Waves',
+    'Optics - refraction and reflection',
+    'Quantum & Atomic Physics',
+    'dynamics 2',
+    'Electric Circuits'
+  ],
+  [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: [
+    'earth systems and resources',
+    'ecology',
+    'energy resources and consumption',
+    'global change',
+    'impact of human health and environment',
+    'interdependence of organisms',
+    'land and water resources and use',
+    'introduction to environmental science',
+    'natural biogeochemical cycles',
+    'pollution',
+    'populations',
+    'the atmosphere'
+  ],
+  [TRAINING.UPCHIEVE_101]: ['upchieve'],
+  [SAT_CERTS.SAT_MATH]: [
+    'linear_equations',
+    'linear_inequalities',
+    'linear_functions',
+    'quadratic_problems',
+    'nonlinear_equations',
+    'rational_expressions',
+    'isolating_quantities',
+    'linear_systems',
+    'ratios_rates',
+    'units',
+    'percentages',
+    'linear_and_exponential',
+    'data_inferences',
+    'volume_word_problems',
+    'complex_numbers',
+    'circle_equations',
+    'table_data',
+    'scatterplots',
+    'graphs',
+    'shape_of_distributions',
+    'right_triangle_problems',
+    'congruence_and_similarity'
+  ],
+  [SAT_CERTS.SAT_READING]: [
+    'explict_v_implicit',
+    'point_of_view',
+    'analyzing_relationships',
+    'citing_evidence',
+    'summarizing',
+    'analogical_reasoning',
+    'structure_passage',
+    'word_choice',
+    'graphs_and_data',
+    'purpose_of_text',
+    'analyzing_arguments',
+    'connecting_texts',
+    'history_passages',
+    'strategies'
+  ],
+  [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: [
+    'types_of_essays',
+    'essay_structure',
+    'point_of_view,',
+    'persuasive_techniques',
+    'citations',
+    'independent_and_dependent_clauses',
+    'punctuation',
+    'verb_tense',
+    'subject_verb_agreement',
+    'specificity_and_coherence',
+    'plagiarism',
+    'nonnvarying_sentence_length',
+    'wordiness',
+    'grammatical_errors',
+    'common_requests'
+  ]
+}

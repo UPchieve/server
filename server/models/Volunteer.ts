@@ -9,6 +9,7 @@ import {
   COLLEGE_CERTS,
   SCIENCE_CERTS,
   SAT_CERTS,
+  READING_WRITING_CERTS,
   COLLEGE_SUBJECTS
 } from '../constants'
 import UserModel, { User } from './User'
@@ -108,8 +109,9 @@ export interface Certifications {
   [TRAINING.COLLEGE_COUNSELING]: CertificationInfo
   [TRAINING.COLLEGE_SKILLS]: CertificationInfo
   [TRAINING.SAT_STRATEGIES]: CertificationInfo
-  [COLLEGE_SUBJECTS.PLANNING]: CertificationInfo
-  [COLLEGE_SUBJECTS.APPLICATIONS]: CertificationInfo
+  [COLLEGE_CERTS.PLANNING]: CertificationInfo
+  [COLLEGE_CERTS.APPLICATIONS]: CertificationInfo
+  [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: CertificationInfo
 }
 
 interface TrainingCourseData {
@@ -664,6 +666,17 @@ const volunteerSchema = new Schema(
         lastAttemptedAt: { type: Date }
       },
       [SAT_CERTS.SAT_READING]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: {
         passed: {
           type: Boolean,
           default: false

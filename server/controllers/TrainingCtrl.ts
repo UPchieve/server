@@ -12,9 +12,9 @@ import {
   MATH_CERTS,
   SCIENCE_CERTS,
   SAT_CERTS,
+  READING_WRITING_CERTS,
   SUBJECT_TYPES,
   COLLEGE_CERTS,
-  COLLEGE_SUBJECTS,
   EVENTS
 } from '../constants'
 import getSubjectType from '../utils/getSubjectType'
@@ -41,8 +41,8 @@ const numQuestions = {
   [MATH_CERTS.CALCULUS_BC]: 1,
   [COLLEGE_CERTS.ESSAYS]: 3,
   // @note: Once College Counseling is implemented Planning and Applications will be phased to subjects that are unlocked instead of certs
-  [COLLEGE_SUBJECTS.PLANNING]: 4,
-  [COLLEGE_SUBJECTS.APPLICATIONS]: 2,
+  [COLLEGE_CERTS.PLANNING]: 4,
+  [COLLEGE_CERTS.APPLICATIONS]: 2,
   [SCIENCE_CERTS.BIOLOGY]: 1,
   [SCIENCE_CERTS.CHEMISTRY]: 1,
   [SCIENCE_CERTS.PHYSICS_ONE]: 1,
@@ -50,7 +50,8 @@ const numQuestions = {
   [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: 1,
   [TRAINING.UPCHIEVE_101]: 27,
   [SAT_CERTS.SAT_MATH]: 1,
-  [SAT_CERTS.SAT_READING]: 1
+  [SAT_CERTS.SAT_READING]: 1,
+  [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: 1
 }
 const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
@@ -104,11 +105,12 @@ export function hasRequiredTraining(
   subjectCert: string,
   userCertifications: Certifications
 ): boolean {
-  const subjectCertType = getSubjectType(subjectCert).toLowerCase()
+  const subjectCertType = getSubjectType(subjectCert)
 
   if (
     (subjectCertType === SUBJECT_TYPES.MATH ||
-      subjectCertType === SUBJECT_TYPES.SCIENCE) &&
+      subjectCertType === SUBJECT_TYPES.SCIENCE ||
+      subjectCertType === SUBJECT_TYPES.READING_WRITING) &&
     userCertifications[TRAINING.TUTORING_SKILLS].passed
   )
     return true

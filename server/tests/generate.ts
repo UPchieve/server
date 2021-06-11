@@ -12,6 +12,7 @@ import {
   REFERENCE_STATUS,
   SAT_CERTS,
   SCIENCE_CERTS,
+  READING_WRITING_CERTS,
   TRAINING
 } from '../constants'
 import { Message } from '../models/Message'
@@ -99,6 +100,7 @@ export const buildCertifications = (overrides = {}): Certifications => {
     [TRAINING.COLLEGE_COUNSELING]: { passed: false, tries: 0 },
     [TRAINING.COLLEGE_SKILLS]: { passed: false, tries: 0 },
     [TRAINING.SAT_STRATEGIES]: { passed: false, tries: 0 },
+    [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: { passed: false, tries: 0 },
     ...overrides
   }
 }

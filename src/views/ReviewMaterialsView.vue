@@ -148,6 +148,15 @@ export default {
         case 'environmentalScience':
           this.reviewMaterials = []
           break
+        case 'humanitiesEssays':
+          this.reviewMaterials = [
+            {
+              title: 'Humanities Essays Review Guide',
+              pdf: `${this.hostPath}/humanities-essays-review-guide.pdf`,
+              image: `${this.hostPath}/humanities-essays-review-guide.png`
+            }
+          ]
+          break
         // case for a user entering a subject that we do not support
         default:
           this.error = true
