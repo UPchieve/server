@@ -59,6 +59,7 @@ import * as SessionUtils from '../../utils/session-utils'
 import TwilioService from '../../services/twilio'
 import { LookupError } from '../../utils/type-utils'
 import { FeedbackVersionTwo } from '../../models/Feedback'
+import * as cache from '../../cache'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
@@ -75,6 +76,7 @@ jest.mock('../../services/QueueService')
 jest.mock('../../services/SocketService')
 jest.mock('../../services/AwsService')
 jest.mock('../../services/PushTokenService')
+jest.mock('../../cache')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedUserActionService = mocked(UserActionService, true)
@@ -1166,5 +1168,40 @@ describe('getTimeTutoredForDateRange', () => {
       toDate
     )
     expect(timeTutored).toBe(mockValue.timeTutored)
+  })
+})
+
+describe('generateWaitTimeHeatMap', () => {
+  test('Should create and return a heat map for session wait times', async () => {
+    const mockedSessions = [
+      { _id: '1-12', averageWaitTime: 10000, day: 1, hour: 12 },
+      { _id: '4-18', averageWaitTime: 50000, day: 4, hour: 18 }
+    ]
+    mockedSessionRepo.getSessionsWithWaitTimeWithinDateRange.mockImplementationOnce(
+      // @todo: learn how to properly type mockedSessions to return an aggregate in this test
+      // @ts-expect-error
+      async () => mockedSessions
+    )
+    const heatMap = await SessionService.generateWaitTimeHeatMap()
+    expect(heatMap.Monday['12p']).toBe(10000)
+    expect(heatMap.Thursday['6p']).toBe(50000)
+  })
+})
+
+describe('generateAndStoreWaitTimeHeatMap', () => {
+  test('Should save the generated wait time heat map', async () => {
+    const mockedSessions = [
+      { _id: '1-12', averageWaitTime: 10000, day: 1, hour: 12 }
+    ]
+    mockedSessionRepo.getSessionsWithWaitTimeWithinDateRange.mockImplementationOnce(
+      // @todo: learn how to properly type mockedSessions to return an aggregate in this test
+      // @ts-expect-error
+      async () => mockedSessions
+    )
+    const spyOn = jest.spyOn(SessionService, 'generateWaitTimeHeatMap')
+    console.log(spyOn.getMockName())
+    await SessionService.generateAndStoreWaitTimeHeatMap()
+    expect(spyOn).toHaveBeenCalledTimes(1)
+    expect(cache.save).toHaveBeenCalledTimes(1)
   })
 })

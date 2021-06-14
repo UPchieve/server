@@ -7,7 +7,8 @@ import {
   SESSION_REPORT_REASON,
   EVENTS,
   SUBJECT_TYPES,
-  SESSION_FLAGS
+  SESSION_FLAGS,
+  UTC_TO_HOUR_MAPPING
 } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import * as sessionUtils from '../utils/session-utils'
@@ -32,6 +33,7 @@ import { getFeedbackForSession } from './FeedbackService'
 import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
 import { captureEvent } from './AnalyticsService'
 import * as PushTokenService from './PushTokenService'
+import * as cache from '../cache'
 
 const {
   getSessionById,
@@ -671,4 +673,31 @@ export async function saveMessage(data: unknown): Promise<void> {
     throw new Error('Only session participants are allowed to send messages')
 
   await SessionRepo.addMessage(sessionId, message)
+}
+
+export async function generateWaitTimeHeatMap() {
+  const oneWeekAgo = moment()
+    .subtract(7, 'day')
+    .toDate()
+  const now = moment().toDate()
+  const heatMap = sessionUtils.createEmptyHeatMap()
+  const sessions = await SessionRepo.getSessionsWithWaitTimeWithinDateRange(
+    oneWeekAgo,
+    now
+  )
+
+  for (const session of sessions) {
+    const day = moment()
+      .weekday(session.day)
+      .format('dddd')
+    const hour = UTC_TO_HOUR_MAPPING[session.hour]
+    heatMap[day][hour] = session.averageWaitTime
+  }
+
+  return heatMap
+}
+
+export async function generateAndStoreWaitTimeHeatMap() {
+  const heatMap = await generateWaitTimeHeatMap()
+  await cache.save(config.cacheKeys.waitTimeHeatMap, JSON.stringify(heatMap))
 }
