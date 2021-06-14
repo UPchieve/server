@@ -676,14 +676,21 @@ export async function saveMessage(data: unknown): Promise<void> {
 }
 
 export async function generateWaitTimeHeatMap() {
-  const oneWeekAgo = moment()
-    .subtract(7, 'day')
+  // @todo: figure out if Monday - Sunday or Sunday - Saturday
+  const lastMonday = moment()
+    .utc()
+    .subtract(1, 'weeks')
+    .startOf('isoWeek')
     .toDate()
-  const now = moment().toDate()
+  const lastSunday = moment()
+    .utc()
+    .subtract(1, 'weeks')
+    .endOf('isoWeek')
+    .toDate()
   const heatMap = sessionUtils.createEmptyHeatMap()
   const sessions = await SessionRepo.getSessionsWithWaitTimeWithinDateRange(
-    oneWeekAgo,
-    now
+    lastMonday,
+    lastSunday
   )
 
   for (const session of sessions) {
