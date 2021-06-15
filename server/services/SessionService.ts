@@ -19,6 +19,7 @@ import { Jobs } from '../worker/jobs'
 import * as AssistmentsDataRepo from '../models/AssistmentsData'
 import logger from '../logger'
 import * as cache from '../cache'
+import { NotAllowed } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
@@ -34,7 +35,6 @@ import { getFeedbackForSession } from './FeedbackService'
 import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
 import { captureEvent } from './AnalyticsService'
 import * as PushTokenService from './PushTokenService'
-import { NotAllowed } from '../models/Errors'
 
 const {
   getSessionById,
