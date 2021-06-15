@@ -34,6 +34,7 @@ import { getFeedbackForSession } from './FeedbackService'
 import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
 import { captureEvent } from './AnalyticsService'
 import * as PushTokenService from './PushTokenService'
+import { NotAllowed } from '../models/Errors'
 
 const {
   getSessionById,
@@ -704,7 +705,12 @@ export async function generateAndStoreWaitTimeHeatMap(
   )
 }
 
-export async function getWaitTimeHeatMap() {
+export async function getWaitTimeHeatMap(
+  data: unknown
+): Promise<sessionUtils.HeatMap> {
+  const user = sessionUtils.asUser(data)
+  if (!user.isVolunteer)
+    throw new NotAllowed('Only volunteers may view the heat map')
   const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
   return JSON.parse(heatMap)
 }
