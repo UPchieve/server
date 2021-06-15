@@ -835,7 +835,7 @@ describe('getSessionsWithAvgWaitTimePerDayAndHour', () => {
   // wait time of 15 minutes for unmatched session
   const secondSessionData = {
     createdAt: new Date('2021-01-07T10:15:00.000Z'),
-    endedAt: new Date('2021-01-07T10:30:00.000Z'),
+    endedAt: new Date('2021-01-07T10:30:00.000Z')
   }
 
   beforeAll(async () => {
