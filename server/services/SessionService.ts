@@ -676,7 +676,6 @@ export async function saveMessage(data: unknown): Promise<void> {
 }
 
 export async function generateWaitTimeHeatMap() {
-  // @todo: figure out if Monday - Sunday or Sunday - Saturday
   const lastMonday = moment()
     .utc()
     .subtract(1, 'weeks')
