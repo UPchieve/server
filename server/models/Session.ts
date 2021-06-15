@@ -1125,14 +1125,14 @@ export async function addMessage(sessionId, message) {
   }
 }
 
-export interface SessionsWithWaitTimeWithinDateRange {
+export interface SessionsWithAvgWaitTimePerDayAndHour {
   _id: string
   averageWaitTime: number
   day: number
   hour: number
 }
 
-export function getSessionsWithWaitTimeWithinDateRange(
+export function getSessionsWithAvgWaitTimePerDayAndHour(
   startDate: Date,
   endDate: Date
 ) {
@@ -1201,7 +1201,7 @@ export function getSessionsWithWaitTimeWithinDateRange(
         }
       }
     }
-  ]) as Aggregate<SessionsWithWaitTimeWithinDateRange[]>
+  ]) as Aggregate<SessionsWithAvgWaitTimePerDayAndHour[]>
 }
 
 export default SessionModel

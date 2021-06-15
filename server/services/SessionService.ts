@@ -687,7 +687,7 @@ export async function generateWaitTimeHeatMap() {
     .endOf('isoWeek')
     .toDate()
   const heatMap = sessionUtils.createEmptyHeatMap()
-  const sessions = await SessionRepo.getSessionsWithWaitTimeWithinDateRange(
+  const sessions = await SessionRepo.getSessionsWithAvgWaitTimePerDayAndHour(
     lastMonday,
     lastSunday
   )
@@ -705,10 +705,10 @@ export async function generateWaitTimeHeatMap() {
 
 export async function generateAndStoreWaitTimeHeatMap() {
   const heatMap = await generateWaitTimeHeatMap()
-  await cache.save(config.cacheKeys.waitTimeHeatMap, JSON.stringify(heatMap))
+  await cache.save(config.cacheKeys.waitTimeHeatMapAllSubjects, JSON.stringify(heatMap))
 }
 
 export async function getWaitTimeHeatMap() {
-  const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMap)
+  const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
   return JSON.parse(heatMap)
 }

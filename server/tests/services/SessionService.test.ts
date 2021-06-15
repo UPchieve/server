@@ -1178,8 +1178,8 @@ describe('generateWaitTimeHeatMap', () => {
       { _id: '1-12', averageWaitTime: 10000, day: 1, hour: 12 },
       { _id: '4-18', averageWaitTime: 50000, day: 4, hour: 18 }
     ]
-    mockedSessionRepo.getSessionsWithWaitTimeWithinDateRange.mockImplementationOnce(
-      // @todo: learn how to properly type mockedSessions to return an aggregate in this test
+    mockedSessionRepo.getSessionsWithAvgWaitTimePerDayAndHour.mockImplementationOnce(
+      // @todo: return type Aggregate of mockedSessions
       // @ts-expect-error
       async () => mockedSessions
     )
@@ -1194,8 +1194,8 @@ describe('generateAndStoreWaitTimeHeatMap', () => {
     const mockedSessions = [
       { _id: '1-12', averageWaitTime: 10000, day: 1, hour: 12 }
     ]
-    mockedSessionRepo.getSessionsWithWaitTimeWithinDateRange.mockImplementationOnce(
-      // @todo: learn how to properly type mockedSessions to return an aggregate in this test
+    mockedSessionRepo.getSessionsWithAvgWaitTimePerDayAndHour.mockImplementationOnce(
+      // @todo: return type Aggregate of mockedSessions
       // @ts-expect-error
       async () => mockedSessions
     )
