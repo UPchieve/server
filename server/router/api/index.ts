@@ -18,6 +18,7 @@ import moderate from './moderate'
 import pushToken from './push-token'
 import { routeReports } from './reports'
 import { routeSurvey } from './survey'
+import { routes as routeStats } from './stats'
 
 export function routes(app: Express, sessionStore: MongoStore): void {
   console.log('API module')
@@ -38,6 +39,7 @@ export function routes(app: Express, sessionStore: MongoStore): void {
   pushToken(router)
   routeReports(router)
   routeSurvey(router)
+  routeStats(router)
 
   app.use(addLastActivity)
   app.use(addUserAction)
