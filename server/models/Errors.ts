@@ -24,3 +24,5 @@ export class RepoCreateError extends CustomError {}
 export class RepoReadError extends CustomError {}
 export class RepoUpdateError extends CustomError {}
 export class RepoDeleteError extends CustomError {}
+
+export class NotAllowed extends CustomError {}

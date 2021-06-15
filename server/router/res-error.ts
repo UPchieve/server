@@ -1,7 +1,7 @@
 import { CustomError } from 'ts-custom-error'
 import { Response } from 'express'
 import Sentry from '@sentry/node'
-import { DocUpdateError } from '../models/Errors'
+import { DocUpdateError, NotAllowed } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import { InputError, LookupError } from '../utils/type-utils'
 import config from '../config'
@@ -17,6 +17,8 @@ export function resError(
   if (status) {
     /* keep provided status */
   }
+  // user is authenthicated, but not authorized to retrieve resource
+  else if (err instanceof NotAllowed) status = 403
   // database lookup returned null
   else if (err instanceof LookupError) status = 409
   // business logic errors
