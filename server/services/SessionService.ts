@@ -18,6 +18,7 @@ import { asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
 import * as AssistmentsDataRepo from '../models/AssistmentsData'
 import logger from '../logger'
+import * as cache from '../cache'
 import * as VolunteerService from './VolunteerService'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
@@ -33,7 +34,6 @@ import { getFeedbackForSession } from './FeedbackService'
 import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
 import { captureEvent } from './AnalyticsService'
 import * as PushTokenService from './PushTokenService'
-import * as cache from '../cache'
 
 const {
   getSessionById,
@@ -675,21 +675,11 @@ export async function saveMessage(data: unknown): Promise<void> {
   await SessionRepo.addMessage(sessionId, message)
 }
 
-export async function generateWaitTimeHeatMap() {
-  const lastMonday = moment()
-    .utc()
-    .subtract(1, 'weeks')
-    .startOf('isoWeek')
-    .toDate()
-  const lastSunday = moment()
-    .utc()
-    .subtract(1, 'weeks')
-    .endOf('isoWeek')
-    .toDate()
+export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
   const heatMap = sessionUtils.createEmptyHeatMap()
   const sessions = await SessionRepo.getSessionsWithAvgWaitTimePerDayAndHour(
-    lastMonday,
-    lastSunday
+    startDate,
+    endDate
   )
 
   for (const session of sessions) {
@@ -703,9 +693,15 @@ export async function generateWaitTimeHeatMap() {
   return heatMap
 }
 
-export async function generateAndStoreWaitTimeHeatMap() {
-  const heatMap = await generateWaitTimeHeatMap()
-  await cache.save(config.cacheKeys.waitTimeHeatMapAllSubjects, JSON.stringify(heatMap))
+export async function generateAndStoreWaitTimeHeatMap(
+  startDate: Date,
+  endDate: Date
+) {
+  const heatMap = await generateWaitTimeHeatMap(startDate, endDate)
+  await cache.save(
+    config.cacheKeys.waitTimeHeatMapAllSubjects,
+    JSON.stringify(heatMap)
+  )
 }
 
 export async function getWaitTimeHeatMap() {
