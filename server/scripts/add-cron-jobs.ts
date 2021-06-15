@@ -54,7 +54,7 @@ const jobTemplates: JobTemplate[] = [
   },
   {
     name: Jobs.GenerateAndStoreWaitTimeHeatMap,
-    options: { repeat: { cron: '0 8 * * *', tz: 'America/New_York' } } // every Monday at 8am EST
+    options: { repeat: { cron: '0 8 * * MON', tz: 'America/New_York' } } // every Monday at 8am EST
   }
 ]
 
