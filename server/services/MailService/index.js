@@ -666,9 +666,6 @@ module.exports = {
       reply_to: {
         email: sender
       },
-      cc: {
-        email: config.mail.receivers.support
-      },
       categories: ['partner volunteer - only college certs']
     }
     sendEmail(
@@ -707,9 +704,6 @@ module.exports = {
       reply_to: {
         email: sender
       },
-      cc: {
-        email: config.mail.receivers.support
-      },
       categories: ['volunteer - first session congrats']
     }
     sendEmail(
@@ -735,9 +729,6 @@ module.exports = {
       reply_to: {
         email: sender
       },
-      cc: {
-        email: config.mail.receivers.support
-      },
       categories: ['partner volunteer - refer a coworker']
     }
     sendEmail(
@@ -756,9 +747,6 @@ module.exports = {
     const overrides = {
       reply_to: {
         email: sender
-      },
-      cc: {
-        email: config.mail.receivers.support
       },
       categories: ['partner volunteer - ten session milestone']
     }
@@ -779,9 +767,6 @@ module.exports = {
       reply_to: {
         email: sender
       },
-      cc: {
-        email: config.mail.receivers.support
-      },
       categories: ['volunteer - gentle warning']
     }
     sendEmail(
@@ -800,9 +785,6 @@ module.exports = {
     const overrides = {
       reply_to: {
         email: sender
-      },
-      cc: {
-        email: config.mail.receivers.support
       },
       categories: ['volunteer - inactive thirty days']
     }
