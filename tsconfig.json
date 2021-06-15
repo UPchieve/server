@@ -23,5 +23,8 @@
     "dist/",
     "public",
     "./*.js"
-  ]
+  ],
+  "ts-node": {
+    "files": true
+  }
 }
