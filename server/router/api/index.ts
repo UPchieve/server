@@ -7,7 +7,6 @@ import { addLastActivity } from '../../middleware/add-last-activity'
 import { addUserAction } from '../../middleware/add-user-action'
 import socketServer from './socket-server'
 import volunteers from './volunteers'
-import user from './user'
 import { routeVerify } from './verify'
 import { routes as routeSessions } from './session'
 import { routeCalendar } from './calendar'
@@ -19,6 +18,7 @@ import pushToken from './push-token'
 import { routeReports } from './reports'
 import { routeSurvey } from './survey'
 import { routes as routeStats } from './stats'
+const user = require('./user')
 
 export function routes(app: Express, sessionStore: MongoStore): void {
   console.log('API module')
@@ -30,7 +30,7 @@ export function routes(app: Express, sessionStore: MongoStore): void {
   volunteers(router)
   user(router)
   routeVerify(router)
-  routeSessions(router, io)
+  routeSessions(router as Router, io)
   routeCalendar(router)
   training(router)
   routeFeedback(router)
@@ -43,5 +43,5 @@ export function routes(app: Express, sessionStore: MongoStore): void {
 
   app.use(addLastActivity)
   app.use(addUserAction)
-  app.use('/api', authPassport.isAuthenticated, router)
+  app.use('/api', authPassport.isAuthenticated, router as Router)
 }

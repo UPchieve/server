@@ -184,6 +184,7 @@ function defaultErrorHandler(
   res: Response,
   next: NextFunction
 ) {
+  logger.error(err)
   res.status(err.httpStatus || 500).json({ err: err.message || err })
   next()
 }

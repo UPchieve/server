@@ -27,13 +27,7 @@ export function addUserAction(
         .catch(error => captureException(error))
     }
 
-    // add user action 'updated profile' only from /profile request route
-    const referer = req.headers.referer
-    if (
-      req.url === '/api/user' &&
-      req.method === 'PUT' &&
-      referer.includes('profile')
-    ) {
+    if (req.url === '/api/user' && req.method === 'PUT') {
       new AccountActionCreator(_id, ipAddress)
         .updatedProfile()
         .catch(error => captureException(error))
