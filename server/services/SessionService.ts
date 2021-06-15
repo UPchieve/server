@@ -708,3 +708,8 @@ export async function generateAndStoreWaitTimeHeatMap() {
   const heatMap = await generateWaitTimeHeatMap()
   await cache.save(config.cacheKeys.waitTimeHeatMap, JSON.stringify(heatMap))
 }
+
+export async function getWaitTimeHeatMap() {
+  const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMap)
+  return JSON.parse(heatMap)
+}
