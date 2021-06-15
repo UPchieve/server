@@ -62,6 +62,8 @@ testfrontend:
 testbackend:
   stage: test
   image: node:12.22.1-buster
+  variables:
+    NODE_OPTIONS: --max_old_space_size=2048
   services:
     - name: mongo:4.2.2
       alias: mongodb
