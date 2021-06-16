@@ -822,3 +822,39 @@ describe('addMessage', () => {
     ).rejects.toBeInstanceOf(DocUpdateError)
   })
 })
+
+describe('getSessionsWithAvgWaitTimePerDayAndHour', () => {
+  const lastMonday = new Date('2021-01-04T00:00:00.000Z')
+  const lastSunday = new Date('2021-01-10T23:59:59.999Z')
+  // wait time of 5 minutes for matched session
+  const firstSessionData = {
+    createdAt: new Date('2021-01-07T10:00:00.000Z'),
+    endedAt: new Date('2021-01-07T10:30:00.000Z'),
+    volunteerJoinedAt: new Date('2021-01-07T10:05:00.000Z')
+  }
+  // wait time of 15 minutes for unmatched session
+  const secondSessionData = {
+    createdAt: new Date('2021-01-07T10:15:00.000Z'),
+    endedAt: new Date('2021-01-07T10:30:00.000Z')
+  }
+
+  beforeAll(async () => {
+    await insertSessionWithVolunteer(firstSessionData)
+    await insertSession(secondSessionData)
+  })
+
+  afterAll(async () => {
+    await cleanup()
+  })
+
+  test('Should add message to messages', async () => {
+    const fiveMinutes = 1000 * 60 * 5
+    const fifteenMinutes = 1000 * 60 * 15
+    const expectedAverageWaitTimeForHour = (fiveMinutes + fifteenMinutes) / 2
+    const sessions = await SessionRepo.getSessionsWithAvgWaitTimePerDayAndHour(
+      lastMonday,
+      lastSunday
+    )
+    expect(sessions[0].averageWaitTime).toBe(expectedAverageWaitTimeForHour)
+  })
+})

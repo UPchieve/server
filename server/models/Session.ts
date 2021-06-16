@@ -1,6 +1,6 @@
 import moment from 'moment-timezone'
 import { values } from 'lodash'
-import { Document, model, Model, Schema, Types } from 'mongoose'
+import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
 import { FEEDBACK_VERSIONS, SESSION_FLAGS, USER_ACTION } from '../constants'
 import { LookupError } from '../utils/type-utils'
 import MessageModel, { Message } from './Message'
@@ -1123,6 +1123,85 @@ export async function addMessage(sessionId, message) {
   } catch (error) {
     throw new DocUpdateError(error, query, update)
   }
+}
+
+export interface SessionsWithAvgWaitTimePerDayAndHour {
+  _id: string
+  averageWaitTime: number
+  day: number
+  hour: number
+}
+
+export function getSessionsWithAvgWaitTimePerDayAndHour(
+  startDate: Date,
+  endDate: Date
+) {
+  return SessionModel.aggregate([
+    {
+      $match: {
+        createdAt: {
+          $gt: startDate,
+          $lt: endDate
+        }
+      }
+    },
+    {
+      $project: {
+        createdAt: 1,
+        sessionLength: { $subtract: ['$endedAt', '$createdAt'] },
+        dayCreatedAt: {
+          $dayOfWeek: '$createdAt'
+        },
+        hourCreatedAt: {
+          $hour: '$createdAt'
+        },
+        waitTime: {
+          $cond: {
+            if: '$volunteer',
+            then: { $subtract: ['$volunteerJoinedAt', '$createdAt'] },
+            else: { $subtract: ['$endedAt', '$createdAt'] }
+          }
+        }
+      }
+    },
+    {
+      $match: {
+        // exclude sessions less than one minute in length
+        sessionLength: {
+          $gt: 1000 * 60
+        }
+      }
+    },
+    {
+      $addFields: {
+        dayHourCompoundKey: {
+          $concat: [
+            {
+              $toString: '$dayCreatedAt'
+            },
+            '-',
+            {
+              $toString: '$hourCreatedAt'
+            }
+          ]
+        }
+      }
+    },
+    {
+      $group: {
+        _id: '$dayHourCompoundKey',
+        averageWaitTime: {
+          $avg: '$waitTime'
+        },
+        day: {
+          $first: '$dayCreatedAt'
+        },
+        hour: {
+          $first: '$hourCreatedAt'
+        }
+      }
+    }
+  ]) as Aggregate<SessionsWithAvgWaitTimePerDayAndHour[]>
 }
 
 export default SessionModel

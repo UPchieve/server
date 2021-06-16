@@ -185,7 +185,8 @@ const config: Static<typeof Config> = {
     'localManifests/student.yaml',
 
   cacheKeys: {
-    updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN'
+    updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
+    waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS'
   },
 
   // Sentry Data Source Name
