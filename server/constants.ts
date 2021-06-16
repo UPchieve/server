@@ -688,3 +688,9 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'common_requests'
   ]
 }
+
+export enum DATE_RANGE_COMPARISON_FIELDS {
+  CREATED_AT = '$createdAt',
+  SENT_AT = '$sentAt',
+  PAST_SESSION_CREATED_AT = '$pastSession.createdAt'
+}

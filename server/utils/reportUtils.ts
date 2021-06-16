@@ -4,7 +4,8 @@ import { capitalize } from 'lodash'
 import {
   USER_ACTION,
   HOUR_TO_UTC_MAPPING,
-  ONBOARDING_STATUS
+  ONBOARDING_STATUS,
+  DATE_RANGE_COMPARISON_FIELDS
 } from '../constants'
 import * as UserActionService from '../services/UserActionService'
 import * as SessionService from '../services/SessionService'
@@ -356,17 +357,21 @@ export async function telecomHourSummaryStats(
   }
 }
 
-export function getSumOperatorForDateRanges(startDate: Date, endDate: Date) {
+export function getSumOperatorForDateRange(
+  startDate: Date,
+  endDate: Date,
+  fieldToCompareDateRange: DATE_RANGE_COMPARISON_FIELDS = DATE_RANGE_COMPARISON_FIELDS.CREATED_AT
+) {
   return {
     $sum: {
       $cond: [
         {
           $and: [
             {
-              $gte: ['$createdAt', startDate]
+              $gte: [fieldToCompareDateRange, startDate]
             },
             {
-              $lte: ['$createdAt', endDate]
+              $lte: [fieldToCompareDateRange, endDate]
             }
           ]
         },
@@ -601,7 +606,7 @@ export function getAccumulatedSummaryAnalytics(
   return summary
 }
 
-export function getUniqueStudentStats(partnerOrg, startDate, endDatae) {
+export function getUniqueStudentStats(partnerOrg, startDate, endDate) {
   return (getVolunteersWithPipeline([
     {
       $match: {
@@ -623,9 +628,10 @@ export function getUniqueStudentStats(partnerOrg, startDate, endDatae) {
       $group: {
         _id: '$pastSession.student',
         frequency: { $sum: 1 },
-        frequencyWitinDateRange: getSumOperatorForDateRanges(
+        frequencyWitinDateRange: getSumOperatorForDateRange(
           startDate,
-          endDatae
+          endDate,
+          DATE_RANGE_COMPARISON_FIELDS.PAST_SESSION_CREATED_AT
         )
       }
     },
