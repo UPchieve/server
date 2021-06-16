@@ -29,17 +29,12 @@ describe(Jobs.GenerateAndStoreWaitTimeHeatMap, () => {
     )
   })
 
-  test('Should log error if failed to generate or store the heat map', async () => {
+  test('Should let error bubble up if failed to generate or store the heat map', async () => {
     mockedSessionService.generateAndStoreWaitTimeHeatMap.mockImplementationOnce(
       async () => {
         throw new Error('Unable to store heat map')
       }
     )
-    await generateAndStoreWaitTimeHeatMap()
-    expect(logger.error).toHaveBeenCalledWith(
-      // @todo: mock out moment dates so we can do an absolute assertion check
-      //        on the log message
-      expect.stringMatching(`Failed to ${Jobs.GenerateAndStoreWaitTimeHeatMap}`)
-    )
+    await expect(generateAndStoreWaitTimeHeatMap()).rejects.toThrow()
   })
 })

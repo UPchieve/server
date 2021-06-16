@@ -21,8 +21,6 @@ export default async (): Promise<void> => {
       `Successfuly executed ${Jobs.GenerateAndStoreWaitTimeHeatMap} for ${lastMonday} to ${lastSunday}.`
     )
   } catch (error) {
-    logger.error(
-      `Failed to ${Jobs.GenerateAndStoreWaitTimeHeatMap} for ${lastMonday} to ${lastSunday} - Error: ${error.message}`
-    )
+    throw error
   }
 }
