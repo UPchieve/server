@@ -112,7 +112,8 @@ export const Config = Record({
   studentPartnerManifestPath: String,
 
   cacheKeys: Record({
-    updateTotalVolunteerHoursLastRun: String
+    updateTotalVolunteerHoursLastRun: String,
+    waitTimeHeatMapAllSubjects: String
   }),
 
   // Sentry Data Source Name

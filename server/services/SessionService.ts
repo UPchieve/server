@@ -7,7 +7,8 @@ import {
   SESSION_REPORT_REASON,
   EVENTS,
   SUBJECT_TYPES,
-  SESSION_FLAGS
+  SESSION_FLAGS,
+  UTC_TO_HOUR_MAPPING
 } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import * as sessionUtils from '../utils/session-utils'
@@ -17,6 +18,7 @@ import { asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
 import * as AssistmentsDataRepo from '../models/AssistmentsData'
 import logger from '../logger'
+import * as cache from '../cache'
 import * as VolunteerService from './VolunteerService'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
@@ -671,4 +673,38 @@ export async function saveMessage(data: unknown): Promise<void> {
     throw new Error('Only session participants are allowed to send messages')
 
   await SessionRepo.addMessage(sessionId, message)
+}
+
+export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
+  const heatMap = sessionUtils.createEmptyHeatMap()
+  const sessions = await SessionRepo.getSessionsWithAvgWaitTimePerDayAndHour(
+    startDate,
+    endDate
+  )
+
+  for (const session of sessions) {
+    const day = moment()
+      .weekday(session.day)
+      .format('dddd')
+    const hour = UTC_TO_HOUR_MAPPING[session.hour]
+    heatMap[day][hour] = session.averageWaitTime
+  }
+
+  return heatMap
+}
+
+export async function generateAndStoreWaitTimeHeatMap(
+  startDate: Date,
+  endDate: Date
+) {
+  const heatMap = await generateWaitTimeHeatMap(startDate, endDate)
+  await cache.save(
+    config.cacheKeys.waitTimeHeatMapAllSubjects,
+    JSON.stringify(heatMap)
+  )
+}
+
+export async function getWaitTimeHeatMap() {
+  const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
+  return JSON.parse(heatMap)
 }

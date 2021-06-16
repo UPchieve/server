@@ -59,6 +59,7 @@ import * as SessionUtils from '../../utils/session-utils'
 import TwilioService from '../../services/twilio'
 import { LookupError } from '../../utils/type-utils'
 import { FeedbackVersionTwo } from '../../models/Feedback'
+import * as cache from '../../cache'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
@@ -75,12 +76,14 @@ jest.mock('../../services/QueueService')
 jest.mock('../../services/SocketService')
 jest.mock('../../services/AwsService')
 jest.mock('../../services/PushTokenService')
+jest.mock('../../cache')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedUserActionService = mocked(UserActionService, true)
 const mockedFeedbackService = mocked(FeedbackService, true)
 const mockedAwsService = mocked(AwsService, true)
 const mockedPushTokenService = mocked(PushTokenService, true)
+const mockedCache = mocked(cache, true)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -1166,5 +1169,50 @@ describe('getTimeTutoredForDateRange', () => {
       toDate
     )
     expect(timeTutored).toBe(mockValue.timeTutored)
+  })
+})
+
+describe('generateWaitTimeHeatMap', () => {
+  test('Should create and return a heat map for session wait times', async () => {
+    const mockedSessions = [
+      { _id: '1-12', averageWaitTime: 10000, day: 1, hour: 12 },
+      { _id: '4-18', averageWaitTime: 50000, day: 4, hour: 18 }
+    ]
+    mockedSessionRepo.getSessionsWithAvgWaitTimePerDayAndHour.mockImplementationOnce(
+      // @todo: return type Aggregate of mockedSessions
+      // @ts-expect-error
+      async () => mockedSessions
+    )
+    const heatMap = await SessionService.generateWaitTimeHeatMap(
+      new Date(),
+      new Date()
+    )
+    expect(heatMap.Monday['12p']).toBe(10000)
+    expect(heatMap.Thursday['6p']).toBe(50000)
+  })
+})
+
+describe('generateAndStoreWaitTimeHeatMap', () => {
+  test('Should save the generated wait time heat map', async () => {
+    const mockedSessions = [
+      { _id: '1-12', averageWaitTime: 10000, day: 1, hour: 12 }
+    ]
+    mockedSessionRepo.getSessionsWithAvgWaitTimePerDayAndHour.mockImplementationOnce(
+      // @todo: return type Aggregate of mockedSessions
+      // @ts-expect-error
+      async () => mockedSessions
+    )
+    await SessionService.generateAndStoreWaitTimeHeatMap(new Date(), new Date())
+    expect(cache.save).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('getWaitTimeHeatMap', () => {
+  test('Should save the generated wait time heat map', async () => {
+    const mockedHeatMap =
+      '{"Sunday":{"12a":80000000,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Monday":{"12a":200000,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Tuesday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Wednesday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Thursday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Friday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Saturday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0}}'
+    mockedCache.get.mockImplementationOnce(async () => mockedHeatMap)
+    const result = await SessionService.getWaitTimeHeatMap()
+    expect(JSON.parse(mockedHeatMap)).toEqual(result)
   })
 })

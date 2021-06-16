@@ -6,6 +6,7 @@ import { Student } from '../models/Student'
 import { SESSION_FLAGS } from '../constants'
 import { Session } from '../models/Session'
 import { Message } from '../models/Message'
+import { DAYS, HOURS } from '../models/Availability/types'
 import {
   asArray,
   asBoolean,
@@ -217,6 +218,28 @@ export function isSessionFulfilled(session) {
   const hasVolunteerJoined = !!session.volunteer
 
   return hasEnded || hasVolunteerJoined
+}
+
+export type HeatMapDay = {
+  [hour in HOURS]: number
+}
+
+export type HeatMap = {
+  [day in DAYS]: HeatMapDay
+}
+
+export function createEmptyHeatMap() {
+  const heatMap = {}
+
+  for (const day in DAYS) {
+    const currentDay = {}
+    for (const hour in HOURS) {
+      currentDay[HOURS[hour]] = 0
+    }
+    heatMap[DAYS[day]] = currentDay
+  }
+
+  return heatMap as HeatMap
 }
 
 export interface RequestIdentifier {
