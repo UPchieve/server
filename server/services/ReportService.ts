@@ -4,12 +4,12 @@ import _ from 'lodash'
 import User from '../models/User'
 import { studentPartnerManifests } from '../partnerManifests'
 import logger from '../logger'
-import { FEEDBACK_VERSIONS } from '../constants'
+import { FEEDBACK_VERSIONS, DATE_RANGE_COMPARISON_FIELDS } from '../constants'
 import config from '../config'
 import {
   generateTelecomReport,
   getAnalyticsReportRow,
-  getSumOperatorForDateRanges,
+  getSumOperatorForDateRange,
   AnalyticsReportRow,
   PartnerVolunteerAnalytics,
   getAnalyticsReportSummary
@@ -621,7 +621,7 @@ export const generatePartnerAnalyticsReport = async ({
                   $group: {
                     _id: '$student',
                     frequency: { $sum: 1 },
-                    frequencyWitinDateRange: getSumOperatorForDateRanges(
+                    frequencyWitinDateRange: getSumOperatorForDateRange(
                       start,
                       end
                     )
@@ -644,7 +644,7 @@ export const generatePartnerAnalyticsReport = async ({
                   $group: {
                     _id: null,
                     total: { $sum: 1 },
-                    totalWithinDateRange: getSumOperatorForDateRanges(
+                    totalWithinDateRange: getSumOperatorForDateRange(
                       start,
                       end
                     ),
@@ -682,7 +682,11 @@ export const generatePartnerAnalyticsReport = async ({
             $group: {
               _id: null,
               total: { $sum: 1 },
-              totalWithinDateRange: getSumOperatorForDateRanges(start, end)
+              totalWithinDateRange: getSumOperatorForDateRange(
+                start,
+                end,
+                DATE_RANGE_COMPARISON_FIELDS.SENT_AT
+              )
             }
           }
         ],
