@@ -3,6 +3,7 @@ import request, { Test } from 'supertest'
 import app from '../../app'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildAvailability, authLogin } from '../generate'
+jest.setTimeout(1000 * 15)
 
 const agent = request.agent(app)
 
