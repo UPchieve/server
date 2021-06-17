@@ -15,11 +15,11 @@ export default async (): Promise<void> => {
     .endOf('isoWeek')
     .toDate()
 
+  logger.info(
+    `Executing ${Jobs.GenerateAndStoreWaitTimeHeatMap} for ${lastMonday} to ${lastSunday}.`
+  )
   try {
     await SessionService.generateAndStoreWaitTimeHeatMap(lastMonday, lastSunday)
-    logger.info(
-      `Successfuly executed ${Jobs.GenerateAndStoreWaitTimeHeatMap} for ${lastMonday} to ${lastSunday}.`
-    )
   } catch (error) {
     throw error
   }
