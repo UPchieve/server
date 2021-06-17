@@ -1,5 +1,1516 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Storyshots Example/AvailabilityGrid Vanilla 1`] = `
+<div
+  class="AvailabilityGrid"
+>
+  <div
+    class="Column"
+  >
+    <div
+      class="Top Left Cell-unselectable"
+    >
+      
+  
+
+    </div>
+     
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  12 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  1 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  2 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  3 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  4 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  5 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  6 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  7 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  8 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  9 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  10 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  11 am
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  12 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  1 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  2 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  3 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  4 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  5 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  6 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  7 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  8 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  9 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  10 pm
+
+    </div>
+    <div
+      class="Left Cell-unselectable"
+    >
+      
+  11 pm
+
+    </div>
+  </div>
+   
+  <div
+    class="Column"
+  >
+    <div
+      class="Top Cell-unselectable"
+    >
+      
+  Sunday
+
+    </div>
+     
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+  </div>
+  <div
+    class="Column"
+  >
+    <div
+      class="Top Cell-unselectable"
+    >
+      
+  Monday
+
+    </div>
+     
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+  </div>
+  <div
+    class="Column"
+  >
+    <div
+      class="Top Cell-unselectable"
+    >
+      
+  Tuesday
+
+    </div>
+     
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+  </div>
+  <div
+    class="Column"
+  >
+    <div
+      class="Top Cell-unselectable"
+    >
+      
+  Wednesday
+
+    </div>
+     
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+  </div>
+  <div
+    class="Column"
+  >
+    <div
+      class="Top Cell-unselectable"
+    >
+      
+  Thursday
+
+    </div>
+     
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+  </div>
+  <div
+    class="Column"
+  >
+    <div
+      class="Top Cell-unselectable"
+    >
+      
+  Friday
+
+    </div>
+     
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+  </div>
+  <div
+    class="Column"
+  >
+    <div
+      class="Top Cell-unselectable"
+    >
+      
+  Saturday
+
+    </div>
+     
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+    <div>
+      <div
+        class="Cell-selectable Cell-selectable--selected"
+        selected="selected"
+      >
+        <!---->
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Example/Button Large 1`] = `
 <button
   class="storybook-button storybook-button--secondary storybook-button--large"
@@ -42,6 +1553,68 @@ exports[`Storyshots Example/Button Small 1`] = `
   Button
 
 </button>
+`;
+
+exports[`Storyshots Example/Cell Flagged Selected 1`] = `
+<div>
+  <div
+    class="Cell-selectable Cell-selectable--selected"
+    selected="selected"
+  >
+    <!---->
+  </div>
+</div>
+`;
+
+exports[`Storyshots Example/Cell Flagged Unselected 1`] = `
+<div>
+  <div
+    class="Cell-selectable"
+  >
+    <!---->
+  </div>
+</div>
+`;
+
+exports[`Storyshots Example/Cell Selectable Selected 1`] = `
+<div>
+  <div
+    class="Cell-selectable Cell-selectable--selected"
+    selected="selected"
+  >
+    <!---->
+  </div>
+</div>
+`;
+
+exports[`Storyshots Example/Cell Selectable Unselected 1`] = `
+<div>
+  <div
+    class="Cell-selectable"
+  >
+    <!---->
+  </div>
+</div>
+`;
+
+exports[`Storyshots Example/Cell Unselectable 1`] = `
+<div
+  class="Cell-unselectable"
+>
+  
+  Cell content
+
+</div>
+`;
+
+exports[`Storyshots Example/Cell Vanilla 1`] = `
+<div>
+  <div
+    class="Cell-selectable"
+  >
+    <!---->
+  </div>
+</div>
 `;
 
 exports[`Storyshots Example/Header Logged In 1`] = `
