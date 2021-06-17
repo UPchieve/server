@@ -1,7 +1,7 @@
 import AvailabilityGrid from '../components/AvailabilityGrid'
 
 export default {
-  title: 'Example/AvailabilityGrid',
+  title: 'Availability/AvailabilityGrid',
   component: AvailabilityGrid
 }
 

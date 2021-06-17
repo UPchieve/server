@@ -1,8 +1,6 @@
 <template>
-  <div v-if="selectable">
-    <div :selected="selected" :class="cellClasses">
-      <ClockIcon v-if="flagged" class="Cell-icon clock-icon" />
-    </div>
+  <div v-if="selectable" :class="cellClasses">
+    <ClockIcon v-if="flagged" class="Cell-icon clock-icon" />
   </div>
   <div v-else :class="cellClasses">
     {{ content }}
@@ -47,8 +45,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$upchieve-green: #8ae8d4;
-
 %Cell {
   @include font-category('body');
   border: 0.5px solid #cccccf;

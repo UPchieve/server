@@ -1,7 +1,7 @@
 import Cell from '../components/AvailabilityGrid/Cell.vue'
 
 export default {
-  title: 'Example/Cell',
+  title: 'Availability/Cell',
   component: Cell
 }
 
