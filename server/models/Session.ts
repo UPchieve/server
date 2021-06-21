@@ -1150,7 +1150,7 @@ export function getSessionsWithAvgWaitTimePerDayAndHour(
         createdAt: 1,
         sessionLength: { $subtract: ['$endedAt', '$createdAt'] },
         dayCreatedAt: {
-          $dayOfWeek: '$createdAt'
+          $isoDayOfWeek: '$createdAt'
         },
         hourCreatedAt: {
           $hour: '$createdAt'

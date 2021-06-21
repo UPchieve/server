@@ -516,6 +516,11 @@ export default {
       .post(`${API_ROOT}/calendar/save`, data)
       .then(this._successHandler, this._errorHandler)
   },
+  getWaitTimes(context) {
+    return context.$http
+      .get(`${API_ROOT}/stats/volunteer/heatmap`)
+      .then(this._successHandler, this._errorHandler)
+  },
   searchSchool(context, { query }) {
     return context.$http
       .get(

@@ -60,6 +60,7 @@ import TwilioService from '../../services/twilio'
 import { LookupError } from '../../utils/type-utils'
 import { FeedbackVersionTwo } from '../../models/Feedback'
 import * as cache from '../../cache'
+import { NotAllowed } from '../../models/Errors'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
@@ -1208,11 +1209,24 @@ describe('generateAndStoreWaitTimeHeatMap', () => {
 })
 
 describe('getWaitTimeHeatMap', () => {
-  test('Should save the generated wait time heat map', async () => {
-    const mockedHeatMap =
-      '{"Sunday":{"12a":80000000,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Monday":{"12a":200000,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Tuesday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Wednesday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Thursday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Friday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Saturday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0}}'
+  const mockedHeatMap =
+    '{"Sunday":{"12a":80000000,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Monday":{"12a":200000,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Tuesday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Wednesday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Thursday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Friday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0},"Saturday":{"12a":0,"1a":0,"2a":0,"3a":0,"4a":0,"5a":0,"6a":0,"7a":0,"8a":0,"9a":0,"10a":0,"11a":0,"12p":0,"1p":0,"2p":0,"3p":0,"4p":0,"5p":0,"6p":0,"7p":0,"8p":0,"9p":0,"10p":0,"11p":0}}'
+
+  test('Should throw error that only volunteers may be able to view the heat map if the user is a student', async () => {
+    const expectedErrorMessage = 'Only volunteers may view the heat map'
     mockedCache.get.mockImplementationOnce(async () => mockedHeatMap)
-    const result = await SessionService.getWaitTimeHeatMap()
+    try {
+      await SessionService.getWaitTimeHeatMap(buildStudent())
+    } catch (error) {
+      expect(error).toBeInstanceOf(NotAllowed)
+      expect(error.message).toBe(expectedErrorMessage)
+    }
+  })
+
+  test('Should get the wait time heat map from the cache if the user is a volunteer', async () => {
+    mockedCache.get.mockImplementationOnce(async () => mockedHeatMap)
+    const result = await SessionService.getWaitTimeHeatMap(buildVolunteer())
     expect(JSON.parse(mockedHeatMap)).toEqual(result)
+    expect(cache.get).toHaveBeenCalledTimes(1)
   })
 })

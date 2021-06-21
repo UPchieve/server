@@ -3,53 +3,41 @@
     <div class="calendar">
       <div class="header">
         <div class="instructions-container">
-          <div class="header-title">Schedule</div>
+          <div class="header-title">Tell us when to text you!</div>
           <p class="instructions">
-            Select at least one hour of availability so that we know when we can
-            text you. We recommend selecting times where you're free at least
-            60% of the time. No need to wait in front of a computer for a
-            request to come in—we'll text you if a student needs your help!
+            Choose your availability below and we’ll text you when a student
+            needs your help. You’re not obligated to tutor every time we text
+            you, but try and select times you’re likely to want to help a
+            student. Don’t want to wait for a text? You can check your dashboard
+            for students who need help at any time.
           </p>
         </div>
-        <button v-bind:class="saveButtonClass" type="button" @click="save()">
-          <span v-html="saveLabel"></span>
-        </button>
+        <div class="save-container">
+          <div v-if="hasWaitTimes" class="clock-explanation-container">
+            <ClockIcon class="clock-explanation-icon" />
+            <p class="clock-explanation">
+              Times when students are currently waiting the longest for a
+              tutor—try and include some of these if you can!
+            </p>
+          </div>
+          <button v-bind:class="saveButtonClass" type="button" @click="save()">
+            <span v-html="saveLabel"></span>
+          </button>
+        </div>
       </div>
       <div v-if="hasUserSchedule">
         <div class="tz-selector-container">
           <span>Time Zone: </span>
-          <select v-model="selectedTz">
+          <select v-model="selectedTz" class="tz-selector">
             <option v-for="tz in tzList" :key="tz">
               {{ tz }}
             </option>
           </select>
-        </div>
-        <div class="dayTimeScrollContainer">
-          <div class="dayTimeContainer">
-            <div class="timeLabelContainer">
-              <div v-for="time in timeRange" :key="time" class="timeLabel">
-                {{ time }}
-              </div>
-            </div>
-            <form class="dayTime">
-              <div v-for="(dayValue, day) in availability" :key="`day-${day}`">
-                <div class="dayLabel">{{ day }}</div>
-                <div class="times">
-                  <div
-                    v-for="sortedTime in sortedTimes[day]"
-                    :key="sortedTime"
-                    class="timeOfDay"
-                  >
-                    <input
-                      v-model="availability[day][sortedTime]"
-                      type="checkbox"
-                    />
-                    <label for="sortedTime" />
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
+          <AvailabilityGrid
+            :availability="availability"
+            :waitTimes="waitTimes"
+            @select="updateLocalAvailability"
+          />
         </div>
       </div>
     </div>
@@ -61,6 +49,9 @@ import { mapState } from 'vuex'
 
 import _ from 'lodash'
 import moment from 'moment-timezone'
+
+import AvailabilityGrid from '@/components/AvailabilityGrid'
+import ClockIcon from '@/assets/clock.svg'
 
 import CalendarService from '@/services/CalendarService'
 import AnalyticsService from '@/services/AnalyticsService'
@@ -74,36 +65,11 @@ const saveStates = {
 }
 
 export default {
+  components: { AvailabilityGrid, ClockIcon },
   data() {
-    const timeRange = [
-      '12 am',
-      '1 am',
-      '2 am',
-      '3 am',
-      '4 am',
-      '5 am',
-      '6 am',
-      '7 am',
-      '8 am',
-      '9 am',
-      '10 am',
-      '11 am',
-      '12 pm',
-      '1 pm',
-      '2 pm',
-      '3 pm',
-      '4 pm',
-      '5 pm',
-      '6 pm',
-      '7 pm',
-      '8 pm',
-      '9 pm',
-      '10 pm',
-      '11 pm'
-    ]
     return {
+      waitTimes: {},
       availability: {},
-      timeRange,
       tzList: moment.tz.names(),
       selectedTz: '',
       saveState: saveStates.UNSAVED
@@ -131,12 +97,20 @@ export default {
     },
     hasUserSchedule() {
       return !_.isEmpty(this.availability)
+    },
+    hasWaitTimes() {
+      return !_.isEmpty(this.waitTimes)
     }
   },
   created() {
     this.initScheduleData()
+    this.initWaitTimeData()
   },
   methods: {
+    updateLocalAvailability(payload) {
+      const oldValue = this.availability[payload.day][payload.hour]
+      this.availability[payload.day][payload.hour] = !oldValue
+    },
     someThingChanged() {
       this.saveState = saveStates.UNSAVED
     },
@@ -150,6 +124,16 @@ export default {
       var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
       var offset = (estUtcOffset - userUtcOffset) / 60
       this.availability = this.convertAvailability(originalAvailability, offset)
+    },
+    async initWaitTimeData() {
+      const userTimezone = this.user.timezone
+      const hasValidTimezone = userTimezone && this.userTzInList(userTimezone)
+      this.selectedTz = hasValidTimezone ? userTimezone : moment.tz.guess()
+
+      const originalWaitTimes = await CalendarService.getWaitTimes(this)
+      var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
+      var offset = (-1 * userUtcOffset) / 60
+      this.waitTimes = this.convertAvailability(originalWaitTimes, offset)
     },
     sortTimes() {
       const keysMap = {}
@@ -241,21 +225,19 @@ export default {
       for (const day in availability) {
         const times = availability[day]
         for (const time in times) {
-          if (availability[day][time] == true) {
-            let newDay = day
-            let numericHour = this.convertAMPMtoTwentyFourHrs(time)
-            let newHour = numericHour + offset
-            if (newHour >= 24) {
-              newHour -= 24
-              newDay = succWeekday[day]
-            } else if (newHour < 0) {
-              newHour += 24
-              newDay = predWeekday[day]
-            }
-            convertedAvailability[newDay][
-              this.convertTwentyFourHrsToAMPM(newHour)
-            ] = true
+          let newDay = day
+          let numericHour = this.convertAMPMtoTwentyFourHrs(time)
+          let newHour = numericHour + offset
+          if (newHour >= 24) {
+            newHour -= 24
+            newDay = succWeekday[day]
+          } else if (newHour < 0) {
+            newHour += 24
+            newDay = predWeekday[day]
           }
+          convertedAvailability[newDay][
+            this.convertTwentyFourHrsToAMPM(newHour)
+          ] = availability[day][time]
         }
       }
       return convertedAvailability
@@ -323,7 +305,7 @@ export default {
   border-radius: 30px;
   color: #fff;
   border: none;
-  align-self: flex-end;
+  margin-left: auto;
 
   &:hover {
     color: #000;
@@ -344,43 +326,6 @@ export default {
   &--saving {
     background: $c-disabled-grey;
   }
-}
-
-.timeLabelContainer {
-  padding-top: 47px;
-}
-
-.timeLabel {
-  display: flex;
-  justify-content: center;
-  padding: 15px;
-  height: 40px;
-  width: 100px;
-  border: 0.5px solid #cccccf;
-}
-
-.dayLabel {
-  padding: 15px 0;
-}
-
-.dayTimeContainer {
-  display: flex;
-  padding: 20px 0 40px 0;
-  justify-content: center;
-}
-
-.dayTime {
-  display: flex;
-}
-
-.times {
-  display: flex;
-  flex-direction: column;
-}
-
-.timeOfDay {
-  border: 0.5px solid #cccccf;
-  height: 40px;
 }
 
 input[type='checkbox'] {
@@ -405,6 +350,10 @@ input[type='checkbox']:checked + label {
   padding-top: 30px;
 }
 
+.tz-selector {
+  background-color: white;
+}
+
 .instructions-container {
   text-align: left;
 }
@@ -415,13 +364,32 @@ input[type='checkbox']:checked + label {
   margin: 15px 0;
 }
 
-@media screen and (max-width: #{get-app-sidebar-width("medium") + 960px}) {
-  .dayTimeScrollContainer {
-    display: flex;
-    align-items: flex-start;
-    overflow-x: scroll;
-  }
+.save-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
 
+.clock-explanation-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.clock-explanation {
+  text-align: left;
+  font-size: 14px;
+  margin: 15px 0;
+}
+
+.clock-explanation-icon {
+  background: none;
+  min-width: 20px;
+  min-height: 20px;
+  margin-right: 10px;
+}
+
+@media screen and (max-width: #{get-app-sidebar-width("medium") + 960px}) {
   .calendar-container {
     width: 100%;
     @each $key, $value in $app-sidebar-width-map {
