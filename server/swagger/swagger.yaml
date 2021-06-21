@@ -181,11 +181,11 @@ paths:
           description: Email already exists
         '422':
           description: Email/password not provided or password is not valid
-  /auth/register/student:
+  /auth/register/student/open:
     post:
       tags:
         - authorization
-      summary: Register new student account
+      summary: Register new open student account
       description: |
         Creates a new account for a student from given parameters in request body
       security:
@@ -202,33 +202,85 @@ paths:
                     type: string
                   password:
                     type: string
-                  studentPartnerOrg:
-                    type: string
-                  partnerUserId:
-                    type: string
                   highSchoolId:
-                    type: string
-                  partnerSite:
                     type: string
                   firstName:
                     type: string
                   lastName:
-                    type: string
-                  college:
                     type: string
                   terms:
                     type: boolean
       responses:
         '200':
           description: Successful student registration and log in
+        '403':
+          description: |
+            A 403 is generated when the backend identifies the request IP
+            as coming from a non-US IP
         '422':
           description: |
-            Any of the following can generate status code 422:
-             - Missing value for term agreement
-             - Missing email or password
-             - Invalid password
-             - Student school is not an approved partner
-             - Partner school is invalid
+            - False value for term agreement
+            - Email or password are invalid
+            - If an account with this email already exists
+            - If your high school isn't approved
+            - If any of the parameters are missing
+        '500':
+          description: Server error
+  /auth/register/student/partner:
+    post:
+      tags:
+        - authorization
+      summary: Register new partner student account
+      description: |
+        Creates a new account for a student from given parameters in request body
+      security:
+        - cookieAuth: [ ]
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                studentPartnerOrg:
+                  type: string
+                partnerUserId:
+                  type: string
+                highSchoolId:
+                  type: string
+                partnerSite:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                college:
+                  type: string
+                terms:
+                  type: boolean
+              required:
+                - email
+                - password
+                - firstName
+                - lastName
+                - terms
+      responses:
+        '200':
+          description: Successful student registration and log in
+        '422':
+          description: |
+            - False value for term agreement
+            - Email or password are invalid
+            - If an account with this email already exists
+            - If any partner information isn't valid
+            - If any of the parameters are missing
+        '500':
+          description: Server error
   /auth/register/volunteer/open:
     post:
       tags:
@@ -660,7 +712,7 @@ paths:
                       type: integer
                     session-obstacles:
                       type: array
-                      items: 
+                      items:
                         type: integer
                     other-feedback:
                       type: string
@@ -1874,6 +1926,20 @@ paths:
           description: Contact form saved in db and sent
         '400':
           description: Invalid data was sent in the request
+        '500':
+          description: Internal server error
+  /api-public/eligibility/ip-check:
+    get:
+      tags:
+        - eligibility
+      summary: |
+        Checks if a student's ip is from a region we allow. The server should check this from the headers or
+        from the express request object
+      responses:
+        '200':
+          description: IP is from an allowed region
+        '403':
+          description: IP is not from an allowed region
         '500':
           description: Internal server error
   /api-public/eligibility/check:
