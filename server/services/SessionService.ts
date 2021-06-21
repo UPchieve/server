@@ -19,6 +19,7 @@ import { Jobs } from '../worker/jobs'
 import * as AssistmentsDataRepo from '../models/AssistmentsData'
 import logger from '../logger'
 import * as cache from '../cache'
+import { NotAllowed } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
@@ -704,7 +705,12 @@ export async function generateAndStoreWaitTimeHeatMap(
   )
 }
 
-export async function getWaitTimeHeatMap() {
+export async function getWaitTimeHeatMap(
+  data: unknown
+): Promise<sessionUtils.HeatMap> {
+  const user = sessionUtils.asUser(data)
+  if (!user.isVolunteer)
+    throw new NotAllowed('Only volunteers may view the heat map')
   const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
   return JSON.parse(heatMap)
 }
