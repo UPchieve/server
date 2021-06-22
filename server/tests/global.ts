@@ -26,7 +26,9 @@ jest.mock('../config', () => {
     mail: {
       senders: {
         noreply:
-          process.env.SUBWAY_NOREPLY_EMAIL_SENDER || 'example@example.org'
+          process.env.SUBWAY_NOREPLY_EMAIL_SENDER || 'example@example.org',
+        support:
+          process.env.SUBWAY_SUPPORT_EMAIL_SENDER || 'example@example.org'
       },
       receivers: {
         contact:
@@ -34,7 +36,8 @@ jest.mock('../config', () => {
       }
     },
     sendgrid: {
-      apiKey: ''
+      apiKey: process.env.SUBWAY_SENDGRID_API_KEY,
+      failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00'
     },
     // process.env.MONGO_URL is set by '@shelf/jest-mongodb' when a test runs
     database: process.env.MONGO_URL,

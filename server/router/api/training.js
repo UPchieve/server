@@ -2,6 +2,8 @@ const Sentry = require('@sentry/node')
 const TrainingCtrl = require('../../controllers/TrainingCtrl')
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
 const TrainingCourseService = require('../../services/TrainingCourseService')
+const UserActionService = require('../../services/UserActionService')
+const VolunteerService = require('../../services/VolunteerService')
 
 module.exports = function(router) {
   router.post('/training/questions', async function(req, res, next) {
@@ -40,13 +42,29 @@ module.exports = function(router) {
         category,
         ip
       )
-      passed
-        ? quizActionCreator
-            .passedQuiz()
-            .catch(error => Sentry.captureException(error))
-        : quizActionCreator
-            .failedQuiz()
-            .catch(error => Sentry.captureException(error))
+      if (passed) {
+        quizActionCreator
+          .passedQuiz()
+          .catch(error => Sentry.captureException(error))
+      } else {
+        // we want to queue a job to send this email only if this is the first time
+        // a volunteer has taken a quiz ever, and they failed it
+        // must come before the next quizActionCreator call or will never fire
+        // because there would always be a failed quiz
+        const takenQuizBefore = await UserActionService.userHasTakenQuiz(
+          user._id
+        )
+        if (!takenQuizBefore)
+          VolunteerService.queueFailedFirstAttemptedQuizEmail(
+            category,
+            user.email,
+            user.firstname,
+            user._id
+          )
+        quizActionCreator
+          .failedQuiz()
+          .catch(error => Sentry.captureException(error))
+      }
 
       res.json({
         msg: 'Score calculated and saved',

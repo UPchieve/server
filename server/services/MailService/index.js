@@ -6,6 +6,7 @@ const {
   volunteerPartnerManifests,
   studentPartnerManifests
 } = require('../../partnerManifests')
+const formatMultiWordSubtopic = require('../../utils/format-multi-word-subtopic')
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -635,6 +636,28 @@ module.exports = {
       config.sendgrid.onboardingReminderThreeTemplate,
       {
         firstName: capitalize(firstName)
+      },
+      null,
+      overrides
+    )
+  },
+
+  sendFailedFirstAttemptedQuiz: ({ category, email, firstName }) => {
+    const overrides = {
+      reply_to: {
+        email: config.mail.senders.support
+      },
+      categories: ['failed first attempted quiz email']
+    }
+
+    return sendEmail(
+      email,
+      config.mail.senders.noreply,
+      'The UPchieve Team',
+      config.sendgrid.failedFirstAttemptedQuizTemplate,
+      {
+        firstName: capitalize(firstName),
+        category: formatMultiWordSubtopic(category)
       },
       null,
       overrides

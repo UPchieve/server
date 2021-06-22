@@ -49,3 +49,26 @@ export async function getSessionRequestedUserAgentFromSessionId(sessionId) {
     } as UserActionAgent
   } catch (error) {}
 }
+
+// if a user has completed any quizzes they would have had to either pass or fail
+// so checking an or on that should tell us if they've ever finished a quiz before
+// this is used to determine if we should send them an email when they fail
+// which we only want to do if they've failed the first quiz they've ever attempted
+export async function userHasTakenQuiz(userId: Types.ObjectId) {
+  const docs: any[] = await UserActionModel.aggregate([
+    {
+      $match: {
+        $and: [
+          { user: userId },
+          {
+            $or: [
+              { action: USER_ACTION.QUIZ.PASSED },
+              { action: USER_ACTION.QUIZ.FAILED }
+            ]
+          }
+        ]
+      }
+    }
+  ]).exec()
+  return docs.length !== 0
+}
