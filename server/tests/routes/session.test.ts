@@ -22,7 +22,6 @@ import {
   mockedGetSessionsToReview,
   mockedGetStudentLatestSession
 } from '../mocks/repos/session-repo'
-import IpAddressService from '../../services/IpAddressService'
 import { AdminFilteredSessions } from '../../models/Session'
 jest.mock('../../services/IpAddressService')
 
@@ -120,7 +119,6 @@ describe(SESSION_NEW_PATH, () => {
       body: { sessionId }
     } = response
     expect(SessionService.startSession).toHaveBeenCalledTimes(1)
-    expect(IpAddressService.record).toHaveBeenCalledTimes(1)
     expect(sessionId).toBe(id)
   })
 })
