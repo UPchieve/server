@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { Server } from 'socket.io'
 import SocketService from '../../services/SocketService'
 import * as SessionService from '../../services/SessionService'
-import { recordIpAddress } from '../../middleware/record-ip-address'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../utils/type-utils'
 import { resError } from '../res-error'
@@ -13,9 +12,7 @@ export function routes(router: Router, io: Server) {
   // io is now passed to this module so that API events can trigger socket events as needed
   const socketService = new SocketService(io)
 
-  // todo: fix "no overload matches this call" error on recordIpAddress
-  // @ts-expect-error
-  router.route('/session/new').post(recordIpAddress, async function(req, res) {
+  router.route('/session/new').post(async function(req, res) {
     try {
       const sessionId = await SessionService.startSession({
         ...req.body,
