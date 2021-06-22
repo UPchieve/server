@@ -17,7 +17,7 @@
         :key="day + hour"
         :selectable="true"
         :selected="value"
-        :flagged="readWaitTime(day, hour) > threshhold"
+        :flagged="readWaitTime(day, hour) > threshold"
         @click.native="updateData(day, hour)"
       />
     </div>
@@ -36,7 +36,7 @@ export default {
   },
   data() {
     return {
-      threshhold: 9 * 60 * 1000,
+      threshold: 15 * 60 * 1000,
       timeRange: {
         '12 am': false,
         '1 am': false,
