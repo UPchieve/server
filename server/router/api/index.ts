@@ -10,7 +10,6 @@ import volunteers from './volunteers'
 import { routeVerify } from './verify'
 import { routes as routeSessions } from './session'
 import { routeCalendar } from './calendar'
-import training from './training'
 import { routeFeedback } from './feedback'
 import sockets from './sockets'
 import moderate from './moderate'
@@ -18,6 +17,7 @@ import pushToken from './push-token'
 import { routeReports } from './reports'
 import { routeSurvey } from './survey'
 import { routes as routeStats } from './stats'
+const training = require('./training')
 const user = require('./user')
 
 export function routes(app: Express, sessionStore: MongoStore): void {

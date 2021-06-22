@@ -98,6 +98,20 @@ export const queueOnboardingEventEmails = async (
   )
 }
 
+export async function queueFailedFirstAttemptedQuizEmail(
+  category: string,
+  email: string,
+  firstName: string,
+  volunteerId: string
+) {
+  QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
+    category,
+    email,
+    firstName,
+    volunteerId
+  })
+}
+
 export const queuePartnerOnboardingEventEmails = async (
   volunteerId: string | Types.ObjectId
 ): Promise<void> => {
