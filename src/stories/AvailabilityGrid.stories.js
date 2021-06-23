@@ -1,16 +1,5 @@
 import AvailabilityGrid from '../components/AvailabilityGrid'
-
-export default {
-  title: 'Availability/AvailabilityGrid',
-  component: AvailabilityGrid
-}
-
-const Template = (args, { argTypes }) => ({
-  props: Object.keys(argTypes),
-  components: { AvailabilityGrid },
-  template:
-    '<AvailabilityGrid v-bind="$props">AvailabilityGrid</AvailabilityGrid>'
-})
+import { action } from '@storybook/addon-actions'
 
 const availabilityTime = {
   '12a': true,
@@ -38,14 +27,15 @@ const availabilityTime = {
   '10p': true,
   '11p': true
 }
+
 const availability = {
-  Sunday: availabilityTime,
-  Monday: availabilityTime,
-  Tuesday: availabilityTime,
-  Wednesday: availabilityTime,
-  Thursday: availabilityTime,
-  Friday: availabilityTime,
-  Saturday: availabilityTime
+  Sunday: Object.assign({}, availabilityTime),
+  Monday: Object.assign({}, availabilityTime),
+  Tuesday: Object.assign({}, availabilityTime),
+  Wednesday: Object.assign({}, availabilityTime),
+  Thursday: Object.assign({}, availabilityTime),
+  Friday: Object.assign({}, availabilityTime),
+  Saturday: Object.assign({}, availabilityTime)
 }
 
 const waitTimes = {
@@ -74,6 +64,7 @@ const waitTimes = {
   '10p': 5 * 60 * 1000,
   '11p': 5 * 60 * 1000
 }
+
 const wait = {
   Sunday: waitTimes,
   Monday: waitTimes,
@@ -83,6 +74,24 @@ const wait = {
   Friday: waitTimes,
   Saturday: waitTimes
 }
+
+export default {
+  title: 'Availability/AvailabilityGrid',
+  component: AvailabilityGrid
+}
+
+const Template = (args, { argTypes }) => ({
+  props: Object.keys(argTypes),
+  components: { AvailabilityGrid },
+  methods: {
+    clickCell: arg => {
+      availability[arg.day][arg.hour] = !availability[arg.day][arg.hour]
+      action('clicked')(arg)
+    }
+  },
+  template:
+    '<AvailabilityGrid v-bind="$props" @select="clickCell">AvailabilityGrid</AvailabilityGrid>'
+})
 
 export const Vanilla = Template.bind({})
 Vanilla.args = {
