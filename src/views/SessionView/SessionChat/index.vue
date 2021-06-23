@@ -37,7 +37,7 @@
         </p>
       </transition>
 
-      <div class="messages-container" tabindex="-1">
+      <div class="messages-container">
         <div
           class="messages-inner-box messages"
           ref="messages"
