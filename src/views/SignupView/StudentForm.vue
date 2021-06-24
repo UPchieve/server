@@ -415,6 +415,26 @@
 
     <div v-if="msg !== ''" role="alert">{{ msg }}</div>
   </form>
+
+  <div
+    v-else-if="step === 'international'"
+    class="uc-form-body uc-form-body--center"
+  >
+    <error-badge />
+    <h3>Looks like you're not in <br />the U.S.!</h3>
+
+    <p class="international-availability-info">
+      UPchieve is currently only available to students in the U.S. We're sorry
+      for the inconvenience! 😔
+    </p>
+
+    <p class="international-contact-us">
+      Live in the U.S. and still seeing this message? Make sure you're not using
+      a VPN.
+      <router-link to="/contact" class="contact">Contact Us</router-link> if you
+      still need help!
+    </p>
+  </div>
   <div v-else class="uc-form-body">Unexpected Error</div>
 </template>
 
@@ -524,6 +544,12 @@ export default {
     eligibilityPage() {
       this.step = 'eligibility'
       this.$router.push('/sign-up/student/eligibility')
+    },
+
+    internationalPage() {
+      this.$emit('hideLoginLink')
+      this.step = 'international'
+      this.$router.push('/sign-up/student/international')
     },
 
     signupCodeYes() {
@@ -815,5 +841,19 @@ p.small-paragraph {
 
 .d-none {
   display: none !important;
+}
+
+.international-availability-info,
+.international-contact-us {
+  font-weight: 500;
+}
+
+.international-contact-us {
+  font-style: italic;
+  margin-top: 0.5em;
+}
+
+.contact {
+  color: $c-success-green;
 }
 </style>

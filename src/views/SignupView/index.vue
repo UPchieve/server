@@ -2,13 +2,19 @@
   <form-page-template>
     <div class="uc-form">
       <nav class="uc-form-header" aria-label="Other options">
-        <router-link to="/login" class="uc-form-header-link" v-if="!isReferred"
+        <router-link
+          to="/login"
+          class="uc-form-header-link"
+          v-if="!isReferred && isLoginLinkVisible"
           >Log In</router-link
         >
       </nav>
 
       <volunteer-form v-if="this.userSelection === 'volunteer'" />
-      <student-form v-else-if="this.userSelection === 'student'" />
+      <student-form
+        v-else-if="this.userSelection === 'student'"
+        @hideLoginLink="hideLoginLink"
+      />
       <div v-else class="uc-form-body uc-form-body--center">
         <div>
           <h3>
@@ -90,7 +96,8 @@ export default {
     return {
       userSelection: null,
       isReferred: false,
-      referredBy: {}
+      referredBy: {},
+      isLoginLinkVisible: true
     }
   },
 
@@ -142,6 +149,9 @@ export default {
     selectStudent() {
       this.$router.push('/sign-up/student')
       this.userSelection = 'student'
+    },
+    hideLoginLink() {
+      this.isLoginLinkVisible = false
     }
   }
 }
