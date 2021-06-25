@@ -37,6 +37,7 @@ import { Session } from '../models/Session'
 import { FeedbackVersionOne, FeedbackVersionTwo } from '../models/Feedback'
 import {
   StudentRegData,
+  PartnerStudentRegData,
   VolunteerRegData,
   PartnerVolunteerRegData
 } from '../utils/auth-utils'
@@ -282,8 +283,31 @@ export const buildStudentRegistrationForm = (
     email: student.email,
     password: student.password,
     terms: true,
+    zipCode: '11201',
+    highSchoolId: '111111111111',
     ...overrides
   } as StudentRegData
+
+  return form
+}
+
+export const buildPartnerStudentRegistrationForm = (
+  overrides: Partial<PartnerStudentRegData> = {}
+): PartnerStudentRegData => {
+  const student = buildStudent()
+  const form = {
+    ip: '0.0.0.0',
+    firstName: student.firstname,
+    lastName: student.lastname,
+    email: student.email,
+    password: student.password,
+    terms: true,
+    studentPartnerOrg: 'example',
+    studentPartnerSite: 'example.org',
+    partnerUserId: '123',
+    college: 'UPchieve University',
+    ...overrides
+  } as PartnerStudentRegData
 
   return form
 }

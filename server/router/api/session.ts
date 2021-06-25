@@ -3,7 +3,7 @@ import { Server } from 'socket.io'
 import SocketService from '../../services/SocketService'
 import * as SessionService from '../../services/SessionService'
 import { authPassport } from '../../utils/auth-utils'
-import { InputError, LookupError } from '../../utils/type-utils'
+import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
 

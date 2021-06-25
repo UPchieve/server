@@ -57,10 +57,9 @@ import SocketService from '../../services/SocketService'
 import * as PushTokenService from '../../services/PushTokenService'
 import * as SessionUtils from '../../utils/session-utils'
 import TwilioService from '../../services/twilio'
-import { LookupError } from '../../utils/type-utils'
 import { FeedbackVersionTwo } from '../../models/Feedback'
 import * as cache from '../../cache'
-import { NotAllowed } from '../../models/Errors'
+import { NotAllowed, LookupError } from '../../models/Errors'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')

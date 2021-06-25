@@ -1,9 +1,5 @@
-import { CustomError } from 'ts-custom-error'
 import { Types } from 'mongoose'
-
-// TODO: put this somewhere shared
-export class InputError extends CustomError {}
-export class LookupError extends CustomError {}
+import { InputError } from '../models/Errors'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
 // TODO: test primitive typechecks and factory function
