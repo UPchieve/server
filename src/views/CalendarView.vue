@@ -1,5 +1,5 @@
 <template>
-  <div class="calendar-container" @change="someThingChanged()">
+  <div class="calendar-container">
     <div class="calendar">
       <div class="header">
         <div class="instructions-container">
@@ -28,7 +28,11 @@
       <div v-if="hasUserSchedule">
         <div class="tz-selector-container">
           <span>Time Zone: </span>
-          <select v-model="selectedTz" class="tz-selector">
+          <select
+            v-model="selectedTz"
+            class="tz-selector"
+            @change="someThingChanged"
+          >
             <option v-for="tz in tzList" :key="tz">
               {{ tz }}
             </option>
@@ -110,6 +114,7 @@ export default {
     updateLocalAvailability(payload) {
       const oldValue = this.availability[payload.day][payload.hour]
       this.availability[payload.day][payload.hour] = !oldValue
+      this.someThingChanged()
     },
     someThingChanged() {
       this.saveState = saveStates.UNSAVED
