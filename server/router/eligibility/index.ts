@@ -1,5 +1,5 @@
-import express from 'express'
-import Sentry from '@sentry/node'
+import express, { Express } from 'express'
+import * as Sentry from '@sentry/node'
 import { authPassport } from '../../utils/auth-utils'
 import * as SchoolService from '../../services/SchoolService'
 import UserService from '../../services/UserService'
@@ -8,8 +8,10 @@ import School from '../../models/School'
 import ZipCode from '../../models/ZipCode'
 import IneligibleStudent from '../../models/IneligibleStudent'
 import * as IneligibleStudentService from '../../services/IneligibleStudentService'
+import { resError } from '../res-error'
+import IpAddressService from '../../services/IpAddressService'
 
-module.exports = function(app) {
+export function routes(app: Express) {
   const router: any = express.Router()
 
   // Check if a student is eligible
@@ -225,6 +227,15 @@ module.exports = function(app) {
     } catch (err) {
       Sentry.captureException(err)
       res.sendStatus(500)
+    }
+  })
+
+  router.get('/ip-check', async function(req, res) {
+    try {
+      await IpAddressService.checkIpAddress(req.ip)
+      res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
     }
   })
 

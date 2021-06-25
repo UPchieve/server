@@ -59,7 +59,7 @@ import * as SessionUtils from '../../utils/session-utils'
 import TwilioService from '../../services/twilio'
 import { FeedbackVersionTwo } from '../../models/Feedback'
 import * as cache from '../../cache'
-import { NotAllowed, LookupError } from '../../models/Errors'
+import { NotAllowedError, LookupError } from '../../models/Errors'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
@@ -1217,7 +1217,7 @@ describe('getWaitTimeHeatMap', () => {
     try {
       await SessionService.getWaitTimeHeatMap(buildStudent())
     } catch (error) {
-      expect(error).toBeInstanceOf(NotAllowed)
+      expect(error).toBeInstanceOf(NotAllowedError)
       expect(error.message).toBe(expectedErrorMessage)
     }
   })

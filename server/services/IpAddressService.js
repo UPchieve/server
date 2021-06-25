@@ -4,6 +4,9 @@ const IpAddress = require('../models/IpAddress')
 const User = require('../models/User')
 const { IP_ADDRESS_STATUS, USER_BAN_REASON } = require('../constants')
 const MailService = require('./MailService')
+const { NotAllowedError } = require('../models/Errors')
+const { asString } = require('../utils/type-utils')
+const net = require('net')
 
 const cleanIpString = rawIpString => {
   // Remove ipv6 prefix if present
@@ -41,8 +44,22 @@ const findOrCreateIpAddress = async rawIpString => {
   return newIpAddress
 }
 
+function isValidIp(ip) {
+  return net.isIP(ip)
+}
+
+async function checkIpAddress(data) {
+  const ip = asString(data)
+  if (!isValidIp(ip)) throw new Error('Not a valid IP address')
+
+  const { country_code: countryCode } = await getIpWhoIs(ip)
+  if (countryCode && countryCode !== 'US') throw new NotAllowedError()
+}
+
 module.exports = {
   getIpWhoIs,
+
+  checkIpAddress,
 
   record: async ({ user, ipString }) => {
     const userIpAddress = await findOrCreateIpAddress(ipString)
