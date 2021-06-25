@@ -5,7 +5,11 @@ import {
   insertSession,
   insertSessionWithVolunteer
 } from '../db-utils'
-import { DocCreationError, DocUpdateError } from '../../models/Errors'
+import {
+  DocCreationError,
+  DocUpdateError,
+  LookupError
+} from '../../models/Errors'
 import {
   buildMessage,
   buildNotification,
@@ -18,7 +22,6 @@ import {
   SUBJECTS,
   SUBJECT_TYPES
 } from '../../constants'
-import { LookupError } from '../../utils/type-utils'
 import VolunteerModel from '../../models/Volunteer'
 import StudentModel from '../../models/Student'
 

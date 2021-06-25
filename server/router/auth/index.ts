@@ -3,7 +3,7 @@ import passport from 'passport'
 
 import * as AuthService from '../../services/AuthService'
 import { authPassport } from '../../utils/auth-utils'
-import { InputError, LookupError } from '../../utils/type-utils'
+import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 
 // TODO: type passport request member methods/variable correctly (login, logout, user)
@@ -39,9 +39,38 @@ export function routes(app: Express) {
     }
   })
 
+  // todo: remove upon merge of issue #764
   router.route('/register/student').post(async function(req, res) {
     try {
       const student = await AuthService.registerStudent({
+        ...req.body,
+        ip: req.ip
+      } as unknown)
+      // @ts-expect-error
+      await req.login(student)
+      res.json({ user: student })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/register/student/open').post(async function(req, res) {
+    try {
+      const student = await AuthService.registerOpenStudent({
+        ...req.body,
+        ip: req.ip
+      } as unknown)
+      // @ts-expect-error
+      await req.login(student)
+      res.json({ user: student })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/register/student/partner').post(async function(req, res) {
+    try {
+      const student = await AuthService.registerPartnerStudent({
         ...req.body,
         ip: req.ip
       } as unknown)

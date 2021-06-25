@@ -6,6 +6,7 @@ import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
 import {
   buildStudent,
   buildStudentRegistrationForm,
+  buildPartnerStudentRegistrationForm,
   buildVolunteer,
   buildVolunteerRegistrationForm,
   buildPartnerVolunteerRegistrationForm
@@ -24,10 +25,10 @@ import * as AuthService from '../../services/AuthService'
 import {
   RegistrationError,
   ResetError,
-  checkPassword
+  checkPassword,
+  PartnerStudentRegData
 } from '../../utils/auth-utils'
-import { InputError, LookupError } from '../../utils/type-utils'
-import { USER_BAN_REASON } from '../../constants'
+import { NotAllowed, InputError, LookupError } from '../../models/Errors'
 
 // Mocks
 // TODO: fix typing issue with mockedUserCtrl.createStudent/Volunteer
@@ -123,6 +124,680 @@ describe('Utils tests', () => {
 })
 
 describe('Registration tests', () => {
+  beforeEach(async () => {
+    await resetDb()
+    jest.clearAllMocks()
+  })
+
+  // Spy on models
+  jest.spyOn(UserModel, 'find')
+  jest.spyOn(SchoolModel, 'findOne')
+  // TODO: mock UserService
+  jest.spyOn(UserService, 'getUser')
+
+  // Test objects
+  const studentOpenOverrides = {
+    zipCode: '11201',
+    highSchoolId: '111111111111'
+  }
+  const studentPartnerOverrides = {
+    studentPartnerOrg: 'example',
+    studentPartnerSite: 'example.org',
+    partnerUserId: '123',
+    college: 'UPchieve University'
+  }
+  const studentOpen = buildStudent(studentOpenOverrides)
+  const studentPartner = buildStudent(studentPartnerOverrides)
+
+  const volunteerPartnerOverrides = {
+    volunteerPartnerOrg: 'example'
+  }
+  const volunteerOpen = buildVolunteer()
+  const volunteerPartner = buildVolunteer(volunteerPartnerOverrides)
+
+  test('Check valid credentials', async () => {
+    const payload = {
+      email: studentOpen.email,
+      password: studentOpen.password
+    }
+
+    const result = await AuthService.checkCredential(payload)
+
+    expect(UserModel.find).toHaveBeenCalledTimes(1)
+    expect(result).toBeTruthy()
+  })
+
+  test('Check invalid credentials via no email', async () => {
+    const payload = {
+      email: '',
+      password: studentOpen.password
+    }
+
+    let err: InputError
+    try {
+      await AuthService.checkCredential(payload)
+    } catch (error) {
+      err = error
+    }
+
+    expect(err).toBeInstanceOf(InputError)
+    expect(err.message).toEqual(
+      'Must supply an email and password for registration'
+    )
+  })
+
+  test('Check invalid credentials via no password', async () => {
+    const payload = {
+      email: studentOpen.email,
+      password: ''
+    }
+
+    let err: InputError
+    try {
+      await AuthService.checkCredential(payload)
+    } catch (error) {
+      err = error
+    }
+
+    expect(err).toBeInstanceOf(InputError)
+    expect(err.message).toEqual(
+      'Must supply an email and password for registration'
+    )
+  })
+
+  test('Check invalid credentials via bad email', async () => {
+    const payload = {
+      email: 'bad email',
+      password: studentOpen.password
+    }
+
+    let err: RegistrationError
+    try {
+      await AuthService.checkCredential(payload)
+    } catch (error) {
+      err = error
+    }
+
+    expect(err).toBeInstanceOf(RegistrationError)
+    expect(err.message).toEqual('Must supply a valid email address')
+  })
+
+  test('Register valid open student', async () => {
+    mockedUserCtrl.createStudent.mockImplementation(() =>
+      // @ts-expect-error
+      Promise.resolve(studentOpen)
+    )
+
+    // Test payload
+    const serviceStudent = await AuthService.registerOpenStudent(
+      buildStudentRegistrationForm(studentOpenOverrides)
+    )
+
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
+    expect(IpAddressService.getIpWhoIs).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.createStudent).toHaveBeenCalledTimes(1)
+
+    // return student object
+    expect(serviceStudent).toMatchObject(studentOpen)
+  })
+
+  test('Register valid partner student', async () => {
+    mockedUserCtrl.createStudent.mockImplementation(() =>
+      // @ts-expect-error
+      Promise.resolve(studentPartner)
+    )
+
+    // Test payload
+    const serviceStudent = await AuthService.registerPartnerStudent(
+      buildPartnerStudentRegistrationForm(studentPartnerOverrides)
+    )
+
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
+    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.createStudent).toHaveBeenCalledTimes(1)
+
+    // return student object
+    expect(serviceStudent).toMatchObject(studentPartner)
+  })
+
+  test('Register invalid open student via existing email', async () => {
+    await insertStudent({
+      email: studentOpen.email
+    })
+
+    // Test payload
+    let err: LookupError
+    try {
+      await AuthService.registerOpenStudent(
+        buildStudentRegistrationForm({
+          ...studentOpenOverrides,
+          email: studentOpen.email
+        })
+      )
+    } catch (error) {
+      err = error
+    }
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1)
+
+    expect(err).toBeInstanceOf(LookupError)
+    expect(err.message).toEqual(
+      'The email address you entered is already in use'
+    )
+  })
+
+  test('Register invalid open student via bad school', async () => {
+    // Test payload
+    const form = buildStudentRegistrationForm({
+      ...studentOpenOverrides,
+      zipCode: '' // check for school not zip
+    })
+    let err: RegistrationError
+    try {
+      await AuthService.registerOpenStudent(form)
+    } catch (error) {
+      err = error
+    }
+
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1)
+    expect(SchoolModel.findOne).toHaveBeenCalledTimes(1)
+
+    expect(err).toBeInstanceOf(RegistrationError)
+    expect(err.message).toEqual(`School ${form.highSchoolId} is not approved`)
+  })
+
+  test('Register invalid partner student via bad org', async () => {
+    // Test payload
+    const form = buildPartnerStudentRegistrationForm({
+      ...studentPartnerOverrides,
+      studentPartnerOrg: 'bad org'
+    })
+    let err: RegistrationError
+    try {
+      await AuthService.registerPartnerStudent(form)
+    } catch (error) {
+      err = error
+    }
+
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1)
+
+    expect(err).toBeInstanceOf(RegistrationError)
+    expect(err.message).toEqual('Invalid student partner organization')
+  })
+
+  test('Register invalid open student via bad country', async () => {
+    mockedIpAddressService.getIpWhoIs.mockImplementationOnce(async () => {
+      // eslint-disable-next-line
+      return { country_code: 'RU', org: 'example' }
+    })
+
+    let err: RegistrationError
+    try {
+      await AuthService.registerOpenStudent(
+        buildStudentRegistrationForm({
+          ...studentOpenOverrides
+        })
+      )
+    } catch (error) {
+      err = error
+    }
+
+    expect(err).toBeInstanceOf(NotAllowed)
+    expect(err.message).toEqual(
+      'Cannot register from an international IP address'
+    )
+
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
+    expect(IpAddressService.getIpWhoIs).toHaveBeenCalledTimes(1)
+  })
+
+  test('Register invalid open student form via falsy terms', async () => {
+    let err: RegistrationError
+    try {
+      await AuthService.registerOpenStudent(
+        buildStudentRegistrationForm({
+          ...studentOpenOverrides,
+          terms: false
+        })
+      )
+    } catch (error) {
+      err = error
+    }
+
+    expect(err).toBeInstanceOf(RegistrationError)
+    expect(err.message).toEqual('Must accept the user agreement')
+  })
+
+  test('Register valid open student via working referral', async () => {
+    const firstStudent = buildStudent(studentOpenOverrides)
+    const code = firstStudent._id.toString()
+    await insertStudent(studentOpenOverrides)
+
+    const secondStudent = buildStudent({
+      ...studentPartnerOverrides,
+      referredByCode: code,
+      referredBy: firstStudent._id
+    })
+
+    mockedUserCtrl.createStudent.mockImplementationOnce(
+      // @ts-expect-error
+      async () => secondStudent
+    )
+    mockedUserCtrl.checkReferral.mockImplementationOnce(async () => code)
+    mockedAnalyticsService.captureEvent.mockImplementationOnce(async () => {
+      /* do nothing */
+    })
+
+    const postStudent = await AuthService.registerOpenStudent(
+      buildStudentRegistrationForm({
+        ...studentPartnerOverrides,
+        referredByCode: code
+      })
+    )
+
+    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
+    expect(IpAddressService.getIpWhoIs).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.createStudent).toHaveBeenCalledTimes(1)
+
+    expect(postStudent.referredBy).toEqual(firstStudent._id)
+  })
+
+  test('Register valid open volunteer', async () => {
+    mockedUserCtrl.createVolunteer.mockImplementation(() =>
+      // @ts-expect-error
+      Promise.resolve(volunteerOpen)
+    )
+
+    // Test payload
+    const serviceVolunteer = await AuthService.registerVolunteer(
+      buildVolunteerRegistrationForm()
+    )
+
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
+    expect(UserService.getUser).toHaveBeenCalledTimes(1) // validate fresh phone
+    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.createVolunteer).toHaveBeenCalledTimes(1)
+
+    // return student object
+    expect(serviceVolunteer).toMatchObject(volunteerOpen)
+  })
+
+  test('Register valid partner volunteer', async () => {
+    mockedUserCtrl.createVolunteer.mockImplementation(() =>
+      // @ts-expect-error
+      Promise.resolve(volunteerPartner)
+    )
+
+    // Test payload
+    const serviceVolunteer = await AuthService.registerPartnerVolunteer(
+      buildPartnerVolunteerRegistrationForm(volunteerPartnerOverrides)
+    )
+
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
+    expect(UserService.getUser).toHaveBeenCalledTimes(1) // validate fresh phone
+    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.createVolunteer).toHaveBeenCalledTimes(1)
+
+    // return student object
+    expect(serviceVolunteer).toMatchObject(volunteerPartner)
+  })
+
+  test('Register invalid open volunteer via existing phone', async () => {
+    await insertVolunteer({
+      phone: volunteerOpen.phone
+    })
+
+    // Test payload
+    let err: LookupError
+    try {
+      await AuthService.registerVolunteer(
+        buildVolunteerRegistrationForm({
+          phone: volunteerOpen.phone
+        })
+      )
+    } catch (error) {
+      err = error
+    }
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
+    expect(UserService.getUser).toHaveBeenCalledTimes(1) // validate fresh phone - fails
+
+    expect(err).toBeInstanceOf(LookupError)
+    expect(err.message).toEqual(
+      'The phone number you entered is already in use'
+    )
+  })
+
+  test('Register invalid partner volunteer via bad org', async () => {
+    // Test payload
+    const form = buildPartnerVolunteerRegistrationForm({
+      ...volunteerPartnerOverrides,
+      volunteerPartnerOrg: 'bad org'
+    })
+    let err: RegistrationError
+    try {
+      await AuthService.registerPartnerVolunteer(form)
+    } catch (error) {
+      err = error
+    }
+
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1)
+    expect(UserService.getUser).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
+
+    expect(err).toBeInstanceOf(RegistrationError)
+    expect(err.message).toEqual('Invalid volunteer partner organization')
+  })
+
+  test('Register invalid partner volunteer via bad email domain', async () => {
+    // Test payload
+    const form = buildPartnerVolunteerRegistrationForm({
+      ...volunteerPartnerOverrides,
+      volunteerPartnerOrg: 'example2',
+      email: 'email@baddomain.bad'
+    })
+    let err: RegistrationError
+    try {
+      await AuthService.registerPartnerVolunteer(form)
+    } catch (error) {
+      err = error
+    }
+
+    // assert callstack expectations
+    expect(UserModel.find).toHaveBeenCalledTimes(1)
+    expect(UserService.getUser).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
+
+    expect(err).toBeInstanceOf(RegistrationError)
+    expect(err.message).toEqual(
+      'Invalid email domain for volunteer partner organization'
+    )
+  })
+
+  test('Register invalid open volunteer form via falsy terms', async () => {
+    let err: RegistrationError
+    try {
+      await AuthService.registerVolunteer(
+        buildVolunteerRegistrationForm({
+          terms: false
+        })
+      )
+    } catch (error) {
+      err = error
+    }
+
+    expect(err).toBeInstanceOf(RegistrationError)
+    expect(err.message).toEqual('Must accept the user agreement')
+  })
+
+  test('Register valid open volunteer via working referral', async () => {
+    const firstVolunteer = buildVolunteer(volunteerPartnerOverrides)
+    const code = firstVolunteer._id.toString()
+    await insertVolunteer()
+
+    const secondVolunteer = buildVolunteer({
+      referredByCode: code,
+      referredBy: firstVolunteer._id
+    })
+
+    mockedUserCtrl.createVolunteer.mockImplementationOnce(
+      // @ts-expect-error
+      async () => secondVolunteer
+    )
+    mockedUserCtrl.checkReferral.mockImplementationOnce(async () => code)
+    mockedAnalyticsService.captureEvent.mockImplementationOnce(async () => {
+      /* do nothing */
+    })
+
+    const postVolunteer = await AuthService.registerVolunteer(
+      buildVolunteerRegistrationForm({
+        referredByCode: code
+      })
+    )
+
+    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
+    expect(UserService.getUser).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.createVolunteer).toHaveBeenCalledTimes(1)
+
+    expect(postVolunteer.referredBy).toEqual(firstVolunteer._id)
+  })
+
+  test('Register invalid partner volunteer form via falsy terms', async () => {
+    let err: RegistrationError
+    try {
+      await AuthService.registerPartnerVolunteer(
+        buildPartnerVolunteerRegistrationForm({
+          ...volunteerPartnerOverrides,
+          terms: false
+        })
+      )
+    } catch (error) {
+      err = error
+    }
+
+    expect(err).toBeInstanceOf(RegistrationError)
+    expect(err.message).toEqual('Must accept the user agreement')
+  })
+
+  test('Register valid partner volunteer via working referral', async () => {
+    const firstVolunteer = buildVolunteer()
+    const code = firstVolunteer._id.toString()
+    await insertVolunteer()
+
+    const secondVolunteer = buildVolunteer({
+      ...volunteerPartnerOverrides,
+      referredByCode: code,
+      referredBy: firstVolunteer._id
+    })
+
+    mockedUserCtrl.createVolunteer.mockImplementationOnce(
+      // @ts-expect-error
+      async () => secondVolunteer
+    )
+    mockedUserCtrl.checkReferral.mockImplementationOnce(async () => code)
+    mockedAnalyticsService.captureEvent.mockImplementationOnce(async () => {
+      /* do nothing */
+    })
+
+    const postVolunteer = await AuthService.registerVolunteer(
+      buildVolunteerRegistrationForm({
+        ...volunteerPartnerOverrides,
+        referredByCode: code
+      })
+    )
+
+    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
+    expect(UserService.getUser).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledTimes(1)
+    expect(UserCtrl.createVolunteer).toHaveBeenCalledTimes(1)
+
+    expect(postVolunteer.referredBy).toEqual(firstVolunteer._id)
+  })
+})
+
+describe('Password reset tests', () => {
+  beforeEach(async () => {
+    await resetDb()
+    jest.clearAllMocks()
+  })
+
+  // Spy on models
+  jest.spyOn(UserModel, 'findOne')
+
+  // test objects
+  const user = buildStudent()
+
+  test('Initiate valid reset', async () => {
+    mockedMailService.sendReset.mockImplementationOnce(() => {
+      /* do nothing */
+    })
+    await insertStudent({
+      email: user.email
+    })
+
+    await AuthService.sendReset(user.email)
+
+    // assert callstack expectations
+    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
+    expect(MailService.sendReset).toHaveBeenCalledWith(
+      expect.objectContaining({ email: user.email })
+    )
+    const postReset = await UserModel.findOne(
+      { email: user.email },
+      { passwordResetToken: 1 }
+    )
+      .lean()
+      .exec()
+    expect(postReset.passwordResetToken).toBeDefined()
+  })
+
+  test('Confirm valid reset', async () => {
+    mockedMailService.sendReset.mockImplementationOnce(() => {
+      /* do nothing */
+    })
+    const token = '0123456789abcdef0123456789abcdef'
+    const newPassword = 'Password456'
+
+    await insertStudent({
+      email: user.email,
+      passwordResetToken: token
+    })
+
+    await AuthService.confirmReset({
+      email: user.email,
+      password: newPassword,
+      token: token
+    })
+
+    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
+    const postConfirm = await UserModel.findOne(
+      { email: user.email },
+      { passwordResetToken: 1, password: 1 }
+    )
+      .lean()
+      .exec()
+
+    expect(postConfirm.passwordResetToken).toBeUndefined()
+    expect(compareSync(newPassword, postConfirm.password)).toBeTruthy()
+  })
+
+  test('Initiate invalid reset via bad email', async () => {
+    const badEmail = 'email@baddomain.bad'
+
+    let err: LookupError
+    try {
+      await AuthService.sendReset(badEmail)
+    } catch (error) {
+      err = error
+    }
+
+    // assert callstack expectations
+    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
+
+    expect(err).toBeInstanceOf(LookupError)
+    expect(err.message).toEqual(`No account with ${badEmail} found`)
+  })
+
+  // Redundant test of email typecheck due to a previous security vulnerability
+  // that used an array of emails to have reset tokens sent to the attacker's email
+  test('Initiate invalid reset via malformed email as array', async () => {
+    const badEmail = ['victim@email.com', 'attacker@blackhat.bad']
+
+    let err: InputError
+    try {
+      await AuthService.sendReset(badEmail)
+    } catch (error) {
+      err = error
+    }
+
+    // assert callstack expectations
+    expect(UserModel.findOne).toHaveBeenCalledTimes(0)
+
+    expect(err).toBeInstanceOf(InputError)
+    expect(err.message).toContain('is not a string')
+  })
+
+  test('Confirm invalid reset via bad token', async () => {
+    const badToken = ''
+
+    let err: ResetError
+    try {
+      await AuthService.confirmReset({
+        email: '',
+        password: '',
+        token: badToken
+      })
+    } catch (error) {
+      err = error
+    }
+
+    expect(err).toBeInstanceOf(ResetError)
+    expect(err.message).toBe('Invalid password reset token')
+  })
+
+  test('Confirm invalid reset via unlisted token', async () => {
+    const unlistedToken = '0123456789abcdef0123456789abcdef'
+
+    let err: LookupError
+    try {
+      await AuthService.confirmReset({
+        email: '',
+        password: '',
+        token: unlistedToken
+      })
+    } catch (error) {
+      err = error
+    }
+
+    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
+    expect(err).toBeInstanceOf(LookupError)
+    expect(err.message).toBe(
+      'No account found with provided password reset token'
+    )
+  })
+
+  test('Confirm invalid reset via unmatched token', async () => {
+    const badEmail = 'email@baddomain.bad'
+    const unmatchedToken = '0123456789abcdef0123456789abcdef'
+
+    await insertStudent({
+      email: user.email, // good email
+      passwordResetToken: unmatchedToken
+    })
+
+    let err: ResetError
+    try {
+      await AuthService.confirmReset({
+        email: badEmail,
+        password: '',
+        token: unmatchedToken
+      })
+    } catch (error) {
+      err = error
+    }
+
+    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
+    expect(err).toBeInstanceOf(ResetError)
+    expect(err.message).toBe('Email did not match the password reset token')
+  })
+})
+
+// todo: remove upon merge of issue #764
+describe('Test old route', async () => {
   beforeEach(async () => {
     await resetDb()
     jest.clearAllMocks()
@@ -322,9 +997,9 @@ describe('Registration tests', () => {
   test('Register invalid partner student via bad org', async () => {
     // Test payload
     const form = buildStudentRegistrationForm({
-      ...studentPartnerOverrides,
-      studentPartnerOrg: 'bad org'
-    })
+      ...studentPartnerOverrides
+    }) as PartnerStudentRegData
+    form.studentPartnerOrg = 'bad org'
     let err: RegistrationError
     try {
       await AuthService.registerStudent(form)
@@ -340,70 +1015,31 @@ describe('Registration tests', () => {
     expect(err.message).toEqual('Invalid student partner organization')
   })
 
-  test('Register valid banned student via bad country', async () => {
-    const bannedStudent = buildStudent({
-      ...studentOpenOverrides,
-      isBanned: true,
-      banReason: USER_BAN_REASON.NON_US_SIGNUP
-    })
-    mockedUserCtrl.createStudent.mockImplementation(() =>
-      // @ts-expect-error
-      Promise.resolve(bannedStudent)
-    )
+  test('Register invalid student via bad country', async () => {
     mockedIpAddressService.getIpWhoIs.mockImplementationOnce(async () => {
       // eslint-disable-next-line
       return { country_code: 'RU', org: 'example' }
     })
 
-    // Test payload
-    const serviceStudent = await AuthService.registerStudent(
-      buildStudentRegistrationForm(studentOpenOverrides)
+    let err: RegistrationError
+    try {
+      await AuthService.registerStudent(
+        buildStudentRegistrationForm({
+          ...studentOpenOverrides
+        })
+      )
+    } catch (error) {
+      err = error
+    }
+
+    expect(err).toBeInstanceOf(NotAllowed)
+    expect(err.message).toEqual(
+      'Cannot register from an international IP address'
     )
 
     // assert callstack expectations
     expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
     expect(IpAddressService.getIpWhoIs).toHaveBeenCalledTimes(1)
-    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
-    expect(UserCtrl.createStudent).toHaveBeenCalledTimes(1)
-    expect(MailService.sendBannedUserAlert).toHaveBeenCalledTimes(1)
-
-    // return student object
-    expect(serviceStudent.isBanned).toBeTruthy()
-    expect(serviceStudent.banReason).toEqual(USER_BAN_REASON.NON_US_SIGNUP)
-  })
-
-  test('Register valid banned student via bad ISP', async () => {
-    const bannedStudent = buildStudent({
-      ...studentOpenOverrides,
-      isBanned: true,
-      banReason: USER_BAN_REASON.BANNED_SERVICE_PROVIDER
-    })
-    mockedUserCtrl.createStudent.mockImplementation(() =>
-      // @ts-expect-error
-      Promise.resolve(bannedStudent)
-    )
-    mockedIpAddressService.getIpWhoIs.mockImplementationOnce(async () => {
-      // eslint-disable-next-line
-      return { country_code: 'US', org: 'Example' }
-    })
-
-    // Test payload
-    const serviceStudent = await AuthService.registerStudent(
-      buildStudentRegistrationForm(studentOpenOverrides)
-    )
-
-    // assert callstack expectations
-    expect(UserModel.find).toHaveBeenCalledTimes(1) // validate fresh email
-    expect(IpAddressService.getIpWhoIs).toHaveBeenCalledTimes(1)
-    expect(UserCtrl.checkReferral).toHaveBeenCalledTimes(1)
-    expect(UserCtrl.createStudent).toHaveBeenCalledTimes(1)
-    expect(MailService.sendBannedUserAlert).toHaveBeenCalledTimes(1)
-
-    // return student object
-    expect(serviceStudent.isBanned).toBeTruthy()
-    expect(serviceStudent.banReason).toEqual(
-      USER_BAN_REASON.BANNED_SERVICE_PROVIDER
-    )
   })
 
   test('Register invalid student form via falsy terms', async () => {
@@ -681,177 +1317,5 @@ describe('Registration tests', () => {
     expect(UserCtrl.createVolunteer).toHaveBeenCalledTimes(1)
 
     expect(postVolunteer.referredBy).toEqual(firstVolunteer._id)
-  })
-})
-
-describe('Password reset tests', () => {
-  beforeEach(async () => {
-    await resetDb()
-    jest.clearAllMocks()
-  })
-
-  // Spy on models
-  jest.spyOn(UserModel, 'findOne')
-
-  // test objects
-  const user = buildStudent()
-
-  test('Initiate valid reset', async () => {
-    mockedMailService.sendReset.mockImplementationOnce(() => {
-      /* do nothing */
-    })
-    await insertStudent({
-      email: user.email
-    })
-
-    await AuthService.sendReset(user.email)
-
-    // assert callstack expectations
-    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
-    expect(MailService.sendReset).toHaveBeenCalledWith(
-      expect.objectContaining({ email: user.email })
-    )
-    const postReset = await UserModel.findOne(
-      { email: user.email },
-      { passwordResetToken: 1 }
-    )
-      .lean()
-      .exec()
-    expect(postReset.passwordResetToken).toBeDefined()
-  })
-
-  test('Confirm valid reset', async () => {
-    mockedMailService.sendReset.mockImplementationOnce(() => {
-      /* do nothing */
-    })
-    const token = '0123456789abcdef0123456789abcdef'
-    const newPassword = 'Password456'
-
-    await insertStudent({
-      email: user.email,
-      passwordResetToken: token
-    })
-
-    await AuthService.confirmReset({
-      email: user.email,
-      password: newPassword,
-      token: token
-    })
-
-    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
-    const postConfirm = await UserModel.findOne(
-      { email: user.email },
-      { passwordResetToken: 1, password: 1 }
-    )
-      .lean()
-      .exec()
-
-    expect(postConfirm.passwordResetToken).toBeUndefined()
-    expect(compareSync(newPassword, postConfirm.password)).toBeTruthy()
-  })
-
-  test('Initiate invalid reset via bad email', async () => {
-    const badEmail = 'email@baddomain.bad'
-
-    let err: LookupError
-    try {
-      await AuthService.sendReset(badEmail)
-      expect(true).toBe(false) // fail assertion if sendReset doesn't throw
-    } catch (error) {
-      err = error
-    }
-
-    // assert callstack expectations
-    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
-
-    expect(err).toBeInstanceOf(LookupError)
-    expect(err.message).toEqual(`No account with ${badEmail} found`)
-  })
-
-  // Redundant test of email typecheck due to a previous security vulnerability
-  // that used an array of emails to have reset tokens sent to the attacker's email
-  test('Initiate invalid reset via malformed email as array', async () => {
-    const badEmail = ['victim@email.com', 'attacker@blackhat.bad']
-
-    let err: InputError
-    try {
-      await AuthService.sendReset(badEmail)
-      expect(true).toBe(false) // fail assertion if sendReset doesn't throw
-    } catch (error) {
-      err = error
-    }
-
-    // assert callstack expectations
-    expect(UserModel.findOne).toHaveBeenCalledTimes(0)
-
-    expect(err).toBeInstanceOf(InputError)
-    expect(err.message).toContain('is not a string')
-  })
-
-  test('Confirm invalid reset via bad token', async () => {
-    const badToken = ''
-
-    let err: ResetError
-    try {
-      await AuthService.confirmReset({
-        email: '',
-        password: '',
-        token: badToken
-      })
-      expect(true).toBe(false) // fail assertion if sendReset doesn't throw
-    } catch (error) {
-      err = error
-    }
-
-    expect(err).toBeInstanceOf(ResetError)
-    expect(err.message).toBe('Invalid password reset token')
-  })
-
-  test('Confirm invalid reset via unlisted token', async () => {
-    const unlistedToken = '0123456789abcdef0123456789abcdef'
-
-    let err: LookupError
-    try {
-      await AuthService.confirmReset({
-        email: '',
-        password: '',
-        token: unlistedToken
-      })
-      expect(true).toBe(false) // fail assertion if sendReset doesn't throw
-    } catch (error) {
-      err = error
-    }
-
-    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
-    expect(err).toBeInstanceOf(LookupError)
-    expect(err.message).toBe(
-      'No account found with provided password reset token'
-    )
-  })
-
-  test('Confirm invalid reset via unmatched token', async () => {
-    const badEmail = 'email@baddomain.bad'
-    const unmatchedToken = '0123456789abcdef0123456789abcdef'
-
-    await insertStudent({
-      email: user.email, // good email
-      passwordResetToken: unmatchedToken
-    })
-
-    let err: ResetError
-    try {
-      await AuthService.confirmReset({
-        email: badEmail,
-        password: '',
-        token: unmatchedToken
-      })
-      expect(true).toBe(false) // fail assertion if sendReset doesn't throw
-    } catch (error) {
-      err = error
-    }
-
-    expect(UserModel.findOne).toHaveBeenCalledTimes(1)
-    expect(err).toBeInstanceOf(ResetError)
-    expect(err.message).toBe('Email did not match the password reset token')
   })
 })

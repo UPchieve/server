@@ -12,12 +12,12 @@ import {
   volunteerPartnerManifests,
   studentPartnerManifests
 } from '../partnerManifests'
-import config from '../config'
-import { USER_BAN_REASON, IP_ADDRESS_STATUS } from '../constants'
+import { IP_ADDRESS_STATUS } from '../constants'
 
 import {
   asCredentialData,
   asStudentRegData,
+  asPartnerStudentRegData,
   asVolunteerRegData,
   asPartnerVolunteerRegData,
   asResetConfirmData,
@@ -28,7 +28,8 @@ import {
   hashPassword,
   getReferredBy
 } from '../utils/auth-utils'
-import { InputError, LookupError, asString } from '../utils/type-utils'
+import { asString } from '../utils/type-utils'
+import { NotAllowed, InputError, LookupError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
 import IpAddressService from './IpAddressService'
 import MailService from './MailService'
@@ -38,6 +39,14 @@ export const findByUpchieveId = async function(id: string): Promise<School> {
   return SchoolModel.findOne({ upchieveId: id })
     .lean()
     .exec()
+}
+
+async function checkIpAddress(ip: string): Promise<void> {
+  const { country_code: countryCode } = await IpAddressService.getIpWhoIs(ip)
+
+  if (countryCode && countryCode !== 'US') {
+    throw new NotAllowed('Cannot register from an international IP address')
+  }
 }
 
 // Handlers
@@ -75,25 +84,29 @@ export async function checkCredential(data: unknown): Promise<boolean> {
   }
 }
 
+// todo: remove upon merge of issue #764
 // Handles /register/student route
 export async function registerStudent(data: unknown): Promise<StudentDocument> {
   const {
     ip,
     email,
     password,
-    studentPartnerOrg,
-    partnerUserId,
     highSchoolId: highSchoolUpchieveId,
     zipCode,
     terms,
     referredByCode,
     firstName,
-    lastName,
-    college,
-    partnerSite
+    lastName
   } = asStudentRegData(data)
+  const {
+    studentPartnerOrg,
+    partnerUserId,
+    partnerSite,
+    college
+  } = asPartnerStudentRegData(data)
 
   await checkCredential({ email, password })
+  await checkIpAddress(ip)
 
   if (!terms) {
     throw new RegistrationError('Must accept the user agreement')
@@ -120,19 +133,121 @@ export async function registerStudent(data: unknown): Promise<StudentDocument> {
       )
   }
 
-  const { country_code: countryCode, org } = await IpAddressService.getIpWhoIs(
-    ip
-  )
+  const referredBy = await getReferredBy(referredByCode)
 
-  let isBanned = false
-  let banReason: USER_BAN_REASON
-  if (config.bannedServiceProviders.includes(org)) {
-    isBanned = true
-    banReason = USER_BAN_REASON.BANNED_SERVICE_PROVIDER
-  } else if (countryCode && countryCode !== 'US') {
-    isBanned = true
-    banReason = USER_BAN_REASON.NON_US_SIGNUP
+  const studentData = {
+    firstname: firstName.trim(),
+    lastname: lastName.trim(),
+    email,
+    zipCode,
+    studentPartnerOrg,
+    partnerUserId,
+    partnerSite,
+    approvedHighschool: school,
+    college,
+    isVolunteer: false,
+    verified: false,
+    referredBy,
+    password,
+    ipAddresses: [
+      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
+    ]
   }
+
+  const student = await UserCtrl.createStudent(studentData)
+  return student
+}
+
+// Handles /register/student/open route
+export async function registerOpenStudent(
+  data: unknown
+): Promise<StudentDocument> {
+  const {
+    ip,
+    email,
+    password,
+    highSchoolId: highSchoolUpchieveId,
+    zipCode,
+    terms,
+    referredByCode,
+    firstName,
+    lastName
+  } = asStudentRegData(data)
+
+  await checkCredential({ email, password })
+  await checkIpAddress(ip)
+
+  if (!terms) {
+    throw new RegistrationError('Must accept the user agreement')
+  }
+
+  const highSchoolProvided = !!highSchoolUpchieveId
+  let school: School
+  if (highSchoolProvided) school = await findByUpchieveId(highSchoolUpchieveId)
+
+  const highSchoolApprovalRequired = !zipCode
+  if (highSchoolApprovalRequired) {
+    if (!school || !school.isApproved)
+      throw new RegistrationError(
+        `School ${highSchoolUpchieveId} is not approved`
+      )
+  }
+
+  const referredBy = await getReferredBy(referredByCode)
+
+  const studentData = {
+    firstname: firstName.trim(),
+    lastname: lastName.trim(),
+    email,
+    zipCode,
+    approvedHighschool: school,
+    isVolunteer: false,
+    verified: false,
+    referredBy,
+    password,
+    ipAddresses: [
+      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
+    ]
+  }
+
+  const student = await UserCtrl.createStudent(studentData)
+  return student
+}
+
+// Handles /register/student/partner route
+export async function registerPartnerStudent(
+  data: unknown
+): Promise<StudentDocument> {
+  const {
+    ip,
+    email,
+    password,
+    studentPartnerOrg,
+    partnerUserId,
+    highSchoolId: highSchoolUpchieveId,
+    zipCode,
+    terms,
+    referredByCode,
+    firstName,
+    lastName,
+    college,
+    partnerSite
+  } = asPartnerStudentRegData(data)
+
+  await checkCredential({ email, password })
+
+  if (!terms) {
+    throw new RegistrationError('Must accept the user agreement')
+  }
+
+  const studentPartnerManifest = studentPartnerManifests[studentPartnerOrg]
+  if (!studentPartnerManifest) {
+    throw new RegistrationError('Invalid student partner organization')
+  }
+
+  let school: School
+  if (highSchoolUpchieveId)
+    school = await findByUpchieveId(highSchoolUpchieveId)
 
   const referredBy = await getReferredBy(referredByCode)
 
@@ -149,8 +264,6 @@ export async function registerStudent(data: unknown): Promise<StudentDocument> {
     isVolunteer: false,
     verified: false,
     referredBy,
-    isBanned,
-    banReason,
     password,
     ipAddresses: [
       { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
@@ -158,12 +271,6 @@ export async function registerStudent(data: unknown): Promise<StudentDocument> {
   }
 
   const student = await UserCtrl.createStudent(studentData)
-  if (isBanned)
-    MailService.sendBannedUserAlert({
-      userId: student._id,
-      banReason,
-      sessionId: undefined // no session
-    })
   return student
 }
 

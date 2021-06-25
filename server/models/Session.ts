@@ -2,13 +2,12 @@ import moment from 'moment-timezone'
 import { values } from 'lodash'
 import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
 import { FEEDBACK_VERSIONS, SESSION_FLAGS, USER_ACTION } from '../constants'
-import { LookupError } from '../utils/type-utils'
 import MessageModel, { Message } from './Message'
 import { Notification } from './Notification'
 import { User } from './User'
 import { Student } from './Student'
 import { Volunteer } from './Volunteer'
-import { DocUpdateError, DocCreationError } from './Errors'
+import { DocUpdateError, DocCreationError, LookupError } from './Errors'
 
 const validTypes = ['Math', 'College', 'Science', 'SAT']
 
