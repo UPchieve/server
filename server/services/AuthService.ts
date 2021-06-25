@@ -29,7 +29,7 @@ import {
   getReferredBy
 } from '../utils/auth-utils'
 import { asString } from '../utils/type-utils'
-import { NotAllowed, InputError, LookupError } from '../models/Errors'
+import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
 import IpAddressService from './IpAddressService'
 import MailService from './MailService'
@@ -45,7 +45,9 @@ async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await IpAddressService.getIpWhoIs(ip)
 
   if (countryCode && countryCode !== 'US') {
-    throw new NotAllowed('Cannot register from an international IP address')
+    throw new NotAllowedError(
+      'Cannot register from an international IP address'
+    )
   }
 }
 

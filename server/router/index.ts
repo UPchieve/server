@@ -6,6 +6,7 @@ import * as ContactFormRouter from './contact'
 import SessionStore from './api/session-store'
 import * as AuthRouter from './auth'
 import * as ApiRouter from './api'
+import * as EligibilityRouter from './eligibility'
 
 export default function(app: Express) {
   console.log('Initializing server routing')
@@ -23,7 +24,7 @@ export default function(app: Express) {
   AuthRouter.routes(app)
   ApiRouter.routes(app, sessionStore)
   require('./edu')(app)
-  require('./eligibility')(app)
+  EligibilityRouter.routes(app)
   require('./twiml')(app)
   ContactFormRouter.routes(app)
   require('./metrics')(app)

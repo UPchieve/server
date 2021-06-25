@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk'
-import Sentry from '@sentry/node'
+import * as Sentry from '@sentry/node'
 import config from '../config'
 
 const s3 = new AWS.S3({

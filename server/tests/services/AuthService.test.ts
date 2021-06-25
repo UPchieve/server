@@ -28,7 +28,7 @@ import {
   checkPassword,
   PartnerStudentRegData
 } from '../../utils/auth-utils'
-import { NotAllowed, InputError, LookupError } from '../../models/Errors'
+import { NotAllowedError, InputError, LookupError } from '../../models/Errors'
 
 // Mocks
 // TODO: fix typing issue with mockedUserCtrl.createStudent/Volunteer
@@ -347,7 +347,7 @@ describe('Registration tests', () => {
       err = error
     }
 
-    expect(err).toBeInstanceOf(NotAllowed)
+    expect(err).toBeInstanceOf(NotAllowedError)
     expect(err.message).toEqual(
       'Cannot register from an international IP address'
     )
@@ -1032,7 +1032,7 @@ describe('Test old route', async () => {
       err = error
     }
 
-    expect(err).toBeInstanceOf(NotAllowed)
+    expect(err).toBeInstanceOf(NotAllowedError)
     expect(err.message).toEqual(
       'Cannot register from an international IP address'
     )
