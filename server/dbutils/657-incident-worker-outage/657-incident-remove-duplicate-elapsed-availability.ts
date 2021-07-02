@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dbconnect from '../dbconnect'
+import * as db from '../../db'
 import VolunteerModel from '../../models/Volunteer'
 import logger from '../../logger'
 import { getElapsedAvailability } from '../../services/AvailabilityService'
@@ -18,7 +18,7 @@ import AvailabilityHistoryModel from '../../models/Availability/History'
  * Notes:
  * UpdateElapsedAvailability is a daily cron job processed at 08:00 (UTC)
  *
- * 04/14 at 03:44:00 UTC is when the worker queue started working 
+ * 04/14 at 03:44:00 UTC is when the worker queue started working
  * again and UpdatedElapsedAvailability was fired off and created new
  * availability history snapshots only for 04/13.
  *
@@ -36,7 +36,7 @@ import AvailabilityHistoryModel from '../../models/Availability/History'
  */
 const main = async (): Promise<void> => {
   try {
-    await dbconnect()
+    await db.connect()
 
     const availabilityHistoryDocs = await AvailabilityHistoryModel.find({
       date: new Date('2021-04-13T23:59:59.999+00:00'),

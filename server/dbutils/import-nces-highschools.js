@@ -13,7 +13,7 @@ const crypto = require('crypto')
 
 const cliProgress = require('cli-progress')
 
-const dbconnect = require('./dbconnect')
+const db = require('../db')
 
 const School = require('../models/School')
 
@@ -78,7 +78,7 @@ function addNewSchool(school, convertName, done) {
   )
 }
 
-dbconnect(mongoose, function() {
+db.connect(mongoose, function() {
   const ZIP_MIME_REGEX = /^(application\/(zip|x-zip|x-zip-compressed|octet-stream|(x-compress(ed)?))|multipart\/x-zip)$/
   const CSV_MIME_REGEX = /^(text\/(comma-separated-values|csv|anytext)|application\/(csv|excel|vnd\.ms-?excel))$/
 

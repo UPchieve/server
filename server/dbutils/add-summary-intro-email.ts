@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import VolunteerModel from '../models/Volunteer';
 
 const upgrade = async (): Promise<void> => {
   try {
-    await dbconnect();
+    await db.connect();
 
     const results = await VolunteerModel.updateMany(
       {},
@@ -22,7 +22,7 @@ const upgrade = async (): Promise<void> => {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const results = await VolunteerModel.updateMany(
       {},
       {

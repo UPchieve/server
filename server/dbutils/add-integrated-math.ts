@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import User from '../models/User';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const result = await User.bulkWrite([
       {
         updateMany: {
@@ -92,7 +92,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const results = await User.updateMany(
       { isVolunteer: true },
       {

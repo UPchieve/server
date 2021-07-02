@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dbconnect from '../dbconnect'
+import * as db from '../../db'
 import VolunteerModel from '../../models/Volunteer'
 import * as VolunteerService from '../../services/VolunteerService'
 import logger from '../../logger'
@@ -9,17 +9,17 @@ import logger from '../../logger'
  * Incident Range (UTC):
  * 2021-04-10T13:30:00.000+00:00
  * 2021-04-14T17:25:00.000+00:00
- * 
- * 
+ *
+ *
  * Notes:
  * Get all volunteer account who are not onboarded and
  * created within the incident range and queue their
  * onboarding reminder emails
- * 
+ *
  */
 const main = async (): Promise<void> => {
   try {
-    await dbconnect()
+    await db.connect()
 
     const volunteers: any = await VolunteerModel.aggregate([
       {

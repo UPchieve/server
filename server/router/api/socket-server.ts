@@ -5,6 +5,7 @@ import * as http from 'http'
 import socket from 'socket.io'
 import redisAdapter from 'socket.io-redis'
 import config from '../../config'
+import logger from '../../logger'
 const {
   socketIoPubClient,
   socketIoSubClient
@@ -26,7 +27,7 @@ export default function(app) {
 
   server.listen(port)
 
-  console.log('Sockets.io listening on port ' + port)
+  logger.info('socket.io listening on port ' + port)
 
   const io = socket(server, {
     // set pingTimeout longer than pingInterval

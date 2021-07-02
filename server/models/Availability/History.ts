@@ -16,7 +16,7 @@ export type AvailabilityHistoryDocument = AvailabilityHistory & Document
 const availabilityHistorySchema = new Schema({
   availability: {
     type: availabilityDaySchema,
-    default: availabilityDaySchema
+    default: () => ({})
   },
   volunteerId: {
     type: Types.ObjectId

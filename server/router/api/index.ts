@@ -21,8 +21,6 @@ const training = require('./training')
 const user = require('./user')
 
 export function routes(app: Express, sessionStore: MongoStore): void {
-  console.log('API module')
-
   const io: Server = socketServer(app)
 
   const router: expressWs.Router = Router()

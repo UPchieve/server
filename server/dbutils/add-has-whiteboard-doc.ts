@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import SessionModel from '../models/Session'
 import { SUBJECT_TYPES } from '../constants'
 import util from 'util'
@@ -8,7 +8,7 @@ const setImmediatePromise = util.promisify(setImmediate)
 
 const upgrade = async (): Promise<void> => {
   try {
-    await dbconnect()
+    await db.connect()
 
     const oldestDate = new Date('2017-01-01T00:00:00.000+00:00')
     let monthsAgo = 0
@@ -48,7 +48,7 @@ const upgrade = async (): Promise<void> => {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     const oldestDate = new Date('2017-01-01T00:00:00.000+00:00').getTime()
     let monthsAgo = 0

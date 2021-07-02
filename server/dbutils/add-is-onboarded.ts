@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import Volunteer from '../models/Volunteer';
 
 const isCertified = (certifications): boolean => {
@@ -20,7 +20,7 @@ const isCertified = (certifications): boolean => {
 
 const upgrade = async (): Promise<void> => {
   try {
-    await dbconnect();
+    await db.connect();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const volunteers: any = await Volunteer.find({})
@@ -67,7 +67,7 @@ const upgrade = async (): Promise<void> => {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const results = await Volunteer.updateMany(
       {},
       {

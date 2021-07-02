@@ -7,11 +7,11 @@ var mongoose = require('mongoose')
 var async = require('async')
 var chalk = require('chalk')
 
-var dbconnect = require('./dbconnect')
+var dbconnect = require('../db')
 
 var User = require('../models/User')
 
-dbconnect(mongoose, function() {
+db.connect(mongoose, function() {
   // see http://regexlib.com/REDetails.aspx?regexp_id=58
   // modified to ignore trailing/leading whitespace and disallow alphanumeric characters
   const US_PHONE_REGEX = /^\s*(?:[0-9](?: |-)?)?(?:\(?([0-9]{3})\)?|[0-9]{3})(?: |-)?(?:([0-9]{3})(?: |-)?([0-9]{4}))\s*$/

@@ -7,12 +7,12 @@ const mongoose = require('mongoose')
 const async = require('async')
 const cliProgress = require('cli-progress')
 
-const dbconnect = require('./dbconnect')
+const db = require('../db')
 
 const User = require('../models/User')
 const School = require('../models/School')
 
-dbconnect(mongoose, function() {
+db.connect(mongoose, function() {
   async.waterfall(
     [
       function(done) {

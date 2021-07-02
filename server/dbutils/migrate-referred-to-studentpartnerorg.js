@@ -1,12 +1,12 @@
 const mongoose = require('mongoose')
-const dbconnect = require('./dbconnect')
+const db = require('../db')
 const User = require('../models/User')
 
 /**
  * Convert old User.referred vals to User.studentPartnerOrg vals
  */
 const main = async () => {
-  await dbconnect(mongoose)
+  await db.connect(mongoose)
 
   const studentPartners = [
     {

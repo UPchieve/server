@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import VolunteerModel from '../models/Volunteer';
 
 const main = async (): Promise<void> => {
   try {
-    await dbconnect();
+    await db.connect();
 
     const result = await VolunteerModel.updateMany(
       {

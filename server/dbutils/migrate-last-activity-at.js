@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const dbconnect = require('./dbconnect')
+const db = require('../db')
 const User = require('../models/User')
 
 // To run downgrade:
@@ -11,7 +11,7 @@ if (process.env.DOWNGRADE) {
 }
 
 function upgradeMigration() {
-  dbconnect(mongoose, function() {
+  db.connect(mongoose, function() {
     console.log('Migrating db...')
     User.aggregate([
       {
@@ -32,7 +32,7 @@ function upgradeMigration() {
 }
 
 function downgradeMigration() {
-  dbconnect(mongoose, function() {
+  db.connect(mongoose, function() {
     console.log('Downgrading db...')
     User.aggregate([
       {

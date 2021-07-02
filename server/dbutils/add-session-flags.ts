@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import Session from '../models/Session';
 
 const upgrade = async (): Promise<void> => {
   try {
-    await dbconnect();
+    await db.connect();
 
     const results = await Session.updateMany({}, { flags: [] });
 
@@ -18,7 +18,7 @@ const upgrade = async (): Promise<void> => {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const results = await Session.updateMany(
       {},
       {

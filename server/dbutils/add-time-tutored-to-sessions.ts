@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import SessionModel from '../models/Session';
 import { calculateTimeTutored } from '../services/SessionService';
 
 // Add timeTutored to sessions
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
 
     const sessions = await SessionModel.find({
       endedAt: { $exists: true }
@@ -44,7 +44,7 @@ async function upgrade(): Promise<void> {
 // Remove timeTutored from sessions
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
 
     const results = await SessionModel.updateMany(
       {},

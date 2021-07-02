@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import VolunteerModel from '../models/Volunteer'
 import StudentModel from '../models/Student'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import config from '../config'
 import axios from 'axios'
 import {
@@ -52,11 +52,11 @@ async function addPartnerToUsers(
 
 async function backfillVolunteerPartners(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     const volunteers = await VolunteerModel.find({
       volunteerPartnerOrg: { $exists: true },
-      // PostHog was implemented in the beginning of 2021. Users with 
+      // PostHog was implemented in the beginning of 2021. Users with
       // a recent lastActivityAt are more likely stored in PostHog
       lastActivityAt: { $gte: new Date('2021-01-01T00:00:00.000+00:00') }
     })
@@ -73,7 +73,7 @@ async function backfillVolunteerPartners(): Promise<void> {
 
 async function backfillStudentPartners(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     const students = await StudentModel.find({
       studentPartnerOrg: { $exists: true },

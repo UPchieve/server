@@ -11,8 +11,6 @@ const Volunteer = require('../../models/Volunteer').default
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
 
 module.exports = function(app) {
-  console.log('TwiML module')
-
   const router = new express.Router()
 
   // This route is called by Twilio to receive TwiML instructions for

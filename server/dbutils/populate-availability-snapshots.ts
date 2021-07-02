@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import AvailabilitySnapshotModel from '../models/Availability/Snapshot';
 import VolunteerModel from '../models/Volunteer';
 import util from 'util';
@@ -7,7 +7,7 @@ const setImmediatePromise = util.promisify(setImmediate);
 
 const upgrade = async (): Promise<void> => {
   try {
-    await dbconnect();
+    await db.connect();
 
     const volunteers: any = await VolunteerModel.find({})
       .select({

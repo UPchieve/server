@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 import UserAction from '../models/UserAction';
 import Session from '../models/Session';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import { SESSION_REPORT_REASON, USER_ACTION, USER_BAN_REASON} from '../constants'
 
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
-    
+    await db.connect();
+
 
     const sessions = await Session.find({
       reportReason: { $in: [SESSION_REPORT_REASON.STUDENT_RUDE, SESSION_REPORT_REASON.STUDENT_MISUSE]}
@@ -29,7 +29,7 @@ async function upgrade(): Promise<void> {
     }
 
     const result = await Promise.all(newUserActions)
-  
+
     console.log(result);
   } catch (error) {
     console.log('error', error);
@@ -40,7 +40,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const results = await UserAction.deleteMany(
       { action: USER_ACTION.ACCOUNT.BANNED },
     );

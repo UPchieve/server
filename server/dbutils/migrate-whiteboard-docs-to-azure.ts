@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import SessionModel from '../models/Session'
 import {
   uploadedToStorage,
@@ -23,7 +23,7 @@ const currentDate = moment.utc()
 // migrate whiteboard docs to azure
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     let fromDate = moment(validWhiteboardDocsDate).utc()
 
@@ -80,7 +80,7 @@ async function upgrade(): Promise<void> {
 // get whiteboard docs from azure and store in to the whiteboardDoc property
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     let fromDate = moment(validWhiteboardDocsDate).utc()
 
