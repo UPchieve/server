@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import VolunteerModel from '../models/Volunteer'
 
 async function upgrade() {
   let exitCode = 0
   try {
-    await dbconnect()
+    await db.connect()
     const result = await VolunteerModel.updateMany(
       {
         "certifications.humanitiesEssays": { $exists: false }
@@ -28,7 +28,7 @@ async function upgrade() {
 async function downgrade() {
   let exitCode = 0
   try {
-    await dbconnect()
+    await db.connect()
     const result = await VolunteerModel.updateMany(
       {
         "certifications.humanitiesEssays": { $exists: true }

@@ -1,12 +1,12 @@
 import mongoose from 'mongoose'
 import FeedbackModel, { FeedbackVersionOne } from '../models/Feedback'
 import { FEEDBACK_VERSIONS } from '../constants'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import logger from '../logger'
 
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     // Adds versionNumber: 1
     const versionNumberOneResults = await FeedbackModel.updateMany(
@@ -170,7 +170,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
     const results = await FeedbackModel.updateMany(
       {},
       {

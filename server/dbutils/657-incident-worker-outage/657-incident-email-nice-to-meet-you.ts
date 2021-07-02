@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dbconnect from '../dbconnect'
+import * as db from '../../db'
 import VolunteerModel from '../../models/Volunteer'
 import MailService from '../../services/MailService'
 import logger from '../../logger'
@@ -9,12 +9,12 @@ import logger from '../../logger'
  * Incident Range (UTC):
  * 2021-04-10T13:30:00.000+00:00
  * 2021-04-14T03:44:00.000+00:00
- * 
- * 
+ *
+ *
  * Notes:
  * EmailNiceToMeetYou is scheduled on a daily cron job to send an email
  * to volunteer accounts that were created a day before
- * 
+ *
  * 04/14 at 03:44:00 UTC is when the worker queue started
  * working and EmailNiceToMeetYou was fired off to send emails to accounts
  * created a day before
@@ -28,7 +28,7 @@ import logger from '../../logger'
  */
 const main = async (): Promise<void> => {
   try {
-    await dbconnect()
+    await db.connect()
 
     const volunteers: any = await VolunteerModel.aggregate([
       {

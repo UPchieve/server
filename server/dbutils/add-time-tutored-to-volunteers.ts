@@ -1,5 +1,5 @@
 import mongoose, { Types, Document } from 'mongoose';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import VolunteerModel from '../models/Volunteer';
 
 interface Volunteer {
@@ -10,7 +10,7 @@ interface Volunteer {
 // Add timeTutored to volunteers
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
 
     const volunteers = await VolunteerModel.find()
       .select({ hoursTutored: 1 })
@@ -45,7 +45,7 @@ async function upgrade(): Promise<void> {
 // Remove time tutored
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
 
     const results = await VolunteerModel.updateMany(
       {},

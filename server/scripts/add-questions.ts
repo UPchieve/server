@@ -1,12 +1,12 @@
 import fs from 'fs'
 import { promisify } from 'util'
 import mongoose from 'mongoose'
-import dbconnect from '../dbutils/dbconnect'
+import * as db from '../db'
 import QuestionModel from '../models/Question'
 
 /*
 HOW TO USE:
-1. Export question objects from Mongo Copass
+1. Export question objects from Mongo Compass
   - make a query for the desired questions
   - click on 'export collection' near the 'add data' button
   - export the query results and uncheck the fields '__v', '__id', and 'image'
@@ -29,7 +29,7 @@ async function main() {
 
   let exitCode = 0
   try {
-    await dbconnect()
+    await db.connect()
 
     const data = await readFileAsync(filePath, 'utf-8')
     const questions = JSON.parse(data)

@@ -1,6 +1,6 @@
 import moment from 'moment'
 import mongoose from 'mongoose'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import config from '../config'
 import {
   getVolunteers,
@@ -12,7 +12,7 @@ import * as cache from '../cache'
 
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     const customVolunteers = await getVolunteers(
       {
@@ -66,7 +66,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
     const customVolunteers = await getVolunteers(
       {
         volunteerPartnerOrg: config.customVolunteerPartnerOrg,

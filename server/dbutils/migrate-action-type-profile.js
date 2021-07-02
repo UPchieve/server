@@ -1,8 +1,8 @@
 const mongoose = require('mongoose')
-const dbconnect = require('./dbconnect')
+const db = require('../db')
 const UserAction = require('../models/UserAction')
 
-dbconnect(mongoose, function() {
+db.connect(mongoose, function() {
   console.log('Migrating db...')
   UserAction.deleteMany({
     actionType: 'PROFILE',

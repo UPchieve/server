@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import Feedback from '../models/Feedback';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 const ObjectId = require('mongodb').ObjectId;
 
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const allFeedback = await Feedback.find()
       .lean()
       .exec();
@@ -34,7 +34,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const allFeedback = await Feedback.find()
       .lean()
       .exec();

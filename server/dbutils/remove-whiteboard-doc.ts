@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import SessionModel from '../models/Session'
 import { SUBJECT_TYPES } from '../constants'
 import moment from 'moment-timezone'
@@ -10,7 +10,7 @@ const oldestDate = new Date('2017-01-01T00:00:00.000+00:00')
 
 async function main(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     let monthsAgo = 0
     let toDate = moment()

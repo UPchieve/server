@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import QuestionModel from '../models/Question'
 
 async function upgrade() {
   let exitCode = 0
   try {
-    await dbconnect()
+    await db.connect()
     const result = await QuestionModel.updateMany(
       {
         category: 'humanities_essays'
@@ -28,7 +28,7 @@ async function upgrade() {
 async function downgrade() {
   let exitCode = 0
   try {
-    await dbconnect()
+    await db.connect()
     const result = await QuestionModel.updateMany(
       {
         category: 'humanitiesEssays'

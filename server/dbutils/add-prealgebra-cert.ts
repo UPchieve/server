@@ -1,8 +1,8 @@
 const mongoose = require('mongoose')
-const dbconnect = require('./dbconnect')
+const db = require('../db')
 const User = require('../models/User')
 
-dbconnect(mongoose, function() {
+db.connect(mongoose, function() {
   User.find()
     .then(users => {
       const userUpdates = users.map(user => {

@@ -16,31 +16,31 @@ const availabilityWeekSchema = new Schema(
   {
     [DAYS.SUNDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.MONDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.TUESDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.WEDNESDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.THURSDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.FRIDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.SATURDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     }
   },
   { _id: false }
@@ -52,7 +52,7 @@ const availabilitySnapshotSchema = new Schema({
   },
   onCallAvailability: {
     type: availabilityWeekSchema,
-    default: availabilityWeekSchema
+    default: () => ({})
   },
   modifiedAt: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },

@@ -248,35 +248,37 @@ const availabilityDaySchema = new Schema(
   { _id: false }
 )
 
+// https://github.com/Automattic/mongoose/issues/9104
+// setting default to a schema instance is no longer supported
 const availabilitySchema = new Schema(
   {
     [DAYS.SUNDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.MONDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.TUESDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.WEDNESDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.THURSDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.FRIDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.SATURDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     }
   },
   { _id: false }
@@ -365,7 +367,7 @@ const volunteerSchema = new Schema(
     linkedInUrl: String,
     availability: {
       type: availabilitySchema,
-      default: availabilitySchema
+      default: () => ({})
     },
     timezone: String,
     hoursTutored: { type: Types.Decimal128, default: 0 },
@@ -379,23 +381,23 @@ const volunteerSchema = new Schema(
     trainingCourses: {
       [TRAINING.UPCHIEVE_101]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       },
       [TRAINING.TUTORING_SKILLS]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       },
       [TRAINING.COLLEGE_COUNSELING]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       },
       [TRAINING.COLLEGE_SKILLS]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       },
       [TRAINING.SAT_STRATEGIES]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       }
     },
     certifications: {

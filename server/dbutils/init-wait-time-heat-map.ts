@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import generateAndStoreWaitTimeHeatMap from '../worker/jobs/generateAndStoreWaitTimeHeatMap'
 import logger from '../logger'
 
 const main = async (): Promise<void> => {
   try {
-    await dbconnect()
+    await db.connect()
     await generateAndStoreWaitTimeHeatMap()
   } catch (error) {
     logger.error(error)

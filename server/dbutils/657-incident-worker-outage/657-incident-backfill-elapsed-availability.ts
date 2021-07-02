@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dbconnect from '../dbconnect'
+import * as db from '../../db'
 import { AvailabilitySnapshot } from '../../models/Availability/Snapshot'
 import VolunteerModel from '../../models/Volunteer'
 import { USER_ACTION } from '../../constants'
@@ -45,7 +45,7 @@ const endOfMissingHistorySnapshots = new Date('2021-04-13T00:00:00.000+00:00')
 
 const main = async (): Promise<void> => {
   try {
-    await dbconnect()
+    await db.connect()
 
     const volunteers: any = await VolunteerModel.aggregate([
       {

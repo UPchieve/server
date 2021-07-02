@@ -2,6 +2,7 @@ import { Express } from 'express'
 import passport from 'passport'
 import config from '../config'
 import { authPassport } from '../utils/auth-utils'
+import logger from '../logger'
 import * as ContactFormRouter from './contact'
 import SessionStore from './api/session-store'
 import * as AuthRouter from './auth'
@@ -9,7 +10,7 @@ import * as ApiRouter from './api'
 import * as EligibilityRouter from './eligibility'
 
 export default function(app: Express) {
-  console.log('Initializing server routing')
+  logger.info('initializing server routing')
 
   // initialize session store
   const sessionStore = SessionStore(app)

@@ -1,5 +1,5 @@
 import SchoolModel from '../models/School'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import logger from '../logger'
 import mongoose from 'mongoose'
 
@@ -12,7 +12,7 @@ const main = async (): Promise<void> => {
   }
 
   try {
-    await dbconnect()
+    await db.connect()
     const results = await SchoolModel.deleteOne({
       _id: schoolIdToRemove
     })

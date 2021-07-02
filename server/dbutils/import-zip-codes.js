@@ -3,11 +3,11 @@ const async = require('async')
 const https = require('https')
 const csvParse = require('csv-parse')
 const cliProgress = require('cli-progress')
-const dbconnect = require('./dbconnect')
+const db = require('../db')
 
 const ZipCode = require('../models/ZipCode')
 
-dbconnect(mongoose, async function() {
+db.connect(mongoose, async function() {
   async.waterfall(
     [
       function(done) {

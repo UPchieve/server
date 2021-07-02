@@ -1,12 +1,12 @@
 import mongoose from 'mongoose'
 import FeedbackModel, { FeedbackVersionTwo } from '../models/Feedback'
 import { FEEDBACK_VERSIONS } from '../constants'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import logger from '../logger'
 
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     // Remove the responseData key from all feedback documents with versionNumber: 2
     const results = await FeedbackModel.updateMany(
@@ -35,7 +35,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
 
     // Add responseData to docs with studentTutoringFeedback
     const studentTutoringUpdates = []
