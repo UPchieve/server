@@ -34,6 +34,12 @@ const s3PhotoImageUrls = [
   `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`
 ]
 
+const adminEduUrls = [
+  'https://code.jquery.com',
+  'https://stackpath.bootstrapcdn.com',
+  'https://cdn.jsdelivr.net'
+]
+
 // default srcs
 const vimeoUrl = 'https://player.vimeo.com'
 const googleDocsUrl = 'https://docs.google.com'
@@ -51,6 +57,7 @@ export const scriptSrc = [
   mathJaxScriptUrl,
   posthogUrl,
   ...newrelicUrls,
+  ...adminEduUrls,
   "'unsafe-eval'", // eslint-disable-line quotes
   "'unsafe-inline'" // eslint-disable-line quotes
 ]
