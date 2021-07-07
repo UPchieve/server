@@ -19,6 +19,7 @@
     "lastname": "Upchieve",
     "password": "$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y",
     "verified": true,
-    "referralCode": "F"
+    "referralCode": "F",
+    "isBanned": true
   }
 ]
