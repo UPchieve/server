@@ -295,6 +295,13 @@ export const courses: TrainingCourse[] = [
             resourceId: '458744858'
           },
           {
+            name: 'Guidelines for Reporting a Student',
+            materialKey: '1axg8b',
+            type: MaterialType.DOCUMENT,
+            isRequired: true,
+            resourceId: 'reporting-guidelines'
+          },
+          {
             name: 'More tips on handling challenging scenarios',
             materialKey: 'jkkm20',
             type: MaterialType.DOCUMENT,
