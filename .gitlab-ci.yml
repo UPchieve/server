@@ -17,6 +17,8 @@ build:
   stage: build
   image: "docker:20.10.6"
   cache: {}
+  tags:
+    - upchieve
   variables:
     DOCKER_TLS_CERTDIR: ""
   services:
@@ -62,6 +64,8 @@ testfrontend:
 testbackend:
   stage: test
   image: node:12.22.1-buster
+  tags:
+    - upchieve
   variables:
     NODE_OPTIONS: --max_old_space_size=2048
   services:
