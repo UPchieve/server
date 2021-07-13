@@ -1,5 +1,5 @@
-const _ = require('lodash')
-const moment = require('moment')
+import { flattenDeep } from 'lodash'
+import moment from 'moment'
 
 const {
   getFeedbackStats,
@@ -15,7 +15,8 @@ const {
 
 module.exports = function(app) {
   app.use('/metrics', async function(req, res) {
-    let { minTime, maxTime, timeScale } = req.query
+    let { minTime, maxTime } = req.query
+    const { timeScale } = req.query
     if (minTime) {
       minTime = moment.utc(minTime)
     }
@@ -50,7 +51,7 @@ module.exports = function(app) {
       {
         slug: 'sessions',
         name: 'Sessions',
-        datapoints: _.flattenDeep([
+        datapoints: flattenDeep([
           objToDatapoints(sessionStats),
           deepObjToDatapoints(sessionStats, 'day-of-week'),
           deepObjToDatapoints(sessionStats, 'hour-of-day'),
@@ -61,13 +62,13 @@ module.exports = function(app) {
       {
         slug: 'volunteers',
         name: 'Volunteers',
-        datapoints: _.flattenDeep(objToDatapoints(volunteerStats))
+        datapoints: flattenDeep(objToDatapoints(volunteerStats))
       },
       {
         slug: 'onboarded-volunteers',
         name: 'Onboarded volunteers',
         // passed a quiz & selected availability
-        datapoints: _.flattenDeep(
+        datapoints: flattenDeep(
           objToDatapoints(volunteerStats, 'onboardedCount')
         )
       },
@@ -80,14 +81,14 @@ module.exports = function(app) {
       //   slug: 'certifications', // for certs per volunteer
       //   name: 'Certifications',
       //   datapoints: objToDatapoints(
-      //     _.mapValues(volunteerStats, 'certificationSum')
+      //     mapValues(volunteerStats, 'certificationSum')
       //   )
       // },
       // {
       //   slug: 'available-hours-per-volunteer',
       //   name: 'Available hours per volunteer',
       //   datapoints: objToDatapoints(
-      //     _.mapValues(volunteerStats, 'availableHoursAvg')
+      //     mapValues(volunteerStats, 'availableHoursAvg')
       //   )
       // },
       // {
@@ -110,27 +111,25 @@ module.exports = function(app) {
       {
         slug: 'session-duration',
         name: 'Session duration (sec)',
-        datapoints: _.flattenDeep(
-          objToDatapoints(sessionStats, 'durationSecSum')
-        )
+        datapoints: flattenDeep(objToDatapoints(sessionStats, 'durationSecSum'))
       },
       {
         slug: 'session-wait',
         name: 'Session wait (sec)',
-        datapoints: _.flattenDeep(objToDatapoints(sessionStats, 'waitSecSum'))
+        datapoints: flattenDeep(objToDatapoints(sessionStats, 'waitSecSum'))
       },
       {
         slug: 'successful-matches',
         name: 'Successful matches',
         // % of sessions that lasted at least 1 min long were matched with volunteer
-        datapoints: _.flattenDeep(
+        datapoints: flattenDeep(
           objToDatapoints(sessionStats, 'successfulMatches')
         )
       },
       {
         slug: 'chat-messages',
         name: 'Chat messages',
-        datapoints: _.flattenDeep(objToDatapoints(sessionStats, 'messageSum'))
+        datapoints: flattenDeep(objToDatapoints(sessionStats, 'messageSum'))
       },
       {
         slug: 'session-rating',
@@ -152,8 +151,8 @@ module.exports = function(app) {
         name: 'Session rating count',
         datapoints: volunteerFeedbackStats.count
       }
-      // requestsByDayOfWeek: _.mapValues(sessionStats, 'requestsByDayOfWeek'),
-      // requestsByHour: _.mapValues(sessionStats, 'requestsByHourOfDay'),
+      // requestsByDayOfWeek: mapValues(sessionStats, 'requestsByDayOfWeek'),
+      // requestsByHour: mapValues(sessionStats, 'requestsByHourOfDay'),
       // subjectsRequested: ''
     ]
 
