@@ -28,7 +28,9 @@
         class="toolbar-item toolbar-item--pick"
         title="Pick tool"
         v-bind:class="selectedTool === 'pick' ? 'selected-tool' : ''"
+        tabindex="0"
         @click="usePickTool"
+        @keydown.enter="usePickTool"
       >
         <SelectionIcon class="toolbar-item__svg" />
       </div>
@@ -36,14 +38,18 @@
         class="toolbar-item toolbar-item--brush"
         title="Brush tool"
         v-bind:class="selectedTool === 'brush' ? 'selected-tool' : ''"
+        tabindex="0"
         @click="useBrushTool"
+        @keydown.enter="useBrushTool"
       >
         <PenIcon class="toolbar-item__svg" />
       </div>
       <div
         class="toolbar-item toolbar-item--shapes"
         title="Shapes"
+        tabindex="0"
         @click="toggleShapes"
+        @keydown.enter="toggleShapes"
         :class="isShapeSelected ? 'selected-tool' : ''"
       >
         <ShapesIcon class="toolbar-item__svg toolbar-item__svg--shapes" />
@@ -51,21 +57,27 @@
           <div
             class="toolbar-item shapes-bar__toolbar-item"
             :class="selectedTool === 'line' ? 'selected-tool' : ''"
+            tabindex="0"
             @click="useLineTool"
+            @keydown.enter="useLineTool"
           >
             <line-icon class="shapes-bar__shape-icon" title="Line tool" />
           </div>
           <div
             class="toolbar-item shapes-bar__toolbar-item"
             :class="selectedTool === 'circle' ? 'selected-tool' : ''"
+            tabindex="0"
             @click="useCircleTool"
+            @keydown.enter="useCircleTool"
           >
             <circle-icon class="shapes-bar__shape-icon" title="Circle tool" />
           </div>
           <div
             class="toolbar-item shapes-bar__toolbar-item"
             :class="selectedTool === 'polygon' ? 'selected-tool' : ''"
+            tabindex="0"
             @click="useTriangleTool"
+            @keydown.enter="useTriangleTool"
           >
             <triangle-icon
               class="shapes-bar__shape-icon"
@@ -75,7 +87,9 @@
           <div
             class="toolbar-item shapes-bar__toolbar-item"
             :class="selectedTool === 'rectangle' ? 'selected-tool' : ''"
+            tabindex="0"
             @click="useRectangleTool"
+            @keydown.enter="useRectangleTool"
           >
             <rectangle-icon
               class="shapes-bar__shape-icon"
@@ -88,14 +102,18 @@
         class="toolbar-item toolbar-item--text"
         :class="selectedTool === 'text' ? 'selected-tool' : ''"
         title="Text"
+        tabindex="0"
         @click="useTextTool"
+        @keydown.enter="useTextTool"
       >
         <TextIcon class="toolbar-item__svg" />
       </div>
       <div
         class="toolbar-item toolbar-item--color-picker"
         title="Color picker"
+        tabindex="0"
         @click="toggleColorPicker"
+        @keydown.enter="toggleColorPicker"
       >
         <ColorPickerIcon
           class="toolbar-item__svg toolbar-item__svg--color-picker"
@@ -105,51 +123,77 @@
             class="color-button"
             title="Black"
             style="background-color: rgba(10, 10, 10, 1)"
-            @click="setColor('rgba(10, 10, 10, 1)')"
+            tabindex="0"
+            @click="setColor('rgba(10, 10, 10, 1)', $event)"
+            @keydown.enter="setColor('rgba(10, 10, 10, 1)', $event)"
           ></div>
           <div
             class="color-button"
             title="Navy"
             style="background-color: rgba(38, 51, 104, 1)"
-            @click="setColor('rgba(38, 51, 104, 1)')"
+            tabindex="0"
+            @click="setColor('rgba(38, 51, 104, 1)', $event)"
+            @keydown.enter="setColor('rgba(38, 51, 104, 1)', $event)"
           ></div>
           <div
             class="color-button"
             title="Red"
             style="background-color: rgba(244, 71, 71, 1)"
-            @click="setColor('rgba(244, 71, 71, 1)')"
+            tabindex="0"
+            @click="setColor('rgba(244, 71, 71, 1)', $event)"
+            @keydown.enter="setColor('rgba(244, 71, 71, 1)', $event)"
           ></div>
           <div
             class="color-button"
             title="Sand"
             style="background-color: rgba(249, 227, 183, 1)"
-            @click="setColor('rgba(249, 227, 183, 1)')"
+            tabindex="0"
+            @click="setColor('rgba(249, 227, 183, 1)', $event)"
+            @keydown.enter="setColor('rgba(249, 227, 183, 1)', $event)"
           ></div>
           <div
             class="color-button"
             title="Teal"
             style="background-color: rgba(123, 222, 201, 1)"
-            @click="setColor('rgba(123, 222, 201, 1)')"
+            tabindex="0"
+            @click="setColor('rgba(123, 222, 201, 1)', $event)"
+            @keydown.enter="setColor('rgba(123, 222, 201, 1)', $event)"
           ></div>
           <div
             class="color-button"
             title="Light Blue"
             style="background-color: rgba(119, 151, 216, 1)"
-            @click="setColor('rgba(119, 151, 216, 1)')"
+            tabindex="0"
+            @click="setColor('rgba(119, 151, 216, 1)', $event)"
+            @keydown.enter="setColor('rgba(119, 151, 216, 1)', $event)"
           ></div>
         </div>
       </div>
-      <div class="toolbar-item toolbar-item--undo" title="Undo" @click="undo">
+      <div
+        class="toolbar-item toolbar-item--undo"
+        title="Undo"
+        tabindex="0"
+        @click="undo"
+        @keydown.enter="undo"
+      >
         <UndoIcon class="toolbar-item__svg" />
       </div>
-      <div class="toolbar-item toolbar-item--redo" title="Redo" @click="redo">
+      <div
+        class="toolbar-item toolbar-item--redo"
+        title="Redo"
+        tabindex="0"
+        @click="redo"
+        @keydown.enter="redo"
+      >
         <RedoIcon class="toolbar-item__svg" />
       </div>
       <div
         v-if="showPhotoUpload"
         class="toolbar-item toolbar-item--photo"
         title="Upload photo"
+        tabindex="0"
         @click="openFileDialog"
+        @keydown.enter="openFileDialog"
       >
         <input
           type="file"
@@ -162,14 +206,18 @@
       <div
         class="toolbar-item toolbar-item--clear"
         title="Clear whiteboard"
+        tabindex="0"
         @click="clearWhiteboard"
+        @keydown.enter="clearWhiteboard"
       >
         <ClearIcon class="toolbar-item__svg" />
       </div>
       <div
         class="toolbar-item toolbar-item--reset"
         title="Reset whiteboard"
+        tabindex="0"
         @click="toggleResetWhiteboardModal"
+        @keydown.enter="toggleResetWhiteboardModal"
       >
         <ResetIcon class="toolbar-item__svg--reset" />
       </div>
@@ -331,31 +379,45 @@ export default {
     handleWindowResize() {
       setTimeout(this.resizeViewRectangle, 100)
     },
-    usePickTool() {
+    maybeFocusZwibbler(event) {
+      // activate Zwibbler's keyboard cursor if a tool was selected
+      // using the keyboard
+      if (event.type === "keydown") {
+        this.zwibblerCtx.focus(true, this)
+      }
+    },
+    usePickTool(event) {
       this.zwibblerCtx.usePickTool()
+      this.maybeFocusZwibbler(event)
     },
-    useBrushTool() {
+    useBrushTool(event) {
       this.zwibblerCtx.useBrushTool()
+      this.maybeFocusZwibbler(event)
     },
-    useLineTool() {
+    useLineTool(event) {
       this.zwibblerCtx.useLineTool(
         {},
         {
           singleLine: true
         }
       )
+      this.maybeFocusZwibbler(event)
     },
-    useCircleTool() {
+    useCircleTool(event) {
       this.zwibblerCtx.useCircleTool()
+      this.maybeFocusZwibbler(event)
     },
-    useTriangleTool() {
+    useTriangleTool(event) {
       this.zwibblerCtx.usePolygonTool(3, 0)
+      this.maybeFocusZwibbler(event)
     },
-    useRectangleTool() {
+    useRectangleTool(event) {
       this.zwibblerCtx.useRectangleTool()
+      this.maybeFocusZwibbler(event)
     },
-    useTextTool() {
+    useTextTool(event) {
       this.zwibblerCtx.useTextTool()
+      this.maybeFocusZwibbler(event)
     },
     toggleColorPicker() {
       this.showColorPicker = !this.showColorPicker
