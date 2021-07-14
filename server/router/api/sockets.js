@@ -4,10 +4,9 @@
 const passportSocketIo = require('passport.socketio')
 const cookieParser = require('cookie-parser')
 const Sentry = require('@sentry/node')
-const SessionModel = require('../../models/Session')
 const config = require('../../config')
-const SessionCtrl = require('../../controllers/SessionCtrl')
 const SocketService = require('../../services/SocketService')
+const SessionService = require('../../services/SessionService')
 const QuillDocService = require('../../services/QuillDocService')
 const getSessionRoom = require('../../utils/get-session-room')
 const newrelic = require('newrelic')
@@ -64,7 +63,7 @@ module.exports = function(io, sessionStore) {
     // multiple socket connections open
     socket.join(user._id.toString())
 
-    const latestSession = await SessionModel.current(user._id)
+    const latestSession = await SessionService.currentSession(user)
 
     // @note: students don't join the room by default until they are in the session view
     // Join user to their latest session if it has not ended
@@ -99,10 +98,7 @@ module.exports = function(io, sessionStore) {
               if (user.isVolunteer && !user.isApproved)
                 throw new Error('Volunteer not approved')
 
-              session = await SessionModel.findById(sessionId)
-                .lean()
-                .exec()
-              if (!session) throw new Error('No session found!')
+              session = await SessionService.getSessionById(sessionId)
             } catch (error) {
               socket.emit('redirect')
               reject(error)
@@ -110,7 +106,12 @@ module.exports = function(io, sessionStore) {
             }
 
             try {
-              await SessionCtrl.join({ socket, session, user, joinedFrom })
+              await SessionService.joinSession({
+                socket,
+                session,
+                user,
+                joinedFrom
+              })
 
               const sessionRoom = getSessionRoom(sessionId)
               const socketIds = await getSocketIdsFromRoom(user._id.toString())
@@ -143,7 +144,7 @@ module.exports = function(io, sessionStore) {
         () =>
           new Promise(async (resolve, reject) => {
             try {
-              const sessions = await SessionModel.getUnfulfilledSessions()
+              const sessions = await SessionService.getUnfulfilledSessions()
               socket.emit('sessions', sessions)
               resolve()
             } catch (error) {
@@ -183,7 +184,7 @@ module.exports = function(io, sessionStore) {
                 user: user._id,
                 createdAt: new Date()
               }
-              await SessionCtrl.saveMessage({
+              await SessionService.saveMessage({
                 sessionId: data.sessionId,
                 user: data.user,
                 message: newMessage

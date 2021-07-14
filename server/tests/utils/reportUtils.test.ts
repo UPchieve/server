@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { mocked } from 'ts-jest/utils'
 import {
   generateTelecomReport,
   telecomHourSummaryStats,
@@ -7,9 +8,12 @@ import {
   PartnerVolunteerAnalytics
 } from '../../utils/reportUtils'
 import * as UserActionService from '../../services/UserActionService'
-import SessionService from '../../services/SessionService'
+import * as SessionService from '../../services/SessionService'
 import * as AvailabilityService from '../../services/AvailabilityService'
 import { buildVolunteer } from '../generate'
+jest.mock('../../services/SessionService')
+
+const mockedSessionService = mocked(SessionService, true)
 
 function buildAnalyticVolunteer(
   overrides: Partial<PartnerVolunteerAnalytics> = {}
@@ -174,9 +178,9 @@ describe('Generate telecom report', () => {
       .mockImplementationOnce(() => {
         return actions
       })
-    SessionService.getSessionsWithPipeline = jest.fn(() => {
-      return sessions
-    })
+    mockedSessionService.getSessionsWithPipeline.mockImplementationOnce(() =>
+      Promise.resolve(sessions)
+    )
     jest
       .spyOn(AvailabilityService, 'getAvailabilityHistoryWithPipeline')
       // @ts-expect-error
@@ -194,9 +198,10 @@ describe('Generate telecom report', () => {
       .mockImplementationOnce(() => {
         return actions
       })
-    SessionService.getSessionsWithPipeline = jest.fn(() => {
-      return sessions
-    })
+
+    mockedSessionService.getSessionsWithPipeline.mockImplementationOnce(() =>
+      Promise.resolve(sessions)
+    )
     jest
       .spyOn(AvailabilityService, 'getAvailabilityHistoryWithPipeline')
       // @ts-expect-error

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
-import ejson from 'mongodb-extended-json'
 import config from './config'
+const ejson = require('mongodb-extended-json')
 
 // Database
 mongoose.connect(config.database, {
@@ -16,6 +16,7 @@ db.once('open', function() {
   console.log('Connected to database')
 
   const promises = []
+  let totalRecords = 0
 
   // Data about the seed data we intend to import / update from this file
   const seedDataMetadata = [
@@ -64,7 +65,10 @@ db.once('open', function() {
   // For each of the above metadata items, replace each record in each file with the value from seed data
   seedDataMetadata.forEach(seedDataMetadataItem => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const aModel = require('./models/' + seedDataMetadataItem.model)
+    let aModel = require('./models/' + seedDataMetadataItem.model)
+    if (seedDataMetadataItem.model === 'Volunteer') {
+      aModel = aModel.default
+    }
 
     seedDataMetadataItem.files.forEach(file => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -91,14 +95,14 @@ db.once('open', function() {
         })
 
         promises.push(replacePromise)
-        console.log(record)
+        totalRecords += 1
       })
     })
   })
 
   Promise.all(promises)
     .then(() => {
-      console.log('Successfully imported data')
+      console.log(`Successfully imported ${totalRecords} records`)
       process.exit()
     })
     .catch(err => {

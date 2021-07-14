@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import Session from '../../models/Session'
-import SessionService from '../../services/SessionService'
+import * as SessionService from '../../services/SessionService'
 import QueueService from '../../services/QueueService'
 import TwilioService from '../../services/twilio'
 import { getNotificationWithVolunteer } from '../../services/NotificationService'
@@ -34,8 +34,18 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
       { delay }
     )
 
-  // After 15 text notifications are sent, start contacting the same volunteers again in order
-  if (session.notifications.length >= TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP) {
+  // calculate number of ms since session started
+  const createdAt = session.createdAt.getTime()
+  const now = Date.now()
+  const ageOfSession = now - createdAt
+  const sixMinutes = 60 * 1000 * 6
+
+  // if it's been longer than 6 minutes, or if we've notified 15 volunteers, resend notifications in the same order
+  // 6 minutes is the point at which we would have notified 15 volunteers if there were 15 to notify
+  if (
+    session.notifications.length >= TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP ||
+    ageOfSession >= sixMinutes
+  ) {
     // Wrap around the notifications list to get a notification we've sent before
     const notificationId =
       session.notifications[

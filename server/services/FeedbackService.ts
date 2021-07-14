@@ -7,10 +7,16 @@ import FeedbackModel, {
   VolunteerFeedback
 } from '../models/Feedback'
 import { FEEDBACK_VERSIONS } from '../constants'
-import SessionService from './SessionService'
+import * as SessionService from './SessionService'
 
 export const getFeedback = (query): Promise<Feedback> => {
   return FeedbackModel.findOne(query)
+    .lean()
+    .exec()
+}
+
+export function getFeedbackForSession(sessionId: string): Promise<Feedback[]> {
+  return FeedbackModel.find({ sessionId })
     .lean()
     .exec()
 }
@@ -45,10 +51,6 @@ export const saveFeedback = async (data: {
     ...volunteerFeedback
   }
   const flags = await SessionService.getFeedbackFlags(feedbackResponses)
-  if (flags.length > 0)
-    await SessionService.addFeedbackFlags({
-      sessionId,
-      flags
-    })
+  if (flags.length > 0) await SessionService.updateFlags(sessionId, flags)
   return feedback.save()
 }

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dbconnect from '../dbconnect'
+import * as db from '../../db'
 import VolunteerModel from '../../models/Volunteer'
 import * as VolunteerService from '../../services/VolunteerService'
 import { USER_ACTION } from '../../constants'
@@ -18,7 +18,7 @@ import logger from '../../logger'
  */
 const main = async (): Promise<void> => {
   try {
-    await dbconnect()
+    await db.connect()
 
     const volunteers: any = await VolunteerModel.aggregate([
       {

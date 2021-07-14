@@ -45,6 +45,7 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
     const { _id, firstname: firstName, email, availability } = volunteer
     const textNotifications = await getNotifications({ volunteer: _id })
     const totalHoursSelected = countAvailabilitySelected(
+      // @ts-expect-error
       availability.toObject()
     )
 

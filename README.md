@@ -57,15 +57,34 @@ After switching npm versions using nvm, you will need to rerun `$ npm install`.
 
 #### Mongo 4.2.3
 
-Using a Volume (else data is not saved), pull and run docker image `mongo:4.2.3-bionic`. You can use any empty directory to which you have write access for your volume.
+Using a Volume (else data is not saved), pull and run docker image `mongo:4.2.3-bionic`. You can use any empty directory to which you have write access for your volume. 
+What to expect: this command will be simultaneously running the mongo database on your local machine as the app builds for production. 
 
 ```shell-script
 docker run -i --rm --name mongoContainer -p 27017-27019:27017-27019 -v <Absolute Path to directory on your drive>:/data/db mongo:4.2.3-bionic
 ```
 
+Alternatively...
+
+Run it as a background process: 
+
+```shell-script
+docker run -i -d --rm --name mongoContainer -p 27017-27019:27017-27019 -v <Absolute Path to directory on your drive>:/data/db mongo:4.2.3-bionic
+```
+
+Verify which docker containers are running: 
+```shell-script
+docker container ls
+```
+
+After you're done with development for the day, don't forget to stop the container running in the background:
+```shell-script
+docker stop mongoContainer
+```
+
 #### Redis 5.0.8
 
-Pull and run docker image `redis:5.0.8`. You can use any empty directory to which you have write access for your volume.
+If you want, in a new terminal, pull and run docker image `redis:5.0.8`. You can use any empty directory to which you have write access for your volume. What to expect: this command will be simultaneously running on your local machine as the app builds for production. 
 
 ```shell-script
 docker run -i --rm --name redis -p 6379:6379 -v <Absolute Path to directory on your drive>:/data -t redis:5.0.8
@@ -78,7 +97,7 @@ docker run -i --rm --name redis -p 6379:6379 -v <Absolute Path to directory on y
 ### Setup
 The below steps are tested on a Macintosh.
 
-1. Confirm that Mongo and Redis container dependencies above are running.
+1. Confirm that Mongo and Redis container dependencies above are running alongside.
 1. Custom properties are currently required for the server to connect data sources on a desktop computer, so run or add to your profile the below commands:
 ```
 export SUBWAY_REDIS_HOST=localhost

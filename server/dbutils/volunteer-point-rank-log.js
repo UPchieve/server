@@ -1,12 +1,12 @@
 const mongoose = require('mongoose')
 
-const dbconnect = require('./dbconnect')
+const db = require('../db')
 
 const User = require('../models/User')
 require('../models/Session')
 require('../models/Notification')
 
-dbconnect(mongoose, function() {
+db.connect(mongoose, function() {
   const volunteerQueryMatch = {
     isVolunteer: true,
     isFakeUser: false,

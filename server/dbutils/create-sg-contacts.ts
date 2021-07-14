@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import axios from 'axios';
 import Student from '../models/Student';
 import Volunteer from '../models/Volunteer';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import config from '../config';
 import { volunteerPartnerManifests, studentPartnerManifests } from '../partnerManifests'
 
@@ -115,7 +115,7 @@ const createVolunteerContacts = async users => {
 };
 
 const main = async (): Promise<void> => {
-  await dbconnect();
+  await db.connect();
 
   try {
     const students = await Student.find({})

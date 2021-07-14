@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import User from '../models/User';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const result = await User.updateMany({}, { isDeactivated: false });
 
     console.log(result);
@@ -17,7 +17,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const result = await User.updateMany(
       {},
       {

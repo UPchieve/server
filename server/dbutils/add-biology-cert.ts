@@ -1,10 +1,10 @@
 import mongoose from 'mongoose'
 import User from '../models/User'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 
 const main = async () => {
   try {
-    await dbconnect()
+    await db.connect()
     const biology = {
       passed: false,
       tries: 0

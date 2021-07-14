@@ -27,6 +27,12 @@ export const topics = {
     },
     displayName: 'Science Tutoring'
   },
+  readingWriting: {
+    subtopics: {
+      humanitiesEssays: { displayName: 'Humanities Essays' }
+    },
+    displayName: 'Reading and Writing'
+  },
   college: {
     subtopics: {
       planning: { displayName: 'Planning' },

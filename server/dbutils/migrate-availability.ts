@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import VolunteerModel from '../models/Volunteer';
 import { getAvailabilities } from '../services/AvailabilityService';
 
 // remove availability from volunteers
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
 
     const results = await VolunteerModel.updateMany(
       {},
@@ -26,7 +26,7 @@ async function upgrade(): Promise<void> {
 // Add availability from availability snapshots to volunteers
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
 
     const availabilitySnapshots: any = await getAvailabilities({});
     const updates = [];

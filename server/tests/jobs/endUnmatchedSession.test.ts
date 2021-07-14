@@ -7,7 +7,7 @@ import {
 } from '../db-utils'
 import endUnmatchedSession from '../../worker/jobs/endUnmatchedSession'
 import { log } from '../../worker/logger'
-import SessionService from '../../services/SessionService'
+import * as SessionService from '../../services/SessionService'
 import { Jobs } from '../../worker/jobs'
 jest.mock('../../worker/logger')
 jest.setTimeout(15000)

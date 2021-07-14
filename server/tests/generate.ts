@@ -12,6 +12,7 @@ import {
   REFERENCE_STATUS,
   SAT_CERTS,
   SCIENCE_CERTS,
+  READING_WRITING_CERTS,
   TRAINING
 } from '../constants'
 import { Message } from '../models/Message'
@@ -36,16 +37,22 @@ import { Session } from '../models/Session'
 import { FeedbackVersionOne, FeedbackVersionTwo } from '../models/Feedback'
 import {
   StudentRegData,
+  PartnerStudentRegData,
   VolunteerRegData,
   PartnerVolunteerRegData
 } from '../utils/auth-utils'
 import { Notification } from '../models/Notification'
+import { PushToken } from '../models/PushToken'
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
 export const generateSentence = faker.lorem.sentence
 export const getObjectId = Types.ObjectId
+export const getStringObjectId = () => getObjectId().toString()
 export const getUUID = faker.datatype.uuid
+export const getId = faker.random.uuid
+export const getIpAddress = faker.internet.ip
+export const getUserAgent = faker.internet.userAgent
 
 const generateReferralCode = (userId): string =>
   base64url(Buffer.from(userId, 'hex'))
@@ -94,6 +101,7 @@ export const buildCertifications = (overrides = {}): Certifications => {
     [TRAINING.COLLEGE_COUNSELING]: { passed: false, tries: 0 },
     [TRAINING.COLLEGE_SKILLS]: { passed: false, tries: 0 },
     [TRAINING.SAT_STRATEGIES]: { passed: false, tries: 0 },
+    [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: { passed: false, tries: 0 },
     ...overrides
   }
 }
@@ -275,8 +283,31 @@ export const buildStudentRegistrationForm = (
     email: student.email,
     password: student.password,
     terms: true,
+    zipCode: '11201',
+    highSchoolId: '111111111111',
     ...overrides
   } as StudentRegData
+
+  return form
+}
+
+export const buildPartnerStudentRegistrationForm = (
+  overrides: Partial<PartnerStudentRegData> = {}
+): PartnerStudentRegData => {
+  const student = buildStudent()
+  const form = {
+    ip: '0.0.0.0',
+    firstName: student.firstname,
+    lastName: student.lastname,
+    email: student.email,
+    password: student.password,
+    terms: true,
+    studentPartnerOrg: 'example',
+    studentPartnerSite: 'example.org',
+    partnerUserId: '123',
+    college: 'UPchieve University',
+    ...overrides
+  } as PartnerStudentRegData
 
   return form
 }
@@ -417,15 +448,9 @@ export const buildSession = (overrides = {}): Session => {
     reviewedStudent: undefined,
     reviewedVolunteer: undefined,
     timeTutored: 0,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    addNotifications: async () => {},
     ...overrides
   }
 
-  // @note: addNotifications expects a SessionDocument to be returned.
-  //        this function is removed from the interface in another merge
-  //        request, effectively allowing us to remove ts-expect-error below
-  // @ts-expect-error
   return session
 }
 
@@ -602,6 +627,45 @@ export const buildFeedback = (
   }
 
   return feedback
+}
+
+export function buildUserAgent(overrides = {}) {
+  return {
+    device: '',
+    browser: '',
+    browserVersion: '',
+    operatingSystem: '',
+    operatingSystemVersion: '',
+    ...overrides
+  }
+}
+
+// @todo: return PartialSocket or use a mocked socket
+export function buildSocket(overrides = {}) {
+  return {
+    id: getStringObjectId(),
+    connected: true,
+    disconnected: false,
+    request: {
+      headers: {
+        'user-agent': ''
+      }
+    },
+    handshake: {
+      address: ''
+    },
+    ...overrides
+  }
+}
+
+export function buildPushToken(overrides = {}): PushToken {
+  return {
+    _id: getObjectId(),
+    user: getObjectId(),
+    createdAt: new Date(),
+    token: '123',
+    ...overrides
+  }
 }
 
 export const authLogin = (agent, { email, password }: Partial<User>): Test =>

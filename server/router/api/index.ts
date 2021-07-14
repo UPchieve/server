@@ -7,21 +7,20 @@ import { addLastActivity } from '../../middleware/add-last-activity'
 import { addUserAction } from '../../middleware/add-user-action'
 import socketServer from './socket-server'
 import volunteers from './volunteers'
-import user from './user'
 import { routeVerify } from './verify'
-import session from './session'
+import { routes as routeSessions } from './session'
 import { routeCalendar } from './calendar'
-import training from './training'
 import { routeFeedback } from './feedback'
 import sockets from './sockets'
 import moderate from './moderate'
 import pushToken from './push-token'
 import { routeReports } from './reports'
 import { routeSurvey } from './survey'
+import { routes as routeStats } from './stats'
+const training = require('./training')
+const user = require('./user')
 
-module.exports = function(app: Express, sessionStore: MongoStore): void {
-  console.log('API module')
-
+export function routes(app: Express, sessionStore: MongoStore): void {
   const io: Server = socketServer(app)
 
   const router: expressWs.Router = Router()
@@ -29,7 +28,7 @@ module.exports = function(app: Express, sessionStore: MongoStore): void {
   volunteers(router)
   user(router)
   routeVerify(router)
-  session(router, io)
+  routeSessions(router as Router, io)
   routeCalendar(router)
   training(router)
   routeFeedback(router)
@@ -38,8 +37,9 @@ module.exports = function(app: Express, sessionStore: MongoStore): void {
   pushToken(router)
   routeReports(router)
   routeSurvey(router)
+  routeStats(router)
 
   app.use(addLastActivity)
   app.use(addUserAction)
-  app.use('/api', authPassport.isAuthenticated, router)
+  app.use('/api', authPassport.isAuthenticated, router as Router)
 }

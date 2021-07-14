@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 import User from '../models/User';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 
 // Run:
 // npx ts-node dbutils/add-isapproved.ts
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const result = await User.updateMany(
       { isVolunteer: true },
       {
@@ -27,7 +27,7 @@ async function upgrade(): Promise<void> {
 // npx ts-node dbutils/add-isapproved.ts
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const results = await User.updateMany(
       { isVolunteer: true },
       { $unset: { isApproved: '' } },

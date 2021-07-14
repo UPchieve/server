@@ -1,11 +1,11 @@
 const mongoose = require('mongoose')
-const dbconnect = require('./dbconnect')
+const db = require('../db')
 const User = require('../models/User')
 const UserAction = require('../models/UserAction')
 
 // Delete defaulted availability for users that have never modified their availability and delete it for students
 
-dbconnect(mongoose, function() {
+db.connect(mongoose, function() {
   console.log('Migrating db...')
 
   // Delete availabilityLastModifiedAt from all student accounts

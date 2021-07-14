@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import dbconnect from '../dbconnect'
+import * as db from '../../db'
 import * as StudentService from '../../services/StudentService'
 import StudentModel from '../../models/Student'
 import logger from '../../logger'
@@ -19,7 +19,7 @@ import logger from '../../logger'
  */
 const main = async (): Promise<void> => {
   try {
-    await dbconnect()
+    await db.connect()
 
     const students: any = await StudentModel.aggregate([
       {

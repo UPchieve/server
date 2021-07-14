@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import UserAction from '../models/UserAction';
 import Volunteer from '../models/Volunteer';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 
 const main = async (): Promise<void> => {
   try {
-    await dbconnect();
+    await db.connect();
 
     // When user action updated availability was first implemented
     const FIRST_INSTANCE_OF_UPDATED_AVAILABILITY = new Date(

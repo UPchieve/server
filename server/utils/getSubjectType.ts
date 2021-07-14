@@ -4,6 +4,7 @@ import {
   SCIENCE_SUBJECTS,
   COLLEGE_SUBJECTS,
   SAT_SUBJECTS,
+  READING_WRITING_SUBJECTS,
   TRAINING,
   SUBJECT_TYPES
 } from '../constants'
@@ -19,6 +20,8 @@ const getSubjectType = (subject): string => {
     type = SUBJECT_TYPES.COLLEGE
   if (Object.values(SAT_SUBJECTS).includes(subject)) type = SUBJECT_TYPES.SAT
   if (Object.values(TRAINING).includes(subject)) type = SUBJECT_TYPES.TRAINING
+  if (Object.values(READING_WRITING_SUBJECTS).includes(subject))
+    type = SUBJECT_TYPES.READING_WRITING
 
   return type
 }

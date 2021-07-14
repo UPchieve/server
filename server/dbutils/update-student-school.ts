@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import StudentModel from '../models/Student'
 import IneligibleStudentModel from '../models/IneligibleStudent'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 import logger from '../logger'
 const ObjectId = mongoose.Types.ObjectId
 
@@ -17,8 +17,8 @@ const main = async (): Promise<void> => {
   }
 
   try {
-    await dbconnect()
-    // @todo: the update operations below should utilize db transactions, and fail if 
+    await db.connect()
+    // @todo: the update operations below should utilize db transactions, and fail if
     //        one of the write operations does not succeed
     const studentUpdateResults = await StudentModel.updateMany(
       {

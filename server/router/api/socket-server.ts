@@ -5,6 +5,7 @@ import * as http from 'http'
 import socket from 'socket.io'
 import redisAdapter from 'socket.io-redis'
 import config from '../../config'
+import logger from '../../logger'
 const {
   socketIoPubClient,
   socketIoSubClient
@@ -20,12 +21,13 @@ export default function(app) {
 
   const port =
     process.env.NODE_ENV === 'test'
-      ? 4000 + Number(process.env.JEST_WORKER_ID)
+      ? // @todo: utilize the superagent port
+        4000 + Math.floor(Math.random() * 5000) + 1
       : config.socketsPort
 
   server.listen(port)
 
-  console.log('Sockets.io listening on port ' + port)
+  logger.info('socket.io listening on port ' + port)
 
   const io = socket(server, {
     // set pingTimeout longer than pingInterval

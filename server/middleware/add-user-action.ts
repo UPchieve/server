@@ -1,19 +1,18 @@
 import { Request, Response } from 'express'
 import { captureException } from '@sentry/node'
-import { LoadedRequest } from '../router/app'
 import {
   AccountActionCreator,
   QuizActionCreator
 } from '../controllers/UserActionCtrl'
 
 export function addUserAction(
-  req: Request | LoadedRequest,
+  req: Request,
   res: Response,
   next: Function
 ): void {
   if (Object.prototype.hasOwnProperty.call(req, 'user')) {
-    const { _id } = (req as LoadedRequest).user
-    const { ip: ipAddress } = req as LoadedRequest
+    const { _id } = req.user
+    const { ip: ipAddress } = req
 
     if (req.url === '/api/calendar/save') {
       new AccountActionCreator(_id, ipAddress)
@@ -28,13 +27,7 @@ export function addUserAction(
         .catch(error => captureException(error))
     }
 
-    // add user action 'updated profile' only from /profile request route
-    const referer = req.headers['referer']
-    if (
-      req.url === '/api/user' &&
-      req.method === 'PUT' &&
-      referer.includes('profile')
-    ) {
+    if (req.url === '/api/user' && req.method === 'PUT') {
       new AccountActionCreator(_id, ipAddress)
         .updatedProfile()
         .catch(error => captureException(error))

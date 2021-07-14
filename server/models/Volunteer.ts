@@ -9,9 +9,11 @@ import {
   COLLEGE_CERTS,
   SCIENCE_CERTS,
   SAT_CERTS,
+  READING_WRITING_CERTS,
   COLLEGE_SUBJECTS
 } from '../constants'
 import UserModel, { User } from './User'
+import { DocUpdateError } from './Errors'
 
 export enum DAYS {
   SUNDAY = 'Sunday',
@@ -107,8 +109,9 @@ export interface Certifications {
   [TRAINING.COLLEGE_COUNSELING]: CertificationInfo
   [TRAINING.COLLEGE_SKILLS]: CertificationInfo
   [TRAINING.SAT_STRATEGIES]: CertificationInfo
-  [COLLEGE_SUBJECTS.PLANNING]: CertificationInfo
-  [COLLEGE_SUBJECTS.APPLICATIONS]: CertificationInfo
+  [COLLEGE_CERTS.PLANNING]: CertificationInfo
+  [COLLEGE_CERTS.APPLICATIONS]: CertificationInfo
+  [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: CertificationInfo
 }
 
 interface TrainingCourseData {
@@ -245,35 +248,37 @@ const availabilityDaySchema = new Schema(
   { _id: false }
 )
 
+// https://github.com/Automattic/mongoose/issues/9104
+// setting default to a schema instance is no longer supported
 const availabilitySchema = new Schema(
   {
     [DAYS.SUNDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.MONDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.TUESDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.WEDNESDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.THURSDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.FRIDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     },
     [DAYS.SATURDAY]: {
       type: availabilityDaySchema,
-      default: availabilityDaySchema
+      default: () => ({})
     }
   },
   { _id: false }
@@ -362,7 +367,7 @@ const volunteerSchema = new Schema(
     linkedInUrl: String,
     availability: {
       type: availabilitySchema,
-      default: availabilitySchema
+      default: () => ({})
     },
     timezone: String,
     hoursTutored: { type: Types.Decimal128, default: 0 },
@@ -376,23 +381,23 @@ const volunteerSchema = new Schema(
     trainingCourses: {
       [TRAINING.UPCHIEVE_101]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       },
       [TRAINING.TUTORING_SKILLS]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       },
       [TRAINING.COLLEGE_COUNSELING]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       },
       [TRAINING.COLLEGE_SKILLS]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       },
       [TRAINING.SAT_STRATEGIES]: {
         type: trainingCourseSchema,
-        default: trainingCourseSchema
+        default: () => ({})
       }
     },
     certifications: {
@@ -672,6 +677,17 @@ const volunteerSchema = new Schema(
           default: 0
         },
         lastAttemptedAt: { type: Date }
+      },
+      [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
       }
     },
     subjects: {
@@ -737,5 +753,24 @@ const VolunteerModel = UserModel.discriminator<VolunteerDocument>(
   volunteerSchema
 )
 
-module.exports = VolunteerModel
+export async function updatePastSessionsAndTimeTutored(
+  volunteerId,
+  sessionId,
+  timeTutored
+) {
+  const query = { _id: volunteerId }
+  const update = {
+    $addToSet: { pastSessions: sessionId },
+    $inc: {
+      hoursTutored: Number((timeTutored / 3600000).toFixed(2)),
+      timeTutored
+    }
+  }
+  try {
+    await VolunteerModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
 export default VolunteerModel

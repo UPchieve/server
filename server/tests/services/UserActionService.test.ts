@@ -1,6 +1,9 @@
 import mongoose from 'mongoose'
 import { USER_ACTION } from '../../constants'
-import { getQuizzesPassedForDateRange } from '../../services/UserActionService'
+import {
+  getQuizzesPassedForDateRange,
+  userHasTakenQuiz
+} from '../../services/UserActionService'
 import { insertUserAction, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
 
@@ -69,5 +72,67 @@ describe('getQuizzesPassedForDateRange', () => {
       )
       expect(action.createdAt.getTime()).toBeLessThanOrEqual(toDate.getTime())
     }
+  })
+})
+
+describe('user has taken quiz', () => {
+  test('should return true if there is a quiz passed', async () => {
+    const { _id: volunteerId } = buildVolunteer()
+    const action = USER_ACTION.QUIZ.PASSED
+    const actionType = USER_ACTION.TYPE.QUIZ
+    await insertUserAction({
+      createdAt: new Date('12/10/2020'),
+      action,
+      actionType,
+      user: volunteerId
+    })
+    const quizTaken = await userHasTakenQuiz(volunteerId)
+    expect(quizTaken).toBe(true)
+  })
+  test('should return true if there is a quiz failed', async () => {
+    const { _id: volunteerId } = buildVolunteer()
+    const action = USER_ACTION.QUIZ.FAILED
+    const actionType = USER_ACTION.TYPE.QUIZ
+    await insertUserAction({
+      createdAt: new Date('12/10/2020'),
+      action,
+      actionType,
+      user: volunteerId
+    })
+    const quizTaken = await userHasTakenQuiz(volunteerId)
+    expect(quizTaken).toBe(true)
+  })
+  test('should return true if there is both quiz passed and failed', async () => {
+    const { _id: volunteerId } = buildVolunteer()
+    const passedAction = USER_ACTION.QUIZ.PASSED
+    const failedAction = USER_ACTION.QUIZ.FAILED
+    const actionType = USER_ACTION.TYPE.QUIZ
+    await insertUserAction({
+      createdAt: new Date('12/10/2020'),
+      action: passedAction,
+      actionType,
+      user: volunteerId
+    })
+    await insertUserAction({
+      createdAt: new Date('12/10/2020'),
+      action: failedAction,
+      actionType,
+      user: volunteerId
+    })
+    const quizTaken = await userHasTakenQuiz(volunteerId)
+    expect(quizTaken).toBe(true)
+  })
+  test('should return false if there are no quiz pass or failure actions', async () => {
+    const { _id: volunteerId } = buildVolunteer()
+    const action = USER_ACTION.QUIZ.STARTED
+    const actionType = USER_ACTION.TYPE.QUIZ
+    await insertUserAction({
+      createdAt: new Date('12/10/2020'),
+      action,
+      actionType,
+      user: volunteerId
+    })
+    const quizTaken = await userHasTakenQuiz(volunteerId)
+    expect(quizTaken).toBe(false)
   })
 })

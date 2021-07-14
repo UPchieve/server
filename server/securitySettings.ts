@@ -29,8 +29,15 @@ const s3PhotoConnectUrls = [
 
 const s3PhotoImageUrls = [
   `${config.awsS3.photoIdBucket}.s3.amazonaws.com`,
+  `${config.awsS3.photoIdBucket}.s3.us-east-2.amazonaws.com`,
   `${config.awsS3.sessionPhotoBucket}.s3.amazonaws.com`,
   `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`
+]
+
+const adminEduUrls = [
+  'https://code.jquery.com',
+  'https://stackpath.bootstrapcdn.com',
+  'https://cdn.jsdelivr.net'
 ]
 
 // default srcs
@@ -50,6 +57,7 @@ export const scriptSrc = [
   mathJaxScriptUrl,
   posthogUrl,
   ...newrelicUrls,
+  ...adminEduUrls,
   "'unsafe-eval'", // eslint-disable-line quotes
   "'unsafe-inline'" // eslint-disable-line quotes
 ]
@@ -97,4 +105,9 @@ export const frameAncestors = ["'self'", 'http://localhost'] // eslint-disable-l
 export const objectSrc = ["'none'"] // eslint-disable-line quotes
 export const scriptSrcAttr = ["'none'"] // eslint-disable-line quotes
 export const styleSrc = ["'self'", 'https:', "'unsafe-inline'"] // eslint-disable-line quotes
-export const upgradeInsecureRequests = []
+export let upgradeInsecureRequests
+if (config.NODE_ENV === 'production') {
+  upgradeInsecureRequests = []
+} else {
+  upgradeInsecureRequests = null
+}

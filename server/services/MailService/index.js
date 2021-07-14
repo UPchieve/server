@@ -6,6 +6,7 @@ const {
   volunteerPartnerManifests,
   studentPartnerManifests
 } = require('../../partnerManifests')
+const formatMultiWordSubtopic = require('../../utils/format-multi-word-subtopic')
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -641,6 +642,28 @@ module.exports = {
     )
   },
 
+  sendFailedFirstAttemptedQuiz: ({ category, email, firstName }) => {
+    const overrides = {
+      reply_to: {
+        email: config.mail.senders.support
+      },
+      categories: ['failed first attempted quiz email']
+    }
+
+    return sendEmail(
+      email,
+      config.mail.senders.noreply,
+      'The UPchieve Team',
+      config.sendgrid.failedFirstAttemptedQuizTemplate,
+      {
+        firstName: capitalize(firstName),
+        category: formatMultiWordSubtopic(category)
+      },
+      null,
+      overrides
+    )
+  },
+
   sendVolunteerQuickTips: ({ email, firstName }) => {
     const sender = config.mail.senders.volunteerManager
     const overrides = {
@@ -665,9 +688,6 @@ module.exports = {
     const overrides = {
       reply_to: {
         email: sender
-      },
-      cc: {
-        email: config.mail.receivers.support
       },
       categories: ['partner volunteer - only college certs']
     }
@@ -707,9 +727,6 @@ module.exports = {
       reply_to: {
         email: sender
       },
-      cc: {
-        email: config.mail.receivers.support
-      },
       categories: ['volunteer - first session congrats']
     }
     sendEmail(
@@ -735,9 +752,6 @@ module.exports = {
       reply_to: {
         email: sender
       },
-      cc: {
-        email: config.mail.receivers.support
-      },
       categories: ['partner volunteer - refer a coworker']
     }
     sendEmail(
@@ -756,9 +770,6 @@ module.exports = {
     const overrides = {
       reply_to: {
         email: sender
-      },
-      cc: {
-        email: config.mail.receivers.support
       },
       categories: ['partner volunteer - ten session milestone']
     }
@@ -779,9 +790,6 @@ module.exports = {
       reply_to: {
         email: sender
       },
-      cc: {
-        email: config.mail.receivers.support
-      },
       categories: ['volunteer - gentle warning']
     }
     sendEmail(
@@ -800,9 +808,6 @@ module.exports = {
     const overrides = {
       reply_to: {
         email: sender
-      },
-      cc: {
-        email: config.mail.receivers.support
       },
       categories: ['volunteer - inactive thirty days']
     }

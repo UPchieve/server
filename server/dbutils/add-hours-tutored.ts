@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import VolunteerModel from '../models/Volunteer';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import Session from '../models/Session';
 
 const calculateHoursTutored = async userId => {
@@ -73,7 +73,7 @@ const calculateHoursTutored = async userId => {
 
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
 
     const volunteers = await VolunteerModel.find({})
       .lean()
@@ -97,7 +97,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
     const results = await VolunteerModel.updateMany(
       { isVolunteer: true },
       {

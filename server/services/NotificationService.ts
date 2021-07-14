@@ -1,6 +1,6 @@
 import { Aggregate } from 'mongoose'
 import NotificationModel, { Notification } from '../models/Notification'
-import SessionService from './SessionService'
+import * as SessionService from './SessionService'
 
 export const getNotification = (
   query,
@@ -53,7 +53,7 @@ export const getNotificationWithVolunteer = async (
 export const getSessionNotifications = async (
   sessionId
 ): Promise<Notification[]> => {
-  const session = await SessionService.getSession(sessionId)
+  const session = await SessionService.getSessionById(sessionId)
   return NotificationModel.aggregate([
     {
       $match: {

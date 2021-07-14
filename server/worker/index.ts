@@ -2,7 +2,7 @@ import Queue from 'bull'
 import newrelic from 'newrelic'
 import Redis from 'ioredis'
 import config from '../config'
-import dbconnect from '../dbutils/dbconnect'
+import * as db from '../db'
 import initializeUnleash from '../utils/initialize-unleash'
 import logger from '../logger'
 import { addJobProcessors } from './jobs'
@@ -10,7 +10,7 @@ import { addJobProcessors } from './jobs'
 const main = async (): Promise<void> => {
   try {
     initializeUnleash()
-    await dbconnect()
+    await db.connect()
     logger.info('Starting queue')
     const queue = new Queue(config.workerQueueName, {
       createClient: () => new Redis(config.redisConnectionString),

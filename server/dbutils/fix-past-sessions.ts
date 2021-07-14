@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import User from '../models/User';
 import Session from '../models/Session';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 
 export const main = async (): Promise<void> => {
-  await dbconnect(mongoose);
+  await db.connect(mongoose);
 
   // approx time
   const previousDeploy = new Date('2020-07-05T01:12:23.258+00:00');

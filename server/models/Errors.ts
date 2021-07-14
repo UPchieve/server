@@ -10,7 +10,21 @@ export class UserNotFoundError extends CustomError {
 
 export class DocCreationError extends CustomError {}
 
+export class DocUpdateError extends CustomError {
+  constructor(error, query, update) {
+    super(
+      `Document update error ${error.message} via query ${JSON.stringify(
+        query
+      )} and update ${JSON.stringify(update)}`
+    )
+  }
+}
+
 export class RepoCreateError extends CustomError {}
 export class RepoReadError extends CustomError {}
 export class RepoUpdateError extends CustomError {}
 export class RepoDeleteError extends CustomError {}
+
+export class NotAllowedError extends CustomError {}
+export class InputError extends CustomError {}
+export class LookupError extends CustomError {}

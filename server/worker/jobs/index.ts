@@ -7,6 +7,7 @@ import updateElapsedAvailability from './updateElapsedAvailability'
 import updateTotalVolunteerHours from './updateTotalVolunteerHours'
 import endStaleSessions from './endStaleSessions'
 import endUnmatchedSession from './endUnmatchedSession'
+import generateAndStoreWaitTimeHeatMap from './generateAndStoreWaitTimeHeatMap'
 import emailReferences from './emailReferences'
 import emailReadyToCoach from './emailReadyToCoach'
 import emailReferenceFollowup from './emailReferenceFollowup'
@@ -24,6 +25,7 @@ import emailVolunteerGentleWarning from './volunteer-emails/emailGentleWarning'
 import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
 import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVolunteerFirstSessionCongrats'
 import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
+import emailFailedFirstAttemptedQuiz from './volunteer-emails/emailFailedFirstAttemptedQuiz'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -31,6 +33,7 @@ export enum Jobs {
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   EndStaleSessions = 'EndStaleSessions',
   EndUnmatchedSession = 'EndUnmatchedSession',
+  GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
   EmailReferences = 'EmailReferences',
   EmailReadyToCoach = 'EmailReadyToCoach',
   EmailReferenceFollowup = 'EmailReferenceFollowup',
@@ -55,7 +58,8 @@ export enum Jobs {
   EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
   EmailVolunteerInactive = 'EmailVolunteerInactive',
   EmailVolunteerFirstSessionCongrats = 'EmailVolunteerFirstSessionCongrats',
-  EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats'
+  EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
+  EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz'
 }
 
 // register new job processors here
@@ -84,6 +88,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EndUnmatchedSession,
     processor: endUnmatchedSession
+  },
+  {
+    name: Jobs.GenerateAndStoreWaitTimeHeatMap,
+    processor: generateAndStoreWaitTimeHeatMap
   },
   {
     name: Jobs.EmailReferences,
@@ -172,6 +180,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailStudentFirstSessionCongrats,
     processor: emailStudentFirstSessionCongrats
+  },
+  {
+    name: Jobs.EmailFailedFirstAttemptedQuiz,
+    processor: emailFailedFirstAttemptedQuiz
   }
 ]
 

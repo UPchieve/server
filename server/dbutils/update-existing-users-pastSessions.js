@@ -6,7 +6,7 @@
 var mongoose = require('mongoose')
 var async = require('async')
 
-var dbconnect = require('./dbconnect')
+var dbconnect = require('../db')
 
 var User = require('../models/User')
 var Session = require('../models/Session')
@@ -32,7 +32,7 @@ function addSession(user, session) {
   )
 }
 
-dbconnect(mongoose, function() {
+db.connect(mongoose, function() {
   async.waterfall(
     [
       function(callback) {

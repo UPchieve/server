@@ -57,6 +57,7 @@ export const Config = Record({
     volunteerInactiveThirtyDaysTemplate: String,
     volunteerInactiveSixtyDaysTemplate: String,
     volunteerInactiveNinetyDaysTemplate: String,
+    failedFirstAttemptedQuizTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
@@ -112,7 +113,8 @@ export const Config = Record({
   studentPartnerManifestPath: String,
 
   cacheKeys: Record({
-    updateTotalVolunteerHoursLastRun: String
+    updateTotalVolunteerHoursLastRun: String,
+    waitTimeHeatMapAllSubjects: String
   }),
 
   // Sentry Data Source Name

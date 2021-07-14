@@ -1,12 +1,12 @@
 import mongoose from 'mongoose'
 import VolunteerModel from '../models/Volunteer'
-import dbconnect from './dbconnect'
+import * as db from '../db'
 
 // Run:
 // npx ts-node server/dbutils/add-sent-inactive-email.ts
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
     const result = await VolunteerModel.updateMany(
       {},
       {
@@ -27,7 +27,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect()
+    await db.connect()
     const results = await VolunteerModel.updateMany(
       {},
       {

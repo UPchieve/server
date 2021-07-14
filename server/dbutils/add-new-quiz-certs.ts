@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Volunteer from '../models/Volunteer';
-import dbconnect from './dbconnect';
+import * as db from '../db';
 import { MATH_SUBJECTS } from '../constants';
 
 const passedCert = {
@@ -20,7 +20,7 @@ const isCertifiedIn = (subject, subjects) => subjects.includes(subject)
 
 async function upgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
 
     const volunteers: any = await Volunteer.find({})
       .lean()
@@ -79,7 +79,7 @@ async function upgrade(): Promise<void> {
 
 async function downgrade(): Promise<void> {
   try {
-    await dbconnect();
+    await db.connect();
 
     const volunteers: any = await Volunteer.find({})
       .lean()

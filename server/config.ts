@@ -98,6 +98,7 @@ const config: Static<typeof Config> = {
     volunteerInactiveThirtyDaysTemplate: 'd-e2c9917e22c24d72a187ff00a5eff5e9',
     volunteerInactiveSixtyDaysTemplate: 'd-659b7e8d08754ef58d9b6e594f748e19',
     volunteerInactiveNinetyDaysTemplate: 'd-1bb491dbb4a044f5a4cd9cd926eacf38',
+    failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -185,7 +186,8 @@ const config: Static<typeof Config> = {
     'localManifests/student.yaml',
 
   cacheKeys: {
-    updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN'
+    updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
+    waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS'
   },
 
   // Sentry Data Source Name

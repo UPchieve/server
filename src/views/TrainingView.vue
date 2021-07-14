@@ -81,6 +81,7 @@ export default {
       subjectTypes: [
         { displayName: 'Math', key: 'math' },
         { displayName: 'Science', key: 'science' },
+        { displayName: 'Reading and Writing', key: 'readingWriting' },
         { displayName: 'College Counseling', key: 'college' },
         { displayName: 'Standardized Testing', key: 'sat' }
       ],
@@ -236,6 +237,25 @@ export default {
               }
             ],
             key: 'environmentalScience'
+          }
+        ],
+        additionalSubjects: []
+      },
+      readingWriting: {
+        training: [
+          { displayName: 'UPchieve 101', key: 'upchieve101' }
+          // { displayName: "Tutoring Skills", key: "tutoringSkills" }
+        ],
+        certifications: [
+          {
+            displayName: 'Humanities Essays',
+            subjectsIncluded: [
+              {
+                displayName: 'Humanities Essays',
+                key: 'humanitiesEssays'
+              }
+            ],
+            key: 'humanitiesEssays'
           }
         ],
         additionalSubjects: []

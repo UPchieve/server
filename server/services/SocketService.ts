@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-import Session from '../models/Session'
+import SessionModel, { getUnfulfilledSessions } from '../models/Session'
 import MessageModel, { MessageDocument } from '../models/Message'
 import getSessionRoom from '../utils/get-session-room'
 
@@ -23,7 +23,8 @@ class SocketService {
       { path: 'volunteer', select: 'firstname isVolunteer' }
     ]
 
-    const populatedSession = await Session.findById(sessionId)
+    // @todo: import from SessionService instead of directly from the model
+    const populatedSession = await SessionModel.findById(sessionId)
       .populate(populateOptions)
       .exec()
 
@@ -34,7 +35,7 @@ class SocketService {
   }
 
   async updateSessionList(): Promise<void> {
-    const sessions = await Session.getUnfulfilledSessions()
+    const sessions = await getUnfulfilledSessions()
     this.io.in('volunteers').emit('sessions', sessions)
   }
 

@@ -13,7 +13,7 @@ jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService, true)
 
 jest.mock('../../utils/auth-utils', () => ({
-  ...jest.requireActual('../../utils/auth-utils'),
+  ...(jest.requireActual('../../utils/auth-utils') as any),
   authPassport: {
     setupPassport: jest.fn(),
     isAdmin: jest.fn((req, res, next) => {
@@ -198,6 +198,7 @@ describe('Test simple routes hit AuthService', () => {
     expect(checked).toBeTruthy()
   })
 
+  // todo: remove upon merge of issue #764
   test('Route /register/student', async () => {
     const payload = {}
     const result = { _id: '123' } as StudentDocument
@@ -208,6 +209,38 @@ describe('Test simple routes hit AuthService', () => {
       body: { user }
     } = response
     expect(AuthService.registerStudent).toHaveBeenCalledTimes(1)
+    expect(mockLogin).toHaveBeenCalledTimes(1)
+    expect(user).toEqual(result)
+  })
+
+  test('Route /register/student/open', async () => {
+    const payload = {}
+    const result = { _id: '123' } as StudentDocument
+    mockedAuthService.registerOpenStudent.mockImplementationOnce(
+      async () => result
+    )
+    const response = await sendPost('/register/student/open', payload)
+
+    const {
+      body: { user }
+    } = response
+    expect(AuthService.registerOpenStudent).toHaveBeenCalledTimes(1)
+    expect(mockLogin).toHaveBeenCalledTimes(1)
+    expect(user).toEqual(result)
+  })
+
+  test('Route /register/student/partner', async () => {
+    const payload = {}
+    const result = { _id: '123' } as StudentDocument
+    mockedAuthService.registerPartnerStudent.mockImplementationOnce(
+      async () => result
+    )
+    const response = await sendPost('/register/student/partner', payload)
+
+    const {
+      body: { user }
+    } = response
+    expect(AuthService.registerPartnerStudent).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
     expect(user).toEqual(result)
   })
