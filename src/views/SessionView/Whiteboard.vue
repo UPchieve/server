@@ -986,4 +986,8 @@ export default {
     background-color: rgba(110, 140, 171, 0.87);
   }
 }
+
+#zwib-div:focus, #zwib-div canvas:focus {
+  border: 1px solid #000
+}
 </style>
