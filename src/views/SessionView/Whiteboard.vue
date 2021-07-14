@@ -124,48 +124,48 @@
             title="Black"
             style="background-color: rgba(10, 10, 10, 1)"
             tabindex="0"
-            @click="setColor('rgba(10, 10, 10, 1)', $event)"
-            @keydown.enter="setColor('rgba(10, 10, 10, 1)', $event)"
+            @click="setColor('rgba(10, 10, 10, 1)')"
+            @keydown.enter="setColor('rgba(10, 10, 10, 1)')"
           ></div>
           <div
             class="color-button"
             title="Navy"
             style="background-color: rgba(38, 51, 104, 1)"
             tabindex="0"
-            @click="setColor('rgba(38, 51, 104, 1)', $event)"
-            @keydown.enter="setColor('rgba(38, 51, 104, 1)', $event)"
+            @click="setColor('rgba(38, 51, 104, 1)')"
+            @keydown.enter="setColor('rgba(38, 51, 104, 1)')"
           ></div>
           <div
             class="color-button"
             title="Red"
             style="background-color: rgba(244, 71, 71, 1)"
             tabindex="0"
-            @click="setColor('rgba(244, 71, 71, 1)', $event)"
-            @keydown.enter="setColor('rgba(244, 71, 71, 1)', $event)"
+            @click="setColor('rgba(244, 71, 71, 1)')"
+            @keydown.enter="setColor('rgba(244, 71, 71, 1)')"
           ></div>
           <div
             class="color-button"
             title="Sand"
             style="background-color: rgba(249, 227, 183, 1)"
             tabindex="0"
-            @click="setColor('rgba(249, 227, 183, 1)', $event)"
-            @keydown.enter="setColor('rgba(249, 227, 183, 1)', $event)"
+            @click="setColor('rgba(249, 227, 183, 1)')"
+            @keydown.enter="setColor('rgba(249, 227, 183, 1)')"
           ></div>
           <div
             class="color-button"
             title="Teal"
             style="background-color: rgba(123, 222, 201, 1)"
             tabindex="0"
-            @click="setColor('rgba(123, 222, 201, 1)', $event)"
-            @keydown.enter="setColor('rgba(123, 222, 201, 1)', $event)"
+            @click="setColor('rgba(123, 222, 201, 1)')"
+            @keydown.enter="setColor('rgba(123, 222, 201, 1)')"
           ></div>
           <div
             class="color-button"
             title="Light Blue"
             style="background-color: rgba(119, 151, 216, 1)"
             tabindex="0"
-            @click="setColor('rgba(119, 151, 216, 1)', $event)"
-            @keydown.enter="setColor('rgba(119, 151, 216, 1)', $event)"
+            @click="setColor('rgba(119, 151, 216, 1)')"
+            @keydown.enter="setColor('rgba(119, 151, 216, 1)')"
           ></div>
         </div>
       </div>
@@ -382,7 +382,7 @@ export default {
     maybeFocusZwibbler(event) {
       // activate Zwibbler's keyboard cursor if a tool was selected
       // using the keyboard
-      if (event.type === "keydown") {
+      if (event.type === 'keydown') {
         this.zwibblerCtx.focus(true, this)
       }
     },
@@ -1049,7 +1049,8 @@ export default {
   }
 }
 
-#zwib-div:focus, #zwib-div canvas:focus {
-  border: 1px solid #000
+#zwib-div:focus,
+#zwib-div canvas:focus {
+  border: 1px solid #000;
 }
 </style>
