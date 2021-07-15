@@ -37,6 +37,7 @@
 import { mapState } from 'vuex'
 import { allSubtopics } from '@/utils/topics'
 import sendWebNotification from '@/utils/send-web-notification'
+import Case from 'case'
 
 export default {
   data() {
@@ -87,7 +88,7 @@ export default {
     },
     gotoSession(session) {
       const { type, subTopic, _id } = session
-      const path = `/session/${type}/${subTopic}/${_id}`
+      const path = `/session/${Case.kebab(type)}/${Case.kebab(subTopic)}/${_id}`
 
       if (type && subTopic && _id) {
         this.$router.push(path)

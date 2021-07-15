@@ -10,7 +10,8 @@ const twilioClient =
   config.accountSid && config.authToken
     ? twilio(config.accountSid, config.authToken)
     : null
-const formatMultiWordSubtopic = require('../utils/format-multi-word-subtopic')
+const formatMultiWordSubject = require('../utils/format-multi-word-subject')
+const Case = require('case')
 
 // get the availability field to query for the current time
 function getCurrentAvailabilityPath() {
@@ -143,9 +144,9 @@ function sendVoiceMessage(phoneNumber, messageText) {
 // the URL that the volunteer can use to join the session on the client
 function getSessionUrl(session) {
   const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
-  return `${protocol}://${config.client.host}/session/${
+  return `${protocol}://${config.client.host}/session/${Case.kebab(
     session.type
-  }/${session.subTopic.toLowerCase()}/${session._id}`
+  )}/${Case.kebab(session.subTopic)}/${session._id}`
 }
 
 const getActiveSessionVolunteers = async () => {
@@ -302,7 +303,7 @@ const notifyVolunteer = async session => {
 
   // Format multi-word subtopics from a key name to a display name
   // ex: physicsOne -> Physics 1
-  subtopic = formatMultiWordSubtopic(subtopic)
+  subtopic = formatMultiWordSubject(subtopic)
 
   const sessionUrl = getSessionUrl(session)
   const messageText = `Hi ${volunteer.firstname}, a student needs help in ${subtopic} on UPchieve! ${sessionUrl}`

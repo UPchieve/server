@@ -1,5 +1,6 @@
 import { messaging } from 'firebase-admin'
 import { Types } from 'mongoose'
+import Case from 'case'
 import { getAllPushTokensByUserId } from '../models/PushToken'
 
 // This interface feels cleaner than inlining it in the
@@ -69,7 +70,7 @@ export function sendVolunteerJoined(session: Session, tokens: string[]) {
     title: 'We found a volunteer!',
     text: 'Start chatting with your coach now.',
     data: {
-      path: `/session/${type}/${subTopic}/${_id}`
+      path: `/session/${Case.kebab(type)}/${Case.kebab(subTopic)}/${_id}`
     },
     tokens
   }

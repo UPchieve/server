@@ -267,8 +267,10 @@ export default {
         ],
         certifications: [
           {
-            displayName: 'Essays',
-            subjectsIncluded: [{ displayName: 'Essays', key: 'essays' }],
+            displayName: 'College Essays',
+            subjectsIncluded: [
+              { displayName: 'College Essays', key: 'essays' }
+            ],
             key: 'essays'
           },
           {

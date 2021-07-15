@@ -93,6 +93,7 @@ import LoadingMessage from '@/components/LoadingMessage'
 import TroubleMatchingModal from '@/views/SessionView/TroubleMatchingModal'
 import UnmatchedModal from '@/views/SessionView/UnmatchedModal'
 import sendWebNotification from '@/utils/send-web-notification'
+import Case from 'case'
 
 /**
  * @todo {1} Refactoring candidate: use a modal instead.
@@ -271,9 +272,9 @@ export default {
         ? '/feedback/' +
           sessionId +
           '/' +
-          topic +
+          Case.kebab(topic) +
           '/' +
-          subTopic +
+          Case.kebab(subTopic) +
           '/' +
           (this.user.isVolunteer ? 'volunteer' : 'student') +
           '/' +
