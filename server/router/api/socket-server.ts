@@ -29,18 +29,25 @@ export default function(app) {
 
   logger.info('socket.io listening on port ' + port)
 
-  const io = socket(server, {
+  ////only works with require("socket.io") and not if replaced with socket ??
+  const io = require("socket.io")(server, {
     // set pingTimeout longer than pingInterval
     // 60s used to be the default but they dropped it
     // in 3.0 they're increasing it again
     // (default interval is 25000)
+    //explicitly enabling cookie, setting maxHttpBufferSize to 1e8 and switching parser
     pingInterval: 25000,
-    pingTimeout: 30000
+    pingTimeout: 30000,
+    cookie: true,
+    parser: require("socket.io-msgpack-parser"),
+    maxHttpBufferSize: 1e8,
+    allowEIO3: true // false by default  
   })
   if (process.env.NODE_ENV === 'test') return io
 
+  //only works with require("socket.io-redis") and not if replaced with redisAdapter
   io.adapter(
-    redisAdapter({ pubClient: socketIoPubClient, subClient: socketIoSubClient })
+    require("socket.io-redis")({ pubClient: socketIoPubClient, subClient: socketIoSubClient })
   )
   return io
 }
