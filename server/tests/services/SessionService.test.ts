@@ -44,7 +44,6 @@ import {
   ReportSessionError,
   StartSessionError
 } from '../../utils/session-utils'
-import MailService from '../../services/MailService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 import UserService from '../../services/UserService'
@@ -317,7 +316,7 @@ describe('reportSession', () => {
     const input = {
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
-      reportReason: SESSION_REPORT_REASON.STUDENT_MISUSE,
+      reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
       reportMessage: generateSentence()
     }
     const mockValue = mockedGetSessionById()
@@ -335,7 +334,7 @@ describe('reportSession', () => {
     const input = {
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
-      reportReason: SESSION_REPORT_REASON.STUDENT_MISUSE,
+      reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
       reportMessage: generateSentence()
     }
     const mockValue = mockedGetSessionById({ volunteer: getObjectId() })
@@ -349,26 +348,67 @@ describe('reportSession', () => {
     }
   })
 
-  test('Should report session', async () => {
+  test('Should report ongoing session and cache email job', async () => {
     const input = {
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
-      reportReason: SESSION_REPORT_REASON.STUDENT_MISUSE,
+      reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
       reportMessage: generateSentence()
     }
-    const mockValue = mockedGetSessionById({ volunteer: input.user._id })
+    const mockValue = mockedGetSessionById({
+      volunteer: input.user._id,
+      student: getStringObjectId()
+    })
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
     )
     await SessionService.reportSession(input)
     expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
     expect(UserService.banUser).toHaveBeenCalledTimes(1)
-    expect(MailService.sendBannedUserAlert).toHaveBeenCalledTimes(1)
     expect(UserActionCtrl.AccountActionCreator).toHaveBeenCalledTimes(1)
     expect(AnalyticsService.captureEvent).toHaveBeenCalledTimes(1)
-    expect(UserService.getUser).toHaveBeenCalledTimes(1)
-    expect(MailService.createContact).toHaveBeenCalledTimes(1)
-    expect(MailService.sendReportedSessionAlert).toHaveBeenCalledTimes(1)
+    expect(cache.saveWithExpiration).toHaveBeenCalledWith(
+      `${input.sessionId}-reported`,
+      JSON.stringify({
+        studentId: mockValue.student,
+        reportedBy: input.user.email,
+        reportReason: input.reportReason,
+        reportMessage: input.reportMessage,
+        isBanReason: true,
+        sessionId: input.sessionId
+      })
+    )
+  })
+
+  test('Should report ended session and queue email job', async () => {
+    const input = {
+      user: buildVolunteer(),
+      sessionId: getStringObjectId(),
+      reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
+      reportMessage: generateSentence()
+    }
+    const mockValue = mockedGetSessionById({
+      volunteer: input.user._id,
+      student: getStringObjectId(),
+      endedAt: new Date()
+    })
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+    await SessionService.reportSession(input)
+    expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
+    expect(UserService.banUser).toHaveBeenCalledTimes(1)
+    expect(UserActionCtrl.AccountActionCreator).toHaveBeenCalledTimes(1)
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledTimes(1)
+
+    expect(QueueService.add).toHaveBeenCalledWith(Jobs.EmailSessionReported, {
+      studentId: mockValue.student,
+      reportedBy: input.user.email,
+      reportReason: input.reportReason,
+      reportMessage: input.reportMessage,
+      isBanReason: true,
+      sessionId: input.sessionId
+    })
   })
 })
 
@@ -414,6 +454,9 @@ describe('endSession', () => {
   })
 
   describe('Should end session successfully', () => {
+    mockedCache.get.mockImplementation(async () => {
+      throw new cache.KeyNotFoundError('test')
+    })
     let spyGetReviewFlags
     let spyHasReviewTriggerFlags
     let spyIsSessionParticipant
@@ -582,6 +625,44 @@ describe('endSession', () => {
         expect.anything()
       )
       expect(SessionRepo.updateSessionToEnd).toHaveBeenCalledTimes(1)
+    })
+
+    test('Should queue job to send emails for reported session from cache', async () => {
+      const mockedSession = mockedGetSessionToEnd()
+      const input = {
+        sessionId: mockedSession._id.toString(),
+        endedBy: mockedSession.student,
+        isAdmin: false
+      }
+      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+        async () => mockedSession
+      )
+      spyGetReviewFlags.mockImplementationOnce(() => [
+        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+      ])
+      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
+      spyIsSessionParticipant.mockImplementationOnce(() => true)
+      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
+
+      const jobData = {
+        studentId: mockedSession.student._id.toString(),
+        reportedBy: mockedSession.volunteer.email,
+        reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
+        reportMessage: 'Student made a your mom joke',
+        isBanReason: true,
+        sessionId: input.sessionId
+      }
+      mockedCache.get.mockImplementationOnce(async () => {
+        return JSON.stringify(jobData)
+      })
+
+      await SessionService.endSession(input)
+
+      expect(QueueService.add).toHaveBeenLastCalledWith(
+        Jobs.EmailSessionReported,
+        jobData
+      )
+      expect(cache.remove).toHaveBeenCalledWith(`${input.sessionId}-reported`)
     })
   })
 })
@@ -846,6 +927,9 @@ describe('startSession', () => {
 
 describe('finishSession', () => {
   test.todo('endSession should be mocked')
+  mockedCache.get.mockImplementationOnce(async () => {
+    throw new cache.KeyNotFoundError('test')
+  })
   test('Should finish a session', async () => {
     const input = {
       ip: getIpAddress(),

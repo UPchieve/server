@@ -452,8 +452,8 @@ describe('updateReportSession', () => {
   })
 
   const report = {
-    reportReason: SESSION_REPORT_REASON.STUDENT_MISUSE,
-    reportMessage: 'asked for answers'
+    reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
+    reportMessage: 'made a your mom joke'
   }
 
   test('Should report a session', async () => {

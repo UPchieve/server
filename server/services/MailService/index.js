@@ -7,6 +7,7 @@ const {
   studentPartnerManifests
 } = require('../../partnerManifests')
 const formatMultiWordSubtopic = require('../../utils/format-multi-word-subtopic')
+const { SESSION_REPORT_REASON } = require('../../constants')
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -854,6 +855,36 @@ module.exports = {
       sender,
       'The UPchieve Team',
       config.sendgrid.volunteerInactiveNinetyDaysTemplate,
+      { firstName },
+      null,
+      overrides
+    )
+  },
+
+  sendStudentReported: ({ email, firstName, reportReason }) => {
+    const sender = config.mail.senders.support
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['student - reported']
+    }
+    let from
+    let template
+
+    if (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE) {
+      from = 'The UPchieve Team'
+      template = config.sendgrid.studentReportedRudeTemplate
+    } else {
+      from = 'Katy from UPchieve'
+      template = config.sendgrid.studentReportedSafetyTemplate
+    }
+
+    return sendEmail(
+      email,
+      sender,
+      from,
+      template,
       { firstName },
       null,
       overrides
