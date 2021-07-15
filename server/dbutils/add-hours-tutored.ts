@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import VolunteerModel from '../models/Volunteer';
 import * as db from '../db';
 import Session from '../models/Session';
+import { Decimal128 } from 'mongodb';
 
 const calculateHoursTutored = async userId => {
   const pastSessions = await Session.find({ volunteer: userId })
@@ -39,9 +40,10 @@ const calculateHoursTutored = async userId => {
     if (sessionLengthMs > threeHoursMs || wasMessageSentAfterSessionEnded) {
       while (
         latestMessageIndex > 0 &&
+        //TO CHECK: adding .getTime() is correct or not? 
         (wasMessageSentAfterSessionEnded ||
-          messages[latestMessageIndex].createdAt -
-            messages[latestMessageIndex - 1].createdAt >
+          (messages[latestMessageIndex].createdAt.getTime()) -
+            (messages[latestMessageIndex - 1].createdAt.getTime()) >
             fifteenMinsMs)
       ) {
         latestMessageIndex--;
@@ -82,7 +84,7 @@ async function upgrade(): Promise<void> {
     for (const v of volunteers) {
       const hoursTutored = await calculateHoursTutored(v._id);
       pendingUpdates.push(
-        VolunteerModel.updateOne({ _id: v._id }, { hoursTutored })
+        VolunteerModel.updateOne({ _id: v._id }, { parse(hoursTutored) })
       );
     }
     const results = await Promise.all(pendingUpdates)
