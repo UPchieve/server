@@ -31,12 +31,12 @@ export const topics = {
     subtopics: {
       humanitiesEssays: { displayName: 'Humanities Essays' }
     },
-    displayName: 'Reading and Writing'
+    displayName: 'Reading and Writing Tutoring'
   },
   college: {
     subtopics: {
       planning: { displayName: 'Planning' },
-      essays: { displayName: 'Essays' },
+      essays: { displayName: 'College Essays' },
       applications: { displayName: 'Applications' }
     },
     displayName: 'College Counseling'
@@ -46,7 +46,7 @@ export const topics = {
       satMath: { displayName: 'SAT Math' },
       satReading: { displayName: 'SAT Reading' }
     },
-    displayName: 'Standardized Testing'
+    displayName: 'Standardized Testing Tutoring'
   },
   training: {
     subtopics: {

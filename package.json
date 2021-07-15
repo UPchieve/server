@@ -53,6 +53,7 @@
     "bootstrap": "^4.5.3",
     "bootstrap-vue": "^2.21.2",
     "bull": "^3.13.0",
+    "case": "^1.6.3",
     "chalk": "^2.4.2",
     "cli-progress": "^3.0.0",
     "connect-livereload": "^0.5.4",

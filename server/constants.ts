@@ -133,26 +133,11 @@ export enum IP_ADDRESS_STATUS {
   BANNED = 'BANNED'
 }
 
-export const INTEGRATED_MATH_MAPPING = {
-  integratedmathone: 'integratedMathOne',
-  integratedmathtwo: 'integratedMathTwo',
-  integratedmaththree: 'integratedMathThree',
-  integratedmathfour: 'integratedMathFour'
-}
-
 export const FORMAT_INTEGRATED_MATH = {
   integratedMathOne: 'Integrated Math 1',
   integratedMathTwo: 'Integrated Math 2',
   integratedMathThree: 'Integrated Math 3',
   integratedMathFour: 'Integrated Math 4'
-}
-
-export const PHYSICS_MAPPING = {
-  physicsone: 'physicsOne'
-}
-
-export const FORMAT_PHYSICS = {
-  physicsOne: 'Physics 1'
 }
 
 export const STATUS = {
@@ -363,40 +348,6 @@ export enum SUBJECT_TYPES {
   SAT = 'sat',
   TRAINING = 'training',
   READING_WRITING = 'readingWriting'
-}
-
-export const CALCULUS_MAPPING = {
-  calculusbc: MATH_SUBJECTS.CALCULUS_BC,
-  calculusab: MATH_SUBJECTS.CALCULUS_AB
-}
-
-export const FORMAT_CALCULUS = {
-  [MATH_SUBJECTS.CALCULUS_BC]: 'Calculus BC',
-  [MATH_SUBJECTS.CALCULUS_AB]: 'Calculus AB'
-}
-
-export const ALGEBRA_MAPPING = {
-  algebraone: MATH_SUBJECTS.ALGEBRA_ONE,
-  algebratwo: MATH_SUBJECTS.ALGEBRA_TWO
-}
-
-export const FORMAT_ALGEBRA = {
-  [MATH_SUBJECTS.ALGEBRA_ONE]: 'Algebra 1',
-  [MATH_SUBJECTS.ALGEBRA_TWO]: 'Algebra 2'
-}
-
-export const SAT_MAPPING = {
-  satmath: SAT_SUBJECTS.SAT_MATH,
-  satreading: SAT_SUBJECTS.SAT_READING
-}
-
-export const FORMAT_SAT = {
-  [SAT_SUBJECTS.SAT_MATH]: 'SAT Math',
-  [SAT_SUBJECTS.SAT_READING]: 'SAT Reading'
-}
-
-export const FORMAT_READING_WRITING = {
-  [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays'
 }
 
 export enum SURVEY_TYPES {
@@ -696,4 +647,20 @@ export enum DATE_RANGE_COMPARISON_FIELDS {
   CREATED_AT = '$createdAt',
   SENT_AT = '$sentAt',
   PAST_SESSION_CREATED_AT = '$pastSession.createdAt'
+}
+
+export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
+  [MATH_SUBJECTS.ALGEBRA_ONE]: 'Algebra 1',
+  [MATH_SUBJECTS.ALGEBRA_TWO]: 'Algebra 2',
+  [MATH_SUBJECTS.CALCULUS_BC]: 'Calculus BC',
+  [MATH_SUBJECTS.CALCULUS_AB]: 'Calculus AB',
+  [MATH_SUBJECTS.INTEGRATED_MATH_ONE]: 'Integrated Math 1',
+  [MATH_SUBJECTS.INTEGRATED_MATH_TWO]: 'Integrated Math 2',
+  [MATH_SUBJECTS.INTEGRATED_MATH_THREE]: 'Integrated Math 3',
+  [MATH_SUBJECTS.INTEGRATED_MATH_FOUR]: 'Integrated Math 4',
+  [SCIENCE_SUBJECTS.PHYSICS_ONE]: 'Physics 1',
+  [COLLEGE_SUBJECTS.ESSAYS]: 'College Essays',
+  [SAT_SUBJECTS.SAT_MATH]: 'SAT Math',
+  [SAT_SUBJECTS.SAT_READING]: 'SAT Reading',
+  [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays'
 }

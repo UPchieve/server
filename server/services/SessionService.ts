@@ -1,18 +1,17 @@
 import crypto from 'crypto'
 import moment from 'moment'
 import { User } from '@sentry/types'
+import Case from 'case'
 import * as SessionRepo from '../models/Session'
 import {
   USER_BAN_REASON,
   SESSION_REPORT_REASON,
   EVENTS,
-  SUBJECT_TYPES,
   SESSION_FLAGS,
   UTC_TO_HOUR_MAPPING
 } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import * as sessionUtils from '../utils/session-utils'
-import mapMultiWordSubtopic from '../utils/map-multi-word-subtopic'
 import config from '../config'
 import { asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
@@ -292,7 +291,7 @@ export async function endSession({
   }
 
   // Only college subjects use the Quill document editor
-  if (session.type === SUBJECT_TYPES.COLLEGE) {
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.subTopic)) {
     const quillDoc = await QuillDocService.getDoc(session._id.toString())
     update.quillDoc = JSON.stringify(quillDoc)
   } else {
@@ -441,7 +440,10 @@ export async function adminSessionView(data: unknown) {
     sessionId
   )
 
-  if (session.type === 'college' && !session.endedAt) {
+  if (
+    sessionUtils.isSubjectUsingDocumentEditor(session.subTopic) &&
+    !session.endedAt
+  ) {
     const quillDoc = await QuillDocService.getDoc(sessionId)
     session.quillDoc = JSON.stringify(quillDoc)
   }
@@ -489,10 +491,9 @@ export async function startSession(data: unknown) {
 
   const newSession = await SessionRepo.createSession({
     studentId: userId,
-    type: sessionType,
-    // Map multi-word categories from lowercased to how it's defined in the User model
-    // ex: 'physicsone' -> 'physicsOne' and stores 'physicsOne' on the session
-    subTopic: mapMultiWordSubtopic(sessionSubTopic),
+    // @note: sessionType and subtopic are kebab-case
+    type: Case.camel(sessionType),
+    subTopic: Case.camel(sessionSubTopic),
     isStudentBanned: user.isBanned
   })
 

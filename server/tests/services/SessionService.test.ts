@@ -513,7 +513,8 @@ describe('endSession', () => {
 
     test('Should end college counseling subject', async () => {
       const mockedSession = mockedGetSessionToEnd({
-        type: SUBJECT_TYPES.COLLEGE
+        type: SUBJECT_TYPES.COLLEGE,
+        subTopic: SUBJECTS.PLANNING
       })
       const input = {
         sessionId: mockedSession._id.toString(),
@@ -766,7 +767,8 @@ describe('adminSessionView', () => {
   test('Should get data for admin session view', async () => {
     const sessionId = getStringObjectId()
     const mockSession = mockedGetSessionByIdWithStudentAndVolunteer({
-      type: 'college'
+      type: SUBJECT_TYPES.COLLEGE,
+      subTopic: SUBJECTS.ESSAYS
     })
     const mockUserAgent = buildUserAgent()
     const mockFeedback = [buildFeedback() as FeedbackVersionTwo]

@@ -28,6 +28,8 @@ import SubjectCard from './SubjectCard'
 import MathSVG from '@/assets/subject_icons/math.svg'
 import CollegeSVG from '@/assets/subject_icons/college-counseling.svg'
 import ScienceSVG from '@/assets/subject_icons/science.svg'
+import SATSVG from '@/assets/subject_icons/sat.svg'
+import ReadingWritingSVG from '@/assets/subject_icons/more-resources.svg'
 import calculateWaitingPeriodCountdown from '@/utils/calculate-waiting-period-countdown'
 import ReferralSVG from '@/assets/dashboard_icons/student/referral.svg'
 import LightBulbSVG from '@/assets/dashboard_icons/student/light-bulb.svg'
@@ -44,15 +46,22 @@ export default {
     const svgs = {
       math: MathSVG,
       college: CollegeSVG,
-      science: ScienceSVG
+      science: ScienceSVG,
+      readingWriting: ReadingWritingSVG,
+      sat: SATSVG
+    }
+
+    const topicOrderMapping = {
+      math: 0,
+      college: 2,
+      science: 3,
+      readingWriting: 4,
+      sat: 1
     }
 
     const cards = Object.entries(topics)
       // @note: temporarily hide SAT card and Reading & Writing card
-      .filter(
-        ([key]) =>
-          key !== 'training' && key !== 'sat' && key != 'readingWriting'
-      )
+      .filter(([key]) => key !== 'training')
       .map(([key, topicObj]) => {
         return {
           title: topicObj.displayName,
@@ -68,28 +77,30 @@ export default {
               result[subtopicKey] = displayName
               return result
             }, {}),
-          isTutoringCard: true
+          isTutoringCard: true,
+          order: topicOrderMapping[key]
         }
       })
+      .sort((a, b) => a.order - b.order)
 
-    // Temporarily hide Statistics and Calculus BC from students
-    cards[0].subtopics = cards[0].subtopics.filter(subject => {
-      const temporarilyHiddenSubjects = ['calculusBC']
-      return !temporarilyHiddenSubjects.includes(subject)
-    })
+    for (const card of cards) {
+      // Temporarily hide Statistics and Calculus BC from students
+      if (card.topic === 'math')
+        card.subtopics = card.subtopics.filter(subject => {
+          const temporarilyHiddenSubjects = ['calculusBC']
+          return !temporarilyHiddenSubjects.includes(subject)
+        })
 
-    // Temporarily hide Physics subjects and Environmental Science from students
-    cards[1].subtopics = cards[1].subtopics.filter(subject => {
-      const temporarilyHiddenSubjects = ['physicsTwo', 'environmentalScience']
-      return !temporarilyHiddenSubjects.includes(subject)
-    })
-
-    cards.push({
-      title: 'Invite Your Friends',
-      subtitle: 'Share UPchieve with a friend!',
-      svg: ReferralSVG,
-      buttonText: 'Learn More'
-    })
+      // Temporarily hide Physics subjects and Environmental Science from students
+      if (card.topic === 'science')
+        card.subtopics = card.subtopics.filter(subject => {
+          const temporarilyHiddenSubjects = [
+            'physicsTwo',
+            'environmentalScience'
+          ]
+          return !temporarilyHiddenSubjects.includes(subject)
+        })
+    }
 
     cards.push({
       title: 'Give Feedback',
@@ -98,6 +109,13 @@ export default {
       svg: LightBulbSVG,
       buttonText: 'Give feedback',
       routeTo: '/contact'
+    })
+
+    cards.push({
+      title: 'Invite Your Friends',
+      subtitle: 'Share UPchieve with a friend!',
+      svg: ReferralSVG,
+      buttonText: 'Learn More'
     })
 
     return {
