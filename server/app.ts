@@ -135,7 +135,7 @@ app.use(cookieParser(config.sessionSecret))
 app.use(express.static(path.join(__dirname, 'dist')))
 app.use(
   cors({
-    origin:
+    origin: 
       config.NODE_ENV === 'dev'
         ? ['localhost:3000', 'localhost:3001']
         : config.host,

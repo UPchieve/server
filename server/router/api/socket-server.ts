@@ -41,7 +41,10 @@ export default function(app) {
     cookie: true,
     parser: require("socket.io-msgpack-parser"),
     maxHttpBufferSize: 1e8,
-    allowEIO3: true // false by default  
+    allowEIO3: true, // false by default 
+    cors: {
+      origin: ["https://localhost:3000.com", "https://localhost:3001.com"]
+    }
   })
   if (process.env.NODE_ENV === 'test') return io
 
