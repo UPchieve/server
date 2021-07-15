@@ -27,7 +27,6 @@ import * as QuillDocService from './QuillDocService'
 import * as AnalyticsService from './AnalyticsService'
 import * as NotificationService from './NotificationService'
 import UserService from './UserService'
-import MailService from './MailService'
 
 import { getSessionRequestedUserAgentFromSessionId } from './UserActionService'
 import * as AwsService from './AwsService'
@@ -134,18 +133,11 @@ export async function reportSession(data: unknown) {
     reportReason
   })
 
-  const isBanReason =
-    reportReason === SESSION_REPORT_REASON.STUDENT_RUDE ||
-    reportReason === SESSION_REPORT_REASON.STUDENT_MISUSE
+  const isBanReason = reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
   if (isBanReason && reportedBy.isVolunteer) {
     await UserService.banUser({
       userId: session.student,
       banReason: USER_BAN_REASON.SESSION_REPORTED
-    })
-    await MailService.sendBannedUserAlert({
-      userId: session.student,
-      banReason: USER_BAN_REASON.SESSION_REPORTED,
-      sessionId: session._id
     })
     await new UserActionCtrl.AccountActionCreator(session.student, '', {
       session: session._id,
@@ -160,17 +152,24 @@ export async function reportSession(data: unknown) {
         banReason: USER_BAN_REASON.SESSION_REPORTED
       }
     )
-    const student = await UserService.getUser({ _id: session.student })
-    // Update user in the SendGrid contact list with banned status
-    await MailService.createContact(student)
   }
 
-  await MailService.sendReportedSessionAlert({
-    sessionId: session._id,
-    reportedByEmail: reportedBy.email,
+  // Queue up job to send reporting alert emails
+  const emailData = {
+    studentId: session.student,
+    reportedBy: user.email,
     reportReason,
-    reportMessage
-  })
+    reportMessage,
+    isBanReason,
+    sessionId
+  }
+
+  if (session.endedAt) QueueService.add(Jobs.EmailSessionReported, emailData)
+  else
+    await cache.saveWithExpiration(
+      `${sessionId}-reported`,
+      JSON.stringify(emailData)
+    )
 }
 
 export async function endSession({
@@ -278,6 +277,17 @@ export async function endSession({
           },
           { delay: 1000 * 60 * 5 }
         )
+    }
+
+    try {
+      QueueService.add(
+        Jobs.EmailSessionReported,
+        JSON.parse(await cache.get(`${sessionId}-reported`))
+      )
+      await cache.remove(`${sessionId}-reported`)
+    } catch (err) {
+      // we don't care if the key is not found
+      if (!(err instanceof cache.KeyNotFoundError)) throw err
     }
   }
 

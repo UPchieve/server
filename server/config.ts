@@ -84,6 +84,8 @@ const config: Static<typeof Config> = {
     studentIndependentLearningTemplate: 'd-3167ea240a27471597d849cbae4b8437',
     studentGoalSettingTemplate: 'd-c5671abc76884180b6912729190b7078',
     studentFirstSessionCongratsTemplate: 'd-8c54307ace4a498f800185f0e540b8ea',
+    studentReportedRudeTemplate: 'd-aa16bc7d750144f8b42d3db0bec051ca',
+    studentReportedSafetyTemplate: 'd-c7caf6b302b94a08862652dcde06535f',
     volunteerQuickTipsTemplate: 'd-b85620ef95b443878a6aeca1e99c94ef',
     partnerVolunteerOnlyCollegeCertsTemplate:
       'd-031f89e788c2481ea912e5840e7d92e1',
