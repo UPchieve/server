@@ -39,21 +39,6 @@ export function routes(app: Express) {
     }
   })
 
-  // todo: remove upon merge of issue #764
-  router.route('/register/student').post(async function(req, res) {
-    try {
-      const student = await AuthService.registerStudent({
-        ...req.body,
-        ip: req.ip
-      } as unknown)
-      // @ts-expect-error
-      await req.login(student)
-      res.json({ user: student })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
   router.route('/register/student/open').post(async function(req, res) {
     try {
       const student = await AuthService.registerOpenStudent({
