@@ -862,22 +862,25 @@ module.exports = {
   },
 
   sendStudentReported: ({ email, firstName, reportReason }) => {
-    const sender = config.mail.senders.support
+    let sender
+    let from
+    let template
+
+    if (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE) {
+      sender = config.mail.senders.support
+      from = 'The UPchieve Team'
+      template = config.sendgrid.studentReportedRudeTemplate
+    } else {
+      sender = config.mail.senders.crisis
+      from = 'Katy from UPchieve'
+      template = config.sendgrid.studentReportedSafetyTemplate
+    }
+
     const overrides = {
       reply_to: {
         email: sender
       },
       categories: ['student - reported']
-    }
-    let from
-    let template
-
-    if (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE) {
-      from = 'The UPchieve Team'
-      template = config.sendgrid.studentReportedRudeTemplate
-    } else {
-      from = 'Katy from UPchieve'
-      template = config.sendgrid.studentReportedSafetyTemplate
     }
 
     return sendEmail(
