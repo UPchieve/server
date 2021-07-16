@@ -61,7 +61,7 @@ module.exports = function(io, sessionStore) {
 
     // Join a user to their own room to handle the event where a user might have
     // multiple socket connections open
-    //object id from room names getting converted to string checked
+    // object id from room names getting converted to string checked
     socket.join(user._id.toString())
 
     const latestSession = await SessionService.currentSession(user)
