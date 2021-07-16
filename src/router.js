@@ -183,10 +183,7 @@ const routes = [
       const isValidTopicAndSubtopic =
         Object.prototype.hasOwnProperty.call(topics, topic) &&
         Object.prototype.hasOwnProperty.call(topics[topic].subtopics, subtopic)
-      // @note: Allow for backwards compatibility with lowercased paths by checking
-      //        if the lowercased topic exists in topics[topic]
-      // @todo: remove backwards compatibility
-      if (isValidTopicAndSubtopic || topics[topic]) next()
+      if (isValidTopicAndSubtopic) next()
       else next('/dashboard')
     }
   },
