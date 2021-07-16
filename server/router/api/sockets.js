@@ -251,7 +251,7 @@ module.exports = function(io, sessionStore) {
       })
     })
 
-    socket.on('error', function(error) {
+    socket.io.on('error', function(error) {
       newrelic.startWebTransaction('/socket-io/error', () => {
         console.log('Socket error: ', error)
         Sentry.captureException(error)
