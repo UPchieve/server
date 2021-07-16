@@ -519,7 +519,7 @@ export default {
     },
 
     register() {
-      AuthService.registerStudent(this, {
+      AuthService.registerPartnerStudent(this, {
         studentPartnerOrg: this.$route.params.partnerId,
         partnerUserId: this.$route.query.uid,
         partnerSite: this.formData.partnerSite,

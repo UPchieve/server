@@ -53,8 +53,22 @@ export default {
       })
   },
 
-  registerStudent(context, signupData) {
-    return NetworkService.registerStudent(context, signupData)
+  registerOpenStudent(context, signupData) {
+    return NetworkService.registerOpenStudent(context, signupData)
+      .then(res => {
+        const data = { ...res.data }
+        if (!data) {
+          throw new Error('No user returned from auth service')
+        }
+        AnalyticsService.registerStudent(data.user)
+      })
+      .catch(res => {
+        throw errorFromHttpResponse(res)
+      })
+  },
+
+  registerPartnerStudent(context, signupData) {
+    return NetworkService.registerPartnerStudent(context, signupData)
       .then(res => {
         const data = { ...res.data }
         if (!data) {
