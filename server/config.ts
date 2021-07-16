@@ -132,7 +132,8 @@ const config: Static<typeof Config> = {
         'example@example.org',
       corporatePartnershipsManager:
         process.env.SUBWAY_CORPORATE_PARTNERSHIPS_MANAGER_EMAIL_SENDER ||
-        'example@example.org'
+        'example@example.org',
+      crisis: process.env.SUBWAY_CRISIS_EMAIL_SENDER || 'example@example.org'
     },
     receivers: {
       contact:

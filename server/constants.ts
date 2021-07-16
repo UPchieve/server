@@ -162,10 +162,7 @@ export const REFERENCE_STATUS = {
 }
 
 export const SESSION_REPORT_REASON = {
-  // TODO: Swap rude strings amd delete MISUSE option upon deployment of frontend reporting modal update
-  // STUDENT_RUDE: 'This student was extremely rude or inappropriate',
-  STUDENT_MISUSE: 'Student was misusing platform',
-  STUDENT_RUDE: 'Student was rude',
+  STUDENT_RUDE: 'This student was extremely rude or inappropriate',
   STUDENT_SAFETY: 'I am worried for the immediate safety of this student'
 }
 

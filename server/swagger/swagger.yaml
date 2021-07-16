@@ -1231,7 +1231,7 @@ paths:
       tags:
         - session
       summary: Reports a session
-      description: Sends details for reporting a session
+      description: Sends details for reporting a session.
       security:
         - cookieAuth: []
       parameters:
@@ -1249,6 +1249,9 @@ paths:
               properties:
                 reportReason:
                   type: string
+                  enum:
+                    - 'This student was extremely rude or inappropriate'
+                    - 'I am worried for the immediate safety of this student'
                 reportMessage:
                   type: string
       responses:
