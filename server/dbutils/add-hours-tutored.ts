@@ -84,7 +84,7 @@ async function upgrade(): Promise<void> {
     for (const v of volunteers) {
       const hoursTutored = await calculateHoursTutored(v._id);
       pendingUpdates.push(
-        VolunteerModel.updateOne({ _id: v._id }, { parse(hoursTutored) })
+        VolunteerModel.updateOne({ _id: v._id }, { hoursTutored })
       );
     }
     const results = await Promise.all(pendingUpdates)

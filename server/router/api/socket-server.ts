@@ -2,8 +2,6 @@
  * Creates the socket server and returns the Server instance
  */
 import * as http from 'http'
-import socket from 'socket.io'
-import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import logger from '../../logger'
 const {
@@ -29,28 +27,31 @@ export default function(app) {
 
   logger.info('socket.io listening on port ' + port)
 
-  ////only works with require("socket.io") and not if replaced with socket ??
-  const io = require("socket.io")(server, {
+  /// /only works with require("socket.io") and not if replaced with socket ??
+  const io = require('socket.io')(server, {
     // set pingTimeout longer than pingInterval
     // 60s used to be the default but they dropped it
     // in 3.0 they're increasing it again
     // (default interval is 25000)
-    //explicitly enabling cookie, setting maxHttpBufferSize to 1e8 and switching parser
+    // explicitly enabling cookie, setting maxHttpBufferSize to 1e8 and switching parser
     pingInterval: 25000,
     pingTimeout: 30000,
     cookie: true,
-    parser: require("socket.io-msgpack-parser"),
+    parser: require('socket.io-msgpack-parser'),
     maxHttpBufferSize: 1e8,
-    allowEIO3: true, // false by default 
+    allowEIO3: true, // false by default
     cors: {
-      origin: ["https://localhost:3000.com", "https://localhost:3001.com"]
+      origin: ['https://localhost:3000.com', 'https://localhost:3001.com']
     }
   })
   if (process.env.NODE_ENV === 'test') return io
 
-  //only works with require("socket.io-redis") and not if replaced with redisAdapter
+  // only works with require("socket.io-redis") and not if replaced with redisAdapter
   io.adapter(
-    require("socket.io-redis")({ pubClient: socketIoPubClient, subClient: socketIoSubClient })
+    require('socket.io-redis')({
+      pubClient: socketIoPubClient,
+      subClient: socketIoSubClient
+    })
   )
   return io
 }
