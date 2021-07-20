@@ -42,6 +42,7 @@
 
 <script>
 import { get, isEmpty } from 'lodash'
+import { VOLUNTEER_SESSION_OBSTACLES } from '../../../server/constants.ts'
 
 export default {
   name: 'FeedbackPreview',
@@ -155,20 +156,13 @@ export default {
     },
 
     volunteerSessionObstacles() {
-      const options = [
-        'Website/app didn’t fully work',
-        'We ran out of time',
-        'The student was too far behind',
-        'The student didn’t want to participate',
-        'The student requested the wrong subject',
-        'There was a gap in my own knowledge'
-      ]
-      return options
-        .filter((_, index) =>
+      return Array.from(VOLUNTEER_SESSION_OBSTACLES.entries())
+        .filter(entry =>
           this.feedback.volunteerFeedback['session-obstacles'].includes(
-            index + 1
+            entry[0]
           )
         )
+        .map(entry => entry[1])
         .join('. ')
     },
 

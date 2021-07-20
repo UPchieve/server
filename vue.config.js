@@ -1,5 +1,6 @@
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 const path = require("path");
+var merge = require('webpack-merge');
 
 module.exports = {
   devServer: {
@@ -59,6 +60,22 @@ module.exports = {
       .loader("file-loader");
 
     config.module
+      .rule('typescript')
+      .test(/constants\.ts/)
+      .exclude
+          .add(/node_modules/)
+          .add(/server/)
+          .end()
+      .include
+          .add(/server\/constants\.ts/)
+          .end()
+      .use('ts-loader')
+      .loader('ts-loader')
+        .tap(options => merge(options, {
+          appendTsSuffixTo: [/\.vue$/]
+        }));
+
+    config.module
       .rule("eslint")
       .use("eslint-loader")
       .tap(options => {
@@ -66,7 +83,8 @@ module.exports = {
           extensions: [
             '.js',
             '.jsx',
-            '.vue'
+            '.vue',
+            '.ts'
           ],
           cache: true,
           cacheIdentifier: 'c861364c',

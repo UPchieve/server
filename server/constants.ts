@@ -422,8 +422,8 @@ export enum VERIFICATION_METHOD {
 }
 
 export enum FEEDBACK_VERSIONS {
-  'ONE' = 1,
-  'TWO'
+  ONE = 1,
+  TWO = 2
 }
 
 export enum ONBOARDING_STATUS {
@@ -694,3 +694,14 @@ export enum DATE_RANGE_COMPARISON_FIELDS {
   SENT_AT = '$sentAt',
   PAST_SESSION_CREATED_AT = '$pastSession.createdAt'
 }
+
+export const VOLUNTEER_SESSION_OBSTACLES = new Map([
+  [1, 'Website/app didn’t fully work'],
+  [2, 'We ran out of time'],
+  [3, 'The student was too far behind'],
+  [4, 'The student didn’t want to participate'],
+  [5, 'The student requested the wrong subject'],
+  [6, 'There was a gap in my own knowledge'],
+  [7, 'The student was rude or inappropriate'],
+  [8, 'The student was only looking for answers']
+])

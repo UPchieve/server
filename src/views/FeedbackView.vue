@@ -82,6 +82,7 @@ import { formatSurveyAnswers } from '@/utils/survey'
 import FeedbackRadio from '@/components/FeedbackRadio'
 import FeedbackTextarea from '@/components/FeedbackTextarea'
 import FeedbackCheckbox from '@/components/FeedbackCheckbox'
+import { VOLUNTEER_SESSION_OBSTACLES } from '../../server/constants.ts'
 
 export default {
   name: 'FeedbackView',
@@ -193,14 +194,9 @@ export default {
           question:
             'Did any of the following get in the way of your ability to help the student? Please select all that apply!',
           component: FeedbackCheckbox,
-          options: [
-            'Website/app didn’t fully work',
-            'We ran out of time',
-            'The student was too far behind',
-            'The student didn’t want to participate',
-            'The student requested the wrong subject',
-            'There was a gap in my own knowledge'
-          ],
+          options: Array.from(VOLUNTEER_SESSION_OBSTACLES.entries()).map(
+            entry => entry[1]
+          ),
           answer: []
         },
         {
