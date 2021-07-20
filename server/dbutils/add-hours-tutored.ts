@@ -23,8 +23,8 @@ const calculateHoursTutored = async userId => {
     const volunteerJoinDate = new Date(volunteerJoinedAt);
     const sessionEndDate = new Date(endedAt);
     let sessionLengthMs =
-      (new Date(sessionEndDate) as number) -
-      (new Date(volunteerJoinDate) as number);
+      (new Date(sessionEndDate).getTime() as number) -
+      (new Date(volunteerJoinDate).getTime() as number);
 
     // skip if volunteer joined after the session ended
     if (sessionLengthMs < 0) return totalMs;
@@ -42,8 +42,8 @@ const calculateHoursTutored = async userId => {
         latestMessageIndex > 0 &&
         //TO CHECK: adding .getTime() is correct or not? 
         (wasMessageSentAfterSessionEnded ||
-          (messages[latestMessageIndex].createdAt.getTime()) -
-            (messages[latestMessageIndex - 1].createdAt.getTime()) >
+          (messages[latestMessageIndex].createdAt) -
+            (messages[latestMessageIndex - 1].createdAt) >
             fifteenMinsMs)
       ) {
         latestMessageIndex--;
