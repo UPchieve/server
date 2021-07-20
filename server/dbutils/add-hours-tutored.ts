@@ -23,8 +23,8 @@ const calculateHoursTutored = async userId => {
     const volunteerJoinDate = new Date(volunteerJoinedAt);
     const sessionEndDate = new Date(endedAt);
     let sessionLengthMs =
-      (new Date(sessionEndDate).getTime() as number) -
-      (new Date(volunteerJoinDate).getTime() as number);
+      (new Date(sessionEndDate) as number) -
+      (new Date(volunteerJoinDate) as number);
 
     // skip if volunteer joined after the session ended
     if (sessionLengthMs < 0) return totalMs;

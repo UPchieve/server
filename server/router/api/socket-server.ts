@@ -2,6 +2,8 @@
  * Creates the socket server and returns the Server instance
  */
 import * as http from 'http'
+import { RedisAdapter } from 'socket.io-redis'
+import { Socket } from 'socket.io'
 import config from '../../config'
 import logger from '../../logger'
 const {
@@ -27,8 +29,7 @@ export default function(app) {
 
   logger.info('socket.io listening on port ' + port)
 
-  /// /only works with require("socket.io") and not if replaced with socket ??
-  const io = require('socket.io')(server, {
+  const io = Socket(server, {
     // set pingTimeout longer than pingInterval
     // 60s used to be the default but they dropped it
     // in 3.0 they're increasing it again
@@ -41,14 +42,19 @@ export default function(app) {
     maxHttpBufferSize: 1e8,
     allowEIO3: true, // false by default
     cors: {
-      origin: ['https://localhost:3000.com', 'https://localhost:3001.com']
-    }
+      origin: 
+        config.NODE_ENV === 'dev'
+          ? ['localhost:3000', 'localhost:3001']
+          : config.host,
+      credentials: false,
+      exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined
   })
+
   if (process.env.NODE_ENV === 'test') return io
 
-  // only works with require("socket.io-redis") and not if replaced with redisAdapter
+  //TO CHECK
   io.adapter(
-    require('socket.io-redis')({
+    RedisAdapter({
       pubClient: socketIoPubClient,
       subClient: socketIoSubClient
     })
