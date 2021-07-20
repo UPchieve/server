@@ -2,14 +2,14 @@
  * Creates the socket server and returns the Server instance
  */
 import * as http from 'http'
-import { RedisAdapter } from 'socket.io-redis'
-import { Socket } from 'socket.io'
+import { createAdapter } from 'socket.io-redis'
+import * as socket from 'socket.io'
 import config from '../../config'
 import logger from '../../logger'
-const {
+import {
   socketIoPubClient,
   socketIoSubClient
-} = require('../../services/RedisService')
+} from '../../services/RedisService'
 
 // Create an HTTPS server if in production, otherwise use HTTP.
 const createServer = app => {
@@ -17,7 +17,7 @@ const createServer = app => {
 }
 
 export default function(app) {
-  const server = createServer(app)
+  const httpServer = createServer(app)
 
   const port =
     process.env.NODE_ENV === 'test'
@@ -25,11 +25,11 @@ export default function(app) {
         4000 + Math.floor(Math.random() * 5000) + 1
       : config.socketsPort
 
-  server.listen(port)
+  httpServer.listen(port)
 
   logger.info('socket.io listening on port ' + port)
 
-  const io = Socket(server, {
+  const io = new socket.Server(httpServer, {
     // set pingTimeout longer than pingInterval
     // 60s used to be the default but they dropped it
     // in 3.0 they're increasing it again
@@ -38,23 +38,23 @@ export default function(app) {
     pingInterval: 25000,
     pingTimeout: 30000,
     cookie: true,
-    parser: require('socket.io-msgpack-parser'),
     maxHttpBufferSize: 1e8,
     allowEIO3: true, // false by default
     cors: {
-      origin: 
+      origin:
         config.NODE_ENV === 'dev'
           ? ['localhost:3000', 'localhost:3001']
           : config.host,
       credentials: false,
       exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined
+    }
   })
 
   if (process.env.NODE_ENV === 'test') return io
 
   //TO CHECK
   io.adapter(
-    RedisAdapter({
+    createAdapter({
       pubClient: socketIoPubClient,
       subClient: socketIoSubClient
     })
