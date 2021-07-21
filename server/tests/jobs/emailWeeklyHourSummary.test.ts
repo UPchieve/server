@@ -42,7 +42,7 @@ describe('emailWeeklyHourSummary', () => {
     jest.clearAllMocks()
   })
 
-  test('Should only send emails to volunteers with totalVolunteerHours greater than 0', async () => {
+  test('Should only send emails to volunteers with totalVolunteerHours greater than 0.01', async () => {
     const marvin = buildVolunteer()
     const otis = buildVolunteer()
     const whitney = buildVolunteer()
@@ -65,10 +65,10 @@ describe('emailWeeklyHourSummary', () => {
         totalVolunteerHours: 3
       }))
       .mockImplementationOnce(async () => ({
-        totalCoachingHours: 0,
+        totalCoachingHours: 0.01,
         totalQuizzesPassed: 0,
         totalElapsedAvailability: 0,
-        totalVolunteerHours: 0
+        totalVolunteerHours: 0.01
       }))
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 5,
