@@ -55,6 +55,8 @@ module.exports = function(io, sessionStore) {
       request: { user }
     } = socket
 
+    console.log('\nA new connection to the server was made')
+
     // @note: this would have to be refactored because there is no user when connecting via job
     if (!user) {
       socket.emit('redirect')
