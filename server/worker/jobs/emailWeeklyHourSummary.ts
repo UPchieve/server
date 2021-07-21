@@ -70,8 +70,15 @@ export default async (): Promise<void> => {
           lastMonday.toDate(),
           lastSunday.toDate()
         )
-      // A volunteer must have non-zero totalVolunteerHours for the prior week (Monday-Sunday) to receive an email
-      if (!summaryStats || !summaryStats.totalVolunteerHours) continue
+      /* 
+      The smallest this number can be is .01 hours =36 seconds (as per the rounding
+      in VolunteerService.ts:68-70) So users with 36-54 seconds of time will have
+      .01 hours coaching which gets rounded down to 0 hours/minutes at formatting
+      in MailService/index.js:87-99. So we need to check .01 hours in addition
+      to 0 prevent an email from getting sent that displays 0 hours of volutneering
+      TODO: clean up formatting rounding logic to round 30+ seconds up a minute
+      */
+      if (!summaryStats || summaryStats.totalVolunteerHours <= 0.01) continue
 
       const data = {
         firstName,

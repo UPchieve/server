@@ -66,13 +66,17 @@ export const getHourSummaryStats = async (
   const totalCoachingHours = Number(timeTutoredInHours)
   // Total volunteer hours calculation: [sum of coaching, elapsed avail/10, and quizzes]
   const totalVolunteerHours = Number(
-    totalCoachingHours + quizzesPassed.length + elapsedAvailability * 0.1
-  ).toFixed(2)
+    (
+      totalCoachingHours +
+      quizzesPassed.length +
+      Number(elapsedAvailability) * 0.1
+    ).toFixed(2)
+  )
   return {
     totalCoachingHours,
     totalQuizzesPassed: quizzesPassed.length,
     totalElapsedAvailability: elapsedAvailability,
-    totalVolunteerHours: Number(totalVolunteerHours)
+    totalVolunteerHours: totalVolunteerHours
   }
 }
 
