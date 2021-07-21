@@ -54,6 +54,8 @@ module.exports = function(io, sessionStore) {
     const {
       request: { user }
     } = socket
+
+    // @note: this would have to be refactored because there is no user when connecting via job
     if (!user) {
       socket.emit('redirect')
       throw new Error('User not authenticated')
@@ -61,6 +63,7 @@ module.exports = function(io, sessionStore) {
 
     // Join a user to their own room to handle the event where a user might have
     // multiple socket connections open
+    // everything below will also need to be refactored - only do if student or volunteer user
     socket.join(user._id.toString())
 
     const latestSession = await SessionService.currentSession(user)
@@ -136,6 +139,10 @@ module.exports = function(io, sessionStore) {
             }
           })
       )
+    })
+
+    socket.on('eventFromScript', data => {
+      console.log('Hello, received an event via script', data)
     })
 
     socket.on('list', () => {
