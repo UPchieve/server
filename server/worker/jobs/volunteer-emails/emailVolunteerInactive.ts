@@ -61,14 +61,15 @@ async function sendEmailToInactiveVolunteers({
   }
 }
 
-function getLastActivityAtQuery(fromDate, toDate) {
+function getLastActivityAtQuery(fromDate: Date, toDate: Date) {
   return {
+    // best practice to clone date objects to avoid multiple ownership
     $gte: new Date(fromDate),
     $lt: new Date(toDate)
   }
 }
 
-function getStartOfDayFromDaysAgo(daysAgo) {
+function getStartOfDayFromDaysAgo(daysAgo: number): Date {
   return moment()
     .utc()
     .subtract(daysAgo, 'days')
@@ -76,7 +77,7 @@ function getStartOfDayFromDaysAgo(daysAgo) {
     .toDate()
 }
 
-function getEndOfDayFromDaysAgo(daysAgo) {
+function getEndOfDayFromDaysAgo(daysAgo: number): Date {
   return moment()
     .utc()
     .subtract(daysAgo, 'days')
@@ -138,9 +139,8 @@ export default async (): Promise<void> => {
     )
   }
 
-  // @todo: properly type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [volunteers]: any = await getVolunteersWithPipeline([
+  // TODO: can't be properly typed due to aggregation wrapper
+  const [volunteers]: unknown[] = await getVolunteersWithPipeline([
     {
       $match: {
         $or: [thirtyDaysAgoQuery, sixtyDaysAgoQuery, ninetyDaysAgoQuery]
