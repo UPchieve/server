@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import moment from 'moment-timezone'
+import MockDate from 'mockdate'
 import { resetDb, insertVolunteer, getVolunteer } from '../../db-utils'
 import emailVolunteerInactive from '../../../worker/jobs/volunteer-emails/emailVolunteerInactive'
 import logger from '../../../logger'
@@ -8,31 +9,11 @@ import MailService from '../../../services/MailService'
 import { buildAvailability, buildVolunteer } from '../../generate'
 import { noHoursSelected } from '../../mocks/volunteer-availability'
 import VolunteerModel from '../../../models/Volunteer'
+import * as VolunteerService from '../../../services/VolunteerService'
 jest.mock('../../../logger')
 jest.mock('../../../services/MailService')
 
 jest.setTimeout(1000 * 15)
-
-const fifteenDaysAgo = moment()
-  .utc()
-  .subtract(15, 'days')
-  .toDate()
-const thirtyDaysAgo = moment()
-  .utc()
-  .subtract(30, 'days')
-  .toDate()
-const fourtyDaysAgo = moment()
-  .utc()
-  .subtract(40, 'days')
-  .toDate()
-const sixtyDaysAgo = moment()
-  .utc()
-  .subtract(60, 'days')
-  .toDate()
-const ninetyDaysAgo = moment()
-  .utc()
-  .subtract(90, 'days')
-  .toDate()
 
 // db connection
 beforeAll(async () => {
@@ -51,12 +32,38 @@ beforeEach(async () => {
   await resetDb()
 })
 
+afterEach(() => {
+  MockDate.reset()
+})
+
 describe('Volunteer inactive emails', () => {
+  const todaysDate = new Date('2021-05-01T03:00:00.000Z')
   beforeEach(async () => {
     jest.resetAllMocks()
+    MockDate.set(todaysDate.getTime())
   })
+  const fifteenDaysAgo = moment(todaysDate)
+    .utc()
+    .subtract(15, 'days')
+    .toDate()
+  const thirtyDaysAgo = moment(todaysDate)
+    .utc()
+    .subtract(30, 'days')
+    .toDate()
+  const fourtyDaysAgo = moment(todaysDate)
+    .utc()
+    .subtract(40, 'days')
+    .toDate()
+  const sixtyDaysAgo = moment(todaysDate)
+    .utc()
+    .subtract(60, 'days')
+    .toDate()
+  const ninetyDaysAgo = moment(todaysDate)
+    .utc()
+    .subtract(90, 'days')
+    .toDate()
 
-  test('Should send to volunteers who fall on inactive period of 30, 60, or 90 days ago', async () => {
+  test('Should send to volunteers who fall on inactive period of 30, 60, or 90 days ago before blackout period', async () => {
     const hemingway = buildVolunteer({
       lastActivityAt: fifteenDaysAgo
     })
@@ -66,7 +73,6 @@ describe('Volunteer inactive emails', () => {
     const twain = buildVolunteer({ lastActivityAt: ninetyDaysAgo })
     const faulkner = buildVolunteer({ lastActivityAt: ninetyDaysAgo })
     const volunteers = [hemingway, angelou, woolf, dickens, twain, faulkner]
-    // @todo: figure out why getVolunteersMany does not work
     await VolunteerModel.insertMany(volunteers)
 
     await emailVolunteerInactive()
@@ -84,6 +90,25 @@ describe('Volunteer inactive emails', () => {
     )
     expect(logger.info).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveNinetyDays} to volunteer ${faulkner._id}`
+    )
+  })
+
+  test('Should send to inactive volunteers after the blackout period', async () => {
+    const todaysDate = new Date('2021-09-02T10:00:00.000Z')
+    MockDate.set(todaysDate.getTime())
+    const ninetyDaysAgo = moment(todaysDate)
+      .utc()
+      .subtract(90, 'days')
+      .toDate()
+    const kafka = buildVolunteer({
+      lastActivityAt: ninetyDaysAgo
+    })
+    await insertVolunteer(kafka)
+
+    await emailVolunteerInactive()
+    expect(MailService.sendVolunteerInactiveNinetyDays).toHaveBeenCalledTimes(1)
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailVolunteerInactiveNinetyDays} to volunteer ${kafka._id}`
     )
   })
 
@@ -151,5 +176,49 @@ describe('Volunteer inactive emails', () => {
     expect(logger.info).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveThirtyDays} to volunteer ${angelou._id}`
     )
+  })
+
+  describe('Should not send emails to inactive volunteers if the job is run in the blackout period', () => {
+    let getVolunteersWithPipelineSpy
+    beforeEach(() => {
+      getVolunteersWithPipelineSpy = jest.spyOn(
+        VolunteerService,
+        'getVolunteersWithPipeline'
+      )
+    })
+    afterEach(() => {
+      getVolunteersWithPipelineSpy.mockRestore()
+    })
+
+    function blackoutPeriodAssertion() {
+      expect(getVolunteersWithPipelineSpy).toHaveBeenCalledTimes(0)
+      expect(MailService.sendVolunteerInactiveThirtyDays).toHaveBeenCalledTimes(
+        0
+      )
+      expect(MailService.sendVolunteerInactiveSixtyDays).toHaveBeenCalledTimes(
+        0
+      )
+      expect(MailService.sendVolunteerInactiveNinetyDays).toHaveBeenCalledTimes(
+        0
+      )
+    }
+
+    test('Job runs on start of blackout period', async () => {
+      MockDate.set(new Date('2022-06-01T00:00:00.000Z').getTime())
+      await emailVolunteerInactive()
+      blackoutPeriodAssertion()
+    })
+
+    test('Job runs in middle of blackout period', async () => {
+      MockDate.set(new Date('2021-08-01T08:00:00.000Z').getTime())
+      await emailVolunteerInactive()
+      blackoutPeriodAssertion()
+    })
+
+    test('Job runs on end of blackout period', async () => {
+      MockDate.set(new Date('2021-09-01T23:59:59.999Z').getTime())
+      await emailVolunteerInactive()
+      blackoutPeriodAssertion()
+    })
   })
 })

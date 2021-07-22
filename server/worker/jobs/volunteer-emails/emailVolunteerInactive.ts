@@ -85,6 +85,31 @@ function getEndOfDayFromDaysAgo(daysAgo) {
 }
 
 export default async (): Promise<void> => {
+  const blackoutPeriodStart = moment()
+    .utc()
+    .month('June')
+    .startOf('month')
+    .toDate()
+    .getTime()
+  const blackoutPeriodEnd = moment()
+    .utc()
+    .month('September')
+    .date(1)
+    .endOf('day')
+    .toDate()
+    .getTime()
+  const todaysDate = new Date().getTime()
+  if (todaysDate >= blackoutPeriodStart && todaysDate <= blackoutPeriodEnd) {
+    logger.info(
+      `Skipping ${Jobs.EmailVolunteerInactive} because today's date, ${new Date(
+        todaysDate
+      ).toISOString()}, is within the blackout period: ${new Date(
+        blackoutPeriodStart
+      ).toISOString()} - ${new Date(blackoutPeriodEnd).toISOString()}`
+    )
+    return
+  }
+
   const thirtyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(30)
   const thirtyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(30)
   const sixtyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(60)
