@@ -52,7 +52,6 @@ export default function(app) {
 
   if (process.env.NODE_ENV === 'test') return io
 
-  // TO CHECK
   io.adapter(
     createAdapter({
       pubClient: socketIoPubClient,

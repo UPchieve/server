@@ -40,7 +40,6 @@ const calculateHoursTutored = async userId => {
     if (sessionLengthMs > threeHoursMs || wasMessageSentAfterSessionEnded) {
       while (
         latestMessageIndex > 0 &&
-        //TO CHECK: adding .getTime() is correct or not? 
         (wasMessageSentAfterSessionEnded ||
           (messages[latestMessageIndex].createdAt) -
             (messages[latestMessageIndex - 1].createdAt) >
