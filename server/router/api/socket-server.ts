@@ -52,7 +52,6 @@ export default function(app) {
 
   if (process.env.NODE_ENV === 'test') return io
 
-  //let obj: SocketIORedis.RedisAdapter = {};
   io.adapter(
     createAdapter({
       pubClient: socketIoPubClient,
