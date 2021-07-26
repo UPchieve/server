@@ -20,10 +20,10 @@ const main = async function() {
         header: 'Name', key: 'name', width: 32,
         border: { 
           right: { 
-            style: 'double', color: { argb:'00000000' } 
+            style: 'double', color: { argb:'FF000000' } 
           },
           bottom: {
-            style: 'thick', color: { argb: '00000000' }
+            style: 'thick', color: { argb: 'FF00FF00' }
           }
         },
         style: { font: { name: 'Comic Sans', bold: true } } 
@@ -39,6 +39,11 @@ const main = async function() {
       name: 'Test',
       DOB: new Date()
     }, 'i')
+    summarySheet.getCell('B2').border = {
+      left: {
+        style: 'thin', color: { argb: 'FF0000FF' }
+      }
+    }
 
     await workbook.xlsx.writeFile('/home/fjorn/upchieve/subway/test.xlsx');
   } catch (err) {
