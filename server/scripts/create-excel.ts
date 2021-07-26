@@ -3,7 +3,10 @@ import exceljs from 'exceljs'
 const main = async function() {
   let exitCode = 0
   try {
-    const workbook = new exceljs.Workbook()
+    const workbook = new exceljs.stream.xlsx.WorkbookWriter({
+      filename: '/home/fjorn/upchieve/subway/test.xlsx',
+      useStyles: true
+    })
     const sheetoptions = {
       pageSetup: {
         orientation: 'landscape',
@@ -15,7 +18,10 @@ const main = async function() {
     const dataSheet = workbook.addWorksheet('Data', sheetoptions)
 
     summarySheet.columns = [
-      { header: 'Id', key: 'id', width: 10, style: { numFmt: '"£"#,##0.00;[Red]\-"£"#,##0.00' } },
+      { 
+        header: 'Id', key: 'id', width: 10, 
+        style: { numFmt: '"£"#,##0.00;[Red]\-"£"#,##0.00' } 
+      },
       { 
         header: 'Name', key: 'name', width: 32,
         border: { 
@@ -45,7 +51,8 @@ const main = async function() {
       }
     }
 
-    await workbook.xlsx.writeFile('/home/fjorn/upchieve/subway/test.xlsx');
+    summarySheet.commit()
+    await workbook.commit()
   } catch (err) {
     exitCode = 1
     console.error('Unhandled error: ', err)
