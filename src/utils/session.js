@@ -1,4 +1,5 @@
 import SessionService from '@/services/SessionService'
+import Case from 'case'
 
 /**
  * Starts a new session for the specified topic and subtopic.
@@ -7,7 +8,7 @@ import SessionService from '@/services/SessionService'
  * @param {string} subtopic e.g. "algebra"
  */
 export const startSession = (router, topic, subtopic) =>
-  router.push(`/session/${topic.toLowerCase()}/${subtopic.toLowerCase()}`)
+  router.push(`/session/${Case.kebab(topic)}/${Case.kebab(subtopic)}`)
 
 /**
  * Rejoins an existing session.

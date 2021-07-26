@@ -57,16 +57,32 @@ export default {
   computed: {
     ...mapState({
       isMobileApp: state => state.app.isMobileApp,
-      user: state => state.user.user
+      user: state => state.user.user,
+      isTopicSkippingSurvey() {
+        return (
+          this.modalData.topic === 'college' ||
+          this.modalData.topic === 'readingWriting' ||
+          this.modalData.topic === 'sat'
+        )
+      }
     }),
     ...mapGetters({ mobileMode: 'app/mobileMode' }),
     title() {
       if (this.modalData.topic === 'college')
         return `Choose a ${this.modalData.topic} counseling subject`
+      if (this.modalData.topic === 'sat')
+        return 'Choose a standardized testing subject'
+      if (this.modalData.topic === 'readingWriting')
+        return 'Choose a reading and writing subject'
       return this.modalData.topic
         ? `Choose a ${this.modalData.topic} subject`
         : 'Choose a subject'
     }
+  },
+  mounted() {
+    // when mounted, skip the presession survey for certain topics
+    // or show the presession survey for the rest of them
+    this.onAccept()
   },
   methods: {
     setSelectedSubtopic(subject) {
@@ -93,7 +109,7 @@ export default {
     },
     onAccept() {
       if (this.selectedSubtopic === '') return
-      if (this.modalData.topic === 'college') this.onSurveyCompleted()
+      if (this.isTopicSkippingSurvey) this.onSurveyCompleted()
       else this.showSurvey = true
     },
     onSurveyCompleted() {

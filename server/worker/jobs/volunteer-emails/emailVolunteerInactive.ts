@@ -61,14 +61,15 @@ async function sendEmailToInactiveVolunteers({
   }
 }
 
-function getLastActivityAtQuery(fromDate, toDate) {
+function getLastActivityAtQuery(fromDate: Date, toDate: Date) {
   return {
+    // best practice to clone date objects to avoid multiple ownership
     $gte: new Date(fromDate),
     $lt: new Date(toDate)
   }
 }
 
-function getStartOfDayFromDaysAgo(daysAgo) {
+function getStartOfDayFromDaysAgo(daysAgo: number): Date {
   return moment()
     .utc()
     .subtract(daysAgo, 'days')
@@ -76,7 +77,7 @@ function getStartOfDayFromDaysAgo(daysAgo) {
     .toDate()
 }
 
-function getEndOfDayFromDaysAgo(daysAgo) {
+function getEndOfDayFromDaysAgo(daysAgo: number): Date {
   return moment()
     .utc()
     .subtract(daysAgo, 'days')
@@ -85,6 +86,31 @@ function getEndOfDayFromDaysAgo(daysAgo) {
 }
 
 export default async (): Promise<void> => {
+  const blackoutPeriodStart = moment()
+    .utc()
+    .month('June')
+    .startOf('month')
+    .toDate()
+    .getTime()
+  const blackoutPeriodEnd = moment()
+    .utc()
+    .month('September')
+    .date(1)
+    .endOf('day')
+    .toDate()
+    .getTime()
+  const todaysDate = new Date().getTime()
+  if (todaysDate >= blackoutPeriodStart && todaysDate <= blackoutPeriodEnd) {
+    logger.info(
+      `Skipping ${Jobs.EmailVolunteerInactive} because today's date, ${new Date(
+        todaysDate
+      ).toISOString()}, is within the blackout period: ${new Date(
+        blackoutPeriodStart
+      ).toISOString()} - ${new Date(blackoutPeriodEnd).toISOString()}`
+    )
+    return
+  }
+
   const thirtyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(30)
   const thirtyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(30)
   const sixtyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(60)
@@ -113,9 +139,8 @@ export default async (): Promise<void> => {
     )
   }
 
-  // @todo: properly type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [volunteers]: any = await getVolunteersWithPipeline([
+  // TODO: can't be properly typed due to aggregation wrapper
+  const [volunteers]: unknown[] = await getVolunteersWithPipeline([
     {
       $match: {
         $or: [thirtyDaysAgoQuery, sixtyDaysAgoQuery, ninetyDaysAgoQuery]

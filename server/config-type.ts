@@ -47,6 +47,8 @@ export const Config = Record({
     studentIndependentLearningTemplate: String,
     studentGoalSettingTemplate: String,
     studentFirstSessionCongratsTemplate: String,
+    studentReportedRudeTemplate: String,
+    studentReportedSafetyTemplate: String,
     volunteerQuickTipsTemplate: String,
     partnerVolunteerOnlyCollegeCertsTemplate: String,
     partnerVolunteerLowHoursSelectedTemplate: String,
@@ -77,7 +79,8 @@ export const Config = Record({
       students: String,
       volunteerManager: String,
       studentOutreachManager: String,
-      corporatePartnershipsManager: String
+      corporatePartnershipsManager: String,
+      crisis: String
     }),
     receivers: Record({
       contact: String,

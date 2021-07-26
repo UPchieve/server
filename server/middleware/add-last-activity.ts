@@ -1,5 +1,5 @@
+import moment from 'moment'
 import { Request, Response } from 'express'
-import { ONE_DAY_ELAPSED_MILLISECONDS } from '../constants'
 import { updateLastActivityUser } from '../services/UserService'
 
 export function addLastActivity(
@@ -9,13 +9,11 @@ export function addLastActivity(
 ): void {
   if (Object.prototype.hasOwnProperty.call(req, 'user')) {
     const { _id, lastActivityAt } = req.user
-    const todaysDate = new Date()
-    const lastActivityInMS = new Date(lastActivityAt).getTime()
-    if (
-      lastActivityInMS + ONE_DAY_ELAPSED_MILLISECONDS <=
-      todaysDate.getTime()
-    ) {
-      updateLastActivityUser({ userId: _id, lastActivityAt: todaysDate })
+    // Convert all times to UTC for consistency
+    const today = moment().utc()
+    const lastActivityMoment = moment(lastActivityAt).utc()
+    if (today.isAfter(lastActivityMoment, 'day')) {
+      updateLastActivityUser({ userId: _id, lastActivityAt: today.toDate() })
         .then(() => next())
         .catch(err => next(err))
     } else {

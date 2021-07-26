@@ -1,7 +1,12 @@
 import moment from 'moment-timezone'
 import { values } from 'lodash'
 import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
-import { FEEDBACK_VERSIONS, SESSION_FLAGS, USER_ACTION } from '../constants'
+import {
+  FEEDBACK_VERSIONS,
+  SESSION_FLAGS,
+  USER_ACTION,
+  SUBJECT_TYPES
+} from '../constants'
 import MessageModel, { Message } from './Message'
 import { Notification } from './Notification'
 import { User } from './User'
@@ -9,7 +14,13 @@ import { Student } from './Student'
 import { Volunteer } from './Volunteer'
 import { DocUpdateError, DocCreationError, LookupError } from './Errors'
 
-const validTypes = ['Math', 'College', 'Science', 'SAT']
+const validTypes = [
+  SUBJECT_TYPES.MATH,
+  SUBJECT_TYPES.COLLEGE,
+  SUBJECT_TYPES.SCIENCE,
+  SUBJECT_TYPES.SAT,
+  SUBJECT_TYPES.READING_WRITING
+]
 
 export interface Session {
   _id: Types.ObjectId
@@ -321,6 +332,7 @@ export async function getSessionToEnd(sessionId: Types.ObjectId | string) {
       isReported: session.isReported,
       messages: session.messages,
       type: session.type,
+      subTopic: session.subTopic,
       student: {
         _id: session.student._id,
         firstname: session.student.firstname,

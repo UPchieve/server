@@ -487,11 +487,14 @@ export default {
       hasEnteredPassword: false
     }
   },
-  mounted() {
+  async mounted() {
     this.isReferred = !!window.localStorage.getItem('upcReferredByCode')
     if (this.isReferred) this.step = 'referred'
     else if (this.isMobileApp) this.partnerCodePage()
     else this.eligibilityPage()
+
+    const isDomesticIpAddress = await this.isDomesticIpAddress()
+    if (!isDomesticIpAddress) return this.internationalPage()
   },
   computed: {
     ...mapState({
@@ -544,6 +547,15 @@ export default {
     eligibilityPage() {
       this.step = 'eligibility'
       this.$router.push('/sign-up/student/eligibility')
+    },
+
+    async isDomesticIpAddress() {
+      try {
+        await NetworkService.checkIpAddress()
+        return true
+      } catch (error) {
+        return false
+      }
     },
 
     internationalPage() {
@@ -616,11 +628,14 @@ export default {
       this.step = 'account'
     },
 
-    submitEligibility() {
+    async submitEligibility() {
       AnalyticsService.captureEvent(EVENTS.STUDENT_CLICKED_CHECK_MY_ELIGIBILITY)
       if (this.isReferred) {
         this.step = 'eligible'
         this.$router.push('/sign-up/student/eligible')
+
+        const isDomesticIpAddress = await this.isDomesticIpAddress()
+        if (!isDomesticIpAddress) return this.internationalPage()
         return
       }
 
@@ -636,9 +651,8 @@ export default {
         email: this.eligibility.email,
         referredByCode: window.localStorage.getItem('upcReferredByCode')
       })
-        .then(response => {
+        .then(async response => {
           const isEligible = response.body.isEligible
-
           if (isEligible) {
             this.step = 'eligible'
             this.$router.push('/sign-up/student/eligible')
@@ -654,14 +668,18 @@ export default {
               event: EVENTS.ELIGIBILITY_INELIGIBLE
             })
           }
+          const isDomesticIpAddress = await this.isDomesticIpAddress()
+          if (!isDomesticIpAddress) return this.internationalPage()
         })
         .catch(res => {
           this.errors.push(res.body.message)
         })
     },
-    accountPage() {
+    async accountPage() {
       this.step = 'account'
       this.$router.push('/sign-up/student/account')
+      const isDomesticIpAddress = await this.isDomesticIpAddress()
+      if (!isDomesticIpAddress) return this.internationalPage()
     },
     ineligibleContinue() {
       AnalyticsService.captureEvent(EVENTS.STUDENT_CLICKED_STUDENT_ACCESS_PAGE)
@@ -720,7 +738,7 @@ export default {
       if (!this.errors.length) this.submit()
     },
     submit() {
-      AuthService.registerStudent(this, {
+      AuthService.registerOpenStudent(this, {
         email: this.credentials.email,
         password: this.credentials.password,
         terms: this.credentials.terms,

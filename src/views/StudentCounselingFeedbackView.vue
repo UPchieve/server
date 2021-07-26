@@ -165,6 +165,7 @@
 <script>
 import { mapState } from 'vuex'
 import NetworkService from '@/services/NetworkService'
+import Case from 'case'
 
 export default {
   name: 'StudentCounselingFeedbackView',
@@ -258,8 +259,8 @@ export default {
   },
   async beforeMount() {
     this.sessionId = this.$route.params.sessionId
-    this.topic = this.$route.params.topic
-    this.subTopic = this.$route.params.subTopic
+    this.topic = Case.camel(this.$route.params.topic)
+    this.subTopic = Case.camel(this.$route.params.subTopic)
     this.userType = this.$route.params.userType
     this.studentId = this.$route.params.studentId
     this.volunteerId = this.$route.params.volunteerId

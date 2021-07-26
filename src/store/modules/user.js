@@ -3,6 +3,7 @@ import VolunteerAvatarUrl from '@/assets/defaultavatar4.png'
 import SessionService from '@/services/SessionService'
 import UserService from '@/services/UserService'
 import * as Sentry from '@sentry/browser'
+import Case from 'case'
 import _ from 'lodash'
 
 export default {
@@ -239,7 +240,7 @@ export default {
 
     sessionPath: state => {
       const { type, subTopic, _id } = state.session
-      const path = `/session/${type}/${subTopic}/${_id}`
+      const path = `/session/${Case.kebab(type)}/${Case.kebab(subTopic)}/${_id}`
 
       return path
     },

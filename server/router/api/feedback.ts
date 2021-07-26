@@ -1,6 +1,6 @@
 import expressWs from '@small-tech/express-ws'
+import Case from 'case'
 import * as FeedbackService from '../../services/FeedbackService'
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function routeFeedback(router: expressWs.Router): void {
   router.post('/feedback', async (req, res, next) => {
@@ -19,8 +19,8 @@ export function routeFeedback(router: expressWs.Router): void {
     try {
       const feedback = await FeedbackService.saveFeedback({
         sessionId,
-        type: topic,
-        subTopic,
+        type: Case.camel(topic),
+        subTopic: Case.camel(subTopic),
         responseData,
         studentTutoringFeedback,
         studentCounselingFeedback,

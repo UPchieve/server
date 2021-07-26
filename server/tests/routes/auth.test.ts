@@ -198,21 +198,6 @@ describe('Test simple routes hit AuthService', () => {
     expect(checked).toBeTruthy()
   })
 
-  // todo: remove upon merge of issue #764
-  test('Route /register/student', async () => {
-    const payload = {}
-    const result = { _id: '123' } as StudentDocument
-    mockedAuthService.registerStudent.mockImplementationOnce(async () => result)
-    const response = await sendPost('/register/student', payload)
-
-    const {
-      body: { user }
-    } = response
-    expect(AuthService.registerStudent).toHaveBeenCalledTimes(1)
-    expect(mockLogin).toHaveBeenCalledTimes(1)
-    expect(user).toEqual(result)
-  })
-
   test('Route /register/student/open', async () => {
     const payload = {}
     const result = { _id: '123' } as StudentDocument
