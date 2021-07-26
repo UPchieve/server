@@ -43,12 +43,13 @@ module.exports = function(io, sessionStore) {
           console.log(new Error(message))
           throw new Error(message)
         } else {
-          console.log(message)
+          console.log('Not authenticated', message)
           accept(null, false)
         }
       }
     })
   )
+
 
   io.on('connection', async function(socket) {
     const {
@@ -57,27 +58,31 @@ module.exports = function(io, sessionStore) {
 
     console.log('\nA new connection to the server was made')
 
-    // @note: this would have to be refactored because there is no user when connecting via job
     if (!user) {
       socket.emit('redirect')
       throw new Error('User not authenticated')
     }
 
-    // Join a user to their own room to handle the event where a user might have
-    // multiple socket connections open
-    // everything below will also need to be refactored - only do if student or volunteer user
-    socket.join(user._id.toString())
+    console.log('User: ', user)
+    if (user.firstname === 'Chat bot') {
+      console.log('is chatbot')
+    } else {
+      // Join a user to their own room to handle the event where a user might have
+      // multiple socket connections open
+      // everything below will also need to be refactored - only do if student or volunteer user
+      socket.join(user._id.toString())
 
-    const latestSession = await SessionService.currentSession(user)
+      const latestSession = await SessionService.currentSession(user)
 
-    // @note: students don't join the room by default until they are in the session view
-    // Join user to their latest session if it has not ended
-    if (latestSession && !latestSession.endedAt) {
-      socket.join(getSessionRoom(latestSession._id))
-      socket.emit('session-change', latestSession)
+      // @note: students don't join the room by default until they are in the session view
+      // Join user to their latest session if it has not ended
+      if (latestSession && !latestSession.endedAt) {
+        socket.join(getSessionRoom(latestSession._id))
+        socket.emit('session-change', latestSession)
+      }
+
+      if (user && user.isVolunteer) socket.join('volunteers')
     }
-
-    if (user && user.isVolunteer) socket.join('volunteers')
 
     // Tutor session management
     socket.on('join', async function(data) {
@@ -143,8 +148,8 @@ module.exports = function(io, sessionStore) {
       )
     })
 
-    socket.on('eventFromScript', data => {
-      console.log('Hello, received an event via script', data)
+    socket.on('eventFromScript', async data => {
+      console.log('Hello, received an event via script: ', data)
     })
 
     socket.on('list', () => {
