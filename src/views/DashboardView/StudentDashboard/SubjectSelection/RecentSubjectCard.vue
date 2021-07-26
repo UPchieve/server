@@ -1,27 +1,29 @@
 <template>
-  <button class="SubjectButton">
-      <div class="SubjectCard-desktop-column">
-        <component class="SubjectCard-icon" v-bind:is="svg" />
-        <h2 class="SubjectButton-title">{{ title }}</h2>
-      </div>
+  <large-button
+  class="SubjectButton">
+    <div class="SubjectCard-desktop-column">
+      <component class="SubjectCard-icon" v-bind:is="svg" />
+      <h4 class="SubectCard-title">{{ buttonText }} </h4>
       <arrow-icon
-       v-if="showArrow"
-       class="arrow-icon"
-    />
-  </button>
+        v-if="showArrow"
+        class="arrow-icon"
+       />
+    </div>
+  </large-button>
 </template>
 
 <script>
 
 import { mapGetters, mapState } from 'vuex'
-import ButtonTemplate from '@/components/ButtonTemplate'
 import getCookie from '@/utils/get-cookie'
 import ArrowIcon from '@/assets/arrow.svg'
+import LargeButton from '@/components/LargeButton'
+
 //import SubjectIcons from '..../assets/subject_icons'
 
 export default {
   name: 'subject-card',
-  components: {ButtonTemplate, ArrowIcon, SubjectIcons},
+  components: {ArrowIcon, LargeButton},
   data() {
     return {
       selectedSubtopic: ''
@@ -48,10 +50,10 @@ export default {
     subtopicDisplayNames: Object,
     buttonText: {
       type: String,
-      default: 'Start a chat'
+      default: 'Subject'
     },
     routeTo: String,
-    disableSubjectCard: Boolean,
+    disableSubjectButton: Boolean,
     showArrow: {
       type: Boolean,
       default: true
@@ -68,7 +70,7 @@ export default {
       isSessionAlive: 'user/isSessionAlive'
     }),
     disabled() {
-      return this.disableSubjectCard
+      return this.disableSubjectButton
     }
   },
   methods: {
@@ -121,17 +123,16 @@ export default {
 
 <style lang="scss" scoped>
 .SubjectButton {
+    @include flex-container(row, center, center);
   @include font-category('button');
-  @include flex-container(row, center, center);
 
   position: absolute;
   align-items: center;
   width: 285px;
   height: 64px;
-  left: 20px;
-  top: 20px;
+  left: 15px;
+  top: 15px;
   background: #F2FBF9;
-/* UPchieve Green */
   border: 1px solid #16D2AA;
   box-sizing: border-box;
   border-radius: 8px;
@@ -139,35 +140,16 @@ export default {
 
 .arrow-icon {
   position: absolute;
-left: 87.86%;
-right: 2.89%;
-top: 50%;
-bottom: 50%;
+  left: 87.86%;
+  right: 2.89%;
+  top: 13%;
 
 /* UPchieve Green */
 border: 1px solid #16D2AA;
 box-sizing: border-box;
 }
 
-.SubjectCard {
-  @include flex-container(row, flex-start);
-  @include child-spacing(left, 24px);
-
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-
-
-  @include breakpoint-above('medium') {
-    @include flex-container(column, space-between, center);
-    @include child-spacing(left, 0);
-    @include child-spacing(top, 32px);
-    padding: 32px;
-    padding-top: 24px;
-  }
-}
-
-.SubjectCard-icon {
+.SubjectButton-icon {
   position: static;
   width: 40px;
   height: 40px;
@@ -176,15 +158,13 @@ box-sizing: border-box;
 }
 
 .SubjectButton-title {
-  //@include font-category('heading');
-  margin: 0;
+  @include font-category('heading');
+  margin: 20px;
   padding: 0;
-  display: flex;
   text-align: center;
   font-family: Work Sans;
   font-style: normal;
-  font-weight: 500;
-  font-size: 16px;
+  font-size: 20px;
 
   @include breakpoint-above('medium') {
     @include font-category('display-small');
@@ -201,11 +181,7 @@ box-sizing: border-box;
   @include flex-container(column, initial, center);
   @include child-spacing(top, 16px);
 
-  .SubjectCard-subtitle {
-    margin-top: 8px;
-  }
-
-  .ButtonTemplate-icon {
+.ButtonTemplate-icon {
   margin-top: 2px; // nudge down
   margin-left: 8px; // space between text
 }

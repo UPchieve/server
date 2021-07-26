@@ -25,6 +25,8 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import SubjectCard from './SubjectCard'
+//Temporarily checking Recent Subject Button on website
+import RecentSubjectCard from './RecentSubjectCard.vue'
 import MathSVG from '@/assets/subject_icons/math.svg'
 import CollegeSVG from '@/assets/subject_icons/college-counseling.svg'
 import ScienceSVG from '@/assets/subject_icons/science.svg'
@@ -38,7 +40,7 @@ import { topics } from '@/utils/topics'
 
 export default {
   name: 'subject-selection',
-  components: { SubjectCard },
+  components: { SubjectCard, RecentSubjectCard},
   beforeDestroy() {
     clearTimeout(this.waitingPeriodTimeoutId)
   },

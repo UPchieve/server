@@ -13,7 +13,7 @@ async function upgrade(): Promise<void> {
   } catch (error) {
     console.log('error', error);
   }
-
+  
   mongoose.disconnect();
 }
 

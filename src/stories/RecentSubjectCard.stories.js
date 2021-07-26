@@ -15,7 +15,8 @@ export const PrimaryCard = Template.bind({})
 PrimaryCard.args = {
   title: 'Algebra 1',
   svg: 'um',
-  topic: 'Calculus'
+  topic: 'Calculus',
+  buttonText: 'Algebra 1'
 }
 
 export const SecondaryCard = Template.bind({})
