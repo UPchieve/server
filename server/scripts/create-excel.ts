@@ -16,18 +16,17 @@ const main = async function() {
 
     summarySheet.columns = [
       { header: 'Id', key: 'id', width: 10, style: { numFmt: '"£"#,##0.00;[Red]\-"£"#,##0.00' } },
-      { header: 'Name', key: 'name', width: 32, border: { right: {style:'double', color: { argb:'FF00FF00' } } }, style: { font: { name: 'Comic Sans', bold: true } } },
+      { header: 'Name', key: 'name', width: 32, border: { right: {style: 'double', color: { argb:'00000000' } } }, style: { font: { name: 'Comic Sans', bold: true } } },
       { header: 'D.O.B.', key: 'DOB', width: 10, style: { numFmt: 'dd/mm/yyyy'} }
     ]
 
     const header = summarySheet.getRow(1)
     header.height = 42
-    header.outlineLevel = 1
 
     summarySheet.addRow({
       id: 24,
       name: 'Test',
-      dob: new Date()
+      DOB: new Date()
     }, 'i')
 
     await workbook.xlsx.writeFile('/home/fjorn/upchieve/subway/test.xlsx');
