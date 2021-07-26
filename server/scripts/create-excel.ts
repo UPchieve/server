@@ -16,7 +16,18 @@ const main = async function() {
 
     summarySheet.columns = [
       { header: 'Id', key: 'id', width: 10, style: { numFmt: '"£"#,##0.00;[Red]\-"£"#,##0.00' } },
-      { header: 'Name', key: 'name', width: 32, border: { right: {style: 'double', color: { argb:'00000000' } } }, style: { font: { name: 'Comic Sans', bold: true } } },
+      { 
+        header: 'Name', key: 'name', width: 32,
+        border: { 
+          right: { 
+            style: 'double', color: { argb:'00000000' } 
+          },
+          bottom: {
+            style: 'thick', color: { argb: '00000000' }
+          }
+        },
+        style: { font: { name: 'Comic Sans', bold: true } } 
+      },
       { header: 'D.O.B.', key: 'DOB', width: 10, style: { numFmt: 'dd/mm/yyyy'} }
     ]
 
