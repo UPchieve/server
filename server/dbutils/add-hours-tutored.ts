@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import VolunteerModel from '../models/Volunteer';
 import * as db from '../db';
 import Session from '../models/Session';
-import { Decimal128 } from 'mongodb';
 
 const calculateHoursTutored = async userId => {
   const pastSessions = await Session.find({ volunteer: userId })
@@ -41,8 +40,8 @@ const calculateHoursTutored = async userId => {
       while (
         latestMessageIndex > 0 &&
         (wasMessageSentAfterSessionEnded ||
-          (messages[latestMessageIndex].createdAt) -
-            (messages[latestMessageIndex - 1].createdAt) >
+          messages[latestMessageIndex].createdAt -
+            messages[latestMessageIndex - 1].createdAt >
             fifteenMinsMs)
       ) {
         latestMessageIndex--;
