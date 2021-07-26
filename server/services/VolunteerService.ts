@@ -19,15 +19,12 @@ export const getVolunteers = async (
     .lean()
     .exec()
 
-export const getVolunteersWithPipeline = (
-  pipeline
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Aggregate<Volunteer[]> => VolunteerModel.aggregate(pipeline)
+export const getVolunteersWithPipeline = (pipeline): Aggregate<Volunteer[]> =>
+  VolunteerModel.aggregate(pipeline)
 
 export const updateVolunteer = (
   query,
   update: Partial<Volunteer>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Query<Volunteer> => VolunteerModel.updateOne(query, update)
 
 export function incrementTotalVolunteerHours(
