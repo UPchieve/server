@@ -6,9 +6,10 @@ const main = async function() {
   try {
     const start = moment().valueOf()
     console.log('START TIME: ', start)
+  
     const workbook = new exceljs.stream.xlsx.WorkbookWriter({
       filename: '/home/fjorn/upchieve/subway/test.xlsx',
-      useStyles: true
+      useStyles: true  // include this option to apply styling to streams
     })
     const sheetoptions = {
       pageSetup: {
@@ -29,6 +30,7 @@ const main = async function() {
       } as exceljs.Column
       if (i % 6 === 2) {
         col.style = {
+          // apply border/fill etc in style object
           font: { name: 'Comic Sans', bold: true },
           border: { 
             right: { 
@@ -55,10 +57,12 @@ const main = async function() {
       summarySheet.addRow(row, 'i')
     }
 
-    // p sure the commit here will commit the worksheets too but included the worksheet commit manually
-    // can commit rows/sheets in batches to minimize memory footprint
+    // you can commit rows in batches to minimize memory footprint
+    // i.e. const row = sheet.addRow(); row.commit()
+    // however once a sheet is committed you can no longer add rows
     summarySheet.commit()
-    await workbook.commit()
+    await workbook.commit()  // will commit unused data sheet
+
     const end = moment().valueOf()
     console.log('END TIME: ', end)
     console.log('DIFF: ', end - start)
