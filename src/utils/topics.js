@@ -58,6 +58,23 @@ export const topics = {
   }
 }
 
+
+//mock data for recent subjects
+export const recentTopics = {
+    algebraOne: {
+      displayName: 'Algebra 1'
+    },
+    algebraTwo: {
+      displayName: 'Algebra 2'
+    },
+      satMath: {
+      displayName: 'SAT Math'
+    },
+      collegeEssays: {
+      displayName: 'College Essays'
+  } 
+}
+
 /**
  * Object containing subtopic information from all topics
  */

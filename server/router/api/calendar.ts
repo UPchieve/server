@@ -17,7 +17,7 @@ export function routeCalendar(router: expressWs.Router): void {
       next(error)
     }
   })
-
+  
   router.post('/calendar/clear', async function(req, res, next) {
     try {
       await clearSchedule(req.user, req.body.tz)

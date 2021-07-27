@@ -3,7 +3,7 @@
   class="SubjectButton">
     <div class="SubjectCard-desktop-column">
       <component class="SubjectCard-icon" v-bind:is="svg" />
-      <h4 class="SubectCard-title">{{ buttonText }} </h4>
+      <h4 class="SubectCard-title">{{ title }} </h4>
       <arrow-icon
         v-if="showArrow"
         class="arrow-icon"
@@ -20,7 +20,7 @@ import ArrowIcon from '@/assets/arrow.svg'
 import LargeButton from '@/components/LargeButton'
 
 export default {
-  name: 'subject-card',
+  name: 'recent-subject-card',
   components: {ArrowIcon, LargeButton},
   data() {
     return {
@@ -35,23 +35,17 @@ export default {
       type: String,
       required: true
     },
-    subtitle: {
-      type: String,
-      default: 'Join a chat room to start.'
-    },
     svg: {
       type: Object,
       required: true
     },
     topic: String,
-    subtopics: Array,
-    subtopicDisplayNames: Object,
     buttonText: {
       type: String,
       default: 'Subject'
     },
     routeTo: String,
-    disableSubjectButton: Boolean,
+    disableSubjectCard: Boolean,
     showArrow: {
       type: Boolean,
       default: true
@@ -68,7 +62,7 @@ export default {
       isSessionAlive: 'user/isSessionAlive'
     }),
     disabled() {
-      return this.disableSubjectButton
+      return this.disableSubjectCard
     }
   },
   methods: {
@@ -124,10 +118,9 @@ export default {
     @include flex-container(row, center, center);
   @include font-category('button');
 
-  position: absolute;
   align-items: center;
-  width: 285px;
-  height: 64px;
+  width: 350px;
+  height: 120px;
   left: 15px;
   top: 15px;
   background-color: white;
@@ -163,8 +156,8 @@ box-sizing: border-box;
 
 .SubjectButton-icon {
   position: static;
-  width: 40px;
-  height: 40px;
+  width: 10px;
+  height: 10px;
   left: 24px;
   top: 12px;
 }

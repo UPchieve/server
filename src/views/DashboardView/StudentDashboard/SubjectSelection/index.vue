@@ -19,17 +19,23 @@
       :routeTo="card.routeTo"
       :disableSubjectCard="isCardDisabled(card)"
     />
-    <recent-subject-card
-     :svg="card.svg"
-    >
+       <recent-subject-card
+       v-for="(card, index) in cards"
+      v-bind:key="index"
+      :title="card.title"
+      :svg="card.svg"
+      :topic="card.topic"
+      :button-text="card.buttonText"
+      :routeTo="card.routeTo"
+      :disableSubjectCard="isCardDisabled(card)"
+        />
   </div>
+
 </template>
 
 <script>
 import { mapState, mapGetters } from 'vuex'
 import SubjectCard from './SubjectCard'
-//Temporarily checking Recent Subject Button on website
-import RecentSubjectCard from './RecentSubjectCard.vue'
 import MathSVG from '@/assets/subject_icons/math.svg'
 import CollegeSVG from '@/assets/subject_icons/college-counseling.svg'
 import ScienceSVG from '@/assets/subject_icons/science.svg'
@@ -40,6 +46,10 @@ import ReferralSVG from '@/assets/dashboard_icons/student/referral.svg'
 import LightBulbSVG from '@/assets/dashboard_icons/student/light-bulb.svg'
 
 import { topics } from '@/utils/topics'
+
+//Temporarily checking Recent Subject Button on website
+import RecentSubjectCard from './RecentSubjectCard.vue'
+import {recentTopics} from '@/utils/topics'
 
 export default {
   name: 'subject-selection',
@@ -62,6 +72,14 @@ export default {
       science: 3,
       readingWriting: 4,
       sat: 1
+    }
+
+//recent Subject
+    const recentTopicOrderMapping = {
+      algebraOne: 0,
+      algebraTwo: 1,
+      collegePlanning: 2,
+      sat: 3
     }
 
     const cards = Object.entries(topics)
@@ -123,8 +141,21 @@ export default {
       buttonText: 'Learn More'
     })
 
+//recent subject
+    const recentCards = Object.entries(recentTopics)
+        .map(([key, recentTopicObj]) => {
+        return {
+          title: recentTopicObj.displayName,
+          svg: svgs[key],
+          recentTopic: key,
+          isTutoringCard: true,
+          order: recentTopicOrderMapping[key]
+        }
+      })
+
     return {
       cards,
+      recentCards,
       disableSubjectCard: false,
       waitingPeriodTimeoutId: null,
       hasWaitingPeriod: false,
