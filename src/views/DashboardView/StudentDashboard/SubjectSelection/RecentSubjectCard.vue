@@ -19,8 +19,6 @@ import getCookie from '@/utils/get-cookie'
 import ArrowIcon from '@/assets/arrow.svg'
 import LargeButton from '@/components/LargeButton'
 
-//import SubjectIcons from '..../assets/subject_icons'
-
 export default {
   name: 'subject-card',
   components: {ArrowIcon, LargeButton},
@@ -132,10 +130,24 @@ export default {
   height: 64px;
   left: 15px;
   top: 15px;
-  background: #F2FBF9;
-  border: 1px solid #16D2AA;
+  background-color: white;
+  border: 1px solid #D8DEE5;
   box-sizing: border-box;
   border-radius: 8px;
+
+  &:hover {
+    background: darken( #F2FBF9, 0%);
+    border: 1px solid #16D2AA;
+  }
+
+  &:active {
+    background: darken( #F1F3F6, 0%);
+    border: 1px solid #ABB2BD;
+  }
+  &:disabled {
+    background: darken(#F1F3F6, 0%);
+    border: 1px solid #D8DEE5;
+  }
 }
 
 .arrow-icon {
@@ -159,9 +171,8 @@ box-sizing: border-box;
 
 .SubjectButton-title {
   @include font-category('heading');
-  margin: 20px;
   padding: 0;
-  text-align: center;
+  text-align: left;
   font-family: Work Sans;
   font-style: normal;
   font-size: 20px;

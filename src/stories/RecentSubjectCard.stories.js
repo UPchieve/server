@@ -23,5 +23,6 @@ export const SecondaryCard = Template.bind({})
 SecondaryCard.args= {
   title: 'Algebra 2',
   svg: 'um2',
-  topic: 'Calculus II'
+  topic: 'Calculus II',
+  buttonText: 'Algebra 2'
 }

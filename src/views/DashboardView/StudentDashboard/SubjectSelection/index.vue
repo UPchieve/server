@@ -19,6 +19,9 @@
       :routeTo="card.routeTo"
       :disableSubjectCard="isCardDisabled(card)"
     />
+    <recent-subject-card
+     :svg="card.svg"
+    >
   </div>
 </template>
 
