@@ -1,8 +1,11 @@
 import exceljs from 'exceljs'
+import moment from 'moment'
 
 const main = async function() {
   let exitCode = 0
   try {
+    const start = moment().valueOf()
+    console.log('START TIME: ', start)
     const workbook = new exceljs.stream.xlsx.WorkbookWriter({
       filename: '/home/fjorn/upchieve/subway/test.xlsx',
       useStyles: true
@@ -17,14 +20,15 @@ const main = async function() {
     const summarySheet = workbook.addWorksheet('Summary', sheetoptions)
     const dataSheet = workbook.addWorksheet('Data', sheetoptions)
 
-    summarySheet.columns = [
-      { 
-        header: 'Id', key: 'id', width: 10, 
-        style: { numFmt: '"£"#,##0.00;[Red]\-"£"#,##0.00' } 
-      },
-      { 
-        header: 'Name', key: 'name', width: 32,
-        style: { 
+    const columns = []
+    for (let i=0; i<21; i+=1) {
+      const col = {
+        header: `COL ${i}`,
+        key: `${i}`,
+        width: 15
+      }
+      if (i % 6 === 2) {
+        col['style'] = {
           font: { name: 'Comic Sans', bold: true },
           border: { 
             right: { 
@@ -34,32 +38,29 @@ const main = async function() {
               style: 'thick', color: { argb: 'FF00FF00' }
             }
           }
-        } 
-      },
-      { header: 'D.O.B.', key: 'DOB', width: 10, style: { numFmt: 'dd/mm/yyyy'} }
-    ]
+        }
+      }
+    }
+    summarySheet.columns = columns
 
     const header = summarySheet.getRow(1)
     header.height = 42
 
-    summarySheet.addRow({
-      id: 24,
-      name: 'Test',
-      DOB: new Date()
-    }, 'i')
-    summarySheet.getCell('B2').border = {
-      left: {
-        style: 'thin', color: { argb: 'FF0000FF' }
+    for (let i=0; i<1000; i+=1) {
+      const row = {}
+      for (let j=0; j<21; j+=1) {
+        row[`${j}`] = `Row ${i} col ${j}`
       }
-    }
-    summarySheet.getCell('C2').fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFFF0000' }
+      summarySheet.addRow(row)
     }
 
     summarySheet.commit()
+    // p sure the commit here will commit the worksheets too but included the worksheet commit manually
+    // can commit rows/sheets in batches to minimize memory footprint
     await workbook.commit()
+    const end = moment().valueOf()
+    console.log('END TIME: ', end)
+    console.log('DIFF: ', end - start)
   } catch (err) {
     exitCode = 1
     console.error('Unhandled error: ', err)
