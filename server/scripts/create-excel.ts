@@ -26,9 +26,9 @@ const main = async function() {
         header: `COL ${i}`,
         key: `${i}`,
         width: 15
-      }
+      } as exceljs.Column
       if (i % 6 === 2) {
-        col['style'] = {
+        col.style = {
           font: { name: 'Comic Sans', bold: true },
           border: { 
             right: { 
@@ -40,23 +40,28 @@ const main = async function() {
           }
         }
       }
+      columns.push(col)
     }
     summarySheet.columns = columns
 
     const header = summarySheet.getRow(1)
     header.height = 42
 
+    summarySheet.commit()
+
     for (let i=0; i<1000; i+=1) {
       const row = {}
       for (let j=0; j<21; j+=1) {
         row[`${j}`] = `Row ${i} col ${j}`
       }
-      summarySheet.addRow(row)
+      summarySheet.addRow(row, 'i')
+      // commit every 50 rows
+      if (i % 50 === 0) summarySheet.commit()
     }
 
-    summarySheet.commit()
     // p sure the commit here will commit the worksheets too but included the worksheet commit manually
     // can commit rows/sheets in batches to minimize memory footprint
+    summarySheet.commit()
     await workbook.commit()
     const end = moment().valueOf()
     console.log('END TIME: ', end)
