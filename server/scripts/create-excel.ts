@@ -47,16 +47,12 @@ const main = async function() {
     const header = summarySheet.getRow(1)
     header.height = 42
 
-    summarySheet.commit()
-
     for (let i=0; i<1000; i+=1) {
       const row = {}
       for (let j=0; j<21; j+=1) {
         row[`${j}`] = `Row ${i} col ${j}`
       }
       summarySheet.addRow(row, 'i')
-      // commit every 50 rows
-      if (i % 50 === 0) summarySheet.commit()
     }
 
     // p sure the commit here will commit the worksheets too but included the worksheet commit manually
