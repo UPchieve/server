@@ -24,15 +24,17 @@ const main = async function() {
       },
       { 
         header: 'Name', key: 'name', width: 32,
-        border: { 
-          right: { 
-            style: 'double', color: { argb:'FF000000' } 
-          },
-          bottom: {
-            style: 'thick', color: { argb: 'FF00FF00' }
+        style: { 
+          font: { name: 'Comic Sans', bold: true },
+          border: { 
+            right: { 
+              style: 'double', color: { argb:'FF000000' } 
+            },
+            bottom: {
+              style: 'thick', color: { argb: 'FF00FF00' }
+            }
           }
-        },
-        style: { font: { name: 'Comic Sans', bold: true } } 
+        } 
       },
       { header: 'D.O.B.', key: 'DOB', width: 10, style: { numFmt: 'dd/mm/yyyy'} }
     ]
@@ -49,6 +51,11 @@ const main = async function() {
       left: {
         style: 'thin', color: { argb: 'FF0000FF' }
       }
+    }
+    summarySheet.getCell('C2').fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFF0000' }
     }
 
     summarySheet.commit()
