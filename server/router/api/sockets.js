@@ -251,6 +251,8 @@ module.exports = function(io, sessionStore) {
       })
     })
 
+    //v2: Socket instance emitted the events related to the state of the underlying connection
+    //v3: io property provides access to those events on the Manager instance
     socket.io.on('error', function(error) {
       newrelic.startWebTransaction('/socket-io/error', () => {
         console.log('Socket error: ', error)
