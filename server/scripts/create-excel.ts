@@ -7,6 +7,8 @@ const main = async function() {
     const start = moment().valueOf()
     console.log('START TIME: ', start)
   
+    // Use exceljs stream system to be capable of committing rows as you populate
+    // and style them to minimize your memory footprint
     const workbook = new exceljs.stream.xlsx.WorkbookWriter({
       filename: '/home/fjorn/upchieve/subway/test.xlsx',
       useStyles: true  // include this option to apply styling to streams
