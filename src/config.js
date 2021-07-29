@@ -22,6 +22,7 @@ if (configElement !== null) {
   config.sentryEnv = process.env.VUE_APP_SENTRY_ENV
   config.sentryDsn = process.env.VUE_APP_SENTRY_DSN
   config.customVolunteerPartnerOrg = process.env.SUBWAY_CUSTOM_PARTNER_ORG
+  config.refinerProjectId = process.env.VUE_APP_REFINER_PROJECT_ID
 }
 
 export default config
