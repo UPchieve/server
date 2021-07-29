@@ -7,7 +7,7 @@ defineFeature(feature, test => {
   test('Deposit money into bank', ({ given, when, then }) => {
     let bankAccount
 
-    // @note: must use regex to access the placeholder values written out in 
+    // @note: must use regex to access the placeholder values written out in
     // the feature files
     given(/^I have \$(\d+) balance in my savings account$/, savingsBalance => {
       bankAccount = Number(savingsBalance)
