@@ -18,11 +18,12 @@
 import { mapGetters, mapState } from 'vuex'
 import getCookie from '@/utils/get-cookie'
 import ArrowIcon from '@/assets/arrow.svg'
+import MathSVG from '@/assets/subject_icons/math.svg'
 import LargeButton from '@/components/LargeButton'
 
 export default {
   name: 'recent-subject-card',
-  components: {ArrowIcon, LargeButton},
+  components: {ArrowIcon, LargeButton, MathSVG},
   data() {
     return {
       selectedSubtopic: ''
@@ -38,7 +39,8 @@ export default {
     },
     svg: {
       type: Object,
-      required: true
+      required: true,
+      default: MathSVG
     },
     topic: String,
     buttonText: {
@@ -189,10 +191,5 @@ export default {
 .SubjectCard-desktop-column {
   @include flex-container(column, initial, center);
   @include child-spacing(top, 16px);
-
-.ButtonTemplate-icon {
-  margin-top: 2px; // nudge down
-  margin-left: 8px; // space between text
-}
 }
 </style>
