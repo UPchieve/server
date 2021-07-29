@@ -133,11 +133,12 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser(config.sessionSecret))
 app.use(express.static(path.join(__dirname, 'dist')))
+console.log(config.NODE_ENV)
 app.use(
   cors({
     origin:
-      config.NODE_ENV === 'dev'
-        ? ['localhost:3000', 'localhost:3001']
+      config.NODE_ENV !== 'dev'
+        ? ['http://localhost:3000', 'http://localhost:3001']
         : config.host,
     credentials: false,
     exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined

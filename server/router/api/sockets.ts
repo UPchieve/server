@@ -1,34 +1,63 @@
 /**
  * Processes incoming socket messages
  */
+import { MongoStore } from 'connect-mongo'
 const passportSocketIo = require('passport.socketio')
-const cookieParser = require('cookie-parser')
-const Sentry = require('@sentry/node')
-const config = require('../../config')
-const SocketService = require('../../services/SocketService')
-const SessionService = require('../../services/SessionService')
-const QuillDocService = require('../../services/QuillDocService')
-const getSessionRoom = require('../../utils/get-session-room')
+import cookieParser from 'cookie-parser'
+import Sentry from '@sentry/node'
+import config from '../../config'
+import { Server, Socket } from 'socket.io'
+import SocketService from '../../services/SocketService'
+import * as SessionService from '../../services/SessionService'
+import * as QuillDocService from '../../services/QuillDocService'
+import getSessionRoom from '../../utils/get-session-room'
+import stream from "stream";
+import {IncomingHttpHeaders} from "http";
 const newrelic = require('newrelic')
 
-module.exports = function(io, sessionStore) {
+interface IncomingUpchieveMessage {
+  constructor(socket: Socket);
+
+  httpVersion: string;
+  httpVersionMajor: number;
+  httpVersionMinor: number;
+  connection: Socket;
+  headers: IncomingHttpHeaders;
+  rawHeaders: string[];
+  trailers: { [key: string]: string | undefined };
+  rawTrailers: string[];
+  setTimeout(msecs: number, callback: () => void): this;
+  /**
+   * Only valid for request obtained from http.Server.
+   */
+  method?: string;
+  /**
+   * Only valid for request obtained from http.Server.
+   */
+  url?: string;
+  /**
+   * Only valid for response obtained from http.ClientRequest.
+   */
+  statusCode?: number;
+  /**
+   * Only valid for response obtained from http.ClientRequest.
+   */
+  statusMessage?: string;
+  socket: Socket;
+  destroy(error?: Error): void;
+  user: any;
+}
+
+export default function(io: Server, sessionStore: MongoStore) {
   const socketService = new SocketService(io)
 
-  const getSocketIdsFromRoom = room =>
-    new Promise((resolve, reject) => {
-      io.in(room).clients((err, clients) => {
-        if (err) return reject(err)
-        return resolve(clients)
-      })
-    })
-
-  const remoteJoinRoom = (socketId, room) =>
-    new Promise((resolve, reject) => {
-      io.of('/').adapter.remoteJoin(socketId, room, err => {
-        if (err) reject(err)
-        resolve('success')
-      })
-    })
+  function getSocketIdsFromRoom(room: string) {
+    try {
+      return io.in(room).allSockets()
+    } catch (err) {
+      throw err
+    }
+  }
 
   // Authentication for sockets
   io.use(
@@ -50,10 +79,9 @@ module.exports = function(io, sessionStore) {
     })
   )
 
-  io.on('connection', async function(socket) {
-    const {
-      request: { user }
-    } = socket
+  io.on('connection', async function(socket: Socket) {
+    const req = socket.request as unknown as IncomingUpchieveMessage
+    const user = req.user
     if (!user) {
       socket.emit('redirect')
       throw new Error('User not authenticated')
@@ -88,9 +116,8 @@ module.exports = function(io, sessionStore) {
             }
 
             const { sessionId, joinedFrom } = data
-            const {
-              request: { user }
-            } = socket
+            const req = socket.request as unknown as IncomingUpchieveMessage
+            const user = req.user
             let session
 
             try {
@@ -117,11 +144,14 @@ module.exports = function(io, sessionStore) {
               const sessionRoom = getSessionRoom(sessionId)
               const socketIds = await getSocketIdsFromRoom(user._id.toString())
               // Have all of the user's socket connections join the tutoring session room
+              // why? what else could happen?
               for (const id of socketIds) {
-                await remoteJoinRoom(id, sessionRoom)
+                // I can't find a method that allows this anymore, they all just ask for a room
+                // not also an id
+                // await socket.whatMethod?
               }
 
-              socketService.emitSessionChange(sessionId)
+              await socketService.emitSessionChange(sessionId)
               resolve()
             } catch (error) {
               socketService.bump(
@@ -253,7 +283,7 @@ module.exports = function(io, sessionStore) {
 
     // v2: Socket instance emitted the events related to the state of the underlying connection
     // v3: io property provides access to those events on the Manager instance
-    socket.io.on('error', function(error) {
+    io.on('error', function(error) {
       newrelic.startWebTransaction('/socket-io/error', () => {
         console.log('Socket error: ', error)
         Sentry.captureException(error)

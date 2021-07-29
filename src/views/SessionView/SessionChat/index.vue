@@ -118,7 +118,7 @@ import sendWebNotification from '@/utils/send-web-notification'
 /**
  * @todo {1} Use more descriptive names that comply with the coding standards.
  *           Keep in mind that it also requires a small backend update in
- *           router/sockets.js
+ *           router/sockets.ts
  */
 export default {
   name: 'session-chat',
