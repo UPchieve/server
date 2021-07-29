@@ -16,6 +16,11 @@ import store from './store'
 import config from './config'
 import posthog from 'posthog-js'
 import { initialize } from 'unleash-client'
+import refiner from 'refiner-js'
+
+if (config.refinerProjectId) {
+  refiner('setProject', config.refinerProjectId)
+}
 
 if (config.posthogToken) {
   posthog.init(`${config.posthogToken}`, {
