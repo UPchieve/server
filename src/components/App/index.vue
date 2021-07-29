@@ -220,6 +220,7 @@ export default {
       if (nowLoggedIn) {
         Sentry.setUser({ id: currentUserValue._id })
         AnalyticsService.identify(currentUserValue._id)
+        SurveyService.identify(currentUserValue._id)
 
         if (this.mobileMode && !this.isMobileApp && !this.isVolunteer) {
           this.$store.dispatch('app/banner/show', {

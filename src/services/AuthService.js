@@ -1,6 +1,8 @@
 import Validator from 'validator'
 import errorFromHttpResponse from '../utils/error-from-http-response'
 import AnalyticsService from './AnalyticsService'
+import * as SurveyService from './SurveyService'
+import { events } from '../config'
 import NetworkService from './NetworkService'
 
 export default {
@@ -33,6 +35,8 @@ export default {
           throw new Error('No user returned from auth service')
         }
         AnalyticsService.registerVolunteer(data.user)
+        SurveyService.registerVolunteer(data.user._id)
+        SurveyService.trackEvent(events.ACCOUNT_CREATED)
       })
       .catch(res => {
         throw errorFromHttpResponse(res)
@@ -47,6 +51,8 @@ export default {
           throw new Error('No user returned from auth service')
         }
         AnalyticsService.registerVolunteer(data.user)
+        SurveyService.registerVolunteer(data.user._id)
+        SurveyService.trackEvent(events.ACCOUNT_CREATED)
       })
       .catch(res => {
         throw errorFromHttpResponse(res)
@@ -61,6 +67,8 @@ export default {
           throw new Error('No user returned from auth service')
         }
         AnalyticsService.registerStudent(data.user)
+        SurveyService.registerStudent(data.user._id)
+        SurveyService.trackEvent(events.ACCOUNT_CREATED)
       })
       .catch(res => {
         throw errorFromHttpResponse(res)
@@ -75,6 +83,8 @@ export default {
           throw new Error('No user returned from auth service')
         }
         AnalyticsService.registerStudent(data.user)
+        SurveyService.registerStudent(data.user._id)
+        SurveyService.trackEvent(events.ACCOUNT_CREATED)
       })
       .catch(res => {
         throw errorFromHttpResponse(res)
