@@ -8,7 +8,6 @@ module.exports = {
   },
   runner: 'groups',
   testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
     '**/?(*.)+(spec|test).[jt]s?(x)',
     '**/*.steps.[jt]s'
   ]
