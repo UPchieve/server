@@ -1,5 +1,18 @@
 <template>
-  <div class="SubjectSelection">
+  <div>
+     <div>
+      <recent-subject-card
+       v-for="(card, index) in recentCards"
+      v-bind:key="index"
+      :title="card.title"
+      :svg="card.svg"
+      :topic="card.topic"
+      :button-text="card.buttonText"
+      :routeTo="card.routeTo"
+      :disableSubjectCard="isCardDisabled(card)"
+        />
+    </div>
+    <div class="SubjectSelection">
     <p v-if="hasWaitingPeriod" class="waiting-period">
       {{ waitingPeriodMessage }}
     </p>
@@ -18,19 +31,9 @@
       :button-text="card.buttonText"
       :routeTo="card.routeTo"
       :disableSubjectCard="isCardDisabled(card)"
-    />
-       <recent-subject-card
-       v-for="(card, index) in cards"
-      v-bind:key="index"
-      :title="card.title"
-      :svg="card.svg"
-      :topic="card.topic"
-      :button-text="card.buttonText"
-      :routeTo="card.routeTo"
-      :disableSubjectCard="isCardDisabled(card)"
-        />
+    /> 
+    </div>  
   </div>
-
 </template>
 
 <script>
@@ -74,7 +77,7 @@ export default {
       sat: 1
     }
 
-//recent Subject
+    //recent Subject mapping
     const recentTopicOrderMapping = {
       algebraOne: 0,
       algebraTwo: 1,
@@ -149,7 +152,7 @@ export default {
           svg: svgs[key],
           recentTopic: key,
           isTutoringCard: true,
-          order: recentTopicOrderMapping[key]
+          order: recentTopicOrderMapping[key]  
         }
       })
 
@@ -287,5 +290,19 @@ export default {
     @include font-category('heading');
     margin-top: initial;
   }
+}
+
+.RecentSubjectSelection{
+  @include flex-container(row);
+  @include child-spacing(top, 16px);
+  margin-top: 40px;
+
+  h4 {
+    @include font-category('heading');
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+  
 }
 </style>

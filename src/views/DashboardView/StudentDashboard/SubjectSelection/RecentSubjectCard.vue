@@ -1,8 +1,9 @@
 <template>
   <large-button
-  class="SubjectButton">
+  class="SubjectButton"
+  :disabled="disabled">
     <div class="SubjectCard-desktop-column">
-      <component class="SubjectCard-icon" v-bind:is="svg" />
+      <component class="SubjectButton-icon" v-bind:is="svg" />
       <h4 class="SubectCard-title">{{ title }} </h4>
       <arrow-icon
         v-if="showArrow"
@@ -115,18 +116,20 @@ export default {
 
 <style lang="scss" scoped>
 .SubjectButton {
-    @include flex-container(row, center, center);
+  @include flex-container(row, center, center);
   @include font-category('button');
+  @include child-spacing(left, 24px);
 
   align-items: center;
   width: 350px;
-  height: 120px;
-  left: 15px;
-  top: 15px;
+  height: 96px;
+  margin-left: 0px;
+  margin-right: 24px;
   background-color: white;
   border: 1px solid #D8DEE5;
   box-sizing: border-box;
   border-radius: 8px;
+  position: relative;
 
   &:hover {
     background: darken( #F2FBF9, 0%);
@@ -145,21 +148,23 @@ export default {
 
 .arrow-icon {
   position: absolute;
-  left: 87.86%;
+  left: 85%;
   right: 2.89%;
-  top: 13%;
+  top: 18%;
+  width: 24px;
+  height: 30px;
 
 /* UPchieve Green */
-border: 1px solid #16D2AA;
-box-sizing: border-box;
+  border: 1px solid #16D2AA;
+  box-sizing: border-box;
 }
 
 .SubjectButton-icon {
-  position: static;
-  width: 10px;
-  height: 10px;
+  position: absolute;
+  width: 50px;
+  height: 50px;
   left: 24px;
-  top: 12px;
+  top: 20px;
 }
 
 .SubjectButton-title {
