@@ -14,6 +14,8 @@ import {
 } from '../constants'
 import UserModel, { User } from './User'
 import { DocUpdateError } from './Errors'
+import { NotificationDocument } from './Notification'
+import { SessionDocument } from './Session'
 
 export enum DAYS {
   SUNDAY = 'Sunday',
@@ -164,6 +166,9 @@ export interface Volunteer extends User {
   sentInactiveThirtyDayEmail: boolean
   sentInactiveSixtyDayEmail: boolean
   sentInactiveNinetyDayEmail: boolean
+  volunteerPointRank?: number
+  volunteerLastNotification?: NotificationDocument
+  volunteerLastSession?: SessionDocument
 }
 
 export type VolunteerDocument = Volunteer & Document

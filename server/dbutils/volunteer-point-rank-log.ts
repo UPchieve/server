@@ -1,8 +1,8 @@
-const mongoose = require('mongoose')
-
+import mongoose from 'mongoose'
+import User from '../models/User'
+import { VolunteerDocument } from '../models/Volunteer'
 const db = require('../db')
 
-const User = require('../models/User')
 require('../models/Session')
 require('../models/Notification')
 
@@ -29,7 +29,8 @@ db.connect(mongoose, function() {
   User.find(volunteerQueryMatch)
     .populate('volunteerLastNotification volunteerLastSession')
     .then(volunteers => {
-      const vData = volunteers.sort(
+      const typedVolunteers = volunteers as unknown as VolunteerDocument[]
+      const vData = typedVolunteers.sort(
         (v1, v2) => v2.volunteerPointRank - v1.volunteerPointRank
       )
 
