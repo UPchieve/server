@@ -1,38 +1,38 @@
 <template>
   <div>
-     <div>
+    <div>
       <recent-subject-card
-       v-for="(card, index) in recentCards"
-      v-bind:key="index"
-      :title="card.title"
-      :svg="card.svg"
-      :topic="card.topic"
-      :button-text="card.buttonText"
-      :routeTo="card.routeTo"
-      :disableSubjectCard="isCardDisabled(card)"
-        />
+        v-for="(card, index) in recentCards"
+        v-bind:key="index"
+        :title="card.title"
+        :svg="card.svg"
+        :topic="card.topic"
+        :button-text="card.buttonText"
+        :routeTo="card.routeTo"
+        :disableSubjectCard="isCardDisabled(card)"
+      />
     </div>
     <div class="SubjectSelection">
-    <p v-if="hasWaitingPeriod" class="waiting-period">
-      {{ waitingPeriodMessage }}
-    </p>
-    <h2 v-if="mobileMode">
-      Explore our subjects
-    </h2>
-    <subject-card
-      v-for="(card, index) in cards"
-      v-bind:key="index"
-      :title="card.title"
-      :subtitle="card.subtitle"
-      :svg="card.svg"
-      :topic="card.topic"
-      :subtopics="card.subtopics"
-      :subtopicDisplayNames="card.subtopicDisplayNames"
-      :button-text="card.buttonText"
-      :routeTo="card.routeTo"
-      :disableSubjectCard="isCardDisabled(card)"
-    /> 
-    </div>  
+      <p v-if="hasWaitingPeriod" class="waiting-period">
+        {{ waitingPeriodMessage }}
+      </p>
+      <h2 v-if="mobileMode">
+        Explore our subjects
+      </h2>
+      <subject-card
+        v-for="(card, index) in cards"
+        v-bind:key="index"
+        :title="card.title"
+        :subtitle="card.subtitle"
+        :svg="card.svg"
+        :topic="card.topic"
+        :subtopics="card.subtopics"
+        :subtopicDisplayNames="card.subtopicDisplayNames"
+        :button-text="card.buttonText"
+        :routeTo="card.routeTo"
+        :disableSubjectCard="isCardDisabled(card)"
+      />
+    </div>
   </div>
 </template>
 
@@ -52,11 +52,11 @@ import { topics } from '@/utils/topics'
 
 //Temporarily checking Recent Subject Button on website
 import RecentSubjectCard from './RecentSubjectCard.vue'
-import {recentTopics} from '@/utils/topics'
+import { recentTopics } from '@/utils/topics'
 
 export default {
   name: 'subject-selection',
-  components: { SubjectCard, RecentSubjectCard},
+  components: { SubjectCard, RecentSubjectCard },
   beforeDestroy() {
     clearTimeout(this.waitingPeriodTimeoutId)
   },
@@ -144,17 +144,18 @@ export default {
       buttonText: 'Learn More'
     })
 
-//recent subject
-    const recentCards = Object.entries(recentTopics)
-        .map(([key, recentTopicObj]) => {
+    //recent subject
+    const recentCards = Object.entries(recentTopics).map(
+      ([key, recentTopicObj]) => {
         return {
           title: recentTopicObj.displayName,
           svg: svgs[key],
           recentTopic: key,
           isTutoringCard: true,
-          order: recentTopicOrderMapping[key]  
+          order: recentTopicOrderMapping[key]
         }
-      })
+      }
+    )
 
     return {
       cards,
@@ -292,7 +293,7 @@ export default {
   }
 }
 
-.RecentSubjectSelection{
+.RecentSubjectSelection {
   @include flex-container(row);
   @include child-spacing(top, 16px);
   margin-top: 40px;
@@ -303,6 +304,5 @@ export default {
     padding: 0;
     text-align: center;
   }
-  
 }
 </style>

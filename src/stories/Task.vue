@@ -5,15 +5,15 @@
 </template>
 
 <script>
-  export default {
-    name: 'Task',
-    props: {
-      task: {
-        type: Object,
-        required: true,
-        default: () => ({ id: '', state: '', title: '' }),
-        validator: task => ['id', 'state', 'title'].every(key => key in task),
-      },
-    },
-  };
+export default {
+  name: 'Task',
+  props: {
+    task: {
+      type: Object,
+      required: true,
+      default: () => ({ id: '', state: '', title: '' }),
+      validator: task => ['id', 'state', 'title'].every(key => key in task)
+    }
+  }
+}
 </script>

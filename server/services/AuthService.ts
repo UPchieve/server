@@ -246,7 +246,7 @@ export async function registerPartnerStudent(
   if (!studentPartnerManifest) {
     throw new RegistrationError('Invalid student partner organization')
   }
-  
+
   let school: School
   if (highSchoolUpchieveId)
     school = await findByUpchieveId(highSchoolUpchieveId)

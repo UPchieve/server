@@ -1,6 +1,6 @@
-import Task from './Task.vue';
+import Task from './Task.vue'
 
-import { action } from '@storybook/addon-actions';
+import { action } from '@storybook/addon-actions'
 
 export default {
   component: Task,
@@ -11,45 +11,45 @@ export default {
   //👇 Our events will be mapped in Storybook UI
   argTypes: {
     onPinTask: {},
-    onArchiveTask: {},
-  },
-};
+    onArchiveTask: {}
+  }
+}
 
 export const actionsData = {
   onPinTask: action('pin-task'),
-  onArchiveTask: action('archive-task'),
-};
+  onArchiveTask: action('archive-task')
+}
 
 const Template = args => ({
   components: { Task },
   setup() {
-    return { args, ...actionsData };
+    return { args, ...actionsData }
   },
-  template: '<Task v-bind="args" />',
-});
+  template: '<Task v-bind="args" />'
+})
 
-export const Default = Template.bind({});
+export const Default = Template.bind({})
 Default.args = {
   task: {
     id: '1',
     title: 'Test Task',
     state: 'TASK_INBOX',
-    updatedAt: new Date(2018, 0, 1, 9, 0),
-  },
-};
+    updatedAt: new Date(2018, 0, 1, 9, 0)
+  }
+}
 
-export const Pinned = Template.bind({});
+export const Pinned = Template.bind({})
 Pinned.args = {
   task: {
     ...Default.args.task,
-    state: 'TASK_PINNED',
-  },
-};
+    state: 'TASK_PINNED'
+  }
+}
 
-export const Archived = Template.bind({});
+export const Archived = Template.bind({})
 Archived.args = {
   task: {
     ...Default.args.task,
-    state: 'TASK_ARCHIVED',
-  },
-};
+    state: 'TASK_ARCHIVED'
+  }
+}
