@@ -894,6 +894,41 @@ paths:
       responses:
         '200':
           description: Returns an object (data) with an array of volunteer partner reports
+  /api/reports/partner-analytics-report:
+    get:
+      tags:
+        - reports
+      summary: Downloads a corporate partner analytics report
+      description: |
+        - Admin only
+        - Downloads a corporate partner analytics report
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: partnerOrg
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '201':
+          description: An excel sheet is created and automatically downloaded
+        '403':
+          description: Unauthorized for non-admin users
+        '422':
+          description: No data found
+        '500':
+          description: Internal server error
   /api/session/new:
     post:
       tags:
