@@ -1,4 +1,5 @@
 import RecentSubjectCard from '../views/DashboardView/StudentDashboard/SubjectSelection/RecentSubjectCard.vue'
+import MathSVG from "../../src/assets/subject_icons/math.svg"
 
 export default {
   title: 'Example/RecentSubjectCard',
@@ -14,12 +15,14 @@ const Template = (args, { argTypes }) => ({
 export const PrimaryButton = Template.bind({})
 PrimaryButton.args = {
   title: 'Algebra 1',
-  topic: 'Calculus' 
+  topic: 'Calculus',
+  svg: MathSVG 
 }
 
 export const SecondaryButton = Template.bind({})
 SecondaryButton.args= {
   title: 'Algebra 2',
   disableSubjectCard: true,
-  showArrow: false
+  showArrow: false,
+  svg: MathSVG
 }

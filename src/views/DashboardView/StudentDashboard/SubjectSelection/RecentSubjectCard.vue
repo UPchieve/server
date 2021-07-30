@@ -39,8 +39,7 @@ export default {
     },
     svg: {
       type: Object,
-      required: true,
-      default: MathSVG
+      required: true
     },
     topic: String,
     buttonText: {
@@ -167,6 +166,10 @@ export default {
   height: 50px;
   left: 24px;
   top: 20px;
+
+  &:disabled {
+    background: darken(#F7AEF8, 0%);
+  }
 }
 
 .SubjectButton-title {

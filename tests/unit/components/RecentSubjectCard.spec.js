@@ -10,8 +10,10 @@ it('renders recent subject card', () =>{
     propsData: PrimaryButton.args,
   });
   expect(wrapper.is(RecentSubjectCard));
-  expect(wrapper.find('title')).toBe('Algebra 1');
-  expect(wrapper.find('svg')).toMatchObject('MathSVG');
+  expect(wrapper.props('title')).toBe('Algebra 1');
+  expect(wrapper.find("#SubjectCard-desktop-column").exists()).toBeTruthy();
+  //expect(wrapper.find('svg').exists()).toBeTruthy();
+  expect(wrapper.find('svg')).toBe('MathSVG');
   expect(wrapper.find('ArrowIcon').exists()).toBeTruthy();
   expect(wrapper.find('ArrowIcon').isVisible()).toBeTruthy();
 });
@@ -20,6 +22,7 @@ it('renders the recent subject button in the disabled state', () => {
   const wrapper = shallowMount(RecentSubjectCard, {
     propsData: SecondaryButton.args,
   });
+  expect(wrapper.props('title')).toBe('Algebra 2');
   expect(wrapper.find('disableSubjectCard')).toBeTruthy();
   expect(wrapper.find('ArrowIcon').exists()).toBeFalsy();
 });
