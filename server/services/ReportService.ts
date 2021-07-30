@@ -2,7 +2,10 @@ import moment from 'moment-timezone'
 import mongoose, { Types } from 'mongoose'
 import _ from 'lodash'
 import User from '../models/User'
-import { studentPartnerManifests } from '../partnerManifests'
+import {
+  studentPartnerManifests,
+  volunteerPartnerManifests
+} from '../partnerManifests'
 import logger from '../logger'
 import { FEEDBACK_VERSIONS, DATE_RANGE_COMPARISON_FIELDS } from '../constants'
 import config from '../config'
@@ -11,6 +14,7 @@ import {
   getAnalyticsReportRow,
   getSumOperatorForDateRange,
   AnalyticsReportRow,
+  AnalyticsReportSummary,
   PartnerVolunteerAnalytics,
   getAnalyticsReportSummary
 } from '../utils/reportUtils'
@@ -561,6 +565,17 @@ export const generatePartnerAnalyticsReport = async ({
 }) => {
   const start: Date = moment(startDate).toDate()
   const end: Date = moment(endDate).toDate()
+
+  // Volunteer partner org check
+  const volunteerPartnerManifest = volunteerPartnerManifests[partnerOrg]
+
+  if (!volunteerPartnerManifest)
+    throw new Error('Invalid volunteer partner organization')
+
+  // Date range check
+  if (start >= end) throw new Error('Invalid date range')
+
+  // get volunteers for analytics
   const volunteers = ((await VolunteerService.getVolunteersWithPipeline([
     {
       $match: {
@@ -644,11 +659,7 @@ export const generatePartnerAnalyticsReport = async ({
                   $group: {
                     _id: null,
                     total: { $sum: 1 },
-                    totalWithinDateRange: getSumOperatorForDateRange(
-                      start,
-                      end
-                    ),
-                    firstSessionDate: { $min: '$createdAt' }
+                    totalWithinDateRange: getSumOperatorForDateRange(start, end)
                   }
                 }
               ]
@@ -703,7 +714,6 @@ export const generatePartnerAnalyticsReport = async ({
         isOnboarded: 1,
         createdAt: 1,
         dateOnboarded: '$actionOnboarded.createdAt',
-        firstSessionDate: '$firstSession.createdAt',
         certifications: 1,
         availabilityLastModifiedAt: 1,
         sessionAnalytics: 1,
@@ -732,12 +742,12 @@ export const generatePartnerAnalyticsReport = async ({
       hourSummaryTotal,
       hourSummaryDateRange
     }
-    const row = await getAnalyticsReportRow(volunteerWithAnalytics)
+    const row = getAnalyticsReportRow(volunteerWithAnalytics)
     report.push(row)
   }
 
-  let summary = []
+  let summary: AnalyticsReportSummary
   if (report.length > 0)
-    summary = await getAnalyticsReportSummary(report, partnerOrg, start, end)
+    summary = await getAnalyticsReportSummary(partnerOrg, report, start, end)
   return { summary, report }
 }

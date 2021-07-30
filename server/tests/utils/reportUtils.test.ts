@@ -3,22 +3,27 @@ import { mocked } from 'ts-jest/utils'
 import {
   generateTelecomReport,
   telecomHourSummaryStats,
-  getAccumulatedSummaryAnalytics,
+  getAnalyticsReportSummary,
   getAnalyticsReportRow,
   PartnerVolunteerAnalytics
 } from '../../utils/reportUtils'
 import * as UserActionService from '../../services/UserActionService'
 import * as SessionService from '../../services/SessionService'
 import * as AvailabilityService from '../../services/AvailabilityService'
+import * as VolunteerService from '../../services/VolunteerService'
 import { buildVolunteer } from '../generate'
 jest.mock('../../services/SessionService')
+jest.mock('../../services/VolunteerService')
 
 const mockedSessionService = mocked(SessionService, true)
+const mockedVolunteerService = mocked(VolunteerService, true)
 
 function buildAnalyticVolunteer(
   overrides: Partial<PartnerVolunteerAnalytics> = {}
 ): PartnerVolunteerAnalytics {
-  const volunteer = buildVolunteer()
+  const volunteer = buildVolunteer({
+    volunteerPartnerOrg: 'example'
+  })
   return {
     _id: volunteer._id,
     firstName: volunteer.firstname,
@@ -28,9 +33,10 @@ function buildAnalyticVolunteer(
     isOnboarded: volunteer.isOnboarded,
     createdAt: volunteer.createdAt,
     dateOnboarded: new Date(),
-    firstSessionDate: new Date(),
     certifications: volunteer.certifications,
     availabilityLastModifiedAt: new Date(),
+    isDeactivated: volunteer.isDeactivated,
+    lastActivityAt: volunteer.lastActivityAt,
     sessionAnalytics: {
       uniqueStudentsHelped: [
         {
@@ -43,14 +49,11 @@ function buildAnalyticVolunteer(
         {
           _id: null,
           total: 0,
-          totalWithinDateRange: 0,
-          firstSessionDate: new Date()
+          totalWithinDateRange: 0
         }
       ]
     },
     textNotifications: { _id: null, total: 0, totalWithinDateRange: 0 },
-    isDeactivated: volunteer.isDeactivated,
-    lastActivityAt: volunteer.lastActivityAt,
     hourSummaryTotal: {
       totalCoachingHours: 0,
       totalQuizzesPassed: 0,
@@ -223,15 +226,29 @@ describe('getAnalyticsReportRow', () => {
     const row = getAnalyticsReportRow(volunteer)
 
     expect(row).toMatchObject({
-      firstName: volunteer.firstName,
-      certificationsReceived: 0,
-      onboardingStatus: 'In progress',
-      dateRangeTextsReceived: 0
+      firstName: volunteer.firstName, // tests pulling property straight off volunteer
+      certificationsReceived: 0, // tests cert sum calculation
+      onboardingStatus: 'In progress', // tests onboarding status calculation
+      // tests all stat calculations get included
+      totalTextsReceived: 0,
+      totalSessionsCompleted: 0,
+      totalUniqueStudentsHelped: 0,
+      totalTutoringHours: 0,
+      totalTrainingHours: 0,
+      totalElapsedAvailabilityHours: 0,
+      totalVolunteerHours: 0,
+      dateRangeTextsReceived: 0,
+      dateRangeSessionsCompleted: 0,
+      dateRangeUniqueStudentsHelped: 0,
+      dateRangeTutoringHours: 0,
+      dateRangeTrainingHours: 0,
+      dateRangeElapsedAvailabilityHours: 0,
+      dateRangeVolunteerHours: 0
     })
   })
 })
 
-describe('getAccumulatedSummaryAnalytics', () => {
+describe('getAnalyticsReportSummary', () => {
   test('Should return a summary of the analytics report with summed values', async () => {
     const rowOne = getAnalyticsReportRow(
       buildAnalyticVolunteer({
@@ -250,8 +267,7 @@ describe('getAccumulatedSummaryAnalytics', () => {
             {
               _id: null,
               total: 5,
-              totalWithinDateRange: 2,
-              firstSessionDate: new Date('2021-02-05T00:00:00.000+00:00')
+              totalWithinDateRange: 2
             }
           ]
         },
@@ -287,8 +303,7 @@ describe('getAccumulatedSummaryAnalytics', () => {
             {
               _id: null,
               total: 12,
-              totalWithinDateRange: 4,
-              firstSessionDate: new Date('2020-10-10T00:00:00.000+00:00')
+              totalWithinDateRange: 4
             }
           ]
         },
@@ -310,19 +325,31 @@ describe('getAccumulatedSummaryAnalytics', () => {
     const report = [rowOne, rowTwo]
     const startDate = new Date('2021-01-01T00:00:00.000+00:00')
     const endDate = new Date('2021-03-01T00:00:00.000+00:00')
-    const summary = getAccumulatedSummaryAnalytics(report, startDate, endDate)
+
+    // @ts-expect-error type error on empty aggregate
+    mockedVolunteerService.getVolunteersWithPipeline.mockReturnValue([])
+
+    const summary = await getAnalyticsReportSummary(
+      'example',
+      report,
+      startDate,
+      endDate
+    )
     const expected = {
       dateRangeSignUps: 1,
       dateRangeVolunteersOnboarded: 1,
-      dateRangeTextsReceived: 35,
+      dateRangeOnboardingRate: 100,
+      dateRangeOpportunities: 35,
       dateRangeSessionsCompleted: 6,
+      dateRangePickupRate: 17.14,
       dateRangeVolunteerHours: 15,
-      // @note: UNIQUE_STUDENTS_HELPED gets summed from the callee of getAccumulatedSummaryAnalytics
       dateRangeUniqueStudentsHelped: 0,
       totalSignUps: 2,
       totalVolunteersOnboarded: 2,
-      totalTextsReceived: 110,
+      totalOnboardingRate: 100,
+      totalOpportunities: 110,
       totalSessionsCompleted: 17,
+      totalPickupRate: 15.45,
       totalVolunteerHours: 24,
       totalUniqueStudentsHelped: 0
     }
