@@ -418,10 +418,6 @@ export interface GroupStats {
   totalWithinDateRange: number
 }
 
-interface SessionStats extends GroupStats {
-  firstSessionDate: Date
-}
-
 export interface PartnerVolunteerAnalytics {
   _id: Types.ObjectId | string
   firstName: string
@@ -431,12 +427,11 @@ export interface PartnerVolunteerAnalytics {
   isOnboarded: boolean
   createdAt: Date
   dateOnboarded: Date
-  firstSessionDate: Date
   certifications: Certifications
   availabilityLastModifiedAt: Date
   sessionAnalytics: {
     uniqueStudentsHelped: [GroupStats]
-    sessionStats: [SessionStats]
+    sessionStats: [GroupStats]
   }
   textNotifications: GroupStats
   isDeactivated: boolean
@@ -451,17 +446,12 @@ export interface AnalyticsReportRow {
   email: string
   state: string
   onboardingStatus: ONBOARDING_STATUS
-  dateAccountCreated: string
-  dateOnboarded: string
-  dateFirstSession: string
-  certificationsReceived: number
-  mathCertsReceived: number
-  scienceCertsReceived: number
-  collegeCertsReceived: number
-  totalTextsReceived: number
+  dateAccountCreated: string // Date.format('MM/DD/YYYY')
+  certificationsReceived: number // int
+  totalTextsReceived: number // int
   totalSessionsCompleted: number
   totalUniqueStudentsHelped: number
-  totalTutoringHours: number
+  totalTutoringHours: number // Number(number.toFixed(2))
   totalTrainingHours: number
   totalElapsedAvailabilityHours: number
   totalVolunteerHours: number
@@ -472,6 +462,7 @@ export interface AnalyticsReportRow {
   dateRangeTrainingHours: number
   dateRangeElapsedAvailabilityHours: number
   dateRangeVolunteerHours: number
+  dateOnboarded?: string // hack only used for summary
 }
 
 export function getAnalyticsReportRow(
@@ -500,19 +491,10 @@ export function getAnalyticsReportRow(
   row.dateAccountCreated = moment(volunteer.createdAt).format(
     'MM/DD/YYYY HH:mm'
   )
-  row.dateOnboarded = volunteer.dateOnboarded
-    ? moment(volunteer.dateOnboarded).format('MM/DD/YYYY HH:mm')
-    : ''
-  row.dateFirstSession = sessionGroupStats
-    ? moment(sessionGroupStats.firstSessionDate).format('MM/DD/YYYY HH:mm')
-    : ''
 
   // Total certifications received
   const certificationAmounts = countCertsByType(volunteer.certifications)
   row.certificationsReceived = certificationAmounts.total
-  row.mathCertsReceived = certificationAmounts.math
-  row.scienceCertsReceived = certificationAmounts.science
-  row.collegeCertsReceived = certificationAmounts.college
 
   // Volunteer impact - cumulative
   row.totalTextsReceived = volunteer.textNotifications
@@ -548,66 +530,19 @@ export function getAnalyticsReportRow(
   row.dateRangeVolunteerHours =
     volunteer.hourSummaryDateRange.totalVolunteerHours
 
+  row.dateOnboarded = volunteer.dateOnboarded
+    ? moment(volunteer.dateOnboarded).format('MM/DD/YYYY HH:mm')
+    : ''
+
   return row
 }
 
-interface AnalyticsReportSummary {
-  dateRangeSignUps: number
-  dateRangeVolunteersOnboarded: number
-  dateRangeTextsReceived: number
-  dateRangeSessionsCompleted: number
-  dateRangeVolunteerHours: number
-  dateRangeUniqueStudentsHelped: number
-  totalSignUps: number
-  totalVolunteersOnboarded: number
-  totalTextsReceived: number
-  totalSessionsCompleted: number
-  totalVolunteerHours: number
-  totalUniqueStudentsHelped: number
-}
-
-export function getAccumulatedSummaryAnalytics(
-  report: AnalyticsReportRow[],
-  startDate,
-  endDate
-): AnalyticsReportSummary {
-  const summary = {
-    dateRangeSignUps: 0,
-    dateRangeVolunteersOnboarded: 0,
-    dateRangeTextsReceived: 0,
-    dateRangeSessionsCompleted: 0,
-    dateRangeVolunteerHours: 0,
-    dateRangeUniqueStudentsHelped: 0,
-    totalSignUps: 0,
-    totalVolunteersOnboarded: 0,
-    totalTextsReceived: 0,
-    totalSessionsCompleted: 0,
-    totalVolunteerHours: 0,
-    totalUniqueStudentsHelped: 0
-  }
-
-  for (const row of report) {
-    summary.totalSignUps++
-    if (isDateWithin(row.dateAccountCreated, startDate, endDate))
-      summary.dateRangeSignUps++
-    if (row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED) {
-      summary.totalVolunteersOnboarded++
-      if (isDateWithin(row.dateOnboarded, startDate, endDate))
-        summary.dateRangeVolunteersOnboarded++
-    }
-    summary.totalTextsReceived += row.totalTextsReceived
-    summary.dateRangeTextsReceived += row.dateRangeTextsReceived
-    summary.totalSessionsCompleted += row.totalSessionsCompleted
-    summary.dateRangeSessionsCompleted += row.dateRangeSessionsCompleted
-    summary.totalVolunteerHours += row.totalVolunteerHours
-    summary.dateRangeVolunteerHours += row.dateRangeVolunteerHours
-  }
-
-  return summary
-}
-
-export function getUniqueStudentStats(partnerOrg, startDate, endDate) {
-  return (getVolunteersWithPipeline([
+export async function getUniqueStudentStats(
+  partnerOrg: string,
+  startDate: Date,
+  endDate: Date
+) {
+  return ((await getVolunteersWithPipeline([
     {
       $match: {
         volunteerPartnerOrg: partnerOrg
@@ -646,22 +581,113 @@ export function getUniqueStudentStats(partnerOrg, startDate, endDate) {
         }
       }
     }
-  ]) as unknown) as GroupStats[]
+  ])) as unknown) as GroupStats[]
+}
+
+export interface AnalyticsReportSummary {
+  dateRangeSignUps: number
+  dateRangeVolunteersOnboarded: number
+  dateRangeOnboardingRate: number
+  dateRangeOpportunities: number
+  dateRangeSessionsCompleted: number
+  dateRangePickupRate: number
+  dateRangeVolunteerHours: number
+  dateRangeUniqueStudentsHelped: number
+  totalSignUps: number
+  totalVolunteersOnboarded: number
+  totalOnboardingRate: number
+  totalOpportunities: number
+  totalSessionsCompleted: number
+  totalPickupRate: number
+  totalVolunteerHours: number
+  totalUniqueStudentsHelped: number
+}
+
+function dividend(numerator: number, denominator: number): number {
+  let quotient = numerator / denominator
+  if (isNaN(quotient)) quotient = 0
+  return quotient
 }
 
 export async function getAnalyticsReportSummary(
-  rows: AnalyticsReportRow[],
   partnerOrg: string,
+  report: AnalyticsReportRow[],
   startDate: Date,
   endDate: Date
-) {
+): Promise<AnalyticsReportSummary> {
+  const summary = {
+    dateRangeSignUps: 0,
+    dateRangeVolunteersOnboarded: 0,
+    dateRangeOnboardingRate: 0,
+    dateRangeOpportunities: 0, // opportunities to tutor = number texts sent
+    dateRangeSessionsCompleted: 0,
+    dateRangePickupRate: 0,
+    dateRangeVolunteerHours: 0,
+    dateRangeUniqueStudentsHelped: 0,
+    totalSignUps: 0,
+    totalVolunteersOnboarded: 0,
+    totalOnboardingRate: 0,
+    totalOpportunities: 0,
+    totalSessionsCompleted: 0,
+    totalPickupRate: 0,
+    totalVolunteerHours: 0,
+    totalUniqueStudentsHelped: 0
+  } as AnalyticsReportSummary
+
+  for (const row of report) {
+    summary.totalSignUps++
+    if (isDateWithin(row.dateAccountCreated, startDate, endDate))
+      summary.dateRangeSignUps++
+    if (row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED) {
+      summary.totalVolunteersOnboarded++
+      if (isDateWithin(row.dateOnboarded, startDate, endDate))
+        summary.dateRangeVolunteersOnboarded++
+    }
+
+    summary.totalSessionsCompleted += row.totalSessionsCompleted
+    summary.dateRangeSessionsCompleted += row.dateRangeSessionsCompleted
+    summary.totalVolunteerHours += row.totalVolunteerHours
+    summary.dateRangeVolunteerHours += row.dateRangeVolunteerHours
+
+    summary.totalOpportunities += row.totalTextsReceived
+    summary.dateRangeOpportunities += row.dateRangeTextsReceived
+
+    // delete hack for date onboarded
+    delete row.dateOnboarded
+  }
+
+  summary.totalOnboardingRate = Number(
+    (
+      100 * dividend(summary.totalVolunteersOnboarded, summary.totalSignUps)
+    ).toFixed(2)
+  )
+  summary.dateRangeOnboardingRate = Number(
+    (
+      100 *
+      dividend(summary.dateRangeVolunteersOnboarded, summary.dateRangeSignUps)
+    ).toFixed(2)
+  )
+
+  summary.totalPickupRate = Number(
+    (
+      100 * dividend(summary.totalSessionsCompleted, summary.totalOpportunities)
+    ).toFixed(2)
+  )
+  summary.dateRangePickupRate = Number(
+    (
+      100 *
+      dividend(
+        summary.dateRangeSessionsCompleted,
+        summary.dateRangeOpportunities
+      )
+    ).toFixed(2)
+  )
+
   const [uniqueStudentStats] = await getUniqueStudentStats(
     partnerOrg,
     startDate,
     endDate
   )
-
-  const summary = getAccumulatedSummaryAnalytics(rows, startDate, endDate)
   summary.dateRangeUniqueStudentsHelped = uniqueStudentStats
     ? uniqueStudentStats.totalWithinDateRange
     : 0
@@ -669,5 +695,5 @@ export async function getAnalyticsReportSummary(
     ? uniqueStudentStats.total
     : 0
 
-  return [summary]
+  return summary
 }
