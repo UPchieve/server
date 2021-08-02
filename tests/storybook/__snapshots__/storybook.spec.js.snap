@@ -1815,3 +1815,87 @@ exports[`Storyshots Example/Page Logged Out 1`] = `
   </section>
 </article>
 `;
+
+exports[`Storyshots Example/RecentSubjectCard Primary Button 1`] = `
+<button
+  class="ButtonTemplate SubjectButton LargeButton-secondary"
+  type="button"
+>
+  <span>
+    <div
+      class="SubjectCard-desktop-column"
+    >
+      <!---->
+       
+      <h4
+        class="SubectCard-title"
+      >
+        Algebra 1
+      </h4>
+       
+      <!---->
+    </div>
+  </span>
+   
+  <!---->
+</button>
+`;
+
+exports[`Storyshots Example/RecentSubjectCard Secondary Button 1`] = `
+<button
+  class="ButtonTemplate SubjectButton LargeButton-secondary"
+  disabled="disabled"
+  type="button"
+>
+  <span>
+    <div
+      class="SubjectCard-desktop-column"
+    >
+      <!---->
+       
+      <h4
+        class="SubectCard-title"
+      >
+        Algebra 2
+      </h4>
+       
+      <!---->
+    </div>
+  </span>
+   
+  <!---->
+</button>
+`;
+
+exports[`Storyshots Example/Task Archived 1`] = `
+<div
+  class="list-item"
+>
+  <input
+    readonly="readonly"
+    type="text"
+  />
+</div>
+`;
+
+exports[`Storyshots Example/Task Default 1`] = `
+<div
+  class="list-item"
+>
+  <input
+    readonly="readonly"
+    type="text"
+  />
+</div>
+`;
+
+exports[`Storyshots Example/Task Pinned 1`] = `
+<div
+  class="list-item"
+>
+  <input
+    readonly="readonly"
+    type="text"
+  />
+</div>
+`;

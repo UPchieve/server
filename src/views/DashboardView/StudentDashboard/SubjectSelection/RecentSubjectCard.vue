@@ -1,20 +1,14 @@
 <template>
-  <large-button
-  class="SubjectButton"
-  :disabled="disabled">
+  <large-button class="SubjectButton" :disabled="disabled">
     <div class="SubjectCard-desktop-column">
       <component class="SubjectButton-icon" v-bind:is="svg" />
-      <h4 class="SubectCard-title">{{ title }} </h4>
-      <arrow-icon
-        v-if="showArrow"
-        class="arrow-icon"
-       />
+      <h4 class="SubectCard-title">{{ title }}</h4>
+      <arrow-icon v-if="showArrow" class="arrow-icon" />
     </div>
   </large-button>
 </template>
 
 <script>
-
 import { mapGetters, mapState } from 'vuex'
 import getCookie from '@/utils/get-cookie'
 import ArrowIcon from '@/assets/arrow.svg'
@@ -23,7 +17,7 @@ import LargeButton from '@/components/LargeButton'
 
 export default {
   name: 'recent-subject-card',
-  components: {ArrowIcon, LargeButton, MathSVG},
+  components: { ArrowIcon, LargeButton, MathSVG },
   data() {
     return {
       selectedSubtopic: ''
@@ -115,7 +109,6 @@ export default {
 }
 </script>
 
-
 <style lang="scss" scoped>
 .SubjectButton {
   @include flex-container(row, center, center);
@@ -128,23 +121,23 @@ export default {
   margin-left: 0px;
   margin-right: 24px;
   background-color: white;
-  border: 1px solid #D8DEE5;
+  border: 1px solid #d8dee5;
   box-sizing: border-box;
   border-radius: 8px;
   position: relative;
 
   &:hover {
-    background: darken( #F2FBF9, 0%);
-    border: 1px solid #16D2AA;
+    background: darken(#f2fbf9, 0%);
+    border: 1px solid #16d2aa;
   }
 
   &:active {
-    background: darken( #F1F3F6, 0%);
-    border: 1px solid #ABB2BD;
+    background: darken(#f1f3f6, 0%);
+    border: 1px solid #abb2bd;
   }
   &:disabled {
-    background: darken(#F1F3F6, 0%);
-    border: 1px solid #D8DEE5;
+    background: darken(#f1f3f6, 0%);
+    border: 1px solid #d8dee5;
   }
 }
 
@@ -156,8 +149,8 @@ export default {
   width: 24px;
   height: 30px;
 
-/* UPchieve Green */
-  border: 1px solid #16D2AA;
+  /* UPchieve Green */
+  border: 1px solid #16d2aa;
   box-sizing: border-box;
 }
 

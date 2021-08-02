@@ -1,5 +1,5 @@
 <template>
-    <div class="SubjectSelection">
+  <div class="SubjectSelection">
     <p v-if="hasWaitingPeriod" class="waiting-period">
       {{ waitingPeriodMessage }}
     </p>
@@ -18,8 +18,8 @@
       :button-text="card.buttonText"
       :routeTo="card.routeTo"
       :disableSubjectCard="isCardDisabled(card)"
-    /> 
-    </div>  
+    />
+  </div>
 </template>
 
 <script>
@@ -38,7 +38,7 @@ import { topics } from '@/utils/topics'
 
 export default {
   name: 'subject-selection',
-  components: { SubjectCard, RecentSubjectCard},
+  components: { SubjectCard },
   beforeDestroy() {
     clearTimeout(this.waitingPeriodTimeoutId)
   },
@@ -252,5 +252,4 @@ export default {
     margin-top: initial;
   }
 }
-
 </style>

@@ -14,11 +14,11 @@ const Template = (args, { argTypes }) => ({
 export const PrimaryButton = Template.bind({})
 PrimaryButton.args = {
   title: 'Algebra 1',
-  topic: 'Calculus' 
+  topic: 'Calculus'
 }
 
 export const SecondaryButton = Template.bind({})
-SecondaryButton.args= {
+SecondaryButton.args = {
   title: 'Algebra 2',
   disableSubjectCard: true,
   showArrow: false

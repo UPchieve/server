@@ -56,7 +56,7 @@ export const topics = {
     },
     displayName: 'UPchieve Training'
   }
-}  
+}
 
 /**
  * Object containing subtopic information from all topics
