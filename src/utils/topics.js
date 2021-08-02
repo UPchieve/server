@@ -56,28 +56,7 @@ export const topics = {
     },
     displayName: 'UPchieve Training'
   }
-}
-
-
-//mock data for recent subjects
-export const recentTopics = {
-    algebraOne: {
-      categoryName: 'math',
-      displayName: 'Algebra 1'
-    },
-    algebraTwo: {
-      categoryName: 'math',
-      displayName: 'Algebra 2'
-    },
-    satMath: {
-      categoryName: 'sat',
-      displayName: 'SAT Math'
-    },
-    collegeEssays: {
-      categoryName: 'college',
-      displayName: 'College Essays'
-    } 
-  }   
+}  
 
 /**
  * Object containing subtopic information from all topics

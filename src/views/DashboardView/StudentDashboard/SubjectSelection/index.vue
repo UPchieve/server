@@ -1,17 +1,4 @@
 <template>
-  <div>
-     <div>
-      <recent-subject-card
-       v-for="(card, index) in recentCards"
-      v-bind:key="index"
-      :title="card.title"
-      :svg="card.svg"
-      :topic="card.topic"
-      :button-text="card.buttonText"
-      :routeTo="card.routeTo"
-      :disableSubjectCard="isCardDisabled(card)"
-        />
-    </div>
     <div class="SubjectSelection">
     <p v-if="hasWaitingPeriod" class="waiting-period">
       {{ waitingPeriodMessage }}
@@ -33,7 +20,6 @@
       :disableSubjectCard="isCardDisabled(card)"
     /> 
     </div>  
-  </div>
 </template>
 
 <script>
@@ -49,10 +35,6 @@ import ReferralSVG from '@/assets/dashboard_icons/student/referral.svg'
 import LightBulbSVG from '@/assets/dashboard_icons/student/light-bulb.svg'
 
 import { topics } from '@/utils/topics'
-
-//Temporarily checking Recent Subject Button on website
-import RecentSubjectCard from './RecentSubjectCard.vue'
-import {recentTopics} from '@/utils/topics'
 
 export default {
   name: 'subject-selection',
@@ -75,14 +57,6 @@ export default {
       science: 3,
       readingWriting: 4,
       sat: 1
-    }
-
-    //recent Subject mapping
-    const recentTopicOrderMapping = {
-      algebraOne: 0,
-      algebraTwo: 1,
-      collegePlanning: 2,
-      sat: 3
     }
 
     const cards = Object.entries(topics)
@@ -144,21 +118,8 @@ export default {
       buttonText: 'Learn More'
     })
 
-//recent subject
-    const recentCards = Object.entries(recentTopics)
-        .map(([key, recentTopicObj]) => {
-        return {
-          title: recentTopicObj.displayName,
-          svg: svgs[key],
-          recentTopic: key,
-          isTutoringCard: true,
-          order: recentTopicOrderMapping[key]  
-        }
-      })
-
     return {
       cards,
-      recentCards,
       disableSubjectCard: false,
       waitingPeriodTimeoutId: null,
       hasWaitingPeriod: false,
@@ -292,17 +253,4 @@ export default {
   }
 }
 
-.RecentSubjectSelection{
-  @include flex-container(row);
-  @include child-spacing(top, 16px);
-  margin-top: 40px;
-
-  h4 {
-    @include font-category('heading');
-    margin: 0;
-    padding: 0;
-    text-align: center;
-  }
-  
-}
 </style>

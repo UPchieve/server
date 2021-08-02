@@ -20,5 +20,6 @@ PrimaryButton.args = {
 export const SecondaryButton = Template.bind({})
 SecondaryButton.args= {
   title: 'Algebra 2',
-  disableSubjectCard: true
+  disableSubjectCard: true,
+  showArrow: false
 }
