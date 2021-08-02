@@ -177,6 +177,8 @@ const config: Static<typeof Config> = {
   },
   socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3001,
 
+  socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
+
   volunteerPartnerManifestPath:
     process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
     'localManifests/volunteer.yaml',

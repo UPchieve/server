@@ -10,6 +10,39 @@ const SessionService = require('../../services/SessionService')
 const QuillDocService = require('../../services/QuillDocService')
 const getSessionRoom = require('../../utils/get-session-room')
 const newrelic = require('newrelic')
+const UserModel = require('../../models/User')
+
+const validateApiKey = function(key) {
+  console.log('Attempted key:', key)
+  if (key !== config.socketApiKey)
+    throw new Error('User not authenticated')
+}
+
+const handleChatBot = async function(socket, key) {
+  validateApiKey(key)
+  const bot = await UserModel.findOne({ email: 'chatbot@example.com' })
+
+  socket.join(bot._id.toString())
+  console.log('Chatbot connected to socket!')
+}
+
+const handleUser = async function(socket, user) {
+    // Join a user to their own room to handle the event where a user might have
+    // multiple socket connections open
+    socket.join(user._id.toString())
+    console.log('User connected to socket!')
+
+    const latestSession = await SessionService.currentSession(user)
+
+    // @note: students don't join the room by default until they are in the session view
+    // Join user to their latest session if it has not ended
+    if (latestSession && !latestSession.endedAt) {
+      socket.join(getSessionRoom(latestSession._id))
+      socket.emit('session-change', latestSession)
+    }
+
+    if (user && user.isVolunteer) socket.join('volunteers')
+}
 
 module.exports = function(io, sessionStore) {
   const socketService = new SocketService(io)
@@ -39,11 +72,10 @@ module.exports = function(io, sessionStore) {
       store: sessionStore,
       // only allow authenticated users to connect to the socket instance
       fail: (data, message, error, accept) => {
+        console.log('Failed socket connection: ', message)
         if (error) {
-          console.log(new Error(message))
-          throw new Error(message)
+          throw new Error(message)  // eats connection errors
         } else {
-          console.log(message)
           accept(null, false)
         }
       }
@@ -52,27 +84,26 @@ module.exports = function(io, sessionStore) {
 
   io.on('connection', async function(socket) {
     const {
-      request: { user }
+      request: { user },
+      handshake: {
+        query: { 
+          key: socketApiKey 
+        }
+      }
     } = socket
-    if (!user) {
-      socket.emit('redirect')
-      throw new Error('User not authenticated')
-    }
 
-    // Join a user to their own room to handle the event where a user might have
-    // multiple socket connections open
-    socket.join(user._id.toString())
+    if (!user.logged_in) {
+      if (!socketApiKey) {
+        socket.emit('redirect')
+        throw new Error('User not authenticated')
+      } else
+        await handleChatBot(socket, socketApiKey)
+    } else
+      await handleUser(socket, user)
 
-    const latestSession = await SessionService.currentSession(user)
-
-    // @note: students don't join the room by default until they are in the session view
-    // Join user to their latest session if it has not ended
-    if (latestSession && !latestSession.endedAt) {
-      socket.join(getSessionRoom(latestSession._id))
-      socket.emit('session-change', latestSession)
-    }
-
-    if (user && user.isVolunteer) socket.join('volunteers')
+    socket.on('eventFromScript', function(data) {
+      console.log('Recieved message from script:', data)
+    })
 
     // Tutor session management
     socket.on('join', async function(data) {
