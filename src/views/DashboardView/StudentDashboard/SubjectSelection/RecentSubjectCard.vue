@@ -40,7 +40,6 @@ export default {
     svg: {
       type: Object,
       required: true,
-      default: MathSVG
     },
     topic: String,
     buttonText: {
