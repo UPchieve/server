@@ -15,14 +15,14 @@ const Template = (args, { argTypes }) => ({
 export const PrimaryButton = Template.bind({})
 PrimaryButton.args = {
   title: 'Algebra 1',
-  topic: 'Calculus',
-  svg: MathSVG
+  topic: 'Calculus'
+  //svg: MathSVG
 }
 
 export const SecondaryButton = Template.bind({})
 SecondaryButton.args = {
   title: 'Algebra 2',
   disableSubjectCard: true,
-  showArrow: false,
-  svg: MathSVG
+  showArrow: false
+ // svg: MathSVG
 }

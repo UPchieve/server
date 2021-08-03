@@ -1,14 +1,20 @@
 <template>
-  <large-button class="SubjectButton" :disabled="disabled">
+  <large-button
+  class="SubjectButton"
+  :disabled="disabled">
     <div class="SubjectCard-desktop-column">
       <component class="SubjectButton-icon" v-bind:is="svg" />
-      <h4 class="SubectCard-title">{{ title }}</h4>
-      <arrow-icon v-if="showArrow" class="arrow-icon" />
+      <h4 class="SubectCard-title">{{ title }} </h4>
+      <arrow-icon
+        v-if="showArrow"
+        class="arrow-icon"
+       />
     </div>
   </large-button>
 </template>
 
 <script>
+
 import { mapGetters, mapState } from 'vuex'
 import getCookie from '@/utils/get-cookie'
 import ArrowIcon from '@/assets/arrow.svg'
@@ -17,7 +23,7 @@ import LargeButton from '@/components/LargeButton'
 
 export default {
   name: 'recent-subject-card',
-  components: { ArrowIcon, LargeButton, MathSVG },
+  components: {ArrowIcon, LargeButton, MathSVG},
   data() {
     return {
       selectedSubtopic: ''
@@ -33,7 +39,8 @@ export default {
     },
     svg: {
       type: Object,
-      required: true
+      required: true,
+      default: MathSVG
     },
     topic: String,
     buttonText: {
@@ -108,6 +115,7 @@ export default {
 }
 </script>
 
+
 <style lang="scss" scoped>
 .SubjectButton {
   @include flex-container(row, center, center);
@@ -120,23 +128,23 @@ export default {
   margin-left: 0px;
   margin-right: 24px;
   background-color: white;
-  border: 1px solid #d8dee5;
+  border: 1px solid #D8DEE5;
   box-sizing: border-box;
   border-radius: 8px;
   position: relative;
 
   &:hover {
-    background: darken(#f2fbf9, 0%);
-    border: 1px solid #16d2aa;
+    background: darken( #F2FBF9, 0%);
+    border: 1px solid #16D2AA;
   }
 
   &:active {
-    background: darken(#f1f3f6, 0%);
-    border: 1px solid #abb2bd;
+    background: darken( #F1F3F6, 0%);
+    border: 1px solid #ABB2BD;
   }
   &:disabled {
-    background: darken(#f1f3f6, 0%);
-    border: 1px solid #d8dee5;
+    background: darken(#F1F3F6, 0%);
+    border: 1px solid #D8DEE5;
   }
 }
 
@@ -148,8 +156,8 @@ export default {
   width: 24px;
   height: 30px;
 
-  /* UPchieve Green */
-  border: 1px solid #16d2aa;
+/* UPchieve Green */
+  border: 1px solid #16D2AA;
   box-sizing: border-box;
 }
 
@@ -159,10 +167,6 @@ export default {
   height: 50px;
   left: 24px;
   top: 20px;
-
-  &:disabled {
-    background: darken(#f7aef8, 0%);
-  }
 }
 
 .SubjectButton-title {

@@ -72,6 +72,8 @@ describe("SubjectCard", () => {
         expect(routeButton.props().routeTo).toBe("/test");
         routeButton.trigger("click");
         expect(handleClick).not.toHaveBeenCalled();
+
+        console.log(wrapper.html());
       });
     });
 
@@ -90,6 +92,7 @@ describe("SubjectCard", () => {
         const subtitle = wrapper.find(".SubjectCard-subtitle");
         expect(subtitle.exists()).toBe(true);
         expect(subtitle.text()).toBe(propsData.subtitle);
+
       });
 
       test("link button", () => {
@@ -118,6 +121,8 @@ describe("SubjectCard", () => {
         expect(routeButton.props().routeTo).toBe("/test");
         routeButton.trigger("click");
         expect(handleClick).not.toHaveBeenCalled();
+
+        console.log(wrapper.html());
       });
     });
   });
