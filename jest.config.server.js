@@ -6,7 +6,6 @@ module.exports = {
   transform: {
     '^.+\\.ts?$': '<rootDir>/node_modules/ts-jest'
   },
-  moduleFileExtensions: ['js', 'ts'],
   runner: 'groups',
   testMatch: [
     '**/?(*.)+(spec|test).[jt]s?(x)',
