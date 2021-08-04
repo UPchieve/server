@@ -1,7 +1,7 @@
 <template>
-  <large-button class="SubjectButton" :disabled="disabled">
+  <large-button class="SubjectCard" :disabled="disabled">
     <div class="SubjectCard-desktop-column">
-      <component class="SubjectButton-icon" v-bind:is="svg" />
+      <component class="SubjectCard-icon" v-bind:is="svg" />
       <h4 class="SubectCard-title">{{ title }}</h4>
       <arrow-icon v-if="showArrow" class="arrow-icon" />
     </div>
@@ -110,7 +110,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.SubjectButton {
+.SubjectCard {
   @include flex-container(row, center, center);
   @include font-category('button');
   @include child-spacing(left, 24px);
@@ -154,7 +154,7 @@ export default {
   box-sizing: border-box;
 }
 
-.SubjectButton-icon {
+.SubjectCard-icon {
   position: absolute;
   width: 50px;
   height: 50px;
@@ -162,7 +162,7 @@ export default {
   top: 20px;
 }
 
-.SubjectButton-title {
+.SubjectCard-title {
   @include font-category('heading');
   padding: 0;
   text-align: left;
