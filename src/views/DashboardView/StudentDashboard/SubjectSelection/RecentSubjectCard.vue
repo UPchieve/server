@@ -42,10 +42,6 @@ export default {
       required: true,
     },
     topic: String,
-    buttonText: {
-      type: String,
-      default: 'Subject'
-    },
     routeTo: String,
     disableSubjectCard: Boolean,
     showArrow: {
