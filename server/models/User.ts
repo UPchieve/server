@@ -1,11 +1,13 @@
-import { values } from 'lodash'
-import { Document, model, Schema, Types } from 'mongoose'
+import { values, isEmpty } from 'lodash'
+import { Document, model, Schema, Types, FilterQuery, Model } from 'mongoose'
 import bcrypt from 'bcrypt'
 import validator from 'validator'
 import config from '../config'
 import { USER_BAN_REASON } from '../constants'
 import { Session } from './Session'
 import { IpAddress } from './IpAddress'
+import emailFailedFirstAttemptedQuiz from '../worker/jobs/volunteer-emails/emailFailedFirstAttemptedQuiz'
+import P from 'pino'
 
 export interface User {
   _id: Types.ObjectId
@@ -219,3 +221,122 @@ const UserModel = model<UserDocument>('User', baseUserSchema)
 
 module.exports = UserModel
 export default UserModel
+
+
+// Must type projection values to ensure only 0 or 1 are used
+type Zero = 0
+type One = 1
+
+// Overloads for better typing
+export async function typedFindOneUser<P extends keyof User>(
+  query: FilterQuery<User & Document>
+): Promise<User>
+
+export async function typedFindOneUser<P extends keyof User>(
+  query: FilterQuery<User & Document>,
+  projection: Record<any, never>
+): Promise<User>
+
+export async function typedFindOneUser<P extends keyof User>(
+  query: FilterQuery<User & Document>,
+  projection: Record<P, Zero>
+): Promise<Omit<User, P>>
+
+export async function typedFindOneUser<P extends keyof User>(
+  query: FilterQuery<User & Document>,
+  projection: Record<P, One>
+): Promise<Pick<User, P>>
+
+export async function typedFindOneUser<P extends keyof User>(
+  query: FilterQuery<User & Document>,
+  projection: Record<P, Zero> | Record<P, One> | {} = {}
+): Promise<Omit<User, P> | Pick<User, P> | User> {
+  const user = await UserModel.findOne(query, projection).lean().exec()
+  if (Object.values(projection).includes(1))
+    return user as Pick<User, P>
+  else if (Object.values(projection).includes(0))
+    return user as Omit<User, P>
+  else
+    return user as User
+}
+
+const proj = { firstname: 1 as One }
+const user = typedFindOneUser({ email: 'user@test.com' }, proj)
+
+const emptyUser = typedFindOneUser({ email: 'empty@email.com' }, {})
+
+const neg = { firstname: 0 as Zero }
+const negUser = typedFindOneUser({ email: 'neg@test.com' }, neg)
+
+const badProj = { firstname: 0 as Zero, lastname: 1 as One }
+const badProjUser = typedFindOneUser({ email: 'bad@test.com' }, badProj)  // type error on projection
+
+const malformed = { foo: 'foo' }
+const malformedUser = typedFindOneUser({ email: 'malformed@test.com' }, malformed)  //type error on projection
+
+// compatibility with untyped projection objects
+type Projection<U, T> = Record<keyof U, T>
+
+const oldProjection = { firstname: 1 }  // untyped
+const otherUser = typedFindOneUser(
+  { email: 'other@test.com' },
+  oldProjection as Projection<typeof oldProjection, One>
+)
+
+// NOTE: we cannot strongly type query checks due to mongoose RootQuerySelector
+// underlying implementation uses `[key: string]: any` which destroys any typing attemps
+
+// factory style
+function typedFindOneFactory<T>(model: Model<T & Document>) {
+  // no projection
+  async function typedFindOneT<P extends keyof T>(
+    query: FilterQuery<T & Document>,
+  ): Promise<T>
+  // empty projection
+  async function typedFindOneT<P extends keyof T>(
+    query: FilterQuery<T & Document>,
+    projection: Record<any, never>
+  ): Promise<T>
+  // negative projection
+  async function typedFindOneT<P extends keyof T>(
+    query: FilterQuery<T & Document>,
+    projection: Record<P, Zero>
+  ): Promise<Omit<T, P>>
+  // positive projection
+  async function typedFindOneT<P extends keyof T>(
+    query: FilterQuery<T & Document>,
+    projection: Record<P, One>
+  ): Promise<Pick<T, P>>
+  // implementation
+  async function typedFindOneT<P extends keyof T>(
+    query: FilterQuery<T & Document>,
+    projection: Record<P, Zero> | Record<P, One> | Record<any, never> = {}
+  ): Promise<Omit<T, P> | Pick<T, P> | T> {
+    const t = await model.findOne(query, projection).lean().exec()
+    if (Object.values(projection).includes(1))
+      return t as Pick<T, P>
+    else if (Object.values(projection).includes(0))
+      return t as Omit<T, P>
+    else
+      return t as T
+  }
+
+  return typedFindOneT
+}
+
+const userFindOne = typedFindOneFactory<User>(UserModel)
+
+const user2 = userFindOne({ email: 'user@test.com' }, proj)
+
+const emptyUser2 = userFindOne({ email: 'empty@email.com' }, {})
+
+const negUser2 = userFindOne({ email: 'neg@test.com' }, neg)
+
+const badProjUser2 = userFindOne({ email: 'bad@test.com' }, badProj)  // type error on projection
+
+const malformedUser2 = userFindOne({ email: 'malformed@test.com' }, malformed)  //type error on projection
+
+const otherUser2 = userFindOne(
+  { email: 'other@test.com' },
+  oldProjection as Projection<typeof oldProjection, One>
+)
