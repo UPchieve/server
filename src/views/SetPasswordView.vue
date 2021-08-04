@@ -81,6 +81,9 @@ export default {
     LargeButton,
     Loader
   },
+  props: {
+    token: String
+  },
   created() {
     this.$store.dispatch('app/hideNavigation')
     const { token } = this.$route.params
@@ -119,7 +122,7 @@ export default {
       this.isResettingPassword = true
 
       AuthService.confirmReset(this, {
-        token: this.$route.params.token,
+        token: this.token,
         email: this.credentials.email,
         password: this.credentials.password,
         newpassword: this.credentials.newpassword
