@@ -1818,7 +1818,7 @@ exports[`Storyshots Example/Page Logged Out 1`] = `
 
 exports[`Storyshots Example/RecentSubjectCard Primary Button 1`] = `
 <button
-  class="ButtonTemplate SubjectButton LargeButton-secondary"
+  class="ButtonTemplate SubjectCard LargeButton-secondary"
   type="button"
 >
   <span>
@@ -1843,7 +1843,7 @@ exports[`Storyshots Example/RecentSubjectCard Primary Button 1`] = `
 
 exports[`Storyshots Example/RecentSubjectCard Secondary Button 1`] = `
 <button
-  class="ButtonTemplate SubjectButton LargeButton-secondary"
+  class="ButtonTemplate SubjectCard LargeButton-secondary"
   disabled="disabled"
   type="button"
 >
@@ -1865,37 +1865,4 @@ exports[`Storyshots Example/RecentSubjectCard Secondary Button 1`] = `
    
   <!---->
 </button>
-`;
-
-exports[`Storyshots Example/Task Archived 1`] = `
-<div
-  class="list-item"
->
-  <input
-    readonly="readonly"
-    type="text"
-  />
-</div>
-`;
-
-exports[`Storyshots Example/Task Default 1`] = `
-<div
-  class="list-item"
->
-  <input
-    readonly="readonly"
-    type="text"
-  />
-</div>
-`;
-
-exports[`Storyshots Example/Task Pinned 1`] = `
-<div
-  class="list-item"
->
-  <input
-    readonly="readonly"
-    type="text"
-  />
-</div>
 `;
