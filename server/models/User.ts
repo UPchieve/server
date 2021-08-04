@@ -223,9 +223,23 @@ module.exports = UserModel
 export default UserModel
 
 
+/*
+PROOF OF CONCEPT
+
+Strongly typing return value of database calls with projections will allow us to
+know exactly the shape of whatever data we recieve. The sample code below implements
+a findOne wrapper function to infer the return type from the provided projection.
+
+We cannot strongly type the query due to mongoose RootQuerySelector implementation 
+using `[key: string]: any` which destroys any possibility for useful typing
+*/
+
 // Must type projection values to ensure only 0 or 1 are used
 type Zero = 0
 type One = 1
+
+// For compatibility with untyped projection objects
+type Projection<U, T> = Record<keyof U, T>
 
 // Overloads for better typing
 export async function typedFindOneUser<P extends keyof User>(
@@ -260,31 +274,27 @@ export async function typedFindOneUser<P extends keyof User>(
     return user as User
 }
 
-const proj = { firstname: 1 as One }
-const user = typedFindOneUser({ email: 'user@test.com' }, proj)
+async function testTypedFindOneUser() {
+  const proj = { firstname: 1 as One }
+  const user = await typedFindOneUser({ email: 'user@test.com' }, proj)
 
-const emptyUser = typedFindOneUser({ email: 'empty@email.com' }, {})
+  const emptyUser = await typedFindOneUser({ email: 'empty@email.com' }, {})
 
-const neg = { firstname: 0 as Zero }
-const negUser = typedFindOneUser({ email: 'neg@test.com' }, neg)
+  const neg = { firstname: 0 as Zero }
+  const negUser = await typedFindOneUser({ email: 'neg@test.com' }, neg)
 
-const badProj = { firstname: 0 as Zero, lastname: 1 as One }
-const badProjUser = typedFindOneUser({ email: 'bad@test.com' }, badProj)  // type error on projection
+  const badProj = { firstname: 0 as Zero, lastname: 1 as One }
+  const badProjUser = await typedFindOneUser({ email: 'bad@test.com' }, badProj)  // type error on projection
 
-const malformed = { foo: 'foo' }
-const malformedUser = typedFindOneUser({ email: 'malformed@test.com' }, malformed)  //type error on projection
+  const malformed = { foo: 'foo' }
+  const malformedUser = await typedFindOneUser({ email: 'malformed@test.com' }, malformed)  //type error on projection
 
-// compatibility with untyped projection objects
-type Projection<U, T> = Record<keyof U, T>
-
-const oldProjection = { firstname: 1 }  // untyped
-const otherUser = typedFindOneUser(
-  { email: 'other@test.com' },
-  oldProjection as Projection<typeof oldProjection, One>
-)
-
-// NOTE: we cannot strongly type query checks due to mongoose RootQuerySelector
-// underlying implementation uses `[key: string]: any` which destroys any typing attemps
+  const oldProjection = { firstname: 1 }  // untyped
+  const otherUser = await typedFindOneUser(
+    { email: 'other@test.com' },
+    oldProjection as Projection<typeof oldProjection, One>
+  )
+}
 
 // factory style
 function typedFindOneFactory<T>(model: Model<T & Document>) {
@@ -324,19 +334,26 @@ function typedFindOneFactory<T>(model: Model<T & Document>) {
   return typedFindOneT
 }
 
-const userFindOne = typedFindOneFactory<User>(UserModel)
+async function testTypedFindOneFactory() {
+  const userFindOne = typedFindOneFactory<User>(UserModel)
 
-const user2 = userFindOne({ email: 'user@test.com' }, proj)
+  const proj = { firstname: 1 as One }
+  const user2 = await userFindOne({ email: 'user@test.com' }, proj)
 
-const emptyUser2 = userFindOne({ email: 'empty@email.com' }, {})
+  const emptyUser2 = await userFindOne({ email: 'empty@email.com' }, {})
 
-const negUser2 = userFindOne({ email: 'neg@test.com' }, neg)
+  const neg = { firstname: 0 as Zero }
+  const negUser2 = await userFindOne({ email: 'neg@test.com' }, neg)
 
-const badProjUser2 = userFindOne({ email: 'bad@test.com' }, badProj)  // type error on projection
+  const badProj = { firstname: 0 as Zero, lastname: 1 as One }
+  const badProjUser2 = await userFindOne({ email: 'bad@test.com' }, badProj)  // type error on projection
 
-const malformedUser2 = userFindOne({ email: 'malformed@test.com' }, malformed)  //type error on projection
+  const malformed = { foo: 'foo' }
+  const malformedUser2 = await userFindOne({ email: 'malformed@test.com' }, malformed)  //type error on projection
 
-const otherUser2 = userFindOne(
-  { email: 'other@test.com' },
-  oldProjection as Projection<typeof oldProjection, One>
-)
+  const oldProjection = { firstname: 1 }  // untyped
+  const otherUser2 = await userFindOne(
+    { email: 'other@test.com' },
+    oldProjection as Projection<typeof oldProjection, One>
+  )
+}
