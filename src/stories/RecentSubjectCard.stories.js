@@ -11,15 +11,27 @@ const Template = (args, { argTypes }) => ({
   template: '<recent-subject-card @onClick="handleClick" v-bind="$props" />'
 })
 
-export const PrimaryButton = Template.bind({})
-PrimaryButton.args = {
-  title: 'Algebra 1',
-  topic: 'Calculus'
+//default state 
+export const DefaultCard = Template.bind({})
+DefaultCard.args = {
+  title: 'Algebra 1'
 }
 
-export const SecondaryButton = Template.bind({})
-SecondaryButton.args = {
+export const HoveredCard = Template.bind({})
+HoveredCard.args = {
   title: 'Algebra 2',
-  disableSubjectCard: true,
-  showArrow: false
+  // showArrow: true,
+  // hoveredSubjectCard = true
+}
+//disabled state
+export const PressedCard = Template.bind({})
+PressedCard.args = {
+  title: 'Calc 1',
+  activeSubjectCard: true
+}
+
+export const DisabledCard = Template.bind({})
+DisabledCard.args = {
+  title: 'Calc 2',
+  disableSubjectCard: true
 }

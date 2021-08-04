@@ -1,11 +1,21 @@
 <template>
-  <large-button class="SubjectCard" :disabled="disabled">
-    <div class="SubjectCard-desktop-column">
-      <component class="SubjectCard-icon" v-bind:is="svg" />
-      <h4 class="SubectCard-title">{{ title }}</h4>
-      <arrow-icon v-if="showArrow" class="arrow-icon" />
-    </div>
-  </large-button>
+  <div
+    @mouseover="showArrow = true"
+    @mouseleave="showArrow = false"
+  >
+    <large-button class="SubjectCard" 
+    :disabled="disabled"
+    >
+      <div class="SubjectCard-desktop-column">
+        <component class="SubjectCard-icon" v-bind:is="svg" />
+        <h4 class="SubectCard-title">{{ title }}</h4>
+        <arrow-icon 
+        v-if="showArrow"
+        class="arrow-icon"
+        />
+      </div>
+    </large-button>
+  </div>
 </template>
 
 <script>
@@ -20,7 +30,8 @@ export default {
   components: { ArrowIcon, LargeButton, MathSVG },
   data() {
     return {
-      selectedSubtopic: ''
+      selectedSubtopic: '',
+      showArrow: false,
     }
   },
   beforeDestroy() {
@@ -42,10 +53,20 @@ export default {
       default: 'Subject'
     },
     routeTo: String,
-    disableSubjectCard: Boolean,
-    showArrow: {
+    disableSubjectCard: {
+      type: Boolean,
+      default: false
+    },
+    hoveredSubjectCard: {
       type: Boolean,
       default: true
+    },
+    activeSubjectCard: {
+      type: Boolean
+    },
+    showArrow: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -58,9 +79,22 @@ export default {
       mobileMode: 'app/mobileMode',
       isSessionAlive: 'user/isSessionAlive'
     }),
+    // hover(){
+    //   this.showArrow = true;
+    //   return this.hoveredSubjectCard
+    // },
+    active(){
+      return this.activeSubjectCard
+    },
     disabled() {
-      return this.disableSubjectCard
-    }
+        return this.disableSubjectCard
+    },
+    // setShowArrow(){
+    //   // if(this.activeSubjectCard) //this.hoveredSubjectCard) //|| )
+    //   return this.showArrow;
+    //   // if(this.disableSubjectCard)
+    //   //  this.showArrow = false;
+    // } 
   },
   methods: {
     handleClick() {
@@ -110,7 +144,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.SubjectCard {
+.SubjectCard{
   @include flex-container(row, center, center);
   @include font-category('button');
   @include child-spacing(left, 24px);
@@ -125,6 +159,8 @@ export default {
   box-sizing: border-box;
   border-radius: 8px;
   position: relative;
+  cursor: pointer;
+  transition: 0.5s;
 
   &:hover {
     background: darken(#f2fbf9, 0%);
@@ -150,7 +186,6 @@ export default {
   height: 30px;
 
   /* UPchieve Green */
-  border: 1px solid #16d2aa;
   box-sizing: border-box;
 }
 
