@@ -232,6 +232,9 @@ a findOne wrapper function to infer the return type from the provided projection
 
 We cannot strongly type the query due to mongoose RootQuerySelector implementation 
 using `[key: string]: any` which destroys any possibility for useful typing
+
+Note that this implementation does not support excluding _id when explicitly
+including other fields.
 */
 
 // Must type projection values to ensure only 0 or 1 are used
@@ -338,21 +341,21 @@ async function testTypedFindOneFactory() {
   const userFindOne = typedFindOneFactory<User>(UserModel)
 
   const proj = { firstname: 1 as One }
-  const user2 = await userFindOne({ email: 'user@test.com' }, proj)
+  const user = await userFindOne({ email: 'user@test.com' }, proj)
 
-  const emptyUser2 = await userFindOne({ email: 'empty@email.com' }, {})
+  const emptyUser = await userFindOne({ email: 'empty@email.com' }, {})
 
   const neg = { firstname: 0 as Zero }
-  const negUser2 = await userFindOne({ email: 'neg@test.com' }, neg)
+  const negUser = await userFindOne({ email: 'neg@test.com' }, neg)
 
   const badProj = { firstname: 0 as Zero, lastname: 1 as One }
-  const badProjUser2 = await userFindOne({ email: 'bad@test.com' }, badProj)  // type error on projection
+  const badProjUser = await userFindOne({ email: 'bad@test.com' }, badProj)  // type error on projection
 
   const malformed = { foo: 'foo' }
-  const malformedUser2 = await userFindOne({ email: 'malformed@test.com' }, malformed)  //type error on projection
+  const malformedUser = await userFindOne({ email: 'malformed@test.com' }, malformed)  //type error on projection
 
   const oldProjection = { firstname: 1 }  // untyped
-  const otherUser2 = await userFindOne(
+  const otherUser = await userFindOne(
     { email: 'other@test.com' },
     oldProjection as Projection<typeof oldProjection, One>
   )
