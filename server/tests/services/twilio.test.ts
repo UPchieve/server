@@ -63,7 +63,7 @@ test('Properly builds a session URL', () => {
   const sessionUrl = TwilioService.getSessionUrl(SESSION)
 
   expect(sessionUrl).toEqual(
-    `http://localhost/session/college/satreading/${SESSION._id}`
+    `http://localhost/session/college/sat-reading/${SESSION._id}`
   )
 })
 

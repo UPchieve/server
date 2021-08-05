@@ -6,7 +6,8 @@ import {
   calculateTimeTutored,
   isSessionParticipant,
   isSessionFulfilled,
-  hasReviewTriggerFlags
+  hasReviewTriggerFlags,
+  isSubjectUsingDocumentEditor
 } from '../../utils/session-utils'
 import { Student } from '../../models/Student'
 import { Volunteer } from '../../models/Volunteer'
@@ -20,7 +21,7 @@ import {
   getObjectId
 } from '../generate'
 import { Message } from '../../models/Message'
-import { SESSION_FLAGS } from '../../constants'
+import { SESSION_FLAGS, SUBJECTS } from '../../constants'
 
 /**
  * @todo refactor
@@ -615,5 +616,35 @@ describe('isSessionFulfilled', () => {
       buildSession({ volunteer: getObjectId() })
     )
     expect(result).toBe(true)
+  })
+})
+
+describe('isSubjectUsingDocumentEditor', () => {
+  test('Should return true for all subjects that use a document editor', async () => {
+    const subjects = [
+      SUBJECTS.SAT_READING,
+      SUBJECTS.ESSAYS,
+      SUBJECTS.PLANNING,
+      SUBJECTS.APPLICATIONS,
+      SUBJECTS.HUMANITIES_ESSAYS
+    ]
+
+    for (const subject of subjects) {
+      expect(isSubjectUsingDocumentEditor(subject)).toBeTruthy()
+    }
+  })
+
+  test('Should return false for that do not use a document editor', async () => {
+    const subjects = [
+      SUBJECTS.ALGEBRA_ONE,
+      SUBJECTS.CALCULUS_AB,
+      SUBJECTS.SAT_MATH,
+      SUBJECTS.PHYSICS_ONE,
+      SUBJECTS.BIOLOGY
+    ]
+
+    for (const subject of subjects) {
+      expect(isSubjectUsingDocumentEditor(subject)).toBeFalsy()
+    }
   })
 })

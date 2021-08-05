@@ -2,9 +2,16 @@
   <div class="report-modal">
     <h1 class="report-modal__title">Report this session</h1>
     <h2 class="report-modal__subtitle">
-      We strongly encourage volunteers to report any technical issues or bad
-      student behavior that they encounter during their session. We’ll review
-      your session and get back to you ASAP.
+      Reporting students will result in immediate action from UPchieve. If you
+      have a concern that requires less immediate attention, please let us know
+      in the feedback form after your session is ocmplete. Not sure what to do?
+      <a
+        href="https://upc-training-materials.s3.us-east-2.amazonaws.com/reporting-guidelines.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Review guidelines here.
+      </a>
     </h2>
 
     <div class="report-modal__section">
@@ -43,11 +50,8 @@ import NetworkService from '@/services/NetworkService'
 import LargeButton from '@/components/LargeButton'
 
 const reportReasonOptions = [
-  'Technical issue',
-  'Student was rude',
-  'Student was unresponsive',
-  'Student was misusing platform',
-  'Other'
+  'This student was extremely rude or inappropriate',
+  'I am worried for the immediate safety of this student'
 ]
 
 export default {

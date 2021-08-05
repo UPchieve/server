@@ -3,7 +3,7 @@ import { CustomError } from 'ts-custom-error'
 import { Socket } from 'socket.io'
 import { Volunteer } from '../models/Volunteer'
 import { Student } from '../models/Student'
-import { SESSION_FLAGS } from '../constants'
+import { SESSION_FLAGS, SUBJECTS } from '../constants'
 import { Session } from '../models/Session'
 import { Message } from '../models/Message'
 import { DAYS, HOURS } from '../models/Availability/types'
@@ -218,6 +218,19 @@ export function isSessionFulfilled(session) {
   const hasVolunteerJoined = !!session.volunteer
 
   return hasEnded || hasVolunteerJoined
+}
+
+export function isSubjectUsingDocumentEditor(subject) {
+  switch (subject) {
+    case SUBJECTS.SAT_READING:
+    case SUBJECTS.ESSAYS:
+    case SUBJECTS.PLANNING:
+    case SUBJECTS.APPLICATIONS:
+    case SUBJECTS.HUMANITIES_ESSAYS:
+      return true
+    default:
+      return false
+  }
 }
 
 export type HeatMapDay = {

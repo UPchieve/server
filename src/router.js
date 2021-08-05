@@ -1,3 +1,4 @@
+import Case from 'case'
 import { isEnabled } from 'unleash-client'
 import Vue from 'vue'
 import VueResource from 'vue-resource'
@@ -177,11 +178,13 @@ const routes = [
     component: SessionView,
     meta: { protected: true },
     beforeEnter: (to, from, next) => {
-      if (to.params.topic in topics) {
-        next()
-      } else {
-        next('/dashboard')
-      }
+      const topic = Case.camel(to.params.topic)
+      const subtopic = Case.camel(to.params.subTopic)
+      const isValidTopicAndSubtopic =
+        Object.prototype.hasOwnProperty.call(topics, topic) &&
+        Object.prototype.hasOwnProperty.call(topics[topic].subtopics, subtopic)
+      if (isValidTopicAndSubtopic) next()
+      else next('/dashboard')
     }
   },
   {

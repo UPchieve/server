@@ -199,7 +199,9 @@ export default {
             'The student was too far behind',
             'The student didn’t want to participate',
             'The student requested the wrong subject',
-            'There was a gap in my own knowledge'
+            'There was a gap in my own knowledge',
+            'The student was rude or inappropriate',
+            'The student was only looking for answers'
           ],
           answer: []
         },

@@ -164,7 +164,7 @@ export default {
   },
   data() {
     return {
-      verificationMethod: '',
+      verificationMethod: 'email',
       phoneInputInfo: {},
       phoneNational: '',
       step: 1,

@@ -123,9 +123,14 @@ export default {
       .post(`${AUTH_ROOT}/register/volunteer/partner`, data)
       .then(this._successHandler, this._errorHandler)
   },
-  registerStudent(context, data) {
+  registerOpenStudent(context, data) {
     return context.$http
-      .post(`${AUTH_ROOT}/register/student`, data)
+      .post(`${AUTH_ROOT}/register/student/open`, data)
+      .then(this._successHandler, this._errorHandler)
+  },
+  registerPartnerStudent(context, data) {
+    return context.$http
+      .post(`${AUTH_ROOT}/register/student/partner`, data)
       .then(this._successHandler, this._errorHandler)
   },
   sendReset(context, data) {
@@ -539,6 +544,11 @@ export default {
         email,
         referredByCode
       })
+      .then(this._successHandler, this._errorHandler)
+  },
+  checkIpAddress() {
+    return Vue.http
+      .get(`${ELIGIBILITY_API_ROOT}/ip-check`)
       .then(this._successHandler, this._errorHandler)
   },
   checkIfMessageIsClean(context, data) {

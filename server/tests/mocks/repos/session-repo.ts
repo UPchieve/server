@@ -64,6 +64,7 @@ export function mockedGetSessionToEnd(overrides = {}) {
     isReported: session.isReported,
     messages: session.messages,
     type: session.type,
+    subTopic: session.subTopic,
     student: {
       _id: student._id,
       firstname: student.firstname,
