@@ -20,7 +20,7 @@ export class ContactFormDataValidationError extends CustomError {
 }
 
 export class MailSendError extends CustomError {
-  constructor(mailType, err: string) {
+  constructor(mailType: string, err: string) {
     super(`failed to send ${mailType} through email provider: ${err}`)
   }
 }

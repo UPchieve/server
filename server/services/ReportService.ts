@@ -49,7 +49,7 @@ interface UsageReport {
   'Average session rating': number
 }
 
-const formatDate = (date): Date | string => {
+const formatDate = (date: Date): Date | string => {
   if (!date) return '--'
   return moment(date)
     .tz('America/New_York')
@@ -85,13 +85,13 @@ function getOffsetTime(date?): number {
   return new Date(date).getTime() + estTimeOffset
 }
 
-export const sessionReport = async ({
-  sessionRangeFrom,
-  sessionRangeTo,
-  highSchoolId,
-  studentPartnerOrg,
-  studentPartnerSite
-}): Promise<SessionReport[]> => {
+export const sessionReport = async (
+  sessionRangeFrom: Date,
+  sessionRangeTo: Date,
+  highSchoolId: string,
+  studentPartnerOrg: string,
+  studentPartnerSite: string
+): Promise<SessionReport[]> => {
   const query: {
     approvedHighschool?: Types.ObjectId
     studentPartnerOrg?: string
@@ -284,15 +284,15 @@ export const sessionReport = async ({
   return formattedSessions
 }
 
-export const usageReport = async ({
-  joinedBefore,
-  joinedAfter,
-  sessionRangeFrom,
-  sessionRangeTo,
-  highSchoolId,
-  studentPartnerOrg,
-  studentPartnerSite
-}): Promise<UsageReport[]> => {
+export async function usageReport(
+  joinedBefore: string,
+  joinedAfter: string,
+  sessionRangeFrom: string,
+  sessionRangeTo: string,
+  highSchoolId: string,
+  studentPartnerOrg: string,
+  studentPartnerSite: string
+): Promise<UsageReport[]> {
   const query: {
     createdAt?: {}
     approvedHighschool?: Types.ObjectId
@@ -526,7 +526,7 @@ export const usageReport = async ({
   return studentUsage
 }
 
-export const getTelecomReport = async ({ partnerOrg, startDate, endDate }) => {
+export async function getTelecomReport(partnerOrg: string, startDate: string, endDate: string) {
   // Only generate the telecom report for a specific partner
   if (partnerOrg !== config.customVolunteerPartnerOrg) return []
   try {
@@ -558,11 +558,11 @@ export const getTelecomReport = async ({ partnerOrg, startDate, endDate }) => {
   }
 }
 
-export const generatePartnerAnalyticsReport = async ({
-  partnerOrg,
-  startDate,
-  endDate
-}) => {
+export async function generatePartnerAnalyticsReport(
+  partnerOrg: string,
+  startDate: string,
+  endDate: string
+) {
   const start: Date = moment(startDate).toDate()
   const end: Date = moment(endDate).toDate()
 
@@ -730,7 +730,7 @@ export const generatePartnerAnalyticsReport = async ({
     const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
       volunteer._id,
       new Date(volunteer.createdAt),
-      moment().utc()
+      moment().utc().toDate()
     )
     const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
       volunteer._id,

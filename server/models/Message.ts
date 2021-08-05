@@ -49,5 +49,4 @@ messageSchema.virtual('isVolunteer').get(function() {
 
 const MessageModel = model<MessageDocument>('Message', messageSchema)
 
-module.exports = MessageModel
 export default MessageModel

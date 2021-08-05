@@ -1,9 +1,9 @@
-import { FilterQuery } from 'mongoose'
+import { DocumentQuery, FilterQuery } from 'mongoose'
 import QuestionModel, { Question, QuestionDocument } from '../models/Question'
 
 export async function list(
   filters: FilterQuery<QuestionDocument>[]
-): Promise<QuestionDocument[]> {
+): Promise<DocumentQuery<QuestionDocument[], QuestionDocument>> {
   return QuestionModel.find(filters)
 }
 
@@ -18,7 +18,7 @@ export interface QuestionUpdateOptions {
 
 export async function update(
   options: QuestionUpdateOptions
-): Promise<QuestionDocument> {
+): Promise<DocumentQuery<QuestionDocument, QuestionDocument>> {
   const { id, question } = options
 
   return QuestionModel.findOneAndUpdate(
@@ -28,7 +28,7 @@ export async function update(
   )
 }
 
-export async function destroy(questionId: string): Promise<QuestionDocument> {
+export async function destroy(questionId: string): Promise<DocumentQuery<QuestionDocument | null, QuestionDocument>> {
   return QuestionModel.findByIdAndDelete(questionId)
 }
 

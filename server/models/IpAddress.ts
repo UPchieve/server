@@ -4,6 +4,7 @@ import { IP_ADDRESS_STATUS } from '../constants'
 import { User } from './User'
 
 export interface IpAddress {
+  _id: Types.ObjectId
   createdAt: Date
   ip: string
   users: (Types.ObjectId | User)[]
@@ -32,5 +33,4 @@ const ipAddressSchema = new Schema({
 
 const IpAddressModel = model<IpAddressDocument>('IpAddress', ipAddressSchema)
 
-module.exports = IpAddressModel
 export default IpAddressModel

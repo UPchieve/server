@@ -1,15 +1,15 @@
 import Volunteer from '../models/Volunteer'
 const { getCourse, getProgress } = require('../utils/training-courses')
 
-module.exports = {
+export default {
   getCourse: (volunteer: any, courseKey: string) => {
     const course = getCourse(courseKey)
     if (!course) return
     const courseProgress = volunteer.trainingCourses[courseKey]
     course.isComplete = courseProgress.isComplete
     course.progress = courseProgress.progress
-    course.modules.forEach(mod => {
-      mod.materials.forEach(mat => {
+    course.modules.forEach((mod: any) => {
+      mod.materials.forEach((mat: any) => {
         mat.isCompleted = courseProgress.completedMaterials.includes(
           mat.materialKey
         )

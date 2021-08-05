@@ -2,14 +2,15 @@ import * as VerificationCtrl from '../../controllers/VerificationCtrl'
 import { VERIFICATION_METHOD } from '../../constants'
 import isValidInternationalPhoneNumber from '../../utils/is-valid-international-phone-number'
 import isValidEmail from '../../utils/is-valid-email'
-import UserService from '../../services/UserService'
-import MailService from '../../services/MailService'
+import * as UserService from '../../services/UserService'
+import * as MailService from '../../services/MailService'
 import * as StudentService from '../../services/StudentService'
 import { User } from '../../models/User'
 import logger from '../../logger'
+import { Request, Response, NextFunction, Router } from 'express'
 
-export function routeVerify(router) {
-  router.post('/verify/send', async function(req, res, next) {
+export function routeVerify(router: Router) {
+  router.post('/verify/send', async function(req: Request, res: Response, next: NextFunction) {
     const { user } = req
     const { sendTo, verificationMethod } = req.body
     const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
@@ -72,8 +73,11 @@ export function routeVerify(router) {
     }
   })
 
-  router.post('/verify/confirm', async function(req, res, next) {
+  router.post('/verify/confirm', async function(req: Request, res: Response, next: NextFunction) {
     const { user } = req
+    if (user === undefined) return res.status(400).json({
+      err: 'must include a user object on request body'
+    })
     const { verificationCode, sendTo, verificationMethod } = req.body
     const VERIFICATION_CODE_LENGTH = 6
     if (
@@ -81,7 +85,7 @@ export function routeVerify(router) {
       isNaN(Number(verificationCode))
     )
       return res.status(422).json({
-        err: 'Must enter a valid 6-digit validation code'
+        err: 'must enter a valid 6-digit validation code'
       })
     try {
       const isVerified = await VerificationCtrl.confirmVerification({
@@ -94,21 +98,21 @@ export function routeVerify(router) {
 
       if (user.isVolunteer) {
         if (user.volunteerPartnerOrg) {
-          MailService.sendPartnerVolunteerWelcomeEmail({
-            email: user.email,
-            volunteerName: user.firstname
-          })
+          MailService.sendPartnerVolunteerWelcomeEmail(
+            user.email,
+            user.firstname
+          )
         } else {
-          MailService.sendOpenVolunteerWelcomeEmail({
-            email: user.email,
-            volunteerName: user.firstname
-          })
+          MailService.sendOpenVolunteerWelcomeEmail(
+            user.email,
+            user.firstname
+          )
         }
       } else {
-        MailService.sendStudentWelcomeEmail({
-          email: user.email,
-          firstName: user.firstname
-        })
+        MailService.sendStudentWelcomeEmail(
+          user.email,
+          user.firstname
+        )
         StudentService.queueWelcomeEmails(user._id)
       }
     } catch (error) {

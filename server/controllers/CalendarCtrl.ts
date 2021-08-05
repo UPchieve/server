@@ -60,9 +60,9 @@ export async function updateSchedule(
   // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
   if (!user.isOnboarded && user.subjects.length > 0) {
     volunteerUpdates.isOnboarded = true
-    queueOnboardingEventEmails(user._id)
-    if (user.volunteerPartnerOrg) queuePartnerOnboardingEventEmails(user._id)
-    new AccountActionCreator(user._id, ip).accountOnboarded()
+    await queueOnboardingEventEmails(user._id)
+    if (user.volunteerPartnerOrg) await queuePartnerOnboardingEventEmails(user._id)
+    await new AccountActionCreator(user._id, ip).accountOnboarded()
     captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
       event: EVENTS.ACCOUNT_ONBOARDED
     })
@@ -84,7 +84,7 @@ export async function clearSchedule(
   user: Volunteer,
   tz: string // FIXME: constrain this to official timezones
 ): Promise<void> {
-  const clearedAvailability = _.reduce(
+  const clearedAvailability: Availability = _.reduce(
     user.availability,
     (clearedWeek, dayVal, dayKey) => {
       clearedWeek[dayKey] = _.reduce(
@@ -98,7 +98,7 @@ export async function clearSchedule(
       return clearedWeek
     },
     {}
-  )
+  ) as Availability
 
-  await this.updateSchedule({ user, tz, availability: clearedAvailability })
+  await updateSchedule({ip: '0.0.0.0', user, tz, availability: clearedAvailability })
 }

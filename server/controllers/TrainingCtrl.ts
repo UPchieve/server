@@ -2,7 +2,7 @@ import _ from 'lodash'
 import {
   AccountActionCreator,
   QuizActionCreator
-} from '../controllers/UserActionCtrl'
+} from './UserActionCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import QuestionModel, { QuestionDocument } from '../models/Question'
 import {
@@ -121,13 +121,8 @@ export function hasRequiredTraining(
   )
     return true
 
-  if (
-    subjectCertType === SUBJECT_TYPES.SAT &&
+  return subjectCertType === SUBJECT_TYPES.SAT &&
     userCertifications[TRAINING.SAT_STRATEGIES].passed
-  )
-    return true
-
-  return false
 }
 
 // Check if a required training cert has any associated passed certifications for it
@@ -147,13 +142,8 @@ export function hasCertForRequiredTraining(
   )
     return true
 
-  if (
-    trainingCert === TRAINING.SAT_STRATEGIES &&
+  return trainingCert === TRAINING.SAT_STRATEGIES &&
     isCertifiedIn(SAT_CERTS, userCertifications)
-  )
-    return true
-
-  return false
 }
 
 export function getUnlockedSubjects(
@@ -273,7 +263,7 @@ export async function getQuizScore(
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
       if (!user.subjects.includes(subject))
-        new QuizActionCreator(user._id, subject, ip).unlockedSubject()
+        await new QuizActionCreator(user._id, subject, ip).unlockedSubject()
       captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {
         event: EVENTS.SUBJECT_UNLOCKED,
         subject
@@ -288,9 +278,9 @@ export async function getQuizScore(
       unlockedSubjects.length > 0
     ) {
       userUpdates.isOnboarded = true
-      queueOnboardingEventEmails(user._id)
-      if (user.volunteerPartnerOrg) queuePartnerOnboardingEventEmails(user._id)
-      new AccountActionCreator(user._id, ip).accountOnboarded()
+      await queueOnboardingEventEmails(user._id)
+      if (user.volunteerPartnerOrg) await queuePartnerOnboardingEventEmails(user._id)
+      await new AccountActionCreator(user._id, ip).accountOnboarded()
       captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
         event: EVENTS.ACCOUNT_ONBOARDED
       })

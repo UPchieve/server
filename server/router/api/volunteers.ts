@@ -4,10 +4,12 @@ import * as VolunteersCtrl from '../../controllers/VolunteersCtrl'
 import * as UserService from '../../services/UserService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
+import { Request, Response, NextFunction, Router } from 'express'
+import { Volunteer } from '../../models/Volunteer'
 
-export default function(router) {
-  router.get('/volunteers', authPassport.isAdmin, function(req, res, next) {
-    VolunteersCtrl.getVolunteers(function(volunteers, err) {
+export default function(router: Router) {
+  router.get('/volunteers', authPassport.isAdmin, function(req: Request, res: Response, next: NextFunction) {
+    VolunteersCtrl.getVolunteers(function(volunteers: Volunteer[], err: Error) {
       if (err) {
         next(err)
       } else {
@@ -22,13 +24,13 @@ export default function(router) {
   router.get(
     '/volunteers/availability/:certifiedSubject',
     authPassport.isAdmin,
-    function(req, res, next) {
+    function(req: Request, res: Response, next: NextFunction) {
       const certifiedSubject = req.params.certifiedSubject
       VolunteersCtrl.getVolunteersAvailability(
         {
           certifiedSubject: certifiedSubject
         },
-        function(aggAvailabilities, err) {
+        function(aggAvailabilities: any, err: Error) {
           if (err) {
             next(err)
           } else {
@@ -43,8 +45,7 @@ export default function(router) {
   )
 
   router.get('/volunteers/review', authPassport.isAdmin, async function(
-    req,
-    res
+    req: Request, res: Response
   ) {
     try {
       const { page } = req.query
@@ -61,25 +62,24 @@ export default function(router) {
   })
 
   router.post('/volunteers/review/:id', authPassport.isAdmin, async function(
-    req,
-    res
+    req: Request, res: Response
   ) {
     const { id } = req.params
     const { photoIdStatus, referencesStatus } = req.body
 
     try {
-      await UserService.updatePendingVolunteerStatus({
-        volunteerId: id,
+      await UserService.updatePendingVolunteerStatus(
+        id,
         photoIdStatus,
         referencesStatus
-      })
+      )
       res.sendStatus(200)
     } catch (error) {
       res.status(500).json({ err: error.message })
     }
   })
 
-  router.get('/volunteers/hours-last-updated', async function(req, res) {
+  router.get('/volunteers/hours-last-updated', async function(req: Request, res: Response) {
     try {
       const cacheValue = await cache.get(
         config.cacheKeys.updateTotalVolunteerHoursLastRun

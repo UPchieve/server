@@ -1,9 +1,10 @@
 import expressWs from '@small-tech/express-ws'
 import Case from 'case'
 import * as FeedbackService from '../../services/FeedbackService'
+import { Request, Response, NextFunction } from 'express'
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function routeFeedback(router: expressWs.Router): void {
-  router.post('/feedback', async (req, res, next) => {
+  router.post('/feedback', async (req: Request, res: Response, next: NextFunction) => {
     const {
       sessionId,
       topic,
@@ -37,7 +38,7 @@ export function routeFeedback(router: expressWs.Router): void {
     }
   })
 
-  router.get('/feedback', async (req, res, next) => {
+  router.get('/feedback', async (req: Request, res: Response, next: NextFunction) => {
     const { sessionId, userType } = req.query
     try {
       const feedback = await FeedbackService.getFeedback({

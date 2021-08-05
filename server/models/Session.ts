@@ -1,6 +1,6 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
 import { values } from 'lodash'
-import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
+import { Aggregate, Document, model, Model, Schema, Types, Query } from 'mongoose'
 import {
   FEEDBACK_VERSIONS,
   SESSION_FLAGS,
@@ -25,27 +25,27 @@ const validTypes = [
 export interface Session {
   _id: Types.ObjectId
   student: Types.ObjectId | Student
-  volunteer: Types.ObjectId | Volunteer
-  type: string
-  subTopic: string
+  volunteer?: Types.ObjectId | Volunteer
+  type?: string
+  subTopic?: string
   messages: Message[]
   hasWhiteboardDoc?: boolean
   whiteboardDoc?: string
   quillDoc: string
   createdAt: Date
-  volunteerJoinedAt: Date
-  failedJoins: (Types.ObjectId | User)[]
-  endedAt: Date
-  endedBy: Types.ObjectId | User
-  notifications: (Types.ObjectId | Notification)[]
-  photos: string[]
-  isReported: boolean
-  reportReason: string
-  reportMessage: string
-  flags: string[]
-  reviewedStudent: boolean
-  reviewedVolunteer: boolean
-  timeTutored: number
+  volunteerJoinedAt?: Date
+  failedJoins?: (Types.ObjectId | User)[]
+  endedAt?: Date
+  endedBy?: Types.ObjectId | User
+  notifications?: (Types.ObjectId | Notification)[]
+  photos?: string[]
+  isReported?: boolean
+  reportReason?: string
+  reportMessage?: string
+  flags?: string[]
+  reviewedStudent?: boolean
+  reviewedVolunteer?: boolean
+  timeTutored?: number
 }
 
 export type SessionDocument = Session & Document
@@ -79,7 +79,10 @@ const sessionSchema = new Schema({
     default: ''
   },
 
-  messages: [MessageModel.schema],
+  messages: {
+    type: MessageModel.schema,
+    default: []
+  },
 
   hasWhiteboardDoc: {
     type: Boolean
@@ -312,7 +315,7 @@ export async function updateReviewedVolunteer(
   }
 }
 
-export async function getSessionToEnd(sessionId: Types.ObjectId | string) {
+export async function getSessionToEnd(sessionId: Types.ObjectId | string): Promise<Session> {
   // @todo: fix type annotation
   let session
   try {
@@ -367,11 +370,11 @@ interface SessionsToReview {
   flags: string[]
 }
 
-export async function getSessionsToReview({
-  query,
-  skip,
-  limit
-}): Promise<SessionsToReview[]> {
+export async function getSessionsToReview(
+  query: Query<SessionDocument>,
+  skip: number,
+  limit: number
+): Promise<SessionsToReview[]> {
   try {
     return (await SessionModel.aggregate([
       {
@@ -459,9 +462,9 @@ interface TotalTimeTutoredForDateRange {
 }
 
 export async function getTotalTimeTutoredForDateRange(
-  volunteerId,
-  startDate,
-  endDate
+  volunteerId: string,
+  startDate: string,
+  endDate: string
 ): Promise<TotalTimeTutoredForDateRange[]> {
   try {
     return await SessionModel.aggregate([
@@ -497,17 +500,13 @@ export async function getTotalTimeTutoredForDateRange(
 }
 
 export async function getActiveSessionsWithVolunteers() {
-  try {
-    return await SessionModel.find({
-      endedAt: { $exists: false },
-      volunteer: { $exists: true }
-    })
-      .select('volunteer')
-      .lean()
-      .exec()
-  } catch (error) {
-    throw error
-  }
+  return await SessionModel.find({
+    endedAt: { $exists: false },
+    volunteer: { $exists: true }
+  })
+    .select('volunteer')
+    .lean()
+    .exec()
 }
 
 export async function updateReportSession(
@@ -1026,12 +1025,12 @@ export async function getSessionByIdWithStudentAndVolunteer(
   }
 }
 
-export async function createSession({
-  studentId,
-  type,
-  subTopic,
-  isStudentBanned
-}) {
+export async function createSession(
+  studentId: string,
+  type: string,
+  subTopic: string,
+  isStudentBanned: boolean
+) {
   const session = new SessionModel({
     student: studentId,
     type: type,

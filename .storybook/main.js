@@ -32,7 +32,7 @@ module.exports = {
             use: [
               /* config.module.rule('scss').oneOf('vue-modules').use('vue-style-loader') */
               {
-                loader: path.join(__dirname, '..', 'node_modules', 'vue-style-loader/index.js'),
+                loader: path.join(__dirname, '..', 'node_modules', 'vue-style-loader/index.ts'),
                 options: {
                   sourceMap: false,
                   shadowMode: false
@@ -51,7 +51,7 @@ module.exports = {
               },
               /* config.module.rule('scss').oneOf('vue-modules').use('postcss-loader') */
               {
-                loader: path.join(__dirname, '..', 'node_modules', 'postcss-loader/src/index.js'),
+                loader: path.join(__dirname, '..', 'node_modules', 'postcss-loader/src/index.ts'),
                 options: {
                   sourceMap: false
                 }
@@ -80,7 +80,7 @@ module.exports = {
             use: [
               /* config.module.rule('scss').oneOf('vue').use('vue-style-loader') */
               {
-                loader: path.join(__dirname, '..', 'node_modules', 'vue-style-loader/index.js'),
+                loader: path.join(__dirname, '..', 'node_modules', 'vue-style-loader/index.ts'),
                 options: {
                   sourceMap: false,
                   shadowMode: false
@@ -96,7 +96,7 @@ module.exports = {
               },
               /* config.module.rule('scss').oneOf('vue').use('postcss-loader') */
               {
-                loader: path.join(__dirname, '..', 'node_modules', 'postcss-loader/src/index.js'),
+                loader: path.join(__dirname, '..', 'node_modules', 'postcss-loader/src/index.ts'),
                 options: {
                   sourceMap: false
                 }
@@ -125,7 +125,7 @@ module.exports = {
             use: [
               /* config.module.rule('scss').oneOf('normal-modules').use('vue-style-loader') */
               {
-                loader: path.join(__dirname, '..', 'node_modules', 'vue-style-loader/index.js'),
+                loader: path.join(__dirname, '..', 'node_modules', 'vue-style-loader/index.ts'),
                 options: {
                   sourceMap: false,
                   shadowMode: false
@@ -144,7 +144,7 @@ module.exports = {
               },
               /* config.module.rule('scss').oneOf('normal-modules').use('postcss-loader') */
               {
-                loader: path.join(__dirname, '..', 'node_modules', 'postcss-loader/src/index.js'),
+                loader: path.join(__dirname, '..', 'node_modules', 'postcss-loader/src/index.ts'),
                 options: {
                   sourceMap: false
                 }
@@ -172,7 +172,7 @@ module.exports = {
             use: [
               /* config.module.rule('scss').oneOf('normal').use('vue-style-loader') */
               {
-                loader: path.join(__dirname, '..', 'node_modules', 'vue-style-loader/index.js'),
+                loader: path.join(__dirname, '..', 'node_modules', 'vue-style-loader/index.ts'),
                 options: {
                   sourceMap: false,
                   shadowMode: false
@@ -188,7 +188,7 @@ module.exports = {
               },
               /* config.module.rule('scss').oneOf('normal').use('postcss-loader') */
               {
-                loader: path.join(__dirname, '..', 'node_modules', 'postcss-loader/src/index.js'),
+                loader: path.join(__dirname, '..', 'node_modules', 'postcss-loader/src/index.ts'),
                 options: {
                   sourceMap: false
                 }
@@ -215,7 +215,7 @@ module.exports = {
     })
 
     let rule = config.module.rules.find(r =>
-      // it can be another rule with file loader 
+      // it can be another rule with file loader
       // we should get only svg related
       r.test && r.test.toString().includes('svg') &&
       // file-loader might be resolved to js file path so "endsWith" is not reliable enough

@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getVolunteer } from '../../../services/UserService'
 import { Jobs } from '../index'
 
@@ -46,30 +46,31 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
         const hasCompletedBackgroundInfo = volunteer.country
 
         // Volunteer has not completed onboarding 7 days after creating  account
-        await MailService.sendOnboardingReminderOne({
-          ...contactInfo,
+        await MailService.sendOnboardingReminderOne(
+          contactInfo.firstName,
+          contactInfo.email,
           hasCompletedBackgroundInfo,
           hasCompletedUpchieve101,
           hasUnlockedASubject,
           hasSelectedAvailability
-        })
+        )
         delay = 1000 * 60 * 60 * 24 * 7
         nextJob = Jobs.EmailOnboardingReminderTwo
       }
 
       if (currentJob === Jobs.EmailOnboardingReminderTwo) {
         // Volunteer has not completed onboarding 7 days after sending onboarding reminder one
-        await MailService.sendOnboardingReminderTwo(contactInfo)
+        await MailService.sendOnboardingReminderTwo(contactInfo.email, contactInfo.firstName)
         delay = 1000 * 60 * 60 * 24 * 10
         nextJob = Jobs.EmailOnboardingReminderThree
       }
 
       if (currentJob === Jobs.EmailOnboardingReminderThree) {
         // Volunteer has not completed onboarding 10 days after sending onboarding reminder two
-        await MailService.sendOnboardingReminderThree(contactInfo)
+        await MailService.sendOnboardingReminderThree(contactInfo.email, contactInfo.firstName)
       }
       logger.info(`Emailed ${currentJob} to volunteer ${volunteerId}`)
-      if (nextJob) job.queue.add(nextJob, { volunteerId }, { delay })
+      if (nextJob) await job.queue.add(nextJob, { volunteerId }, { delay })
     } catch (error) {
       throw new Error(
         `Failed to email ${currentJob} to volunteer ${volunteerId}: ${error}`

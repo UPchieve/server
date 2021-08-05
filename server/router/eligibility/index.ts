@@ -1,21 +1,21 @@
-import express, { Express } from 'express'
+import express, { Express, Request, Response, NextFunction } from 'express'
 import * as Sentry from '@sentry/node'
 import { authPassport } from '../../utils/auth-utils'
 import * as SchoolService from '../../services/SchoolService'
-import UserService from '../../services/UserService'
+import * as UserService from '../../services/UserService'
 import * as UserCtrl from '../../controllers/UserCtrl'
 import School from '../../models/School'
 import ZipCode from '../../models/ZipCode'
 import IneligibleStudent from '../../models/IneligibleStudent'
 import * as IneligibleStudentService from '../../services/IneligibleStudentService'
 import { resError } from '../res-error'
-import IpAddressService from '../../services/IpAddressService'
+import * as IpAddressService from '../../services/IpAddressService'
 
 export function routes(app: Express) {
   const router: any = express.Router()
 
   // Check if a student is eligible
-  router.route('/check').post(async function(req, res, next) {
+  router.route('/check').post(async function(req: Request, res: Response, next: NextFunction) {
     const {
       schoolUpchieveId,
       zipCode: zipCodeInput,
@@ -23,7 +23,7 @@ export function routes(app: Express) {
       referredByCode
     } = req.body
 
-    const existingUser = await UserService.getUser({ email })
+    const existingUser = await UserService.getUser({ email }, {})
     if (existingUser)
       return res.status(422).json({
         message: 'Email already in use'
@@ -62,7 +62,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/school/search').get(async (req, res, next) => {
+  router.route('/school/search').get(async (req: Request, res: Response, next: NextFunction) => {
     const { q } = req.query
 
     try {
@@ -126,9 +126,9 @@ export function routes(app: Express) {
     })
 
   router.get('/school/:schoolId', authPassport.isAdmin, async function(
-    req,
-    res,
-    next
+    req: Request,
+    res: Response,
+    next: NextFunction
   ) {
     const { schoolId } = req.params
 
@@ -141,23 +141,23 @@ export function routes(app: Express) {
     }
   })
   router.put('/school/:schoolId', authPassport.isAdmin, async function(
-    req,
-    res,
-    next
+    req: Request,
+    res: Response,
+    next: NextFunction
   ) {
     const { schoolId } = req.params
 
     try {
-      await SchoolService.adminUpdateSchool({ schoolId, ...req.body })
+      await SchoolService.adminUpdateSchool(schoolId, req.body.name, req.body.city, req.body.state, req.body.zipCode, req.body.isApproved)
       res.sendStatus(200)
     } catch (err) {
       next(err)
     }
   })
 
-  router.get('/schools', authPassport.isAdmin, async function(req, res, next) {
+  router.get('/schools', authPassport.isAdmin, async function(req: Request, res: Response, next: NextFunction) {
     try {
-      const { schools, isLastPage } = await SchoolService.getSchools(req.query)
+      const { schools, isLastPage } = await SchoolService.getSchools(req.query.name, req.query.state, req.query.city, req.query.page)
       res.json({ schools, isLastPage })
     } catch (err) {
       next(err)
@@ -165,12 +165,12 @@ export function routes(app: Express) {
   })
 
   router.post('/school/new', authPassport.isAdmin, async function(
-    req,
-    res,
-    next
+    req: Request,
+    res: Response,
+    next: NextFunction
   ) {
     try {
-      const school = await SchoolService.createSchool(req.body)
+      const school = await SchoolService.createSchool(req.body.name, req.body.city, req.body.state, req.body.zipCode, req.body.isApproved)
       res.json({ schoolId: school._id })
     } catch (err) {
       next(err)
@@ -178,8 +178,8 @@ export function routes(app: Express) {
   })
 
   router.post('/school/approval', authPassport.isAdmin, async function(
-    req,
-    res
+    req: Request,
+    res: Response
   ) {
     const { schoolId, isApproved } = req.body
 
@@ -193,9 +193,9 @@ export function routes(app: Express) {
   })
 
   router.get('/ineligible-students', authPassport.isAdmin, async function(
-    req,
-    res,
-    next
+    req: Request,
+    res: Response,
+    next: NextFunction
   ) {
     const page = parseInt(req.query.page) || 1
 
@@ -212,8 +212,8 @@ export function routes(app: Express) {
   })
 
   router.get('/zip-codes/:zipCode', authPassport.isAdmin, async function(
-    req,
-    res
+    req: Request,
+    res: Response
   ) {
     const { zipCode } = req.params
 
@@ -230,7 +230,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.get('/ip-check', async function(req, res) {
+  router.get('/ip-check', async function(req: Request, res: Response) {
     try {
       await IpAddressService.checkIpAddress(req.ip)
       res.sendStatus(200)

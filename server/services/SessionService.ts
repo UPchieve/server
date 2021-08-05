@@ -13,7 +13,7 @@ import {
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import * as sessionUtils from '../utils/session-utils'
 import config from '../config'
-import { asString } from '../utils/type-utils'
+import { asObjectId, asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
 import * as AssistmentsDataRepo from '../models/AssistmentsData'
 import logger from '../logger'
@@ -25,12 +25,12 @@ import * as WhiteboardService from './WhiteboardService'
 import * as QuillDocService from './QuillDocService'
 import * as AnalyticsService from './AnalyticsService'
 import * as NotificationService from './NotificationService'
-import UserService from './UserService'
-
+import * as UserService from './UserService'
 import { getSessionRequestedUserAgentFromSessionId } from './UserActionService'
 import * as AwsService from './AwsService'
 import { getFeedbackForSession } from './FeedbackService'
 import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
+import SocketService from './SocketService'
 import { captureEvent } from './AnalyticsService'
 import * as PushTokenService from './PushTokenService'
 
@@ -102,9 +102,9 @@ export async function sessionsToReview(data: unknown) {
 }
 
 export async function getTimeTutoredForDateRange(
-  volunteerId,
-  fromDate,
-  toDate
+  volunteerId: string,
+  fromDate: string,
+  toDate: string
 ) {
   const [result] = await SessionRepo.getTotalTimeTutoredForDateRange(
     volunteerId,
@@ -171,15 +171,11 @@ export async function reportSession(data: unknown) {
     )
 }
 
-export async function endSession({
-  sessionId,
-  endedBy = null,
-  isAdmin = false
-}: {
-  sessionId: string
-  endedBy: User
-  isAdmin?: boolean
-}) {
+export async function endSession(
+  sessionId: string,
+  endedBy: User|null = null,
+  isAdmin: boolean = false
+) {
   const session = await SessionRepo.getSessionToEnd(sessionId)
   if (session.endedAt)
     throw new sessionUtils.EndSessionError('Session has already ended')
@@ -192,7 +188,7 @@ export async function endSession({
 
   const endedAt = new Date()
 
-  const reviewFlags = sessionUtils.getReviewFlags({ ...session, endedAt })
+  const reviewFlags = sessionUtils.getReviewFlags(session)
   const isReviewNeeded =
     reviewFlags.length > 0 && sessionUtils.hasReviewTriggerFlags(reviewFlags)
   const update: {
@@ -489,13 +485,13 @@ export async function startSession(data: unknown) {
       'Student already has an active session'
     )
 
-  const newSession = await SessionRepo.createSession({
-    studentId: userId,
+  const newSession = await SessionRepo.createSession(
+    userId.toString(),
     // @note: sessionType and subtopic are kebab-case
-    type: Case.camel(sessionType),
-    subTopic: Case.camel(sessionSubTopic),
-    isStudentBanned: user.isBanned
-  })
+    Case.camel(sessionType),
+    Case.camel(sessionSubTopic),
+    user.isBanned
+  )
 
   const numProblemId = Number(problemId)
   if (numProblemId && assignmentId && studentId)
@@ -535,15 +531,15 @@ export async function startSession(data: unknown) {
   return newSession._id
 }
 
-export async function finishSession(data: unknown, SocketService) {
+export async function finishSession(data: unknown, SocketService: SocketService) {
   const { sessionId, user, userAgent, ip } = sessionUtils.asFinishSessionData(
     data
   )
 
-  await endSession({
+  await endSession(
     sessionId,
-    endedBy: user
-  })
+    user
+  )
   // @todo: figure out a better way to instantiate SocketService
   await SocketService.emitSessionChange(sessionId)
   await new UserActionCtrl.SessionActionCreator(
@@ -592,7 +588,7 @@ export async function publicSession(data: unknown) {
 }
 
 export async function getSessionNotifications(data: unknown) {
-  const sessionId = asString(data)
+  const sessionId = asObjectId(data)
   return NotificationService.getSessionNotifications(sessionId)
 }
 
@@ -600,7 +596,9 @@ export async function joinSession(data: unknown): Promise<void> {
   const { socket, session, user, joinedFrom } = sessionUtils.asJoinSessionData(
     data
   )
+  if (!user._id) throw new Error(`user has no id`)
   const userAgent = socket.request.headers['user-agent']
+  if (!socket.handshake) throw new Error('socket handshake has not yet completed')
   const ipAddress = socket.handshake.address
   const sessionIdString = session._id.toString()
 

@@ -1,8 +1,8 @@
-const admin = require('firebase-admin')
-const config = require('../../config')
+import admin from 'firebase-admin'
+import config from '../../config'
+import { Express, Request, Response } from 'express'
 
-module.exports = function(app) {
-  // @todo: need to set FIREBASE_PRIVATE_KEY_JSON in local development to run
+export default function(app: Express) {
   if (process.env.FIREBASE_PRIVATE_KEY_JSON) {
     admin.initializeApp({
       projectId: config.firebase.projectId,
@@ -13,7 +13,7 @@ module.exports = function(app) {
   }
 
   // used in native app to workaround iOS 3rd party cookie limitation
-  app.use('/setcookie', function(req, res, next) {
+  app.use('/setcookie', function(req: Request, res: Response) {
     res.cookie('mobile_cookie', '1', { maxAge: 3600 * 24 * 365 * 10 })
     res.redirect(302, 'http://localhost:12380?redirected')
   })

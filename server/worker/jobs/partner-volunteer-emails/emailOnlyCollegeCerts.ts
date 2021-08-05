@@ -6,7 +6,7 @@ import {
   SAT_SUBJECTS
 } from '../../../constants'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getNotifications } from '../../../services/NotificationService'
 import { getVolunteer } from '../../../services/UserService'
 
@@ -57,8 +57,7 @@ export default async (
 
     if (textNotifications.length < 2) {
       try {
-        const contactInfo = { firstName, email }
-        await MailService.sendPartnerVolunteerOnlyCollegeCerts(contactInfo)
+        await MailService.sendPartnerVolunteerOnlyCollegeCerts(email, firstName)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(

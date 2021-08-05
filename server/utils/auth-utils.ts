@@ -3,12 +3,12 @@ import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
 import passportLocal from 'passport-local'
 import { Types } from 'mongoose'
-
+import { Request, Response, NextFunction } from 'express'
 import config from '../config'
-import User from '../models/User'
+import UserModel, { User } from '../models/User'
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
-import UserService from '../services/UserService'
+import * as UserService from '../services/UserService'
 import { EVENTS } from '../constants'
 import { LookupError } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
@@ -86,7 +86,7 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
-  studentPartnerOrg: asOptional(asString),
+  studentPartnerOrg: asString,
   partnerUserId: asOptional(asString),
   partnerSite: asOptional(asString),
   college: asOptional(asString)
@@ -159,7 +159,7 @@ export async function checkPhone(
 
 export async function getReferredBy(
   referredByCode: string
-): Promise<Types.ObjectId> {
+): Promise<Types.ObjectId|undefined> {
   const referredBy = await checkReferral(referredByCode)
   if (referredBy) {
     captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
@@ -176,8 +176,8 @@ export const hashPassword = async function(password: string): Promise<string> {
 }
 
 export function verifyPassword(
-  candidatePassword,
-  userPassword
+  candidatePassword: string,
+  userPassword: string
 ): Promise<Error | boolean> {
   return new Promise((resolve, reject) => {
     bcrypt.compare(candidatePassword, userPassword, (error, isMatch) => {
@@ -193,13 +193,13 @@ export function verifyPassword(
 // Passport functions
 const LocalStrategy = passportLocal.Strategy
 function setupPassport() {
-  passport.serializeUser(function(user, done) {
+  passport.serializeUser(function(user: User, done) {
     done(null, user._id)
   })
 
   passport.deserializeUser(async function(id, done) {
     try {
-      const user = await User.findById(id).lean()
+      const user = await UserModel.findById(id).lean()
       return done(null, user)
     } catch (error) {
       return done(error)
@@ -214,7 +214,7 @@ function setupPassport() {
       },
       async function(email, passwordGiven, done) {
         try {
-          const user = await User.findOne({ email: email }, '+password')
+          const user = await UserModel.findOne({ email: email }, '+password')
             .lean()
             .exec()
 
@@ -227,7 +227,7 @@ function setupPassport() {
             user.password
           )
 
-          user.password = undefined
+          user.password = ''
 
           if (isValidPassword) {
             return done(null, user)
@@ -243,30 +243,36 @@ function setupPassport() {
 }
 
 // Login Required middleware
-function isAuthenticated(req, res, next) {
+function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next()
   }
   return res.status(401).json({ err: 'Not authenticated' })
 }
 
-function isAdmin(req, res, next) {
-  if (req.user.isAdmin) {
-    return next()
+function isAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.user !== undefined) {
+    const user = req.user as User
+    if (user.isAdmin) {
+      return next()
+    }
   }
   return res.status(401).json({ err: 'Unauthorized' })
 }
 
-function isAuthenticatedRedirect(req, res, next) {
+function isAuthenticatedRedirect(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next()
   }
   return res.redirect('/')
 }
 
-function isAdminRedirect(req, res, next) {
-  if (req.user.isAdmin) {
-    return next()
+function isAdminRedirect(req: Request, res: Response, next: NextFunction) {
+  if (req.user !== undefined) {
+    const user = req.user as User
+    if (user.isAdmin) {
+      return next()
+    }
   }
   return res.redirect('/')
 }

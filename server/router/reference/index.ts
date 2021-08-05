@@ -1,9 +1,9 @@
-const express = require('express')
+import express, { Express } from 'express'
 const { ObjectId } = require('mongodb')
 const UserService = require('../../services/UserService')
 
-module.exports = function(app) {
-  const router = new express.Router()
+export default function(app: Express) {
+  const router = express.Router()
 
   router.post('/:referenceId/submit', async (req, res, next) => {
     const { referenceId } = req.params

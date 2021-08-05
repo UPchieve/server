@@ -1,9 +1,10 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
 import { Jobs } from '..'
+import { Job } from 'bull'
 import logger from '../../../logger'
 import { Volunteer } from '../../../models/Volunteer'
 import { updateAvailabilitySnapshot } from '../../../services/AvailabilityService'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import {
   getVolunteersWithPipeline,
   updateVolunteer
@@ -22,12 +23,19 @@ enum InactiveGroup {
   inactiveNinetyDays = 'inactiveNinetyDays'
 }
 
+interface InactiveVolunteerEmailPayload {
+  volunteers: Volunteer[],
+  currentJob: Jobs.EmailVolunteerInactiveThirtyDays | Jobs.EmailVolunteerInactiveSixtyDays | Jobs.EmailVolunteerInactiveNinetyDays,
+  mailHandler: Function,
+  group: string
+}
+
 async function sendEmailToInactiveVolunteers({
   volunteers,
   currentJob,
   mailHandler,
   group
-}) {
+}: InactiveVolunteerEmailPayload) {
   for (const volunteer of volunteers) {
     const { email, firstname: firstName, _id } = volunteer
     const errors = []

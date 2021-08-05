@@ -81,5 +81,4 @@ const NotificationModel = model<NotificationDocument>(
   notificationSchema
 )
 
-module.exports = NotificationModel
 export default NotificationModel

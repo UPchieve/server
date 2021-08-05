@@ -1,7 +1,7 @@
 import { flatten } from 'lodash'
 import { log } from '../logger'
 import VolunteerModel, { Volunteer, Reference } from '../../models/Volunteer'
-import UserService from '../../services/UserService'
+import * as UserService from '../../services/UserService'
 import { REFERENCE_STATUS } from '../../constants'
 import { Jobs } from '.'
 
@@ -34,10 +34,10 @@ export default async (): Promise<void> => {
   let totalEmailed = 0
   for (const u of unsent) {
     try {
-      await UserService.notifyReference({
-        reference: u.reference,
-        volunteer: u.volunteer
-      })
+      await UserService.notifyReference(
+        u.reference,
+        u.volunteer
+      )
       totalEmailed += 1
     } catch (error) {
       errors.push(`reference ${u.reference._id}: ${error}`)

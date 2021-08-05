@@ -6,5 +6,4 @@ const queue = new Queue(config.workerQueueName, {
   createClient: () => new Redis(config.redisConnectionString)
 })
 
-module.exports = queue
 export default queue

@@ -1,6 +1,6 @@
 import { log } from '../logger'
 import VolunteerModel from '../../models/Volunteer'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
 
 // Runs every day at 10am EST

@@ -292,5 +292,4 @@ const SchoolModel = model<SchoolDocument, SchoolStaticModel>(
   schoolSchema
 )
 
-module.exports = SchoolModel
 export default SchoolModel

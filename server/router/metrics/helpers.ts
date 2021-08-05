@@ -22,16 +22,18 @@ import {
 import { extendMoment } from 'moment-range'
 
 import FeedbackModel from '../../models/Feedback'
-const moment = extendMoment(require('moment'))
-const Session = require('../../models/Session')
-const User = require('../../models/User')
+import Moment from 'moment'
+const moment = extendMoment(Moment)
+import Session from '../../models/Session'
+import User from '../../models/User'
+import { Student } from '../../models/Student'
 
 const MIN_MINUTES_FOR_SUCCESSFUL_SESSION = 1
 const MAX_SESSION_LENGTH_SECONDS = 3600 * 5 // 5hr
 const MIN_SESSION_LENGTH_SECONDS = 60
 
 // timeScale is 'hour' | 'day' | 'week' | 'month' | 'all'
-function getScaledTimeByTimeScale(timeScale, time) {
+function getScaledTimeByTimeScale(timeScale: string, time: Moment) {
   if (time == null) {
     time = moment.utc()
   }
@@ -53,7 +55,7 @@ function getScaledTimeByTimeScale(timeScale, time) {
   }
 }
 
-function objToDatapoints(obj, prop = 'count') {
+function objToDatapoints(obj: {}, prop: string = 'count') {
   return map(obj, (scaledTimes, segmentSlug) => {
     scaledTimes = mapValues(scaledTimes, prop)
     return map(scaledTimes, (count, scaledTime) => {
@@ -68,7 +70,7 @@ function objToDatapoints(obj, prop = 'count') {
   })
 }
 
-function deepObjToDatapoints(obj, dimensionSlug = 'all') {
+function deepObjToDatapoints(obj: {}, dimensionSlug: string = 'all') {
   return flattenDeep(
     map(obj, (scaledTimes, segmentSlug) => {
       scaledTimes = mapValues(scaledTimes, dimensionSlug)
@@ -87,7 +89,7 @@ function deepObjToDatapoints(obj, dimensionSlug = 'all') {
   )
 }
 
-function getPerSegment(rowsWithExtras, fn, timeScale, type = 'all') {
+function getPerSegment(rowsWithExtras: any[], fn: Function, timeScale: string, type: string = 'all') {
   const studentPartnerGroups = groupBy(
     rowsWithExtras,
     ({ studentPartnerOrg }) => `student-${studentPartnerOrg || 'none'}`
@@ -112,9 +114,9 @@ function getPerSegment(rowsWithExtras, fn, timeScale, type = 'all') {
 }
 
 function getFeedbackStatsPerSegment(
-  feedbacksWithExtras,
-  segmentSlug,
-  timeScale
+  feedbacksWithExtras: any[],
+  segmentSlug: string,
+  timeScale: string
 ) {
   // bunch of stuff to conform to datapoint format {scaledTime, dimensionSlug, dimensionValue}
   return reduce(
@@ -146,7 +148,7 @@ function getFeedbackStatsPerSegment(
   )
 }
 
-async function getFeedbackStats(userType, options) {
+async function getFeedbackStats(userType: string, options: { minTime: Date, maxTime: Date, timeScale: string}) {
   const { minTime, maxTime, timeScale = 'day' } = options
   const feedbacks = await FeedbackModel.find({
     userType,
@@ -223,7 +225,7 @@ async function getFeedbackStats(userType, options) {
   return { sum: toDatapoints('sum'), count: toDatapoints('count') }
 }
 
-function getSessionsWithExtras(sessions, allUsers = undefined) {
+function getSessionsWithExtras(sessions: Session[], allUsers: User[] = undefined) {
   return filter(
     map(sessions, session => {
       const startTime = moment.utc(session.createdAt)
@@ -265,7 +267,7 @@ function getSessionsWithExtras(sessions, allUsers = undefined) {
   )
 }
 
-async function getCumulativeSessions({ minTime, maxTime }) {
+async function getCumulativeSessions(minTime: Date, maxTime: Date) {
   const sessions = await Session.find({
     createdAt: { $lte: maxTime }
   })
@@ -299,7 +301,7 @@ async function getCumulativeSessions({ minTime, maxTime }) {
   return allDatapoints
 }
 
-function getSessionStatsPerSegment(sessionsWithExtras, segmentSlug, timeScale) {
+function getSessionStatsPerSegment(sessionsWithExtras: any, segmentSlug: string, timeScale: string) {
   const sessionGroups = groupBy(sessionsWithExtras, ({ createdAt }) =>
     getScaledTimeByTimeScale(timeScale, moment.utc(createdAt))
   )
@@ -384,7 +386,7 @@ async function getCumulativeStudents({ minTime, maxTime }) {
   return allDatapoints
 }
 
-async function getStudentsDatapoints(students, segmentSlug, timeScale) {
+async function getStudentsDatapoints(students: Student[], segmentSlug: string, timeScale: string) {
   const studentGroups = groupBy(students, ({ createdAt }) =>
     getScaledTimeByTimeScale(timeScale, moment.utc(createdAt))
   )
@@ -442,7 +444,7 @@ async function getStudents({ minTime, maxTime, timeScale = 'day' }) {
   return allDatapoints.concat(flatten(studentPartnerDatapoints))
 }
 
-async function getVolunteerDistributionStats(options) {
+async function getVolunteerDistributionStats(options: { minTime: Date, maxTime: Date, timeScale: string }) {
   const { minTime, maxTime, timeScale = 'day' } = options
   const volunteers = await User.find({
     isVolunteer: true,
@@ -515,9 +517,9 @@ async function getVolunteerDistributionStats(options) {
 }
 
 function getVolunteerStatsPerSegment(
-  volunteersWithExtras,
-  segmentSlug,
-  timeScale
+  volunteersWithExtras: any,
+  segmentSlug: string,
+  timeScale: string
 ) {
   const volunteerGroups = groupBy(volunteersWithExtras, ({ createdAt }) =>
     getScaledTimeByTimeScale(timeScale, moment.utc(createdAt))
@@ -570,7 +572,7 @@ async function getVolunteerStats({ minTime, maxTime, timeScale = 'day' }) {
   )
 }
 
-module.exports = {
+export default {
   getFeedbackStats,
   getCumulativeSessions,
   getSessionStats,

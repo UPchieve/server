@@ -136,7 +136,7 @@ export const Config = Record({
   workerQueueName: String,
   redisConnectionString: String,
   firebase: Record({
-    projectId: Number
+    projectId: String
   }),
   bannedServiceProviders: Array(String),
   awsS3: Record({

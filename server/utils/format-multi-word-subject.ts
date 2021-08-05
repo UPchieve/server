@@ -6,5 +6,4 @@ const formatMultiWordSubject = (subject): string => {
   return subject
 }
 
-module.exports = formatMultiWordSubject
 export default formatMultiWordSubject

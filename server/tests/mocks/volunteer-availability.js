@@ -553,7 +553,7 @@ const allHoursSelected = {
   }
 }
 
-module.exports = {
+export default {
   flexibleHoursSelected,
   noHoursSelected,
   allHoursSelected

@@ -4,9 +4,10 @@ const UserActionCtrl = require('../../controllers/UserActionCtrl')
 const TrainingCourseService = require('../../services/TrainingCourseService')
 const UserActionService = require('../../services/UserActionService')
 const VolunteerService = require('../../services/VolunteerService')
+import { Request, Response, NextFunction, Router } from 'express'
 
-module.exports = function(router) {
-  router.post('/training/questions', async function(req, res, next) {
+export default function(router: Router) {
+  router.post('/training/questions', async function(req: Request, res: Response, next: NextFunction) {
     try {
       const questions = await TrainingCtrl.getQuestions({
         category: req.body.category
@@ -20,7 +21,7 @@ module.exports = function(router) {
     }
   })
 
-  router.post('/training/score', async function(req, res, next) {
+  router.post('/training/score', async function(req: Request, res: Response, next: NextFunction) {
     try {
       const { user, ip } = req
       const { category, idAnswerMap } = req.body
@@ -78,7 +79,7 @@ module.exports = function(router) {
     }
   })
 
-  router.get('/training/review/:category', function(req, res, next) {
+  router.get('/training/review/:category', function(req: Request, res: Response, next: NextFunction) {
     const { _id } = req.user
     const { category } = req.params
     const { ip: ipAddress } = req
@@ -90,7 +91,7 @@ module.exports = function(router) {
     res.sendStatus(204)
   })
 
-  router.get('/training/course/:courseKey', function(req, res, next) {
+  router.get('/training/course/:courseKey', function(req: Request, res: Response, next: NextFunction) {
     const { user } = req
     const { courseKey } = req.params
     const course = TrainingCourseService.getCourse(user, courseKey)
@@ -99,9 +100,8 @@ module.exports = function(router) {
   })
 
   router.post('/training/course/:courseKey/progress', async function(
-    req,
-    res,
-    next
+    req: Request,
+    res: Response
   ) {
     const { user } = req
     const { courseKey } = req.params

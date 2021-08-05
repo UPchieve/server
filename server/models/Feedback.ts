@@ -221,5 +221,4 @@ const feedbackSchema = new Schema({
 
 const FeedbackModel = model<FeedbackDocument>('Feedback', feedbackSchema)
 
-module.exports = FeedbackModel
 export default FeedbackModel

@@ -63,5 +63,4 @@ const QuestionModel = model<QuestionDocument, QuestionStaticModel>(
   'question'
 )
 
-module.exports = QuestionModel
 export default QuestionModel

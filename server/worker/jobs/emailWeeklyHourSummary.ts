@@ -4,7 +4,7 @@ import {
   getVolunteers,
   getHourSummaryStats
 } from '../../services/VolunteerService'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import VolunteerModel from '../../models/Volunteer'
 import { volunteerPartnerManifests } from '../../partnerManifests'
 import config from '../../config'
@@ -70,26 +70,30 @@ export default async (): Promise<void> => {
           lastMonday.toDate(),
           lastSunday.toDate()
         )
-      /* 
+      /*
       The smallest this number can be is .01 hours =36 seconds (as per the rounding
       in VolunteerService.ts:68-70) So users with 36-54 seconds of time will have
       .01 hours coaching which gets rounded down to 0 hours/minutes at formatting
-      in MailService/index.js:87-99. So we need to check .01 hours in addition
+      in MailService/index.ts:87-99. So we need to check .01 hours in addition
       to 0 prevent an email from getting sent that displays 0 hours of volutneering
       TODO: clean up formatting rounding logic to round 30+ seconds up a minute
       */
       if (!summaryStats || summaryStats.totalVolunteerHours <= 0.01) continue
 
-      const data = {
+      const fromDate = lastMonday.format('dddd, MMM D')
+      const toDate = lastSunday.format('dddd, MMM D')
+      await MailService.sendHourSummaryEmail(
         firstName,
         email,
         sentHourSummaryIntroEmail,
-        fromDate: lastMonday.format('dddd, MMM D'),
-        toDate: lastSunday.format('dddd, MMM D'),
-        customOrg: customCheck,
-        ...summaryStats
-      }
-      await MailService.sendHourSummaryEmail(data)
+        fromDate,
+        toDate,
+        summaryStats.totalCoachingHours,
+        summaryStats.totalElapsedAvailability,
+        summaryStats.totalQuizzesPassed,
+        summaryStats.totalVolunteerHours,
+        customCheck
+      )
       if (!sentHourSummaryIntroEmail)
         await VolunteerModel.updateOne(
           { _id },

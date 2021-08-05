@@ -14,7 +14,7 @@ function createUpchieveId() {
 }
 
 // search for schools by name or ID
-export const search = async (query): Promise<any> => {
+export async function search(query: any): Promise<any> {
   // @note: Atlas Search is unavailable for local development. This is a
   // fallback query to be able to search for schools in local development
   if (config.NODE_ENV === 'dev') {
@@ -104,7 +104,7 @@ export const search = async (query): Promise<any> => {
   }
 }
 
-export const getSchool = async (schoolId): Promise<School> => {
+export const getSchool = async (schoolId: string): Promise<School> => {
   try {
     const [school] = await SchoolModel.aggregate([
       { $match: { _id: Types.ObjectId(schoolId) } },
@@ -144,7 +144,7 @@ export const getSchool = async (schoolId): Promise<School> => {
   }
 }
 
-export const getSchools = async ({ name, state, city, page }) => {
+export const getSchools = async (name: string, state: string, city: string, page: string) => {
   const pageNum = parseInt(page) || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
@@ -229,13 +229,13 @@ export const updateApproval = (schoolId, isApproved) => {
   return SchoolModel.updateOne({ _id: schoolId }, { isApproved })
 }
 
-export const createSchool = async ({
-  name,
-  city,
-  state,
-  zipCode,
-  isApproved
-}) => {
+export const createSchool = async (
+  name: string,
+  city: string,
+  state: string,
+  zipCode: string,
+  isApproved: boolean
+) => {
   let upchieveId = createUpchieveId()
   let existingSchool = await SchoolModel.findOne({ upchieveId })
     .lean()
@@ -263,14 +263,14 @@ export const createSchool = async ({
   return school.save()
 }
 
-export const adminUpdateSchool = async ({
-  schoolId,
-  name,
-  city,
-  state,
-  zipCode,
-  isApproved
-}) => {
+export const adminUpdateSchool = async (
+  schoolId: Types.ObjectId,
+  name: string,
+  city: string,
+  state: string,
+  zipCode: string,
+  isApproved: boolean
+) => {
   const schoolData = {
     isApproved,
     nameStored: name,

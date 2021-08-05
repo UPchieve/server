@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
 import { volunteerPartnerManifests } from '../../../partnerManifests'
 import { SESSION_FLAGS, FEEDBACK_VERSIONS } from '../../../constants'
@@ -127,13 +127,8 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
     if (totalLowSessionRatings >= totalLowSessionRatingsLimit) return
 
     try {
-      const contactInfo = {
-        firstName,
-        email,
-        partnerOrg,
-        partnerOrgDisplay: volunteerPartnerManifests[partnerOrg].name
-      }
-      await MailService.sendPartnerVolunteerReferACoworker(contactInfo)
+      const partnerOrgDisplay = volunteerPartnerManifests[partnerOrg].name
+      await MailService.sendPartnerVolunteerReferACoworker(email, firstName, partnerOrg, partnerOrgDisplay)
       logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
       throw new Error(

@@ -24,4 +24,4 @@ const getDeviceFromUserAgent = userAgent => {
   return device
 }
 
-module.exports = getDeviceFromUserAgent
+export default getDeviceFromUserAgent

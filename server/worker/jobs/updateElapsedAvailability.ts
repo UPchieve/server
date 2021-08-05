@@ -1,4 +1,4 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
 import VolunteerModel from '../../models/Volunteer'
 import { log } from '../logger'
 import { AvailabilitySnapshot } from '../../models/Availability/Snapshot'
@@ -8,6 +8,7 @@ import {
   getElapsedAvailability
 } from '../../services/AvailabilityService'
 import { Jobs } from '.'
+import { DAYS } from '../../models/Availability/types'
 
 export default async (): Promise<void> => {
   const volunteers = await VolunteerModel.find({
@@ -36,7 +37,8 @@ export default async (): Promise<void> => {
       .utc()
       .subtract(1, 'days')
       .format('dddd')
-    const availabilityDay = availability.onCallAvailability[yesterday]
+
+    const availabilityDay = availability.onCallAvailability[yesterday as keyof typeof DAYS]
     const elapsedAvailability = getElapsedAvailability(availabilityDay)
 
     try {

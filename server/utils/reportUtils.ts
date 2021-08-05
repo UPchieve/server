@@ -1,36 +1,28 @@
-import moment from 'moment-timezone'
-import { Types } from 'mongoose'
-import { capitalize } from 'lodash'
-import {
-  USER_ACTION,
-  HOUR_TO_UTC_MAPPING,
-  ONBOARDING_STATUS,
-  DATE_RANGE_COMPARISON_FIELDS
-} from '../constants'
+import moment, {Moment} from 'moment'
+import {Types} from 'mongoose'
+import {capitalize} from 'lodash'
+import {DATE_RANGE_COMPARISON_FIELDS, HOUR_TO_UTC_MAPPING, ONBOARDING_STATUS, USER_ACTION} from '../constants'
 import * as UserActionService from '../services/UserActionService'
 import * as SessionService from '../services/SessionService'
 import * as AvailabilityService from '../services/AvailabilityService'
 import logger from '../logger'
-import { isCertified } from '../controllers/UserCtrl'
-import { Certifications } from '../models/Volunteer'
-import {
-  getVolunteersWithPipeline,
-  HourSummaryStats
-} from '../services/VolunteerService'
+import {isCertified} from '../controllers/UserCtrl'
+import {Certifications, Volunteer} from '../models/Volunteer'
+import {getVolunteersWithPipeline, HourSummaryStats} from '../services/VolunteerService'
 import countCerts from './count-certs'
 import roundUpToNearestInterval from './round-up-to-nearest-interval'
-import { countCertsByType } from './count-certs-by-type'
+import {countCertsByType} from './count-certs-by-type'
 
 interface Stamp {
   day: string
   hour: string
 }
 
-function formatStamp(time: moment): Stamp {
+function formatStamp(time: Moment): Stamp {
   return { day: time.format('MM-DD-YYYY'), hour: time.format('H') }
 }
 
-function addToAcc(acc, time: moment, minutes: number): void {
+function addToAcc(acc, time: Moment, minutes: number): void {
   const { day, hour } = formatStamp(time)
   if (day in acc) {
     const sub = acc[day]
@@ -44,7 +36,7 @@ function addToAcc(acc, time: moment, minutes: number): void {
   }
 }
 
-function readFromAcc(acc, time: moment): number {
+function readFromAcc(acc, time: Moment): number {
   const { day, hour } = formatStamp(time)
   if (day in acc) {
     const sub = acc[day]
@@ -167,14 +159,14 @@ interface TelecomRow {
   hours: number
 }
 
-async function getVolunteerData(volunteer, dateQuery) {
+async function getVolunteerData(volunteer: Volunteer, dateQuery: any) {
   // @todo: figure out how the type annotation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quizPassedActions: any = await UserActionService.getActionsWithPipeline(
     [
       {
         $match: {
-          user: Types.ObjectId(volunteer._id),
+          user: Types.ObjectId(volunteer._id as string),
           action: USER_ACTION.QUIZ.PASSED,
           createdAt: dateQuery
         }
@@ -194,7 +186,7 @@ async function getVolunteerData(volunteer, dateQuery) {
     },
     {
       $match: {
-        volunteer: Types.ObjectId(volunteer._id),
+        volunteer: Types.ObjectId(volunteer._id as string),
         createdAt: dateQuery
       }
     },
@@ -250,8 +242,8 @@ async function getVolunteerData(volunteer, dateQuery) {
 }
 
 async function telecomProcessVolunteer(
-  volunteer,
-  dateQuery
+  volunteer: Volunteer,
+  dateQuery: any
 ): Promise<TelecomRow[]> {
   const totalCerts = countCerts(volunteer.certifications)
   if (totalCerts === 0) return []
@@ -286,8 +278,8 @@ async function telecomProcessVolunteer(
 }
 
 export async function generateTelecomReport(
-  volunteers,
-  dateQuery
+  volunteers: Volunteer[],
+  dateQuery: any
 ): Promise<TelecomRow[]> {
   const volunteerPartnerReport = []
   const errors = []
@@ -308,7 +300,7 @@ export async function generateTelecomReport(
   return volunteerPartnerReport
 }
 
-function sumHours(acc): number {
+function sumHours(acc: any): number {
   let total = 0
   for (const day of Object.keys(acc)) {
     total += acc[day]
@@ -327,8 +319,8 @@ export function emptyHours(): HourSummaryStats {
 
 // To be used by email/update job(s) for generating telecom volunteer hours
 export async function telecomHourSummaryStats(
-  volunteer,
-  dateQuery
+  volunteer: Volunteer,
+  dateQuery: any
 ): Promise<HourSummaryStats> {
   try {
     const totalCerts = countCerts(volunteer.certifications)
@@ -345,13 +337,12 @@ export async function telecomHourSummaryStats(
       availabilityTime,
       certificationTime
     } = telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
-    const row = {
+    return {
       totalVolunteerHours: sumHours(totalTime),
       totalCoachingHours: sumHours(sessionTime),
       totalElapsedAvailability: sumHours(availabilityTime),
       totalQuizzesPassed: sumHours(certificationTime)
     } as HourSummaryStats
-    return row
   } catch (error) {
     throw new Error(`Failed to generate hour summary stats: ${error}`)
   }

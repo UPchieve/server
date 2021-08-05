@@ -3,11 +3,11 @@ import path from 'path'
 import YAML from 'yaml'
 import config from './config'
 
-let volunteerManifestsYaml
-let studentManifestsYaml
+let volunteerManifestsYaml = ''
+let studentManifestsYaml = ''
 
-export let volunteerPartnerManifests
-export let studentPartnerManifests
+export let volunteerPartnerManifests: string
+export let studentPartnerManifests: string
 
 if (
   process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFESTS === '' ||

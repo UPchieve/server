@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import ws from 'ws'
 import * as Sentry from '@sentry/node'
 import * as WhiteboardService from '../../services/WhiteboardService'
@@ -11,7 +11,7 @@ import {
   CreationMode
 } from '../../utils/zwibblerDecoder'
 
-const captureUnimplemented = (sessionId: string, messageType: string): void => {
+function captureUnimplemented(sessionId: string, messageType: string): void {
   Sentry.captureMessage(
     `Unimplemented Zwibbler message type ${messageType} called in session ${sessionId}`
   )
@@ -221,7 +221,7 @@ const whiteboardRouter = function(app): void {
    * It relies on a fork of express-ws for rooms support
    * @small-tech/express-ws: https://github.com/aral/express-ws
    */
-  router.ws('/room/:sessionId', function(wsClient, req, next) {
+  router.ws('/room/:sessionId', function(wsClient: any, req: Request, next: NextFunction) {
     let initialized = false
 
     /**
@@ -268,7 +268,7 @@ const whiteboardRouter = function(app): void {
     next()
   })
 
-  router.ws('/admin/:sessionId', function(wsClient, req) {
+  router.ws('/admin/:sessionId', function(wsClient: any, req: Request) {
     const sessionId = req.params.sessionId
 
     wsClient.on('message', async rawMessage => {
@@ -292,7 +292,7 @@ const whiteboardRouter = function(app): void {
     })
   })
 
-  router.route('/reset').post(async function(req, res, next) {
+  router.route('/reset').post(async function(req: Request, res: Response, next: NextFunction) {
     const {
       body: { sessionId }
     } = req
@@ -309,5 +309,4 @@ const whiteboardRouter = function(app): void {
   app.use('/whiteboard', router)
 }
 
-module.exports = whiteboardRouter
 export default whiteboardRouter

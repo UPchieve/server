@@ -1,13 +1,14 @@
 import expressWs from '@small-tech/express-ws'
+import { authPassport } from '../../utils/auth-utils'
+import * as ReportService from '../../services/ReportService'
+import { Request, Response, NextFunction } from 'express'
 
-const { authPassport } = require('../../utils/auth-utils')
-const ReportService = require('../../services/ReportService')
 
 export function routeReports(router: expressWs.Router): void {
   router.get('/reports/session-report', authPassport.isAdmin, async function(
-    req,
-    res,
-    next
+    req: Request,
+    res: Response,
+    next: NextFunction
   ) {
     try {
       const sessions = await ReportService.sessionReport(req.query)
@@ -18,9 +19,9 @@ export function routeReports(router: expressWs.Router): void {
   })
 
   router.get('/reports/usage-report', authPassport.isAdmin, async function(
-    req,
-    res,
-    next
+    req: Request,
+    res: Response,
+    next: NextFunction
   ) {
     try {
       const students = await ReportService.usageReport(req.query)
@@ -33,7 +34,7 @@ export function routeReports(router: expressWs.Router): void {
   router.get(
     '/reports/volunteer-telecom-report',
     authPassport.isAdmin,
-    async function(req, res, next) {
+    async function(req: Request, res: Response, next: NextFunction) {
       try {
         const data = await ReportService.getTelecomReport(req.query)
         res.json({ data })
@@ -46,7 +47,7 @@ export function routeReports(router: expressWs.Router): void {
   router.get(
     '/reports/partner-analytics-report',
     authPassport.isAdmin,
-    async function(req, res, next) {
+    async function(req: Request, res: Response, next: NextFunction) {
       try {
         const data = await ReportService.generatePartnerAnalyticsReport(
           req.query

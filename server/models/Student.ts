@@ -41,5 +41,4 @@ const StudentModel = UserModel.discriminator<StudentDocument>(
   studentSchema
 )
 
-module.exports = StudentModel
 export default StudentModel

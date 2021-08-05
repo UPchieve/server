@@ -9,6 +9,7 @@
       "target":"es2019",
       "moduleResolution": "node",
       "module": "commonjs",
+      "strict": true,
       "lib":[
         "es2019", "dom"
       ]

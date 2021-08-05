@@ -2,11 +2,12 @@ import { Types } from 'mongoose'
 import SessionModel, { getUnfulfilledSessions } from '../models/Session'
 import MessageModel, { MessageDocument } from '../models/Message'
 import getSessionRoom from '../utils/get-session-room'
+import { Server, Socket } from 'socket.io'
 
 class SocketService {
   private io
 
-  constructor(io) {
+  constructor(io: Server) {
     this.io = io
   }
 
@@ -46,12 +47,11 @@ class SocketService {
     await this.updateSessionList()
   }
 
-  bump(socket, data, err): void {
+  bump(socket: Socket, data: any, err: Error): void {
     console.log('Could not join session')
     console.log(err)
     socket.emit('bump', data, err.toString())
   }
 }
 
-module.exports = SocketService
 export default SocketService

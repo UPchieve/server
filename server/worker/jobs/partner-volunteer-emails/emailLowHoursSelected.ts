@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getNotifications } from '../../../services/NotificationService'
 import { getVolunteer } from '../../../services/UserService'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
@@ -51,8 +51,7 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
 
     if (textNotifications.length < 2 && totalHoursSelected < 5) {
       try {
-        const contactInfo = { firstName, email }
-        await MailService.sendPartnerVolunteerLowHoursSelected(contactInfo)
+        await MailService.sendPartnerVolunteerLowHoursSelected(email, firstName)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(

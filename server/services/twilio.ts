@@ -1,17 +1,19 @@
-const twilio = require('twilio')
+import twilio from 'twilio'
 const moment = require('moment-timezone')
-const config = require('../config')
-const Student = require('../models/Student')
-const Volunteer = require('../models/Volunteer').default
-const queue = require('./QueueService')
-const SessionService = require('./SessionService')
-const Notification = require('../models/Notification')
+import config from '../config'
+import Student from '../models/Student'
+import Volunteer from '../models/Volunteer'
+import queue from './QueueService'
+import * as SessionService from './SessionService'
 const twilioClient =
   config.accountSid && config.authToken
     ? twilio(config.accountSid, config.authToken)
     : null
-const formatMultiWordSubject = require('../utils/format-multi-word-subject')
-const Case = require('case')
+import formatMultiWordSubject from '../utils/format-multi-word-subject'
+import Case from 'case'
+import NotificationModel, { Notification } from '../models/Notification'
+import { Session } from '../models/Session'
+import { Types } from 'mongoose'
 
 // get the availability field to query for the current time
 function getCurrentAvailabilityPath() {
@@ -77,7 +79,7 @@ const getFailsafeVolunteers = async () => {
     .exec()
 }
 
-function sendTextMessage(phoneNumber, messageText) {
+function sendTextMessage(phoneNumber: string, messageText: string) {
   console.log(`Sending text message "${messageText}" to ${phoneNumber}`)
 
   // If stored phone number doesn't have international calling code (E.164 formatting)
@@ -104,7 +106,7 @@ function sendTextMessage(phoneNumber, messageText) {
     })
 }
 
-function sendVoiceMessage(phoneNumber, messageText) {
+function sendVoiceMessage(phoneNumber: string, messageText: string) {
   console.log(`Sending voice message "${messageText}" to ${phoneNumber}`)
 
   let apiRoot
@@ -142,7 +144,7 @@ function sendVoiceMessage(phoneNumber, messageText) {
 }
 
 // the URL that the volunteer can use to join the session on the client
-function getSessionUrl(session) {
+function getSessionUrl(session: Session) {
   const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
   return `${protocol}://${config.client.host}/session/${Case.kebab(
     session.type
@@ -159,7 +161,7 @@ const relativeDate = msAgo => {
 }
 
 const getVolunteersNotifiedSince = async sinceDate => {
-  const notifications = await Notification.find({
+  const notifications = await NotificationModel.find({
     sentAt: { $gt: sinceDate }
   })
     .select('volunteer')
@@ -169,7 +171,7 @@ const getVolunteersNotifiedSince = async sinceDate => {
   return notifications.map(notif => notif.volunteer)
 }
 
-const sendFollowupText = async ({ session, volunteerId, volunteerPhone }) => {
+const sendFollowupText = async (session: Session, volunteerId: Types.ObjectId, volunteerPhone: string) => {
   const messageText = `Head's up: this student is still waiting for help!`
   const sendPromise = sendTextMessage(volunteerPhone, messageText)
   const notification = new Notification({
@@ -372,26 +374,26 @@ const notifyFailsafe = async function({ session, voice = false }) {
  * @returns a Promise that resolves to the saved notification
  * object
  */
-function recordNotification(sendPromise, notification) {
+function recordNotification(sendPromise: Function, notification: Notification) {
   return sendPromise
-    .then(sid => {
+    .then((sid: string) => {
       // record notification in database
       notification.wasSuccessful = true
       notification.messageId = sid
       return notification
     })
-    .catch(err => {
+    .catch((err: Error) => {
       // record notification failure in database
       console.log(err)
       notification.wasSuccessful = false
       return notification
     })
-    .then(notification => {
+    .then((notification: NotificationModel) => {
       return notification.save()
     })
 }
 
-function sendVerification({ sendTo, verificationMethod, firstName }) {
+function sendVerification(sendTo: string, verificationMethod: string, firstName: string) {
   return twilioClient.verify
     .services(config.twilioAccountVerificationServiceSid)
     .verifications.create({
@@ -405,13 +407,13 @@ function sendVerification({ sendTo, verificationMethod, firstName }) {
     })
 }
 
-function confirmVerification(to, code) {
+function confirmVerification(to: string, code: string) {
   return twilioClient.verify
     .services(config.twilioAccountVerificationServiceSid)
     .verificationChecks.create({ to, code })
 }
 
-module.exports = {
+export default {
   notifyVolunteer,
 
   getSessionUrl,
@@ -420,7 +422,7 @@ module.exports = {
     const student = await Student.findOne({ _id: session.student })
       .lean()
       .exec()
-
+    if (!student) throw new Error(`student with id ${session.student.toString()} could not be found`)
     if (student.isTestUser) return
 
     // Delay initial wave of notifications by 1 min to give
@@ -434,7 +436,7 @@ module.exports = {
     )
   },
 
-  beginFailsafeNotifications: async session => {
+  beginFailsafeNotifications: async (session: Session) => {
     await notifyFailsafe({ session, voice: false })
   },
 

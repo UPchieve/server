@@ -22,11 +22,10 @@ export const getObject = async ({
   }
 
   try {
-    const objectUrl = await s3.getSignedUrlPromise('getObject', signedUrlParams)
-    return objectUrl
+    return await s3.getSignedUrlPromise('getObject', signedUrlParams)
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    ''
   }
 }
 
@@ -43,11 +42,10 @@ export const getPhotoIdUploadUrl = async ({
   }
 
   try {
-    const uploadUrl = await s3.getSignedUrlPromise('putObject', signedUrlParams)
-    return uploadUrl
+    return await s3.getSignedUrlPromise('putObject', signedUrlParams)
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
@@ -62,11 +60,10 @@ export const getPhotoIdUrl = async ({
   }
 
   try {
-    const photoUrl = await s3.getSignedUrlPromise('getObject', signedUrlParams)
-    return photoUrl
+    return await s3.getSignedUrlPromise('getObject', signedUrlParams)
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
@@ -81,11 +78,10 @@ export const getSessionPhotoUploadUrl = async (
   }
 
   try {
-    const uploadUrl = await s3.getSignedUrlPromise('putObject', signedUrlParams)
-    return uploadUrl
+    return await s3.getSignedUrlPromise('putObject', signedUrlParams)
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 

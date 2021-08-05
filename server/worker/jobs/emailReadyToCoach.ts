@@ -1,5 +1,5 @@
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { log } from '../logger'
 import { Jobs } from '.'
 

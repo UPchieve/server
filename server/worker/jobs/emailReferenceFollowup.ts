@@ -1,15 +1,8 @@
 import { log } from '../logger'
-import VolunteerModel, { Reference } from '../../models/Volunteer'
+import VolunteerModel, { Reference, Volunteer } from '../../models/Volunteer'
 import { REFERENCE_STATUS } from '../../constants'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
-
-// @note: uses firstName instead of firstname because of the $project aggregation stage
-// @todo: clean up Volunteer model to use firstName instead of firstname
-interface Volunteer {
-  firstName: string
-  lastName: string
-}
 
 interface ReferencesToEmail {
   reference: Reference
@@ -18,7 +11,7 @@ interface ReferencesToEmail {
 
 // Runs every day at 10am EST
 export default async (): Promise<void> => {
-  const oneDay = 1000 * 60 * 60 * 24 * 1
+  const oneDay = 1000 * 60 * 60 * 24
   const threeDaysAgo = Date.now() - oneDay * 3
   const fourDaysAgo = threeDaysAgo - oneDay
   const query = {
@@ -49,8 +42,8 @@ export default async (): Promise<void> => {
         $project: {
           _id: 0,
           volunteer: {
-            firstName: '$firstname',
-            lastName: '$lastname'
+            firstname: '$firstname',
+            lastname: '$lastname'
           },
           reference: '$references'
         }
@@ -66,7 +59,7 @@ export default async (): Promise<void> => {
 
   for (const ref of referencesToEmail) {
     try {
-      await MailService.sendReferenceFollowup(ref)
+      await MailService.sendReferenceFollowup(ref.reference, ref.volunteer)
       totalEmailed++
     } catch (error) {
       errors.push(`reference ${ref.reference._id}: ${error}`)

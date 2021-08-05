@@ -1,12 +1,12 @@
 import { log } from '../logger'
 import VolunteerModel from '../../models/Volunteer'
 import { REFERENCE_STATUS } from '../../constants'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
 
 // Runs every day at 11am EST
 export default async (): Promise<void> => {
-  const oneDay = 1000 * 60 * 60 * 24 * 1
+  const oneDay = 1000 * 60 * 60 * 24
   const fiveDaysAgo = Date.now() - oneDay * 5
   const sixDaysAgo = fiveDaysAgo - oneDay
   const query = {

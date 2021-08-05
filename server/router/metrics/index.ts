@@ -1,5 +1,6 @@
 import { flattenDeep } from 'lodash'
 import moment from 'moment'
+import { Express, Request, Response } from 'express'
 
 const {
   getFeedbackStats,
@@ -13,8 +14,8 @@ const {
   deepObjToDatapoints
 } = require('./helpers')
 
-module.exports = function(app) {
-  app.use('/metrics', async function(req, res) {
+export default function(app: Express) {
+  app.use('/metrics', async function(req: Request, res: Response) {
     let { minTime, maxTime } = req.query
     const { timeScale } = req.query
     if (minTime) {

@@ -9,19 +9,19 @@ import FeedbackModel, {
 import { FEEDBACK_VERSIONS } from '../constants'
 import * as SessionService from './SessionService'
 
-export const getFeedback = (query): Promise<Feedback> => {
+export const getFeedback = (query): Promise<Feedback|null> => {
   return FeedbackModel.findOne(query)
     .lean()
     .exec()
 }
 
-export function getFeedbackForSession(sessionId: string): Promise<Feedback[]> {
+export function getFeedbackForSession(sessionId: string): Promise<Feedback[]|null> {
   return FeedbackModel.find({ sessionId })
     .lean()
     .exec()
 }
 
-export const saveFeedback = async (data: {
+export async function saveFeedback(data: {
   sessionId: string
   type: string
   subTopic: string
@@ -32,7 +32,7 @@ export const saveFeedback = async (data: {
   userType: string
   studentId: string
   volunteerId: string
-}): Promise<FeedbackDocument> => {
+}): Promise<FeedbackDocument> {
   const feedback = new FeedbackModel({
     ...data,
     versionNumber: FEEDBACK_VERSIONS.TWO

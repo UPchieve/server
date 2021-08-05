@@ -1,11 +1,12 @@
-import { Aggregate } from 'mongoose'
-import NotificationModel, { Notification } from '../models/Notification'
+import {Aggregate, Types} from 'mongoose'
+import NotificationModel, { NotificationDocument } from '../models/Notification'
 import * as SessionService from './SessionService'
+import { DocumentDefinition } from 'mongoose'
 
 export const getNotification = (
-  query,
+  query: {},
   projection = {}
-): Promise<Notification> => {
+): Promise<DocumentDefinition<NotificationDocument> | null> => {
   return NotificationModel.findOne(query)
     .select(projection)
     .lean()
@@ -13,9 +14,9 @@ export const getNotification = (
 }
 
 export const getNotifications = (
-  query,
-  projection = {}
-): Promise<Notification[]> => {
+  query: {},
+  projection: {} = {}
+): Promise<Notification[]|null> => {
   return NotificationModel.find(query)
     .select(projection)
     .lean()
@@ -24,7 +25,7 @@ export const getNotifications = (
 
 export const getNotificationsWithPipeline = (
   pipeline
-): Aggregate<Notification[]> =>
+): Aggregate<Notification[]|null> =>
   NotificationModel.aggregate(pipeline).read('secondaryPreferred')
 
 export const getNotificationWithVolunteer = async (
@@ -50,9 +51,9 @@ export const getNotificationWithVolunteer = async (
   return notification
 }
 
-export const getSessionNotifications = async (
-  sessionId
-): Promise<Notification[]> => {
+export async function getSessionNotifications(
+  sessionId: Types.ObjectId
+): Promise<Notification[]> {
   const session = await SessionService.getSessionById(sessionId)
   return NotificationModel.aggregate([
     {

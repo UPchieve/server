@@ -1,14 +1,17 @@
-const UserCtrl = require('../../controllers/UserCtrl')
-const UserService = require('../../services/UserService')
-const MailService = require('../../services/MailService')
-const AwsService = require('../../services/AwsService')
-const Volunteer = require('../../models/Volunteer').default
-const { authPassport } = require('../../utils/auth-utils')
-const config = require('../../config')
-const UserActionCtrl = require('../../controllers/UserActionCtrl')
+import * as UserCtrl from '../../controllers/UserCtrl'
+import * as UserService from '../../services/UserService'
+import * as MailService from '../../services/MailService'
+import * as AwsService from '../../services/AwsService'
+import Volunteer from '../../models/Volunteer'
+import { authPassport } from '../../utils/auth-utils'
+import config from '../../config'
+import * as UserActionCtrl from '../../controllers/UserActionCtrl'
+import { Request, Response, NextFunction, Router } from 'express'
+import { User } from '../../models/User'
+import { User as ExpressUser } from 'express'
 
-module.exports = function(router) {
-  router.route('/user').get(function(req, res) {
+export default function(router: Router) {
+  router.route('/user').get(function(req: Request, res: Response) {
     if (!req.user) {
       return res.status(401).json({
         err: 'Client has no authenticated session'
@@ -20,7 +23,7 @@ module.exports = function(router) {
   })
 
   // @note: Currently, only volunteers are able to update their profile
-  router.put('/user', async (req, res, next) => {
+  router.put('/user', async (req: Request, res: Response, next: NextFunction) => {
     const { ip } = req
     const { _id } = req.user
     const { phone, isDeactivated } = req.body
@@ -42,7 +45,7 @@ module.exports = function(router) {
   })
 
   // Admin route to update a user
-  router.put('/user/:userId', authPassport.isAdmin, async (req, res, next) => {
+  router.put('/user/:userId', authPassport.isAdmin, async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.params
 
     try {
@@ -53,7 +56,7 @@ module.exports = function(router) {
     }
   })
 
-  router.post('/user/volunteer-approval/reference', async (req, res, next) => {
+  router.post('/user/volunteer-approval/reference', async (req: Request, res: Response, next: NextFunction) => {
     const { ip } = req
     const { _id } = req.user
     const { referenceFirstName, referenceLastName, referenceEmail } = req.body
@@ -67,7 +70,7 @@ module.exports = function(router) {
     res.sendStatus(200)
   })
 
-  router.post('/user/volunteer-approval/reference/delete', async (req, res) => {
+  router.post('/user/volunteer-approval/reference/delete', async (req: Request, res: Response) => {
     const { ip } = req
     const { _id } = req.user
     const { referenceEmail } = req.body
@@ -79,7 +82,7 @@ module.exports = function(router) {
     res.sendStatus(200)
   })
 
-  router.get('/user/volunteer-approval/photo-url', async (req, res, next) => {
+  router.get('/user/volunteer-approval/photo-url', async (req: Request, res: Response, next: NextFunction) => {
     const { ip } = req
     const { _id } = req.user
     const photoIdS3Key = await UserService.addPhotoId({ userId: _id, ip })
@@ -141,9 +144,10 @@ module.exports = function(router) {
     }
   )
 
-  router.get('/user/referred-friends', async (req, res, next) => {
+  router.get('/user/referred-friends', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { user } = req
+      let user: ExpressUser | undefined = req.user
+      if (user === undefined) return res.status(400).json({err: 'must include a user object on request'})
       const referredFriends = await UserService.getReferredFriends(user._id, {
         firstname: 1
       })
@@ -176,7 +180,7 @@ module.exports = function(router) {
     }
   })
 
-  router.get('/users', authPassport.isAdmin, async function(req, res, next) {
+  router.get('/users', authPassport.isAdmin, async function(req: Request, res: Response, next: NextFunction) {
     try {
       const { users, isLastPage } = await UserService.getUsers(req.query)
       res.json({ users, isLastPage })
@@ -189,7 +193,7 @@ module.exports = function(router) {
    * This is a utility route used by Cypress to clean up after e2e tests
    * Not available for use on production
    */
-  router.delete('/user', authPassport.isAdmin, async function(req, res) {
+  router.delete('/user', authPassport.isAdmin, async function(req: Request, res: Response) {
     if (config.NODE_ENV === 'production') {
       return res.status(405).json({
         err: 'Deleting users is not allowed on production'

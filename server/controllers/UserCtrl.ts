@@ -10,9 +10,9 @@ import Volunteer, {
 import { createContact } from '../services/MailService'
 import { AccountActionCreator } from './UserActionCtrl'
 
-const {
+import {
   createAvailabilitySnapshot
-} = require('../services/AvailabilityService')
+} from '../services/AvailabilityService'
 
 const generateReferralCode = userId => base64url(Buffer.from(userId, 'hex'))
 

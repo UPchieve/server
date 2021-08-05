@@ -64,5 +64,4 @@ const AvailabilitySnapshotModel = model<AvailabilitySnapshotDocument>(
   availabilitySnapshotSchema
 )
 
-module.exports = AvailabilitySnapshotModel
 export default AvailabilitySnapshotModel

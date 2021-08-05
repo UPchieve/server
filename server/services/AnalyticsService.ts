@@ -30,6 +30,6 @@ export const captureEvent = (
   })
 }
 
-module.exports = {
+export default {
   captureEvent
 }

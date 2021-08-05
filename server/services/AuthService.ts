@@ -31,11 +31,11 @@ import {
 import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
-import IpAddressService from './IpAddressService'
-import MailService from './MailService'
+import * as IpAddressService from './IpAddressService'
+import * as MailService from './MailService'
 
 // TODO: expose this in School repo
-export const findByUpchieveId = async function(id: string): Promise<School> {
+export const findByUpchieveId = async function(id: string): Promise<School|null> {
   return SchoolModel.findOne({ upchieveId: id })
     .lean()
     .exec()
@@ -123,9 +123,13 @@ export async function registerStudent(data: unknown): Promise<StudentDocument> {
     }
   }
 
-  const highSchoolProvided = !!highSchoolUpchieveId
-  let school: School
-  if (highSchoolProvided) school = await findByUpchieveId(highSchoolUpchieveId)
+
+  let school: School | undefined
+  if (!!highSchoolUpchieveId) {
+    school = await findByUpchieveId(highSchoolUpchieveId)
+  } else {
+    school = undefined
+  }
 
   const highSchoolApprovalRequired = !studentPartnerOrg && !zipCode
   if (highSchoolApprovalRequired) {
@@ -135,7 +139,8 @@ export async function registerStudent(data: unknown): Promise<StudentDocument> {
       )
   }
 
-  const referredBy = await getReferredBy(referredByCode)
+  let referredBy
+  if (!!referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
     firstname: firstName.trim(),
@@ -183,9 +188,8 @@ export async function registerOpenStudent(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  const highSchoolProvided = !!highSchoolUpchieveId
-  let school: School
-  if (highSchoolProvided) school = await findByUpchieveId(highSchoolUpchieveId)
+  let school: School | undefined
+  if (!!highSchoolUpchieveId) school = await findByUpchieveId(highSchoolUpchieveId)
 
   const highSchoolApprovalRequired = !zipCode
   if (highSchoolApprovalRequired) {
@@ -195,7 +199,8 @@ export async function registerOpenStudent(
       )
   }
 
-  const referredBy = await getReferredBy(referredByCode)
+  let referredBy
+  if (!!referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
     firstname: firstName.trim(),
@@ -345,7 +350,10 @@ export async function registerPartnerVolunteer(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  const referredBy = await getReferredBy(referredByCode)
+  let referredBy
+  if (referredByCode) {
+    referredBy = await getReferredBy(referredByCode)
+  }
 
   // Volunteer partner org check
   const volunteerPartnerManifest =

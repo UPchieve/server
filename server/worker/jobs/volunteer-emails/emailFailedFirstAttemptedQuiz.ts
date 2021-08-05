@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 
 interface EmailFailedFirstAttemptedQuizJobData {
   category: string
@@ -18,11 +18,11 @@ export default async (
   } = job
 
   try {
-    await MailService.sendFailedFirstAttemptedQuiz({
-      category,
+    await MailService.sendFailedFirstAttemptedQuiz(
       email,
-      firstName
-    })
+      firstName,
+      category
+    )
     logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
   } catch (error) {
     throw new Error(

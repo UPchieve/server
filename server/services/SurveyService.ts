@@ -21,7 +21,7 @@ export const getPresessionSurvey = async (query: {
   session?: Types.ObjectId
   user?: Types.ObjectId
   suveryType?: string
-}): Promise<Survey> => {
+}): Promise<Survey|null> => {
   return SurveyModel.findOne(query)
     .lean()
     .exec()

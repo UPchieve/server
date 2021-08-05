@@ -23,4 +23,3 @@ function newLogger() {
 const logger = newLogger()
 
 export default logger
-module.exports = logger

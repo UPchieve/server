@@ -8,6 +8,7 @@ import { Session } from '../models/Session'
 import { Message } from '../models/Message'
 import { DAYS, HOURS } from '../models/Availability/types'
 import {
+  asAny,
   asArray,
   asBoolean,
   asDate,
@@ -15,14 +16,17 @@ import {
   asNumber,
   asObjectId,
   asOptional,
-  asString
+  asString,
+  asUnion
 } from './type-utils'
+import { User } from '../models/User'
+import { Feedback } from '../models/Feedback'
 
 export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
 export class ReportSessionError extends CustomError {}
 
-export function hasReviewTriggerFlags(flags) {
+export function hasReviewTriggerFlags(flags: any[]) {
   const excludedFlags = [
     SESSION_FLAGS.UNMATCHED,
     SESSION_FLAGS.LOW_MESSAGES,
@@ -40,7 +44,7 @@ export function hasReviewTriggerFlags(flags) {
   return isReviewTrigger
 }
 
-export function didParticipantsChat(messages, studentId, volunteerId) {
+export function didParticipantsChat(messages: any[], studentId: string, volunteerId: string) {
   let studentSentMessage = false
   let volunteerSentMessage = false
 
@@ -54,7 +58,7 @@ export function didParticipantsChat(messages, studentId, volunteerId) {
   return studentSentMessage && volunteerSentMessage
 }
 
-export function getMessagesAfterDate(messages, date) {
+export function getMessagesAfterDate(messages: any[], date: Date) {
   if (!date) return []
 
   for (let i = 0; i < messages.length; i++) {
@@ -65,9 +69,9 @@ export function getMessagesAfterDate(messages, date) {
   return []
 }
 
-export function getReviewFlags(session) {
+export function getReviewFlags(session: Session) {
   const flags = []
-  const {
+  let {
     messages,
     student,
     volunteer,
@@ -76,6 +80,8 @@ export function getReviewFlags(session) {
     isReported,
     volunteerJoinedAt
   } = session
+  student = student as Student
+  volunteer = volunteer as Volunteer
   const isStudentsFirstSession = student.pastSessions.length === 0
   const sessionLength =
     new Date(endedAt).getTime() - new Date(createdAt).getTime()
@@ -117,7 +123,7 @@ export function getReviewFlags(session) {
 }
 
 // Get flags for a session if there's a feedback rating <= 3 or a comment was left
-export function getFeedbackFlags(feedback) {
+export function getFeedbackFlags(feedback: any) {
   const flags = []
   const otherFeedback = feedback['other-feedback']
   const feedbackRatings: {
@@ -152,18 +158,20 @@ export function getFeedbackFlags(feedback) {
   return flags
 }
 
-export function isSessionParticipant(session, user) {
+export function isSessionParticipant(session: Session, user: User) {
   const userId = user._id.toString()
-  const studentId = session.student._id
-    ? session.student._id.toString()
+  const student = session.student as Student
+  const volunteer = session.volunteer as Volunteer
+  const studentId = student._id
+    ? student._id.toString()
     : session.student.toString()
-  const volunteerId = session.volunteer?._id
-    ? session.volunteer._id.toString()
+  const volunteerId = volunteer?._id
+    ? volunteer._id.toString()
     : session.volunteer?.toString()
   return userId === studentId || userId === volunteerId
 }
 
-export function calculateTimeTutored(session) {
+export function calculateTimeTutored(session: Session) {
   const threeHoursMs = 1000 * 60 * 60 * 3
   const fifteenMinsMs = 1000 * 60 * 15
 
@@ -172,6 +180,8 @@ export function calculateTimeTutored(session) {
   // skip if no messages are sent
   if (messages.length === 0) return 0
 
+  if (!volunteerJoinedAt) return 0
+  if (!endedAt) throw new Error(`trying to calculate time tutored for session ${session._id} but it has not ended`)
   const volunteerJoinDate = new Date(volunteerJoinedAt)
   const sessionEndDate = new Date(endedAt)
   let sessionLengthMs = sessionEndDate.getTime() - volunteerJoinDate.getTime()
@@ -213,14 +223,14 @@ export function calculateTimeTutored(session) {
   return sessionLengthMs
 }
 
-export function isSessionFulfilled(session) {
+export function isSessionFulfilled(session: Session) {
   const hasEnded = !!session.endedAt
   const hasVolunteerJoined = !!session.volunteer
 
   return hasEnded || hasVolunteerJoined
 }
 
-export function isSubjectUsingDocumentEditor(subject) {
+export function isSubjectUsingDocumentEditor(subject: string) {
   switch (subject) {
     case SUBJECTS.SAT_READING:
     case SUBJECTS.ESSAYS:
@@ -247,9 +257,9 @@ export function createEmptyHeatMap() {
   for (const day in DAYS) {
     const currentDay = {}
     for (const hour in HOURS) {
-      currentDay[HOURS[hour]] = 0
+      currentDay[HOURS[hour as keyof typeof HOURS]] = 0
     }
-    heatMap[DAYS[day]] = currentDay
+    heatMap[DAYS[day as keyof typeof DAYS]] = currentDay
   }
 
   return heatMap as HeatMap
@@ -357,20 +367,19 @@ const sessionDataValidators = {
     subTopic: asString,
     student: asObjectId,
     volunteer: asOptional(asObjectId),
-    messages: asOptional(
-      asArray(
+    messages: asArray(
         asFactory<Message>({
           _id: asObjectId,
           user: asObjectId,
           contents: asString,
           createdAt: asDate
         })
-      )
-    ),
+      ),
     hasWhiteboardDoc: asOptional(asBoolean),
-    quillDoc: asOptional(asString),
+    quillDoc: asString,
     volunteerJoinedAt: asOptional(asDate),
-    failedJoins: asArray(asObjectId),
+    // todo: once we have a User factory replace any here with User validator
+    failedJoins: asAny,
     endedAt: asOptional(asDate),
     endedBy: asOptional(asObjectId),
     notifications: asArray(asObjectId),
@@ -468,7 +477,7 @@ interface JoinSessionOptions {
   socket: Partial<Socket>
   session: Session
   user: Partial<Student | Volunteer>
-  joinedFrom: string
+  joinedFrom?: string
 }
 
 export const asJoinSessionData = asFactory<JoinSessionOptions>({

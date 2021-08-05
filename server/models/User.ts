@@ -217,5 +217,4 @@ baseUserSchema.statics.verifyPassword = (
 
 const UserModel = model<UserDocument>('User', baseUserSchema)
 
-module.exports = UserModel
 export default UserModel

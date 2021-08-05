@@ -1,3 +1,5 @@
+import validator from 'validator'
+
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX = /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/gi
@@ -20,7 +22,7 @@ export function moderateMessage(data: ModerateMessageOptions): boolean {
   const message = data.content
 
   return !(
-    EMAIL_REGEX.test(message) ||
+    validator.isEmail(message) ||
     PHONE_REGEX.test(message) ||
     PROFANITY_REGEX.test(message) ||
     SAFETY_RESTRICTION_REGEX.test(message)

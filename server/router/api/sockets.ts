@@ -1,34 +1,37 @@
 /**
  * Processes incoming socket messages
  */
+import { Server, Socket } from "socket.io";
 const passportSocketIo = require('passport.socketio')
-const cookieParser = require('cookie-parser')
-const Sentry = require('@sentry/node')
-const config = require('../../config')
-const SocketService = require('../../services/SocketService')
-const SessionService = require('../../services/SessionService')
-const QuillDocService = require('../../services/QuillDocService')
-const getSessionRoom = require('../../utils/get-session-room')
+import cookieParser from 'cookie-parser'
+import Sentry from '@sentry/node'
+import config from '../../config'
+import SocketService from '../../services/SocketService'
+import * as SessionService from '../../services/SessionService'
+import * as QuillDocService from '../../services/QuillDocService'
+import getSessionRoom from '../../utils/get-session-room'
 const newrelic = require('newrelic')
 
-module.exports = function(io, sessionStore) {
+export default function(io: Server, sessionStore: any) {
   const socketService = new SocketService(io)
 
-  const getSocketIdsFromRoom = room =>
+  function getSocketIdsFromRoom(room: string) {
     new Promise((resolve, reject) => {
       io.in(room).clients((err, clients) => {
         if (err) return reject(err)
         return resolve(clients)
       })
     })
+  }
 
-  const remoteJoinRoom = (socketId, room) =>
+  function remoteJoinRoom(socketId: string, room: string) {
     new Promise((resolve, reject) => {
       io.of('/').adapter.remoteJoin(socketId, room, err => {
         if (err) reject(err)
         resolve('success')
       })
     })
+  }
 
   // Authentication for sockets
   io.use(
@@ -50,7 +53,7 @@ module.exports = function(io, sessionStore) {
     })
   )
 
-  io.on('connection', async function(socket) {
+  io.on('connection', async function(socket: Socket) {
     const {
       request: { user }
     } = socket
@@ -75,7 +78,7 @@ module.exports = function(io, sessionStore) {
     if (user && user.isVolunteer) socket.join('volunteers')
 
     // Tutor session management
-    socket.on('join', async function(data) {
+    socket.on('join', async function(data: any) {
       newrelic.startWebTransaction(
         '/socket-io/join',
         () =>
@@ -154,23 +157,23 @@ module.exports = function(io, sessionStore) {
       )
     })
 
-    socket.on('typing', data => {
+    socket.on('typing', (data: any) => {
       newrelic.startWebTransaction('/socket-io/typing', () => {
         socket.to(getSessionRoom(data.sessionId)).emit('is-typing')
       })
     })
 
-    socket.on('notTyping', data => {
+    socket.on('notTyping', (data: any) => {
       newrelic.startWebTransaction('/socket-io/notTyping', () => {
         socket.to(getSessionRoom(data.sessionId)).emit('not-typing')
       })
     })
 
-    socket.on('message', async data => {
+    socket.on('message', async (data: any) => {
       newrelic.startWebTransaction(
         '/socket-io/message',
         () =>
-          new Promise(async (resolve, reject) => {
+          new Promise(async (resolve, reject): void => {
             const { user, sessionId, message } = data
             // @todo: handle this differently?
             if (!sessionId) {
@@ -208,7 +211,7 @@ module.exports = function(io, sessionStore) {
       )
     })
 
-    socket.on('requestQuillState', async ({ sessionId }) => {
+    socket.on('requestQuillState', async ({ sessionId: string }) => {
       newrelic.startWebTransaction(
         '/socket-io/requestQuillState',
         () =>

@@ -314,18 +314,23 @@ export const courses: TrainingCourse[] = [
   }
 ]
 
-export const getCourse = (courseKey: string): TrainingCourse => {
+export const getCourse = (courseKey: string): TrainingCourse|undefined => {
   return find(courses, { courseKey })
 }
 
 const getRequiredMaterials = (courseKey: string): string[] => {
-  const course: TrainingCourse = getCourse(courseKey)
-  return chain(course.modules)
-    .map('materials')
-    .flatten()
-    .filter('isRequired')
-    .map('materialKey')
-    .value()
+  const course = getCourse(courseKey)
+  if (course) {
+    return chain(course.modules)
+      .map('materials')
+      .flatten()
+      .filter('isRequired')
+      .map('materialKey')
+      .value()
+  } else {
+    throw new Error(`course ${courseKey} not found`)
+  }
+
 }
 
 export const getProgress = (

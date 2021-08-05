@@ -160,7 +160,7 @@ export interface Volunteer extends User {
   totalVolunteerHours: number
   trainingCourses: TrainingCourses
   linkedInUrl: string
-  hoursTutored: Types.Decimal128
+  hoursTutored: Types.Decimal128 | string
   timeTutored: number
   sentHourSummaryIntroEmail: boolean
   sentInactiveThirtyDayEmail: boolean
@@ -183,7 +183,7 @@ const minsSince = (date): number => {
   return ((new Date().getTime() as number) - date) / 60000
 }
 
-const tallyVolunteerPoints = (volunteer): number => {
+function tallyVolunteerPoints(volunteer: Volunteer): number {
   let points = 0
 
   // +2 points if no past sessions
@@ -759,9 +759,9 @@ const VolunteerModel = UserModel.discriminator<VolunteerDocument>(
 )
 
 export async function updatePastSessionsAndTimeTutored(
-  volunteerId,
-  sessionId,
-  timeTutored
+  volunteerId: string,
+  sessionId: string,
+  timeTutored: number
 ) {
   const query = { _id: volunteerId }
   const update = {

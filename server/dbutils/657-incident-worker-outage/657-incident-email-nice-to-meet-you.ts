@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import * as db from '../../db'
 import VolunteerModel from '../../models/Volunteer'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import logger from '../../logger'
 
 /**

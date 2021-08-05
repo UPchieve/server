@@ -3,20 +3,23 @@ import StudentModel, { Student } from '../models/Student'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 
-export const getStudent = async (query, projection = {}): Promise<Student> =>
-  StudentModel.findOne(query)
+export async function getStudent(query: {}, projection: {} = {}): Promise<Student> {
+  await StudentModel.findOne(query)
     .select(projection)
     .lean()
     .exec()
+}
 
-export const getStudents = async (query, projection = {}): Promise<Student[]> =>
-  StudentModel.find(query)
+export async function getStudents(query: {}, projection: {} = {}): Promise<Student[]> {
+  await StudentModel.find(query)
     .select(projection)
     .lean()
     .exec()
+}
 
-export const updateStudent = (query, update) =>
+export function updateStudent(query: {}, update: any) {
   StudentModel.updateOne(query, update)
+}
 
 export const queueWelcomeEmails = async (
   studentId: Types.ObjectId | string

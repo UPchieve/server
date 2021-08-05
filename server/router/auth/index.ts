@@ -14,7 +14,6 @@ export function routes(app: Express) {
     req.session.destroy(() => {
       /* do nothing */
     })
-    // @ts-expect-error
     req.logout()
     res.json({
       msg: 'You have been logged out'

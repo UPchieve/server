@@ -1,5 +1,10 @@
-const isValidInternationalPhoneNumber = phoneNumber =>
-  phoneNumber.match(/^\+\d{10,14}$/)
+export function isValidInternationalPhoneNumber(phoneNumber: string): boolean {
+  const matchOutcome = phoneNumber.match(/^\+\d{10,14}$/)
+  if (matchOutcome === null) {
+    return false
+  } else {
+    return true
+  }
+}
 
-module.exports = isValidInternationalPhoneNumber
 export default isValidInternationalPhoneNumber

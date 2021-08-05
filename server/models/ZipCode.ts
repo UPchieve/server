@@ -40,5 +40,4 @@ const ZipCodeModel = model<ZipCodeDocument, ZipCodeStaticModel>(
   zipCodeSchema
 )
 
-module.exports = ZipCodeModel
 export default ZipCodeModel

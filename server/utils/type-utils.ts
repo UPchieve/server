@@ -7,7 +7,7 @@ import { InputError } from '../models/Errors'
 // Use via asOptional(asPrimitive)
 export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {
   return function(s: unknown, errMsg?: string): T | undefined {
-    if (s === undefined || s === null) return s
+    if (s === undefined) return s
     return as(s, errMsg)
   }
 }
@@ -30,10 +30,14 @@ export function asBoolean(s: unknown, errMsg?: string): boolean {
 
 // Use via asArray(asPrimitive)
 export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
-  return function(s: unknown, errMsg?: string): T[] | undefined {
+  return function(s: unknown, errMsg?: string): T[] {
     if (Array.isArray(s)) {
       const maybeT = s as T[]
-      if (maybeT.every(item => as(item, errMsg))) return maybeT as T[]
+      if (maybeT.every(item => as(item, errMsg))) {
+        return maybeT as T[]
+      } else {
+        throw new InputError(`${errMsg} :${s} is not an array of the given type`)
+      }
     } else
       throw new InputError(`${errMsg} :${s} is not an array of the given type`)
   }
@@ -52,6 +56,11 @@ export function asFunction(s: unknown, errMsg?: string): Function {
 export function asObjectId(s: unknown, errMsg?: string): Types.ObjectId {
   if (s instanceof Types.ObjectId) return s as Types.ObjectId
   throw new InputError(`${errMsg} :${s} is not an ObjectId`)
+}
+
+export function asAny(s: unknown, errMsg?: string): any {
+  if (errMsg) throw new Error(errMsg)
+  return s
 }
 
 /**
@@ -95,7 +104,7 @@ type KeyValidators<T> = {
  */
 export function asFactory<T extends object>(keyValidators: KeyValidators<T>) {
   return function(data: unknown, errMsg = ''): T {
-    if (typeof data === 'object' && data !== null) {
+    if (typeof data === 'object' && data !== null && data !== undefined) {
       const maybeT = data as T
       for (const key of Object.keys(keyValidators) as Array<keyof T>) {
         keyValidators[key](maybeT[key], errMsg + key + ':')

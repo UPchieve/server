@@ -247,7 +247,7 @@ const config: Static<typeof Config> = {
   workerQueueName: 'main',
   redisConnectionString,
   firebase: {
-    projectId: Number(process.env.SUBWAY_FIREBASE_PROJECT_ID) || 123456789012
+    projectId: process.env.SUBWAY_FIREBASE_PROJECT_ID || '123456789012'
   },
   bannedServiceProviders: bannedServiceProviders,
   awsS3: {
@@ -312,5 +312,4 @@ const config: Static<typeof Config> = {
   version: process.env.SUBWAY_VERSION || 'development'
 }
 
-module.exports = config
 export default config

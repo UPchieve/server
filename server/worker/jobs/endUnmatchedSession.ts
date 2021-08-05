@@ -16,11 +16,11 @@ export default async (job: Job<EndUnmatchedSessionJobData>): Promise<void> => {
       log(`Cancel ${Jobs.EndUnmatchedSession}: session ${sessionId} fulfilled`)
     } else {
       try {
-        await SessionService.endSession({
-          sessionId: sessionId,
-          isAdmin: true,
-          endedBy: null
-        })
+        await SessionService.endSession(
+          sessionId,
+          null,
+          true
+        )
         log(`Successfuly ${Jobs.EndUnmatchedSession}: session ${sessionId}`)
       } catch (error) {
         throw new Error(

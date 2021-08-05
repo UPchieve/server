@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { Types } from 'mongoose'
 import { SESSION_FLAGS } from '../../../constants'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
 
 interface EmailStudentFirstSessionJobData {
@@ -49,8 +49,7 @@ export default async (
   if (session) {
     const { _id: studentId, firstname: firstName, email } = session.student
     try {
-      const contactInfo = { firstName, email }
-      await MailService.sendStudentFirstSessionCongrats(contactInfo)
+      await MailService.sendStudentFirstSessionCongrats(email, firstName)
       logger.info(`Sent ${currentJob} to student ${studentId}`)
     } catch (error) {
       throw new Error(

@@ -10,9 +10,9 @@ import AvailabilityHistoryModel, {
 import { AvailabilityDay } from '../models/Availability/types'
 
 export const getAvailability = (
-  query,
-  projection = {}
-): Promise<AvailabilitySnapshot> => {
+  query: {},
+  projection: {} = {}
+): Promise<AvailabilitySnapshot|null> => {
   return AvailabilitySnapshotModel.findOne(query)
     .select(projection)
     .lean()
@@ -20,9 +20,9 @@ export const getAvailability = (
 }
 
 export const getAvailabilities = (
-  query,
-  projection = {}
-): Promise<AvailabilitySnapshot[]> => {
+  query: {},
+  projection: {} = {}
+): Promise<AvailabilitySnapshot[]|null> => {
   return AvailabilitySnapshotModel.find(query)
     .select(projection)
     .lean()
@@ -30,9 +30,9 @@ export const getAvailabilities = (
 }
 
 export const getAvailabilityHistory = (
-  query,
-  projection = {}
-): Promise<AvailabilityHistory> => {
+  query: {},
+  projection: {} = {}
+): Promise<AvailabilityHistory|null> => {
   return AvailabilityHistoryModel.findOne(query)
     .select(projection)
     .lean()
@@ -40,8 +40,8 @@ export const getAvailabilityHistory = (
 }
 
 export const getAvailabilityHistoryWithPipeline = (
-  pipeline
-): Aggregate<AvailabilityHistory[]> =>
+  pipeline: any
+): Aggregate<AvailabilityHistory[]|null> =>
   AvailabilityHistoryModel.aggregate(pipeline).read('secondaryPreferred')
 
 // @todo: Create a compound index on date and volunteerId

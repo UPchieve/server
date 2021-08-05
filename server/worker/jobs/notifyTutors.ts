@@ -40,6 +40,9 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   const ageOfSession = now - createdAt
   const sixMinutes = 60 * 1000 * 6
 
+  if (!session.notifications) {
+    throw new Error('session had no notifications')
+  }
   // if it's been longer than 6 minutes, or if we've notified 15 volunteers, resend notifications in the same order
   // 6 minutes is the point at which we would have notified 15 volunteers if there were 15 to notify
   if (
@@ -53,13 +56,16 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
       ]
     const notification = await getNotificationWithVolunteer(notificationId)
     const volunteer = notification.volunteer as Volunteer
+    if (!volunteer.phone) {
+      throw new Error(`volunteer ${volunteer._id} has no phone number, cannot notify`)
+    }
 
     try {
-      await TwilioService.sendFollowupText({
+      await TwilioService.sendFollowupText(
         session,
-        volunteerId: volunteer._id,
-        volunteerPhone: volunteer.phone
-      })
+        volunteer._id,
+        volunteer.phone
+      )
       log(
         `Successfully ${Jobs.NotifyTutors} for session ${session._id}: follow-up to volunteer ${volunteer._id}`
       )

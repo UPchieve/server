@@ -23,12 +23,12 @@ export const getVolunteersWithPipeline = (pipeline): Aggregate<Volunteer[]> =>
   VolunteerModel.aggregate(pipeline)
 
 export const updateVolunteer = (
-  query,
+  query: any,
   update: Partial<Volunteer>
 ): Query<Volunteer> => VolunteerModel.updateOne(query, update)
 
 export function incrementTotalVolunteerHours(
-  query,
+  query: any,
   update: number
 ): Query<Volunteer> {
   return VolunteerModel.updateOne(query, {
@@ -56,7 +56,7 @@ export const getHourSummaryStats = async (
   ] = await Promise.all([
     getQuizzesPassedForDateRange(volunteerId, fromDate, toDate),
     getElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
-    getTimeTutoredForDateRange(volunteerId, fromDate, toDate)
+    getTimeTutoredForDateRange(volunteerId.toString(), fromDate.toString(), toDate.toString())
   ])
 
   const timeTutoredInHours = Number(timeTutoredMS / 3600000).toFixed(2)

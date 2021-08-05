@@ -3,37 +3,37 @@ import logger from '../logger'
 import { redisClient } from './RedisService'
 import { getBlob, uploadBlob } from './AzureService'
 
-const sessionIdToKey = (id): string => `zwibbler-${id}`
+function sessionIdToKey(id: string): string { return `zwibbler-${id}` }
 
-export const createDoc = async (sessionId): Promise<string> => {
+export async function createDoc(sessionId: string): Promise<string> {
   const newDoc = ''
   await redisClient.set(sessionIdToKey(sessionId), newDoc)
   return newDoc
 }
 
-export const getDoc = (sessionId): Promise<string> => {
+export function getDoc(sessionId: string): Promise<string> {
   return redisClient.get(sessionIdToKey(sessionId))
 }
 
-export const getDocLength = async (sessionId): Promise<number> => {
+export async function getDocLength(sessionId: string): Promise<number> {
   const document = await redisClient.get(sessionIdToKey(sessionId))
-  if (document === undefined) return 0
+  if (document === undefined || document === null) return 0
   return Buffer.byteLength(document, 'utf8')
 }
 
-export const appendToDoc = (sessionId, docAddition): Promise<number> => {
+export function appendToDoc(sessionId: string, docAddition: string): Promise<number> {
   return redisClient.append(sessionIdToKey(sessionId), docAddition)
 }
 
-export const deleteDoc = (sessionId): Promise<number> => {
+export function deleteDoc(sessionId: string): Promise<number> {
   return redisClient.del(sessionIdToKey(sessionId))
 }
 
-export const uploadedToStorage = async (
+export async function uploadedToStorage(
   sessionId: string,
   whiteboardDoc: string,
   attempts = 0
-): Promise<boolean> => {
+): Promise<boolean> {
   try {
     await uploadBlob({
       containerName: config.whiteboardStorageContainer,
@@ -58,13 +58,12 @@ export const uploadedToStorage = async (
   }
 }
 
-export const getDocFromStorage = async (sessionId: string): Promise<string> => {
+export async function getDocFromStorage(sessionId: string): Promise<string> {
   try {
-    const whiteboardDoc = await getBlob({
+    return await getBlob({
       containerName: config.whiteboardStorageContainer,
       blobName: sessionId
     })
-    return whiteboardDoc
   } catch (error) {
     logger.error(`Getting the whiteboard failed ${sessionId}: ${error.message}`)
     return ''

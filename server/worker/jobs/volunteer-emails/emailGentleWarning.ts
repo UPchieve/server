@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getNotificationsWithPipeline } from '../../../services/NotificationService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
 
@@ -107,7 +107,7 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
       const { firstName, email, _id } = volunteer
       const contactInfo = { firstName, email }
       try {
-        await MailService.sendVolunteerGentleWarning(contactInfo)
+        await MailService.sendVolunteerGentleWarning(contactInfo.firstName, contactInfo.email)
         logger.info(`Sent ${currentJob} to volunteer ${_id}`)
       } catch (error) {
         errors.push(`volunteer ${_id}: ${error}`)
