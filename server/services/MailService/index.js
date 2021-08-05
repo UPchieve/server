@@ -139,7 +139,7 @@ module.exports = {
   },
 
   sendReset: ({ email, token }, callback) => {
-    const url = 'http://' + config.client.host + '/setpassword/' + token
+    const url = 'http://' + config.client.host + '/setpassword?token=' + token
     const overrides = {
       mail_settings: { bypass_list_management: { enable: true } }
     }

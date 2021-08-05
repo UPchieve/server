@@ -30,7 +30,7 @@ export function asBoolean(s: unknown, errMsg?: string): boolean {
 
 // Use via asArray(asPrimitive)
 export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
-  return function(s: unknown, errMsg?: string): T[] | undefined {
+  return function(s: unknown, errMsg?: string): T[] {
     if (Array.isArray(s)) {
       const maybeT = s as T[]
       if (maybeT.every(item => as(item, errMsg))) return maybeT as T[]
