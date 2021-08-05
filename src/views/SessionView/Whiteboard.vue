@@ -195,11 +195,11 @@
         @click="openFileDialog"
         @keydown.enter="openFileDialog"
       >
-        <input
-          type="file"
+        <FileDialog
+          ref="fileDialog"
           class="upload-photo"
           accept="image/*"
-          @change="uploadPhoto"
+          @file-selected="uploadPhoto"
         />
         <PhotoUploadIcon class="toolbar-item__svg--photo" />
       </div>
@@ -242,6 +242,7 @@ import RedoIcon from '@/assets/whiteboard_icons/redo.svg'
 import DeleteSelectionIcon from '@/assets/whiteboard_icons/delete_selection.png'
 import RotateIcon from '@/assets/whiteboard_icons/rotate.png'
 import PhotoUploadIcon from '@/assets/whiteboard_icons/photo-upload.svg'
+import FileDialog from '@/components/FileDialog'
 import ShapesIcon from '@/assets/whiteboard_icons/shapes.svg'
 import TextIcon from '@/assets/whiteboard_icons/text.svg'
 import CircleIcon from '@/assets/whiteboard_icons/circle.svg'
@@ -264,6 +265,7 @@ export default {
     UndoIcon,
     RedoIcon,
     PhotoUploadIcon,
+    FileDialog,
     ShapesIcon,
     TextIcon,
     CircleIcon,
@@ -290,10 +292,6 @@ export default {
     },
     isSessionOver: {
       type: Boolean,
-      required: true
-    },
-    openFileDialog: {
-      type: Function,
       required: true
     }
   },
@@ -439,8 +437,11 @@ export default {
       this.showColorPicker = false
       this.showShapes = false
     },
-    async uploadPhoto(event) {
-      const { files } = event.target
+    openFileDialog(event) {
+      this.$refs.fileDialog.openFileDialog(event)
+    },
+    async uploadPhoto(uploadEvents) {
+      const { files } = uploadEvents.fileSelectionEvent.target
       const file = files[0]
       const tenMegabytes = 10 * 1000000
 
@@ -451,7 +452,7 @@ export default {
           'The photo is too large. Please upload a photo less than 10mb.'
         return
       }
-      this.usePickTool(event)
+      this.usePickTool(uploadEvents.dialogOpeningEvent)
 
       const response = await NetworkService.getSessionPhotoUploadUrl(
         this.sessionId
