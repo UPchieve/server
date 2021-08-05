@@ -1,9 +1,9 @@
 <template>
   <div
-    @mouseover="showArrow = true"
-    @mouseleave="showArrow = false"
+    @mouseover="showArrow = true, onHover=true"
+    @mouseleave="showArrow = false, onHover=false"
   >
-    <large-button class="SubjectCard" 
+    <button class="SubjectCard" 
     :disabled="disabled"
     >
       <div class="SubjectCard-desktop-column">
@@ -14,7 +14,7 @@
         class="arrow-icon"
         />
       </div>
-    </large-button>
+    </button>
   </div>
 </template>
 
@@ -23,15 +23,15 @@ import { mapGetters, mapState } from 'vuex'
 import getCookie from '@/utils/get-cookie'
 import ArrowIcon from '@/assets/arrow.svg'
 import MathSVG from '@/assets/subject_icons/math.svg'
-import LargeButton from '@/components/LargeButton'
 
 export default {
   name: 'recent-subject-card',
-  components: { ArrowIcon, LargeButton, MathSVG },
+  components: { ArrowIcon, MathSVG },
   data() {
     return {
       selectedSubtopic: '',
       showArrow: false,
+      onHover: false
     }
   },
   beforeDestroy() {
@@ -57,13 +57,13 @@ export default {
       type: Boolean,
       default: false
     },
-    hoveredSubjectCard: {
-      type: Boolean,
-      default: true
-    },
-    activeSubjectCard: {
-      type: Boolean
-    },
+    // hoveredSubjectCard: {
+    //   type: Boolean,
+    //   default: true
+    // },
+    // activeSubjectCard: {
+    //   type: Boolean
+    // },
     showArrow: {
       type: Boolean,
       default: false
@@ -83,9 +83,9 @@ export default {
     //   this.showArrow = true;
     //   return this.hoveredSubjectCard
     // },
-    active(){
-      return this.activeSubjectCard
-    },
+    // active(){
+    //   return this.activeSubjectCard
+    // },
     disabled() {
         return this.disableSubjectCard
     },
@@ -171,10 +171,10 @@ export default {
     background: darken(#f1f3f6, 0%);
     border: 1px solid #abb2bd;
   }
-  &:disabled {
-    background: darken(#f1f3f6, 0%);
-    border: 1px solid #d8dee5;
-  }
+  // &:disabled {
+  //   background-color: darken(#f1f3f6, 0%);
+  //   border: 1px solid #d8dee5;
+  // }
 }
 
 .arrow-icon {

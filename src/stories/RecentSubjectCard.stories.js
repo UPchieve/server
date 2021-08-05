@@ -5,6 +5,7 @@ export default {
   component: RecentSubjectCard
 }
 
+
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { RecentSubjectCard },
@@ -27,7 +28,7 @@ HoveredCard.args = {
 export const PressedCard = Template.bind({})
 PressedCard.args = {
   title: 'Calc 1',
-  activeSubjectCard: true
+ // activeSubjectCard: true
 }
 
 export const DisabledCard = Template.bind({})
