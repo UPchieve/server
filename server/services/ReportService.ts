@@ -563,8 +563,8 @@ export const generatePartnerAnalyticsReport = async ({
   startDate,
   endDate
 }) => {
-  const start: Date = moment(startDate).toDate()
-  const end: Date = moment(endDate).toDate()
+  const start: Date = moment(startDate, 'YYYY-MM-DD').toDate()
+  const end: Date = moment(endDate, 'YYYY-MM-DD').toDate()
 
   // Volunteer partner org check
   const volunteerPartnerManifest = volunteerPartnerManifests[partnerOrg]

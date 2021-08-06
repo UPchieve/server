@@ -1,6 +1,7 @@
 import { log } from '../logger'
 import VolunteerModel from '../../models/Volunteer'
 import MailService from '../../services/MailService'
+import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
 
 // Runs every day at 10am EST
@@ -12,6 +13,7 @@ export default async (): Promise<void> => {
   todaysDate.setHours(0, 0, 0, 0)
 
   const volunteers = await VolunteerModel.find({
+    ...EMAIL_RECIPIENT,
     createdAt: {
       $gte: new Date(oneDayAgo),
       $lte: new Date(todaysDate)

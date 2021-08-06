@@ -4,6 +4,7 @@ import { SESSION_FLAGS } from '../../../constants'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
+import { emailRecipientPrefixed } from '../../../utils/aggregation-snippets'
 
 interface EmailVolunteerFirstSessionJobData {
   sessionId: string | Types.ObjectId
@@ -40,6 +41,9 @@ export default async (
     },
     {
       $unwind: '$volunteer'
+    },
+    {
+      $match: emailRecipientPrefixed('volunteer')
     },
     {
       $project: { volunteer: 1 }

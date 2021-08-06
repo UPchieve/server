@@ -12,8 +12,7 @@ import QueueService from './QueueService'
 export const getVolunteers = async (
   query,
   projection = {}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any[]> =>
+): Promise<Partial<Volunteer>[]> =>
   VolunteerModel.find(query)
     .select(projection)
     .lean()

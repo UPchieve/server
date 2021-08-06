@@ -9,6 +9,7 @@ import VolunteerModel from '../../models/Volunteer'
 import { volunteerPartnerManifests } from '../../partnerManifests'
 import config from '../../config'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
+import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
 
 // Runs weekly at 6am EST on Monday
@@ -31,10 +32,7 @@ export default async (): Promise<void> => {
 
   const volunteers = await getVolunteers(
     {
-      isBanned: false,
-      isDeactivated: false,
-      isFakeUser: false,
-      isTestUser: false,
+      ...EMAIL_RECIPIENT,
       volunteerPartnerOrg: { $nin: unsubscribedPartners }
     },
     {

@@ -3,8 +3,10 @@ import { Types } from 'mongoose'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
+import { getVolunteers } from '../../../services/VolunteerService'
 import { volunteerPartnerManifests } from '../../../partnerManifests'
 import { SESSION_FLAGS, FEEDBACK_VERSIONS } from '../../../constants'
+import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
 /**
  *
@@ -27,6 +29,13 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
     data: { volunteerId, firstName, email, partnerOrg },
     name: currentJob
   } = job
+
+  const [volunteer] = await getVolunteers({
+    ...EMAIL_RECIPIENT,
+    _id: volunteerId
+  })
+  // Do not send email if volunteer does not match email recipient spec
+  if (!volunteer) return
 
   const fifteenMins = 1000 * 60 * 15
   const sessions = await getSessionsWithPipeline([
