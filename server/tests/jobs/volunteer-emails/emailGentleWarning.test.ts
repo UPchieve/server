@@ -11,6 +11,7 @@ import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
 import { buildNotification, buildVolunteer } from '../../generate'
 import { Notification } from '../../../models/Notification'
+import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 jest.mock('../../../logger')
 jest.mock('../../../services/MailService')
 
@@ -45,19 +46,30 @@ describe('Volunteer gentle warning email', () => {
     jest.resetAllMocks()
   })
 
-  test('Should send gentle warning email to volunteer who has not picked up a tutoring session and has received 5 text notifications', async () => {
-    const plato = buildVolunteer()
-    const kant = buildVolunteer()
+  test('Should send gentle warning email to eligible volunteer who has not picked up a tutoring session and has received 5 text notifications', async () => {
+    const plato = buildVolunteer({ isDeactivated: true })
+    const aristotle = buildVolunteer(EMAIL_RECIPIENT)
+    const kant = buildVolunteer(EMAIL_RECIPIENT)
     const sartre = buildVolunteer({
-      pastSessions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+      pastSessions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()],
+      EMAIL_RECIPIENT
     })
     const platoNotifications = createNotifications(5, plato._id)
+    const aristotleNotifications = createNotifications(5, aristotle._id)
     const kantNotification = buildNotification({ volunteer: kant._id })
-    await insertNotificationMany([...platoNotifications, kantNotification])
+    await insertNotificationMany([
+      ...platoNotifications,
+      ...aristotleNotifications,
+      kantNotification
+    ])
     const { session } = await insertSession({
-      notifications: [platoNotifications[1]._id, kantNotification]
+      notifications: [
+        platoNotifications[1]._id,
+        aristotleNotifications[1]._id,
+        kantNotification
+      ]
     })
-    await insertVolunteerMany([plato, kant, sartre])
+    await insertVolunteerMany([plato, aristotle, kant, sartre])
     // @todo: figure out how to properly type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const job: any = {
@@ -69,8 +81,11 @@ describe('Volunteer gentle warning email', () => {
 
     await emailGentleWarning(job)
     expect(MailService.sendVolunteerGentleWarning).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger.info).not.toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${plato._id}`
+    )
+    expect(logger.info).toHaveBeenCalledWith(
+      `Sent ${job.name} to volunteer ${aristotle._id}`
     )
     expect(logger.info).not.toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${kant._id}`
@@ -81,10 +96,11 @@ describe('Volunteer gentle warning email', () => {
   })
 
   test('Should throw error when sending email fails', async () => {
-    const plato = buildVolunteer()
-    const kant = buildVolunteer()
+    const plato = buildVolunteer(EMAIL_RECIPIENT)
+    const kant = buildVolunteer(EMAIL_RECIPIENT)
     const sartre = buildVolunteer({
-      pastSessions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+      pastSessions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()],
+      EMAIL_RECIPIENT
     })
     const platoNotifications = createNotifications(5, plato._id)
     const kantNotification = buildNotification({ volunteer: kant._id })

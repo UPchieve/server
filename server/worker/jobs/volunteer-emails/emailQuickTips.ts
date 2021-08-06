@@ -4,6 +4,7 @@ import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getNotifications } from '../../../services/NotificationService'
 import { getVolunteer } from '../../../services/UserService'
+import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
 
 interface EmailQuickTipsJobData {
@@ -18,8 +19,8 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
   const volunteer = await getVolunteer(
     {
       _id: volunteerId,
-      isDeactivated: false,
-      isOnboarded: true
+      isOnboarded: true,
+      ...EMAIL_RECIPIENT
     },
     {
       _id: 1,

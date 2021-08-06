@@ -2,6 +2,7 @@ import { log } from '../logger'
 import VolunteerModel, { Reference } from '../../models/Volunteer'
 import { REFERENCE_STATUS } from '../../constants'
 import MailService from '../../services/MailService'
+import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
 
 // @note: uses firstName instead of firstname because of the $project aggregation stage
@@ -22,6 +23,7 @@ export default async (): Promise<void> => {
   const threeDaysAgo = Date.now() - oneDay * 3
   const fourDaysAgo = threeDaysAgo - oneDay
   const query = {
+    ...EMAIL_RECIPIENT,
     'references.status': REFERENCE_STATUS.SENT,
     'references.sentAt': {
       $gt: new Date(fourDaysAgo),

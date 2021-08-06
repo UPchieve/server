@@ -8,6 +8,7 @@ import {
   getVolunteersWithPipeline,
   updateVolunteer
 } from '../../../services/VolunteerService'
+import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 import createNewAvailability from '../../../utils/create-new-availability'
 
 interface InactiveVolunteersAggregation {
@@ -143,7 +144,8 @@ export default async (): Promise<void> => {
   const [volunteers]: unknown[] = await getVolunteersWithPipeline([
     {
       $match: {
-        $or: [thirtyDaysAgoQuery, sixtyDaysAgoQuery, ninetyDaysAgoQuery]
+        $or: [thirtyDaysAgoQuery, sixtyDaysAgoQuery, ninetyDaysAgoQuery],
+        ...EMAIL_RECIPIENT
       }
     },
     {

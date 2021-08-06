@@ -3,6 +3,7 @@ import { Types } from 'mongoose'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getVolunteer } from '../../../services/UserService'
+import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 import { Jobs } from '../index'
 
 interface OnboardingReminder {
@@ -17,8 +18,8 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
   const volunteer = await getVolunteer(
     {
       _id: volunteerId,
-      isDeactivated: false,
-      isOnboarded: false
+      isOnboarded: false,
+      ...EMAIL_RECIPIENT
     },
     {
       _id: 1,

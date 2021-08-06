@@ -3,6 +3,7 @@ import { log } from '../logger'
 import VolunteerModel, { Volunteer, Reference } from '../../models/Volunteer'
 import UserService from '../../services/UserService'
 import { REFERENCE_STATUS } from '../../constants'
+import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
 
 interface UnsentReference {
@@ -12,6 +13,7 @@ interface UnsentReference {
 
 export default async (): Promise<void> => {
   const volunteers = (await VolunteerModel.find({
+    ...EMAIL_RECIPIENT,
     'references.status': REFERENCE_STATUS.UNSENT
   })
     .lean()

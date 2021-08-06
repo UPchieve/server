@@ -4,6 +4,7 @@ import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getStudent } from '../../../services/StudentService'
 import { Jobs } from '../index'
+import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
 interface WelcomeEmail {
   studentId: string | Types.ObjectId
@@ -17,7 +18,7 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
   const student = await getStudent(
     {
       _id: studentId,
-      isBanned: false
+      ...EMAIL_RECIPIENT
     },
     {
       _id: 1,
