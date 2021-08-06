@@ -49,6 +49,7 @@ const main = async function() {
           fill: {
             pattern: 'solid',
             type: 'pattern',
+            fgColor: { argb: 'FF0000FF'},
             bgColor: { argb: 'FF0000FF'}
           }
         }
@@ -59,6 +60,11 @@ const main = async function() {
 
     const header = summarySheet.getRow(1)
     header.height = 42
+    header.border = {
+      bottom: {
+        style: 'thin', color: { argb: 'FF000000' }
+      }
+    }
 
     for (let i=0; i<1000; i+=1) {
       const row = {}
