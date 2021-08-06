@@ -9,7 +9,7 @@ const countAvailabilitySelected = (availability: Availability): number => {
       const hours = availability[day]
       for (const hour in hours) {
         if (Object.prototype.hasOwnProperty.call(hours, hour)) {
-          const isSelected = hours[hour]
+          const isSelected = hours[hour as keyof typeof hours]
           if (isSelected) selectedHours++
         }
       }

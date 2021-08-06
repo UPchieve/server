@@ -10,7 +10,7 @@ import { getQuizzesPassedForDateRange } from './UserActionService'
 import QueueService from './QueueService'
 
 export const getVolunteers = async (
-  query,
+  query: {},
   projection = {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any[]> =>
@@ -19,7 +19,7 @@ export const getVolunteers = async (
     .lean()
     .exec()
 
-export const getVolunteersWithPipeline = (pipeline): Aggregate<Volunteer[]> =>
+export const getVolunteersWithPipeline = (pipeline: any): Aggregate<Volunteer[]> =>
   VolunteerModel.aggregate(pipeline)
 
 export const updateVolunteer = (

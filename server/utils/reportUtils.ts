@@ -12,6 +12,8 @@ import {getVolunteersWithPipeline, HourSummaryStats} from '../services/Volunteer
 import countCerts from './count-certs'
 import roundUpToNearestInterval from './round-up-to-nearest-interval'
 import {countCertsByType} from './count-certs-by-type'
+import { Session } from '../models/Session'
+import { UserAction } from '../models/UserAction'
 
 interface Stamp {
   day: string
@@ -22,7 +24,7 @@ function formatStamp(time: Moment): Stamp {
   return { day: time.format('MM-DD-YYYY'), hour: time.format('H') }
 }
 
-function addToAcc(acc, time: Moment, minutes: number): void {
+function addToAcc(acc: any, time: Moment, minutes: number): void {
   const { day, hour } = formatStamp(time)
   if (day in acc) {
     const sub = acc[day]
@@ -49,7 +51,7 @@ function readFromAcc(acc, time: Moment): number {
 
 // Reduce accumulator to single day totals
 // reduced_acc = { day: number }
-function reduceAcc(acc) {
+function reduceAcc(acc: any) {
   const final = {}
   for (const day of Object.keys(acc)) {
     let total = 0
@@ -64,9 +66,9 @@ function reduceAcc(acc) {
 }
 
 function telecomTutorTime(
-  sessions,
-  availabilityForDateRange,
-  quizPassedActions
+  sessions: Session[],
+  availabilityForDateRange: any,
+  quizPassedActions: UserAction
 ) {
   const acc = {} // accumulator { MM-DD-YYYY: {H: time volunteered in minutes } }
   const sessionAcc = {}
@@ -78,7 +80,7 @@ function telecomTutorTime(
     const startedAt = moment(session.volunteerJoinedAt).tz('America/New_York')
     acc[startedAt.format('MM-DD-YYYY')] = {}
     // Count tutoring time in accumulator separately
-    if (session.timeTutored !== 0) {
+    if (session.timeTutored !== 0 && session.timeTutored !== undefined) {
       addToAcc(
         sessionAcc,
         startedAt,
@@ -398,7 +400,7 @@ function getOnboardingStatus({
   return ONBOARDING_STATUS.NOT_STARTED
 }
 
-function isDateWithin(date, startDate, endDate) {
+function isDateWithin(date: string, startDate: Date, endDate: Date) {
   const formatDate = new Date(date).getTime()
   return formatDate >= startDate.getTime() && formatDate < endDate.getTime()
 }
@@ -629,7 +631,7 @@ export async function getAnalyticsReportSummary(
     summary.totalSignUps++
     if (isDateWithin(row.dateAccountCreated, startDate, endDate))
       summary.dateRangeSignUps++
-    if (row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED) {
+    if (row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED && row.dateOnboarded) {
       summary.totalVolunteersOnboarded++
       if (isDateWithin(row.dateOnboarded, startDate, endDate))
         summary.dateRangeVolunteersOnboarded++

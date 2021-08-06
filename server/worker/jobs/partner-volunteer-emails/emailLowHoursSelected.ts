@@ -49,7 +49,7 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
       availability.toObject()
     )
 
-    if (textNotifications.length < 2 && totalHoursSelected < 5) {
+    if (textNotifications && textNotifications.length < 2 && totalHoursSelected < 5) {
       try {
         await MailService.sendPartnerVolunteerLowHoursSelected(email, firstName)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)

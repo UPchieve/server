@@ -44,7 +44,7 @@ export function hasReviewTriggerFlags(flags: any[]) {
   return isReviewTrigger
 }
 
-export function didParticipantsChat(messages: any[], studentId: string, volunteerId: string) {
+export function didParticipantsChat(messages: any[], studentId: Types.ObjectId, volunteerId: Types.ObjectId) {
   let studentSentMessage = false
   let volunteerSentMessage = false
 
@@ -86,7 +86,7 @@ export function getReviewFlags(session: Session) {
   const sessionLength =
     new Date(endedAt).getTime() - new Date(createdAt).getTime()
 
-  if (volunteer && volunteer._id) {
+  if (volunteer && volunteer._id && volunteerJoinedAt) {
     const messagesAfterVolunteerJoined = getMessagesAfterDate(
       messages,
       volunteerJoinedAt
@@ -191,7 +191,7 @@ export function calculateTimeTutored(session: Session) {
 
   let latestMessageIndex = messages.length - 1
   let wasMessageSentAfterSessionEnded =
-    messages[latestMessageIndex].createdAt > sessionEndDate
+    messages[latestMessageIndex].createdAt.getTime() > sessionEndDate.getTime()
 
   // @todo: refactor - Don't allow users to send a message once the sessions ends
   // get the latest message that was sent within a 15 minute window of the message prior.
@@ -202,8 +202,8 @@ export function calculateTimeTutored(session: Session) {
     while (
       latestMessageIndex > 0 &&
       (wasMessageSentAfterSessionEnded ||
-        messages[latestMessageIndex].createdAt -
-          messages[latestMessageIndex - 1].createdAt >
+        messages[latestMessageIndex].createdAt.getTime() -
+          messages[latestMessageIndex - 1].createdAt.getTime() >
           fifteenMinsMs)
     ) {
       latestMessageIndex--

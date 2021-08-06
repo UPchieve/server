@@ -23,7 +23,7 @@ export function countCertsByType(
   for (const subject in certifications) {
     if (certifications[subject].passed) {
       const subjectType = getSubjectType(subject)
-      totals[subjectType]++
+      totals[subjectType as keyof typeof totals]++
       totals.total++
     }
   }

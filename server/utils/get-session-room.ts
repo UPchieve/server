@@ -1,3 +1,3 @@
-const getSessionRoom = (sessionId): string => `sessions-${sessionId}`
+const getSessionRoom = (sessionId: string): string => `sessions-${sessionId}`
 
 export default getSessionRoom

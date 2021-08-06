@@ -147,8 +147,8 @@ function sendVoiceMessage(phoneNumber: string, messageText: string) {
 function getSessionUrl(session: Session) {
   const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
   return `${protocol}://${config.client.host}/session/${Case.kebab(
-    session.type
-  )}/${Case.kebab(session.subTopic)}/${session._id}`
+    session.type!
+  )}/${Case.kebab(session.subTopic!)}/${session._id}`
 }
 
 const getActiveSessionVolunteers = async () => {
@@ -311,7 +311,7 @@ const notifyVolunteer = async session => {
   const messageText = `Hi ${volunteer.firstname}, a student needs help in ${subtopic} on UPchieve! ${sessionUrl}`
   const sendPromise = sendTextMessage(volunteer.phone, messageText)
 
-  const notification = new Notification({
+  const notification = new NotificationModel({
     volunteer,
     type: 'REGULAR',
     method: 'SMS',
@@ -324,7 +324,7 @@ const notifyVolunteer = async session => {
   return volunteer
 }
 
-const notifyFailsafe = async function({ session, voice = false }) {
+const notifyFailsafe = async function(session: Session, voice: boolean = false) {
   const subtopic = session.subTopic
   const sessionUrl = getSessionUrl(session)
   const volunteersToNotify = await getFailsafeVolunteers()
@@ -368,13 +368,13 @@ const notifyFailsafe = async function({ session, voice = false }) {
 /**
  * Helper function to record notifications, whether successful or
  * failed, to the database
- * @param {sendPromise} a Promise that resolves to the message SID
- * @param {notification} the notification object to save
+ * @param { sendPromise } a Promise that resolves to the message SID
+ * @param { notification } the notification object to save
  * after the message is sent to Twilio
  * @returns a Promise that resolves to the saved notification
  * object
  */
-function recordNotification(sendPromise: Function, notification: Notification) {
+function recordNotification(sendPromise: Promise<string>|Promise<void>, notification: Notification) {
   return sendPromise
     .then((sid: string) => {
       // record notification in database

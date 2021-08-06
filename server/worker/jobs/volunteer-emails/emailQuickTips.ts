@@ -34,6 +34,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
     const textNotifications = await getNotifications({ volunteer: volunteer._id })
 
     if (
+      textNotifications &&
       textNotifications.length === 0 &&
       countAvailabilitySelected(volunteer.availability)
     ) {

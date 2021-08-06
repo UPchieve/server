@@ -1,5 +1,5 @@
 // Fallback util in the case that ua-parser-js can't determine a device
-const getDeviceFromUserAgent = userAgent => {
+function getDeviceFromUserAgent(userAgent: string) {
   let device = 'Unknown'
   const userAgentDevices = {
     'Generic Linux': /Linux/i,
@@ -17,7 +17,7 @@ const getDeviceFromUserAgent = userAgent => {
     Zebra: /TC70|TC55/i
   }
   Object.keys(userAgentDevices).forEach(item => {
-    if (userAgent.match(userAgentDevices[item])) {
+    if (userAgent.match(userAgentDevices[item as keyof typeof userAgentDevices])) {
       device = item
     }
   })

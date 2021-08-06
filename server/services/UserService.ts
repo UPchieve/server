@@ -1,11 +1,11 @@
 import { studentPartnerManifests, volunteerPartnerManifests } from '../partnerManifests'
 import crypto from 'crypto'
 import { omit } from 'lodash'
-import UserModel, { User } from '../models/User'
+import UserModel from '../models/User'
 import VolunteerModel, { Reference, Volunteer } from '../models/Volunteer'
 import StudentModel, { Student } from '../models/Student'
 import * as MailService from './MailService'
-import IpAddressService from './IpAddressService'
+import * as IpAddressService from './IpAddressService'
 import { AccountActionCreator, AdminActionCreator } from '../controllers/UserActionCtrl'
 import { EVENTS, PHOTO_ID_STATUS, REFERENCE_STATUS, STATUS, USER_ACTION, USER_BAN_REASON } from '../constants'
 import AnalyticsService from './AnalyticsService'
@@ -367,7 +367,7 @@ export async function adminUpdateUser(
 
   if (!userBeforeUpdate.isBanned && isBanned)
     await MailService.sendBannedUserAlert(
-      userId,
+      userId.toString(),
       USER_BAN_REASON.ADMIN,
     ''
     )
@@ -597,7 +597,7 @@ export async function adminGetUser(userId: string, page: string) {
 }
 
 // @todo: move to repo layer once this is converted to TS
-export async function addPastSession(userId, sessionId) {
+export async function addPastSession(userId: Types.ObjectId, sessionId: Types.ObjectId) {
   const query = { _id: userId }
   const update = { $addToSet: { pastSessions: sessionId } }
   try {
