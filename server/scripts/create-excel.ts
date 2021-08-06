@@ -44,6 +44,15 @@ const main = async function() {
           }
         }
       }
+      if (i % 5 === 0) {
+        col.style = {
+          fill: {
+            pattern: 'solid',
+            type: 'pattern',
+            bgColor: { argb: 'FF0000FF'}
+          }
+        }
+      }
       columns.push(col)
     }
     summarySheet.columns = columns
