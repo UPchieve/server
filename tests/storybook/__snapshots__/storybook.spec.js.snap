@@ -1816,12 +1816,33 @@ exports[`Storyshots Example/Page Logged Out 1`] = `
 </article>
 `;
 
-exports[`Storyshots Example/RecentSubjectCard Primary Button 1`] = `
-<button
-  class="ButtonTemplate SubjectCard LargeButton-secondary"
-  type="button"
->
-  <span>
+exports[`Storyshots Example/RecentSubjectCard Active Card 1`] = `
+<div>
+  <button
+    class="SubjectCard"
+  >
+    <div
+      class="SubjectCard-desktop-column"
+    >
+      <!---->
+       
+      <h4
+        class="SubectCard-title"
+      >
+        Calc 1
+      </h4>
+       
+      <!---->
+    </div>
+  </button>
+</div>
+`;
+
+exports[`Storyshots Example/RecentSubjectCard Default Card 1`] = `
+<div>
+  <button
+    class="SubjectCard"
+  >
     <div
       class="SubjectCard-desktop-column"
     >
@@ -1835,19 +1856,38 @@ exports[`Storyshots Example/RecentSubjectCard Primary Button 1`] = `
        
       <!---->
     </div>
-  </span>
-   
-  <!---->
-</button>
+  </button>
+</div>
 `;
 
-exports[`Storyshots Example/RecentSubjectCard Secondary Button 1`] = `
-<button
-  class="ButtonTemplate SubjectCard LargeButton-secondary"
-  disabled="disabled"
-  type="button"
->
-  <span>
+exports[`Storyshots Example/RecentSubjectCard Disabled Card 1`] = `
+<div>
+  <button
+    class="SubjectCard"
+    disabled="disabled"
+  >
+    <div
+      class="SubjectCard-desktop-column"
+    >
+      <!---->
+       
+      <h4
+        class="SubectCard-title"
+      >
+        Calc 2
+      </h4>
+       
+      <!---->
+    </div>
+  </button>
+</div>
+`;
+
+exports[`Storyshots Example/RecentSubjectCard Hovered Card 1`] = `
+<div>
+  <button
+    class="SubjectCard HoveredSubjectCard"
+  >
     <div
       class="SubjectCard-desktop-column"
     >
@@ -1861,8 +1901,6 @@ exports[`Storyshots Example/RecentSubjectCard Secondary Button 1`] = `
        
       <!---->
     </div>
-  </span>
-   
-  <!---->
-</button>
+  </button>
+</div>
 `;
