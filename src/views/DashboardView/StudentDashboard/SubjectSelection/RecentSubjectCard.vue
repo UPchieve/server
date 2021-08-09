@@ -1,18 +1,19 @@
 <template>
   <div
-    @mouseover="showArrow = true, onHover = true"
-    @mouseleave="showArrow = false, onHover = false"
+    @mouseover=";(showArrow = true), (onHover = true)"
+    @mouseleave=";(showArrow = false), (onHover = false)"
   >
-    <button class="SubjectCard" 
-      v-bind:class="{'HoveredSubjectCard':(onHover)}"
-      :disabled="disabled" 
+    <button
+      class="SubjectCard"
+      v-bind:class="{ HoveredSubjectCard: onHover }"
+      :disabled="disabled"
     >
       <div class="SubjectCard-desktop-column">
         <component class="SubjectCard-icon" v-bind:is="svg" />
         <h4 class="SubectCard-title">{{ title }}</h4>
-        <arrow-icon 
-        v-if="showArrow && disableSubjectCard===false"
-        class="arrow-icon"
+        <arrow-icon
+          v-if="showArrow && disableSubjectCard === false"
+          class="arrow-icon"
         />
       </div>
     </button>
@@ -29,8 +30,7 @@ export default {
   name: 'recent-subject-card',
   components: { ArrowIcon, MathSVG },
   data() {
-    return {
-    }
+    return {}
   },
 
   beforeDestroy() {
@@ -63,7 +63,7 @@ export default {
     onHover: {
       type: Boolean,
       default: false
-    },
+    }
     // isActive: {
     //   type: Boolean,
     //   default: false
@@ -79,9 +79,9 @@ export default {
       mobileMode: 'app/mobileMode',
       isSessionAlive: 'user/isSessionAlive'
     }),
-   
+
     disabled() {
-        return this.disableSubjectCard
+      return this.disableSubjectCard
     }
   },
   methods: {
@@ -132,7 +132,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.SubjectCard{
+.SubjectCard {
   @include flex-container(row, center, center);
   @include font-category('button');
   @include child-spacing(left, 24px);
@@ -156,14 +156,14 @@ export default {
 //     border: 1px solid #16d2aa;
 // }
 
-.SubjectCard:active:enabled{
-    background-color: darken(#f1f3f6, 0%);
-    border: 1px solid #abb2bd;
+.SubjectCard:active:enabled {
+  background-color: darken(#f1f3f6, 0%);
+  border: 1px solid #abb2bd;
 }
 
-.HoveredSubjectCard:enabled{
-    background-color: darken(#f2fbf9, 0%);
-    border: 1px solid #16d2aa;
+.HoveredSubjectCard:enabled {
+  background-color: darken(#f2fbf9, 0%);
+  border: 1px solid #16d2aa;
 }
 
 // .ActiveSubjectCard:enabled{

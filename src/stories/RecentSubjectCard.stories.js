@@ -11,7 +11,7 @@ const Template = (args, { argTypes }) => ({
   template: '<recent-subject-card @onClick="handleClick" v-bind="$props" />'
 })
 
-//default state 
+//default state
 export const DefaultCard = Template.bind({})
 DefaultCard.args = {
   title: 'Algebra 1'
@@ -33,10 +33,9 @@ ActiveCard.args = {
   showArrow: true
 }
 
-ActiveCard.parameters = { pseudo: { active: true },
- }
+ActiveCard.parameters = { pseudo: { active: true } }
 
- //disabled state
+//disabled state
 export const DisabledCard = Template.bind({})
 DisabledCard.args = {
   title: 'Calc 2',
