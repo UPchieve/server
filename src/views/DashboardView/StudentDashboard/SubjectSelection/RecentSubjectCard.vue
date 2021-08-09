@@ -1,7 +1,7 @@
 <template>
   <div
-    @mouseover="showArrow = true, onHover=true"
-    @mouseleave="showArrow = false, onHover=false"
+    @mouseover="showArrow = true"
+    @mouseleave="showArrow = false"
   >
     <button class="SubjectCard" 
     :disabled="disabled"
@@ -30,10 +30,10 @@ export default {
   data() {
     return {
       selectedSubtopic: '',
-      showArrow: false,
-      onHover: false
+      showArrow: false
     }
   },
+
   beforeDestroy() {
     clearTimeout(this.timeoutId)
   },
@@ -79,22 +79,11 @@ export default {
       mobileMode: 'app/mobileMode',
       isSessionAlive: 'user/isSessionAlive'
     }),
-    // hover(){
-    //   this.showArrow = true;
-    //   return this.hoveredSubjectCard
-    // },
-    // active(){
-    //   return this.activeSubjectCard
-    // },
+   
     disabled() {
+        //this.showArrow=false;
         return this.disableSubjectCard
-    },
-    // setShowArrow(){
-    //   // if(this.activeSubjectCard) //this.hoveredSubjectCard) //|| )
-    //   return this.showArrow;
-    //   // if(this.disableSubjectCard)
-    //   //  this.showArrow = false;
-    // } 
+    } 
   },
   methods: {
     handleClick() {
@@ -162,19 +151,29 @@ export default {
   cursor: pointer;
   transition: 0.5s;
 
-  &:hover {
-    background: darken(#f2fbf9, 0%);
-    border: 1px solid #16d2aa;
-  }
+  // &:hover {
+  //   background: darken(#f2fbf9, 0%);
+  //   border: 1px solid #16d2aa;
+  // }
 
-  &:active {
-    background: darken(#f1f3f6, 0%);
-    border: 1px solid #abb2bd;
-  }
+  // &:active {
+  //   background: darken(#f1f3f6, 0%);
+  //   border: 1px solid #abb2bd;
+  // }
   // &:disabled {
   //   background-color: darken(#f1f3f6, 0%);
   //   border: 1px solid #d8dee5;
   // }
+}
+
+.SubjectCard:hover:enabled{
+    background: darken(#f2fbf9, 0%);
+    border: 1px solid #16d2aa;
+}
+
+.SubjectCard:active:enabled{
+    background: darken(#f1f3f6, 0%);
+    border: 1px solid #abb2bd;
 }
 
 .arrow-icon {

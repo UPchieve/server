@@ -5,7 +5,6 @@ export default {
   component: RecentSubjectCard
 }
 
-
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { RecentSubjectCard },
@@ -18,19 +17,27 @@ DefaultCard.args = {
   title: 'Algebra 1'
 }
 
+//hovered state
 export const HoveredCard = Template.bind({})
 HoveredCard.args = {
   title: 'Algebra 2',
-  // showArrow: true,
-  // hoveredSubjectCard = true
-}
-//disabled state
-export const PressedCard = Template.bind({})
-PressedCard.args = {
-  title: 'Calc 1',
- // activeSubjectCard: true
+  showArrow: true
 }
 
+HoveredCard.parameters = { pseudo: { hover: true },
+ }
+
+//active state
+export const ActiveCard = Template.bind({})
+ActiveCard.args = {
+  title: 'Calc 1',
+  showArrow: true
+}
+
+ActiveCard.parameters = { pseudo: { active: true },
+ }
+
+ //disabled state
 export const DisabledCard = Template.bind({})
 DisabledCard.args = {
   title: 'Calc 2',
