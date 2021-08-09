@@ -21,11 +21,8 @@ DefaultCard.args = {
 export const HoveredCard = Template.bind({})
 HoveredCard.args = {
   title: 'Algebra 2',
-  showArrow: true
+  onHover: true
 }
-
-HoveredCard.parameters = { pseudo: { hover: true },
- }
 
 //active state
 export const ActiveCard = Template.bind({})

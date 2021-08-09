@@ -1,16 +1,17 @@
 <template>
   <div
-    @mouseover="showArrow = true"
-    @mouseleave="showArrow = false"
+    @mouseover="showArrow = true, onHover = true"
+    @mouseleave="showArrow = false, onHover = false"
   >
     <button class="SubjectCard" 
-    :disabled="disabled"
+      v-bind:class="{'HoveredSubjectCard':(onHover)}"
+      :disabled="disabled"
     >
       <div class="SubjectCard-desktop-column">
         <component class="SubjectCard-icon" v-bind:is="svg" />
         <h4 class="SubectCard-title">{{ title }}</h4>
         <arrow-icon 
-        v-if="showArrow"
+        v-if="showArrow && disableSubjectCard===false"
         class="arrow-icon"
         />
       </div>
@@ -29,8 +30,7 @@ export default {
   components: { ArrowIcon, MathSVG },
   data() {
     return {
-      selectedSubtopic: '',
-      showArrow: false
+      onPressed: ''
     }
   },
 
@@ -57,17 +57,14 @@ export default {
       type: Boolean,
       default: false
     },
-    // hoveredSubjectCard: {
-    //   type: Boolean,
-    //   default: true
-    // },
-    // activeSubjectCard: {
-    //   type: Boolean
-    // },
     showArrow: {
       type: Boolean,
       default: false
-    }
+    },
+    onHover: {
+      type: Boolean,
+      default: false
+    },
   },
   computed: {
     ...mapState({
@@ -81,9 +78,8 @@ export default {
     }),
    
     disabled() {
-        //this.showArrow=false;
         return this.disableSubjectCard
-    } 
+    }
   },
   methods: {
     handleClick() {
@@ -150,31 +146,27 @@ export default {
   position: relative;
   cursor: pointer;
   transition: 0.5s;
-
-  // &:hover {
-  //   background: darken(#f2fbf9, 0%);
-  //   border: 1px solid #16d2aa;
-  // }
-
-  // &:active {
-  //   background: darken(#f1f3f6, 0%);
-  //   border: 1px solid #abb2bd;
-  // }
-  // &:disabled {
-  //   background-color: darken(#f1f3f6, 0%);
-  //   border: 1px solid #d8dee5;
-  // }
 }
 
-.SubjectCard:hover:enabled{
-    background: darken(#f2fbf9, 0%);
+// .SubjectCard:hover:enabled{
+//     background: darken(#f2fbf9, 0%);
+//     border: 1px solid #16d2aa;
+// }
+
+.SubjectCard:active:enabled{
+    background-color: darken(#f1f3f6, 0%);
+    border: 1px solid #abb2bd;
+}
+
+.HoveredSubjectCard:enabled{
+    background-color: darken(#f2fbf9, 0%);
     border: 1px solid #16d2aa;
 }
 
-.SubjectCard:active:enabled{
-    background: darken(#f1f3f6, 0%);
-    border: 1px solid #abb2bd;
-}
+// .ActiveSubjectCard:enabled{
+//     background-color: darken(#f1f3f6, 0%);
+//     border: 1px solid #abb2bd;
+// }
 
 .arrow-icon {
   position: absolute;
