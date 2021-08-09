@@ -16,7 +16,7 @@ const newrelicUrls = [
 ]
 
 // connect sources
-const posthogUrl = 'https://app.posthog.com'
+const posthogUrl = 'https://p.upchieve.org'
 const unleashUrl = 'https://gitlab.com'
 const sentryUrl = 'https://*.ingest.sentry.io'
 const mathJaxFetchUrl = 'https://api.cdnjs.com'
