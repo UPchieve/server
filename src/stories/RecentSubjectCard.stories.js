@@ -21,13 +21,15 @@ DefaultCard.args = {
 export const HoveredCard = Template.bind({})
 HoveredCard.args = {
   title: 'Algebra 2',
-  onHover: true
+  onHover: true,
+  showArrow: true
 }
 
 //active state
 export const ActiveCard = Template.bind({})
 ActiveCard.args = {
   title: 'Calc 1',
+  //isActive = true,
   showArrow: true
 }
 

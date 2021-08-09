@@ -5,7 +5,7 @@
   >
     <button class="SubjectCard" 
       v-bind:class="{'HoveredSubjectCard':(onHover)}"
-      :disabled="disabled"
+      :disabled="disabled" 
     >
       <div class="SubjectCard-desktop-column">
         <component class="SubjectCard-icon" v-bind:is="svg" />
@@ -30,7 +30,6 @@ export default {
   components: { ArrowIcon, MathSVG },
   data() {
     return {
-      onPressed: ''
     }
   },
 
@@ -65,6 +64,10 @@ export default {
       type: Boolean,
       default: false
     },
+    // isActive: {
+    //   type: Boolean,
+    //   default: false
+    // }
   },
   computed: {
     ...mapState({
