@@ -57,12 +57,12 @@ export default {
 
   padding: 24px 16px;
   width: 100%;
-  height: 225px;
+  height: 242px;
 
   @include breakpoint-above('medium') {
     @include flex-container(column, center, center);
     @include child-spacing(top, 16px);
-    height: 400px;
+    height: 182px;
   }
 }
 </style>
