@@ -1,11 +1,11 @@
 <template>
   <div class="DashboardBanner">
-    <h1 v-if="mobileMode" class="DashboardBanner-greeting">
+    <!-- <h1 v-if="mobileMode" class="DashboardBanner-greeting">
       Hello, {{ name }}!
-    </h1>
+    </h1> -->
 
     <div class="DashboardBanner-banner">
-      <h1 v-if="!mobileMode" class="DashboardBanner-greeting">
+      <h1 class="DashboardBanner-greeting">
         Hello, {{ name }}!
       </h1>
 
@@ -29,7 +29,7 @@ export default {
 
 <style lang="scss" scoped>
 .DashboardBanner {
-  @include flex-container(column, initial, flex-start);
+  @include flex-container(column, initial, center);
   @include child-spacing(top, 24px);
   width: 100%;
 
@@ -41,10 +41,10 @@ export default {
 
 .DashboardBanner-greeting {
   @include font-category('display-small');
+  color: white;
   @include breakpoint-above('medium') {
     @include font-category('display-large');
-    color: white;
-  }
+    }
 }
 
 .DashboardBanner-banner {
