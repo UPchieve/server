@@ -58,6 +58,8 @@ export default {
   padding: 24px 16px;
   width: 100%;
   height: 242px;
+  justify-content: center;
+  align-items: center;
 
   @include breakpoint-above('medium') {
     @include flex-container(column, center, center);
