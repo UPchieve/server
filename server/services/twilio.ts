@@ -14,6 +14,7 @@ import Case from 'case'
 import NotificationModel, { Notification } from '../models/Notification'
 import { Session } from '../models/Session'
 import { Types } from 'mongoose'
+import logger from '../logger'
 
 // get the availability field to query for the current time
 function getCurrentAvailabilityPath() {
@@ -47,7 +48,7 @@ function getCurrentAvailabilityPath() {
   return `availability.${days[day]}.${hour}`
 }
 
-const getNextVolunteer = async ({ priorityFilter = {} }) => {
+async function getNextVolunteer(priorityFilter: {} = {}) {
   const availabilityPath = getCurrentAvailabilityPath()
 
   const filter = {
@@ -73,7 +74,7 @@ const getNextVolunteer = async ({ priorityFilter = {} }) => {
 }
 
 // query failsafe volunteers to notify
-const getFailsafeVolunteers = async () => {
+async function getFailsafeVolunteers() {
   return Volunteer.find({ isFailsafeVolunteer: true })
     .select({ phone: 1, firstname: 1 })
     .exec()
@@ -89,8 +90,8 @@ function sendTextMessage(phoneNumber: string, messageText: string) {
     phoneNumber[0] === '+' ? phoneNumber : `+1${phoneNumber}`
 
   if (!twilioClient) {
-    console.log('Twilio client not loaded.')
-    return Promise.resolve()
+    logger.error('Twilio client not loaded.')
+    return Promise.reject('Twilio client not loaded')
   }
   return twilioClient.messages
     .create({
@@ -144,23 +145,23 @@ function sendVoiceMessage(phoneNumber: string, messageText: string) {
 }
 
 // the URL that the volunteer can use to join the session on the client
-function getSessionUrl(session: Session) {
+export function getSessionUrl(session: Session) {
   const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
   return `${protocol}://${config.client.host}/session/${Case.kebab(
     session.type!
   )}/${Case.kebab(session.subTopic!)}/${session._id}`
 }
 
-const getActiveSessionVolunteers = async () => {
+async function getActiveSessionVolunteers() {
   const activeSessions = await SessionService.getActiveSessionsWithVolunteers()
   return activeSessions.map(session => session.volunteer)
 }
 
-const relativeDate = msAgo => {
+function relativeDate (msAgo: number) {
   return new Date(new Date().getTime() - msAgo).toISOString()
 }
 
-const getVolunteersNotifiedSince = async sinceDate => {
+async function getVolunteersNotifiedSince (sinceDate: Date) {
   const notifications = await NotificationModel.find({
     sentAt: { $gt: sinceDate }
   })
@@ -171,10 +172,10 @@ const getVolunteersNotifiedSince = async sinceDate => {
   return notifications.map(notif => notif.volunteer)
 }
 
-const sendFollowupText = async (session: Session, volunteerId: Types.ObjectId, volunteerPhone: string) => {
+export async function sendFollowupText(session: Session, volunteerId: Types.ObjectId, volunteerPhone: string) {
   const messageText = `Head's up: this student is still waiting for help!`
   const sendPromise = sendTextMessage(volunteerPhone, messageText)
-  const notification = new Notification({
+  const notification = new NotificationModel({
     volunteer: volunteerId,
     type: 'REGULAR',
     method: 'SMS',
@@ -185,26 +186,29 @@ const sendFollowupText = async (session: Session, volunteerId: Types.ObjectId, v
   await SessionService.addNotifications(session._id, [notification])
 }
 
-const notifyVolunteer = async session => {
+export async function notifyVolunteer (session: Session) {
   let subtopic = session.subTopic
   const activeSessionVolunteers = await getActiveSessionVolunteers()
   const notifiedLastFifteenMins = await getVolunteersNotifiedSince(
-    relativeDate(15 * 60 * 1000)
+    new Date(relativeDate(15 * 60 * 1000))
   )
   const notifiedLastSixtyMins = await getVolunteersNotifiedSince(
-    relativeDate(60 * 60 * 1000)
+    new Date(relativeDate(60 * 60 * 1000))
   )
   const notifiedLastTwentyFourHours = await getVolunteersNotifiedSince(
-    relativeDate(24 * 60 * 60 * 1000)
+    new Date(relativeDate(24 * 60 * 60 * 1000))
   )
   const notifiedLastThreeDays = await getVolunteersNotifiedSince(
-    relativeDate(3 * 24 * 60 * 60 * 1000)
+    new Date(relativeDate(3 * 24 * 60 * 60 * 1000))
   )
 
   // Prioritize volunteers who do not have high-level subjects to avoid
   // lack of volunteers when high-level subjects are requested
   const highLevelSubjects = ['calculusAB', 'chemistry', 'statistics']
-  const isHighLevelSubject = highLevelSubjects.includes(subtopic)
+  let isHighLevelSubject
+  if (subtopic != null) {
+    isHighLevelSubject = highLevelSubjects.includes(subtopic)
+  }
   const subjectsFilter = { $eq: subtopic }
   // If the current subject is not a high level subject,
   // filter out volunteers who have high level subjects
@@ -324,14 +328,17 @@ const notifyVolunteer = async session => {
   return volunteer
 }
 
-const notifyFailsafe = async function(session: Session, voice: boolean = false) {
+async function notifyFailsafe (session: Session, voice: boolean = false) {
   const subtopic = session.subTopic
   const sessionUrl = getSessionUrl(session)
   const volunteersToNotify = await getFailsafeVolunteers()
-  const { isTestUser } = await Student.findOne({ _id: session.student })
+  const student = await Student.findOne({ _id: session.student })
     .select('isTestUser')
     .lean()
     .exec()
+  if (!student) {
+    throw new Error('no student found')
+  }
 
   const notifications = []
 
@@ -340,15 +347,21 @@ const notifyFailsafe = async function(session: Session, voice: boolean = false) 
 
     let messageText = `UPchieve failsafe alert: new ${subtopic} request`
 
-    if (isTestUser) messageText = '[TEST USER] ' + messageText
+    if (student.isTestUser) messageText = '[TEST USER] ' + messageText
     if (!voice) messageText = messageText + `\n${sessionUrl}`
 
-    const sendPromise = voice
-      ? sendVoiceMessage(phoneNumber, messageText)
-      : sendTextMessage(phoneNumber, messageText)
+    let sendPromise
+    if (phoneNumber) {
+      sendPromise = voice
+        ? sendVoiceMessage(phoneNumber, messageText)
+        : sendTextMessage(phoneNumber, messageText)
+    }
+    if (!sendPromise) {
+      throw new Error('no sendPromise function to send a notification')
+    }
 
     // record notification to database
-    const notification = new Notification({
+    const notification = new NotificationModel({
       volunteer: volunteer,
       type: 'FAILSAFE',
       method: voice ? 'VOICE' : 'SMS'
@@ -393,7 +406,11 @@ function recordNotification(sendPromise: Promise<string>|Promise<void>, notifica
     })
 }
 
-function sendVerification(sendTo: string, verificationMethod: string, firstName: string) {
+export function sendVerification(sendTo: string, verificationMethod: string, firstName: string) {
+  if (!twilioClient) {
+    logger.error('Twilio client not loaded')
+    throw new Error('Twilio client not loaded')
+  }
   return twilioClient.verify
     .services(config.twilioAccountVerificationServiceSid)
     .verifications.create({
@@ -407,40 +424,35 @@ function sendVerification(sendTo: string, verificationMethod: string, firstName:
     })
 }
 
-function confirmVerification(to: string, code: string) {
+export function confirmVerification(to: string, code: string) {
+  if (!twilioClient) {
+    logger.error('Twilio client not loaded')
+    throw new Error('Twilio client not loaded')
+  }
   return twilioClient.verify
     .services(config.twilioAccountVerificationServiceSid)
     .verificationChecks.create({ to, code })
 }
 
-export default {
-  notifyVolunteer,
 
-  getSessionUrl,
+export async function beginRegularNotifications(session: Session) {
+  const student = await Student.findOne({ _id: session.student })
+    .lean()
+    .exec()
+  if (!student) throw new Error(`student with id ${session.student.toString()} could not be found`)
+  if (student.isTestUser) return
 
-  beginRegularNotifications: async function(session) {
-    const student = await Student.findOne({ _id: session.student })
-      .lean()
-      .exec()
-    if (!student) throw new Error(`student with id ${session.student.toString()} could not be found`)
-    if (student.isTestUser) return
+  // Delay initial wave of notifications by 1 min to give
+  // volunteers on the dashboard time to pick up the request
+  const notificationSchedule = config.notificationSchedule.slice()
+  const delay = notificationSchedule.shift()
+  queue.add(
+    'NotifyTutors',
+    { sessionId: session._id, notificationSchedule },
+    { delay }
+  )
+}
 
-    // Delay initial wave of notifications by 1 min to give
-    // volunteers on the dashboard time to pick up the request
-    const notificationSchedule = config.notificationSchedule.slice()
-    const delay = notificationSchedule.shift()
-    queue.add(
-      'NotifyTutors',
-      { sessionId: session._id, notificationSchedule },
-      { delay }
-    )
-  },
-
-  beginFailsafeNotifications: async (session: Session) => {
-    await notifyFailsafe({ session, voice: false })
-  },
-
-  sendFollowupText,
-  sendVerification,
-  confirmVerification
+export async function beginFailsafeNotifications(session: Session) {
+  await notifyFailsafe(session, false)
 }

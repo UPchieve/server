@@ -9,7 +9,7 @@ import FeedbackModel, {
 import { FEEDBACK_VERSIONS } from '../constants'
 import * as SessionService from './SessionService'
 
-export const getFeedback = (query): Promise<Feedback|null> => {
+export const getFeedback = (query: {}): Promise<Feedback|null> => {
   return FeedbackModel.findOne(query)
     .lean()
     .exec()

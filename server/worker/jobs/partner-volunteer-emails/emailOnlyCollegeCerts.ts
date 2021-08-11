@@ -55,7 +55,7 @@ export default async (
     const { _id, firstname: firstName, email } = volunteer
     const textNotifications = await getNotifications({ volunteer: _id })
 
-    if (textNotifications.length < 2) {
+    if (textNotifications && textNotifications.length < 2) {
       try {
         await MailService.sendPartnerVolunteerOnlyCollegeCerts(email, firstName)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)

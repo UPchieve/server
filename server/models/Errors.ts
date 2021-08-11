@@ -1,7 +1,7 @@
 import { CustomError } from 'ts-custom-error'
 
 export class UserNotFoundError extends CustomError {
-  constructor(attemptedParam, attemptedValue: string) {
+  constructor(attemptedParam: string, attemptedValue: string) {
     super(
       `user not found via parameter ${attemptedParam} and value ${attemptedValue}`
     )
@@ -11,7 +11,7 @@ export class UserNotFoundError extends CustomError {
 export class DocCreationError extends CustomError {}
 
 export class DocUpdateError extends CustomError {
-  constructor(error, query, update) {
+  constructor(error: Error, query: any, update: any) {
     super(
       `Document update error ${error.message} via query ${JSON.stringify(
         query

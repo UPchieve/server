@@ -1,7 +1,7 @@
 import * as VerificationCtrl from '../../controllers/VerificationCtrl'
 import { VERIFICATION_METHOD } from '../../constants'
 import isValidInternationalPhoneNumber from '../../utils/is-valid-international-phone-number'
-import isValidEmail from '../../utils/is-valid-email'
+import { isEmail } from 'validator'
 import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as StudentService from '../../services/StudentService'
@@ -25,7 +25,7 @@ export function routeVerify(router: Router) {
       existingUserErrorMessage =
         'The phone number you entered is already in use'
     } else {
-      if (!isValidEmail(sendTo))
+      if (!isEmail(sendTo))
         return res.status(422).json({
           err: 'Must enter a valid email address'
         })

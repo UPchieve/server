@@ -67,7 +67,7 @@ const baseUserSchema = new Schema(
       unique: true,
       lowercase: true,
       validate: {
-        validator: function(v): boolean {
+        validator: function(v: string): boolean {
           return validator.isEmail(v)
         },
         message: '{VALUE} is not a valid email'

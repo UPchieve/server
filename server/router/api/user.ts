@@ -2,13 +2,13 @@ import * as UserCtrl from '../../controllers/UserCtrl'
 import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
-import Volunteer from '../../models/Volunteer'
 import { authPassport } from '../../utils/auth-utils'
 import config from '../../config'
 import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 import { Request, Response, NextFunction, Router } from 'express'
 import { User } from '../../models/User'
-import { User as ExpressUser } from 'express'
+import { Volunteer } from '../../models/Volunteer'
+import { Student } from '../../models/Student'
 
 export default function(router: Router) {
   router.route('/user').get(function(req: Request, res: Response) {
@@ -18,26 +18,27 @@ export default function(router: Router) {
       })
     }
 
-    const parsedUser = UserService.parseUser(req.user)
+    const parsedUser = UserService.parseUser((req.user as Volunteer | Student))
     return res.json({ user: parsedUser })
   })
 
   // @note: Currently, only volunteers are able to update their profile
   router.put('/user', async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user as User
     const { ip } = req
-    const { _id } = req.user
     const { phone, isDeactivated } = req.body
 
-    if (isDeactivated !== req.user.isDeactivated) {
+    if (isDeactivated !== user.isDeactivated) {
       const updatedUser = Object.assign(req.user, { isDeactivated })
-      MailService.createContact(updatedUser)
+      if (updatedUser)
+        MailService.createContact(updatedUser)
 
       if (isDeactivated)
         new UserActionCtrl.AccountActionCreator(_id, ip).accountDeactivated()
     }
 
     try {
-      await Volunteer.updateOne({ _id }, { phone, isDeactivated })
+      await Volunteer.updateOne({ _id: user._id }, { phone, isDeactivated })
       res.sendStatus(200)
     } catch (err) {
       next(err)
@@ -49,7 +50,7 @@ export default function(router: Router) {
     const { userId } = req.params
 
     try {
-      await UserService.adminUpdateUser({ userId, ...req.body })
+      await UserService.adminUpdateUser(userId, req.body.firstname, req.body.lastname, req.body.email, req.body.partnerOrg, req.body.partnerSite, req.body.isVerified, req.body.isBanned, req.body.isDeactivated, req.body.isApproved)
       res.sendStatus(200)
     } catch (err) {
       next(err)
@@ -163,7 +164,7 @@ export default function(router: Router) {
     next
   ) {
     const { userId } = req.params
-    const { page } = req.query
+    const page: string = req.query.page
 
     try {
       const user = await UserService.adminGetUser(userId, parseInt(page))
@@ -182,7 +183,7 @@ export default function(router: Router) {
 
   router.get('/users', authPassport.isAdmin, async function(req: Request, res: Response, next: NextFunction) {
     try {
-      const { users, isLastPage } = await UserService.getUsers(req.query)
+      const { users, isLastPage } = await UserService.getUsers(req.query.userId, req.query.firstName, req.query.lastName, req.query.email, req.query.partnerOrg, req.query.highSchool, req.query.page)
       res.json({ users, isLastPage })
     } catch (err) {
       next(err)

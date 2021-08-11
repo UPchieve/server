@@ -197,7 +197,7 @@ export function routes(app: Express) {
     res: Response,
     next: NextFunction
   ) {
-    const page = parseInt(req.query.page) || 1
+    const page: number = parseInt(req.query.page as string) || 1
 
     try {
       const {

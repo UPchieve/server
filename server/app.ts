@@ -6,7 +6,7 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { Request, Response, NextFunction } from 'express'
-import expressWs from '@small-tech/express-ws'
+const expressWs: any = require('@small-tech/express-ws')
 import cacheControl from 'express-cache-controller'
 import timeout from 'connect-timeout'
 import expressPino from 'express-pino-logger'

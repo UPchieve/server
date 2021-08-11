@@ -26,7 +26,7 @@ export async function search(query: any): Promise<any> {
       .limit(100)
 
     return results
-      .sort((s1, s2) => s1.name.localeCompare(s2.name))
+      .sort((s1: School, s2: School) => s1.name!.localeCompare(s2.name!))
       .map(school => {
         return {
           _id: school._id,
@@ -225,7 +225,7 @@ export const getSchools = async (name: string, state: string, city: string, page
   }
 }
 
-export const updateApproval = (schoolId, isApproved) => {
+export const updateApproval = (schoolId: Types.ObjectId, isApproved: boolean) => {
   return SchoolModel.updateOne({ _id: schoolId }, { isApproved })
 }
 

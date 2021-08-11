@@ -14,7 +14,7 @@ import {
   createAvailabilitySnapshot
 } from '../services/AvailabilityService'
 
-const generateReferralCode = userId => base64url(Buffer.from(userId, 'hex'))
+const generateReferralCode = (userId: string) => base64url(Buffer.from(userId, 'hex'))
 
 export function deleteUserByEmail(
   userEmail: string
@@ -32,6 +32,9 @@ export async function checkReferral(referredByCode: string): Promise<string> {
         .lean()
         .exec()
 
+      if (referredBy === null) {
+        throw new Error('user was not referred by anyone')
+      }
       referredById = referredBy._id
     } catch (error) {
       captureException(error)

@@ -6,8 +6,8 @@ import config from './config'
 let volunteerManifestsYaml = ''
 let studentManifestsYaml = ''
 
-export let volunteerPartnerManifests: string
-export let studentPartnerManifests: string
+export let volunteerPartnerManifests: any
+export let studentPartnerManifests: any
 
 if (
   process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFESTS === '' ||

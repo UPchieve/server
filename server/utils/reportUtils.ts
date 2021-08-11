@@ -38,7 +38,7 @@ function addToAcc(acc: any, time: Moment, minutes: number): void {
   }
 }
 
-function readFromAcc(acc, time: Moment): number {
+function readFromAcc(acc: any, time: Moment): number {
   const { day, hour } = formatStamp(time)
   if (day in acc) {
     const sub = acc[day]
@@ -52,7 +52,7 @@ function readFromAcc(acc, time: Moment): number {
 // Reduce accumulator to single day totals
 // reduced_acc = { day: number }
 function reduceAcc(acc: any) {
-  const final = {}
+  const final: {[key: string]: any} = {}
   for (const day of Object.keys(acc)) {
     let total = 0
     const sub = acc[day]
@@ -168,7 +168,7 @@ async function getVolunteerData(volunteer: Volunteer, dateQuery: any) {
     [
       {
         $match: {
-          user: Types.ObjectId(volunteer._id as string),
+          user: volunteer._id,
           action: USER_ACTION.QUIZ.PASSED,
           createdAt: dateQuery
         }

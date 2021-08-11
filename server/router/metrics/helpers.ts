@@ -55,7 +55,7 @@ function getScaledTimeByTimeScale(timeScale: string, time: Moment) {
   }
 }
 
-function objToDatapoints(obj: {}, prop: string = 'count') {
+export function objToDatapoints(obj: {}, prop: string = 'count') {
   return map(obj, (scaledTimes, segmentSlug) => {
     scaledTimes = mapValues(scaledTimes, prop)
     return map(scaledTimes, (count, scaledTime) => {
@@ -70,7 +70,7 @@ function objToDatapoints(obj: {}, prop: string = 'count') {
   })
 }
 
-function deepObjToDatapoints(obj: {}, dimensionSlug: string = 'all') {
+export function deepObjToDatapoints(obj: {}, dimensionSlug: string = 'all') {
   return flattenDeep(
     map(obj, (scaledTimes, segmentSlug) => {
       scaledTimes = mapValues(scaledTimes, dimensionSlug)
@@ -148,8 +148,7 @@ function getFeedbackStatsPerSegment(
   )
 }
 
-async function getFeedbackStats(userType: string, options: { minTime: Date, maxTime: Date, timeScale: string}) {
-  const { minTime, maxTime, timeScale = 'day' } = options
+export async function getFeedbackStats(userType: string, minTime: Date, maxTime: Date, timeScale: string) {
   const feedbacks = await FeedbackModel.find({
     userType,
     createdAt: { $gte: minTime, $lte: maxTime }
@@ -267,7 +266,7 @@ function getSessionsWithExtras(sessions: Session[], allUsers: User[] = undefined
   )
 }
 
-async function getCumulativeSessions(minTime: Date, maxTime: Date) {
+export async function getCumulativeSessions(minTime: Date, maxTime: Date) {
   const sessions = await Session.find({
     createdAt: { $lte: maxTime }
   })
@@ -325,7 +324,7 @@ function getSessionStatsPerSegment(sessionsWithExtras: any, segmentSlug: string,
   })
 }
 
-async function getSessionStats({ minTime, maxTime, timeScale = 'day' }) {
+export async function getSessionStats(minTime: Date, maxTime: Date, timeScale: string = 'day') {
   const sessions = await Session.find({
     createdAt: { $gte: minTime, $lte: maxTime }
   })
@@ -357,7 +356,7 @@ async function getSessionStats({ minTime, maxTime, timeScale = 'day' }) {
   return getPerSegment(sessionsWithExtras, getSessionStatsPerSegment, timeScale)
 }
 
-async function getCumulativeStudents({ minTime, maxTime }) {
+export async function getCumulativeStudents(minTime: Date, maxTime: Date) {
   const students = await User.find({
     isVolunteer: false,
     isTestUser: false,
@@ -422,7 +421,7 @@ async function getStudentsDatapoints(students: Student[], segmentSlug: string, t
   )
 }
 
-async function getStudents({ minTime, maxTime, timeScale = 'day' }) {
+export async function getStudents(minTime: Date, maxTime: Date, timeScale: string = 'day') {
   const students = await User.find({
     isVolunteer: false,
     isTestUser: false,
@@ -444,8 +443,7 @@ async function getStudents({ minTime, maxTime, timeScale = 'day' }) {
   return allDatapoints.concat(flatten(studentPartnerDatapoints))
 }
 
-async function getVolunteerDistributionStats(options: { minTime: Date, maxTime: Date, timeScale: string }) {
-  const { minTime, maxTime, timeScale = 'day' } = options
+export async function getVolunteerDistributionStats(minTime: Date, maxTime: Date, timeScale: string = 'day') {
   const volunteers = await User.find({
     isVolunteer: true,
     createdAt: { $gte: minTime, $lte: maxTime }
@@ -539,7 +537,7 @@ function getVolunteerStatsPerSegment(
   })
 }
 
-async function getVolunteerStats({ minTime, maxTime, timeScale = 'day' }) {
+export async function getVolunteerStats(minTime: Date, maxTime: Date, timeScale = 'day') {
   const volunteers = await User.find({
     isVolunteer: true,
     createdAt: { $gte: minTime, $lte: maxTime }
@@ -570,16 +568,4 @@ async function getVolunteerStats({ minTime, maxTime, timeScale = 'day' }) {
     timeScale,
     'volunteer'
   )
-}
-
-export default {
-  getFeedbackStats,
-  getCumulativeSessions,
-  getSessionStats,
-  getCumulativeStudents,
-  getStudents,
-  getVolunteerDistributionStats,
-  getVolunteerStats,
-  objToDatapoints,
-  deepObjToDatapoints
 }

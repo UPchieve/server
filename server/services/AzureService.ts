@@ -39,10 +39,10 @@ export const getBlob = async ({
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blobClient = containerClient.getBlobClient(blobName)
   const downloadBlockBlobResponse = await blobClient.download()
-  const blobContent = (
-    await streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
-  ).toString()
-  return blobContent
+  if (downloadBlockBlobResponse.readableStreamBody)
+    return (
+      await (streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
+    ) as Buffer).toString()
 }
 
 export const uploadBlob = async ({

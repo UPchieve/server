@@ -50,7 +50,7 @@ export function parseUser(user: Volunteer | Student) {
   }
 }
 
-export async function banUser({ userId, banReason }) {
+export async function banUser(userId: Types.ObjectId, banReason: USER_BAN_REASON) {
   return UserModel.updateOne(
     { _id: userId },
     { $set: { isBanned: true, banReason } }
@@ -159,8 +159,8 @@ export async function deleteReference(userId: Types.ObjectId, referenceEmail: st
   )
 }
 
-export async function getVolunteersToReview (page) {
-  const pageNum = parseInt(page) || 1
+export async function getVolunteersToReview(page: number) {
+  const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
 
@@ -271,7 +271,8 @@ export async function updatePendingVolunteerStatus(
     photoIdStatus === PHOTO_ID_STATUS.REJECTED &&
     volunteerBeforeUpdate.photoIdStatus !== PHOTO_ID_STATUS.REJECTED
   ) {
-    await new AccountActionCreator(volunteerId).rejectedPhotoId()
+    const id = new ObjectId(volunteerId)
+    await new AccountActionCreator(id).rejectedPhotoId()
     AnalyticsService.captureEvent(volunteerId, EVENTS.PHOTO_ID_REJECTED, {
       event: EVENTS.PHOTO_ID_REJECTED
     })
@@ -309,9 +310,9 @@ export async function updatePendingVolunteerStatus(
 }
 
 export async function addBackgroundInfo(volunteerId: Types.ObjectId, update: any, ip: string) {
-  const { volunteerPartnerOrg } = await this.getVolunteer(
+  const { volunteerPartnerOrg } = await getVolunteer(
     volunteerId,
-    null
+    {}
   )
   if (volunteerPartnerOrg) {
     update.isApproved = true
@@ -335,7 +336,7 @@ export async function addBackgroundInfo(volunteerId: Types.ObjectId, update: any
   return VolunteerModel.updateOne({ _id: volunteerId }, update)
 }
 
-export async function updateLastActivityUser({ userId, lastActivityAt }) {
+export async function updateLastActivityUser(userId: Types.ObjectId, lastActivityAt: Date) {
   await UserModel.updateOne({ _id: userId }, { lastActivityAt })
 }
 
@@ -351,7 +352,10 @@ export async function adminUpdateUser(
   isDeactivated: boolean,
   isApproved: boolean
 ) {
-  const userBeforeUpdate = await this.getUser({ _id: userId })
+  const userBeforeUpdate = await getUser({ _id: userId }, {})
+  if (!userBeforeUpdate) {
+    throw new Error('user before update is null')
+  }
   const { isVolunteer } = userBeforeUpdate
   const isUpdatedEmail = userBeforeUpdate.email !== email
 
@@ -483,7 +487,7 @@ export async function getUsers(
 // @note: this query is making a request for user data on every page transition
 //        for new pastSessions to display. May be better served as a separate
 //        service method for getting the user's past sessions
-export async function adminGetUser(userId: string, page: string) {
+export async function adminGetUser(userId: string, page: number) {
   const [results] = await UserModel.aggregate([
     {
       $match: {

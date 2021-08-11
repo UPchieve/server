@@ -2,7 +2,7 @@ import { SUBJECT_TYPES } from '../constants'
 import getSubjectType from './getSubjectType'
 
 export function countCertsByType(
-  certifications
+  certifications: any
 ): {
   total: number
   [SUBJECT_TYPES.MATH]: number

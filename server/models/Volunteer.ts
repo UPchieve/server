@@ -173,12 +173,12 @@ export interface Volunteer extends User {
 
 export type VolunteerDocument = Volunteer & Document
 
-const weeksSince = (date): number => {
+const weeksSince = (date: Date): number => {
   // 604800000 = milliseconds in a week
   return ((new Date().getTime() as number) - date) / 604800000
 }
 
-const minsSince = (date): number => {
+const minsSince = (date: Date): number => {
   // 60000 = milliseconds in a minute
   return ((new Date().getTime() as number) - date) / 60000
 }

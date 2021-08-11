@@ -33,7 +33,7 @@ mongoose.connection.on('disconnected', () => {
 mongoose.connection.on('reconnected', () => {
   logger.info('re-established database connection to at least one server')
 })
-mongoose.connection.on('error', err => {
+mongoose.connection.on('error', (err: Error) => {
   logger.error(`mongo database error: ${err}`)
 })
 mongoose.connection.on('connected', function() {

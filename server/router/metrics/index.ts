@@ -1,5 +1,5 @@
 import { flattenDeep } from 'lodash'
-import moment from 'moment'
+import moment, { Moment } from 'moment'
 import { Express, Request, Response } from 'express'
 
 const {
@@ -16,38 +16,42 @@ const {
 
 export default function(app: Express) {
   app.use('/metrics', async function(req: Request, res: Response) {
-    let { minTime, maxTime } = req.query
-    const { timeScale } = req.query
+    let minTime: string|Date = req.query.minTime
+    let maxTime: string|Date = req.query.maxTime
+    const timeScale: string = req.query.timeScale
     if (minTime) {
-      minTime = moment.utc(minTime)
+      minTime = moment.utc(minTime).toDate()
+    } else {
+      minTime = new Date(minTime)
     }
     if (maxTime) {
-      maxTime = moment.utc(maxTime).endOf('day')
+      maxTime = moment.utc(maxTime).endOf('day').toDate()
+    } else {
+      maxTime = new Date(maxTime)
     }
-    const options = { minTime, maxTime, timeScale }
-    const studentFeedbackStats = await getFeedbackStats('student', options)
-    const volunteerFeedbackStats = await getFeedbackStats('volunteer', options)
-    const sessionStats = await getSessionStats(options)
-    const volunteerStats = await getVolunteerStats(options)
+    const studentFeedbackStats = await getFeedbackStats('student', minTime, maxTime, timeScale)
+    const volunteerFeedbackStats = await getFeedbackStats('volunteer', minTime, maxTime, timeScale)
+    const sessionStats = await getSessionStats(minTime, maxTime, timeScale)
+    const volunteerStats = await getVolunteerStats(minTime, maxTime, timeScale)
     const volunteerDistributionStats = await getVolunteerDistributionStats(
-      options
+      minTime, maxTime, timeScale
     )
 
     const metrics = [
       {
         slug: 'students',
         name: 'Student signups',
-        datapoints: await getStudents(options)
+        datapoints: await getStudents(minTime, maxTime, timeScale)
       },
       {
         slug: 'cumulative-students',
         name: 'Total Students',
-        datapoints: await getCumulativeStudents(options)
+        datapoints: await getCumulativeStudents(minTime, maxTime)
       },
       {
         slug: 'cumulative-sessions',
         name: 'Total Sessions',
-        datapoints: await getCumulativeSessions(options)
+        datapoints: await getCumulativeSessions(minTime, maxTime)
       },
       {
         slug: 'sessions',

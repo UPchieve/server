@@ -7,7 +7,7 @@ import {
 } from '../db-utils'
 import { getEmail, getPhoneNumber } from '../generate'
 import { confirmVerification } from '../../controllers/VerificationCtrl'
-import TwilioService from '../../services/twilio'
+import * as TwilioService from '../../services/twilio'
 import { VERIFICATION_METHOD } from '../../constants'
 import { getVolunteer } from '../../services/UserService'
 jest.mock('../../services/twilio')

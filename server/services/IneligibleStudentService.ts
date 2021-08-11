@@ -19,7 +19,7 @@ export interface IneligibleStudentsWithSchoolInfo {
 
 export const getStudent = (
   query: Partial<IneligibleStudent>
-): Promise<IneligibleStudent> => {
+): Promise<IneligibleStudent|null> => {
   return IneligibleStudentModel.findOne(query)
     .lean()
     .exec()

@@ -1,6 +1,6 @@
 import { Types } from 'mongoose'
-import UserService from '../services/UserService'
-import TwilioService from '../services/twilio'
+import * as UserService from '../services/UserService'
+import * as TwilioService from '../services/twilio'
 import { VERIFICATION_METHOD } from '../constants'
 
 export interface InitiateVerificationOptions {

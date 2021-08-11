@@ -1,6 +1,7 @@
 import moment from 'moment'
 import { Request, Response } from 'express'
 import { updateLastActivityUser } from '../services/UserService'
+import { User } from '../models/User'
 
 export function addLastActivity(
   req: Request,
@@ -8,7 +9,7 @@ export function addLastActivity(
   next: Function
 ): void {
   if (Object.prototype.hasOwnProperty.call(req, 'user')) {
-    const { _id, lastActivityAt } = req.user
+    const { _id, lastActivityAt } = req.user as User
     // Convert all times to UTC for consistency
     const today = moment().utc()
     const lastActivityMoment = moment(lastActivityAt).utc()

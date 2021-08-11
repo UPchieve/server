@@ -5,6 +5,8 @@ const TrainingCourseService = require('../../services/TrainingCourseService')
 const UserActionService = require('../../services/UserActionService')
 const VolunteerService = require('../../services/VolunteerService')
 import { Request, Response, NextFunction, Router } from 'express'
+import { Volunteer } from '../../models/Volunteer'
+import { User } from '../../models/User'
 
 export default function(router: Router) {
   router.post('/training/questions', async function(req: Request, res: Response, next: NextFunction) {
@@ -32,39 +34,42 @@ export default function(router: Router) {
         score,
         idCorrectAnswerMap
       } = await TrainingCtrl.getQuizScore({
-        user,
+        user: (user as Volunteer),
         idAnswerMap,
         category,
         ip
       })
+      if (!user) {
+        throw new Error('no user was found from getting quiz score')
+      }
 
       const quizActionCreator = new UserActionCtrl.QuizActionCreator(
-        user._id,
+        (user as Volunteer)._id,
         category,
         ip
       )
       if (passed) {
         quizActionCreator
           .passedQuiz()
-          .catch(error => Sentry.captureException(error))
+          .catch((error: Error) => Sentry.captureException(error))
       } else {
         // we want to queue a job to send this email only if this is the first time
         // a volunteer has taken a quiz ever, and they failed it
         // must come before the next quizActionCreator call or will never fire
         // because there would always be a failed quiz
         const takenQuizBefore = await UserActionService.userHasTakenQuiz(
-          user._id
+          (user as Volunteer)._id
         )
         if (!takenQuizBefore)
-          VolunteerService.queueFailedFirstAttemptedQuizEmail(
+          await VolunteerService.queueFailedFirstAttemptedQuizEmail(
             category,
-            user.email,
-            user.firstname,
-            user._id
+            (user as Volunteer).email,
+            (user as Volunteer).firstname,
+            (user as Volunteer)._id.toString()
           )
         quizActionCreator
           .failedQuiz()
-          .catch(error => Sentry.captureException(error))
+          .catch((error: Error) => Sentry.captureException(error))
       }
 
       res.json({
@@ -80,7 +85,7 @@ export default function(router: Router) {
   })
 
   router.get('/training/review/:category', function(req: Request, res: Response, next: NextFunction) {
-    const { _id } = req.user
+    const { _id } = req.user as User
     const { category } = req.params
     const { ip: ipAddress } = req
 

@@ -1,6 +1,5 @@
 import crypto from 'crypto'
 import moment from 'moment'
-import { User } from '@sentry/types'
 import Case from 'case'
 import * as SessionRepo from '../models/Session'
 import {
@@ -33,6 +32,11 @@ import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
 import SocketService from './SocketService'
 import { captureEvent } from './AnalyticsService'
 import * as PushTokenService from './PushTokenService'
+import { Volunteer } from '../models/Volunteer'
+import { Student } from '../models/Student'
+import { ObjectId } from 'mongodb'
+import { User } from '../models/User'
+import { Types } from 'mongoose'
 
 const {
   getSessionById,
@@ -92,11 +96,11 @@ export async function sessionsToReview(data: unknown) {
   if (!users)
     query.$or = [{ reviewedStudent: false }, { reviewedVolunteer: false }]
 
-  const sessions = await SessionRepo.getSessionsToReview({
+  const sessions = await SessionRepo.getSessionsToReview(
     query,
     skip,
-    limit: PER_PAGE
-  })
+    PER_PAGE
+  )
   const isLastPage = sessions.length < PER_PAGE
   return { sessions, isLastPage }
 }
@@ -134,10 +138,10 @@ export async function reportSession(data: unknown) {
 
   const isBanReason = reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
   if (isBanReason && reportedBy.isVolunteer) {
-    await UserService.banUser({
-      userId: session.student,
-      banReason: USER_BAN_REASON.SESSION_REPORTED
-    })
+    await UserService.banUser(
+      session.student,
+      USER_BAN_REASON.SESSION_REPORTED
+    )
     await new UserActionCtrl.AccountActionCreator(session.student, '', {
       session: session._id,
       banReason: USER_BAN_REASON.SESSION_REPORTED
@@ -173,18 +177,18 @@ export async function reportSession(data: unknown) {
 
 export async function endSession(
   sessionId: string,
-  endedBy: User|null = null,
+  endedBy: User | null = null,
   isAdmin: boolean = false
 ) {
   const session = await SessionRepo.getSessionToEnd(sessionId)
   if (session.endedAt)
     throw new sessionUtils.EndSessionError('Session has already ended')
-  if (!isAdmin && !sessionUtils.isSessionParticipant(session, endedBy))
+  if (!isAdmin && endedBy && !sessionUtils.isSessionParticipant(session, endedBy))
     throw new sessionUtils.EndSessionError(
       'Only session participants can end a session'
     )
 
-  await UserService.addPastSession(session.student._id, session._id)
+  await UserService.addPastSession((session.student as Student)._id, session._id)
 
   const endedAt = new Date()
 
@@ -202,16 +206,16 @@ export async function endSession(
   if (isReviewNeeded) update.reviewedStudent = false
 
   let timeTutored = 0
-  if (session.volunteer && session.volunteer._id) {
+  if (session.volunteer && (session.volunteer as Volunteer)._id) {
     // Calculate time tutored if both users were present in the session
     if (!reviewFlags.includes(SESSION_FLAGS.ABSENT_USER)) {
       timeTutored = sessionUtils.calculateTimeTutored({ ...session, endedAt })
       const fifteenMinutes = 1000 * 60 * 15
       const sendStudentFirstSessionCongrats =
-        session.student.pastSessions.length === 0 &&
+        (session.student as Student).pastSessions.length === 0 &&
         timeTutored >= fifteenMinutes
       const sendVolunteerFirstSessionCongrats =
-        session.volunteer.pastSessions.length === 0 &&
+        (session.volunteer as Volunteer).pastSessions.length === 0 &&
         timeTutored >= fifteenMinutes
       // send at 11 am EST tomorrow
       const hourToSendTomorrow = moment()
@@ -243,32 +247,32 @@ export async function endSession(
     }
 
     await VolunteerService.updatePastSessionsAndTimeTutored(
-      session.volunteer._id,
-      session._id,
+      (session.volunteer as Volunteer)._id.toString(),
+      session._id.toString(),
       timeTutored
     )
 
     if (isReviewNeeded) update.reviewedVolunteer = false
-    if (session.volunteer.volunteerPartnerOrg) {
-      if (session.volunteer.pastSessions.length === 4)
+    if ((session.volunteer as Volunteer).volunteerPartnerOrg) {
+      if ((session.volunteer as Volunteer).pastSessions.length === 4)
         QueueService.add(
           Jobs.EmailPartnerVolunteerReferACoworker,
           {
-            volunteerId: session.volunteer._id,
-            firstName: session.volunteer.firstname,
-            email: session.volunteer.email,
-            partnerOrg: session.volunteer.volunteerPartnerOrg
+            volunteerId: (session.volunteer as Volunteer)._id,
+            firstName: (session.volunteer as Volunteer).firstname,
+            email: (session.volunteer as Volunteer).email,
+            partnerOrg: (session.volunteer as Volunteer).volunteerPartnerOrg
           },
           { delay: 1000 * 60 * 5 }
         )
 
-      if (session.volunteer.pastSessions.length === 9)
+      if ((session.volunteer as Volunteer).pastSessions.length === 9)
         QueueService.add(
           Jobs.EmailPartnerVolunteerTenSessionMilestone,
           {
-            volunteerId: session.volunteer._id,
-            firstName: session.volunteer.firstname,
-            email: session.volunteer.email
+            volunteerId: (session.volunteer as Volunteer)._id,
+            firstName: (session.volunteer as Volunteer).firstname,
+            email: (session.volunteer as Volunteer).email
           },
           { delay: 1000 * 60 * 5 }
         )
@@ -287,14 +291,14 @@ export async function endSession(
   }
 
   // Only college subjects use the Quill document editor
-  if (sessionUtils.isSubjectUsingDocumentEditor(session.subTopic)) {
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.subTopic!)) {
     const quillDoc = await QuillDocService.getDoc(session._id.toString())
     update.quillDoc = JSON.stringify(quillDoc)
   } else {
     const whiteboardDoc = await WhiteboardService.getDoc(session._id.toString())
     update.hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
       sessionId,
-      whiteboardDoc
+      whiteboardDoc!
     )
   }
 
@@ -327,7 +331,7 @@ export async function getStaleSessions(staleThreshold = 43200000) {
   )
 }
 
-export async function getSessionPhotoUploadUrl(sessionId) {
+export async function getSessionPhotoUploadUrl(sessionId: Types.ObjectId) {
   const sessionPhotoS3Key = `${sessionId}${crypto
     .randomBytes(8)
     .toString('hex')}`
@@ -437,6 +441,7 @@ export async function adminSessionView(data: unknown) {
   )
 
   if (
+    session.subTopic &&
     sessionUtils.isSubjectUsingDocumentEditor(session.subTopic) &&
     !session.endedAt
   ) {
@@ -445,13 +450,16 @@ export async function adminSessionView(data: unknown) {
   }
 
   const sessionUserAgent = await getSessionRequestedUserAgentFromSessionId(
-    sessionId
+    new ObjectId(sessionId)
   )
   const feedback = await getFeedbackForSession(sessionId)
-  const sessionPhotos = await AwsService.getObjects({
-    bucket: 'sessionPhotoBucket',
-    s3Keys: session.photos
-  })
+  let sessionPhotos: string[] = []
+  if (session.photos) {
+    sessionPhotos = await AwsService.getObjects({
+      bucket: 'sessionPhotoBucket',
+      s3Keys: session.photos
+    })
+  }
 
   return {
     ...session,
@@ -575,7 +583,7 @@ export async function sessionTimedOut(data: unknown) {
     userAgent
   } = sessionUtils.asSessionTimedOutData(data)
   return new UserActionCtrl.SessionActionCreator(
-    user._id,
+    user._id!,
     sessionId,
     userAgent,
     ip

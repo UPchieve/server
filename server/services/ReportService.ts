@@ -19,6 +19,7 @@ import {
   getAnalyticsReportSummary
 } from '../utils/reportUtils'
 import * as VolunteerService from './VolunteerService'
+import { Feedback } from '../models/Feedback'
 
 const ObjectId = mongoose.Types.ObjectId
 
@@ -56,7 +57,7 @@ const formatDate = (date: Date): Date | string => {
     .format('l h:mm a')
 }
 
-function calcAverageRating(allFeedback): number {
+function calcAverageRating(allFeedback: Feedback[]): number {
   let ratingsSum = 0
   let ratingsCount = 0
 
@@ -86,8 +87,8 @@ function getOffsetTime(date?): number {
 }
 
 export const sessionReport = async (
-  sessionRangeFrom: Date,
-  sessionRangeTo: Date,
+  sessionRangeFrom: Date|number,
+  sessionRangeTo: Date|number,
   highSchoolId: string,
   studentPartnerOrg: string,
   studentPartnerSite: string
@@ -285,10 +286,10 @@ export const sessionReport = async (
 }
 
 export async function usageReport(
-  joinedBefore: string,
-  joinedAfter: string,
-  sessionRangeFrom: string,
-  sessionRangeTo: string,
+  joinedBefore: number,
+  joinedAfter: number,
+  sessionRangeFrom: number,
+  sessionRangeTo: number,
   highSchoolId: string,
   studentPartnerOrg: string,
   studentPartnerSite: string
@@ -746,7 +747,7 @@ export async function generatePartnerAnalyticsReport(
     report.push(row)
   }
 
-  let summary: AnalyticsReportSummary
+  let summary: AnalyticsReportSummary | undefined
   if (report.length > 0)
     summary = await getAnalyticsReportSummary(partnerOrg, report, start, end)
   return { summary, report }

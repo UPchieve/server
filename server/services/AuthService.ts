@@ -124,11 +124,11 @@ export async function registerStudent(data: unknown): Promise<StudentDocument> {
   }
 
 
-  let school: School | undefined
+  let school: School | null
   if (!!highSchoolUpchieveId) {
     school = await findByUpchieveId(highSchoolUpchieveId)
   } else {
-    school = undefined
+    school = null
   }
 
   const highSchoolApprovalRequired = !studentPartnerOrg && !zipCode
@@ -252,11 +252,13 @@ export async function registerPartnerStudent(
     throw new RegistrationError('Invalid student partner organization')
   }
 
-  let school: School
+  let school: School | null | undefined = undefined
   if (highSchoolUpchieveId)
     school = await findByUpchieveId(highSchoolUpchieveId)
+  if (school === null) school = undefined
 
-  const referredBy = await getReferredBy(referredByCode)
+  let referredBy
+  if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
     firstname: firstName.trim(),
@@ -304,7 +306,9 @@ export async function registerVolunteer(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  const referredBy = await getReferredBy(referredByCode)
+  let referredBy
+  if (referredByCode)
+    referredBy = await getReferredBy(referredByCode)
 
   const volunteerData = {
     email,

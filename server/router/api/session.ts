@@ -6,6 +6,7 @@ import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
+import { User } from '../../models/User'
 
 // @todo: figure out a better way to expose SocketService
 export function routes(router: Router, io: Server) {
@@ -16,7 +17,7 @@ export function routes(router: Router, io: Server) {
     try {
       const sessionId = await SessionService.startSession({
         ...req.body,
-        user: req.user,
+        user: req.user as User,
         userAgent: req.get('User-Agent'),
         ip: req.ip
       })
@@ -33,7 +34,7 @@ export function routes(router: Router, io: Server) {
       await SessionService.finishSession(
         {
           ...req.body,
-          user: req.user,
+          user: req.user as User,
           userAgent: req.get('User-Agent'),
           ip: req.ip
         },
@@ -61,7 +62,7 @@ export function routes(router: Router, io: Server) {
   // @todo: switch to a GET request
   router.route('/session/current').post(async function(req, res) {
     try {
-      const currentSession = await SessionService.currentSession(req.user)
+      const currentSession = await SessionService.currentSession(req.user as User)
       if (!currentSession) {
         resError(res, new LookupError('No current session'), 404)
       } else {

@@ -11,13 +11,13 @@ export async function createDoc(sessionId: string): Promise<string> {
   return newDoc
 }
 
-export function getDoc(sessionId: string): Promise<string> {
+export function getDoc(sessionId: string): Promise<string|null> {
   return redisClient.get(sessionIdToKey(sessionId))
 }
 
 export async function getDocLength(sessionId: string): Promise<number> {
   const document = await redisClient.get(sessionIdToKey(sessionId))
-  if (document === undefined || document === null) return 0
+  if (document === null) return 0
   return Buffer.byteLength(document, 'utf8')
 }
 

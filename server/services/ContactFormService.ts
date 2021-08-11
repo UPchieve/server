@@ -66,6 +66,7 @@ function requestBodyIsValid(
 
   if (
     Object.prototype.hasOwnProperty.call(data, 'message') &&
+    (data as ContactFormSubmissionData).message &&
     messageIsValid((data as ContactFormSubmissionData).message)
   ) {
     validMessage = true
@@ -74,6 +75,7 @@ function requestBodyIsValid(
   }
   if (
     Object.prototype.hasOwnProperty.call(data, 'topic') &&
+    (data as ContactFormSubmissionData).topic &&
     topicIsValid((data as ContactFormSubmissionData).topic)
   ) {
     validTopic = true
@@ -82,6 +84,7 @@ function requestBodyIsValid(
   }
   if (
     Object.prototype.hasOwnProperty.call(data, 'userEmail') &&
+    (data as ContactFormSubmissionData).userEmail &&
     emailIsValid((data as ContactFormSubmissionData).userEmail)
   ) {
     validUserEmail = true
@@ -90,6 +93,7 @@ function requestBodyIsValid(
   }
   if (
     Object.prototype.hasOwnProperty.call(data, 'userId') &&
+    (data as ContactFormSubmissionData).userId &&
     userIdIsValid((data as ContactFormSubmissionData).userId)
   ) {
     validUserId = true

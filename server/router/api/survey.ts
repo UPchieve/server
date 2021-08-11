@@ -1,8 +1,9 @@
 import expressWs from '@small-tech/express-ws'
 import * as SurveyService from '../../services/SurveyService'
+import { Request, Response, NextFunction } from 'express'
 
 export function routeSurvey(router: expressWs.Router): void {
-  router.post('/survey/presession/:sessionId', async (req, res, next) => {
+  router.post('/survey/presession/:sessionId', async (req: Request, res: Response, next: NextFunction) => {
     const { user } = req
     const { sessionId } = req.params
     const { responseData } = req.body
@@ -18,7 +19,7 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
-  router.get('/survey/presession/:sessionId', async (req, res, next) => {
+  router.get('/survey/presession/:sessionId', async (req: Request, res: Response, next: NextFunction) => {
     const { user } = req
     const { sessionId } = req.params
 

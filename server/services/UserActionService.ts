@@ -27,7 +27,7 @@ export const getQuizzesPassedForDateRange = (
     .exec()
 
 // @todo: move to UserAction Repo
-export async function getSessionRequestedUserAgentFromSessionId(sessionId) {
+export async function getSessionRequestedUserAgentFromSessionId(sessionId: Types.ObjectId) {
   let doc
   try {
     doc = await UserActionModel.findOne({

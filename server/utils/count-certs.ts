@@ -1,4 +1,4 @@
-const countCerts = certifications => {
+export default function countCerts(certifications: any) {
   let numCerts = 0
   for (const subject in certifications) {
     if (certifications[subject].passed) {
@@ -7,5 +7,3 @@ const countCerts = certifications => {
   }
   return numCerts
 }
-
-export default countCerts

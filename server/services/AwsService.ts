@@ -9,15 +9,12 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4'
 })
 
-export const getObject = async ({
-  bucket,
-  s3Key
-}: {
-  bucket: string
+export async function getObject(
+  bucket: string,
   s3Key: string
-}): Promise<string> => {
+): Promise<string> {
   const signedUrlParams = {
-    Bucket: config.awsS3[bucket],
+    Bucket: (config.awsS3 as {[key: string]: string})[bucket],
     Key: s3Key
   }
 
@@ -25,7 +22,7 @@ export const getObject = async ({
     return await s3.getSignedUrlPromise('getObject', signedUrlParams)
   } catch (error) {
     Sentry.captureException(error)
-    ''
+    return Promise.resolve('')
   }
 }
 

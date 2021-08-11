@@ -9,7 +9,7 @@ import {
 } from '../db-utils'
 import notifyTutors from '../../worker/jobs/notifyTutors'
 import config from '../../config'
-import TwilioService from '../../services/twilio'
+import * as TwilioService from '../../services/twilio'
 import { buildVolunteer, buildNotification } from '../generate'
 import { Jobs } from '../../worker/jobs'
 import { log } from '../../worker/logger'

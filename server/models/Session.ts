@@ -153,7 +153,7 @@ const SessionModel = model<SessionDocument, SessionStaticModel>(
 )
 
 /** SessionRepo functions below */
-export async function addNotifications(sessionId, notificationsToAdd) {
+export async function addNotifications(sessionId: Types.ObjectId, notificationsToAdd: Notification[]) {
   const query = { _id: sessionId }
   const update = {
     $push: { notifications: { $each: notificationsToAdd } }
@@ -251,7 +251,7 @@ export async function getSessionById(
 }
 
 // @todo: move queries using this pipeline to this repo
-export function getSessionsWithPipeline(pipeline) {
+export function getSessionsWithPipeline(pipeline: any) {
   return (SessionModel.aggregate(pipeline) as unknown) as Promise<any[]>
 }
 
@@ -371,7 +371,7 @@ interface SessionsToReview {
 }
 
 export async function getSessionsToReview(
-  query: Query<SessionDocument>,
+  query: {},
   skip: number,
   limit: number
 ): Promise<SessionsToReview[]> {
@@ -1094,7 +1094,7 @@ export async function getCurrentSession(userId) {
 // @todo: refactor. the client only needs the session's createdAt.
 //        this is used to show the wait time banner on the dashboard
 //        after a student requests a session.
-export async function getStudentLatestSession(studentId) {
+export async function getStudentLatestSession(studentId: Types.ObjectId) {
   try {
     const session = await SessionModel.findOne({ student: studentId })
       .sort({ createdAt: -1 })
@@ -1112,7 +1112,7 @@ export async function getStudentLatestSession(studentId) {
   }
 }
 
-export async function addVolunteerToSession(sessionId, volunteerId) {
+export async function addVolunteerToSession(sessionId: Types.ObjectId, volunteerId: Types.ObjectId) {
   const query = { _id: sessionId }
   const update = {
     volunteerJoinedAt: new Date(),
@@ -1125,7 +1125,7 @@ export async function addVolunteerToSession(sessionId, volunteerId) {
   }
 }
 
-export async function addMessage(sessionId, message) {
+export async function addMessage(sessionId: Types.ObjectId, message: Message) {
   const query = { _id: sessionId }
   const update = { $push: { messages: message } }
   try {

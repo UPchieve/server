@@ -36,7 +36,7 @@ export function routeReports(router: expressWs.Router): void {
     authPassport.isAdmin,
     async function(req: Request, res: Response, next: NextFunction) {
       try {
-        const data = await ReportService.getTelecomReport(req.query)
+        const data = await ReportService.getTelecomReport(req.query.partnerOrg, req.query.startDate, req.query.endDate)
         res.json({ data })
       } catch (error) {
         next(error)
@@ -50,7 +50,7 @@ export function routeReports(router: expressWs.Router): void {
     async function(req: Request, res: Response, next: NextFunction) {
       try {
         const data = await ReportService.generatePartnerAnalyticsReport(
-          req.query
+          req.query.partnerOrg, req.query.startDate, req.query.endDate
         )
         res.json(data)
       } catch (error) {

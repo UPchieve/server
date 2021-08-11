@@ -1,12 +1,13 @@
 import expressWs from '@small-tech/express-ws'
 import { updateSchedule, clearSchedule } from '../../controllers/CalendarCtrl'
 import { Request, Response, NextFunction } from 'express'
+import { Volunteer } from '../../models/Volunteer'
 
 export function routeCalendar(router: expressWs.Router): void {
   router.post('/calendar/save', async function(req: Request, res: Response, next: NextFunction) {
     try {
       await updateSchedule({
-        user: req.user,
+        user: (req.user as Volunteer),
         availability: req.body.availability,
         tz: req.body.tz,
         ip: req.ip

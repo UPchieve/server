@@ -4,6 +4,7 @@ import {
   AccountActionCreator,
   QuizActionCreator
 } from '../controllers/UserActionCtrl'
+import { User } from '../models/User'
 
 export function addUserAction(
   req: Request,
@@ -11,7 +12,7 @@ export function addUserAction(
   next: Function
 ): void {
   if (Object.prototype.hasOwnProperty.call(req, 'user')) {
-    const { _id } = req.user
+    const { _id } = req.user as User
     const { ip: ipAddress } = req
 
     if (req.url === '/api/calendar/save') {

@@ -6,8 +6,9 @@ import { getAvailabilities } from '../services/AvailabilityService'
  * availability, adds when they are free to the
  * aggAvailabilities object
  * @param {*} availability
+ * @param {*} aggAvailabilities
  */
-function aggregateAvailabilities(availability, aggAvailabilities) {
+function aggregateAvailabilities(availability: any, aggAvailabilities: any) {
   Object.keys(availability).map(day => {
     Object.keys(availability[day]).map(time => {
       // create headers based on the user's availability object
@@ -73,19 +74,20 @@ export async function getVolunteersAvailability(options: any, callback: Function
       volunteerId: { $in: volunteerIds }
     })
 
-    let aggAvailabilities = {}
+    let aggAvailabilities: any = {}
     aggAvailabilities.table = Array(7)
       .fill(0)
       .map(() => Array(24).fill(0))
     aggAvailabilities.min = null
     aggAvailabilities.max = 0
 
-    aggAvailabilities = availabilityDocs.reduce((aggAvailabilities, doc) => {
-      return aggregateAvailabilities(
-        doc.onCallAvailability,
-        aggAvailabilities
-      )
-    }, aggAvailabilities)
+    if (availabilityDocs)
+      aggAvailabilities = availabilityDocs.reduce((aggAvailabilities, doc) => {
+        return aggregateAvailabilities(
+          doc.onCallAvailability,
+          aggAvailabilities
+        )
+      }, aggAvailabilities)
     aggAvailabilities = findMinAndMax(aggAvailabilities)
     return callback(aggAvailabilities, null)
   } catch (error) {

@@ -131,7 +131,7 @@ const schoolSchema = new Schema(
           type: String,
           lowercase: true,
           validate: {
-            validator: function(v): boolean {
+            validator: function(v: string): boolean {
               return validator.isEmail(v)
             },
             message: '{VALUE} is not a valid email'

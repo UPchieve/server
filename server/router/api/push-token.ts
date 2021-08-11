@@ -1,10 +1,12 @@
-const PushToken = require('../../models/PushToken')
+import PushToken from '../../models/PushToken'
+import { User } from '../../models/User'
 
 export default function(router) {
   router.post('/push-token/save', async function(req, res) {
     const { token } = req.body
+    const user = req.user as User
     const pushToken = new PushToken({
-      user: req.user._id,
+      user: user._id,
       token
     })
 

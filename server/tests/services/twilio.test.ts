@@ -1,6 +1,6 @@
 import moment from 'moment'
 import mongoose from 'mongoose'
-import TwilioService from '../../services/twilio'
+import * as TwilioService from '../../services/twilio'
 import { MATH_SUBJECTS, SAT_SUBJECTS } from '../../constants'
 import {
   buildAvailability,

@@ -15,7 +15,7 @@ db.on('error', console.error.bind(console, 'connection error:'))
 db.once('open', function() {
   console.log('Connected to database')
 
-  const promises = []
+  const promises: any[] = []
   let totalRecords = 0
 
   // Data about the seed data we intend to import / update from this file
@@ -80,7 +80,7 @@ db.once('open', function() {
       // use Extended JSON to handle formats like "$date" in json files
       const deserializedSeedData = ejson.deserialize(seedData)
 
-      deserializedSeedData.forEach(record => {
+      deserializedSeedData.forEach((record: any) => {
         // Build a Unique ID Key for each record to be updated. Start with empty object
         const idKey = {}
 

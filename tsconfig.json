@@ -12,7 +12,8 @@
       "strict": true,
       "lib":[
         "es2019", "dom"
-      ]
+      ],
+    "typeRoots": ["./src/typings"]
   },
   "exclude": [
     "server/dbutils",
