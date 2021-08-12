@@ -676,3 +676,7 @@ export const BLACKOUT_PERIOD_END = moment()
   .date(1)
   .endOf('day')
   .toDate()
+
+export const enum REPORT_FILE_NAMES {
+  ANALYTICS_REPORT = 'analytics-report'
+}
