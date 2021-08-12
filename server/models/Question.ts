@@ -30,7 +30,7 @@ const questionSchema = new Schema({
 })
 
 // Given a question record, strip out sensitive data for public consumption
-questionSchema.methods.parseQuestion = function(): Partial<Question> {
+questionSchema.methods.parseQuestion = function(this: any): Partial<Question> {
   return {
     _id: this._id,
     questionText: this.questionText,
@@ -50,7 +50,7 @@ questionSchema.statics.getSubcategories = function(category: string): string[] {
   }
 
   if (CATEGORY_TO_SUBCATEGORY_MAP.hasOwnProperty(category)) {
-    const subcategories = CATEGORY_TO_SUBCATEGORY_MAP[category]
+    const subcategories = (CATEGORY_TO_SUBCATEGORY_MAP as StringKeyToAny)[category]
     return subcategories
   } else {
     throw new ReferenceError(category + ' is not a subcategory.')

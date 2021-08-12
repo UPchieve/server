@@ -38,7 +38,7 @@ const pushTokenSchema = new Schema(
 
 const PushTokenModel = model<PushTokenDocument>('PushToken', pushTokenSchema)
 
-export async function getAllPushTokensByUserId(userId) {
+export async function getAllPushTokensByUserId(userId: Types.ObjectId) {
   try {
     return await PushTokenModel.find({ user: userId })
       .lean()

@@ -33,16 +33,16 @@ const messageSchema = new Schema(
   }
 )
 
-messageSchema.virtual('userId').get(function() {
+messageSchema.virtual('userId').get(function(this: any) {
   return this.user._id || this.user
 })
 
-messageSchema.virtual('name').get(function() {
+messageSchema.virtual('name').get(function(this: any) {
   // only works if user is populated
   return this.user.firstname
 })
 
-messageSchema.virtual('isVolunteer').get(function() {
+messageSchema.virtual('isVolunteer').get(function(this: any) {
   // only works if user is populated
   return this.user.isVolunteer
 })

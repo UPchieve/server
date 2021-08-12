@@ -36,7 +36,7 @@ export async function updateSchedule(
   // new availability object
   if (
     Object.keys(user.availability as {[key: string]: AvailabilityDay}).some(key => {
-      if (typeof newAvailability[key] === 'undefined') {
+      if (typeof (newAvailability as StringKeyToAny)[key] === 'undefined') {
         // day-of-week property needs to be defined
         return true
       }

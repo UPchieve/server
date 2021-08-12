@@ -244,7 +244,8 @@ export async function updatePendingVolunteerStatus(
   photoIdStatus: string,
   referencesStatus: string
 ) {
-  const volunteerBeforeUpdate = await this.getVolunteer(volunteerId, null)
+  const volunteerBeforeUpdate = await getVolunteer(volunteerId, {})
+  if (!volunteerBeforeUpdate) throw new Error('could not find volunteer to update')
   const hasCompletedBackgroundInfo =
     volunteerBeforeUpdate.occupation &&
     volunteerBeforeUpdate.occupation.length > 0 &&
@@ -310,10 +311,12 @@ export async function updatePendingVolunteerStatus(
 }
 
 export async function addBackgroundInfo(volunteerId: Types.ObjectId, update: any, ip: string) {
-  const { volunteerPartnerOrg } = await getVolunteer(
+  const volunteer = await getVolunteer(
     volunteerId,
     {}
   )
+  if (!volunteer) throw new Error('no volunteer was found to add background info to')
+  const volunteerPartnerOrg = volunteer.volunteerPartnerOrg
   if (volunteerPartnerOrg) {
     update.isApproved = true
     await new AccountActionCreator(volunteerId).accountApproved()

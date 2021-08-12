@@ -17,8 +17,8 @@ export default function(io: Server, sessionStore: any) {
   const socketService = new SocketService(io)
 
   function getSocketIdsFromRoom(room: string) {
-    new Promise((resolve, reject) => {
-      io.in(room).clients((err, clients) => {
+    return new Promise((resolve, reject) => {
+      io.in(room).clients((err: Error, clients: any) => {
         if (err) return reject(err)
         return resolve(clients)
       })
@@ -120,7 +120,7 @@ export default function(io: Server, sessionStore: any) {
               const sessionRoom = getSessionRoom(sessionId)
               const socketIds = await getSocketIdsFromRoom(user._id.toString())
               // Have all of the user's socket connections join the tutoring session room
-              for (const id of socketIds) {
+              for (const id of socketIds as any) {
                 await remoteJoinRoom(id, sessionRoom)
               }
 
@@ -174,7 +174,7 @@ export default function(io: Server, sessionStore: any) {
       newrelic.startWebTransaction(
         '/socket-io/message',
         () =>
-          new Promise<void>(async (resolve, reject): void => {
+          new Promise<void>(async (resolve, reject) => {
             const { user, sessionId, message } = data
             // @todo: handle this differently?
             if (!sessionId) {

@@ -20,7 +20,7 @@ const zipCodeSchema = new Schema({
   medianIncome: Number
 })
 
-zipCodeSchema.virtual('isEligible').get(function(): boolean {
+zipCodeSchema.virtual('isEligible').get(function(this: any): boolean {
   if (!this.medianIncome) return true
 
   return this.medianIncome < MEDIUM_INCOME_THRESHOLD

@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express'
+import { Express, Request, Response, NextFunction, Router } from 'express'
 import ws from 'ws'
 import * as Sentry from '@sentry/node'
 import * as WhiteboardService from '../../services/WhiteboardService'
@@ -211,9 +211,9 @@ const messageHandlers: {
   }
 }
 
-const whiteboardRouter = function(app: express): void {
+const whiteboardRouter = function(app: Express): void {
   // @todo: figure out correct typing using @types/express-ws
-  const router: any = express.Router() // eslint-disable-line @typescript-eslint/no-explicit-any
+  const router: any = Router() // eslint-disable-line @typescript-eslint/no-explicit-any
 
   /**
    * This is a web socket Express route
@@ -228,7 +228,7 @@ const whiteboardRouter = function(app: express): void {
      * On initial client connection, join room.
      * Room is determined by parsing request URL, which includes the unique session ID.
      */
-    wsClient.room = this.setRoom(req)
+    wsClient.room = (this as any).setRoom(req)
 
     const sessionId = req.params.sessionId
 
@@ -260,7 +260,7 @@ const whiteboardRouter = function(app: express): void {
             message,
             sessionId,
             wsClient,
-            route: this
+            route: this as any
           })
         : wsClient.send({ error: 'unsupported message type' })
     })

@@ -84,7 +84,7 @@ export function getReviewFlags(session: Session) {
   volunteer = volunteer as Volunteer
   const isStudentsFirstSession = student.pastSessions.length === 0
   const sessionLength =
-    new Date(endedAt).getTime() - new Date(createdAt).getTime()
+    endedAt!.getTime() - createdAt!.getTime()
 
   if (volunteer && volunteer._id && volunteerJoinedAt) {
     const messagesAfterVolunteerJoined = getMessagesAfterDate(

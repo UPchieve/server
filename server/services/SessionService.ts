@@ -419,17 +419,17 @@ export async function adminFilteredSessions(data: unknown) {
     userQueryFilter['volunteer.totalPastSessions'] = 1
   }
 
-  const sessions = await SessionRepo.getAdminFilteredSessions({
-    startDate: offsetSessionActivityFrom,
-    endDate: inclusiveSessionActivityTo,
+  const sessions = await SessionRepo.getAdminFilteredSessions(
+    offsetSessionActivityFrom,
+    inclusiveSessionActivityTo,
     minMessagesSent,
     userQueryFilter,
     sessionQueryFilter,
     ratingQueryFilter,
     showBannedUsers,
     skip,
-    limit: PER_PAGE
-  })
+    PER_PAGE
+  )
   const isLastPage = sessions.length < PER_PAGE
   return { sessions, isLastPage }
 }
@@ -704,8 +704,8 @@ export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
     const day = moment()
       .weekday(session.day)
       .format('dddd')
-    const hour = UTC_TO_HOUR_MAPPING[session.hour]
-    heatMap[day][hour] = session.averageWaitTime
+    const hour = (UTC_TO_HOUR_MAPPING as StringKeyToAny)[session.hour];
+    ((heatMap as StringKeyToAny)[day] as StringKeyToAny)[hour] = session.averageWaitTime
   }
 
   return heatMap

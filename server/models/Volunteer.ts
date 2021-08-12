@@ -175,12 +175,12 @@ export type VolunteerDocument = Volunteer & Document
 
 const weeksSince = (date: Date): number => {
   // 604800000 = milliseconds in a week
-  return ((new Date().getTime() as number) - date) / 604800000
+  return ((new Date().getTime() as number) - date.getTime()) / 604800000
 }
 
 const minsSince = (date: Date): number => {
   // 60000 = milliseconds in a minute
-  return ((new Date().getTime() as number) - date) / 60000
+  return ((new Date().getTime() as number) - date.getTime()) / 60000
 }
 
 function tallyVolunteerPoints(volunteer: Volunteer): number {
@@ -723,7 +723,7 @@ const volunteerSchema = new Schema(
   volunteerSchemaOptions
 )
 
-volunteerSchema.virtual('volunteerPointRank').get(function() {
+volunteerSchema.virtual('volunteerPointRank').get(function(this: any) {
   if (!this.isVolunteer) return null
   return tallyVolunteerPoints(this)
 })

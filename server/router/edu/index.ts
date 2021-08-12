@@ -48,7 +48,7 @@ edu.get('/', async (req: Request, res: Response) => {
 // GET /edu/questions
 edu.route('/questions').get(async (req: Request, res: Response) => {
   try {
-    const questions = await QuestionCtrl.list(req.query || {})
+    const questions = await QuestionCtrl.list(req.query as any || {})
     const isActive = isActivePage(req)
 
     // question._id --> URL

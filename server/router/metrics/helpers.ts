@@ -24,9 +24,10 @@ import { extendMoment } from 'moment-range'
 import FeedbackModel from '../../models/Feedback'
 import StdMoment, { Moment } from 'moment'
 const moment = extendMoment(StdMoment)
-import Session from '../../models/Session'
-import User from '../../models/User'
+import SessionModel, { Session } from '../../models/Session'
+import UserModel, { User } from '../../models/User'
 import { Student } from '../../models/Student'
+import { Volunteer } from '../../models/Volunteer'
 
 const MIN_MINUTES_FOR_SUCCESSFUL_SESSION = 1
 const MAX_SESSION_LENGTH_SECONDS = 3600 * 5 // 5hr
@@ -132,15 +133,20 @@ function getFeedbackStatsPerSegment(
         feedback.responseData['rate-session'].rating
 
       if (rating && feedback.type && feedback.subTopic) {
-        ratings.topic[feedback.type] = ratings.topic[feedback.type] || {}
-        ratings.topic[feedback.type][scaledTime] =
-          ratings.topic[feedback.type][scaledTime] || []
-        ratings['sub-topic'][feedback.subTopic] =
-          ratings['sub-topic'][feedback.subTopic] || {}
-        ratings['sub-topic'][feedback.subTopic][scaledTime] =
-          ratings['sub-topic'][feedback.subTopic][scaledTime] || []
-        ratings.topic[feedback.type][scaledTime].push(rating)
-        ratings['sub-topic'][feedback.subTopic][scaledTime].push(rating)
+        (ratings.topic as StringKeyToAny)[feedback.type] = (ratings.topic as StringKeyToAny)[feedback.type] || {};
+
+        ((ratings.topic as StringKeyToAny)[feedback.type] as StringKeyToAny)[scaledTime] =
+          ((ratings.topic as StringKeyToAny)[feedback.type] as StringKeyToAny)[scaledTime] || [];
+
+        ((ratings as StringKeyToAny)['sub-topic'] as StringKeyToAny)[feedback.subTopic] =
+          ((ratings as StringKeyToAny)['sub-topic'] as StringKeyToAny)[feedback.subTopic] || {};
+
+        (((ratings as StringKeyToAny)['sub-topic'] as StringKeyToAny)[feedback.subTopic] as StringKeyToAny)[scaledTime] =
+          (((ratings as StringKeyToAny)['sub-topic'] as StringKeyToAny)[feedback.subTopic] as StringKeyToAny)[scaledTime] || [];
+
+        ((ratings.topic as StringKeyToAny)[feedback.type] as StringKeyToAny)[scaledTime].push(rating)
+
+        (((ratings as StringKeyToAny)['sub-topic'] as StringKeyToAny)[feedback.subTopic] as StringKeyToAny)[scaledTime].push(rating)
       }
       return ratings
     },
@@ -170,7 +176,7 @@ export async function getFeedbackStats(userType: string, minTime: Date, maxTime:
       )
     )
   )
-  const allUsers = await User.find({
+  const allUsers = await UserModel.find({
     _id: { $in: allUserIds }
   })
     .select([
@@ -224,7 +230,7 @@ export async function getFeedbackStats(userType: string, minTime: Date, maxTime:
   return { sum: toDatapoints('sum'), count: toDatapoints('count') }
 }
 
-function getSessionsWithExtras(sessions: Session[], allUsers: User[] = undefined) {
+function getSessionsWithExtras(sessions: Session[], allUsers: User[]|undefined = undefined) {
   return filter(
     map(sessions, session => {
       const startTime = moment.utc(session.createdAt)
@@ -248,8 +254,8 @@ function getSessionsWithExtras(sessions: Session[], allUsers: User[] = undefined
         return // ignore outliers. TODO: smarter approach (based on chat messages)
       }
 
-      const student = find(allUsers, { _id: session.student })
-      const volunteer = find(allUsers, { _id: session.volunteer })
+      const student: Student | undefined = find(allUsers, { _id: session.student })
+      const volunteer: Volunteer| undefined = find(allUsers, { _id: session.volunteer })
 
       const extras = {
         startTime,
@@ -267,7 +273,7 @@ function getSessionsWithExtras(sessions: Session[], allUsers: User[] = undefined
 }
 
 export async function getCumulativeSessions(minTime: Date, maxTime: Date) {
-  const sessions = await Session.find({
+  const sessions = await SessionModel.find({
     createdAt: { $lte: maxTime }
   })
     .select([
@@ -325,7 +331,7 @@ function getSessionStatsPerSegment(sessionsWithExtras: any, segmentSlug: string,
 }
 
 export async function getSessionStats(minTime: Date, maxTime: Date, timeScale: string = 'day') {
-  const sessions = await Session.find({
+  const sessions = await SessionModel.find({
     createdAt: { $gte: minTime, $lte: maxTime }
   })
     .select([
@@ -345,7 +351,7 @@ export async function getSessionStats(minTime: Date, maxTime: Date, timeScale: s
       flatten(map(sessions, ({ volunteer, student }) => [volunteer, student]))
     )
   )
-  const allUsers = await User.find({
+  const allUsers = await UserModel.find({
     _id: { $in: allUserIds }
   })
     .select(['_id', 'studentPartnerOrg', 'volunteerPartnerOrg'])
@@ -357,7 +363,7 @@ export async function getSessionStats(minTime: Date, maxTime: Date, timeScale: s
 }
 
 export async function getCumulativeStudents(minTime: Date, maxTime: Date) {
-  const students = await User.find({
+  const students = await UserModel.find({
     isVolunteer: false,
     isTestUser: false,
     createdAt: { $lte: maxTime }
@@ -422,7 +428,7 @@ async function getStudentsDatapoints(students: Student[], segmentSlug: string, t
 }
 
 export async function getStudents(minTime: Date, maxTime: Date, timeScale: string = 'day') {
-  const students = await User.find({
+  const students = await UserModel.find({
     isVolunteer: false,
     isTestUser: false,
     createdAt: { $gte: minTime, $lte: maxTime }
@@ -444,7 +450,7 @@ export async function getStudents(minTime: Date, maxTime: Date, timeScale: strin
 }
 
 export async function getVolunteerDistributionStats(minTime: Date, maxTime: Date, timeScale: string = 'day') {
-  const volunteers = await User.find({
+  const volunteers = await UserModel.find({
     isVolunteer: true,
     createdAt: { $gte: minTime, $lte: maxTime }
   })
@@ -538,7 +544,7 @@ function getVolunteerStatsPerSegment(
 }
 
 export async function getVolunteerStats(minTime: Date, maxTime: Date, timeScale = 'day') {
-  const volunteers = await User.find({
+  const volunteers = await UserModel.find({
     isVolunteer: true,
     createdAt: { $gte: minTime, $lte: maxTime }
   })

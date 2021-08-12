@@ -6,17 +6,18 @@ import socket from 'socket.io'
 import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import logger from '../../logger'
-const {
+import {
   socketIoPubClient,
   socketIoSubClient
-} = require('../../services/RedisService')
+} from '../../services/RedisService'
+import { Express } from 'express'
 
 // Create an HTTPS server if in production, otherwise use HTTP.
-const createServer = app => {
+function createServer(app: Express) {
   return http.createServer(app)
 }
 
-export default function(app) {
+export default function(app: Express) {
   const server = createServer(app)
 
   const port =

@@ -3,6 +3,7 @@ import isEmail from 'validator/lib/isEmail'
 import UserModel, { UserDocument } from './User'
 import { DocCreationError, UserNotFoundError } from './Errors'
 import { ObjectId } from 'mongodb'
+import { Document } from 'mongoose'
 
 export interface ContactFormSubmission {
   id: string
@@ -12,6 +13,17 @@ export interface ContactFormSubmission {
   topic: string
   message: string
 }
+
+interface DbContactFormSubmission {
+  _id: string
+  createdAt: Date
+  userEmail: string
+  userId?: string
+  topic: string
+  message: string
+}
+
+type ContactFormSubmissionDocument = DbContactFormSubmission & Document
 
 const contactFormSubmissionSchema = new Schema({
   createdAt: {
@@ -55,7 +67,7 @@ const contactFormSubmissionSchema = new Schema({
   }
 })
 
-const ContactFormSubmissionModel = model(
+const ContactFormSubmissionModel = model<ContactFormSubmissionDocument>(
   'ContactFormSubmission',
   contactFormSubmissionSchema
 )
@@ -105,19 +117,20 @@ export async function createFormWithUser(
   } catch (err) {
     throw new DocCreationError(err.message)
   }
+  if (!createdDoc) throw new Error('contact form submission document did not get created')
   return {
     id: createdDoc._id.toString(),
     createdAt: createdDoc.createdAt,
     userEmail: createdDoc.userEmail,
-    userId: createdDoc.userId.toString(),
+    userId: createdDoc.userId? createdDoc.userId.toString() : undefined,
     topic: createdDoc.topic,
     message: createdDoc.message
   }
 }
 
 export async function createFormWithEmail(
-  message,
-  topic,
+  message: string,
+  topic: string,
   userEmail: string
 ): Promise<ContactFormSubmission> {
   const cfs = new ContactFormSubmissionModel({

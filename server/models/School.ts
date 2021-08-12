@@ -227,43 +227,43 @@ schoolSchema.index({ nameStored: 'text', SCH_NAME: 'text' })
 // virtual properties that can reference either stored information or NCES variables
 schoolSchema
   .virtual('name')
-  .get(function() {
+  .get(function(this: any) {
     return this.nameStored || this.SCH_NAME
   })
-  .set(function(value) {
+  .set(function(this: any, value: any) {
     this.nameStored = value
   })
 
 schoolSchema
   .virtual('districtName')
-  .get(function() {
+  .get(function(this: any) {
     return this.districtNameStored || this.LEA_NAME
   })
-  .set(function(value) {
+  .set(function(this: any, value: any) {
     this.districtNameStored = value
   })
 
 schoolSchema
   .virtual('city')
-  .get(function() {
+  .get(function(this: any) {
     return this.cityNameStored || this.LCITY
   })
-  .set(function(value) {
+  .set(function(this: any, value: any) {
     this.cityNameStored = value
   })
 
 schoolSchema
   .virtual('state')
-  .get(function() {
+  .get(function(this: any) {
     return this.stateStored || this.ST
   })
-  .set(function(value) {
+  .set(function(this: any, value: any) {
     this.stateStored = value
   })
 
 // Virtual property giving a searchable name including the school's city
 // name first
-schoolSchema.virtual('searchableName').get(function() {
+schoolSchema.virtual('searchableName').get(function(this: any) {
   return `${this.city} ${this.name}`
 })
 

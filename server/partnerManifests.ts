@@ -26,7 +26,7 @@ if (
 
 if (
   process.env.SUBWAY_STUDENT_PARTNER_MANIFESTS === '' ||
-  process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFESTS === undefined
+  process.env.SUBWAY_STUDENT_PARTNER_MANIFESTS === undefined
 ) {
   const studentManifestsPath = path.join(
     __dirname,
