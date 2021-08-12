@@ -499,7 +499,7 @@ export async function usageReport(
   const studentUsage = students.map(student => {
     const feedback = Array.from(student.feedback)
 
-    const dataFormat = {
+    const dataFormat: {[key: string]: any} = {
       'First name': student.firstName,
       'Last name': student.lastName,
       Email: student.email,

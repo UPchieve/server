@@ -2,6 +2,7 @@ import { model, Schema, Types } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
 import UserModel, { UserDocument } from './User'
 import { DocCreationError, UserNotFoundError } from './Errors'
+import { ObjectId } from 'mongodb'
 
 export interface ContactFormSubmission {
   id: string
@@ -75,17 +76,19 @@ async function getUserIdAndEmail(id: string) {
 }
 
 export async function createFormWithUser(
-  message,
-  topic,
+  message: string,
+  topic: string,
   userId: string
 ): Promise<ContactFormSubmission> {
   // validate that the user exists
-  let userEmail: string
-  let userObjectId: Types.ObjectId
+  let userEmail: string = ''
+  let userObjectId: Types.ObjectId = new ObjectId()
   try {
     const data = await getUserIdAndEmail(userId)
-    userObjectId = data.id
-    userEmail = data.userEmail
+    if (data) {
+      userObjectId = data.id
+      userEmail = data.userEmail
+    }
   } catch (err) {
     throw err
   }

@@ -92,7 +92,7 @@ const messageHandlers: {
         })
       )
     }
-    await WhiteboardService.appendToDoc(sessionId, message.data)
+    await WhiteboardService.appendToDoc(sessionId, message.data!)
     const newDocLength = await WhiteboardService.getDocLength(sessionId)
 
     // Ack unless this is the beginning of a continuation
@@ -211,7 +211,7 @@ const messageHandlers: {
   }
 }
 
-const whiteboardRouter = function(app): void {
+const whiteboardRouter = function(app: express): void {
   // @todo: figure out correct typing using @types/express-ws
   const router: any = express.Router() // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -271,7 +271,7 @@ const whiteboardRouter = function(app): void {
   router.ws('/admin/:sessionId', function(wsClient: any, req: Request) {
     const sessionId = req.params.sessionId
 
-    wsClient.on('message', async rawMessage => {
+    wsClient.on('message', async (rawMessage: string | Uint8Array) => {
       const message = decode(rawMessage as Uint8Array)
 
       if (message.messageType === MessageType.INIT) {

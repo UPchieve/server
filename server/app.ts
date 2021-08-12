@@ -32,7 +32,6 @@ import {
   styleSrc,
   upgradeInsecureRequests
 } from './securitySettings'
-import { Request, Response, NextFunction } from 'express'
 
 const distDir = '../dist'
 
@@ -153,13 +152,13 @@ app.use(
 )
 app.use(haltOnTimedout)
 // see https://stackoverflow.com/questions/51023943/nodejs-getting-username-of-logged-in-user-within-route
-app.use((req: LoadedRequest, res, next) => {
+app.use((req: LoadedRequest, res: Response, next: NextFunction) => {
   res.locals.user = req.user || null
   next()
 })
 
 // Make req.login async
-app.use((req: LoadedRequest, res, next): void => {
+app.use((req: LoadedRequest, res: Response, next: NextFunction): void => {
   req.login = promisify(req.login)
   next()
 })

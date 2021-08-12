@@ -82,10 +82,10 @@ db.once('open', function() {
 
       deserializedSeedData.forEach((record: any) => {
         // Build a Unique ID Key for each record to be updated. Start with empty object
-        const idKey = {}
+        const idKey: any = {}
 
         // Add a single key/value: key is seedDataMetadataItem.idField
-        idKey[seedDataMetadataItem.idField] =
+          idKey[seedDataMetadataItem.idField] =
           record[seedDataMetadataItem.idField]
 
         const replacePromise = aModel.findOneAndReplace(idKey, record, {

@@ -309,7 +309,8 @@ export async function notifyVolunteer (session: Session) {
 
   // Format multi-word subtopics from a key name to a display name
   // ex: physicsOne -> Physics 1
-  subtopic = formatMultiWordSubject(subtopic)
+  if (subtopic)
+    subtopic = formatMultiWordSubject(subtopic)
 
   const sessionUrl = getSessionUrl(session)
   const messageText = `Hi ${volunteer.firstname}, a student needs help in ${subtopic} on UPchieve! ${sessionUrl}`
@@ -381,18 +382,18 @@ async function notifyFailsafe (session: Session, voice: boolean = false) {
 /**
  * Helper function to record notifications, whether successful or
  * failed, to the database
- * @param { sendPromise } a Promise that resolves to the message SID
- * @param { notification } the notification object to save
  * after the message is sent to Twilio
- * @returns a Promise that resolves to the saved notification
- * object
+ * @returns a Promise that resolves to the saved notification object
+ * @param sendPromise a Promise that resolves to the message SID
+ * @param notification the notification object to save
  */
-function recordNotification(sendPromise: Promise<string>|Promise<void>, notification: Notification) {
+function recordNotification(sendPromise: Promise<string|void>, notification: Notification) {
   return sendPromise
-    .then((sid: string) => {
+    .then((sid?: string) => {
       // record notification in database
       notification.wasSuccessful = true
-      notification.messageId = sid
+      if (sid)
+        notification.messageId = sid
       return notification
     })
     .catch((err: Error) => {

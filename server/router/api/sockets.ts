@@ -11,6 +11,7 @@ import * as SessionService from '../../services/SessionService'
 import * as QuillDocService from '../../services/QuillDocService'
 import getSessionRoom from '../../utils/get-session-room'
 const newrelic = require('newrelic')
+import { RedisAdapter } from 'socket.io-redis'
 
 export default function(io: Server, sessionStore: any) {
   const socketService = new SocketService(io)
@@ -25,8 +26,8 @@ export default function(io: Server, sessionStore: any) {
   }
 
   function remoteJoinRoom(socketId: string, room: string) {
-    new Promise((resolve, reject) => {
-      io.of('/').adapter.remoteJoin(socketId, room, err => {
+    return new Promise((resolve, reject) => {
+      (io.of('/').adapter as RedisAdapter).remoteJoin(socketId, room, (err: Error) => {
         if (err) reject(err)
         resolve('success')
       })
@@ -71,7 +72,7 @@ export default function(io: Server, sessionStore: any) {
     // @note: students don't join the room by default until they are in the session view
     // Join user to their latest session if it has not ended
     if (latestSession && !latestSession.endedAt) {
-      socket.join(getSessionRoom(latestSession._id))
+      socket.join(getSessionRoom(latestSession._id.toString()))
       socket.emit('session-change', latestSession)
     }
 
@@ -79,7 +80,7 @@ export default function(io: Server, sessionStore: any) {
 
     // Tutor session management
     socket.on('join', async function(data: any) {
-      newrelic.startWebTransaction(
+      await newrelic.startWebTransaction(
         '/socket-io/join',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -123,7 +124,7 @@ export default function(io: Server, sessionStore: any) {
                 await remoteJoinRoom(id, sessionRoom)
               }
 
-              socketService.emitSessionChange(sessionId)
+              await socketService.emitSessionChange(sessionId)
               resolve()
             } catch (error) {
               socketService.bump(
@@ -173,7 +174,7 @@ export default function(io: Server, sessionStore: any) {
       newrelic.startWebTransaction(
         '/socket-io/message',
         () =>
-          new Promise(async (resolve, reject): void => {
+          new Promise<void>(async (resolve, reject): void => {
             const { user, sessionId, message } = data
             // @todo: handle this differently?
             if (!sessionId) {
@@ -211,11 +212,11 @@ export default function(io: Server, sessionStore: any) {
       )
     })
 
-    socket.on('requestQuillState', async ({ sessionId: string }) => {
-      newrelic.startWebTransaction(
+    socket.on('requestQuillState', async (sessionId: string) => {
+      await newrelic.startWebTransaction(
         '/socket-io/requestQuillState',
         () =>
-          new Promise(async (resolve, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             try {
               let docState = await QuillDocService.getDoc(sessionId)
               if (!docState)

@@ -1050,7 +1050,7 @@ export async function createSession(
   }
 }
 
-export async function getCurrentSession(userId) {
+export async function getCurrentSession(userId: Types.ObjectId) {
   try {
     const session = (await SessionModel.findOne({
       $or: [{ student: userId }, { volunteer: userId }],

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
-import { Availability } from '../models/Availability/types'
+import { Availability, AvailabilityDay } from '../models/Availability/types'
 import { updateAvailabilitySnapshot } from '../services/AvailabilityService'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS } from '../constants'
@@ -35,15 +35,15 @@ export async function updateSchedule(
   // verify that all of the day-of-week and time-of-day properties are defined on the
   // new availability object
   if (
-    Object.keys(user.availability).some(key => {
+    Object.keys(user.availability as {[key: string]: AvailabilityDay}).some(key => {
       if (typeof newAvailability[key] === 'undefined') {
         // day-of-week property needs to be defined
         return true
       }
 
       // time-of-day properties also need to be defined
-      return Object.keys(user.availability[key]).some(
-        key2 => typeof newAvailability[key][key2] === 'undefined'
+      return Object.keys((user.availability as {[key: string]: AvailabilityDay})[key]).some(
+        key2 => typeof ((newAvailability as {[key: string]: AvailabilityDay})[key] as {[key: string]: boolean})[key2] === 'undefined'
       )
     })
   ) {
@@ -87,10 +87,10 @@ export async function clearSchedule(
   const clearedAvailability: Availability = _.reduce(
     user.availability,
     (clearedWeek, dayVal, dayKey) => {
-      clearedWeek[dayKey] = _.reduce(
+      (clearedWeek as StringKeyToAny)[dayKey] = _.reduce(
         dayVal,
         (clearedDay, hourVal, hourKey) => {
-          clearedDay[hourKey] = false
+          (clearedDay as StringKeyToAny)[hourKey] = false
           return clearedDay
         },
         {}

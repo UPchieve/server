@@ -4,14 +4,14 @@ import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 
 export async function getStudent(query: {}, projection: {} = {}): Promise<Student> {
-  await StudentModel.findOne(query)
+  return StudentModel.findOne(query)
     .select(projection)
     .lean()
     .exec()
 }
 
 export async function getStudents(query: {}, projection: {} = {}): Promise<Student[]> {
-  await StudentModel.find(query)
+  return StudentModel.find(query)
     .select(projection)
     .lean()
     .exec()
@@ -28,7 +28,7 @@ export const queueWelcomeEmails = async (
     Jobs.EmailStudentUseCases,
     { studentId },
     // process job 1 day after the student account is created
-    { delay: 1000 * 60 * 60 * 24 * 1 }
+    { delay: 1000 * 60 * 60 * 24 }
   )
   QueueService.add(
     Jobs.EmailMeetOurVolunteers,

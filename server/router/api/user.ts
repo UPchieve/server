@@ -9,6 +9,7 @@ import { Request, Response, NextFunction, Router } from 'express'
 import { User } from '../../models/User'
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import { Student } from '../../models/Student'
+import { ObjectId } from 'mongodb'
 
 export default function(router: Router) {
   router.route('/user').get(function(req: Request, res: Response) {
@@ -50,7 +51,7 @@ export default function(router: Router) {
     const { userId } = req.params
 
     try {
-      await UserService.adminUpdateUser(userId, req.body.firstname, req.body.lastname, req.body.email, req.body.partnerOrg, req.body.partnerSite, req.body.isVerified, req.body.isBanned, req.body.isDeactivated, req.body.isApproved)
+      await UserService.adminUpdateUser(new ObjectId(userId), req.body.firstname, req.body.lastname, req.body.email, req.body.partnerOrg, req.body.partnerSite, req.body.isVerified, req.body.isBanned, req.body.isDeactivated, req.body.isApproved)
       res.sendStatus(200)
     } catch (err) {
       next(err)
@@ -59,15 +60,15 @@ export default function(router: Router) {
 
   router.post('/user/volunteer-approval/reference', async (req: Request, res: Response, next: NextFunction) => {
     const { ip } = req
-    const { _id } = req.user
+    const { _id } = req.user as User
     const { referenceFirstName, referenceLastName, referenceEmail } = req.body
-    await UserService.addReference({
-      userId: _id,
+    await UserService.addReference(
+      _id.toString(),
       referenceFirstName,
       referenceLastName,
       referenceEmail,
       ip
-    })
+    )
     res.sendStatus(200)
   })
 
@@ -147,7 +148,7 @@ export default function(router: Router) {
 
   router.get('/user/referred-friends', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      let user: ExpressUser | undefined = req.user
+      let user: User | undefined = req.user as User | undefined
       if (user === undefined) return res.status(400).json({err: 'must include a user object on request'})
       const referredFriends = await UserService.getReferredFriends(user._id, {
         firstname: 1
@@ -183,7 +184,7 @@ export default function(router: Router) {
 
   router.get('/users', authPassport.isAdmin, async function(req: Request, res: Response, next: NextFunction) {
     try {
-      const { users, isLastPage } = await UserService.getUsers(req.query.userId, req.query.firstName, req.query.lastName, req.query.email, req.query.partnerOrg, req.query.highSchool, req.query.page)
+      const { users, isLastPage } = await UserService.getUsers(req.query.userId as string, req.query.firstName as string, req.query.lastName as string, req.query.email as string, req.query.partnerOrg as string, req.query.highSchool as string, req.query.page as string)
       res.json({ users, isLastPage })
     } catch (err) {
       next(err)

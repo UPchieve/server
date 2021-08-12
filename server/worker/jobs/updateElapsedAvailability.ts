@@ -9,6 +9,7 @@ import {
 } from '../../services/AvailabilityService'
 import { Jobs } from '.'
 import { DAYS } from '../../models/Availability/types'
+import Case from 'case'
 
 export default async (): Promise<void> => {
   const volunteers = await VolunteerModel.find({
@@ -23,7 +24,7 @@ export default async (): Promise<void> => {
   const errors = []
 
   for (const volunteer of volunteers) {
-    const availability: AvailabilitySnapshot = await getAvailability({
+    const availability: AvailabilitySnapshot|null = await getAvailability({
       volunteerId: volunteer._id
     })
     if (!availability) return
@@ -38,7 +39,7 @@ export default async (): Promise<void> => {
       .subtract(1, 'days')
       .format('dddd')
 
-    const availabilityDay = availability.onCallAvailability[yesterday as keyof typeof DAYS]
+    const availabilityDay = availability.onCallAvailability[Case.camel(yesterday) as keyof typeof DAYS]
     const elapsedAvailability = getElapsedAvailability(availabilityDay)
 
     try {

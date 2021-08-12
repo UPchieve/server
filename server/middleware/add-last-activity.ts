@@ -14,7 +14,7 @@ export function addLastActivity(
     const today = moment().utc()
     const lastActivityMoment = moment(lastActivityAt).utc()
     if (today.isAfter(lastActivityMoment, 'day')) {
-      updateLastActivityUser({ userId: _id, lastActivityAt: today.toDate() })
+      updateLastActivityUser(_id, today.toDate())
         .then(() => next())
         .catch(err => next(err))
     } else {

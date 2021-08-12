@@ -1,5 +1,5 @@
 import {Aggregate, Types} from 'mongoose'
-import NotificationModel, { NotificationDocument } from '../models/Notification'
+import NotificationModel, { NotificationDocument, Notification } from '../models/Notification'
 import * as SessionService from './SessionService'
 import { DocumentDefinition } from 'mongoose'
 

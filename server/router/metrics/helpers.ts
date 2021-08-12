@@ -200,7 +200,7 @@ export async function getFeedbackStats(userType: string, minTime: Date, maxTime:
     timeScale
   )
 
-  const toDatapoints = type => {
+  const toDatapoints = (type: any) => {
     return flattenDeep(
       map(stats, (ratings, segmentSlug) => {
         return map(ratings, (dimensions, dimensionSlug) => {

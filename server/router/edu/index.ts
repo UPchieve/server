@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express'
+import express, { Express, Request, Response } from 'express'
 const expressLayouts = require('express-ejs-layouts')
 
 import config from '../../config'
@@ -129,7 +129,7 @@ eduApi.delete('/questions/:id', async (req: Request, res: Response) => {
   }
 })
 
-export default function (rootApp: express) {
+export default function (rootApp: Express) {
   rootApp.use(
     '/edu',
     [authPassport.isAuthenticatedRedirect, authPassport.isAdminRedirect],

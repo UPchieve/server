@@ -42,11 +42,11 @@ const config: Static<typeof Config> = {
   database: mongoConn,
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
   sessionCookieMaxAge:
-    parseInt(process.env.SUBWAY_SESSION_COOKIE_MAX_AGE) || 5184000000,
+    process.env.SUBWAY_SESSION_COOKIE_MAX_AGE? parseInt(process.env.SUBWAY_SESSION_COOKIE_MAX_AGE) : 5184000000,
   saltRounds: 10,
   smtp: {
     host: process.env.SUBWAY_SMTP_HOST || 'smtp.mailtrap.io',
-    port: parseInt(process.env.SUBWAY_SMTP_PORT) || 2525,
+    port: process.env.SUBWAY_SMTP_PORT? parseInt(process.env.SUBWAY_SMTP_PORT) : 2525,
     secure: ((process.env.SUBWAY_SMTP_SECURE as unknown) as boolean) || false,
     user: process.env.SUBWAY_SMTP_USER || '',
     password: process.env.SUBWAY_SMTP_PASSWORD || ''
@@ -205,7 +205,7 @@ const config: Static<typeof Config> = {
 
   notificationSchedule: [
     // Minute 1 (the time after a session request is made)
-    1 * 60 * 1000,
+    60 * 1000,
     12 * 1000,
     12 * 1000,
     12 * 1000,

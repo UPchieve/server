@@ -9,10 +9,12 @@ import Volunteer, {
 } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
 import { AccountActionCreator } from './UserActionCtrl'
+import { Types } from 'mongoose'
 
 import {
   createAvailabilitySnapshot
 } from '../services/AvailabilityService'
+import IpAddressModel, { IpAddress } from '../models/IpAddress'
 
 const generateReferralCode = (userId: string) => base64url(Buffer.from(userId, 'hex'))
 
@@ -48,13 +50,23 @@ export async function createStudent(
   studentData: Partial<StudentDocument>
 ): Promise<StudentDocument> {
   const { password, ipAddresses } = studentData
-  const ip = ipAddresses && ipAddresses[0] && ipAddresses[0].ip
+
+  let ip: string
+  if (ipAddresses instanceof Types.ObjectId) {
+    const ipAddress = await IpAddressModel.findOne({ _id: ipAddresses })
+    ipAddress? ip = ipAddress.ip : ip = '0.0.0.0/0'
+  } else if (ipAddresses && (ipAddresses as IpAddress[]).length > 0) {
+    ip = (ipAddresses as IpAddress[])[0].ip
+  } else {
+    ip = '0.0.0.0/0'
+  }
+
   studentData.ipAddresses = []
   const student = new Student(studentData)
   student.referralCode = generateReferralCode(student.id)
 
   try {
-    student.password = await student.hashPassword(password)
+    student.password = student.hashPassword!(password!)
     await student.save()
   } catch (error) {
     throw new Error(error)
@@ -79,13 +91,23 @@ export async function createVolunteer(
   volunteerData: Partial<VolunteerDocument>
 ): Promise<VolunteerDocument> {
   const { password, ipAddresses } = volunteerData
-  const ip = ipAddresses && ipAddresses[0] && ipAddresses[0].ip
+
+  let ip: string
+  if (ipAddresses instanceof Types.ObjectId) {
+    const ipAddress = await IpAddressModel.findOne({ _id: ipAddresses })
+    ipAddress? ip = ipAddress.ip : ip = '0.0.0.0/0'
+  } else if (ipAddresses && (ipAddresses as IpAddress[]).length > 0) {
+    ip = (ipAddresses as IpAddress[])[0].ip
+  } else {
+    ip = '0.0.0.0/0'
+  }
+
   volunteerData.ipAddresses = []
   const volunteer = new Volunteer(volunteerData)
   volunteer.referralCode = generateReferralCode(volunteer.id)
 
   try {
-    volunteer.password = await volunteer.hashPassword(password)
+    volunteer.password = volunteer.hashPassword!(password!)
     await Promise.all([
       volunteer.save(),
       createAvailabilitySnapshot(volunteer._id)
@@ -115,7 +137,7 @@ export function isCertified(certifications: Certifications): boolean {
   for (const subject in certifications) {
     if (
       Object.prototype.hasOwnProperty.call(certifications, subject) &&
-      certifications[subject].passed
+      (certifications as StringKeyToAny)[subject].passed
     ) {
       isCertified = true
       break
