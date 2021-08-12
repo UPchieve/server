@@ -1,10 +1,8 @@
 <template>
   <div class="DashboardBanner">
     <div class="DashboardBanner-banner">
-      <h1 class="DashboardBanner-greeting">
-        Hello, {{ name }}!
-      </h1>
-      <p> What can we help you with today? </p>
+      <h1 class="DashboardBanner-greeting">Hello, {{ name }}!</h1>
+      <p>What can we help you with today?</p>
       <slot></slot>
     </div>
   </div>
@@ -34,7 +32,7 @@ export default {
     padding: 0;
   }
 
-  p{
+  p {
     font-size: 22px;
     font-style: Work Sans;
     color: white;
@@ -48,7 +46,7 @@ export default {
   color: white;
   @include breakpoint-above('medium') {
     @include font-category('display-large');
-    }
+  }
 }
 
 .DashboardBanner-banner {
