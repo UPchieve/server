@@ -254,7 +254,7 @@ function isAdmin(req, res, next) {
   if (req.user.isAdmin) {
     return next()
   }
-  return res.status(401).json({ err: 'Unauthorized' })
+  return res.status(403).json({ err: 'Unauthorized' })
 }
 
 function isAuthenticatedRedirect(req, res, next) {

@@ -926,7 +926,7 @@ paths:
         '403':
           description: Unauthorized for non-admin users
         '422':
-          description: No data found
+          description: No data found or bad input from the query params
         '500':
           description: Internal server error
   /api/session/new:

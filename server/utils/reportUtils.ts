@@ -1,6 +1,7 @@
 import moment from 'moment-timezone'
 import { Types } from 'mongoose'
 import { capitalize } from 'lodash'
+import exceljs from 'exceljs'
 import {
   USER_ACTION,
   HOUR_TO_UTC_MAPPING,
@@ -17,9 +18,12 @@ import {
   getVolunteersWithPipeline,
   HourSummaryStats
 } from '../services/VolunteerService'
+import { volunteerPartnerManifests } from '../partnerManifests'
+import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
 import roundUpToNearestInterval from './round-up-to-nearest-interval'
 import { countCertsByType } from './count-certs-by-type'
+import { asFactory, asString } from './type-utils'
 
 interface Stamp {
   day: string
@@ -584,23 +588,20 @@ export async function getUniqueStudentStats(
   ])) as unknown) as GroupStats[]
 }
 
+export interface AnalyticsReportSummaryData {
+  total: number
+  totalWithinDateRange: number
+}
+
 export interface AnalyticsReportSummary {
-  dateRangeSignUps: number
-  dateRangeVolunteersOnboarded: number
-  dateRangeOnboardingRate: number
-  dateRangeOpportunities: number
-  dateRangeSessionsCompleted: number
-  dateRangePickupRate: number
-  dateRangeVolunteerHours: number
-  dateRangeUniqueStudentsHelped: number
-  totalSignUps: number
-  totalVolunteersOnboarded: number
-  totalOnboardingRate: number
-  totalOpportunities: number
-  totalSessionsCompleted: number
-  totalPickupRate: number
-  totalVolunteerHours: number
-  totalUniqueStudentsHelped: number
+  signUps: AnalyticsReportSummaryData
+  volunteersOnboarded: AnalyticsReportSummaryData
+  onboardingRate: AnalyticsReportSummaryData
+  opportunities: AnalyticsReportSummaryData
+  sessionsCompleted: AnalyticsReportSummaryData
+  pickupRate: AnalyticsReportSummaryData
+  volunteerHours: AnalyticsReportSummaryData
+  uniqueStudentsHelped: AnalyticsReportSummaryData
 }
 
 function dividend(numerator: number, denominator: number): number {
@@ -615,70 +616,71 @@ export async function getAnalyticsReportSummary(
   startDate: Date,
   endDate: Date
 ): Promise<AnalyticsReportSummary> {
+  const defaultData = {
+    total: 0,
+    totalWithinDateRange: 0
+  }
   const summary = {
-    dateRangeSignUps: 0,
-    dateRangeVolunteersOnboarded: 0,
-    dateRangeOnboardingRate: 0,
-    dateRangeOpportunities: 0, // opportunities to tutor = number texts sent
-    dateRangeSessionsCompleted: 0,
-    dateRangePickupRate: 0,
-    dateRangeVolunteerHours: 0,
-    dateRangeUniqueStudentsHelped: 0,
-    totalSignUps: 0,
-    totalVolunteersOnboarded: 0,
-    totalOnboardingRate: 0,
-    totalOpportunities: 0,
-    totalSessionsCompleted: 0,
-    totalPickupRate: 0,
-    totalVolunteerHours: 0,
-    totalUniqueStudentsHelped: 0
+    signUps: { ...defaultData },
+    volunteersOnboarded: { ...defaultData },
+    onboardingRate: { ...defaultData },
+    opportunities: { ...defaultData },
+    sessionsCompleted: { ...defaultData },
+    pickupRate: { ...defaultData },
+    volunteerHours: { ...defaultData },
+    uniqueStudentsHelped: { ...defaultData }
   } as AnalyticsReportSummary
 
   for (const row of report) {
-    summary.totalSignUps++
+    summary.signUps.total++
     if (isDateWithin(row.dateAccountCreated, startDate, endDate))
-      summary.dateRangeSignUps++
+      summary.signUps.totalWithinDateRange++
     if (row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED) {
-      summary.totalVolunteersOnboarded++
+      summary.volunteersOnboarded.total++
       if (isDateWithin(row.dateOnboarded, startDate, endDate))
-        summary.dateRangeVolunteersOnboarded++
+        summary.volunteersOnboarded.totalWithinDateRange++
     }
 
-    summary.totalSessionsCompleted += row.totalSessionsCompleted
-    summary.dateRangeSessionsCompleted += row.dateRangeSessionsCompleted
-    summary.totalVolunteerHours += row.totalVolunteerHours
-    summary.dateRangeVolunteerHours += row.dateRangeVolunteerHours
+    summary.sessionsCompleted.total += row.totalSessionsCompleted
+    summary.sessionsCompleted.totalWithinDateRange +=
+      row.dateRangeSessionsCompleted
+    summary.volunteerHours.total += row.totalVolunteerHours
+    summary.volunteerHours.totalWithinDateRange += row.dateRangeVolunteerHours
 
-    summary.totalOpportunities += row.totalTextsReceived
-    summary.dateRangeOpportunities += row.dateRangeTextsReceived
+    summary.opportunities.total += row.totalTextsReceived
+    summary.opportunities.totalWithinDateRange += row.dateRangeTextsReceived
 
     // delete hack for date onboarded
     delete row.dateOnboarded
   }
 
-  summary.totalOnboardingRate = Number(
+  summary.onboardingRate.total = Number(
     (
-      100 * dividend(summary.totalVolunteersOnboarded, summary.totalSignUps)
+      100 * dividend(summary.volunteersOnboarded.total, summary.signUps.total)
     ).toFixed(2)
   )
-  summary.dateRangeOnboardingRate = Number(
-    (
-      100 *
-      dividend(summary.dateRangeVolunteersOnboarded, summary.dateRangeSignUps)
-    ).toFixed(2)
-  )
-
-  summary.totalPickupRate = Number(
-    (
-      100 * dividend(summary.totalSessionsCompleted, summary.totalOpportunities)
-    ).toFixed(2)
-  )
-  summary.dateRangePickupRate = Number(
+  summary.onboardingRate.totalWithinDateRange = Number(
     (
       100 *
       dividend(
-        summary.dateRangeSessionsCompleted,
-        summary.dateRangeOpportunities
+        summary.volunteersOnboarded.totalWithinDateRange,
+        summary.signUps.totalWithinDateRange
+      )
+    ).toFixed(2)
+  )
+
+  summary.pickupRate.total = Number(
+    (
+      100 *
+      dividend(summary.sessionsCompleted.total, summary.opportunities.total)
+    ).toFixed(2)
+  )
+  summary.pickupRate.totalWithinDateRange = Number(
+    (
+      100 *
+      dividend(
+        summary.sessionsCompleted.totalWithinDateRange,
+        summary.opportunities.totalWithinDateRange
       )
     ).toFixed(2)
   )
@@ -688,12 +690,237 @@ export async function getAnalyticsReportSummary(
     startDate,
     endDate
   )
-  summary.dateRangeUniqueStudentsHelped = uniqueStudentStats
+  summary.uniqueStudentsHelped.total = uniqueStudentStats
     ? uniqueStudentStats.totalWithinDateRange
     : 0
-  summary.totalUniqueStudentsHelped = uniqueStudentStats
+  summary.uniqueStudentsHelped.totalWithinDateRange = uniqueStudentStats
     ? uniqueStudentStats.total
     : 0
 
   return summary
+}
+
+const analyticsReportDataHeaderMapping = {
+  firstName: 'First name',
+  lastName: 'Last name',
+  email: 'Email',
+  state: 'State of residence',
+  onboardingStatus: 'Onboarding status',
+  dateAccountCreated: 'Date of account creation',
+  certificationsReceived: 'Certifications received',
+  totalTextsReceived: 'Total texts received',
+  totalSessionsCompleted: 'Total sessions completed',
+  totalUniqueStudentsHelped: 'Total unique students helped',
+  totalTutoringHours: 'Total tutoring hours',
+  totalTrainingHours: 'Total training hours',
+  totalElapsedAvailabilityHours: 'Total elapsed availability hours',
+  totalVolunteerHours: 'Total hours',
+  dateRangeTextsReceived: 'Texts received within date range',
+  dateRangeSessionsCompleted: 'Sessions completed within date range',
+  dateRangeUniqueStudentsHelped: 'Unique students helped within date range',
+  dateRangeTutoringHours: 'Tutoring hours within date range',
+  dateRangeTrainingHours: 'Training hours within date range',
+  dateRangeElapsedAvailabilityHours:
+    'Elapsed availability hours within date range',
+  dateRangeVolunteerHours: 'Total hours within date range'
+}
+
+const analyticsReportSummaryHeaderMapping = {
+  signUps: 'Volunteers signed up',
+  volunteersOnboarded: 'Volunteers onboarded',
+  onboardingRate: 'Onboarding rate',
+  opportunities: 'Tutoring opportunities provided',
+  sessionsCompleted: 'Sessions completed',
+  pickupRate: 'Pick-up rate',
+  volunteerHours: 'Volunteer hours completed',
+  uniqueStudentsHelped: 'Unique students helped'
+}
+
+const borderRightMediumStyle = {
+  right: {
+    style: 'medium'
+  }
+}
+
+export function applyAnalyticsReportDataStyles(worksheet) {
+  /**
+   * @note: When applying styles to a cell, column, or row, previous styles applied may be overridden,
+   *        so there may need to be styling that is defined again to preserve the styles.
+   *
+   * @note: Using `.style` on a `getColumn()` or `getRow()` does not apply the set styles,
+   *        we must access using the direct property like `.border` or `.fill`.
+   *
+   */
+  worksheet.getColumn('certificationsReceived').border = borderRightMediumStyle
+  worksheet.getColumn(
+    'totalUniqueStudentsHelped'
+  ).border = borderRightMediumStyle
+  worksheet.getColumn('totalVolunteerHours').border = borderRightMediumStyle
+  worksheet.getColumn(
+    'dateRangeUniqueStudentsHelped'
+  ).border = borderRightMediumStyle
+  worksheet.getColumn('dateRangeVolunteerHours').border = borderRightMediumStyle
+  // Target the sectional header cells
+  worksheet.getCell('A1').border = borderRightMediumStyle
+  worksheet.getCell('H1').border = borderRightMediumStyle
+  worksheet.getCell('K1').border = borderRightMediumStyle
+  worksheet.getCell('O1').border = borderRightMediumStyle
+  worksheet.getCell('R1').border = borderRightMediumStyle
+
+  const rowWithFormattedColumnHeaders = worksheet.getRow(2)
+  rowWithFormattedColumnHeaders.height = 80
+  rowWithFormattedColumnHeaders.alignment = {
+    wrapText: true
+  }
+  rowWithFormattedColumnHeaders.border = {
+    bottom: { style: 'thin' }
+  }
+
+  const overridenCellStyle = {
+    border: {
+      ...borderRightMediumStyle,
+      bottom: { style: 'thin' }
+    },
+    alignment: { wrapText: true }
+  }
+
+  // Update styling on cells that were overriden due to specific column styles being applied
+  worksheet.getCell('G2').style = overridenCellStyle
+  worksheet.getCell('J2').style = overridenCellStyle
+  worksheet.getCell('N2').style = overridenCellStyle
+  worksheet.getCell('Q2').style = overridenCellStyle
+  worksheet.getCell('U2').style = overridenCellStyle
+}
+
+export function applyAnalyticsReportSummaryStyles(
+  worksheet: exceljs.Worksheet
+) {
+  worksheet.getColumn('A').alignment = {
+    wrapText: true
+  }
+  const rightAlignText = {
+    alignment: {
+      horizontal: 'right'
+    }
+  } as Partial<exceljs.Style>
+  worksheet.getCell('B4').style = rightAlignText
+  worksheet.getCell('C4').style = rightAlignText
+  worksheet.getCell('B7').style = rightAlignText
+  worksheet.getCell('C7').style = rightAlignText
+}
+
+export function processAnalyticsReportDataSheet(
+  data: AnalyticsReportRow[],
+  worksheet: exceljs.Worksheet,
+  startDate: string,
+  endDate: string
+) {
+  const reportRowKeys = Object.keys(analyticsReportDataHeaderMapping)
+  const columnsWithHeaderKeys = []
+  const formattedColumnHeaders = []
+  for (let i = 0; i < reportRowKeys.length; i += 1) {
+    const col = {
+      key: reportRowKeys[i],
+      width: 15
+    } as exceljs.Column
+
+    columnsWithHeaderKeys.push(col)
+    formattedColumnHeaders.push(
+      analyticsReportDataHeaderMapping[reportRowKeys[i]]
+    )
+  }
+  worksheet.columns = columnsWithHeaderKeys
+  // Add the headers to the second row
+  worksheet.getRow(2).values = formattedColumnHeaders
+
+  for (let i = 0; i < data.length; i += 1) {
+    worksheet.addRow(data[i], 'i')
+  }
+
+  // Create sectional headers in the first row
+  worksheet.getCell('A1').value = 'Volunteer Information'
+  worksheet.getCell('H1').value = 'Cumulative Impact'
+  worksheet.getCell('K1').value = 'Cumulative Volunteer Hours'
+  worksheet.getCell('O1').value = `Impact from ${startDate} - ${endDate}`
+  worksheet.getCell('R1').value = `Hours between ${startDate} - ${endDate}`
+  worksheet.mergeCells('A1:G1')
+  worksheet.mergeCells('H1:J1')
+  worksheet.mergeCells('K1:N1')
+  worksheet.mergeCells('O1:Q1')
+  worksheet.mergeCells('R1:U1')
+
+  applyAnalyticsReportDataStyles(worksheet)
+}
+
+export function processAnalyticsReportSummarySheet(
+  summary: AnalyticsReportSummary,
+  worksheet: exceljs.Worksheet,
+  startDate: string,
+  endDate: string
+) {
+  const summaryColumnMapping = {
+    description: '',
+    total: 'Cumulative',
+    totalWithinDateRange: `${startDate} - ${endDate}`
+  }
+
+  const summaryCols = []
+  for (const [columnKey, columnHeader] of Object.entries(
+    summaryColumnMapping
+  )) {
+    const col = {
+      header: columnHeader,
+      key: columnKey,
+      width: 25
+    } as exceljs.Column
+    summaryCols.push(col)
+  }
+  worksheet.columns = summaryCols
+
+  for (const [key, data] of Object.entries(summary) as [
+    string,
+    AnalyticsReportSummaryData
+  ][]) {
+    const description = analyticsReportSummaryHeaderMapping[key]
+    let total: number | string
+    let totalWithinDateRange: number | string
+    if (key === 'onboardingRate' || key === 'pickupRate') {
+      total = `${data.total}%`
+      totalWithinDateRange = `${data.totalWithinDateRange}%`
+    } else {
+      total = data.total
+      totalWithinDateRange = data.totalWithinDateRange
+    }
+    worksheet.addRow({ description, total, totalWithinDateRange }, 'i')
+  }
+  worksheet.properties.defaultRowHeight = 30
+  applyAnalyticsReportSummaryStyles(worksheet)
+}
+
+export interface VolunteerReportQuery {
+  partnerOrg: string
+  startDate: string
+  endDate: string
+}
+
+export const asValidateVolunteerReportQuery = asFactory<VolunteerReportQuery>({
+  partnerOrg: asString,
+  startDate: asString,
+  endDate: asString
+})
+
+export function validateVolunteerReportQuery(data: unknown) {
+  const { partnerOrg, startDate, endDate } = asValidateVolunteerReportQuery(
+    data
+  )
+  // Volunteer partner org check
+  const volunteerPartnerManifest = volunteerPartnerManifests[partnerOrg]
+  if (!volunteerPartnerManifest)
+    throw new InputError('Invalid volunteer partner organization')
+  if (!moment(startDate, 'MM-DD-YYYY', true).isValid())
+    throw new InputError('Start date does not follow a MM-DD-YYYY format')
+  if (!moment(endDate, 'MM-DD-YYYY', true).isValid())
+    throw new InputError('End date does not follow a MM-DD-YYYY format')
+
+  return { partnerOrg, startDate, endDate }
 }

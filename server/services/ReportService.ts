@@ -1,13 +1,19 @@
+import path from 'path'
+import fs from 'fs'
 import moment from 'moment-timezone'
 import mongoose, { Types } from 'mongoose'
 import _ from 'lodash'
+import exceljs from 'exceljs'
+import { v4 as uuidv4 } from 'uuid'
+import { CustomError } from 'ts-custom-error'
 import User from '../models/User'
-import {
-  studentPartnerManifests,
-  volunteerPartnerManifests
-} from '../partnerManifests'
+import { studentPartnerManifests } from '../partnerManifests'
 import logger from '../logger'
-import { FEEDBACK_VERSIONS, DATE_RANGE_COMPARISON_FIELDS } from '../constants'
+import {
+  FEEDBACK_VERSIONS,
+  DATE_RANGE_COMPARISON_FIELDS,
+  REPORT_FILE_NAMES
+} from '../constants'
 import config from '../config'
 import {
   generateTelecomReport,
@@ -16,9 +22,20 @@ import {
   AnalyticsReportRow,
   AnalyticsReportSummary,
   PartnerVolunteerAnalytics,
-  getAnalyticsReportSummary
+  getAnalyticsReportSummary,
+  processAnalyticsReportSummarySheet,
+  processAnalyticsReportDataSheet,
+  validateVolunteerReportQuery
 } from '../utils/reportUtils'
+import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
+
+export class ReportNoDataFoundError extends CustomError {}
+
+const fsPromises = fs.promises
+
+const getReportFilePath = fileName =>
+  `${config.fileWorkRootPath}/${uuidv4()}/${fileName}.xlsx`
 
 const ObjectId = mongoose.Types.ObjectId
 
@@ -563,14 +580,8 @@ export const generatePartnerAnalyticsReport = async ({
   startDate,
   endDate
 }) => {
-  const start: Date = moment(startDate, 'YYYY-MM-DD').toDate()
-  const end: Date = moment(endDate, 'YYYY-MM-DD').toDate()
-
-  // Volunteer partner org check
-  const volunteerPartnerManifest = volunteerPartnerManifests[partnerOrg]
-
-  if (!volunteerPartnerManifest)
-    throw new Error('Invalid volunteer partner organization')
+  const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
+  const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
 
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
@@ -746,8 +757,85 @@ export const generatePartnerAnalyticsReport = async ({
     report.push(row)
   }
 
-  let summary: AnalyticsReportSummary
+  let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
   if (report.length > 0)
     summary = await getAnalyticsReportSummary(partnerOrg, report, start, end)
   return { summary, report }
+}
+
+export async function writeAnalyticsReport(data, startDate, endDate) {
+  const reportFilePath = getReportFilePath(REPORT_FILE_NAMES.ANALYTICS_REPORT)
+  await fsPromises.mkdir(path.parse(reportFilePath).dir, { recursive: true })
+  const workbook = new exceljs.stream.xlsx.WorkbookWriter({
+    filename: reportFilePath,
+    useStyles: true // include this option to apply styling to streams
+  })
+  const sheetOptions = {
+    pageSetup: {
+      orientation: 'landscape',
+      showGridLines: true,
+      showRowColHeaders: true
+    }
+  } as Partial<exceljs.AddWorksheetOptions>
+  const summarySheet = workbook.addWorksheet('Summary', sheetOptions)
+  const dataSheet = workbook.addWorksheet('Data', sheetOptions)
+  const formattedStartDate = moment(startDate, 'MM-DD-YYYY').format('MM/DD/YY')
+  const formattedEndDate = moment(endDate, 'MM-DD-YYYY').format('MM/DD/YY')
+  processAnalyticsReportSummarySheet(
+    data.summary,
+    summarySheet,
+    formattedStartDate,
+    formattedEndDate
+  )
+  processAnalyticsReportDataSheet(
+    data.report,
+    dataSheet,
+    formattedStartDate,
+    formattedEndDate
+  )
+  summarySheet.commit()
+  dataSheet.commit()
+  await workbook.commit()
+  return reportFilePath
+}
+
+export async function getAnalyticsReport(data: unknown) {
+  try {
+    const { partnerOrg, startDate, endDate } = validateVolunteerReportQuery(
+      data
+    )
+    const analyticsReport = await generatePartnerAnalyticsReport({
+      partnerOrg,
+      startDate,
+      endDate
+    })
+    if (analyticsReport.report.length === 0)
+      throw new ReportNoDataFoundError(
+        'No analytics report data for the requested partner'
+      )
+    return await writeAnalyticsReport(analyticsReport, startDate, endDate)
+  } catch (error) {
+    logger.error(error)
+    if (error instanceof ReportNoDataFoundError || error instanceof InputError)
+      throw error
+    throw new Error(error.message)
+  }
+}
+
+export async function deleteReport(reportFilePath: string) {
+  try {
+    /**
+     *  @note: passing an optional object config to fs.rmdir is available with our
+     *  current version of Node, however it is not recognized with TS. It throws
+     *  an saying that `.rmdir` is expecting 1 argument, but got 2
+     * https://nodejs.org/docs/latest-v12.x/api/fs.html#fs_fspromises_rmdir_path_options
+     *
+     * @note: recursive is expiremental with our current version of Node
+     */
+    // @ts-expect-error
+    await fsPromises.rmdir(path.parse(reportFilePath).dir, { recursive: true })
+  } catch (error) {
+    logger.error(error)
+    throw new Error(error.message)
+  }
 }
