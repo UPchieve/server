@@ -861,6 +861,25 @@ module.exports = {
     )
   },
 
+  sendVolunteerInactiveBlackoutOver: async ({ email, firstName }) => {
+    const sender = config.mail.senders.support
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['volunteer - inactive blackout over']
+    }
+    return sendEmail(
+      email,
+      sender,
+      'The UPchieve Team',
+      config.sendgrid.volunteerInactiveBlackoutOverTemplate,
+      { firstName },
+      null,
+      overrides
+    )
+  },
+
   sendStudentReported: ({ email, firstName, reportReason }) => {
     let sender
     let from

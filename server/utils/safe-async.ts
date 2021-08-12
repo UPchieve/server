@@ -1,14 +1,16 @@
 // TODO: use generics to type AsyncResult
-export interface AsyncResult {
-  result?: any
+export interface AsyncResult<T> {
+  result?: T
   error?: Error
 }
 
-export const safeAsync = async function(p: Promise<any>): Promise<AsyncResult> {
+export const safeAsync = async function<T>(
+  p: Promise<T>
+): Promise<AsyncResult<T>> {
   try {
     const result = await p
-    return { result } as AsyncResult
+    return { result } as AsyncResult<T>
   } catch (error) {
-    return { error } as AsyncResult
+    return { error } as AsyncResult<T>
   }
 }

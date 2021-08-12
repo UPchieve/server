@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 export const DAYS = [
   'Sunday',
   'Monday',
@@ -661,3 +663,16 @@ export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
   [SAT_SUBJECTS.SAT_READING]: 'SAT Reading',
   [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays'
 }
+
+export const BLACKOUT_PERIOD_START = moment()
+  .utc()
+  .month('June')
+  .startOf('month')
+  .toDate()
+
+export const BLACKOUT_PERIOD_END = moment()
+  .utc()
+  .month('September')
+  .date(1)
+  .endOf('day')
+  .toDate()
