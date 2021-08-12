@@ -1,14 +1,10 @@
 <template>
   <div class="DashboardBanner">
-    <!-- <h1 v-if="mobileMode" class="DashboardBanner-greeting">
-      Hello, {{ name }}!
-    </h1> -->
-
     <div class="DashboardBanner-banner">
       <h1 class="DashboardBanner-greeting">
         Hello, {{ name }}!
       </h1>
-
+      <p> What can we help you with today? </p>
       <slot></slot>
     </div>
   </div>
@@ -36,6 +32,14 @@ export default {
   h1 {
     margin: 0;
     padding: 0;
+  }
+
+  p{
+    font-size: 22px;
+    font-style: Work Sans;
+    color: white;
+    padding: 0;
+    margin-top: 0px;
   }
 }
 
