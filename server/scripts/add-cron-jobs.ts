@@ -53,6 +53,10 @@ const jobTemplates: JobTemplate[] = [
     options: { repeat: { cron: '0 9 * * *', tz: 'America/New_York' } } // each day at 9am
   },
   {
+    name: Jobs.EmailVolunteerInactiveBlackoutOver,
+    options: { repeat: { cron: '0 9 2 9 *', tz: 'America/New_York' } } // On Septempber 2nd at 9am
+  },
+  {
     name: Jobs.GenerateAndStoreWaitTimeHeatMap,
     options: { repeat: { cron: '0 8 * * MON', tz: 'America/New_York' } } // every Monday at 8am EST
   }

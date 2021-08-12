@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import moment from 'moment-timezone'
 import MockDate from 'mockdate'
+import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../../../constants'
 import { resetDb, insertVolunteer, getVolunteer } from '../../db-utils'
 import emailVolunteerInactive from '../../../worker/jobs/volunteer-emails/emailVolunteerInactive'
 import logger from '../../../logger'
@@ -204,19 +205,26 @@ describe('Volunteer inactive emails', () => {
     }
 
     test('Job runs on start of blackout period', async () => {
-      MockDate.set(new Date('2022-06-01T00:00:00.000Z').getTime())
+      MockDate.set(BLACKOUT_PERIOD_START.getTime())
       await emailVolunteerInactive()
       blackoutPeriodAssertion()
     })
 
     test('Job runs in middle of blackout period', async () => {
-      MockDate.set(new Date('2021-08-01T08:00:00.000Z').getTime())
+      MockDate.set(
+        moment()
+          .utc()
+          .month('July')
+          .endOf('month')
+          .toDate()
+          .getTime()
+      )
       await emailVolunteerInactive()
       blackoutPeriodAssertion()
     })
 
     test('Job runs on end of blackout period', async () => {
-      MockDate.set(new Date('2021-09-01T23:59:59.999Z').getTime())
+      MockDate.set(BLACKOUT_PERIOD_END.getTime())
       await emailVolunteerInactive()
       blackoutPeriodAssertion()
     })

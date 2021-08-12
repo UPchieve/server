@@ -10,6 +10,7 @@ import {
 } from '../../../services/VolunteerService'
 import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 import createNewAvailability from '../../../utils/create-new-availability'
+import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../../../constants'
 
 interface InactiveVolunteersAggregation {
   inactiveThirtyDays: Volunteer[]
@@ -87,19 +88,9 @@ function getEndOfDayFromDaysAgo(daysAgo: number): Date {
 }
 
 export default async (): Promise<void> => {
-  const blackoutPeriodStart = moment()
-    .utc()
-    .month('June')
-    .startOf('month')
-    .toDate()
-    .getTime()
-  const blackoutPeriodEnd = moment()
-    .utc()
-    .month('September')
-    .date(1)
-    .endOf('day')
-    .toDate()
-    .getTime()
+  const blackoutPeriodStart = BLACKOUT_PERIOD_START.getTime()
+  const blackoutPeriodEnd = BLACKOUT_PERIOD_END.getTime()
+
   const todaysDate = new Date().getTime()
   if (todaysDate >= blackoutPeriodStart && todaysDate <= blackoutPeriodEnd) {
     logger.info(

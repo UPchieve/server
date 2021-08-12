@@ -59,6 +59,7 @@ export const Config = Record({
     volunteerInactiveThirtyDaysTemplate: String,
     volunteerInactiveSixtyDaysTemplate: String,
     volunteerInactiveNinetyDaysTemplate: String,
+    volunteerInactiveBlackoutOverTemplate: String,
     failedFirstAttemptedQuizTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
