@@ -24,12 +24,12 @@ export const getNotifications = (
 }
 
 export const getNotificationsWithPipeline = (
-  pipeline
+  pipeline: any
 ): Aggregate<Notification[]|null> =>
   NotificationModel.aggregate(pipeline).read('secondaryPreferred')
 
 export const getNotificationWithVolunteer = async (
-  notificationId
+  notificationId: Types.ObjectId
 ): Promise<Notification> => {
   const [notification] = await NotificationModel.aggregate([
     {

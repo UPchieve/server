@@ -11,7 +11,7 @@ const twilioClient =
     : null
 import formatMultiWordSubject from '../utils/format-multi-word-subject'
 import Case from 'case'
-import NotificationModel, { Notification } from '../models/Notification'
+import NotificationModel, { Notification, NotificationDocument } from '../models/Notification'
 import { Session } from '../models/Session'
 import { Types } from 'mongoose'
 import logger from '../logger'
@@ -401,7 +401,7 @@ function recordNotification(sendPromise: Promise<string>|Promise<void>, notifica
       notification.wasSuccessful = false
       return notification
     })
-    .then((notification: NotificationModel) => {
+    .then((notification: NotificationDocument) => {
       return notification.save()
     })
 }

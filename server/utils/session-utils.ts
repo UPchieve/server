@@ -6,6 +6,7 @@ import { Student } from '../models/Student'
 import { SESSION_FLAGS, SUBJECTS } from '../constants'
 import { Session } from '../models/Session'
 import { Message } from '../models/Message'
+import { User } from '../models/User'
 import { DAYS, HOURS } from '../models/Availability/types'
 import {
   asAny,
@@ -19,7 +20,6 @@ import {
   asString,
   asUnion
 } from './type-utils'
-import { User } from '../models/User'
 import { Feedback } from '../models/Feedback'
 
 export class StartSessionError extends CustomError {}
@@ -252,10 +252,10 @@ export type HeatMap = {
 }
 
 export function createEmptyHeatMap() {
-  const heatMap = {}
+  const heatMap: HeatMap = {}
 
   for (const day in DAYS) {
-    const currentDay = {}
+    const currentDay: {[key: string]: number} = {}
     for (const hour in HOURS) {
       currentDay[HOURS[hour as keyof typeof HOURS]] = 0
     }
@@ -345,7 +345,11 @@ const userDataValidators = {
   firstname: asString,
   lastname: asString,
   isVolunteer: asBoolean,
-  isBanned: asBoolean
+  isBanned: asBoolean,
+  password: asString,
+  verified: asBoolean,
+  verifiedEmail: asString,
+  verifiedPhone: asString
 }
 
 const socketUserDataValidators = {
@@ -397,7 +401,7 @@ const sessionDataValidators = {
 
 // @todo: move the factory methods and validators to a shared file
 // @todo: create a factory using User
-export const asUser = asFactory<RequestUser>(userDataValidators)
+export const asUser = asFactory<User>(userDataValidators)
 export const asSocketUser = asFactory<SocketUser>(socketUserDataValidators)
 
 export const asStartSessionData = asFactory<StartSessionOptions>({

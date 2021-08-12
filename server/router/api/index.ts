@@ -1,6 +1,6 @@
 import { Express, Router } from 'express'
 import { MongoStore } from 'connect-mongo'
-import expressWs from '@small-tech/express-ws'
+const expressWs: any = require('@small-tech/express-ws')
 import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
 import { addLastActivity } from '../../middleware/add-last-activity'
@@ -23,7 +23,7 @@ const user = require('./user')
 export function routes(app: Express, sessionStore: MongoStore): void {
   const io: Server = socketServer(app)
 
-  const router: expressWs.Router = Router()
+  const router: any = Router()
 
   volunteers(router)
   user(router)

@@ -21,11 +21,11 @@ export const initiateVerification = ({
   sendTo,
   verificationMethod
 }: InitiateVerificationOptions) =>
-  TwilioService.sendVerification({
+  TwilioService.sendVerification(
     sendTo,
     verificationMethod,
     firstName
-  })
+  )
 
 export const confirmVerification = async ({
   userId,

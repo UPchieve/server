@@ -29,20 +29,20 @@ async function streamToBuffer(readableStream: Stream): Promise<unknown> {
   })
 }
 
-export const getBlob = async ({
-  containerName,
-  blobName
-}: {
-  containerName: string
+export async function getBlob(
+  containerName: string,
   blobName: string
-}): Promise<string> => {
+): Promise<string> {
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blobClient = containerClient.getBlobClient(blobName)
   const downloadBlockBlobResponse = await blobClient.download()
-  if (downloadBlockBlobResponse.readableStreamBody)
+  if (downloadBlockBlobResponse.readableStreamBody) {
     return (
       await (streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
-    ) as Buffer).toString()
+      ) as Buffer).toString()
+  } else {
+    return Promise.resolve('')
+  }
 }
 
 export const uploadBlob = async ({

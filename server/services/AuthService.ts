@@ -66,7 +66,7 @@ async function checkIpAddress(ip: string): Promise<void> {
 
 // Registration handlers
 // Handles /register/checkcred route
-export async function checkCredential(data: unknown): Promise<boolean> {
+export async function checkCredential(data: unknown): Promise<boolean|undefined> {
   const { email, password } = asCredentialData(data)
   if (!email || !password)
     throw new InputError('Must supply an email and password for registration')
@@ -444,7 +444,7 @@ export async function lookupPartnerStudentCode(data: unknown): Promise<string> {
 interface PartnerOrg {
   key: string
   displayName: string
-  sties: string[]
+  sites: string[]
 }
 
 // Handles /partner/student-partners route (admin only)
@@ -491,7 +491,7 @@ export async function sendReset(data: unknown): Promise<void> {
   user.passwordResetToken = token
   await user.save()
 
-  await MailService.sendReset({ email, token })
+  await MailService.sendReset(email, token, () => {})
 }
 
 export async function confirmReset(data: unknown): Promise<void> {

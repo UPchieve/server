@@ -11,7 +11,7 @@ import logger from '../../logger'
 function submissionHandler(req: Request, res: Response) {
   const requestData = req.body as unknown
 
-  logger.debug(requestData)
+  logger.debug(requestData as any)
   return nr.startSegment('router:contactFormSubmission:save', true, function() {
     return saveContactFormSubmission(requestData)
       .then(() => {

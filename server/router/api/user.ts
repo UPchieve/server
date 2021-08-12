@@ -7,7 +7,7 @@ import config from '../../config'
 import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 import { Request, Response, NextFunction, Router } from 'express'
 import { User } from '../../models/User'
-import { Volunteer } from '../../models/Volunteer'
+import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import { Student } from '../../models/Student'
 
 export default function(router: Router) {
@@ -31,14 +31,14 @@ export default function(router: Router) {
     if (isDeactivated !== user.isDeactivated) {
       const updatedUser = Object.assign(req.user, { isDeactivated })
       if (updatedUser)
-        MailService.createContact(updatedUser)
+        await MailService.createContact(updatedUser)
 
       if (isDeactivated)
-        new UserActionCtrl.AccountActionCreator(_id, ip).accountDeactivated()
+        await new UserActionCtrl.AccountActionCreator(user._id, ip).accountDeactivated()
     }
 
     try {
-      await Volunteer.updateOne({ _id: user._id }, { phone, isDeactivated })
+      await VolunteerModel.updateOne({ _id: user._id }, { phone, isDeactivated })
       res.sendStatus(200)
     } catch (err) {
       next(err)
@@ -73,21 +73,21 @@ export default function(router: Router) {
 
   router.post('/user/volunteer-approval/reference/delete', async (req: Request, res: Response) => {
     const { ip } = req
-    const { _id } = req.user
+    const { _id } = req.user as User
     const { referenceEmail } = req.body
-    await UserService.deleteReference({
-      userId: _id,
+    await UserService.deleteReference(
+      _id,
       referenceEmail,
       ip
-    })
+    )
     res.sendStatus(200)
   })
 
   router.get('/user/volunteer-approval/photo-url', async (req: Request, res: Response, next: NextFunction) => {
     const { ip } = req
-    const { _id } = req.user
-    const photoIdS3Key = await UserService.addPhotoId({ userId: _id, ip })
-    const uploadUrl = await AwsService.getPhotoIdUploadUrl({ photoIdS3Key, ip })
+    const { _id } = req.user as User
+    const photoIdS3Key = await UserService.addPhotoId(_id, ip)
+    const uploadUrl = await AwsService.getPhotoIdUploadUrl(photoIdS3Key)
 
     if (uploadUrl) {
       res.json({
@@ -107,7 +107,7 @@ export default function(router: Router) {
     '/user/volunteer-approval/background-information',
     async (req, res) => {
       const { ip } = req
-      const { _id } = req.user
+      const { _id } = req.user as User
       const {
         occupation,
         experience,
@@ -133,11 +133,11 @@ export default function(router: Router) {
       }
 
       try {
-        await UserService.addBackgroundInfo({
-          volunteerId: _id,
-          ip,
-          update
-        })
+        await UserService.addBackgroundInfo(
+          _id,
+          update,
+          ip
+        )
         res.sendStatus(200)
       } catch (error) {
         res.sendStatus(500)
@@ -159,20 +159,20 @@ export default function(router: Router) {
   })
 
   router.get('/user/:userId', authPassport.isAdmin, async function(
-    req,
-    res,
-    next
+    req: Request,
+    res: Response,
+    next: NextFunction
   ) {
     const { userId } = req.params
-    const page: string = req.query.page
+    const page: string = req.query.page as string
 
     try {
       const user = await UserService.adminGetUser(userId, parseInt(page))
 
       if (user.isVolunteer && user.photoIdS3Key)
-        user.photoUrl = await AwsService.getPhotoIdUrl({
-          photoIdS3Key: user.photoIdS3Key
-        })
+        user.photoUrl = await AwsService.getPhotoIdUrl(
+          user.photoIdS3Key
+        )
 
       res.json({ user })
     } catch (err) {

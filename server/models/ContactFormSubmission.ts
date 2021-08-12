@@ -26,7 +26,7 @@ const contactFormSubmissionSchema = new Schema({
     default: '',
     required: [true, 'email is required'],
     validate: {
-      validator: v => {
+      validator: (v: string) => {
         return isEmail(v)
       },
       message: props => `${props.value} is not a valid email`
@@ -61,16 +61,17 @@ const ContactFormSubmissionModel = model(
 
 // TODO: put this in the User Repo once we have that refactored
 async function getUserIdAndEmail(id: string) {
-  let user: UserDocument
+  let user: UserDocument | null
   try {
     user = await UserModel.findById(id, { _id: 1, email: 1 })
   } catch (err) {
     throw new UserNotFoundError('_id', id)
   }
-  return {
-    id: user._id as Types.ObjectId,
-    userEmail: user.email
-  }
+  if (user)
+    return {
+      id: user._id as Types.ObjectId,
+      userEmail: user.email
+    }
 }
 
 export async function createFormWithUser(

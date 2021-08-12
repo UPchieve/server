@@ -22,8 +22,8 @@ import {
 import { extendMoment } from 'moment-range'
 
 import FeedbackModel from '../../models/Feedback'
-import Moment from 'moment'
-const moment = extendMoment(Moment)
+import StdMoment, { Moment } from 'moment'
+const moment = extendMoment(StdMoment)
 import Session from '../../models/Session'
 import User from '../../models/User'
 import { Student } from '../../models/Student'

@@ -188,7 +188,7 @@ const messageHandlers: {
     sessionId,
     route
   }) => {
-    await WhiteboardService.appendToDoc(sessionId, message.data)
+    await WhiteboardService.appendToDoc(sessionId, message.data!)
     const newDocLength = await WhiteboardService.getDocLength(sessionId)
     const broadcastMessage = encode({
       messageType: MessageType.CONTINUATION,
@@ -241,7 +241,7 @@ const whiteboardRouter = function(app): void {
       }
     }, 30 * 1000)
 
-    wsClient.on('message', rawMessage => {
+    wsClient.on('message', (rawMessage: string|Uint8Array) => {
       if (rawMessage === 'p1ng') {
         // Respond to ping and exit early
         wsClient.send('p0ng')
@@ -255,8 +255,8 @@ const whiteboardRouter = function(app): void {
         }
       }
       if (message.messageType === MessageType.INIT) initialized = true
-      messageHandlers[message.messageType]
-        ? messageHandlers[message.messageType]({
+      messageHandlers[message.messageType!]
+        ? messageHandlers[message.messageType!]({
             message,
             sessionId,
             wsClient,

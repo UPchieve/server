@@ -79,7 +79,7 @@ function calcAverageRating(allFeedback: Feedback[]): number {
   return Number((ratingsSum / (ratingsCount || 1)).toFixed(2))
 }
 
-function getOffsetTime(date?): number {
+function getOffsetTime(date?: string): number {
   if (!date) return new Date().getTime()
   const estTimeOffset = 1000 * 60 * 60 * 4
 

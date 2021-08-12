@@ -1,17 +1,19 @@
 import * as VerificationCtrl from '../../controllers/VerificationCtrl'
 import { VERIFICATION_METHOD } from '../../constants'
 import isValidInternationalPhoneNumber from '../../utils/is-valid-international-phone-number'
-import { isEmail } from 'validator'
+import validator from 'validator'
 import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as StudentService from '../../services/StudentService'
 import { User } from '../../models/User'
+import { Volunteer } from '../../models/Volunteer'
+import { Student } from '../../models/Student'
 import logger from '../../logger'
 import { Request, Response, NextFunction, Router } from 'express'
 
 export function routeVerify(router: Router) {
   router.post('/verify/send', async function(req: Request, res: Response, next: NextFunction) {
-    const { user } = req
+    const user = req.user as User
     const { sendTo, verificationMethod } = req.body
     const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
     const existingUserQuery: Partial<User> = {}
@@ -25,7 +27,7 @@ export function routeVerify(router: Router) {
       existingUserErrorMessage =
         'The phone number you entered is already in use'
     } else {
-      if (!isEmail(sendTo))
+      if (!validator.isEmail(sendTo))
         return res.status(422).json({
           err: 'Must enter a valid email address'
         })
@@ -74,7 +76,7 @@ export function routeVerify(router: Router) {
   })
 
   router.post('/verify/confirm', async function(req: Request, res: Response, next: NextFunction) {
-    const { user } = req
+    const user = req.user as Student | Volunteer
     if (user === undefined) return res.status(400).json({
       err: 'must include a user object on request body'
     })
@@ -97,7 +99,7 @@ export function routeVerify(router: Router) {
       res.json({ success: isVerified })
 
       if (user.isVolunteer) {
-        if (user.volunteerPartnerOrg) {
+        if ((user as Volunteer).volunteerPartnerOrg) {
           MailService.sendPartnerVolunteerWelcomeEmail(
             user.email,
             user.firstname
@@ -113,7 +115,7 @@ export function routeVerify(router: Router) {
           user.email,
           user.firstname
         )
-        StudentService.queueWelcomeEmails(user._id)
+        await StudentService.queueWelcomeEmails(user._id)
       }
     } catch (error) {
       logger.error(

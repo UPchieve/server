@@ -91,7 +91,7 @@ export default function(router: Router) {
 
     new UserActionCtrl.QuizActionCreator(_id, category, ipAddress)
       .viewedMaterials()
-      .catch(error => Sentry.captureException(error))
+      .catch((error: Error) => Sentry.captureException(error))
 
     res.sendStatus(204)
   })

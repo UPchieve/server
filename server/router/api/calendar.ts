@@ -1,9 +1,9 @@
-import expressWs from '@small-tech/express-ws'
+const expressWs: any = require('@small-tech/express-ws')
 import { updateSchedule, clearSchedule } from '../../controllers/CalendarCtrl'
 import { Request, Response, NextFunction } from 'express'
 import { Volunteer } from '../../models/Volunteer'
 
-export function routeCalendar(router: expressWs.Router): void {
+export function routeCalendar(router: any): void {
   router.post('/calendar/save', async function(req: Request, res: Response, next: NextFunction) {
     try {
       await updateSchedule({
@@ -22,7 +22,8 @@ export function routeCalendar(router: expressWs.Router): void {
 
   router.post('/calendar/clear', async function(req: Request, res: Response, next: NextFunction) {
     try {
-      await clearSchedule(req.user, req.body.tz)
+      const user = req.user as Volunteer
+      await clearSchedule(user, req.body.tz)
       res.json({
         msg: 'Schedule cleared'
       })

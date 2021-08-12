@@ -5,7 +5,7 @@ import UserActionModel, {
   UserActionAgent
 } from '../models/UserAction'
 
-export const getActionsWithPipeline = (pipeline): Aggregate<UserAction[]> =>
+export const getActionsWithPipeline = (pipeline: any): Aggregate<UserAction[]> =>
   UserActionModel.aggregate(pipeline)
 
 export const getQuizzesPassedForDateRange = (

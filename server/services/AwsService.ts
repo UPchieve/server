@@ -26,11 +26,9 @@ export async function getObject(
   }
 }
 
-export const getPhotoIdUploadUrl = async ({
-  photoIdS3Key
-}: {
+export async function getPhotoIdUploadUrl(
   photoIdS3Key: string
-}): Promise<string> => {
+): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3.photoIdBucket,
     Key: photoIdS3Key,
@@ -46,11 +44,9 @@ export const getPhotoIdUploadUrl = async ({
   }
 }
 
-export const getPhotoIdUrl = async ({
-  photoIdS3Key
-}: {
+export async function getPhotoIdUrl(
   photoIdS3Key: string
-}): Promise<string> => {
+): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3.photoIdBucket,
     Key: photoIdS3Key
@@ -64,9 +60,9 @@ export const getPhotoIdUrl = async ({
   }
 }
 
-export const getSessionPhotoUploadUrl = async (
+export async function getSessionPhotoUploadUrl(
   sessionPhotoS3Key: string
-): Promise<string> => {
+): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3.sessionPhotoBucket,
     Key: sessionPhotoS3Key,
@@ -82,17 +78,14 @@ export const getSessionPhotoUploadUrl = async (
   }
 }
 
-export const getObjects = async ({
-  bucket,
-  s3Keys
-}: {
-  bucket: string
+export async function getObjects(
+  bucket: string,
   s3Keys: string[]
-}): Promise<string[]> => {
-  const urls = []
+): Promise<string[]> {
+  const urls: Promise<string>[] = []
 
   for (const s3Key of s3Keys) {
-    urls.push(getObject({ bucket, s3Key }))
+    urls.push(getObject(bucket, s3Key))
   }
 
   return Promise.all(urls)

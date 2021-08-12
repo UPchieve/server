@@ -83,7 +83,7 @@ export async function addReference(
     { _id: userId },
     { $push: { references: referenceData } }
   )
-  await new AccountActionCreator(userId, ip, {
+  await new AccountActionCreator(new ObjectId(userId), ip, {
     referenceEmail
   }).addedReference()
 }
@@ -405,7 +405,7 @@ export async function adminUpdateUser(
 
   if (isBanned) update.banReason = USER_BAN_REASON.ADMIN
   if (isDeactivated && !userBeforeUpdate.isDeactivated)
-    await new AdminActionCreator(userId).adminDeactivatedAccount()
+    await new AdminActionCreator(userId.toString()).adminDeactivatedAccount()
 
   // Remove $unset property if it has no properties to remove
   if (Object.keys(update.$unset).length === 0) delete update.$unset

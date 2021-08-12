@@ -48,7 +48,8 @@ export default function(router: Router) {
     req: Request, res: Response
   ) {
     try {
-      const { page } = req.query
+      let page: string|number = req.query.page as string
+      page = parseInt(page)
       const {
         volunteers,
         isLastPage

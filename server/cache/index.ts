@@ -20,7 +20,7 @@ export class KeyNotFoundError extends CustomError {
   }
 }
 
-export async function save(key, value: string) {
+export async function save(key: string, value: string) {
   await redisClient.set(key, value)
 }
 

@@ -41,7 +41,7 @@ export default function(io: Server, sessionStore: any) {
       secret: config.sessionSecret,
       store: sessionStore,
       // only allow authenticated users to connect to the socket instance
-      fail: (data, message, error, accept) => {
+      fail: (data: any, message: string, error: Error, accept: Function) => {
         if (error) {
           console.log(new Error(message))
           throw new Error(message)
@@ -82,7 +82,7 @@ export default function(io: Server, sessionStore: any) {
       newrelic.startWebTransaction(
         '/socket-io/join',
         () =>
-          new Promise(async (resolve, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             if (!data || !data.sessionId) {
               socket.emit('redirect')
               resolve()
@@ -145,7 +145,7 @@ export default function(io: Server, sessionStore: any) {
       newrelic.startWebTransaction(
         '/socket-io/list',
         () =>
-          new Promise(async (resolve, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             try {
               const sessions = await SessionService.getUnfulfilledSessions()
               socket.emit('sessions', sessions)
@@ -235,8 +235,8 @@ export default function(io: Server, sessionStore: any) {
       newrelic.startWebTransaction(
         '/socket-io/transmitQuillDelta',
         () =>
-          new Promise(async (resolve, reject) => {
-            QuillDocService.appendToDoc(sessionId, delta)
+          new Promise<void>(async (resolve, reject) => {
+            await QuillDocService.appendToDoc(sessionId, delta)
             socket.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
               delta
             })

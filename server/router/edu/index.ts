@@ -129,7 +129,7 @@ eduApi.delete('/questions/:id', async (req: Request, res: Response) => {
   }
 })
 
-export default rootApp => {
+export default function (rootApp: express) {
   rootApp.use(
     '/edu',
     [authPassport.isAuthenticatedRedirect, authPassport.isAdminRedirect],

@@ -46,7 +46,7 @@ import {
 } from '../../utils/session-utils'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as UserActionCtrl from '../../controllers/UserActionCtrl'
-import UserService from '../../services/UserService'
+import * as UserService from '../../services/UserService'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as AwsService from '../../services/AwsService'

@@ -64,7 +64,7 @@ const sessionSchema = new Schema({
   type: {
     type: String,
     validate: {
-      validator: function(v): boolean {
+      validator: function(v: string): boolean {
         const type = v.toLowerCase()
         return validTypes.some(function(validType) {
           return validType.toLowerCase() === type
@@ -257,7 +257,7 @@ export function getSessionsWithPipeline(pipeline: any) {
 
 export async function updateFlags(
   sessionId: Types.ObjectId | string,
-  flags
+  flags: string[]
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
@@ -528,7 +528,7 @@ export async function updateReportSession(
 
 export async function updateSessionToEnd(
   sessionId: Types.ObjectId | string,
-  data
+  data: any
 ) {
   const query = { _id: sessionId }
   const update = {
@@ -549,7 +549,7 @@ export async function updateSessionToEnd(
   }
 }
 
-export async function getLongRunningSessions(startDate, endDate) {
+export async function getLongRunningSessions(startDate: string, endDate: string) {
   try {
     return await SessionModel.find({
       endedAt: { $exists: false },
@@ -591,10 +591,10 @@ interface PublicSession {
   endedAt: Date
 }
 
-export async function getPublicSession(sessionId) {
+export async function getPublicSession(sessionId: Types.ObjectId) {
   try {
     return (await SessionModel.aggregate([
-      { $match: { _id: Types.ObjectId(sessionId) } },
+      { $match: { _id: sessionId } },
       {
         $lookup: {
           from: 'users',
@@ -648,17 +648,17 @@ export interface AdminFilteredSessions {
   studentRating: number
 }
 
-export async function getAdminFilteredSessions({
-  startDate,
-  endDate,
-  minMessagesSent,
-  sessionQueryFilter,
-  ratingQueryFilter,
-  userQueryFilter,
-  showBannedUsers,
-  skip,
-  limit
-}): Promise<AdminFilteredSessions[]> {
+export async function getAdminFilteredSessions(
+  startDate: Date,
+  endDate: Date,
+  minMessagesSent: number,
+  sessionQueryFilter: {},
+  ratingQueryFilter: {},
+  userQueryFilter: {},
+  showBannedUsers: boolean,
+  skip: number,
+  limit: number
+): Promise<AdminFilteredSessions[]> {
   try {
     return (await SessionModel.aggregate([
       {

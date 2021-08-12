@@ -1,18 +1,20 @@
-import express, { Express, Request, Response, NextFunction } from 'express'
+import { Express, Request, Response, NextFunction, Router } from 'express'
 import * as Sentry from '@sentry/node'
 import { authPassport } from '../../utils/auth-utils'
 import * as SchoolService from '../../services/SchoolService'
 import * as UserService from '../../services/UserService'
 import * as UserCtrl from '../../controllers/UserCtrl'
-import School from '../../models/School'
-import ZipCode from '../../models/ZipCode'
+import SchoolModel, { School } from '../../models/School'
+import ZipCodeModel, { ZipCode } from '../../models/ZipCode'
 import IneligibleStudent from '../../models/IneligibleStudent'
 import * as IneligibleStudentService from '../../services/IneligibleStudentService'
 import { resError } from '../res-error'
 import * as IpAddressService from '../../services/IpAddressService'
+import { CallbackError } from 'mongoose'
+import { ObjectId} from 'mongodb'
 
 export function routes(app: Express) {
-  const router: any = express.Router()
+  const router: any = Router()
 
   // Check if a student is eligible
   router.route('/check').post(async function(req: Request, res: Response, next: NextFunction) {
@@ -34,13 +36,13 @@ export function routes(app: Express) {
     })
     if (existingIneligible) return res.json({ isEligible: false })
 
-    const schoolFetch = School.findByUpchieveId(schoolUpchieveId).exec()
-    const zipCodeFetch = ZipCode.findByZipCode(zipCodeInput)
+    const schoolFetch = SchoolModel.findByUpchieveId(schoolUpchieveId).exec()
+    const zipCodeFetch = ZipCodeModel.findByZipCode(zipCodeInput)
 
     try {
       const [school, zipCode] = await Promise.all([schoolFetch, zipCodeFetch])
-      const isSchoolApproved = school.isApproved
-      const isZipCodeEligible = zipCode && zipCode.isEligible
+      const isSchoolApproved = (school as School).isApproved
+      const isZipCodeEligible = zipCode && (zipCode as ZipCode).isEligible
       const isStudentEligible = isSchoolApproved || isZipCodeEligible
 
       if (!isStudentEligible) {
@@ -53,7 +55,7 @@ export function routes(app: Express) {
           referredBy
         })
 
-        newIneligibleStudent.save()
+        await newIneligibleStudent.save()
       }
 
       return res.json({ isEligible: isStudentEligible })
@@ -79,15 +81,15 @@ export function routes(app: Express) {
   router
     .route('/school/findeligible')
     .all(authPassport.isAdmin)
-    .get(function(req, res, next) {
-      School.find(
+    .get(function(req: Request, res: Response, next: NextFunction) {
+      SchoolModel.find(
         {
           isApproved: true
         },
         null,
         {
-          limit: parseInt(req.query.limit),
-          skip: parseInt(req.query.skip)
+          limit: parseInt(req.query.limit as string),
+          skip: parseInt(req.query.skip as string)
         }
       )
         .exec()
@@ -101,18 +103,21 @@ export function routes(app: Express) {
   router
     .route('/school/studentusers/:schoolUpchieveId')
     .all(authPassport.isAdmin)
-    .get(function(req, res, next) {
+    .get(function(req: Request, res: Response, next: NextFunction) {
       const upchieveId = req.params.schoolUpchieveId
 
-      School.findByUpchieveId(upchieveId)
+      SchoolModel.findByUpchieveId(upchieveId)
         .populate('studentUsers')
-        .exec(function(err, school) {
+        .exec(function(err: CallbackError, school: School) {
           if (err) {
             next(err)
           } else {
+            if (!school) {
+              throw new Error('no school found with upchieve id')
+            }
             res.json({
               upchieveId: school.upchieveId,
-              studentUsers: school.studentUsers.map(user => {
+              studentUsers: school.studentUsers!.map(user => {
                 return {
                   email: user.email,
                   firstname: user.firstname,
@@ -148,7 +153,7 @@ export function routes(app: Express) {
     const { schoolId } = req.params
 
     try {
-      await SchoolService.adminUpdateSchool(schoolId, req.body.name, req.body.city, req.body.state, req.body.zipCode, req.body.isApproved)
+      await SchoolService.adminUpdateSchool(new ObjectId(schoolId), req.body.name, req.body.city, req.body.state, req.body.zipCode, req.body.isApproved)
       res.sendStatus(200)
     } catch (err) {
       next(err)
@@ -157,7 +162,7 @@ export function routes(app: Express) {
 
   router.get('/schools', authPassport.isAdmin, async function(req: Request, res: Response, next: NextFunction) {
     try {
-      const { schools, isLastPage } = await SchoolService.getSchools(req.query.name, req.query.state, req.query.city, req.query.page)
+      const { schools, isLastPage } = await SchoolService.getSchools(req.query.name as string, req.query.state as string, req.query.city as string, req.query.page as string)
       res.json({ schools, isLastPage })
     } catch (err) {
       next(err)
@@ -170,7 +175,7 @@ export function routes(app: Express) {
     next: NextFunction
   ) {
     try {
-      const school = await SchoolService.createSchool(req.body.name, req.body.city, req.body.state, req.body.zipCode, req.body.isApproved)
+      const school = await SchoolService.createSchool(req.body.name as string, req.body.city as string, req.body.state as string, req.body.zipCode as string, req.body.isApproved as boolean)
       res.json({ schoolId: school._id })
     } catch (err) {
       next(err)
@@ -218,7 +223,7 @@ export function routes(app: Express) {
     const { zipCode } = req.params
 
     try {
-      const result = await ZipCode.findByZipCode(zipCode)
+      const result = await ZipCodeModel.findByZipCode(zipCode)
       if (!result) res.sendStatus(404)
       else
         res.json({

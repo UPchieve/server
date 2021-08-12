@@ -32,6 +32,7 @@ import {
   styleSrc,
   upgradeInsecureRequests
 } from './securitySettings'
+import { Request, Response, NextFunction } from 'express'
 
 const distDir = '../dist'
 
@@ -78,7 +79,7 @@ function renderIndexHtml() {
   return Mustache.render(template, frontendConfig)
 }
 
-function haltOnTimedout(req, res, next) {
+function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
 }
 

@@ -1,10 +1,12 @@
 import expressWs from '@small-tech/express-ws'
 import * as SurveyService from '../../services/SurveyService'
 import { Request, Response, NextFunction } from 'express'
+import { ObjectId } from 'mongodb'
+import { User } from '../../models/User'
 
 export function routeSurvey(router: expressWs.Router): void {
   router.post('/survey/presession/:sessionId', async (req: Request, res: Response, next: NextFunction) => {
-    const { user } = req
+    const user = req.user as User
     const { sessionId } = req.params
     const { responseData } = req.body
     try {
@@ -20,13 +22,13 @@ export function routeSurvey(router: expressWs.Router): void {
   })
 
   router.get('/survey/presession/:sessionId', async (req: Request, res: Response, next: NextFunction) => {
-    const { user } = req
+    const user = req.user as User
     const { sessionId } = req.params
 
     try {
       const survey = await SurveyService.getPresessionSurvey({
         user,
-        session: sessionId
+        session: new ObjectId(sessionId)
       })
       res.json({ survey })
     } catch (error) {

@@ -10,7 +10,7 @@ import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 import { Express, Router, Request, Response, NextFunction } from 'express'
 
 export default function(app: Express) {
-  const router = new Router()
+  const router = Router()
 
   // This route is called by Twilio to receive TwiML instructions for
   // voice calls. The Twilio API for voice calling requires that a URL be

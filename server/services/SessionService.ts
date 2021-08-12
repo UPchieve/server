@@ -341,7 +341,7 @@ export async function getSessionPhotoUploadUrl(sessionId: Types.ObjectId) {
 
 export async function getImageAndUploadUrl(data: unknown) {
   const sessionId = asString(data)
-  const sessionPhotoS3Key = await getSessionPhotoUploadUrl(sessionId)
+  const sessionPhotoS3Key = await getSessionPhotoUploadUrl(new ObjectId(sessionId))
   const uploadUrl = await AwsService.getSessionPhotoUploadUrl(sessionPhotoS3Key)
   const bucketName = config.awsS3.sessionPhotoBucket
   const imageUrl = `https://${bucketName}.s3.amazonaws.com/${sessionPhotoS3Key}`
@@ -455,10 +455,10 @@ export async function adminSessionView(data: unknown) {
   const feedback = await getFeedbackForSession(sessionId)
   let sessionPhotos: string[] = []
   if (session.photos) {
-    sessionPhotos = await AwsService.getObjects({
-      bucket: 'sessionPhotoBucket',
-      s3Keys: session.photos
-    })
+    sessionPhotos = await AwsService.getObjects(
+      'sessionPhotoBucket',
+      session.photos
+    )
   }
 
   return {
@@ -571,7 +571,7 @@ export async function currentSession(data: unknown) {
 
 export async function studentLatestSession(data: unknown) {
   const userId = asString(data)
-  return SessionRepo.getStudentLatestSession(userId)
+  return SessionRepo.getStudentLatestSession(new ObjectId(userId))
 }
 
 export async function sessionTimedOut(data: unknown) {
@@ -592,7 +592,7 @@ export async function sessionTimedOut(data: unknown) {
 
 export async function publicSession(data: unknown) {
   const sessionId = asString(data)
-  return SessionRepo.getPublicSession(sessionId)
+  return SessionRepo.getPublicSession(new ObjectId(sessionId))
 }
 
 export async function getSessionNotifications(data: unknown) {

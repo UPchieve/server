@@ -16,9 +16,9 @@ const {
 
 export default function(app: Express) {
   app.use('/metrics', async function(req: Request, res: Response) {
-    let minTime: string|Date = req.query.minTime
-    let maxTime: string|Date = req.query.maxTime
-    const timeScale: string = req.query.timeScale
+    let minTime: string|Date = req.query.minTime as string
+    let maxTime: string|Date = req.query.maxTime as string
+    const timeScale: string = req.query.timeScale as string
     if (minTime) {
       minTime = moment.utc(minTime).toDate()
     } else {
