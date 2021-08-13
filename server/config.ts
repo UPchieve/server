@@ -189,6 +189,9 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
     'localManifests/student.yaml',
 
+  assistmentsBaseURL:
+    process.env.SUBWAY_ASSISTMENTS_BASE_URL || 'https://example.com',
+
   cacheKeys: {
     updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
     waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS'

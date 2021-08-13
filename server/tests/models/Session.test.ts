@@ -144,31 +144,10 @@ describe('getSessionById', () => {
 
   test('Should get session by id', async () => {
     const result = await SessionRepo.getSessionById(session._id)
-    const expected = {
-      _id: session._id,
-      student: session.student,
-      volunteer: session.volunteer,
-      type: session.type,
-      subTopic: session.subTopic,
-      messages: session.messages,
-      hasWhiteboardDoc: session.hasWhiteboardDoc,
-      whiteboardDoc: session.whiteboardDoc,
-      quillDoc: undefined,
-      createdAt: session.createdAt,
-      volunteerJoinedAt: session.volunteerJoinedAt,
-      failedJoins: session.failedJoins,
-      endedAt: session.endedAt,
-      endedBy: session.endedBy,
-      notifications: session.notifications,
-      photos: session.photos,
-      isReported: session.isReported,
-      reportReason: session.reportReason,
-      reportMessage: session.reportMessage,
-      flags: session.flags,
-      reviewedStudent: session.reviewedStudent,
-      reviewedVolunteer: session.reviewedVolunteer,
-      timeTutored: session.timeTutored
-    }
+    // built session has quill doc but we purposefully do not include quill doc in select
+    const expected = Object.assign({}, session)
+    delete expected.quillDoc
+
     expect(result).toEqual(expected)
   })
 
