@@ -11,7 +11,8 @@ module.exports = {
     "@storybook/addon-links",
     "@storybook/addon-essentials",
     "@storybook/addon-a11y",
-    "@storybook/addon-postcss"
+    "@storybook/addon-postcss",
+    "storybook-addon-pseudo-states"
   ],
   // add this function to tweak the webpack config
   webpackFinal: async (config) => {
