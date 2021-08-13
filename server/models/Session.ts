@@ -209,42 +209,14 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
 export async function getSessionById(
   sessionId: Types.ObjectId | string,
   projection = {}
-) {
-  try {
-    const session = await SessionModel.findOne({ _id: sessionId })
-      .select(projection)
-      .lean()
-      .exec()
-    if (!session) throw new LookupError('Session not found')
+): Promise<Session> {
+  const session = await SessionModel.findOne({ _id: sessionId })
+    .select(projection)
+    .lean()
+    .exec()
+  if (!session) throw new LookupError('Session not found')
 
-    return {
-      _id: session._id,
-      student: session.student as Types.ObjectId,
-      volunteer: session.volunteer as Types.ObjectId,
-      type: session.type,
-      subTopic: session.subTopic,
-      messages: session.messages,
-      hasWhiteboardDoc: session.hasWhiteboardDoc,
-      whiteboardDoc: session.whiteboardDoc,
-      quillDoc: session.quillDoc,
-      createdAt: session.createdAt,
-      volunteerJoinedAt: session.volunteerJoinedAt,
-      failedJoins: session.failedJoins,
-      endedAt: session.endedAt,
-      endedBy: session.endedBy,
-      notifications: session.notifications,
-      photos: session.photos,
-      isReported: session.isReported,
-      reportReason: session.reportReason,
-      reportMessage: session.reportMessage,
-      flags: session.flags,
-      reviewedStudent: session.reviewedStudent,
-      reviewedVolunteer: session.reviewedVolunteer,
-      timeTutored: session.timeTutored
-    }
-  } catch (error) {
-    throw error
-  }
+  return session
 }
 
 // @todo: move queries using this pipeline to this repo

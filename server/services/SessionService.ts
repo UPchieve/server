@@ -1,7 +1,10 @@
 import crypto from 'crypto'
+import _ from 'lodash'
 import moment from 'moment'
+import { Types } from 'mongoose'
 import { User } from '@sentry/types'
 import Case from 'case'
+import { isEnabled } from 'unleash-client'
 import * as SessionRepo from '../models/Session'
 import {
   USER_BAN_REASON,
@@ -123,7 +126,10 @@ export async function reportSession(data: unknown) {
     reportMessage
   } = sessionUtils.asReportSessionData(data)
   const session = await SessionRepo.getSessionById(sessionId)
-  if (!session.volunteer || !user._id.equals(session.volunteer))
+  if (
+    !session.volunteer ||
+    !user._id.equals(session.volunteer as Types.ObjectId)
+  )
     throw new sessionUtils.ReportSessionError('Unable to report this session')
 
   const reportedBy = user
@@ -138,12 +144,16 @@ export async function reportSession(data: unknown) {
       userId: session.student,
       banReason: USER_BAN_REASON.SESSION_REPORTED
     })
-    await new UserActionCtrl.AccountActionCreator(session.student, '', {
-      session: session._id,
-      banReason: USER_BAN_REASON.SESSION_REPORTED
-    }).accountBanned()
+    await new UserActionCtrl.AccountActionCreator(
+      session.student as Types.ObjectId,
+      '',
+      {
+        session: session._id,
+        banReason: USER_BAN_REASON.SESSION_REPORTED
+      }
+    ).accountBanned()
     await AnalyticsService.captureEvent(
-      session.student,
+      session.student as Types.ObjectId,
       EVENTS.ACCOUNT_BANNED,
       {
         event: EVENTS.ACCOUNT_BANNED,
@@ -169,6 +179,13 @@ export async function reportSession(data: unknown) {
       `${sessionId}-reported`,
       JSON.stringify(emailData)
     )
+}
+
+async function isSessionAssistments(
+  sessionId: Types.ObjectId | string
+): Promise<boolean> {
+  const ad = await AssistmentsDataRepo.getBySession(sessionId)
+  return ad && !_.isEmpty(ad)
 }
 
 export async function endSession({
@@ -276,6 +293,12 @@ export async function endSession({
           },
           { delay: 1000 * 60 * 5 }
         )
+    }
+
+    if (await isSessionAssistments(sessionId)) {
+      logger.info(`Ending an assistments session: ${sessionId}`)
+      if (isEnabled('send-assistments-data'))
+        QueueService.add(Jobs.SendAssistmentsData, { sessionId })
     }
 
     try {

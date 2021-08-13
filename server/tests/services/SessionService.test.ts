@@ -78,6 +78,7 @@ jest.mock('../../services/PushTokenService')
 jest.mock('../../cache')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
+const mockedAssistmentsDataRepo = mocked(AssistmentsDataRepo, true)
 const mockedUserActionService = mocked(UserActionService, true)
 const mockedFeedbackService = mocked(FeedbackService, true)
 const mockedAwsService = mocked(AwsService, true)
@@ -664,6 +665,30 @@ describe('endSession', () => {
         jobData
       )
       expect(cache.remove).toHaveBeenCalledWith(`${input.sessionId}-reported`)
+    })
+
+    test('Should queue job to send assistments data for assistments session', async () => {
+      const mockedSession = mockedGetSessionToEnd()
+      const input = {
+        sessionId: mockedSession._id.toString(),
+        endedBy: mockedSession.student,
+        isAdmin: false
+      }
+      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+        async () => mockedSession
+      )
+      const mockedAd = {
+        studentId: 'student',
+        assignmentId: 'assignment',
+        problemId: 12345
+      } as AssistmentsDataRepo.AssistmentsData
+      mockedAssistmentsDataRepo.getBySession.mockResolvedValueOnce(mockedAd)
+
+      await SessionService.endSession(input)
+
+      expect(QueueService.add).toHaveBeenCalledWith(Jobs.SendAssistmentsData, {
+        sessionId: mockedSession._id.toString()
+      })
     })
   })
 })

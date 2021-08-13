@@ -116,6 +116,8 @@ export const Config = Record({
   customVolunteerPartnerOrg: String,
   studentPartnerManifestPath: String,
 
+  assistmentsBaseURL: String,
+
   cacheKeys: Record({
     updateTotalVolunteerHoursLastRun: String,
     waitTimeHeatMapAllSubjects: String
