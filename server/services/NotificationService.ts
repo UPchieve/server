@@ -28,9 +28,9 @@ export const getNotificationsWithPipeline = (
 ): Aggregate<Notification[]|null> =>
   NotificationModel.aggregate(pipeline).read('secondaryPreferred')
 
-export const getNotificationWithVolunteer = async (
+export async function getNotificationWithVolunteer(
   notificationId: Types.ObjectId
-): Promise<Notification> => {
+): Promise<Notification> {
   const [notification] = await NotificationModel.aggregate([
     {
       $match: {

@@ -33,9 +33,10 @@ import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
 import * as IpAddressService from './IpAddressService'
 import * as MailService from './MailService'
+import {LeanDocument} from "mongoose";
 
 // TODO: expose this in School repo
-export const findByUpchieveId = async function(id: string): Promise<School|null> {
+export const findByUpchieveId = async function(id: string): Promise<LeanDocument<School>|null> {
   return SchoolModel.findOne({ upchieveId: id })
     .lean()
     .exec()
@@ -124,7 +125,7 @@ export async function registerStudent(data: unknown): Promise<StudentDocument> {
   }
 
 
-  let school: School | null
+  let school: LeanDocument<School> | null
   if (!!highSchoolUpchieveId) {
     school = await findByUpchieveId(highSchoolUpchieveId)
   } else {
@@ -188,7 +189,7 @@ export async function registerOpenStudent(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  let school: School | undefined
+  let school: LeanDocument<School> | null = null
   if (!!highSchoolUpchieveId) school = await findByUpchieveId(highSchoolUpchieveId)
 
   const highSchoolApprovalRequired = !zipCode
@@ -252,7 +253,7 @@ export async function registerPartnerStudent(
     throw new RegistrationError('Invalid student partner organization')
   }
 
-  let school: School | null | undefined = undefined
+  let school: LeanDocument<School> | null | undefined = undefined
   if (highSchoolUpchieveId)
     school = await findByUpchieveId(highSchoolUpchieveId)
   if (school === null) school = undefined
@@ -491,7 +492,7 @@ export async function sendReset(data: unknown): Promise<void> {
   user.passwordResetToken = token
   await user.save()
 
-  await MailService.sendReset(email, token, () => {})
+  await MailService.sendReset(email, token)
 }
 
 export async function confirmReset(data: unknown): Promise<void> {

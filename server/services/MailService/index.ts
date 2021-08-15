@@ -8,9 +8,10 @@ import {
 } from '../../partnerManifests'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
 import { SESSION_REPORT_REASON } from '../../constants'
-import { Reference, Volunteer } from '../../models/Volunteer'
+import {Reference, Volunteer, VolunteerDocument} from '../../models/Volunteer'
 import { Student } from '../../models/Student'
 import { User } from '../../models/User'
+import {LeanDocument} from "mongoose";
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -55,15 +56,12 @@ const SG_CUSTOM_FIELDS = {
   passedUpchieve101: 'e17_T'
 }
 
-// @todo: refactor sendEmail to better handle overrides with custom unsubscribe groups
-//        and preferences and bypassing those unsubscribe groups
 function sendEmail(
   toEmail: string,
   fromEmail: string,
   fromName: string,
   templateId: string,
   dynamicData: {},
-  callback: Function,
   overrides: {} = {}
 ) {
   const msg = {
@@ -80,7 +78,7 @@ function sendEmail(
     ...overrides
   }
 
-  return sgMail.send(msg, false, callback)
+  return sgMail.send(msg, false)
 }
 
 // @todo: use this in other MailService methods
@@ -122,7 +120,6 @@ export function sendVerification(email: string, token: string) {
       userEmail: email,
       verifyLink: url
     },
-    () => {},
     overrides
   )
 }
@@ -139,12 +136,11 @@ export function sendContactForm(requestData: any, callback: Function) {
     'UPchieve',
     config.sendgrid.contactTemplate,
     requestData,
-    callback,
     overrides
   )
 }
 
-export function sendReset(email: string, token: string, callback: Function) {
+export function sendReset(email: string, token: string) {
   const url = `http://${config.client.host}/setpassword/${token}`
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } }
@@ -159,7 +155,6 @@ export function sendReset(email: string, token: string, callback: Function) {
       userEmail: email,
       resetLink: url
     },
-    callback,
     overrides
   )
 }
@@ -175,7 +170,6 @@ export function sendOpenVolunteerWelcomeEmail(email: string, volunteerName: stri
     'UPchieve',
     config.sendgrid.openVolunteerWelcomeTemplate,
     { volunteerName },
-    () => {},
     overrides
   )
 }
@@ -191,7 +185,6 @@ export function sendPartnerVolunteerWelcomeEmail(email: string, volunteerName: s
     'UPchieve',
     config.sendgrid.partnerVolunteerWelcomeTemplate,
     { volunteerName },
-    () => {},
     overrides
   )
 }
@@ -209,7 +202,6 @@ export function sendStudentWelcomeEmail(email: string, firstName: string) {
     'UPchieve Student Success Team',
     config.sendgrid.studentWelcomeTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -228,7 +220,6 @@ export function sendStudentUseCases(email: string, firstName: string) {
     'UPchieve Student Success Team',
     config.sendgrid.studentUseCasesTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -247,7 +238,6 @@ export function sendMeetOurVolunteers(email: string, firstName: string) {
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.meetOurVolunteersTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -266,7 +256,6 @@ export function sendIndependentLearning(email: string, firstName: string) {
     'UPchieve Student Success Team',
     config.sendgrid.studentIndependentLearningTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -284,7 +273,6 @@ export function sendStudentGoalSetting(email: string, firstName: string) {
     'UPchieve Student Success Team',
     config.sendgrid.studentGoalSettingTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -303,7 +291,6 @@ export function sendStudentFirstSessionCongrats(email: string, firstName: string
     `${config.mail.people.studentOutreachManager.firstName} ${config.mail.people.studentOutreachManager.lastName}`,
     config.sendgrid.studentFirstSessionCongratsTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -329,7 +316,6 @@ export function sendReportedSessionAlert(
       reportReason,
       reportMessage
     },
-    () => {},
     overrides
   )
 }
@@ -350,7 +336,6 @@ export function sendReferenceForm(reference: Reference, volunteer: Volunteer) {
     'UPchieve',
     config.sendgrid.referenceFormTemplate,
     emailData,
-    () => {},
     overrides
   )
 }
@@ -366,7 +351,6 @@ export function sendApprovedNotOnboardedEmail(volunteer: Volunteer) {
     'UPchieve',
     config.sendgrid.approvedNotOnboardedTemplate,
     { volunteerName: volunteer.firstname },
-    () => {},
     overrides
   )
 }
@@ -387,7 +371,6 @@ export function sendReadyToCoachEmail(volunteer: Volunteer) {
     'UPchieve',
     readyToCoachTemplate,
     { volunteerName: volunteer.firstname },
-    () => {},
     overrides
   )
 }
@@ -410,7 +393,6 @@ export function sendBannedUserAlert(userId: string, banReason: string, sessionId
       userAdminLink,
       sessionAdminLink
     },
-    () => {},
     overrides
   )
 }
@@ -426,7 +408,6 @@ export function sendRejectedPhotoSubmission(volunteer: Volunteer) {
     'The UPchieve Team',
     config.sendgrid.rejectedPhotoSubmissionTemplate,
     { firstName: volunteer.firstname },
-    () => {},
     overrides
   )
 }
@@ -449,7 +430,6 @@ export function sendRejectedReference(reference: Reference, volunteer: Volunteer
     'The UPchieve Team',
     config.sendgrid.rejectedReferenceTemplate,
     emailData,
-    () => {},
     overrides
   )
 }
@@ -476,12 +456,11 @@ export function sendReferenceFollowup(reference: Reference, volunteer: Volunteer
     `${config.mail.people.volunteerManager.firstName} at UPchieve`,
     config.sendgrid.referenceFollowupTemplate,
     emailData,
-    () => {},
     overrides
   )
 }
 
-export function sendWaitingOnReferences(volunteer: Volunteer) {
+export function sendWaitingOnReferences(volunteer: LeanDocument<VolunteerDocument>) {
   const overrides = {
     categories: ['waiting on references email']
   }
@@ -494,12 +473,11 @@ export function sendWaitingOnReferences(volunteer: Volunteer) {
     {
       firstName: capitalize(volunteer.firstname)
     },
-    () => {},
     overrides
   )
 }
 
-export function sendNiceToMeetYou(volunteer: Volunteer) {
+export function sendNiceToMeetYou(volunteer: LeanDocument<Volunteer>) {
   const overrides = {
     reply_to: {
       email: config.mail.senders.volunteerManager
@@ -515,7 +493,6 @@ export function sendNiceToMeetYou(volunteer: Volunteer) {
     {
       firstName: capitalize(volunteer.firstname)
     },
-    () => {},
     overrides
   )
 }
@@ -573,7 +550,6 @@ export function sendHourSummaryEmail(
       totalQuizzesPassed,
       totalVolunteerTime: formattedVolunteerHours
     },
-    () => {},
     overrides
   )
 }
@@ -602,7 +578,6 @@ export function sendOnboardingReminderOne(
       hasUnlockedASubject,
       hasSelectedAvailability
     },
-    () => {},
     overrides
   )
 }
@@ -620,7 +595,6 @@ export function sendOnboardingReminderTwo(email: string, firstName: string) {
     {
       firstName: capitalize(firstName)
     },
-    () => {},
     overrides
   )
 }
@@ -642,7 +616,6 @@ export function sendOnboardingReminderThree(email: string, firstName: string) {
     {
       firstName: capitalize(firstName)
     },
-    () => {},
     overrides
   )
 }
@@ -664,7 +637,6 @@ export function sendFailedFirstAttemptedQuiz(email: string, firstName: string, c
       firstName: capitalize(firstName),
       category: formatMultiWordSubject(category)
     },
-    () => {},
     overrides
   )
 }
@@ -683,7 +655,6 @@ export function sendVolunteerQuickTips(email: string, firstName: string) {
     `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
     config.sendgrid.volunteerQuickTipsTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -702,7 +673,6 @@ export function sendPartnerVolunteerOnlyCollegeCerts(email: string, firstName: s
     `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
     config.sendgrid.partnerVolunteerOnlyCollegeCertsTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -721,7 +691,6 @@ export function sendPartnerVolunteerLowHoursSelected(email: string, firstName: s
     'The UPchieve Team',
     config.sendgrid.partnerVolunteerLowHoursSelectedTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -740,7 +709,6 @@ export function sendVolunteerFirstSessionCongrats(email: string, firstName: stri
     `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
     config.sendgrid.volunteerFirstSessionCongratsTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -765,7 +733,6 @@ export function sendPartnerVolunteerReferACoworker(
     `${config.mail.people.corporatePartnershipsManager.firstName} ${config.mail.people.corporatePartnershipsManager.lastName}`,
     config.sendgrid.partnerVolunteerReferACoworkerTemplate,
     { firstName, partnerOrgSignupLink, partnerOrgDisplay },
-    () => {},
     overrides
   )
 }
@@ -784,7 +751,6 @@ export function sendPartnerVolunteerTenSessionMilestone(email: string, firstName
     `${config.mail.people.corporatePartnershipsManager.firstName} ${config.mail.people.corporatePartnershipsManager.lastName}`,
     config.sendgrid.partnerVolunteerTenSessionMilestoneTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -803,7 +769,6 @@ export function sendVolunteerGentleWarning(email: string, firstName: string) {
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.volunteerGentleWarningTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -822,7 +787,6 @@ export function sendVolunteerInactiveThirtyDays(email: string, firstName: string
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.volunteerInactiveThirtyDaysTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -841,7 +805,6 @@ export function sendVolunteerInactiveSixtyDays(email: string, firstName: string)
     'The UPchieve Team',
     config.sendgrid.volunteerInactiveSixtyDaysTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -860,7 +823,6 @@ export function sendVolunteerInactiveNinetyDays(email: string, firstName: string
     'The UPchieve Team',
     config.sendgrid.volunteerInactiveNinetyDaysTemplate,
     { firstName },
-    () => {},
     overrides
   )
 }
@@ -893,7 +855,6 @@ export function sendStudentReported(email: string, firstName: string, reportReas
     from,
     template,
     { firstName },
-    () => {},
     overrides
   )
 }

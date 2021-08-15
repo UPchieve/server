@@ -8,6 +8,7 @@ import { Volunteer } from '../../models/Volunteer'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
 import { log } from '../logger'
 import { Jobs } from '.'
+import {Types} from "mongoose";
 
 interface NotifyTutorsJobData {
   sessionId: string
@@ -53,7 +54,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
     const notificationId =
       session.notifications[
         session.notifications.length % TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP
-      ]
+      ] as Types.ObjectId
     const notification = await getNotificationWithVolunteer(notificationId)
     const volunteer = notification.volunteer as Volunteer
     if (!volunteer.phone) {

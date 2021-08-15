@@ -1,9 +1,9 @@
-import { Document, Schema, Types } from 'mongoose'
+import {Document, LeanDocument, Schema, Types} from 'mongoose'
 import UserModel, { User } from './User'
 import { School } from './School'
 
 export interface Student extends User {
-  approvedHighschool: School | Types.ObjectId
+  approvedHighschool: School | Types.ObjectId | LeanDocument<School> | null
   zipCode: string
   studentPartnerOrg: string
   partnerSite: string
