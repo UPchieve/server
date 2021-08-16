@@ -7,7 +7,7 @@ import { COLLEGE_SUBJECTS } from './college'
 import { SAT_SUBJECTS } from './sat'
 import { TRAININGS } from './training'
 
-function mapObjToArr(obj) {
+function mapObjToArr<T extends Record<string, any>>(obj: T): any[] {
   return Object.keys(obj).map(key => obj[key])
 }
 
@@ -46,7 +46,7 @@ const SAT: Topic = {
   trainings: [TRAININGS.UPCHIEVE_101, TRAININGS.SAT_STRATEGIES]
 }
 
-interface TOPICS_TYPE {
+interface RootTopicsType {
   MATH: Topic
   SCIENCE: Topic
   READING_WRITING: Topic
@@ -54,7 +54,7 @@ interface TOPICS_TYPE {
   SAT: Topic
 }
 
-export const TOPICS: TOPICS_TYPE = {
+export const TOPICS: RootTopicsType = {
   MATH: MATH,
   SCIENCE: SCIENCE,
   READING_WRITING: READING_WRITING,

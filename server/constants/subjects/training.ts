@@ -1,6 +1,6 @@
 import { Training } from './types'
 
-export interface TRAININGS_TYPE {
+export interface RootTrainingsType {
   UPCHIEVE_101: Training
   TUTORING_SKILLS: Training
   COLLEGE_SKILLS: Training
@@ -8,7 +8,7 @@ export interface TRAININGS_TYPE {
   SAT_STRATEGIES: Training
 }
 
-export const TRAININGS: TRAININGS_TYPE = {
+export const TRAININGS: RootTrainingsType = {
   // All subjects must require UPchieve101 training
   UPCHIEVE_101: {
     key: 'upchieve101',

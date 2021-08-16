@@ -6,11 +6,11 @@ const HUMANITIES_ESSAYS: Subject = {
   launched: false
 }
 
-export interface READING_WRITING_CERTS_TYPE {
+export interface RootReadingWritingCertsType {
   HUMANITIES_ESSAYS: Certification
 }
 
-export const READING_WRITING_CERTS: READING_WRITING_CERTS_TYPE = {
+export const READING_WRITING_CERTS: RootReadingWritingCertsType = {
   HUMANITIES_ESSAYS: {
     key: HUMANITIES_ESSAYS.key,
     displayName: HUMANITIES_ESSAYS.displayName,
@@ -36,10 +36,10 @@ export const READING_WRITING_CERTS: READING_WRITING_CERTS_TYPE = {
   }
 }
 
-export interface READING_WRITING_SUBJECTS_TYPE {
+export interface RootReadingWritingSubjectsType {
   HUMANITIES_ESSAYS: Subject
 }
 
-export const READING_WRITING_SUBJECTS: READING_WRITING_SUBJECTS_TYPE = {
+export const READING_WRITING_SUBJECTS: RootReadingWritingSubjectsType = {
   HUMANITIES_ESSAYS: HUMANITIES_ESSAYS
 }

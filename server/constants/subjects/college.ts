@@ -2,7 +2,7 @@ import { Certification, Subject } from './types'
 
 const ESSAYS: Subject = {
   key: 'essays',
-  displayName: 'Essays',
+  displayName: 'College Essays',
   launched: true
 }
 const FINANCIAL_AID: Subject = {
@@ -26,7 +26,7 @@ const APPLICATIONS: Subject = {
   launched: true
 }
 
-export interface COLLEGE_CERTS_TYPES {
+export interface RootCollegeCertsType {
   ESSAYS: Certification
   FINANCIAL_AID: Certification
   SPORTS_RECRUITMENT_PLANNING: Certification
@@ -34,7 +34,7 @@ export interface COLLEGE_CERTS_TYPES {
   APPLICATIONS: Certification
 }
 
-export const COLLEGE_CERTS: COLLEGE_CERTS_TYPES = {
+export const COLLEGE_CERTS: RootCollegeCertsType = {
   ESSAYS: {
     key: ESSAYS.key,
     displayName: ESSAYS.displayName,
@@ -87,7 +87,7 @@ export const COLLEGE_CERTS: COLLEGE_CERTS_TYPES = {
   }
 }
 
-export interface COLLEGE_SUBJECTS_TYPES {
+export interface RootCollegeSubjectsType {
   ESSAYS: Subject
   FINANCIAL_AID: Subject
   SPORTS_RECRUITMENT_PLANNING: Subject
@@ -95,7 +95,7 @@ export interface COLLEGE_SUBJECTS_TYPES {
   APPLICATIONS: Subject
 }
 
-export const COLLEGE_SUBJECTS: COLLEGE_SUBJECTS_TYPES = {
+export const COLLEGE_SUBJECTS: RootCollegeSubjectsType = {
   ESSAYS: ESSAYS,
   FINANCIAL_AID: FINANCIAL_AID,
   SPORTS_RECRUITMENT_PLANNING: SPORTS_RECRUITMENT_PLANNING,

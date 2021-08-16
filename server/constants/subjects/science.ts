@@ -26,7 +26,7 @@ const ENVIRONMENTAL_SCIENCE: Subject = {
   launched: false
 }
 
-export interface SCIENCE_CERTS_TYPE {
+export interface RootScienceCertsType {
   BIOLOGY: Certification
   CHEMISTRY: Certification
   PHYSICS_ONE: Certification
@@ -34,7 +34,7 @@ export interface SCIENCE_CERTS_TYPE {
   ENVIRONMENTAL_SCIENCE: Certification
 }
 
-export const SCIENCE_CERTS: SCIENCE_CERTS_TYPE = {
+export const SCIENCE_CERTS: RootScienceCertsType = {
   BIOLOGY: {
     key: BIOLOGY.key,
     displayName: BIOLOGY.displayName,
@@ -141,7 +141,7 @@ export const SCIENCE_CERTS: SCIENCE_CERTS_TYPE = {
   }
 }
 
-export interface SCIENCE_SUBJECTS_TYPE {
+export interface RootScienceSubjectsType {
   BIOLOGY: Subject
   CHEMISTRY: Subject
   PHYSICS_ONE: Subject
@@ -149,7 +149,7 @@ export interface SCIENCE_SUBJECTS_TYPE {
   ENVIRONMENTAL_SCIENCE: Subject
 }
 
-export const SCIENCE_SUBJECTS: SCIENCE_SUBJECTS_TYPE = {
+export const SCIENCE_SUBJECTS: RootScienceSubjectsType = {
   BIOLOGY: BIOLOGY,
   CHEMISTRY: CHEMISTRY,
   PHYSICS_ONE: PHYSICS_ONE,

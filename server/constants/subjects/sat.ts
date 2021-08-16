@@ -11,12 +11,12 @@ const SAT_READING: Subject = {
   launched: false
 }
 
-export interface SAT_CERTS_TYPE {
+export interface RootSatCertsType {
   SAT_MATH: Certification
   SAT_READING: Certification
 }
 
-export const SAT_CERTS: SAT_CERTS_TYPE = {
+export const SAT_CERTS: RootSatCertsType = {
   SAT_MATH: {
     key: SAT_MATH.key,
     displayName: SAT_MATH.displayName,
@@ -71,12 +71,12 @@ export const SAT_CERTS: SAT_CERTS_TYPE = {
   }
 }
 
-export interface SAT_SUBJECTS_TYPE {
+export interface RootSatSubjectsType {
   SAT_MATH: Subject
   SAT_READING: Subject
 }
 
-export const SAT_SUBJECTS: SAT_SUBJECTS_TYPE = {
+export const SAT_SUBJECTS: RootSatSubjectsType = {
   SAT_MATH: SAT_MATH,
   SAT_READING: SAT_READING
 }

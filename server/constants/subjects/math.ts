@@ -46,7 +46,7 @@ const STATISTICS: Subject = {
   launched: true
 }
 
-export interface MATH_CERTS_TYPE {
+export interface RootMathCertsType {
   PREALGEBRA: Certification
   ALGEBRA: Certification
   GEOMETRY: Certification
@@ -57,7 +57,7 @@ export interface MATH_CERTS_TYPE {
   STATISTICS: Certification
 }
 
-export const MATH_CERTS: MATH_CERTS_TYPE = {
+export const MATH_CERTS: RootMathCertsType = {
   PREALGEBRA: {
     key: PREALGEBRA.key,
     displayName: PREALGEBRA.displayName,
@@ -248,7 +248,7 @@ const INTEGRATED_MATH_FOUR: ComputedSubject = {
   certifications: [MATH_CERTS.PRECALCULUS]
 }
 
-export interface MATH_SUBJECTS_TYPE {
+export interface RootMathSubjectsType {
   PREALGEBRA: Subject
   ALGEBRA_ONE: Subject
   ALGEBRA_TWO: Subject
@@ -264,7 +264,7 @@ export interface MATH_SUBJECTS_TYPE {
   INTEGRATED_MATH_FOUR: ComputedSubject
 }
 
-export const MATH_SUBJECTS: MATH_SUBJECTS_TYPE = {
+export const MATH_SUBJECTS: RootMathSubjectsType = {
   PREALGEBRA: PREALGEBRA,
   ALGEBRA_ONE: ALGEBRA_ONE,
   ALGEBRA_TWO: ALGEBRA_TWO,

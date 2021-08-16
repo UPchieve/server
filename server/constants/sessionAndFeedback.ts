@@ -1,3 +1,13 @@
+export enum FEEDBACK_VERSIONS {
+  'ONE' = 1,
+  'TWO'
+}
+
+export const SESSION_REPORT_REASON = {
+  STUDENT_RUDE: 'This student was extremely rude or inappropriate',
+  STUDENT_SAFETY: 'I am worried for the immediate safety of this student'
+}
+
 export enum SURVEY_TYPES {
   STUDENT_PRESESSION = 'student pre-session',
   STUDENT_POSTSESSION = 'student post-session'
@@ -15,12 +25,5 @@ export enum SESSION_FLAGS {
   UNMATCHED = 'UNMATCHED'
 }
 
-export enum FEEDBACK_VERSIONS {
-  'ONE' = 1,
-  'TWO'
-}
-
-export const SESSION_REPORT_REASON = {
-  STUDENT_RUDE: 'Student was rude',
-  STUDENT_MISUSE: 'Student was misusing platform'
-}
+// amount of volunteers to text notifications to per session
+export const TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP = 15

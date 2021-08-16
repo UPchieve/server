@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 export const DAYS = [
   'Sunday',
   'Monday',
@@ -61,3 +63,24 @@ export const HOUR_TO_UTC_MAPPING = {
   '10p': 22,
   '11p': 23
 }
+
+export const ONE_DAY_ELAPSED_MILLISECONDS = 1000 * 60 * 60 * 24
+
+export enum DATE_RANGE_COMPARISON_FIELDS {
+  CREATED_AT = '$createdAt',
+  SENT_AT = '$sentAt',
+  PAST_SESSION_CREATED_AT = '$pastSession.createdAt'
+}
+
+export const BLACKOUT_PERIOD_START = moment()
+  .utc()
+  .month('June')
+  .startOf('month')
+  .toDate()
+
+export const BLACKOUT_PERIOD_END = moment()
+  .utc()
+  .month('September')
+  .date(1)
+  .endOf('day')
+  .toDate()
