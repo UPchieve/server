@@ -19,3 +19,8 @@ export enum FEEDBACK_VERSIONS {
   'ONE' = 1,
   'TWO'
 }
+
+export const SESSION_REPORT_REASON = {
+  STUDENT_RUDE: 'Student was rude',
+  STUDENT_MISUSE: 'Student was misusing platform'
+}

@@ -1,7 +1,7 @@
 export * from './time'
 export * from './userActionEvents'
 export * from './subjects'
-export * from './feedbackFlags'
+export * from './sessionAndFeedback'
 
 // uncategorized constants
 export const TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP = 15
@@ -38,9 +38,4 @@ export const REFERENCE_STATUS = {
   SUBMITTED: STATUS.SUBMITTED,
   REJECTED: STATUS.REJECTED,
   APPROVED: STATUS.APPROVED
-}
-
-export const SESSION_REPORT_REASON = {
-  STUDENT_RUDE: 'Student was rude',
-  STUDENT_MISUSE: 'Student was misusing platform'
 }
