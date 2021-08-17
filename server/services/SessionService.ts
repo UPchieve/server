@@ -488,7 +488,7 @@ export async function adminSessionView(data: unknown) {
   }
 }
 
-//here
+// here
 export async function startSession(data: unknown) {
   const {
     ip,
@@ -506,10 +506,10 @@ export async function startSession(data: unknown) {
     throw new sessionUtils.StartSessionError(
       'Volunteers cannot create new sessions'
     )
-  
-  if(user.isBanned)
+
+  if (user.isBanned)
     throw new sessionUtils.StartSessionError(
-      'Students cannot request a new session'
+      'Banned students cannot request a new session'
     )
 
   const currentSession = await SessionRepo.getCurrentSession(userId)
@@ -525,8 +525,6 @@ export async function startSession(data: unknown) {
     subTopic: Case.camel(sessionSubTopic),
     isStudentBanned: user.isBanned
   })
-  
-  
 
   const numProblemId = Number(problemId)
   if (numProblemId && assignmentId && studentId)

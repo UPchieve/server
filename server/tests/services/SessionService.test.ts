@@ -840,6 +840,22 @@ describe('startSession', () => {
     }
   })
 
+  test('Should throw an error that banned students cannot request sessions', async () => {
+    const input = {
+      ip: getIpAddress(),
+      user: buildStudent({ isBanned: true }),
+      sessionSubTopic: SUBJECTS.PREALGREBA,
+      sessionType: SUBJECT_TYPES.MATH,
+      userAgent: getUserAgent()
+    }
+    try {
+      await SessionService.startSession(input)
+    } catch (error) {
+      expect(error).toBeInstanceOf(StartSessionError)
+      expect(error.message).toBe('Banned students cannot request a new session')
+    }
+  })
+
   test('Should throw an error if student is already in a session', async () => {
     const input = {
       ip: getIpAddress(),
