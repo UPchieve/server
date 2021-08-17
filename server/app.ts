@@ -133,13 +133,20 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser(config.sessionSecret))
 app.use(express.static(path.join(__dirname, 'dist')))
+
+let originRegex
+if (config.additionalAllowedOrigins !== '') {
+  originRegex = new RegExp(
+    `(${config.host}|${config.additionalAllowedOrigins})`
+  )
+} else {
+  originRegex = new RegExp(`(${config.host})`)
+}
+
 app.use(
   cors({
-    origin:
-      config.NODE_ENV === 'dev'
-        ? ['localhost:3000', 'localhost:3001']
-        : config.host,
-    credentials: false,
+    origin: originRegex,
+    credentials: true,
     exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined
   })
 )

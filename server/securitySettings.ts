@@ -52,6 +52,7 @@ const trainingMaterialsS3 =
 // to the front end
 export const scriptSrc = [
   "'self'", // eslint-disable-line quotes
+  `https://${config.host}`,
   ...googleUrls,
   cdnUrl,
   mathJaxScriptUrl,
@@ -68,7 +69,8 @@ export const imgSrc = [
   ...s3PhotoImageUrls,
   cdnUrl,
   'data:',
-  'blob:'
+  'blob:',
+  `https://${config.host}`
 ]
 
 export const connectSrc = [
@@ -81,7 +83,8 @@ export const connectSrc = [
   ...newrelicUrls,
   ...googleUrls,
   config.vueAppUnleashUrl,
-  `wss://${config.host}`
+  `wss://${config.host}`,
+  `https://${config.host}`
 ]
 
 if (config.NODE_ENV !== 'production') {
@@ -92,6 +95,7 @@ if (config.NODE_ENV !== 'production') {
 
 export const defaultSrc = [
   "'self'", // eslint-disable-line quotes
+  `https://${config.host}`,
   "'unsafe-inline'", // eslint-disable-line quotes
   vimeoUrl,
   googleDocsUrl,
