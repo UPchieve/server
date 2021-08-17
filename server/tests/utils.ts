@@ -16,3 +16,9 @@ export function mockMongooseFindQuery(fn: Function) {
     })
   })
 }
+
+export function mockmongooseUpdateQuery(fn: Function) {
+  return async () => {
+    await fn()
+  }
+}

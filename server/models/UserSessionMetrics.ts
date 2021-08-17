@@ -1,3 +1,5 @@
+/* eslint @typescript-eslint/no-use-before-define: 0 */
+
 import { Document, model, Schema, Types, SchemaTypeOpts } from 'mongoose'
 import UserModel, { User } from './User'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
@@ -11,31 +13,29 @@ export enum FLAGS {
   lowCoachRatingFromStudentFlag,
   reported,
   onlyLookingForAnswers,
-  rudeOrInappropriate,
+  rudeOrInappropriate
 }
 
 export enum COUNTERS {
-  hasGhosted = 'Has ghosted',
-  hasBeenGhosted = 'Has been ghosted',
   hasBeenUnmatched = 'Has been unmatched',
   hasHadTechnicalIssues = 'Has had technical issues'
 }
 
 export interface UserSessionMetrics {
-  _id: Types.ObjectId,
+  _id: Types.ObjectId
   user: Types.ObjectId | User
   flagCounts: {
-    absentStudentFlag: number,
-    absentVolunteerFlag: number,
-    lowSessionRatingFromCoachFlag: number,
-    lowSessionRatingFromStudentFlag: number,
-    lowCoachRatingFromStudentFlag: number,
-    reported: number,
-    onlyLookingForAnswers: number,
-    rudeOrInappropriate: number,
-  },
+    absentStudentFlag: number
+    absentVolunteerFlag: number
+    lowSessionRatingFromCoachFlag: number
+    lowSessionRatingFromStudentFlag: number
+    lowCoachRatingFromStudentFlag: number
+    reported: number
+    onlyLookingForAnswers: number
+    rudeOrInappropriate: number
+  }
   counters: {
-    hasBeenUnmatched: number, // user has had sessions longer than 1 minute end unmatched
+    hasBeenUnmatched: number // user has had sessions longer than 1 minute end unmatched
     hasHadTechnicalIssues: number // user has had sessions where the volunteer reported technical issues
   }
 }
@@ -47,7 +47,8 @@ const counterSchema = {
   default: 0,
   validate: {
     validator: Number.isInteger,
-    message: (props: SchemaTypeOpts.ValidatorProps) => `${props.value} is not an integer`
+    message: (props: SchemaTypeOpts.ValidatorProps) =>
+      `${props.value} is not an integer`
   }
 }
 
@@ -70,7 +71,7 @@ const userSessionMetricsSchema = new Schema({
     lowCoachRatingFromStudentFlag: counterSchema,
     reported: counterSchema,
     onlyLookingForAnswers: counterSchema,
-    rudeOrInappropriate: counterSchema,
+    rudeOrInappropriate: counterSchema
   },
   counters: {
     hasBeenUnmatched: counterSchema,
@@ -86,9 +87,7 @@ export const UserSessionMetricsModel = model<UserSessionMetricsDocument>(
 )
 
 // Utilities
-async function validUser(
-  userId: Types.ObjectId | string
-): Promise<boolean> {
+async function validUser(userId: Types.ObjectId | string): Promise<boolean> {
   const user = await UserModel.findById(userId)
     .lean()
     .exec()
@@ -97,10 +96,7 @@ async function validUser(
 }
 
 // Create functions
-export async function createByuser(
-  problemId: number,
-  assignmentId: string,
-  studentId: string,
+export async function createByUser(
   user: Types.ObjectId | string
 ): Promise<UserSessionMetrics> {
   const ad = await getByUser(user)
@@ -113,9 +109,6 @@ export async function createByuser(
 
   try {
     const data = (await UserSessionMetricsModel.create({
-      problemId,
-      assignmentId,
-      studentId,
       user
     })) as UserSessionMetricsDocument
     return data.toObject() as UserSessionMetrics
