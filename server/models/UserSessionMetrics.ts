@@ -17,8 +17,8 @@ export enum FLAGS {
 }
 
 export enum COUNTERS {
-  hasBeenUnmatched = 'Has been unmatched',
-  hasHadTechnicalIssues = 'Has had technical issues'
+  hasBeenUnmatched,
+  hasHadTechnicalIssues
 }
 
 export interface UserSessionMetrics {
@@ -97,19 +97,19 @@ async function validUser(userId: Types.ObjectId | string): Promise<boolean> {
 
 // Create functions
 export async function createByUser(
-  user: Types.ObjectId | string
+  userId: Types.ObjectId | string
 ): Promise<UserSessionMetrics> {
-  const ad = await getByUser(user)
-  if (ad)
+  const usm = await getByUserId(userId)
+  if (usm)
     throw new RepoCreateError(
-      `UserSessionMetrics document for user ${user} already exists`
+      `UserSessionMetrics document for user ${userId} already exists`
     )
-  if (!(await validUser(user)))
-    throw new RepoCreateError(`User ${user} does not exist`)
+  if (!(await validUser(userId)))
+    throw new RepoCreateError(`User ${userId} does not exist`)
 
   try {
     const data = (await UserSessionMetricsModel.create({
-      user
+      user: userId
     })) as UserSessionMetricsDocument
     return data.toObject() as UserSessionMetrics
   } catch (err) {
@@ -140,7 +140,7 @@ export async function getAll(): Promise<UserSessionMetrics[]> {
   }
 }
 
-export async function getByUser(
+export async function getByUserId(
   userId: Types.ObjectId | string
 ): Promise<UserSessionMetrics> {
   try {
@@ -160,10 +160,11 @@ export async function incrementFlagCountByUser(
   flag: FLAGS
 ): Promise<void> {
   try {
-    await UserSessionMetricsModel.updateOne(
+    const result = await UserSessionMetricsModel.updateOne(
       { user: userId },
-      { [`flagCounts.${flag}`]: { $inc: 1 } }
+      { $inc: { [`flagCounts.${FLAGS[flag]}`]: 1 } }
     )
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (err) {
     throw new RepoUpdateError(
       `Failed to increment session metric flag ${flag} for user ${userId}: ${err.message}`
@@ -176,10 +177,11 @@ export async function incrementCounterByUser(
   counter: COUNTERS
 ): Promise<void> {
   try {
-    await UserSessionMetricsModel.updateOne(
+    const result = await UserSessionMetricsModel.updateOne(
       { user: userId },
-      { [`counters.${counter}`]: { $inc: 1 } }
+      { $inc: { [`counters.${COUNTERS[counter]}`]: 1 } }
     )
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (err) {
     throw new RepoUpdateError(
       `Failed to increment session metric counter ${counter} for user ${userId}: ${err.message}`

@@ -7,7 +7,7 @@ import {
   RepoUpdateError
 } from '../../models/Errors'
 import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
-import { mockMongooseFindQuery, mockmongooseUpdateQuery } from '../utils'
+import { mockMongooseFindQuery } from '../utils'
 
 async function resetUSM(): Promise<void> {
   await UserSessionMetricsRepo.UserSessionMetricsModel.deleteMany({})
@@ -26,13 +26,18 @@ beforeAll(async () => {
   volunteer = await insertVolunteer()
 })
 
+beforeEach(() => {
+  // restore spys between tests
+  jest.restoreAllMocks()
+})
+
 afterAll(async () => {
   await resetDb()
   await resetUSM()
   await mongoose.connection.close()
 })
 
-describe.only('Test create UserSessionModel objects', () => {
+describe('Test create UserSessionModel objects', () => {
   beforeAll(async () => {
     await resetUSM()
   })
@@ -43,57 +48,57 @@ describe.only('Test create UserSessionModel objects', () => {
   })
 
   test('Create succeeds for student', async () => {
-    const createdUsm = await UserSessionMetricsRepo.createByUser(student._id)
+    const createdUSM = await UserSessionMetricsRepo.createByUser(student._id)
 
-    const foundUsm = await UserSessionMetricsRepo.UserSessionMetricsModel.findById(
-      createdUsm._id
+    const foundUSM = await UserSessionMetricsRepo.UserSessionMetricsModel.findById(
+      createdUSM._id
     )
       .lean()
       .exec()
-    expect(foundUsm.user).toEqual(student._id)
+    expect(foundUSM.user).toEqual(student._id)
   })
 
   test('Create succeeds for volunteer', async () => {
-    const createdUsm = await UserSessionMetricsRepo.createByUser(volunteer._id)
+    const createdUSM = await UserSessionMetricsRepo.createByUser(volunteer._id)
 
-    const foundUsm = await UserSessionMetricsRepo.UserSessionMetricsModel.findById(
-      createdUsm._id
+    const foundUSM = await UserSessionMetricsRepo.UserSessionMetricsModel.findById(
+      createdUSM._id
     )
       .lean()
       .exec()
-    expect(foundUsm.user).toEqual(volunteer._id)
+    expect(foundUSM.user).toEqual(volunteer._id)
   })
 
   test('Create errors with re-used user', async () => {
-    expect.assertions(2)
-
     await UserSessionMetricsRepo.createByUser(student._id)
 
+    let error: RepoCreateError
     try {
       await UserSessionMetricsRepo.createByUser(student._id)
     } catch (err) {
-      expect(err).toBeInstanceOf(RepoCreateError)
-      expect(err.message).toBe(
-        `UserSessionMetrics document for user ${student._id} already exists`
-      )
+      error = err
     }
+
+    expect(error).toBeInstanceOf(RepoCreateError)
+    expect(error.message).toBe(
+      `UserSessionMetrics document for user ${student._id} already exists`
+    )
   })
 
   test('Create errors with non-existent user', async () => {
-    expect.assertions(2)
-
     const user = mongoose.Types.ObjectId()
+
+    let error: RepoCreateError
     try {
       await UserSessionMetricsRepo.createByUser(user)
     } catch (err) {
-      expect(err).toBeInstanceOf(RepoCreateError)
-      expect(err.message).toBe(`User ${user} does not exist`)
+      error = err
     }
+    expect(error).toBeInstanceOf(RepoCreateError)
+    expect(error.message).toBe(`User ${user} does not exist`)
   })
 
   test('Create bubbles up errors from database find', async () => {
-    expect.assertions(2)
-
     const mockedUserModelFind = jest.spyOn(UserModel, 'findById')
     const testError = new Error('Test error')
     mockedUserModelFind.mockImplementationOnce(
@@ -103,12 +108,28 @@ describe.only('Test create UserSessionModel objects', () => {
       })
     )
 
+    await expect(
+      UserSessionMetricsRepo.createByUser(student._id)
+    ).rejects.toThrow(testError)
+  })
+
+  test('Create wraps errors from database creation', async () => {
+    const mockedUserSessionModelCreate = jest.spyOn(
+      UserSessionMetricsRepo.UserSessionMetricsModel,
+      'create'
+    )
+    const testError = new Error('Test error')
+    mockedUserSessionModelCreate.mockRejectedValueOnce(testError)
+
+    let error: RepoCreateError
     try {
       await UserSessionMetricsRepo.createByUser(student._id)
     } catch (err) {
-      expect(err).toBeInstanceOf(RepoCreateError)
-      expect(err.message).toBe(testError.message)
+      error = err
     }
+
+    expect(error).toBeInstanceOf(RepoCreateError)
+    expect(error.message).toBe(testError.message)
   })
 })
 
@@ -134,27 +155,28 @@ describe('Test read UserSessionModel objects', () => {
     expect(foundUSM.user).toEqual(student._id)
   })
 
-  test('GetByObjectId bubbles up errors from database find', async () => {
-    expect.assertions(2)
-
-    const mockedUserSessionModelFind = jest.spyOn(
+  test('GetByObjectId wraps errors from database find', async () => {
+    const mockedUserSessionMetricsModelFind = jest.spyOn(
       UserSessionMetricsRepo.UserSessionMetricsModel,
       'findById'
     )
     const testError = new Error('Test error')
-    mockedUserSessionModelFind.mockImplementationOnce(
+    mockedUserSessionMetricsModelFind.mockImplementationOnce(
       // @ts-expect-error
       mockMongooseFindQuery(() => {
         throw testError
       })
     )
 
+    let error: RepoReadError
     try {
       await UserSessionMetricsRepo.getByObjectId(createdUSM._id)
     } catch (err) {
-      expect(err).toBeInstanceOf(RepoReadError)
-      expect(err.message).toBe(testError.message)
+      error = err
     }
+
+    expect(error).toBeInstanceOf(RepoReadError)
+    expect(error.message).toBe(testError.message)
   })
 
   test('GetAll succeeds', async () => {
@@ -168,56 +190,58 @@ describe('Test read UserSessionModel objects', () => {
   })
 
   test('GetAll bubbles up errors from database find', async () => {
-    expect.assertions(2)
-
-    const mockedUserSessionModelFind = jest.spyOn(
+    const mockedUserSessionMetricsModelFind = jest.spyOn(
       UserSessionMetricsRepo.UserSessionMetricsModel,
       'find'
     )
     const testError = new Error('Test error')
-    mockedUserSessionModelFind.mockImplementationOnce(
+    mockedUserSessionMetricsModelFind.mockImplementationOnce(
       // @ts-expect-error
       mockMongooseFindQuery(() => {
         throw testError
       })
     )
 
+    let error: RepoReadError
     try {
       await UserSessionMetricsRepo.getAll()
     } catch (err) {
-      expect(err).toBeInstanceOf(RepoReadError)
-      expect(err.message).toBe(testError.message)
+      error = err
     }
+
+    expect(error).toBeInstanceOf(RepoReadError)
+    expect(error.message).toBe(testError.message)
   })
 
-  test('GetByUser succeeds', async () => {
-    const foundUSM = await UserSessionMetricsRepo.getByUser(student._id)
+  test('GetByUserId succeeds', async () => {
+    const foundUSM = await UserSessionMetricsRepo.getByUserId(student._id)
 
     expect(foundUSM._id).toEqual(createdUSM._id)
     expect(foundUSM.user).toEqual(student._id)
   })
 
-  test('GetByUser bubbles up errors from database find', async () => {
-    expect.assertions(2)
-
-    const mockedUserSessionModelFind = jest.spyOn(
+  test('GetByUserId bubbles up errors from database find', async () => {
+    const mockedUserSessionMetricsModelFind = jest.spyOn(
       UserSessionMetricsRepo.UserSessionMetricsModel,
       'findOne'
     )
     const testError = new Error('Test error')
-    mockedUserSessionModelFind.mockImplementationOnce(
+    mockedUserSessionMetricsModelFind.mockImplementationOnce(
       // @ts-expect-error
       mockMongooseFindQuery(() => {
         throw testError
       })
     )
 
+    let error: RepoReadError
     try {
-      await UserSessionMetricsRepo.getByUser(student._id)
+      await UserSessionMetricsRepo.getByUserId(student._id)
     } catch (err) {
-      expect(err).toBeInstanceOf(RepoReadError)
-      expect(err.message).toBe(testError.message)
+      error = err
     }
+
+    expect(error).toBeInstanceOf(RepoReadError)
+    expect(error.message).toBe(testError.message)
   })
 })
 
@@ -247,30 +271,26 @@ describe('Test read UserSessionModel objects', () => {
     expect(foundUSM.flagCounts.absentStudentFlag).toEqual(1)
   })
 
-  test('incrementFlagCountByUser bubbles up errors from database update', async () => {
-    expect.assertions(2)
-
-    const mockedUserSessionModelFind = jest.spyOn(
+  test('incrementFlagCountByUser wraps errors from database update', async () => {
+    const mockedUserSessionMetricsModelUpdate = jest.spyOn(
       UserSessionMetricsRepo.UserSessionMetricsModel,
       'updateOne'
     )
     const testError = new Error('Test error')
-    mockedUserSessionModelFind.mockImplementationOnce(
-      // @ts-expect-error
-      mockmongooseUpdateQuery(() => {
-        throw testError
-      })
-    )
+    mockedUserSessionMetricsModelUpdate.mockRejectedValueOnce(testError)
 
     const flag = UserSessionMetricsRepo.FLAGS.absentStudentFlag
+    let error: RepoUpdateError
     try {
       await UserSessionMetricsRepo.incrementFlagCountByUser(student._id, flag)
     } catch (err) {
-      expect(err).toBeInstanceOf(RepoUpdateError)
-      expect(err.message).toBe(
-        `Failed to increment session metric flag ${flag} for user ${student._id}: ${testError.message}`
-      )
+      error = err
     }
+
+    expect(error).toBeInstanceOf(RepoUpdateError)
+    expect(error.message).toBe(
+      `Failed to increment session metric flag ${flag} for user ${student._id}: ${testError.message}`
+    )
   })
 
   test('incrementCounterByUser succeeds for valid counter', async () => {
@@ -283,29 +303,25 @@ describe('Test read UserSessionModel objects', () => {
     expect(foundUSM.counters.hasBeenUnmatched).toEqual(1)
   })
 
-  test('incrementCounterByUser bubbles up errors from database update', async () => {
-    expect.assertions(2)
-
-    const mockedUserSessionModelFind = jest.spyOn(
+  test('incrementCounterByUser wraps errors from database update', async () => {
+    const mockedUserSessionMetricsModelUpdate = jest.spyOn(
       UserSessionMetricsRepo.UserSessionMetricsModel,
       'updateOne'
     )
     const testError = new Error('Test error')
-    mockedUserSessionModelFind.mockImplementationOnce(
-      // @ts-expect-error
-      mockmongooseUpdateQuery(() => {
-        throw testError
-      })
-    )
+    mockedUserSessionMetricsModelUpdate.mockRejectedValueOnce(testError)
 
     const counter = UserSessionMetricsRepo.COUNTERS.hasBeenUnmatched
+    let error: RepoUpdateError
     try {
       await UserSessionMetricsRepo.incrementCounterByUser(student._id, counter)
     } catch (err) {
-      expect(err).toBeInstanceOf(RepoUpdateError)
-      expect(err.message).toBe(
-        `Failed to increment session metric counter ${counter} for user ${student._id}: ${testError.message}`
-      )
+      error = err
     }
+
+    expect(error).toBeInstanceOf(RepoUpdateError)
+    expect(error.message).toBe(
+      `Failed to increment session metric counter ${counter} for user ${student._id}: ${testError.message}`
+    )
   })
 })
