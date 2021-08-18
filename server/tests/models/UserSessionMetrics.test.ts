@@ -48,7 +48,7 @@ describe('Test create UserSessionModel objects', () => {
   })
 
   test('Create succeeds for student', async () => {
-    const createdUSM = await UserSessionMetricsRepo.createByUser(student._id)
+    const createdUSM = await UserSessionMetricsRepo.createByUserId(student._id)
 
     const foundUSM = await UserSessionMetricsRepo.UserSessionMetricsModel.findById(
       createdUSM._id
@@ -59,7 +59,7 @@ describe('Test create UserSessionModel objects', () => {
   })
 
   test('Create succeeds for volunteer', async () => {
-    const createdUSM = await UserSessionMetricsRepo.createByUser(volunteer._id)
+    const createdUSM = await UserSessionMetricsRepo.createByUserId(volunteer._id)
 
     const foundUSM = await UserSessionMetricsRepo.UserSessionMetricsModel.findById(
       createdUSM._id
@@ -70,11 +70,11 @@ describe('Test create UserSessionModel objects', () => {
   })
 
   test('Create errors with re-used user', async () => {
-    await UserSessionMetricsRepo.createByUser(student._id)
+    await UserSessionMetricsRepo.createByUserId(student._id)
 
     let error: RepoCreateError
     try {
-      await UserSessionMetricsRepo.createByUser(student._id)
+      await UserSessionMetricsRepo.createByUserId(student._id)
     } catch (err) {
       error = err
     }
@@ -90,7 +90,7 @@ describe('Test create UserSessionModel objects', () => {
 
     let error: RepoCreateError
     try {
-      await UserSessionMetricsRepo.createByUser(user)
+      await UserSessionMetricsRepo.createByUserId(user)
     } catch (err) {
       error = err
     }
@@ -109,7 +109,7 @@ describe('Test create UserSessionModel objects', () => {
     )
 
     await expect(
-      UserSessionMetricsRepo.createByUser(student._id)
+      UserSessionMetricsRepo.createByUserId(student._id)
     ).rejects.toThrow(testError)
   })
 
@@ -123,7 +123,7 @@ describe('Test create UserSessionModel objects', () => {
 
     let error: RepoCreateError
     try {
-      await UserSessionMetricsRepo.createByUser(student._id)
+      await UserSessionMetricsRepo.createByUserId(student._id)
     } catch (err) {
       error = err
     }
@@ -261,8 +261,8 @@ describe('Test read UserSessionModel objects', () => {
     createdUSM = newUSM.toObject() as UserSessionMetricsRepo.UserSessionMetrics
   })
 
-  test('incrementFlagCounterByUser succeeds for valid flag', async () => {
-    await UserSessionMetricsRepo.incrementFlagCounterByUser(
+  test('incrementFlagCounterByUserId succeeds for valid flag', async () => {
+    await UserSessionMetricsRepo.incrementFlagCounterByUserId(
       student._id,
       UserSessionMetricsRepo.FLAGS.absentStudentFlag
     )
@@ -271,7 +271,7 @@ describe('Test read UserSessionModel objects', () => {
     expect(foundUSM.flagCounters.absentStudentFlag).toEqual(1)
   })
 
-  test('incrementFlagCounterByUser wraps errors from database update', async () => {
+  test('incrementFlagCounterByUserId wraps errors from database update', async () => {
     const mockedUserSessionMetricsModelUpdate = jest.spyOn(
       UserSessionMetricsRepo.UserSessionMetricsModel,
       'updateOne'
@@ -282,7 +282,7 @@ describe('Test read UserSessionModel objects', () => {
     const flag = UserSessionMetricsRepo.FLAGS.absentStudentFlag
     let error: RepoUpdateError
     try {
-      await UserSessionMetricsRepo.incrementFlagCounterByUser(student._id, flag)
+      await UserSessionMetricsRepo.incrementFlagCounterByUserId(student._id, flag)
     } catch (err) {
       error = err
     }
@@ -293,8 +293,8 @@ describe('Test read UserSessionModel objects', () => {
     )
   })
 
-  test('incrementCounterByUser succeeds for valid counter', async () => {
-    await UserSessionMetricsRepo.incrementCounterByUser(
+  test('incrementCounterByUserId succeeds for valid counter', async () => {
+    await UserSessionMetricsRepo.incrementCounterByUserId(
       student._id,
       UserSessionMetricsRepo.COUNTERS.hasBeenUnmatched
     )
@@ -303,7 +303,7 @@ describe('Test read UserSessionModel objects', () => {
     expect(foundUSM.counters.hasBeenUnmatched).toEqual(1)
   })
 
-  test('incrementCounterByUser wraps errors from database update', async () => {
+  test('incrementCounterByUserId wraps errors from database update', async () => {
     const mockedUserSessionMetricsModelUpdate = jest.spyOn(
       UserSessionMetricsRepo.UserSessionMetricsModel,
       'updateOne'
@@ -314,7 +314,7 @@ describe('Test read UserSessionModel objects', () => {
     const counter = UserSessionMetricsRepo.COUNTERS.hasBeenUnmatched
     let error: RepoUpdateError
     try {
-      await UserSessionMetricsRepo.incrementCounterByUser(student._id, counter)
+      await UserSessionMetricsRepo.incrementCounterByUserId(student._id, counter)
     } catch (err) {
       error = err
     }
