@@ -96,7 +96,7 @@ async function validUser(userId: Types.ObjectId | string): Promise<boolean> {
 }
 
 // Create functions
-export async function createByUser(
+export async function createByUserId(
   userId: Types.ObjectId | string
 ): Promise<UserSessionMetrics> {
   const usm = await getByUserId(userId)
