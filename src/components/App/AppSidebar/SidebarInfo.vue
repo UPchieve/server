@@ -21,7 +21,6 @@ export default {
   props: {
     authenticated: Boolean,
     isVolunteer: Boolean,
-    isBanned: Boolean,
     name: String
   },
   data() {
