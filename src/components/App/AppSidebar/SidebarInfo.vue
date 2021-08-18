@@ -21,6 +21,7 @@ export default {
   props: {
     authenticated: Boolean,
     isVolunteer: Boolean,
+    isBanned: Boolean,
     name: String
   },
   data() {
@@ -49,6 +50,9 @@ export default {
         status.text = 'Ready to help'
       }
 
+      if(this.user.isBanned){
+        status.text = 'Paused'
+      }
       if (inSession) {
         status.class = 'SidebarInfo-status-circle--session'
         status.text = 'Chat in session'
