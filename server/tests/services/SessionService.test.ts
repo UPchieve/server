@@ -876,32 +876,6 @@ describe('startSession', () => {
     }
   })
 
-  test('Should not notify volunteers if the student is banned', async () => {
-    const input = {
-      ip: getIpAddress(),
-      user: buildStudent({ isBanned: true }),
-      sessionSubTopic: SUBJECTS.PREALGREBA,
-      sessionType: SUBJECT_TYPES.MATH,
-      userAgent: getUserAgent()
-    }
-    const mockValue = mockedCreateSession()
-    mockedSessionRepo.getCurrentSession.mockImplementationOnce(async () => null)
-    mockedSessionRepo.createSession.mockImplementationOnce(
-      async () => mockValue
-    )
-    await SessionService.startSession(input)
-    expect(QueueService.add).toHaveBeenCalledWith(
-      Jobs.EndUnmatchedSession,
-      {
-        sessionId: mockValue._id
-      },
-      expect.anything()
-    )
-    expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
-    expect(TwilioService.beginRegularNotifications).toHaveBeenCalledTimes(0)
-    expect(TwilioService.beginFailsafeNotifications).toHaveBeenCalledTimes(0)
-  })
-
   test('Should create a new session', async () => {
     const input = {
       ip: getIpAddress(),
