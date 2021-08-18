@@ -50,9 +50,10 @@ export default {
       }
 
       if(this.user.isBanned){
+        status.class = 'SidebarInfo-status-circle--banned'
         status.text = 'Paused'
       }
-      
+
       if (inSession) {
         status.class = 'SidebarInfo-status-circle--session'
         status.text = 'Chat in session'
@@ -114,6 +115,11 @@ export default {
       &--onboarding {
         background: $c-warning-orange;
       }
+
+      &--banned{
+        background-color: #8B939F;
+      }
+
     }
   }
 }
