@@ -52,6 +52,7 @@ export default {
       if(this.user.isBanned){
         status.text = 'Paused'
       }
+      
       if (inSession) {
         status.class = 'SidebarInfo-status-circle--session'
         status.text = 'Chat in session'
