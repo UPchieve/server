@@ -381,6 +381,8 @@ const sessionDataValidators = {
     flags: asArray(asString),
     reviewedStudent: asOptional(asBoolean),
     reviewedVolunteer: asOptional(asBoolean),
+    reviewed: asOptional(asBoolean),
+    toReview: asOptional(asBoolean),
     timeTutored: asOptional(asNumber),
     whiteboardDoc: asOptional(asString)
   })
