@@ -45,6 +45,8 @@ export interface Session {
   flags: string[]
   reviewedStudent: boolean
   reviewedVolunteer: boolean
+  reviewed: boolean
+  toReview: boolean
   timeTutored: number
 }
 
@@ -136,6 +138,8 @@ const sessionSchema = new Schema({
   },
   reviewedStudent: Boolean,
   reviewedVolunteer: Boolean,
+  reviewed: { type: Boolean, default: false },
+  toReview: { type: Boolean, default: false },
   timeTutored: { type: Number, default: 0 },
   isStudentBanned: Boolean
 })
@@ -512,7 +516,8 @@ export async function updateSessionToEnd(
     quillDoc: data.quillDoc,
     flags: data.flags,
     reviewedStudent: data.reviewedStudent,
-    reviewedVolunteer: data.reviewedVolunteer
+    reviewedVolunteer: data.reviewedVolunteer,
+    toReview: data.toReview
   }
 
   try {

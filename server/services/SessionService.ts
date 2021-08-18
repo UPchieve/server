@@ -329,6 +329,7 @@ export async function endSession({
     endedAt,
     endedBy,
     timeTutored,
+    toReview: isReviewNeeded,
     ...update
   })
   await WhiteboardService.deleteDoc(session._id.toString())
