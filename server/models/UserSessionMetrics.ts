@@ -4,7 +4,7 @@ import { Document, model, Schema, Types, SchemaTypeOpts } from 'mongoose'
 import UserModel, { User } from './User'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
 
-// TODO: type FLAGS and flagCounts to match flag enum/type/const programmatically
+// TODO: type FLAGS and flagCounters to match flag enum/type/const programmatically
 export enum FLAGS {
   absentStudentFlag,
   absentVolunteerFlag,
@@ -24,7 +24,7 @@ export enum COUNTERS {
 export interface UserSessionMetrics {
   _id: Types.ObjectId
   user: Types.ObjectId | User
-  flagCounts: {
+  flagCounters: {
     absentStudentFlag: number
     absentVolunteerFlag: number
     lowSessionRatingFromCoachFlag: number
@@ -63,7 +63,7 @@ const userSessionMetricsSchema = new Schema({
       message: props => `${props.value} is not a valid user`
     }
   },
-  flagCounts: {
+  flagCounters: {
     absentStudentFlag: counterSchema,
     absentVolunteerFlag: counterSchema,
     lowSessionRatingFromCoachFlag: counterSchema,
@@ -155,14 +155,14 @@ export async function getByUserId(
 }
 
 // Update functions
-export async function incrementFlagCountByUser(
+export async function incrementFlagCounterByUser(
   userId: Types.ObjectId | string,
   flag: FLAGS
 ): Promise<void> {
   try {
     const result = await UserSessionMetricsModel.updateOne(
       { user: userId },
-      { $inc: { [`flagCounts.${FLAGS[flag]}`]: 1 } }
+      { $inc: { [`flagCounters.${FLAGS[flag]}`]: 1 } }
     )
     if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (err) {

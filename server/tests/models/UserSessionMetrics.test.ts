@@ -261,17 +261,17 @@ describe('Test read UserSessionModel objects', () => {
     createdUSM = newUSM.toObject() as UserSessionMetricsRepo.UserSessionMetrics
   })
 
-  test('incrementFlagCountByUser succeeds for valid flag', async () => {
-    await UserSessionMetricsRepo.incrementFlagCountByUser(
+  test('incrementFlagCounterByUser succeeds for valid flag', async () => {
+    await UserSessionMetricsRepo.incrementFlagCounterByUser(
       student._id,
       UserSessionMetricsRepo.FLAGS.absentStudentFlag
     )
     const foundUSM = await UserSessionMetricsRepo.getByObjectId(createdUSM._id)
 
-    expect(foundUSM.flagCounts.absentStudentFlag).toEqual(1)
+    expect(foundUSM.flagCounters.absentStudentFlag).toEqual(1)
   })
 
-  test('incrementFlagCountByUser wraps errors from database update', async () => {
+  test('incrementFlagCounterByUser wraps errors from database update', async () => {
     const mockedUserSessionMetricsModelUpdate = jest.spyOn(
       UserSessionMetricsRepo.UserSessionMetricsModel,
       'updateOne'
@@ -282,7 +282,7 @@ describe('Test read UserSessionModel objects', () => {
     const flag = UserSessionMetricsRepo.FLAGS.absentStudentFlag
     let error: RepoUpdateError
     try {
-      await UserSessionMetricsRepo.incrementFlagCountByUser(student._id, flag)
+      await UserSessionMetricsRepo.incrementFlagCounterByUser(student._id, flag)
     } catch (err) {
       error = err
     }
