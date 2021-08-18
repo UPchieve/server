@@ -107,9 +107,9 @@ export default {
       isSessionAlive: 'user/isSessionAlive'
     }),
     disabled() {
-      if(this.user.isBanned)
-        this.disableSubjectCard = true;
-
+      if (this.user.isBanned) {
+        this.disableSubjectCard = true
+      }
       return this.disableSubjectCard
     }
   },

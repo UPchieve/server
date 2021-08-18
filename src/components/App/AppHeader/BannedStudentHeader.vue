@@ -1,7 +1,7 @@
 <template>
   <div v-if="studentIsBanned" class="top-banner-notice">
-      Your account is under review
-    </div>
+    Your account is under review
+  </div>
 </template>
 
 <script>
@@ -18,10 +18,11 @@
 //     }
 //   }
 // })
-// </script>
+//
+</script>
 
-// <style lang="scss" scoped>
-
+//
+<style lang="scss" scoped>
 // .top-banner-notifice{
 //   display: flex;
 //   background-color: #8B939F;
@@ -32,4 +33,5 @@
 //     //padding: 40px;
 //   }
 // }
-// </style>
+//
+</style>

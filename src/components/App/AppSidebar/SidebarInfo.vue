@@ -49,7 +49,7 @@ export default {
         status.text = 'Ready to help'
       }
 
-      if(this.user.isBanned){
+      if (this.user.isBanned) {
         status.class = 'SidebarInfo-status-circle--banned'
         status.text = 'Paused'
       }
@@ -116,10 +116,9 @@ export default {
         background: $c-warning-orange;
       }
 
-      &--banned{
-        background-color: #8B939F;
+      &--banned {
+        background-color: #8b939f;
       }
-
     }
   }
 }
