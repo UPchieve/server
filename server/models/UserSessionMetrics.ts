@@ -155,7 +155,7 @@ export async function getByUserId(
 }
 
 // Update functions
-export async function incrementFlagCounterByUser(
+export async function incrementFlagCounterByUserId(
   userId: Types.ObjectId | string,
   flag: FLAGS
 ): Promise<void> {
@@ -172,7 +172,7 @@ export async function incrementFlagCounterByUser(
   }
 }
 
-export async function incrementCounterByUser(
+export async function incrementCounterByUserId(
   userId: Types.ObjectId | string,
   counter: COUNTERS
 ): Promise<void> {
