@@ -1,171 +1,8 @@
-import moment from 'moment'
-
-export const DAYS = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday'
-]
-
-export const UTC_TO_HOUR_MAPPING = {
-  0: '12a',
-  1: '1a',
-  2: '2a',
-  3: '3a',
-  4: '4a',
-  5: '5a',
-  6: '6a',
-  7: '7a',
-  8: '8a',
-  9: '9a',
-  10: '10a',
-  11: '11a',
-  12: '12p',
-  13: '1p',
-  14: '2p',
-  15: '3p',
-  16: '4p',
-  17: '5p',
-  18: '6p',
-  19: '7p',
-  20: '8p',
-  21: '9p',
-  22: '10p',
-  23: '11p'
-}
-
-export const HOUR_TO_UTC_MAPPING = {
-  '12a': 0,
-  '1a': 1,
-  '2a': 2,
-  '3a': 3,
-  '4a': 4,
-  '5a': 5,
-  '6a': 6,
-  '7a': 7,
-  '8a': 8,
-  '9a': 9,
-  '10a': 10,
-  '11a': 11,
-  '12p': 12,
-  '1p': 13,
-  '2p': 14,
-  '3p': 15,
-  '4p': 16,
-  '5p': 17,
-  '6p': 18,
-  '7p': 19,
-  '8p': 20,
-  '9p': 21,
-  '10p': 22,
-  '11p': 23
-}
-
-export const USER_ACTION = {
-  TYPE: {
-    QUIZ: 'QUIZ',
-    SESSION: 'SESSION',
-    ACCOUNT: 'ACCOUNT',
-    ADMIN: 'ADMIN'
-  },
-  QUIZ: {
-    STARTED: 'STARTED QUIZ',
-    PASSED: 'PASSED QUIZ',
-    FAILED: 'FAILED QUIZ',
-    VIEWED_MATERIALS: 'VIEWED REVIEW MATERIALS',
-    UNLOCKED_SUBJECT: 'UNLOCKED SUBJECT'
-  },
-  SESSION: {
-    REQUESTED: 'REQUESTED SESSION',
-    JOINED: 'JOINED SESSION',
-    REJOINED: 'REJOINED SESSION',
-    ENDED: 'ENDED SESSION',
-    REPLIED_YES: 'REPLIED YES TO TEXT',
-    TIMED_OUT_15_MINS: '15 MIN TIME OUT',
-    TIMED_OUT_45_MINS: '45 MIN TIME OUT'
-  },
-  ACCOUNT: {
-    CREATED: 'CREATED',
-    UPDATED_AVAILABILITY: 'UPDATED AVAILABILITY',
-    UPDATED_PROFILE: 'UPDATED PROFILE',
-    ADDED_PHOTO_ID: 'ADDED PHOTO ID',
-    ADDED_REFERENCE: 'ADDED REFERENCE',
-    COMPLETED_BACKGROUND_INFO: 'COMPLETED BACKGROUND INFORMATION',
-    DELETED_REFERENCE: 'DELETED REFERENCE',
-    APPROVED: 'APPROVED',
-    ONBOARDED: 'ONBOARDED',
-    SUBMITTED_REFERENCE_FORM: 'SUBMITTED REFERENCE FORM',
-    REJECTED_PHOTO_ID: 'REJECTED PHOTO ID',
-    REJECTED_REFERENCE: 'REJECTED REFERENCE',
-    BANNED: 'BANNED',
-    DEACTIVATED: 'DEACTIVATED'
-  }
-}
-
-// new format to move to from USER_ACTIONS
-// user events in a [noun][verb] format
-export const EVENTS = {
-  ACCOUNT_APPROVED: 'ACCOUNT_APPROVED',
-  ACCOUNT_ONBOARDED: 'ACCOUNT_ONBOARDED',
-  ACCOUNT_BANNED: 'ACCOUNT_BANNED',
-  FRIEND_REFERRED: 'FRIEND_REFERRED',
-  PHOTO_ID_REJECTED: 'PHOTO_ID_REJECTED',
-  REFERENCE_DELETED: 'REFERENCE_DELETED',
-  REFERENCE_REJECTED: 'REFERENCE_REJECTED',
-  SESSION_JOINED: 'SESSION_JOINED',
-  SESSION_MATCHED: 'SESSION_MATCHED',
-  SESSION_REJOINED: 'SESSION_REJOINED',
-  SUBJECT_UNLOCKED: 'SUBJECT_UNLOCKED',
-  SESSION_REPLIED_YES_TO_TEXT: 'SESSION_REPLIED_YES_TO_TEXT' // @note: currently deprecated
-}
-
-export enum USER_BAN_REASON {
-  NON_US_SIGNUP = 'NON US SIGNUP',
-  BANNED_IP = 'USED BANNED IP',
-  SESSION_REPORTED = 'SESSION REPORTED',
-  BANNED_SERVICE_PROVIDER = 'BANNED SERVICE PROVIDER',
-  ADMIN = 'ADMIN'
-}
-
-export enum IP_ADDRESS_STATUS {
-  OK = 'OK',
-  BANNED = 'BANNED'
-}
-
 export const FORMAT_INTEGRATED_MATH = {
   integratedMathOne: 'Integrated Math 1',
   integratedMathTwo: 'Integrated Math 2',
   integratedMathThree: 'Integrated Math 3',
   integratedMathFour: 'Integrated Math 4'
-}
-
-export const STATUS = {
-  SUBMITTED: 'SUBMITTED',
-  REJECTED: 'REJECTED',
-  APPROVED: 'APPROVED'
-}
-
-export const PHOTO_ID_STATUS = {
-  EMPTY: 'EMPTY',
-  SUBMITTED: STATUS.SUBMITTED,
-  REJECTED: STATUS.REJECTED,
-  APPROVED: STATUS.APPROVED
-}
-
-export const REFERENCE_STATUS = {
-  UNSENT: 'UNSENT',
-  SENT: 'SENT',
-  SUBMITTED: STATUS.SUBMITTED,
-  REJECTED: STATUS.REJECTED,
-  APPROVED: STATUS.APPROVED
-}
-
-export const SESSION_REPORT_REASON = {
-  STUDENT_RUDE: 'This student was extremely rude or inappropriate',
-  STUDENT_SAFETY: 'I am worried for the immediate safety of this student'
 }
 
 export enum TRAINING {
@@ -348,46 +185,6 @@ export enum SUBJECT_TYPES {
   TRAINING = 'training',
   READING_WRITING = 'readingWriting'
 }
-
-export enum SURVEY_TYPES {
-  STUDENT_PRESESSION = 'student pre-session',
-  STUDENT_POSTSESSION = 'student post-session'
-}
-
-export enum SESSION_FLAGS {
-  ABSENT_USER = 'ABSENT_USER',
-  COMMENT = 'COMMENT',
-  FIRST_TIME_VOLUNTEER = 'FIRST_TIME_VOLUNTEER',
-  FIRST_TIME_STUDENT = 'FIRST_TIME_STUDENT',
-  LOW_MESSAGES = 'LOW_MESSAGES',
-  REPORTED = 'REPORTED',
-  STUDENT_RATING = 'STUDENT_RATING',
-  VOLUNTEER_RATING = 'VOLUNTEER_RATING',
-  UNMATCHED = 'UNMATCHED'
-}
-
-// amount of volunteers to text notifications to per session
-export const TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP = 15
-
-export enum VERIFICATION_METHOD {
-  SMS = 'sms',
-  EMAIL = 'email'
-}
-
-export enum FEEDBACK_VERSIONS {
-  'ONE' = 1,
-  'TWO'
-}
-
-export enum ONBOARDING_STATUS {
-  ONBOARDED = 'Onboarded',
-  DEACTIVATED = 'Deactivated',
-  INACTIVE = 'Inactive',
-  IN_PROGRESS = 'In progress',
-  NOT_STARTED = 'Not started'
-}
-
-export const ONE_DAY_ELAPSED_MILLISECONDS = 1000 * 60 * 60 * 24
 
 export const CATEGORY_TO_SUBCATEGORY_MAP = {
   [MATH_CERTS.PREALGREBA]: [
@@ -642,12 +439,6 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
   ]
 }
 
-export enum DATE_RANGE_COMPARISON_FIELDS {
-  CREATED_AT = '$createdAt',
-  SENT_AT = '$sentAt',
-  PAST_SESSION_CREATED_AT = '$pastSession.createdAt'
-}
-
 export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
   [MATH_SUBJECTS.ALGEBRA_ONE]: 'Algebra 1',
   [MATH_SUBJECTS.ALGEBRA_TWO]: 'Algebra 2',
@@ -662,21 +453,4 @@ export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
   [SAT_SUBJECTS.SAT_MATH]: 'SAT Math',
   [SAT_SUBJECTS.SAT_READING]: 'SAT Reading',
   [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays'
-}
-
-export const BLACKOUT_PERIOD_START = moment()
-  .utc()
-  .month('June')
-  .startOf('month')
-  .toDate()
-
-export const BLACKOUT_PERIOD_END = moment()
-  .utc()
-  .month('September')
-  .date(1)
-  .endOf('day')
-  .toDate()
-
-export const enum REPORT_FILE_NAMES {
-  ANALYTICS_REPORT = 'analytics-report'
 }
