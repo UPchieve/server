@@ -8,42 +8,23 @@
 
     <session-flags :flags="session.flags" />
 
-    <section
-      class="session-detail__section"
-      v-if="
-        session.reviewedStudent === false || session.reviewedVolunteer === false
-      "
-    >
+    <section class="session-detail__section" v-if="session.toReview">
       <h3 class="session-detail__section-title">Review Session</h3>
       <p v-if="reviewError" class="error">
         There was an issue submitting your review for this session.
       </p>
 
-      <div class="uc-form-checkbox" v-if="session.reviewedStudent === false">
+      <div class="uc-form-checkbox">
         <input
-          id="session-detail__review-student"
+          id="session-detail__review"
           type="checkbox"
-          @click="reviewedUser($event, 'student')"
+          @click="toggleReviewedSession($event)"
         />
         <label
           class="session-detail__review-label"
-          for="session-detail__review-student"
+          for="session-detail__review"
         >
-          Reviewed Student
-        </label>
-      </div>
-
-      <div class="uc-form-checkbox" v-if="session.reviewedVolunteer === false">
-        <input
-          id="session-detail__review-volunteer"
-          type="checkbox"
-          @click="reviewedUser($event, 'volunteer')"
-        />
-        <label
-          for="session-detail__review-volunteer"
-          class="session-detail__review-label"
-        >
-          Reviewed Volunteer
+          Reviewed session
         </label>
       </div>
     </section>
@@ -283,16 +264,13 @@ export default {
   },
 
   methods: {
-    async reviewedUser(event, user) {
+    async toggleReviewedSession(event) {
       const {
         target: { checked }
       } = event
       this.reviewError = false
       const sessionId = this.session._id
-      const data = {}
-
-      if (user === 'student') data.reviewedStudent = checked
-      if (user === 'volunteer') data.reviewedVolunteer = checked
+      const data = { reviewed: checked, toReview: !checked }
 
       try {
         await NetworkService.adminUpdateSession(sessionId, data)

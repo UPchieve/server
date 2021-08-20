@@ -46,8 +46,8 @@ export function mockedGetSessionById(overrides = {}) {
     reportReason: newSession.reportReason,
     reportMessage: newSession.reportMessage,
     flags: newSession.flags,
-    reviewedStudent: newSession.reviewedStudent,
-    reviewedVolunteer: newSession.reviewedVolunteer,
+    reviewed: newSession.reviewed,
+    toReview: newSession.toReview,
     timeTutored: newSession.timeTutored,
     ...overrides
   }

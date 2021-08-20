@@ -174,7 +174,7 @@ describe('updateFlags', () => {
     await cleanup()
   })
 
-  test('Should update flags and set reviewedStudent and reviewedVolunteer to false', async () => {
+  test('Should update flags and mark the session as needing to be reviewed', async () => {
     const flags = [
       SESSION_FLAGS.FIRST_TIME_STUDENT,
       SESSION_FLAGS.FIRST_TIME_VOLUNTEER
@@ -183,12 +183,11 @@ describe('updateFlags', () => {
 
     const updatedSession = await getSession(
       { _id: session._id },
-      { flags: 1, reviewedStudent: 1, reviewedVolunteer: 1 }
+      { flags: 1, toReview: 1 }
     )
     expect(updatedSession.flags).toHaveLength(2)
     expect(updatedSession.flags).toEqual(flags)
-    expect(updatedSession.reviewedStudent).toBeFalsy()
-    expect(updatedSession.reviewedVolunteer).toBeFalsy()
+    expect(updatedSession.toReview).toBeTruthy()
   })
 
   test('Should throw error with invalid input', async () => {
@@ -229,7 +228,7 @@ describe('updateFailedJoins', () => {
   })
 })
 
-describe('updateReviewedStudent', () => {
+describe('updateReviewedStatus', () => {
   let session
 
   beforeAll(async () => {
@@ -241,46 +240,25 @@ describe('updateReviewedStudent', () => {
     await cleanup()
   })
 
-  test('Should update reviewedStudent', async () => {
-    await SessionRepo.updateReviewedStudent(session._id, true)
+  test('Should update reviewed and toReview', async () => {
+    await SessionRepo.updateReviewedStatus(session._id, {
+      toReview: false,
+      reviewed: true
+    })
     const updatedSession = await getSession(
       { _id: session._id },
-      { reviewedStudent: 1 }
+      { reviewed: 1, toReview: 1 }
     )
-    expect(updatedSession.reviewedStudent).toBeTruthy()
+    expect(updatedSession.reviewed).toBeTruthy()
+    expect(updatedSession.toReview).toBeFalsy()
   })
 
   test('Should throw error with invalid input', async () => {
     await expect(
-      SessionRepo.updateReviewedStudent(invalidId, false)
-    ).rejects.toBeInstanceOf(DocUpdateError)
-  })
-})
-
-describe('updateReviewedVolunteer', () => {
-  let session
-
-  beforeAll(async () => {
-    const insertedSession = await insertSessionWithVolunteer()
-    session = insertedSession.session
-  })
-
-  afterAll(async () => {
-    await cleanup()
-  })
-
-  test('Should update reviewedVolunteer', async () => {
-    await SessionRepo.updateReviewedVolunteer(session._id, true)
-    const updatedSession = await getSession(
-      { _id: session._id },
-      { reviewedVolunteer: 1 }
-    )
-    expect(updatedSession.reviewedVolunteer).toBeTruthy()
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.updateReviewedVolunteer(invalidId, false)
+      SessionRepo.updateReviewedStatus(invalidId, {
+        toReview: false,
+        reviewed: false
+      })
     ).rejects.toBeInstanceOf(DocUpdateError)
   })
 })
@@ -467,8 +445,6 @@ describe('updateSessionToEnd', () => {
       hasWhiteboardDoc: true,
       quillDoc: '',
       flags: [SESSION_FLAGS.FIRST_TIME_STUDENT],
-      reviewedStudent: false,
-      reviewedVolunteer: false
     }
     await SessionRepo.updateSessionToEnd(session._id.toString(), data)
     const updatedSession = await getSession(
@@ -480,8 +456,6 @@ describe('updateSessionToEnd', () => {
         hasWhiteboardDoc: 1,
         quillDoc: 1,
         flags: 1,
-        reviewedStudent: 1,
-        reviewedVolunteer: 1
       }
     )
 
@@ -501,8 +475,7 @@ describe('updateSessionToEnd', () => {
         hasWhiteboardDoc: true,
         quillDoc: '',
         flags: [SESSION_FLAGS.FIRST_TIME_STUDENT],
-        reviewedStudent: false,
-        reviewedVolunteer: false
+        toReview: true
       })
     ).rejects.toBeInstanceOf(DocUpdateError)
   })
@@ -659,8 +632,8 @@ describe('getSessionByIdWithStudentAndVolunteer', () => {
       reportReason: session.reportReason,
       reportMessage: session.reportMessage,
       flags: session.flags,
-      reviewedStudent: session.reviewedStudent,
-      reviewedVolunteer: session.reviewedVolunteer,
+      reviewed: session.reviewed,
+      toReview: session.toReview,
       timeTutored: session.timeTutored
     }
 
