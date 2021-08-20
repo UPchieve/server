@@ -1,7 +1,7 @@
 <template>
   <div
     class="HeaderTemplate"
-    :class="{ 'HeaderTemplate--important': important }"
+    :class="{ 'HeaderTemplate--important': important, 'HeaderTemplate--banned': isBanned }"
   >
     <slot />
   </div>
@@ -11,7 +11,8 @@
 export default {
   name: 'header-template',
   props: {
-    important: Boolean
+    important: Boolean,
+    isBanned: Boolean
   }
 }
 </script>
@@ -33,6 +34,10 @@ export default {
 
   &--important {
     background: $c-warning-orange;
+  }
+
+  &--banned {
+    background: #8B939F;
   }
 
   @include breakpoint-above('medium') {

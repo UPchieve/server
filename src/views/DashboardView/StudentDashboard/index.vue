@@ -39,6 +39,11 @@ const headerData = {
   data: { important: true }
 }
 
+const bannedHeaderData = {
+  component: 'BannedStudentHeader',
+  data: { isBanned: true }
+}
+
 export default {
   name: 'student-dashboard',
   components: {
@@ -47,6 +52,10 @@ export default {
     FirstSessionCongratsModal
   },
   created() {
+    if(this.user.isBanned){
+      this.$store.dispatch('app/header/show', bannedHeaderData)
+    }
+
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', headerData)
     }
