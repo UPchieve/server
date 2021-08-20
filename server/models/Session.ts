@@ -134,10 +134,6 @@ const sessionSchema = new Schema({
     type: [String],
     enum: values(SESSION_FLAGS)
   },
-  // @todo: remove reviewedStudent and reviewedVolunteer two fields
-  //        after they've been unset from all session docs
-  reviewedStudent: Boolean,
-  reviewedVolunteer: Boolean,
   reviewed: { type: Boolean, default: false },
   toReview: { type: Boolean, default: false },
   timeTutored: { type: Number, default: 0 },

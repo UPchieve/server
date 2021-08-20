@@ -64,7 +64,9 @@ export {
 }
 
 export async function reviewSession(data: unknown) {
-  const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(data)
+  const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
+    data
+  )
   return SessionRepo.updateReviewedStatus(sessionId, { reviewed, toReview })
 }
 

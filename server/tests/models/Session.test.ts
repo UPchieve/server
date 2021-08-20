@@ -444,7 +444,7 @@ describe('updateSessionToEnd', () => {
       timeTutored: 5000,
       hasWhiteboardDoc: true,
       quillDoc: '',
-      flags: [SESSION_FLAGS.FIRST_TIME_STUDENT],
+      flags: [SESSION_FLAGS.FIRST_TIME_STUDENT]
     }
     await SessionRepo.updateSessionToEnd(session._id.toString(), data)
     const updatedSession = await getSession(
@@ -455,7 +455,7 @@ describe('updateSessionToEnd', () => {
         timeTutored: 1,
         hasWhiteboardDoc: 1,
         quillDoc: 1,
-        flags: 1,
+        flags: 1
       }
     )
 
