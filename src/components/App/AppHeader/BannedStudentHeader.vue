@@ -1,5 +1,5 @@
 <template>
-  <div v-if="studentIsBanned" class="top-banner-notice">
+  <div class="top-banner-notice">
     <div v-if="mobileMode" class="top-banner-message--mobile">
       {{message}}
     </div>
