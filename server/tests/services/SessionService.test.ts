@@ -59,6 +59,7 @@ import TwilioService from '../../services/twilio'
 import { FeedbackVersionTwo } from '../../models/Feedback'
 import * as cache from '../../cache'
 import { NotAllowedError, LookupError } from '../../models/Errors'
+import { isEnabled } from 'unleash-client'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
@@ -840,21 +841,23 @@ describe('startSession', () => {
     }
   })
 
-  test('Should throw an error that banned students cannot request sessions', async () => {
-    const input = {
-      ip: getIpAddress(),
-      user: buildStudent({ isBanned: true }),
-      sessionSubTopic: SUBJECTS.PREALGREBA,
-      sessionType: SUBJECT_TYPES.MATH,
-      userAgent: getUserAgent()
-    }
-    try {
-      await SessionService.startSession(input)
-    } catch (error) {
-      expect(error).toBeInstanceOf(StartSessionError)
-      expect(error.message).toBe('Banned students cannot request a new session')
-    }
-  })
+  if(isEnabled("student-banned-state")) {
+    test('Should throw an error that banned students cannot request sessions', async () => {
+      const input = {
+        ip: getIpAddress(),
+        user: buildStudent({ isBanned: true }),
+        sessionSubTopic: SUBJECTS.PREALGREBA,
+        sessionType: SUBJECT_TYPES.MATH,
+        userAgent: getUserAgent()
+      }
+      try {
+        await SessionService.startSession(input)
+      } catch (error) {
+        expect(error).toBeInstanceOf(StartSessionError)
+        expect(error.message).toBe('Banned students cannot request a new session')
+      }
+    })
+  }  
 
   test('Should throw an error if student is already in a session', async () => {
     const input = {
