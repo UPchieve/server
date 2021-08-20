@@ -21,7 +21,7 @@ import {
   getObjectId
 } from '../generate'
 import { Message } from '../../models/Message'
-import { SESSION_FLAGS, SUBJECTS } from '../../constants'
+import { SESSION_FLAGS, SUBJECTS, BASE_SESSION_FLAGS } from '../../constants'
 
 /**
  * @todo refactor
@@ -289,8 +289,8 @@ describe('getReviewFlags', () => {
       volunteer
     }
     const result = getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.FIRST_TIME_STUDENT
-    expect(result).toContain(expected)
+    const expected = BASE_SESSION_FLAGS.FIRST_TIME_STUDENT
+    expect(result).toContainEqual(expected)
   })
 
   test(`Should trigger ${SESSION_FLAGS.FIRST_TIME_VOLUNTEER} flag for a volunteer's first session`, async () => {
@@ -316,8 +316,8 @@ describe('getReviewFlags', () => {
     }
 
     const result = getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.FIRST_TIME_VOLUNTEER
-    expect(result).toContain(expected)
+    const expected = BASE_SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+    expect(result).toContainEqual(expected)
   })
 
   test(`Should trigger ${SESSION_FLAGS.UNMATCHED} flag when a volunter does not join the session`, async () => {
@@ -338,8 +338,8 @@ describe('getReviewFlags', () => {
     }
 
     const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.UNMATCHED]
-    expect(result).toEqual(expected)
+    const expected = BASE_SESSION_FLAGS.UNMATCHED
+    expect(result).toContainEqual(expected)
   })
 
   test(`Should trigger ${SESSION_FLAGS.LOW_MESSAGES} flag`, async () => {
@@ -368,8 +368,8 @@ describe('getReviewFlags', () => {
     }
 
     const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.LOW_MESSAGES]
-    expect(result).toEqual(expected)
+    const expected = BASE_SESSION_FLAGS.LOW_MESSAGES
+    expect(result).toContainEqual(expected)
   })
 
   test(`Should trigger ${SESSION_FLAGS.ABSENT_USER} flag when only one user sends messages`, async () => {
@@ -392,8 +392,8 @@ describe('getReviewFlags', () => {
     }
 
     const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.ABSENT_USER]
-    expect(result).toEqual(expected)
+    const expected = BASE_SESSION_FLAGS.ABSENT_USER
+    expect(result).toContainEqual(expected)
   })
 
   test(`Should trigger ${SESSION_FLAGS.ABSENT_USER} flag when no user sends messages`, async () => {
@@ -416,8 +416,8 @@ describe('getReviewFlags', () => {
     }
 
     const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.ABSENT_USER]
-    expect(result).toEqual(expected)
+    const expected = BASE_SESSION_FLAGS.ABSENT_USER
+    expect(result).toContainEqual(expected)
   })
 
   test(`Should trigger ${SESSION_FLAGS.REPORTED} flag when a session was reported`, async () => {
@@ -441,8 +441,8 @@ describe('getReviewFlags', () => {
     }
 
     const result = getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.REPORTED
-    expect(result).toContain(expected)
+    const expected = BASE_SESSION_FLAGS.REPORTED
+    expect(result).toContainEqual(expected)
   })
 })
 
@@ -453,8 +453,8 @@ describe('getFeedbackFlags', () => {
       'session-goal': 4
     }
     const result = getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.STUDENT_RATING]
-    expect(result).toEqual(expected)
+    const expected = BASE_SESSION_FLAGS.STUDENT_RATING
+    expect(result).toContainEqual(expected)
   })
 
   test(`Should not add ${SESSION_FLAGS.STUDENT_RATING} flag when student leaves feedback ratings > 3`, () => {
@@ -471,8 +471,8 @@ describe('getFeedbackFlags', () => {
       'session-enjoyable': 3
     }
     const result = getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.VOLUNTEER_RATING]
-    expect(result).toEqual(expected)
+    const expected = BASE_SESSION_FLAGS.VOLUNTEER_RATING
+    expect(result).toContainEqual(expected)
   })
   test(`Should not add ${SESSION_FLAGS.VOLUNTEER_RATING} flag when student leaves feedback ratings > 3`, () => {
     const feedback = {
@@ -491,19 +491,25 @@ describe('getFeedbackFlags', () => {
       'other-feedback': comment
     }
     const result = getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.COMMENT]
-    expect(result).toEqual(expected)
+    const expected = BASE_SESSION_FLAGS.COMMENT
+    expect(result).toContainEqual(expected)
   })
 })
 
 describe('hasReviewTriggerFlags', () => {
   test('Should return true if flags contains a flag that triggers a review', () => {
-    const flags = [SESSION_FLAGS.REPORTED, SESSION_FLAGS.FIRST_TIME_STUDENT]
+    const flags = [
+      BASE_SESSION_FLAGS.REPORTED,
+      BASE_SESSION_FLAGS.FIRST_TIME_STUDENT
+    ]
     const result = hasReviewTriggerFlags(flags)
     expect(result).toBe(true)
   })
   test('Should return false if flags contains a flag that does not trigger a review', () => {
-    const flags = [SESSION_FLAGS.UNMATCHED, SESSION_FLAGS.LOW_MESSAGES]
+    const flags = [
+      BASE_SESSION_FLAGS.UNMATCHED,
+      BASE_SESSION_FLAGS.LOW_MESSAGES
+    ]
     const result = hasReviewTriggerFlags(flags)
     expect(result).toBe(false)
   })

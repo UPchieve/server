@@ -213,7 +213,7 @@ export async function endSession({
   const isReviewNeeded =
     reviewFlags.length > 0 && sessionUtils.hasReviewTriggerFlags(reviewFlags)
   const update: {
-    flags: SESSION_FLAGS[]
+    flags: SessionRepo.Flag[]
     quillDoc?: string
     hasWhiteboardDoc?: boolean
   } & ReviewedStatus = {
@@ -225,7 +225,7 @@ export async function endSession({
   let timeTutored = 0
   if (session.volunteer && session.volunteer._id) {
     // Calculate time tutored if both users were present in the session
-    if (!reviewFlags.includes(SESSION_FLAGS.ABSENT_USER)) {
+    if (!SessionRepo.extractFlagKeys(reviewFlags).includes(SESSION_FLAGS.ABSENT_USER)) {
       timeTutored = sessionUtils.calculateTimeTutored({ ...session, endedAt })
       const fifteenMinutes = 1000 * 60 * 15
       const sendStudentFirstSessionCongrats =

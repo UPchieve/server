@@ -4,13 +4,14 @@ import { Socket } from 'socket.io'
 import { Volunteer } from '../models/Volunteer'
 import { Student } from '../models/Student'
 import { SESSION_FLAGS, SUBJECTS } from '../constants'
-import { Session } from '../models/Session'
+import { Session, Flag, newFlag } from '../models/Session'
 import { Message } from '../models/Message'
 import { DAYS, HOURS } from '../models/Availability/types'
 import {
   asArray,
   asBoolean,
   asDate,
+  asEnum,
   asFactory,
   asNumber,
   asObjectId,
@@ -22,16 +23,11 @@ export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
 export class ReportSessionError extends CustomError {}
 
-export function hasReviewTriggerFlags(flags) {
-  const excludedFlags = [
-    SESSION_FLAGS.UNMATCHED,
-    SESSION_FLAGS.LOW_MESSAGES,
-    SESSION_FLAGS.ABSENT_USER
-  ]
+export function hasReviewTriggerFlags(flags: Flag[]): boolean {
   let isReviewTrigger = false
 
   for (const flag of flags) {
-    if (!excludedFlags.includes(flag)) {
+    if (flag.causedReview === true) {
       isReviewTrigger = true
       break
     }
@@ -65,7 +61,7 @@ export function getMessagesAfterDate(messages, date) {
   return []
 }
 
-export function getReviewFlags(session) {
+export function getReviewFlags(session): Flag[] {
   const flags = []
   const {
     messages,
@@ -93,31 +89,33 @@ export function getReviewFlags(session) {
     const isVolunteersFirstSession = volunteer.pastSessions.length === 0
 
     // one user never sent any messages
-    if (!isFullConversation) flags.push(SESSION_FLAGS.ABSENT_USER)
+    if (!isFullConversation) flags.push(newFlag(SESSION_FLAGS.ABSENT_USER))
 
     // both users messaged back and forth and less than 20 messages were sent
     if (isFullConversation && messages.length < 20)
-      flags.push(SESSION_FLAGS.LOW_MESSAGES)
+      flags.push(newFlag(SESSION_FLAGS.LOW_MESSAGES))
 
     // volunteer was a first time user
-    if (isVolunteersFirstSession) flags.push(SESSION_FLAGS.FIRST_TIME_VOLUNTEER)
+    if (isVolunteersFirstSession)
+      flags.push(newFlag(SESSION_FLAGS.FIRST_TIME_VOLUNTEER))
 
     // session was reported by the volunteer
-    if (isReported) flags.push(SESSION_FLAGS.REPORTED)
+    if (isReported) flags.push(newFlag(SESSION_FLAGS.REPORTED))
   } else {
     // session duration >= 10 mins
-    if (sessionLength >= 1000 * 60 * 10) flags.push(SESSION_FLAGS.UNMATCHED)
+    if (sessionLength >= 1000 * 60 * 10)
+      flags.push(newFlag(SESSION_FLAGS.UNMATCHED))
   }
 
   // student was a first time user and session duration >= 1
   if (isStudentsFirstSession && sessionLength >= 1000 * 60)
-    flags.push(SESSION_FLAGS.FIRST_TIME_STUDENT)
+    flags.push(newFlag(SESSION_FLAGS.FIRST_TIME_STUDENT))
 
   return flags
 }
 
 // Get flags for a session if there's a feedback rating <= 3 or a comment was left
-export function getFeedbackFlags(feedback) {
+export function getFeedbackFlags(feedback): Flag[] {
   const flags = []
   const otherFeedback = feedback['other-feedback']
   const feedbackRatings: {
@@ -135,10 +133,10 @@ export function getFeedbackFlags(feedback) {
       switch (key) {
         case 'studentSessionGoal':
         case 'studentCoachRating':
-          flags.push(SESSION_FLAGS.STUDENT_RATING)
+          flags.push(newFlag(SESSION_FLAGS.STUDENT_RATING))
           break
         case 'volunteerSessionEnjoyable':
-          flags.push(SESSION_FLAGS.VOLUNTEER_RATING)
+          flags.push(newFlag(SESSION_FLAGS.VOLUNTEER_RATING))
           break
         default:
           break
@@ -147,7 +145,7 @@ export function getFeedbackFlags(feedback) {
     }
   }
 
-  if (otherFeedback) flags.push(SESSION_FLAGS.COMMENT)
+  if (otherFeedback) flags.push(newFlag(SESSION_FLAGS.COMMENT))
 
   return flags
 }
@@ -378,7 +376,13 @@ const sessionDataValidators = {
     isReported: asOptional(asBoolean),
     reportReason: asOptional(asString),
     reportMessage: asOptional(asString),
-    flags: asArray(asString),
+    flags: asArray(
+      asFactory<Flag>({
+        key: asEnum(SESSION_FLAGS),
+        causedReview: asBoolean,
+        metadata: asArray(asString)
+      })
+    ),
     reviewedStudent: asOptional(asBoolean),
     reviewedVolunteer: asOptional(asBoolean),
     reviewed: asOptional(asBoolean),

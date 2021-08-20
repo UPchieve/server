@@ -1,11 +1,11 @@
 import moment from 'moment-timezone'
-import { values } from 'lodash'
 import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
 import {
   FEEDBACK_VERSIONS,
   SESSION_FLAGS,
   USER_ACTION,
-  SUBJECT_TYPES
+  SUBJECT_TYPES,
+  BASE_SESSION_FLAGS
 } from '../constants'
 import MessageModel, { Message } from './Message'
 import { Notification } from './Notification'
@@ -21,6 +21,12 @@ const validTypes = [
   SUBJECT_TYPES.SAT,
   SUBJECT_TYPES.READING_WRITING
 ]
+
+export interface Flag {
+  key: SESSION_FLAGS
+  causedReview: boolean
+  metadata: string[]
+}
 
 export interface Session {
   _id: Types.ObjectId
@@ -42,7 +48,7 @@ export interface Session {
   isReported: boolean
   reportReason: string
   reportMessage: string
-  flags: string[]
+  flags: Flag[]
   reviewedStudent: boolean
   reviewedVolunteer: boolean
   reviewed: boolean
@@ -51,6 +57,35 @@ export interface Session {
 }
 
 export type SessionDocument = Session & Document
+
+function flagEnumAsArray() {
+  const arr = []
+  for (const flag in SESSION_FLAGS) {
+    arr.push(flag)
+  }
+  return arr
+}
+
+const flagSchema = new Schema(
+  {
+    key: {
+      type: String,
+      requrired: true,
+      enum: flagEnumAsArray()
+    },
+    causedReview: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    metadata: {
+      type: [String],
+      default: []
+    }
+  },
+  // stop mongo from assigning IDs to flags
+  { _id: false }
+)
 
 const sessionSchema = new Schema({
   student: {
@@ -132,10 +167,7 @@ const sessionSchema = new Schema({
   },
   reportReason: String,
   reportMessage: String,
-  flags: {
-    type: [String],
-    enum: values(SESSION_FLAGS)
-  },
+  flags: [flagSchema],
   reviewedStudent: Boolean,
   reviewedVolunteer: Boolean,
   reviewed: { type: Boolean, default: false },
@@ -154,6 +186,21 @@ const SessionModel = model<SessionDocument, SessionStaticModel>(
 )
 
 /** SessionRepo functions below */
+export function newFlag(key: SESSION_FLAGS, metadata: string[] = []): Flag {
+  const base = BASE_SESSION_FLAGS[key]
+  const newFlag = Object.assign({}, base)
+  newFlag.metadata = metadata
+  return newFlag
+}
+
+export function extractFlagKeys(flags: Flag[]): string[] {
+  const keys = []
+  for (const flag of flags) {
+    keys.push(flag.key)
+  }
+  return keys
+}
+
 export async function addNotifications(sessionId, notificationsToAdd) {
   const query = { _id: sessionId }
   const update = {
@@ -230,11 +277,11 @@ export function getSessionsWithPipeline(pipeline) {
 
 export async function updateFlags(
   sessionId: Types.ObjectId | string,
-  flags
+  flags: Flag[]
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
-    $addToSet: { flags },
+    $addToSet: { flags: { $each: flags } },
     reviewedStudent: false,
     reviewedVolunteer: false
   }
@@ -340,7 +387,7 @@ interface SessionsToReview {
   subTopic: string
   studentFirstName: string
   isReported: boolean
-  flags: string[]
+  flags: Flag[]
 }
 
 export async function getSessionsToReview({

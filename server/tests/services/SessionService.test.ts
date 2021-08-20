@@ -30,6 +30,7 @@ import {
 import {
   EVENTS,
   SESSION_FLAGS,
+  BASE_SESSION_FLAGS,
   SESSION_REPORT_REASON,
   SUBJECTS,
   SUBJECT_TYPES
@@ -482,7 +483,7 @@ describe('endSession', () => {
         async () => mockedSession
       )
       spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+        BASE_SESSION_FLAGS.FIRST_TIME_VOLUNTEER
       ])
       spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
       spyIsSessionParticipant.mockImplementationOnce(() => true)
@@ -526,7 +527,7 @@ describe('endSession', () => {
         async () => mockedSession
       )
       spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+        BASE_SESSION_FLAGS.FIRST_TIME_VOLUNTEER
       ])
       spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
       spyIsSessionParticipant.mockImplementationOnce(() => true)
@@ -564,7 +565,7 @@ describe('endSession', () => {
         async () => mockedSession
       )
       spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+        BASE_SESSION_FLAGS.FIRST_TIME_VOLUNTEER
       ])
       spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
       spyIsSessionParticipant.mockImplementationOnce(() => true)
@@ -611,7 +612,7 @@ describe('endSession', () => {
         async () => mockedSession
       )
       spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+        BASE_SESSION_FLAGS.FIRST_TIME_VOLUNTEER
       ])
       spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
       spyIsSessionParticipant.mockImplementationOnce(() => true)
@@ -640,7 +641,7 @@ describe('endSession', () => {
         async () => mockedSession
       )
       spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+        BASE_SESSION_FLAGS.FIRST_TIME_VOLUNTEER
       ])
       spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
       spyIsSessionParticipant.mockImplementationOnce(() => true)
