@@ -113,9 +113,7 @@ describe('sessionsToReview', () => {
     mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
       async () => mockedSessions
     )
-    const { isLastPage, sessions } = await SessionService.sessionsToReview(
-      page
-    )
+    const { isLastPage, sessions } = await SessionService.sessionsToReview(page)
     expect(isLastPage).toBeTruthy()
     expect(sessions).toEqual(mockedSessions)
     expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
