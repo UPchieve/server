@@ -445,8 +445,8 @@ export const buildSession = (overrides = {}): Session => {
     reportReason: null,
     reportMessage: null,
     flags: [],
-    reviewedStudent: undefined,
-    reviewedVolunteer: undefined,
+    reviewed: false,
+    toReview: false,
     timeTutored: 0,
     ...overrides
   }

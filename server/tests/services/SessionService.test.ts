@@ -91,49 +91,21 @@ beforeEach(async () => {
 })
 
 describe('reviewSession', () => {
-  test('Should not make any updates', async () => {
+  test('Should update the review status for a session', async () => {
     const sessionId = getStringObjectId()
     const input = {
       sessionId,
-      reviewedStudent: undefined,
-      reviewedVolunteer: undefined
+      reviewed: true,
+      toReview: false
     }
     await SessionService.reviewSession(input)
-    expect(SessionRepo.updateReviewedStudent).toHaveBeenCalledTimes(0)
-    expect(SessionRepo.updateReviewedVolunteer).toHaveBeenCalledTimes(0)
-  })
-
-  test('Should update reviewedStudent', async () => {
-    const sessionId = getStringObjectId()
-    const input = {
-      sessionId,
-      reviewedStudent: true,
-      reviewedVolunteer: undefined
-    }
-    await SessionService.reviewSession(input)
-    expect(SessionRepo.updateReviewedStudent).toHaveBeenCalledTimes(1)
-    expect(SessionRepo.updateReviewedVolunteer).toHaveBeenCalledTimes(0)
-  })
-
-  test('Should update reviewedVolunteer', async () => {
-    const sessionId = getStringObjectId()
-    const input = {
-      sessionId,
-      reviewedStudent: undefined,
-      reviewedVolunteer: true
-    }
-    await SessionService.reviewSession(input)
-    expect(SessionRepo.updateReviewedStudent).toHaveBeenCalledTimes(0)
-    expect(SessionRepo.updateReviewedVolunteer).toHaveBeenCalledTimes(1)
+    expect(SessionRepo.updateReviewedStatus).toHaveBeenCalledTimes(1)
   })
 })
 
 describe('sessionsToReview', () => {
-  test('Should get sessions to review the student', async () => {
-    const input = {
-      users: 'students',
-      page: '1'
-    }
+  test('Should get sessions to review', async () => {
+    const page = '1'
     const mockedSessions = [
       mockedGetSessionsToReview(),
       mockedGetSessionsToReview()
@@ -142,72 +114,19 @@ describe('sessionsToReview', () => {
       async () => mockedSessions
     )
     const { isLastPage, sessions } = await SessionService.sessionsToReview(
-      input
+      page
     )
     expect(isLastPage).toBeTruthy()
     expect(sessions).toEqual(mockedSessions)
     expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
       limit: 15,
-      query: { reviewedStudent: false },
-      skip: 0
-    })
-  })
-
-  test('Should get sessions to review the volunteer', async () => {
-    const input = {
-      users: 'volunteers',
-      page: '1'
-    }
-    const mockedSessions = [
-      mockedGetSessionsToReview(),
-      mockedGetSessionsToReview()
-    ]
-    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
-      async () => mockedSessions
-    )
-    const { isLastPage, sessions } = await SessionService.sessionsToReview(
-      input
-    )
-    expect(isLastPage).toBeTruthy()
-    expect(sessions).toEqual(mockedSessions)
-    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
-      limit: 15,
-      query: { reviewedVolunteer: false },
-      skip: 0
-    })
-  })
-
-  test('Should get sessions to review both the student and volunteer', async () => {
-    const input = {
-      users: '',
-      page: '1'
-    }
-    const mockedSessions = [
-      mockedGetSessionsToReview(),
-      mockedGetSessionsToReview()
-    ]
-    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
-      async () => mockedSessions
-    )
-    const { isLastPage, sessions } = await SessionService.sessionsToReview(
-      input
-    )
-    expect(isLastPage).toBeTruthy()
-    expect(sessions).toEqual(mockedSessions)
-    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
-      limit: 15,
-      query: {
-        $or: [{ reviewedStudent: false }, { reviewedVolunteer: false }]
-      },
+      query: { toReview: true, reviewed: false },
       skip: 0
     })
   })
 
   test('Should not be the last page if the total number of sessions is greater than the limit', async () => {
-    const input = {
-      users: 'volunteers',
-      page: '1'
-    }
+    const page = '1'
     const mockedSessions = []
     for (let i = 0; i < 20; i++) {
       mockedSessions.push(mockedGetSessionsToReview())
@@ -215,99 +134,7 @@ describe('sessionsToReview', () => {
     mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
       async () => mockedSessions
     )
-    const { isLastPage } = await SessionService.sessionsToReview(input)
-    expect(isLastPage).toBeFalsy()
-  })
-})
-
-describe('sessionsToReview', () => {
-  test('Should not make any updates', async () => {
-    const input = {
-      users: 'volunteers',
-      page: '1'
-    }
-    const mockedSessions = [
-      mockedGetSessionsToReview(),
-      mockedGetSessionsToReview()
-    ]
-    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
-      async () => mockedSessions
-    )
-    const { isLastPage, sessions } = await SessionService.sessionsToReview(
-      input
-    )
-    expect(isLastPage).toBeTruthy()
-    expect(sessions).toEqual(mockedSessions)
-    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
-      limit: 15,
-      query: { reviewedVolunteer: false },
-      skip: 0
-    })
-  })
-
-  test('Should not make any updates', async () => {
-    const input = {
-      users: 'students',
-      page: '1'
-    }
-    const mockedSessions = [
-      mockedGetSessionsToReview(),
-      mockedGetSessionsToReview()
-    ]
-    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
-      async () => mockedSessions
-    )
-    const { isLastPage, sessions } = await SessionService.sessionsToReview(
-      input
-    )
-    expect(isLastPage).toBeTruthy()
-    expect(sessions).toEqual(mockedSessions)
-    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
-      limit: 15,
-      query: { reviewedStudent: false },
-      skip: 0
-    })
-  })
-
-  test('Should not make any updates', async () => {
-    const input = {
-      users: '',
-      page: '1'
-    }
-    const mockedSessions = [
-      mockedGetSessionsToReview(),
-      mockedGetSessionsToReview()
-    ]
-    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
-      async () => mockedSessions
-    )
-    const { isLastPage, sessions } = await SessionService.sessionsToReview(
-      input
-    )
-    expect(isLastPage).toBeTruthy()
-    expect(sessions).toEqual(mockedSessions)
-    expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
-      limit: 15,
-      query: {
-        $or: [{ reviewedStudent: false }, { reviewedVolunteer: false }]
-      },
-      skip: 0
-    })
-  })
-
-  test('Should not be last page', async () => {
-    const input = {
-      users: 'volunteer',
-      page: '1'
-    }
-    const mockedSessions = []
-    for (let i = 0; i < 20; i++) {
-      mockedSessions.push(mockedGetSessionsToReview())
-    }
-    mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
-      async () => mockedSessions
-    )
-    const { isLastPage } = await SessionService.sessionsToReview(input)
+    const { isLastPage } = await SessionService.sessionsToReview(page)
     expect(isLastPage).toBeFalsy()
   })
 })

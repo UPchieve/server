@@ -297,8 +297,8 @@ export interface SessionsToReviewOptions {
 
 export interface ReviewSessionOptions {
   sessionId: string
-  reviewedStudent?: boolean
-  reviewedVolunteer?: boolean
+  reviewed: boolean
+  toReview: boolean
 }
 
 export interface ReportSessionOptions {
@@ -379,8 +379,6 @@ const sessionDataValidators = {
     reportReason: asOptional(asString),
     reportMessage: asOptional(asString),
     flags: asArray(asString),
-    reviewedStudent: asOptional(asBoolean),
-    reviewedVolunteer: asOptional(asBoolean),
     reviewed: asOptional(asBoolean),
     toReview: asOptional(asBoolean),
     timeTutored: asOptional(asNumber),
@@ -416,8 +414,8 @@ export const asSessionsToReviewData = asFactory<SessionsToReviewOptions>({
 
 export const asReviewSessionData = asFactory<ReviewSessionOptions>({
   sessionId: asString,
-  reviewedStudent: asOptional(asBoolean),
-  reviewedVolunteer: asOptional(asBoolean)
+  reviewed: asBoolean,
+  toReview: asBoolean
 })
 
 export const asReportSessionData = asFactory<ReportSessionOptions>({

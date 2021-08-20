@@ -1198,11 +1198,10 @@ paths:
             schema:
               type: object
               properties:
-                reviewedStudent:
+                reviewed:
                   type: boolean
-                reviewedVolunteer:
+                toReview:
                   type: boolean
-                  example: false
       responses:
         '200':
           description: Returns OK message when session has been updated

@@ -317,13 +317,9 @@ export default {
       .get(`${API_ROOT}/session/${sessionId}/notifications`)
       .then(this._successHandler, this._errorHandler)
   },
-  adminGetSessionsToReview({ page, users }) {
-    const queryParams = new URLSearchParams({
-      page,
-      users
-    }).toString()
+  adminGetSessionsToReview(page) {
     return Vue.http
-      .get(`${API_ROOT}/session/review?${queryParams}`)
+      .get(`${API_ROOT}/session/review?page=${page}`)
       .then(this._successHandler, this._errorHandler)
   },
   adminUpdateSession(sessionId, data) {

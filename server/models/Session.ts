@@ -43,8 +43,6 @@ export interface Session {
   reportReason: string
   reportMessage: string
   flags: string[]
-  reviewedStudent: boolean
-  reviewedVolunteer: boolean
   reviewed: boolean
   toReview: boolean
   timeTutored: number
@@ -136,6 +134,8 @@ const sessionSchema = new Schema({
     type: [String],
     enum: values(SESSION_FLAGS)
   },
+  // @todo: remove reviewedStudent and reviewedVolunteer two fields
+  //        after they've been unset from all session docs
   reviewedStudent: Boolean,
   reviewedVolunteer: Boolean,
   reviewed: { type: Boolean, default: false },
@@ -235,8 +235,8 @@ export async function updateFlags(
   const query = { _id: sessionId }
   const update = {
     $addToSet: { flags },
-    reviewedStudent: false,
-    reviewedVolunteer: false
+    // @todo: Needs to be computed from which flags trigger a need for review
+    toReview: true
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -258,28 +258,14 @@ export async function updateFailedJoins(
   }
 }
 
-export async function updateReviewedStudent(
+export async function updateReviewedStatus(
   sessionId: Types.ObjectId | string,
-  reviewedStatus: boolean
+  { reviewed, toReview }: { reviewed: boolean; toReview: boolean }
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
-    reviewedStudent: reviewedStatus
-  }
-  try {
-    await SessionModel.updateOne(query, update)
-  } catch (error) {
-    throw new DocUpdateError(error, query, update)
-  }
-}
-
-export async function updateReviewedVolunteer(
-  sessionId: Types.ObjectId | string,
-  reviewedStatus: boolean
-): Promise<void> {
-  const query = { _id: sessionId }
-  const update = {
-    reviewedVolunteer: reviewedStatus
+    reviewed,
+    toReview
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -515,8 +501,6 @@ export async function updateSessionToEnd(
     hasWhiteboardDoc: data.hasWhiteboardDoc,
     quillDoc: data.quillDoc,
     flags: data.flags,
-    reviewedStudent: data.reviewedStudent,
-    reviewedVolunteer: data.reviewedVolunteer,
     toReview: data.toReview
   }
 
@@ -994,8 +978,8 @@ export async function getSessionByIdWithStudentAndVolunteer(
       reportReason: session.reportReason,
       reportMessage: session.reportMessage,
       flags: session.flags,
-      reviewedStudent: session.reviewedStudent,
-      reviewedVolunteer: session.reviewedVolunteer,
+      reviewed: session.reviewed,
+      toReview: session.toReview,
       timeTutored: session.timeTutored
     }
   } catch (error) {

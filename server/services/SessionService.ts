@@ -64,36 +64,19 @@ export {
 }
 
 export async function reviewSession(data: unknown) {
-  const {
-    sessionId,
-    reviewedStudent,
-    reviewedVolunteer
-  } = sessionUtils.asReviewSessionData(data)
-
-  if (reviewedStudent !== undefined)
-    return SessionRepo.updateReviewedStudent(sessionId, reviewedStudent)
-  if (reviewedVolunteer !== undefined)
-    return SessionRepo.updateReviewedVolunteer(sessionId, reviewedVolunteer)
-}
-
-interface ReviewedStatus {
-  reviewedStudent?: boolean
-  reviewedVolunteer?: boolean
+  const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(data)
+  return SessionRepo.updateReviewedStatus(sessionId, { reviewed, toReview })
 }
 
 export async function sessionsToReview(data: unknown) {
-  const { users, page } = sessionUtils.asSessionsToReviewData(data)
+  const page = asString(data)
   const pageNum = parseInt(page) || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
-
-  const query: {
-    $or?: ReviewedStatus[]
-  } & ReviewedStatus = {}
-  if (users === 'students') query.reviewedStudent = false
-  if (users === 'volunteers') query.reviewedVolunteer = false
-  if (!users)
-    query.$or = [{ reviewedStudent: false }, { reviewedVolunteer: false }]
+  const query = {
+    toReview: true,
+    reviewed: false
+  }
 
   const sessions = await SessionRepo.getSessionsToReview({
     query,
@@ -216,11 +199,9 @@ export async function endSession({
     flags: SESSION_FLAGS[]
     quillDoc?: string
     hasWhiteboardDoc?: boolean
-  } & ReviewedStatus = {
+  } = {
     flags: reviewFlags
   }
-
-  if (isReviewNeeded) update.reviewedStudent = false
 
   let timeTutored = 0
   if (session.volunteer && session.volunteer._id) {
@@ -269,7 +250,6 @@ export async function endSession({
       timeTutored
     )
 
-    if (isReviewNeeded) update.reviewedVolunteer = false
     if (session.volunteer.volunteerPartnerOrg) {
       if (session.volunteer.pastSessions.length === 4)
         QueueService.add(
