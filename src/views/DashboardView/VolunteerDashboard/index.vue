@@ -583,7 +583,10 @@ export default {
       const numRequestsFilled = _.get(user, 'pastSessions.length', '--')
 
       // (4) Hours tutored
-      const numHoursTutored = Number(this.user.hoursTutored) || '--'
+      const numMillisecondsTutored = Number(this.user.timeTutored)
+      const numHoursTutored = numMillisecondsTutored
+        ? Math.floor((numMillisecondsTutored / (1000 * 60 * 60)) % 24)
+        : 0
 
       // (5) Elapsed availability
       const numElapsedAvailabilityHours = user.elapsedAvailability

@@ -160,7 +160,7 @@ export interface Volunteer extends User {
   totalVolunteerHours: number
   trainingCourses: TrainingCourses
   linkedInUrl: string
-  hoursTutored: Types.Decimal128
+  hoursTutored?: Types.Decimal128 // TODO: remove once all data is gone
   timeTutored: number
   sentHourSummaryIntroEmail: boolean
   sentInactiveThirtyDayEmail: boolean

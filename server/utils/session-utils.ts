@@ -163,11 +163,20 @@ export function isSessionParticipant(session, user) {
   return userId === studentId || userId === volunteerId
 }
 
-export function calculateTimeTutored(session) {
+/**
+ * Calculate milliseconds tutored from the most recent session
+ * @param session completed tutoring session
+ * @returns milliseconds tutored in this session
+ */
+export function calculateTimeTutored(
+  volunteerJoinedAt: Date,
+  endedAt: Date,
+  messages: Message[],
+  volunteer: any
+): number {
   const threeHoursMs = 1000 * 60 * 60 * 3
   const fifteenMinsMs = 1000 * 60 * 15
 
-  const { volunteerJoinedAt, endedAt, messages, volunteer } = session
   if (!volunteer) return 0
   // skip if no messages are sent
   if (messages.length === 0) return 0
@@ -192,8 +201,8 @@ export function calculateTimeTutored(session) {
     while (
       latestMessageIndex > 0 &&
       (wasMessageSentAfterSessionEnded ||
-        messages[latestMessageIndex].createdAt -
-          messages[latestMessageIndex - 1].createdAt >
+        +messages[latestMessageIndex].createdAt -
+          +messages[latestMessageIndex - 1].createdAt >
           fifteenMinsMs)
     ) {
       latestMessageIndex--

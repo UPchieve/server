@@ -209,7 +209,12 @@ export async function endSession({
   if (session.volunteer && session.volunteer._id) {
     // Calculate time tutored if both users were present in the session
     if (!reviewFlags.includes(SESSION_FLAGS.ABSENT_USER)) {
-      timeTutored = sessionUtils.calculateTimeTutored({ ...session, endedAt })
+      timeTutored = sessionUtils.calculateTimeTutored(
+        session.volunteerJoinedAt,
+        endedAt,
+        session.messages,
+        session.volunteerJoinedAt
+      )
       const fifteenMinutes = 1000 * 60 * 15
       const sendStudentFirstSessionCongrats =
         session.student.pastSessions.length === 0 &&

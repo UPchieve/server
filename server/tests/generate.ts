@@ -240,7 +240,6 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     subjects: [],
     trainingCourses: buildTrainingCourses(),
     sentReadyToCoachEmail: false,
-    hoursTutored: Types.Decimal128.fromString('0'),
     timeTutored: 0,
     elapsedAvailability: 0,
     sentHourSummaryIntroEmail: false,

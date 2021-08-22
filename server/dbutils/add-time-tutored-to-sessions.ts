@@ -18,7 +18,7 @@ async function upgrade(): Promise<void> {
     const updates = [];
     for (const session of sessions) {
       // older sessions with a `volunteer` but no `volunteerJoinedAt` will return NaN
-      const timeTutored = calculateTimeTutored(session);
+      const timeTutored: number = calculateTimeTutored(session.volunteerJoinedAt, session.endedAt, session.messages, session.volunteer);
 
       updates.push(
         SessionModel.updateOne(
@@ -26,7 +26,7 @@ async function upgrade(): Promise<void> {
             _id: session._id
           },
           {
-            timeTutored: isNaN(timeTutored) ? 0 : timeTutored
+            timeTutored: timeTutored
           }
         )
       );
