@@ -665,6 +665,22 @@ describe('startSession', () => {
     }
   })
 
+  test('Should throw an error that banned students cannot request sessions', async () => {
+    const input = {
+      ip: getIpAddress(),
+      user: buildStudent({ isBanned: true }),
+      sessionSubTopic: SUBJECTS.PREALGREBA,
+      sessionType: SUBJECT_TYPES.MATH,
+      userAgent: getUserAgent()
+    }
+    try {
+      await SessionService.startSession(input)
+    } catch (error) {
+      expect(error).toBeInstanceOf(StartSessionError)
+      expect(error.message).toBe('Banned students cannot request a new session')
+    }
+  })
+
   test('Should throw an error if student is already in a session', async () => {
     const input = {
       ip: getIpAddress(),
@@ -683,32 +699,6 @@ describe('startSession', () => {
       expect(error).toBeInstanceOf(StartSessionError)
       expect(error.message).toBe('Student already has an active session')
     }
-  })
-
-  test('Should not notify volunteers if the student is banned', async () => {
-    const input = {
-      ip: getIpAddress(),
-      user: buildStudent({ isBanned: true }),
-      sessionSubTopic: SUBJECTS.PREALGREBA,
-      sessionType: SUBJECT_TYPES.MATH,
-      userAgent: getUserAgent()
-    }
-    const mockValue = mockedCreateSession()
-    mockedSessionRepo.getCurrentSession.mockImplementationOnce(async () => null)
-    mockedSessionRepo.createSession.mockImplementationOnce(
-      async () => mockValue
-    )
-    await SessionService.startSession(input)
-    expect(QueueService.add).toHaveBeenCalledWith(
-      Jobs.EndUnmatchedSession,
-      {
-        sessionId: mockValue._id
-      },
-      expect.anything()
-    )
-    expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
-    expect(TwilioService.beginRegularNotifications).toHaveBeenCalledTimes(0)
-    expect(TwilioService.beginFailsafeNotifications).toHaveBeenCalledTimes(0)
   })
 
   test('Should create a new session', async () => {
