@@ -1,6 +1,8 @@
 <template>
-  <div class="HeaderTemplate" :class="setHeaderState.class">
-    <slot />
+  <div class="HeaderTemplate">
+    <div class="HeaderTemplate" :class="setHeaderState.class">
+      <slot />
+    </div>
   </div>
 </template>
 
@@ -15,13 +17,14 @@ export default {
   computed: {
     setHeaderState() {
       const status = {}
-      if (this.headerState == HEADER_STATES.BANNED_STUDENT) {
+      if (this.headerState === HEADER_STATES.BANNED_STUDENT) {
         status.class = 'HeaderTemplate--banned'
       }
 
-      if (this.headerState == HEADER_STATES.ACTIVE_SESSION) {
+      if (this.headerState === HEADER_STATES.ACTIVE_SESSION) {
         status.class = 'HeaderTemplate--activeSession'
       }
+      return status
     }
   }
 }
@@ -42,18 +45,18 @@ export default {
   left: 0;
   z-index: get-z('header');
 
+  @include breakpoint-above('medium') {
+    border-radius: 0;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+    padding: 12px 20px;
+  }
+
   &--activeSession {
     background: $c-warning-orange;
   }
 
   &--banned {
     background: #8b939f;
-  }
-
-  @include breakpoint-above('medium') {
-    border-radius: 0;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
-    padding: 12px 20px;
   }
 }
 </style>
