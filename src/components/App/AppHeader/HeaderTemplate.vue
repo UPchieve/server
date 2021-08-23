@@ -56,6 +56,7 @@ export default {
   }
 
   &--banned {
+    justify-content: center;
     background: #8b939f;
   }
 }

@@ -1,19 +1,20 @@
 <template>
-  <div class="top-banner-text">{{ message }}</div> </template
->>
+  <div class="top-banner-text">{{ message }}</div>
+</template>>
 
 <script>
-export default {
-  name: 'banned-student-header',
+export default({
+  name:'banned-student-header',
   props: {
     headerData: Object
   },
   computed: {
-    message() {
-      return 'Your account is under review'
+    message(){
+      return "Your account is under review"
     }
   }
-}
+})
+
 </script>
 
 <style lang="scss" scoped>
@@ -27,13 +28,13 @@ export default {
 //     padding: 40px;
 //   }
 
-.top-banner-text {
+.top-banner-text{
   @include font-category('display-small');
   display: flex;
   color: white;
   font: 'Work Sans';
   font-weight: 600;
   font-size: 18px;
-  justify-content: center;
-}
+  }
+
 </style>
