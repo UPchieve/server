@@ -1,7 +1,5 @@
 <template>
-  <div class="top-banner-notice">
-    <div class="top-banner-message">{{ message }}</div>
-  </div> </template
+  <div class="top-banner-text">{{ message }}</div> </template
 >>
 
 <script>
@@ -19,21 +17,23 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.top-banner-notice {
-  // display: flex;
-  //background-color: yellow;
-  // height: 64px;
-  // @include breakpoint-above('medium') {
-  //   display: inline-flex;
-  //   min-width: 100%;
-  padding: 40px;
-}
+// .top-banner-notice{
+//   // display: flex;
+//   //background-color: yellow;
+//   // height: 64px;
+//   // @include breakpoint-above('medium') {
+//   //   display: inline-flex;
+//   //   min-width: 100%;
+//     padding: 40px;
+//   }
 
 .top-banner-text {
   @include font-category('display-small');
-
-  &--mobile {
-    @include font-category('body');
-  }
+  display: flex;
+  color: white;
+  font: 'Work Sans';
+  font-weight: 600;
+  font-size: 18px;
+  justify-content: center;
 }
 </style>
