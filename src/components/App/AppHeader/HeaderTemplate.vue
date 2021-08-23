@@ -1,18 +1,30 @@
 <template>
   <div
     class="HeaderTemplate"
-    :class="{ 'HeaderTemplate--important': important, 'HeaderTemplate--banned': isBanned }"
+    :class="setHeaderState.class"
   >
     <slot />
   </div>
 </template>
 
 <script>
+import {HEADER_STATES} from '../../../../src/consts'
+
 export default {
   name: 'header-template',
   props: {
-    important: Boolean,
-    isBanned: Boolean
+    headerState: String
+  },
+  computed: {
+    setHeaderState(){
+      if(this.headerState == HEADER_STATES.BANNED_STUDENT){
+        this.class = 'HeaderTemplate--banned'
+      }
+
+      if(this.headerState == HEADER_STATES.ACTIVE_SESSION){
+        this.class = 'HeaderTemplate--activeSession'
+      }
+    }  
   }
 }
 </script>
@@ -32,7 +44,7 @@ export default {
   left: 0;
   z-index: get-z('header');
 
-  &--important {
+  &--activeSession {
     background: $c-warning-orange;
   }
 
