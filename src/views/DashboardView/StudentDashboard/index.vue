@@ -52,7 +52,7 @@ export default {
     FirstSessionCongratsModal
   },
   created() {
-    if(this.user.isBanned){
+    if (this.user.isBanned) {
       this.$store.dispatch('app/header/show', bannedHeaderData)
     }
 

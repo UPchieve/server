@@ -1,14 +1,11 @@
 <template>
-  <div
-    class="HeaderTemplate"
-    :class="setHeaderState.class"
-  >
+  <div class="HeaderTemplate" :class="setHeaderState.class">
     <slot />
   </div>
 </template>
 
 <script>
-import {HEADER_STATES} from '../../../../src/consts'
+import { HEADER_STATES } from '../../../../src/consts'
 
 export default {
   name: 'header-template',
@@ -16,15 +13,16 @@ export default {
     headerState: String
   },
   computed: {
-    setHeaderState(){
-      if(this.headerState == HEADER_STATES.BANNED_STUDENT){
-        this.class = 'HeaderTemplate--banned'
+    setHeaderState() {
+      const status = {}
+      if (this.headerState == HEADER_STATES.BANNED_STUDENT) {
+        status.class = 'HeaderTemplate--banned'
       }
 
-      if(this.headerState == HEADER_STATES.ACTIVE_SESSION){
-        this.class = 'HeaderTemplate--activeSession'
+      if (this.headerState == HEADER_STATES.ACTIVE_SESSION) {
+        status.class = 'HeaderTemplate--activeSession'
       }
-    }  
+    }
   }
 }
 </script>
@@ -49,7 +47,7 @@ export default {
   }
 
   &--banned {
-    background: #8B939F;
+    background: #8b939f;
   }
 
   @include breakpoint-above('medium') {
