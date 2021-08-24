@@ -30,7 +30,10 @@ async function pseudoCodeGetReasonsForReview(
   return reasons
 }
 
-/* alternative using classes
+/* 
+ * alternative using classes
+ * Class provides access to 'this.key' and 'this.getUpdateValue' to couple them better
+ * avoids some code duplication and consumer code needing to check value truthiness before updating
 
 export interface SessionMetricClass<T> {
   key: string,

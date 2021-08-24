@@ -13,7 +13,8 @@ export enum METRICS {
   reported = 'Reported',
   onlyLookingForAnswers = 'Only looking for answers',
   rudeOrInappropriate = 'Rude or inapprioriate',
-  comments = 'Has left comments',
+  commentFromStudent = 'Comment from student',
+  commentFromVolunteer = 'Comment from volunteer',
   hasBeenUnmatched = 'Has been unmatched',
   hasHadTechnicalIssues = 'Has had technical issues'
 }
@@ -30,7 +31,8 @@ export interface UserSessionMetrics {
     reported: number
     onlyLookingForAnswers: number
     rudeOrInappropriate: number
-    comments: number // user has left a comment in the feedback form
+    commentFromStudent: number // student has left a comment in the feedback form
+    commentFromVolunteer: number // volunteer has left a comment in the feedback form
     hasBeenUnmatched: number // user has had sessions longer than 1 minute end unmatched
     hasHadTechnicalIssues: number // user has had sessions where the volunteer reported technical issues
   }
@@ -68,7 +70,8 @@ const userSessionMetricsSchema = new Schema({
     reported: counterSchema,
     onlyLookingForAnswers: counterSchema,
     rudeOrInappropriate: counterSchema,
-    comments: counterSchema,
+    commentFromStudent: counterSchema,
+    commentFromVolunteer: counterSchema,
     hasBeenUnmatched: counterSchema,
     hasHasTechnicalIssues: counterSchema
   }
@@ -82,6 +85,14 @@ export const UserSessionMetricsModel = model<UserSessionMetricsDocument>(
 )
 
 // Utilities
+function getEnumKeyByEnumValue<T extends { [index: string]: string }>(
+  myEnum: T,
+  enumValue: string
+): keyof T | null {
+  const keys = Object.keys(myEnum).filter(x => myEnum[x] === enumValue)
+  return keys.length > 0 ? keys[0] : null
+}
+
 async function validUser(userId: Types.ObjectId | string): Promise<boolean> {
   const user = await UserModel.findById(userId)
     .lean()
@@ -155,9 +166,10 @@ export async function incrementCounterByUserId(
   metric: METRICS
 ): Promise<void> {
   try {
+    const path = getEnumKeyByEnumValue(METRICS, METRICS.absentStudent)
     const result = await UserSessionMetricsModel.updateOne(
       { user: userId },
-      { $inc: { [`counters.${METRICS[metric]}`]: 1 } }
+      { $inc: { [`counters.${path}`]: 1 } }
     )
     if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (err) {

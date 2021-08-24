@@ -5,8 +5,6 @@ import {
   incrementCounterByUserId
 } from '../../models/UserSessionMetrics'
 import { Session, updateFlags } from '../../models/Session'
-import { Student } from '../../models/Student'
-import { Volunteer } from '../../models/Volunteer'
 import { FeedbackVersionTwo } from '../../models/Feedback'
 import { FEEDBACK_VERSIONS } from '../../constants'
 
@@ -14,19 +12,18 @@ export type Counter = number
 const TRUE = 1 as Counter
 const FALSE = 0 as Counter
 // export type Label = String
+// type TRUE = String
+// const FALSE = '' as Label
 
 export interface MetricData {
   user: Types.ObjectId
   session: Session // a completed session
-  student: Student // prepopulate the student
-  volunteer?: Volunteer // prepopulate the volunteer
   feedback?: FeedbackVersionTwo // prepopulate the feedback
 }
 
 export interface SessionMetric<T> {
   key: string
-  path: string  // TODO: couple path to generic Type
-  needsFeedback: boolean
+  path: string // TODO: couple path to generic Type (Counter, Label, etc)
   getUpdateValue(md: MetricData): T
   update(md: MetricData, val?: T): Promise<void>
   review(val: T): boolean
@@ -34,7 +31,6 @@ export interface SessionMetric<T> {
 
 export const ABSENT_STUDENT: SessionMetric<Counter> = {
   key: METRICS.absentStudent,
-  needsFeedback: false,
   path: 'counters',
   getUpdateValue: md => {
     if (md.session.volunteerJoinedAt) {
@@ -50,7 +46,15 @@ export const ABSENT_STUDENT: SessionMetric<Counter> = {
     return FALSE
   },
   update: async function(md) {
-    await incrementCounterByUserId(md.user, METRICS.absentStudent)
+    await incrementCounterByUserId(
+      md.session.student as Types.ObjectId,
+      METRICS.absentStudent
+    )
+    if (md.session.volunteer)
+      await incrementCounterByUserId(
+        md.session.volunteer as Types.ObjectId,
+        METRICS.absentStudent
+      )
     await updateFlags(md.session._id, [METRICS.absentStudent])
   },
   review: val => val >= 4
@@ -58,7 +62,6 @@ export const ABSENT_STUDENT: SessionMetric<Counter> = {
 
 export const ABSENT_VOLUNTEER: SessionMetric<Counter> = {
   key: METRICS.absentVolunteer,
-  needsFeedback: false,
   path: 'counters',
   getUpdateValue: md => {
     if (md.session.volunteerJoinedAt) {
@@ -74,7 +77,15 @@ export const ABSENT_VOLUNTEER: SessionMetric<Counter> = {
     return FALSE
   },
   update: async md => {
-    await incrementCounterByUserId(md.user, METRICS.absentVolunteer)
+    await incrementCounterByUserId(
+      md.session.student as Types.ObjectId,
+      METRICS.absentVolunteer
+    )
+    if (md.session.volunteer)
+      await incrementCounterByUserId(
+        md.session.volunteer as Types.ObjectId,
+        METRICS.absentVolunteer
+      )
     await updateFlags(md.session._id, [METRICS.absentVolunteer])
   },
   review: val => val >= 2
@@ -82,7 +93,6 @@ export const ABSENT_VOLUNTEER: SessionMetric<Counter> = {
 
 export const LOW_COACH_RATING_FROM_STUDENT: SessionMetric<Counter> = {
   key: METRICS.lowCoachRatingFromStudent,
-  needsFeedback: true,
   path: 'counters',
   getUpdateValue: md => {
     if (md.feedback && md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
@@ -111,7 +121,6 @@ export const LOW_COACH_RATING_FROM_STUDENT: SessionMetric<Counter> = {
 
 export const LOW_SESSION_RATING_FROM_STUDENT: SessionMetric<Counter> = {
   key: METRICS.lowSessionRatingFromStudent,
-  needsFeedback: true,
   path: 'counters',
   getUpdateValue: md => {
     if (md.feedback && md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
@@ -138,7 +147,6 @@ export const LOW_SESSION_RATING_FROM_STUDENT: SessionMetric<Counter> = {
 
 export const LOW_SESSION_RATING_FROM_COACH: SessionMetric<Counter> = {
   key: METRICS.lowSessionRatingFromCoach,
-  needsFeedback: true,
   path: 'counters',
   getUpdateValue: md => {
     if (md.feedback && md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
@@ -160,7 +168,6 @@ export const LOW_SESSION_RATING_FROM_COACH: SessionMetric<Counter> = {
 
 export const REPORTED: SessionMetric<Counter> = {
   key: METRICS.reported,
-  needsFeedback: false,
   path: 'counters',
   getUpdateValue: md => (md.session.isReported ? TRUE : FALSE),
   update: async md => {
@@ -172,7 +179,6 @@ export const REPORTED: SessionMetric<Counter> = {
 
 export const RUDE_OR_INAPPROPRIATE: SessionMetric<Counter> = {
   key: METRICS.rudeOrInappropriate,
-  needsFeedback: true,
   path: 'counters',
   getUpdateValue: md => {
     if (md.feedback && md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
@@ -196,7 +202,6 @@ export const RUDE_OR_INAPPROPRIATE: SessionMetric<Counter> = {
 
 export const ONLY_LOOKING_FOR_ANSWERS: SessionMetric<Counter> = {
   key: METRICS.onlyLookingForAnswers,
-  needsFeedback: true,
   path: 'counters',
   getUpdateValue: md => {
     if (md.feedback && md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
@@ -218,39 +223,46 @@ export const ONLY_LOOKING_FOR_ANSWERS: SessionMetric<Counter> = {
   review: val => val >= 2
 }
 
-export const COMMENTS: SessionMetric<Counter> = {
-  key: METRICS.comments,
-  needsFeedback: true,
+export const COMMENT_FROM_STUDENT: SessionMetric<Counter> = {
+  key: METRICS.commentFromStudent,
   path: 'counters',
   getUpdateValue: md => {
     if (md.feedback && md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
-      let feedback
-      if (md.user === md.session.student)
-        if (md.feedback.studentTutoringFeedback)
-          feedback = md.feedback.studentTutoringFeedback
-        else if (md.feedback.studentCounselingFeedback)
-          feedback = md.feedback.studentCounselingFeedback
-        else if (md.session.volunteer && md.user === md.session.volunteer)
-          if (md.feedback.volunteerFeedback)
-            feedback = md.feedback.volunteerFeedback
-          else return FALSE
+      const feedback = md.feedback.studentTutoringFeedback
+        ? md.feedback.studentTutoringFeedback
+        : md.feedback.studentCounselingFeedback
       return feedback['other-feedback'] ? TRUE : FALSE
     }
     return FALSE
   },
   update: async md => {
-    await incrementCounterByUserId(md.user, METRICS.comments)
-    await updateFlags(md.session._id, [METRICS.comments])
+    await incrementCounterByUserId(md.user, METRICS.commentFromStudent)
+    await updateFlags(md.session._id, [METRICS.commentFromStudent])
+  },
+  review: () => false
+}
+
+export const COMMENT_FROM_VOLUNTEER: SessionMetric<Counter> = {
+  key: METRICS.commentFromVolunteer,
+  path: 'counters',
+  getUpdateValue: md => {
+    if (md.feedback && md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
+      if (md.session.volunteer && md.feedback.volunteerFeedback)
+        return md.feedback.volunteerFeedback['other-feedback'] ? TRUE : FALSE
+    }
+    return FALSE
+  },
+  update: async md => {
+    await incrementCounterByUserId(md.user, METRICS.commentFromVolunteer)
+    await updateFlags(md.session._id, [METRICS.commentFromVolunteer])
   },
   review: () => false
 }
 
 export const HAS_BEEN_UNMATCHED: SessionMetric<Counter> = {
   key: METRICS.hasBeenUnmatched,
-  needsFeedback: false,
   path: 'counters',
-  getUpdateValue: md =>
-    md.session.student === md.user && !md.session.volunteer ? TRUE : FALSE,
+  getUpdateValue: md => (!md.session.volunteer ? TRUE : FALSE),
   update: async md => {
     await incrementCounterByUserId(md.user, METRICS.hasBeenUnmatched)
   },
@@ -259,7 +271,6 @@ export const HAS_BEEN_UNMATCHED: SessionMetric<Counter> = {
 
 export const HAS_HAD_TECHNICAL_ISSUES: SessionMetric<Counter> = {
   key: METRICS.hasHadTechnicalIssues,
-  needsFeedback: true,
   path: 'counters',
   getUpdateValue: md => {
     if (md.feedback && md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
@@ -280,4 +291,17 @@ export const HAS_HAD_TECHNICAL_ISSUES: SessionMetric<Counter> = {
   review: () => false
 }
 
-export const METRIC_PROCESSORS = [HAS_BEEN_UNMATCHED, HAS_HAD_TECHNICAL_ISSUES]
+export const METRIC_PROCESSORS = [
+  ABSENT_STUDENT,
+  ABSENT_VOLUNTEER,
+  LOW_COACH_RATING_FROM_STUDENT,
+  LOW_SESSION_RATING_FROM_STUDENT,
+  LOW_SESSION_RATING_FROM_COACH,
+  REPORTED,
+  RUDE_OR_INAPPROPRIATE,
+  ONLY_LOOKING_FOR_ANSWERS,
+  COMMENT_FROM_STUDENT,
+  COMMENT_FROM_VOLUNTEER,
+  HAS_BEEN_UNMATCHED,
+  HAS_HAD_TECHNICAL_ISSUES
+]

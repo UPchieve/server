@@ -32,9 +32,7 @@ function buildMetricData(
   feedback?: FeedbackVersionTwo
 ): METRICS.MetricData {
   return {
-    user: user,
-    student,
-    volunteer,
+    user,
     session,
     feedback
   }
@@ -180,7 +178,7 @@ describe('Metrics have correct "getUpdateValue" functions', () => {
     expect(METRICS.ONLY_LOOKING_FOR_ANSWERS.getUpdateValue(md)).toBeTruthy()
   })
 
-  test('Comments (student)', () => {
+  test('Comment from student', () => {
     const session = startSession()
     const feedback = buildFeedback({
       versionNumber: FEEDBACK_VERSIONS.TWO
@@ -189,10 +187,10 @@ describe('Metrics have correct "getUpdateValue" functions', () => {
     feedback.studentTutoringFeedback['other-feedback'] = 'hello'
 
     const md = buildMetricData(student._id, session, feedback)
-    expect(METRICS.COMMENTS.getUpdateValue(md)).toBeTruthy()
+    expect(METRICS.COMMENT_FROM_STUDENT.getUpdateValue(md)).toBeTruthy()
   })
 
-  test('Comments (volunteer)', () => {
+  test('Comment from volunteer', () => {
     const session = startSession()
     joinSession(session)
     const feedback = buildFeedback({
@@ -202,7 +200,7 @@ describe('Metrics have correct "getUpdateValue" functions', () => {
     feedback.volunteerFeedback['other-feedback'] = 'hello'
 
     const md = buildMetricData(volunteer._id, session, feedback)
-    expect(METRICS.COMMENTS.getUpdateValue(md)).toBeTruthy()
+    expect(METRICS.COMMENT_FROM_VOLUNTEER.getUpdateValue(md)).toBeTruthy()
   })
 
   test('Has been unmatched', () => {
@@ -242,88 +240,96 @@ describe('Metrics have correct "update" functions', () => {
   joinSession(session)
   const md = buildMetricData(student._id, session)
 
-  test('Absent student', () => {
+  test('Absent student', async () => {
     const metric = METRICS.ABSENT_STUDENT
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
     expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
   })
 
-  test('Absent volunteer', () => {
+  test('Absent volunteer', async () => {
     const metric = METRICS.ABSENT_VOLUNTEER
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
     expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
   })
 
-  test('Low coach rating from student', () => {
+  test('Low coach rating from student', async () => {
     const metric = METRICS.LOW_COACH_RATING_FROM_STUDENT
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
     expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
   })
 
-  test('Low session rating from student', () => {
+  test('Low session rating from student', async () => {
     const metric = METRICS.LOW_SESSION_RATING_FROM_STUDENT
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
     expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
   })
 
-  test('Low session rating from volunteer', () => {
+  test('Low session rating from volunteer', async () => {
     const metric = METRICS.LOW_SESSION_RATING_FROM_COACH
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
     expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
   })
 
-  test('Reported', () => {
+  test('Reported', async () => {
     const metric = METRICS.REPORTED
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
     expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
   })
 
-  test('Rude or inappropriate', () => {
+  test('Rude or inappropriate', async () => {
     const metric = METRICS.RUDE_OR_INAPPROPRIATE
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
     expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
   })
 
-  test('Only looking for answers', () => {
+  test('Only looking for answers', async () => {
     const metric = METRICS.ONLY_LOOKING_FOR_ANSWERS
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
     expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
   })
 
-  test('Comments', () => {
-    const metric = METRICS.COMMENTS
-    expect(metric.update(md)).not.toThrow()
+  test('Comment from student', async () => {
+    const metric = METRICS.COMMENT_FROM_STUDENT
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
     expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
   })
 
-  test('Has been unmatched', () => {
+  test('Comment from volunteer', async () => {
+    const metric = METRICS.COMMENT_FROM_VOLUNTEER
+    await expect(metric.update(md)).resolves.not.toThrow()
+
+    expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
+    expect(updateFlags).toHaveBeenCalledWith(md.session._id, [metric.key])
+  })
+
+  test('Has been unmatched', async () => {
     const metric = METRICS.HAS_BEEN_UNMATCHED
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
   })
 
-  test('Has had technical issues', () => {
+  test('Has had technical issues', async () => {
     const metric = METRICS.HAS_HAD_TECHNICAL_ISSUES
-    expect(metric.update(md)).not.toThrow()
+    await expect(metric.update(md)).resolves.not.toThrow()
 
     expect(incrementCounterByUserId).toHaveBeenCalledWith(md.user, metric.key)
   })
