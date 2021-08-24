@@ -59,7 +59,9 @@ describe('Test create UserSessionModel objects', () => {
   })
 
   test('Create succeeds for volunteer', async () => {
-    const createdUSM = await UserSessionMetricsRepo.createByUserId(volunteer._id)
+    const createdUSM = await UserSessionMetricsRepo.createByUserId(
+      volunteer._id
+    )
 
     const foundUSM = await UserSessionMetricsRepo.UserSessionMetricsModel.findById(
       createdUSM._id
@@ -245,7 +247,7 @@ describe('Test read UserSessionModel objects', () => {
   })
 })
 
-describe('Test read UserSessionModel objects', () => {
+describe('Test update UserSessionModel objects', () => {
   let createdUSM: UserSessionMetricsRepo.UserSessionMetrics
 
   beforeAll(async () => {
@@ -261,46 +263,14 @@ describe('Test read UserSessionModel objects', () => {
     createdUSM = newUSM.toObject() as UserSessionMetricsRepo.UserSessionMetrics
   })
 
-  test('incrementFlagCounterByUserId succeeds for valid flag', async () => {
-    await UserSessionMetricsRepo.incrementFlagCounterByUserId(
-      student._id,
-      UserSessionMetricsRepo.FLAGS.absentStudentFlag
-    )
-    const foundUSM = await UserSessionMetricsRepo.getByObjectId(createdUSM._id)
-
-    expect(foundUSM.flagCounters.absentStudentFlag).toEqual(1)
-  })
-
-  test('incrementFlagCounterByUserId wraps errors from database update', async () => {
-    const mockedUserSessionMetricsModelUpdate = jest.spyOn(
-      UserSessionMetricsRepo.UserSessionMetricsModel,
-      'updateOne'
-    )
-    const testError = new Error('Test error')
-    mockedUserSessionMetricsModelUpdate.mockRejectedValueOnce(testError)
-
-    const flag = UserSessionMetricsRepo.FLAGS.absentStudentFlag
-    let error: RepoUpdateError
-    try {
-      await UserSessionMetricsRepo.incrementFlagCounterByUserId(student._id, flag)
-    } catch (err) {
-      error = err
-    }
-
-    expect(error).toBeInstanceOf(RepoUpdateError)
-    expect(error.message).toBe(
-      `Failed to increment session metric flag ${flag} for user ${student._id}: ${testError.message}`
-    )
-  })
-
-  test('incrementCounterByUserId succeeds for valid counter', async () => {
+  test('incrementCounterByUserId succeeds for valid metric', async () => {
     await UserSessionMetricsRepo.incrementCounterByUserId(
       student._id,
-      UserSessionMetricsRepo.COUNTERS.hasBeenUnmatched
+      UserSessionMetricsRepo.METRICS.absentStudent
     )
     const foundUSM = await UserSessionMetricsRepo.getByObjectId(createdUSM._id)
 
-    expect(foundUSM.counters.hasBeenUnmatched).toEqual(1)
+    expect(foundUSM.counters.absentStudent).toEqual(1)
   })
 
   test('incrementCounterByUserId wraps errors from database update', async () => {
@@ -311,17 +281,17 @@ describe('Test read UserSessionModel objects', () => {
     const testError = new Error('Test error')
     mockedUserSessionMetricsModelUpdate.mockRejectedValueOnce(testError)
 
-    const counter = UserSessionMetricsRepo.COUNTERS.hasBeenUnmatched
+    const flag = UserSessionMetricsRepo.METRICS.absentStudent
     let error: RepoUpdateError
     try {
-      await UserSessionMetricsRepo.incrementCounterByUserId(student._id, counter)
+      await UserSessionMetricsRepo.incrementCounterByUserId(student._id, flag)
     } catch (err) {
       error = err
     }
 
     expect(error).toBeInstanceOf(RepoUpdateError)
     expect(error.message).toBe(
-      `Failed to increment session metric counter ${counter} for user ${student._id}: ${testError.message}`
+      `Failed to increment session metric counter ${flag} for user ${student._id}: ${testError.message}`
     )
   })
 })

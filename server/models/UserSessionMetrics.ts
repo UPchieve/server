@@ -4,37 +4,33 @@ import { Document, model, Schema, Types, SchemaTypeOpts } from 'mongoose'
 import UserModel, { User } from './User'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
 
-// TODO: type FLAGS and flagCounters to match flag enum/type/const programmatically
-export enum FLAGS {
-  absentStudentFlag,
-  absentVolunteerFlag,
-  lowSessionRatingFromCoachFlag,
-  lowSessionRatingFromStudentFlag,
-  lowCoachRatingFromStudentFlag,
-  reported,
-  onlyLookingForAnswers,
-  rudeOrInappropriate
-}
-
-export enum COUNTERS {
-  hasBeenUnmatched,
-  hasHadTechnicalIssues
+export enum METRICS {
+  absentStudent = 'Absent student',
+  absentVolunteer = 'Absent volunteer',
+  lowSessionRatingFromCoach = 'Low session rating from coach',
+  lowSessionRatingFromStudent = 'Low session rating from student',
+  lowCoachRatingFromStudent = 'Low coach rating from student',
+  reported = 'Reported',
+  onlyLookingForAnswers = 'Only looking for answers',
+  rudeOrInappropriate = 'Rude or inapprioriate',
+  comments = 'Has left comments',
+  hasBeenUnmatched = 'Has been unmatched',
+  hasHadTechnicalIssues = 'Has had technical issues'
 }
 
 export interface UserSessionMetrics {
   _id: Types.ObjectId
   user: Types.ObjectId | User
-  flagCounters: {
-    absentStudentFlag: number
-    absentVolunteerFlag: number
-    lowSessionRatingFromCoachFlag: number
-    lowSessionRatingFromStudentFlag: number
-    lowCoachRatingFromStudentFlag: number
+  counters: {
+    absentStudent: number
+    absentVolunteer: number
+    lowSessionRatingFromCoach: number
+    lowSessionRatingFromStudent: number
+    lowCoachRatingFromStudent: number
     reported: number
     onlyLookingForAnswers: number
     rudeOrInappropriate: number
-  }
-  counters: {
+    comments: number // user has left a comment in the feedback form
     hasBeenUnmatched: number // user has had sessions longer than 1 minute end unmatched
     hasHadTechnicalIssues: number // user has had sessions where the volunteer reported technical issues
   }
@@ -63,17 +59,16 @@ const userSessionMetricsSchema = new Schema({
       message: props => `${props.value} is not a valid user`
     }
   },
-  flagCounters: {
-    absentStudentFlag: counterSchema,
-    absentVolunteerFlag: counterSchema,
-    lowSessionRatingFromCoachFlag: counterSchema,
-    lowSessionRatingFromStudentFlag: counterSchema,
-    lowCoachRatingFromStudentFlag: counterSchema,
+  counters: {
+    absentStudent: counterSchema,
+    absentVolunteer: counterSchema,
+    lowSessionRatingFromCoach: counterSchema,
+    lowSessionRatingFromStudent: counterSchema,
+    lowCoachRatingFromStudent: counterSchema,
     reported: counterSchema,
     onlyLookingForAnswers: counterSchema,
-    rudeOrInappropriate: counterSchema
-  },
-  counters: {
+    rudeOrInappropriate: counterSchema,
+    comments: counterSchema,
     hasBeenUnmatched: counterSchema,
     hasHasTechnicalIssues: counterSchema
   }
@@ -155,36 +150,43 @@ export async function getByUserId(
 }
 
 // Update functions
-export async function incrementFlagCounterByUserId(
+export async function incrementCounterByUserId(
   userId: Types.ObjectId | string,
-  flag: FLAGS
+  metric: METRICS
 ): Promise<void> {
   try {
     const result = await UserSessionMetricsModel.updateOne(
       { user: userId },
-      { $inc: { [`flagCounters.${FLAGS[flag]}`]: 1 } }
+      { $inc: { [`counters.${METRICS[metric]}`]: 1 } }
     )
     if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (err) {
     throw new RepoUpdateError(
-      `Failed to increment session metric flag ${flag} for user ${userId}: ${err.message}`
+      `Failed to increment session metric counter ${metric} for user ${userId}: ${err.message}`
     )
   }
 }
 
-export async function incrementCounterByUserId(
+/*  when we have root level, string metrics
+enum METRICS {
+  Label: 'session labeled'
+}
+
+export async function setMetricByUserId(
   userId: Types.ObjectId | string,
-  counter: COUNTERS
+  metric: METRICS,
+  value: string
 ): Promise<void> {
   try {
     const result = await UserSessionMetricsModel.updateOne(
       { user: userId },
-      { $inc: { [`counters.${COUNTERS[counter]}`]: 1 } }
+      { [metric]: value }
     )
     if (!result.ok) throw new Error('Update query did not return "ok"')
-  } catch (err) {
+  } catch ( err) {
     throw new RepoUpdateError(
-      `Failed to increment session metric counter ${counter} for user ${userId}: ${err.message}`
+      `Failed to set session metric ${metric} for user ${userId}: ${err.message}`
     )
   }
 }
+*/
