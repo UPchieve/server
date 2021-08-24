@@ -17,6 +17,7 @@ import pushToken from './push-token'
 import { routeReports } from './reports'
 import { routeSurvey } from './survey'
 import { routes as routeStats } from './stats'
+import studentsV1 from './studentsV1'
 const training = require('./training')
 const user = require('./user')
 
@@ -26,6 +27,7 @@ export function routes(app: Express, sessionStore: MongoStore): void {
   const router: expressWs.Router = Router()
 
   volunteers(router)
+  studentsV1(router)
   user(router)
   routeVerify(router)
   routeSessions(router as Router, io)

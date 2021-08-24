@@ -14,7 +14,7 @@ import { Student } from './Student'
 import { Volunteer } from './Volunteer'
 import { DocUpdateError, DocCreationError, LookupError } from './Errors'
 
-const validTypes = [
+export const validTypes = [
   SUBJECT_TYPES.MATH,
   SUBJECT_TYPES.COLLEGE,
   SUBJECT_TYPES.SCIENCE,

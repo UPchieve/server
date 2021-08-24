@@ -130,6 +130,32 @@ paths:
           schema:
             type: string
             format: uuid
+  /students/{studentId}/recent-subjects:
+    get:
+      tags:
+        - students
+      summary: Gets the list of a student's 3 most recent subjects
+      responses:
+        '200':
+          description: The list is returned in the body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecentSubjectList'
+        '422':
+          description: Missing Student ID
+        '400':
+          description: Student id not found in data, invalid, or is not a student
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          description: ID of student to get a list of 3 most recent subjects
+          required: true
+          schema:
+            type: string
+            format: uuid
   /auth/login:
     post:
       tags:
@@ -2562,6 +2588,13 @@ components:
     Password:
       type: string
       example: "Password123"
+    RecentSubjectList:
+      type: object
+      properties:
+        types:
+          type: array
+          items:
+            type: string
     ScheduleDay:
       type: object
       properties:
