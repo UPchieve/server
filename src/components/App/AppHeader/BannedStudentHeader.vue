@@ -3,10 +3,13 @@
 >>
 
 <script>
+import { DOCS_URL } from '../../../config'
+
 export default {
   name: 'banned-student-header',
   props: {
-    headerData: Object
+    headerData: Object,
+    docsUrl: DOCS_URL
   },
   computed: {
     message() {

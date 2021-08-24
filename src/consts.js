@@ -13,6 +13,10 @@ export const PHYSICS_MAPPING = {
   physicsone: 'physicsOne'
 }
 
+export const CDN_URL = 'https://cdn.upchieve.org'
+
+export const DOCS_URL = `${CDN_URL}/docs`
+
 export const STATES = [
   'Alabama',
   'Alaska',
