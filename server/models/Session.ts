@@ -675,7 +675,7 @@ export async function getAdminFilteredSessions(
           },
           // Filter a session by the amount of messages sent
           $expr: {
-            $gte: [{ $size: '$messages' }, parseInt(minMessagesSent)]
+            $gte: [{ $size: '$messages' }, minMessagesSent]
           }
         }
       },

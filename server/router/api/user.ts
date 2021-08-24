@@ -26,11 +26,15 @@ export default function(router: Router) {
   // @note: Currently, only volunteers are able to update their profile
   router.put('/user', async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as User
+    if (!user) {
+      throw new Error('no user on the request')
+    }
     const { ip } = req
-    const { phone, isDeactivated } = req.body
+    const phone: string = req.body.phone
+    const isDeactivated: boolean = req.body.isDeactivated
 
     if (isDeactivated !== user.isDeactivated) {
-      const updatedUser = Object.assign(req.user, { isDeactivated })
+      const updatedUser = Object.assign(user, { isDeactivated })
       if (updatedUser)
         await MailService.createContact(updatedUser)
 

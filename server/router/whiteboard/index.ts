@@ -224,11 +224,13 @@ const whiteboardRouter = function(app: Express): void {
   router.ws('/room/:sessionId', function(wsClient: any, req: Request, next: NextFunction) {
     let initialized = false
 
+    const wsRouter: Router = this
+
     /**
      * On initial client connection, join room.
      * Room is determined by parsing request URL, which includes the unique session ID.
      */
-    wsClient.room = (this as any).setRoom(req)
+    wsClient.room = ws.setRoom(req)
 
     const sessionId = req.params.sessionId
 
@@ -260,7 +262,7 @@ const whiteboardRouter = function(app: Express): void {
             message,
             sessionId,
             wsClient,
-            route: this as any
+            route: (ws)
           })
         : wsClient.send({ error: 'unsupported message type' })
     })

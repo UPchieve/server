@@ -14,7 +14,7 @@ export async function getObject(
   s3Key: string
 ): Promise<string> {
   const signedUrlParams = {
-    Bucket: (config.awsS3 as StringKeyToString)[bucket],
+    Bucket: (config.awsS3 as Record<string, string>)[bucket],
     Key: s3Key
   }
 

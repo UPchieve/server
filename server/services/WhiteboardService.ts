@@ -60,10 +60,10 @@ export async function uploadedToStorage(
 
 export async function getDocFromStorage(sessionId: string): Promise<string> {
   try {
-    return await getBlob({
-      containerName: config.whiteboardStorageContainer,
-      blobName: sessionId
-    })
+    return await getBlob(
+      config.whiteboardStorageContainer,
+      sessionId
+    )
   } catch (error) {
     logger.error(`Getting the whiteboard failed ${sessionId}: ${error.message}`)
     return ''

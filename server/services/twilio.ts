@@ -212,7 +212,7 @@ export async function notifyVolunteer (session: Session) {
   const subjectsFilter = { $eq: subtopic }
   // If the current subject is not a high level subject,
   // filter out volunteers who have high level subjects
-  if (!isHighLevelSubject) subjectsFilter['$nin'] = highLevelSubjects
+  if (!isHighLevelSubject) (subjectsFilter as Record<string, any>)['$nin'] = highLevelSubjects
 
   /**
    * 1. Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"

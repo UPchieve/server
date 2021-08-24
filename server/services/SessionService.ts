@@ -37,6 +37,7 @@ import { Student } from '../models/Student'
 import { ObjectId } from 'mongodb'
 import { User } from '../models/User'
 import { Types } from 'mongoose'
+import { Session } from '../models/Session'
 
 const {
   getSessionById,
@@ -499,7 +500,7 @@ export async function startSession(data: unknown) {
     Case.camel(sessionType),
     Case.camel(sessionSubTopic),
     user.isBanned
-  )
+  ) as Session
 
   const numProblemId = Number(problemId)
   if (numProblemId && assignmentId && studentId)
@@ -531,7 +532,7 @@ export async function startSession(data: unknown) {
 
   await new UserActionCtrl.SessionActionCreator(
     user._id,
-    newSession._id,
+    newSession._id.toString(),
     userAgent,
     ip
   ).requestedSession()
@@ -656,7 +657,7 @@ export async function joinSession(data: unknown): Promise<void> {
     })
 
     const pushTokens = await PushTokenService.getAllPushTokensByUserId(
-      session.student
+      session.student as Types.ObjectId
     )
     if (pushTokens && pushTokens.length > 0) {
       const tokens = pushTokens.map(token => token.token)
@@ -690,7 +691,7 @@ export async function saveMessage(data: unknown): Promise<void> {
   if (!sessionUtils.isSessionParticipant(session, user))
     throw new Error('Only session participants are allowed to send messages')
 
-  await SessionRepo.addMessage(sessionId, message)
+  await SessionRepo.addMessage(new ObjectId(sessionId), message)
 }
 
 export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
@@ -704,8 +705,8 @@ export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
     const day = moment()
       .weekday(session.day)
       .format('dddd')
-    const hour = (UTC_TO_HOUR_MAPPING as StringKeyToAny)[session.hour];
-    ((heatMap as StringKeyToAny)[day] as StringKeyToAny)[hour] = session.averageWaitTime
+    const hour = (UTC_TO_HOUR_MAPPING as Record<string, any>)[session.hour];
+    ((heatMap as Record<string, any>)[day] as Record<string, any>)[hour] = session.averageWaitTime
   }
 
   return heatMap

@@ -137,7 +137,7 @@ export function isCertified(certifications: Certifications): boolean {
   for (const subject in certifications) {
     if (
       Object.prototype.hasOwnProperty.call(certifications, subject) &&
-      (certifications as StringKeyToAny)[subject].passed
+      (certifications as Record<string, any>)[subject].passed
     ) {
       isCertified = true
       break

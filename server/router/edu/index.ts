@@ -53,7 +53,7 @@ edu.route('/questions').get(async (req: Request, res: Response) => {
 
     // question._id --> URL
     const imagePaths = questions.reduce((map: {}, question: Question) => {
-      map[question._id] = frontEndPath(
+      map[question._id.toString()] = frontEndPath(
         question.imageSrc,
         edu.locals.frontEndRoot
       )

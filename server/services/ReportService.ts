@@ -79,7 +79,7 @@ function calcAverageRating(allFeedback: Feedback[]): number {
   return Number((ratingsSum / (ratingsCount || 1)).toFixed(2))
 }
 
-function getOffsetTime(date?: string): number {
+function getOffsetTime(date?: number): number {
   if (!date) return new Date().getTime()
   const estTimeOffset = 1000 * 60 * 60 * 4
 
@@ -497,7 +497,7 @@ export async function usageReport(
     studentPartnerManifests[studentPartnerOrg].sites
 
   const studentUsage = students.map(student => {
-    const feedback = Array.from(student.feedback)
+    const feedback = Array.from(student.feedback) as Feedback[]
 
     const dataFormat: {[key: string]: any} = {
       'First name': student.firstName,

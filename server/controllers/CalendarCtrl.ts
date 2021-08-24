@@ -36,7 +36,7 @@ export async function updateSchedule(
   // new availability object
   if (
     Object.keys(user.availability as {[key: string]: AvailabilityDay}).some(key => {
-      if (typeof (newAvailability as StringKeyToAny)[key] === 'undefined') {
+      if (typeof (newAvailability as Record<string, any>)[key] === 'undefined') {
         // day-of-week property needs to be defined
         return true
       }
@@ -87,10 +87,10 @@ export async function clearSchedule(
   const clearedAvailability: Availability = _.reduce(
     user.availability,
     (clearedWeek, dayVal, dayKey) => {
-      (clearedWeek as StringKeyToAny)[dayKey] = _.reduce(
+      (clearedWeek as Record<string, any>)[dayKey] = _.reduce(
         dayVal,
         (clearedDay, hourVal, hourKey) => {
-          (clearedDay as StringKeyToAny)[hourKey] = false
+          (clearedDay as Record<string, any>)[hourKey] = false
           return clearedDay
         },
         {}

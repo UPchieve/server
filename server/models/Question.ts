@@ -50,7 +50,7 @@ questionSchema.statics.getSubcategories = function(category: string): string[] {
   }
 
   if (CATEGORY_TO_SUBCATEGORY_MAP.hasOwnProperty(category)) {
-    const subcategories = (CATEGORY_TO_SUBCATEGORY_MAP as StringKeyToAny)[category]
+    const subcategories = (CATEGORY_TO_SUBCATEGORY_MAP as Record<string, any>)[category]
     return subcategories
   } else {
     throw new ReferenceError(category + ' is not a subcategory.')

@@ -3,7 +3,7 @@ import { Request } from 'express'
 
 // Return an object containing the `path` and `label` for a given category /
 // subcategory link
-export function questionsPath(category: string, subcategory: string) {
+export function questionsPath(category: string, subcategory?: string) {
   const query = []
 
   if (category) {

@@ -59,12 +59,12 @@ const TRAINING_THRESHOLD = 0.9
 // Check if a user is certified in a given group of subject certs
 // @todo: understand these types
 const isCertifiedIn = (
-  subjectCerts: StringKeyToAny,
+  subjectCerts: Record<string, any>,
   certifications: Certifications
 ): boolean => {
   for (const cert in subjectCerts) {
     const subject = subjectCerts[cert]
-    if ((certifications as StringKeyToAny)[subject].passed) return true
+    if ((certifications as Record<string, any>)[subject].passed) return true
   }
 
   return false
@@ -95,7 +95,7 @@ export async function getQuestions(
 
   return _.shuffle(
     Object.entries(questionsBySubcategory).flatMap(([, subQuestions]) =>
-      _.sampleSize(subQuestions, (numQuestions as StringKeyToAny)[category])
+      _.sampleSize(subQuestions, (numQuestions as Record<string, any>)[category])
     )
   )
 }
@@ -179,22 +179,22 @@ export function getUnlockedSubjects(
     return []
 
   // Add all the certifications that this completed cert unlocks into a Set
-  const currentSubjects = new Set<string>((CERT_UNLOCKING as StringKeyToAny)[cert])
+  const currentSubjects = new Set<string>((CERT_UNLOCKING as Record<string, any>)[cert])
 
   for (const cert in userCertifications) {
     // Check that the required training was completed for every certification that a user has
     // Add all the other subjects that a certification unlocks to the Set
     if (
-      (userCertifications as StringKeyToAny)[cert].passed &&
+      (userCertifications as Record<string, any>)[cert].passed &&
       hasRequiredTraining(cert, userCertifications) &&
-      (CERT_UNLOCKING as StringKeyToAny)[cert]
+      (CERT_UNLOCKING as Record<string, any>)[cert]
     )
-      (CERT_UNLOCKING as StringKeyToAny)[cert].forEach((subject: string) => currentSubjects.add(subject))
+      (CERT_UNLOCKING as Record<string, any>)[cert].forEach((subject: string) => currentSubjects.add(subject))
   }
 
   // Check if the user has unlocked a new certification based on the current certifications they have
   for (const cert in COMPUTED_CERTS) {
-    const prerequisiteCerts = (COMPUTED_CERTS as StringKeyToAny)[cert]
+    const prerequisiteCerts = (COMPUTED_CERTS as Record<string, any>)[cert]
     let meetsRequirements = true
 
     for (let i = 0; i < prerequisiteCerts.length; i++) {
@@ -292,7 +292,7 @@ export async function getQuizScore(
   })
 
   const idCorrectAnswerMap = questions.reduce((correctAnswers, question) => {
-    (correctAnswers as StringKeyToAny)[question._id] = question.correctAnswer
+    (correctAnswers as Record<string, any>)[question._id] = question.correctAnswer
     return correctAnswers
   }, {})
 

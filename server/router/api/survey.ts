@@ -27,7 +27,7 @@ export function routeSurvey(router: Router): void {
 
     try {
       const survey = await SurveyService.getPresessionSurvey({
-        user,
+        user: user._id,
         session: new ObjectId(sessionId)
       })
       res.json({ survey })

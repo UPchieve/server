@@ -68,7 +68,7 @@ function reduceAcc(acc: any) {
 function telecomTutorTime(
   sessions: Session[],
   availabilityForDateRange: any,
-  quizPassedActions: UserAction
+  quizPassedActions: UserAction[]
 ) {
   const acc = {} // accumulator { MM-DD-YYYY: {H: time volunteered in minutes } }
   const sessionAcc = {}
@@ -100,8 +100,8 @@ function telecomTutorTime(
         if (day in acc) {
           acc[day][hour] = 60
           // Count into availability accumulator separately
-          if (day in availabilityAcc) availabilityAcc[day][hour] = 60
-          else availabilityAcc[day] = { hour: 60 }
+          if (day in availabilityAcc) ((availabilityAcc as Record<string, any>)[day] as Record<string, any>)[hour] = 60
+          else (availabilityAcc as Record<string, any>)[day] = { hour: 60 }
         }
       }
     }
@@ -164,7 +164,7 @@ interface TelecomRow {
 async function getVolunteerData(volunteer: Volunteer, dateQuery: any) {
   // @todo: figure out how the type annotation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quizPassedActions: any = await UserActionService.getActionsWithPipeline(
+  const quizPassedActions: UserAction[] = await UserActionService.getActionsWithPipeline(
     [
       {
         $match: {
