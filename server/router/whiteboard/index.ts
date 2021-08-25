@@ -12,8 +12,8 @@ import {
   CreationMode
 } from '../../utils/zwibblerDecoder'
 import {
-  whiteboardPubClient,
-  whiteboardSubClient
+  WebSocketPubClient,
+  WebSocketSubClient
 } from '../../services/RedisService'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
@@ -38,9 +38,9 @@ interface Packet {
   }
 }
 
-whiteboardSubClient.psubscribe(whiteboardChannel + '*')
+WebSocketSubClient.psubscribe(whiteboardChannel + '*')
 
-whiteboardSubClient.on(
+WebSocketSubClient.on(
   'pmessage',
   (pattern: string, channel: string, message: string) => {
     const sessionId = channel.slice(whiteboardChannel.length)
@@ -147,7 +147,7 @@ const messageHandlers: {
         })
       )
     }
-    whiteboardPubClient.publish(
+    WebSocketPubClient.publish(
       whiteboardChannel + sessionId,
       JSON.stringify({
         message: {
@@ -237,7 +237,7 @@ const messageHandlers: {
         more: message.more
       }
     })
-    whiteboardPubClient.publish(whiteboardChannel + sessionId, broadcastMessage)
+    WebSocketPubClient.publish(whiteboardChannel + sessionId, broadcastMessage)
 
     // Ack if this is the end of a continuation
     if (!message.more) {
