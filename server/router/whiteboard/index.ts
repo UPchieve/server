@@ -257,15 +257,6 @@ const whiteboardRouter = function(app): void {
   // @todo: figure out correct typing using @types/express-ws
   const router: any = express.Router() // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  /**
-   * This is a web socket Express route
-   *
-   * It relies on a fork of express-ws for rooms support
-   * @small-tech/express-ws: https://github.com/aral/express-ws
-   *
-   * @note: using Pub/Sub over Redis, we no longer "need" room support
-   *
-   */
   router.ws('/room/:sessionId', function(wsClient, req, next) {
     let initialized = false
     const sessionId = req.params.sessionId

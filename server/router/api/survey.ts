@@ -1,4 +1,4 @@
-import expressWs from '@small-tech/express-ws'
+import expressWs from 'express-ws'
 import * as SurveyService from '../../services/SurveyService'
 
 export function routeSurvey(router: expressWs.Router): void {
@@ -24,6 +24,7 @@ export function routeSurvey(router: expressWs.Router): void {
 
     try {
       const survey = await SurveyService.getPresessionSurvey({
+        // @todo: fix types
         user,
         session: sessionId
       })

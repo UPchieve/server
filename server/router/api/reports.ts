@@ -1,4 +1,4 @@
-import expressWs from '@small-tech/express-ws'
+import expressWs from 'express-ws'
 import { resError } from '../res-error'
 
 const { authPassport } = require('../../utils/auth-utils')
