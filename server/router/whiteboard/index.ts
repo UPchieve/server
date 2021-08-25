@@ -1,5 +1,5 @@
 import express from 'express'
-import ws from 'ws'
+import WebSocket from 'ws'
 import * as Sentry from '@sentry/node'
 import * as WhiteboardService from '../../services/WhiteboardService'
 import {
@@ -10,12 +10,53 @@ import {
   DecodeError,
   CreationMode
 } from '../../utils/zwibblerDecoder'
+import {
+  whiteboardPubClient,
+  whiteboardSubClient
+} from '../../services/RedisService'
+import { uuid4 } from '@sentry/utils'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
   Sentry.captureMessage(
     `Unimplemented Zwibbler message type ${messageType} called in session ${sessionId}`
   )
 }
+const classRoomClients: { [sessionId: string]: WhiteboardSocket[] } = {}
+const whiteboardChannel = 'whiteboard/'
+
+interface WhiteboardSocket extends WebSocket {
+  id?: string
+}
+
+interface Packet {
+  socketId: string
+  message: {
+    messageType: MessageType
+    offset: number
+    data: string
+    more: number
+  }
+}
+
+whiteboardSubClient.psubscribe(whiteboardChannel + '*')
+
+whiteboardSubClient.on(
+  'pmessage',
+  (pattern: string, channel: string, message: string) => {
+    const sessionId = channel.slice(whiteboardChannel.length)
+    const packet: Packet = JSON.parse(message)
+
+    // No WebSocket clients were not initialized for the session
+    if (!Array.isArray(classRoomClients[sessionId])) return
+
+    const websocketId = packet.socketId
+    for (const client of classRoomClients[sessionId]) {
+      // Send to all clients except for the client who initiated the message
+      if (websocketId === client.id) continue
+      client.send(encode(packet.message))
+    }
+  }
+)
 
 const messageHandlers: {
   [type in MessageType]: ({
@@ -26,7 +67,7 @@ const messageHandlers: {
   }: {
     message: Message
     sessionId: string
-    wsClient: ws
+    wsClient: WhiteboardSocket
     // @todo: figure out correct typing using @types/express-ws
     route: any // eslint-disable-line @typescript-eslint/no-explicit-any
   }) => void
@@ -80,7 +121,7 @@ const messageHandlers: {
       })
     )
   },
-  [MessageType.APPEND]: async ({ message, sessionId, wsClient, route }) => {
+  [MessageType.APPEND]: async ({ message, sessionId, wsClient }) => {
     const documentLength = await WhiteboardService.getDocLength(sessionId)
     if (message.offset !== documentLength) {
       return wsClient.send(
@@ -106,13 +147,16 @@ const messageHandlers: {
         })
       )
     }
-    route.broadcast(
-      wsClient,
-      encode({
-        messageType: MessageType.APPEND,
-        offset: documentLength,
-        data: message.data,
-        more: message.more
+    whiteboardPubClient.publish(
+      whiteboardChannel + sessionId,
+      JSON.stringify({
+        message: {
+          messageType: MessageType.APPEND,
+          offset: documentLength,
+          data: message.data,
+          more: message.more
+        },
+        socketId: wsClient.id
       })
     )
   },
@@ -182,20 +226,18 @@ const messageHandlers: {
       })
     )
   },
-  [MessageType.CONTINUATION]: async ({
-    message,
-    wsClient,
-    sessionId,
-    route
-  }) => {
+  [MessageType.CONTINUATION]: async ({ message, wsClient, sessionId }) => {
     await WhiteboardService.appendToDoc(sessionId, message.data)
     const newDocLength = await WhiteboardService.getDocLength(sessionId)
-    const broadcastMessage = encode({
-      messageType: MessageType.CONTINUATION,
-      data: message.data,
-      more: message.more
+    const broadcastMessage = JSON.stringify({
+      socketId: wsClient.id,
+      message: {
+        messageType: MessageType.CONTINUATION,
+        data: message.data,
+        more: message.more
+      }
     })
-    route.broadcast(wsClient, broadcastMessage)
+    whiteboardPubClient.publish(whiteboardChannel + sessionId, broadcastMessage)
 
     // Ack if this is the end of a continuation
     if (!message.more) {
@@ -220,17 +262,18 @@ const whiteboardRouter = function(app): void {
    *
    * It relies on a fork of express-ws for rooms support
    * @small-tech/express-ws: https://github.com/aral/express-ws
+   * 
+   * @note: using Pub/Sub over Redis, we no longer "need" room support
+   * 
    */
   router.ws('/room/:sessionId', function(wsClient, req, next) {
     let initialized = false
-
-    /**
-     * On initial client connection, join room.
-     * Room is determined by parsing request URL, which includes the unique session ID.
-     */
-    wsClient.room = this.setRoom(req)
-
     const sessionId = req.params.sessionId
+    const webSocketId = uuid4()
+    wsClient.id = webSocketId
+
+    if (!classRoomClients[sessionId]) classRoomClients[sessionId] = []
+    classRoomClients[sessionId].push(wsClient)
 
     setTimeout(() => {
       if (!initialized) {
@@ -240,6 +283,16 @@ const whiteboardRouter = function(app): void {
         wsClient.close()
       }
     }, 30 * 1000)
+
+    // Remove the websocket client from the room upon closing
+    wsClient.on('close', () => {
+      classRoomClients[sessionId] = classRoomClients[sessionId].filter(
+        wsClients => wsClients.id !== webSocketId
+      )
+
+      if (classRoomClients[sessionId].length === 0)
+        delete classRoomClients[sessionId]
+    })
 
     wsClient.on('message', rawMessage => {
       if (rawMessage === 'p1ng') {
