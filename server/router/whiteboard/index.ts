@@ -1,6 +1,7 @@
 import express from 'express'
 import WebSocket from 'ws'
 import * as Sentry from '@sentry/node'
+import { uuid4 } from '@sentry/utils'
 import * as WhiteboardService from '../../services/WhiteboardService'
 import {
   decode,
@@ -14,7 +15,6 @@ import {
   whiteboardPubClient,
   whiteboardSubClient
 } from '../../services/RedisService'
-import { uuid4 } from '@sentry/utils'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
   Sentry.captureMessage(
@@ -262,9 +262,9 @@ const whiteboardRouter = function(app): void {
    *
    * It relies on a fork of express-ws for rooms support
    * @small-tech/express-ws: https://github.com/aral/express-ws
-   * 
+   *
    * @note: using Pub/Sub over Redis, we no longer "need" room support
-   * 
+   *
    */
   router.ws('/room/:sessionId', function(wsClient, req, next) {
     let initialized = false
