@@ -1,6 +1,7 @@
 /* eslint @typescript-eslint/no-use-before-define: 0 */
 
-import { Document, model, Schema, Types, SchemaTypeOpts } from 'mongoose'
+import { merge } from 'lodash'
+import { Document, model, Schema, Types, ValidatorProps, UpdateQuery } from 'mongoose'
 import UserModel, { User } from './User'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
 
@@ -38,14 +39,14 @@ export interface UserSessionMetrics {
   }
 }
 
-type UserSessionMetricsDocument = UserSessionMetrics & Document
+export type UserSessionMetricsDocument = UserSessionMetrics & Document
 
 const counterSchema = {
   type: Number,
   default: 0,
   validate: {
     validator: Number.isInteger,
-    message: (props: SchemaTypeOpts.ValidatorProps) =>
+    message: (props: ValidatorProps) =>
       `${props.value} is not an integer`
   }
 }
@@ -161,12 +162,43 @@ export async function getByUserId(
 }
 
 // Update functions
+export type UserSessionMetricsUpdateQuery = UpdateQuery<UserSessionMetricsDocument>
+
+export function buildIncrementCounterQuery(metric: METRICS): UserSessionMetricsUpdateQuery {
+  const path = getEnumKeyByEnumValue(METRICS, metric)
+  return { $inc: { [`counters.${path}`]: 1} }
+}
+
+// NOTE: when queries are merged conflicting scalar values will be overwritten
+// ex: a = { a: { aa: 1, bb: 2 } }, b = { a: { aa: 3, cc: 4 } }
+// merge(a,b) => a = { a: { aa: 3, bb: 2, cc: 4 } }
+export async function executeUpdatesByUserId(
+  userId: Types.ObjectId | string,
+  queries: UserSessionMetricsUpdateQuery[]
+): Promise<void> {
+  const update = {}
+  for (const q of queries) {
+    merge(update, q)
+  }
+  try {
+    const result = await UserSessionMetricsModel.updateOne(
+      { user: userId },
+      update
+    )
+    if (!result.ok) throw new Error('Update query did not return "ok"')
+  } catch (err) {
+    throw new RepoUpdateError(
+      `Failed to execute update ${update} for user ${userId}: ${err.message}`
+    )
+  }
+}
+
 export async function incrementCounterByUserId(
   userId: Types.ObjectId | string,
   metric: METRICS
 ): Promise<void> {
   try {
-    const path = getEnumKeyByEnumValue(METRICS, METRICS.absentStudent)
+    const path = getEnumKeyByEnumValue(METRICS, metric)
     const result = await UserSessionMetricsModel.updateOne(
       { user: userId },
       { $inc: { [`counters.${path}`]: 1 } }

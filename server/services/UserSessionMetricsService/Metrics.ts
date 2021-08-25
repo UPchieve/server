@@ -2,7 +2,7 @@ import { Types } from 'mongoose'
 
 import {
   METRICS,
-  incrementCounterByUserId
+  incrementCounterByUserId,
 } from '../../models/UserSessionMetrics'
 import { Session, updateFlags } from '../../models/Session'
 import { FeedbackVersionTwo } from '../../models/Feedback'
@@ -11,7 +11,8 @@ import { FEEDBACK_VERSIONS } from '../../constants'
 export type Counter = number
 const TRUE = 1 as Counter
 const FALSE = 0 as Counter
-// export type Label = String
+
+export type Label = String
 // type TRUE = String
 // const FALSE = '' as Label
 
@@ -24,7 +25,7 @@ export interface MetricData {
 export interface SessionMetric<T> {
   key: string
   path: string // TODO: couple path to generic Type (Counter, Label, etc)
-  getUpdateValue(md: MetricData): T
+  getUpdateValue(md: MetricData): T // TODO: couple value calculation to update execution
   update(md: MetricData, val?: T): Promise<void>
   review(val: T): boolean
 }
@@ -36,7 +37,7 @@ export const ABSENT_STUDENT: SessionMetric<Counter> = {
     if (md.session.volunteerJoinedAt) {
       for (const msg of md.session.messages) {
         if (
-          msg.user === md.session.student &&
+          (msg.user as Types.ObjectId).equals(md.session.student as Types.ObjectId) &&
           msg.createdAt > md.session.volunteerJoinedAt
         )
           return FALSE
