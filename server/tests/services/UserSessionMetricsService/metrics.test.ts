@@ -53,12 +53,14 @@ const volunteer = buildVolunteer()
 const studentUSM = buildUSM(student._id)
 
 function buildMetricData(
-  usm: UserSessionMetrics,
+  studentUSM: UserSessionMetrics,
   session: Session,
-  feedback?: FeedbackVersionTwo
+  feedback?: FeedbackVersionTwo,
+  volunteerUSM?: UserSessionMetrics,
 ): MetricData {
   return {
-    usm,
+    studentUSM,
+    volunteerUSM,
     session,
     feedback
   }
@@ -257,6 +259,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 describe('Metrics have correct "update" functions', () => {
   const session = startSession()
   joinSession(session)
+  const feedback = buildFeedback({
+    versionNumber: FEEDBACK_VERSIONS.TWO
+  }) as FeedbackVersionTwo
 
   const initialValue = 2
   const updateValue = 5
@@ -274,20 +279,40 @@ describe('Metrics have correct "update" functions', () => {
     public flag = () => [] as string[]
   }
 
-  test('Counter metric final value is correct', () => {
+  test('Counter metric student final value is correct', () => {
     const newUSM = buildUSM(student._id, { absentStudent: initialValue })
     const md = buildMetricData(newUSM, session)
     const processor = new TestCounter(md)
 
-    expect(processor.getFinalValue()).toEqual(updateValue + initialValue)
+    expect(processor.studentValue).toEqual(updateValue + initialValue)
   })
 
-  test('Counter metric update query is correrct', () => {
+  test('Counter metric student update query is correrct', () => {
     const newUSM = buildUSM(student._id, { absentStudent: initialValue })
     const md = buildMetricData(newUSM, session)
     const processor = new TestCounter(md)
 
-    expect(processor.getUpdateQuery()).toEqual({
+    expect(processor.buildStudentUpdateQuery()).toEqual({
+      'counters.absentStudent': updateValue + initialValue
+    })
+  })
+
+  test('Counter metric volunteer final value is correct', () => {
+    const studentUSM = buildUSM(student._id, { absentStudent: initialValue })
+    const volunteerUSM = buildUSM(volunteer._id, { absentStudent: initialValue })
+    const md = buildMetricData(studentUSM, session, feedback, volunteerUSM)
+    const processor = new TestCounter(md)
+
+    expect(processor.volunteerValue).toEqual(updateValue + initialValue)
+  })
+
+  test('Counter metric volunteer update query is correrct', () => {
+    const studentUSM = buildUSM(student._id, { absentStudent: initialValue })
+    const volunteerUSM = buildUSM(volunteer._id, { absentStudent: initialValue })
+    const md = buildMetricData(studentUSM, session, feedback, volunteerUSM)
+    const processor = new TestCounter(md)
+
+    expect(processor.buildVolunteerUpdateQuery()).toEqual({
       'counters.absentStudent': updateValue + initialValue
     })
   })

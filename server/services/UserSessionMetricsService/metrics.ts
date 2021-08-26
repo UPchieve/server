@@ -24,7 +24,7 @@ export class AbsentStudent extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.finalValue >= 4
+  public review = () => this.studentValue >= 4
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
 }
 
@@ -49,7 +49,7 @@ export class AbsentVolunteer extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.finalValue >= 2
+  public review = () => this.volunteerValue >= 2
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
 }
 
@@ -180,7 +180,7 @@ export class RudeOrInappropriate extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.finalValue >= 2
+  public review = () => this.studentValue >= 2
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
 }
 
@@ -208,7 +208,7 @@ export class OnlyLookingForAnswers extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.finalValue >= 2
+  public review = () => this.studentValue >= 2
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
 }
 

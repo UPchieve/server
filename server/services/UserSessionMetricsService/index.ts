@@ -4,45 +4,31 @@ import { Session, getSessionById } from '../../models/Session'
 import {
   MetricType,
   executeUpdatesByUserId,
-  UserSessionMetrics
 } from '../../models/UserSessionMetrics'
 import { MetricData, MetricClass } from './metric-types'
 import { METRICS_CLASSES } from './metrics'
 
-enum USER {
-  student,
-  volunteer
-}
-
 async function buildMetricData(
   session: Session,
-  user: USER
 ): Promise<MetricData> {
   // TODO: implement
   throw new Error('not implemented')
 }
 
-// TODO: branch for (if volunteer) better
-async function processAllMetrics(sessionId: Types.ObjectId): Promise<void> {
-  const processors: MetricClass<MetricType>[] = []
-
+// TODO: register this is a listener on 'end-session' event to run 3 minutes after
+export async function processAllMetrics(sessionId: Types.ObjectId): Promise<void> {
   const session = await getSessionById(sessionId)
-  const studentMd = await buildMetricData(session, USER.student)
-  let volunteerMd: MetricData
-  if (session.volunteer)
-    volunteerMd = await buildMetricData(session, USER.volunteer)
-
+  const md = await buildMetricData(session)
+  
+  const processors: MetricClass<MetricType>[] = []
   for (const MetricProcessorClass of METRICS_CLASSES) {
-    processors.push(new MetricProcessorClass(studentMd))
-    if (session.volunteer)
-      processors.push(new MetricProcessorClass(volunteerMd))
+    processors.push(new MetricProcessorClass(md))
   }
 
   const promises = [
     processFlags(session, processors),
     processReviewReasons(session, processors),
-    processMetricUpdates(studentMd.usm, processors),
-    processMetricUpdates(volunteerMd.usm, processors)
+    processMetricUpdates(session, processors),
   ]
 
   await Promise.all(promises) // TODO: error handling
@@ -70,13 +56,23 @@ async function processReviewReasons(
   // TODO: set review reasons on session object
 }
 
-async function processMetricUpdates(
-  usm: UserSessionMetrics,
-  metricProcessors: MetricClass<MetricType>[]
+// helper to execute updates for a single user
+async function userUpdates(
+  user: Types.ObjectId,
+  metricProcessors:MetricClass<MetricType>[]
 ): Promise<void> {
   const updates = []
   for (const processor of metricProcessors) {
-    updates.push(processor.getUpdateQuery())
+    updates.push(processor.buildStudentUpdateQuery())
   }
-  await executeUpdatesByUserId(usm.user as Types.ObjectId, updates)
+  await executeUpdatesByUserId(user, updates)
+}
+
+async function processMetricUpdates(
+  session: Session,
+  metricProcessors: MetricClass<MetricType>[]
+): Promise<void> {
+  await userUpdates(session.student as Types.ObjectId, metricProcessors)
+  if (session.volunteer)
+    await userUpdates(session.volunteer as Types.ObjectId, metricProcessors)
 }
