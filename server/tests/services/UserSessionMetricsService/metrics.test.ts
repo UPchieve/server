@@ -56,7 +56,7 @@ function buildMetricData(
   studentUSM: UserSessionMetrics,
   session: Session,
   feedback?: FeedbackVersionTwo,
-  volunteerUSM?: UserSessionMetrics,
+  volunteerUSM?: UserSessionMetrics
 ): MetricData {
   return {
     studentUSM,
@@ -299,7 +299,9 @@ describe('Metrics have correct "update" functions', () => {
 
   test('Counter metric volunteer final value is correct', () => {
     const studentUSM = buildUSM(student._id, { absentStudent: initialValue })
-    const volunteerUSM = buildUSM(volunteer._id, { absentStudent: initialValue })
+    const volunteerUSM = buildUSM(volunteer._id, {
+      absentStudent: initialValue
+    })
     const md = buildMetricData(studentUSM, session, feedback, volunteerUSM)
     const processor = new TestCounter(md)
 
@@ -308,7 +310,9 @@ describe('Metrics have correct "update" functions', () => {
 
   test('Counter metric volunteer update query is correrct', () => {
     const studentUSM = buildUSM(student._id, { absentStudent: initialValue })
-    const volunteerUSM = buildUSM(volunteer._id, { absentStudent: initialValue })
+    const volunteerUSM = buildUSM(volunteer._id, {
+      absentStudent: initialValue
+    })
     const md = buildMetricData(studentUSM, session, feedback, volunteerUSM)
     const processor = new TestCounter(md)
 

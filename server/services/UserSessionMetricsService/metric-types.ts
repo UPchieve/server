@@ -36,7 +36,7 @@ export abstract class MetricClass<T> {
   public get volunteerValue(): T {
     return this._volunteerValue
   }
-  
+
   // initialize from md
   protected setup = () => {
     this._updateValue = this.computeUpdateValue()
@@ -91,7 +91,9 @@ export abstract class CounterMetricClass extends MetricClass<Counter> {
       return this.computeFinalValue(this.md.volunteerUSM)
   }
 
-  private buildUpdateQuery = (finalValue: Counter): UserSessionMetricsUpdateQuery => {
+  private buildUpdateQuery = (
+    finalValue: Counter
+  ): UserSessionMetricsUpdateQuery => {
     const metric = getEnumKeyByEnumValue(METRICS, this.key)
     return { [`${this.path}.${metric}`]: finalValue }
   }
@@ -99,8 +101,7 @@ export abstract class CounterMetricClass extends MetricClass<Counter> {
     return this.buildUpdateQuery(this.studentValue)
   }
   public buildVolunteerUpdateQuery = (): UserSessionMetricsUpdateQuery => {
-    if (this.md.volunteerUSM)
-      return this.buildUpdateQuery(this.studentValue)
+    if (this.md.volunteerUSM) return this.buildUpdateQuery(this.studentValue)
   }
 
   abstract key: METRICS

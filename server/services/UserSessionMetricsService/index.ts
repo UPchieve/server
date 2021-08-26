@@ -1,25 +1,29 @@
+/* eslint @typescript-eslint/no-use-before-define: 0 */
+
 import { Types } from 'mongoose'
 
 import { Session, getSessionById } from '../../models/Session'
 import {
   MetricType,
-  executeUpdatesByUserId,
+  executeUpdatesByUserId
 } from '../../models/UserSessionMetrics'
 import { MetricData, MetricClass } from './metric-types'
 import { METRICS_CLASSES } from './metrics'
 
-async function buildMetricData(
-  session: Session,
-): Promise<MetricData> {
+// TODO: write tests for this whole file
+
+async function buildMetricData(session: Session): Promise<MetricData> {
   // TODO: implement
   throw new Error('not implemented')
 }
 
 // TODO: register this is a listener on 'end-session' event to run 3 minutes after
-export async function processAllMetrics(sessionId: Types.ObjectId): Promise<void> {
+export async function processAllMetrics(
+  sessionId: Types.ObjectId
+): Promise<void> {
   const session = await getSessionById(sessionId)
   const md = await buildMetricData(session)
-  
+
   const processors: MetricClass<MetricType>[] = []
   for (const MetricProcessorClass of METRICS_CLASSES) {
     processors.push(new MetricProcessorClass(md))
@@ -28,7 +32,7 @@ export async function processAllMetrics(sessionId: Types.ObjectId): Promise<void
   const promises = [
     processFlags(session, processors),
     processReviewReasons(session, processors),
-    processMetricUpdates(session, processors),
+    processMetricUpdates(session, processors)
   ]
 
   await Promise.all(promises) // TODO: error handling
@@ -59,7 +63,7 @@ async function processReviewReasons(
 // helper to execute updates for a single user
 async function userUpdates(
   user: Types.ObjectId,
-  metricProcessors:MetricClass<MetricType>[]
+  metricProcessors: MetricClass<MetricType>[]
 ): Promise<void> {
   const updates = []
   for (const processor of metricProcessors) {
