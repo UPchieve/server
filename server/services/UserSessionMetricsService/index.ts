@@ -1,31 +1,82 @@
 import { Types } from 'mongoose'
 
-import { UserSessionMetrics } from '../../models/UserSessionMetrics'
-import { MetricData, METRIC_PROCESSORS } from './Metrics'
+import { Session, getSessionById } from '../../models/Session'
+import {
+  MetricType,
+  executeUpdatesByUserId,
+  UserSessionMetrics
+} from '../../models/UserSessionMetrics'
+import { MetricData, MetricClass } from './metric-types'
+import { METRICS_CLASSES } from './metrics'
 
-async function buildMetricData(sessionId: Types.ObjectId): Promise<MetricData> {
+enum USER {
+  student,
+  volunteer
+}
+
+async function buildMetricData(
+  session: Session,
+  user: USER
+): Promise<MetricData> {
+  // TODO: implement
   throw new Error('not implemented')
 }
 
-async function pseudoCodeUpdateMetrics(
-  sessionId: Types.ObjectId
-): Promise<void> {
-  const md = await buildMetricData(sessionId)
-  for (const processor of METRIC_PROCESSORS) {
-    const value = processor.getUpdateValue(md)
-    // TODO: calling each update individually leads to many small db writes
-    // if we somehow aggregate the updates and execute them as a single query we'd get much better performance
-    if (value) await processor.update(md, value)
+// TODO: branch for (if volunteer) better
+async function processAllMetrics(sessionId: Types.ObjectId): Promise<void> {
+  const processors: MetricClass<MetricType>[] = []
+
+  const session = await getSessionById(sessionId)
+  const studentMd = await buildMetricData(session, USER.student)
+  let volunteerMd: MetricData
+  if (session.volunteer)
+    volunteerMd = await buildMetricData(session, USER.volunteer)
+
+  for (const MetricProcessorClass of METRICS_CLASSES) {
+    processors.push(new MetricProcessorClass(studentMd))
+    if (session.volunteer)
+      processors.push(new MetricProcessorClass(volunteerMd))
   }
+
+  const promises = [
+    processFlags(session, processors),
+    processReviewReasons(session, processors),
+    processMetricUpdates(studentMd.usm, processors),
+    processMetricUpdates(volunteerMd.usm, processors)
+  ]
+
+  await Promise.all(promises) // TODO: error handling
 }
 
-async function pseudoCodeGetReasonsForReview(
-  usm: UserSessionMetrics
-): Promise<string[]> {
-  const reasons = []
-  for (const processor of METRIC_PROCESSORS) {
-    if (processor.review(usm[processor.path][processor.key]))
-      reasons.push(processor.key)
+async function processFlags(
+  session: Session,
+  metricProcessors: MetricClass<MetricType>[]
+): Promise<void> {
+  const flags = []
+  for (const processor of metricProcessors) {
+    flags.concat(processor.flag())
   }
-  return reasons
+  // TODO: set flags on session object
+}
+
+async function processReviewReasons(
+  session: Session,
+  metricProcessors: MetricClass<MetricType>[]
+): Promise<void> {
+  const reviewReasons = []
+  for (const processor of metricProcessors) {
+    processor.review() && reviewReasons.push(processor.key)
+  }
+  // TODO: set review reasons on session object
+}
+
+async function processMetricUpdates(
+  usm: UserSessionMetrics,
+  metricProcessors: MetricClass<MetricType>[]
+): Promise<void> {
+  const updates = []
+  for (const processor of metricProcessors) {
+    updates.push(processor.getUpdateQuery())
+  }
+  await executeUpdatesByUserId(usm.user as Types.ObjectId, updates)
 }

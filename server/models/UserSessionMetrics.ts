@@ -1,9 +1,29 @@
 /* eslint @typescript-eslint/no-use-before-define: 0 */
 
 import { merge } from 'lodash'
-import { Document, model, Schema, Types, ValidatorProps, UpdateQuery } from 'mongoose'
+import {
+  Document,
+  model,
+  Schema,
+  Types,
+  SchemaTypeOpts,
+  UpdateQuery
+} from 'mongoose'
 import UserModel, { User } from './User'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
+
+// The MetricType and METRIC_TYPES below outline the underlying value type of
+// metrics and the path to such metrics on the USM object
+export type Counter = number
+// export type Label = string
+// export type Statistic = number (float)
+export type MetricType = Counter // | Label | Statistic ...
+
+export enum METRIC_TYPES {
+  counters = 'counters'
+  // labels = 'labels
+  // statistics = 'statistics
+}
 
 export enum METRICS {
   absentStudent = 'Absent student',
@@ -46,7 +66,7 @@ const counterSchema = {
   default: 0,
   validate: {
     validator: Number.isInteger,
-    message: (props: ValidatorProps) =>
+    message: (props: SchemaTypeOpts.ValidatorProps) =>
       `${props.value} is not an integer`
   }
 }
@@ -74,7 +94,7 @@ const userSessionMetricsSchema = new Schema({
     commentFromStudent: counterSchema,
     commentFromVolunteer: counterSchema,
     hasBeenUnmatched: counterSchema,
-    hasHasTechnicalIssues: counterSchema
+    hasHadTechnicalIssues: counterSchema
   }
 })
 
@@ -86,14 +106,6 @@ export const UserSessionMetricsModel = model<UserSessionMetricsDocument>(
 )
 
 // Utilities
-function getEnumKeyByEnumValue<T extends { [index: string]: string }>(
-  myEnum: T,
-  enumValue: string
-): keyof T | null {
-  const keys = Object.keys(myEnum).filter(x => myEnum[x] === enumValue)
-  return keys.length > 0 ? keys[0] : null
-}
-
 async function validUser(userId: Types.ObjectId | string): Promise<boolean> {
   const user = await UserModel.findById(userId)
     .lean()
@@ -118,7 +130,8 @@ export async function createByUserId(
     const data = (await UserSessionMetricsModel.create({
       user: userId
     })) as UserSessionMetricsDocument
-    return data.toObject() as UserSessionMetrics
+    if (data) return data.toObject() as UserSessionMetrics
+    else throw new Error('Create query did not return created object')
   } catch (err) {
     throw new RepoCreateError(err.message)
   }
@@ -126,10 +139,11 @@ export async function createByUserId(
 
 // Read functions
 export async function getByObjectId(
-  id: Types.ObjectId | string
+  id: Types.ObjectId | string,
+  projection: any = {}
 ): Promise<UserSessionMetrics> {
   try {
-    return (await UserSessionMetricsModel.findById(id)
+    return (await UserSessionMetricsModel.findById(id, projection)
       .lean()
       .exec()) as UserSessionMetrics
   } catch (err) {
@@ -162,12 +176,9 @@ export async function getByUserId(
 }
 
 // Update functions
-export type UserSessionMetricsUpdateQuery = UpdateQuery<UserSessionMetricsDocument>
-
-export function buildIncrementCounterQuery(metric: METRICS): UserSessionMetricsUpdateQuery {
-  const path = getEnumKeyByEnumValue(METRICS, metric)
-  return { $inc: { [`counters.${path}`]: 1} }
-}
+export type UserSessionMetricsUpdateQuery = UpdateQuery<
+  UserSessionMetricsDocument
+>
 
 // NOTE: when queries are merged conflicting scalar values will be overwritten
 // ex: a = { a: { aa: 1, bb: 2 } }, b = { a: { aa: 3, cc: 4 } }
@@ -192,45 +203,3 @@ export async function executeUpdatesByUserId(
     )
   }
 }
-
-export async function incrementCounterByUserId(
-  userId: Types.ObjectId | string,
-  metric: METRICS
-): Promise<void> {
-  try {
-    const path = getEnumKeyByEnumValue(METRICS, metric)
-    const result = await UserSessionMetricsModel.updateOne(
-      { user: userId },
-      { $inc: { [`counters.${path}`]: 1 } }
-    )
-    if (!result.ok) throw new Error('Update query did not return "ok"')
-  } catch (err) {
-    throw new RepoUpdateError(
-      `Failed to increment session metric counter ${metric} for user ${userId}: ${err.message}`
-    )
-  }
-}
-
-/*  when we have root level, string metrics
-enum METRICS {
-  Label: 'session labeled'
-}
-
-export async function setMetricByUserId(
-  userId: Types.ObjectId | string,
-  metric: METRICS,
-  value: string
-): Promise<void> {
-  try {
-    const result = await UserSessionMetricsModel.updateOne(
-      { user: userId },
-      { [metric]: value }
-    )
-    if (!result.ok) throw new Error('Update query did not return "ok"')
-  } catch ( err) {
-    throw new RepoUpdateError(
-      `Failed to set session metric ${metric} for user ${userId}: ${err.message}`
-    )
-  }
-}
-*/

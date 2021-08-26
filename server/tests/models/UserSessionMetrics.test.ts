@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { merge } from 'lodash'
 import * as UserSessionMetricsRepo from '../../models/UserSessionMetrics'
 import UserModel, { User } from '../../models/User'
 import {
@@ -8,6 +9,7 @@ import {
 } from '../../models/Errors'
 import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
 import { mockMongooseFindQuery } from '../utils'
+import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
 
 async function resetUSM(): Promise<void> {
   await UserSessionMetricsRepo.UserSessionMetricsModel.deleteMany({})
@@ -100,6 +102,26 @@ describe('Test create UserSessionModel objects', () => {
     expect(error.message).toBe(`User ${user} does not exist`)
   })
 
+  test('Create errors with no data returned from db', async () => {
+    const mockedUserSessionModelCreate = jest.spyOn(
+      UserSessionMetricsRepo.UserSessionMetricsModel,
+      'create'
+    )
+    // MongooseModel.create has multiple overloads which return type 'void'
+    // jest interprets this as never leading to this weird typecast
+    mockedUserSessionModelCreate.mockResolvedValueOnce(undefined as never)
+
+    let error: RepoCreateError
+    try {
+      await UserSessionMetricsRepo.createByUserId(student._id)
+    } catch (err) {
+      error = err
+    }
+
+    expect(error).toBeInstanceOf(RepoCreateError)
+    expect(error.message).toBe('Create query did not return created object')
+  })
+
   test('Create bubbles up errors from database find', async () => {
     const mockedUserModelFind = jest.spyOn(UserModel, 'findById')
     const testError = new Error('Test error')
@@ -121,7 +143,9 @@ describe('Test create UserSessionModel objects', () => {
       'create'
     )
     const testError = new Error('Test error')
-    mockedUserSessionModelCreate.mockRejectedValueOnce(testError)
+    // MongooseModel.create has multiple overloads which return type 'void'
+    // jest interprets this as never leading to this weird typecast
+    mockedUserSessionModelCreate.mockRejectedValueOnce(testError as never)
 
     let error: RepoCreateError
     try {
@@ -263,17 +287,55 @@ describe('Test update UserSessionModel objects', () => {
     createdUSM = newUSM.toObject() as UserSessionMetricsRepo.UserSessionMetrics
   })
 
-  test('incrementCounterByUserId succeeds for valid metric', async () => {
-    await UserSessionMetricsRepo.incrementCounterByUserId(
-      student._id,
-      UserSessionMetricsRepo.METRICS.absentStudent
-    )
+  test('executeUpdatesByUserId succeeds for valid queries', async () => {
+    const queries = [
+      {
+        [`counters.${getEnumKeyByEnumValue(
+          UserSessionMetricsRepo.METRICS,
+          UserSessionMetricsRepo.METRICS.absentStudent
+        )}`]: 2
+      },
+      {
+        [`counters.${getEnumKeyByEnumValue(
+          UserSessionMetricsRepo.METRICS,
+          UserSessionMetricsRepo.METRICS.hasHadTechnicalIssues
+        )}`]: 5
+      }
+    ]
+    await UserSessionMetricsRepo.executeUpdatesByUserId(student._id, queries)
     const foundUSM = await UserSessionMetricsRepo.getByObjectId(createdUSM._id)
 
-    expect(foundUSM.counters.absentStudent).toEqual(1)
+    for (const query of queries) {
+      for (const key in query) {
+        const [type, path]: string[] = key.split('.')
+        expect(foundUSM[type][path]).toEqual(query[key])
+      }
+    }
   })
 
-  test('incrementCounterByUserId wraps errors from database update', async () => {
+  test('executeUpdatesByUserId fails for invalid queries', async () => {
+    const queries = [
+      { yipee: 2 },
+      {
+        [`counters.${UserSessionMetricsRepo.METRICS.hasHadTechnicalIssues}`]: 5
+      }
+    ]
+    const update = merge(queries[0], queries[1])
+    const user = student._id
+    let error: RepoUpdateError
+    try {
+      await UserSessionMetricsRepo.executeUpdatesByUserId(user, queries)
+    } catch (err) {
+      error = err
+    }
+
+    expect(error).toBeInstanceOf(RepoUpdateError)
+    expect(error.message).toContain(
+      `Failed to execute update ${update} for user ${user}:`
+    )
+  })
+
+  test('executeUpdatesByUserId wraps errors from database update', async () => {
     const mockedUserSessionMetricsModelUpdate = jest.spyOn(
       UserSessionMetricsRepo.UserSessionMetricsModel,
       'updateOne'
@@ -281,17 +343,24 @@ describe('Test update UserSessionModel objects', () => {
     const testError = new Error('Test error')
     mockedUserSessionMetricsModelUpdate.mockRejectedValueOnce(testError)
 
-    const flag = UserSessionMetricsRepo.METRICS.absentStudent
+    const queries = [
+      { [`counters.${UserSessionMetricsRepo.METRICS.absentStudent}`]: 2 },
+      {
+        [`counters.${UserSessionMetricsRepo.METRICS.hasHadTechnicalIssues}`]: 5
+      }
+    ]
+    const update = merge(queries[0], queries[1])
+    const user = student._id
     let error: RepoUpdateError
     try {
-      await UserSessionMetricsRepo.incrementCounterByUserId(student._id, flag)
+      await UserSessionMetricsRepo.executeUpdatesByUserId(user, queries)
     } catch (err) {
       error = err
     }
 
     expect(error).toBeInstanceOf(RepoUpdateError)
     expect(error.message).toBe(
-      `Failed to increment session metric counter ${flag} for user ${student._id}: ${testError.message}`
+      `Failed to execute update ${update} for user ${user}: ${testError.message}`
     )
   })
 })
