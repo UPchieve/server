@@ -1,6 +1,6 @@
 import { Aggregate, Types, Query } from 'mongoose'
 import VolunteerModel, {
-  updatePastSessionsAndTimeTutored,
+  updateTimeTutored,
   Volunteer
 } from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
@@ -129,4 +129,4 @@ export const queuePartnerOnboardingEventEmails = async (
   )
 }
 
-export { updatePastSessionsAndTimeTutored }
+export { updateTimeTutored }
