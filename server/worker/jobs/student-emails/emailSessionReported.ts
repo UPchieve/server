@@ -3,7 +3,6 @@ import * as UserService from '../../../services/UserService'
 import { USER_BAN_REASON } from '../../../constants'
 import MailService from '../../../services/MailService'
 import { safeAsync } from '../../../utils/safe-async'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
 export interface EmailSessionReportedJobData {
   studentId: string // mongoose.Types.ObjectID is serialized to string on queue
@@ -30,7 +29,9 @@ async function emailReportedSession(
 
   const student = await UserService.getUser({
     _id: studentId,
-    ...EMAIL_RECIPIENT
+    isDeactivated: false,
+    isFakeUser: false,
+    isTestUser: false
   })
 
   const errors: string[] = []

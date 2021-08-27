@@ -139,6 +139,9 @@ export const Config = Record({
 
   workerQueueName: String,
   redisConnectionString: String,
+  redisHost: String,
+  redisPort: String,
+  redisPassword: String,
   firebase: Record({
     projectId: Number
   }),

@@ -42,25 +42,31 @@ export default {
       const inSession = this.isSessionAlive
 
       const status = {
-        text: 'Ready to chat'
+        text: 'Ready to chat',
+        class: 'SidebarInfo-status-circle'
       }
 
       if (this.isVolunteer) {
         status.text = 'Ready to help'
       }
 
+      if (this.user.isBanned) {
+        status.class += '--banned'
+        status.text = 'Paused'
+      }
+
       if (inSession) {
-        status.class = 'SidebarInfo-status-circle--session'
+        status.class += '--session'
         status.text = 'Chat in session'
       }
 
       if (this.isVolunteer && !this.user.isOnboarded) {
-        status.class = 'SidebarInfo-status-circle--onboarding'
+        status.class += '--onboarding'
         status.text = 'Onboarding'
       }
 
       if (this.isVolunteer && this.user.isOnboarded && !this.user.isApproved) {
-        status.class = 'SidebarInfo-status-circle--onboarding'
+        status.class += '--onboarding'
         status.text = 'Pending approval'
       }
 
@@ -109,6 +115,10 @@ export default {
       &--session,
       &--onboarding {
         background: $c-warning-orange;
+      }
+
+      &--banned {
+        background-color: $c-banned-grey;
       }
     }
   }

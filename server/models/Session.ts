@@ -226,13 +226,12 @@ export function getSessionsWithPipeline(pipeline) {
 
 export async function updateFlags(
   sessionId: Types.ObjectId | string,
-  flags
+  data: { flags: SESSION_FLAGS[]; toReview: boolean }
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
-    $addToSet: { flags },
-    // @todo: Needs to be computed from which flags trigger a need for review
-    toReview: true
+    $addToSet: { flags: { $each: data.flags } },
+    toReview: data.toReview
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -485,19 +484,62 @@ export async function updateReportSession(
   }
 }
 
+export async function updateSessionMetrics(
+  sessionId: Types.ObjectId | string,
+  metrics: { timeTutored: number }
+) {
+  const query = { _id: sessionId }
+  const update = {
+    timeTutored: metrics.timeTutored
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
+export async function setQuillDoc(
+  sessionId: Types.ObjectId | string,
+  quillDoc: string
+) {
+  const query = { _id: sessionId }
+  const update = {
+    quillDoc
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
+export async function setHasWhiteboardDoc(
+  sessionId: Types.ObjectId | string,
+  hasWhiteboardDoc: boolean
+) {
+  const query = { _id: sessionId }
+  const update = {
+    hasWhiteboardDoc
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
 export async function updateSessionToEnd(
   sessionId: Types.ObjectId | string,
-  data
+  data: {
+    endedAt: Date
+    endedBy: Types.ObjectId
+  }
 ) {
   const query = { _id: sessionId }
   const update = {
     endedAt: data.endedAt,
-    endedBy: data.endedBy,
-    timeTutored: data.timeTutored,
-    hasWhiteboardDoc: data.hasWhiteboardDoc,
-    quillDoc: data.quillDoc,
-    flags: data.flags,
-    toReview: data.toReview
+    endedBy: data.endedBy
   }
 
   try {
