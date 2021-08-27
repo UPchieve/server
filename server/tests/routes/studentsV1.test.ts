@@ -56,21 +56,21 @@ beforeEach(async () => {
 describe('/v1/students/1/recent-subjects', () => {
   test('Should return a list if this is a valid ID', async () => {
     const expectedTypes = [validTypes[1], validTypes[2], validTypes[3]]
-    mockedStudentService.getMostRecentSessionTypes.mockImplementationOnce(async () => expectedTypes)
+    mockedStudentService.getMostRecentSessionSubTopics.mockImplementationOnce(async () => expectedTypes)
 
     const response = await sendGet('/v1/students/612262eb168710905a2b1b89/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionTypes).toHaveBeenCalledWith('612262eb168710905a2b1b89', 3)
+    expect(StudentService.getMostRecentSessionSubTopics).toHaveBeenCalledWith('612262eb168710905a2b1b89', 3)
     expect(response.status).toBe(200)
     expect(response.text).toStrictEqual(JSON.stringify({types: expectedTypes}))
   })
 
   test('Should return an empty list if there are none to return', async () => {
-    mockedStudentService.getMostRecentSessionTypes.mockImplementationOnce(async () => [])
+    mockedStudentService.getMostRecentSessionSubTopics.mockImplementationOnce(async () => [])
 
     const response = await sendGet('/v1/students/612262eb168710905a2b1b89/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionTypes).toHaveBeenCalledWith('612262eb168710905a2b1b89', 3)
+    expect(StudentService.getMostRecentSessionSubTopics).toHaveBeenCalledWith('612262eb168710905a2b1b89', 3)
     expect(response.status).toBe(200)
     expect(response.text).toStrictEqual(JSON.stringify({types: []}))
   })
@@ -79,26 +79,26 @@ describe('/v1/students/1/recent-subjects', () => {
 
     const response = await sendGet('/v1/students/a/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionTypes).not.toHaveBeenCalled()
+    expect(StudentService.getMostRecentSessionSubTopics).not.toHaveBeenCalled()
     expect(response.status).toBe(422)
   })
 
 
   test('Should return a 400 if the student ID is valid, but no student was found', async () => {
-    mockedStudentService.getMostRecentSessionTypes.mockImplementationOnce(async () => {throw new UserNotFoundError('id', '612262eb168710905a2b1b89')})
+    mockedStudentService.getMostRecentSessionSubTopics.mockImplementationOnce(async () => {throw new UserNotFoundError('id', '612262eb168710905a2b1b89')})
 
     const response = await sendGet('/v1/students/612262eb168710905a2b1b89/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionTypes).toHaveBeenCalledWith('612262eb168710905a2b1b89', 3)
+    expect(StudentService.getMostRecentSessionSubTopics).toHaveBeenCalledWith('612262eb168710905a2b1b89', 3)
     expect(response.status).toBe(400)
   })
 
   test('Should return a 500 if some unknown error is encountered, but should not reveal details about the failure', async () => {
-    mockedStudentService.getMostRecentSessionTypes.mockImplementationOnce(async () => {throw new Error('My internal server error')})
+    mockedStudentService.getMostRecentSessionSubTopics.mockImplementationOnce(async () => {throw new Error('My internal server error')})
 
     const response = await sendGet('/v1/students/612262eb168710905a2b1b89/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionTypes).toHaveBeenCalledWith('612262eb168710905a2b1b89', 3)
+    expect(StudentService.getMostRecentSessionSubTopics).toHaveBeenCalledWith('612262eb168710905a2b1b89', 3)
     expect(response.status).toBe(500)
     expect(response).not.toContain('My internal server error')
   })

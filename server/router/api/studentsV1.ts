@@ -1,6 +1,6 @@
 import expressWs from '@small-tech/express-ws'
 import express from 'express'
-import { getMostRecentSessionTypes } from '../../services/StudentService'
+import { getMostRecentSessionSubTopics } from '../../services/StudentService'
 import { authPassport } from '../../utils/auth-utils'
 import { UserNotFoundError } from '../../models/Errors'
 
@@ -22,7 +22,7 @@ export default function(router: expressWs.Router): void {
         return
       }
       try {
-        const sessionTypes = await getMostRecentSessionTypes(id, 3)
+        const sessionTypes = await getMostRecentSessionSubTopics(id, 3)
         res.status(200).json({ types: sessionTypes })
       } catch (err) {
         if (err instanceof UserNotFoundError) {

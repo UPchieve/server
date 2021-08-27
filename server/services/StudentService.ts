@@ -52,14 +52,14 @@ export const queueWelcomeEmails = async (
 }
 
 /**
- * Return the most recent session types experienced by a student
+ * Return the most recent unique session subTopics engaged in by a student.
  * @param studentID ID of the student for which to list sessions
- * @param types count of session types to return, starting with the last session
- * @returns list of most recent session types
+ * @param count count of session subTopics to return, starting with the last session
+ * @returns list of most recent unique session subTopics
  */
-export async function getMostRecentSessionTypes(
+export async function getMostRecentSessionSubTopics(
   studentID: string,
-  types: number
+  count: number
 ): Promise<string[]> {
   let student: Student
   try {
@@ -80,21 +80,28 @@ export async function getMostRecentSessionTypes(
     throw new UserNotFoundError('id', studentID)
   } else {
     const recentSessions: string[] = []
-    // Starting from the end of the list of sessions, add the last 3 sessions,
+    // Starting from the end of the list of sessions, add the last 3 unique subTopics,
     // stop if you are back to the beginning of the list
     for (
       let i = student.pastSessions.length - 1;
-      i >= Math.max(0, student.pastSessions.length - types);
+      i >= 0;
       i--
     ) {
-      if ('type' in student.pastSessions[i]) {
+      let subTopic: string
+      if ('subTopic' in student.pastSessions[i]) {
         const pastSessionLiteral = student.pastSessions[i] as Session
-        recentSessions.push(pastSessionLiteral.type)
+        subTopic = pastSessionLiteral.subTopic
       } else {
         const pastSessionID = student.pastSessions[i] as ObjectId
         const pastSession = await getSessionById(pastSessionID)
         if (pastSession) {
-          recentSessions.push(pastSession.type)
+          subTopic = pastSession.subTopic
+        }
+      }
+      if (subTopic && !recentSessions.includes(subTopic)) {
+        recentSessions.push(subTopic)
+        if (recentSessions.length >= count) {
+          break
         }
       }
     }
