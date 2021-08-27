@@ -4,10 +4,12 @@ import config from '../../config'
 
 const MongoStore = connectMongo(session)
 
+export const sessionStoreCollectionName = 'auth-sessions'
+
 export default function(app) {
   const sessionStore = new MongoStore({
     url: config.database,
-    collection: 'auth-sessions'
+    collection: sessionStoreCollectionName
   })
 
   app.use(

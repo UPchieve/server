@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto'
 import { findKey } from 'lodash'
 import validator from 'validator'
 
+import mongoose from 'mongoose'
 import UserModel from '../models/User'
 import { StudentDocument } from '../models/Student'
 import { VolunteerDocument } from '../models/Volunteer'
@@ -30,6 +31,8 @@ import {
 } from '../utils/auth-utils'
 import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
+import { sessionStoreCollectionName } from '../router/api/session-store'
+import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
 import IpAddressService from './IpAddressService'
 import MailService from './MailService'
@@ -504,4 +507,16 @@ export async function confirmReset(data: unknown): Promise<void> {
   user.passwordResetToken = undefined
   user.password = await hashPassword(password)
   await user.save()
+}
+
+export async function deleteAllUserSessions(userId: string) {
+  try {
+    await mongoose.connection.db
+      .collection(sessionStoreCollectionName)
+      .deleteMany({ $text: { $search: userId } })
+  } catch (err) {
+    logger.error(
+      `Unable to invalidate all user sessions on password reset: ${err}`
+    )
+  }
 }
