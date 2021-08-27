@@ -14,7 +14,7 @@ import { METRICS_CLASSES } from './metrics'
 
 async function buildMetricData(session: Session): Promise<MetricData> {
   // TODO: implement
-  throw new Error('not implemented')
+  throw new Error(`not implemented ${session}`)
 }
 
 // TODO: register this is a listener on 'end-session' event to run 3 minutes after
