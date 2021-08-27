@@ -10,10 +10,16 @@ import { resError } from '../res-error'
 export function routes(app: Express) {
   const router = Router()
 
-  router.route('/logout').get(function(req, res) {
+  router.route('/logout').get(async function(req, res) {
     req.session.destroy(() => {
       /* do nothing */
     })
+
+    // We do not remove all sessions from the database when users log out
+    // because we have lots of students who share multiple devices. They may
+    // want to log out of a laptop they share with a sibling, but stay logged
+    // in on their mobile device, for example.
+
     // @ts-expect-error
     req.logout()
     res.json({
@@ -167,6 +173,12 @@ export function routes(app: Express) {
       // do not respond with info about no email match
       if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
     }
+    req.session.destroy(() => {
+      /* do nothing */
+    })
+    await AuthService.deleteAllUserSessions(req.user._id.toString())
+    // @ts-expect-error
+    req.logout()
     res.status(200).json({
       msg:
         'If an account with this email address exists then we will send a password reset email'

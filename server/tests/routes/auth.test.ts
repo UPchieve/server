@@ -164,6 +164,7 @@ describe('Test router logic', () => {
       body: { msg }
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(1)
+    expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(1)
     expect(msg).toEqual(
       'If an account with this email address exists then we will send a password reset email'
     )
@@ -177,6 +178,7 @@ describe('Test router logic', () => {
       body: { err }
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(0)
+    expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(0)
     expect(err).toEqual('Missing email body string')
   })
 })
