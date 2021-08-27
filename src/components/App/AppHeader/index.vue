@@ -1,5 +1,5 @@
 <template>
-  <header-template :important="headerData.important">
+  <header-template :headerState="headerData.headerState">
     <component v-bind:is="headerComponent" :header-data="headerData" />
   </header-template>
 </template>
@@ -11,6 +11,7 @@ import DefaultHeader from './DefaultHeader'
 import SessionHeader from './SessionHeader'
 import RejoinSessionHeader from './RejoinSessionHeader'
 import WaitingPeriodHeader from './WaitingPeriodHeader'
+import BannedStudentHeader from './BannedStudentHeader'
 
 export default {
   name: 'app-header',
@@ -19,7 +20,8 @@ export default {
     DefaultHeader,
     SessionHeader,
     RejoinSessionHeader,
-    WaitingPeriodHeader
+    WaitingPeriodHeader,
+    BannedStudentHeader
   },
   computed: {
     ...mapState({
