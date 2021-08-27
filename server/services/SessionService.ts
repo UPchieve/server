@@ -22,6 +22,12 @@ import * as AssistmentsDataRepo from '../models/AssistmentsData'
 import logger from '../logger'
 import * as cache from '../cache'
 import { NotAllowedError } from '../models/Errors'
+import { SESSION_EVENTS } from '../constants/events'
+import {
+  StudentCounselingFeedback,
+  StudentTutoringFeedback,
+  VolunteerFeedback
+} from '../models/Feedback'
 import * as VolunteerService from './VolunteerService'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
@@ -29,6 +35,7 @@ import * as QuillDocService from './QuillDocService'
 import * as AnalyticsService from './AnalyticsService'
 import * as NotificationService from './NotificationService'
 import UserService from './UserService'
+import * as FeedbackService from './FeedbackService'
 
 import { getSessionRequestedUserAgentFromSessionId } from './UserActionService'
 import * as AwsService from './AwsService'
@@ -36,6 +43,7 @@ import { getFeedbackForSession } from './FeedbackService'
 import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
 import { captureEvent } from './AnalyticsService'
 import * as PushTokenService from './PushTokenService'
+import { emitter } from './EventsService'
 
 const {
   getSessionById,
@@ -45,7 +53,10 @@ const {
   getCurrentSession,
   getUnfulfilledSessions,
   addNotifications,
-  updateFlags
+  updateFlags,
+  updateSessionMetrics,
+  setQuillDoc,
+  setHasWhiteboardDoc
 } = SessionRepo
 
 const { getFeedbackFlags, isSessionFulfilled } = sessionUtils
@@ -190,132 +201,195 @@ export async function endSession({
       'Only session participants can end a session'
     )
 
-  await UserService.addPastSession(session.student._id, session._id)
-
-  const endedAt = new Date()
-
-  const reviewFlags = sessionUtils.getReviewFlags({ ...session, endedAt })
-  const isReviewNeeded =
-    reviewFlags.length > 0 && sessionUtils.hasReviewTriggerFlags(reviewFlags)
-  const update: {
-    flags: SESSION_FLAGS[]
-    quillDoc?: string
-    hasWhiteboardDoc?: boolean
-  } = {
-    flags: reviewFlags
-  }
-
-  let timeTutored = 0
-  if (session.volunteer && session.volunteer._id) {
-    // Calculate time tutored if both users were present in the session
-    if (!reviewFlags.includes(SESSION_FLAGS.ABSENT_USER)) {
-      timeTutored = sessionUtils.calculateTimeTutored({ ...session, endedAt })
-      const fifteenMinutes = 1000 * 60 * 15
-      const sendStudentFirstSessionCongrats =
-        session.student.pastSessions.length === 0 &&
-        timeTutored >= fifteenMinutes
-      const sendVolunteerFirstSessionCongrats =
-        session.volunteer.pastSessions.length === 0 &&
-        timeTutored >= fifteenMinutes
-      // send at 11 am EST tomorrow
-      const hourToSendTomorrow = moment()
-        .utc()
-        .startOf('day')
-        .add(1, 'day')
-        .add(15, 'hour')
-        .toDate()
-      const hourToSendTomorrowInMS = hourToSendTomorrow.getTime()
-      const nowInMS = new Date().getTime()
-      const firstSessionEmailDelay = hourToSendTomorrowInMS - nowInMS
-      if (sendStudentFirstSessionCongrats)
-        QueueService.add(
-          Jobs.EmailStudentFirstSessionCongrats,
-          {
-            sessionId: session._id
-          },
-          { delay: firstSessionEmailDelay }
-        )
-      if (sendVolunteerFirstSessionCongrats) {
-        QueueService.add(
-          Jobs.EmailVolunteerFirstSessionCongrats,
-          {
-            sessionId: session._id
-          },
-          { delay: firstSessionEmailDelay }
-        )
-      }
-    }
-
-    await VolunteerService.updatePastSessionsAndTimeTutored(
-      session.volunteer._id,
-      session._id,
-      timeTutored
-    )
-
-    if (session.volunteer.volunteerPartnerOrg) {
-      if (session.volunteer.pastSessions.length === 4)
-        QueueService.add(
-          Jobs.EmailPartnerVolunteerReferACoworker,
-          {
-            volunteerId: session.volunteer._id,
-            firstName: session.volunteer.firstname,
-            email: session.volunteer.email,
-            partnerOrg: session.volunteer.volunteerPartnerOrg
-          },
-          { delay: 1000 * 60 * 5 }
-        )
-
-      if (session.volunteer.pastSessions.length === 9)
-        QueueService.add(
-          Jobs.EmailPartnerVolunteerTenSessionMilestone,
-          {
-            volunteerId: session.volunteer._id,
-            firstName: session.volunteer.firstname,
-            email: session.volunteer.email
-          },
-          { delay: 1000 * 60 * 5 }
-        )
-    }
-
-    if (await isSessionAssistments(sessionId)) {
-      logger.info(`Ending an assistments session: ${sessionId}`)
-      if (isEnabled('send-assistments-data'))
-        QueueService.add(Jobs.SendAssistmentsData, { sessionId })
-    }
-
-    try {
-      QueueService.add(
-        Jobs.EmailSessionReported,
-        JSON.parse(await cache.get(`${sessionId}-reported`))
-      )
-      await cache.remove(`${sessionId}-reported`)
-    } catch (err) {
-      // we don't care if the key is not found
-      if (!(err instanceof cache.KeyNotFoundError)) throw err
-    }
-  }
-
-  // Only college subjects use the Quill document editor
-  if (sessionUtils.isSubjectUsingDocumentEditor(session.subTopic)) {
-    const quillDoc = await QuillDocService.getDoc(session._id.toString())
-    update.quillDoc = JSON.stringify(quillDoc)
-  } else {
-    const whiteboardDoc = await WhiteboardService.getDoc(session._id.toString())
-    update.hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
-      sessionId,
-      whiteboardDoc
-    )
-  }
-
   await SessionRepo.updateSessionToEnd(session._id, {
-    endedAt,
-    endedBy,
-    timeTutored,
-    toReview: isReviewNeeded,
-    ...update
+    endedAt: new Date(),
+    // @note: endedBy is sometimes null when the session is ended by a job from the queue
+    //        due to the session being unmatched for an extended period of time
+    endedBy: endedBy && endedBy._id
   })
-  await WhiteboardService.deleteDoc(session._id.toString())
-  await QuillDocService.deleteDoc(session._id.toString())
+
+  emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
+}
+
+export async function processAddPastSession(sessionId: string) {
+  const session = await getSessionById(sessionId)
+  const updates = []
+  updates.push(UserService.addPastSession(session.student, session._id))
+  if (session.volunteer)
+    updates.push(UserService.addPastSession(session.volunteer, session._id))
+
+  const results = await Promise.allSettled(updates)
+  results.forEach(result => {
+    if (result.status === 'rejected')
+      logger.error(
+        `Failed to add past session: ${sessionId} - error: ${result.reason}`
+      )
+  })
+  emitter.emit(SESSION_EVENTS.PAST_SESSION_ADDED, sessionId)
+}
+
+export async function processAssistmentsSession(sessionId: string) {
+  const session = await getSessionById(sessionId)
+  if (session?.volunteer && (await isSessionAssistments(sessionId))) {
+    logger.info(`Ending an assistments session: ${sessionId}`)
+    if (isEnabled('send-assistments-data'))
+      QueueService.add(Jobs.SendAssistmentsData, { sessionId })
+  }
+}
+
+export async function processSessionReported(sessionId: string) {
+  try {
+    QueueService.add(
+      Jobs.EmailSessionReported,
+      JSON.parse(await cache.get(`${sessionId}-reported`))
+    )
+    await cache.remove(`${sessionId}-reported`)
+  } catch (err) {
+    // we don't care if the key is not found
+    if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
+}
+
+export async function processCalculateMetrics(sessionId: string) {
+  const session = await getSessionById(sessionId)
+  let timeTutored = 0
+  if (!session.flags.includes(SESSION_FLAGS.ABSENT_USER))
+    timeTutored = sessionUtils.calculateTimeTutored(session)
+
+  await updateSessionMetrics(sessionId, { timeTutored })
+  emitter.emit(SESSION_EVENTS.SESSION_METRICS_CALCULATED, sessionId)
+}
+
+export async function processFirstSessionCongratsEmail(sessionId: string) {
+  const session = await SessionRepo.getSessionByIdWithStudentAndVolunteer(
+    sessionId
+  )
+  const fifteenMinutes = 1000 * 60 * 15
+  const isLongSession = session.timeTutored >= fifteenMinutes
+  const sendStudentFirstSessionCongrats =
+    session.student.pastSessions.length === 1 && isLongSession
+  const sendVolunteerFirstSessionCongrats =
+    session.volunteer?.pastSessions.length === 1 && isLongSession
+  // send at 11 am EST tomorrow
+  const hourToSendTomorrowInMS = moment()
+    .utc()
+    .startOf('day')
+    .add(1, 'day')
+    .add(15, 'hour')
+    .toDate()
+    .getTime()
+  const nowInMS = new Date().getTime()
+  const delay = hourToSendTomorrowInMS - nowInMS
+  if (sendStudentFirstSessionCongrats)
+    QueueService.add(
+      Jobs.EmailStudentFirstSessionCongrats,
+      {
+        sessionId: session._id
+      },
+      { delay }
+    )
+  if (sendVolunteerFirstSessionCongrats) {
+    QueueService.add(
+      Jobs.EmailVolunteerFirstSessionCongrats,
+      {
+        sessionId: session._id
+      },
+      { delay }
+    )
+  }
+}
+
+export async function storeAndDeleteQuillDoc(sessionId: string) {
+  const quillDoc = await QuillDocService.getDoc(sessionId)
+  await setQuillDoc(sessionId, JSON.stringify(quillDoc))
+  await QuillDocService.deleteDoc(sessionId)
+}
+
+export async function storeAndDeleteWhiteboardDoc(sessionId: string) {
+  const whiteboardDoc = await WhiteboardService.getDoc(sessionId)
+  const hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
+    sessionId,
+    whiteboardDoc
+  )
+  await setHasWhiteboardDoc(sessionId, hasWhiteboardDoc)
+  await WhiteboardService.deleteDoc(sessionId)
+}
+
+export async function processSessionEditors(sessionId: string) {
+  const session = await getSessionById(sessionId)
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.subTopic))
+    await storeAndDeleteQuillDoc(sessionId)
+  else await storeAndDeleteWhiteboardDoc(sessionId)
+}
+
+export async function processEmailPartnerVolunteer(sessionId: string) {
+  const session = await SessionRepo.getSessionToEnd(sessionId)
+  if (session.volunteer?.volunteerPartnerOrg) {
+    const delay = 1000 * 60 * 5
+    if (session.volunteer.pastSessions.length === 5)
+      QueueService.add(
+        Jobs.EmailPartnerVolunteerReferACoworker,
+        {
+          volunteerId: session.volunteer._id,
+          firstName: session.volunteer.firstname,
+          email: session.volunteer.email,
+          partnerOrg: session.volunteer.volunteerPartnerOrg
+        },
+        { delay }
+      )
+
+    if (session.volunteer.pastSessions.length === 10)
+      QueueService.add(
+        Jobs.EmailPartnerVolunteerTenSessionMilestone,
+        {
+          volunteerId: session.volunteer._id,
+          firstName: session.volunteer.firstname,
+          email: session.volunteer.email
+        },
+        { delay }
+      )
+  }
+}
+
+export async function processSetFlags(sessionId: string) {
+  const session = await SessionRepo.getSessionToEnd(sessionId)
+  const flags = sessionUtils.getReviewFlags(session)
+  const toReview = flags.length > 0 && sessionUtils.hasReviewTriggerFlags(flags)
+  await updateFlags(sessionId, { flags, toReview })
+  emitter.emit(SESSION_EVENTS.FLAGS_SET, sessionId)
+}
+
+export async function processVolunteerTimeTutored(sessionId: string) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  if (session.volunteer)
+    await VolunteerService.updateTimeTutored(
+      session.volunteer,
+      session.timeTutored
+    )
+}
+
+export async function processFeedbackSaved(
+  sessionId: string,
+  userType: 'student' | 'volunteer'
+) {
+  const feedback = await FeedbackService.getFeedback({ sessionId, userType })
+  // @todo: properly type
+  let feedbackResponses:
+    | Partial<StudentTutoringFeedback>
+    | Partial<StudentCounselingFeedback>
+    | Partial<VolunteerFeedback> = {}
+
+  if ('studentTutoringFeedback' in feedback)
+    feedbackResponses = feedback.studentTutoringFeedback
+  if ('studentCounselingFeedback' in feedback)
+    feedbackResponses = feedback.studentCounselingFeedback
+  if ('volunteerFeedback' in feedback)
+    feedbackResponses = feedback.volunteerFeedback
+
+  const flags = await getFeedbackFlags(feedbackResponses)
+  if (flags.length > 0)
+    // Feedback flags currently always trigger a need for review
+    await updateFlags(sessionId, { flags, toReview: true })
 }
 
 /**

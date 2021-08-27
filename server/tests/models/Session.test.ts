@@ -179,7 +179,7 @@ describe('updateFlags', () => {
       SESSION_FLAGS.FIRST_TIME_STUDENT,
       SESSION_FLAGS.FIRST_TIME_VOLUNTEER
     ]
-    await SessionRepo.updateFlags(session._id, flags)
+    await SessionRepo.updateFlags(session._id, { flags, toReview: true })
 
     const updatedSession = await getSession(
       { _id: session._id },
@@ -191,9 +191,9 @@ describe('updateFlags', () => {
   })
 
   test('Should throw error with invalid input', async () => {
-    await expect(SessionRepo.updateFlags(invalidId, [])).rejects.toBeInstanceOf(
-      DocUpdateError
-    )
+    await expect(
+      SessionRepo.updateFlags(invalidId, { flags: [], toReview: false })
+    ).rejects.toBeInstanceOf(DocUpdateError)
   })
 })
 
@@ -440,22 +440,14 @@ describe('updateSessionToEnd', () => {
     const { session, student } = await insertSession()
     const data = {
       endedAt: new Date(),
-      endedBy: student._id,
-      timeTutored: 5000,
-      hasWhiteboardDoc: true,
-      quillDoc: '',
-      flags: [SESSION_FLAGS.FIRST_TIME_STUDENT]
+      endedBy: student._id
     }
     await SessionRepo.updateSessionToEnd(session._id.toString(), data)
     const updatedSession = await getSession(
       { _id: session._id },
       {
         endedAt: 1,
-        endedBy: 1,
-        timeTutored: 1,
-        hasWhiteboardDoc: 1,
-        quillDoc: 1,
-        flags: 1
+        endedBy: 1
       }
     )
 
@@ -470,12 +462,7 @@ describe('updateSessionToEnd', () => {
     await expect(
       SessionRepo.updateSessionToEnd(invalidId, {
         endedAt: new Date(),
-        endedBy: getObjectId(),
-        timeTutored: 5000,
-        hasWhiteboardDoc: true,
-        quillDoc: '',
-        flags: [SESSION_FLAGS.FIRST_TIME_STUDENT],
-        toReview: true
+        endedBy: getObjectId()
       })
     ).rejects.toBeInstanceOf(DocUpdateError)
   })
@@ -811,5 +798,113 @@ describe('getSessionsWithAvgWaitTimePerDayAndHour', () => {
       lastSunday
     )
     expect(sessions[0].averageWaitTime).toBe(expectedAverageWaitTimeForHour)
+  })
+})
+
+describe('updateSessionMetrics', () => {
+  test('Should update related session metrics to the session', async () => {
+    const { session } = await insertSession()
+    const timeTutored = 1000 * 60 * 20
+    await SessionRepo.updateSessionMetrics(session._id.toString(), {
+      timeTutored
+    })
+    const updatedSession = await getSession(
+      { _id: session._id },
+      {
+        timeTutored: 1
+      }
+    )
+    expect(updatedSession.timeTutored).toBe(timeTutored)
+  })
+
+  test('Should throw error when database update errors', async () => {
+    const mockedSessionUpdateOne = jest.spyOn(SessionRepo.default, 'updateOne')
+    const testError = new Error('Test error')
+    mockedSessionUpdateOne.mockRejectedValueOnce(testError)
+
+    let error: DocUpdateError
+    const sessionId = getObjectId()
+    const timeTutored = 1000 * 60 * 20
+    try {
+      await SessionRepo.updateSessionMetrics(sessionId.toString(), {
+        timeTutored
+      })
+    } catch (err) {
+      error = err
+    }
+
+    expect(error).toBeInstanceOf(DocUpdateError)
+  })
+})
+
+describe('setQuillDoc', () => {
+  test('Should set the quillDoc on the session document', async () => {
+    const { session } = await insertSession()
+    const quillDoc = { ops: [] }
+
+    await SessionRepo.setQuillDoc(
+      session._id.toString(),
+      JSON.stringify(quillDoc)
+    )
+    const updatedSession = await getSession(
+      { _id: session._id },
+      {
+        quillDoc: 1
+      }
+    )
+    expect(JSON.parse(updatedSession.quillDoc)).toEqual(quillDoc)
+  })
+
+  test('Should throw error when database update errors', async () => {
+    const mockedSessionUpdateOne = jest.spyOn(SessionRepo.default, 'updateOne')
+    const testError = new Error('Test error')
+    mockedSessionUpdateOne.mockRejectedValueOnce(testError)
+
+    let error: DocUpdateError
+    const sessionId = getObjectId()
+    const quillDoc = { ops: [] }
+    try {
+      await SessionRepo.setQuillDoc(sessionId, JSON.stringify(quillDoc))
+    } catch (err) {
+      error = err
+    }
+
+    expect(error).toBeInstanceOf(DocUpdateError)
+  })
+})
+
+describe('setHasWhiteboardDoc', () => {
+  test('Should set hasWhiteboardDoc on the session document', async () => {
+    const { session } = await insertSession()
+    const hasWhiteboardDoc = true
+
+    await SessionRepo.setHasWhiteboardDoc(
+      session._id.toString(),
+      hasWhiteboardDoc
+    )
+    const updatedSession = await getSession(
+      { _id: session._id },
+      {
+        hasWhiteboardDoc: 1
+      }
+    )
+    expect(updatedSession.hasWhiteboardDoc).toBeTruthy()
+  })
+
+  test('Should throw error when database update errors', async () => {
+    const mockedSessionUpdateOne = jest.spyOn(SessionRepo.default, 'updateOne')
+    const testError = new Error('Test error')
+    mockedSessionUpdateOne.mockRejectedValueOnce(testError)
+
+    let error: DocUpdateError
+    const sessionId = getObjectId()
+    const hasWhiteboardDoc = false
+    try {
+      await SessionRepo.setHasWhiteboardDoc(sessionId, hasWhiteboardDoc)
+    } catch (err) {
+      error = err
+    }
+
+    expect(error).toBeInstanceOf(DocUpdateError)
   })
 })

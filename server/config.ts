@@ -19,8 +19,9 @@ if (mongoPass) {
 let redisConnectionString
 const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
 const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
+const redisPassword = process.env.SUBWAY_REDIS_PASSWORD || 'bogus'
 if (process.env.SUBWAY_REDIS_USE_TLS === 'true') {
-  redisConnectionString = `rediss://:${process.env.SUBWAY_REDIS_PASSWORD}@${redisHost}:${redisPort}`
+  redisConnectionString = `rediss://:${redisPassword}@${redisHost}:${redisPort}`
 } else {
   redisConnectionString = `redis://${redisHost}:${redisPort}`
 }
@@ -251,6 +252,9 @@ const config: Static<typeof Config> = {
 
   workerQueueName: 'main',
   redisConnectionString,
+  redisHost,
+  redisPort,
+  redisPassword,
   firebase: {
     projectId: Number(process.env.SUBWAY_FIREBASE_PROJECT_ID) || 123456789012
   },
