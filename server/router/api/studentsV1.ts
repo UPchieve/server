@@ -16,7 +16,7 @@ export default function(router: expressWs.Router): void {
       next: Function
     ) {
       const id = req.params.id
-      if (!id) {
+      if (id.length < 2) {
         res.status(422).json({ err: 'no student id found' })
         next()
         return
