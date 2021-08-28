@@ -170,10 +170,11 @@ import ArrowIcon from '@/assets/arrow.svg'
 import { isEnabled } from 'unleash-client'
 import NetworkService from '../../../services/NetworkService'
 import config from '../../../config'
+import { HEADER_STATES } from '../../../../src/consts'
 
 const headerData = {
   component: 'RejoinSessionHeader',
-  data: { important: true }
+  data: { headerState: HEADER_STATES.ACTIVE_SESSION }
 }
 
 const upchieveTopics = allSubtopicNames()

@@ -13,6 +13,10 @@ export const PHYSICS_MAPPING = {
   physicsone: 'physicsOne'
 }
 
+export const CDN_URL = 'https://upchievecdn.blob.core.windows.net'
+
+export const DOCS_URL = `${CDN_URL}/docs`
+
 export const STATES = [
   'Alabama',
   'Alaska',
@@ -422,7 +426,8 @@ export const VERIFICATION_METHOD = {
 }
 
 export const FEATURE_FLAGS = {
-  REFER_FRIENDS: 'refer-friends'
+  REFER_FRIENDS: 'refer-friends',
+  STUDENT_BANNED_STATE: 'student-banned-state'
 }
 
 export const ANALYTICS_REPORT_ROW = {
@@ -468,4 +473,9 @@ export const ANALYTICS_REPORT_SUMMARY = {
   TOTAL_SESSIONS_COMPLETED: 'Total sessions completed',
   TOTAL_VOLUNTEER_HOURS: 'Total volunteer hours completed',
   TOTAL_UNIQUE_STUDENTS_HELPED: 'Total unique students helped'
+}
+
+export const HEADER_STATES = {
+  BANNED_STUDENT: 'banned student',
+  ACTIVE_SESSION: 'active session'
 }

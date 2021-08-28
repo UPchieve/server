@@ -2,7 +2,11 @@ import mongoose from 'mongoose'
 import { v4 as uuid } from 'uuid'
 import * as AssistmentsDataRepo from '../../models/AssistmentsData'
 import SessionModel, { Session } from '../../models/Session'
-import { RepoCreateError, RepoReadError } from '../../models/Errors'
+import {
+  RepoCreateError,
+  RepoReadError,
+  RepoUpdateError
+} from '../../models/Errors'
 import { insertSession, resetDb } from '../db-utils'
 import { mockMongooseFindQuery } from '../utils'
 
@@ -22,6 +26,11 @@ afterAll(async () => {
   await resetDb()
   await resetAD()
   await mongoose.connection.close()
+})
+
+beforeEach(() => {
+  // reset spys between tests
+  jest.restoreAllMocks()
 })
 
 const problemId = 12345
@@ -264,11 +273,65 @@ describe('Test read AssistmentData objects', () => {
   })
 })
 
-/*
 describe('Update AssistmentData objects', () => {
+  let validSession: Session
+  let createdAD: AssistmentsDataRepo.AssistmentsData
 
+  beforeAll(async () => {
+    await resetDb()
+    await resetAD()
+    const { session: newSession } = await insertSession(
+      {},
+      {
+        studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS
+      }
+    )
+    validSession = newSession
+    const newAD = await AssistmentsDataRepo.AssistmentsDataModel.create({
+      problemId,
+      assignmentId,
+      studentId,
+      session: validSession._id
+    })
+    createdAD = newAD.toObject() as AssistmentsDataRepo.AssistmentsData
+  })
+
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
+
+  test('UpdateSentAtById succeeds', async () => {
+    const now = new Date()
+    await AssistmentsDataRepo.updateSentAtById(createdAD._id, now)
+
+    const foundAD = await AssistmentsDataRepo.AssistmentsDataModel.findById(
+      createdAD._id
+    )
+      .lean()
+      .exec()
+    expect(foundAD.sent).toBeTruthy()
+    expect(foundAD.sentAt).toEqual(now)
+  })
+
+  test('UpdateSentAtById wraps errors form database update', async () => {
+    const mockedAssistmentDataUpdate = jest.spyOn(
+      AssistmentsDataRepo.AssistmentsDataModel,
+      'updateOne'
+    )
+    const testError = new Error('Test error')
+    mockedAssistmentDataUpdate.mockRejectedValueOnce(testError)
+
+    let error: RepoReadError
+    try {
+      await AssistmentsDataRepo.updateSentAtById(createdAD._id, new Date())
+    } catch (err) {
+      error = err
+    }
+
+    expect(error).toBeInstanceOf(RepoUpdateError)
+    expect(error.message).toBe(testError.message)
+  })
 })
-*/
 
 /*
 describe('Delete AssistmentData objects', () => {

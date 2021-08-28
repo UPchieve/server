@@ -3,6 +3,8 @@ jest.mock('ioredis', () => require('ioredis-mock/jest'))
 jest.mock('posthog-node')
 jest.mock('../services/AnalyticsService')
 
+jest.mock('merkury')
+
 jest.mock('../config', () => {
   return {
     NODE_ENV: 'dev',
