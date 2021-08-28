@@ -71,22 +71,17 @@ export async function getMostRecentSessionSubTopics(
         pastSessions: 1
       }
     )
-  } catch(err) {
-    if (err.name === 'CastError')
-    throw new UserNotFoundError('id', studentID)
+  } catch (err) {
+    if (err.name === 'CastError') throw new UserNotFoundError('id', studentID)
   }
-   
+
   if (!student) {
     throw new UserNotFoundError('id', studentID)
   } else {
     const recentSessions: string[] = []
     // Starting from the end of the list of sessions, add the last 3 unique subTopics,
     // stop if you are back to the beginning of the list
-    for (
-      let i = student.pastSessions.length - 1;
-      i >= 0;
-      i--
-    ) {
+    for (let i = student.pastSessions.length - 1; i >= 0; i--) {
       let subTopic: string
       if ('subTopic' in student.pastSessions[i]) {
         const pastSessionLiteral = student.pastSessions[i] as Session

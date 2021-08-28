@@ -1,11 +1,8 @@
-import { ObjectId } from 'mongodb'
 import mongoose from 'mongoose'
 import { UserNotFoundError } from '../../models/Errors'
-import { Session, validTypes } from '../../models/Session'
-import { sessionsToReview } from '../../services/SessionService'
 import { getMostRecentSessionSubTopics } from '../../services/StudentService'
 import { insertSession, insertStudent, resetDb } from '../db-utils'
-import { buildSession, buildStudent } from '../generate'
+import { buildStudent } from '../generate'
 
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
@@ -20,25 +17,25 @@ beforeEach(async () => {
   jest.clearAllMocks()
 })
 
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
 describe('getMostRecentSessionTypes', () => {
-  test('should get the last 3 of 6 session topics when sessions are stored as IDs', async () => {
+  test('should get the last 3 of 6 unique session subTopics when sessions are stored as IDs', async () => {
     const sessions = []
-    for (let i = 0; i<6;i++) {
-      const { session } = await insertSession({ subTopic: `${Math.floor(i/2)}` })
+    for (let i = 0; i < 6; i++) {
+      const { session } = await insertSession({
+        subTopic: `${Math.floor(i / 2)}`
+      })
       sessions.push(session._id)
     }
     const student = await insertStudent({ pastSessions: sessions })
 
     const list = await getMostRecentSessionSubTopics(student._id.toString(), 3)
 
-    expect(list).toEqual(['2','1','0'])
+    expect(list).toEqual(['2', '1', '0'])
   })
-  
+
   test('should return a UserNotFoundError error if the id is nonsense', async () => {
     try {
-      const list = await getMostRecentSessionSubTopics('blah', 3)
+      await getMostRecentSessionSubTopics('blah', 3)
       expect(true).toBe(false)
     } catch (err) {
       expect(err instanceof UserNotFoundError).toBe(true)
@@ -48,8 +45,8 @@ describe('getMostRecentSessionTypes', () => {
   test('should return a UserNotFoundError error if the id does not exist', async () => {
     const dummyStudent = buildStudent()
     try {
-      const list = await getMostRecentSessionSubTopics(dummyStudent._id.toString(), 3)
-      expect(true).toBe(false)
+      await getMostRecentSessionSubTopics(dummyStudent._id.toString(), 3)
+      expect(true).toBe(false) // Line should not be encountered because function should throw an error
     } catch (err) {
       expect(err instanceof UserNotFoundError).toBe(true)
     }
@@ -57,7 +54,7 @@ describe('getMostRecentSessionTypes', () => {
 
   test('should return a list of 2 sessions if there are only 2 sessions ever taken', async () => {
     const sessions = []
-    for (let i = 0; i<2;i++) {
+    for (let i = 0; i < 2; i++) {
       const { session } = await insertSession({ subTopic: `${i}` })
       sessions.push(session._id)
     }
