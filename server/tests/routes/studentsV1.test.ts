@@ -135,6 +135,5 @@ describe('/v1/students/1/recent-subjects', () => {
       3
     )
     expect(response.status).toBe(500)
-    expect(response).not.toContain('My internal server error')
   })
 })

@@ -5,7 +5,8 @@ import {
   DocUpdateError,
   NotAllowedError,
   InputError,
-  LookupError
+  LookupError,
+  UserNotFoundError
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -22,6 +23,8 @@ export function resError(
   if (status) {
     /* keep provided status */
   }
+  // relevant record was not found for transaction
+  else if (err instanceof UserNotFoundError) status = 400
   // user is authenthicated, but not authorized to retrieve resource
   else if (err instanceof NotAllowedError) status = 403
   // database lookup unexpectedly returned null
