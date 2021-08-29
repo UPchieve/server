@@ -586,7 +586,7 @@ export default {
       // (4) Hours tutored
       const numMillisecondsTutored = Number(this.user.timeTutored)
       const numHoursTutored = numMillisecondsTutored
-        ? Math.floor((numMillisecondsTutored / (1000 * 60 * 60)) % 24)
+        ? Math.floor(numMillisecondsTutored / (1000 * 60 * 60))
         : 0
 
       // (5) Elapsed availability
