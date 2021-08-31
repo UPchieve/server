@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import moment from 'moment'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
 import {
   resetDb,
@@ -104,7 +105,7 @@ describe('Notify tutors', () => {
 
     expect(job.queue.add).toHaveBeenCalledTimes(0)
     expect(log).toHaveBeenCalledWith(
-      `Unable to ${Jobs.NotifyTutors} for session ${session._id}: no volunteers available`
+      `Unable to send notification for session ${session._id}: no volunteers available`
     )
   })
 
@@ -129,19 +130,23 @@ describe('Notify tutors', () => {
     expect(job.queue.add).toHaveBeenCalledTimes(1)
     expect(job.data.notificationSchedule.length).toBe(1)
     expect(log).toHaveBeenCalledWith(
-      `Successfully ${Jobs.NotifyTutors} for session ${session._id}: volunteer ${volunteer._id}`
+      `Successfully sent notification for session ${session._id} to volunteer ${volunteer._id}`
     )
   })
 
   test('Should notify a volunteer who has already been texted with a follow-up text once total volunteers to text has been passed', async () => {
-    const currentNotificationAmount = 18
-    const { notifications, volunteers } = await fillNotifications(
-      currentNotificationAmount
-    )
+    const { notifications, volunteers } = await fillNotifications()
+    for (let i = 0; i < 3; i++) {
+      const followUp = buildNotification({
+        volunteer: notifications[i].volunteer
+      })
+      await insertNotificationMany([followUp])
+      notifications.push(followUp)
+    }
     const { session } = await insertSession({ notifications })
 
     const expectedVolunteerIndex =
-      currentNotificationAmount % TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP
+      notifications.length % TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP
 
     // @todo: figure out how to properly type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -160,7 +165,50 @@ describe('Notify tutors', () => {
 
     expect(TwilioService.sendFollowupText).toHaveBeenCalledTimes(1)
     expect(log).toHaveBeenCalledWith(
-      `Successfully ${Jobs.NotifyTutors} for session ${session._id}: follow-up to volunteer ${expectedVolunteer._id}`
+      `Successfully sent follow up for session ${session._id} to volunteer ${expectedVolunteer._id}`
+    )
+  })
+
+  test('Should notify a volunteer who has already been texted with a follow-up text once after 6 min even with <15 volunteers notified', async () => {
+    const totalVolunteersNotified = 6
+    const { notifications, volunteers } = await fillNotifications(
+      totalVolunteersNotified
+    )
+    for (let i = 0; i < 3; i++) {
+      const followUp = buildNotification({
+        volunteer: notifications[i].volunteer
+      })
+      await insertNotificationMany([followUp])
+      notifications.push(followUp)
+    }
+    const { session } = await insertSession({
+      notifications,
+      createdAt: moment()
+        .subtract(6, 'minutes')
+        .toDate()
+    })
+
+    const expectedVolunteerIndex =
+      notifications.length % totalVolunteersNotified
+
+    // @todo: figure out how to properly type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const job: any = {
+      data: {
+        sessionId: session._id,
+        notificationSchedule: config.notificationSchedule
+      },
+      queue: {
+        add: jest.fn()
+      }
+    }
+
+    await notifyTutors(job)
+    const expectedVolunteer = volunteers[expectedVolunteerIndex]
+
+    expect(TwilioService.sendFollowupText).toHaveBeenCalledTimes(1)
+    expect(log).toHaveBeenCalledWith(
+      `Successfully sent follow up for session ${session._id} to volunteer ${expectedVolunteer._id}`
     )
   })
 })
