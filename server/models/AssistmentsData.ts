@@ -3,7 +3,7 @@
 import { Document, model, Schema, Types } from 'mongoose'
 import validator from 'validator'
 import SessionModel, { Session } from './Session'
-import { RepoCreateError, RepoReadError } from './Errors'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
 
 export const ASSISTMENTS = 'assistments'
 
@@ -13,6 +13,8 @@ export interface AssistmentsData {
   assignmentId: string // UUID
   studentId: string // UUID
   session: Types.ObjectId | Session
+  sent: boolean
+  sentAt?: Date
 }
 
 type AssistmentsDataDocument = AssistmentsData & Document
@@ -54,6 +56,14 @@ const assistmentsDataSchema = new Schema({
       validator: validSession,
       message: props => `${props.value} is not a valid session`
     }
+  },
+  sent: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  sentAt: {
+    type: Date
   }
 })
 
@@ -142,5 +152,24 @@ export async function getBySession(
 }
 
 // Update functions
+export async function updateSentAtById(
+  id: Types.ObjectId | string,
+  sentAt: Date
+): Promise<void> {
+  try {
+    const result = await AssistmentsDataModel.updateOne(
+      {
+        _id: id
+      },
+      {
+        sent: true,
+        sentAt: sentAt
+      }
+    )
+    if (!result.ok) throw new Error('Update query did not return "ok"')
+  } catch (err) {
+    throw new RepoUpdateError(err.message)
+  }
+}
 
 // Delete functions

@@ -4,6 +4,7 @@ export const Config = Record({
   NODE_ENV: String,
   SSL_CERT_PATH: String,
   host: String,
+  additionalAllowedOrigins: String,
   database: String,
   sessionSecret: String,
   sessionCookieMaxAge: Number,
@@ -59,6 +60,7 @@ export const Config = Record({
     volunteerInactiveThirtyDaysTemplate: String,
     volunteerInactiveSixtyDaysTemplate: String,
     volunteerInactiveNinetyDaysTemplate: String,
+    volunteerInactiveBlackoutOverTemplate: String,
     failedFirstAttemptedQuizTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
@@ -115,6 +117,8 @@ export const Config = Record({
   customVolunteerPartnerOrg: String,
   studentPartnerManifestPath: String,
 
+  assistmentsBaseURL: String,
+
   cacheKeys: Record({
     updateTotalVolunteerHoursLastRun: String,
     waitTimeHeatMapAllSubjects: String
@@ -135,6 +139,9 @@ export const Config = Record({
 
   workerQueueName: String,
   redisConnectionString: String,
+  redisHost: String,
+  redisPort: String,
+  redisPassword: String,
   firebase: Record({
     projectId: Number
   }),
@@ -175,5 +182,6 @@ export const Config = Record({
   whiteboardStorageSubscriptionId: String,
   whiteboardStorageAccountName: String,
   whiteboardStorageContainer: String,
-  version: String
+  version: String,
+  fileWorkRootPath: String
 })

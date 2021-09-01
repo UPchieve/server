@@ -162,9 +162,10 @@ const routes = [
     component: ResetPasswordView
   },
   {
-    path: '/setpassword/:token',
+    path: '/setpassword',
     name: 'SetPasswordView',
-    component: SetPasswordView
+    component: SetPasswordView,
+    props: route => ({ token: route.query.token })
   },
   {
     path: '/dashboard',

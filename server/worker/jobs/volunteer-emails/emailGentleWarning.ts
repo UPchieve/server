@@ -4,6 +4,7 @@ import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getNotificationsWithPipeline } from '../../../services/NotificationService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
+import { emailRecipientPrefixed } from '../../../utils/aggregation-snippets'
 
 interface GentleWarningAggregation {
   _id: string | Types.ObjectId
@@ -88,7 +89,8 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
     { $unwind: '$volunteer' },
     {
       $match: {
-        'volunteer.pastSessions': { $size: 0 }
+        'volunteer.pastSessions': { $size: 0 },
+        ...emailRecipientPrefixed('volunteer')
       }
     },
     {

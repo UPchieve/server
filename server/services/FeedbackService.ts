@@ -4,12 +4,17 @@ import FeedbackModel, {
   ResponseData,
   StudentCounselingFeedback,
   StudentTutoringFeedback,
-  VolunteerFeedback
+  VolunteerFeedback,
+  FeedbackVersionOne,
+  FeedbackVersionTwo
 } from '../models/Feedback'
 import { FEEDBACK_VERSIONS } from '../constants'
-import * as SessionService from './SessionService'
+import { FEEDBACK_EVENTS } from '../constants/events'
+import { emitter } from './EventsService'
 
-export const getFeedback = (query): Promise<Feedback> => {
+export const getFeedback = (
+  query
+): Promise<Feedback | FeedbackVersionOne | FeedbackVersionTwo> => {
   return FeedbackModel.findOne(query)
     .lean()
     .exec()
@@ -37,20 +42,8 @@ export const saveFeedback = async (data: {
     ...data,
     versionNumber: FEEDBACK_VERSIONS.TWO
   })
-  const {
-    sessionId,
-    responseData,
-    studentTutoringFeedback,
-    studentCounselingFeedback,
-    volunteerFeedback
-  } = data
-  const feedbackResponses = {
-    ...responseData,
-    ...studentTutoringFeedback,
-    ...studentCounselingFeedback,
-    ...volunteerFeedback
-  }
-  const flags = await SessionService.getFeedbackFlags(feedbackResponses)
-  if (flags.length > 0) await SessionService.updateFlags(sessionId, flags)
-  return feedback.save()
+
+  const doc = await feedback.save()
+  emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, doc.sessionId, doc.userType)
+  return doc
 }

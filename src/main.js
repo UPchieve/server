@@ -19,7 +19,7 @@ import { initialize } from 'unleash-client'
 
 if (config.posthogToken) {
   posthog.init(`${config.posthogToken}`, {
-    api_host: 'https://app.posthog.com'
+    api_host: 'https://p.upchieve.org'
   })
 }
 

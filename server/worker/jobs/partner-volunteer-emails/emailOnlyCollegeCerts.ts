@@ -9,6 +9,7 @@ import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getNotifications } from '../../../services/NotificationService'
 import { getVolunteer } from '../../../services/UserService'
+import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
 /**
  *
@@ -38,10 +39,10 @@ export default async (
   const volunteer = await getVolunteer(
     {
       _id: volunteerId,
-      isDeactivated: false,
       isOnboarded: true,
       subjects: { $nin: nonCollegeSubjects },
-      volunteerPartnerOrg: { $exists: true }
+      volunteerPartnerOrg: { $exists: true },
+      ...EMAIL_RECIPIENT
     },
     {
       _id: 1,

@@ -1,6 +1,8 @@
 import { Job } from 'bull'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
+import { getVolunteers } from '../../../services/VolunteerService'
+import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
 interface EmailFailedFirstAttemptedQuizJobData {
   category: string
@@ -18,12 +20,19 @@ export default async (
   } = job
 
   try {
-    await MailService.sendFailedFirstAttemptedQuiz({
-      category,
-      email,
-      firstName
+    const [volunteer] = await getVolunteers({
+      ...EMAIL_RECIPIENT,
+      _id: volunteerId
     })
-    logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
+    // Only send email if vounteer is found to be a recipient
+    if (volunteer) {
+      await MailService.sendFailedFirstAttemptedQuiz({
+        category,
+        email,
+        firstName
+      })
+      logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
+    }
   } catch (error) {
     throw new Error(
       `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

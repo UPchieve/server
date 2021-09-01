@@ -26,7 +26,9 @@ import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
 import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVolunteerFirstSessionCongrats'
 import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
 import emailFailedFirstAttemptedQuiz from './volunteer-emails/emailFailedFirstAttemptedQuiz'
+import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVolunteerInactiveBlackoutOver'
 import emailSessionReported from './student-emails/emailSessionReported'
+import sendAssistmentsData from './sendAssistmentsData'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -54,6 +56,7 @@ export enum Jobs {
   EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
   EmailPartnerVolunteerReferACoworker = 'EmailPartnerVolunteerReferACoworker',
   EmailPartnerVolunteerTenSessionMilestone = 'EmailPartnerVolunteerTenSessionMilestone',
+  EmailVolunteerInactiveBlackoutOver = 'EmailVolunteerInactiveBlackoutOver',
   EmailVolunteerGentleWarning = 'EmailVolunteerGentleWarning',
   EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
   EmailVolunteerInactiveSixtyDays = 'EmailVolunteerInactiveSixtyDays',
@@ -61,7 +64,8 @@ export enum Jobs {
   EmailVolunteerInactive = 'EmailVolunteerInactive',
   EmailVolunteerFirstSessionCongrats = 'EmailVolunteerFirstSessionCongrats',
   EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
-  EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz'
+  EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
+  SendAssistmentsData = ' SendAssistmentsData'
 }
 
 // register new job processors here
@@ -180,6 +184,10 @@ const jobProcessors: JobProcessor[] = [
     processor: emailVolunteerFirstSessionCongrats
   },
   {
+    name: Jobs.EmailVolunteerInactiveBlackoutOver,
+    processor: emailVolunteerInactiveBlackoutOver
+  },
+  {
     name: Jobs.EmailStudentFirstSessionCongrats,
     processor: emailStudentFirstSessionCongrats
   },
@@ -190,6 +198,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailSessionReported,
     processor: emailSessionReported
+  },
+  {
+    name: Jobs.SendAssistmentsData,
+    processor: sendAssistmentsData
   }
 ]
 

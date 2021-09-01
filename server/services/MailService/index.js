@@ -139,7 +139,7 @@ module.exports = {
   },
 
   sendReset: ({ email, token }, callback) => {
-    const url = 'http://' + config.client.host + '/setpassword/' + token
+    const url = 'http://' + config.client.host + '/setpassword?token=' + token
     const overrides = {
       mail_settings: { bypass_list_management: { enable: true } }
     }
@@ -855,6 +855,25 @@ module.exports = {
       sender,
       'The UPchieve Team',
       config.sendgrid.volunteerInactiveNinetyDaysTemplate,
+      { firstName },
+      null,
+      overrides
+    )
+  },
+
+  sendVolunteerInactiveBlackoutOver: async ({ email, firstName }) => {
+    const sender = config.mail.senders.support
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['volunteer - inactive blackout over']
+    }
+    return sendEmail(
+      email,
+      sender,
+      'The UPchieve Team',
+      config.sendgrid.volunteerInactiveBlackoutOverTemplate,
       { firstName },
       null,
       overrides

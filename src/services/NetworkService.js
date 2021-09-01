@@ -317,13 +317,9 @@ export default {
       .get(`${API_ROOT}/session/${sessionId}/notifications`)
       .then(this._successHandler, this._errorHandler)
   },
-  adminGetSessionsToReview({ page, users }) {
-    const queryParams = new URLSearchParams({
-      page,
-      users
-    }).toString()
+  adminGetSessionsToReview(page) {
     return Vue.http
-      .get(`${API_ROOT}/session/review?${queryParams}`)
+      .get(`${API_ROOT}/session/review?page=${page}`)
       .then(this._successHandler, this._errorHandler)
   },
   adminUpdateSession(sessionId, data) {
@@ -468,7 +464,13 @@ export default {
     }).toString()
     return Vue.http
       .get(`${API_ROOT}/reports/partner-analytics-report?${queryParams}`, {
-        timeout: 300000
+        timeout: 300000,
+        headers: {
+          'Content-Disposition': 'attachment; filename=analytics-report.xlsx',
+          'Content-Type':
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        },
+        responseType: 'arraybuffer'
       })
       .then(this._successHandler, this._errorHandler)
   },

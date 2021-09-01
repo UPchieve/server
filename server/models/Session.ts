@@ -43,8 +43,8 @@ export interface Session {
   reportReason: string
   reportMessage: string
   flags: string[]
-  reviewedStudent: boolean
-  reviewedVolunteer: boolean
+  reviewed: boolean
+  toReview: boolean
   timeTutored: number
 }
 
@@ -134,8 +134,8 @@ const sessionSchema = new Schema({
     type: [String],
     enum: values(SESSION_FLAGS)
   },
-  reviewedStudent: Boolean,
-  reviewedVolunteer: Boolean,
+  reviewed: { type: Boolean, default: false },
+  toReview: { type: Boolean, default: false },
   timeTutored: { type: Number, default: 0 },
   isStudentBanned: Boolean
 })
@@ -209,42 +209,14 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
 export async function getSessionById(
   sessionId: Types.ObjectId | string,
   projection = {}
-) {
-  try {
-    const session = await SessionModel.findOne({ _id: sessionId })
-      .select(projection)
-      .lean()
-      .exec()
-    if (!session) throw new LookupError('Session not found')
+): Promise<Session> {
+  const session = await SessionModel.findOne({ _id: sessionId })
+    .select(projection)
+    .lean()
+    .exec()
+  if (!session) throw new LookupError('Session not found')
 
-    return {
-      _id: session._id,
-      student: session.student as Types.ObjectId,
-      volunteer: session.volunteer as Types.ObjectId,
-      type: session.type,
-      subTopic: session.subTopic,
-      messages: session.messages,
-      hasWhiteboardDoc: session.hasWhiteboardDoc,
-      whiteboardDoc: session.whiteboardDoc,
-      quillDoc: session.quillDoc,
-      createdAt: session.createdAt,
-      volunteerJoinedAt: session.volunteerJoinedAt,
-      failedJoins: session.failedJoins,
-      endedAt: session.endedAt,
-      endedBy: session.endedBy,
-      notifications: session.notifications,
-      photos: session.photos,
-      isReported: session.isReported,
-      reportReason: session.reportReason,
-      reportMessage: session.reportMessage,
-      flags: session.flags,
-      reviewedStudent: session.reviewedStudent,
-      reviewedVolunteer: session.reviewedVolunteer,
-      timeTutored: session.timeTutored
-    }
-  } catch (error) {
-    throw error
-  }
+  return session
 }
 
 // @todo: move queries using this pipeline to this repo
@@ -254,13 +226,12 @@ export function getSessionsWithPipeline(pipeline) {
 
 export async function updateFlags(
   sessionId: Types.ObjectId | string,
-  flags
+  data: { flags: SESSION_FLAGS[]; toReview: boolean }
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
-    $addToSet: { flags },
-    reviewedStudent: false,
-    reviewedVolunteer: false
+    $addToSet: { flags: { $each: data.flags } },
+    toReview: data.toReview
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -282,28 +253,14 @@ export async function updateFailedJoins(
   }
 }
 
-export async function updateReviewedStudent(
+export async function updateReviewedStatus(
   sessionId: Types.ObjectId | string,
-  reviewedStatus: boolean
+  { reviewed, toReview }: { reviewed: boolean; toReview: boolean }
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
-    reviewedStudent: reviewedStatus
-  }
-  try {
-    await SessionModel.updateOne(query, update)
-  } catch (error) {
-    throw new DocUpdateError(error, query, update)
-  }
-}
-
-export async function updateReviewedVolunteer(
-  sessionId: Types.ObjectId | string,
-  reviewedStatus: boolean
-): Promise<void> {
-  const query = { _id: sessionId }
-  const update = {
-    reviewedVolunteer: reviewedStatus
+    reviewed,
+    toReview
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -527,20 +484,62 @@ export async function updateReportSession(
   }
 }
 
+export async function updateSessionMetrics(
+  sessionId: Types.ObjectId | string,
+  metrics: { timeTutored: number }
+) {
+  const query = { _id: sessionId }
+  const update = {
+    timeTutored: metrics.timeTutored
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
+export async function setQuillDoc(
+  sessionId: Types.ObjectId | string,
+  quillDoc: string
+) {
+  const query = { _id: sessionId }
+  const update = {
+    quillDoc
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
+export async function setHasWhiteboardDoc(
+  sessionId: Types.ObjectId | string,
+  hasWhiteboardDoc: boolean
+) {
+  const query = { _id: sessionId }
+  const update = {
+    hasWhiteboardDoc
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
 export async function updateSessionToEnd(
   sessionId: Types.ObjectId | string,
-  data
+  data: {
+    endedAt: Date
+    endedBy: Types.ObjectId
+  }
 ) {
   const query = { _id: sessionId }
   const update = {
     endedAt: data.endedAt,
-    endedBy: data.endedBy,
-    timeTutored: data.timeTutored,
-    hasWhiteboardDoc: data.hasWhiteboardDoc,
-    quillDoc: data.quillDoc,
-    flags: data.flags,
-    reviewedStudent: data.reviewedStudent,
-    reviewedVolunteer: data.reviewedVolunteer
+    endedBy: data.endedBy
   }
 
   try {
@@ -1017,8 +1016,8 @@ export async function getSessionByIdWithStudentAndVolunteer(
       reportReason: session.reportReason,
       reportMessage: session.reportMessage,
       flags: session.flags,
-      reviewedStudent: session.reviewedStudent,
-      reviewedVolunteer: session.reviewedVolunteer,
+      reviewed: session.reviewed,
+      toReview: session.toReview,
       timeTutored: session.timeTutored
     }
   } catch (error) {

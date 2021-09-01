@@ -1,6 +1,6 @@
 import { Aggregate, Types, Query } from 'mongoose'
 import VolunteerModel, {
-  updatePastSessionsAndTimeTutored,
+  updateTimeTutored,
   Volunteer
 } from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
@@ -12,8 +12,7 @@ import QueueService from './QueueService'
 export const getVolunteers = async (
   query,
   projection = {}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any[]> =>
+): Promise<Partial<Volunteer>[]> =>
   VolunteerModel.find(query)
     .select(projection)
     .lean()
@@ -130,4 +129,4 @@ export const queuePartnerOnboardingEventEmails = async (
   )
 }
 
-export { updatePastSessionsAndTimeTutored }
+export { updateTimeTutored }

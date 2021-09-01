@@ -27,7 +27,12 @@ async function emailReportedSession(
     }
   } = job
 
-  const student = await UserService.getUser({ _id: studentId })
+  const student = await UserService.getUser({
+    _id: studentId,
+    isDeactivated: false,
+    isFakeUser: false,
+    isTestUser: false
+  })
 
   const errors: string[] = []
 

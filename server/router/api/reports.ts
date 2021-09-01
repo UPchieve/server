@@ -1,4 +1,5 @@
 import expressWs from '@small-tech/express-ws'
+import { resError } from '../res-error'
 
 const { authPassport } = require('../../utils/auth-utils')
 const ReportService = require('../../services/ReportService')
@@ -46,14 +47,13 @@ export function routeReports(router: expressWs.Router): void {
   router.get(
     '/reports/partner-analytics-report',
     authPassport.isAdmin,
-    async function(req, res, next) {
+    async function(req, res) {
       try {
-        const data = await ReportService.generatePartnerAnalyticsReport(
-          req.query
-        )
-        res.json(data)
+        const reportFilePath = await ReportService.getAnalyticsReport(req.query)
+        res.status(201).download(reportFilePath)
+        await ReportService.deleteReport(reportFilePath)
       } catch (error) {
-        next(error)
+        resError(res, error)
       }
     }
   )

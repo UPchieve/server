@@ -19,8 +19,9 @@ if (mongoPass) {
 let redisConnectionString
 const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
 const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
+const redisPassword = process.env.SUBWAY_REDIS_PASSWORD || 'bogus'
 if (process.env.SUBWAY_REDIS_USE_TLS === 'true') {
-  redisConnectionString = `rediss://:${process.env.SUBWAY_REDIS_PASSWORD}@${redisHost}:${redisPort}`
+  redisConnectionString = `rediss://:${redisPassword}@${redisHost}:${redisPort}`
 } else {
   redisConnectionString = `redis://${redisHost}:${redisPort}`
 }
@@ -39,6 +40,7 @@ const config: Static<typeof Config> = {
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
   host: process.env.SUBWAY_SERVER_HOST || 'localhost:3000',
+  additionalAllowedOrigins: process.env.SUBWAY_ADDITIONAL_ALLOWED_ORIGINS || '',
   database: mongoConn,
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
   sessionCookieMaxAge:
@@ -100,6 +102,7 @@ const config: Static<typeof Config> = {
     volunteerInactiveThirtyDaysTemplate: 'd-e2c9917e22c24d72a187ff00a5eff5e9',
     volunteerInactiveSixtyDaysTemplate: 'd-659b7e8d08754ef58d9b6e594f748e19',
     volunteerInactiveNinetyDaysTemplate: 'd-1bb491dbb4a044f5a4cd9cd926eacf38',
+    volunteerInactiveBlackoutOverTemplate: 'd-132c110bcf16492b9efbbfbeb5a375e5',
     failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
     unsubscribeGroup: {
       newsletter: 12567,
@@ -188,6 +191,9 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
     'localManifests/student.yaml',
 
+  assistmentsBaseURL:
+    process.env.SUBWAY_ASSISTMENTS_BASE_URL || 'https://example.com',
+
   cacheKeys: {
     updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
     waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS'
@@ -246,6 +252,9 @@ const config: Static<typeof Config> = {
 
   workerQueueName: 'main',
   redisConnectionString,
+  redisHost,
+  redisPort,
+  redisPassword,
   firebase: {
     projectId: Number(process.env.SUBWAY_FIREBASE_PROJECT_ID) || 123456789012
   },
@@ -309,7 +318,8 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_WHITEBOARD_STORAGE_ACCOUNT_NAME || 'bogus',
   whiteboardStorageContainer:
     process.env.SUBWAY_WHITEBOARD_STORAGE_CONTAINER || 'bogus',
-  version: process.env.SUBWAY_VERSION || 'development'
+  version: process.env.SUBWAY_VERSION || 'development',
+  fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`
 }
 
 module.exports = config

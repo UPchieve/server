@@ -5,6 +5,7 @@ import MailService from '../../../services/MailService'
 import { getNotifications } from '../../../services/NotificationService'
 import { getVolunteer } from '../../../services/UserService'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
+import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
 /**
  *
@@ -28,10 +29,10 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
   const volunteer = await getVolunteer(
     {
       _id: volunteerId,
-      isDeactivated: false,
       isOnboarded: true,
       'pastSessions.1': { $exists: false },
-      volunteerPartnerOrg: { $exists: true }
+      volunteerPartnerOrg: { $exists: true },
+      ...EMAIL_RECIPIENT
     },
     {
       _id: 1,

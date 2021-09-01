@@ -32,11 +32,16 @@ import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
 import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '@/consts'
+import { FEATURE_FLAGS, HEADER_STATES } from '@/consts'
 
 const headerData = {
   component: 'RejoinSessionHeader',
-  data: { important: true }
+  data: { headerState: HEADER_STATES.ACTIVE_SESSION }
+}
+
+const bannedHeaderData = {
+  component: 'BannedStudentHeader',
+  data: { headerState: HEADER_STATES.BANNED_STUDENT }
 }
 
 export default {
@@ -47,6 +52,10 @@ export default {
     FirstSessionCongratsModal
   },
   created() {
+    if (this.user && this.user.isBanned) {
+      this.$store.dispatch('app/header/show', bannedHeaderData)
+    }
+
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', headerData)
     }

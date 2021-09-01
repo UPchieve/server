@@ -336,22 +336,38 @@ describe('getAnalyticsReportSummary', () => {
       endDate
     )
     const expected = {
-      dateRangeSignUps: 1,
-      dateRangeVolunteersOnboarded: 1,
-      dateRangeOnboardingRate: 100,
-      dateRangeOpportunities: 35,
-      dateRangeSessionsCompleted: 6,
-      dateRangePickupRate: 17.14,
-      dateRangeVolunteerHours: 15,
-      dateRangeUniqueStudentsHelped: 0,
-      totalSignUps: 2,
-      totalVolunteersOnboarded: 2,
-      totalOnboardingRate: 100,
-      totalOpportunities: 110,
-      totalSessionsCompleted: 17,
-      totalPickupRate: 15.45,
-      totalVolunteerHours: 24,
-      totalUniqueStudentsHelped: 0
+      signUps: {
+        total: 2,
+        totalWithinDateRange: 1
+      },
+      volunteersOnboarded: {
+        total: 2,
+        totalWithinDateRange: 1
+      },
+      onboardingRate: {
+        total: 100,
+        totalWithinDateRange: 100
+      },
+      opportunities: {
+        total: 110,
+        totalWithinDateRange: 35
+      },
+      sessionsCompleted: {
+        total: 17,
+        totalWithinDateRange: 6
+      },
+      pickupRate: {
+        total: 15.45,
+        totalWithinDateRange: 17.14
+      },
+      volunteerHours: {
+        total: 24,
+        totalWithinDateRange: 15
+      },
+      uniqueStudentsHelped: {
+        total: 0,
+        totalWithinDateRange: 0
+      }
     }
 
     expect(summary).toEqual(expected)

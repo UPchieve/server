@@ -1,10 +1,12 @@
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import MailService from '../../services/MailService'
 import { log } from '../logger'
+import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
 
 export default async (): Promise<void> => {
   const volunteers = (await VolunteerModel.find({
+    ...EMAIL_RECIPIENT,
     isOnboarded: true,
     isApproved: true,
     sentReadyToCoachEmail: false
@@ -27,6 +29,7 @@ export default async (): Promise<void> => {
 
   await VolunteerModel.updateMany(
     {
+      ...EMAIL_RECIPIENT,
       isOnboarded: true,
       isApproved: true,
       sentReadyToCoachEmail: false,

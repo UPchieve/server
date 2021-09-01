@@ -60,6 +60,7 @@ import Loader from '@/components/Loader'
 import moment from 'moment'
 import exportToCsv from '@/utils/export-to-csv'
 import { ANALYTICS_REPORT_ROW, ANALYTICS_REPORT_SUMMARY } from '@/consts'
+import fileDownload from '@/utils/file-download'
 
 export default {
   name: 'AdminReports',
@@ -90,25 +91,18 @@ export default {
       const query = this.getQuery()
 
       try {
-        const {
-          body: { report, summary }
-        } = await NetworkService.adminGetPartnerAnalyticsReport(query)
-
-        if (report.length === 0)
-          this.error = 'Unable to find any data that meets your request'
-        else {
-          exportToCsv(
-            `${this.volunteerPartnerOrg.displayName}_Analytics_Report_${this.todaysDate}`,
-            this.mapAnalyticsReportHeaders(report)
-          )
-          exportToCsv(
-            `${this.volunteerPartnerOrg.displayName}_Analytics_Summary_${this.todaysDate}`,
-            this.mapAnalyticsSummaryHeaders(summary)
-          )
-        }
+        const response = await NetworkService.adminGetPartnerAnalyticsReport(
+          query
+        )
+        fileDownload(
+          response.data,
+          `${this.volunteerPartnerOrg.displayName}-analytics-report.xlsx`
+        )
         this.isGeneratingReport = false
       } catch (error) {
-        this.errorHandler()
+        const data = this.convertBufferToObject(error.body)
+        if (error.status === 422) this.errorHandler(data.err)
+        else this.errorHandler()
       }
     },
     async generateTelecomReport() {
@@ -139,18 +133,26 @@ export default {
       return {
         startDate: moment(this.startDate)
           .utc()
-          .startOf('day'),
+          .startOf('day')
+          .format('MM-DD-YYYY'),
         endDate: moment(this.endDate)
           .utc()
-          .startOf('day'),
+          .startOf('day')
+          .format('MM-DD-YYYY'),
         partnerOrg: this.isValidVolunteerPartnerOrg
           ? this.volunteerPartnerOrg.key
           : ''
       }
     },
-    errorHandler() {
+    errorHandler(errorMessage = '') {
       this.isGeneratingReport = false
-      this.error = 'There was a problem with retrieving the report'
+      this.error = errorMessage
+        ? errorMessage
+        : 'There was a problem with retrieving the report'
+    },
+    convertBufferToObject(buffer) {
+      const decoder = new TextDecoder('utf8')
+      return JSON.parse(decoder.decode(buffer))
     },
     mapAnalyticsReportHeaders(report) {
       return report.map(row => {

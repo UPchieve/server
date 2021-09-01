@@ -6,6 +6,8 @@ import AppHeader from "@/components/App/AppHeader";
 import HeaderTemplate from "@/components/App/AppHeader/HeaderTemplate";
 import DefaultHeader from "@/components/App/AppHeader/DefaultHeader";
 import RejoinSessionHeader from "@/components/App/AppHeader/RejoinSessionHeader";
+import BannedStudentHeader from "@/components/App/AppHeader/BannedStudentHeader";
+import { HEADER_STATES } from "../../../../../src/consts";
 
 const localVue = createLocalVue();
 localVue.use(Vuex);
@@ -22,11 +24,11 @@ const getWrapper = (state = {}) => {
 
 describe("AppHeader", () => {
   it("renders HeaderTemplate", () => {
-    const state = { data: { important: true } };
+    const state = { data: { headerState: HEADER_STATES.ACTIVE_SESSION } };
     const wrapper = getWrapper(state);
     const modal = wrapper.find(HeaderTemplate);
     expect(modal.exists()).toBe(true);
-    expect(modal.props().important).toEqual(state.data.important);
+    expect(modal.props().headerState).toEqual(state.data.headerState);
   });
 
   it("renders DefaultHeader", () => {
@@ -41,6 +43,14 @@ describe("AppHeader", () => {
     const state = { component: "RejoinSessionHeader", data: {} };
     const wrapper = getWrapper(state).find(HeaderTemplate);
     const modal = wrapper.find(RejoinSessionHeader);
+    expect(modal.exists()).toBe(true);
+    expect(modal.attributes("header-data")).toBeDefined();
+  });
+
+  it("renders BannedStudentHeader", () => {
+    const state = { component: "BannedStudentHeader", data: {} };
+    const wrapper = getWrapper(state).find(HeaderTemplate);
+    const modal = wrapper.find(BannedStudentHeader);
     expect(modal.exists()).toBe(true);
     expect(modal.attributes("header-data")).toBeDefined();
   });
