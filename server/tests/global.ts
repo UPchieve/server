@@ -56,6 +56,12 @@ jest.mock('../config', () => {
     customVolunteerPartnerOrg:
       process.env.SUBWAY_CUSTOM_PARTNER_ORG || 'example',
 
+    assistmentsBaseURL: 'https://example.com',
+
+    assistmentsToken: 'bogus',
+
+    assistmentsAuthSchema: 'token={TOKEN}',
+
     cacheKeys: {
       updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEER_HOURS_LAST_RUN'
     },

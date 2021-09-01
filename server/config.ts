@@ -9,14 +9,14 @@ const mongoName = process.env.SUBWAY_DB_NAME || 'upchieve'
 const mongoPass = process.env.SUBWAY_DB_PASS
 const mongoUser = process.env.SUBWAY_DB_USER
 
-let mongoConn
+let mongoConn: string
 if (mongoPass) {
   mongoConn = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/${mongoName}`
 } else {
   mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`
 }
 
-let redisConnectionString
+let redisConnectionString: string
 const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
 const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
 const redisPassword = process.env.SUBWAY_REDIS_PASSWORD || 'bogus'
@@ -193,6 +193,11 @@ const config: Static<typeof Config> = {
 
   assistmentsBaseURL:
     process.env.SUBWAY_ASSISTMENTS_BASE_URL || 'https://example.com',
+
+  assistmentsToken: process.env.SUBWAY_ASSISTMENTS_TOKEN || 'bogus',
+
+  assistmentsAuthSchema:
+    process.env.SUBWAY_ASSISTMENTS_AUTH_SCHEMA || 'token={TOKEN}',
 
   cacheKeys: {
     updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
