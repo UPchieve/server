@@ -90,23 +90,31 @@ export async function buildRequest(
   }
 }
 
+function buildAuthHeader() {
+  const parts = config.assistmentsAuthSchema.split('{TOKEN}')
+  if (parts.length === 2) return parts[0] + config.assistmentsToken + parts[1]
+  throw new Error('Could not build Assistments auth token')
+}
+
 export async function sendData(
   params: Parameters,
   payload: Payload
 ): Promise<void> {
   let status: string
+  let message: any
   try {
     const res = await axios.post(
       `${config.assistmentsBaseURL}/assignments/${params.assignmentXref}/exdata/${params.userXref}`,
+      payload,
       {
-        data: payload,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'XAuth P=TNG/XP=Upchieve'
+          Authorization: buildAuthHeader()
         },
         validateStatus: () => true // always reolve the promise regardless of status code
       }
     )
+    message = res.data
     status = res.status.toString()
   } catch (err) {
     throw new Error(`Retry: ${err.message}`)
@@ -114,7 +122,8 @@ export async function sendData(
   const FAILS = ['401', '403', '404']
   if (status === '201') {
     /* do nothing */
-  } else if (status in FAILS) throw new Error(status)
+  } else if (FAILS.includes(status))
+    throw new Error(status + `: ${JSON.stringify(message)}`)
   else throw new Error(`Retry: ${status}`) // assistments server error
 }
 
