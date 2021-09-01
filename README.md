@@ -47,32 +47,32 @@ The recommended tool for runtime version management is [`nvm`][nvm] and [`Docker
 
 #### Local Node
 
-We currently run on Node v12.20.1, you can switch to this using
+We currently run on Node v16.8.0, you can switch to this using
 
 ```shell
-$ nvm install v12.20.1 && nvm use v12.20.1
+$ nvm install v16.8.0 && nvm use v16.8.0
 ```
 
 After switching npm versions using nvm, you will need to rerun `$ npm install`.
 
-#### Mongo 4.2.3
+#### Mongo 4.4.8
 
-Using a Volume (else data is not saved), pull and run docker image `mongo:4.2.3-bionic`. You can use any empty directory to which you have write access for your volume. 
-What to expect: this command will be simultaneously running the mongo database on your local machine as the app builds for production. 
+Using a Volume (else data is not saved), pull and run docker image `mongo:4.4.8-bionic`. You can use any empty directory to which you have write access for your volume.
+What to expect: this command will be simultaneously running the mongo database on your local machine as the app builds for production.
 
 ```shell-script
-docker run -i --rm --name mongoContainer -p 27017-27019:27017-27019 -v <Absolute Path to directory on your drive>:/data/db mongo:4.2.3-bionic
+docker run -i --rm --name mongoContainer -p 27017-27019:27017-27019 -v <Absolute Path to directory on your drive>:/data/db mongo:4.4.8-bionic
 ```
 
 Alternatively...
 
-Run it as a background process: 
+Run it as a background process:
 
 ```shell-script
 docker run -i -d --rm --name mongoContainer -p 27017-27019:27017-27019 -v <Absolute Path to directory on your drive>:/data/db mongo:4.2.3-bionic
 ```
 
-Verify which docker containers are running: 
+Verify which docker containers are running:
 ```shell-script
 docker container ls
 ```
@@ -82,12 +82,12 @@ After you're done with development for the day, don't forget to stop the contain
 docker stop mongoContainer
 ```
 
-#### Redis 5.0.8
+#### Redis 6.2.3
 
-If you want, in a new terminal, pull and run docker image `redis:5.0.8`. You can use any empty directory to which you have write access for your volume. What to expect: this command will be simultaneously running on your local machine as the app builds for production. 
+If you want, in a new terminal, pull and run docker image `redis:6.2.3`. You can use any empty directory to which you have write access for your volume. What to expect: this command will be simultaneously running on your local machine as the app builds for production.
 
 ```shell-script
-docker run -i --rm --name redis -p 6379:6379 -v <Absolute Path to directory on your drive>:/data -t redis:5.0.8
+docker run -i --rm --name redis -p 6379:6379 -v <Absolute Path to directory on your drive>:/data -t redis:6.2.3
 ```
 
 [wsl]: https://docs.microsoft.com/en-us/windows/wsl/install-win10
@@ -221,8 +221,8 @@ Story states can be imported into unit tests for a component to check things lik
 Additionally, we use [Storyshots](https://storybook.js.org/docs/react/workflows/snapshot-testing) to check rendered html for a given component to ensure changes aren't breaking the
 rendering.
 
-#### Known issue with visually testing SVG components: 
+#### Known issue with visually testing SVG components:
 
-Our unit tests do not incorporate visual testing for SVG components (refer to this [component](src/views/DashboardView/StudentDashboard/SubjectSelection/RecentSubjectCard.vue) and its [unit test](tests/unit/components/RecentSubjectCard.spec.js)). The SVG components get successfully rendered on the application itself but not within unit or snapshot test markups. 
+Our unit tests do not incorporate visual testing for SVG components (refer to this [component](src/views/DashboardView/StudentDashboard/SubjectSelection/RecentSubjectCard.vue) and its [unit test](tests/unit/components/RecentSubjectCard.spec.js)). The SVG components get successfully rendered on the application itself but not within unit or snapshot test markups.
 
 So, after extensive research and exhausting nearly all possible options of rendering and testing SVGs, as of August 4 2021, we realized that this has been a prolonged JSDOM/JavaScript [issue](https://github.com/vuejs/vue-test-utils/issues/369) and not something that is occuring due to vue-test-utils or jest capabilities. Hence, consider it acceptable to not visually test SVGs for the time being.
