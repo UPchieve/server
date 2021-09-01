@@ -73,8 +73,10 @@ export async function buildRequest(
       subject: session.type,
       subTopic: session.subTopic,
       timeTutored: session.timeTutored,
-      volunteerJoinedAt: session.volunteerJoinedAt.getTime(),
-      volunteerId: session.volunteer.toString()
+      volunteerJoinedAt: session.volunteerJoinedAt
+        ? session.volunteerJoinedAt.getTime()
+        : undefined,
+      volunteerId: session.volunteer ? session.volunteer.toString() : undefined
     }
     const payload = {
       studentId: data.studentId,

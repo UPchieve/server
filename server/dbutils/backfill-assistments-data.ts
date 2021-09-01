@@ -54,6 +54,7 @@ const backfillTimePeriodADs = async (start: Date, end: Date): Promise<Assistment
       $match: {
         'session': { $exists: true },
         'session.createdAt': { $gt: start, $lte: end },
+        'session.endedAt': { $exists: true }
       }
     }
   ]) as AssistmentsData[]
@@ -86,6 +87,7 @@ async function backfillHistoryADs(end: Date): Promise<AssistmentsData[]> {
       $match: {
         'session': { $exists: true },
         'session.createdAt': { $lte: end },
+        'session.endedAt': { $exists: true }
       }
     }
   ]) as AssistmentsData[]
