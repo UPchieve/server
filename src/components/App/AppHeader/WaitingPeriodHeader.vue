@@ -21,6 +21,8 @@ export default {
       mobileMode: 'app/mobileMode'
     }),
     message() {
+      // TODO: implement a better timer and transition to the default header from this timer
+      // instead of from within the dashboard
       const { timeLeft } = this.headerData
       const countdown = calculateWaitingPeriodCountdown(timeLeft)
       const minuteTextFormat = countdown === 1 ? 'minute' : 'minutes'
@@ -33,12 +35,15 @@ export default {
 
 <style lang="scss" scoped>
 .WaitingPeriod {
-  color: white;
   margin: 0 auto;
+
+  @include header-child;
+  background-color: $c-warning-orange;
 }
 
 .WaitingPeriod-message {
   @include font-category('display-small');
+  color: white;
 
   &--mobile {
     @include font-category('body');

@@ -32,16 +32,18 @@ import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
 import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS, HEADER_STATES } from '@/consts'
+import { FEATURE_FLAGS } from '@/consts'
 
-const headerData = {
-  component: 'RejoinSessionHeader',
-  data: { headerState: HEADER_STATES.ACTIVE_SESSION }
+const defaultHeaderData = {
+  component: 'DefaultHeader'
+}
+
+const activeHeaderData = {
+  component: 'RejoinSessionHeader'
 }
 
 const bannedHeaderData = {
-  component: 'BannedStudentHeader',
-  data: { headerState: HEADER_STATES.BANNED_STUDENT }
+  component: 'BannedStudentHeader'
 }
 
 export default {
@@ -57,7 +59,7 @@ export default {
     }
 
     if (this.isSessionAlive) {
-      this.$store.dispatch('app/header/show', headerData)
+      this.$store.dispatch('app/header/show', activeHeaderData)
     }
 
     if (this.isFirstDashboardVisit) {
@@ -130,7 +132,7 @@ export default {
   watch: {
     isSessionAlive(isAlive, prevIsAlive) {
       if (!isAlive) {
-        this.$store.dispatch('app/header/show')
+        this.$store.dispatch('app/header/show', defaultHeaderData)
         if (
           isEnabled(FEATURE_FLAGS.REFER_FRIENDS) &&
           prevIsAlive &&
@@ -138,7 +140,7 @@ export default {
         )
           this.toggleFirstSessionCongratsModal()
       } else {
-        this.$store.dispatch('app/header/show', headerData)
+        this.$store.dispatch('app/header/show', activeHeaderData)
       }
     }
   }

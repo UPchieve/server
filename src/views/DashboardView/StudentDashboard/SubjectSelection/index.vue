@@ -36,6 +36,10 @@ import LightBulbSVG from '@/assets/dashboard_icons/student/light-bulb.svg'
 
 import { topics } from '@/utils/topics'
 
+const defaultHeaderData = {
+  component: 'DefaultHeader'
+}
+
 export default {
   name: 'subject-selection',
   components: { SubjectCard },
@@ -173,18 +177,17 @@ export default {
         // Show the waiting period message as a header if not in mobile mode
         if (!this.mobileMode) {
           this.disableSubjectCard = true
-          const headerData = {
+          const waitingHeaderData = {
             component: 'WaitingPeriodHeader',
             data: {
-              important: true,
               timeLeft: timeLeftUntilFiveMinutes
             }
           }
-          this.$store.dispatch('app/header/show', headerData)
+          this.$store.dispatch('app/header/show', waitingHeaderData)
 
           this.waitingPeriodTimeoutId = setTimeout(() => {
             this.disableSubjectCard = false
-            this.$store.dispatch('app/header/hide')
+            this.$store.dispatch('app/header/show', defaultHeaderData)
           }, timeLeftUntilFiveMinutes)
         } else {
           // Show the waiting period message above the subject cards for mobile users

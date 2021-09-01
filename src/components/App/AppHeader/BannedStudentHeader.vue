@@ -1,6 +1,5 @@
 <template>
   <div class="BannedStudentHeader">
-    <!-- <div class="BannedStudentHeader-document"></div> -->
     <div class="BannedStudentHeader-text">{{ message }}</div>
     <div class="BannedStudentHeader-document">
       <a :href="policyURL" target="_blank"> Why am I seeing this?</a>
@@ -24,39 +23,29 @@ export default {
 
 <style lang="scss" scoped>
 .BannedStudentHeader {
-  @include flex-container(row, center, center);
-  flex: 1;
+  @include header-child;
+  @include font-category('display-small');
+  color: white;
+
+  display: grid;
+  align-content: center;
+  grid-template-columns: 1fr 1fr 1fr;
   position: relative;
+  background-color: $c-banned-grey;
 }
 
 .BannedStudentHeader-text {
-  @include font-category('display-small');
-  // @include flex-container(row, center, center);
-  // flex-grow: 2;
-  // flex-shrink: 2;
-  color: white;
-  font: 'Work Sans';
   font-weight: 600;
-  font-size: 18px;
+  grid-column: 2;
 }
 
 .BannedStudentHeader-document {
   a {
     color: white;
+    font-size: 16px;
   }
-
-  // @include flex-container(row, flex-end, center);
-  @include child-spacing(left, 20px);
-  // flex: 1 1 5%;
-  font: 'Work Sans';
-  font-weight: 400;
-  font-size: 16px;
-  top: 0;
-  right: 0;
-  position: absolute;
-
-  // @include breakpoint-below('small') {
-  //   flex-basis: auto;
-  // }
+  grid-column: 3;
+  justify-self: right;
+  align-self: center;
 }
 </style>

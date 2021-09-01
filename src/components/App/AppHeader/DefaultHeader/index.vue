@@ -46,6 +46,8 @@ export default {
   @include breakpoint-above('medium') {
     justify-content: center;
   }
+
+  @include header-child;
 }
 
 .DefaultHeader-logo {
