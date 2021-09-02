@@ -90,7 +90,7 @@ import WebNotificationsModal from '@/components/WebNotificationsModal'
 import getNotificationPermission from '@/utils/get-notification-permission'
 import { EVENTS } from '@/consts'
 
-const headerData = {
+const activeHeaderData = {
   component: 'SessionHeader'
 }
 
@@ -108,7 +108,7 @@ export default {
     if (this.mobileMode) {
       this.$store.dispatch('app/hideNavigation')
     } else {
-      this.$store.dispatch('app/header/show', headerData)
+      this.$store.dispatch('app/header/show', activeHeaderData)
       this.$store.dispatch('app/sidebar/hide')
     }
 
@@ -311,7 +311,7 @@ export default {
       if (this.mobileMode) {
         this.$store.dispatch('app/hideNavigation')
       } else {
-        this.$store.dispatch('app/header/show', headerData)
+        this.$store.dispatch('app/header/show', activeHeaderData)
         this.$store.dispatch('app/sidebar/hide')
       }
     },

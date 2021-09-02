@@ -66,6 +66,9 @@ export default {
   @include breakpoint-above('medium') {
     justify-content: space-around;
   }
+
+  @include header-child;
+  background-color: $c-warning-orange;
 }
 
 .RejoinSessionHeader-left {

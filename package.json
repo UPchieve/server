@@ -7,13 +7,10 @@
     "lint": "npm run lint:backend && npm run lint:frontend",
     "build:backend": "./bin/build_backend.sh",
     "build:frontend": "vue-cli-service build",
-    "cypress": "npx cypress run",
     "dev": "npm run build:frontend && npm run dev:backend",
     "dev:backend": "ts-node-dev --watch server,src server/main",
     "dev:frontend": "vue-cli-service build --mode=production --watch",
     "dev:init": "ts-node server/init.ts",
-    "e2e": "vue-cli-service test:e2e --mode=development",
-    "e2e:headless": "vue-cli-service test:e2e --mode=development --headless",
     "html-validate": "html-validate --ext html,vue src",
     "lint:backend": "eslint ./server -c .eslintrc-server.js --ignore-path .eslintignore-server --fix --ext .ts,.js",
     "lint:backend:prod": "eslint ./server -c .eslintrc-server.js --ignore-path .eslintignore-server --no-fix --max-warnings 0 --ext .ts,.js",
@@ -52,6 +49,7 @@
     "body-parser": "^1.18.3",
     "bootstrap": "^4.5.3",
     "bootstrap-vue": "^2.21.2",
+    "buffer": "^6.0.3",
     "bull": "^3.13.0",
     "case": "^1.6.3",
     "chalk": "^2.4.2",
@@ -66,6 +64,7 @@
     "csv-parse": "^4.4.6",
     "ejs": "^2.6.1",
     "exceljs": "^4.2.1",
+    "exifremove": "^1.0.1",
     "exponential-backoff": "^3.1.0",
     "express": "^4.16.4",
     "express-cache-controller": "^1.1.0",
@@ -88,7 +87,7 @@
     "morgan": "^1.9.1",
     "mustache": "^4.0.1",
     "newrelic": "^7.3.1",
-    "node-sass": "^4.14.1",
+    "node-sass": "^6.0.1",
     "nodemailer": "^6.6.0",
     "nodemailer-express-handlebars": "^4.0.0",
     "passport": "^0.3.2",
@@ -175,7 +174,6 @@
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
     "@vue/cli-plugin-babel": "^4.5.12",
-    "@vue/cli-plugin-e2e-cypress": "^4.5.12",
     "@vue/cli-plugin-eslint": "^4.5.12",
     "@vue/cli-plugin-unit-jest": "^4.5.12",
     "@vue/cli-service": "^4.5.12",
@@ -185,8 +183,6 @@
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.6.3",
     "babel-loader": "^8.2.2",
-    "cypress": "^3.8.3",
-    "cypress-file-upload": "^4.0.7",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.9.0",
     "eslint-config-prettier-standard": "^3.0.1",
@@ -223,8 +219,8 @@
     "webpack-bundle-analyzer": "^3.7.0"
   },
   "engines": {
-    "node": "^12.20",
-    "npm": "^6.14"
+    "node": "^16.8",
+    "npm": "^7.21"
   },
   "standard": {
     "parser": "babel-eslint"

@@ -30,6 +30,8 @@ export default {
   @include flex-container(row, space-between, center);
   flex: 1;
 
+  @include header-child;
+
   & > * {
     flex-basis: 1px;
     flex-grow: 1;

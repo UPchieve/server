@@ -474,8 +474,3 @@ export const ANALYTICS_REPORT_SUMMARY = {
   TOTAL_VOLUNTEER_HOURS: 'Total volunteer hours completed',
   TOTAL_UNIQUE_STUDENTS_HELPED: 'Total unique students helped'
 }
-
-export const HEADER_STATES = {
-  BANNED_STUDENT: 'banned student',
-  ACTIVE_SESSION: 'active session'
-}
