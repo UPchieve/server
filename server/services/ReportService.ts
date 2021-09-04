@@ -482,6 +482,35 @@ export const usageReport = async ({
       }
     },
     {
+      $lookup: {
+        from: 'schools',
+        localField: 'approvedHighschool',
+        foreignField: '_id',
+        as: 'highschool'
+      }
+    },
+    {
+      $unwind: {
+        path: '$highschool'
+      }
+    },
+    {
+      $match: {
+        $or: [
+          {
+            'highschool.nameStored': {
+              $exists: true
+            }
+          },
+          {
+            'highschool.SCH_NAME': {
+              $exists: true
+            }
+          }
+        ]
+      }
+    },
+    {
       $project: {
         firstName: 1,
         lastName: 1,
@@ -497,7 +526,9 @@ export const usageReport = async ({
         },
         feedback: 1,
         partnerSite: 1,
-        approvedHighschool: 1,
+        approvedHighschool: {
+          $ifNull: ['$highschool.nameStored', '$highschool.SCH_NAME']
+        },
         _id: 0
       }
     },
@@ -524,7 +555,8 @@ export const usageReport = async ({
       'Total minutes': student.totalMinutes,
       'Average session rating': calcAverageRating(feedback),
       'Sessions over date range': student.sessionsOverDateRange,
-      'Minutes over date range': student.minsOverDateRange
+      'Minutes over date range': student.minsOverDateRange,
+      'High school name': student.approvedHighschool
     }
 
     if (partnerSites)
