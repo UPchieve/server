@@ -147,7 +147,7 @@ export default {
           question:
             '(Optional) Do you have any other feedback you’d like to share with UPchieve?',
           subtext:
-            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, every day!',
+            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, but if you need to connect with UPchieve staff about a question or concern please email us directly.',
           component: FeedbackTextarea,
           answer: null
         }
@@ -210,7 +210,7 @@ export default {
           question:
             '(Optional) Do you have any other feedback you’d like to share with UPchieve?',
           subtext:
-            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, every day!',
+            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, but if you need to connect with UPchieve staff about a question or concern please email us directly.',
           component: FeedbackTextarea,
           answer: null
         }

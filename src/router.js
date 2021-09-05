@@ -66,13 +66,15 @@ const routes = [
   {
     path: '/',
     beforeEnter: (to, from, next) => {
-      getUser().then(() => {
-        if (store.getters['user/isAuthenticated']) {
-          next('/dashboard')
-        } else {
-          next('/login')
-        }
-      })
+      getUser()
+        .then(() => {
+          if (store.getters['user/isAuthenticated']) {
+            next('/dashboard')
+          } else {
+            next('/login')
+          }
+        })
+        .catch(() => {})
     }
   },
   {
@@ -223,13 +225,15 @@ const routes = [
     component: VerificationView,
     meta: { protected: true },
     beforeEnter: (to, from, next) => {
-      getUser().then(() => {
-        if (store.getters['user/isVerified']) {
-          next('/dashboard')
-        } else {
-          next()
-        }
-      })
+      getUser()
+        .then(() => {
+          if (store.getters['user/isVerified']) {
+            next('/dashboard')
+          } else {
+            next()
+          }
+        })
+        .catch(() => {})
     }
   },
   {
@@ -401,51 +405,59 @@ export default router
 // Router middleware to check authentication for protect routes
 router.beforeEach((to, from, next) => {
   if (to.matched.some(route => route.meta.requiresAdmin)) {
-    getUser().then(() => {
-      if (!store.state.user.user.isAdmin) {
-        next({
-          path: '/login',
-          query: {
-            redirect: to.fullPath
-          }
-        })
-      } else {
-        next()
-      }
-    })
-  } else if (to.matched.some(route => route.meta.protected)) {
-    getUser().then(() => {
-      if (!store.getters['user/isAuthenticated']) {
-        next({
-          path: '/login',
-          query: {
-            redirect: to.fullPath
-          }
-        })
-      } else if (!store.getters['user/isVerified']) {
-        const route = '/verify'
-        if (to.path.indexOf(route) !== -1) next()
-        else
+    getUser()
+      .then(() => {
+        if (!store.state.user.user.isAdmin) {
           next({
-            path: route,
-            redirect: to.fullPath
+            path: '/login',
+            query: {
+              redirect: to.fullPath
+            }
           })
-      } else {
-        next()
-      }
-    })
+        } else {
+          next()
+        }
+      })
+      .catch(() => {})
+  } else if (to.matched.some(route => route.meta.protected)) {
+    getUser()
+      .then(() => {
+        if (!store.getters['user/isAuthenticated']) {
+          next({
+            path: '/login',
+            query: {
+              redirect: to.fullPath
+            }
+          })
+        } else if (!store.getters['user/isVerified']) {
+          const route = '/verify'
+          if (to.path.indexOf(route) !== -1) next()
+          else
+            next({
+              path: route,
+              redirect: to.fullPath
+            })
+        } else {
+          next()
+        }
+      })
+      .catch(() => {})
   } else if (to.matched.some(route => route.meta.loggedOutOnly)) {
-    getUser().then(() => {
-      if (store.getters['user/isAuthenticated']) {
-        next('/dashboard')
-      } else {
-        next()
-      }
-    })
+    getUser()
+      .then(() => {
+        if (store.getters['user/isAuthenticated']) {
+          next('/dashboard')
+        } else {
+          next()
+        }
+      })
+      .catch(() => {})
   } else if (to.matched.some(route => route.meta.authOptional)) {
-    getUser().then(() => {
-      next()
-    })
+    getUser()
+      .then(() => {
+        next()
+      })
+      .catch(() => {})
   } else {
     next()
   }
@@ -487,7 +499,7 @@ Vue.http.interceptors.push((request, next) => {
       request.url.indexOf('/api/session/current') !== -1
 
     if (is401 && !(isGetUserAttempt || isGetSessionAttempt)) {
-      router.push('/login?401=true')
+      router.push('/login?401=true').catch(() => {})
     }
   })
 })

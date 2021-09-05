@@ -151,6 +151,10 @@ export async function getBySession(
   }
 }
 
+export function getAssistmentsDataWithPipeline(pipeline: any[]) {
+  return (AssistmentsDataModel.aggregate(pipeline) as unknown) as Promise<any[]>
+}
+
 // Update functions
 export async function updateSentAtById(
   id: Types.ObjectId | string,
