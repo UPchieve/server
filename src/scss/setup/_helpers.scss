@@ -72,3 +72,13 @@
     }
   }
 }
+
+@mixin header-child {
+  padding: 20px;
+  height: 100%;
+  width: 100%;
+
+  @include breakpoint-above('medium') {
+    padding: 12px;
+  }
+}

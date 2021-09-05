@@ -118,6 +118,8 @@ export const Config = Record({
   studentPartnerManifestPath: String,
 
   assistmentsBaseURL: String,
+  assistmentsToken: String,
+  assistmentsAuthSchema: String,
 
   cacheKeys: Record({
     updateTotalVolunteerHoursLastRun: String,

@@ -1,5 +1,5 @@
 <template>
-  <header-template :headerState="headerData.headerState">
+  <header-template>
     <component v-bind:is="headerComponent" :header-data="headerData" />
   </header-template>
 </template>

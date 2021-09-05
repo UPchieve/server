@@ -50,7 +50,7 @@ build:
 
 testfrontend:
   stage: test
-  image: node:12.22.1-buster
+  image: node:16.8.0-bullseye
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
@@ -63,7 +63,7 @@ testfrontend:
 
 testbackend:
   stage: test
-  image: node:12.22.1-buster
+  image: node:16.8.0-bullseye
   tags:
     - upchieve
   variables:
@@ -84,7 +84,7 @@ testbackend:
 
 lint:
   stage: test
-  image: node:12.22.1-buster
+  image: node:16.8.0-bullseye
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
@@ -97,7 +97,7 @@ lint:
 
 pages:
   stage: deploy
-  image: node:12.22.1-buster
+  image: node:16.8.0-bullseye
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:

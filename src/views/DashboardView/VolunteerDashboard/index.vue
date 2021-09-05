@@ -170,11 +170,13 @@ import ArrowIcon from '@/assets/arrow.svg'
 import { isEnabled } from 'unleash-client'
 import NetworkService from '../../../services/NetworkService'
 import config from '../../../config'
-import { HEADER_STATES } from '../../../../src/consts'
 
-const headerData = {
-  component: 'RejoinSessionHeader',
-  data: { headerState: HEADER_STATES.ACTIVE_SESSION }
+const defaultHeaderData = {
+  component: 'DefaultHeader'
+}
+
+const rejoinHeaderData = {
+  component: 'RejoinSessionHeader'
 }
 
 const upchieveTopics = allSubtopicNames()
@@ -197,15 +199,15 @@ export default {
   watch: {
     isSessionAlive(isAlive) {
       if (!isAlive) {
-        this.$store.dispatch('app/header/show')
+        this.$store.dispatch('app/header/show', defaultHeaderData)
       } else {
-        this.$store.dispatch('app/header/show', headerData)
+        this.$store.dispatch('app/header/show', rejoinHeaderData)
       }
     }
   },
   async created() {
     if (this.isSessionAlive) {
-      this.$store.dispatch('app/header/show', headerData)
+      this.$store.dispatch('app/header/show', rejoinHeaderData)
     }
 
     if (this.isFirstDashboardVisit) {
@@ -584,7 +586,7 @@ export default {
       const numRequestsFilled = _.get(user, 'pastSessions.length', '--')
 
       // (4) Hours tutored
-      const numHoursTutored = Number(this.user.hoursTutored) || '--'
+      const numHoursTutored = Number(this.user.hoursTutored) || '0'
 
       // (5) Elapsed availability
       const numElapsedAvailabilityHours = user.elapsedAvailability
