@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/browser'
 
 function checkIfPhotoIsAllowedType(file) {
   const allowedFormats = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif']
-  if (allowedFormats.includes(file.type)) {
+  if (!allowedFormats.includes(file.type)) {
     throw new Error('We only allow .png, .jpeg, or .gif photos')
   }
 }
@@ -29,7 +29,7 @@ async function stripExifData(file) {
 }
 
 export async function validatePhoto(file) {
-  // checkIfPhotoIsAllowedType(file)
+  checkIfPhotoIsAllowedType(file)
 
   checkIfPhotoIsAllowedSize(file)
 
