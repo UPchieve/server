@@ -29,7 +29,7 @@ async function stripExifData(file) {
 }
 
 export async function validatePhoto(file) {
-  checkIfPhotoIsAllowedType(file)
+  // checkIfPhotoIsAllowedType(file)
 
   checkIfPhotoIsAllowedSize(file)
 
