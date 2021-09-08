@@ -206,7 +206,6 @@ import ResetWhiteboardModal from './ResetWhiteboardModal'
 import LoadingMessage from '@/components/LoadingMessage'
 import * as Sentry from '@sentry/browser'
 import config from '../../config'
-import { validatePhoto } from '@/utils/photo-upload'
 
 export default {
   components: {
@@ -381,16 +380,15 @@ export default {
     async uploadPhoto(event) {
       const { files } = event.target
       const file = files[0]
-
-      let validatedPhoto
-      try {
-        validatedPhoto = validatePhoto(file)
-      } catch (err) {
-        this.error = err.message
-        return
-      }
+      const tenMegabytes = 10 * 1000000
 
       if (!this.isWhiteboardOpen && this.mobileMode) this.toggleWhiteboard()
+
+      if (file.size > tenMegabytes) {
+        this.error =
+          'The photo is too large. Please upload a photo less than 10mb.'
+        return
+      }
 
       this.usePickTool()
 
@@ -403,9 +401,9 @@ export default {
 
       if (uploadUrl) {
         this.isLoading = true
-        await axios.put(uploadUrl, validatedPhoto, {
+        await axios.put(uploadUrl, file, {
           headers: {
-            'Content-Type': validatedPhoto.type
+            'Content-Type': file.type
           }
         })
 
