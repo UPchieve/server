@@ -2,6 +2,8 @@ import { METRICS } from '../../models/UserSessionMetrics'
 import { FEEDBACK_VERSIONS } from '../../constants'
 
 import { MetricData, CounterMetricClass, NO_FLAGS } from './metric-types'
+import QueueService from '../QueueService'
+import { Jobs } from '../../worker/jobs'
 
 export class AbsentStudent extends CounterMetricClass {
   public key = METRICS.absentStudent
@@ -26,6 +28,25 @@ export class AbsentStudent extends CounterMetricClass {
   }
   public review = () => this.studentValue >= 4
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+
+  public triggerActions = async () => {
+    // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
+    if (this.studentValue === 1)
+      await QueueService.add(Jobs.EmailStudentAbsentWarning, {
+        sessionSubTopic: this.md.session.subTopic,
+        sessionDate: this.md.session.createdAt,
+        studentId: this.md.session.student,
+        volunteerId: this.md.session.volunteer
+      })
+    // Send an apology email to the volunteer the first time he or she encounters an absent student
+    if (this.volunteerValue === 1)
+      await QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
+        sessionSubTopic: this.md.session.subTopic,
+        sessionDate: this.md.session.createdAt,
+        studentId: this.md.session.student,
+        volunteerId: this.md.session.volunteer
+      })
+  }
 }
 
 export class AbsentVolunteer extends CounterMetricClass {
@@ -51,6 +72,24 @@ export class AbsentVolunteer extends CounterMetricClass {
   }
   public review = () => this.volunteerValue >= 2
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public triggerActions = async () => {
+    // Send an apology email to the student the first time he or she encounters an absent volunteer
+    if (this.studentValue === 1)
+      await QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
+        sessionSubTopic: this.md.session.subTopic,
+        sessionDate: this.md.session.createdAt,
+        studentId: this.md.session.student,
+        volunteerId: this.md.session.volunteer
+      })
+    // Send a warning email to the volunteer about ghosting students the first time he or she is absent
+    if (this.volunteerValue === 1)
+      await QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
+        sessionSubTopic: this.md.session.subTopic,
+        sessionDate: this.md.session.createdAt,
+        studentId: this.md.session.student,
+        volunteerId: this.md.session.volunteer
+      })
+  }
 }
 
 export class LowCoachRatingFromStudent extends CounterMetricClass {
@@ -84,6 +123,7 @@ export class LowCoachRatingFromStudent extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public triggerActions = this.noop
 }
 
 export class LowSessionRatingFromStudent extends CounterMetricClass {
@@ -115,6 +155,7 @@ export class LowSessionRatingFromStudent extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public triggerActions = this.noop
 }
 
 export class LowSessionRatingFromCoach extends CounterMetricClass {
@@ -141,6 +182,7 @@ export class LowSessionRatingFromCoach extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public triggerActions = this.noop
 }
 
 export class Reported extends CounterMetricClass {
@@ -154,6 +196,7 @@ export class Reported extends CounterMetricClass {
   public computeUpdateValue = () => (this.md.session.isReported ? 1 : 0)
   public review = () => true
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public triggerActions = this.noop
 }
 
 export class RudeOrInappropriate extends CounterMetricClass {
@@ -182,6 +225,7 @@ export class RudeOrInappropriate extends CounterMetricClass {
   }
   public review = () => this.studentValue >= 2
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public triggerActions = this.noop
 }
 
 export class OnlyLookingForAnswers extends CounterMetricClass {
@@ -210,6 +254,7 @@ export class OnlyLookingForAnswers extends CounterMetricClass {
   }
   public review = () => this.studentValue >= 2
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public triggerActions = this.noop
 }
 
 export class CommentFromStudent extends CounterMetricClass {
@@ -234,6 +279,7 @@ export class CommentFromStudent extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public triggerActions = this.noop
 }
 
 export class CommentFromVolunteer extends CounterMetricClass {
@@ -256,6 +302,7 @@ export class CommentFromVolunteer extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public triggerActions = this.noop
 }
 
 export class HasBeenUnmatched extends CounterMetricClass {
@@ -269,6 +316,16 @@ export class HasBeenUnmatched extends CounterMetricClass {
   public computeUpdateValue = () => (!this.md.session.volunteer ? 1 : 0)
   public review = () => false
   public flag = () => NO_FLAGS
+  public triggerActions = () => {
+    // Send an apology email to the student the first time their session is unmatched
+    if (this.studentValue === 1)
+      QueueService.add(Jobs.EmailStudentUnmatchedApology, {
+        sessionSubTopic: this.md.session.subTopic,
+        sessionDate: this.md.session.createdAt,
+        studentId: this.md.session.student,
+        volunteerId: this.md.session.volunteer
+      })
+  }
 }
 
 export class HasHadTechnicalIssues extends CounterMetricClass {
@@ -296,6 +353,14 @@ export class HasHadTechnicalIssues extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => NO_FLAGS
+  public triggerActions = () => {
+    // Send an apology email to the student and volunteer when a tech issue is reported in their session
+    if (this.updateValue)
+      QueueService.add(Jobs.EmailTechIssueApology, {
+        studentId: this.md.session.student,
+        volunteerId: this.md.session.volunteer
+      })
+  }
 }
 
 export const METRICS_CLASSES = [
