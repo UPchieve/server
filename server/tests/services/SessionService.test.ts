@@ -30,7 +30,7 @@ import {
 } from '../mocks/repos/session-repo'
 import {
   EVENTS,
-  SESSION_FLAGS,
+  USER_SESSION_METRICS,
   SESSION_REPORT_REASON,
   SUBJECTS,
   SUBJECT_TYPES
@@ -435,7 +435,7 @@ describe('processCalculateMetrics', () => {
   test('Should calculate time tutored if there was no absent user in the session', async () => {
     const timeTutored = 1000 * 60 * 20
     const mockValue = mockedGetSessionById({
-      flags: [SESSION_FLAGS.LOW_MESSAGES]
+      flags: [USER_SESSION_METRICS.commentFromVolunteer]
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -456,7 +456,7 @@ describe('processCalculateMetrics', () => {
   test('Should not calculate time tutored if there was an absent user in the session', async () => {
     const timeTutored = 0
     const mockValue = mockedGetSessionById({
-      flags: [SESSION_FLAGS.ABSENT_USER]
+      flags: [USER_SESSION_METRICS.absentStudent]
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -735,57 +735,6 @@ describe('processEmailPartnerVolunteer', () => {
   })
 })
 
-describe('processSetFlags', () => {
-  let spyGetReviewFlags
-  let spyHasReviewTriggerFlags
-  beforeEach(async () => {
-    spyGetReviewFlags = jest.spyOn(SessionUtils, 'getReviewFlags')
-    spyHasReviewTriggerFlags = jest.spyOn(SessionUtils, 'hasReviewTriggerFlags')
-  })
-
-  test('Should set a session to be reviewed if there are flags that trigger a review', async () => {
-    const mockedSession = mockedGetSessionToEnd()
-    const sessionId = mockedSession._id.toString()
-    const flags = [SESSION_FLAGS.FIRST_TIME_VOLUNTEER]
-    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-      async () => mockedSession
-    )
-    spyGetReviewFlags.mockImplementationOnce(() => flags)
-    const toReview = true
-    spyHasReviewTriggerFlags.mockImplementationOnce(() => toReview)
-    await SessionService.processSetFlags(sessionId)
-    expect(SessionRepo.updateFlags).toHaveBeenCalledWith(sessionId, {
-      flags,
-      toReview
-    })
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.FLAGS_SET,
-      sessionId
-    )
-  })
-
-  test('Should not set a session to be reviewed if there are no flags that trigger a review', async () => {
-    const mockedSession = mockedGetSessionToEnd()
-    const sessionId = mockedSession._id.toString()
-    const flags = []
-    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-      async () => mockedSession
-    )
-    spyGetReviewFlags.mockImplementationOnce(() => flags)
-    const toReview = false
-    spyHasReviewTriggerFlags.mockImplementationOnce(() => toReview)
-    await SessionService.processSetFlags(sessionId)
-    expect(SessionRepo.updateFlags).toHaveBeenCalledWith(sessionId, {
-      flags,
-      toReview
-    })
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.FLAGS_SET,
-      sessionId
-    )
-  })
-})
-
 describe('processVolunteerTimeTutored', () => {
   test('Should do nothing if the session does not have a volunteer', async () => {
     const mockValue = mockedGetSessionById({ volunteer: null })
@@ -810,61 +759,6 @@ describe('processVolunteerTimeTutored', () => {
       volunteer,
       timeTutored
     )
-  })
-})
-
-describe('processFeedbackSaved', () => {
-  let spyGetFeedbackFlags
-  beforeEach(async () => {
-    spyGetFeedbackFlags = jest.spyOn(SessionUtils, 'getFeedbackFlags')
-  })
-
-  // @todo: fix tests to use the mocked getFeedbackFlags
-  test('Should do nothing if there are no flags', async () => {
-    const mockFeedback = buildFeedback({
-      volunteerFeedback: {
-        'session-enjoyable': 4,
-        'session-improvements': '',
-        'student-understanding': 4,
-        'session-obstacles': [],
-        'other-feedback': null
-      }
-    }) as FeedbackVersionTwo
-    const flags = []
-    mockedFeedbackService.getFeedback.mockImplementationOnce(
-      async () => mockFeedback
-    )
-    // @todo: the spy isn't properly mocking this function
-    spyGetFeedbackFlags.mockImplementationOnce(async () => flags)
-    const sessionId = getStringObjectId()
-
-    await SessionService.processFeedbackSaved(sessionId, 'student')
-    expect(SessionRepo.updateFlags).toHaveBeenCalledTimes(0)
-  })
-
-  test('Should update flags on the session if there are flags that trigger a review', async () => {
-    const mockFeedback = buildFeedback({
-      studentTutoringFeedback: {
-        'session-goal': 2,
-        'subject-understanding': 2,
-        'coach-rating': 2,
-        'coach-feedback': '',
-        'other-feedback': 'the whiteboard did not work'
-      }
-    }) as FeedbackVersionTwo
-    const flags = [SESSION_FLAGS.VOLUNTEER_RATING]
-    mockedFeedbackService.getFeedback.mockImplementationOnce(
-      async () => mockFeedback
-    )
-    // @todo: the spy isn't properly mocking this function
-    spyGetFeedbackFlags.mockImplementationOnce(async () => flags)
-    const sessionId = getStringObjectId()
-
-    await SessionService.processFeedbackSaved(sessionId, 'student')
-    expect(SessionRepo.updateFlags).toHaveBeenCalledWith(sessionId, {
-      flags,
-      toReview: true
-    })
   })
 })
 

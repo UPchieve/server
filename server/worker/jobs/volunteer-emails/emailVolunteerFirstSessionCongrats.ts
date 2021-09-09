@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
-import { SESSION_FLAGS } from '../../../constants'
+import { USER_SESSION_METRICS } from '../../../constants'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
@@ -24,9 +24,9 @@ export default async (
           typeof sessionId === 'string' ? Types.ObjectId(sessionId) : sessionId,
         flags: {
           $nin: [
-            SESSION_FLAGS.ABSENT_USER,
-            SESSION_FLAGS.VOLUNTEER_RATING,
-            SESSION_FLAGS.LOW_MESSAGES
+            USER_SESSION_METRICS.absentStudent,
+            USER_SESSION_METRICS.absentVolunteer,
+            USER_SESSION_METRICS.lowSessionRatingFromCoach
           ]
         }
       }

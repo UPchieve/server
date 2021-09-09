@@ -17,7 +17,7 @@ import {
   getStringObjectId
 } from '../generate'
 import {
-  SESSION_FLAGS,
+  USER_SESSION_METRICS,
   SESSION_REPORT_REASON,
   SUBJECTS,
   SUBJECT_TYPES
@@ -174,26 +174,44 @@ describe('updateFlags', () => {
     await cleanup()
   })
 
-  test('Should update flags and mark the session as needing to be reviewed', async () => {
+  test('Should update flags', async () => {
     const flags = [
-      SESSION_FLAGS.FIRST_TIME_STUDENT,
-      SESSION_FLAGS.FIRST_TIME_VOLUNTEER
+      USER_SESSION_METRICS.absentStudent,
+      USER_SESSION_METRICS.commentFromVolunteer
     ]
-    await SessionRepo.updateFlags(session._id, { flags, toReview: true })
+    await SessionRepo.updateFlags(session._id, flags)
+
+    const updatedSession = await getSession({ _id: session._id }, { flags: 1 })
+    expect(updatedSession.flags).toHaveLength(2)
+    expect(updatedSession.flags).toEqual(flags)
+  })
+})
+
+describe('updateReviewReasons', () => {
+  let session
+
+  beforeAll(async () => {
+    const insertedSession = await insertSessionWithVolunteer()
+    session = insertedSession.session
+  })
+
+  afterAll(async () => {
+    await cleanup()
+  })
+
+  test('Should update reviewReasons', async () => {
+    const reviewReasons = [
+      USER_SESSION_METRICS.absentStudent,
+      USER_SESSION_METRICS.commentFromVolunteer
+    ]
+    await SessionRepo.updateReviewReasons(session._id, reviewReasons)
 
     const updatedSession = await getSession(
       { _id: session._id },
-      { flags: 1, toReview: 1 }
+      { reviewReasons: 1 }
     )
-    expect(updatedSession.flags).toHaveLength(2)
-    expect(updatedSession.flags).toEqual(flags)
-    expect(updatedSession.toReview).toBeTruthy()
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.updateFlags(invalidId, { flags: [], toReview: false })
-    ).rejects.toBeInstanceOf(DocUpdateError)
+    expect(updatedSession.reviewReasons).toHaveLength(2)
+    expect(updatedSession.reviewReasons).toEqual(reviewReasons)
   })
 })
 

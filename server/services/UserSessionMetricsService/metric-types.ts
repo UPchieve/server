@@ -1,5 +1,4 @@
 import {
-  METRICS,
   METRIC_TYPES,
   Counter,
   MetricType,
@@ -9,6 +8,7 @@ import {
 import { Session } from '../../models/Session'
 import { FeedbackVersionTwo } from '../../models/Feedback'
 import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
+import { USER_SESSION_METRICS } from '../../constants'
 
 export interface MetricData {
   studentUSM: UserSessionMetrics
@@ -18,7 +18,7 @@ export interface MetricData {
 }
 
 export abstract class MetricClass<T> {
-  abstract key: METRICS // metric name
+  abstract key: USER_SESSION_METRICS // metric name
   protected path: METRIC_TYPES // path to USM data - usm.${path}.key
 
   protected md: MetricData // data for computations
@@ -60,18 +60,18 @@ export abstract class MetricClass<T> {
   // generate db query to execute update to student USM object
   abstract buildVolunteerUpdateQuery(): UserSessionMetricsUpdateQuery
 
-  // determines if reviewReason=this.key should be set on this.md.session
-  abstract review(): boolean
+  // computes list of review reasons to be set on this.md.session
+  abstract reviewReason(): USER_SESSION_METRICS[]
   // computes list of flags to set on this.md.session
-  abstract flag(): string[]
+  abstract flag(): USER_SESSION_METRICS[]
 }
 
 export function buildSetMetricQuery(
   type: METRIC_TYPES,
-  metric: METRICS,
+  metric: USER_SESSION_METRICS,
   value: MetricType
 ): UserSessionMetricsUpdateQuery {
-  const path = getEnumKeyByEnumValue(METRICS, metric)
+  const path = getEnumKeyByEnumValue(USER_SESSION_METRICS, metric)
   return { [`${type}.${path}`]: value }
 }
 
@@ -79,7 +79,7 @@ export abstract class CounterMetricClass extends MetricClass<Counter> {
   protected path = METRIC_TYPES.counters
 
   private computeFinalValue = (usm: UserSessionMetrics): Counter => {
-    const key = getEnumKeyByEnumValue(METRICS, this.key)
+    const key = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
     const finalValue = usm[this.path][key] + this.updateValue
     return finalValue
   }
@@ -94,7 +94,7 @@ export abstract class CounterMetricClass extends MetricClass<Counter> {
   private buildUpdateQuery = (
     finalValue: Counter
   ): UserSessionMetricsUpdateQuery => {
-    const metric = getEnumKeyByEnumValue(METRICS, this.key)
+    const metric = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
     return { [`${this.path}.${metric}`]: finalValue }
   }
   public buildStudentUpdateQuery = (): UserSessionMetricsUpdateQuery => {
@@ -104,11 +104,11 @@ export abstract class CounterMetricClass extends MetricClass<Counter> {
     if (this.md.volunteerUSM) return this.buildUpdateQuery(this.studentValue)
   }
 
-  abstract key: METRICS
+  abstract key: USER_SESSION_METRICS
 
   abstract computeUpdateValue(): Counter
-  abstract review(): boolean
-  abstract flag(): string[]
+  abstract reviewReason(): USER_SESSION_METRICS[]
+  abstract flag(): USER_SESSION_METRICS[]
 }
 
-export const NO_FLAGS = [] as string[]
+export const NO_FLAGS = [] as USER_SESSION_METRICS[]

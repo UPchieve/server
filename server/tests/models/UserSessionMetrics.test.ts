@@ -10,6 +10,7 @@ import {
 import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
 import { mockMongooseFindQuery } from '../utils'
 import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
+import { USER_SESSION_METRICS } from '../../constants'
 
 async function resetUSM(): Promise<void> {
   await UserSessionMetricsRepo.UserSessionMetricsModel.deleteMany({})
@@ -291,14 +292,14 @@ describe('Test update UserSessionModel objects', () => {
     const queries = [
       {
         [`counters.${getEnumKeyByEnumValue(
-          UserSessionMetricsRepo.METRICS,
-          UserSessionMetricsRepo.METRICS.absentStudent
+          USER_SESSION_METRICS,
+          USER_SESSION_METRICS.absentStudent
         )}`]: 2
       },
       {
         [`counters.${getEnumKeyByEnumValue(
-          UserSessionMetricsRepo.METRICS,
-          UserSessionMetricsRepo.METRICS.hasHadTechnicalIssues
+          USER_SESSION_METRICS,
+          USER_SESSION_METRICS.hasHadTechnicalIssues
         )}`]: 5
       }
     ]
@@ -317,7 +318,7 @@ describe('Test update UserSessionModel objects', () => {
     const queries = [
       { yipee: 2 },
       {
-        [`counters.${UserSessionMetricsRepo.METRICS.hasHadTechnicalIssues}`]: 5
+        [`counters.${USER_SESSION_METRICS.hasHadTechnicalIssues}`]: 5
       }
     ]
     const update = merge(queries[0], queries[1])
@@ -344,9 +345,9 @@ describe('Test update UserSessionModel objects', () => {
     mockedUserSessionMetricsModelUpdate.mockRejectedValueOnce(testError)
 
     const queries = [
-      { [`counters.${UserSessionMetricsRepo.METRICS.absentStudent}`]: 2 },
+      { [`counters.${USER_SESSION_METRICS.absentStudent}`]: 2 },
       {
-        [`counters.${UserSessionMetricsRepo.METRICS.hasHadTechnicalIssues}`]: 5
+        [`counters.${USER_SESSION_METRICS.hasHadTechnicalIssues}`]: 5
       }
     ]
     const update = merge(queries[0], queries[1])

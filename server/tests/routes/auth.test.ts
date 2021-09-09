@@ -8,6 +8,7 @@ import { VolunteerDocument } from '../../models/Volunteer'
 
 import * as AuthService from '../../services/AuthService'
 import * as AuthRouter from '../../router/auth'
+import { buildUser } from '../generate'
 
 jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService, true)
@@ -30,8 +31,13 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 const mockLogin = jest.fn()
+const mockDestroy = jest.fn()
 function mockPassportMiddleware(req, res, next) {
   req.login = mockLogin
+  req.session = {
+    destroy: mockDestroy
+  }
+  req.user = buildUser()
   next()
 }
 app.use(mockPassportMiddleware)
@@ -164,6 +170,7 @@ describe('Test router logic', () => {
       body: { msg }
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(1)
+    expect(mockDestroy).toHaveBeenCalledTimes(1)
     expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(1)
     expect(msg).toEqual(
       'If an account with this email address exists then we will send a password reset email'

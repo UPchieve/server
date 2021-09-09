@@ -3,7 +3,7 @@ import { CustomError } from 'ts-custom-error'
 import { Socket } from 'socket.io'
 import { Volunteer } from '../models/Volunteer'
 import { Student } from '../models/Student'
-import { SESSION_FLAGS, SUBJECTS } from '../constants'
+import { USER_SESSION_METRICS, SUBJECTS } from '../constants'
 import { Session } from '../models/Session'
 import { Message } from '../models/Message'
 import { DAYS, HOURS } from '../models/Availability/types'
@@ -11,6 +11,7 @@ import {
   asArray,
   asBoolean,
   asDate,
+  asEnum,
   asFactory,
   asNumber,
   asObjectId,
@@ -21,24 +22,6 @@ import {
 export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
 export class ReportSessionError extends CustomError {}
-
-export function hasReviewTriggerFlags(flags) {
-  const excludedFlags = [
-    SESSION_FLAGS.UNMATCHED,
-    SESSION_FLAGS.LOW_MESSAGES,
-    SESSION_FLAGS.ABSENT_USER
-  ]
-  let isReviewTrigger = false
-
-  for (const flag of flags) {
-    if (!excludedFlags.includes(flag)) {
-      isReviewTrigger = true
-      break
-    }
-  }
-
-  return isReviewTrigger
-}
 
 export function didParticipantsChat(messages, studentId, volunteerId) {
   let studentSentMessage = false
@@ -63,93 +46,6 @@ export function getMessagesAfterDate(messages, date) {
   }
 
   return []
-}
-
-export function getReviewFlags(session) {
-  const flags = []
-  const {
-    messages,
-    student,
-    volunteer,
-    createdAt,
-    endedAt,
-    isReported,
-    volunteerJoinedAt
-  } = session
-  const isStudentsFirstSession = student.pastSessions.length === 0
-  const sessionLength =
-    new Date(endedAt).getTime() - new Date(createdAt).getTime()
-
-  if (volunteer && volunteer._id) {
-    const messagesAfterVolunteerJoined = getMessagesAfterDate(
-      messages,
-      volunteerJoinedAt
-    )
-    const isFullConversation = didParticipantsChat(
-      messagesAfterVolunteerJoined,
-      student._id,
-      volunteer._id
-    )
-    const isVolunteersFirstSession = volunteer.pastSessions.length === 0
-
-    // one user never sent any messages
-    if (!isFullConversation) flags.push(SESSION_FLAGS.ABSENT_USER)
-
-    // both users messaged back and forth and less than 20 messages were sent
-    if (isFullConversation && messages.length < 20)
-      flags.push(SESSION_FLAGS.LOW_MESSAGES)
-
-    // volunteer was a first time user
-    if (isVolunteersFirstSession) flags.push(SESSION_FLAGS.FIRST_TIME_VOLUNTEER)
-
-    // session was reported by the volunteer
-    if (isReported) flags.push(SESSION_FLAGS.REPORTED)
-  } else {
-    // session duration >= 10 mins
-    if (sessionLength >= 1000 * 60 * 10) flags.push(SESSION_FLAGS.UNMATCHED)
-  }
-
-  // student was a first time user and session duration >= 1
-  if (isStudentsFirstSession && sessionLength >= 1000 * 60)
-    flags.push(SESSION_FLAGS.FIRST_TIME_STUDENT)
-
-  return flags
-}
-
-// Get flags for a session if there's a feedback rating <= 3 or a comment was left
-export function getFeedbackFlags(feedback) {
-  const flags = []
-  const otherFeedback = feedback['other-feedback']
-  const feedbackRatings: {
-    studentSessionGoal: number
-    studentCoachRating: number
-    volunteerSessionEnjoyable: number
-  } = {
-    studentSessionGoal: feedback['session-goal'],
-    studentCoachRating: feedback['coach-rating'],
-    volunteerSessionEnjoyable: feedback['session-enjoyable']
-  }
-
-  for (const [key, value] of Object.entries(feedbackRatings)) {
-    if (value <= 3) {
-      switch (key) {
-        case 'studentSessionGoal':
-        case 'studentCoachRating':
-          flags.push(SESSION_FLAGS.STUDENT_RATING)
-          break
-        case 'volunteerSessionEnjoyable':
-          flags.push(SESSION_FLAGS.VOLUNTEER_RATING)
-          break
-        default:
-          break
-      }
-      break
-    }
-  }
-
-  if (otherFeedback) flags.push(SESSION_FLAGS.COMMENT)
-
-  return flags
 }
 
 export function isSessionParticipant(session, user) {
@@ -378,9 +274,10 @@ const sessionDataValidators = {
     isReported: asOptional(asBoolean),
     reportReason: asOptional(asString),
     reportMessage: asOptional(asString),
-    flags: asArray(asString),
+    flags: asArray(asEnum(USER_SESSION_METRICS)),
     reviewed: asOptional(asBoolean),
     toReview: asOptional(asBoolean),
+    reviewReasons: asArray(asEnum(USER_SESSION_METRICS)),
     timeTutored: asOptional(asNumber),
     whiteboardDoc: asOptional(asString)
   })

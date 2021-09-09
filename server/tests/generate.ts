@@ -43,6 +43,7 @@ import {
 } from '../utils/auth-utils'
 import { Notification } from '../models/Notification'
 import { PushToken } from '../models/PushToken'
+import { UserSessionMetrics } from '../models/UserSessionMetrics'
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
@@ -447,6 +448,7 @@ export const buildSession = (overrides = {}): Session => {
     flags: [],
     reviewed: false,
     toReview: false,
+    reviewReasons: [],
     timeTutored: 0,
     ...overrides
   }
@@ -673,3 +675,39 @@ export const authLogin = (agent, { email, password }: Partial<User>): Test =>
     .post('/auth/login')
     .set('Accept', 'application/json')
     .send({ email, password })
+
+export function buildUSM(
+  userId: Types.ObjectId,
+  counterOverrides: any = {} // TODO: type this better
+): UserSessionMetrics {
+  return {
+    _id: Types.ObjectId(),
+    user: userId,
+    counters: {
+      absentStudent: 0,
+      absentVolunteer: 0,
+      lowSessionRatingFromCoach: 0,
+      lowSessionRatingFromStudent: 0,
+      lowCoachRatingFromStudent: 0,
+      reported: 0,
+      onlyLookingForAnswers: 0,
+      rudeOrInappropriate: 0,
+      commentFromStudent: 0,
+      commentFromVolunteer: 0,
+      hasBeenUnmatched: 0,
+      hasHadTechnicalIssues: 0,
+      ...counterOverrides
+    }
+  }
+}
+
+export function startSession(student: Student): Session {
+  const session = buildSession()
+  session.student = student._id
+  return session
+}
+
+export function joinSession(session: Session, volunteer: Volunteer): void {
+  session.volunteerJoinedAt = new Date()
+  session.volunteer = volunteer._id
+}

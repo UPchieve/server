@@ -1,5 +1,6 @@
 import { Document, model, Schema, Types } from 'mongoose'
 import { FEEDBACK_VERSIONS } from '../constants'
+import { LookupError } from './Errors'
 
 export interface ResponseData {
   'rate-session': { rating: number }
@@ -221,5 +222,18 @@ const feedbackSchema = new Schema({
 
 const FeedbackModel = model<FeedbackDocument>('Feedback', feedbackSchema)
 
-module.exports = FeedbackModel
 export default FeedbackModel
+
+export async function getFeedbackBySessionId(
+  sessionId: Types.ObjectId | string,
+  projection = {}
+): Promise<Feedback | FeedbackVersionOne | FeedbackVersionTwo> {
+  try {
+    return await FeedbackModel.findOne({ sessionId: sessionId })
+      .select(projection)
+      .lean()
+      .exec()
+  } catch (err) {
+    throw new LookupError(`Session not found: ${err.message}`)
+  }
+}

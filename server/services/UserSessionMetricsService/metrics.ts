@@ -1,10 +1,9 @@
-import { METRICS } from '../../models/UserSessionMetrics'
-import { FEEDBACK_VERSIONS } from '../../constants'
+import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../constants'
 
 import { MetricData, CounterMetricClass, NO_FLAGS } from './metric-types'
 
 export class AbsentStudent extends CounterMetricClass {
-  public key = METRICS.absentStudent
+  public key = USER_SESSION_METRICS.absentStudent
 
   constructor(md: MetricData) {
     super(md)
@@ -24,12 +23,12 @@ export class AbsentStudent extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.studentValue >= 4
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => (this.studentValue >= 4 ? [this.key] : NO_FLAGS)
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class AbsentVolunteer extends CounterMetricClass {
-  public key = METRICS.absentVolunteer
+  public key = USER_SESSION_METRICS.absentVolunteer
 
   constructor(md: MetricData) {
     super(md)
@@ -49,12 +48,12 @@ export class AbsentVolunteer extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.volunteerValue >= 2
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => (this.volunteerValue >= 2 ? [this.key] : NO_FLAGS)
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class LowCoachRatingFromStudent extends CounterMetricClass {
-  public key = METRICS.lowCoachRatingFromStudent
+  public key = USER_SESSION_METRICS.lowCoachRatingFromStudent
 
   constructor(md: MetricData) {
     super(md)
@@ -82,12 +81,12 @@ export class LowCoachRatingFromStudent extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => NO_FLAGS
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class LowSessionRatingFromStudent extends CounterMetricClass {
-  public key = METRICS.lowSessionRatingFromStudent
+  public key = USER_SESSION_METRICS.lowSessionRatingFromStudent
 
   constructor(md: MetricData) {
     super(md)
@@ -113,12 +112,12 @@ export class LowSessionRatingFromStudent extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => NO_FLAGS
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class LowSessionRatingFromCoach extends CounterMetricClass {
-  public key = METRICS.lowSessionRatingFromCoach
+  public key = USER_SESSION_METRICS.lowSessionRatingFromCoach
 
   constructor(md: MetricData) {
     super(md)
@@ -139,12 +138,12 @@ export class LowSessionRatingFromCoach extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => NO_FLAGS
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class Reported extends CounterMetricClass {
-  public key = METRICS.reported
+  public key = USER_SESSION_METRICS.reported
 
   constructor(md: MetricData) {
     super(md)
@@ -152,12 +151,12 @@ export class Reported extends CounterMetricClass {
   }
 
   public computeUpdateValue = () => (this.md.session.isReported ? 1 : 0)
-  public review = () => true
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => [this.key]
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class RudeOrInappropriate extends CounterMetricClass {
-  public key = METRICS.rudeOrInappropriate
+  public key = USER_SESSION_METRICS.rudeOrInappropriate
 
   constructor(md: MetricData) {
     super(md)
@@ -180,12 +179,12 @@ export class RudeOrInappropriate extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.studentValue >= 2
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => (this.studentValue >= 2 ? [this.key] : NO_FLAGS)
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class OnlyLookingForAnswers extends CounterMetricClass {
-  public key = METRICS.onlyLookingForAnswers
+  public key = USER_SESSION_METRICS.onlyLookingForAnswers
 
   constructor(md: MetricData) {
     super(md)
@@ -208,12 +207,12 @@ export class OnlyLookingForAnswers extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.studentValue >= 2
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => (this.studentValue >= 2 ? [this.key] : NO_FLAGS)
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class CommentFromStudent extends CounterMetricClass {
-  public key = METRICS.commentFromStudent
+  public key = USER_SESSION_METRICS.commentFromStudent
 
   constructor(md: MetricData) {
     super(md)
@@ -232,12 +231,12 @@ export class CommentFromStudent extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => NO_FLAGS
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class CommentFromVolunteer extends CounterMetricClass {
-  public key = METRICS.commentFromVolunteer
+  public key = USER_SESSION_METRICS.commentFromVolunteer
 
   constructor(md: MetricData) {
     super(md)
@@ -254,12 +253,12 @@ export class CommentFromVolunteer extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
+  public reviewReason = () => NO_FLAGS
+  public flag = () => (this.updateValue ? [this.key] : NO_FLAGS)
 }
 
 export class HasBeenUnmatched extends CounterMetricClass {
-  public key = METRICS.hasBeenUnmatched
+  public key = USER_SESSION_METRICS.hasBeenUnmatched
 
   constructor(md: MetricData) {
     super(md)
@@ -267,12 +266,12 @@ export class HasBeenUnmatched extends CounterMetricClass {
   }
 
   public computeUpdateValue = () => (!this.md.session.volunteer ? 1 : 0)
-  public review = () => false
+  public reviewReason = () => NO_FLAGS
   public flag = () => NO_FLAGS
 }
 
 export class HasHadTechnicalIssues extends CounterMetricClass {
-  public key = METRICS.hasHadTechnicalIssues
+  public key = USER_SESSION_METRICS.hasHadTechnicalIssues
 
   constructor(md: MetricData) {
     super(md)
@@ -294,21 +293,24 @@ export class HasHadTechnicalIssues extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
+  public reviewReason = () => NO_FLAGS
   public flag = () => NO_FLAGS
 }
 
-export const METRICS_CLASSES = [
+export const SESSION_METRICS_CLASSES = [
+  HasBeenUnmatched,
   AbsentStudent,
   AbsentVolunteer,
+  Reported
+]
+
+export const FEEDBACK_METRICS_CLASSES = [
   LowCoachRatingFromStudent,
   LowSessionRatingFromStudent,
   LowSessionRatingFromCoach,
-  Reported,
   RudeOrInappropriate,
   OnlyLookingForAnswers,
   CommentFromStudent,
   CommentFromVolunteer,
-  HasBeenUnmatched,
   HasHadTechnicalIssues
 ]
