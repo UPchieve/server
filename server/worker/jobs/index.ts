@@ -19,6 +19,7 @@ import emailQuickTips from './volunteer-emails/emailQuickTips'
 import emailPartnerVolunteerOnlyCollegeCerts from './partner-volunteer-emails/emailOnlyCollegeCerts'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
 import emailStudentWelcomeSeries from './student-emails/emailStudentWelcomeSeries'
+import emailStudentSessionActions from './student-emails/emailStudentSessionActions'
 import emailPartnerVolunteerReferACoworker from './partner-volunteer-emails/emailReferACoworker'
 import emailPartnerVolunteerTenSessionMilestone from './partner-volunteer-emails/emailTenSessionMilestone'
 import emailVolunteerGentleWarning from './volunteer-emails/emailGentleWarning'
@@ -27,8 +28,10 @@ import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVoluntee
 import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
 import emailFailedFirstAttemptedQuiz from './volunteer-emails/emailFailedFirstAttemptedQuiz'
 import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVolunteerInactiveBlackoutOver'
+import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
 import emailSessionReported from './student-emails/emailSessionReported'
 import sendAssistmentsData from './sendAssistmentsData'
+import emailTechIssueApology from './emailTechIssueApology'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -50,6 +53,9 @@ export enum Jobs {
   EmailIndependentLearning = 'EmailIndependentLearning',
   EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
   EmailStudentGoalSetting = 'EmailStudentGoalSetting',
+  EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
+  EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
+  EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
   EmailSessionReported = 'EmailSessionReported',
   EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
   EmailPartnerVolunteerOnlyCollegeCerts = 'EmailVolunteerCollegeCertsOnly',
@@ -63,9 +69,12 @@ export enum Jobs {
   EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
   EmailVolunteerInactive = 'EmailVolunteerInactive',
   EmailVolunteerFirstSessionCongrats = 'EmailVolunteerFirstSessionCongrats',
+  EmailVolunteerAbsentWarning = 'EmailVolunteerAbsentWarning',
+  EmailVolunteerAbsentStudentApology = 'EmailVolunteerAbsentStudentApology',
   EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
   EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
-  SendAssistmentsData = ' SendAssistmentsData'
+  SendAssistmentsData = ' SendAssistmentsData',
+  EmailTechIssueApology = 'EmailTechIssueApology'
 }
 
 // register new job processors here
@@ -152,6 +161,18 @@ const jobProcessors: JobProcessor[] = [
     processor: emailStudentWelcomeSeries
   },
   {
+    name: Jobs.EmailStudentAbsentWarning,
+    processor: emailStudentSessionActions
+  },
+  {
+    name: Jobs.EmailStudentAbsentVolunteerApology,
+    processor: emailStudentSessionActions
+  },
+  {
+    name: Jobs.EmailStudentUnmatchedApology,
+    processor: emailStudentSessionActions
+  },
+  {
     name: Jobs.EmailVolunteerQuickTips,
     processor: emailQuickTips
   },
@@ -192,6 +213,14 @@ const jobProcessors: JobProcessor[] = [
     processor: emailStudentFirstSessionCongrats
   },
   {
+    name: Jobs.EmailVolunteerAbsentWarning,
+    processor: emailVolunteerSessionActions
+  },
+  {
+    name: Jobs.EmailVolunteerAbsentStudentApology,
+    processor: emailVolunteerSessionActions
+  },
+  {
     name: Jobs.EmailFailedFirstAttemptedQuiz,
     processor: emailFailedFirstAttemptedQuiz
   },
@@ -202,6 +231,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendAssistmentsData,
     processor: sendAssistmentsData
+  },
+  {
+    name: Jobs.EmailTechIssueApology,
+    processor: emailTechIssueApology
   }
 ]
 
