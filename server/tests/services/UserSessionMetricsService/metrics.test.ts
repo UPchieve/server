@@ -277,6 +277,7 @@ describe('Metrics have correct "update" functions', () => {
     public computeUpdateValue = () => updateValue
     public review = () => false
     public flag = () => [] as string[]
+    public triggerActions = () => undefined
   }
 
   test('Counter metric student final value is correct', () => {
