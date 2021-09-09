@@ -64,6 +64,8 @@ export abstract class MetricClass<T> {
   abstract review(): boolean
   // computes list of flags to set on this.md.session
   abstract flag(): string[]
+  // triggers side effects depending on value of internal metric data, e.g queueing an email to be sent
+  abstract triggerActions(): void
 }
 
 export function buildSetMetricQuery(
@@ -104,11 +106,14 @@ export abstract class CounterMetricClass extends MetricClass<Counter> {
     if (this.md.volunteerUSM) return this.buildUpdateQuery(this.studentValue)
   }
 
+  protected noop = () => {}
+
   abstract key: METRICS
 
   abstract computeUpdateValue(): Counter
   abstract review(): boolean
   abstract flag(): string[]
+  abstract triggerActions(): void
 }
 
 export const NO_FLAGS = [] as string[]
