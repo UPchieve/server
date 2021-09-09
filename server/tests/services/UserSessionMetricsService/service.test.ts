@@ -164,7 +164,6 @@ describe('Prepare metrics', () => {
   })
 
   test('Logs errors from failed metric constructors', async () => {
-  
     await USMService.prepareMetrics(testMetrics, session._id)
     expect(logger.error).toHaveBeenCalled()
   })
