@@ -15,6 +15,6 @@ export function listeners() {
 
   emitter.on(USM_EVENTS.PROCESSORS_READY, USMService.processFlags)
   emitter.on(USM_EVENTS.PROCESSORS_READY, USMService.processStudentMetricUpdate)
-  emitter.on(USM_EVENTS.PROCESSORS_READY, USMService.processStudentMetricUpdate)
+  emitter.on(USM_EVENTS.PROCESSORS_READY, USMService.processVolunteerMetricUpdate)
   emitter.on(USM_EVENTS.PROCESSORS_READY, USMService.processReviewReasons)
 }

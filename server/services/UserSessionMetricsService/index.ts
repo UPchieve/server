@@ -85,6 +85,18 @@ export async function prepareMetrics(
   } as MetricProcessorPayload)
 }
 
+/**
+ * Provides a standard interface for iterating over a set of MetricClass
+ * Executes a given MetricClass method for all metrics and accumulates results
+ * Flatten results by providing a reducer and execute any side-effects asynchronously
+ * 
+ * Register functions created by factory on the 'processors-ready' event
+ * 
+ * @param {string} opName name of method on MetricClass subtype
+ * @param {function} reduce transform opName results into desired shape for side-effect processing
+ * @param {function} fn execute side effects based on output of reduce
+ * @returns {function} metric processor event handler
+ */
 function metricProcessorFactory<T>(
   opName: keyof MetricClass<MetricType>,
   reduce: (acc: any[]) => T,
