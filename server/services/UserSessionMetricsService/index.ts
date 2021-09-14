@@ -80,3 +80,13 @@ async function processMetricUpdates(
   if (session.volunteer)
     await userUpdates(session.volunteer as Types.ObjectId, metricProcessors)
 }
+
+export async function processTriggerMetricActions({
+  processors
+}: {
+  processors: MetricClass<MetricType>[]
+}): Promise<void> {
+  for (const processor of processors) {
+    await processor.triggerActions()
+  }
+}
