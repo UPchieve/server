@@ -1,11 +1,11 @@
 import { Job } from 'bull'
+import moment from 'moment'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getStudent } from '../../../services/StudentService'
 import { Jobs } from '../index'
 import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 import { getUser } from '../../../services/UserService'
-import moment from 'moment'
 import { ISOString } from '../../../constants'
 import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
 

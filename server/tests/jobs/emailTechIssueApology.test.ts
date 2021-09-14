@@ -1,8 +1,8 @@
+import { mocked } from 'ts-jest/utils'
 import { Jobs } from '../../worker/jobs'
 import MailService from '../../services/MailService'
 import UserService from '../../services/UserService'
 import * as StudentService from '../../services/StudentService'
-import { mocked } from 'ts-jest/utils'
 import { buildStudent, buildVolunteer } from '../generate'
 import emailTechIssueApology from '../../worker/jobs/emailTechIssueApology'
 jest.mock('../../logger')
@@ -48,7 +48,7 @@ describe('Tech issue apology email', () => {
     expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(expected)
   })
 
-  test(`Should send tech issue apology successfully to volunteer`, async () => {
+  test('Should send tech issue apology successfully to volunteer', async () => {
     mockedStudentService.getStudent.mockImplementation(async () => null)
     mockedUserService.getUser.mockImplementation(async () => volunteer)
 

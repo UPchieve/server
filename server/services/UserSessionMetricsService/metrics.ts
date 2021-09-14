@@ -1,9 +1,9 @@
 import { METRICS } from '../../models/UserSessionMetrics'
 import { FEEDBACK_VERSIONS } from '../../constants'
 
-import { MetricData, CounterMetricClass, NO_FLAGS } from './metric-types'
 import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
+import { MetricData, CounterMetricClass, NO_FLAGS } from './metric-types'
 
 export class AbsentStudent extends CounterMetricClass {
   public key = METRICS.absentStudent

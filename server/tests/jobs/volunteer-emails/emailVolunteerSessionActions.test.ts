@@ -1,8 +1,8 @@
+import { mocked } from 'ts-jest/utils'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
 import UserService from '../../../services/UserService'
 import * as StudentService from '../../../services/StudentService'
-import { mocked } from 'ts-jest/utils'
 import { buildSession, buildStudent, buildVolunteer } from '../../generate'
 import emailVolunteerSessionActions from '../../../worker/jobs/volunteer-emails/emailVolunteerSessionActions'
 jest.mock('../../../logger')

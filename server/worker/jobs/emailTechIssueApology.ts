@@ -3,8 +3,8 @@ import MailService from '../../services/MailService'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { getUser } from '../../services/UserService'
 import { getStudent } from '../../services/StudentService'
-import { Jobs } from '.'
 import { safeAsync } from '../../utils/safe-async'
+import { Jobs } from '.'
 
 interface TechIssueApology {
   sessionId: string
