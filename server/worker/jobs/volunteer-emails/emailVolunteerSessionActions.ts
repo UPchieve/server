@@ -12,13 +12,13 @@ import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
 interface VolunteerSessionTriggers {
   volunteerId: string
   studentId: string
-  sessionSubject: string
+  sessionSubtopic: string
   sessionDate: ISOString
 }
 
 export default async (job: Job<VolunteerSessionTriggers>): Promise<void> => {
   const {
-    data: { volunteerId, studentId, sessionSubject, sessionDate },
+    data: { volunteerId, studentId, sessionSubtopic, sessionDate },
     name: currentJob
   } = job
 
@@ -50,7 +50,7 @@ export default async (job: Job<VolunteerSessionTriggers>): Promise<void> => {
         firstName,
         email,
         studentFirstName: student.firstname,
-        sessionSubject: formatMultiWordSubject(sessionSubject),
+        sessionSubject: formatMultiWordSubject(sessionSubtopic),
         sessionDate: moment(sessionDate).format('MMMM Do')
       }
       if (currentJob === Jobs.EmailVolunteerAbsentWarning)

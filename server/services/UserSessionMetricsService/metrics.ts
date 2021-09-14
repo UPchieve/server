@@ -33,7 +33,7 @@ export class AbsentStudent extends CounterMetricClass {
     // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
     if (this.studentValue === 1)
       await QueueService.add(Jobs.EmailStudentAbsentWarning, {
-        sessionSubTopic: this.md.session.subTopic,
+        sessionSubtopic: this.md.session.subTopic,
         sessionDate: this.md.session.createdAt,
         studentId: this.md.session.student,
         volunteerId: this.md.session.volunteer
@@ -41,7 +41,7 @@ export class AbsentStudent extends CounterMetricClass {
     // Send an apology email to the volunteer the first time he or she encounters an absent student
     if (this.volunteerValue === 1)
       await QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
-        sessionSubTopic: this.md.session.subTopic,
+        sessionSubtopic: this.md.session.subTopic,
         sessionDate: this.md.session.createdAt,
         studentId: this.md.session.student,
         volunteerId: this.md.session.volunteer
@@ -76,7 +76,7 @@ export class AbsentVolunteer extends CounterMetricClass {
     // Send an apology email to the student the first time he or she encounters an absent volunteer
     if (this.studentValue === 1)
       await QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
-        sessionSubTopic: this.md.session.subTopic,
+        sessionSubtopic: this.md.session.subTopic,
         sessionDate: this.md.session.createdAt,
         studentId: this.md.session.student,
         volunteerId: this.md.session.volunteer
@@ -84,7 +84,7 @@ export class AbsentVolunteer extends CounterMetricClass {
     // Send a warning email to the volunteer about ghosting students the first time he or she is absent
     if (this.volunteerValue === 1)
       await QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
-        sessionSubTopic: this.md.session.subTopic,
+        sessionSubtopic: this.md.session.subTopic,
         sessionDate: this.md.session.createdAt,
         studentId: this.md.session.student,
         volunteerId: this.md.session.volunteer
@@ -316,11 +316,11 @@ export class HasBeenUnmatched extends CounterMetricClass {
   public computeUpdateValue = () => (!this.md.session.volunteer ? 1 : 0)
   public review = () => false
   public flag = () => NO_FLAGS
-  public triggerActions = () => {
+  public triggerActions = async () => {
     // Send an apology email to the student the first time their session is unmatched
     if (this.studentValue === 1)
-      QueueService.add(Jobs.EmailStudentUnmatchedApology, {
-        sessionSubTopic: this.md.session.subTopic,
+      await QueueService.add(Jobs.EmailStudentUnmatchedApology, {
+        sessionSubtopic: this.md.session.subTopic,
         sessionDate: this.md.session.createdAt,
         studentId: this.md.session.student,
         volunteerId: this.md.session.volunteer
@@ -353,10 +353,10 @@ export class HasHadTechnicalIssues extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => NO_FLAGS
-  public triggerActions = () => {
+  public triggerActions = async () => {
     // Send an apology email to the student and volunteer when a tech issue is reported in their session
     if (this.updateValue)
-      QueueService.add(Jobs.EmailTechIssueApology, {
+      await QueueService.add(Jobs.EmailTechIssueApology, {
         studentId: this.md.session.student,
         volunteerId: this.md.session.volunteer
       })
