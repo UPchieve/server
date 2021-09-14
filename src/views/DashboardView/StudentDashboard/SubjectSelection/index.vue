@@ -1,30 +1,45 @@
 <template>
-  <div class="SubjectSelection">
-    <p v-if="hasWaitingPeriod" class="waiting-period">
-      {{ waitingPeriodMessage }}
-    </p>
-    <h2 v-if="mobileMode">
-      Explore our subjects
-    </h2>
-    <subject-card
-      v-for="(card, index) in cards"
-      v-bind:key="index"
-      :title="card.title"
-      :subtitle="card.subtitle"
-      :svg="card.svg"
-      :topic="card.topic"
-      :subtopics="card.subtopics"
-      :subtopicDisplayNames="card.subtopicDisplayNames"
-      :button-text="card.buttonText"
-      :routeTo="card.routeTo"
-      :disableSubjectCard="isCardDisabled(card)"
-    />
+  <div>
+    <div v-if="recentSubjectCards.length > 0" class="RecentSubjectSelection">
+      <h2>Your recent subjects</h2>
+    </div>
+    <div v-if="recentSubjectCards.length > 0" class="RecentSubjectSelection">
+      <recent-subject-card
+        v-for="(card, index) in recentSubjectCards"
+        v-bind:key="index"
+        :title="card.title"
+        :svg="card.svg"
+      />
+    </div>
+    <div class="SubjectSelection">
+      <p v-if="hasWaitingPeriod" class="waiting-period">
+        {{ waitingPeriodMessage }}
+      </p>
+      <h2 v-if="mobileMode">
+        Explore our subjects
+      </h2>
+      <subject-card
+        v-for="(card, index) in cards"
+        v-bind:key="index"
+        :title="card.title"
+        :subtitle="card.subtitle"
+        :svg="card.svg"
+        :topic="card.topic"
+        :subtopics="card.subtopics"
+        :subtopicDisplayNames="card.subtopicDisplayNames"
+        :button-text="card.buttonText"
+        :routeTo="card.routeTo"
+        :disableSubjectCard="isCardDisabled(card)"
+      />
+    </div>
   </div>
 </template>
 
 <script>
 import { mapState, mapGetters } from 'vuex'
 import SubjectCard from './SubjectCard'
+import RecentSubjectCard from './RecentSubjectCard.vue'
+import UserService from '@/services/UserService'
 import MathSVG from '@/assets/subject_icons/math.svg'
 import CollegeSVG from '@/assets/subject_icons/college-counseling.svg'
 import ScienceSVG from '@/assets/subject_icons/science.svg'
@@ -33,8 +48,10 @@ import ReadingWritingSVG from '@/assets/subject_icons/more-resources.svg'
 import calculateWaitingPeriodCountdown from '@/utils/calculate-waiting-period-countdown'
 import ReferralSVG from '@/assets/dashboard_icons/student/referral.svg'
 import LightBulbSVG from '@/assets/dashboard_icons/student/light-bulb.svg'
+// import { FEATURE_FLAGS } from '@/consts'
 
 import { topics } from '@/utils/topics'
+// import { isEnabled } from 'unleash-client'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -42,7 +59,7 @@ const defaultHeaderData = {
 
 export default {
   name: 'subject-selection',
-  components: { SubjectCard },
+  components: { SubjectCard , RecentSubjectCard },
   beforeDestroy() {
     clearTimeout(this.waitingPeriodTimeoutId)
   },
@@ -127,8 +144,23 @@ export default {
       disableSubjectCard: false,
       waitingPeriodTimeoutId: null,
       hasWaitingPeriod: false,
-      waitingPeriodTimeLeft: 0
+      waitingPeriodTimeLeft: 0,
+      recentSubjectCards: [],
+      svgs
     }
+  },
+  async created() {
+    let recentSubjectCards = []
+    if (isEnabled(FEATURE_FLAGS.DASHBOARD_REDESIGN)) {
+      const recentSubjects = await UserService.getStudentRecentSubjects()
+      recentSubjectCards = recentSubjects.map(subject => {
+        return {
+          title: subject.subTopic,
+          svg: this.svgs[subject.type]
+        }
+      })
+    }
+    this.recentSubjectCards = recentSubjectCards
   },
   computed: {
     ...mapState({
@@ -215,6 +247,26 @@ export default {
 
 <style lang="scss" scoped>
 .SubjectSelection {
+  @include flex-container(column);
+  @include child-spacing(top, 16px);
+  margin-top: 40px;
+
+  h2 {
+    @include font-category('heading');
+    margin: 0;
+    padding: 0;
+    text-align: left;
+  }
+
+  @include breakpoint-above('medium') {
+    @include child-spacing(top, 0);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 40px;
+  }
+}
+
+.RecentSubjectSelection {
   @include flex-container(column);
   @include child-spacing(top, 16px);
   margin-top: 40px;

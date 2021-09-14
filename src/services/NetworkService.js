@@ -622,5 +622,10 @@ export default {
     return Vue.http
       .get(`${API_ROOT}/survey/presession/${sessionId}`)
       .then(this._successHandler, this._errorHandler)
+  },
+  getRecentSubjects() {
+    return Vue.http
+      .get(`${API_ROOT}/v1/students/recent-subjects`)
+      .then(this._successHandler, this._errorHandler)
   }
 }

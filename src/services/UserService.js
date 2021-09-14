@@ -50,5 +50,16 @@ export default {
         throw new Error()
       }
     })
+  },
+  getStudentRecentSubjects() {
+    return NetworkService.getRecentSubjects().then(res => {
+      if (res.data.err) {
+        return res.data.err
+      } else if (res.data.sessions) {
+        return res.data.sessions
+      } else {
+        throw new Error()
+      }
+    })
   }
 }

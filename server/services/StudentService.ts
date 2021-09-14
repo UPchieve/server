@@ -51,16 +51,21 @@ export const queueWelcomeEmails = async (
   )
 }
 
+interface RecentSessionInfo {
+  type: string,
+  subTopic: string,
+}
+
 /**
- * Return the most recent unique session subTopics engaged in by a student.
+ * Return the most recent unique session subTopics with associated type attended by a student.
  * @param studentID ID of the student for which to list sessions
  * @param count count of session subTopics to return, starting with the last session
- * @returns list of most recent unique session subTopics
+ * @returns list of most recent unique session subTopics with associated type
  */
-export async function getMostRecentSessionSubTopics(
+export async function getMostRecentSessionInfo(
   studentID: string,
   count: number
-): Promise<string[]> {
+): Promise<RecentSessionInfo[]> {
   let student: Student
   try {
     student = await getStudent(
@@ -78,23 +83,29 @@ export async function getMostRecentSessionSubTopics(
   if (!student) {
     throw new UserNotFoundError('id', studentID)
   } else {
-    const recentSessions: string[] = []
+    const recentSessions: RecentSessionInfo[] = []
     // Starting from the end of the list of sessions, add the last 3 unique subTopics,
     // stop if you are back to the beginning of the list
     for (let i = student.pastSessions.length - 1; i >= 0; i--) {
+      let type: string
       let subTopic: string
       if ('subTopic' in student.pastSessions[i]) {
         const pastSessionLiteral = student.pastSessions[i] as Session
         subTopic = pastSessionLiteral.subTopic
+        type = pastSessionLiteral.type
       } else {
         const pastSessionID = student.pastSessions[i] as ObjectId
         const pastSession = await getSessionById(pastSessionID)
         if (pastSession) {
           subTopic = pastSession.subTopic
+          type = pastSession.type
         }
       }
-      if (subTopic && !recentSessions.includes(subTopic)) {
-        recentSessions.push(subTopic)
+      if (subTopic && !recentSessions.map((recent)=>recent.subTopic).includes(subTopic)) {
+        recentSessions.push({
+          type,
+          subTopic,
+        })
         if (recentSessions.length >= count) {
           break
         }

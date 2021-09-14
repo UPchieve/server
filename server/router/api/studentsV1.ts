@@ -1,6 +1,7 @@
 import expressWs from '@small-tech/express-ws'
 import express from 'express'
-import { getMostRecentSessionSubTopics } from '../../services/StudentService'
+import logger from '../../logger'
+import { getMostRecentSessionInfo } from '../../services/StudentService'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 
@@ -22,12 +23,12 @@ export default function(router: expressWs.Router): void {
         return
       }
       try {
-        const sessionTypes = await getMostRecentSessionSubTopics(id, 3)
-        res.status(200).json({ types: sessionTypes })
+        const sessions = await getMostRecentSessionInfo(id, 3)
+        logger.debug(`Got sessions: ${sessions}`)
+        res.status(200).json({ sessions: sessions })
       } catch (err) {
         resError(res, err)
       }
-      next()
     }
   )
 }
