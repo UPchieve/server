@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { UserNotFoundError } from '../../models/Errors'
-import { getMostRecentSessionSubTopics } from '../../services/StudentService'
+import { getMostRecentSessionInfo } from '../../services/StudentService'
 import { insertSession, insertStudent, resetDb } from '../db-utils'
 import { buildStudent } from '../generate'
 
@@ -28,14 +28,14 @@ describe('getMostRecentSessionTypes', () => {
     }
     const student = await insertStudent({ pastSessions: sessions })
 
-    const list = await getMostRecentSessionSubTopics(student._id.toString(), 3)
+    const list = await getMostRecentSessionInfo(student._id.toString(), 3)
 
-    expect(list).toEqual(['2', '1', '0'])
+    expect(list).toEqual([{type: 'math', subTopic: '2'}, {type: 'math', subTopic: '1'}, {type: 'math', subTopic: '0'}])
   })
 
   test('should return a UserNotFoundError error if the id is nonsense', async () => {
     try {
-      await getMostRecentSessionSubTopics('blah', 3)
+      await getMostRecentSessionInfo('blah', 3)
       expect(true).toBe(false)
     } catch (err) {
       expect(err instanceof UserNotFoundError).toBe(true)
@@ -45,7 +45,7 @@ describe('getMostRecentSessionTypes', () => {
   test('should return a UserNotFoundError error if the id does not exist', async () => {
     const dummyStudent = buildStudent()
     try {
-      await getMostRecentSessionSubTopics(dummyStudent._id.toString(), 3)
+      await getMostRecentSessionInfo(dummyStudent._id.toString(), 3)
       expect(true).toBe(false) // Line should not be encountered because function should throw an error
     } catch (err) {
       expect(err instanceof UserNotFoundError).toBe(true)
@@ -60,15 +60,15 @@ describe('getMostRecentSessionTypes', () => {
     }
     const student = await insertStudent({ pastSessions: sessions })
 
-    const list = await getMostRecentSessionSubTopics(student._id.toString(), 3)
+    const list = await getMostRecentSessionInfo(student._id.toString(), 3)
 
-    expect(list).toEqual(['1', '0'])
+    expect(list).toEqual([{type: 'math', subTopic: '1'}, {type: 'math', subTopic: '0'}])
   })
 
   test('should return an empty list if no session was ever taken', async () => {
     const student = await insertStudent()
 
-    const list = await getMostRecentSessionSubTopics(student._id.toString(), 3)
+    const list = await getMostRecentSessionInfo(student._id.toString(), 3)
 
     expect(list).toEqual([])
   })

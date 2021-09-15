@@ -54,40 +54,40 @@ beforeEach(async () => {
 
 describe('/v1/students/1/recent-subjects', () => {
   test('Should return a list if this is a valid ID', async () => {
-    const expectedTypes = [validTypes[1], validTypes[2], validTypes[3]]
-    mockedStudentService.getMostRecentSessionSubTopics.mockImplementationOnce(
+    const expectedTypes = [{type: 'math', subTopic: validTypes[1]}, {type: 'math', subTopic: validTypes[2]}, {type: 'math', subTopic: validTypes[3]}]
+    mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
       async () => expectedTypes
     )
 
     const response = await sendGet('/v1/students/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionSubTopics).toHaveBeenCalledWith(
+    expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
       '612262eb168710905a2b1b89',
       3
     )
     expect(response.status).toBe(200)
     expect(response.text).toStrictEqual(
-      JSON.stringify({ types: expectedTypes })
+      JSON.stringify({ sessions: expectedTypes })
     )
   })
 
   test('Should return an empty list if there are none to return', async () => {
-    mockedStudentService.getMostRecentSessionSubTopics.mockImplementationOnce(
+    mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
       async () => []
     )
 
     const response = await sendGet('/v1/students/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionSubTopics).toHaveBeenCalledWith(
+    expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
       '612262eb168710905a2b1b89',
       3
     )
     expect(response.status).toBe(200)
-    expect(response.text).toStrictEqual(JSON.stringify({ types: [] }))
+    expect(response.text).toStrictEqual(JSON.stringify({ sessions: [] }))
   })
 
   test('Should return a 400 if the student ID is valid, but no student was found', async () => {
-    mockedStudentService.getMostRecentSessionSubTopics.mockImplementationOnce(
+    mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
       async () => {
         throw new UserNotFoundError('id', '612262eb168710905a2b1b89')
       }
@@ -95,7 +95,7 @@ describe('/v1/students/1/recent-subjects', () => {
 
     const response = await sendGet('/v1/students/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionSubTopics).toHaveBeenCalledWith(
+    expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
       '612262eb168710905a2b1b89',
       3
     )
@@ -103,7 +103,7 @@ describe('/v1/students/1/recent-subjects', () => {
   })
 
   test('Should return a 500 if some unknown error is encountered', async () => {
-    mockedStudentService.getMostRecentSessionSubTopics.mockImplementationOnce(
+    mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
       async () => {
         throw new Error('My internal server error')
       }
@@ -111,7 +111,7 @@ describe('/v1/students/1/recent-subjects', () => {
 
     const response = await sendGet('/v1/students/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionSubTopics).toHaveBeenCalledWith(
+    expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
       '612262eb168710905a2b1b89',
       3
     )
