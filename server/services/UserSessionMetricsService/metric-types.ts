@@ -106,8 +106,6 @@ export abstract class CounterMetricClass extends MetricClass<Counter> {
     if (this.md.volunteerUSM) return this.buildUpdateQuery(this.studentValue)
   }
 
-  protected noop = () => {}
-
   abstract key: METRICS
 
   abstract computeUpdateValue(): Counter

@@ -1,5 +1,5 @@
 import { METRICS } from '../../models/UserSessionMetrics'
-import { FEEDBACK_VERSIONS } from '../../constants'
+import { FEEDBACK_VERSIONS, NOOP } from '../../constants'
 
 import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
@@ -123,7 +123,7 @@ export class LowCoachRatingFromStudent extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = this.noop
+  public triggerActions = NOOP
 }
 
 export class LowSessionRatingFromStudent extends CounterMetricClass {
@@ -155,7 +155,7 @@ export class LowSessionRatingFromStudent extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = this.noop
+  public triggerActions = NOOP
 }
 
 export class LowSessionRatingFromCoach extends CounterMetricClass {
@@ -182,7 +182,7 @@ export class LowSessionRatingFromCoach extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = this.noop
+  public triggerActions = NOOP
 }
 
 export class Reported extends CounterMetricClass {
@@ -196,7 +196,7 @@ export class Reported extends CounterMetricClass {
   public computeUpdateValue = () => (this.md.session.isReported ? 1 : 0)
   public review = () => true
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = this.noop
+  public triggerActions = NOOP
 }
 
 export class RudeOrInappropriate extends CounterMetricClass {
@@ -225,7 +225,7 @@ export class RudeOrInappropriate extends CounterMetricClass {
   }
   public review = () => this.studentValue >= 2
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = this.noop
+  public triggerActions = NOOP
 }
 
 export class OnlyLookingForAnswers extends CounterMetricClass {
@@ -254,7 +254,7 @@ export class OnlyLookingForAnswers extends CounterMetricClass {
   }
   public review = () => this.studentValue >= 2
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = this.noop
+  public triggerActions = NOOP
 }
 
 export class CommentFromStudent extends CounterMetricClass {
@@ -279,7 +279,7 @@ export class CommentFromStudent extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = this.noop
+  public triggerActions = NOOP
 }
 
 export class CommentFromVolunteer extends CounterMetricClass {
@@ -302,7 +302,7 @@ export class CommentFromVolunteer extends CounterMetricClass {
   }
   public review = () => false
   public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = this.noop
+  public triggerActions = NOOP
 }
 
 export class HasBeenUnmatched extends CounterMetricClass {
