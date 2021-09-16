@@ -1,13 +1,16 @@
 import { Types } from 'mongoose'
 
 import { MetricType, Counter } from '../../models/UserSessionMetrics'
-import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../constants'
+import { USER_SESSION_METRICS, FEEDBACK_VERSIONS, NOOP } from '../../constants'
 import {
   UpdateValueData,
   ProcessorData,
   CounterMetricProcessor,
-  NO_FLAGS
+  NO_FLAGS,
+  TriggerActionData
 } from './types'
+import QueueService from '../QueueService'
+import { Jobs } from '../../worker/jobs'
 
 class AbsentStudent extends CounterMetricProcessor {
   public key = USER_SESSION_METRICS.absentStudent
@@ -34,6 +37,25 @@ class AbsentStudent extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = async (tad: TriggerActionData<Counter>) => {
+    // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
+    if (this.computeFinalValue(tad.studentUSM, tad.value) === 1)
+      await QueueService.add(Jobs.EmailStudentAbsentWarning, {
+        sessionSubtopic: tad.session.subTopic,
+        sessionDate: tad.session.createdAt,
+        studentId: tad.session.student,
+        volunteerId: tad.session.volunteer
+      })
+
+    // Send an apology email to the volunteer the first time he or she encounters an absent student
+    if (this.computeFinalValue(tad.volunteerUSM, tad.value) === 1)
+      await QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
+        sessionSubtopic: tad.session.subTopic,
+        sessionDate: tad.session.createdAt,
+        studentId: tad.session.student,
+        volunteerId: tad.session.volunteer
+      })
+  }
 }
 
 class AbsentVolunteer extends CounterMetricProcessor {
@@ -61,6 +83,25 @@ class AbsentVolunteer extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = async (tad: TriggerActionData<Counter>) => {
+    // Send an apology email to the student the first time he or she encounters an absent volunteer
+    if (this.computeFinalValue(tad.studentUSM, tad.value) === 1)
+      await QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
+        sessionSubtopic: tad.session.subTopic,
+        sessionDate: tad.session.createdAt,
+        studentId: tad.session.student,
+        volunteerId: tad.session.volunteer
+      })
+
+    // Send a warning email to the volunteer about ghosting students the first time he or she is absent
+    if (this.computeFinalValue(tad.volunteerUSM, tad.value) === 1)
+      await QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
+        sessionSubtopic: tad.session.subTopic,
+        sessionDate: tad.session.createdAt,
+        studentId: tad.session.student,
+        volunteerId: tad.session.volunteer
+      })
+  }
 }
 
 class LowCoachRatingFromStudent extends CounterMetricProcessor {
@@ -88,6 +129,7 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = NOOP
 }
 
 class LowSessionRatingFromStudent extends CounterMetricProcessor {
@@ -113,6 +155,7 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = NOOP
 }
 
 class LowSessionRatingFromCoach extends CounterMetricProcessor {
@@ -133,6 +176,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = NOOP
 }
 
 class Reported extends CounterMetricProcessor {
@@ -144,6 +188,7 @@ class Reported extends CounterMetricProcessor {
   public computeReviewReason = () => [this.key]
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = NOOP
 }
 
 class RudeOrInappropriate extends CounterMetricProcessor {
@@ -169,6 +214,7 @@ class RudeOrInappropriate extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = NOOP
 }
 
 class OnlyLookingForAnswers extends CounterMetricProcessor {
@@ -194,6 +240,7 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = NOOP
 }
 
 class CommentFromStudent extends CounterMetricProcessor {
@@ -212,6 +259,7 @@ class CommentFromStudent extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = NOOP
 }
 
 class CommentFromVolunteer extends CounterMetricProcessor {
@@ -228,6 +276,7 @@ class CommentFromVolunteer extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
+  public triggerActions = NOOP
 }
 
 class HasBeenUnmatched extends CounterMetricProcessor {
@@ -238,6 +287,16 @@ class HasBeenUnmatched extends CounterMetricProcessor {
     !uvd.session.volunteer ? 1 : 0
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = () => NO_FLAGS
+  public triggerActions = async (tad: TriggerActionData<Counter>) => {
+    // Send an apology email to the student the first time their session is unmatched
+    if (this.computeFinalValue(tad.studentUSM, tad.value) === 1)
+      await QueueService.add(Jobs.EmailStudentUnmatchedApology, {
+        sessionSubtopic: tad.session.subTopic,
+        sessionDate: tad.session.createdAt,
+        studentId: tad.session.student,
+        volunteerId: tad.session.volunteer
+      })
+  }
 }
 
 class HasHadTechnicalIssues extends CounterMetricProcessor {
@@ -258,6 +317,14 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
   }
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = () => NO_FLAGS
+  public triggerActions = async (tad: TriggerActionData<Counter>) => {
+    // Send an apology email to the student and volunteer when a tech issue is reported in their session
+    if (tad.value)
+      await QueueService.add(Jobs.EmailTechIssueApology, {
+        studentId: tad.session.student,
+        volunteerId: tad.session.volunteer
+      })
+  }
 }
 
 // export each metric as a singleton instance

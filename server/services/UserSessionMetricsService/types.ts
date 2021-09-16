@@ -30,6 +30,11 @@ export interface ProcessorData<T extends MetricType> {
   value: T
 }
 
+export interface TriggerActionData<T extends MetricType>
+  extends ProcessorData<T> {
+  session: Session
+}
+
 export interface MetricProcessor<T extends MetricType> {
   key: USER_SESSION_METRICS // metric name
   requiresFeedback: boolean
@@ -88,6 +93,7 @@ export abstract class CounterMetricProcessor
   public abstract computeFlag(
     pd: ProcessorData<Counter>
   ): USER_SESSION_METRICS[]
+  public abstract triggerActions(pd: TriggerActionData<Counter>): void
 }
 
 export const NO_FLAGS = [] as USER_SESSION_METRICS[]

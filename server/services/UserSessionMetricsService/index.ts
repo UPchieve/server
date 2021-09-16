@@ -28,7 +28,12 @@ import { emitter } from '../EventsService'
 import logger from '../../logger'
 import { safeAsync } from '../../utils/safe-async'
 import { METRIC_PROCESSORS, MetricProcessorOutputs } from './metrics'
-import { UpdateValueData, ProcessorData, MetricProcessor } from './types'
+import {
+  UpdateValueData,
+  ProcessorData,
+  MetricProcessor,
+  TriggerActionData
+} from './types'
 
 export interface MetricProcessorPayload {
   session: Session
@@ -238,6 +243,32 @@ export const processSessionReviewReasons = metricProcessorFactory(
     }
   }
 )
+
+// registered as listener on session-processors-ready
+export async function processTriggerMetricActions(
+  payload: MetricProcessorPayload
+): Promise<void> {
+  const { session, studentUSM, volunteerUSM, outputs } = payload
+  const errors = []
+  for (const key in outputs) {
+    const processor = METRIC_PROCESSORS[key]
+    if (processor) {
+      const processorData = {
+        studentUSM,
+        volunteerUSM,
+        value: outputs[key],
+        session
+      } as TriggerActionData<MetricType>
+      try {
+        await processor.triggerActions(processorData)
+      } catch (err) {
+        errors.push(`${key}.triggerActions() error: ${err.message}`)
+      }
+      if (errors.length)
+        logger.error(`Errors processing triggerActions:\n${errors.join('\n')}`)
+    }
+  }
+}
 
 // registered as listener on feedback-processors-ready
 export const processFeedbackReviewReasons = metricProcessorFactory(
