@@ -25,21 +25,6 @@ export enum METRIC_TYPES {
   // statistics = 'statistics
 }
 
-export enum METRICS {
-  absentStudent = 'Absent student',
-  absentVolunteer = 'Absent volunteer',
-  lowSessionRatingFromCoach = 'Low session rating from coach',
-  lowSessionRatingFromStudent = 'Low session rating from student',
-  lowCoachRatingFromStudent = 'Low coach rating from student',
-  reported = 'Reported',
-  onlyLookingForAnswers = 'Only looking for answers',
-  rudeOrInappropriate = 'Rude or inapprioriate',
-  commentFromStudent = 'Comment from student',
-  commentFromVolunteer = 'Comment from volunteer',
-  hasBeenUnmatched = 'Has been unmatched',
-  hasHadTechnicalIssues = 'Has had technical issues'
-}
-
 export interface UserSessionMetrics {
   _id: Types.ObjectId
   user: Types.ObjectId | User

@@ -1,12 +1,9 @@
 import {
   didParticipantsChat,
   getMessagesAfterDate,
-  getReviewFlags,
-  getFeedbackFlags,
   calculateTimeTutored,
   isSessionParticipant,
   isSessionFulfilled,
-  hasReviewTriggerFlags,
   isSubjectUsingDocumentEditor
 } from '../../utils/session-utils'
 import { Student } from '../../models/Student'
@@ -17,11 +14,10 @@ import {
   buildVolunteer,
   buildSession,
   buildPastSessions,
-  generateSentence,
   getObjectId
 } from '../generate'
 import { Message } from '../../models/Message'
-import { SESSION_FLAGS, SUBJECTS } from '../../constants'
+import { SUBJECTS } from '../../constants'
 
 /**
  * @todo refactor
@@ -264,248 +260,6 @@ describe('didParticipantsChat', () => {
     })
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeFalsy()
-  })
-})
-
-describe('getReviewFlags', () => {
-  test(`Should trigger ${SESSION_FLAGS.FIRST_TIME_STUDENT} flag for a student's first session`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      studentOverrides: {
-        pastSessions: []
-      }
-    })
-    const session = buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer: volunteer._id,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-    const result = getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.FIRST_TIME_STUDENT
-    expect(result).toContain(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.FIRST_TIME_VOLUNTEER} flag for a volunteer's first session`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      messagesPerUser: 13,
-      volunteerOverrides: {
-        pastSessions: []
-      }
-    })
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer: volunteer._id,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.FIRST_TIME_VOLUNTEER
-    expect(result).toContain(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.UNMATCHED} flag when a volunter does not join the session`, async () => {
-    const { messages, student } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: false,
-      messagesPerUser: 0
-    })
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.UNMATCHED]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.LOW_MESSAGES} flag`, async () => {
-    const student = buildStudent({ pastSessions: buildPastSessions() })
-    const volunteer = buildVolunteer({ pastSessions: buildPastSessions() })
-    const volunteerJoinedAt = new Date('2020-10-05T12:03:30.000Z')
-
-    const messages = [
-      { user: student._id, createdAt: new Date('2020-10-05T12:04:30.000Z') },
-      { user: volunteer._id, createdAt: new Date('2020-10-05T12:05:30.000Z') }
-    ]
-
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer,
-      messages,
-      volunteerJoinedAt
-    })
-
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.LOW_MESSAGES]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.ABSENT_USER} flag when only one user sends messages`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: false,
-      messagesPerUser: 10
-    })
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.ABSENT_USER]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.ABSENT_USER} flag when no user sends messages`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: false,
-      messagesPerUser: 0
-    })
-    const session = await buildSession({
-      createdAt: Date.now(),
-      endedAt: Date.now(),
-      student: student._id,
-      volunteer,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.ABSENT_USER]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.REPORTED} flag when a session was reported`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      messagesPerUser: 20
-    })
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: Date.now(),
-      student: student._id,
-      volunteer,
-      messages,
-      isReported: true
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.REPORTED
-    expect(result).toContain(expected)
-  })
-})
-
-describe('getFeedbackFlags', () => {
-  test(`Should add ${SESSION_FLAGS.STUDENT_RATING} flag when student leaves a feedback rating with <= 3`, () => {
-    const feedback = {
-      'coach-rating': 1,
-      'session-goal': 4
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.STUDENT_RATING]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should not add ${SESSION_FLAGS.STUDENT_RATING} flag when student leaves feedback ratings > 3`, () => {
-    const feedback = {
-      'coach-rating': 4,
-      'session-goal': 4
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = []
-    expect(result).toEqual(expected)
-  })
-  test(`Should add ${SESSION_FLAGS.VOLUNTEER_RATING} flag when volunteer leaves a feedback rating with <= 3`, () => {
-    const feedback = {
-      'session-enjoyable': 3
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.VOLUNTEER_RATING]
-    expect(result).toEqual(expected)
-  })
-  test(`Should not add ${SESSION_FLAGS.VOLUNTEER_RATING} flag when student leaves feedback ratings > 3`, () => {
-    const feedback = {
-      'rate-session': {
-        rating: 5
-      }
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = []
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should add ${SESSION_FLAGS.COMMENT} flag when user leaves a comment`, () => {
-    const comment = generateSentence()
-    const feedback = {
-      'other-feedback': comment
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.COMMENT]
-    expect(result).toEqual(expected)
-  })
-})
-
-describe('hasReviewTriggerFlags', () => {
-  test('Should return true if flags contains a flag that triggers a review', () => {
-    const flags = [SESSION_FLAGS.REPORTED, SESSION_FLAGS.FIRST_TIME_STUDENT]
-    const result = hasReviewTriggerFlags(flags)
-    expect(result).toBe(true)
-  })
-  test('Should return false if flags contains a flag that does not trigger a review', () => {
-    const flags = [SESSION_FLAGS.UNMATCHED, SESSION_FLAGS.LOW_MESSAGES]
-    const result = hasReviewTriggerFlags(flags)
-    expect(result).toBe(false)
   })
 })
 

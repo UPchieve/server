@@ -1,24 +1,26 @@
-import { METRICS } from '../../models/UserSessionMetrics'
-import { FEEDBACK_VERSIONS, NOOP } from '../../constants'
+import { Types } from 'mongoose'
 
-import QueueService from '../QueueService'
-import { Jobs } from '../../worker/jobs'
-import { MetricData, CounterMetricClass, NO_FLAGS } from './metric-types'
+import { MetricType, Counter } from '../../models/UserSessionMetrics'
+import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../constants'
+import {
+  UpdateValueData,
+  ProcessorData,
+  CounterMetricProcessor,
+  NO_FLAGS
+} from './types'
 
-export class AbsentStudent extends CounterMetricClass {
-  public key = METRICS.absentStudent
+class AbsentStudent extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.absentStudent
+  public requiresFeedback = false
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (this.md.session.volunteerJoinedAt) {
-      for (const msg of this.md.session.messages) {
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.session.volunteerJoinedAt) {
+      for (const msg of uvd.session.messages) {
         if (
-          msg.user === this.md.session.student &&
-          msg.createdAt > this.md.session.volunteerJoinedAt
+          (msg.user as Types.ObjectId).equals(
+            uvd.session.student as Types.ObjectId
+          ) &&
+          msg.createdAt > uvd.session.volunteerJoinedAt
         )
           return 0
       }
@@ -26,43 +28,26 @@ export class AbsentStudent extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.studentValue >= 4
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-
-  public triggerActions = async () => {
-    // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
-    if (this.studentValue === 1)
-      await QueueService.add(Jobs.EmailStudentAbsentWarning, {
-        sessionSubtopic: this.md.session.subTopic,
-        sessionDate: this.md.session.createdAt,
-        studentId: this.md.session.student,
-        volunteerId: this.md.session.volunteer
-      })
-    // Send an apology email to the volunteer the first time he or she encounters an absent student
-    if (this.volunteerValue === 1)
-      await QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
-        sessionSubtopic: this.md.session.subTopic,
-        sessionDate: this.md.session.createdAt,
-        studentId: this.md.session.student,
-        volunteerId: this.md.session.volunteer
-      })
-  }
+  public computeReviewReason = (pd: ProcessorData<Counter>) =>
+    pd.value && this.computeFinalValue(pd.studentUSM, pd.value) >= 4
+      ? [this.key]
+      : NO_FLAGS
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class AbsentVolunteer extends CounterMetricClass {
-  public key = METRICS.absentVolunteer
+class AbsentVolunteer extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.absentVolunteer
+  public requiresFeedback = false
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (this.md.session.volunteerJoinedAt) {
-      for (const msg of this.md.session.messages) {
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.session.volunteerJoinedAt) {
+      for (const msg of uvd.session.messages) {
         if (
-          msg.user === this.md.session.volunteer &&
-          msg.createdAt > this.md.session.volunteerJoinedAt
+          (msg.user as Types.ObjectId).equals(
+            uvd.session.volunteer as Types.ObjectId
+          ) &&
+          msg.createdAt > uvd.session.volunteerJoinedAt
         )
           return 0
       }
@@ -70,42 +55,21 @@ export class AbsentVolunteer extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.volunteerValue >= 2
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = async () => {
-    // Send an apology email to the student the first time he or she encounters an absent volunteer
-    if (this.studentValue === 1)
-      await QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
-        sessionSubtopic: this.md.session.subTopic,
-        sessionDate: this.md.session.createdAt,
-        studentId: this.md.session.student,
-        volunteerId: this.md.session.volunteer
-      })
-    // Send a warning email to the volunteer about ghosting students the first time he or she is absent
-    if (this.volunteerValue === 1)
-      await QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
-        sessionSubtopic: this.md.session.subTopic,
-        sessionDate: this.md.session.createdAt,
-        studentId: this.md.session.student,
-        volunteerId: this.md.session.volunteer
-      })
-  }
+  public computeReviewReason = (pd: ProcessorData<Counter>) =>
+    pd.value && this.computeFinalValue(pd.volunteerUSM, pd.value) >= 2
+      ? [this.key]
+      : NO_FLAGS
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class LowCoachRatingFromStudent extends CounterMetricClass {
-  public key = METRICS.lowCoachRatingFromStudent
+class LowCoachRatingFromStudent extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.lowCoachRatingFromStudent
+  public requiresFeedback = true
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (
-      this.md.feedback &&
-      this.md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO
-    ) {
-      const feedback = this.md.feedback
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
+      const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
         feedback.studentTutoringFeedback['coach-rating'] <= 2
@@ -121,25 +85,18 @@ export class LowCoachRatingFromStudent extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = NOOP
+  public computeReviewReason = () => NO_FLAGS
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class LowSessionRatingFromStudent extends CounterMetricClass {
-  public key = METRICS.lowSessionRatingFromStudent
+class LowSessionRatingFromStudent extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.lowSessionRatingFromStudent
+  public requiresFeedback = true
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (
-      this.md.feedback &&
-      this.md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO
-    ) {
-      const feedback = this.md.feedback
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
+      const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
         feedback.studentTutoringFeedback['session-goal'] <= 2
@@ -153,25 +110,18 @@ export class LowSessionRatingFromStudent extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = NOOP
+  public computeReviewReason = () => NO_FLAGS
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class LowSessionRatingFromCoach extends CounterMetricClass {
-  public key = METRICS.lowSessionRatingFromCoach
+class LowSessionRatingFromCoach extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.lowSessionRatingFromCoach
+  public requiresFeedback = true
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (
-      this.md.feedback &&
-      this.md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO
-    ) {
-      const feedback = this.md.feedback
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
+      const feedback = uvd.feedback
       if (
         feedback.volunteerFeedback &&
         feedback.volunteerFeedback['session-enjoyable'] <= 2
@@ -180,39 +130,29 @@ export class LowSessionRatingFromCoach extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = NOOP
+  public computeReviewReason = () => NO_FLAGS
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class Reported extends CounterMetricClass {
-  public key = METRICS.reported
+class Reported extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.reported
+  public requiresFeedback = false
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => (this.md.session.isReported ? 1 : 0)
-  public review = () => true
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = NOOP
+  public computeUpdateValue = (uvd: UpdateValueData) =>
+    uvd.session.isReported ? 1 : 0
+  public computeReviewReason = () => [this.key]
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class RudeOrInappropriate extends CounterMetricClass {
-  public key = METRICS.rudeOrInappropriate
+class RudeOrInappropriate extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.rudeOrInappropriate
+  public requiresFeedback = true
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (
-      this.md.feedback &&
-      this.md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO
-    ) {
-      const feedback = this.md.feedback
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
+      const feedback = uvd.feedback
       if (feedback.volunteerFeedback) {
         for (const value of Object.values(
           feedback.volunteerFeedback['session-obstacles']
@@ -223,25 +163,21 @@ export class RudeOrInappropriate extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.studentValue >= 2
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = NOOP
+  public computeReviewReason = (pd: ProcessorData<Counter>) =>
+    pd.value && this.computeFinalValue(pd.studentUSM, pd.value) >= 2
+      ? [this.key]
+      : NO_FLAGS
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class OnlyLookingForAnswers extends CounterMetricClass {
-  public key = METRICS.onlyLookingForAnswers
+class OnlyLookingForAnswers extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.onlyLookingForAnswers
+  public requiresFeedback = true
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (
-      this.md.feedback &&
-      this.md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO
-    ) {
-      const feedback = this.md.feedback
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
+      const feedback = uvd.feedback
       if (feedback.volunteerFeedback) {
         for (const value of Object.values(
           feedback.volunteerFeedback['session-obstacles']
@@ -252,98 +188,67 @@ export class OnlyLookingForAnswers extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => this.studentValue >= 2
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = NOOP
+  public computeReviewReason = (pd: ProcessorData<Counter>) =>
+    pd.value && this.computeFinalValue(pd.studentUSM, pd.value) >= 2
+      ? [this.key]
+      : NO_FLAGS
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class CommentFromStudent extends CounterMetricClass {
-  public key = METRICS.commentFromStudent
+class CommentFromStudent extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.commentFromStudent
+  public requiresFeedback = true
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (
-      this.md.feedback &&
-      this.md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO
-    ) {
-      const feedback = this.md.feedback.studentTutoringFeedback
-        ? this.md.feedback.studentTutoringFeedback
-        : this.md.feedback.studentCounselingFeedback
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
+      const feedback = uvd.feedback.studentTutoringFeedback
+        ? uvd.feedback.studentTutoringFeedback
+        : uvd.feedback.studentCounselingFeedback
       return feedback['other-feedback'] ? 1 : 0
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = NOOP
+  public computeReviewReason = () => NO_FLAGS
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class CommentFromVolunteer extends CounterMetricClass {
-  public key = METRICS.commentFromVolunteer
+class CommentFromVolunteer extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.commentFromVolunteer
+  public requiresFeedback = true
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (
-      this.md.feedback &&
-      this.md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO
-    ) {
-      if (this.md.session.volunteer && this.md.feedback.volunteerFeedback)
-        return this.md.feedback.volunteerFeedback['other-feedback'] ? 1 : 0
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
+      if (uvd.session.volunteer && uvd.feedback.volunteerFeedback)
+        return uvd.feedback.volunteerFeedback['other-feedback'] ? 1 : 0
     }
     return 0
   }
-  public review = () => false
-  public flag = () => (this.updateValue ? [this.key] : ([] as string[]))
-  public triggerActions = NOOP
+  public computeReviewReason = () => NO_FLAGS
+  public computeFlag = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
 }
 
-export class HasBeenUnmatched extends CounterMetricClass {
-  public key = METRICS.hasBeenUnmatched
+class HasBeenUnmatched extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.hasBeenUnmatched
+  public requiresFeedback = false
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => (!this.md.session.volunteer ? 1 : 0)
-  public review = () => false
-  public flag = () => NO_FLAGS
-  public triggerActions = async () => {
-    // Send an apology email to the student the first time their session is unmatched
-    if (this.studentValue === 1)
-      await QueueService.add(Jobs.EmailStudentUnmatchedApology, {
-        sessionSubtopic: this.md.session.subTopic,
-        sessionDate: this.md.session.createdAt,
-        studentId: this.md.session.student,
-        volunteerId: this.md.session.volunteer
-      })
-  }
+  public computeUpdateValue = (uvd: UpdateValueData) =>
+    !uvd.session.volunteer ? 1 : 0
+  public computeReviewReason = () => NO_FLAGS
+  public computeFlag = () => NO_FLAGS
 }
 
-export class HasHadTechnicalIssues extends CounterMetricClass {
-  public key = METRICS.hasHadTechnicalIssues
+class HasHadTechnicalIssues extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.hasHadTechnicalIssues
+  public requiresFeedback = true
 
-  constructor(md: MetricData) {
-    super(md)
-    this.setup()
-  }
-
-  public computeUpdateValue = () => {
-    if (
-      this.md.feedback &&
-      this.md.feedback.versionNumber === FEEDBACK_VERSIONS.TWO
-    ) {
-      if (this.md.feedback.volunteerFeedback) {
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
+      if (uvd.feedback.volunteerFeedback) {
         for (const value of Object.values(
-          this.md.feedback.volunteerFeedback['session-obstacles']
+          uvd.feedback.volunteerFeedback['session-obstacles']
         )) {
           if (value === 0) return 1
         }
@@ -351,29 +256,26 @@ export class HasHadTechnicalIssues extends CounterMetricClass {
     }
     return 0
   }
-  public review = () => false
-  public flag = () => NO_FLAGS
-  public triggerActions = async () => {
-    // Send an apology email to the student and volunteer when a tech issue is reported in their session
-    if (this.updateValue)
-      await QueueService.add(Jobs.EmailTechIssueApology, {
-        studentId: this.md.session.student,
-        volunteerId: this.md.session.volunteer
-      })
-  }
+  public computeReviewReason = () => NO_FLAGS
+  public computeFlag = () => NO_FLAGS
 }
 
-export const METRICS_CLASSES = [
-  AbsentStudent,
-  AbsentVolunteer,
-  LowCoachRatingFromStudent,
-  LowSessionRatingFromStudent,
-  LowSessionRatingFromCoach,
-  Reported,
-  RudeOrInappropriate,
-  OnlyLookingForAnswers,
-  CommentFromStudent,
-  CommentFromVolunteer,
-  HasBeenUnmatched,
-  HasHadTechnicalIssues
-]
+// export each metric as a singleton instance
+export const METRIC_PROCESSORS = {
+  HasBeenUnmatched: new HasBeenUnmatched(),
+  AbsentStudent: new AbsentStudent(),
+  AbsentVolunteer: new AbsentVolunteer(),
+  Reported: new Reported(),
+  LowCoachRatingFromStudent: new LowCoachRatingFromStudent(),
+  LowSessionRatingFromStudent: new LowSessionRatingFromStudent(),
+  LowSessionRatingFromCoach: new LowSessionRatingFromCoach(),
+  RudeOrInappropriate: new RudeOrInappropriate(),
+  OnlyLookingForAnswers: new OnlyLookingForAnswers(),
+  CommentFromStudent: new CommentFromStudent(),
+  CommentFromVolunteer: new CommentFromVolunteer(),
+  HasHadTechnicalIssues: new HasHadTechnicalIssues()
+}
+
+export type MetricProcessorOutputs = {
+  [key in keyof typeof METRIC_PROCESSORS]?: MetricType
+}
