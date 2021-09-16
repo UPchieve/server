@@ -229,11 +229,11 @@ export async function getFeedbackBySessionId(
   projection = {}
 ): Promise<Feedback | FeedbackVersionOne | FeedbackVersionTwo> {
   try {
-    return await FeedbackModel.findOne({ sessionId: sessionId })
+    return await FeedbackModel.findOne({ sessionId })
       .select(projection)
       .lean()
       .exec()
   } catch (err) {
-    throw new LookupError(`Session not found: ${err.message}`)
+    throw new LookupError(`Error finding feedback: ${err.message}`)
   }
 }

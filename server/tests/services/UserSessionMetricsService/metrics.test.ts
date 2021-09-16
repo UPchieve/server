@@ -1,9 +1,10 @@
 import {
-  MetricData,
-  CounterMetricClass
-} from '../../../services/UserSessionMetricsService/metric-types'
-import * as MetricClasses from '../../../services/UserSessionMetricsService/metrics'
-import { UserSessionMetrics } from '../../../models/UserSessionMetrics'
+  UpdateValueData,
+  CounterMetricProcessor,
+  ProcessorData
+} from '../../../services/UserSessionMetricsService/types'
+import { METRIC_PROCESSORS } from '../../../services/UserSessionMetricsService/metrics'
+import { Counter } from '../../../models/UserSessionMetrics'
 import { Session } from '../../../models/Session'
 import { FeedbackVersionTwo } from '../../../models/Feedback'
 import { Message } from '../../../models/Message'
@@ -25,17 +26,12 @@ jest.mock('../../../models/UserSessionMetrics', () => ({
 
 const student = buildStudent()
 const volunteer = buildVolunteer()
-const studentUSM = buildUSM(student._id)
 
-function buildMetricData(
-  studentUSM: UserSessionMetrics,
+function buildUpdateValueData(
   session: Session,
-  feedback?: FeedbackVersionTwo,
-  volunteerUSM?: UserSessionMetrics
-): MetricData {
+  feedback?: FeedbackVersionTwo
+): UpdateValueData {
   return {
-    studentUSM,
-    volunteerUSM,
     session,
     feedback
   }
@@ -52,9 +48,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     joinSession(session, volunteer)
     sendMessage(session, buildMessage({ user: volunteer._id }))
 
-    const md = buildMetricData(studentUSM, session)
-    const processor = new MetricClasses.AbsentStudent(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.AbsentStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Absent volunteer', () => {
@@ -63,9 +59,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     joinSession(session, volunteer)
     sendMessage(session, buildMessage({ user: student._id }))
 
-    const md = buildMetricData(studentUSM, session)
-    const processor = new MetricClasses.AbsentVolunteer(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.AbsentVolunteer
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Low coach rating from student (tutoring)', () => {
@@ -76,9 +72,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.studentTutoringFeedback['coach-rating'] = 1
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.LowCoachRatingFromStudent(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.LowCoachRatingFromStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Low session rating from student (tutoring)', () => {
@@ -89,9 +85,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.studentTutoringFeedback['session-goal'] = 1
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.LowSessionRatingFromStudent(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.LowSessionRatingFromStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Low coach rating from student (CC)', () => {
@@ -102,9 +98,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.studentCounselingFeedback['coach-ratings']['coach-friendly'] = 1
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.LowCoachRatingFromStudent(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.LowCoachRatingFromStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Low session rating from student (CC)', () => {
@@ -115,9 +111,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.studentCounselingFeedback['rate-session'].rating = 1
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.LowSessionRatingFromStudent(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.LowSessionRatingFromStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Low session rating from coach', () => {
@@ -129,18 +125,18 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.volunteerFeedback['session-enjoyable'] = 1
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.LowSessionRatingFromCoach(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.LowSessionRatingFromCoach
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Reported', () => {
     const session = startSession(student)
     session.isReported = true
 
-    const md = buildMetricData(studentUSM, session)
-    const processor = new MetricClasses.Reported(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.Reported
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Rude or inappropriate', () => {
@@ -152,9 +148,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.volunteerFeedback['session-obstacles'] = [6]
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.RudeOrInappropriate(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.RudeOrInappropriate
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Only looking for answers', () => {
@@ -166,9 +162,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.volunteerFeedback['session-obstacles'] = [7]
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.OnlyLookingForAnswers(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.OnlyLookingForAnswers
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Comment from student', () => {
@@ -179,9 +175,9 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.studentTutoringFeedback['other-feedback'] = 'hello'
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.CommentFromStudent(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.CommentFromStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Comment from volunteer', () => {
@@ -193,17 +189,17 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.volunteerFeedback['other-feedback'] = 'hello'
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.CommentFromVolunteer(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.CommentFromVolunteer
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Has been unmatched', () => {
     const session = startSession(student)
 
-    const md = buildMetricData(studentUSM, session)
-    const processor = new MetricClasses.HasBeenUnmatched(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.HasBeenUnmatched
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
   test('Has had technical issues', () => {
@@ -214,73 +210,53 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
 
     feedback.volunteerFeedback['session-obstacles'] = [0]
 
-    const md = buildMetricData(studentUSM, session, feedback)
-    const processor = new MetricClasses.HasHadTechnicalIssues(md)
-    expect(processor.computeUpdateValue()).toEqual(1)
+    const uvd = buildUpdateValueData(session, feedback)
+    const processor = METRIC_PROCESSORS.HasHadTechnicalIssues
+    expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 })
 
-describe('Metrics have correct "update" functions', () => {
+describe('Counter metrics have correct "updateQuery" functions', () => {
   const session = startSession(student)
   joinSession(session, volunteer)
-  const feedback = buildFeedback({
-    versionNumber: FEEDBACK_VERSIONS.TWO
-  }) as FeedbackVersionTwo
 
   const initialValue = 2
   const updateValue = 5
 
-  class TestCounter extends CounterMetricClass {
+  class TestCounter extends CounterMetricProcessor {
     public key = USER_SESSION_METRICS.absentStudent
-
-    constructor(md: MetricData) {
-      super(md)
-      this.setup()
-    }
+    public requiresFeedback = false
 
     public computeUpdateValue = () => updateValue
-    public reviewReason = () => [] as USER_SESSION_METRICS[]
-    public flag = () => [] as USER_SESSION_METRICS[]
+    public computeReviewReason = () => [] as USER_SESSION_METRICS[]
+    public computeFlag = () => [] as USER_SESSION_METRICS[]
   }
+  const processor = new TestCounter()
 
-  test('Counter metric student final value is correct', () => {
+  test('Counter metric student query is correct', () => {
     const newUSM = buildUSM(student._id, { absentStudent: initialValue })
-    const md = buildMetricData(newUSM, session)
-    const processor = new TestCounter(md)
+    const finalValue = processor.computeUpdateValue()
+    const payload = {
+      studentUSM: newUSM,
+      value: finalValue
+    } as ProcessorData<Counter>
 
-    expect(processor.studentValue).toEqual(updateValue + initialValue)
-  })
-
-  test('Counter metric student update query is correrct', () => {
-    const newUSM = buildUSM(student._id, { absentStudent: initialValue })
-    const md = buildMetricData(newUSM, session)
-    const processor = new TestCounter(md)
-
-    expect(processor.buildStudentUpdateQuery()).toEqual({
+    expect(processor.computeStudentUpdateQuery(payload)).toEqual({
       'counters.absentStudent': updateValue + initialValue
     })
   })
 
-  test('Counter metric volunteer final value is correct', () => {
-    const studentUSM = buildUSM(student._id, { absentStudent: initialValue })
-    const volunteerUSM = buildUSM(volunteer._id, {
-      absentStudent: initialValue
-    })
-    const md = buildMetricData(studentUSM, session, feedback, volunteerUSM)
-    const processor = new TestCounter(md)
-
-    expect(processor.volunteerValue).toEqual(updateValue + initialValue)
-  })
-
   test('Counter metric volunteer update query is correrct', () => {
-    const studentUSM = buildUSM(student._id, { absentStudent: initialValue })
-    const volunteerUSM = buildUSM(volunteer._id, {
-      absentStudent: initialValue
-    })
-    const md = buildMetricData(studentUSM, session, feedback, volunteerUSM)
-    const processor = new TestCounter(md)
+    const newUSM = buildUSM(student._id, { absentStudent: initialValue })
+    const otherUSM = buildUSM(volunteer._id, { absentStudent: initialValue })
+    const finalValue = processor.computeUpdateValue()
+    const payload = {
+      studentUSM: newUSM,
+      volunteerUSM: otherUSM,
+      value: finalValue
+    } as ProcessorData<Counter>
 
-    expect(processor.buildVolunteerUpdateQuery()).toEqual({
+    expect(processor.computeVolunteerUpdateQuery(payload)).toEqual({
       'counters.absentStudent': updateValue + initialValue
     })
   })

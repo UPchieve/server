@@ -1,14 +1,8 @@
-import { mocked } from 'ts-jest/utils'
-
-import {
-  MetricData,
-  CounterMetricClass
-} from '../../../services/UserSessionMetricsService/metric-types'
+import { CounterMetricProcessor } from '../../../services/UserSessionMetricsService/types'
 import * as USMService from '../../../services/UserSessionMetricsService'
 
-import * as USMRepo from '../../../models/UserSessionMetrics'
-import * as SessionRepo from '../../../models/Session'
-import * as FeedbackRepo from '../../../models/Feedback'
+import { Session } from '../../../models/Session'
+import { FeedbackVersionTwo } from '../../../models/Feedback'
 import {
   buildVolunteer,
   buildStudent,
@@ -21,152 +15,168 @@ import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import logger from '../../../logger'
 
 jest.mock('../../../logger')
-jest.mock('../../../models/Session')
-const mockedSessionRepo = mocked(SessionRepo)
-jest.mock('../../../models/UserSessionMetrics')
-const mockedUSMRepo = mocked(USMRepo)
-jest.mock('../../../models/Feedback')
-const mockedFeedbackRepo = mocked(FeedbackRepo)
 
-describe('Build MetricData', () => {
-  const student = buildStudent()
-  const studentUSM = buildUSM(student._id)
-  const volunteer = buildVolunteer()
-  const volunteerUSM = buildUSM(volunteer._id)
+// Test data
+const student = buildStudent()
+const studentUSM = buildUSM(student._id)
+const volunteer = buildVolunteer()
+const volunteerUSM = buildUSM(volunteer._id)
 
-  const feedback = buildFeedback({
-    versionNumber: FEEDBACK_VERSIONS.TWO
-  }) as FeedbackRepo.FeedbackVersionTwo
+const feedback = buildFeedback({
+  versionNumber: FEEDBACK_VERSIONS.TWO
+}) as FeedbackVersionTwo
 
-  beforeAll(() => {
+const counterError = new Error('test')
+class ErrorCounter extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.absentVolunteer
+  public requiresFeedback = false
+
+  public computeUpdateValue = () => {
+    throw counterError
+  }
+  public computeReviewReason = () => [] as USER_SESSION_METRICS[]
+  public computeFlag = () => {
+    throw counterError
+  }
+}
+const errorProcessor = new ErrorCounter()
+
+const updateValue = 5
+class TestCounter extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.absentStudent
+  public requiresFeedback = false
+
+  public computeUpdateValue = () => updateValue
+  public computeReviewReason = () => [] as USER_SESSION_METRICS[]
+  public computeFlag = () => [USER_SESSION_METRICS.absentStudent]
+}
+const testProcessor = new TestCounter()
+const testMetrics = [testProcessor, errorProcessor]
+
+describe('Prepare metrics', () => {
+  beforeEach(() => {
     jest.resetAllMocks()
   })
 
-  afterAll(() => {
-    jest.resetAllMocks()
-    jest.restoreAllMocks()
-  })
-
-  test('Builds MetricData for a matched session without feedback', async () => {
-    mockedUSMRepo.getByUserId.mockResolvedValueOnce(studentUSM)
-    mockedUSMRepo.getByUserId.mockResolvedValueOnce(volunteerUSM)
-    mockedFeedbackRepo.getFeedbackBySessionId.mockResolvedValueOnce(undefined)
-
+  test('Logs errors from failed metric constructors', async () => {
     const session = startSession(student)
-    joinSession(session, volunteer)
+
     const expected = {
       studentUSM,
-      volunteerUSM,
-      session
-    } as MetricData
-    await expect(USMService.buildMetricData(session)).resolves.toEqual(expected)
+      session,
+      outputs: {
+        TestCounter: updateValue
+      }
+    } as USMService.MetricProcessorPayload
+    await expect(
+      USMService.prepareMetrics(testMetrics, session, feedback, studentUSM)
+    ).resolves.toEqual(expected)
+    expect(logger.error).toHaveBeenCalledWith(
+      `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
+    )
   })
-  test('Builds MetricData for a unmatched session without feedback', async () => {
-    mockedUSMRepo.getByUserId.mockResolvedValueOnce(studentUSM)
-    mockedFeedbackRepo.getFeedbackBySessionId.mockResolvedValueOnce(undefined)
 
-    const session = startSession(student)
-    const expected = {
-      studentUSM,
-      session
-    } as MetricData
-    await expect(USMService.buildMetricData(session)).resolves.toEqual(expected)
-  })
-  test('Builds MetricData for a matched session with feedback', async () => {
-    mockedUSMRepo.getByUserId.mockResolvedValueOnce(studentUSM)
-    mockedUSMRepo.getByUserId.mockResolvedValueOnce(volunteerUSM)
-    mockedFeedbackRepo.getFeedbackBySessionId.mockResolvedValueOnce(feedback)
-
+  test('Builds ProcessorPayload for a matched session without feedback', async () => {
     const session = startSession(student)
     joinSession(session, volunteer)
+
     const expected = {
       studentUSM,
       volunteerUSM,
       session,
-      feedback
-    } as MetricData
-    await expect(USMService.buildMetricData(session)).resolves.toEqual(expected)
-  })
-  test('Bubbles up errors from failed get USM', async () => {
-    const testError = new Error('test')
-    mockedUSMRepo.getByUserId.mockRejectedValueOnce(testError)
-
-    const session = startSession(student)
-
-    await expect(USMService.buildMetricData(session)).rejects.toEqual(testError)
-  })
-  test('Bubbles up errors from failed get Feedback', async () => {
-    mockedUSMRepo.getByUserId.mockResolvedValueOnce(studentUSM)
-    const testError = new Error('test')
-    mockedFeedbackRepo.getFeedbackBySessionId.mockRejectedValueOnce(testError)
-
-    const session = startSession(student)
-
-    await expect(USMService.buildMetricData(session)).rejects.toEqual(testError)
-  })
-})
-
-describe('Prepare metrics', () => {
-  const student = buildStudent()
-  const studentUSM = buildUSM(student._id)
-
-  const session = startSession(student)
-  const feedback = buildFeedback({
-    versionNumber: FEEDBACK_VERSIONS.TWO
-  }) as FeedbackRepo.FeedbackVersionTwo
-
-  class ErrorCounter extends CounterMetricClass {
-    public key = USER_SESSION_METRICS.absentVolunteer
-
-    constructor(md: MetricData) {
-      super(md)
-      throw new Error()
-    }
-
-    public computeUpdateValue = () => 0
-    public reviewReason = () => [] as USER_SESSION_METRICS[]
-    public flag = () => [] as USER_SESSION_METRICS[]
-  }
-  class TestCounter extends CounterMetricClass {
-    public key = USER_SESSION_METRICS.absentStudent
-
-    constructor(md: MetricData) {
-      super(md)
-      this.setup()
-    }
-
-    public computeUpdateValue = () => 0
-    public reviewReason = () => [] as USER_SESSION_METRICS[]
-    public flag = () => [] as USER_SESSION_METRICS[]
-  }
-  const testMetrics = [TestCounter, ErrorCounter]
-
-  beforeAll(() => {
-    jest.resetAllMocks()
-
-    mockedSessionRepo.getSessionById.mockResolvedValue(session)
-    mockedUSMRepo.getByUserId.mockResolvedValue(studentUSM)
-    mockedFeedbackRepo.getFeedbackBySessionId.mockResolvedValue(feedback)
-  })
-
-  afterAll(() => {
-    jest.resetAllMocks()
-    jest.restoreAllMocks()
-  })
-
-  test('Bubbles up errors from building MetricData', async () => {
-    const testError = new Error('test')
-    mockedUSMRepo.getByUserId.mockRejectedValueOnce(testError)
-
+      outputs: {
+        TestCounter: updateValue
+      }
+    } as USMService.MetricProcessorPayload
     await expect(
-      USMService.prepareMetrics(testMetrics, session._id)
-    ).rejects.toEqual(testError)
+      USMService.prepareMetrics(
+        testMetrics,
+        session,
+        feedback,
+        studentUSM,
+        volunteerUSM
+      )
+    ).resolves.toEqual(expected)
   })
 
-  test('Logs errors from failed metric constructors', async () => {
-    await USMService.prepareMetrics(testMetrics, session._id)
-    expect(logger.error).toHaveBeenCalled()
+  test('Builds ProcessorData for a unmatched session without feedback', async () => {
+    const session = startSession(student)
+
+    const expected = {
+      studentUSM,
+      session,
+      outputs: {
+        TestCounter: updateValue
+      }
+    } as USMService.MetricProcessorPayload
+    await expect(
+      USMService.prepareMetrics(testMetrics, session, feedback, studentUSM)
+    ).resolves.toEqual(expected)
+    expect(logger.error).toHaveBeenCalledWith(
+      `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
+    )
+  })
+
+  test('Builds UpdateValueData for a session with feedback', async () => {
+    const session = startSession(student)
+
+    const expected = {
+      studentUSM,
+      session,
+      outputs: {
+        TestCounter: updateValue
+      }
+    } as USMService.MetricProcessorPayload
+    await expect(
+      USMService.prepareMetrics(testMetrics, session, feedback, studentUSM)
+    ).resolves.toEqual(expected)
+    expect(logger.error).toHaveBeenCalledWith(
+      `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
+    )
   })
 })
 
-// TODO: test metricProcessorFactory
+describe('Metric processor factory', () => {
+  const testProcessorFunction = USMService.metricProcessorFactory(
+    {
+      [TestCounter.name]: testProcessor,
+      [ErrorCounter.name]: errorProcessor
+    },
+    'computeFlag',
+    (acc: USER_SESSION_METRICS[]): USER_SESSION_METRICS[] => acc.flat(),
+    async (flags: USER_SESSION_METRICS[], session: Session): Promise<void> => {
+      logger.info(flags)
+      logger.info(session)
+    }
+  )
+  const session = startSession(student)
+  const payload = {
+    session,
+    studentUSM,
+    outputs: {
+      [TestCounter.name]: updateValue,
+      [ErrorCounter.name]: 0
+    }
+  } as USMService.MetricProcessorPayload
+
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
+
+  test('Successfully computes factory function output', async () => {
+    await testProcessorFunction(payload)
+
+    expect(logger.info).toHaveBeenNthCalledWith(1, [
+      USER_SESSION_METRICS.absentStudent
+    ])
+    expect(logger.info).toHaveBeenNthCalledWith(2, session)
+  })
+
+  test('Logs errors in computing opName', async () => {
+    await testProcessorFunction(payload)
+
+    expect(logger.error).toHaveBeenCalledWith(
+      `Errors processing computeFlag:\nErrorCounter.computeFlag() error: ${counterError.message}`
+    )
+  })
+})

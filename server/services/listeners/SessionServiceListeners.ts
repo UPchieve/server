@@ -12,7 +12,10 @@ export function listeners() {
     SessionService.processAssistmentsSession
   )
   emitter.on(SESSION_EVENTS.SESSION_ENDED, SessionService.processSessionEditors)
-  emitter.on(SESSION_EVENTS.FLAGS_SET, SessionService.processCalculateMetrics)
+  emitter.on(
+    SESSION_EVENTS.SESSION_FLAGS_SET,
+    SessionService.processCalculateMetrics
+  )
   emitter.on(
     SESSION_EVENTS.SESSION_METRICS_CALCULATED,
     SessionService.processAddPastSession

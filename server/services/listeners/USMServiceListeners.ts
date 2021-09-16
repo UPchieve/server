@@ -13,8 +13,42 @@ export function listeners() {
     USMService.prepareFeedbackProcessors
   )
 
-  emitter.on(USM_EVENTS.PROCESSORS_READY, USMService.processFlags)
-  emitter.on(USM_EVENTS.PROCESSORS_READY, USMService.processStudentMetricUpdate)
-  emitter.on(USM_EVENTS.PROCESSORS_READY, USMService.processVolunteerMetricUpdate)
-  emitter.on(USM_EVENTS.PROCESSORS_READY, USMService.processReviewReasons)
+  // process post-session metrics
+  emitter.on(
+    USM_EVENTS.SESSION_PROCESSORS_READY,
+    USMService.processSessionFlags
+  )
+  emitter.on(
+    USM_EVENTS.SESSION_PROCESSORS_READY,
+    USMService.processSessionReviewReasons
+  )
+  // process feedback metrics
+  emitter.on(
+    USM_EVENTS.FEEDBACK_PROCESSORS_READY,
+    USMService.processFeedbackFlags
+  )
+  emitter.on(
+    USM_EVENTS.FEEDBACK_PROCESSORS_READY,
+    USMService.processFeedbackReviewReasons
+  )
+
+  // save student metrics
+  emitter.on(
+    USM_EVENTS.SESSION_PROCESSORS_READY,
+    USMService.processStudentUpdateQuery
+  )
+  emitter.on(
+    USM_EVENTS.FEEDBACK_PROCESSORS_READY,
+    USMService.processStudentUpdateQuery
+  )
+
+  // save volunteer metrics
+  emitter.on(
+    USM_EVENTS.SESSION_PROCESSORS_READY,
+    USMService.processVolunteerUpdateQuery
+  )
+  emitter.on(
+    USM_EVENTS.FEEDBACK_PROCESSORS_READY,
+    USMService.processVolunteerUpdateQuery
+  )
 }
