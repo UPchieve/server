@@ -61,11 +61,11 @@ describe('Tech issue apology email', () => {
   })
 
   test('Should throw error when email fails', async () => {
+    const errorMessage = 'Error sending email'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
     mockedMailService.sendTechIssueApology.mockImplementation(rejectionFn)
     mockedStudentService.getStudent.mockImplementation(async () => student)
     mockedUserService.getUser.mockImplementation(async () => volunteer)
-    const errorMessage = 'Error sending email'
     await expect(emailTechIssueApology(job)).rejects.toEqual(
       Error(
         `Failed to send ${Jobs.EmailTechIssueApology} to: student ${student._id}: ${errorMessage},volunteer ${volunteer._id}: ${errorMessage}`

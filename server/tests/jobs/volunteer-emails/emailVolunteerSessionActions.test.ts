@@ -61,11 +61,11 @@ describe('Volunteer session action emails', () => {
     })
 
     test(`Should throw error for ${job.name} when email fails`, async () => {
+      const errorMessage = 'Error sending email'
       const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
       currentJob.jobFn.mockImplementationOnce(rejectionFn)
       mockedStudentService.getStudent.mockImplementation(async () => student)
       mockedUserService.getUser.mockImplementation(async () => volunteer)
-      const errorMessage = 'Error sending email'
 
       await expect(emailVolunteerSessionActions(job)).rejects.toEqual(
         Error(

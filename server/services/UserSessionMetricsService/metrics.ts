@@ -2,6 +2,8 @@ import { Types } from 'mongoose'
 
 import { MetricType, Counter } from '../../models/UserSessionMetrics'
 import { USER_SESSION_METRICS, FEEDBACK_VERSIONS, NOOP } from '../../constants'
+import QueueService from '../QueueService'
+import { Jobs } from '../../worker/jobs'
 import {
   UpdateValueData,
   ProcessorData,
@@ -9,8 +11,6 @@ import {
   NO_FLAGS,
   TriggerActionData
 } from './types'
-import QueueService from '../QueueService'
-import { Jobs } from '../../worker/jobs'
 
 class AbsentStudent extends CounterMetricProcessor {
   public key = USER_SESSION_METRICS.absentStudent
