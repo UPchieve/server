@@ -51,4 +51,10 @@ export function listeners() {
     USM_EVENTS.FEEDBACK_PROCESSORS_READY,
     USMService.processVolunteerUpdateQuery
   )
+
+  // trigger side effects for the session e.g queueing apology emails
+  emitter.on(
+    USM_EVENTS.SESSION_PROCESSORS_READY,
+    USMService.processTriggerMetricActions
+  )
 }
