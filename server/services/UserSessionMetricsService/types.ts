@@ -46,6 +46,8 @@ export interface MetricProcessor<T extends MetricType> {
   computeReviewReason(pd: ProcessorData<T>): USER_SESSION_METRICS[]
   // computes list of flags to set on session
   computeFlag(pd: ProcessorData<T>): USER_SESSION_METRICS[]
+  // computes list of flags to set on session
+  triggerActions(pd: ProcessorData<T>): Promise<void>[]
 }
 
 export abstract class CounterMetricProcessor
@@ -89,7 +91,9 @@ export abstract class CounterMetricProcessor
   public abstract computeFlag(
     pd: ProcessorData<Counter>
   ): USER_SESSION_METRICS[]
-  public abstract triggerActions(pd: ProcessorData<Counter>): void
+  public abstract triggerActions(pd: ProcessorData<Counter>): Promise<void>[]
 }
 
 export const NO_FLAGS = [] as USER_SESSION_METRICS[]
+
+export const NO_ACTIONS = []
