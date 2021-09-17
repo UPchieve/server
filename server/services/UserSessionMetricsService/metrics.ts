@@ -219,7 +219,7 @@ class RudeOrInappropriate extends CounterMetricProcessor {
         for (const value of Object.values(
           feedback.volunteerFeedback['session-obstacles']
         )) {
-          if (value === 6) return 1
+          if (value === 7) return 1
         }
       }
     }
@@ -245,7 +245,7 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
         for (const value of Object.values(
           feedback.volunteerFeedback['session-obstacles']
         )) {
-          if (value === 7) return 1
+          if (value === 8) return 1
         }
       }
     }

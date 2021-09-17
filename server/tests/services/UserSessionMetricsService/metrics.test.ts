@@ -149,7 +149,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO
     }) as FeedbackVersionTwo
 
-    feedback.volunteerFeedback['session-obstacles'] = [6]
+    feedback.volunteerFeedback['session-obstacles'] = [7]
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.RudeOrInappropriate
@@ -163,7 +163,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO
     }) as FeedbackVersionTwo
 
-    feedback.volunteerFeedback['session-obstacles'] = [7]
+    feedback.volunteerFeedback['session-obstacles'] = [8]
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.OnlyLookingForAnswers
