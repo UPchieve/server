@@ -18,11 +18,14 @@ import {
   joinSession
 } from '../../generate'
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
+import QueueService from '../../../services/QueueService'
+import { Jobs } from '../../../worker/jobs'
 
 jest.mock('../../../models/UserSessionMetrics', () => ({
   ...jest.requireActual('../../../models/UserSessionMetrics'),
   executeUpdatesByUserId: jest.fn().mockResolvedValue({})
 }))
+jest.mock('../../../services/QueueService')
 
 const student = buildStudent()
 const volunteer = buildVolunteer()
@@ -208,7 +211,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO
     }) as FeedbackVersionTwo
 
-    feedback.volunteerFeedback['session-obstacles'] = [0]
+    feedback.volunteerFeedback['session-obstacles'] = [1]
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.HasHadTechnicalIssues
@@ -230,6 +233,7 @@ describe('Counter metrics have correct "updateQuery" functions', () => {
     public computeUpdateValue = () => updateValue
     public computeReviewReason = () => [] as USER_SESSION_METRICS[]
     public computeFlag = () => [] as USER_SESSION_METRICS[]
+    public triggerActions = () => []
   }
   const processor = new TestCounter()
 
@@ -262,4 +266,240 @@ describe('Counter metrics have correct "updateQuery" functions', () => {
       'counters.absentStudent': updateValue + initialValue
     })
   })
+})
+
+describe('Metrics have correct "triggerActions" functions', () => {
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
+  const session = startSession(student)
+  joinSession(session, volunteer)
+
+  describe('AbsentStudent', () => {
+    test('Queue a warning email to the student when they ghost a volunteer for the first time', () => {
+      const studentUSM = buildUSM(student._id, { absentStudent: 0 })
+      const volunteerUSM = buildUSM(volunteer._id, { absentStudent: 1 })
+      const payload = {
+        session,
+        studentUSM,
+        volunteerUSM,
+        value: 1
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.AbsentStudent
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailStudentAbsentWarning,
+        {
+          sessionSubtopic: session.subTopic,
+          sessionDate: session.createdAt,
+          studentId: session.student,
+          volunteerId: session.volunteer
+        }
+      )
+      expect(result).toHaveLength(1)
+    })
+
+    test('Queue an apology email to the volunteer because a student ghosted them for the first time', () => {
+      const studentUSM = buildUSM(student._id, { absentStudent: 1 })
+      const volunteerUSM = buildUSM(volunteer._id, { absentStudent: 0 })
+      const payload = {
+        session,
+        studentUSM,
+        volunteerUSM,
+        value: 1
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.AbsentStudent
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailVolunteerAbsentStudentApology,
+        {
+          sessionSubtopic: session.subTopic,
+          sessionDate: session.createdAt,
+          studentId: session.student,
+          volunteerId: session.volunteer
+        }
+      )
+      expect(result).toHaveLength(1)
+    })
+
+    test('Should return empty list of actions if both users experienced absent student before', () => {
+      const studentUSM = buildUSM(student._id, { absentStudent: 2 })
+      const volunteerUSM = buildUSM(volunteer._id, { absentStudent: 2 })
+      const payload = {
+        session,
+        studentUSM,
+        volunteerUSM,
+        value: 1
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.AbsentStudent
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).not.toHaveBeenCalled()
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('AbsentVolunteer', () => {
+    test('Queue a warning email to the volunteer when they ghost a student for the first time', () => {
+      const studentUSM = buildUSM(student._id, { absentVolunteer: 3 })
+      const volunteerUSM = buildUSM(volunteer._id, { absentVolunteer: 0 })
+      const payload = {
+        session,
+        studentUSM,
+        volunteerUSM,
+        value: 1
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.AbsentVolunteer
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailVolunteerAbsentWarning,
+        {
+          sessionSubtopic: session.subTopic,
+          sessionDate: session.createdAt,
+          studentId: session.student,
+          volunteerId: session.volunteer
+        }
+      )
+      expect(result).toHaveLength(1)
+    })
+
+    test('Queue an apology email to the student because a volunteer ghosted them for the first time', () => {
+      const studentUSM = buildUSM(student._id, { absentVolunteer: 0 })
+      const volunteerUSM = buildUSM(volunteer._id, { absentVolunteer: 2 })
+      const payload = {
+        session,
+        studentUSM,
+        volunteerUSM,
+        value: 1
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.AbsentVolunteer
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailStudentAbsentVolunteerApology,
+        {
+          sessionSubtopic: session.subTopic,
+          sessionDate: session.createdAt,
+          studentId: session.student,
+          volunteerId: session.volunteer
+        }
+      )
+      expect(result).toHaveLength(1)
+    })
+
+    test('Should return empty list of actions if both users experienced absent volunteer before', () => {
+      const studentUSM = buildUSM(student._id, { absentVolunteer: 2 })
+      const volunteerUSM = buildUSM(volunteer._id, { absentVolunteer: 2 })
+      const payload = {
+        session,
+        studentUSM,
+        volunteerUSM,
+        value: 1
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.AbsentVolunteer
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).not.toHaveBeenCalled()
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('HasBeenUnmatched', () => {
+    test('Queue an unmatched apology email to the student when they have a session that was unmatched for the first time', () => {
+      const studentUSM = buildUSM(student._id, { hasBeenUnmatched: 0 })
+      const payload = {
+        session,
+        studentUSM,
+        value: 1
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.HasBeenUnmatched
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailStudentUnmatchedApology,
+        {
+          sessionSubtopic: session.subTopic,
+          sessionDate: session.createdAt,
+          studentId: session.student,
+          volunteerId: session.volunteer
+        }
+      )
+      expect(result).toHaveLength(1)
+    })
+
+    test('Should return empty list of actions if student has experienced an unmatched session before', () => {
+      const studentUSM = buildUSM(student._id, { hasBeenUnmatched: 2 })
+      const payload = {
+        session,
+        studentUSM,
+        value: 1
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.HasBeenUnmatched
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).not.toHaveBeenCalled()
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('HasHadTechnicalIssues', () => {
+    test('Queue an tech issue apology email to the both student and volunteer when a tech issue is submitted for their session', () => {
+      const studentUSM = buildUSM(student._id, { hasHadTechnicalIssues: 2 })
+      const volunteerUSM = buildUSM(student._id, { hasHadTechnicalIssues: 0 })
+      const payload = {
+        session,
+        studentUSM,
+        volunteerUSM,
+        value: 1
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.HasHadTechnicalIssues
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailTechIssueApology,
+        {
+          studentId: session.student,
+          volunteerId: session.volunteer
+        }
+      )
+      expect(result).toHaveLength(1)
+    })
+
+    test('Should return empty list of actions if no technical issue was submitted for the session', () => {
+      const studentUSM = buildUSM(student._id, { hasHadTechnicalIssues: 2 })
+      const volunteerUSM = buildUSM(student._id, { hasHadTechnicalIssues: 3 })
+      const payload = {
+        session,
+        studentUSM,
+        volunteerUSM,
+        value: 0
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.HasHadTechnicalIssues
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).not.toHaveBeenCalled()
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  const processorsWithNoTriggerActions = [
+    METRIC_PROCESSORS.LowCoachRatingFromStudent,
+    METRIC_PROCESSORS.LowSessionRatingFromStudent,
+    METRIC_PROCESSORS.LowSessionRatingFromCoach,
+    METRIC_PROCESSORS.Reported,
+    METRIC_PROCESSORS.RudeOrInappropriate,
+    METRIC_PROCESSORS.OnlyLookingForAnswers,
+    METRIC_PROCESSORS.CommentFromStudent,
+    METRIC_PROCESSORS.CommentFromVolunteer
+  ]
+  for (const processor of processorsWithNoTriggerActions) {
+    test(`Should return an empty list of actions for ${processor.constructor.name}`, () => {
+      const processor = METRIC_PROCESSORS.LowCoachRatingFromStudent
+      const result = processor.triggerActions()
+      expect(result).toHaveLength(0)
+    })
+  }
 })
