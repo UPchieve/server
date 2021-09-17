@@ -159,8 +159,8 @@ export function metricProcessorFactory<T>(
   return async (payload: MetricProcessorPayload): Promise<void> => {
     const { session, studentUSM, volunteerUSM, outputs } = payload
 
-    const acc = []
-    const errors = []
+    const acc: any[] = []
+    const errors: string[] = []
     for (const key in outputs) {
       const processor = processors[key]
       if (
@@ -175,7 +175,7 @@ export function metricProcessorFactory<T>(
           value: outputs[key]
         } as ProcessorData<MetricType>
         try {
-          acc.push((processor[opName] as Function)(processorData))
+          acc.push(await (processor[opName] as Function)(processorData))
         } catch (err) {
           errors.push(`${key}.${opName}() error: ${err.message}`)
         }
