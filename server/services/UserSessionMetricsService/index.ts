@@ -32,7 +32,6 @@ import {
   UpdateValueData,
   ProcessorData,
   MetricProcessor,
-  TriggerActionData
 } from './types'
 
 export interface MetricProcessorPayload {
@@ -259,7 +258,7 @@ export async function processTriggerMetricActions(
         volunteerUSM,
         value: outputs[key],
         session
-      } as TriggerActionData<MetricType>
+      } as ProcessorData<MetricType>
       try {
         await processor.triggerActions(processorData)
       } catch (err) {
