@@ -984,7 +984,7 @@ module.exports = {
       reply_to: {
         email: sender
       },
-      categories: ['student - absent unmatched apology']
+      categories: ['student - unmatched apology']
     }
 
     return sendEmail(
