@@ -25,7 +25,9 @@ import {
   getAnalyticsReportSummary,
   processAnalyticsReportSummarySheet,
   processAnalyticsReportDataSheet,
-  validateVolunteerReportQuery
+  validateVolunteerReportQuery,
+  validateStudentSessionReportQuery,
+  validateStudentUsageReportQuery
 } from '../utils/reportUtils'
 import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
@@ -95,20 +97,30 @@ function calcAverageRating(allFeedback): number {
   return Number((ratingsSum / (ratingsCount || 1)).toFixed(2))
 }
 
-function getOffsetTime(date?): number {
-  if (!date) return new Date().getTime()
-  const estTimeOffset = 1000 * 60 * 60 * 4
-
-  return new Date(date).getTime() + estTimeOffset
+function dateStringToDateEST(dateString: string): Date {
+  const currentUSEasternTime = moment.tz('America/New_York')
+  const minutesOffset = currentUSEasternTime.utcOffset()
+  // Add the EST/EDT offset to the UTC time
+  const hoursOffset = Math.abs(minutesOffset / 60)
+  const isStrictMode = true
+  const dateEST = moment(dateString, 'MM-DD-YYYY', isStrictMode)
+    .utc()
+    .startOf('day')
+    .add(hoursOffset, 'hour')
+    .toDate()
+  return dateEST
 }
 
-export const sessionReport = async ({
-  sessionRangeFrom,
-  sessionRangeTo,
-  highSchoolId,
-  studentPartnerOrg,
-  studentPartnerSite
-}): Promise<SessionReport[]> => {
+export const sessionReport = async (
+  data: unknown
+): Promise<SessionReport[]> => {
+  const {
+    sessionRangeFrom,
+    sessionRangeTo,
+    highSchoolId,
+    studentPartnerOrg,
+    studentPartnerSite
+  } = validateStudentSessionReportQuery(data)
   const query: {
     approvedHighschool?: Types.ObjectId
     studentPartnerOrg?: string
@@ -121,12 +133,9 @@ export const sessionReport = async ({
 
   const oneMinuteInMs = 1000 * 60
   const roundDecimalPlace = 1
-  const oneDayInMS = 1000 * 60 * 60 * 24
 
-  sessionRangeFrom = getOffsetTime(sessionRangeFrom)
-  sessionRangeTo = sessionRangeTo
-    ? getOffsetTime(sessionRangeTo) + oneDayInMS
-    : getOffsetTime() + oneDayInMS
+  const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
+  const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
 
   const sessions = await User.aggregate([
     {
@@ -155,8 +164,8 @@ export const sessionReport = async ({
     {
       $match: {
         'session.createdAt': {
-          $gte: new Date(sessionRangeFrom),
-          $lte: new Date(sessionRangeTo)
+          $gte: sessionRangeStart,
+          $lte: sessionRangeEnd
         }
       }
     },
@@ -301,44 +310,33 @@ export const sessionReport = async ({
   return formattedSessions
 }
 
-export const usageReport = async ({
-  joinedBefore,
-  joinedAfter,
-  sessionRangeFrom,
-  sessionRangeTo,
-  highSchoolId,
-  studentPartnerOrg,
-  studentPartnerSite
-}): Promise<UsageReport[]> => {
+export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
+  const {
+    joinedBefore,
+    joinedAfter,
+    sessionRangeFrom,
+    sessionRangeTo,
+    highSchoolId,
+    studentPartnerOrg,
+    studentPartnerSite
+  } = validateStudentUsageReportQuery(data)
   const query: {
     createdAt?: {}
     approvedHighschool?: Types.ObjectId
     studentPartnerOrg?: string
     partnerSite?: string
-  } = {}
-  const oneDayInMS = 1000 * 60 * 60 * 24
-
-  if (joinedAfter) {
-    joinedAfter = getOffsetTime(joinedAfter)
-    query.createdAt = { $gte: new Date(joinedAfter) }
-  }
-  if (joinedBefore) {
-    joinedBefore = getOffsetTime(joinedBefore) + oneDayInMS
-    query.createdAt = {
-      $gte: new Date(joinedAfter),
-      $lte: new Date(joinedBefore)
+  } = {
+    createdAt: {
+      $gte: dateStringToDateEST(joinedAfter),
+      $lte: dateStringToDateEST(joinedBefore)
     }
   }
-
   if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId)
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg
   if (studentPartnerSite) query.partnerSite = studentPartnerSite
 
-  // select a range from date and to date or a range from date and today (inclusive)
-  sessionRangeFrom = getOffsetTime(sessionRangeFrom)
-  sessionRangeTo = sessionRangeTo
-    ? getOffsetTime(sessionRangeTo) + oneDayInMS
-    : getOffsetTime() + oneDayInMS
+  const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
+  const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
 
   const students = await User.aggregate([
     {
@@ -408,10 +406,10 @@ export const usageReport = async ({
             {
               $and: [
                 {
-                  $gte: ['$session.createdAt', new Date(sessionRangeFrom)]
+                  $gte: ['$session.createdAt', sessionRangeStart]
                 },
                 {
-                  $lte: ['$session.createdAt', new Date(sessionRangeTo)]
+                  $lte: ['$session.createdAt', sessionRangeEnd]
                 }
               ]
             },
@@ -491,23 +489,8 @@ export const usageReport = async ({
     },
     {
       $unwind: {
-        path: '$highschool'
-      }
-    },
-    {
-      $match: {
-        $or: [
-          {
-            'highschool.nameStored': {
-              $exists: true
-            }
-          },
-          {
-            'highschool.SCH_NAME': {
-              $exists: true
-            }
-          }
-        ]
+        path: '$highschool',
+        preserveNullAndEmptyArrays: true
       }
     },
     {
