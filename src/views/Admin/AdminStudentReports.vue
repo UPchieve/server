@@ -129,12 +129,18 @@ export default {
       this.isGeneratingReport = true
       this.error = ''
 
-      const query = this.getQuery()
+      let query
+      try {
+        query = this.sessionReportQuery()
+      } catch (error) {
+        this.errorHandler(error.message)
+        return
+      }
+
       try {
         const {
           body: { sessions }
         } = await NetworkService.adminGetSessionReport(query)
-
         if (sessions.length === 0) this.error = 'No sessions meet the criteria'
         else
           exportToCsv(
@@ -144,7 +150,8 @@ export default {
 
         this.isGeneratingReport = false
       } catch (error) {
-        this.errorHandler()
+        if (error.status === 422) this.errorHandler(error.body.err)
+        else this.errorHandler()
       }
     },
 
@@ -153,7 +160,14 @@ export default {
       this.isGeneratingReport = true
       this.error = ''
 
-      const query = this.getQuery()
+      let query
+      try {
+        query = this.usageReportQuery()
+      } catch (error) {
+        this.errorHandler(error.message)
+        return
+      }
+
       try {
         const {
           body: { students }
@@ -167,18 +181,28 @@ export default {
 
         this.isGeneratingReport = false
       } catch (error) {
-        this.errorHandler()
+        if (error.status === 422) this.errorHandler(error.body.err)
+        else this.errorHandler()
       }
     },
     setHighSchool(highSchool) {
       this.highSchool = highSchool
     },
+    formatDate(date) {
+      return moment(date)
+        .utc()
+        .startOf('day')
+        .format('MM-DD-YYYY')
+    },
+    isValidDateFormat(date) {
+      return moment(date, 'MM-DD-YYYY', true).isValid()
+    },
     getQuery() {
       return {
-        joinedBefore: this.joinedBefore,
-        joinedAfter: this.joinedAfter,
-        sessionRangeFrom: this.sessionRangeFrom,
-        sessionRangeTo: this.sessionRangeTo,
+        joinedBefore: this.formatDate(this.joinedBefore),
+        joinedAfter: this.formatDate(this.joinedAfter),
+        sessionRangeFrom: this.formatDate(this.sessionRangeFrom),
+        sessionRangeTo: this.formatDate(this.sessionRangeTo),
         highSchoolId: this.highSchool._id ? this.highSchool._id : '',
         // partner org can be "null" from clearing the v-select, check for if exists and then get the partnerOrg
         studentPartnerOrg: this.isValidStudentPartnerOrg
@@ -189,9 +213,34 @@ export default {
           : ''
       }
     },
-    errorHandler() {
+    validSessionDateRanges(query) {
+      if (!this.isValidDateFormat(query.sessionRangeFrom))
+        throw new Error('Please enter a date for "Session from"')
+      if (!this.isValidDateFormat(query.sessionRangeTo))
+        throw new Error('Please enter a date for "Session to"')
+    },
+    validJoinedDateRanges(query) {
+      if (!this.isValidDateFormat(query.joinedAfter))
+        throw new Error('Please enter a date for "Joined after"')
+      if (!this.isValidDateFormat(query.joinedBefore))
+        throw new Error('Please enter a date for "Joined before"')
+    },
+    sessionReportQuery() {
+      const query = this.getQuery()
+      this.validSessionDateRanges(query)
+      return query
+    },
+    usageReportQuery() {
+      const query = this.getQuery()
+      this.validJoinedDateRanges(query)
+      this.validSessionDateRanges(query)
+      return query
+    },
+    errorHandler(errorMessage = '') {
       this.isGeneratingReport = false
-      this.error = 'There was a problem with retrieving the report'
+      this.error = errorMessage
+        ? errorMessage
+        : 'There was a problem with retrieving the report'
     }
   },
   computed: {
