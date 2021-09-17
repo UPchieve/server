@@ -31,7 +31,6 @@ import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVoluntee
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
 import emailSessionReported from './student-emails/emailSessionReported'
 import sendAssistmentsData from './sendAssistmentsData'
-import emailTechIssueApology from './emailTechIssueApology'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -74,6 +73,7 @@ export enum Jobs {
   EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
   EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
   SendAssistmentsData = ' SendAssistmentsData',
+  // @todo: add the tech issue apology job to the job processor once it is ready to be released
   EmailTechIssueApology = 'EmailTechIssueApology'
 }
 
@@ -232,10 +232,6 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.SendAssistmentsData,
     processor: sendAssistmentsData
   },
-  {
-    name: Jobs.EmailTechIssueApology,
-    processor: emailTechIssueApology
-  }
 ]
 
 /**
