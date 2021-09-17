@@ -28,11 +28,7 @@ import { emitter } from '../EventsService'
 import logger from '../../logger'
 import { safeAsync } from '../../utils/safe-async'
 import { METRIC_PROCESSORS, MetricProcessorOutputs } from './metrics'
-import {
-  UpdateValueData,
-  ProcessorData,
-  MetricProcessor,
-} from './types'
+import { UpdateValueData, ProcessorData, MetricProcessor } from './types'
 
 export interface MetricProcessorPayload {
   session: Session
@@ -244,32 +240,6 @@ export const processSessionReviewReasons = metricProcessorFactory(
   }
 )
 
-// registered as listener on session-processors-ready
-export async function processTriggerMetricActions(
-  payload: MetricProcessorPayload
-): Promise<void> {
-  const { session, studentUSM, volunteerUSM, outputs } = payload
-  const errors = []
-  for (const key in outputs) {
-    const processor = METRIC_PROCESSORS[key]
-    if (processor) {
-      const processorData = {
-        studentUSM,
-        volunteerUSM,
-        value: outputs[key],
-        session
-      } as ProcessorData<MetricType>
-      try {
-        await processor.triggerActions(processorData)
-      } catch (err) {
-        errors.push(`${key}.triggerActions() error: ${err.message}`)
-      }
-      if (errors.length)
-        logger.error(`Errors processing triggerActions:\n${errors.join('\n')}`)
-    }
-  }
-}
-
 // registered as listener on feedback-processors-ready
 export const processFeedbackReviewReasons = metricProcessorFactory(
   METRIC_PROCESSORS,
@@ -331,5 +301,21 @@ export const processVolunteerUpdateQuery = metricProcessorFactory(
         `Failed to update USM for user ${session.volunteer as Types.ObjectId} - ${err}`
       )
     }
+  }
+)
+
+// registered as listener on {ANY}-processors-ready
+export const processTriggerMetricActions = metricProcessorFactory(
+  METRIC_PROCESSORS,
+  'triggerActions',
+  (acc: Promise<void>[][]): Promise<void>[] => acc.flat(),
+  async (actions: Promise<void>[], session: Session): Promise<void> => {
+    const results = await Promise.allSettled(actions)
+    results.forEach(result => {
+      if (result.status === 'rejected')
+        logger.error(
+          `Failed to trigger side effect action for session: ${session._id} - error: ${result.reason}`
+        )
+    })
   }
 )

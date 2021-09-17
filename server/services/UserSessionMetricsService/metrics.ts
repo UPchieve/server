@@ -8,7 +8,8 @@ import {
   UpdateValueData,
   ProcessorData,
   CounterMetricProcessor,
-  NO_FLAGS
+  NO_FLAGS,
+  NO_ACTIONS
 } from './types'
 
 class AbsentStudent extends CounterMetricProcessor {
@@ -36,24 +37,32 @@ class AbsentStudent extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = async (pd: ProcessorData<Counter>) => {
+  public triggerActions = (pd: ProcessorData<Counter>) => {
+    const actions = []
+    if (!pd.value) return actions
     // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
     if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
-      await QueueService.add(Jobs.EmailStudentAbsentWarning, {
-        sessionSubtopic: pd.session.subTopic,
-        sessionDate: pd.session.createdAt,
-        studentId: pd.session.student,
-        volunteerId: pd.session.volunteer
-      })
+      actions.push(
+        QueueService.add(Jobs.EmailStudentAbsentWarning, {
+          sessionSubtopic: pd.session.subTopic,
+          sessionDate: pd.session.createdAt,
+          studentId: pd.session.student,
+          volunteerId: pd.session.volunteer
+        })
+      )
 
     // Send an apology email to the volunteer the first time he or she encounters an absent student
     if (this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
-      await QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
-        sessionSubtopic: pd.session.subTopic,
-        sessionDate: pd.session.createdAt,
-        studentId: pd.session.student,
-        volunteerId: pd.session.volunteer
-      })
+      actions.push(
+        QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
+          sessionSubtopic: pd.session.subTopic,
+          sessionDate: pd.session.createdAt,
+          studentId: pd.session.student,
+          volunteerId: pd.session.volunteer
+        })
+      )
+
+    return actions
   }
 }
 
@@ -82,24 +91,32 @@ class AbsentVolunteer extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = async (pd: ProcessorData<Counter>) => {
+  public triggerActions = (pd: ProcessorData<Counter>) => {
+    const actions = []
+    if (!pd.value) return actions
     // Send an apology email to the student the first time he or she encounters an absent volunteer
     if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
-      await QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
-        sessionSubtopic: pd.session.subTopic,
-        sessionDate: pd.session.createdAt,
-        studentId: pd.session.student,
-        volunteerId: pd.session.volunteer
-      })
+      actions.push(
+        QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
+          sessionSubtopic: pd.session.subTopic,
+          sessionDate: pd.session.createdAt,
+          studentId: pd.session.student,
+          volunteerId: pd.session.volunteer
+        })
+      )
 
     // Send a warning email to the volunteer about ghosting students the first time he or she is absent
     if (this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
-      await QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
-        sessionSubtopic: pd.session.subTopic,
-        sessionDate: pd.session.createdAt,
-        studentId: pd.session.student,
-        volunteerId: pd.session.volunteer
-      })
+      actions.push(
+        QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
+          sessionSubtopic: pd.session.subTopic,
+          sessionDate: pd.session.createdAt,
+          studentId: pd.session.student,
+          volunteerId: pd.session.volunteer
+        })
+      )
+
+    return actions
   }
 }
 
@@ -128,7 +145,7 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = NOOP
+  public triggerActions = () => NO_ACTIONS
 }
 
 class LowSessionRatingFromStudent extends CounterMetricProcessor {
@@ -154,7 +171,7 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = NOOP
+  public triggerActions = () => NO_ACTIONS
 }
 
 class LowSessionRatingFromCoach extends CounterMetricProcessor {
@@ -175,7 +192,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = NOOP
+  public triggerActions = () => NO_ACTIONS
 }
 
 class Reported extends CounterMetricProcessor {
@@ -188,7 +205,7 @@ class Reported extends CounterMetricProcessor {
     pd.value ? [this.key] : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = NOOP
+  public triggerActions = () => NO_ACTIONS
 }
 
 class RudeOrInappropriate extends CounterMetricProcessor {
@@ -214,7 +231,7 @@ class RudeOrInappropriate extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = NOOP
+  public triggerActions = () => NO_ACTIONS
 }
 
 class OnlyLookingForAnswers extends CounterMetricProcessor {
@@ -240,7 +257,7 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = NOOP
+  public triggerActions = () => NO_ACTIONS
 }
 
 class CommentFromStudent extends CounterMetricProcessor {
@@ -259,7 +276,7 @@ class CommentFromStudent extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = NOOP
+  public triggerActions = () => NO_ACTIONS
 }
 
 class CommentFromVolunteer extends CounterMetricProcessor {
@@ -276,7 +293,7 @@ class CommentFromVolunteer extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = NOOP
+  public triggerActions = () => NO_ACTIONS
 }
 
 class HasBeenUnmatched extends CounterMetricProcessor {
@@ -287,15 +304,21 @@ class HasBeenUnmatched extends CounterMetricProcessor {
     !uvd.session.volunteer ? 1 : 0
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = () => NO_FLAGS
-  public triggerActions = async (pd: ProcessorData<Counter>) => {
+  public triggerActions = (pd: ProcessorData<Counter>) => {
+    const actions = []
+    if (!pd.value) return actions
     // Send an apology email to the student the first time their session is unmatched
     if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
-      await QueueService.add(Jobs.EmailStudentUnmatchedApology, {
-        sessionSubtopic: pd.session.subTopic,
-        sessionDate: pd.session.createdAt,
-        studentId: pd.session.student,
-        volunteerId: pd.session.volunteer
-      })
+      actions.push(
+        QueueService.add(Jobs.EmailStudentUnmatchedApology, {
+          sessionSubtopic: pd.session.subTopic,
+          sessionDate: pd.session.createdAt,
+          studentId: pd.session.student,
+          volunteerId: pd.session.volunteer
+        })
+      )
+
+    return actions
   }
 }
 
@@ -309,7 +332,7 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
         for (const value of Object.values(
           uvd.feedback.volunteerFeedback['session-obstacles']
         )) {
-          if (value === 0) return 1
+          if (value === 1) return 1
         }
       }
     }
@@ -317,13 +340,18 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
   }
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = () => NO_FLAGS
-  public triggerActions = async (pd: ProcessorData<Counter>) => {
+  public triggerActions = (pd: ProcessorData<Counter>) => {
+    const actions = []
     // Send an apology email to the student and volunteer when a tech issue is reported in their session
     if (pd.value)
-      await QueueService.add(Jobs.EmailTechIssueApology, {
-        studentId: pd.session.student,
-        volunteerId: pd.session.volunteer
-      })
+      actions.push(
+        QueueService.add(Jobs.EmailTechIssueApology, {
+          studentId: pd.session.student,
+          volunteerId: pd.session.volunteer
+        })
+      )
+
+    return actions
   }
 }
 
