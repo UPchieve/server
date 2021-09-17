@@ -169,6 +169,7 @@ export function metricProcessorFactory<T>(
         typeof processor[opName] === 'function'
       ) {
         const processorData = {
+          session,
           studentUSM,
           volunteerUSM,
           value: outputs[key]

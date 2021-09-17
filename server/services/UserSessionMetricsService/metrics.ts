@@ -141,7 +141,8 @@ class Reported extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) =>
     uvd.session.isReported ? 1 : 0
-  public computeReviewReason = () => [this.key]
+  public computeReviewReason = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
 }

@@ -237,6 +237,7 @@ describe('Counter metrics have correct "updateQuery" functions', () => {
     const newUSM = buildUSM(student._id, { absentStudent: initialValue })
     const finalValue = processor.computeUpdateValue()
     const payload = {
+      session,
       studentUSM: newUSM,
       value: finalValue
     } as ProcessorData<Counter>
@@ -251,6 +252,7 @@ describe('Counter metrics have correct "updateQuery" functions', () => {
     const otherUSM = buildUSM(volunteer._id, { absentStudent: initialValue })
     const finalValue = processor.computeUpdateValue()
     const payload = {
+      session,
       studentUSM: newUSM,
       volunteerUSM: otherUSM,
       value: finalValue
