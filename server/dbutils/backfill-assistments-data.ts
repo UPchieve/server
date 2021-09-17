@@ -33,7 +33,10 @@ const backfillTimePeriodADs = async (start: Date, end: Date): Promise<Assistment
   const ads = await getAssistmentsDataWithPipeline([
     {
       $match: {
-        sent: false,
+        $or: [
+          { sent: { $exists: false } },
+          { sent: false }
+        ],
         sentAt: { $exists: false }
       }
     },
@@ -66,7 +69,10 @@ async function backfillHistoryADs(end: Date): Promise<AssistmentsData[]> {
   const ads = await getAssistmentsDataWithPipeline([
     {
       $match: {
-        sent: false,
+        $or: [
+          { sent: { $exists: false } },
+          { sent: false }
+        ],
         sentAt: { $exists: false }
       }
     },
