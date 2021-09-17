@@ -25,8 +25,9 @@ export interface UpdateValueData {
 }
 
 export interface ProcessorData<T extends MetricType> {
+  session: Session
   studentUSM: UserSessionMetrics
-  volunteerUSM: UserSessionMetrics
+  volunteerUSM?: UserSessionMetrics
   value: T
 }
 
