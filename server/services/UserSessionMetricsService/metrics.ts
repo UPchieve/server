@@ -94,10 +94,10 @@ class AbsentVolunteer extends CounterMetricProcessor {
   public triggerActions = (pd: ProcessorData<Counter>) => {
     const actions = []
     if (!pd.value) return actions
-    // Send an apology email to the student the first time he or she encounters an absent volunteer
-    if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
+    // Send a warning email to the volunteer about ghosting students the first time he or she is absent
+    if (this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
       actions.push(
-        QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
+        QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
           sessionSubtopic: pd.session.subTopic,
           sessionDate: pd.session.createdAt,
           studentId: pd.session.student,
@@ -105,10 +105,10 @@ class AbsentVolunteer extends CounterMetricProcessor {
         })
       )
 
-    // Send a warning email to the volunteer about ghosting students the first time he or she is absent
-    if (this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
+    // Send an apology email to the student the first time he or she encounters an absent volunteer
+    if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
       actions.push(
-        QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
+        QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
           sessionSubtopic: pd.session.subTopic,
           sessionDate: pd.session.createdAt,
           studentId: pd.session.student,
