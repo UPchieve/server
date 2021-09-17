@@ -20,13 +20,8 @@ async function main() {
         }
       },
       {
-        $unwind: {
-          path: '$usm'
-        }
-      },
-      {
         $match: {
-          usm: { $exists: true }
+          'usm.0': { $exists: false }
         }
       }
     ]) as unknown as User[]
