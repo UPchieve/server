@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
 
 import { MetricType, Counter } from '../../models/UserSessionMetrics'
-import { USER_SESSION_METRICS, FEEDBACK_VERSIONS, NOOP } from '../../constants'
+import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../constants'
 import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
 import {

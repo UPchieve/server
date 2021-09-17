@@ -231,7 +231,7 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendAssistmentsData,
     processor: sendAssistmentsData
-  },
+  }
 ]
 
 /**
