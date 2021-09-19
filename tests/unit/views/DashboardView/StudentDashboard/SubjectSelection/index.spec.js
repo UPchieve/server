@@ -46,8 +46,7 @@ describe('SubjectSelection', () => {
 
   describe('layout', () => {
     test('mobile', () => {
-      const wrapper = getWrapper(true)
-      expect(wrapper.classes('SubjectSelection')).toBe(true)
+      const wrapper = getWrapper(true).find('.SubjectSelection')
 
       const header = wrapper.find('h2')
       expect(header.exists()).toBe(true)
@@ -63,8 +62,7 @@ describe('SubjectSelection', () => {
     })
 
     test('desktop', () => {
-      const wrapper = getWrapper(false)
-      expect(wrapper.classes('SubjectSelection')).toBe(true)
+      const wrapper = getWrapper(false).find('.SubjectSelection')
 
       const p = wrapper.find('p')
       expect(p.exists()).toBe(false)
