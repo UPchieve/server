@@ -232,8 +232,7 @@ export async function processAssistmentsSession(sessionId: string) {
   const session = await getSessionById(sessionId)
   if (session?.volunteer && (await isSessionAssistments(sessionId))) {
     logger.info(`Ending an assistments session: ${sessionId}`)
-    if (isEnabled('send-assistments-data'))
-      QueueService.add(Jobs.SendAssistmentsData, { sessionId })
+    await QueueService.add(Jobs.SendAssistmentsData, { sessionId })
   }
 }
 
