@@ -54,7 +54,11 @@ beforeEach(async () => {
 
 describe('/v1/students/1/recent-subjects', () => {
   test('Should return a list if this is a valid ID', async () => {
-    const expectedTypes = [{type: 'math', subTopic: validTypes[1]}, {type: 'math', subTopic: validTypes[2]}, {type: 'math', subTopic: validTypes[3]}]
+    const expectedTypes = [
+      { type: 'math', subTopic: validTypes[1] },
+      { type: 'math', subTopic: validTypes[2] },
+      { type: 'math', subTopic: validTypes[3] }
+    ]
     mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
       async () => expectedTypes
     )
@@ -62,7 +66,7 @@ describe('/v1/students/1/recent-subjects', () => {
     const response = await sendGet('/v1/students/recent-subjects', {})
 
     expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
-      '612262eb168710905a2b1b89',
+      new ObjectId('612262eb168710905a2b1b89'),
       3
     )
     expect(response.status).toBe(200)
@@ -79,7 +83,7 @@ describe('/v1/students/1/recent-subjects', () => {
     const response = await sendGet('/v1/students/recent-subjects', {})
 
     expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
-      '612262eb168710905a2b1b89',
+      new ObjectId('612262eb168710905a2b1b89'),
       3
     )
     expect(response.status).toBe(200)
@@ -96,7 +100,7 @@ describe('/v1/students/1/recent-subjects', () => {
     const response = await sendGet('/v1/students/recent-subjects', {})
 
     expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
-      '612262eb168710905a2b1b89',
+      new ObjectId('612262eb168710905a2b1b89'),
       3
     )
     expect(response.status).toBe(400)
@@ -112,7 +116,7 @@ describe('/v1/students/1/recent-subjects', () => {
     const response = await sendGet('/v1/students/recent-subjects', {})
 
     expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
-      '612262eb168710905a2b1b89',
+      new ObjectId('612262eb168710905a2b1b89'),
       3
     )
     expect(response.status).toBe(500)

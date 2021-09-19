@@ -48,10 +48,10 @@ import ReadingWritingSVG from '@/assets/subject_icons/more-resources.svg'
 import calculateWaitingPeriodCountdown from '@/utils/calculate-waiting-period-countdown'
 import ReferralSVG from '@/assets/dashboard_icons/student/referral.svg'
 import LightBulbSVG from '@/assets/dashboard_icons/student/light-bulb.svg'
-// import { FEATURE_FLAGS } from '@/consts'
+import { FEATURE_FLAGS } from '@/consts'
 
 import { topics } from '@/utils/topics'
-// import { isEnabled } from 'unleash-client'
+import { isEnabled } from 'unleash-client'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -59,7 +59,7 @@ const defaultHeaderData = {
 
 export default {
   name: 'subject-selection',
-  components: { SubjectCard , RecentSubjectCard },
+  components: { SubjectCard, RecentSubjectCard },
   beforeDestroy() {
     clearTimeout(this.waitingPeriodTimeoutId)
   },

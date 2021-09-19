@@ -148,14 +148,6 @@ paths:
           description: Student id not found in data, invalid, or is not a student
       security:
         - cookieAuth: []
-      parameters:
-        - name: studentId
-          in: path
-          description: ID of student to get a list of 3 most recent subjects
-          required: true
-          schema:
-            type: string
-            format: uuid
   /auth/login:
     post:
       tags:

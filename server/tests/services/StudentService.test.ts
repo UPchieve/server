@@ -28,24 +28,19 @@ describe('getMostRecentSessionTypes', () => {
     }
     const student = await insertStudent({ pastSessions: sessions })
 
-    const list = await getMostRecentSessionInfo(student._id.toString(), 3)
+    const list = await getMostRecentSessionInfo(student._id, 3)
 
-    expect(list).toEqual([{type: 'math', subTopic: '2'}, {type: 'math', subTopic: '1'}, {type: 'math', subTopic: '0'}])
-  })
-
-  test('should return a UserNotFoundError error if the id is nonsense', async () => {
-    try {
-      await getMostRecentSessionInfo('blah', 3)
-      expect(true).toBe(false)
-    } catch (err) {
-      expect(err instanceof UserNotFoundError).toBe(true)
-    }
+    expect(list).toEqual([
+      { type: 'math', subTopic: '2' },
+      { type: 'math', subTopic: '1' },
+      { type: 'math', subTopic: '0' }
+    ])
   })
 
   test('should return a UserNotFoundError error if the id does not exist', async () => {
     const dummyStudent = buildStudent()
     try {
-      await getMostRecentSessionInfo(dummyStudent._id.toString(), 3)
+      await getMostRecentSessionInfo(dummyStudent._id, 3)
       expect(true).toBe(false) // Line should not be encountered because function should throw an error
     } catch (err) {
       expect(err instanceof UserNotFoundError).toBe(true)
@@ -60,15 +55,18 @@ describe('getMostRecentSessionTypes', () => {
     }
     const student = await insertStudent({ pastSessions: sessions })
 
-    const list = await getMostRecentSessionInfo(student._id.toString(), 3)
+    const list = await getMostRecentSessionInfo(student._id, 3)
 
-    expect(list).toEqual([{type: 'math', subTopic: '1'}, {type: 'math', subTopic: '0'}])
+    expect(list).toEqual([
+      { type: 'math', subTopic: '1' },
+      { type: 'math', subTopic: '0' }
+    ])
   })
 
   test('should return an empty list if no session was ever taken', async () => {
     const student = await insertStudent()
 
-    const list = await getMostRecentSessionInfo(student._id.toString(), 3)
+    const list = await getMostRecentSessionInfo(student._id, 3)
 
     expect(list).toEqual([])
   })

@@ -5,7 +5,6 @@ import { Session } from '../models/Session'
 import StudentModel, { Student } from '../models/Student'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
-import { getSessionById } from './SessionService'
 
 export const getStudent = async (query, projection = {}): Promise<Student> =>
   StudentModel.findOne(query)
@@ -52,8 +51,8 @@ export const queueWelcomeEmails = async (
 }
 
 interface RecentSessionInfo {
-  type: string,
-  subTopic: string,
+  type: string
+  subTopic: string
 }
 
 /**
@@ -63,48 +62,35 @@ interface RecentSessionInfo {
  * @returns list of most recent unique session subTopics with associated type
  */
 export async function getMostRecentSessionInfo(
-  studentID: string,
+  studentID: ObjectId,
   count: number
 ): Promise<RecentSessionInfo[]> {
-  let student: Student
-  try {
-    student = await getStudent(
-      {
-        _id: studentID
-      },
-      {
-        pastSessions: 1
-      }
-    )
-  } catch (err) {
-    if (err.name === 'CastError') throw new UserNotFoundError('id', studentID)
-  }
-
+  const student: Student = await StudentModel.findOne({
+    _id: studentID
+  })
+    .select({
+      pastSessions: 1
+    })
+    .populate('pastSessions')
+    .lean()
+    .exec()
   if (!student) {
-    throw new UserNotFoundError('id', studentID)
+    throw new UserNotFoundError('id', studentID.toString())
   } else {
     const recentSessions: RecentSessionInfo[] = []
     // Starting from the end of the list of sessions, add the last 3 unique subTopics,
     // stop if you are back to the beginning of the list
     for (let i = student.pastSessions.length - 1; i >= 0; i--) {
-      let type: string
-      let subTopic: string
-      if ('subTopic' in student.pastSessions[i]) {
-        const pastSessionLiteral = student.pastSessions[i] as Session
-        subTopic = pastSessionLiteral.subTopic
-        type = pastSessionLiteral.type
-      } else {
-        const pastSessionID = student.pastSessions[i] as ObjectId
-        const pastSession = await getSessionById(pastSessionID)
-        if (pastSession) {
-          subTopic = pastSession.subTopic
-          type = pastSession.type
-        }
-      }
-      if (subTopic && !recentSessions.map((recent)=>recent.subTopic).includes(subTopic)) {
+      const pastSessionLiteral = student.pastSessions[i] as Session
+      if (
+        pastSessionLiteral.subTopic &&
+        !recentSessions
+          .map(recent => recent.subTopic)
+          .includes(pastSessionLiteral.subTopic)
+      ) {
         recentSessions.push({
-          type,
-          subTopic,
+          type: pastSessionLiteral.type,
+          subTopic: pastSessionLiteral.subTopic
         })
         if (recentSessions.length >= count) {
           break
