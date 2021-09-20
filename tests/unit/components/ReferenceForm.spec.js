@@ -1,5 +1,5 @@
 import ReferenceForm from '@/components/ReferenceForm';
-import { createLocalVue, shallowMount } from '@vue/test-utils';
+import { createLocalVue, mount } from '@vue/test-utils';
 import Vuex from "vuex";
 
 const localVue = createLocalVue();
@@ -7,7 +7,7 @@ localVue.use(Vuex);
 
 const getWrapper = (options = {}) => {
   options = {
-    didSubmit: true,
+    didSubmit: false,
     isNoLongerReference: false,
     isAdminReview: false,
     affiliation: '',
@@ -36,14 +36,23 @@ const getWrapper = (options = {}) => {
 };
 
 describe("ReferenceForm", () => {
+  let wrapper
+  beforeEach(() => {
+      wrapper = getWrapper({});
+  })
+
+  it("should init to a valid Vue instance", () => {
+    expect(wrapper.isVueInstance()).toBe(true);
+  });
+
    it("layout", () => {
-      const wrapper = getWrapper({ });
+      const wrapper = getWrapper({didSubmit: true });
       const referenceMessage = wrapper.find('.helper-message');
       expect(referenceMessage.exists()).toBe(true);
       expect(referenceMessage.text()).toBe('Reference submitted!');
 
   //    const container = getWrapper({})
-  //    container.setProps({isAdminReview: true})
+  //    await container.setProps({isAdminReview: true})
   //    console.log(contain)
   //  // expect(container.find('.admin-review').exists()).toBe(true);
   //  //  expect(container.find('.heading-legend').exists()).toBe(true);
@@ -51,22 +60,32 @@ describe("ReferenceForm", () => {
    })
 
    it("renders reference message", () => {
-    const wrapper = getWrapper({});
+    const wrapper = getWrapper({ didSubmit: true});
     const msg = wrapper.find('.helper-message');
     expect(msg.exists()).toBe(true);
     expect(msg.text()).toBe('Reference submitted!');
    });
 
+   it("volunteer is on reference form for the first time", () => {
+    const wrapper = getWrapper({isNoLongerReference: false});
+     console.log(wrapper.classes());
+     console.log(wrapper.vm.didSubmit);
+    console.log(wrapper.vm.isNoLongerReference);
+    expect(wrapper.classes('questions-container')).toBe(true);
+   
+   });
+
    it("renders not a reference message", () => {
     const wrapper = getWrapper({ 
-      didSubmit: false, 
       isNoLongerReference: true
     });
+    // console.log(wrapper.vm.didSubmit);
+     console.log("test2" + wrapper.vm.isNoLongerReference);
     const msg = wrapper.find('.helper-message');
-     expect(msg.exists()).toBe(true);
-  //   console.log(wrapper.vm.didSubmit);
-     //why failing here?
-   expect(msg.text()).toBe("Sorry, you've been removed as a reference.");
+      expect(msg.exists()).toBe(true);
+      expect(msg.text()).toBe("Sorry, you've been removed as a reference.");
    });
+
+   
 
 });
