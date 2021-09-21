@@ -17,7 +17,7 @@ const getWrapper = (options = {}) => {
     ...options
   };
 
-  return shallowMount(ReferenceForm, {
+  return mount(ReferenceForm, {
     localVue,
     propsData: {
       isAdminReview: options.isAdminReview
@@ -62,28 +62,32 @@ describe("ReferenceForm", () => {
    it("renders reference message", () => {
     const wrapper = getWrapper({ didSubmit: true});
     const msg = wrapper.find('.helper-message');
+    console.log("test 1: didSubmit" + wrapper.vm.didSubmit); //true, should be true
     expect(msg.exists()).toBe(true);
     expect(msg.text()).toBe('Reference submitted!');
-   });
-
-   it("volunteer is on reference form for the first time", () => {
-    const wrapper = getWrapper({isNoLongerReference: false});
-     console.log(wrapper.classes());
-     console.log(wrapper.vm.didSubmit);
-    console.log(wrapper.vm.isNoLongerReference);
-    expect(wrapper.classes('questions-container')).toBe(true);
-   
    });
 
    it("renders not a reference message", () => {
     const wrapper = getWrapper({ 
       isNoLongerReference: true
     });
-    // console.log(wrapper.vm.didSubmit);
-     console.log("test2" + wrapper.vm.isNoLongerReference);
+    // console.log(wrapper.vm.didSubmit); //currently: 
+     console.log("test2: noLongerReference" + wrapper.vm.isNoLongerReference); //true, should be true
+     console.log("test2: didSubmit " + wrapper.vm.didSubmit); //false, should be false
     const msg = wrapper.find('.helper-message');
       expect(msg.exists()).toBe(true);
       expect(msg.text()).toBe("Sorry, you've been removed as a reference.");
+      // @todo: access classes inside wrapper? why is wrapper.classes() = []
+      //
+   });
+
+   it("volunteer is on reference form for the first time", () => {
+    const wrapper = getWrapper({});
+    console.log(wrapper.classes());
+    console.log(wrapper.vm.didSubmit); //false, should be false
+    console.log("test3: isNoLongerRef: " + wrapper.vm.isNoLongerReference); //true, should be false
+    expect(wrapper.classes('questions-container')).toBe(true);
+   
    });
 
    
