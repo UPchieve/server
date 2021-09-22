@@ -28,7 +28,6 @@ export default function(app: Express) {
   EligibilityRouter.routes(app)
   require('./twiml')(app)
   ContactFormRouter.routes(app)
-  require('./metrics')(app)
   require('./mobile')(app)
   require('./reference')(app)
   require('./referral')(app)

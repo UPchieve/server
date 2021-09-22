@@ -50,6 +50,9 @@ export const Config = Record({
     studentFirstSessionCongratsTemplate: String,
     studentReportedRudeTemplate: String,
     studentReportedSafetyTemplate: String,
+    studentAbsentWarningTemplate: String,
+    studentAbsentVolunteerApologyTemplate: String,
+    studentUnmatchedApologyTemplate: String,
     volunteerQuickTipsTemplate: String,
     partnerVolunteerOnlyCollegeCertsTemplate: String,
     partnerVolunteerLowHoursSelectedTemplate: String,
@@ -61,7 +64,10 @@ export const Config = Record({
     volunteerInactiveSixtyDaysTemplate: String,
     volunteerInactiveNinetyDaysTemplate: String,
     volunteerInactiveBlackoutOverTemplate: String,
+    volunteerAbsentWarningTemplate: String,
+    volunteerAbsentStudentApologyTemplate: String,
     failedFirstAttemptedQuizTemplate: String,
+    techIssueApologyTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
@@ -118,6 +124,8 @@ export const Config = Record({
   studentPartnerManifestPath: String,
 
   assistmentsBaseURL: String,
+  assistmentsToken: String,
+  assistmentsAuthSchema: String,
 
   cacheKeys: Record({
     updateTotalVolunteerHoursLastRun: String,
@@ -139,6 +147,9 @@ export const Config = Record({
 
   workerQueueName: String,
   redisConnectionString: String,
+  redisHost: String,
+  redisPort: String,
+  redisPassword: String,
   firebase: Record({
     projectId: Number
   }),

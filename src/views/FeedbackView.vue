@@ -67,6 +67,7 @@
         >
           Submit
         </large-button>
+        <loader v-if="isSubmittingFeedback" :overlay="true" />
       </template>
     </div>
   </div>
@@ -82,11 +83,13 @@ import { formatSurveyAnswers } from '@/utils/survey'
 import FeedbackRadio from '@/components/FeedbackRadio'
 import FeedbackTextarea from '@/components/FeedbackTextarea'
 import FeedbackCheckbox from '@/components/FeedbackCheckbox'
+import Loader from '@/components/Loader'
 
 export default {
   name: 'FeedbackView',
   components: {
-    LargeButton
+    LargeButton,
+    Loader
   },
   data() {
     return {
@@ -147,7 +150,7 @@ export default {
           question:
             '(Optional) Do you have any other feedback you’d like to share with UPchieve?',
           subtext:
-            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, every day!',
+            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, but if you need to connect with UPchieve staff about a question or concern please email us directly.',
           component: FeedbackTextarea,
           answer: null
         }
@@ -210,7 +213,7 @@ export default {
           question:
             '(Optional) Do you have any other feedback you’d like to share with UPchieve?',
           subtext:
-            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, every day!',
+            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, but if you need to connect with UPchieve staff about a question or concern please email us directly.',
           component: FeedbackTextarea,
           answer: null
         }
@@ -310,6 +313,7 @@ export default {
   methods: {
     async submitFeedback() {
       if (this.isSubmittingFeedback) return
+      this.isSubmittingFeedback = true
       this.error = ''
       const data = {
         sessionId: this.session._id,
@@ -337,8 +341,9 @@ export default {
         await NetworkService.feedback(this, data)
         this.$router.push('/')
       } catch (error) {
-        this.isSubmittingFeedback = false
         this.error = 'There was an error sending your feedback'
+      } finally {
+        this.isSubmittingFeedback = false
       }
     }
   }

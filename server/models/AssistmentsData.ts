@@ -151,13 +151,17 @@ export async function getBySession(
   }
 }
 
+export function getAssistmentsDataWithPipeline(pipeline: any[]) {
+  return (AssistmentsDataModel.aggregate(pipeline) as unknown) as Promise<any[]>
+}
+
 // Update functions
 export async function updateSentAtById(
   id: Types.ObjectId | string,
   sentAt: Date
 ): Promise<void> {
   try {
-    await AssistmentsDataModel.updateOne(
+    const result = await AssistmentsDataModel.updateOne(
       {
         _id: id
       },
@@ -166,6 +170,7 @@ export async function updateSentAtById(
         sentAt: sentAt
       }
     )
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (err) {
     throw new RepoUpdateError(err.message)
   }

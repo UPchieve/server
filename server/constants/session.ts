@@ -1,13 +1,16 @@
-export enum SESSION_FLAGS {
-  ABSENT_USER = 'ABSENT_USER',
-  COMMENT = 'COMMENT',
-  FIRST_TIME_VOLUNTEER = 'FIRST_TIME_VOLUNTEER',
-  FIRST_TIME_STUDENT = 'FIRST_TIME_STUDENT',
-  LOW_MESSAGES = 'LOW_MESSAGES',
-  REPORTED = 'REPORTED',
-  STUDENT_RATING = 'STUDENT_RATING',
-  VOLUNTEER_RATING = 'VOLUNTEER_RATING',
-  UNMATCHED = 'UNMATCHED'
+export enum USER_SESSION_METRICS {
+  absentStudent = 'Absent student',
+  absentVolunteer = 'Absent volunteer',
+  lowSessionRatingFromCoach = 'Low session rating from coach',
+  lowSessionRatingFromStudent = 'Low session rating from student',
+  lowCoachRatingFromStudent = 'Low coach rating from student',
+  reported = 'Reported',
+  onlyLookingForAnswers = 'Only looking for answers',
+  rudeOrInappropriate = 'Rude or inappropriate',
+  commentFromStudent = 'Comment from student',
+  commentFromVolunteer = 'Comment from volunteer',
+  hasBeenUnmatched = 'Has been unmatched',
+  hasHadTechnicalIssues = 'Has had technical issues'
 }
 
 // amount of volunteers to text notifications to per session

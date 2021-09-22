@@ -310,11 +310,9 @@
       />
     </div>
 
-    <div>
-      <button type="button" class="uc-form-button-big">
-        Continue
-      </button>
-    </div>
+    <button class="uc-form-button-big" type="submit">
+      Continue
+    </button>
 
     <div v-if="msg !== ''" role="alert">{{ msg }}</div>
   </form>
@@ -626,6 +624,7 @@ export default {
       // autofill the user's email
       this.credentials.email = this.eligibility.email
       this.step = 'account'
+      this.$router.push('/sign-up/student/account')
     },
 
     async submitEligibility() {

@@ -159,6 +159,8 @@
         </td>
       </tr>
     </table>
+
+    <loader v-if="isSubmittingFeedback" :overlay="true" />
   </div>
 </template>
 
@@ -166,9 +168,13 @@
 import { mapState } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import Case from 'case'
+import Loader from '@/components/Loader'
 
 export default {
   name: 'StudentCounselingFeedbackView',
+  components: {
+    Loader
+  },
   data() {
     return {
       sessionId: '',
@@ -290,6 +296,7 @@ export default {
   methods: {
     submitFeedback() {
       if (this.isSubmittingFeedback) return
+      this.isSubmittingFeedback = true
       const studentCounselingFeedback = this.userResponse
       for (const key in studentCounselingFeedback) {
         if (

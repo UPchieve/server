@@ -79,7 +79,7 @@ export default {
     ...mapGetters({ mobileMode: 'app/mobileMode' })
   },
   methods: {
-    addPhoto(event) {
+    async addPhoto(event) {
       const { files } = event.target
       const file = files[0]
       const twentyFiveMegaBytes = 25 * 1000000
@@ -88,6 +88,7 @@ export default {
           'This photo is too large. Please upload a photo less than 25mb.'
         return
       }
+
       this.error = ''
       this.file = file
       this.photo = URL.createObjectURL(file)

@@ -3,6 +3,8 @@ jest.mock('ioredis', () => require('ioredis-mock/jest'))
 jest.mock('posthog-node')
 jest.mock('../services/AnalyticsService')
 
+jest.mock('merkury')
+
 jest.mock('../config', () => {
   return {
     NODE_ENV: 'dev',
@@ -53,6 +55,12 @@ jest.mock('../config', () => {
 
     customVolunteerPartnerOrg:
       process.env.SUBWAY_CUSTOM_PARTNER_ORG || 'example',
+
+    assistmentsBaseURL: 'https://example.com',
+
+    assistmentsToken: 'bogus',
+
+    assistmentsAuthSchema: 'token={TOKEN}',
 
     cacheKeys: {
       updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEER_HOURS_LAST_RUN'

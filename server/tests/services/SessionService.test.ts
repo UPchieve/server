@@ -1,4 +1,5 @@
 import { mocked } from 'ts-jest/utils'
+import Delta from 'quill-delta'
 import * as SessionService from '../../services/SessionService'
 import {
   buildMessage,
@@ -29,7 +30,7 @@ import {
 } from '../mocks/repos/session-repo'
 import {
   EVENTS,
-  SESSION_FLAGS,
+  USER_SESSION_METRICS,
   SESSION_REPORT_REASON,
   SUBJECTS,
   SUBJECT_TYPES
@@ -59,6 +60,8 @@ import TwilioService from '../../services/twilio'
 import { FeedbackVersionTwo } from '../../models/Feedback'
 import * as cache from '../../cache'
 import { NotAllowedError, LookupError } from '../../models/Errors'
+import { SESSION_EVENTS } from '../../constants/events'
+import { emitter } from '../../services/EventsService'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
@@ -75,6 +78,7 @@ jest.mock('../../services/QueueService')
 jest.mock('../../services/SocketService')
 jest.mock('../../services/AwsService')
 jest.mock('../../services/PushTokenService')
+jest.mock('../../services/EventsService')
 jest.mock('../../cache')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
@@ -84,10 +88,13 @@ const mockedFeedbackService = mocked(FeedbackService, true)
 const mockedAwsService = mocked(AwsService, true)
 const mockedPushTokenService = mocked(PushTokenService, true)
 const mockedCache = mocked(cache, true)
+const mockedQuillDocService = mocked(QuillDocService, true)
+const mockedWhiteboardService = mocked(WhiteboardService, true)
 
 beforeEach(async () => {
   jest.clearAllMocks()
   jest.restoreAllMocks()
+  jest.resetAllMocks()
 })
 
 describe('reviewSession', () => {
@@ -278,243 +285,480 @@ describe('endSession', () => {
       expect(error.message).toBe('Only session participants can end a session')
     }
   })
+})
 
-  describe('Should end session successfully', () => {
-    mockedCache.get.mockImplementation(async () => {
-      throw new cache.KeyNotFoundError('test')
+describe('processAddPastSession', () => {
+  test('Should add past session to student', async () => {
+    const mockValue = mockedGetSessionById({ student: getObjectId() })
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+
+    await SessionService.processAddPastSession(sessionId)
+    expect(UserService.addPastSession).toHaveBeenCalledTimes(1)
+    expect(emitter.emit).toHaveBeenCalledWith(
+      SESSION_EVENTS.PAST_SESSION_ADDED,
+      sessionId
+    )
+  })
+
+  test('Should add past session to both student and volunteer', async () => {
+    const mockValue = mockedGetSessionById({
+      student: getObjectId(),
+      volunteer: getObjectId()
     })
-    let spyGetReviewFlags
-    let spyHasReviewTriggerFlags
-    let spyIsSessionParticipant
-    let spyCalculateTimeTutored
-    beforeEach(async () => {
-      spyGetReviewFlags = jest.spyOn(SessionUtils, 'getReviewFlags')
-      spyHasReviewTriggerFlags = jest.spyOn(
-        SessionUtils,
-        'hasReviewTriggerFlags'
-      )
-      spyIsSessionParticipant = jest.spyOn(SessionUtils, 'isSessionParticipant')
-      spyCalculateTimeTutored = jest.spyOn(SessionUtils, 'calculateTimeTutored')
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+
+    await SessionService.processAddPastSession(sessionId)
+    expect(UserService.addPastSession).toHaveBeenCalledTimes(2)
+    expect(emitter.emit).toHaveBeenCalledWith(
+      SESSION_EVENTS.PAST_SESSION_ADDED,
+      sessionId
+    )
+  })
+})
+
+describe('processAssistmentsSession', () => {
+  test('Should queue job to send assistments data for assistments session if session was matched', async () => {
+    const mockValue = mockedGetSessionById({
+      student: getObjectId(),
+      volunteer: getObjectId()
     })
-    test('Should end session and send first session congrats to any user who had their first session', async () => {
-      const mockedSession = mockedGetSessionToEnd()
-      const input = {
-        sessionId: mockedSession._id.toString(),
-        endedBy: mockedSession.student,
-        isAdmin: false
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+    const mockedAd = {
+      studentId: 'student',
+      assignmentId: 'assignment',
+      problemId: 12345
+    } as AssistmentsDataRepo.AssistmentsData
+    mockedAssistmentsDataRepo.getBySession.mockResolvedValueOnce(mockedAd)
+
+    await SessionService.processAssistmentsSession(sessionId)
+
+    expect(QueueService.add).toHaveBeenCalledWith(Jobs.SendAssistmentsData, {
+      sessionId
+    })
+  })
+
+  test('Should do nothing for an unmatched session', async () => {
+    const mockValue = mockedGetSessionById({
+      student: getObjectId(),
+      volunteer: null
+    })
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+    const mockedAd = {
+      studentId: 'student',
+      assignmentId: 'assignment',
+      problemId: 12345
+    } as AssistmentsDataRepo.AssistmentsData
+    mockedAssistmentsDataRepo.getBySession.mockResolvedValueOnce(mockedAd)
+
+    await SessionService.processAssistmentsSession(sessionId)
+
+    expect(QueueService.add).toHaveBeenCalledTimes(0)
+  })
+
+  test('Should do nothing when no session is found', async () => {
+    const mockValue = mockedGetSessionById({
+      student: getObjectId(),
+      volunteer: null
+    })
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => undefined
+    )
+    const mockedAd = {
+      studentId: 'student',
+      assignmentId: 'assignment',
+      problemId: 12345
+    } as AssistmentsDataRepo.AssistmentsData
+    mockedAssistmentsDataRepo.getBySession.mockResolvedValueOnce(mockedAd)
+
+    await SessionService.processAssistmentsSession(sessionId)
+
+    expect(QueueService.add).toHaveBeenCalledTimes(0)
+  })
+})
+
+describe('processSessionReported', () => {
+  test('Should queue job to send emails for reported session from cache', async () => {
+    const sessionId = getStringObjectId()
+    const jobData = {
+      studentId: getStringObjectId(),
+      reportedBy: 'volunteer1@upchieve.org',
+      reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
+      reportMessage: 'Student made a your mom joke',
+      isBanReason: true,
+      sessionId: sessionId
+    }
+    mockedCache.get.mockImplementationOnce(async () => {
+      return JSON.stringify(jobData)
+    })
+
+    await SessionService.processSessionReported(sessionId)
+
+    expect(QueueService.add).toHaveBeenLastCalledWith(
+      Jobs.EmailSessionReported,
+      jobData
+    )
+    expect(cache.remove).toHaveBeenCalledWith(`${sessionId}-reported`)
+  })
+
+  test('Should throw error if error is not an instance of cache.KeyNotFound', async () => {
+    const sessionId = getStringObjectId()
+
+    mockedCache.get.mockImplementationOnce(async () => {
+      throw new Error('test error')
+    })
+
+    await expect(
+      SessionService.processSessionReported(sessionId)
+    ).rejects.toThrow()
+  })
+})
+
+describe('processCalculateMetrics', () => {
+  let spyCalculateTimeTutored
+  beforeEach(async () => {
+    spyCalculateTimeTutored = jest.spyOn(SessionUtils, 'calculateTimeTutored')
+  })
+
+  test('Should calculate time tutored if there was no absent user in the session', async () => {
+    const timeTutored = 1000 * 60 * 20
+    const mockValue = mockedGetSessionById({
+      flags: [USER_SESSION_METRICS.commentFromVolunteer]
+    })
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+    spyCalculateTimeTutored.mockImplementationOnce(() => timeTutored)
+
+    await SessionService.processCalculateMetrics(sessionId)
+    expect(SessionRepo.updateSessionMetrics).toHaveBeenCalledWith(sessionId, {
+      timeTutored
+    })
+    expect(emitter.emit).toHaveBeenCalledWith(
+      SESSION_EVENTS.SESSION_METRICS_CALCULATED,
+      sessionId
+    )
+  })
+
+  test('Should not calculate time tutored if there was an absent user in the session', async () => {
+    const timeTutored = 0
+    const mockValue = mockedGetSessionById({
+      flags: [USER_SESSION_METRICS.absentStudent]
+    })
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+    spyCalculateTimeTutored.mockImplementationOnce(() => timeTutored)
+
+    await SessionService.processCalculateMetrics(sessionId)
+    expect(spyCalculateTimeTutored).not.toHaveBeenCalled()
+    expect(SessionRepo.updateSessionMetrics).toHaveBeenCalledWith(sessionId, {
+      timeTutored
+    })
+    expect(emitter.emit).toHaveBeenCalledWith(
+      SESSION_EVENTS.SESSION_METRICS_CALCULATED,
+      sessionId
+    )
+  })
+})
+
+describe('processFirstSessionCongratsEmail', () => {
+  test('Should add send first session congrats email to student', async () => {
+    const timeTutored = 1000 * 60 * 20
+    const mockedSession = mockedGetSessionByIdWithStudentAndVolunteer({
+      timeTutored,
+      student: {
+        pastSessions: [getObjectId()]
+      },
+      volunteer: null
+    })
+    const sessionId = mockedSession._id.toString()
+    mockedSessionRepo.getSessionByIdWithStudentAndVolunteer.mockImplementationOnce(
+      // @todo: fix
+      // @ts-expect-error
+      async () => mockedSession
+    )
+    await SessionService.processFirstSessionCongratsEmail(sessionId)
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.EmailStudentFirstSessionCongrats,
+      {
+        sessionId: mockedSession._id
+      },
+      expect.anything()
+    )
+    expect(QueueService.add).not.toHaveBeenCalledWith(
+      Jobs.EmailVolunteerFirstSessionCongrats,
+      {
+        sessionId: mockedSession._id
+      },
+      expect.anything()
+    )
+  })
+
+  test('Should add send first session congrats email to student and volunteer', async () => {
+    const timeTutored = 1000 * 60 * 20
+    const mockedSession = mockedGetSessionByIdWithStudentAndVolunteer({
+      timeTutored,
+      student: {
+        pastSessions: [getObjectId()]
+      },
+      volunteer: {
+        pastSessions: [getObjectId()]
       }
-      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-        async () => mockedSession
-      )
-      spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
-      ])
-      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
-      spyIsSessionParticipant.mockImplementationOnce(() => true)
-      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
-      await SessionService.endSession(input)
-      expect(UserService.addPastSession).toHaveBeenCalledTimes(1)
-      expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailStudentFirstSessionCongrats,
-        {
-          sessionId: mockedSession._id
-        },
-        expect.anything()
-      )
-      expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailVolunteerFirstSessionCongrats,
-        {
-          sessionId: mockedSession._id
-        },
-        expect.anything()
-      )
-      expect(
-        VolunteerService.updatePastSessionsAndTimeTutored
-      ).toHaveBeenCalledTimes(1)
-      expect(WhiteboardService.getDoc).toHaveBeenCalledTimes(1)
-      expect(WhiteboardService.deleteDoc).toHaveBeenCalledTimes(1)
-      expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
-      expect(SessionRepo.updateSessionToEnd).toHaveBeenCalledTimes(1)
     })
+    const sessionId = mockedSession._id.toString()
+    mockedSessionRepo.getSessionByIdWithStudentAndVolunteer.mockImplementationOnce(
+      // @todo: fix
+      // @ts-expect-error
+      async () => mockedSession
+    )
+    await SessionService.processFirstSessionCongratsEmail(sessionId)
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.EmailStudentFirstSessionCongrats,
+      {
+        sessionId: mockedSession._id
+      },
+      expect.anything()
+    )
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.EmailVolunteerFirstSessionCongrats,
+      {
+        sessionId: mockedSession._id
+      },
+      expect.anything()
+    )
+  })
+})
 
-    test('Should end college counseling subject', async () => {
-      const mockedSession = mockedGetSessionToEnd({
-        type: SUBJECT_TYPES.COLLEGE,
-        subTopic: SUBJECTS.PLANNING
-      })
-      const input = {
-        sessionId: mockedSession._id.toString(),
-        endedBy: mockedSession.student,
-        isAdmin: false
-      }
-      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-        async () => mockedSession
-      )
-      spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
-      ])
-      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
-      spyIsSessionParticipant.mockImplementationOnce(() => true)
-      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
-      await SessionService.endSession(input)
-      expect(UserService.addPastSession).toHaveBeenCalledTimes(1)
-      expect(
-        VolunteerService.updatePastSessionsAndTimeTutored
-      ).toHaveBeenCalledTimes(1)
-      expect(QuillDocService.getDoc).toHaveBeenCalledTimes(1)
-      expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
-      expect(SessionRepo.updateSessionToEnd).toHaveBeenCalledTimes(1)
+describe('storeAndDeleteQuillDoc', () => {
+  test('Should store and delete the quill doc', async () => {
+    const sessionId = getStringObjectId()
+    const quillDoc = { ops: [] }
+    mockedQuillDocService.getDoc.mockImplementationOnce(
+      async () => new Delta(quillDoc)
+    )
+    await SessionService.storeAndDeleteQuillDoc(sessionId)
+    expect(QuillDocService.getDoc).toHaveBeenCalledTimes(1)
+    expect(SessionRepo.setQuillDoc).toHaveBeenCalledWith(
+      sessionId,
+      JSON.stringify(quillDoc)
+    )
+    expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('storeAndDeleteWhiteboardDoc', () => {
+  test('Should store and delete the whiteboard doc', async () => {
+    const sessionId = getStringObjectId()
+    const whiteboardDoc = 'longwhiteboarddoc'
+    const hasWhiteboardDoc = true
+    mockedWhiteboardService.getDoc.mockImplementationOnce(
+      async () => whiteboardDoc
+    )
+    mockedWhiteboardService.uploadedToStorage.mockImplementationOnce(
+      async () => hasWhiteboardDoc
+    )
+    await SessionService.storeAndDeleteWhiteboardDoc(sessionId)
+    expect(WhiteboardService.getDoc).toHaveBeenCalledTimes(1)
+    expect(WhiteboardService.uploadedToStorage).toHaveBeenCalledWith(
+      sessionId,
+      whiteboardDoc
+    )
+    expect(SessionRepo.setHasWhiteboardDoc).toHaveBeenCalledWith(
+      sessionId,
+      hasWhiteboardDoc
+    )
+    expect(WhiteboardService.deleteDoc).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('processSessionEditors', () => {
+  test('Should store and delete the quill doc if session that uses the quill doc', async () => {
+    // @todo: storeAndDeleteQuillDoc should be mocked
+    const mockedSession = mockedGetSessionToEnd({
+      subTopic: SUBJECTS.ESSAYS
     })
+    const sessionId = mockedSession._id.toString()
+    const docString = { ops: [] }
+    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+      async () => mockedSession
+    )
+    mockedQuillDocService.getDoc.mockImplementationOnce(
+      async () => new Delta(docString)
+    )
+    await SessionService.storeAndDeleteQuillDoc(sessionId)
+    expect(QuillDocService.getDoc).toHaveBeenCalledTimes(1)
+    expect(SessionRepo.setQuillDoc).toHaveBeenCalledWith(
+      sessionId,
+      JSON.stringify(docString)
+    )
+    expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
+    expect(WhiteboardService.getDoc).toHaveBeenCalledTimes(0)
+  })
 
-    test('Should add a job to queue on the 5th session for the volunteer', async () => {
-      const volunteer = buildVolunteer({
-        pastSessions: [
-          getObjectId(),
-          getObjectId(),
-          getObjectId(),
-          getObjectId()
-        ],
-        volunteerPartnerOrg: 'example'
-      })
-      const mockedSession = mockedGetSessionToEnd({
-        volunteer
-      })
-
-      const input = {
-        sessionId: mockedSession._id.toString(),
-        endedBy: mockedSession.student,
-        isAdmin: false
-      }
-      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-        async () => mockedSession
-      )
-      spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
-      ])
-      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
-      spyIsSessionParticipant.mockImplementationOnce(() => true)
-      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
-      await SessionService.endSession(input)
-      expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailPartnerVolunteerReferACoworker,
-        {
-          volunteerId: mockedSession.volunteer._id,
-          firstName: mockedSession.volunteer.firstname,
-          email: mockedSession.volunteer.email,
-          partnerOrg: mockedSession.volunteer.volunteerPartnerOrg
-        },
-        expect.anything()
-      )
-      expect(SessionRepo.updateSessionToEnd).toHaveBeenCalledTimes(1)
+  test('Should store and delete the whiteboard doc if session that uses the whiteboard doc', async () => {
+    // @todo: storeAndDeleteWhiteboardDoc should be mocked
+    const mockedSession = mockedGetSessionToEnd({
+      subTopic: SUBJECTS.ALGEBRA_ONE
     })
+    const sessionId = mockedSession._id.toString()
+    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+      async () => mockedSession
+    )
+    const whiteboardDoc = 'longwhiteboarddoc'
+    const hasWhiteboardDoc = true
+    mockedWhiteboardService.getDoc.mockImplementationOnce(
+      async () => whiteboardDoc
+    )
+    mockedWhiteboardService.uploadedToStorage.mockImplementationOnce(
+      async () => hasWhiteboardDoc
+    )
+    await SessionService.storeAndDeleteWhiteboardDoc(sessionId)
+    expect(WhiteboardService.getDoc).toHaveBeenCalledTimes(1)
+    expect(WhiteboardService.uploadedToStorage).toHaveBeenCalledWith(
+      sessionId,
+      whiteboardDoc
+    )
+    expect(SessionRepo.setHasWhiteboardDoc).toHaveBeenCalledWith(
+      sessionId,
+      hasWhiteboardDoc
+    )
+    expect(WhiteboardService.deleteDoc).toHaveBeenCalledTimes(1)
+    expect(QuillDocService.getDoc).toHaveBeenCalledTimes(0)
+  })
+})
 
-    test('Should add a job to queue on the 10th session for the volunteer', async () => {
-      const volunteer = buildVolunteer({
-        pastSessions: [
-          getObjectId(),
-          getObjectId(),
-          getObjectId(),
-          getObjectId(),
-          getObjectId(),
-          getObjectId(),
-          getObjectId(),
-          getObjectId(),
-          getObjectId()
-        ],
-        volunteerPartnerOrg: 'example'
-      })
-      const mockedSession = mockedGetSessionToEnd({
-        volunteer
-      })
-
-      const input = {
-        sessionId: mockedSession._id.toString(),
-        endedBy: mockedSession.student,
-        isAdmin: false
-      }
-      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-        async () => mockedSession
-      )
-      spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
-      ])
-      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
-      spyIsSessionParticipant.mockImplementationOnce(() => true)
-      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
-      await SessionService.endSession(input)
-      expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailPartnerVolunteerTenSessionMilestone,
-        {
-          volunteerId: mockedSession.volunteer._id,
-          firstName: mockedSession.volunteer.firstname,
-          email: mockedSession.volunteer.email
-        },
-        expect.anything()
-      )
-      expect(SessionRepo.updateSessionToEnd).toHaveBeenCalledTimes(1)
+describe('processEmailPartnerVolunteer', () => {
+  test('Should do nothing if a volunteer did not join the session', async () => {
+    const mockedSession = mockedGetSessionToEnd({
+      volunteer: null
     })
+    const sessionId = mockedSession._id.toString()
+    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+      async () => mockedSession
+    )
+    await SessionService.processEmailPartnerVolunteer(sessionId)
+    expect(QueueService.add).toHaveBeenCalledTimes(0)
+  })
 
-    test('Should queue job to send emails for reported session from cache', async () => {
-      const mockedSession = mockedGetSessionToEnd()
-      const input = {
-        sessionId: mockedSession._id.toString(),
-        endedBy: mockedSession.student,
-        isAdmin: false
-      }
-      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-        async () => mockedSession
-      )
-      spyGetReviewFlags.mockImplementationOnce(() => [
-        SESSION_FLAGS.FIRST_TIME_VOLUNTEER
-      ])
-      spyHasReviewTriggerFlags.mockImplementationOnce(() => true)
-      spyIsSessionParticipant.mockImplementationOnce(() => true)
-      spyCalculateTimeTutored.mockImplementationOnce(() => 1000 * 60 * 20)
+  test('Should do nothing if the volunteer does not have a partner org', async () => {
+    const mockedSession = mockedGetSessionToEnd()
+    const sessionId = mockedSession._id.toString()
+    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+      async () => mockedSession
+    )
+    await SessionService.processEmailPartnerVolunteer(sessionId)
+    expect(QueueService.add).toHaveBeenCalledTimes(0)
+  })
 
-      const jobData = {
-        studentId: mockedSession.student._id.toString(),
-        reportedBy: mockedSession.volunteer.email,
-        reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
-        reportMessage: 'Student made a your mom joke',
-        isBanReason: true,
-        sessionId: input.sessionId
-      }
-      mockedCache.get.mockImplementationOnce(async () => {
-        return JSON.stringify(jobData)
-      })
-
-      await SessionService.endSession(input)
-
-      expect(QueueService.add).toHaveBeenLastCalledWith(
-        Jobs.EmailSessionReported,
-        jobData
-      )
-      expect(cache.remove).toHaveBeenCalledWith(`${input.sessionId}-reported`)
+  test('Should queue email if partner volunteer has completed 5 sessions', async () => {
+    const pastSessions = []
+    for (let i = 0; i < 5; i++) {
+      pastSessions.push(getObjectId())
+    }
+    const volunteer = buildVolunteer({
+      volunteerPartnerOrg: 'example',
+      pastSessions
     })
-
-    test('Should queue job to send assistments data for assistments session', async () => {
-      const mockedSession = mockedGetSessionToEnd()
-      const input = {
-        sessionId: mockedSession._id.toString(),
-        endedBy: mockedSession.student,
-        isAdmin: false
+    const mockedSession = mockedGetSessionToEnd({
+      volunteer: {
+        _id: volunteer._id,
+        firstname: volunteer.firstname,
+        email: volunteer.email,
+        pastSessions: volunteer.pastSessions,
+        volunteerPartnerOrg: volunteer.volunteerPartnerOrg
       }
-      mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-        async () => mockedSession
-      )
-      const mockedAd = {
-        studentId: 'student',
-        assignmentId: 'assignment',
-        problemId: 12345
-      } as AssistmentsDataRepo.AssistmentsData
-      mockedAssistmentsDataRepo.getBySession.mockResolvedValueOnce(mockedAd)
-
-      await SessionService.endSession(input)
-
-      expect(QueueService.add).toHaveBeenCalledWith(Jobs.SendAssistmentsData, {
-        sessionId: mockedSession._id.toString()
-      })
     })
+    const sessionId = mockedSession._id.toString()
+    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+      async () => mockedSession
+    )
+    await SessionService.processEmailPartnerVolunteer(sessionId)
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.EmailPartnerVolunteerReferACoworker,
+      {
+        volunteerId: volunteer._id,
+        firstName: volunteer.firstname,
+        email: volunteer.email,
+        partnerOrg: volunteer.volunteerPartnerOrg
+      },
+      expect.anything()
+    )
+  })
+
+  test('Should queue email if partner volunteer has completed 10 sessions', async () => {
+    const pastSessions = []
+    for (let i = 0; i < 10; i++) {
+      pastSessions.push(getObjectId())
+    }
+    const volunteer = buildVolunteer({
+      volunteerPartnerOrg: 'example',
+      pastSessions
+    })
+    const mockedSession = mockedGetSessionToEnd({
+      volunteer: {
+        _id: volunteer._id,
+        firstname: volunteer.firstname,
+        email: volunteer.email,
+        pastSessions: volunteer.pastSessions,
+        volunteerPartnerOrg: volunteer.volunteerPartnerOrg
+      }
+    })
+    const sessionId = mockedSession._id.toString()
+    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
+      async () => mockedSession
+    )
+    await SessionService.processEmailPartnerVolunteer(sessionId)
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.EmailPartnerVolunteerTenSessionMilestone,
+      {
+        volunteerId: volunteer._id,
+        firstName: volunteer.firstname,
+        email: volunteer.email
+      },
+      expect.anything()
+    )
+  })
+})
+
+describe('processVolunteerTimeTutored', () => {
+  test('Should do nothing if the session does not have a volunteer', async () => {
+    const mockValue = mockedGetSessionById({ volunteer: null })
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+    await SessionService.processVolunteerTimeTutored(sessionId)
+    expect(VolunteerService.updateTimeTutored).toHaveBeenCalledTimes(0)
+  })
+
+  test('Should update timeTutored for the volunteer', async () => {
+    const timeTutored = 1000 * 60
+    const volunteer = getObjectId()
+    const mockValue = mockedGetSessionById({ volunteer, timeTutored })
+    const sessionId = mockValue._id.toString()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+    await SessionService.processVolunteerTimeTutored(sessionId)
+    expect(VolunteerService.updateTimeTutored).toHaveBeenCalledWith(
+      volunteer,
+      timeTutored
+    )
   })
 })
 

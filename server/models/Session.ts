@@ -3,7 +3,7 @@ import { values } from 'lodash'
 import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
 import {
   FEEDBACK_VERSIONS,
-  SESSION_FLAGS,
+  USER_SESSION_METRICS,
   USER_ACTION,
   SUBJECT_TYPES
 } from '../constants'
@@ -45,6 +45,7 @@ export interface Session {
   flags: string[]
   reviewed: boolean
   toReview: boolean
+  reviewReasons: USER_SESSION_METRICS[]
   timeTutored: number
 }
 
@@ -132,10 +133,14 @@ const sessionSchema = new Schema({
   reportMessage: String,
   flags: {
     type: [String],
-    enum: values(SESSION_FLAGS)
+    enum: values(USER_SESSION_METRICS)
   },
   reviewed: { type: Boolean, default: false },
   toReview: { type: Boolean, default: false },
+  reviewReasons: {
+    type: [String],
+    enum: values(USER_SESSION_METRICS)
+  },
   timeTutored: { type: Number, default: 0 },
   isStudentBanned: Boolean
 })
@@ -226,13 +231,27 @@ export function getSessionsWithPipeline(pipeline) {
 
 export async function updateFlags(
   sessionId: Types.ObjectId | string,
-  flags
+  flags: USER_SESSION_METRICS[]
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
-    $addToSet: { flags },
-    // @todo: Needs to be computed from which flags trigger a need for review
-    toReview: true
+    $addToSet: { flags: { $each: flags } }
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
+export async function updateReviewReasons(
+  sessionId: Types.ObjectId | string,
+  reviewReasons: USER_SESSION_METRICS[]
+): Promise<void> {
+  const query = { _id: sessionId }
+  const update = {
+    toReview: true,
+    $addToSet: { reviewReasons: { $each: reviewReasons } }
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -400,7 +419,8 @@ export async function getSessionsToReview({
           subTopic: 1,
           studentFirstName: '$student.firstname',
           isReported: 1,
-          flags: 1
+          flags: 1,
+          reviewReasons: 1
         }
       }
     ])
@@ -485,19 +505,62 @@ export async function updateReportSession(
   }
 }
 
+export async function updateSessionMetrics(
+  sessionId: Types.ObjectId | string,
+  metrics: { timeTutored: number }
+) {
+  const query = { _id: sessionId }
+  const update = {
+    timeTutored: metrics.timeTutored
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
+export async function setQuillDoc(
+  sessionId: Types.ObjectId | string,
+  quillDoc: string
+) {
+  const query = { _id: sessionId }
+  const update = {
+    quillDoc
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
+export async function setHasWhiteboardDoc(
+  sessionId: Types.ObjectId | string,
+  hasWhiteboardDoc: boolean
+) {
+  const query = { _id: sessionId }
+  const update = {
+    hasWhiteboardDoc
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
 export async function updateSessionToEnd(
   sessionId: Types.ObjectId | string,
-  data
+  data: {
+    endedAt: Date
+    endedBy: Types.ObjectId
+  }
 ) {
   const query = { _id: sessionId }
   const update = {
     endedAt: data.endedAt,
-    endedBy: data.endedBy,
-    timeTutored: data.timeTutored,
-    hasWhiteboardDoc: data.hasWhiteboardDoc,
-    quillDoc: data.quillDoc,
-    flags: data.flags,
-    toReview: data.toReview
+    endedBy: data.endedBy
   }
 
   try {
@@ -976,6 +1039,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
       flags: session.flags,
       reviewed: session.reviewed,
       toReview: session.toReview,
+      reviewReasons: session.reviewReasons,
       timeTutored: session.timeTutored
     }
   } catch (error) {

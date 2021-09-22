@@ -9,18 +9,19 @@ const mongoName = process.env.SUBWAY_DB_NAME || 'upchieve'
 const mongoPass = process.env.SUBWAY_DB_PASS
 const mongoUser = process.env.SUBWAY_DB_USER
 
-let mongoConn
+let mongoConn: string
 if (mongoPass) {
   mongoConn = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/${mongoName}`
 } else {
   mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`
 }
 
-let redisConnectionString
+let redisConnectionString: string
 const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
 const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
+const redisPassword = process.env.SUBWAY_REDIS_PASSWORD || 'bogus'
 if (process.env.SUBWAY_REDIS_USE_TLS === 'true') {
-  redisConnectionString = `rediss://:${process.env.SUBWAY_REDIS_PASSWORD}@${redisHost}:${redisPort}`
+  redisConnectionString = `rediss://:${redisPassword}@${redisHost}:${redisPort}`
 } else {
   redisConnectionString = `redis://${redisHost}:${redisPort}`
 }
@@ -87,6 +88,9 @@ const config: Static<typeof Config> = {
     studentFirstSessionCongratsTemplate: 'd-8c54307ace4a498f800185f0e540b8ea',
     studentReportedRudeTemplate: 'd-aa16bc7d750144f8b42d3db0bec051ca',
     studentReportedSafetyTemplate: 'd-c7caf6b302b94a08862652dcde06535f',
+    studentAbsentWarningTemplate: 'd-f27a47f3875a4dfd9f07446219ecacfc',
+    studentAbsentVolunteerApologyTemplate: 'd-2e648990eaca4b5e986a5486d8fea338',
+    studentUnmatchedApologyTemplate: 'd-73756dd129344032bc4ca5d1055e1b7b',
     volunteerQuickTipsTemplate: 'd-b85620ef95b443878a6aeca1e99c94ef',
     partnerVolunteerOnlyCollegeCertsTemplate:
       'd-031f89e788c2481ea912e5840e7d92e1',
@@ -102,7 +106,11 @@ const config: Static<typeof Config> = {
     volunteerInactiveSixtyDaysTemplate: 'd-659b7e8d08754ef58d9b6e594f748e19',
     volunteerInactiveNinetyDaysTemplate: 'd-1bb491dbb4a044f5a4cd9cd926eacf38',
     volunteerInactiveBlackoutOverTemplate: 'd-132c110bcf16492b9efbbfbeb5a375e5',
+    volunteerAbsentWarningTemplate: 'd-7458c9322ae747c78b90bd93e27b9269',
+    volunteerAbsentStudentApologyTemplate: 'd-e45797aba9d04bb29a9745988a52fc1f',
     failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
+    // @todo: get template id
+    techIssueApologyTemplate: '',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -193,6 +201,11 @@ const config: Static<typeof Config> = {
   assistmentsBaseURL:
     process.env.SUBWAY_ASSISTMENTS_BASE_URL || 'https://example.com',
 
+  assistmentsToken: process.env.SUBWAY_ASSISTMENTS_TOKEN || 'bogus',
+
+  assistmentsAuthSchema:
+    process.env.SUBWAY_ASSISTMENTS_AUTH_SCHEMA || 'token={TOKEN}',
+
   cacheKeys: {
     updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
     waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS'
@@ -251,6 +264,9 @@ const config: Static<typeof Config> = {
 
   workerQueueName: 'main',
   redisConnectionString,
+  redisHost,
+  redisPort,
+  redisPassword,
   firebase: {
     projectId: Number(process.env.SUBWAY_FIREBASE_PROJECT_ID) || 123456789012
   },

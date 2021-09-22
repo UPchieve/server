@@ -758,14 +758,9 @@ const VolunteerModel = UserModel.discriminator<VolunteerDocument>(
   volunteerSchema
 )
 
-export async function updatePastSessionsAndTimeTutored(
-  volunteerId,
-  sessionId,
-  timeTutored
-) {
+export async function updateTimeTutored(volunteerId, timeTutored) {
   const query = { _id: volunteerId }
   const update = {
-    $addToSet: { pastSessions: sessionId },
     $inc: {
       hoursTutored: Number((timeTutored / 3600000).toFixed(2)),
       timeTutored

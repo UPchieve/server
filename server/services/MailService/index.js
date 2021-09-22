@@ -913,6 +913,182 @@ module.exports = {
     )
   },
 
+  sendStudentAbsentWarning: ({ firstName, email }) => {
+    const sender = config.mail.senders.volunteerManager
+    const from = config.mail.people.volunteerManager.firstName
+    const template = config.sendgrid.studentAbsentWarningTemplate
+
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['student - absent warning']
+    }
+
+    return sendEmail(
+      email,
+      sender,
+      from,
+      template,
+      { firstName },
+      null,
+      overrides
+    )
+  },
+
+  sendStudentAbsentVolunteerApology: ({
+    firstName,
+    email,
+    volunteerFirstName,
+    sessionSubject,
+    sessionDate
+  }) => {
+    const sender = config.mail.senders.volunteerManager
+    const from = config.mail.people.volunteerManager.firstName
+    const template = config.sendgrid.studentAbsentVolunteerApologyTemplate
+
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['student - absent volunteer apology']
+    }
+
+    return sendEmail(
+      email,
+      sender,
+      from,
+      template,
+      {
+        firstName,
+        volunteerFirstName,
+        sessionSubject,
+        sessionDate
+      },
+      null,
+      overrides
+    )
+  },
+
+  sendStudentUnmatchedApology: ({
+    firstName,
+    email,
+    sessionSubject,
+    sessionDate
+  }) => {
+    const sender = config.mail.senders.volunteerManager
+    const from = config.mail.people.volunteerManager.firstName
+    const template = config.sendgrid.studentUnmatchedApologyTemplate
+
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['student - unmatched apology']
+    }
+
+    return sendEmail(
+      email,
+      sender,
+      from,
+      template,
+      { firstName, sessionSubject, sessionDate },
+      null,
+      overrides
+    )
+  },
+
+  sendVolunteerAbsentWarning: ({
+    firstName,
+    email,
+    studentFirstName,
+    sessionSubject,
+    sessionDate
+  }) => {
+    const sender = config.mail.senders.volunteerManager
+    const from = config.mail.people.volunteerManager.firstName
+    const template = config.sendgrid.volunteerAbsentWarningTemplate
+
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['volunteer - absent warning']
+    }
+
+    return sendEmail(
+      email,
+      sender,
+      from,
+      template,
+      {
+        firstName,
+        studentFirstName,
+        sessionSubject,
+        sessionDate
+      },
+      null,
+      overrides
+    )
+  },
+
+  sendVolunteerAbsentStudentApology: ({
+    firstName,
+    email,
+    studentFirstName,
+    sessionSubject,
+    sessionDate
+  }) => {
+    const sender = config.mail.senders.volunteerManager
+    const from = config.mail.people.volunteerManager.firstName
+    const template = config.sendgrid.volunteerAbsentStudentApologyTemplate
+
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['volunteer - absent student apology']
+    }
+
+    return sendEmail(
+      email,
+      sender,
+      from,
+      template,
+      {
+        firstName,
+        studentFirstName,
+        sessionSubject,
+        sessionDate
+      },
+      null,
+      overrides
+    )
+  },
+
+  sendTechIssueApology: ({ firstName, email }) => {
+    const sender = config.mail.senders.volunteerManager
+    const from = config.mail.people.volunteerManager.firstName
+    const template = config.sendgrid.techIssueApologyTemplate
+
+    const overrides = {
+      reply_to: {
+        email: sender
+      },
+      categories: ['tech issue apology']
+    }
+
+    return sendEmail(
+      email,
+      sender,
+      from,
+      template,
+      { firstName },
+      null,
+      overrides
+    )
+  },
+
   createContact: async user => {
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(user.isBanned),

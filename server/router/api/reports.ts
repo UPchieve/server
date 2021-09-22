@@ -7,27 +7,25 @@ const ReportService = require('../../services/ReportService')
 export function routeReports(router: expressWs.Router): void {
   router.get('/reports/session-report', authPassport.isAdmin, async function(
     req,
-    res,
-    next
+    res
   ) {
     try {
       const sessions = await ReportService.sessionReport(req.query)
       res.json({ sessions })
     } catch (error) {
-      next(error)
+      resError(res, error)
     }
   })
 
   router.get('/reports/usage-report', authPassport.isAdmin, async function(
     req,
-    res,
-    next
+    res
   ) {
     try {
       const students = await ReportService.usageReport(req.query)
       res.json({ students })
     } catch (error) {
-      next(error)
+      resError(res, error)
     }
   })
 

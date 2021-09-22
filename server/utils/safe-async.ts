@@ -1,4 +1,3 @@
-// TODO: use generics to type AsyncResult
 export interface AsyncResult<T> {
   result?: T
   error?: Error

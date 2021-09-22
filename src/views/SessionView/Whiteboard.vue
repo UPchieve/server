@@ -389,6 +389,7 @@ export default {
           'The photo is too large. Please upload a photo less than 10mb.'
         return
       }
+
       this.usePickTool()
 
       const response = await NetworkService.getSessionPhotoUploadUrl(

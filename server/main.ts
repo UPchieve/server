@@ -5,6 +5,7 @@ import rawConfig from './config'
 import { Config } from './config-type'
 import app from './app'
 import logger from './logger'
+import { registerListeners } from './services/listeners'
 
 async function main() {
   try {
@@ -22,6 +23,8 @@ async function main() {
       `db connection failed after backoff attempts, exiting: ${err}`
     )
   }
+
+  registerListeners()
 
   const port = process.env.PORT || 3000
   app.listen(port, () => {
