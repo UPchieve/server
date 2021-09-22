@@ -19,6 +19,7 @@ export function mockedGetSessionsToReview(overrides = {}) {
     studentFirstName: getFirstName(),
     isReported: session.isReported,
     flags: session.flags,
+    reviewReasons: session.reviewReasons,
     ...overrides
   }
 }
@@ -48,6 +49,7 @@ export function mockedGetSessionById(overrides = {}) {
     flags: newSession.flags,
     reviewed: newSession.reviewed,
     toReview: newSession.toReview,
+    reviewReasons: newSession.reviewReasons,
     timeTutored: newSession.timeTutored,
     ...overrides
   }

@@ -5,7 +5,7 @@ import MailService from '../../../services/MailService'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
 import { getVolunteers } from '../../../services/VolunteerService'
 import { volunteerPartnerManifests } from '../../../partnerManifests'
-import { SESSION_FLAGS, FEEDBACK_VERSIONS } from '../../../constants'
+import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../../constants'
 import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
 /**
@@ -46,7 +46,12 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
             ? Types.ObjectId(volunteerId)
             : volunteerId,
         timeTutored: { $gte: fifteenMins },
-        reviewFlags: { $ne: SESSION_FLAGS.ABSENT_USER }
+        flags: {
+          $nin: [
+            USER_SESSION_METRICS.absentStudent,
+            USER_SESSION_METRICS.absentVolunteer
+          ]
+        }
       }
     },
     {

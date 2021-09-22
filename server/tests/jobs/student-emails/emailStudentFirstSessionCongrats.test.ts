@@ -4,7 +4,7 @@ import emailStudentFirstSessionCongrats from '../../../worker/jobs/student-email
 import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
-import { SESSION_FLAGS } from '../../../constants'
+import { USER_SESSION_METRICS } from '../../../constants'
 jest.mock('../../../logger')
 jest.mock('../../../services/MailService')
 jest.setTimeout(1000 * 15)
@@ -49,9 +49,9 @@ describe('Student first session congrats email', () => {
     )
   })
 
-  test(`Should not send email if session flags: ${SESSION_FLAGS.ABSENT_USER}, ${SESSION_FLAGS.LOW_MESSAGES}, or ${SESSION_FLAGS.STUDENT_RATING} is present on the session`, async () => {
+  test(`Should not send email if session flags: ${USER_SESSION_METRICS.absentStudent}, ${USER_SESSION_METRICS.lowCoachRatingFromStudent}, or ${USER_SESSION_METRICS.lowSessionRatingFromStudent} is present on the session`, async () => {
     const { session } = await insertSessionWithVolunteer({
-      flags: [SESSION_FLAGS.LOW_MESSAGES]
+      flags: [USER_SESSION_METRICS.absentStudent]
     })
     // @todo: figure out how to properly type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
