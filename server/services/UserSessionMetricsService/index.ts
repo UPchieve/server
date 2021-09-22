@@ -251,11 +251,13 @@ export const processFeedbackReviewReasons = metricProcessorFactory(
   (acc: USER_SESSION_METRICS[]): USER_SESSION_METRICS[] => acc.flat(),
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
-      await updateReviewReasons(session._id as Types.ObjectId, reasons)
-      emitter.emit(
-        SESSION_EVENTS.FEEDBACK_REVIEW_REASONS_SET,
-        session._id.toString()
-      )
+      if (reasons.length) {
+        await updateReviewReasons(session._id as Types.ObjectId, reasons)
+        emitter.emit(
+          SESSION_EVENTS.FEEDBACK_REVIEW_REASONS_SET,
+          session._id.toString()
+        )
+      }
     } catch (err) {
       throw new Error(
         `failed to set review reason for session ${session._id} - ${err}`
