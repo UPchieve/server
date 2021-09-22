@@ -16,7 +16,7 @@
         <span>{{ studentRating }}</span>
       </div>
     </div>
-    <session-flags :flags="session.flags" />
+    <session-flags :flags="session.reviewReasons" />
   </router-link>
 </template>
 

@@ -44,6 +44,6 @@ export const saveFeedback = async (data: {
   })
 
   const doc = await feedback.save()
-  emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, doc.sessionId, doc.userType)
+  emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, doc.sessionId, doc._id)
   return doc
 }

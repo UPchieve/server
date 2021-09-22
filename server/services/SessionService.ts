@@ -10,7 +10,7 @@ import {
   USER_BAN_REASON,
   SESSION_REPORT_REASON,
   EVENTS,
-  SESSION_FLAGS,
+  USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING
 } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
@@ -24,10 +24,11 @@ import * as cache from '../cache'
 import { NotAllowedError } from '../models/Errors'
 import { SESSION_EVENTS } from '../constants/events'
 import {
-  StudentCounselingFeedback,
-  StudentTutoringFeedback,
-  VolunteerFeedback
-} from '../models/Feedback'
+  UserSessionMetrics,
+  getByUserId,
+  executeUpdatesByUserId
+} from '../models/UserSessionMetrics'
+import { safeAsync } from '../utils/safe-async'
 import * as VolunteerService from './VolunteerService'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
@@ -35,7 +36,6 @@ import * as QuillDocService from './QuillDocService'
 import * as AnalyticsService from './AnalyticsService'
 import * as NotificationService from './NotificationService'
 import UserService from './UserService'
-import * as FeedbackService from './FeedbackService'
 
 import { getSessionRequestedUserAgentFromSessionId } from './UserActionService'
 import * as AwsService from './AwsService'
@@ -44,6 +44,7 @@ import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
 import { captureEvent } from './AnalyticsService'
 import * as PushTokenService from './PushTokenService'
 import { emitter } from './EventsService'
+import { METRIC_PROCESSORS } from './UserSessionMetricsService/metrics'
 
 const {
   getSessionById,
@@ -59,7 +60,7 @@ const {
   setHasWhiteboardDoc
 } = SessionRepo
 
-const { getFeedbackFlags, isSessionFulfilled } = sessionUtils
+const { isSessionFulfilled } = sessionUtils
 
 export {
   getSessionById,
@@ -70,7 +71,6 @@ export {
   getUnfulfilledSessions,
   addNotifications,
   updateFlags,
-  getFeedbackFlags,
   isSessionFulfilled
 }
 
@@ -114,6 +114,73 @@ export async function getTimeTutoredForDateRange(
   else return 0
 }
 
+async function processReportSessionMetric(
+  session: SessionRepo.Session
+): Promise<void> {
+  const studentUSM = await getByUserId(session.student as Types.ObjectId)
+  let volunteerUSM: UserSessionMetrics
+  if (session.volunteer)
+    volunteerUSM = await getByUserId(session.volunteer as Types.ObjectId)
+
+  const pd = {
+    session,
+    studentUSM,
+    volunteerUSM,
+    // value of 1 reflects that a session was reported
+    value: 1
+  }
+  const reasons = METRIC_PROCESSORS.Reported.computeReviewReason(pd)
+  const flags = METRIC_PROCESSORS.Reported.computeFlag(pd)
+  const studentupdateQuery = METRIC_PROCESSORS.Reported.computeStudentUpdateQuery(
+    pd
+  )
+  const volunteerUpdateQuery = METRIC_PROCESSORS.Reported.computeVolunteerUpdateQuery(
+    pd
+  )
+
+  const errors: Error[] = []
+
+  const flagResults = await safeAsync(
+    SessionRepo.updateFlags(session._id as Types.ObjectId, flags)
+  )
+  if (flagResults.error) errors.push(flagResults.error)
+
+  if (reasons.length) {
+    const reviewReasonResults = await safeAsync(
+      SessionRepo.updateReviewReasons(session._id as Types.ObjectId, reasons)
+    )
+    if (reviewReasonResults.error) errors.push(reviewReasonResults.error)
+  }
+
+  const studentUpdateQueryResults = await safeAsync(
+    executeUpdatesByUserId(session.student as Types.ObjectId, [
+      studentupdateQuery
+    ])
+  )
+  if (studentUpdateQueryResults.error)
+    errors.push(studentUpdateQueryResults.error)
+
+  if (session.volunteer) {
+    const volunteerUpdateQueryResults = await safeAsync(
+      executeUpdatesByUserId(session.volunteer as Types.ObjectId, [
+        volunteerUpdateQuery
+      ])
+    )
+    if (volunteerUpdateQueryResults.error)
+      errors.push(volunteerUpdateQueryResults.error)
+  }
+
+  if (errors.length) {
+    const errMsgs: string[] = []
+    errors.forEach(e => errMsgs.push(e.message))
+    throw new Error(
+      `Error processing Reported metric for session ${
+        session._id
+      }:\n${errMsgs.join('\n')}`
+    )
+  }
+}
+
 export async function reportSession(data: unknown) {
   const {
     user,
@@ -133,6 +200,13 @@ export async function reportSession(data: unknown) {
     reportMessage,
     reportReason
   })
+
+  // TODO: run Reported metric with other metrics
+  try {
+    await processReportSessionMetric(session)
+  } catch (err) {
+    logger.error(err.message)
+  }
 
   const isBanReason = reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
   if (isBanReason && reportedBy.isVolunteer) {
@@ -219,12 +293,15 @@ export async function processAddPastSession(sessionId: string) {
     updates.push(UserService.addPastSession(session.volunteer, session._id))
 
   const results = await Promise.allSettled(updates)
+  const errors: string[] = []
   results.forEach(result => {
     if (result.status === 'rejected')
-      logger.error(
+      errors.push(
         `Failed to add past session: ${sessionId} - error: ${result.reason}`
       )
   })
+  if (errors.length)
+    throw new Error(`errors saving past session:\n${errors.join('\n')}`)
   emitter.emit(SESSION_EVENTS.PAST_SESSION_ADDED, sessionId)
 }
 
@@ -252,7 +329,12 @@ export async function processSessionReported(sessionId: string) {
 export async function processCalculateMetrics(sessionId: string) {
   const session = await getSessionById(sessionId)
   let timeTutored = 0
-  if (!session.flags.includes(SESSION_FLAGS.ABSENT_USER))
+  if (
+    !(
+      session.flags.includes(USER_SESSION_METRICS.absentStudent) ||
+      session.flags.includes(USER_SESSION_METRICS.absentVolunteer)
+    )
+  )
     timeTutored = sessionUtils.calculateTimeTutored(session)
 
   await updateSessionMetrics(sessionId, { timeTutored })
@@ -350,14 +432,6 @@ export async function processEmailPartnerVolunteer(sessionId: string) {
   }
 }
 
-export async function processSetFlags(sessionId: string) {
-  const session = await SessionRepo.getSessionToEnd(sessionId)
-  const flags = sessionUtils.getReviewFlags(session)
-  const toReview = flags.length > 0 && sessionUtils.hasReviewTriggerFlags(flags)
-  await updateFlags(sessionId, { flags, toReview })
-  emitter.emit(SESSION_EVENTS.FLAGS_SET, sessionId)
-}
-
 export async function processVolunteerTimeTutored(sessionId: string) {
   const session = await SessionRepo.getSessionById(sessionId)
   if (session.volunteer)
@@ -365,30 +439,6 @@ export async function processVolunteerTimeTutored(sessionId: string) {
       session.volunteer,
       session.timeTutored
     )
-}
-
-export async function processFeedbackSaved(
-  sessionId: string,
-  userType: 'student' | 'volunteer'
-) {
-  const feedback = await FeedbackService.getFeedback({ sessionId, userType })
-  // @todo: properly type
-  let feedbackResponses:
-    | Partial<StudentTutoringFeedback>
-    | Partial<StudentCounselingFeedback>
-    | Partial<VolunteerFeedback> = {}
-
-  if ('studentTutoringFeedback' in feedback)
-    feedbackResponses = feedback.studentTutoringFeedback
-  if ('studentCounselingFeedback' in feedback)
-    feedbackResponses = feedback.studentCounselingFeedback
-  if ('volunteerFeedback' in feedback)
-    feedbackResponses = feedback.volunteerFeedback
-
-  const flags = await getFeedbackFlags(feedbackResponses)
-  if (flags.length > 0)
-    // Feedback flags currently always trigger a need for review
-    await updateFlags(sessionId, { flags, toReview: true })
 }
 
 /**
