@@ -48,8 +48,8 @@ export default {
     },
     isNewHeader() {
       const status = {
-        class: 'RejoinSessionHeader--redesign',
-        buttonClass: 'RejoinSessionHeader-buttons--redesign'
+        class: 'RejoinSessionHeader',
+        buttonClass: ''
       }
 
       if (isEnabled(FEATURE_FLAGS.DASHBOARD_REDESIGN)) {
