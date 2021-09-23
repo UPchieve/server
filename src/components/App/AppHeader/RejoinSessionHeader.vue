@@ -48,8 +48,8 @@ export default {
     },
     isNewHeader() {
       const status = {
-        class: 'RejoinSessionHeader',
-        buttonClass: ''
+        class: 'RejoinSessionHeader--redesign',
+        buttonClass: 'RejoinSessionHeader-buttons--redesign'
       }
 
       if (isEnabled(FEATURE_FLAGS.DASHBOARD_REDESIGN)) {
@@ -98,7 +98,7 @@ export default {
     }
 
     @include header-child;
-    background-color: #16d2aa;
+    background-color: $c-accent;
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
   }
 }
@@ -125,7 +125,7 @@ export default {
   }
 
   &--redesign {
-    color: #343440;
+    color: $c-soft-black;
   }
 }
 </style>
