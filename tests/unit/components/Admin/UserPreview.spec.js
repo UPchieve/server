@@ -13,19 +13,19 @@
 //     expect(wrapper.find(".user-preview__right").exists()).toBe(true);
 //   });
 
-//   // it("renders the pastSessions correctly", () => {
-//   //   const wrapper = mount(UserPreview, {
-//   //     propsData: {
-//   //       user: Object
-//   //     }
-//   //   })
-//   //   user.pastSessions = 10;
-//   //  // const pastSessions = user.pastSessions;
-//   //   //expect(wrapper.find(".user-preview__right")).toBe("true");
-//   //   expect(wrapper.text()).toBe("10 sessions")
+  // it("renders the pastSessions correctly", () => {
+  //   const wrapper = mount(UserPreview, {
+  //     propsData: {
+  //       user: Object
+  //     }
+  //   })
+  //   user.pastSessions = 10;
+  //  // const pastSessions = user.pastSessions;
+  //   //expect(wrapper.find(".user-preview__right")).toBe("true");
+  //   expect(wrapper.text()).toBe("10 sessions")
 
-//   // });
+  // });
 
 // });
 
-//@todo check why this is failing at "cannot computer '__id' property of undefined"
+//@todo check why this is failing at "cannot read property '__id' of undefined"

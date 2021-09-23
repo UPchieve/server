@@ -1,5 +1,5 @@
 import ReferenceForm from '@/components/ReferenceForm';
-import { createLocalVue, mount } from '@vue/test-utils';
+import { createLocalVue, shallowMount } from '@vue/test-utils';
 import appModule from "@/store/modules/app";
 import Vuex from "vuex";
 
@@ -28,7 +28,7 @@ const getWrapper = (mobileMode = false, options = {}) => {
     ...options
   };
 
-  return mount(ReferenceForm, {
+  return shallowMount(ReferenceForm, {
     localVue,
     store,
     propsData: {
@@ -74,8 +74,12 @@ describe("ReferenceForm", () => {
    it("renders reference message", () => {
     const wrapper = getWrapper({ didSubmit: true });
     const msg = wrapper.find('.helper-message');
-  //  console.log("test 1: didSubmit" + wrapper.vm.didSubmit); //true, should be true
+  
+    console.log("test1: isNoLongerReference, should be false :" + wrapper.vm.isNoLongerReference); //true?? 
+    console.log("test1: didSubmit, should be true: " + wrapper.vm.didSubmit); //false??
+
     expect(msg.exists()).toBe(true);
+    console.log("form is submitted: " + wrapper.html())
     expect(msg.text()).toBe('Reference submitted!');
    });
 
@@ -85,8 +89,7 @@ describe("ReferenceForm", () => {
     });
     // console.log(wrapper.vm.didSubmit); //currently: 
      console.log("test2: isNoLongerReference, should be true :" + wrapper.vm.isNoLongerReference); //true, should be true
-     console.log(wrapper.html());
-     //console.log("test2: didSubmit " + wrapper.vm.didSubmit); //false, should be false
+     console.log("test2: didSubmit, should be false: " + wrapper.vm.didSubmit); //false, should be false
       const msg = wrapper.find('.helper-message');
       expect(msg.exists()).toBe(true); 
       expect(msg.text()).toBe("Sorry, you've been removed as a reference.");
