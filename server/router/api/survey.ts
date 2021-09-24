@@ -25,7 +25,9 @@ export function routeSurvey(router: expressWs.Router): void {
     try {
       const survey = await SurveyService.getPresessionSurvey({
         // @todo: fix types
+        // @ts-expect-error
         user,
+        // @ts-expect-error
         session: sessionId
       })
       res.json({ survey })

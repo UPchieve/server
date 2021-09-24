@@ -6,6 +6,7 @@ export function routeCalendar(router: expressWs.Router): void {
     try {
       await updateSchedule({
         // @todo: fix type
+        // @ts-expect-error
         user: req.user,
         availability: req.body.availability,
         tz: req.body.tz,
@@ -22,6 +23,7 @@ export function routeCalendar(router: expressWs.Router): void {
   router.post('/calendar/clear', async function(req, res, next) {
     try {
       // @todo: fix type
+      // @ts-expect-error
       await clearSchedule(req.user, req.body.tz)
       res.json({
         msg: 'Schedule cleared'
