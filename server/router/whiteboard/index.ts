@@ -1,7 +1,5 @@
 import express from 'express'
-import WebSocket from 'ws'
 import * as Sentry from '@sentry/node'
-import { uuid4 } from '@sentry/utils'
 import * as WhiteboardService from '../../services/WhiteboardService'
 import {
   decode,
@@ -11,52 +9,17 @@ import {
   DecodeError,
   CreationMode
 } from '../../utils/zwibblerDecoder'
-import {
-  WebSocketPubClient,
-  WebSocketSubClient
-} from '../../services/RedisService'
+import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
+import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
   Sentry.captureMessage(
     `Unimplemented Zwibbler message type ${messageType} called in session ${sessionId}`
   )
 }
-const classRoomClients: { [sessionId: string]: WhiteboardSocket[] } = {}
+
 const whiteboardChannel = 'whiteboard/'
-
-interface WhiteboardSocket extends WebSocket {
-  id?: string
-}
-
-interface Packet {
-  socketId: string
-  message: {
-    messageType: MessageType
-    offset: number
-    data: string
-    more: number
-  }
-}
-
-WebSocketSubClient.psubscribe(whiteboardChannel + '*')
-
-WebSocketSubClient.on(
-  'pmessage',
-  (pattern: string, channel: string, message: string) => {
-    const sessionId = channel.slice(whiteboardChannel.length)
-    const packet: Packet = JSON.parse(message)
-
-    // No WebSocket clients were not initialized for the session
-    if (!Array.isArray(classRoomClients[sessionId])) return
-
-    const websocketId = packet.socketId
-    for (const client of classRoomClients[sessionId]) {
-      // Send to all clients except for the client who initiated the message
-      if (websocketId === client.id) continue
-      client.send(encode(packet.message))
-    }
-  }
-)
+const wsEmitter = new WebSocketEmitter(whiteboardChannel, { encoder: encode })
 
 const messageHandlers: {
   [type in MessageType]: ({
@@ -67,7 +30,7 @@ const messageHandlers: {
   }: {
     message: Message
     sessionId: string
-    wsClient: WhiteboardSocket
+    wsClient: UpgradedWebSocket
     // @todo: figure out correct typing using @types/express-ws
     route: any // eslint-disable-line @typescript-eslint/no-explicit-any
   }) => void
@@ -147,18 +110,16 @@ const messageHandlers: {
         })
       )
     }
-    WebSocketPubClient.publish(
-      whiteboardChannel + sessionId,
-      JSON.stringify({
-        message: {
-          messageType: MessageType.APPEND,
-          offset: documentLength,
-          data: message.data,
-          more: message.more
-        },
-        socketId: wsClient.id
-      })
-    )
+    const packet = {
+      socketId: wsClient.id,
+      message: {
+        messageType: MessageType.APPEND,
+        offset: documentLength,
+        data: message.data,
+        more: message.more
+      }
+    }
+    wsEmitter.broadcast(sessionId, packet)
   },
   [MessageType.SET_KEY]: ({ wsClient, sessionId }) => {
     captureUnimplemented(sessionId, 'SET_KEY')
@@ -229,15 +190,15 @@ const messageHandlers: {
   [MessageType.CONTINUATION]: async ({ message, wsClient, sessionId }) => {
     await WhiteboardService.appendToDoc(sessionId, message.data)
     const newDocLength = await WhiteboardService.getDocLength(sessionId)
-    const broadcastMessage = JSON.stringify({
+    const packet = {
       socketId: wsClient.id,
       message: {
         messageType: MessageType.CONTINUATION,
         data: message.data,
         more: message.more
       }
-    })
-    WebSocketPubClient.publish(whiteboardChannel + sessionId, broadcastMessage)
+    }
+    wsEmitter.broadcast(sessionId, packet)
 
     // Ack if this is the end of a continuation
     if (!message.more) {
@@ -260,11 +221,7 @@ const whiteboardRouter = function(app): void {
   router.ws('/room/:sessionId', function(wsClient, req, next) {
     let initialized = false
     const sessionId = req.params.sessionId
-    const webSocketId = uuid4()
-    wsClient.id = webSocketId
-
-    if (!classRoomClients[sessionId]) classRoomClients[sessionId] = []
-    classRoomClients[sessionId].push(wsClient)
+    wsEmitter.addClientToRoom(wsClient, sessionId)
 
     setTimeout(() => {
       if (!initialized) {
@@ -277,12 +234,7 @@ const whiteboardRouter = function(app): void {
 
     // Remove the websocket client from the room upon closing
     wsClient.on('close', () => {
-      classRoomClients[sessionId] = classRoomClients[sessionId].filter(
-        wsClients => wsClients.id !== webSocketId
-      )
-
-      if (classRoomClients[sessionId].length === 0)
-        delete classRoomClients[sessionId]
+      wsEmitter.removeClientFromRoom(wsClient, sessionId)
     })
 
     wsClient.on('message', rawMessage => {
