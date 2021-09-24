@@ -38,6 +38,9 @@ class ErrorCounter extends CounterMetricProcessor {
   public computeFlag = () => {
     throw counterError
   }
+  public triggerActions = () => {
+    return [] as Promise<void>[]
+  }
 }
 const errorProcessor = new ErrorCounter()
 
@@ -49,6 +52,9 @@ class TestCounter extends CounterMetricProcessor {
   public computeUpdateValue = () => updateValue
   public computeReviewReason = () => [] as USER_SESSION_METRICS[]
   public computeFlag = () => [USER_SESSION_METRICS.absentStudent]
+  public triggerActions = () => {
+    return [] as Promise<void>[]
+  }
 }
 const testProcessor = new TestCounter()
 const testMetrics = [testProcessor, errorProcessor]
@@ -164,19 +170,12 @@ describe('Metric processor factory', () => {
   })
 
   test('Successfully computes factory function output', async () => {
-    await testProcessorFunction(payload)
+    const errMsg = `errors processing computeFlag:\nErrorCounter.computeFlag(): ${counterError.message}`
+    await expect(testProcessorFunction(payload)).rejects.toThrowError(errMsg)
 
     expect(logger.info).toHaveBeenNthCalledWith(1, [
       USER_SESSION_METRICS.absentStudent
     ])
     expect(logger.info).toHaveBeenNthCalledWith(2, session)
-  })
-
-  test('Logs errors in computing opName', async () => {
-    await testProcessorFunction(payload)
-
-    expect(logger.error).toHaveBeenCalledWith(
-      `Errors processing computeFlag:\nErrorCounter.computeFlag() error: ${counterError.message}`
-    )
   })
 })

@@ -639,6 +639,7 @@ describe('getSessionByIdWithStudentAndVolunteer', () => {
       flags: session.flags,
       reviewed: session.reviewed,
       toReview: session.toReview,
+      reviewReasons: session.reviewReasons,
       timeTutored: session.timeTutored
     }
 
