@@ -1,8 +1,8 @@
 import Redis from 'ioredis'
-import { UpgradedWebSocket, Packet, WebSocketEmitterOptions } from './types'
 import { v4 as uuidv4 } from 'uuid'
 import config from '../../config'
 import { JSONString } from '../../constants'
+import { UpgradedWebSocket, Packet, WebSocketEmitterOptions } from './types'
 
 export class WebSocketEmitter {
   private rooms: { [roomId: string]: UpgradedWebSocket[] } = {}
