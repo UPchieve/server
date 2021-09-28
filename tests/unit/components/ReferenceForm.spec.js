@@ -43,6 +43,11 @@ const getWrapper = (mobileMode = false, options = {}) => {
         rejectionReason: options.rejectionReason,
         additionalInfo: options.additionalInfo
       }    
+    },
+    mocks: {
+      $http: {
+        get: () => response
+      }
     }
   });
 };
@@ -50,7 +55,13 @@ const getWrapper = (mobileMode = false, options = {}) => {
 describe("ReferenceForm", () => {
   let wrapper
   beforeEach(() => {
+    //should we move the network service call to a method 
+    // mounted is called before also stubbing methods
+      const response = Promise.resolve({ body: [ 'abc']})
       wrapper = getWrapper({});
+      return response.then(() => {
+        expect(wrapper.response.toBe('abc'));
+      })
   })
 
   it("should init to a valid Vue instance", () => {
