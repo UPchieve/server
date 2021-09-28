@@ -1,13 +1,12 @@
 import expressWs from 'express-ws'
 import { updateSchedule, clearSchedule } from '../../controllers/CalendarCtrl'
+import { Volunteer } from '../../models/Volunteer'
 
 export function routeCalendar(router: expressWs.Router): void {
   router.post('/calendar/save', async function(req, res, next) {
     try {
       await updateSchedule({
-        // @todo: fix type
-        // @ts-expect-error
-        user: req.user,
+        user: req.user as Volunteer,
         availability: req.body.availability,
         tz: req.body.tz,
         ip: req.ip
@@ -22,9 +21,7 @@ export function routeCalendar(router: expressWs.Router): void {
 
   router.post('/calendar/clear', async function(req, res, next) {
     try {
-      // @todo: fix type
-      // @ts-expect-error
-      await clearSchedule(req.user, req.body.tz)
+      await clearSchedule(req.user as Volunteer, req.body.tz)
       res.json({
         msg: 'Schedule cleared'
       })

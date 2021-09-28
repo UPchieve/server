@@ -25,14 +25,11 @@ const messageHandlers: {
   [type in MessageType]: ({
     message,
     sessionId,
-    wsClient,
-    route
+    wsClient
   }: {
     message: Message
     sessionId: string
     wsClient: UpgradedWebSocket
-    // @todo: figure out correct typing using @types/express-ws
-    route: any // eslint-disable-line @typescript-eslint/no-explicit-any
   }) => void
 } = {
   [MessageType.INIT]: async ({ message, sessionId, wsClient }) => {
@@ -215,8 +212,7 @@ const messageHandlers: {
 }
 
 const whiteboardRouter = function(app): void {
-  // @todo: figure out correct typing using @types/express-ws
-  const router: any = express.Router() // eslint-disable-line @typescript-eslint/no-explicit-any
+  const router = express.Router()
 
   router.ws('/room/:sessionId', function(wsClient, req, next) {
     let initialized = false
@@ -255,8 +251,7 @@ const whiteboardRouter = function(app): void {
         ? messageHandlers[message.messageType]({
             message,
             sessionId,
-            wsClient,
-            route: this
+            wsClient
           })
         : wsClient.send({ error: 'unsupported message type' })
     })
