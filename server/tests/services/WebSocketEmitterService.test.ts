@@ -21,7 +21,7 @@ function getMockedWebSocket() {
   return (mockedWs as unknown) as UpgradedWebSocket
 }
 
-describe('testing', () => {
+describe('WebSocketEmitterService public methods', () => {
   const channel = 'test-channel'
   let roomId
   beforeEach(() => {
