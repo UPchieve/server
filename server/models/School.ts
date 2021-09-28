@@ -10,6 +10,7 @@ export interface School {
   cityNameStored: string
   stateStored: string
   isApproved: boolean
+  isPartner: boolean
   createdAt: Date
   approvedNotifyEmails: {
     email: string
@@ -115,6 +116,11 @@ const schoolSchema = new Schema(
 
     // is this school eligibile for UPchieve?
     isApproved: {
+      type: Boolean,
+      default: false
+    },
+
+    isPartner: {
       type: Boolean,
       default: false
     },
