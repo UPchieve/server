@@ -11,6 +11,8 @@ import {
 } from '../../utils/zwibblerDecoder'
 import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
 import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
+import { asStringObjectId } from '../../utils/type-utils'
+import logger from '../../logger'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
   Sentry.captureMessage(
@@ -216,7 +218,15 @@ const whiteboardRouter = function(app): void {
 
   router.ws('/room/:sessionId', function(wsClient, req, next) {
     let initialized = false
-    const sessionId = req.params.sessionId
+    let sessionId: string
+
+    try {
+      sessionId = asStringObjectId(req.params.sessionId)
+    } catch (error) {
+      logger.error(error)
+      return
+    }
+
     wsEmitter.addClientToRoom(wsClient, sessionId)
 
     setTimeout(() => {
