@@ -229,6 +229,10 @@ export const updateApproval = (schoolId, isApproved) => {
   return SchoolModel.updateOne({ _id: schoolId }, { isApproved })
 }
 
+export const updateIsPartner = (schoolId, isPartner) => {
+  return SchoolModel.updateOne({ _id: schoolId }, { isPartner })
+}
+
 export const createSchool = async ({
   name,
   city,
