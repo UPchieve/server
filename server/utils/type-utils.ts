@@ -54,6 +54,12 @@ export function asObjectId(s: unknown, errMsg?: string): Types.ObjectId {
   throw new InputError(`${errMsg} :${s} is not an ObjectId`)
 }
 
+export function asStringObjectId(s: unknown, errMsg?: string): string {
+  if (typeof s === 'string' && Types.ObjectId.isValid(s)) return s as string
+  else
+    throw new InputError(`${errMsg} :${s} is not a string formatted ObjectId`)
+}
+
 /**
  * asEnum<T>(enum)
  * example usage: asEnum<USER_BAN_REASON>(USER_BAN_REASON)
