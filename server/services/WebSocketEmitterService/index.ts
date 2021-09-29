@@ -2,13 +2,13 @@ import Redis from 'ioredis'
 import { v4 as uuidv4 } from 'uuid'
 import config from '../../config'
 import { JSONString } from '../../constants'
+import logger from '../../logger'
 import {
   UpgradedWebSocket,
   Packet,
   WebSocketEmitterOptions,
   asWebSocketPacket
 } from './types'
-import logger from '../../logger'
 
 export class WebSocketEmitter {
   private rooms: { [roomId: string]: UpgradedWebSocket[] } = {}
