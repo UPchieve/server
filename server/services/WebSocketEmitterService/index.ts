@@ -2,7 +2,13 @@ import Redis from 'ioredis'
 import { v4 as uuidv4 } from 'uuid'
 import config from '../../config'
 import { JSONString } from '../../constants'
-import { UpgradedWebSocket, Packet, WebSocketEmitterOptions } from './types'
+import {
+  UpgradedWebSocket,
+  Packet,
+  WebSocketEmitterOptions,
+  asWebSocketPacket
+} from './types'
+import logger from '../../logger'
 
 export class WebSocketEmitter {
   private rooms: { [roomId: string]: UpgradedWebSocket[] } = {}
@@ -29,7 +35,16 @@ export class WebSocketEmitter {
     message: JSONString
   ) => {
     const roomId = channel.slice(this.channel.length)
-    const packet: Packet = JSON.parse(message)
+    let packet: Packet
+    try {
+      packet = asWebSocketPacket(
+        JSON.parse(message),
+        `Unsuitable WebSocket packet shape for room ${roomId}`
+      )
+    } catch (error) {
+      logger.error(error)
+      return
+    }
 
     // No WebSocket clients were initialized for the room
     if (!Array.isArray(this.rooms[roomId])) return
