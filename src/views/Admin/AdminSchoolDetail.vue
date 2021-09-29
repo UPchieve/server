@@ -48,7 +48,7 @@
           />
           <label for="toggleSchoolApproval" class="switch"></label>
           <p v-if="approvalError" class="error">{{ approvalError }}</p>
-           <div>{{ schoolPartnerStatus }}</div>
+          <div>{{ schoolPartnerStatus }}</div>
           <input
             type="checkbox"
             id="toggleSchoolPartner"
@@ -57,7 +57,9 @@
             @change="toggleSchoolIsPartner"
           />
           <label for="toggleSchoolPartner" class="switch"></label>
-          <p v-if="partnerStatusError" class="error">{{ partnerStatusError }}</p>
+          <p v-if="partnerStatusError" class="error">
+            {{ partnerStatusError }}
+          </p>
         </div>
       </div>
     </template>
@@ -99,7 +101,9 @@ export default {
       return this.school.isApproved ? 'Approved' : 'Not approved'
     },
     schoolPartnerStatus() {
-      return this.school.isPartner ? 'Is a Partner School' : 'Not a Partner School'
+      return this.school.isPartner
+        ? 'Is a Partner School'
+        : 'Not a Partner School'
     }
   },
 
@@ -121,7 +125,8 @@ export default {
         await NetworkService.adminUpdateSchoolApproval(data)
         this.school.isApproved = checked
       } catch (error) {
-        this.approvalError = "There was an error updating the school's approval status"
+        this.approvalError =
+          "There was an error updating the school's approval status"
       }
     },
     async toggleSchoolIsPartner(event) {
@@ -138,7 +143,8 @@ export default {
         await NetworkService.adminUpdateSchoolPartnerStatus(data)
         this.school.isPartner = checked
       } catch (error) {
-        this.partnerStatusError = "There was an error updating the school's partner status"
+        this.partnerStatusError =
+          "There was an error updating the school's partner status"
       }
     },
 
