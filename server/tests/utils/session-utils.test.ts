@@ -81,12 +81,11 @@ describe('calculateTimeTutored', () => {
   for (const testCase of similarTestCases) {
     test(testCase, async () => {
       const session = buildSession()
-      const result = calculateTimeTutored(
-        session.volunteerJoinedAt,
-        session.endedAt,
-        session.messages,
-        undefined
-      )
+      const result = calculateTimeTutored({
+        volunteerJoinedAt: session.volunteerJoinedAt,
+        endedAt: session.endedAt,
+        messages: session.messages,
+      })
       const expectedTimeTutored = 0
 
       expect(result).toEqual(expectedTimeTutored)
@@ -109,12 +108,12 @@ describe('calculateTimeTutored', () => {
       })
     })
 
-    const result = calculateTimeTutored(
-      session.volunteerJoinedAt,
-      session.endedAt,
-      session.messages,
-      session.volunteer
-    )
+    const result = calculateTimeTutored({
+      volunteerJoinedAt: session.volunteerJoinedAt,
+      endedAt: session.endedAt,
+      messages: session.messages,
+      volunteer: session.volunteer
+    })
     const expectedTimeTutored = 0
 
     expect(result).toEqual(expectedTimeTutored)
@@ -138,12 +137,12 @@ describe('calculateTimeTutored', () => {
       })
     })
 
-    const result = calculateTimeTutored(
-      session.volunteerJoinedAt,
-      session.endedAt,
-      session.messages,
-      session.volunteer
-    )
+    const result = calculateTimeTutored({
+      volunteerJoinedAt: session.volunteerJoinedAt,
+      endedAt: session.endedAt,
+      messages: session.messages,
+      volunteer: session.volunteer
+  })
     const expectedTimeTutored = 0
 
     expect(result).toEqual(expectedTimeTutored)
@@ -168,12 +167,12 @@ describe('calculateTimeTutored', () => {
       ]
     })
 
-    const result = calculateTimeTutored(
-      session.volunteerJoinedAt,
-      session.endedAt,
-      session.messages,
-      session.volunteer
-    )
+    const result = calculateTimeTutored({
+      volunteerJoinedAt: session.volunteerJoinedAt,
+      endedAt: session.endedAt,
+      messages: session.messages,
+      volunteer: session.volunteer
+    })
     const expectedTimeTutored =
       lastMessageSentAt.getTime() - volunteerJoinedAt.getTime()
 
@@ -199,12 +198,12 @@ describe('calculateTimeTutored', () => {
       ]
     })
 
-    const result = calculateTimeTutored(
-      session.volunteerJoinedAt,
-      session.endedAt,
-      session.messages,
-      session.volunteer
-    )
+    const result = calculateTimeTutored({
+      volunteerJoinedAt: session.volunteerJoinedAt,
+      endedAt: session.endedAt,
+      messages: session.messages,
+      volunteer: session.volunteer
+    })
     const expectedTimeTutored =
       lastMessageSentAt.getTime() - volunteerJoinedAt.getTime()
     expect(result).toEqual(expectedTimeTutored)
@@ -239,12 +238,12 @@ describe('calculateTimeTutored', () => {
       ]
     })
 
-    const result = calculateTimeTutored(
-      session.volunteerJoinedAt,
-      session.endedAt,
-      session.messages,
-      session.volunteer
-    )
+    const result = calculateTimeTutored({
+      volunteerJoinedAt: session.volunteerJoinedAt,
+      endedAt: session.endedAt,
+      messages: session.messages,
+      volunteer: session.volunteer
+    })
     const expectedTimeTutored =
       lastMessageSentAt.getTime() - volunteerJoinedAt.getTime()
     expect(result).toEqual(expectedTimeTutored)

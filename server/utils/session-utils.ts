@@ -59,17 +59,20 @@ export function isSessionParticipant(session, user) {
   return userId === studentId || userId === volunteerId
 }
 
+interface TimeTutoredProps {
+  volunteerJoinedAt: Date
+  endedAt: Date
+  messages: Message[]
+  volunteer?: any
+}
+
 /**
  * Calculate milliseconds tutored from the most recent session
  * @param session completed tutoring session
  * @returns milliseconds tutored in this session
  */
-export function calculateTimeTutored(
-  volunteerJoinedAt: Date,
-  endedAt: Date,
-  messages: Message[],
-  volunteer: any
-): number {
+export function calculateTimeTutored(props: TimeTutoredProps): number {
+  const { volunteerJoinedAt, endedAt, messages, volunteer } = props
   const threeHoursMs = 1000 * 60 * 60 * 3
   const fifteenMinsMs = 1000 * 60 * 15
 
@@ -97,8 +100,8 @@ export function calculateTimeTutored(
     while (
       latestMessageIndex > 0 &&
       (wasMessageSentAfterSessionEnded ||
-        +messages[latestMessageIndex].createdAt -
-          +messages[latestMessageIndex - 1].createdAt >
+        Number(messages[latestMessageIndex].createdAt) -
+          Number(messages[latestMessageIndex - 1].createdAt) >
           fifteenMinsMs)
     ) {
       latestMessageIndex--

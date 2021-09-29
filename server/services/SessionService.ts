@@ -335,12 +335,12 @@ export async function processCalculateMetrics(sessionId: string) {
       session.flags.includes(USER_SESSION_METRICS.absentVolunteer)
     )
   )
-    timeTutored = sessionUtils.calculateTimeTutored(
-      session.volunteerJoinedAt,
-      session.endedAt,
-      session.messages,
-      session.volunteerJoinedAt
-    )
+    timeTutored = sessionUtils.calculateTimeTutored({
+      volunteerJoinedAt: session.volunteerJoinedAt,
+      endedAt: session.endedAt,
+      messages: session.messages,
+      volunteer: session.volunteerJoinedAt
+    })
 
   await updateSessionMetrics(sessionId, { timeTutored })
   emitter.emit(SESSION_EVENTS.SESSION_METRICS_CALCULATED, sessionId)
