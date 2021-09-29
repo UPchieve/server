@@ -6,24 +6,25 @@
       class="flags-item"
       :class="getFlagColor(flag)"
     >
-      {{ formatFlag(flag) }}
+      {{ flag }}
     </li>
   </ul>
 </template>
 
 <script>
-import { capitalize } from 'lodash'
+import Case from 'case'
 
 const SESSION_FLAGS_CLASS = {
-  ABSENT_USER: 'flags-item--absent-user',
-  COMMENT: 'flags-item--comment',
-  FIRST_TIME_VOLUNTEER: 'flags-item--first-time-volunteer',
-  FIRST_TIME_STUDENT: 'flags-item--first-time-student',
-  LOW_MESSAGES: 'flags-item--low-messages',
-  REPORTED: 'flags-item--reported',
-  STUDENT_RATING: 'flags-item--student-rating',
-  VOLUNTEER_RATING: 'flags-item--volunteer-rating',
-  UNMATCHED: 'flags-item--unmatched'
+  absentStudent: 'flags-item--absent',
+  absentVolunteer: 'flags-item--absent',
+  commentFromStudent: 'flags-item--comment',
+  commentFromVolunteer: 'flags-item--comment',
+  onlyLookingForAnswers: 'flags-item--only-looking-for-answers',
+  rudeOrInappropriate: 'flags-item--rude-or-inappropriate',
+  reported: 'flags-item--reported',
+  lowCoachRatingFromStudent: 'flags-item--student-coach-rating',
+  lowSessionRatingFromStudent: 'flags-item--student-session-rating',
+  lowSessionRatingFromCoach: 'flags-item--volunteer-session-rating'
 }
 
 export default {
@@ -33,12 +34,8 @@ export default {
     flags: Array
   },
   methods: {
-    formatFlag(flag) {
-      const delimiter = /_/gi
-      return capitalize(flag.replace(delimiter, ' ').toLowerCase())
-    },
     getFlagColor(flag) {
-      return SESSION_FLAGS_CLASS[flag] || ''
+      return SESSION_FLAGS_CLASS[Case.camel(flag)] || ''
     }
   }
 }
@@ -60,10 +57,10 @@ export default {
   margin-top: 1em;
   font-size: 12px;
 
-  &--volunteer-rating {
+  &--volunteer-session-rating {
     background-color: darken($c-backdrop, 20%);
   }
-  &--student-rating {
+  &--student-session-rating {
     background-color: $c-warning-orange;
   }
   &--comment {
@@ -72,20 +69,17 @@ export default {
   &--reported {
     background-color: rgba($color: $c-error-red, $alpha: 0.9);
   }
-  &--absent-user {
+  &--absent {
     background-color: #fdab3d;
   }
-  &--first-time-student {
+  &--only-looking-for-answers {
     background-color: rgba($color: $c-sat, $alpha: 0.9);
   }
-  &--first-time-volunteer {
+  &--rude-or-inappropriate {
     background-color: $c-math;
   }
-  &--low-messages {
+  &--student-coach-rating {
     background-color: #c3ce87;
-  }
-  &--unmatched {
-    background-color: $c-shadow;
   }
 }
 </style>

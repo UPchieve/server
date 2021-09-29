@@ -1,10 +1,12 @@
 import { Express, Router } from 'express'
 import passport from 'passport'
 
+import { Types } from 'mongoose'
 import * as AuthService from '../../services/AuthService'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
+import UserService from '../../services/UserService'
 
 // TODO: type passport request member methods/variable correctly (login, logout, user)
 export function routes(app: Express) {
@@ -173,12 +175,22 @@ export function routes(app: Express) {
       // do not respond with info about no email match
       if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
     }
+    let userId: Types.ObjectId
+    if (!req.user) {
+      const user = await UserService.getUser(
+        { email: req.body.email },
+        { _id: 1 }
+      )
+      if (user) userId = user._id
+    } else userId = req.user._id
     req.session.destroy(() => {
       /* do nothing */
     })
-    await AuthService.deleteAllUserSessions(req.user._id.toString())
-    // @ts-expect-error
-    req.logout()
+    if (userId) {
+      await AuthService.deleteAllUserSessions(userId.toString())
+      // @ts-expect-error
+      req.logout()
+    }
     res.status(200).json({
       msg:
         'If an account with this email address exists then we will send a password reset email'

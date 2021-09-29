@@ -1,17 +1,12 @@
 import moment from 'moment'
 import { mocked } from 'ts-jest/utils'
-import {
-  generateTelecomReport,
-  telecomHourSummaryStats,
-  getAnalyticsReportSummary,
-  getAnalyticsReportRow,
-  PartnerVolunteerAnalytics
-} from '../../utils/reportUtils'
+import * as reportUtils from '../../utils/reportUtils'
 import * as UserActionService from '../../services/UserActionService'
 import * as SessionService from '../../services/SessionService'
 import * as AvailabilityService from '../../services/AvailabilityService'
 import * as VolunteerService from '../../services/VolunteerService'
 import { buildVolunteer } from '../generate'
+import { InputError } from '../../models/Errors'
 jest.mock('../../services/SessionService')
 jest.mock('../../services/VolunteerService')
 
@@ -19,8 +14,8 @@ const mockedSessionService = mocked(SessionService, true)
 const mockedVolunteerService = mocked(VolunteerService, true)
 
 function buildAnalyticVolunteer(
-  overrides: Partial<PartnerVolunteerAnalytics> = {}
-): PartnerVolunteerAnalytics {
+  overrides: Partial<reportUtils.PartnerVolunteerAnalytics> = {}
+): reportUtils.PartnerVolunteerAnalytics {
   const volunteer = buildVolunteer({
     volunteerPartnerOrg: 'example'
   })
@@ -191,7 +186,7 @@ describe('Generate telecom report', () => {
         return availabilityDateRange
       })
 
-    const result = await generateTelecomReport(volunteers, [])
+    const result = await reportUtils.generateTelecomReport(volunteers, [])
     expect(result[0].hours).toBe(7)
   })
   test('Test summary stats', async () => {
@@ -212,7 +207,7 @@ describe('Generate telecom report', () => {
         return availabilityDateRange
       })
 
-    const row = await telecomHourSummaryStats(volunteers[0], [])
+    const row = await reportUtils.telecomHourSummaryStats(volunteers[0], [])
     expect(row.totalVolunteerHours).toBe(7)
     expect(row.totalCoachingHours).toBe(3.5) // 3.5hrs in session
     expect(row.totalElapsedAvailability).toBe(2.25) // 45min session time subtracted from availability
@@ -223,7 +218,7 @@ describe('Generate telecom report', () => {
 describe('getAnalyticsReportRow', () => {
   test('Should give the shape of the analytic report row ', async () => {
     const volunteer = buildAnalyticVolunteer()
-    const row = getAnalyticsReportRow(volunteer)
+    const row = reportUtils.getAnalyticsReportRow(volunteer)
 
     expect(row).toMatchObject({
       firstName: volunteer.firstName, // tests pulling property straight off volunteer
@@ -250,7 +245,7 @@ describe('getAnalyticsReportRow', () => {
 
 describe('getAnalyticsReportSummary', () => {
   test('Should return a summary of the analytics report with summed values', async () => {
-    const rowOne = getAnalyticsReportRow(
+    const rowOne = reportUtils.getAnalyticsReportRow(
       buildAnalyticVolunteer({
         createdAt: new Date('2021-01-05T00:00:00.000+00:00'),
         isOnboarded: true,
@@ -286,7 +281,7 @@ describe('getAnalyticsReportSummary', () => {
         }
       })
     )
-    const rowTwo = getAnalyticsReportRow(
+    const rowTwo = reportUtils.getAnalyticsReportRow(
       buildAnalyticVolunteer({
         createdAt: new Date('2020-09-01T00:00:00.000+00:00'),
         isOnboarded: true,
@@ -329,7 +324,7 @@ describe('getAnalyticsReportSummary', () => {
     // @ts-expect-error type error on empty aggregate
     mockedVolunteerService.getVolunteersWithPipeline.mockReturnValue([])
 
-    const summary = await getAnalyticsReportSummary(
+    const summary = await reportUtils.getAnalyticsReportSummary(
       'example',
       report,
       startDate,
@@ -371,5 +366,173 @@ describe('getAnalyticsReportSummary', () => {
     }
 
     expect(summary).toEqual(expected)
+  })
+})
+
+describe('validateSessionDateRanges', () => {
+  test('Should throw an error for invalid sessionFrom date format', () => {
+    expect.assertions(2)
+    try {
+      reportUtils.validateSessionDateRanges({
+        sessionRangeFrom: '01/01/2021',
+        sessionRangeTo: ''
+      })
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual(
+        '"Session from" date does not follow a MM-DD-YYYY format'
+      )
+    }
+  })
+
+  test('Should throw an error for invalid sessionFrom date format', () => {
+    expect.assertions(2)
+    try {
+      reportUtils.validateSessionDateRanges({
+        sessionRangeFrom: '01-01-2021',
+        sessionRangeTo: '01/02/2021'
+      })
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual(
+        '"Session to" date does not follow a MM-DD-YYYY format'
+      )
+    }
+  })
+
+  test('Should throw an error for when passing an empty string as a date', () => {
+    expect.assertions(2)
+    try {
+      reportUtils.validateSessionDateRanges({
+        sessionRangeFrom: '',
+        sessionRangeTo: '01-02-2021'
+      })
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual(
+        '"Session from" date does not follow a MM-DD-YYYY format'
+      )
+    }
+  })
+})
+
+describe('validateJoinedDateRanges', () => {
+  test('Should throw an error for invalid joinedAfter date format', () => {
+    expect.assertions(2)
+    try {
+      reportUtils.validateJoinedDateRanges({
+        joinedAfter: '01/01/2021',
+        joinedBefore: ''
+      })
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual(
+        '"Joined after" date does not follow a MM-DD-YYYY format'
+      )
+    }
+  })
+
+  test('Should throw an error for invalid joinedBefore date format', () => {
+    expect.assertions(2)
+    try {
+      reportUtils.validateJoinedDateRanges({
+        joinedAfter: '01-01-2021',
+        joinedBefore: '01/02/2021'
+      })
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual(
+        '"Joined before" date does not follow a MM-DD-YYYY format'
+      )
+    }
+  })
+
+  test('Should throw an error for when passing an empty string as a date', () => {
+    expect.assertions(2)
+    try {
+      reportUtils.validateJoinedDateRanges({
+        joinedAfter: '',
+        joinedBefore: '01-02-2021'
+      })
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual(
+        '"Joined after" date does not follow a MM-DD-YYYY format'
+      )
+    }
+  })
+})
+
+describe('validateStudentReportQuery', () => {
+  test('Should throw an error for invalid student partner org', () => {
+    expect.assertions(2)
+    const data = {
+      sessionRangeFrom: '01-01-2021',
+      sessionRangeTo: '01-02-2021',
+      studentPartnerOrg: 'bogus-org',
+      studentPartnerSite: '',
+      highschoolId: ''
+    } as reportUtils.StudentReportQuery
+    try {
+      reportUtils.validateStudentReportQuery(data)
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual('Invalid student partner organization')
+    }
+  })
+
+  test('Should throw an error for invalid student partner org site for a partner with no sites', () => {
+    expect.assertions(2)
+    const data = {
+      sessionRangeFrom: '01-01-2021',
+      sessionRangeTo: '01-02-2021',
+      studentPartnerOrg: 'example',
+      studentPartnerSite: 'bogus',
+      highschoolId: ''
+    } as reportUtils.StudentReportQuery
+    try {
+      reportUtils.validateStudentReportQuery(data)
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual(
+        `Invalid student partner site for ${data.studentPartnerOrg}`
+      )
+    }
+  })
+
+  test('Should throw an error for invalid student partner org site if not a listed site for a parter', () => {
+    expect.assertions(2)
+    const data = {
+      sessionRangeFrom: '01-01-2021',
+      sessionRangeTo: '01-02-2021',
+      studentPartnerOrg: 'example4',
+      studentPartnerSite: 'bogus',
+      highschoolId: ''
+    } as reportUtils.StudentReportQuery
+    try {
+      reportUtils.validateStudentReportQuery(data)
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual(
+        `Invalid student partner site for ${data.studentPartnerOrg}`
+      )
+    }
+  })
+
+  test('Should throw an error for invalid high school id', () => {
+    expect.assertions(2)
+    const data = {
+      sessionRangeFrom: '01-01-2021',
+      sessionRangeTo: '01-02-2021',
+      studentPartnerOrg: '',
+      studentPartnerSite: '',
+      highSchoolId: '1234'
+    } as reportUtils.StudentReportQuery
+    try {
+      reportUtils.validateStudentReportQuery(data)
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError)
+      expect(error.message).toEqual('Invalid high school id')
+    }
   })
 })

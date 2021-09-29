@@ -6,7 +6,7 @@
     <div class="session-detail__title">{{ session.subTopic }} session</div>
     <div class="session-detail__subtitle">ID: {{ session._id }}</div>
 
-    <session-flags :flags="session.flags" />
+    <session-flags :flags="session.reviewReasons" />
 
     <section class="session-detail__section" v-if="session.toReview">
       <h3 class="session-detail__section-title">Review Session</h3>
@@ -74,6 +74,14 @@
         }}
         sent</router-link
       >
+      <div v-if="session.reportReason" class="session-detail__section">
+        <div class="session-detail__section-title">Report Reason</div>
+        <div>{{ session.reportReason }}</div>
+      </div>
+      <div v-if="session.reportMessage" class="session-detail__section">
+        <div class="session-detail__section-title">Report Message</div>
+        <div>{{ session.reportMessage }}</div>
+      </div>
     </div>
     <div
       v-if="session.messages.length"

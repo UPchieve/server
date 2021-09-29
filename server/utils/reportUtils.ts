@@ -18,12 +18,15 @@ import {
   getVolunteersWithPipeline,
   HourSummaryStats
 } from '../services/VolunteerService'
-import { volunteerPartnerManifests } from '../partnerManifests'
+import {
+  studentPartnerManifests,
+  volunteerPartnerManifests
+} from '../partnerManifests'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
 import roundUpToNearestInterval from './round-up-to-nearest-interval'
 import { countCertsByType } from './count-certs-by-type'
-import { asFactory, asString } from './type-utils'
+import { asFactory, asOptional, asString } from './type-utils'
 
 interface Stamp {
   day: string
@@ -923,4 +926,111 @@ export function validateVolunteerReportQuery(data: unknown) {
     throw new InputError('End date does not follow a MM-DD-YYYY format')
 
   return { partnerOrg, startDate, endDate }
+}
+
+export interface SessionDateRanges {
+  sessionRangeFrom: string
+  sessionRangeTo: string
+}
+
+export interface JoinedDateRanges {
+  joinedBefore: string
+  joinedAfter: string
+}
+
+export interface StudentReportQuery extends SessionDateRanges {
+  highSchoolId?: string
+  studentPartnerOrg?: string
+  studentPartnerSite?: string
+}
+
+export interface StudentUsageReportQuery
+  extends StudentReportQuery,
+    JoinedDateRanges {}
+
+const studentReportValidators = {
+  sessionRangeFrom: asString,
+  sessionRangeTo: asString,
+  highSchoolId: asOptional(asString),
+  studentPartnerOrg: asOptional(asString),
+  studentPartnerSite: asOptional(asString)
+}
+
+export const asValidateStudentSessionReportQuery = asFactory<
+  StudentReportQuery
+>({
+  ...studentReportValidators
+})
+
+export const asValidateStudentUsageReportQuery = asFactory<
+  StudentUsageReportQuery
+>({
+  joinedBefore: asString,
+  joinedAfter: asString,
+  ...studentReportValidators
+})
+
+function isValidReportDateFormat(dateString) {
+  const isStrictMode = true
+  return moment(dateString, 'MM-DD-YYYY', isStrictMode).isValid()
+}
+
+export function validateSessionDateRanges({
+  sessionRangeFrom,
+  sessionRangeTo
+}: SessionDateRanges) {
+  if (!isValidReportDateFormat(sessionRangeFrom))
+    throw new InputError(
+      '"Session from" date does not follow a MM-DD-YYYY format'
+    )
+  if (!isValidReportDateFormat(sessionRangeTo))
+    throw new InputError(
+      '"Session to" date does not follow a MM-DD-YYYY format'
+    )
+}
+
+export function validateJoinedDateRanges({
+  joinedAfter,
+  joinedBefore
+}: JoinedDateRanges) {
+  if (!isValidReportDateFormat(joinedAfter))
+    throw new InputError(
+      '"Joined after" date does not follow a MM-DD-YYYY format'
+    )
+  if (!isValidReportDateFormat(joinedBefore))
+    throw new InputError(
+      '"Joined before" date does not follow a MM-DD-YYYY format'
+    )
+}
+
+export function validateStudentReportQuery(data: StudentReportQuery) {
+  if (data.studentPartnerOrg) {
+    const studentPartner = studentPartnerManifests[data.studentPartnerOrg]
+    if (!studentPartner)
+      throw new InputError('Invalid student partner organization')
+    else if (
+      (data.studentPartnerSite && !studentPartner.hasOwnProperty('sites')) ||
+      (data.studentPartnerSite &&
+        !studentPartner.sites.includes(data.studentPartnerSite))
+    )
+      throw new InputError(
+        `Invalid student partner site for ${data.studentPartnerOrg}`
+      )
+  }
+  if (data.highSchoolId && !Types.ObjectId.isValid(data.highSchoolId))
+    throw new InputError('Invalid high school id')
+  validateSessionDateRanges(data)
+}
+
+export function validateStudentSessionReportQuery(data: unknown) {
+  const validatedData = asValidateStudentSessionReportQuery(data)
+  validateStudentReportQuery(validatedData)
+  return validatedData
+}
+
+export function validateStudentUsageReportQuery(data: unknown) {
+  const validatedData = asValidateStudentUsageReportQuery(data)
+  validateStudentReportQuery(validatedData)
+  validateJoinedDateRanges(validatedData)
+  return validatedData
 }

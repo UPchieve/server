@@ -58,7 +58,6 @@ import TrashIcon from '@/assets/trash.svg'
 import CrossIcon from '@/assets/cross.svg'
 import AnalyticsService from '@/services/AnalyticsService'
 import { EVENTS } from '@/consts'
-import { validatePhoto } from '@/utils/photo-upload'
 
 export default {
   name: 'volunteer-dashboard',
@@ -83,17 +82,15 @@ export default {
     async addPhoto(event) {
       const { files } = event.target
       const file = files[0]
-
-      let validatedPhoto
-      try {
-        validatedPhoto = validatePhoto(file)
-      } catch (err) {
-        this.error = err.message
+      const twentyFiveMegaBytes = 25 * 1000000
+      if (file.size > twentyFiveMegaBytes) {
+        this.error =
+          'This photo is too large. Please upload a photo less than 25mb.'
         return
       }
 
       this.error = ''
-      this.file = validatedPhoto
+      this.file = file
       this.photo = URL.createObjectURL(file)
     },
     removePhoto() {
