@@ -7,6 +7,7 @@ import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import UserService from '../../services/UserService'
+import { LoadedRequest } from '../app'
 
 // TODO: type passport request member methods/variable correctly (login, logout, user)
 export function routes(app: Express) {
@@ -33,7 +34,7 @@ export function routes(app: Express) {
     // Delegate auth logic to passport middleware
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
-    function(req, res) {
+    function(req: LoadedRequest, res) {
       res.json({ user: req.user })
     }
   )
@@ -105,6 +106,7 @@ export function routes(app: Express) {
 
   router.route('/partner/volunteer').get(async function(req, res) {
     try {
+      await new Promise(res => setTimeout(res, 1000))
       if (!req.query.hasOwnProperty('partnerId'))
         throw new InputError('Missing volunteerPartnerId query string')
       const partner = await AuthService.lookupPartnerVolunteer(
@@ -166,7 +168,7 @@ export function routes(app: Express) {
       }
     })
 
-  router.route('/reset/send').post(async function(req, res) {
+  router.route('/reset/send').post(async function(req: LoadedRequest, res) {
     try {
       if (!req.body.hasOwnProperty('email'))
         throw new InputError('Missing email body string')

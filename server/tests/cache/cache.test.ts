@@ -12,7 +12,7 @@ test('Should save string content in the cache', async () => {
     expect(err).toBeUndefined()
   }
 
-  let value
+  let value: string
   try {
     value = await Cache.get(testKey)
   } catch (err) {
@@ -37,7 +37,7 @@ test('Should save json stringified content in the cache', async () => {
     expect(err).toBeUndefined()
   }
 
-  let value
+  let value: string
   try {
     value = await Cache.get(testKey)
   } catch (err) {
@@ -62,7 +62,7 @@ test('Should retrieve parse-able json stringified content from the cache', async
     expect(err).toBeUndefined()
   }
 
-  let value
+  let value: string
   try {
     value = await Cache.get(testKey)
   } catch (err) {
@@ -100,7 +100,7 @@ test('Should remove a key from the cache', async () => {
     expect(err).toBeUndefined()
   }
 
-  let value
+  let value: string
   try {
     value = await Cache.get(testKey)
   } catch (err) {
@@ -119,7 +119,7 @@ test('Should insert key with custom expiry', async () => {
     expect(err).toBeUndefined()
   }
 
-  let ttl
+  let ttl: number
   try {
     ttl = await Cache.getTimeToExpiration(testKey)
   } catch (err) {
@@ -139,7 +139,7 @@ test('Should insert key with default expiry', async () => {
     expect(err).toBeUndefined()
   }
 
-  let ttl
+  let ttl: number
   try {
     ttl = await Cache.getTimeToExpiration(testKey)
   } catch (err) {

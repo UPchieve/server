@@ -1,14 +1,14 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
-import express from 'express'
-import bodyParser from 'body-parser'
+import { Response, NextFunction } from 'express'
 
 import { StudentDocument } from '../../models/Student'
 import { VolunteerDocument } from '../../models/Volunteer'
-
+import { LoadedRequest } from '../../router/app'
 import * as AuthService from '../../services/AuthService'
 import * as AuthRouter from '../../router/auth'
-import { buildUser } from '../generate'
+import { mockApp } from '../mock-app'
+import { buildStudent } from '../generate'
 
 jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService, true)
@@ -26,18 +26,21 @@ jest.mock('../../utils/auth-utils', () => ({
 const US_IP_ADDRESS = '161.185.160.93'
 const AUTH_ROUTE = '/auth'
 
-const app = express()
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+const app = mockApp()
 
 const mockLogin = jest.fn()
 const mockDestroy = jest.fn()
-function mockPassportMiddleware(req, res, next) {
+const mockPassportMiddleware = (
+  req: LoadedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  req.user = buildStudent()
   req.login = mockLogin
+  // @ts-ignore: mocking an express session
   req.session = {
     destroy: mockDestroy
   }
-  req.user = buildUser()
   next()
 }
 app.use(mockPassportMiddleware)
