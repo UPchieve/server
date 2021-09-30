@@ -132,7 +132,8 @@ export const getSchool = async (schoolId): Promise<School> => {
             }
           },
           zipCode: '$MZIP',
-          isApproved: '$isApproved',
+          isApproved: 1,
+          isPartner: 1,
           approvalNotifyEmails: 1
         }
       }
