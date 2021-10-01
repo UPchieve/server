@@ -2,9 +2,12 @@ import ReferenceForm from '@/components/ReferenceForm';
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 import appModule from "@/store/modules/app";
 import Vuex from "vuex";
+import NetworkService from '../../../src/services/NetworkService';
 
 const localVue = createLocalVue();
 localVue.use(Vuex);
+
+jest.mock('../../../src/services/NetworkService')
 
 const getWrapper = (mobileMode = false, options = {}) => {
   const store = new Vuex.Store({
@@ -43,46 +46,34 @@ const getWrapper = (mobileMode = false, options = {}) => {
         rejectionReason: options.rejectionReason,
         additionalInfo: options.additionalInfo
       }    
-    },
-    mocks: {
-      $http: {
-        get: () => response
-      }
     }
   });
 };
 
 describe("ReferenceForm", () => {
+
   let wrapper
   beforeEach(() => {
-    //should we move the network service call to a method 
-    // mounted is called before also stubbing methods
-      const response = Promise.resolve({ body: [ 'abc']})
       wrapper = getWrapper({});
-      return response.then(() => {
-        expect(wrapper.response.toBe('abc'));
-      })
   })
 
   it("should init to a valid Vue instance", () => {
     expect(wrapper.isVueInstance()).toBe(true);
   });
 
-  //  it("layout", () => {
-  //     const wrapper = getWrapper({didSubmit: true });
-  //     const referenceMessage = wrapper.find('.helper-message');
-  //     expect(referenceMessage.exists()).toBe(true);
-  //     expect(referenceMessage.text()).toBe('Reference submitted!');
-
-  // //    const container = getWrapper({})
-  // //    await container.setProps({isAdminReview: true})
-  // //    console.log(contain)
-  // //  // expect(container.find('.admin-review').exists()).toBe(true);
-  // //  //  expect(container.find('.heading-legend').exists()).toBe(true);
-     
+  //  it("mocks a method", () => {
+  //   const mockSpy = jest.spyOn(ReferenceForm.methods, 'testMethod').mockImplementation(() => true);
+  //   const wrapper = getWrapper({});
+  //   expect(mockSpy).toHaveBeenCalled();
   //  });
 
+
    it("renders reference message", () => {
+     NetworkService.checkReference.mockImplementationOnce(
+       () => {
+         return true;
+       }
+     )
     const wrapper = getWrapper({ didSubmit: true });
     const msg = wrapper.find('.helper-message');
   
@@ -98,24 +89,18 @@ describe("ReferenceForm", () => {
     const wrapper = getWrapper({ 
       isNoLongerReference: true
     });
-    // console.log(wrapper.vm.didSubmit); //currently: 
+
      console.log("test2: isNoLongerReference, should be true :" + wrapper.vm.isNoLongerReference); //true, should be true
      console.log("test2: didSubmit, should be false: " + wrapper.vm.didSubmit); //false, should be false
       const msg = wrapper.find('.helper-message');
       expect(msg.exists()).toBe(true); 
       expect(msg.text()).toBe("Sorry, you've been removed as a reference.");
-      // @todo: access classes inside wrapper? why is wrapper.classes() = []
-      //
    });
 
    it("reference form", () => {
     const wrapper = getWrapper({ 
       isNoLongerReference: false 
     });
-    // console.log(wrapper.html());
-    // console.log(wrapper.classes());
-    //console.log(wrapper.vm.didSubmit); //false, should be false
-   
     
     console.log("test3: isNoLongerRef: " + wrapper.vm.isNoLongerReference); //true, should be false
      expect(wrapper.classes()).toContain('questions-container');
