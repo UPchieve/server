@@ -427,7 +427,8 @@ export const VERIFICATION_METHOD = {
 
 export const FEATURE_FLAGS = {
   REFER_FRIENDS: 'refer-friends',
-  STUDENT_BANNED_STATE: 'student-banned-state'
+  STUDENT_BANNED_STATE: 'student-banned-state',
+  DASHBOARD_REDESIGN: 'dashboard-redesign'
 }
 
 export const ANALYTICS_REPORT_ROW = {

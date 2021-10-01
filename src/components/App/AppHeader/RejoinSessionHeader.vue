@@ -1,5 +1,5 @@
 <template>
-  <div class="RejoinSessionHeader">
+  <div :class="isNewHeader.class">
     <template v-if="mobileMode">
       <hyperlink-button primary reverse @click.native="showModal">{{
         message
@@ -13,7 +13,11 @@
         <hyperlink-button reverse @click.native="end"
           >End chat</hyperlink-button
         >
-        <large-button primary reverse @click.native="rejoin"
+        <large-button
+          primary
+          reverse
+          @click.native="rejoin"
+          :class="isNewHeader.buttonClass"
           >Return to chat</large-button
         >
       </div>
@@ -26,6 +30,8 @@ import { mapGetters } from 'vuex'
 import * as sessionUtils from '@/utils/session'
 import HyperlinkButton from '@/components/HyperlinkButton'
 import LargeButton from '@/components/LargeButton'
+import { isEnabled } from 'unleash-client'
+import { FEATURE_FLAGS } from '@/consts'
 
 export default {
   name: 'rejoin-session-header',
@@ -39,6 +45,19 @@ export default {
     }),
     message() {
       return `You have a chat in session${this.mobileMode ? '' : '.'}`
+    },
+    isNewHeader() {
+      const status = {
+        class: 'RejoinSessionHeader',
+        buttonClass: ''
+      }
+
+      if (isEnabled(FEATURE_FLAGS.DASHBOARD_REDESIGN)) {
+        status.class += '--redesign'
+        status.buttonClass += 'RejoinSessionHeader-buttons--redesign'
+      }
+
+      return status
     }
   },
   methods: {
@@ -69,6 +88,19 @@ export default {
 
   @include header-child;
   background-color: $c-warning-orange;
+
+  &--redesign {
+    @include flex-container(row, center, center);
+    flex: 1;
+
+    @include breakpoint-above('medium') {
+      justify-content: space-around;
+    }
+
+    @include header-child;
+    background-color: $c-accent;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .RejoinSessionHeader-left {
@@ -90,6 +122,10 @@ export default {
   @include child-spacing(left, 20px);
   @include breakpoint-above('large') {
     flex: 1;
+  }
+
+  &--redesign {
+    color: $c-soft-black;
   }
 }
 </style>
