@@ -13,7 +13,6 @@ import {
   buildNotification,
   buildSession
 } from '../../generate'
-jest.mock('../../../logger')
 jest.mock('../../../services/MailService')
 
 // db connection

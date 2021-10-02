@@ -43,6 +43,7 @@ export const resetDb = async (): Promise<void> => {
   await UserModel.deleteMany({})
   await VolunteerModel.deleteMany({})
   await UserActionModel.deleteMany({})
+  await AvailabilitySnapshotModel.deleteMany({})
 }
 
 export const insertVolunteer = async (

@@ -4,7 +4,7 @@ import emailStudentWelcomeSeries from '../../../worker/jobs/student-emails/email
 import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
-jest.mock('../../../logger')
+
 jest.mock('../../../services/MailService')
 
 // db connection

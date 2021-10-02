@@ -11,7 +11,7 @@ import { buildAvailability, buildVolunteer } from '../../generate'
 import { noHoursSelected } from '../../mocks/volunteer-availability'
 import VolunteerModel from '../../../models/Volunteer'
 import * as VolunteerService from '../../../services/VolunteerService'
-jest.mock('../../../logger')
+
 jest.mock('../../../services/MailService')
 
 jest.setTimeout(1000 * 15)

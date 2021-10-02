@@ -46,6 +46,11 @@ export function mockRouter() {
   return express.Router()
 }
 
+/**
+ * Creates a socket server attached to the given app. When used in tested call
+ * socketServer.close() during afterAll()
+ * @param app express app to attach socket server to
+ */
 export function mockSocketServer(app: express.Express): Server {
   return socketServer(app)
 }

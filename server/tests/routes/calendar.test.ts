@@ -6,7 +6,6 @@ import { Availability } from '../../models/Availability/types'
 import { routeCalendar } from '../../router/api/calendar'
 
 jest.mock('../../controllers/CalendarCtrl')
-jest.mock('../../logger')
 
 // mock app - passport should attach any user we need
 const app = mockApp()

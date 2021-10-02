@@ -25,7 +25,6 @@ import { mockApp, mockRouter, mockSocketServer, mockPassportMiddleware } from '.
 import { routes as routeSessions } from '../../router/api/session'
 import { authPassport } from '../../utils/auth-utils'
 
-jest.mock('../../logger')
 jest.mock('../../services/IpAddressService')
 
 jest.mock('../../services/SessionService')

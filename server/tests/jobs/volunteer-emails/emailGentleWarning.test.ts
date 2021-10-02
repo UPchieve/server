@@ -12,7 +12,7 @@ import MailService from '../../../services/MailService'
 import { buildNotification, buildVolunteer } from '../../generate'
 import { Notification } from '../../../models/Notification'
 import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
-jest.mock('../../../logger')
+
 jest.mock('../../../services/MailService')
 
 const createNotifications = (amount, volunteerId): Notification[] => {

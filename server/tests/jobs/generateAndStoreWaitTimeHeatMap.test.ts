@@ -3,7 +3,6 @@ import generateAndStoreWaitTimeHeatMap from '../../worker/jobs/generateAndStoreW
 import * as SessionService from '../../services/SessionService'
 import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/SessionService')
-jest.mock('../../logger')
 
 const mockedSessionService = mocked(SessionService, true)
 

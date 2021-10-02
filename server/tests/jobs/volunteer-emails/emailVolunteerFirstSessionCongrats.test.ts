@@ -5,7 +5,7 @@ import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
 import { USER_SESSION_METRICS } from '../../../constants'
-jest.mock('../../../logger')
+
 jest.mock('../../../services/MailService')
 jest.setTimeout(1000 * 15)
 

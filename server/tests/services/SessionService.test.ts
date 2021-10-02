@@ -83,7 +83,6 @@ jest.mock('../../services/PushTokenService')
 jest.mock('../../services/EventsService')
 jest.mock('../../cache')
 jest.mock('../../models/UserSessionMetrics')
-jest.mock('../../logger')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedAssistmentsDataRepo = mocked(AssistmentsDataRepo, true)

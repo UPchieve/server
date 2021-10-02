@@ -6,7 +6,6 @@ import { routes as EligibilityRouter } from '../../router/eligibility'
 import { NotAllowedError } from '../../models/Errors'
 import { mockApp } from '../mock-app'
 
-jest.mock('../../logger')
 jest.mock('../../services/IpAddressService')
 const mockedIpAddressService = mocked(IpAddressService, true)
 

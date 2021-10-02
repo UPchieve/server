@@ -9,7 +9,6 @@ import { buildVolunteer } from '../generate'
 import { InputError } from '../../models/Errors'
 jest.mock('../../services/SessionService')
 jest.mock('../../services/VolunteerService')
-jest.mock('../../logger')
 
 const mockedSessionService = mocked(SessionService, true)
 const mockedVolunteerService = mocked(VolunteerService, true)

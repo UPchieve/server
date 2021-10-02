@@ -11,7 +11,6 @@ import {
 import { mockApp } from '../mock-app'
 
 jest.mock('../../services/ContactFormService')
-jest.mock('../../logger')
 
 const mockedContactFormService = mocked(ContactFormService, true)
 

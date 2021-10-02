@@ -10,7 +10,6 @@ import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
 import { buildNotification } from '../../generate'
 import { SUBJECTS } from '../../../constants'
-jest.mock('../../../logger')
 jest.mock('../../../services/MailService')
 
 // db connection
