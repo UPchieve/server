@@ -258,6 +258,25 @@ async function isSessionAssistments(
   return ad && !_.isEmpty(ad)
 }
 
+export async function addPastSession(sessionId: string) {
+  const session = await getSessionById(sessionId)
+  const updates = []
+  updates.push(UserService.addPastSession(session.student, session._id))
+  if (session.volunteer)
+    updates.push(UserService.addPastSession(session.volunteer, session._id))
+
+  const results = await Promise.allSettled(updates)
+  const errors: string[] = []
+  results.forEach(result => {
+    if (result.status === 'rejected')
+      errors.push(
+        `Failed to add past session: ${sessionId} - error: ${result.reason}`
+      )
+  })
+  if (errors.length)
+    throw new Error(`errors saving past session:\n${errors.join('\n')}`)
+}
+
 export async function endSession({
   sessionId,
   endedBy = null,
@@ -284,25 +303,6 @@ export async function endSession({
   await addPastSession(session._id)
 
   emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
-}
-
-export async function addPastSession(sessionId: string) {
-  const session = await getSessionById(sessionId)
-  const updates = []
-  updates.push(UserService.addPastSession(session.student, session._id))
-  if (session.volunteer)
-    updates.push(UserService.addPastSession(session.volunteer, session._id))
-
-  const results = await Promise.allSettled(updates)
-  const errors: string[] = []
-  results.forEach(result => {
-    if (result.status === 'rejected')
-      errors.push(
-        `Failed to add past session: ${sessionId} - error: ${result.reason}`
-      )
-  })
-  if (errors.length)
-    throw new Error(`errors saving past session:\n${errors.join('\n')}`)
 }
 
 export async function processAssistmentsSession(sessionId: string) {

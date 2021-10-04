@@ -1013,7 +1013,7 @@ describe('finishSession', () => {
       ip: getIpAddress(),
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
-      userAgent: getUserAgent(),
+      userAgent: getUserAgent()
     }
 
     const socketService = new SocketService({})
@@ -1024,13 +1024,11 @@ describe('finishSession', () => {
     })
 
     // @todo: call a mocked version or spy of SessionService.endSession
-    const mockedSessionToEnd = mockedGetSessionToEnd({...session})
+    const mockedSessionToEnd = mockedGetSessionToEnd({ ...session })
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
       async () => mockedSessionToEnd
     )
-    mockedSessionRepo.getSessionById.mockImplementationOnce(
-      async () => session
-    )
+    mockedSessionRepo.getSessionById.mockImplementationOnce(async () => session)
 
     await SessionService.finishSession(input, socketService)
     expect(socketService.emitSessionChange).toHaveBeenCalledTimes(1)
