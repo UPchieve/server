@@ -2175,6 +2175,30 @@ paths:
       responses:
         '200':
           description: OK
+  /api-public/eligibility/school/partner:
+    post:
+      tags:
+        - eligibility
+      summary:  Approves partner status
+      description: |
+        - Admin only
+        - Sets partner status for eligible with given school id
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schoolId:
+                  type: string
+                isPartner:
+                  type: boolean
+      responses:
+        '200':
+          description: OK        
   /api-public/eligibility/ineligible-students:
     get:
       tags:

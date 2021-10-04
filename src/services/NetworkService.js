@@ -396,6 +396,11 @@ export default {
       .post(`${ELIGIBILITY_API_ROOT}/school/approval`, data)
       .then(this._successHandler, this._errorHandler)
   },
+  adminUpdateSchoolPartnerStatus(data) {
+    return Vue.http
+      .post(`${ELIGIBILITY_API_ROOT}/school/partner`, data)
+      .then(this._successHandler, this._errorHandler)
+  },
   adminGetSessionReport({
     joinedBefore,
     joinedAfter,

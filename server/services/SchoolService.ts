@@ -132,7 +132,8 @@ export const getSchool = async (schoolId): Promise<School> => {
             }
           },
           zipCode: '$MZIP',
-          isApproved: '$isApproved',
+          isApproved: 1,
+          isPartner: 1,
           approvalNotifyEmails: 1
         }
       }
@@ -227,6 +228,10 @@ export const getSchools = async ({ name, state, city, page }) => {
 
 export const updateApproval = (schoolId, isApproved) => {
   return SchoolModel.updateOne({ _id: schoolId }, { isApproved })
+}
+
+export const updateIsPartner = (schoolId, isPartner) => {
+  return SchoolModel.updateOne({ _id: schoolId }, { isPartner })
 }
 
 export const createSchool = async ({

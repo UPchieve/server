@@ -61,6 +61,8 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
     uniqueVolunteersNotified === TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP ||
     ageOfSession >= sixMinutes
   ) {
+    // Never send more than 2 texts per person
+    if (session.notifications.length >= 2 * uniqueVolunteersNotified) return
     // Wrap around the notifications list to get a notification we've sent before
     const notificationId =
       session.notifications[

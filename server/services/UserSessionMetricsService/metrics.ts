@@ -142,7 +142,8 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
     }
     return 0
   }
-  public computeReviewReason = () => NO_FLAGS
+  public computeReviewReason = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
   public triggerActions = () => NO_ACTIONS
@@ -168,7 +169,8 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
     }
     return 0
   }
-  public computeReviewReason = () => NO_FLAGS
+  public computeReviewReason = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
   public triggerActions = () => NO_ACTIONS
@@ -189,7 +191,8 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
     }
     return 0
   }
-  public computeReviewReason = () => NO_FLAGS
+  public computeReviewReason = (pd: ProcessorData<Counter>) =>
+    pd.value ? [this.key] : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
   public triggerActions = () => NO_ACTIONS
