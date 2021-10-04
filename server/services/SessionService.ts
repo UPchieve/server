@@ -281,11 +281,12 @@ export async function endSession({
     //        due to the session being unmatched for an extended period of time
     endedBy: endedBy && endedBy._id
   })
+  await addPastSession(session._id)
 
   emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
 }
 
-export async function processAddPastSession(sessionId: string) {
+export async function addPastSession(sessionId: string) {
   const session = await getSessionById(sessionId)
   const updates = []
   updates.push(UserService.addPastSession(session.student, session._id))
@@ -302,7 +303,6 @@ export async function processAddPastSession(sessionId: string) {
   })
   if (errors.length)
     throw new Error(`errors saving past session:\n${errors.join('\n')}`)
-  emitter.emit(SESSION_EVENTS.PAST_SESSION_ADDED, sessionId)
 }
 
 export async function processAssistmentsSession(sessionId: string) {
