@@ -6,7 +6,7 @@ export interface Student extends User {
   approvedHighschool: School | Types.ObjectId
   zipCode: string
   studentPartnerOrg: string
-  partnerSite: string,
+  partnerSite: string
   currentGrade: string
 }
 
