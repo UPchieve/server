@@ -192,6 +192,21 @@ export function routes(app: Express) {
     }
   })
 
+  router.post('/school/partner', authPassport.isAdmin, async function(
+    req,
+    res
+  ) {
+    const { schoolId, isPartner } = req.body
+
+    try {
+      await SchoolService.updateIsPartner(schoolId, isPartner)
+      res.sendStatus(200)
+    } catch (err) {
+      Sentry.captureException(err)
+      res.sendStatus(500)
+    }
+  })
+
   router.get('/ineligible-students', authPassport.isAdmin, async function(
     req,
     res,
