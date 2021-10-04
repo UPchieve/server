@@ -6,7 +6,8 @@ export interface Student extends User {
   approvedHighschool: School | Types.ObjectId
   zipCode: string
   studentPartnerOrg: string
-  partnerSite: string
+  partnerSite: string,
+  currentGrade: string
 }
 
 export type StudentDocument = Student & Document
@@ -30,7 +31,8 @@ const studentSchema = new Schema(
     },
     zipCode: String,
     studentPartnerOrg: String,
-    partnerSite: String
+    partnerSite: String,
+    currentGrade: String
   },
   schemaOptions
 )
