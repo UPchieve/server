@@ -5,7 +5,7 @@ import { routeVerify, TwilioError } from '../../router/api/verify'
 import { VERIFICATION_METHOD } from '../../constants'
 import * as VerificationService from '../../services/VerificationService'
 import { buildStudent } from '../generate'
-import {mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { authPassport } from '../../utils/auth-utils'
 import logger from '../../logger'
 
@@ -62,9 +62,7 @@ describe(STUDENT_SEND_ROUTE, () => {
     }
 
     const response = await sendVerificationCode(input)
-    const {
-      status
-    } = response
+    const { status } = response
 
     expect(status).toEqual(200)
     expect(VerificationService.initiateVerification).toHaveBeenCalledWith({
@@ -77,7 +75,9 @@ describe(STUDENT_SEND_ROUTE, () => {
   test(`${STUDENT_SEND_ROUTE} too many attempts`, async () => {
     const testError = new Error('test error') as TwilioError
     testError.status = 429
-    mockedVerificationService.initiateVerification.mockRejectedValueOnce(testError)
+    mockedVerificationService.initiateVerification.mockRejectedValueOnce(
+      testError
+    )
     const input = {
       sendTo: student.email,
       verificationMethod: VERIFICATION_METHOD.EMAIL
@@ -89,10 +89,12 @@ describe(STUDENT_SEND_ROUTE, () => {
       body: { err }
     } = response
 
-    const expected = `You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one.`
+    const expected =
+      "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
     expect(err).toEqual(expected)
     expect(status).toEqual(429)
-    expect(logger.error).toHaveBeenNthCalledWith(1,
+    expect(logger.error).toHaveBeenNthCalledWith(
+      1,
       { 'error.name': 'twilio verification', error: testError },
       testError.message
     )
@@ -101,7 +103,9 @@ describe(STUDENT_SEND_ROUTE, () => {
   test(`${STUDENT_SEND_ROUTE} twilio service not found`, async () => {
     const testError = new Error('test error') as TwilioError
     testError.status = 404
-    mockedVerificationService.initiateVerification.mockRejectedValueOnce(testError)
+    mockedVerificationService.initiateVerification.mockRejectedValueOnce(
+      testError
+    )
     const input = {
       sendTo: student.email,
       verificationMethod: VERIFICATION_METHOD.EMAIL
@@ -113,10 +117,12 @@ describe(STUDENT_SEND_ROUTE, () => {
       body: { err }
     } = response
 
-    const expected = 'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
+    const expected =
+      'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
     expect(err).toEqual(expected)
     expect(status).toEqual(404)
-    expect(logger.error).toHaveBeenNthCalledWith(1,
+    expect(logger.error).toHaveBeenNthCalledWith(
+      1,
       { 'error.name': 'twilio verification', error: testError },
       testError.message
     )
@@ -134,9 +140,7 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
     }
 
     const response = await confirmVerificationCode(input)
-    const {
-      status
-    } = response
+    const { status } = response
 
     expect(status).toEqual(200)
     expect(VerificationService.confirmVerification).toHaveBeenCalledWith({
@@ -147,7 +151,9 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
 
   test(`${CONFIRM_STUDENT_ROUTE} catches internal error`, async () => {
     const testError = new Error('test error')
-    mockedVerificationService.confirmVerification.mockRejectedValueOnce(testError)
+    mockedVerificationService.confirmVerification.mockRejectedValueOnce(
+      testError
+    )
     const input = {
       sendTo: student.email,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
@@ -162,7 +168,8 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
 
     expect(err).toEqual(testError.message)
     expect(status).toEqual(500)
-    expect(logger.error).toHaveBeenNthCalledWith(1,
+    expect(logger.error).toHaveBeenNthCalledWith(
+      1,
       { 'error.name': 'twilio verification', error: testError },
       testError.message
     )

@@ -5,7 +5,10 @@ import { resError } from '../res-error'
 import { LoadedRequest } from '../app'
 
 export function routes(router: Router) {
-  router.get('/stats/volunteer/heatmap', async function(req: LoadedRequest, res) {
+  router.get('/stats/volunteer/heatmap', async function(
+    req: LoadedRequest,
+    res
+  ) {
     try {
       const { user } = req
       const heatMap = await SessionService.getWaitTimeHeatMap(user)

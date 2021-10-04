@@ -1,12 +1,12 @@
-import UserService from './UserService'
-import TwilioService from './twilio'
-import MailService from './MailService'
-import * as StudentService from './StudentService'
 import { VERIFICATION_METHOD } from '../constants'
 import { asFactory, asString, asEnum } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
+import * as StudentService from './StudentService'
+import MailService from './MailService'
+import TwilioService from './twilio'
+import UserService from './UserService'
 
 export interface InitiateVerificationData {
   userId: string

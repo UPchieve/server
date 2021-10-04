@@ -200,7 +200,9 @@ describe('reportSession', () => {
       async () => mockValue
     )
     mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.student))
-    mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.volunteer))
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(
+      buildUSM(mockValue.volunteer)
+    )
     await SessionService.reportSession(input)
     expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
     expect(UserService.banUser).toHaveBeenCalledTimes(1)
@@ -235,7 +237,9 @@ describe('reportSession', () => {
       async () => mockValue
     )
     mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.student))
-    mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.volunteer))
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(
+      buildUSM(mockValue.volunteer)
+    )
     await SessionService.reportSession(input)
     expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
     expect(UserService.banUser).toHaveBeenCalledTimes(1)

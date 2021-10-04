@@ -1,7 +1,10 @@
 import { mocked } from 'ts-jest/utils'
 
 import { getEmail, buildStudent, buildVolunteer } from '../generate'
-import { confirmVerification, initiateVerification } from '../../services/VerificationService'
+import {
+  confirmVerification,
+  initiateVerification
+} from '../../services/VerificationService'
 import TwilioService from '../../services/twilio'
 import { VERIFICATION_METHOD } from '../../constants'
 import UserService from '../../services/UserService'
@@ -17,7 +20,9 @@ jest.mock('../../services/StudentService')
 const mockedTwilioService = mocked(TwilioService, true)
 function mockTwilioConfirmation(value: boolean) {
   // @ts-expect-error twilio verification object has lots of metadata we dont care to mock
-  mockedTwilioService.confirmVerification.mockResolvedValueOnce({ valid: value })
+  mockedTwilioService.confirmVerification.mockResolvedValueOnce({
+    valid: value
+  })
 }
 
 const mockedUserService = mocked(UserService, true)
@@ -51,9 +56,9 @@ describe('initiate verification', () => {
       firstName: student.firstname
     }
 
-    await expect(initiateVerification(payload)).rejects.toEqual(new InputError(
-      'Must supply a valid email address'
-    ))
+    await expect(initiateVerification(payload)).rejects.toEqual(
+      new InputError('Must supply a valid email address')
+    )
   })
 
   test('Should throw on invalid phone', async () => {
@@ -64,9 +69,9 @@ describe('initiate verification', () => {
       firstName: student.firstname
     }
 
-    await expect(initiateVerification(payload)).rejects.toEqual(new InputError(
-      'Must supply a valid phone number'
-    ))
+    await expect(initiateVerification(payload)).rejects.toEqual(
+      new InputError('Must supply a valid phone number')
+    )
   })
 
   test('Should throw on exising user not equal to requesting user', async () => {
@@ -79,9 +84,9 @@ describe('initiate verification', () => {
       firstName: student.firstname
     }
 
-    await expect(initiateVerification(payload)).rejects.toEqual(new LookupError(
-      'The email address you entered is already in use'
-    ))
+    await expect(initiateVerification(payload)).rejects.toEqual(
+      new LookupError('The email address you entered is already in use')
+    )
   })
 })
 
@@ -96,9 +101,9 @@ describe('confirmVerification', () => {
       verificationCode: 'bad code'
     }
 
-    await expect(confirmVerification(payload)).rejects.toEqual(new InputError(
-      'Must enter a valid 6-digit validation code'
-    ))
+    await expect(confirmVerification(payload)).rejects.toEqual(
+      new InputError('Must enter a valid 6-digit validation code')
+    )
   })
 
   test('Should return false for a verification code that is not valid', async () => {
@@ -172,7 +177,10 @@ describe('confirmVerification', () => {
     }
 
     expect(result).toBeTruthy()
-    expect(UserService.updateUser).toHaveBeenCalledWith({ _id: student._id.toString() }, expected)
+    expect(UserService.updateUser).toHaveBeenCalledWith(
+      { _id: student._id.toString() },
+      expected
+    )
   })
 
   test('Should update verified/verifiedPhone when phone is verified', async () => {
@@ -191,8 +199,10 @@ describe('confirmVerification', () => {
       phone: student.phone
     }
     expect(result).toBeTruthy()
-    expect(UserService.updateUser).toHaveBeenCalledWith({ _id: student._id.toString() }, expected)
-
+    expect(UserService.updateUser).toHaveBeenCalledWith(
+      { _id: student._id.toString() },
+      expected
+    )
   })
 
   test('Should update to new email address when given', async () => {
@@ -213,6 +223,9 @@ describe('confirmVerification', () => {
     }
 
     expect(result).toBeTruthy()
-    expect(UserService.updateUser).toHaveBeenCalledWith({ _id: student._id.toString() }, expected)
+    expect(UserService.updateUser).toHaveBeenCalledWith(
+      { _id: student._id.toString() },
+      expected
+    )
   })
 })

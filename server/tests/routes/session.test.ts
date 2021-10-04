@@ -1,9 +1,7 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
 import { Types } from 'mongoose'
-import { Response, NextFunction } from 'express'
 
-import { LoadedRequest } from '../../router/app'
 import * as SessionService from '../../services/SessionService'
 import {
   buildNotification,
@@ -21,7 +19,12 @@ import {
   mockedGetStudentLatestSession
 } from '../mocks/repos/session-repo'
 import { AdminFilteredSessions } from '../../models/Session'
-import { mockApp, mockRouter, mockSocketServer, mockPassportMiddleware } from '../mock-app'
+import {
+  mockApp,
+  mockRouter,
+  mockSocketServer,
+  mockPassportMiddleware
+} from '../mock-app'
 import { routes as routeSessions } from '../../router/api/session'
 import { authPassport } from '../../utils/auth-utils'
 

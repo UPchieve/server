@@ -31,10 +31,10 @@ export function mockPassportMiddleware(getUser: () => Student | Volunteer) {
     req: LoadedRequest,
     res: express.Response,
     next: express.NextFunction
-    ): void => {
+  ): void => {
     req.user = getUser()
     req.login = jest.fn()
-    // @ts-ignore: mocking an express session
+    // @ts-expect-error: mocking a partial express session
     req.session = {
       destroy: jest.fn()
     }

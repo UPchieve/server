@@ -37,7 +37,7 @@ const mockPassportMiddleware = (
 ): void => {
   req.user = buildStudent()
   req.login = mockLogin
-  // @ts-ignore: mocking an express session
+  // @ts-expect-error: mocking a partial express session
   req.session = {
     destroy: mockDestroy
   }

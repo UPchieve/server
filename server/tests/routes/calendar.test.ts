@@ -20,7 +20,7 @@ app.use('/api', router)
 const agent = request.agent(app)
 
 interface Form {
-  tz?: string,
+  tz?: string
   availability?: Availability
 }
 

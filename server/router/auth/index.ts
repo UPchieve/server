@@ -106,7 +106,6 @@ export function routes(app: Express) {
 
   router.route('/partner/volunteer').get(async function(req, res) {
     try {
-      await new Promise(res => setTimeout(res, 1000))
       if (!req.query.hasOwnProperty('partnerId'))
         throw new InputError('Missing volunteerPartnerId query string')
       const partner = await AuthService.lookupPartnerVolunteer(

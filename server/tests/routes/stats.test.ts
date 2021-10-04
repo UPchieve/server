@@ -3,7 +3,7 @@ import request, { Test } from 'supertest'
 import * as SessionService from '../../services/SessionService'
 import { buildStudent } from '../generate'
 import { KeyNotFoundError } from '../../cache'
-import { mockApp, mockPassportMiddleware, mockRouter, mockSocketServer } from '../mock-app'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { authPassport } from '../../utils/auth-utils'
 import { routes as routeStats } from '../../router/api/stats'
 
