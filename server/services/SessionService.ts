@@ -114,73 +114,6 @@ export async function getTimeTutoredForDateRange(
   else return 0
 }
 
-async function processReportSessionMetric(
-  session: SessionRepo.Session
-): Promise<void> {
-  const studentUSM = await getByUserId(session.student as Types.ObjectId)
-  let volunteerUSM: UserSessionMetrics
-  if (session.volunteer)
-    volunteerUSM = await getByUserId(session.volunteer as Types.ObjectId)
-
-  const pd = {
-    session,
-    studentUSM,
-    volunteerUSM,
-    // value of 1 reflects that a session was reported
-    value: 1
-  }
-  const reasons = METRIC_PROCESSORS.Reported.computeReviewReason(pd)
-  const flags = METRIC_PROCESSORS.Reported.computeFlag(pd)
-  const studentupdateQuery = METRIC_PROCESSORS.Reported.computeStudentUpdateQuery(
-    pd
-  )
-  const volunteerUpdateQuery = METRIC_PROCESSORS.Reported.computeVolunteerUpdateQuery(
-    pd
-  )
-
-  const errors: Error[] = []
-
-  const flagResults = await safeAsync(
-    SessionRepo.updateFlags(session._id as Types.ObjectId, flags)
-  )
-  if (flagResults.error) errors.push(flagResults.error)
-
-  if (reasons.length) {
-    const reviewReasonResults = await safeAsync(
-      SessionRepo.updateReviewReasons(session._id as Types.ObjectId, reasons)
-    )
-    if (reviewReasonResults.error) errors.push(reviewReasonResults.error)
-  }
-
-  const studentUpdateQueryResults = await safeAsync(
-    executeUpdatesByUserId(session.student as Types.ObjectId, [
-      studentupdateQuery
-    ])
-  )
-  if (studentUpdateQueryResults.error)
-    errors.push(studentUpdateQueryResults.error)
-
-  if (session.volunteer) {
-    const volunteerUpdateQueryResults = await safeAsync(
-      executeUpdatesByUserId(session.volunteer as Types.ObjectId, [
-        volunteerUpdateQuery
-      ])
-    )
-    if (volunteerUpdateQueryResults.error)
-      errors.push(volunteerUpdateQueryResults.error)
-  }
-
-  if (errors.length) {
-    const errMsgs: string[] = []
-    errors.forEach(e => errMsgs.push(e.message))
-    throw new Error(
-      `Error processing Reported metric for session ${
-        session._id
-      }:\n${errMsgs.join('\n')}`
-    )
-  }
-}
-
 export async function reportSession(data: unknown) {
   const {
     user,
@@ -200,13 +133,6 @@ export async function reportSession(data: unknown) {
     reportMessage,
     reportReason
   })
-
-  // TODO: run Reported metric with other metrics
-  try {
-    await processReportSessionMetric(session)
-  } catch (err) {
-    logger.error(err.message)
-  }
 
   const isBanReason = reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
   if (isBanReason && reportedBy.isVolunteer) {
@@ -232,6 +158,8 @@ export async function reportSession(data: unknown) {
       }
     )
   }
+
+  emitter.emit(SESSION_EVENTS.SESSION_REPORTED, session._id)
 
   // Queue up job to send reporting alert emails
   const emailData = {
