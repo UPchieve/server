@@ -1,5 +1,4 @@
 import express from 'express'
-import ws from 'ws'
 import * as Sentry from '@sentry/node'
 import * as WhiteboardService from '../../services/WhiteboardService'
 import {
@@ -10,6 +9,10 @@ import {
   DecodeError,
   CreationMode
 } from '../../utils/zwibblerDecoder'
+import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
+import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
+import { asStringObjectId } from '../../utils/type-utils'
+import logger from '../../logger'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
   Sentry.captureMessage(
@@ -17,18 +20,18 @@ const captureUnimplemented = (sessionId: string, messageType: string): void => {
   )
 }
 
+const whiteboardChannel = 'whiteboard/'
+const wsEmitter = new WebSocketEmitter(whiteboardChannel, { encoder: encode })
+
 const messageHandlers: {
   [type in MessageType]: ({
     message,
     sessionId,
-    wsClient,
-    route
+    wsClient
   }: {
     message: Message
     sessionId: string
-    wsClient: ws
-    // @todo: figure out correct typing using @types/express-ws
-    route: any // eslint-disable-line @typescript-eslint/no-explicit-any
+    wsClient: UpgradedWebSocket
   }) => void
 } = {
   [MessageType.INIT]: async ({ message, sessionId, wsClient }) => {
@@ -80,7 +83,7 @@ const messageHandlers: {
       })
     )
   },
-  [MessageType.APPEND]: async ({ message, sessionId, wsClient, route }) => {
+  [MessageType.APPEND]: async ({ message, sessionId, wsClient }) => {
     const documentLength = await WhiteboardService.getDocLength(sessionId)
     if (message.offset !== documentLength) {
       return wsClient.send(
@@ -106,15 +109,16 @@ const messageHandlers: {
         })
       )
     }
-    route.broadcast(
-      wsClient,
-      encode({
+    const packet = {
+      socketId: wsClient.id,
+      message: {
         messageType: MessageType.APPEND,
         offset: documentLength,
         data: message.data,
         more: message.more
-      })
-    )
+      }
+    }
+    wsEmitter.broadcast(sessionId, packet)
   },
   [MessageType.SET_KEY]: ({ wsClient, sessionId }) => {
     captureUnimplemented(sessionId, 'SET_KEY')
@@ -182,20 +186,18 @@ const messageHandlers: {
       })
     )
   },
-  [MessageType.CONTINUATION]: async ({
-    message,
-    wsClient,
-    sessionId,
-    route
-  }) => {
+  [MessageType.CONTINUATION]: async ({ message, wsClient, sessionId }) => {
     await WhiteboardService.appendToDoc(sessionId, message.data)
     const newDocLength = await WhiteboardService.getDocLength(sessionId)
-    const broadcastMessage = encode({
-      messageType: MessageType.CONTINUATION,
-      data: message.data,
-      more: message.more
-    })
-    route.broadcast(wsClient, broadcastMessage)
+    const packet = {
+      socketId: wsClient.id,
+      message: {
+        messageType: MessageType.CONTINUATION,
+        data: message.data,
+        more: message.more
+      }
+    }
+    wsEmitter.broadcast(sessionId, packet)
 
     // Ack if this is the end of a continuation
     if (!message.more) {
@@ -212,25 +214,20 @@ const messageHandlers: {
 }
 
 const whiteboardRouter = function(app): void {
-  // @todo: figure out correct typing using @types/express-ws
-  const router: any = express.Router() // eslint-disable-line @typescript-eslint/no-explicit-any
+  const router = express.Router()
 
-  /**
-   * This is a web socket Express route
-   *
-   * It relies on a fork of express-ws for rooms support
-   * @small-tech/express-ws: https://github.com/aral/express-ws
-   */
   router.ws('/room/:sessionId', function(wsClient, req, next) {
     let initialized = false
+    let sessionId: string
 
-    /**
-     * On initial client connection, join room.
-     * Room is determined by parsing request URL, which includes the unique session ID.
-     */
-    wsClient.room = this.setRoom(req)
+    try {
+      sessionId = asStringObjectId(req.params.sessionId)
+    } catch (error) {
+      logger.error(error)
+      return
+    }
 
-    const sessionId = req.params.sessionId
+    wsEmitter.addClientToRoom(wsClient, sessionId)
 
     setTimeout(() => {
       if (!initialized) {
@@ -240,6 +237,11 @@ const whiteboardRouter = function(app): void {
         wsClient.close()
       }
     }, 30 * 1000)
+
+    // Remove the websocket client from the room upon closing
+    wsClient.on('close', () => {
+      wsEmitter.removeClientFromRoom(wsClient, sessionId)
+    })
 
     wsClient.on('message', rawMessage => {
       if (rawMessage === 'p1ng') {
@@ -259,8 +261,7 @@ const whiteboardRouter = function(app): void {
         ? messageHandlers[message.messageType]({
             message,
             sessionId,
-            wsClient,
-            route: this
+            wsClient
           })
         : wsClient.send({ error: 'unsupported message type' })
     })
