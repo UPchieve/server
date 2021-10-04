@@ -733,6 +733,9 @@ export default {
         this.errors.push('A password is required.')
         this.invalidInputs.push('inputPassword')
       }
+      if(!this.profile.currentGrade) {
+        this.errors.push('You must enter the current grade you are in.')
+      }
 
       if (!this.errors.length) this.submit()
     },
@@ -745,6 +748,7 @@ export default {
         lastName: this.profile.lastName,
         highSchoolId: this.eligibility.highSchool.upchieveId,
         zipCode: this.eligibility.zipCode,
+        currentGrade: this.profile.currentGrade,
         referredByCode: window.localStorage.getItem('upcReferredByCode')
       })
         .then(() => {
