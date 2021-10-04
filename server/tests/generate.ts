@@ -224,6 +224,7 @@ export const buildStudent = (overrides = {}): Student => {
     zipCode: '11201',
     studentPartnerOrg: 'example',
     partnerSite: '',
+    // currentGrade: '',
     ...overrides
   }
 
