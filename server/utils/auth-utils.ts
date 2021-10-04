@@ -37,8 +37,10 @@ interface UserRegData {
 export interface StudentRegData extends UserRegData {
   highSchoolId?: string
   zipCode?: string
+  currentGrade?: string
 }
 
+//PartnerStudentData extends StudentRegData, but shouldn't have to store currentGrade since not an open student?
 export interface PartnerStudentRegData extends StudentRegData {
   studentPartnerOrg: string
   partnerUserId?: string
@@ -79,7 +81,8 @@ const userRegDataValidators = {
 export const asStudentRegData = asFactory<StudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
-  zipCode: asOptional(asString)
+  zipCode: asOptional(asString),
+  currentGrade: asOptional(asString)
 })
 
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({

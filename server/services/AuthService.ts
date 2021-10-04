@@ -176,7 +176,8 @@ export async function registerOpenStudent(
     terms,
     referredByCode,
     firstName,
-    lastName
+    lastName,
+    currentGrade
   } = asStudentRegData(data)
 
   await checkCredential({ email, password })
@@ -210,6 +211,7 @@ export async function registerOpenStudent(
     verified: false,
     referredBy,
     password,
+    currentGrade,
     ipAddresses: [
       { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
     ]
