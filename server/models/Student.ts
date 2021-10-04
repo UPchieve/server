@@ -32,7 +32,18 @@ const studentSchema = new Schema(
     zipCode: String,
     studentPartnerOrg: String,
     partnerSite: String,
-    currentGrade: String
+    currentGrade: {
+      type: String,
+      required: true,
+      enum: [
+        '8th grade',
+        '9th grade',
+        '10th grade',
+        '11th grade',
+        '12th grade',
+        'Other'
+      ]
+    }
   },
   schemaOptions
 )
