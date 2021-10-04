@@ -25,8 +25,7 @@ import * as AuthService from '../../services/AuthService'
 import {
   RegistrationError,
   ResetError,
-  checkPassword,
-  PartnerStudentRegData
+  checkPassword
 } from '../../utils/auth-utils'
 import { NotAllowedError, InputError, LookupError } from '../../models/Errors'
 
