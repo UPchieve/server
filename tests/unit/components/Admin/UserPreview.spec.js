@@ -1,20 +1,27 @@
-// import UserPreview from '@/components/Admin/UserPreview'
-// import { shallowMount } from "@vue/test-utils";
+import UserPreview from '@/components/Admin/UserPreview'
+import { shallowMount } from "@vue/test-utils";
 
+const getWrapper = () => {
+  return shallowMount(UserPreview, {
+    propsData: {
+      user: Object
+    }
+  });
+};
 
-// describe("UserPreview", ()=> {
-//   it("layout", () => {
-//     const wrapper = shallowMount(UserPreview);
-//     expect(wrapper.classes("user-preview")).toBe(true);
-//     expect(wrapper.find(".user-preview__icon").exists()).toBe(true);
-//     expect(wrapper.find(".user-preview__middle").exists()).toBe(true);
-//     expect(wrapper.find(".user-preview__title").exists()).toBe(true);
-//     expect(wrapper.find(".user-preview__subtitle").exists()).toBe(true);
-//     expect(wrapper.find(".user-preview__right").exists()).toBe(true);
-//   });
+describe("UserPreview", ()=> {
+  it("layout", () => {
+    const wrapper = getWrapper();
+    expect(wrapper.classes("user-preview")).toBe(true);
+    expect(wrapper.find(".user-preview__icon").exists()).toBe(true);
+    expect(wrapper.find(".user-preview__middle").exists()).toBe(true);
+    expect(wrapper.find(".user-preview__title").exists()).toBe(true);
+    expect(wrapper.find(".user-preview__subtitle").exists()).toBe(true);
+    expect(wrapper.find(".user-preview__right").exists()).toBe(true);
+  });
 
   // it("renders the pastSessions correctly", () => {
-  //   const wrapper = mount(UserPreview, {
+  //   const wrapper = shallowMount(UserPreview, {
   //     propsData: {
   //       user: Object
   //     }
@@ -26,6 +33,6 @@
 
   // });
 
-// });
+});
 
 //@todo check why this is failing at "cannot read property '__id' of undefined"
