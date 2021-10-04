@@ -84,7 +84,7 @@ describe('Volunteer first session congrats email', () => {
       }
     }
 
-    expect(emailVolunteerFirstSessionCongrats(job)).rejects.toEqual(
+    await expect(emailVolunteerFirstSessionCongrats(job)).rejects.toEqual(
       Error(
         `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
       )

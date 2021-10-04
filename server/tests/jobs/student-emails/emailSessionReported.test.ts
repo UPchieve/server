@@ -26,7 +26,7 @@ afterAll(async () => {
   await mongoose.connection.close()
 })
 
-describe('Session reported emails', async () => {
+describe('Session reported emails', () => {
   const errorMessage = 'error'
   const reportReason = SESSION_REPORT_REASON.STUDENT_RUDE
   const reportMessage = 'test message'

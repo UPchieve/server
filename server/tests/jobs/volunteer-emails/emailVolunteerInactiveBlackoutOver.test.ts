@@ -18,7 +18,7 @@ const mockedVolunteerService = mocked(VolunteerService, true)
 jest.mock('../../../services/AvailabilityService')
 const mockedAvailabilityService = mocked(AvailabilityService, true)
 
-describe('Test process volunteer subroutine', async () => {
+describe('Test process volunteer subroutine', () => {
   const volunteer: ContactInfo = {
     _id: Types.ObjectId().toString(),
     firstname: 'Test',
@@ -75,7 +75,7 @@ describe('Test process volunteer subroutine', async () => {
   })
 })
 
-describe('Test email blackout over job', async () => {
+describe('Test email blackout over job', () => {
   const volunteers = []
 
   beforeEach(() => {
