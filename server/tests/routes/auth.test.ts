@@ -31,14 +31,7 @@ const mockLogin = jest.fn()
 const mockLogout = jest.fn()
 const mockDestroy = jest.fn()
 
-app.use(
-  mockPassportMiddleware(
-    mockGetUser,
-    mockLogin,
-    mockLogout, 
-    mockDestroy
-  )
-)
+app.use(mockPassportMiddleware(mockGetUser, mockLogin, mockLogout, mockDestroy))
 
 AuthRouter.routes(app)
 
