@@ -372,6 +372,17 @@
         </div>
       </div>
     </div>
+  
+    <div class="uc-column">
+      <div class="uc-form-label">
+        What grade are you in (2021-22)?
+      </div>
+      <v-select
+        class="uc-form-body__select"
+        :options="gradeLevels"
+        :searchable="false"
+        ></v-select>
+    </div>
 
     <div class="uc-column">
       <label for="inputPassword" class="uc-form-label">
@@ -455,7 +466,17 @@ export default {
     ErrorBadge
   },
   data() {
+    const gradeLevels = [
+      '8th grade',
+      '9th grade',
+      '10th grade',
+      '11th grade',
+      '12th grade',
+      'College',
+      'Other'
+    ]
     return {
+      gradeLevels,
       partnerSignupCode: '',
       showSignupCodeDecision: true,
       msg: '',
@@ -777,6 +798,12 @@ export default {
 <style lang="scss" scoped>
 .uc-form-body {
   @include child-spacing(top, 25px);
+
+  &__select {
+    font-size: 18px;
+    height: 48px;
+    width: 100%;
+  }
 }
 
 .step-title {
