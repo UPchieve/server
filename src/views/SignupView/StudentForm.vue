@@ -474,7 +474,8 @@ export default {
       },
       profile: {
         firstName: '',
-        lastName: ''
+        lastName: '',
+        currentGrade: ''
       },
       step: '',
       hasStartedSearchingForSchool: false,
