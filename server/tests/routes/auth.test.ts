@@ -1,13 +1,11 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
-import { Response, NextFunction } from 'express'
 
 import { StudentDocument } from '../../models/Student'
 import { VolunteerDocument } from '../../models/Volunteer'
-import { LoadedRequest } from '../../router/app'
 import * as AuthService from '../../services/AuthService'
 import * as AuthRouter from '../../router/auth'
-import { mockApp } from '../mock-app'
+import { mockApp, mockPassportMiddleware } from '../mock-app'
 import { buildStudent } from '../generate'
 
 jest.mock('../../services/AuthService')
@@ -28,22 +26,19 @@ const AUTH_ROUTE = '/auth'
 
 const app = mockApp()
 
+const mockGetUser = () => buildStudent()
 const mockLogin = jest.fn()
+const mockLogout = jest.fn()
 const mockDestroy = jest.fn()
-const mockPassportMiddleware = (
-  req: LoadedRequest,
-  res: Response,
-  next: NextFunction
-): void => {
-  req.user = buildStudent()
-  req.login = mockLogin
-  // @ts-expect-error: mocking a partial express session
-  req.session = {
-    destroy: mockDestroy
-  }
-  next()
-}
-app.use(mockPassportMiddleware)
+
+app.use(
+  mockPassportMiddleware(
+    mockGetUser,
+    mockLogin,
+    mockLogout, 
+    mockDestroy
+  )
+)
 
 AuthRouter.routes(app)
 
@@ -174,6 +169,7 @@ describe('Test router logic', () => {
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(1)
     expect(mockDestroy).toHaveBeenCalledTimes(1)
+    expect(mockLogout).toBeCalledTimes(1)
     expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(1)
     expect(msg).toEqual(
       'If an account with this email address exists then we will send a password reset email'

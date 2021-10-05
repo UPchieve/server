@@ -26,17 +26,23 @@ export function mockApp(): express.Express {
   return app
 }
 
-export function mockPassportMiddleware(getUser: () => Student | Volunteer) {
+export function mockPassportMiddleware(
+  getUser: () => Student | Volunteer,
+  login?: Function,
+  logout?: Function,
+  destroy?: Function
+) {
   return (
     req: LoadedRequest,
     res: express.Response,
     next: express.NextFunction
   ): void => {
     req.user = getUser()
-    req.login = jest.fn()
-    // @ts-expect-error: mocking a partial express session
+    req.login = login || jest.fn()
+    req.logout = logout || jest.fn()
     req.session = {
-      destroy: jest.fn()
+      // @ts-expect-error: mocking a partial express session
+      destroy: destroy || jest.fn()
     }
     next()
   }

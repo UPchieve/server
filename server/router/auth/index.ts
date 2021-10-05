@@ -13,7 +13,7 @@ import { LoadedRequest } from '../app'
 export function routes(app: Express) {
   const router = Router()
 
-  router.route('/logout').get(async function(req, res) {
+  router.route('/logout').get(async function(req: LoadedRequest, res) {
     req.session.destroy(() => {
       /* do nothing */
     })
@@ -23,7 +23,6 @@ export function routes(app: Express) {
     // want to log out of a laptop they share with a sibling, but stay logged
     // in on their mobile device, for example.
 
-    // @ts-expect-error
     req.logout()
     res.json({
       msg: 'You have been logged out'
@@ -189,7 +188,6 @@ export function routes(app: Express) {
     })
     if (userId) {
       await AuthService.deleteAllUserSessions(userId.toString())
-      // @ts-expect-error
       req.logout()
     }
     res.status(200).json({
