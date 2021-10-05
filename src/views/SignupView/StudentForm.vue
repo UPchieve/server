@@ -734,7 +734,7 @@ export default {
         this.errors.push('A password is required.')
         this.invalidInputs.push('inputPassword')
       }
-      if(!this.profile.currentGrade) {
+      if (!this.profile.currentGrade) {
         this.errors.push('You must enter the current grade you are in.')
       }
 

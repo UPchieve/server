@@ -42,7 +42,7 @@ export interface StudentRegData extends BasicStudentRegData {
   currentGrade?: string
 }
 
-//PartnerStudentData extends StudentRegData, but shouldn't have to store currentGrade since not an open student?
+// PartnerStudentData extends StudentRegData, but shouldn't have to store currentGrade since not an open student
 export interface PartnerStudentRegData extends BasicStudentRegData {
   studentPartnerOrg: string
   partnerUserId?: string
