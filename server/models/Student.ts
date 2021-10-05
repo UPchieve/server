@@ -41,6 +41,7 @@ const studentSchema = new Schema(
         '10th grade',
         '11th grade',
         '12th grade',
+        'College',
         'Other'
       ]
     }
