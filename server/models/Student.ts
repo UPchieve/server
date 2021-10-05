@@ -2,7 +2,15 @@ import { Document, Schema, Types } from 'mongoose'
 import UserModel, { User } from './User'
 import { School } from './School'
 
-const CurrentGrade = ['8th grade', '9th grade', '10th grade',  '11th grade', '12th grade', 'College', 'Other']
+const CurrentGrade = [
+  '8th grade',
+  '9th grade',
+  '10th grade',
+  '11th grade',
+  '12th grade',
+  'College',
+  'Other'
+]
 
 export interface Student extends User {
   approvedHighschool: School | Types.ObjectId
