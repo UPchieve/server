@@ -62,7 +62,7 @@ const mockedAnalyticsService = mocked(AnalyticsService, true)
 
 // TODO: remove need for DB connection entirely using Repos
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true
