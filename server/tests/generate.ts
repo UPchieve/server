@@ -36,7 +36,7 @@ import { Student } from '../models/Student'
 import { Session } from '../models/Session'
 import { FeedbackVersionOne, FeedbackVersionTwo } from '../models/Feedback'
 import {
-  StudentRegData,
+  OpenStudentRegData,
   PartnerStudentRegData,
   VolunteerRegData,
   PartnerVolunteerRegData
@@ -275,8 +275,8 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
 }
 
 export const buildStudentRegistrationForm = (
-  overrides: Partial<StudentRegData> = {}
-): StudentRegData => {
+  overrides: Partial<OpenStudentRegData> = {}
+): OpenStudentRegData => {
   const student = buildStudent()
   const form = {
     ip: '0.0.0.0',
@@ -288,7 +288,7 @@ export const buildStudentRegistrationForm = (
     zipCode: '11201',
     highSchoolId: '111111111111',
     ...overrides
-  } as StudentRegData
+  } as OpenStudentRegData
 
   return form
 }
