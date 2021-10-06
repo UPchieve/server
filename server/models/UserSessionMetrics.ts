@@ -9,8 +9,9 @@ import {
   SchemaTypeOpts,
   UpdateQuery
 } from 'mongoose'
-import UserModel, { User } from './User'
+import { User } from './User'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
+import { validUser } from '../utils/validators'
 
 // The MetricType and METRIC_TYPES below outline the underlying value type of
 // metrics and the path to such metrics on the USM object
@@ -89,15 +90,6 @@ export const UserSessionMetricsModel = model<UserSessionMetricsDocument>(
   UserSessionMetricsCollection,
   userSessionMetricsSchema
 )
-
-// Utilities
-async function validUser(userId: Types.ObjectId | string): Promise<boolean> {
-  const user = await UserModel.findById(userId)
-    .lean()
-    .exec()
-  if (!user) return false
-  return true
-}
 
 // Create functions
 export async function createByUserId(

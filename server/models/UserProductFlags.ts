@@ -1,15 +1,10 @@
 /* eslint @typescript-eslint/no-use-before-define: 0 */
 
 import { merge } from 'lodash'
-import {
-  Document,
-  model,
-  Schema,
-  Types,
-  UpdateQuery
-} from 'mongoose'
-import UserModel, { User } from './User'
+import { Document, model, Schema, Types, UpdateQuery } from 'mongoose'
+import { User } from './User'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
+import { validUser } from '../utils/validators'
 
 export interface UserProductFlags {
   _id: Types.ObjectId
@@ -39,16 +34,6 @@ export const UserProductFlagsModel = model<UserProductFlagsDocument>(
   UserProductFlagsCollection,
   UserProductFlagsSchema
 )
-
-// Utilities
-// @todo: move to a utils file
-async function validUser(userId: Types.ObjectId | string): Promise<boolean> {
-  const user = await UserModel.findById(userId)
-    .lean()
-    .exec()
-  if (!user) return false
-  return true
-}
 
 // Create functions
 export async function createByUserId(
