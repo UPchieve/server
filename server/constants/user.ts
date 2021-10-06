@@ -102,3 +102,13 @@ export enum ONBOARDING_STATUS {
   IN_PROGRESS = 'In progress',
   NOT_STARTED = 'Not started'
 }
+
+export enum GRADES {
+  EIGHTH = '8th grade',
+  NINTH = '9th grade',
+  TENTH = '10th grade',
+  ELEVENTH = '11th grade',
+  TWELVETH = '12th grade',
+  COLLEGE = 'College',
+  OTHER = 'Other'
+}
