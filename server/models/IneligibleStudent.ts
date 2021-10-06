@@ -1,17 +1,8 @@
 import { Document, model, Schema, Types } from 'mongoose'
 import { values } from 'lodash'
+import { GRADES } from '../../server/constants/user'
 import { School } from './School'
 import { User } from './User'
-
-enum GRADES {
-  EIGHTH = '8th grade',
-  NINTH = '9th grade',
-  TENTH = '10th grade',
-  ELEVENTH = '11th grade',
-  TWELVETH = '12th grade',
-  COLLEGE = 'College',
-  OTHER = 'Other'
-}
 
 export interface IneligibleStudent {
   _id: Types.ObjectId
