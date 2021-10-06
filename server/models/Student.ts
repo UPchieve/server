@@ -18,7 +18,7 @@ export interface Student extends User {
   zipCode: string
   studentPartnerOrg: string
   partnerSite: string
-  currentGrade: GRADES[] // OR string[]?
+  currentGrade: GRADES
 }
 
 export type StudentDocument = Student & Document
@@ -44,7 +44,7 @@ const studentSchema = new Schema(
     studentPartnerOrg: String,
     partnerSite: String,
     currentGrade: {
-      type: [String],
+      type: String,
       required: true,
       enum: values(GRADES)
     }
