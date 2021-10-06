@@ -2,22 +2,22 @@ import { Document, Schema, Types } from 'mongoose'
 import UserModel, { User } from './User'
 import { School } from './School'
 
-const CurrentGrade = [
-  '8th grade',
-  '9th grade',
-  '10th grade',
-  '11th grade',
-  '12th grade',
-  'College',
-  'Other'
-]
+const enum GRADES {
+  EIGHTH = '8th grade',
+  NINTH = '9th grade',
+  TENTH = '10th grade',
+  ELEVENTH = '11th grade',
+  TWELVETH = '12th grade',
+  COLLEGE = 'College',
+  OTHER = 'Other'
+}
 
 export interface Student extends User {
   approvedHighschool: School | Types.ObjectId
   zipCode: string
   studentPartnerOrg: string
   partnerSite: string
-  currentGrade: typeof CurrentGrade[number]
+  currentGrade: typeof GRADES
 }
 
 export type StudentDocument = Student & Document
