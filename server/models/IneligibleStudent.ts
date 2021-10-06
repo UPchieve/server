@@ -1,7 +1,7 @@
 import { Document, model, Schema, Types } from 'mongoose'
+import { values } from 'lodash'
 import { School } from './School'
 import { User } from './User'
-import { values } from 'lodash'
 
 enum GRADES {
   EIGHTH = '8th grade',
