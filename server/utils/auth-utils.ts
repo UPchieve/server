@@ -10,9 +10,16 @@ import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import UserService from '../services/UserService'
 import { EVENTS } from '../constants'
+import { GRADES } from '../constants/user'
 import { LookupError } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
-import { asString, asBoolean, asFactory, asOptional } from './type-utils'
+import {
+  asString,
+  asBoolean,
+  asFactory,
+  asOptional,
+  asEnum
+} from './type-utils'
 
 // Custom errors
 export class RegistrationError extends CustomError {}
@@ -39,7 +46,7 @@ export interface StudentRegData extends UserRegData {
   zipCode?: string
 }
 export interface OpenStudentRegData extends StudentRegData {
-  currentGrade?: string
+  currentGrade?: GRADES
 }
 
 export interface PartnerStudentRegData extends StudentRegData {
@@ -83,7 +90,7 @@ export const asStudentRegData = asFactory<OpenStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
-  currentGrade: asString
+  currentGrade: asEnum(GRADES)
 })
 
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({

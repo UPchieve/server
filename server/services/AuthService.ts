@@ -101,7 +101,8 @@ export async function registerStudent(data: unknown): Promise<StudentDocument> {
     terms,
     referredByCode,
     firstName,
-    lastName
+    lastName,
+    currentGrade
   } = asStudentRegData(data)
   const {
     studentPartnerOrg,
@@ -154,6 +155,7 @@ export async function registerStudent(data: unknown): Promise<StudentDocument> {
     verified: false,
     referredBy,
     password,
+    currentGrade,
     ipAddresses: [
       { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
     ]

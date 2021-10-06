@@ -44,6 +44,7 @@ import {
 import { Notification } from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { UserSessionMetrics } from '../models/UserSessionMetrics'
+import { GRADES } from '../constants/user'
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
@@ -224,7 +225,7 @@ export const buildStudent = (overrides = {}): Student => {
     zipCode: '11201',
     studentPartnerOrg: 'example',
     partnerSite: '',
-    currentGrade: '',
+    currentGrade: GRADES.COLLEGE,
     ...overrides
   }
 
@@ -287,6 +288,7 @@ export const buildStudentRegistrationForm = (
     terms: true,
     zipCode: '11201',
     highSchoolId: '111111111111',
+    currentGrade: GRADES.COLLEGE,
     ...overrides
   } as OpenStudentRegData
 
