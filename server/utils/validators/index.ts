@@ -1,5 +1,5 @@
-import UserModel from '../../models/User'
 import { Types } from 'mongoose'
+import UserModel from '../../models/User'
 
 export async function validUser(
   userId: Types.ObjectId | string

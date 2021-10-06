@@ -9,9 +9,9 @@ import {
   SchemaTypeOpts,
   UpdateQuery
 } from 'mongoose'
+import { validUser } from '../utils/validators'
 import { User } from './User'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
-import { validUser } from '../utils/validators'
 
 // The MetricType and METRIC_TYPES below outline the underlying value type of
 // metrics and the path to such metrics on the USM object

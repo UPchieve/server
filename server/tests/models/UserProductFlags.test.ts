@@ -1,17 +1,9 @@
 import mongoose from 'mongoose'
-import { merge } from 'lodash'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags'
 import UserModel, { User } from '../../models/User'
-import {
-  RepoCreateError,
-  RepoReadError,
-  RepoUpdateError
-} from '../../models/Errors'
+import { RepoCreateError, RepoReadError } from '../../models/Errors'
 import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
 import { mockMongooseFindQuery } from '../utils'
-import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
-import { USER_SESSION_METRICS } from '../../constants'
-import { buildStudent } from '../generate'
 
 async function resetUPF(): Promise<void> {
   await UserProductFlagsRepo.UserProductFlagsModel.deleteMany({})

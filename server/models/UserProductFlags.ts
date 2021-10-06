@@ -1,15 +1,14 @@
 /* eslint @typescript-eslint/no-use-before-define: 0 */
 
-import { merge } from 'lodash'
 import { Document, model, Schema, Types, UpdateQuery } from 'mongoose'
-import { User } from './User'
-import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
 import { validUser } from '../utils/validators'
+import { User } from './User'
+import { RepoCreateError, RepoReadError } from './Errors'
 
 export interface UserProductFlags {
   _id: Types.ObjectId
   user: Types.ObjectId | User
-  gatesQualified: Boolean
+  gatesQualified: boolean
 }
 
 export type UserProductFlagsDocument = UserProductFlags & Document
