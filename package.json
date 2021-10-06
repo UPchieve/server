@@ -21,7 +21,7 @@
     "start-local": "ts-node server/init.ts && node build/main",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "jest -c jest.config.server.js --silent --group=-email --max_old_space_size=4096",
-    "test:backend:debug": "jest -c jest.config.server.js --detectOpenHandles",
+    "test:backend:debug": "jest -c jest.config.server.js --detectOpenHandles --group=-email",
     "test:backend:full": "jest -c jest.config.server.js --detectOpenHandles --silent",
     "test:backend:watch": "jest -c jest.config.server.js --watch --runInBand --detectOpenHandles",
     "test:frontend": "vue-cli-service test:unit -c jest.config.vue.js",

@@ -43,7 +43,8 @@ module.exports = {
           'error', {
             'ignoreRestSiblings': true
           }
-        ]
+        ],
+        '@typescript-eslint/no-namespace': 'off'
       },
       parserOptions: {
         ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features
