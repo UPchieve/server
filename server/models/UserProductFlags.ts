@@ -98,24 +98,3 @@ export async function getByUserId(
 
 // Update functions
 export type UserProductFlagsUpdateQuery = UpdateQuery<UserProductFlagsDocument>
-
-export async function executeUpdatesByUserId(
-  userId: Types.ObjectId | string,
-  queries: UserProductFlagsUpdateQuery[]
-): Promise<void> {
-  const update = {}
-  for (const q of queries) {
-    merge(update, q)
-  }
-  try {
-    const result = await UserProductFlagsModel.updateOne(
-      { user: userId },
-      update
-    )
-    if (!result.ok) throw new Error('Update query did not return "ok"')
-  } catch (err) {
-    throw new RepoUpdateError(
-      `Failed to execute update ${update} for user ${userId}: ${err.message}`
-    )
-  }
-}
