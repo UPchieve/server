@@ -1,8 +1,9 @@
 import { Document, Schema, Types } from 'mongoose'
+import { values } from 'lodash'
 import UserModel, { User } from './User'
 import { School } from './School'
 
-const enum GRADES {
+enum GRADES {
   EIGHTH = '8th grade',
   NINTH = '9th grade',
   TENTH = '10th grade',
@@ -17,7 +18,7 @@ export interface Student extends User {
   zipCode: string
   studentPartnerOrg: string
   partnerSite: string
-  currentGrade: typeof GRADES
+  currentGrade: GRADES[] // OR string[]?
 }
 
 export type StudentDocument = Student & Document
@@ -43,9 +44,9 @@ const studentSchema = new Schema(
     studentPartnerOrg: String,
     partnerSite: String,
     currentGrade: {
-      type: String,
+      type: [String],
       required: true,
-      enum: CurrentGrade
+      enum: values(GRADES)
     }
   },
   schemaOptions
