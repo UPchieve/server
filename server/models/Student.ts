@@ -2,16 +2,7 @@ import { Document, Schema, Types } from 'mongoose'
 import { values } from 'lodash'
 import UserModel, { User } from './User'
 import { School } from './School'
-
-enum GRADES {
-  EIGHTH = '8th grade',
-  NINTH = '9th grade',
-  TENTH = '10th grade',
-  ELEVENTH = '11th grade',
-  TWELVETH = '12th grade',
-  COLLEGE = 'College',
-  OTHER = 'Other'
-}
+import { GRADES } from '../../server/constants/user'
 
 export interface Student extends User {
   approvedHighschool: School | Types.ObjectId
