@@ -25,7 +25,10 @@ const UserProductFlagsSchema = new Schema({
       message: props => `${props.value} is not a valid user`
     }
   },
-  gatesQualified: Boolean
+  gatesQualified: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const UserProductFlagsCollection = 'UserProductFlags'
