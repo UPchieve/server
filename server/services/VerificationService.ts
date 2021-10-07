@@ -1,5 +1,10 @@
 import { VERIFICATION_METHOD } from '../constants'
-import { asFactory, asString, asEnum } from '../utils/type-utils'
+import {
+  asFactory,
+  asString,
+  asEnum,
+  asStringObjectId
+} from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
@@ -16,7 +21,7 @@ export interface InitiateVerificationData {
 }
 
 const asInitiateVerificationData = asFactory<InitiateVerificationData>({
-  userId: asString, // TODO: use asObjectIdString
+  userId: asStringObjectId, // parsed from request as string
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   firstName: asString
@@ -30,7 +35,7 @@ export interface ConfirmVerificationData {
 }
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
-  userId: asString, // TODO: use asObjectIdString
+  userId: asStringObjectId, // parsed from request as string
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString

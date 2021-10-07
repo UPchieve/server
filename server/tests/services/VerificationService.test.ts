@@ -1,4 +1,5 @@
 import { mocked } from 'ts-jest/utils'
+import { Types } from 'mongoose'
 
 import { getEmail, buildStudent, buildVolunteer } from '../generate'
 import {
@@ -78,7 +79,7 @@ describe('initiate verification', () => {
     mockedUserService.getUser.mockResolvedValueOnce(student)
 
     const payload = {
-      userId: 'fakeId',
+      userId: Types.ObjectId().toString(),
       sendTo: student.email,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       firstName: student.firstname
