@@ -8,7 +8,8 @@ import Volunteer, {
   VolunteerDocument
 } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
-import { createByUserId } from '../models/UserSessionMetrics'
+import { createByUserId as createUSMByUserId } from '../models/UserSessionMetrics'
+import { createByUserId as createUPFByUserId } from '../models/UserProductFlags'
 import { AccountActionCreator } from './UserActionCtrl'
 
 const {
@@ -60,7 +61,14 @@ export async function createStudent(
 
   // Create a USM object for this new user
   try {
-    await createByUserId(student._id)
+    await createUSMByUserId(student._id)
+  } catch (err) {
+    captureException(err)
+  }
+
+  // Create a UPF object for this new user
+  try {
+    await createUPFByUserId(student._id)
   } catch (err) {
     captureException(err)
   }
@@ -101,7 +109,14 @@ export async function createVolunteer(
 
   // Create a USM object for this new user
   try {
-    await createByUserId(volunteer._id)
+    await createUSMByUserId(volunteer._id)
+  } catch (err) {
+    captureException(err)
+  }
+
+  // Create a UPF object for this new user
+  try {
+    await createUPFByUserId(volunteer._id)
   } catch (err) {
     captureException(err)
   }
