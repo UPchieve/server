@@ -23,12 +23,6 @@ import logger from '../logger'
 import * as cache from '../cache'
 import { NotAllowedError } from '../models/Errors'
 import { SESSION_EVENTS } from '../constants/events'
-import {
-  UserSessionMetrics,
-  getByUserId,
-  executeUpdatesByUserId
-} from '../models/UserSessionMetrics'
-import { safeAsync } from '../utils/safe-async'
 import * as VolunteerService from './VolunteerService'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
@@ -44,7 +38,6 @@ import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
 import { captureEvent } from './AnalyticsService'
 import * as PushTokenService from './PushTokenService'
 import { emitter } from './EventsService'
-import { METRIC_PROCESSORS } from './UserSessionMetricsService/metrics'
 
 const {
   getSessionById,

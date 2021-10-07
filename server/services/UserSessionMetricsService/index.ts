@@ -88,7 +88,7 @@ export async function prepareFeedbackProcessors(
 
 // registered as listener on session-reported
 export async function prepareReportProcessors(
-  sessionId: Types.ObjectId | string,
+  sessionId: Types.ObjectId | string
 ): Promise<void> {
   const {
     session,
@@ -323,7 +323,6 @@ export const processReportReviewReasons = metricProcessorFactory(
     }
   }
 )
-
 
 // registered as listener on {ANY}-processors-ready
 export const processStudentUpdateQuery = metricProcessorFactory(
