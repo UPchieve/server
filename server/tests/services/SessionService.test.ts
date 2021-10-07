@@ -305,9 +305,7 @@ describe('addPastSession', () => {
       volunteer: getObjectId()
     })
     const sessionId = mockValue._id.toString()
-    mockedSessionRepo.getSessionById.mockImplementationOnce(
-      async () => mockValue
-    )
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(mockValue)
 
     await SessionService.addPastSession(sessionId)
     expect(UserService.addPastSession).toHaveBeenCalledTimes(2)
