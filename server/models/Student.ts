@@ -36,7 +36,6 @@ const studentSchema = new Schema(
     partnerSite: String,
     currentGrade: {
       type: String,
-      required: true,
       enum: values(GRADES)
     }
   },
