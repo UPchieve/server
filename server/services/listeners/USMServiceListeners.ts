@@ -21,7 +21,7 @@ export function listeners() {
   register(
     SESSION_EVENTS.SESSION_REPORTED,
     USMService.prepareReportProcessors,
-    'prepareFeedbackProcessors'
+    'prepareReportProcessors'
   )
 
   // process post-session metrics
@@ -50,12 +50,12 @@ export function listeners() {
   register(
     USM_EVENTS.REPORT_PROCESSORS_READY,
     USMService.processReportFlags,
-    'processSessionFlags'
+    'processReportFlags'
   )
   register(
     USM_EVENTS.REPORT_PROCESSORS_READY,
     USMService.processReportReviewReasons,
-    'processSessionReviewReasons'
+    'processReportReviewReasons'
   )
 
   // save student metrics
