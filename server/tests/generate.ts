@@ -225,7 +225,7 @@ export const buildStudent = (overrides = {}): Student => {
     zipCode: '11201',
     studentPartnerOrg: 'example',
     partnerSite: '',
-    currentGrade: GRADES.COLLEGE,
+    currentGrade: GRADES.EIGHTH,
     ...overrides
   }
 
@@ -288,7 +288,7 @@ export const buildStudentRegistrationForm = (
     terms: true,
     zipCode: '11201',
     highSchoolId: '111111111111',
-    currentGrade: GRADES.COLLEGE,
+    currentGrade: GRADES.EIGHTH,
     ...overrides
   } as OpenStudentRegData
 
