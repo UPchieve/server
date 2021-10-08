@@ -649,7 +649,8 @@ export default {
         schoolUpchieveId: this.eligibility.highSchool.upchieveId,
         zipCode: this.eligibility.zipCode,
         email: this.eligibility.email,
-        referredByCode: window.localStorage.getItem('upcReferredByCode')
+        referredByCode: window.localStorage.getItem('upcReferredByCode'),
+        currentGrade: this.profile.currentGrade
       })
         .then(async response => {
           const isEligible = response.body.isEligible

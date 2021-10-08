@@ -20,7 +20,8 @@ export function routes(app: Express) {
       schoolUpchieveId,
       zipCode: zipCodeInput,
       email,
-      referredByCode
+      referredByCode,
+      currentGrade
     } = req.body
 
     const existingUser = await UserService.getUser({ email })
@@ -50,7 +51,8 @@ export function routes(app: Express) {
           zipCode: zipCodeInput,
           school: school._id,
           ipAddress: req.ip,
-          referredBy
+          referredBy,
+          currentGrade
         })
 
         newIneligibleStudent.save()
