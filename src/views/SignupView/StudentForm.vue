@@ -273,7 +273,7 @@
     </div>
 
     <div class="uc-column">
-      <div>
+      <div class="uc-form-label">
         What grade are you in (2021-22)?
       </div>
       <v-select
