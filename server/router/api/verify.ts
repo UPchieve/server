@@ -24,10 +24,10 @@ export function routeVerify(router: Router) {
     } catch (err) {
       const status = err.status
       let message: string
-      if (err.status === 429) {
+      if (status === 429) {
         message =
           "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
-      } else if (err.status === 404) {
+      } else if (status === 404) {
         // Twilio verification resoure was not found
         message =
           'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
