@@ -3,7 +3,7 @@
 import { Document, model, Schema, Types, UpdateQuery } from 'mongoose'
 import { validUser } from '../utils/validators'
 import { User } from './User'
-import { RepoCreateError, RepoReadError } from './Errors'
+import { RepoCreateError, RepoReadError, DocUpdateError } from './Errors'
 
 export interface UserProductFlags {
   _id: Types.ObjectId
@@ -100,3 +100,18 @@ export async function getByUserId(
 
 // Update functions
 export type UserProductFlagsUpdateQuery = UpdateQuery<UserProductFlagsDocument>
+
+export async function updateGatesQualifiedFlag(
+  userId: Types.ObjectId | string,
+  status: boolean
+): Promise<void> {
+  const query = { user: userId }
+  const update: UserProductFlagsUpdateQuery = {
+    gatesQualified: status
+  }
+  try {
+    await UserProductFlagsModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
