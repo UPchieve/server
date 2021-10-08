@@ -9,37 +9,104 @@ import { getStringObjectId, buildGatesQualifiedData } from '../generate'
 
 jest.mock('../../models/UserProductFlags')
 jest.mock('../../utils/gates-study-utils')
+jest.mock('unleash-client', () => {
+  return {
+    isEnabled: jest.fn()
+  }
+})
 
 const mockUserProductFlagsRepo = mocked(UserProductFlagsRepo, true)
 const mockedUnleashClient = mocked(unleashClient, true)
 const mockedGatesStudyUtils = mocked(gatesStudyUtils, true)
 
+beforeEach(() => {
+  jest.resetAllMocks()
+})
+
 describe('processGatesQualifiedSession', () => {
-  test('Feature flag is on', async () => {
-    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(false)
-    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
-    expect(mockUserProductFlagsRepo).toBeCalledTimes(1)
-  })
+  test('Student completes a Gates-qualified session when the Gates feature flag is on', async () => {
+    const isFeatureFlagOn = true
+    const isWithinStudyPeriod = false
+    const isGatesQualified = true
+    const mockQualificationData = buildGatesQualifiedData()
 
-  test('Feature flag is off', async () => {
-    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(false)
-    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
-    expect(mockUserProductFlagsRepo).toBeCalledTimes(0)
-  })
-
-  test('Date is not within the Gates study date range', async () => {
-    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(false)
-    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
-    expect(mockUserProductFlagsRepo).toBeCalledTimes(0)
-  })
-
-  test('Date is not within the Gates study date range', async () => {
-    const mockGatesQualifiedData = buildGatesQualifiedData()
-    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(true)
-    mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
-      mockGatesQualifiedData
+    mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
+    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
+      isWithinStudyPeriod
     )
+    mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
+      isGatesQualified
+    )
+    mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
+      mockQualificationData
+    )
+
     await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
-    expect(mockUserProductFlagsRepo).toBeCalledTimes(1)
+
+    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(1)
   })
+
+  test('Student completes a non-Gates-qualified session within the Gates study period', async () => {
+    const isFeatureFlagOn = false
+    const isWithinStudyPeriod = true
+    const isGatesQualified = false
+
+    mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
+    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
+      isWithinStudyPeriod
+    )
+    mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
+      isGatesQualified
+    )
+
+    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
+
+    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(0)
+  })
+
+  test('Student completes a Gates-qualified session within the study period and the Gates feature flag is off', async () => {
+    const isFeatureFlagOn = false
+    const isWithinStudyPeriod = true
+    const isGatesQualified = true
+    const mockQualificationData = buildGatesQualifiedData()
+
+    mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
+    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
+      isWithinStudyPeriod
+    )
+    mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
+      isGatesQualified
+    )
+    mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
+      mockQualificationData
+    )
+
+    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
+
+    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(1)
+  })
+
+  test(
+    'Student completes a Gates-qualified session outside of the study period and the Gates feature flag is off', async () => {
+      const isFeatureFlagOn = false
+      const isWithinStudyPeriod = false
+      const isGatesQualified = true
+      const mockQualificationData = buildGatesQualifiedData()
+  
+      mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
+      mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
+        isWithinStudyPeriod
+      )
+      mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
+        isGatesQualified
+      )
+      mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
+        mockQualificationData
+      )
+  
+      await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
+  
+      expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(0)
+    }
+  )
 })
