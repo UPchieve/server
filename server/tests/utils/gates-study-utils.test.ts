@@ -22,6 +22,10 @@ const mockedSessionService = mocked(SessionService, true)
 const mockedUserService = mocked(UserService, true)
 const mockedSchoolService = mocked(SchoolService, true)
 
+beforeEach(() => {
+  jest.resetAllMocks()
+})
+
 describe('isGatesQualifiedSession', () => {
   test('Should not qualify as a Gates-qualified session if the student is from a partner school', () => {
     const data = buildGatesQualifiedData({
