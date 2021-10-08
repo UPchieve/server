@@ -9,7 +9,7 @@ export interface Student extends User {
   zipCode: string
   studentPartnerOrg: string
   partnerSite: string
-  currentGrade: GRADES
+  currentGrade?: GRADES
 }
 
 export type StudentDocument = Student & Document

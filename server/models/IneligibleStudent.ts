@@ -12,7 +12,7 @@ export interface IneligibleStudent {
   school: Types.ObjectId | School
   ipAddress: string
   referredBy: Types.ObjectId | User
-  currentGrade: GRADES
+  currentGrade?: GRADES
 }
 
 export type IneligibleStudentDocument = IneligibleStudent & Document
