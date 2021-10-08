@@ -11,14 +11,14 @@ import { buildAvailability, buildVolunteer } from '../../generate'
 import { noHoursSelected } from '../../mocks/volunteer-availability'
 import VolunteerModel from '../../../models/Volunteer'
 import * as VolunteerService from '../../../services/VolunteerService'
-jest.mock('../../../logger')
+
 jest.mock('../../../services/MailService')
 
 jest.setTimeout(1000 * 15)
 
 // db connection
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true

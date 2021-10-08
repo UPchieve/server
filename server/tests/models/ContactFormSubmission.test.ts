@@ -10,7 +10,7 @@ const message = 'This is some great feedback for you!'
 const topic = 'General feedback'
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true

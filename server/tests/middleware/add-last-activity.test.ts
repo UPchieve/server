@@ -16,7 +16,7 @@ beforeEach(() => {
 })
 
 test('Should execute next() when given no req.user', () => {
-  test.todo('Proper type on this const')
+  // TODO: Proper type on this const
   const req: any = new Request()
 
   addLastActivity(req, null, mockNextCallback)
