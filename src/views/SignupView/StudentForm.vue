@@ -273,6 +273,18 @@
     </div>
 
     <div class="uc-column">
+      <div>
+        What grade are you in (2021-22)?
+      </div>
+      <v-select
+        class="uc-form-body__select"
+        v-model="profile.currentGrade"
+        :options="gradeLevels"
+        :searchable="false"
+      ></v-select>
+    </div>
+
+    <div class="uc-column">
       <label for="inputZipCode" class="uc-form-label"
         >What zip code do you live in?</label
       >
@@ -455,7 +467,18 @@ export default {
     ErrorBadge
   },
   data() {
+    const gradeLevels = [
+      '8th grade',
+      '9th grade',
+      '10th grade',
+      '11th grade',
+      '12th grade',
+      'College',
+      'Other'
+    ]
+
     return {
+      gradeLevels,
       partnerSignupCode: '',
       showSignupCodeDecision: true,
       msg: '',
@@ -735,7 +758,6 @@ export default {
         this.errors.push('A password is required.')
         this.invalidInputs.push('inputPassword')
       }
-
       if (!this.errors.length) this.submit()
     },
     submit() {
@@ -775,6 +797,11 @@ export default {
 <style lang="scss" scoped>
 .uc-form-body {
   @include child-spacing(top, 25px);
+  font-size: 18px;
+  &__select {
+    height: 48px;
+    width: 100%;
+  }
 }
 
 .step-title {
