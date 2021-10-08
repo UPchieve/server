@@ -9,11 +9,9 @@ import {
   buildSession,
   buildStudent,
   buildSchool,
-  getObjectId
+  getObjectId,
+  buildGatesQualifiedData
 } from '../generate'
-import { Student } from '../../models/Student'
-import { Session } from '../../models/Session'
-import { School } from '../../models/School'
 import { GRADES, SUBJECTS } from '../../constants'
 
 jest.mock('../../services/SessionService')
@@ -23,34 +21,6 @@ jest.mock('../../services/SchoolService')
 const mockedSessionService = mocked(SessionService, true)
 const mockedUserService = mocked(UserService, true)
 const mockedSchoolService = mocked(SchoolService, true)
-
-interface GatesQualifiedDataOverrides {
-  session?: Partial<Session>
-  student?: Partial<Student>
-  school?: Partial<School>
-}
-
-export function buildGatesQualifiedData(
-  overrides: GatesQualifiedDataOverrides = {}
-) {
-  const session = buildSession({
-    subTopic: SUBJECTS.ALGEBRA_ONE,
-    ...overrides.session
-  })
-  const student = buildStudent({
-    studentPartnerOrg: '',
-    pastSessions: [getObjectId()],
-    currentGrade: GRADES.NINTH,
-    ...overrides.student
-  })
-  const school = buildSchool({ isPartner: false, ...overrides.school })
-
-  return {
-    session,
-    student,
-    school
-  }
-}
 
 describe('isGatesQualifiedSession', () => {
   test('Should not qualify as a Gates-qualified session if the student is from a partner school', () => {

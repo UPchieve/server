@@ -5,7 +5,7 @@ import unleashClient from 'unleash-client'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags'
 import { mocked } from 'ts-jest/utils'
 
-import { getStringObjectId } from '../generate'
+import { getStringObjectId, buildGatesQualifiedData } from '../generate'
 
 jest.mock('../../models/UserProductFlags')
 jest.mock('../../utils/gates-study-utils')
@@ -36,7 +36,7 @@ describe('processGatesQualifiedSession', () => {
   test('Date is not within the Gates study date range', async () => {
     const mockGatesQualifiedData = buildGatesQualifiedData()
     mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(true)
-    mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockReturnValue(
+    mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
       mockGatesQualifiedData
     )
     await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
