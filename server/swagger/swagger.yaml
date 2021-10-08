@@ -620,6 +620,8 @@ paths:
       responses:
         '200':
           description: Schedule is cleared
+        '422':
+          description: Invalid arguments
   /api/feedback:
     get:
       tags:
@@ -1809,9 +1811,13 @@ paths:
         '200':
           description: Verification email sent
         '404':
+          description: Server unable to locate verification service
+        '429':
+          description: Too many attempts
+        '422':
           description: |
-            - If user is already verified
-            - Invalid email
+            Invalid arguments
+            User with verification number/address already exists
   /api/verify/confirm:
     post:
       tags:
@@ -1830,10 +1836,9 @@ paths:
                   type: string
       responses:
         '200':
-          description: Verification confirmed
-        '404':
-          description: |
-            - Invalid token
+          description: Verification completed, success status in payload
+        '422':
+          description: Invalid argument
   /api/volunteers:
     get:
       tags:

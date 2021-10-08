@@ -5,7 +5,7 @@ import MailService from '../../../services/MailService'
 import emailFailedFirstAttemptedQuiz from '../../../worker/jobs/volunteer-emails/emailFailedFirstAttemptedQuiz'
 import logger from '../../../logger'
 import { buildVolunteer } from '../../generate'
-jest.mock('../../../logger')
+
 jest.mock('../../../services/MailService')
 jest.mock('../../../services/VolunteerService')
 

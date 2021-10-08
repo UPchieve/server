@@ -1,12 +1,13 @@
-import { Request, Response } from 'express'
+import { Response } from 'express'
 import { captureException } from '@sentry/node'
 import {
   AccountActionCreator,
   QuizActionCreator
 } from '../controllers/UserActionCtrl'
+import { LoadedRequest } from '../router/app'
 
 export function addUserAction(
-  req: Request,
+  req: LoadedRequest,
   res: Response,
   next: Function
 ): void {

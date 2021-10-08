@@ -1,8 +1,18 @@
 import mongoose from 'mongoose'
 import request from 'supertest'
-import app from '../../app'
 import { insertVolunteer, resetDb } from '../db-utils'
-import { buildVolunteer, buildReference, authLogin } from '../generate'
+import { buildVolunteer, buildReference } from '../generate'
+import { mockApp, mockRouter, mockPassportMiddleware } from '../mock-app'
+import routeUser from '../../router/api/user'
+import { authPassport } from '../../utils/auth-utils'
+
+const app = mockApp()
+const mockGetUser = jest.fn()
+app.use(mockPassportMiddleware(mockGetUser))
+
+const router = mockRouter()
+routeUser(router)
+app.use('/api', authPassport.isAuthenticated, router)
 
 // agent stores the session when making an auth request
 const agent = request.agent(app)
@@ -32,7 +42,7 @@ jest.mock('aws-sdk', () => {
 })
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true
@@ -54,7 +64,8 @@ test('Volunteer submits a reference', async () => {
   const reference = buildReference()
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
-  await authLogin(agent, volunteer)
+  mockGetUser.mockResolvedValueOnce(volunteer)
+
   await agent
     .post('/api/user/volunteer-approval/reference')
     .send({
@@ -70,7 +81,8 @@ test('Volunteer deletes a reference', async () => {
   const references = [reference]
   const volunteer = buildVolunteer({ references })
   await insertVolunteer(volunteer)
-  await authLogin(agent, volunteer)
+  mockGetUser.mockResolvedValueOnce(volunteer)
+
   await agent
     .post('/api/user/volunteer-approval/reference/delete')
     .send({
@@ -83,7 +95,8 @@ test('Volunteer deletes a reference', async () => {
 test('Volunteer recieves an error requesting photo id upload url', async () => {
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
-  await authLogin(agent, volunteer)
+  mockGetUser.mockResolvedValueOnce(volunteer)
+
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')
     .expect(200)
@@ -101,7 +114,8 @@ test('Volunteer recieves an error requesting photo id upload url', async () => {
 test('Volunteer recieves a photo id upload url', async () => {
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
-  await authLogin(agent, volunteer)
+  mockGetUser.mockResolvedValueOnce(volunteer)
+
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')
     .expect(200)
