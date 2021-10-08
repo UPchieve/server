@@ -1,9 +1,8 @@
+import { mocked } from 'ts-jest/utils'
 import * as gatesStudyUtils from '../../utils/gates-study-utils'
 import * as SessionService from '../../services/SessionService'
 import * as UserService from '../../services/UserService'
 import * as SchoolService from '../../services/SchoolService'
-
-import { mocked } from 'ts-jest/utils'
 
 import {
   buildSession,

@@ -1,9 +1,9 @@
+import unleashClient from 'unleash-client'
+import { mocked } from 'ts-jest/utils'
 import * as GatesStudyService from '../../services/GatesStudyService'
 import * as gatesStudyUtils from '../../utils/gates-study-utils'
-import unleashClient from 'unleash-client'
 
 import * as UserProductFlagsRepo from '../../models/UserProductFlags'
-import { mocked } from 'ts-jest/utils'
 
 import { getStringObjectId, buildGatesQualifiedData } from '../generate'
 
@@ -86,27 +86,25 @@ describe('processGatesQualifiedSession', () => {
     expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(1)
   })
 
-  test(
-    'Student completes a Gates-qualified session outside of the study period and the Gates feature flag is off', async () => {
-      const isFeatureFlagOn = false
-      const isWithinStudyPeriod = false
-      const isGatesQualified = true
-      const mockQualificationData = buildGatesQualifiedData()
-  
-      mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
-      mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
-        isWithinStudyPeriod
-      )
-      mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
-        isGatesQualified
-      )
-      mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
-        mockQualificationData
-      )
-  
-      await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
-  
-      expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(0)
-    }
-  )
+  test('Student completes a Gates-qualified session outside of the study period and the Gates feature flag is off', async () => {
+    const isFeatureFlagOn = false
+    const isWithinStudyPeriod = false
+    const isGatesQualified = true
+    const mockQualificationData = buildGatesQualifiedData()
+
+    mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
+    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
+      isWithinStudyPeriod
+    )
+    mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
+      isGatesQualified
+    )
+    mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
+      mockQualificationData
+    )
+
+    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
+
+    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(0)
+  })
 })
