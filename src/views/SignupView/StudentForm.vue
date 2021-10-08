@@ -124,6 +124,19 @@
     </div>
 
     <div class="uc-column">
+      <div class="uc-form-label">
+        What grade are you in (2021-22)?
+      </div>
+      <v-select
+        class="uc-form-body__select"
+        v-model="profile.currentGrade"
+        placeholder="8th grade"
+        :options="gradeLevels"
+        :searchable="false"
+      ></v-select>
+    </div>
+
+    <div class="uc-column">
       <label for="inputZipCode" class="uc-form-label"
         >What zip code do you live in?</label
       >
@@ -279,6 +292,7 @@
       <v-select
         class="uc-form-body__select"
         v-model="profile.currentGrade"
+        placeholder="8th grade"
         :options="gradeLevels"
         :searchable="false"
       ></v-select>
@@ -797,10 +811,15 @@ export default {
 <style lang="scss" scoped>
 .uc-form-body {
   @include child-spacing(top, 25px);
-  font-size: 18px;
+
   &__select {
     height: 48px;
     width: 100%;
+    margin-top: 20px;
+  }
+
+  ::placeholder {
+    color: $c-banned-grey;
   }
 }
 
