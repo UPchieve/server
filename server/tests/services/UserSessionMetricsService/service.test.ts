@@ -14,8 +14,6 @@ import {
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import logger from '../../../logger'
 
-jest.mock('../../../logger')
-
 // Test data
 const student = buildStudent()
 const studentUSM = buildUSM(student._id)

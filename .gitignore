@@ -5,7 +5,7 @@ dist
 sendgrid.env
 *.swp
 public/uploads
-newrelic.js
+/newrelic.js
 mongo-volume
 dump.rdb
 

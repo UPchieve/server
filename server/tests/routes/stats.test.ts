@@ -1,37 +1,26 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
-import express from 'express'
-import bodyParser from 'body-parser'
-import { MongoStore } from 'connect-mongo'
 import * as SessionService from '../../services/SessionService'
-import * as ApiRoutes from '../../router/api'
-import SessionStore from '../../router/api/session-store'
-import { buildUser } from '../generate'
+import { buildStudent } from '../generate'
 import { KeyNotFoundError } from '../../cache'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { authPassport } from '../../utils/auth-utils'
+import { routes as routeStats } from '../../router/api/stats'
+
 jest.mock('../../services/SessionService')
 const mockedSessionService = mocked(SessionService, true)
-const mockedSessionStore = mocked(SessionStore, true)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api'
 
-const app = express()
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+const app = mockApp()
+const mockGetUser = () => buildStudent()
+app.use(mockPassportMiddleware(mockGetUser))
 
-const mockLogin = jest.fn()
-const mockUser = buildUser({ isVolunteer: true })
-function mockPassportMiddleware(req, res, next) {
-  req.login = mockLogin
-  next()
-}
-function mockUserMiddleware(req, res, next) {
-  req.user = mockUser
-  next()
-}
-app.use(mockPassportMiddleware)
-app.use(mockUserMiddleware)
-ApiRoutes.routes(app, (mockedSessionStore as unknown) as MongoStore)
+const router = mockRouter()
+routeStats(router)
+
+app.use('/api', authPassport.isAuthenticated, router)
 
 const agent = request.agent(app)
 

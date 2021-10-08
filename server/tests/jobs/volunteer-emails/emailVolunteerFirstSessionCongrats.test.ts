@@ -5,13 +5,13 @@ import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
 import { USER_SESSION_METRICS } from '../../../constants'
-jest.mock('../../../logger')
+
 jest.mock('../../../services/MailService')
 jest.setTimeout(1000 * 15)
 
 // db connection
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true
@@ -84,7 +84,7 @@ describe('Volunteer first session congrats email', () => {
       }
     }
 
-    expect(emailVolunteerFirstSessionCongrats(job)).rejects.toEqual(
+    await expect(emailVolunteerFirstSessionCongrats(job)).rejects.toEqual(
       Error(
         `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
       )

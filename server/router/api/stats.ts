@@ -2,9 +2,13 @@ import { Router } from 'express'
 import { KeyNotFoundError } from '../../cache'
 import * as SessionService from '../../services/SessionService'
 import { resError } from '../res-error'
+import { LoadedRequest } from '../app'
 
 export function routes(router: Router) {
-  router.get('/stats/volunteer/heatmap', async function(req, res) {
+  router.get('/stats/volunteer/heatmap', async function(
+    req: LoadedRequest,
+    res
+  ) {
     try {
       const { user } = req
       const heatMap = await SessionService.getWaitTimeHeatMap(user)
