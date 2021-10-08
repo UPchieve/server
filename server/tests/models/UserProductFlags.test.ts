@@ -13,8 +13,6 @@ let student: User
 let volunteer: User
 
 beforeAll(async () => {
-  // @todo: remove ts expect error once test refactors are merged
-  // @ts-expect-error
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
