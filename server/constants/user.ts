@@ -104,11 +104,11 @@ export enum ONBOARDING_STATUS {
 }
 
 export enum GRADES {
-  EIGHTH = '8th grade',
-  NINTH = '9th grade',
-  TENTH = '10th grade',
-  ELEVENTH = '11th grade',
-  TWELVETH = '12th grade',
+  EIGHTH = '8th',
+  NINTH = '9th',
+  TENTH = '10th',
+  ELEVENTH = '11th',
+  TWELVETH = '12th',
   COLLEGE = 'College',
   OTHER = 'Other'
 }
