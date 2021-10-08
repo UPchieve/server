@@ -299,7 +299,7 @@ describe('endSession', () => {
   })
 })
 
-describe('processAddPastSession', () => {
+describe('addPastSession', () => {
   test('Should add past session to student', async () => {
     const mockValue = mockedGetSessionById({ student: getObjectId() })
     const sessionId = mockValue._id.toString()
@@ -307,12 +307,8 @@ describe('processAddPastSession', () => {
       async () => mockValue
     )
 
-    await SessionService.processAddPastSession(sessionId)
+    await SessionService.addPastSession(sessionId)
     expect(UserService.addPastSession).toHaveBeenCalledTimes(1)
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.PAST_SESSION_ADDED,
-      sessionId
-    )
   })
 
   test('Should add past session to both student and volunteer', async () => {
@@ -321,16 +317,10 @@ describe('processAddPastSession', () => {
       volunteer: getObjectId()
     })
     const sessionId = mockValue._id.toString()
-    mockedSessionRepo.getSessionById.mockImplementationOnce(
-      async () => mockValue
-    )
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(mockValue)
 
-    await SessionService.processAddPastSession(sessionId)
+    await SessionService.addPastSession(sessionId)
     expect(UserService.addPastSession).toHaveBeenCalledTimes(2)
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.PAST_SESSION_ADDED,
-      sessionId
-    )
   })
 })
 
@@ -1037,15 +1027,18 @@ describe('finishSession', () => {
     }
 
     const socketService = new SocketService({})
+    const session = buildSession({
+      volunteer: input.user,
+      endedBy: input.user._id,
+      student: buildStudent()._id
+    })
 
     // @todo: call a mocked version or spy of SessionService.endSession
-    const mockedSessionToEnd = mockedGetSessionToEnd({
-      volunteer: input.user,
-      endedBy: input.user._id
-    })
+    const mockedSessionToEnd = mockedGetSessionToEnd({ ...session })
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
       async () => mockedSessionToEnd
     )
+    mockedSessionRepo.getSessionById.mockImplementationOnce(async () => session)
 
     await SessionService.finishSession(input, socketService)
     expect(socketService.emitSessionChange).toHaveBeenCalledTimes(1)
