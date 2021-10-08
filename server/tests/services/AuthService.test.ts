@@ -140,7 +140,7 @@ describe('Registration tests', () => {
   const studentOpenOverrides = {
     zipCode: '11201',
     highSchoolId: '111111111111',
-    currentGrade: GRADES.COLLEGE
+    currentGrade: GRADES.EIGHTH
   }
   const studentPartnerOverrides = {
     studentPartnerOrg: 'example',
