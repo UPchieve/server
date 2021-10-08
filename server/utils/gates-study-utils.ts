@@ -1,10 +1,11 @@
-import { Session, getSessionById } from '../models/Session'
+import { Session } from '../models/Session'
 import {
   MATH_SUBJECTS,
   GRADES,
   GATES_STUDY_PERIOD_START,
   GATES_STUDY_PERIOD_END
 } from '../constants'
+import { getSessionById } from '../services/SessionService'
 import { getUser } from '../services/UserService'
 import { getSchool } from '../services/SchoolService'
 import { Student } from '../models/Student'

@@ -78,7 +78,7 @@ describe('isGatesQualifiedSession', () => {
     expect(isGatesQualified).toBeFalsy()
   })
 
-  test('Should not qualify as a Gates-qualified session if the session was not a math subject', () => {
+  test('Should not qualify as a Gates-qualified session if the session was not in a math subject', () => {
     const data = buildGatesQualifiedData({
       session: {
         subTopic: SUBJECTS.CHEMISTRY
@@ -98,7 +98,7 @@ describe('isGatesQualifiedSession', () => {
 })
 
 describe('prepareForGatesQualificationCheck', () => {
-  test('Should prepare retrieve the data for the gates qualification check', async () => {
+  test('Should retrieve the data for the gates qualification check', async () => {
     const mockSession = buildSession()
     const mockStudent = buildStudent()
     const mockSchool = buildSchool()
@@ -110,6 +110,7 @@ describe('prepareForGatesQualificationCheck', () => {
     const result = await gatesStudyUtils.prepareForGatesQualificationCheck(
       mockSession._id.toString()
     )
+
     const expected = {
       session: mockSession,
       student: mockStudent,
@@ -120,25 +121,25 @@ describe('prepareForGatesQualificationCheck', () => {
   })
 })
 
-describe.only('isDateWithinGatesStudyPeriod', () => {
-  test('Should not be within the gates study period if the date is before teh study period', async () => {
-    const date = new Date()
+describe('isDateWithinGatesStudyPeriod', () => {
+  test('Should not be within the Gates study period if the date is before the study period', async () => {
+    const date = new Date('2021-10-17T01:00:00.000Z')
     const result = await gatesStudyUtils.isDateWithinGatesStudyPeriod(date)
 
     expect(result).toBeFalsy()
   })
 
-  test('Should not be within the gates study period if the date is after teh study period', async () => {
-    const date = new Date()
+  test('Should not be within the Gates study period if the date is after the study period', async () => {
+    const date = new Date('2021-12-18T01:00:00.000Z')
     const result = await gatesStudyUtils.isDateWithinGatesStudyPeriod(date)
 
     expect(result).toBeFalsy()
   })
 
-  test('Should not be within the gates study period if the date is within the study period', async () => {
-    const date = new Date()
+  test('Should be within the gates study period if the date is within the study period', async () => {
+    const date = new Date('2021-11-01T01:00:00.000Z')
     const result = await gatesStudyUtils.isDateWithinGatesStudyPeriod(date)
 
-    expect(result).toBeFalsy()
+    expect(result).toBeTruthy()
   })
 })
