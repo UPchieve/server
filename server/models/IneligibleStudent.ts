@@ -32,7 +32,6 @@ const ineligibleStudentSchema = new Schema({
   },
   currentGrade: {
     type: String,
-    required: true,
     enum: values(GRADES)
   }
 })
