@@ -1,4 +1,6 @@
 import { Document, model, Schema, Types } from 'mongoose'
+import { values } from 'lodash'
+import { GRADES } from '../constants'
 import { School } from './School'
 import { User } from './User'
 
@@ -10,6 +12,7 @@ export interface IneligibleStudent {
   school: Types.ObjectId | School
   ipAddress: string
   referredBy: Types.ObjectId | User
+  currentGrade?: GRADES
 }
 
 export type IneligibleStudentDocument = IneligibleStudent & Document
@@ -26,6 +29,10 @@ const ineligibleStudentSchema = new Schema({
   referredBy: {
     type: Schema.Types.ObjectId,
     ref: 'User'
+  },
+  currentGrade: {
+    type: String,
+    enum: values(GRADES)
   }
 })
 
