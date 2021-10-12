@@ -124,6 +124,19 @@
     </div>
 
     <div class="uc-column">
+      <div class="uc-form-label">
+        What grade are you in (2021-22)?
+      </div>
+      <v-select
+        class="uc-form-body__select"
+        v-model="profile.currentGrade"
+        placeholder="Select your grade"
+        :options="gradeLevels"
+        :searchable="false"
+      ></v-select>
+    </div>
+
+    <div class="uc-column">
       <label for="inputZipCode" class="uc-form-label"
         >What zip code do you live in?</label
       >
@@ -270,6 +283,19 @@
           </a>
         </div>
       </div>
+    </div>
+
+    <div class="uc-column">
+      <div class="uc-form-label">
+        What grade are you in (2021-22)?
+      </div>
+      <v-select
+        class="uc-form-body__select"
+        v-model="profile.currentGrade"
+        placeholder="Select your grade"
+        :options="gradeLevels"
+        :searchable="false"
+      ></v-select>
     </div>
 
     <div class="uc-column">
@@ -455,7 +481,18 @@ export default {
     ErrorBadge
   },
   data() {
+    const gradeLevels = [
+      '8th grade',
+      '9th grade',
+      '10th grade',
+      '11th grade',
+      '12th grade',
+      'College',
+      'Other'
+    ]
+
     return {
+      gradeLevels,
       partnerSignupCode: '',
       showSignupCodeDecision: true,
       msg: '',
@@ -498,7 +535,12 @@ export default {
   computed: {
     ...mapState({
       isMobileApp: state => state.app.isMobileApp
-    })
+    }),
+    trimCurrentGrade() {
+      // extracting the first word out of the gradeLevels
+      // example: "8th grade" --> "8th"
+      return this.profile.currentGrade.split(' ')[0]
+    }
   },
   watch: {
     'eligibility.email': function(currentValue, oldValue) {
@@ -616,6 +658,10 @@ export default {
         )
         this.invalidInputs.push('inputEligibilityEmail')
       }
+
+      if (!this.profile.currentGrade) {
+        this.errors.push('You must select your grade level.')
+      }
     },
 
     continueToAccountPage() {
@@ -649,7 +695,8 @@ export default {
         schoolUpchieveId: this.eligibility.highSchool.upchieveId,
         zipCode: this.eligibility.zipCode,
         email: this.eligibility.email,
-        referredByCode: window.localStorage.getItem('upcReferredByCode')
+        referredByCode: window.localStorage.getItem('upcReferredByCode'),
+        currentGrade: this.trimCurrentGrade
       })
         .then(async response => {
           const isEligible = response.body.isEligible
@@ -734,7 +781,6 @@ export default {
         this.errors.push('A password is required.')
         this.invalidInputs.push('inputPassword')
       }
-
       if (!this.errors.length) this.submit()
     },
     submit() {
@@ -746,7 +792,7 @@ export default {
         lastName: this.profile.lastName,
         highSchoolId: this.eligibility.highSchool.upchieveId,
         zipCode: this.eligibility.zipCode,
-        currentGrade: this.profile.currentGrade,
+        currentGrade: this.trimCurrentGrade,
         referredByCode: window.localStorage.getItem('upcReferredByCode')
       })
         .then(() => {
@@ -774,6 +820,16 @@ export default {
 <style lang="scss" scoped>
 .uc-form-body {
   @include child-spacing(top, 25px);
+
+  &__select {
+    height: 48px;
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  ::placeholder {
+    color: $c-banned-grey;
+  }
 }
 
 .step-title {
