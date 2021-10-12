@@ -535,7 +535,12 @@ export default {
   computed: {
     ...mapState({
       isMobileApp: state => state.app.isMobileApp
-    })
+    }),
+    trimCurrentGrade() {
+      // extracting the first word out of the gradeLevels
+      // example: "8th grade" --> "8th"
+      return this.profile.currentGrade.split(" ")[0]
+    }
   },
   watch: {
     'eligibility.email': function(currentValue, oldValue) {
@@ -687,7 +692,7 @@ export default {
         zipCode: this.eligibility.zipCode,
         email: this.eligibility.email,
         referredByCode: window.localStorage.getItem('upcReferredByCode'),
-        currentGrade: this.profile.currentGrade
+        currentGrade: this.trimCurrentGrade 
       })
         .then(async response => {
           const isEligible = response.body.isEligible
@@ -783,7 +788,7 @@ export default {
         lastName: this.profile.lastName,
         highSchoolId: this.eligibility.highSchool.upchieveId,
         zipCode: this.eligibility.zipCode,
-        currentGrade: this.profile.currentGrade,
+        currentGrade: this.trimCurrentGrade,
         referredByCode: window.localStorage.getItem('upcReferredByCode')
       })
         .then(() => {
