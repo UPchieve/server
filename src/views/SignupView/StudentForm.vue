@@ -658,6 +658,10 @@ export default {
         )
         this.invalidInputs.push('inputEligibilityEmail')
       }
+
+      if (!this.profile.currentGrade) {
+        this.errors.push('You must select your grade level.')
+      }
     },
 
     continueToAccountPage() {
