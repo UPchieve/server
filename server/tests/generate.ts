@@ -14,6 +14,7 @@ import {
   SCIENCE_CERTS,
   READING_WRITING_CERTS,
   TRAINING,
+  SUBJECTS,
   GRADES
 } from '../constants'
 import { Message } from '../models/Message'
@@ -45,6 +46,8 @@ import {
 import { Notification } from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { UserSessionMetrics } from '../models/UserSessionMetrics'
+import { School } from '../models/School'
+
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
@@ -670,6 +673,48 @@ export function buildPushToken(overrides = {}): PushToken {
     createdAt: new Date(),
     token: '123',
     ...overrides
+  }
+}
+
+export function buildSchool(overrides: Partial<School> = {}): School {
+  const _id = Types.ObjectId()
+  return {
+    _id,
+    nameStored: 'Test School',
+    cityNameStored: 'Brooklyn',
+    stateStored: 'NY',
+    isApproved: true,
+    isPartner: true,
+    createdAt: new Date(),
+    ...overrides
+  } as School
+}
+
+interface GatesQualifiedDataOverrides {
+  session?: Partial<Session>
+  student?: Partial<Student>
+  school?: Partial<School>
+}
+
+export function buildGatesQualifiedData(
+  overrides: GatesQualifiedDataOverrides = {}
+) {
+  const session = buildSession({
+    subTopic: SUBJECTS.ALGEBRA_ONE,
+    ...overrides.session
+  })
+  const student = buildStudent({
+    studentPartnerOrg: '',
+    pastSessions: [getObjectId()],
+    currentGrade: GRADES.NINTH,
+    ...overrides.student
+  })
+  const school = buildSchool({ isPartner: false, ...overrides.school })
+
+  return {
+    session,
+    student,
+    school
   }
 }
 
