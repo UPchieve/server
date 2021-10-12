@@ -130,7 +130,7 @@
       <v-select
         class="uc-form-body__select"
         v-model="profile.currentGrade"
-        placeholder="8th grade"
+        placeholder="Select your grade"
         :options="gradeLevels"
         :searchable="false"
       ></v-select>
@@ -292,7 +292,7 @@
       <v-select
         class="uc-form-body__select"
         v-model="profile.currentGrade"
-        placeholder="8th grade"
+        placeholder="Select your grade"
         :options="gradeLevels"
         :searchable="false"
       ></v-select>
