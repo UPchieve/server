@@ -825,6 +825,7 @@ export default {
     height: 48px;
     width: 100%;
     margin-top: 20px;
+    z-index: 0;
   }
 
   ::placeholder {
