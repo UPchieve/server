@@ -13,7 +13,8 @@ import {
   SAT_CERTS,
   SCIENCE_CERTS,
   READING_WRITING_CERTS,
-  TRAINING
+  TRAINING,
+  GRADES
 } from '../constants'
 import { Message } from '../models/Message'
 import { AvailabilitySnapshot } from '../models/Availability/Snapshot'
@@ -44,7 +45,6 @@ import {
 import { Notification } from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { UserSessionMetrics } from '../models/UserSessionMetrics'
-import { GRADES } from '../constants/user'
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName

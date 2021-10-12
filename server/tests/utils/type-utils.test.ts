@@ -8,9 +8,10 @@ import {
   asNumber,
   asString,
   asEnum,
-  asUnion
+  asUnion,
+  asStringObjectId
 } from '../../utils/type-utils'
-import { getObjectId } from '../generate'
+import { getObjectId, getStringObjectId } from '../generate'
 
 describe('asArray', () => {
   test('Should pass if given correct array type', () => {
@@ -42,6 +43,23 @@ describe('asObjectId', () => {
     expect(() => asObjectId(null as unknown)).toThrow()
     expect(() => asObjectId(undefined as unknown)).toThrow()
     expect(() => asObjectId([] as unknown)).toThrow()
+  })
+})
+
+describe('asStringObjectId', () => {
+  test('Should pass if given an string formatted ObjectId', () => {
+    const id = getStringObjectId() as unknown
+    expect(() => asStringObjectId(id)).not.toThrow()
+  })
+
+  test('Should throw error if not given a string formatted ObjectId', () => {
+    expect(() => asStringObjectId({} as unknown)).toThrow()
+    expect(() => asStringObjectId(1 as unknown)).toThrow()
+    expect(() => asStringObjectId('hello' as unknown)).toThrow()
+    expect(() => asStringObjectId(null as unknown)).toThrow()
+    expect(() => asStringObjectId(undefined as unknown)).toThrow()
+    expect(() => asStringObjectId([] as unknown)).toThrow()
+    expect(() => asStringObjectId(getObjectId() as unknown)).toThrow()
   })
 })
 

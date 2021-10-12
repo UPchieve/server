@@ -30,11 +30,21 @@ module.exports = {
         ],
         semi: 'off',
         '@typescript-eslint/semi': ['error', 'never'],
-        quotes: ['error', 'single'],
+        quotes: [
+          'error', 'single', {
+            'avoidEscape': true
+          }
+        ],
         'import/order': 'error',
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/no-var-requires': 'off'
+        '@typescript-eslint/no-var-requires': 'off',
+        '@typescript-eslint/no-unused-vars': [
+          'error', {
+            'ignoreRestSiblings': true
+          }
+        ],
+        '@typescript-eslint/no-namespace': 'off'
       },
       parserOptions: {
         ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features

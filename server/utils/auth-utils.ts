@@ -9,8 +9,8 @@ import User from '../models/User'
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import UserService from '../services/UserService'
-import { EVENTS } from '../constants'
-import { GRADES } from '../constants/user'
+import { EVENTS, GRADES } from '../constants'
+
 import { LookupError } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {

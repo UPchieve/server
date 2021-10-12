@@ -7,5 +7,6 @@ module.exports = {
       skipMD5: true
     },
     autoStart: false
-  }
+  },
+  useSharedDBForAllJestWorkers: false
 }

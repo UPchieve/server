@@ -1,14 +1,12 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
-import express from 'express'
-import bodyParser from 'body-parser'
 
 import { StudentDocument } from '../../models/Student'
 import { VolunteerDocument } from '../../models/Volunteer'
-
 import * as AuthService from '../../services/AuthService'
 import * as AuthRouter from '../../router/auth'
-import { buildUser } from '../generate'
+import { mockApp, mockPassportMiddleware } from '../mock-app'
+import { buildStudent } from '../generate'
 
 jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService, true)
@@ -26,21 +24,14 @@ jest.mock('../../utils/auth-utils', () => ({
 const US_IP_ADDRESS = '161.185.160.93'
 const AUTH_ROUTE = '/auth'
 
-const app = express()
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+const app = mockApp()
 
+const mockGetUser = () => buildStudent()
 const mockLogin = jest.fn()
+const mockLogout = jest.fn()
 const mockDestroy = jest.fn()
-function mockPassportMiddleware(req, res, next) {
-  req.login = mockLogin
-  req.session = {
-    destroy: mockDestroy
-  }
-  req.user = buildUser()
-  next()
-}
-app.use(mockPassportMiddleware)
+
+app.use(mockPassportMiddleware(mockGetUser, mockLogin, mockLogout, mockDestroy))
 
 AuthRouter.routes(app)
 
@@ -171,6 +162,7 @@ describe('Test router logic', () => {
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(1)
     expect(mockDestroy).toHaveBeenCalledTimes(1)
+    expect(mockLogout).toBeCalledTimes(1)
     expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(1)
     expect(msg).toEqual(
       'If an account with this email address exists then we will send a password reset email'
