@@ -1,6 +1,6 @@
 import { Document, model, Schema, Types } from 'mongoose'
 import { values } from 'lodash'
-import { GRADES } from '../../server/constants'
+import { GRADES } from '../constants'
 import { School } from './School'
 import { User } from './User'
 
