@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { compareSync } from 'bcrypt'
-import { GRADES } from '../../constants/user'
+import { GRADES } from '../../constants'
 
 import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
 import {
