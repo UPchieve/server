@@ -13,7 +13,8 @@ import {
   SAT_CERTS,
   SCIENCE_CERTS,
   READING_WRITING_CERTS,
-  TRAINING
+  TRAINING,
+  GRADES
 } from '../constants'
 import { Message } from '../models/Message'
 import { AvailabilitySnapshot } from '../models/Availability/Snapshot'
@@ -36,7 +37,7 @@ import { Student } from '../models/Student'
 import { Session } from '../models/Session'
 import { FeedbackVersionOne, FeedbackVersionTwo } from '../models/Feedback'
 import {
-  StudentRegData,
+  OpenStudentRegData,
   PartnerStudentRegData,
   VolunteerRegData,
   PartnerVolunteerRegData
@@ -44,6 +45,7 @@ import {
 import { Notification } from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { UserSessionMetrics } from '../models/UserSessionMetrics'
+
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
@@ -224,6 +226,7 @@ export const buildStudent = (overrides = {}): Student => {
     zipCode: '11201',
     studentPartnerOrg: 'example',
     partnerSite: '',
+    currentGrade: GRADES.EIGHTH,
     ...overrides
   }
 
@@ -274,8 +277,8 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
 }
 
 export const buildStudentRegistrationForm = (
-  overrides: Partial<StudentRegData> = {}
-): StudentRegData => {
+  overrides: Partial<OpenStudentRegData> = {}
+): OpenStudentRegData => {
   const student = buildStudent()
   const form = {
     ip: '0.0.0.0',
@@ -286,8 +289,9 @@ export const buildStudentRegistrationForm = (
     terms: true,
     zipCode: '11201',
     highSchoolId: '111111111111',
+    currentGrade: GRADES.EIGHTH,
     ...overrides
-  } as StudentRegData
+  } as OpenStudentRegData
 
   return form
 }

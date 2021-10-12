@@ -474,7 +474,8 @@ export default {
       },
       profile: {
         firstName: '',
-        lastName: ''
+        lastName: '',
+        currentGrade: ''
       },
       step: '',
       hasStartedSearchingForSchool: false,
@@ -745,6 +746,7 @@ export default {
         lastName: this.profile.lastName,
         highSchoolId: this.eligibility.highSchool.upchieveId,
         zipCode: this.eligibility.zipCode,
+        currentGrade: this.profile.currentGrade,
         referredByCode: window.localStorage.getItem('upcReferredByCode')
       })
         .then(() => {
