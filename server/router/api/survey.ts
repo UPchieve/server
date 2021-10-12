@@ -1,4 +1,5 @@
-import expressWs from '@small-tech/express-ws'
+import expressWs from 'express-ws'
+import { Types } from 'mongoose'
 import * as SurveyService from '../../services/SurveyService'
 
 export function routeSurvey(router: expressWs.Router): void {
@@ -24,8 +25,8 @@ export function routeSurvey(router: expressWs.Router): void {
 
     try {
       const survey = await SurveyService.getPresessionSurvey({
-        user,
-        session: sessionId
+        user: user?._id,
+        session: Types.ObjectId(sessionId)
       })
       res.json({ survey })
     } catch (error) {

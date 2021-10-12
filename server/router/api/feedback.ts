@@ -1,4 +1,4 @@
-import expressWs from '@small-tech/express-ws'
+import expressWs from 'express-ws'
 import Case from 'case'
 import * as FeedbackService from '../../services/FeedbackService'
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
