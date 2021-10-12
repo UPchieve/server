@@ -1,4 +1,5 @@
 import { isEnabled } from 'unleash-client'
+import moment from 'moment'
 import {
   FEATURE_FLAGS,
   GATES_STUDY_PERIOD_START,
@@ -10,7 +11,9 @@ import { isDateWithinRange } from '../utils/is-date-within-range'
 
 // registered as listener on session-ended
 export async function processGatesQualifiedSession(sessionId: string) {
-  const todaysDate = new Date()
+  const todaysDate = moment()
+    .utc()
+    .toDate()
   if (
     isEnabled(FEATURE_FLAGS.GATES_STUDY) ||
     isDateWithinRange(
