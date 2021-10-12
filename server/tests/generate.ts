@@ -45,7 +45,6 @@ import {
 import { Notification } from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { UserSessionMetrics } from '../models/UserSessionMetrics'
-
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
