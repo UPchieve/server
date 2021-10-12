@@ -2,6 +2,7 @@ import unleashClient from 'unleash-client'
 import { mocked } from 'ts-jest/utils'
 import * as GatesStudyService from '../../services/GatesStudyService'
 import * as gatesStudyUtils from '../../utils/gates-study-utils'
+import { isDateWithinRange } from '../../utils/is-date-within-range'
 
 import * as UserProductFlagsRepo from '../../models/UserProductFlags'
 
@@ -9,6 +10,7 @@ import { getStringObjectId, buildGatesQualifiedData } from '../generate'
 
 jest.mock('../../models/UserProductFlags')
 jest.mock('../../utils/gates-study-utils')
+jest.mock('../../utils/is-date-within-range')
 jest.mock('unleash-client', () => {
   return {
     isEnabled: jest.fn()
@@ -18,6 +20,7 @@ jest.mock('unleash-client', () => {
 const mockUserProductFlagsRepo = mocked(UserProductFlagsRepo, true)
 const mockedUnleashClient = mocked(unleashClient, true)
 const mockedGatesStudyUtils = mocked(gatesStudyUtils, true)
+const mockIsDateWithinRange = mocked(isDateWithinRange, true)
 
 beforeEach(() => {
   jest.resetAllMocks()
@@ -31,9 +34,7 @@ describe('processGatesQualifiedSession', () => {
     const mockQualificationData = buildGatesQualifiedData()
 
     mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
-    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
-      isWithinStudyPeriod
-    )
+    mockIsDateWithinRange.mockReturnValue(isWithinStudyPeriod)
     mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
       isGatesQualified
     )
@@ -52,9 +53,7 @@ describe('processGatesQualifiedSession', () => {
     const isGatesQualified = false
 
     mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
-    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
-      isWithinStudyPeriod
-    )
+    mockIsDateWithinRange.mockReturnValue(isWithinStudyPeriod)
     mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
       isGatesQualified
     )
@@ -71,9 +70,7 @@ describe('processGatesQualifiedSession', () => {
     const mockQualificationData = buildGatesQualifiedData()
 
     mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
-    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
-      isWithinStudyPeriod
-    )
+    mockIsDateWithinRange.mockReturnValue(isWithinStudyPeriod)
     mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
       isGatesQualified
     )
@@ -93,9 +90,7 @@ describe('processGatesQualifiedSession', () => {
     const mockQualificationData = buildGatesQualifiedData()
 
     mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
-    mockedGatesStudyUtils.isDateWithinGatesStudyPeriod.mockReturnValue(
-      isWithinStudyPeriod
-    )
+    mockIsDateWithinRange.mockReturnValue(isWithinStudyPeriod)
     mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
       isGatesQualified
     )
