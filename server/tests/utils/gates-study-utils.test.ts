@@ -123,26 +123,3 @@ describe('prepareForGatesQualificationCheck', () => {
     expect(result).toEqual(expected)
   })
 })
-
-describe('isDateWithinGatesStudyPeriod', () => {
-  test('Should not be within the Gates study period if the date is before the study period', async () => {
-    const date = new Date('2021-10-17T01:00:00.000Z')
-    const result = await gatesStudyUtils.isDateWithinGatesStudyPeriod(date)
-
-    expect(result).toBeFalsy()
-  })
-
-  test('Should not be within the Gates study period if the date is after the study period', async () => {
-    const date = new Date('2021-12-18T01:00:00.000Z')
-    const result = await gatesStudyUtils.isDateWithinGatesStudyPeriod(date)
-
-    expect(result).toBeFalsy()
-  })
-
-  test('Should be within the gates study period if the date is within the study period', async () => {
-    const date = new Date('2021-11-01T01:00:00.000Z')
-    const result = await gatesStudyUtils.isDateWithinGatesStudyPeriod(date)
-
-    expect(result).toBeTruthy()
-  })
-})

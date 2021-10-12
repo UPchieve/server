@@ -1,14 +1,23 @@
 import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '../constants'
+import {
+  FEATURE_FLAGS,
+  GATES_STUDY_PERIOD_START,
+  GATES_STUDY_PERIOD_END
+} from '../constants'
 import * as UserProductFlagsRepo from '../models/UserProductFlags'
 import * as gatesStudyUtils from '../utils/gates-study-utils'
+import { isDateWithinRange } from '../utils/is-date-within-range'
 
 // registered as listener on session-ended
 export async function processGatesQualifiedSession(sessionId: string) {
   const todaysDate = new Date()
   if (
     isEnabled(FEATURE_FLAGS.GATES_STUDY) ||
-    gatesStudyUtils.isDateWithinGatesStudyPeriod(todaysDate)
+    isDateWithinRange(
+      todaysDate,
+      GATES_STUDY_PERIOD_START,
+      GATES_STUDY_PERIOD_END
+    )
   ) {
     const data = await gatesStudyUtils.prepareForGatesQualificationCheck(
       sessionId

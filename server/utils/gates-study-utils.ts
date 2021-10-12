@@ -1,10 +1,5 @@
 import { Session } from '../models/Session'
-import {
-  MATH_SUBJECTS,
-  GRADES,
-  GATES_STUDY_PERIOD_START,
-  GATES_STUDY_PERIOD_END
-} from '../constants'
+import { MATH_SUBJECTS, GRADES } from '../constants'
 import { getSessionById } from '../services/SessionService'
 import { getUser } from '../services/UserService'
 import { getSchool } from '../services/SchoolService'
@@ -54,11 +49,4 @@ export async function prepareForGatesQualificationCheck(
     student,
     school
   }
-}
-
-export function isDateWithinGatesStudyPeriod(date: Date) {
-  const gatesStudyPeriodStart = GATES_STUDY_PERIOD_START.getTime()
-  const gatesStudyPeriodEnd = GATES_STUDY_PERIOD_END.getTime()
-  const dateInMS = date.getTime()
-  return dateInMS >= gatesStudyPeriodStart && dateInMS <= gatesStudyPeriodEnd
 }
