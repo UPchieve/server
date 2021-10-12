@@ -1,5 +1,5 @@
 import LargeButton from '../components/LargeButton.vue'
-import StoryRouter from 'storybook-vue-router'
+import StoryRouter from './storybook-router'
 
 export default {
   title: 'Example/LargeButton',

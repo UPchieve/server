@@ -1,15 +1,11 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
-import express from 'express'
-import bodyParser from 'body-parser'
-import { MongoStore } from 'connect-mongo'
 import { Types } from 'mongoose'
+
 import * as SessionService from '../../services/SessionService'
-import * as ApiRoutes from '../../router/api'
-import SessionStore from '../../router/api/session-store'
 import {
   buildNotification,
-  buildUser,
+  buildVolunteer,
   buildUserAgent,
   getObjectId,
   getStringObjectId
@@ -23,32 +19,33 @@ import {
   mockedGetStudentLatestSession
 } from '../mocks/repos/session-repo'
 import { AdminFilteredSessions } from '../../models/Session'
+import {
+  mockApp,
+  mockRouter,
+  mockSocketServer,
+  mockPassportMiddleware
+} from '../mock-app'
+import { routes as routeSessions } from '../../router/api/session'
+import { authPassport } from '../../utils/auth-utils'
+
 jest.mock('../../services/IpAddressService')
 
 jest.mock('../../services/SessionService')
 const mockedSessionService = mocked(SessionService, true)
-const mockedSessionStore = mocked(SessionStore, true)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api'
 
-const app = express()
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+const app = mockApp()
 
-const mockLogin = jest.fn()
-const mockUser = buildUser({ isAdmin: true })
-function mockPassportMiddleware(req, res, next) {
-  req.login = mockLogin
-  next()
-}
-function mockUserMiddleware(req, res, next) {
-  req.user = mockUser
-  next()
-}
-app.use(mockPassportMiddleware)
-app.use(mockUserMiddleware)
-ApiRoutes.routes(app, (mockedSessionStore as unknown) as MongoStore)
+const mockGetUser = () => buildVolunteer({ isAdmin: true })
+app.use(mockPassportMiddleware(mockGetUser))
+
+const router = mockRouter()
+const socketServer = mockSocketServer(app)
+routeSessions(router, socketServer)
+
+app.use('/api', authPassport.isAuthenticated, router)
 
 const agent = request.agent(app)
 
@@ -106,6 +103,10 @@ function stringifyArrayResponse<T>(data: Array<T>) {
 beforeEach(async () => {
   jest.clearAllMocks()
   jest.resetAllMocks()
+})
+
+afterAll(() => {
+  socketServer.close()
 })
 
 const SESSION_NEW_PATH = '/session/new'

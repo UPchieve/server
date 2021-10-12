@@ -15,7 +15,8 @@ import {
   buildSession,
   buildSocket,
   buildPushToken,
-  getUUID
+  getUUID,
+  buildUSM
 } from '../generate'
 import {
   mockedGetSessionsToReview,
@@ -62,6 +63,7 @@ import * as cache from '../../cache'
 import { NotAllowedError, LookupError } from '../../models/Errors'
 import { SESSION_EVENTS } from '../../constants/events'
 import { emitter } from '../../services/EventsService'
+import * as USMRepo from '../../models/UserSessionMetrics'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
@@ -80,6 +82,7 @@ jest.mock('../../services/AwsService')
 jest.mock('../../services/PushTokenService')
 jest.mock('../../services/EventsService')
 jest.mock('../../cache')
+jest.mock('../../models/UserSessionMetrics')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedAssistmentsDataRepo = mocked(AssistmentsDataRepo, true)
@@ -90,6 +93,7 @@ const mockedPushTokenService = mocked(PushTokenService, true)
 const mockedCache = mocked(cache, true)
 const mockedQuillDocService = mocked(QuillDocService, true)
 const mockedWhiteboardService = mocked(WhiteboardService, true)
+const mockedUSMRepo = mocked(USMRepo, true)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -195,6 +199,10 @@ describe('reportSession', () => {
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
     )
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.student))
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(
+      buildUSM(mockValue.volunteer)
+    )
     await SessionService.reportSession(input)
     expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
     expect(UserService.banUser).toHaveBeenCalledTimes(1)
@@ -227,6 +235,10 @@ describe('reportSession', () => {
     })
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
+    )
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.student))
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(
+      buildUSM(mockValue.volunteer)
     )
     await SessionService.reportSession(input)
     expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)

@@ -20,7 +20,7 @@ let student: User
 let volunteer: User
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true

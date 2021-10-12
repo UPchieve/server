@@ -7,12 +7,13 @@ import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import UserService from '../../services/UserService'
+import { LoadedRequest } from '../app'
 
 // TODO: type passport request member methods/variable correctly (login, logout, user)
 export function routes(app: Express) {
   const router = Router()
 
-  router.route('/logout').get(async function(req, res) {
+  router.route('/logout').get(async function(req: LoadedRequest, res) {
     req.session.destroy(() => {
       /* do nothing */
     })
@@ -22,7 +23,6 @@ export function routes(app: Express) {
     // want to log out of a laptop they share with a sibling, but stay logged
     // in on their mobile device, for example.
 
-    // @ts-expect-error
     req.logout()
     res.json({
       msg: 'You have been logged out'
@@ -33,7 +33,7 @@ export function routes(app: Express) {
     // Delegate auth logic to passport middleware
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
-    function(req, res) {
+    function(req: LoadedRequest, res) {
       res.json({ user: req.user })
     }
   )
@@ -166,7 +166,7 @@ export function routes(app: Express) {
       }
     })
 
-  router.route('/reset/send').post(async function(req, res) {
+  router.route('/reset/send').post(async function(req: LoadedRequest, res) {
     try {
       if (!req.body.hasOwnProperty('email'))
         throw new InputError('Missing email body string')
@@ -188,7 +188,6 @@ export function routes(app: Express) {
     })
     if (userId) {
       await AuthService.deleteAllUserSessions(userId.toString())
-      // @ts-expect-error
       req.logout()
     }
     res.status(200).json({

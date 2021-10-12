@@ -5,7 +5,7 @@ import UserService from '../../../services/UserService'
 import * as StudentService from '../../../services/StudentService'
 import { buildSession, buildStudent, buildVolunteer } from '../../generate'
 import emailVolunteerSessionActions from '../../../worker/jobs/volunteer-emails/emailVolunteerSessionActions'
-jest.mock('../../../logger')
+
 jest.mock('../../../services/MailService')
 jest.mock('../../../services/UserService')
 jest.mock('../../../services/StudentService')
