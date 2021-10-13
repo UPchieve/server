@@ -38,14 +38,14 @@ module.exports = {
       {
         $set: {
           [`trainingCourses.${courseKey}.isComplete`]: isComplete,
-          [`trainingCourses.${courseKey}.progress`]: progress
+          [`trainingCourses.${courseKey}.progress`]: progress,
         },
         $addToSet: {
-          [`trainingCourses.${courseKey}.completedMaterials`]: materialKey
-        }
+          [`trainingCourses.${courseKey}.completedMaterials`]: materialKey,
+        },
       }
     )
 
     return { progress, isComplete }
-  }
+  },
 }

@@ -13,12 +13,12 @@ let redisConfig: RedisConfig = {
   host: config.redisHost,
   port: config.redisPort,
   password: config.redisPassword,
-  tls: {}
+  tls: {},
 }
 if (config.NODE_ENV === 'dev')
   redisConfig = {
     host: config.redisHost,
-    port: config.redisPort
+    port: config.redisPort,
   }
 
 export const emitter = new Merkury(uuidv4(), redisConfig, true)

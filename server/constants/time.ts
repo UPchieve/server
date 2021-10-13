@@ -7,7 +7,7 @@ export const DAYS = [
   'Wednesday',
   'Thursday',
   'Friday',
-  'Saturday'
+  'Saturday',
 ]
 
 export const UTC_TO_HOUR_MAPPING = {
@@ -34,7 +34,7 @@ export const UTC_TO_HOUR_MAPPING = {
   20: '8p',
   21: '9p',
   22: '10p',
-  23: '11p'
+  23: '11p',
 }
 
 export const HOUR_TO_UTC_MAPPING = {
@@ -61,7 +61,7 @@ export const HOUR_TO_UTC_MAPPING = {
   '8p': 20,
   '9p': 21,
   '10p': 22,
-  '11p': 23
+  '11p': 23,
 }
 
 export const ONE_DAY_ELAPSED_MILLISECONDS = 1000 * 60 * 60 * 24
@@ -69,7 +69,7 @@ export const ONE_DAY_ELAPSED_MILLISECONDS = 1000 * 60 * 60 * 24
 export enum DATE_RANGE_COMPARISON_FIELDS {
   CREATED_AT = '$createdAt',
   SENT_AT = '$sentAt',
-  PAST_SESSION_CREATED_AT = '$pastSession.createdAt'
+  PAST_SESSION_CREATED_AT = '$pastSession.createdAt',
 }
 
 export const BLACKOUT_PERIOD_START = moment()

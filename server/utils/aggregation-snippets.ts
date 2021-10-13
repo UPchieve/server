@@ -2,7 +2,7 @@ export const EMAIL_RECIPIENT = {
   isBanned: false,
   isDeactivated: false,
   isFakeUser: false,
-  isTestUser: false
+  isTestUser: false,
 }
 
 const SEPARATOR = '.'

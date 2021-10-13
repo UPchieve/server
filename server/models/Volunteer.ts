@@ -10,7 +10,7 @@ import {
   SCIENCE_CERTS,
   SAT_CERTS,
   READING_WRITING_CERTS,
-  COLLEGE_SUBJECTS
+  COLLEGE_SUBJECTS,
 } from '../constants'
 import UserModel, { User } from './User'
 import { DocUpdateError } from './Errors'
@@ -24,7 +24,7 @@ export enum DAYS {
   WEDNESDAY = 'Wednesday',
   THURSDAY = 'Thursday',
   FRIDAY = 'Friday',
-  SATURDAY = 'Saturday'
+  SATURDAY = 'Saturday',
 }
 
 export enum HOURS {
@@ -51,7 +51,7 @@ export enum HOURS {
   '8PM' = '8p',
   '9PM' = '9p',
   '10PM' = '10p',
-  '11PM' = '11p'
+  '11PM' = '11p',
 }
 
 export type AvailabilityDay = {
@@ -248,7 +248,7 @@ const availabilityDaySchema = new Schema(
     [HOURS['8PM']]: { type: Boolean, default: false },
     [HOURS['9PM']]: { type: Boolean, default: false },
     [HOURS['10PM']]: { type: Boolean, default: false },
-    [HOURS['11PM']]: { type: Boolean, default: false }
+    [HOURS['11PM']]: { type: Boolean, default: false },
   },
   { _id: false }
 )
@@ -259,32 +259,32 @@ const availabilitySchema = new Schema(
   {
     [DAYS.SUNDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.MONDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.TUESDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.WEDNESDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.THURSDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.FRIDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.SATURDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
-    }
+      default: () => ({}),
+    },
   },
   { _id: false }
 )
@@ -298,7 +298,7 @@ const referenceSchema = new Schema({
     type: String,
     required: true,
     enum: values(REFERENCE_STATUS),
-    default: REFERENCE_STATUS.UNSENT
+    default: REFERENCE_STATUS.UNSENT,
   },
   sentAt: Date,
   affiliation: String,
@@ -309,60 +309,60 @@ const referenceSchema = new Schema({
   communicatesEffectively: Number,
   trustworthyWithChildren: Number,
   rejectionReason: String,
-  additionalInfo: String
+  additionalInfo: String,
 })
 
 const trainingCourseSchema = new Schema({
   isComplete: {
     type: Boolean,
-    default: false
+    default: false,
   },
   progress: {
     type: Number,
-    default: 0
+    default: 0,
   },
   completedMaterials: {
     type: [String],
-    default: []
-  }
+    default: [],
+  },
 })
 
 const volunteerSchemaOptions = {
   toJSON: {
-    virtuals: true
+    virtuals: true,
   },
   toObject: {
-    virtuals: true
-  }
+    virtuals: true,
+  },
 }
 
 const volunteerSchema = new Schema(
   {
     isApproved: {
       type: Boolean,
-      default: false
+      default: false,
     },
     photoIdS3Key: String,
     photoIdStatus: {
       type: String,
       enum: values(PHOTO_ID_STATUS),
-      default: PHOTO_ID_STATUS.EMPTY
+      default: PHOTO_ID_STATUS.EMPTY,
     },
     references: [referenceSchema],
     isOnboarded: {
       type: Boolean,
-      default: false
+      default: false,
     },
     volunteerPartnerOrg: String,
     isFailsafeVolunteer: {
       type: Boolean,
-      default: false
+      default: false,
     },
     occupation: [String],
     experience: {
       collegeCounseling: String,
       mentoring: String,
-      tutoring: String
+      tutoring: String,
     },
     country: String,
     state: String,
@@ -372,7 +372,7 @@ const volunteerSchema = new Schema(
     linkedInUrl: String,
     availability: {
       type: availabilitySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     timezone: String,
     hoursTutored: { type: Types.Decimal128, default: 0 },
@@ -381,344 +381,344 @@ const volunteerSchema = new Schema(
     elapsedAvailability: { type: Number, default: 0 },
     sentReadyToCoachEmail: {
       type: Boolean,
-      default: false
+      default: false,
     },
     trainingCourses: {
       [TRAINING.UPCHIEVE_101]: {
         type: trainingCourseSchema,
-        default: () => ({})
+        default: () => ({}),
       },
       [TRAINING.TUTORING_SKILLS]: {
         type: trainingCourseSchema,
-        default: () => ({})
+        default: () => ({}),
       },
       [TRAINING.COLLEGE_COUNSELING]: {
         type: trainingCourseSchema,
-        default: () => ({})
+        default: () => ({}),
       },
       [TRAINING.COLLEGE_SKILLS]: {
         type: trainingCourseSchema,
-        default: () => ({})
+        default: () => ({}),
       },
       [TRAINING.SAT_STRATEGIES]: {
         type: trainingCourseSchema,
-        default: () => ({})
-      }
+        default: () => ({}),
+      },
     },
     certifications: {
       [MATH_CERTS.PREALGREBA]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [MATH_CERTS.ALGEBRA]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [MATH_CERTS.GEOMETRY]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [MATH_CERTS.TRIGONOMETRY]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [MATH_CERTS.PRECALCULUS]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [MATH_CERTS.CALCULUS_AB]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [MATH_CERTS.CALCULUS_BC]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [MATH_CERTS.STATISTICS]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [COLLEGE_CERTS.ESSAYS]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       // @todo: remove once college counseling required training is created
       [COLLEGE_SUBJECTS.PLANNING]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       // @todo: remove once college counseling required training is created
       [SUBJECTS.APPLICATIONS]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [COLLEGE_CERTS.FINANCIAL_AID]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [COLLEGE_CERTS.SPORTS_RECRUITMENT_PLANNING]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [SCIENCE_CERTS.BIOLOGY]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [SCIENCE_CERTS.CHEMISTRY]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [SCIENCE_CERTS.PHYSICS_ONE]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [SCIENCE_CERTS.PHYSICS_TWO]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [TRAINING.UPCHIEVE_101]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [TRAINING.TUTORING_SKILLS]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [TRAINING.COLLEGE_COUNSELING]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [TRAINING.COLLEGE_SKILLS]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [TRAINING.SAT_STRATEGIES]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [SAT_CERTS.SAT_MATH]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [SAT_CERTS.SAT_READING]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
+        lastAttemptedAt: { type: Date },
       },
       [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: {
         passed: {
           type: Boolean,
-          default: false
+          default: false,
         },
         tries: {
           type: Number,
-          default: 0
+          default: 0,
         },
-        lastAttemptedAt: { type: Date }
-      }
+        lastAttemptedAt: { type: Date },
+      },
     },
     subjects: {
       type: [String],
-      enum: values(SUBJECTS)
+      enum: values(SUBJECTS),
     },
     sentHourSummaryIntroEmail: {
       type: Boolean,
-      default: false
+      default: false,
     },
     sentInactiveThirtyDayEmail: {
       type: Boolean,
-      default: false
+      default: false,
     },
     sentInactiveSixtyDayEmail: {
       type: Boolean,
-      default: false
+      default: false,
     },
     sentInactiveNinetyDayEmail: {
       type: Boolean,
-      default: false
+      default: false,
     },
     totalVolunteerHours: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   volunteerSchemaOptions
 )
@@ -733,7 +733,7 @@ volunteerSchema.virtual('notifications', {
   ref: 'Notification',
   localField: '_id',
   foreignField: 'volunteer',
-  options: { sort: { sentAt: -1 } }
+  options: { sort: { sentAt: -1 } },
 })
 
 volunteerSchema.virtual('volunteerLastSession', {
@@ -741,7 +741,7 @@ volunteerSchema.virtual('volunteerLastSession', {
   localField: '_id',
   foreignField: 'volunteer',
   justOne: true,
-  options: { sort: { createdAt: -1 } }
+  options: { sort: { createdAt: -1 } },
 })
 
 volunteerSchema.virtual('volunteerLastNotification', {
@@ -749,7 +749,7 @@ volunteerSchema.virtual('volunteerLastNotification', {
   localField: '_id',
   foreignField: 'volunteer',
   justOne: true,
-  options: { sort: { sentAt: -1 } }
+  options: { sort: { sentAt: -1 } },
 })
 
 // Use the user schema as the base schema for Volunteer
@@ -763,8 +763,8 @@ export async function updateTimeTutored(volunteerId, timeTutored) {
   const update = {
     $inc: {
       hoursTutored: Number((timeTutored / 3600000).toFixed(2)),
-      timeTutored
-    }
+      timeTutored,
+    },
   }
   try {
     await VolunteerModel.updateOne(query, update)

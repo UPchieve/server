@@ -38,7 +38,7 @@ export const uploadedToStorage = async (
     await uploadBlob({
       containerName: config.whiteboardStorageContainer,
       blobName: sessionId,
-      content: whiteboardDoc
+      content: whiteboardDoc,
     })
     return true
   } catch (error) {
@@ -62,7 +62,7 @@ export const getDocFromStorage = async (sessionId: string): Promise<string> => {
   try {
     const whiteboardDoc = await getBlob({
       containerName: config.whiteboardStorageContainer,
-      blobName: sessionId
+      blobName: sessionId,
     })
     return whiteboardDoc
   } catch (error) {

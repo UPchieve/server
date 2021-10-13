@@ -31,18 +31,18 @@ const sendToUser = ({ title, text, data, tokens }: SendToUserData) => {
     apns: {
       payload: Object.assign(
         {
-          data
+          data,
         },
         {
           aps: {
             alert: {
               title: title,
               body: text,
-              'content-available': 1
-            }
-          }
+              'content-available': 1,
+            },
+          },
         }
-      )
+      ),
     },
     android: {
       // TS says this needs to be a string,
@@ -58,9 +58,9 @@ const sendToUser = ({ title, text, data, tokens }: SendToUserData) => {
         'content-available': '1',
         // type: message.type,
         icon: 'notification_icon',
-        color: '#16d2aa'
-      }
-    }
+        color: '#16d2aa',
+      },
+    },
   })
 }
 
@@ -70,9 +70,9 @@ export function sendVolunteerJoined(session: Session, tokens: string[]) {
     title: 'We found a volunteer!',
     text: 'Start chatting with your coach now.',
     data: {
-      path: `/session/${Case.kebab(type)}/${Case.kebab(subTopic)}/${_id}`
+      path: `/session/${Case.kebab(type)}/${Case.kebab(subTopic)}/${_id}`,
     },
-    tokens
+    tokens,
   }
 
   return sendToUser(data)

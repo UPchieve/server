@@ -1,11 +1,11 @@
 import { Query, Types, Aggregate } from 'mongoose'
 import AvailabilitySnapshotModel, {
   AvailabilitySnapshot,
-  AvailabilitySnapshotDocument
+  AvailabilitySnapshotDocument,
 } from '../models/Availability/Snapshot'
 import AvailabilityHistoryModel, {
   AvailabilityHistory,
-  AvailabilityHistoryDocument
+  AvailabilityHistoryDocument,
 } from '../models/Availability/History'
 import { AvailabilityDay } from '../models/Availability/types'
 
@@ -78,15 +78,15 @@ export const getElapsedAvailabilityForDateRange = async (
         volunteerId,
         date: {
           $gte: new Date(fromDate),
-          $lte: new Date(toDate)
-        }
-      }
+          $lte: new Date(toDate),
+        },
+      },
     },
     {
       $project: {
-        availability: 1
-      }
-    }
+        availability: 1,
+      },
+    },
   ]).read('secondaryPreferred')
 
   let totalElapsedAvailability = 0
@@ -108,7 +108,7 @@ export const updateAvailabilitySnapshot = (
 ): Query<AvailabilitySnapshotDocument> =>
   AvailabilitySnapshotModel.updateOne(
     {
-      volunteerId
+      volunteerId,
     },
     update
   )

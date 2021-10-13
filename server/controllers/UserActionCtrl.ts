@@ -3,7 +3,7 @@ import UAParser from 'ua-parser-js'
 import { Types } from 'mongoose'
 import UserAction, {
   UserActionAgent,
-  UserActionDocument
+  UserActionDocument,
 } from '../models/UserAction'
 import { USER_ACTION } from '../constants'
 import getSubjectType from '../utils/getSubjectType'
@@ -17,7 +17,7 @@ function getUserAgentInfo(userAgent: string): UserActionAgent {
     browser: browser.name || '',
     browserVersion: browser.version || '',
     operatingSystem: os.name || '',
-    operatingSystemVersion: os.version || ''
+    operatingSystemVersion: os.version || '',
   }
 }
 
@@ -35,7 +35,7 @@ export class QuizActionCreator {
       user: this.userId,
       quizSubcategory: this.quizSubcategory.toUpperCase(),
       quizCategory: getSubjectType(this.quizSubcategory).toUpperCase(),
-      ipAddress: this.ipAddress ?? ''
+      ipAddress: this.ipAddress ?? '',
     })
 
     return userActionDoc.save()
@@ -79,7 +79,7 @@ export class SessionActionCreator {
       actionType: USER_ACTION.TYPE.SESSION,
       action,
       ipAddress: this.ipAddress,
-      ...userAgentResult
+      ...userAgentResult,
     })
 
     return userActionDoc.save()
@@ -126,7 +126,7 @@ export class AccountActionCreator {
       actionType: USER_ACTION.TYPE.ACCOUNT,
       ipAddress: this.ipAddress,
       action,
-      ...this.options
+      ...this.options,
     })
     return userActionDoc.save()
   }
@@ -200,7 +200,7 @@ export class AdminActionCreator {
       user: this.userId,
       actionType: USER_ACTION.TYPE.ADMIN,
       action,
-      ...this.options
+      ...this.options,
     })
     return userActionDoc.save()
   }

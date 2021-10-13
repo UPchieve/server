@@ -20,7 +20,7 @@ export const search = async (query): Promise<any> => {
   if (config.NODE_ENV === 'dev') {
     const regex = new RegExp(escapeRegex(query), 'i')
     const results = await SchoolModel.find({
-      $or: [{ nameStored: regex }, { SCH_NAME: regex }]
+      $or: [{ nameStored: regex }, { SCH_NAME: regex }],
     })
       .sort({ isApproved: -1 })
       .limit(100)
@@ -34,7 +34,7 @@ export const search = async (query): Promise<any> => {
           name: school.name,
           districtName: school.districtName,
           city: school.city,
-          state: school.state
+          state: school.state,
         }
       })
   } else {
@@ -48,19 +48,19 @@ export const search = async (query): Promise<any> => {
                 autocomplete: {
                   query,
                   path: 'SCH_NAME',
-                  tokenOrder: 'sequential'
-                }
+                  tokenOrder: 'sequential',
+                },
               },
               {
                 autocomplete: {
                   query,
                   path: 'nameStored',
-                  tokenOrder: 'sequential'
-                }
-              }
-            ]
-          }
-        }
+                  tokenOrder: 'sequential',
+                },
+              },
+            ],
+          },
+        },
       },
       {
         $project: {
@@ -71,35 +71,35 @@ export const search = async (query): Promise<any> => {
             $cond: {
               if: { $not: ['$nameStored'] },
               then: '$SCH_NAME',
-              else: '$nameStored'
-            }
+              else: '$nameStored',
+            },
           },
           districtName: {
             $cond: {
               if: { $not: ['$districtNameStored'] },
               then: '$LEA_NAME',
-              else: '$districtNameStored'
-            }
+              else: '$districtNameStored',
+            },
           },
           city: {
             $cond: {
               if: { $not: ['$cityNameStored'] },
               then: '$LCITY',
-              else: '$cityNameStored'
-            }
+              else: '$cityNameStored',
+            },
           },
           state: {
             $cond: {
               if: { $not: ['$stateStored'] },
               then: '$ST',
-              else: '$stateStored'
-            }
-          }
-        }
+              else: '$stateStored',
+            },
+          },
+        },
       },
       {
-        $limit: 100
-      }
+        $limit: 100,
+      },
     ])
   }
 }
@@ -114,29 +114,29 @@ export const getSchool = async (schoolId): Promise<School> => {
             $cond: {
               if: { $not: ['$nameStored'] },
               then: '$SCH_NAME',
-              else: '$nameStored'
-            }
+              else: '$nameStored',
+            },
           },
           state: {
             $cond: {
               if: { $not: ['$stateStored'] },
               then: '$ST',
-              else: '$stateStored'
-            }
+              else: '$stateStored',
+            },
           },
           city: {
             $cond: {
               if: { $not: ['$cityNameStored'] },
               then: '$LCITY',
-              else: '$cityNameStored'
-            }
+              else: '$cityNameStored',
+            },
           },
           zipCode: '$MZIP',
           isApproved: 1,
           isPartner: 1,
-          approvalNotifyEmails: 1
-        }
-      }
+          approvalNotifyEmails: 1,
+        },
+      },
     ]).exec()
 
     return school
@@ -155,8 +155,8 @@ export const getSchools = async ({ name, state, city, page }) => {
     const nameQuery = {
       $or: [
         { nameStored: { $regex: name, $options: 'i' } },
-        { SCH_NAME: { $regex: name, $options: 'i' } }
-      ]
+        { SCH_NAME: { $regex: name, $options: 'i' } },
+      ],
     }
     queries.push(nameQuery)
   }
@@ -164,8 +164,8 @@ export const getSchools = async ({ name, state, city, page }) => {
     const stateQuery = {
       $or: [
         { ST: { $regex: state, $options: 'i' } },
-        { stateStored: { $regex: state, $options: 'i' } }
-      ]
+        { stateStored: { $regex: state, $options: 'i' } },
+      ],
     }
     queries.push(stateQuery)
   }
@@ -174,8 +174,8 @@ export const getSchools = async ({ name, state, city, page }) => {
       $or: [
         { city: { $regex: city, $options: 'i' } },
         { MCITY: { $regex: city, $options: 'i' } },
-        { LCITY: { $regex: city, $options: 'i' } }
-      ]
+        { LCITY: { $regex: city, $options: 'i' } },
+      ],
     }
     queries.push(cityQuery)
   }
@@ -185,7 +185,7 @@ export const getSchools = async ({ name, state, city, page }) => {
   try {
     const schools = await SchoolModel.aggregate([
       {
-        $match: query
+        $match: query,
       },
       {
         $project: {
@@ -193,27 +193,27 @@ export const getSchools = async ({ name, state, city, page }) => {
             $cond: {
               if: { $not: ['$nameStored'] },
               then: '$SCH_NAME',
-              else: '$nameStored'
-            }
+              else: '$nameStored',
+            },
           },
           state: {
             $cond: {
               if: { $not: ['$stateStored'] },
               then: '$ST',
-              else: '$stateStored'
-            }
+              else: '$stateStored',
+            },
           },
           city: {
             $cond: {
               if: { $not: ['$cityNameStored'] },
               then: '$LCITY',
-              else: '$cityNameStored'
-            }
+              else: '$cityNameStored',
+            },
           },
           zipCode: '$MZIP',
-          isApproved: '$isApproved'
-        }
-      }
+          isApproved: '$isApproved',
+        },
+      },
     ])
       .skip(skip)
       .limit(PER_PAGE)
@@ -239,7 +239,7 @@ export const createSchool = async ({
   city,
   state,
   zipCode,
-  isApproved
+  isApproved,
 }) => {
   let upchieveId = createUpchieveId()
   let existingSchool = await SchoolModel.findOne({ upchieveId })
@@ -261,7 +261,7 @@ export const createSchool = async ({
     stateStored: state,
     MZIP: zipCode,
     LZIP: zipCode,
-    upchieveId
+    upchieveId,
   }
   const school = new SchoolModel(schoolData)
 
@@ -274,7 +274,7 @@ export const adminUpdateSchool = async ({
   city,
   state,
   zipCode,
-  isApproved
+  isApproved,
 }) => {
   const schoolData = {
     isApproved,
@@ -282,7 +282,7 @@ export const adminUpdateSchool = async ({
     cityNameStored: city,
     stateStored: state,
     MZIP: zipCode,
-    LZIP: zipCode
+    LZIP: zipCode,
   }
 
   return SchoolModel.updateOne({ _id: schoolId }, schoolData)

@@ -33,18 +33,18 @@ export const getNotificationWithVolunteer = async (
   const [notification] = await NotificationModel.aggregate([
     {
       $match: {
-        _id: notificationId
-      }
+        _id: notificationId,
+      },
     },
     {
       $lookup: {
         from: 'users',
         localField: 'volunteer',
         foreignField: '_id',
-        as: 'volunteer'
-      }
+        as: 'volunteer',
+      },
     },
-    { $unwind: '$volunteer' }
+    { $unwind: '$volunteer' },
   ])
 
   return notification
@@ -58,18 +58,18 @@ export const getSessionNotifications = async (
     {
       $match: {
         $expr: {
-          $in: ['$_id', session.notifications]
-        }
-      }
+          $in: ['$_id', session.notifications],
+        },
+      },
     },
     {
       $lookup: {
         from: 'users',
         localField: 'volunteer',
         foreignField: '_id',
-        as: 'volunteer'
-      }
+        as: 'volunteer',
+      },
     },
-    { $unwind: '$volunteer' }
+    { $unwind: '$volunteer' },
   ]).exec()
 }

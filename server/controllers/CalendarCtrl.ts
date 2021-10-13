@@ -6,7 +6,7 @@ import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS } from '../constants'
 import {
   queueOnboardingEventEmails,
-  queuePartnerOnboardingEventEmails
+  queuePartnerOnboardingEventEmails,
 } from '../services/VolunteerService'
 import { AccountActionCreator } from './UserActionCtrl'
 
@@ -55,7 +55,7 @@ export async function updateSchedule(
     // @note: keep "availability", "timezone", "availabilityLastModifiedAt" for a volunteer until new availability schema is migrated
     availabilityLastModifiedAt: currentDate,
     availability: newAvailability,
-    timezone: newTimezone
+    timezone: newTimezone,
   }
   // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
   if (!user.isOnboarded && user.subjects.length > 0) {
@@ -64,19 +64,19 @@ export async function updateSchedule(
     if (user.volunteerPartnerOrg) queuePartnerOnboardingEventEmails(user._id)
     new AccountActionCreator(user._id, ip).accountOnboarded()
     captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
-      event: EVENTS.ACCOUNT_ONBOARDED
+      event: EVENTS.ACCOUNT_ONBOARDED,
     })
   }
 
   const availabilityUpdates = {
     onCallAvailability: newAvailability,
     timezone: newTimezone,
-    modifiedAt: currentDate
+    modifiedAt: currentDate,
   }
 
   await Promise.all([
     updateAvailabilitySnapshot(user._id, availabilityUpdates),
-    VolunteerModel.updateOne({ _id: user._id }, volunteerUpdates)
+    VolunteerModel.updateOne({ _id: user._id }, volunteerUpdates),
   ])
 }
 

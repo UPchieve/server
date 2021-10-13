@@ -9,13 +9,13 @@ import { Volunteer } from './Volunteer'
 
 export enum NotificationType {
   REGULAR = 'REGULAR',
-  FAILSAFE = 'FAILSAFE'
+  FAILSAFE = 'FAILSAFE',
 }
 
 export enum NotificationMethod {
   SMS = 'SMS',
   VOICE = 'VOICE',
-  EMAIL = 'EMAIL'
+  EMAIL = 'EMAIL',
 }
 
 export interface Notification {
@@ -35,37 +35,37 @@ const notificationSchema = new Schema(
   {
     volunteer: {
       type: Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
     },
     sentAt: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
     type: {
       type: String,
       enum: values(NotificationType),
-      default: NotificationType.REGULAR
+      default: NotificationType.REGULAR,
     },
     priorityGroup: String,
     method: {
       type: String,
-      enum: values(NotificationMethod)
+      enum: values(NotificationMethod),
     },
     wasSuccessful: {
       type: Boolean,
-      default: false
+      default: false,
     },
     // Message ID returned by service, such as Twilio
-    messageId: String
+    messageId: String,
   },
   {
     toJSON: {
-      virtuals: true
+      virtuals: true,
     },
 
     toObject: {
-      virtuals: true
-    }
+      virtuals: true,
+    },
   }
 )
 
@@ -73,7 +73,7 @@ notificationSchema.virtual('session', {
   ref: 'Session',
   localField: '_id',
   foreignField: 'notifications',
-  justOne: true
+  justOne: true,
 })
 
 const NotificationModel = model<NotificationDocument>(

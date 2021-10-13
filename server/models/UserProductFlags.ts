@@ -21,13 +21,13 @@ const UserProductFlagsSchema = new Schema({
     unique: true,
     validate: {
       validator: validUser,
-      message: props => `${props.value} is not a valid user`
-    }
+      message: props => `${props.value} is not a valid user`,
+    },
   },
   gatesQualified: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 const UserProductFlagsCollection = 'UserProductFlags'
@@ -51,7 +51,7 @@ export async function createByUserId(
 
   try {
     const data = (await UserProductFlagsModel.create({
-      user: userId
+      user: userId,
     })) as UserProductFlagsDocument
     if (data) return data.toObject() as UserProductFlags
     else throw new Error('Create query did not return created object')
@@ -89,7 +89,7 @@ export async function getByUserId(
 ): Promise<UserProductFlags> {
   try {
     return (await UserProductFlagsModel.findOne({
-      user: userId
+      user: userId,
     })
       .lean()
       .exec()) as UserProductFlags
@@ -107,7 +107,7 @@ export async function updateGatesQualifiedFlag(
 ): Promise<void> {
   const query = { user: userId }
   const update: UserProductFlagsUpdateQuery = {
-    gatesQualified: status
+    gatesQualified: status,
   }
   try {
     const result = await UserProductFlagsModel.updateOne(query, update)

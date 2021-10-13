@@ -51,11 +51,11 @@ const schemaOptions = {
    **/
   discriminatorKey: 'type',
   toJSON: {
-    virtuals: true
+    virtuals: true,
   },
   toObject: {
-    virtuals: true
-  }
+    virtuals: true,
+  },
 }
 
 // baseUserSchema is a base schema that the Student and Volunteer schema inherit from
@@ -70,67 +70,67 @@ const baseUserSchema = new Schema(
         validator: function(v): boolean {
           return validator.isEmail(v)
         },
-        message: '{VALUE} is not a valid email'
-      }
+        message: '{VALUE} is not a valid email',
+      },
     },
     password: {
       type: String,
-      select: false
+      select: false,
     },
     verified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     verifiedEmail: {
       type: Boolean,
-      default: false
+      default: false,
     },
     verifiedPhone: {
       type: Boolean,
-      default: false
+      default: false,
     },
     verificationToken: {
       type: String,
-      select: false
+      select: false,
     },
     passwordResetToken: {
       type: String,
-      select: false
+      select: false,
     },
     firstname: {
       type: String,
-      required: [true, 'First name is required.']
+      required: [true, 'First name is required.'],
     },
     lastname: {
       type: String,
-      required: [true, 'Last name is required.']
+      required: [true, 'Last name is required.'],
     },
     phone: {
       type: String,
-      trim: true
+      trim: true,
     },
     college: String,
 
     // User type (volunteer or student)
     isVolunteer: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     isAdmin: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     isBanned: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     banReason: {
       type: String,
       enum: values(USER_BAN_REASON),
-      select: false
+      select: false,
     },
 
     /**
@@ -139,7 +139,7 @@ const baseUserSchema = new Schema(
      */
     isTestUser: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     /*
@@ -148,19 +148,19 @@ const baseUserSchema = new Schema(
      */
     isFakeUser: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     isDeactivated: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     pastSessions: [{ type: Types.ObjectId, ref: 'Session' }],
 
     partnerUserId: {
       type: String,
-      select: false
+      select: false,
     },
 
     lastActivityAt: { type: Date, default: Date.now },
@@ -170,20 +170,20 @@ const baseUserSchema = new Schema(
     referredBy: {
       type: Types.ObjectId,
       ref: 'User',
-      select: false
+      select: false,
     },
 
     ipAddresses: {
       type: [{ type: Types.ObjectId, ref: 'IpAddress' }],
       default: [],
-      select: false
+      select: false,
     },
 
     // This field is created from the value set for the discriminatorKey.
     // Added to help migrate existing users to also have this field.
     type: {
-      type: String
-    }
+      type: String,
+    },
   },
   schemaOptions
 )

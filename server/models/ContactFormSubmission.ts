@@ -15,11 +15,11 @@ export interface ContactFormSubmission {
 const contactFormSubmissionSchema = new Schema({
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   userId: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
   userEmail: {
     type: String,
@@ -29,8 +29,8 @@ const contactFormSubmissionSchema = new Schema({
       validator: v => {
         return isEmail(v)
       },
-      message: props => `${props.value} is not a valid email`
-    }
+      message: props => `${props.value} is not a valid email`,
+    },
   },
   topic: {
     type: String,
@@ -42,16 +42,16 @@ const contactFormSubmissionSchema = new Schema({
       'Technical issue',
       'Feature request',
       'Subject suggestion',
-      'Other'
-    ]
+      'Other',
+    ],
   },
   message: {
     type: String,
     default: '',
     required: [true, 'message is required'],
     minLength: 1,
-    maxLength: 300
-  }
+    maxLength: 300,
+  },
 })
 
 const ContactFormSubmissionModel = model(
@@ -69,7 +69,7 @@ async function getUserIdAndEmail(id: string) {
   }
   return {
     id: user._id as Types.ObjectId,
-    userEmail: user.email
+    userEmail: user.email,
   }
 }
 
@@ -93,7 +93,7 @@ export async function createFormWithUser(
     message,
     userEmail,
     userId: userObjectId,
-    topic
+    topic,
   })
   let createdDoc
   try {
@@ -107,7 +107,7 @@ export async function createFormWithUser(
     userEmail: createdDoc.userEmail,
     userId: createdDoc.userId.toString(),
     topic: createdDoc.topic,
-    message: createdDoc.message
+    message: createdDoc.message,
   }
 }
 
@@ -119,7 +119,7 @@ export async function createFormWithEmail(
   const cfs = new ContactFormSubmissionModel({
     message,
     userEmail,
-    topic
+    topic,
   })
   let createdDoc
   try {
@@ -132,6 +132,6 @@ export async function createFormWithEmail(
     createdAt: createdDoc.createdAt,
     userEmail: createdDoc.userEmail,
     topic: createdDoc.topic,
-    message: createdDoc.message
+    message: createdDoc.message,
   }
 }

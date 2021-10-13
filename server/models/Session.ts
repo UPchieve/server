@@ -5,7 +5,7 @@ import {
   FEEDBACK_VERSIONS,
   USER_SESSION_METRICS,
   USER_ACTION,
-  SUBJECT_TYPES
+  SUBJECT_TYPES,
 } from '../constants'
 import MessageModel, { Message } from './Message'
 import { Notification } from './Notification'
@@ -19,7 +19,7 @@ const validTypes = [
   SUBJECT_TYPES.COLLEGE,
   SUBJECT_TYPES.SCIENCE,
   SUBJECT_TYPES.SAT,
-  SUBJECT_TYPES.READING_WRITING
+  SUBJECT_TYPES.READING_WRITING,
 ]
 
 export interface Session {
@@ -54,12 +54,12 @@ export type SessionDocument = Session & Document
 const sessionSchema = new Schema({
   student: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
     // TODO: validate isVolunteer: false
   },
   volunteer: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
     // TODO: validate isVolunteer: true
   },
   type: {
@@ -71,78 +71,78 @@ const sessionSchema = new Schema({
           return validType.toLowerCase() === type
         })
       },
-      message: '{VALUE} is not a valid type'
-    }
+      message: '{VALUE} is not a valid type',
+    },
   },
 
   subTopic: {
     type: String,
-    default: ''
+    default: '',
   },
 
   messages: [MessageModel.schema],
 
   hasWhiteboardDoc: {
-    type: Boolean
+    type: Boolean,
   },
 
   quillDoc: {
     type: String,
     default: '',
-    select: false
+    select: false,
   },
 
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
 
   volunteerJoinedAt: {
-    type: Date
+    type: Date,
   },
 
   failedJoins: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'User'
-    }
+      ref: 'User',
+    },
   ],
 
   endedAt: {
-    type: Date
+    type: Date,
   },
 
   endedBy: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
 
   notifications: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Notification'
-    }
+      ref: 'Notification',
+    },
   ],
 
   photos: [String],
   isReported: {
     type: Boolean,
-    default: false
+    default: false,
   },
   reportReason: String,
   reportMessage: String,
   flags: {
     type: [String],
-    enum: values(USER_SESSION_METRICS)
+    enum: values(USER_SESSION_METRICS),
   },
   reviewed: { type: Boolean, default: false },
   toReview: { type: Boolean, default: false },
   reviewReasons: {
     type: [String],
-    enum: values(USER_SESSION_METRICS)
+    enum: values(USER_SESSION_METRICS),
   },
   timeTutored: { type: Number, default: 0 },
-  isStudentBanned: Boolean
+  isStudentBanned: Boolean,
 })
 
 export interface SessionStaticModel extends Model<SessionDocument> {
@@ -158,7 +158,7 @@ const SessionModel = model<SessionDocument, SessionStaticModel>(
 export async function addNotifications(sessionId, notificationsToAdd) {
   const query = { _id: sessionId }
   const update = {
-    $push: { notifications: { $each: notificationsToAdd } }
+    $push: { notifications: { $each: notificationsToAdd } },
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -184,13 +184,13 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
     volunteer: { $exists: false },
     endedAt: { $exists: false },
     createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-    isStudentBanned: false
+    isStudentBanned: false,
   }
 
   const sessions = (await SessionModel.find(query)
     .populate({
       path: 'student',
-      select: 'firstname isTestUser pastSessions'
+      select: 'firstname isTestUser pastSessions',
     })
     .sort({ createdAt: -1 })
     .select({ student: 1, subTopic: 1, createdAt: 1, type: 1 })
@@ -235,7 +235,7 @@ export async function updateFlags(
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
-    $addToSet: { flags: { $each: flags } }
+    $addToSet: { flags: { $each: flags } },
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -251,7 +251,7 @@ export async function updateReviewReasons(
   const query = { _id: sessionId }
   const update = {
     toReview: true,
-    $addToSet: { reviewReasons: { $each: reviewReasons } }
+    $addToSet: { reviewReasons: { $each: reviewReasons } },
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -280,7 +280,7 @@ export async function updateReviewedStatus(
   const query = { _id: sessionId }
   const update = {
     reviewed,
-    toReview
+    toReview,
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -297,7 +297,7 @@ export async function getSessionToEnd(sessionId: Types.ObjectId | string) {
       .populate({ path: 'student', select: 'pastSessions firstname email' })
       .populate({
         path: 'volunteer',
-        select: 'pastSessions firstname email volunteerPartnerOrg'
+        select: 'pastSessions firstname email volunteerPartnerOrg',
       })
       .lean()
       .exec()
@@ -314,7 +314,7 @@ export async function getSessionToEnd(sessionId: Types.ObjectId | string) {
         _id: session.student._id,
         firstname: session.student.firstname,
         email: session.student.email,
-        pastSessions: session.student.pastSessions
+        pastSessions: session.student.pastSessions,
       },
       volunteer: {
         // @note: uses optional chaining operator
@@ -323,9 +323,9 @@ export async function getSessionToEnd(sessionId: Types.ObjectId | string) {
         firstname: session.volunteer?.firstname,
         email: session.volunteer?.email,
         pastSessions: session.volunteer?.pastSessions,
-        volunteerPartnerOrg: session.volunteer?.volunteerPartnerOrg
+        volunteerPartnerOrg: session.volunteer?.volunteerPartnerOrg,
       },
-      volunteerJoinedAt: session.volunteerJoinedAt
+      volunteerJoinedAt: session.volunteerJoinedAt,
     }
   } catch (error) {
     throw error
@@ -347,42 +347,42 @@ interface SessionsToReview {
 export async function getSessionsToReview({
   query,
   skip,
-  limit
+  limit,
 }): Promise<SessionsToReview[]> {
   try {
     return (await SessionModel.aggregate([
       {
         $sort: {
-          createdAt: -1
-        }
+          createdAt: -1,
+        },
       },
       {
-        $match: query
+        $match: query,
       },
       {
         $lookup: {
           from: 'users',
           localField: 'student',
           foreignField: '_id',
-          as: 'student'
-        }
+          as: 'student',
+        },
       },
       {
-        $unwind: '$student'
+        $unwind: '$student',
       },
       {
         $lookup: {
           from: 'users',
           localField: 'volunteer',
           foreignField: '_id',
-          as: 'volunteer'
-        }
+          as: 'volunteer',
+        },
       },
       {
         $unwind: {
           path: '$volunteer',
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $addFields: {
@@ -391,23 +391,23 @@ export async function getSessionsToReview({
               {
                 $or: [
                   {
-                    $eq: ['$student.isTestUser', true]
+                    $eq: ['$student.isTestUser', true],
                   },
                   {
-                    $eq: ['$volunteer.isTestUser', true]
-                  }
-                ]
+                    $eq: ['$volunteer.isTestUser', true],
+                  },
+                ],
               },
               true,
-              false
-            ]
-          }
-        }
+              false,
+            ],
+          },
+        },
       },
       {
         $match: {
-          hasTestUser: false
-        }
+          hasTestUser: false,
+        },
       },
       {
         $project: {
@@ -420,9 +420,9 @@ export async function getSessionsToReview({
           studentFirstName: '$student.firstname',
           isReported: 1,
           flags: 1,
-          reviewReasons: 1
-        }
-      }
+          reviewReasons: 1,
+        },
+      },
     ])
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -444,30 +444,30 @@ export async function getTotalTimeTutoredForDateRange(
   try {
     return await SessionModel.aggregate([
       {
-        $sort: { createdAt: -1 }
+        $sort: { createdAt: -1 },
       },
       {
         $match: {
           volunteer: Types.ObjectId(volunteerId),
           createdAt: {
             $gte: new Date(startDate),
-            $lte: new Date(endDate)
-          }
-        }
+            $lte: new Date(endDate),
+          },
+        },
       },
       {
         $project: {
-          timeTutored: 1
-        }
+          timeTutored: 1,
+        },
       },
       {
         $group: {
           _id: null,
           timeTutored: {
-            $sum: '$timeTutored'
-          }
-        }
-      }
+            $sum: '$timeTutored',
+          },
+        },
+      },
     ])
   } catch (error) {
     throw error
@@ -478,7 +478,7 @@ export async function getActiveSessionsWithVolunteers() {
   try {
     return await SessionModel.find({
       endedAt: { $exists: false },
-      volunteer: { $exists: true }
+      volunteer: { $exists: true },
     })
       .select('volunteer')
       .lean()
@@ -496,7 +496,7 @@ export async function updateReportSession(
   const update = {
     isReported: true,
     reportReason: report.reportReason,
-    reportMessage: report.reportMessage
+    reportMessage: report.reportMessage,
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -511,7 +511,7 @@ export async function updateSessionMetrics(
 ) {
   const query = { _id: sessionId }
   const update = {
-    timeTutored: metrics.timeTutored
+    timeTutored: metrics.timeTutored,
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -526,7 +526,7 @@ export async function setQuillDoc(
 ) {
   const query = { _id: sessionId }
   const update = {
-    quillDoc
+    quillDoc,
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -541,7 +541,7 @@ export async function setHasWhiteboardDoc(
 ) {
   const query = { _id: sessionId }
   const update = {
-    hasWhiteboardDoc
+    hasWhiteboardDoc,
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -560,7 +560,7 @@ export async function updateSessionToEnd(
   const query = { _id: sessionId }
   const update = {
     endedAt: data.endedAt,
-    endedBy: data.endedBy
+    endedBy: data.endedBy,
   }
 
   try {
@@ -576,8 +576,8 @@ export async function getLongRunningSessions(startDate, endDate) {
       endedAt: { $exists: false },
       createdAt: {
         $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      }
+        $lte: new Date(endDate),
+      },
     })
       .lean()
       .exec()
@@ -621,36 +621,36 @@ export async function getPublicSession(sessionId) {
           from: 'users',
           localField: 'student',
           foreignField: '_id',
-          as: 'student'
-        }
+          as: 'student',
+        },
       },
       {
-        $unwind: '$student'
+        $unwind: '$student',
       },
       {
         $lookup: {
           from: 'users',
           localField: 'volunteer',
           foreignField: '_id',
-          as: 'volunteer'
-        }
+          as: 'volunteer',
+        },
       },
       {
-        $unwind: '$volunteer'
+        $unwind: '$volunteer',
       },
       {
         $project: {
           student: { _id: '$student._id', firstName: '$student.firstname' },
           volunteer: {
             _id: '$volunteer._id',
-            firstName: '$volunteer.firstname'
+            firstName: '$volunteer.firstname',
           },
           type: 1,
           subTopic: 1,
           createdAt: 1,
-          endedAt: 1
-        }
-      }
+          endedAt: 1,
+        },
+      },
     ])) as PublicSession[]
   } catch (error) {
     throw error
@@ -678,27 +678,27 @@ export async function getAdminFilteredSessions({
   userQueryFilter,
   showBannedUsers,
   skip,
-  limit
+  limit,
 }): Promise<AdminFilteredSessions[]> {
   try {
     return (await SessionModel.aggregate([
       {
         $sort: {
-          createdAt: -1
-        }
+          createdAt: -1,
+        },
       },
       {
         $match: {
           // Filter by a specific date range the sessions took place
           createdAt: {
             $gte: new Date(startDate),
-            $lte: new Date(endDate)
+            $lte: new Date(endDate),
           },
           // Filter a session by the amount of messages sent
           $expr: {
-            $gte: [{ $size: '$messages' }, parseInt(minMessagesSent)]
-          }
-        }
+            $gte: [{ $size: '$messages' }, parseInt(minMessagesSent)],
+          },
+        },
       },
       {
         $project: {
@@ -709,8 +709,8 @@ export async function getAdminFilteredSessions({
           type: 1,
           subTopic: 1,
           student: 1,
-          isReported: 1
-        }
+          isReported: 1,
+        },
       },
       {
         $addFields: {
@@ -720,28 +720,28 @@ export async function getAdminFilteredSessions({
               if: { $ifNull: ['$endedAt', undefined] },
               then: { $subtract: ['$endedAt', '$createdAt'] },
               // $$NOW is a mongodb system variable which returns the current time
-              else: { $subtract: ['$$NOW', '$createdAt'] }
-            }
+              else: { $subtract: ['$$NOW', '$createdAt'] },
+            },
           },
           volunteer: {
             $cond: {
               if: { $ifNull: ['$volunteer', undefined] },
               then: '$volunteer',
-              else: null
-            }
-          }
-        }
+              else: null,
+            },
+          },
+        },
       },
       {
-        $match: sessionQueryFilter
+        $match: sessionQueryFilter,
       },
       {
         $lookup: {
           from: 'feedbacks',
           localField: '_id',
           foreignField: 'sessionId',
-          as: 'feedbacks'
-        }
+          as: 'feedbacks',
+        },
       },
       // add student and volunteer feedback if present
       {
@@ -750,29 +750,29 @@ export async function getAdminFilteredSessions({
             $filter: {
               input: '$feedbacks',
               as: 'feedback',
-              cond: { $eq: ['$$feedback.userType', 'student'] }
-            }
+              cond: { $eq: ['$$feedback.userType', 'student'] },
+            },
           },
           volunteerFeedback: {
             $filter: {
               input: '$feedbacks',
               as: 'feedback',
-              cond: { $eq: ['$$feedback.userType', 'volunteer'] }
-            }
-          }
-        }
+              cond: { $eq: ['$$feedback.userType', 'volunteer'] },
+            },
+          },
+        },
       },
       {
         $unwind: {
           path: '$studentFeedback',
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $unwind: {
           path: '$volunteerFeedback',
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $addFields: {
@@ -785,13 +785,13 @@ export async function getAdminFilteredSessions({
                       {
                         $eq: [
                           '$studentFeedback.versionNumber',
-                          FEEDBACK_VERSIONS.ONE
-                        ]
+                          FEEDBACK_VERSIONS.ONE,
+                        ],
                       },
-                      '$studentFeedback.responseData.rate-session.rating'
-                    ]
+                      '$studentFeedback.responseData.rate-session.rating',
+                    ],
                   },
-                  then: '$studentFeedback.responseData.rate-session.rating'
+                  then: '$studentFeedback.responseData.rate-session.rating',
                 },
                 {
                   case: {
@@ -799,18 +799,18 @@ export async function getAdminFilteredSessions({
                       {
                         $eq: [
                           '$studentFeedback.versionNumber',
-                          FEEDBACK_VERSIONS.TWO
-                        ]
+                          FEEDBACK_VERSIONS.TWO,
+                        ],
                       },
-                      '$studentFeedback.studentCounselingFeedback.rate-session.rating'
-                    ]
+                      '$studentFeedback.studentCounselingFeedback.rate-session.rating',
+                    ],
                   },
                   then:
-                    '$studentFeedback.studentCounselingFeedback.rate-session.rating'
-                }
+                    '$studentFeedback.studentCounselingFeedback.rate-session.rating',
+                },
               ],
-              default: null
-            }
+              default: null,
+            },
           },
           volunteerRating: {
             $cond: {
@@ -819,82 +819,82 @@ export async function getAdminFilteredSessions({
                   {
                     $eq: [
                       '$volunteerFeedback.versionNumber',
-                      FEEDBACK_VERSIONS.ONE
-                    ]
+                      FEEDBACK_VERSIONS.ONE,
+                    ],
                   },
-                  '$volunteerFeedback.responseData.rate-session.rating'
-                ]
+                  '$volunteerFeedback.responseData.rate-session.rating',
+                ],
               },
               then: '$volunteerFeedback.responseData.rate-session.rating',
-              else: null
-            }
-          }
-        }
+              else: null,
+            },
+          },
+        },
       },
       {
-        $match: ratingQueryFilter
+        $match: ratingQueryFilter,
       },
       {
         $lookup: {
           from: 'users',
           let: {
-            studentId: '$student'
+            studentId: '$student',
           },
           pipeline: [
             {
               $match: {
                 $expr: {
-                  $eq: ['$_id', '$$studentId']
-                }
-              }
+                  $eq: ['$_id', '$$studentId'],
+                },
+              },
             },
             {
               $project: {
                 firstname: 1,
                 isBanned: 1,
                 isTestUser: 1,
-                totalPastSessions: { $size: '$pastSessions' }
-              }
-            }
+                totalPastSessions: { $size: '$pastSessions' },
+              },
+            },
           ],
-          as: 'student'
-        }
+          as: 'student',
+        },
       },
       {
-        $unwind: '$student'
+        $unwind: '$student',
       },
       {
         $lookup: {
           from: 'users',
           let: {
-            volunteerId: '$volunteer'
+            volunteerId: '$volunteer',
           },
           pipeline: [
             {
               $match: {
                 $expr: {
-                  $eq: ['$_id', '$$volunteerId']
-                }
-              }
+                  $eq: ['$_id', '$$volunteerId'],
+                },
+              },
             },
             {
               $project: {
                 firstname: 1,
-                totalPastSessions: { $size: '$pastSessions' }
-              }
-            }
+                totalPastSessions: { $size: '$pastSessions' },
+              },
+            },
           ],
-          as: 'volunteer'
-        }
+          as: 'volunteer',
+        },
       },
       {
         $unwind: {
           path: '$volunteer',
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
-        $match: userQueryFilter
+        $match: userQueryFilter,
       },
       {
         $lookup: {
@@ -907,20 +907,20 @@ export async function getAdminFilteredSessions({
                 $expr: {
                   $and: [
                     { $eq: ['$user', '$$userId'] },
-                    { $eq: ['$action', USER_ACTION.ACCOUNT.BANNED] }
-                  ]
-                }
-              }
-            }
+                    { $eq: ['$action', USER_ACTION.ACCOUNT.BANNED] },
+                  ],
+                },
+              },
+            },
           ],
-          as: 'bannedUserAction'
-        }
+          as: 'bannedUserAction',
+        },
       },
       {
         $addFields: {
           // Retrieve the most recent 'BANNED' user action
-          lastBannedAt: { $max: '$bannedUserAction.createdAt' }
-        }
+          lastBannedAt: { $max: '$bannedUserAction.createdAt' },
+        },
       },
       {
         // Show sessions that were created before a user has been banned
@@ -931,8 +931,8 @@ export async function getAdminFilteredSessions({
               if: {
                 $or: [
                   { $eq: ['$lastBannedAt', undefined] },
-                  { $eq: ['$student.isBanned', false] }
-                ]
+                  { $eq: ['$student.isBanned', false] },
+                ],
               },
               then: true,
               else: {
@@ -940,27 +940,27 @@ export async function getAdminFilteredSessions({
                   {
                     $lte: [
                       '$createdAtEstTime',
-                      showBannedUsers ? new Date(endDate) : '$lastBannedAt'
-                    ]
+                      showBannedUsers ? new Date(endDate) : '$lastBannedAt',
+                    ],
                   },
                   true,
-                  false
-                ]
-              }
-            }
-          }
-        }
+                  false,
+                ],
+              },
+            },
+          },
+        },
       },
       {
         $match: {
-          showSession: true
-        }
+          showSession: true,
+        },
       },
       {
-        $skip: skip
+        $skip: skip,
       },
       {
-        $limit: limit
+        $limit: limit,
       },
       {
         $project: {
@@ -972,9 +972,9 @@ export async function getAdminFilteredSessions({
           subTopic: 1,
           student: 1,
           studentFirstName: '$student.firstname',
-          studentRating: 1
-        }
-      }
+          studentRating: 1,
+        },
+      },
     ])) as AdminFilteredSessions[]
   } catch (error) {
     throw error
@@ -1008,7 +1008,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
         isVolunteer: session.student.isVolunteer,
         firstname: session.student.firstname,
         pastSessions: session.student.pastSessions,
-        createdAt: session.student.createdAt
+        createdAt: session.student.createdAt,
       },
       volunteer:
         session.volunteer && session.volunteer.firstname
@@ -1017,7 +1017,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
               isVolunteer: session.volunteer?.isVolunteer,
               firstname: session.volunteer?.firstname,
               pastSessions: session.volunteer?.pastSessions,
-              createdAt: session.volunteer?.createdAt
+              createdAt: session.volunteer?.createdAt,
             }
           : null,
       subTopic: session.subTopic,
@@ -1040,7 +1040,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
       reviewed: session.reviewed,
       toReview: session.toReview,
       reviewReasons: session.reviewReasons,
-      timeTutored: session.timeTutored
+      timeTutored: session.timeTutored,
     }
   } catch (error) {
     throw error
@@ -1051,13 +1051,13 @@ export async function createSession({
   studentId,
   type,
   subTopic,
-  isStudentBanned
+  isStudentBanned,
 }) {
   const session = new SessionModel({
     student: studentId,
     type: type,
     subTopic: subTopic,
-    isStudentBanned
+    isStudentBanned,
   })
   try {
     const newSession = await session.save()
@@ -1065,7 +1065,7 @@ export async function createSession({
       _id: newSession._id,
       type: newSession.type,
       subTopic: newSession.subTopic,
-      student: newSession.student
+      student: newSession.student,
     }
   } catch (error) {
     throw new DocCreationError(error.message)
@@ -1076,7 +1076,7 @@ export async function getCurrentSession(userId) {
   try {
     const session = (await SessionModel.findOne({
       $or: [{ student: userId }, { volunteer: userId }],
-      endedAt: { $exists: false }
+      endedAt: { $exists: false },
     })
       .sort({ createdAt: -1 })
       .populate({ path: 'volunteer', select: 'firstname isVolunteer' })
@@ -1091,14 +1091,14 @@ export async function getCurrentSession(userId) {
       student: {
         _id: session.student._id.toString(),
         firstname: session.student.firstname,
-        isVolunteer: session.student.isVolunteer
+        isVolunteer: session.student.isVolunteer,
       },
       volunteer:
         session.volunteer && session.volunteer.firstname
           ? {
               _id: session.volunteer?._id.toString(),
               firstname: session.volunteer?.firstname,
-              isVolunteer: session.volunteer?.isVolunteer
+              isVolunteer: session.volunteer?.isVolunteer,
             }
           : null,
       subTopic: session.subTopic,
@@ -1106,7 +1106,7 @@ export async function getCurrentSession(userId) {
       messages: session.messages,
       createdAt: session.createdAt,
       endedAt: session.endedAt && session.endedAt,
-      volunteerJoinedAt: session.volunteerJoinedAt
+      volunteerJoinedAt: session.volunteerJoinedAt,
     }
   } catch (error) {
     throw error
@@ -1127,7 +1127,7 @@ export async function getStudentLatestSession(studentId) {
 
     return {
       _id: session._id.toString(),
-      createdAt: session.createdAt.toISOString()
+      createdAt: session.createdAt.toISOString(),
     }
   } catch (error) {
     throw error
@@ -1138,7 +1138,7 @@ export async function addVolunteerToSession(sessionId, volunteerId) {
   const query = { _id: sessionId }
   const update = {
     volunteerJoinedAt: new Date(),
-    volunteer: volunteerId
+    volunteer: volunteerId,
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -1173,66 +1173,66 @@ export function getSessionsWithAvgWaitTimePerDayAndHour(
       $match: {
         createdAt: {
           $gt: startDate,
-          $lt: endDate
-        }
-      }
+          $lt: endDate,
+        },
+      },
     },
     {
       $project: {
         createdAt: 1,
         sessionLength: { $subtract: ['$endedAt', '$createdAt'] },
         dayCreatedAt: {
-          $isoDayOfWeek: '$createdAt'
+          $isoDayOfWeek: '$createdAt',
         },
         hourCreatedAt: {
-          $hour: '$createdAt'
+          $hour: '$createdAt',
         },
         waitTime: {
           $cond: {
             if: '$volunteer',
             then: { $subtract: ['$volunteerJoinedAt', '$createdAt'] },
-            else: { $subtract: ['$endedAt', '$createdAt'] }
-          }
-        }
-      }
+            else: { $subtract: ['$endedAt', '$createdAt'] },
+          },
+        },
+      },
     },
     {
       $match: {
         // exclude sessions less than one minute in length
         sessionLength: {
-          $gt: 1000 * 60
-        }
-      }
+          $gt: 1000 * 60,
+        },
+      },
     },
     {
       $addFields: {
         dayHourCompoundKey: {
           $concat: [
             {
-              $toString: '$dayCreatedAt'
+              $toString: '$dayCreatedAt',
             },
             '-',
             {
-              $toString: '$hourCreatedAt'
-            }
-          ]
-        }
-      }
+              $toString: '$hourCreatedAt',
+            },
+          ],
+        },
+      },
     },
     {
       $group: {
         _id: '$dayHourCompoundKey',
         averageWaitTime: {
-          $avg: '$waitTime'
+          $avg: '$waitTime',
         },
         day: {
-          $first: '$dayCreatedAt'
+          $first: '$dayCreatedAt',
         },
         hour: {
-          $first: '$hourCreatedAt'
-        }
-      }
-    }
+          $first: '$hourCreatedAt',
+        },
+      },
+    },
   ]) as Aggregate<SessionsWithAvgWaitTimePerDayAndHour[]>
 }
 

@@ -15,9 +15,9 @@ const zipCodeSchema = new Schema({
   zipCode: {
     type: String,
     unique: true,
-    required: true
+    required: true,
   },
-  medianIncome: Number
+  medianIncome: Number,
 })
 
 zipCodeSchema.virtual('isEligible').get(function(): boolean {

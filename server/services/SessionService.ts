@@ -11,7 +11,7 @@ import {
   SESSION_REPORT_REASON,
   EVENTS,
   USER_SESSION_METRICS,
-  UTC_TO_HOUR_MAPPING
+  UTC_TO_HOUR_MAPPING,
 } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import * as sessionUtils from '../utils/session-utils'
@@ -50,7 +50,7 @@ const {
   updateFlags,
   updateSessionMetrics,
   setQuillDoc,
-  setHasWhiteboardDoc
+  setHasWhiteboardDoc,
 } = SessionRepo
 
 const { isSessionFulfilled } = sessionUtils
@@ -64,7 +64,7 @@ export {
   getUnfulfilledSessions,
   addNotifications,
   updateFlags,
-  isSessionFulfilled
+  isSessionFulfilled,
 }
 
 export async function reviewSession(data: unknown) {
@@ -81,13 +81,13 @@ export async function sessionsToReview(data: unknown) {
   const skip = (pageNum - 1) * PER_PAGE
   const query = {
     toReview: true,
-    reviewed: false
+    reviewed: false,
   }
 
   const sessions = await SessionRepo.getSessionsToReview({
     query,
     skip,
-    limit: PER_PAGE
+    limit: PER_PAGE,
   })
   const isLastPage = sessions.length < PER_PAGE
   return { sessions, isLastPage }
@@ -112,7 +112,7 @@ export async function reportSession(data: unknown) {
     user,
     sessionId,
     reportReason,
-    reportMessage
+    reportMessage,
   } = sessionUtils.asReportSessionData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   if (
@@ -124,21 +124,21 @@ export async function reportSession(data: unknown) {
   const reportedBy = user
   await SessionRepo.updateReportSession(sessionId, {
     reportMessage,
-    reportReason
+    reportReason,
   })
 
   const isBanReason = reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
   if (isBanReason && reportedBy.isVolunteer) {
     await UserService.banUser({
       userId: session.student,
-      banReason: USER_BAN_REASON.SESSION_REPORTED
+      banReason: USER_BAN_REASON.SESSION_REPORTED,
     })
     await new UserActionCtrl.AccountActionCreator(
       session.student as Types.ObjectId,
       '',
       {
         session: session._id,
-        banReason: USER_BAN_REASON.SESSION_REPORTED
+        banReason: USER_BAN_REASON.SESSION_REPORTED,
       }
     ).accountBanned()
     await AnalyticsService.captureEvent(
@@ -147,7 +147,7 @@ export async function reportSession(data: unknown) {
       {
         event: EVENTS.ACCOUNT_BANNED,
         sessionId: session._id.toString(),
-        banReason: USER_BAN_REASON.SESSION_REPORTED
+        banReason: USER_BAN_REASON.SESSION_REPORTED,
       }
     )
   }
@@ -161,7 +161,7 @@ export async function reportSession(data: unknown) {
     reportReason,
     reportMessage,
     isBanReason,
-    sessionId
+    sessionId,
   }
 
   if (session.endedAt) QueueService.add(Jobs.EmailSessionReported, emailData)
@@ -201,7 +201,7 @@ export async function addPastSession(sessionId: string) {
 export async function endSession({
   sessionId,
   endedBy = null,
-  isAdmin = false
+  isAdmin = false,
 }: {
   sessionId: string
   endedBy: User
@@ -219,7 +219,7 @@ export async function endSession({
     endedAt: new Date(),
     // @note: endedBy is sometimes null when the session is ended by a job from the queue
     //        due to the session being unmatched for an extended period of time
-    endedBy: endedBy && endedBy._id
+    endedBy: endedBy && endedBy._id,
   })
   await addPastSession(session._id)
 
@@ -286,7 +286,7 @@ export async function processFirstSessionCongratsEmail(sessionId: string) {
     QueueService.add(
       Jobs.EmailStudentFirstSessionCongrats,
       {
-        sessionId: session._id
+        sessionId: session._id,
       },
       { delay }
     )
@@ -294,7 +294,7 @@ export async function processFirstSessionCongratsEmail(sessionId: string) {
     QueueService.add(
       Jobs.EmailVolunteerFirstSessionCongrats,
       {
-        sessionId: session._id
+        sessionId: session._id,
       },
       { delay }
     )
@@ -335,7 +335,7 @@ export async function processEmailPartnerVolunteer(sessionId: string) {
           volunteerId: session.volunteer._id,
           firstName: session.volunteer.firstname,
           email: session.volunteer.email,
-          partnerOrg: session.volunteer.volunteerPartnerOrg
+          partnerOrg: session.volunteer.volunteerPartnerOrg,
         },
         { delay }
       )
@@ -346,7 +346,7 @@ export async function processEmailPartnerVolunteer(sessionId: string) {
         {
           volunteerId: session.volunteer._id,
           firstName: session.volunteer.firstname,
-          email: session.volunteer.email
+          email: session.volunteer.email,
         },
         { delay }
       )
@@ -411,7 +411,7 @@ export async function adminFilteredSessions(data: unknown) {
     firstTimeStudent,
     firstTimeVolunteer,
     isReported,
-    page
+    page,
   } = sessionUtils.asAdminFilteredSessionsData(data)
   const PER_PAGE = 15
   const pageNum = parseInt(page) || 1
@@ -430,7 +430,7 @@ export async function adminFilteredSessions(data: unknown) {
     isReported?: boolean
   } = {
     // Filter by the length of a session
-    sessionLength: { $gte: parseInt(minSessionLength) * 60000 }
+    sessionLength: { $gte: parseInt(minSessionLength) * 60000 },
   }
   if (isReported) sessionQueryFilter.isReported = true
 
@@ -456,12 +456,12 @@ export async function adminFilteredSessions(data: unknown) {
     'student.totalPastSessions'?: number
     'volunteer.totalPastSessions'?: number
   } = {
-    'student.isTestUser': showTestUsers ? { $in: [true, false] } : false
+    'student.isTestUser': showTestUsers ? { $in: [true, false] } : false,
   }
   if (firstTimeStudent && firstTimeVolunteer) {
     userQueryFilter.$or = [
       { 'student.totalPastSessions': 1 },
-      { 'volunteer.totalPastSessions': 1 }
+      { 'volunteer.totalPastSessions': 1 },
     ]
   } else if (firstTimeStudent) {
     userQueryFilter['student.totalPastSessions'] = 1
@@ -478,7 +478,7 @@ export async function adminFilteredSessions(data: unknown) {
     ratingQueryFilter,
     showBannedUsers,
     skip,
-    limit: PER_PAGE
+    limit: PER_PAGE,
   })
   const isLastPage = sessions.length < PER_PAGE
   return { sessions, isLastPage }
@@ -504,14 +504,14 @@ export async function adminSessionView(data: unknown) {
   const feedback = await getFeedbackForSession(sessionId)
   const sessionPhotos = await AwsService.getObjects({
     bucket: 'sessionPhotoBucket',
-    s3Keys: session.photos
+    s3Keys: session.photos,
   })
 
   return {
     ...session,
     userAgent: sessionUserAgent,
     feedbacks: feedback,
-    photos: sessionPhotos
+    photos: sessionPhotos,
   }
 }
 
@@ -524,7 +524,7 @@ export async function startSession(data: unknown) {
     problemId,
     assignmentId,
     studentId,
-    userAgent
+    userAgent,
   } = sessionUtils.asStartSessionData(data)
 
   const userId = user._id
@@ -551,7 +551,7 @@ export async function startSession(data: unknown) {
     // @note: sessionType and subtopic are kebab-case
     type: Case.camel(sessionType),
     subTopic: Case.camel(sessionSubTopic),
-    isStudentBanned: user.isBanned
+    isStudentBanned: user.isBanned,
   })
 
   const numProblemId = Number(problemId)
@@ -599,7 +599,7 @@ export async function finishSession(data: unknown, SocketService) {
 
   await endSession({
     sessionId,
-    endedBy: user
+    endedBy: user,
   })
   // @todo: figure out a better way to instantiate SocketService
   await SocketService.emitSessionChange(sessionId)
@@ -633,7 +633,7 @@ export async function sessionTimedOut(data: unknown) {
     timeout,
     user,
     ip,
-    userAgent
+    userAgent,
   } = sessionUtils.asSessionTimedOutData(data)
   return new UserActionCtrl.SessionActionCreator(
     user._id,
@@ -698,12 +698,12 @@ export async function joinSession(data: unknown): Promise<void> {
     captureEvent(user._id, EVENTS.SESSION_JOINED, {
       event: EVENTS.SESSION_JOINED,
       sessionId: session._id.toString(),
-      joinedFrom: joinedFrom || ''
+      joinedFrom: joinedFrom || '',
     })
 
     captureEvent(session.student.toString(), EVENTS.SESSION_MATCHED, {
       event: EVENTS.SESSION_MATCHED,
-      sessionId: session._id.toString()
+      sessionId: session._id.toString(),
     })
 
     const pushTokens = await PushTokenService.getAllPushTokensByUserId(
@@ -730,7 +730,7 @@ export async function joinSession(data: unknown): Promise<void> {
     ).rejoinedSession()
     captureEvent(user._id, EVENTS.SESSION_REJOINED, {
       event: EVENTS.SESSION_REJOINED,
-      sessionId: session._id.toString()
+      sessionId: session._id.toString(),
     })
   }
 }

@@ -12,7 +12,7 @@ export const savePresessionSurvey = async (data: {
     session: data.sessionId,
     user: data.user._id,
     surveyType: SURVEY_TYPES.STUDENT_PRESESSION,
-    responseData: data.responseData
+    responseData: data.responseData,
   })
   return survey.save()
 }

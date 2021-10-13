@@ -16,7 +16,7 @@ import {
   asNumber,
   asObjectId,
   asOptional,
-  asString
+  asString,
 } from './type-utils'
 
 export class StartSessionError extends CustomError {}
@@ -220,7 +220,7 @@ interface PartialSocket {
 
 const requestIdentifierValidators = {
   ip: asString,
-  userAgent: asString
+  userAgent: asString,
 }
 
 // @todo: add more properties to validate against
@@ -231,7 +231,7 @@ const userDataValidators = {
   firstname: asString,
   lastname: asString,
   isVolunteer: asBoolean,
-  isBanned: asBoolean
+  isBanned: asBoolean,
 }
 
 const socketUserDataValidators = {
@@ -241,7 +241,7 @@ const socketUserDataValidators = {
   firstname: asString,
   lastname: asString,
   isVolunteer: asBoolean,
-  isBanned: asBoolean
+  isBanned: asBoolean,
 }
 
 // @todo: create asSession factory
@@ -259,7 +259,7 @@ const sessionDataValidators = {
           _id: asObjectId,
           user: asObjectId,
           contents: asString,
-          createdAt: asDate
+          createdAt: asDate,
         })
       )
     ),
@@ -279,8 +279,8 @@ const sessionDataValidators = {
     toReview: asOptional(asBoolean),
     reviewReasons: asArray(asEnum(USER_SESSION_METRICS)),
     timeTutored: asOptional(asNumber),
-    whiteboardDoc: asOptional(asString)
-  })
+    whiteboardDoc: asOptional(asString),
+  }),
 }
 
 // @todo: move the factory methods and validators to a shared file
@@ -295,38 +295,38 @@ export const asStartSessionData = asFactory<StartSessionOptions>({
   sessionType: asString,
   problemId: asOptional(asString),
   assignmentId: asOptional(asString),
-  studentId: asOptional(asString)
+  studentId: asOptional(asString),
 })
 
 export const asFinishSessionData = asFactory<FinishSessionOptions>({
   ...requestIdentifierValidators,
   user: asUser,
-  sessionId: asString
+  sessionId: asString,
 })
 
 export const asSessionsToReviewData = asFactory<SessionsToReviewOptions>({
   users: asString,
-  page: asString
+  page: asString,
 })
 
 export const asReviewSessionData = asFactory<ReviewSessionOptions>({
   sessionId: asString,
   reviewed: asBoolean,
-  toReview: asBoolean
+  toReview: asBoolean,
 })
 
 export const asReportSessionData = asFactory<ReportSessionOptions>({
   user: asUser,
   sessionId: asString,
   reportReason: asString,
-  reportMessage: asString
+  reportMessage: asString,
 })
 
 export const asSessionTimedOutData = asFactory<SessionTimedOutOptions>({
   ...requestIdentifierValidators,
   user: asUser,
   sessionId: asString,
-  timeout: asNumber
+  timeout: asNumber,
 })
 
 interface AdminFilteredSessionsOptions {
@@ -358,7 +358,7 @@ export const asAdminFilteredSessionsData = asFactory<
   firstTimeStudent: asString,
   firstTimeVolunteer: asString,
   isReported: asString,
-  page: asString
+  page: asString,
 })
 
 interface JoinSessionOptions {
@@ -372,11 +372,11 @@ export const asJoinSessionData = asFactory<JoinSessionOptions>({
   socket: asFactory<PartialSocket>({
     id: asString,
     connected: asBoolean,
-    disconnected: asBoolean
+    disconnected: asBoolean,
   }),
   ...sessionDataValidators,
   user: asUser,
-  joinedFrom: asOptional(asString)
+  joinedFrom: asOptional(asString),
 })
 
 interface NewMessage {
@@ -397,6 +397,6 @@ export const asSaveMessageData = asFactory<SaveMessageOptions>({
   message: asFactory<NewMessage>({
     user: asString,
     contents: asString,
-    createdAt: asDate
-  })
+    createdAt: asDate,
+  }),
 })

@@ -2,7 +2,7 @@ import { Types, Aggregate } from 'mongoose'
 import { USER_ACTION } from '../constants'
 import UserActionModel, {
   UserAction,
-  UserActionAgent
+  UserActionAgent,
 } from '../models/UserAction'
 
 export const getActionsWithPipeline = (pipeline): Aggregate<UserAction[]> =>
@@ -19,9 +19,9 @@ export const getQuizzesPassedForDateRange = (
     user: volunteerId,
     createdAt: {
       $gte: new Date(fromDate),
-      $lte: new Date(toDate)
+      $lte: new Date(toDate),
     },
-    action: USER_ACTION.QUIZ.PASSED
+    action: USER_ACTION.QUIZ.PASSED,
   })
     .lean()
     .exec()
@@ -32,7 +32,7 @@ export async function getSessionRequestedUserAgentFromSessionId(sessionId) {
   try {
     doc = await UserActionModel.findOne({
       session: sessionId,
-      action: USER_ACTION.SESSION.REQUESTED
+      action: USER_ACTION.SESSION.REQUESTED,
     })
       .select(
         '-_id device browser browserVersion operatingSystem operatingSystemVersion'
@@ -45,7 +45,7 @@ export async function getSessionRequestedUserAgentFromSessionId(sessionId) {
       browser: doc.browser,
       browserVersion: doc.browserVersion,
       operatingSystem: doc.operatingSystem,
-      operatingSystemVersion: doc.operatingSystemVersion
+      operatingSystemVersion: doc.operatingSystemVersion,
     } as UserActionAgent
   } catch (error) {}
 }
@@ -63,12 +63,12 @@ export async function userHasTakenQuiz(userId: Types.ObjectId) {
           {
             $or: [
               { action: USER_ACTION.QUIZ.PASSED },
-              { action: USER_ACTION.QUIZ.FAILED }
-            ]
-          }
-        ]
-      }
-    }
+              { action: USER_ACTION.QUIZ.FAILED },
+            ],
+          },
+        ],
+      },
+    },
   ]).exec()
   return docs.length !== 0
 }

@@ -1,6 +1,6 @@
 import { Types } from 'mongoose'
 import IneligibleStudentModel, {
-  IneligibleStudent
+  IneligibleStudent,
 } from '../models/IneligibleStudent'
 
 export interface IneligibleStudentsWithSchoolInfo {
@@ -42,8 +42,8 @@ export const getStudents = async (
             from: 'zipcodes',
             localField: 'zipCode',
             foreignField: 'zipCode',
-            as: 'zipCode'
-          }
+            as: 'zipCode',
+          },
         },
         { $unwind: '$zipCode' },
         {
@@ -51,8 +51,8 @@ export const getStudents = async (
             from: 'schools',
             localField: 'school',
             foreignField: '_id',
-            as: 'school'
-          }
+            as: 'school',
+          },
         },
         { $unwind: '$school' },
         {
@@ -66,27 +66,27 @@ export const getStudents = async (
               $cond: {
                 if: { $not: ['$school.nameStored'] },
                 then: '$school.SCH_NAME',
-                else: '$school.nameStored'
-              }
+                else: '$school.nameStored',
+              },
             },
             schoolState: '$school.ST',
             schoolCity: '$school.MCITY',
             schoolZipCode: '$school.MZIP',
             isApproved: '$school.isApproved',
-            ipAddress: 1
-          }
+            ipAddress: 1,
+          },
         },
         {
           $sort: {
-            createdAt: -1
-          }
+            createdAt: -1,
+          },
         },
         {
-          $skip: skip
+          $skip: skip,
         },
         {
-          $limit: PER_PAGE
-        }
+          $limit: PER_PAGE,
+        },
       ]
     )
 

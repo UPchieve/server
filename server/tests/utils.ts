@@ -12,7 +12,7 @@ export function mockMongooseFindQuery(fn: Function) {
     lean: () => ({
       exec: async () => {
         await fn()
-      }
-    })
+      },
+    }),
   })
 }

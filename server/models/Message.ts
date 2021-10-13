@@ -14,22 +14,22 @@ const messageSchema = new Schema(
   {
     user: {
       type: Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
     },
     contents: String,
     createdAt: {
       type: Date,
-      default: Date.now
-    }
+      default: Date.now,
+    },
   },
   {
     toJSON: {
-      virtuals: true
+      virtuals: true,
     },
 
     toObject: {
-      virtuals: true
-    }
+      virtuals: true,
+    },
   }
 )
 

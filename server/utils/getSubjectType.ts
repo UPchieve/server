@@ -6,7 +6,7 @@ import {
   SAT_SUBJECTS,
   READING_WRITING_SUBJECTS,
   TRAINING,
-  SUBJECT_TYPES
+  SUBJECT_TYPES,
 } from '../constants'
 
 const getSubjectType = (subject): string => {

@@ -6,7 +6,7 @@ import {
   USER_ACTION,
   HOUR_TO_UTC_MAPPING,
   ONBOARDING_STATUS,
-  DATE_RANGE_COMPARISON_FIELDS
+  DATE_RANGE_COMPARISON_FIELDS,
 } from '../constants'
 import * as UserActionService from '../services/UserActionService'
 import * as SessionService from '../services/SessionService'
@@ -16,11 +16,11 @@ import { isCertified } from '../controllers/UserCtrl'
 import { Certifications } from '../models/Volunteer'
 import {
   getVolunteersWithPipeline,
-  HourSummaryStats
+  HourSummaryStats,
 } from '../services/VolunteerService'
 import {
   studentPartnerManifests,
-  volunteerPartnerManifests
+  volunteerPartnerManifests,
 } from '../partnerManifests'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
@@ -160,7 +160,7 @@ function telecomTutorTime(
     totalTime: reduceAcc(acc),
     sessionTime: reduceAcc(sessionAcc),
     availabilityTime: reduceAcc(availabilityAcc),
-    certificationTime: reduceAcc(certificationAcc)
+    certificationTime: reduceAcc(certificationAcc),
   }
 }
 
@@ -183,44 +183,44 @@ async function getVolunteerData(volunteer, dateQuery) {
         $match: {
           user: Types.ObjectId(volunteer._id),
           action: USER_ACTION.QUIZ.PASSED,
-          createdAt: dateQuery
-        }
+          createdAt: dateQuery,
+        },
       },
       {
         $sort: {
-          createdAt: 1
-        }
-      }
+          createdAt: 1,
+        },
+      },
     ]
   )
   const sessions = await SessionService.getSessionsWithPipeline([
     {
       $sort: {
-        createdAt: 1
-      }
+        createdAt: 1,
+      },
     },
     {
       $match: {
         volunteer: Types.ObjectId(volunteer._id),
-        createdAt: dateQuery
-      }
+        createdAt: dateQuery,
+      },
     },
     {
       $lookup: {
         from: 'users',
         localField: 'student',
         foreignField: '_id',
-        as: 'student'
-      }
+        as: 'student',
+      },
     },
     {
-      $unwind: '$student'
+      $unwind: '$student',
     },
     {
       $match: {
         'student.isFakeUser': false,
-        'student.isTestUser': false
-      }
+        'student.isTestUser': false,
+      },
     },
     {
       $project: {
@@ -229,9 +229,9 @@ async function getVolunteerData(volunteer, dateQuery) {
         endedAt: 1,
         subTopic: 1,
         timeTutored: 1,
-        volunteerJoinedAt: 1
-      }
-    }
+        volunteerJoinedAt: 1,
+      },
+    },
   ])
   // @todo: figure out how to properly type and cast
   const availabilityForDateRange: any = await AvailabilityService.getAvailabilityHistoryWithPipeline(
@@ -239,20 +239,20 @@ async function getVolunteerData(volunteer, dateQuery) {
       {
         $match: {
           volunteerId: volunteer._id,
-          date: dateQuery
-        }
+          date: dateQuery,
+        },
       },
       {
         $sort: {
-          date: 1
-        }
-      }
+          date: 1,
+        },
+      },
     ]
   )
   return {
     sessions,
     availabilityForDateRange,
-    quizPassedActions
+    quizPassedActions,
   }
 }
 
@@ -265,7 +265,7 @@ async function telecomProcessVolunteer(
   const {
     sessions,
     availabilityForDateRange,
-    quizPassedActions
+    quizPassedActions,
   } = await getVolunteerData(volunteer, dateQuery)
   // Accumulate hours into rows
   const rows = []
@@ -286,7 +286,7 @@ async function telecomProcessVolunteer(
       email,
       eventId,
       date,
-      hours
+      hours,
     })
   }
   return rows
@@ -328,7 +328,7 @@ export function emptyHours(): HourSummaryStats {
     totalVolunteerHours: 0,
     totalCoachingHours: 0,
     totalElapsedAvailability: 0,
-    totalQuizzesPassed: 0
+    totalQuizzesPassed: 0,
   }
 }
 
@@ -344,19 +344,19 @@ export async function telecomHourSummaryStats(
     const {
       sessions,
       availabilityForDateRange,
-      quizPassedActions
+      quizPassedActions,
     } = await getVolunteerData(volunteer, dateQuery)
     const {
       totalTime,
       sessionTime,
       availabilityTime,
-      certificationTime
+      certificationTime,
     } = telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
     const row = {
       totalVolunteerHours: sumHours(totalTime),
       totalCoachingHours: sumHours(sessionTime),
       totalElapsedAvailability: sumHours(availabilityTime),
-      totalQuizzesPassed: sumHours(certificationTime)
+      totalQuizzesPassed: sumHours(certificationTime),
     } as HourSummaryStats
     return row
   } catch (error) {
@@ -375,17 +375,17 @@ export function getSumOperatorForDateRange(
         {
           $and: [
             {
-              $gte: [fieldToCompareDateRange, startDate]
+              $gte: [fieldToCompareDateRange, startDate],
             },
             {
-              $lte: [fieldToCompareDateRange, endDate]
-            }
-          ]
+              $lte: [fieldToCompareDateRange, endDate],
+            },
+          ],
         },
         1,
-        0
-      ]
-    }
+        0,
+      ],
+    },
   }
 }
 
@@ -402,7 +402,7 @@ function getOnboardingStatus({
   isDeactivated,
   lastActivityAt,
   availabilityLastModifiedAt,
-  certifications
+  certifications,
 }: GetOnboardingStatusOptions): ONBOARDING_STATUS {
   if (isOnboarded) return ONBOARDING_STATUS.ONBOARDED
   if (isDeactivated) return ONBOARDING_STATUS.DEACTIVATED
@@ -493,7 +493,7 @@ export function getAnalyticsReportRow(
     availabilityLastModifiedAt: volunteer.availabilityLastModifiedAt,
     isDeactivated: volunteer.isDeactivated,
     lastActivityAt: volunteer.lastActivityAt,
-    certifications: volunteer.certifications
+    certifications: volunteer.certifications,
   })
   row.dateAccountCreated = moment(volunteer.createdAt).format(
     'MM/DD/YYYY HH:mm'
@@ -552,19 +552,19 @@ export async function getUniqueStudentStats(
   return ((await getVolunteersWithPipeline([
     {
       $match: {
-        volunteerPartnerOrg: partnerOrg
-      }
+        volunteerPartnerOrg: partnerOrg,
+      },
     },
     {
       $lookup: {
         from: 'sessions',
         foreignField: '_id',
         localField: 'pastSessions',
-        as: 'pastSession'
-      }
+        as: 'pastSession',
+      },
     },
     {
-      $unwind: '$pastSession'
+      $unwind: '$pastSession',
     },
     {
       $group: {
@@ -574,8 +574,8 @@ export async function getUniqueStudentStats(
           startDate,
           endDate,
           DATE_RANGE_COMPARISON_FIELDS.PAST_SESSION_CREATED_AT
-        )
-      }
+        ),
+      },
     },
     {
       $group: {
@@ -583,11 +583,11 @@ export async function getUniqueStudentStats(
         total: { $sum: 1 },
         totalWithinDateRange: {
           $sum: {
-            $cond: [{ $gte: ['$frequencyWitinDateRange', 1] }, 1, 0]
-          }
-        }
-      }
-    }
+            $cond: [{ $gte: ['$frequencyWitinDateRange', 1] }, 1, 0],
+          },
+        },
+      },
+    },
   ])) as unknown) as GroupStats[]
 }
 
@@ -621,7 +621,7 @@ export async function getAnalyticsReportSummary(
 ): Promise<AnalyticsReportSummary> {
   const defaultData = {
     total: 0,
-    totalWithinDateRange: 0
+    totalWithinDateRange: 0,
   }
   const summary = {
     signUps: { ...defaultData },
@@ -631,7 +631,7 @@ export async function getAnalyticsReportSummary(
     sessionsCompleted: { ...defaultData },
     pickupRate: { ...defaultData },
     volunteerHours: { ...defaultData },
-    uniqueStudentsHelped: { ...defaultData }
+    uniqueStudentsHelped: { ...defaultData },
   } as AnalyticsReportSummary
 
   for (const row of report) {
@@ -725,7 +725,7 @@ const analyticsReportDataHeaderMapping = {
   dateRangeTrainingHours: 'Training hours within date range',
   dateRangeElapsedAvailabilityHours:
     'Elapsed availability hours within date range',
-  dateRangeVolunteerHours: 'Total hours within date range'
+  dateRangeVolunteerHours: 'Total hours within date range',
 }
 
 const analyticsReportSummaryHeaderMapping = {
@@ -736,13 +736,13 @@ const analyticsReportSummaryHeaderMapping = {
   sessionsCompleted: 'Sessions completed',
   pickupRate: 'Pick-up rate',
   volunteerHours: 'Volunteer hours completed',
-  uniqueStudentsHelped: 'Unique students helped'
+  uniqueStudentsHelped: 'Unique students helped',
 }
 
 const borderRightMediumStyle = {
   right: {
-    style: 'medium'
-  }
+    style: 'medium',
+  },
 }
 
 export function applyAnalyticsReportDataStyles(worksheet) {
@@ -773,18 +773,18 @@ export function applyAnalyticsReportDataStyles(worksheet) {
   const rowWithFormattedColumnHeaders = worksheet.getRow(2)
   rowWithFormattedColumnHeaders.height = 80
   rowWithFormattedColumnHeaders.alignment = {
-    wrapText: true
+    wrapText: true,
   }
   rowWithFormattedColumnHeaders.border = {
-    bottom: { style: 'thin' }
+    bottom: { style: 'thin' },
   }
 
   const overridenCellStyle = {
     border: {
       ...borderRightMediumStyle,
-      bottom: { style: 'thin' }
+      bottom: { style: 'thin' },
     },
-    alignment: { wrapText: true }
+    alignment: { wrapText: true },
   }
 
   // Update styling on cells that were overriden due to specific column styles being applied
@@ -799,12 +799,12 @@ export function applyAnalyticsReportSummaryStyles(
   worksheet: exceljs.Worksheet
 ) {
   worksheet.getColumn('A').alignment = {
-    wrapText: true
+    wrapText: true,
   }
   const rightAlignText = {
     alignment: {
-      horizontal: 'right'
-    }
+      horizontal: 'right',
+    },
   } as Partial<exceljs.Style>
   worksheet.getCell('B4').style = rightAlignText
   worksheet.getCell('C4').style = rightAlignText
@@ -824,7 +824,7 @@ export function processAnalyticsReportDataSheet(
   for (let i = 0; i < reportRowKeys.length; i += 1) {
     const col = {
       key: reportRowKeys[i],
-      width: 15
+      width: 15,
     } as exceljs.Column
 
     columnsWithHeaderKeys.push(col)
@@ -864,7 +864,7 @@ export function processAnalyticsReportSummarySheet(
   const summaryColumnMapping = {
     description: '',
     total: 'Cumulative',
-    totalWithinDateRange: `${startDate} - ${endDate}`
+    totalWithinDateRange: `${startDate} - ${endDate}`,
   }
 
   const summaryCols = []
@@ -874,7 +874,7 @@ export function processAnalyticsReportSummarySheet(
     const col = {
       header: columnHeader,
       key: columnKey,
-      width: 25
+      width: 25,
     } as exceljs.Column
     summaryCols.push(col)
   }
@@ -909,7 +909,7 @@ export interface VolunteerReportQuery {
 export const asValidateVolunteerReportQuery = asFactory<VolunteerReportQuery>({
   partnerOrg: asString,
   startDate: asString,
-  endDate: asString
+  endDate: asString,
 })
 
 export function validateVolunteerReportQuery(data: unknown) {
@@ -953,13 +953,13 @@ const studentReportValidators = {
   sessionRangeTo: asString,
   highSchoolId: asOptional(asString),
   studentPartnerOrg: asOptional(asString),
-  studentPartnerSite: asOptional(asString)
+  studentPartnerSite: asOptional(asString),
 }
 
 export const asValidateStudentSessionReportQuery = asFactory<
   StudentReportQuery
 >({
-  ...studentReportValidators
+  ...studentReportValidators,
 })
 
 export const asValidateStudentUsageReportQuery = asFactory<
@@ -967,7 +967,7 @@ export const asValidateStudentUsageReportQuery = asFactory<
 >({
   joinedBefore: asString,
   joinedAfter: asString,
-  ...studentReportValidators
+  ...studentReportValidators,
 })
 
 function isValidReportDateFormat(dateString) {
@@ -977,7 +977,7 @@ function isValidReportDateFormat(dateString) {
 
 export function validateSessionDateRanges({
   sessionRangeFrom,
-  sessionRangeTo
+  sessionRangeTo,
 }: SessionDateRanges) {
   if (!isValidReportDateFormat(sessionRangeFrom))
     throw new InputError(
@@ -991,7 +991,7 @@ export function validateSessionDateRanges({
 
 export function validateJoinedDateRanges({
   joinedAfter,
-  joinedBefore
+  joinedBefore,
 }: JoinedDateRanges) {
   if (!isValidReportDateFormat(joinedAfter))
     throw new InputError(

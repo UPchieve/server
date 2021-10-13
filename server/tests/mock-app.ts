@@ -42,7 +42,7 @@ export function mockPassportMiddleware(
     req.logout = logout || jest.fn()
     req.session = {
       // @ts-expect-error: mocking a partial express session
-      destroy: destroy || jest.fn()
+      destroy: destroy || jest.fn(),
     }
     next()
   }

@@ -18,7 +18,7 @@ const ipAddressSchema = new Schema({
   ip: {
     type: String,
     unique: true,
-    required: true
+    required: true,
   },
 
   users: [{ type: Types.ObjectId, ref: 'User' }],
@@ -26,8 +26,8 @@ const ipAddressSchema = new Schema({
   status: {
     type: String,
     enum: values(IP_ADDRESS_STATUS),
-    default: IP_ADDRESS_STATUS.OK
-  }
+    default: IP_ADDRESS_STATUS.OK,
+  },
 })
 
 const IpAddressModel = model<IpAddressDocument>('IpAddress', ipAddressSchema)

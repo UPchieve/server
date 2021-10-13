@@ -3,7 +3,7 @@ import moment from 'moment'
 import {
   FEATURE_FLAGS,
   GATES_STUDY_PERIOD_START,
-  GATES_STUDY_PERIOD_END
+  GATES_STUDY_PERIOD_END,
 } from '../constants'
 import * as UserProductFlagsRepo from '../models/UserProductFlags'
 import * as gatesStudyUtils from '../utils/gates-study-utils'

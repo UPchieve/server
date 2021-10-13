@@ -6,7 +6,7 @@ import FeedbackModel, {
   StudentTutoringFeedback,
   VolunteerFeedback,
   FeedbackVersionOne,
-  FeedbackVersionTwo
+  FeedbackVersionTwo,
 } from '../models/Feedback'
 import { FEEDBACK_VERSIONS } from '../constants'
 import { FEEDBACK_EVENTS } from '../constants/events'
@@ -40,7 +40,7 @@ export const saveFeedback = async (data: {
 }): Promise<FeedbackDocument> => {
   const feedback = new FeedbackModel({
     ...data,
-    versionNumber: FEEDBACK_VERSIONS.TWO
+    versionNumber: FEEDBACK_VERSIONS.TWO,
   })
 
   const doc = await feedback.save()

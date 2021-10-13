@@ -23,17 +23,17 @@ const ineligibleStudentSchema = new Schema({
   zipCode: String,
   school: {
     type: Types.ObjectId,
-    ref: 'School'
+    ref: 'School',
   },
   ipAddress: String,
   referredBy: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
   currentGrade: {
     type: String,
-    enum: values(GRADES)
-  }
+    enum: values(GRADES),
+  },
 })
 
 const IneligibleStudentModel = model<IneligibleStudentDocument>(

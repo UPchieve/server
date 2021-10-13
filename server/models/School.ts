@@ -101,7 +101,7 @@ const schoolSchema = new Schema(
       type: String,
       unique: true,
       required: true,
-      match: /^[0-9]{8}$/
+      match: /^[0-9]{8}$/,
     },
 
     // fields allowing a school to be entered manually if not in NCES database
@@ -111,23 +111,23 @@ const schoolSchema = new Schema(
     stateStored: {
       type: String,
       // http://regexlib.com/REDetails.aspx?regexp_id=2176
-      match: /^((A[LKSZR])|(C[AOT])|(D[EC])|(F[ML])|(G[AU])|(HI)|(I[DLNA])|(K[SY])|(LA)|(M[EHDAINSOT])|(N[EVHJMYCD])|(MP)|(O[HKR])|(P[WAR])|(RI)|(S[CD])|(T[NX])|(UT)|(V[TIA])|(W[AVIY]))$/
+      match: /^((A[LKSZR])|(C[AOT])|(D[EC])|(F[ML])|(G[AU])|(HI)|(I[DLNA])|(K[SY])|(LA)|(M[EHDAINSOT])|(N[EVHJMYCD])|(MP)|(O[HKR])|(P[WAR])|(RI)|(S[CD])|(T[NX])|(UT)|(V[TIA])|(W[AVIY]))$/,
     },
 
     // is this school eligibile for UPchieve?
     isApproved: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     isPartner: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     createdAt: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
 
     // email addresses to notify for approval
@@ -140,14 +140,14 @@ const schoolSchema = new Schema(
             validator: function(v): boolean {
               return validator.isEmail(v)
             },
-            message: '{VALUE} is not a valid email'
-          }
+            message: '{VALUE} is not a valid email',
+          },
         },
         addedAt: {
           type: Date,
-          default: Date.now
-        }
-      }
+          default: Date.now,
+        },
+      },
     ],
 
     // NCES variable names
@@ -216,15 +216,15 @@ const schoolSchema = new Schema(
     GSLO: String,
     GSHI: Number,
     LEVEL: String,
-    IGOFFERED: String
+    IGOFFERED: String,
   },
   {
     toObject: {
-      virtuals: true
+      virtuals: true,
     },
     toJSON: {
-      virtuals: true
-    }
+      virtuals: true,
+    },
   }
 )
 
@@ -277,7 +277,7 @@ schoolSchema.virtual('searchableName').get(function() {
 schoolSchema.virtual('studentUsers', {
   ref: 'User',
   localField: '_id',
-  foreignField: 'approvedHighschool'
+  foreignField: 'approvedHighschool',
 })
 
 schoolSchema.statics.findByUpchieveId = function(

@@ -20,7 +20,7 @@ class SocketService {
   ): Promise<MessageDocument> {
     const populateOptions = [
       { path: 'student', select: 'firstname isVolunteer' },
-      { path: 'volunteer', select: 'firstname isVolunteer' }
+      { path: 'volunteer', select: 'firstname isVolunteer' },
     ]
 
     // @todo: import from SessionService instead of directly from the model
@@ -30,7 +30,7 @@ class SocketService {
 
     return MessageModel.populate(populatedSession, {
       path: 'messages.user',
-      select: 'firstname isVolunteer'
+      select: 'firstname isVolunteer',
     })
   }
 

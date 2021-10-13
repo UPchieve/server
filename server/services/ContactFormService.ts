@@ -31,7 +31,7 @@ const topics = [
   'Technical issue',
   'Feature request',
   'Subject suggestion',
-  'Other'
+  'Other',
 ]
 
 function topicIsValid(topic: string) {
@@ -49,7 +49,7 @@ function emailIsValid(email: string) {
 function messageIsValid(message: string) {
   return isLength(message, {
     min: 1,
-    max: 500
+    max: 500,
   })
 }
 
@@ -103,7 +103,7 @@ function requestBodyIsValid(
 
   return {
     valid,
-    errors
+    errors,
   }
 }
 
@@ -152,7 +152,7 @@ export async function saveContactFormSubmission(data: unknown) {
   const mailData = {
     email: validatedData.userEmail,
     message: validatedData.message,
-    topic: validatedData.topic
+    topic: validatedData.topic,
   }
   await nr.startSegment(
     'service:contactFormSubmission:sendEmail',

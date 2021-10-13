@@ -25,8 +25,8 @@ const assistmentsDataSchema = new Schema({
     required: true,
     validate: {
       validator: Number.isInteger,
-      message: props => `${props.value} is not an integer`
-    }
+      message: props => `${props.value} is not an integer`,
+    },
   },
   assignmentId: {
     type: String,
@@ -35,8 +35,8 @@ const assistmentsDataSchema = new Schema({
       validator: (v: string) => {
         return validator.isUUID(v, 4)
       },
-      message: props => `${props.value} is not a valid UUIDv4`
-    }
+      message: props => `${props.value} is not a valid UUIDv4`,
+    },
   },
   studentId: {
     type: String,
@@ -45,8 +45,8 @@ const assistmentsDataSchema = new Schema({
       validator: (v: string) => {
         return validator.isUUID(v, 4)
       },
-      message: props => `${props.value} is not a valid UUIDv4`
-    }
+      message: props => `${props.value} is not a valid UUIDv4`,
+    },
   },
   session: {
     type: Schema.Types.ObjectId,
@@ -54,17 +54,17 @@ const assistmentsDataSchema = new Schema({
     required: true,
     validate: {
       validator: validSession,
-      message: props => `${props.value} is not a valid session`
-    }
+      message: props => `${props.value} is not a valid session`,
+    },
   },
   sent: {
     type: Boolean,
     required: true,
-    default: false
+    default: false,
   },
   sentAt: {
-    type: Date
-  }
+    type: Date,
+  },
 })
 
 const AssistmentsDataCollection = 'AssistmentsData'
@@ -106,7 +106,7 @@ export async function createBySession(
       problemId,
       assignmentId,
       studentId,
-      session
+      session,
     })) as AssistmentsDataDocument
     return data.toObject() as AssistmentsData
   } catch (err) {
@@ -142,7 +142,7 @@ export async function getBySession(
 ): Promise<AssistmentsData> {
   try {
     return (await AssistmentsDataModel.findOne({
-      session: sessionId
+      session: sessionId,
     })
       .lean()
       .exec()) as AssistmentsData
@@ -163,11 +163,11 @@ export async function updateSentAtById(
   try {
     const result = await AssistmentsDataModel.updateOne(
       {
-        _id: id
+        _id: id,
       },
       {
         sent: true,
-        sentAt: sentAt
+        sentAt: sentAt,
       }
     )
     if (!result.ok) throw new Error('Update query did not return "ok"')

@@ -91,21 +91,21 @@ const ResponseDataSchema = new Schema(
       'feel-like-helped-student': Number,
       'feel-more-fulfilled': Number,
       'good-use-of-time': Number,
-      'plan-on-volunteering-again': Number
+      'plan-on-volunteering-again': Number,
     },
     'other-feedback': String,
     'rate-upchieve': {
       'achieve-goal': Number,
       'easy-to-use': Number,
       'get-help-faster': Number,
-      'use-next-time': Number
+      'use-next-time': Number,
     },
     'rate-coach': {
       'achieve-goal': Number,
       'find-help': Number,
       knowledgeable: Number,
       nice: Number,
-      'want-him/her-again': Number
+      'want-him/her-again': Number,
     },
     'technical-difficulties': String,
     'asked-unprepared-questions': String,
@@ -116,7 +116,7 @@ const ResponseDataSchema = new Schema(
     'coach-ratings': {
       'coach-knowedgable': Number,
       'coach-friendly': Number,
-      'coach-help-again': Number
+      'coach-help-again': Number,
     },
     // @todo: the 8 keys below are for backwards compatibility to allow for downgrading the migration.
     //        remove the below keys from this schema once migration is completed
@@ -131,8 +131,8 @@ const ResponseDataSchema = new Schema(
     'student-understanding': Number,
     'session-obstacles': {
       type: [Number],
-      default: undefined
-    }
+      default: undefined,
+    },
   },
   { _id: false }
 )
@@ -143,7 +143,7 @@ const StudentTutoringFeedbackSchema = new Schema(
     'subject-understanding': Number,
     'coach-rating': Number,
     'coach-feedback': String,
-    'other-feedback': String
+    'other-feedback': String,
   },
   { _id: false }
 )
@@ -155,9 +155,9 @@ const StudentCounselingFeedbackSchema = new Schema(
     'coach-ratings': {
       'coach-knowedgable': Number,
       'coach-friendly': Number,
-      'coach-help-again': Number
+      'coach-help-again': Number,
     },
-    'other-feedback': String
+    'other-feedback': String,
   },
   { _id: false }
 )
@@ -169,9 +169,9 @@ const VolunteerFeedbackSchema = new Schema(
     'student-understanding': Number,
     'session-obstacles': {
       type: [Number],
-      default: undefined
+      default: undefined,
     },
-    'other-feedback': String
+    'other-feedback': String,
   },
   { _id: false }
 )
@@ -180,44 +180,44 @@ const feedbackSchema = new Schema({
   versionNumber: Number,
 
   sessionId: {
-    type: Types.ObjectId
+    type: Types.ObjectId,
   },
 
   type: {
     type: String,
-    default: ''
+    default: '',
   },
 
   subTopic: {
     type: String,
-    default: ''
+    default: '',
   },
 
   responseData: ResponseDataSchema,
 
   userType: {
     type: String,
-    default: ''
+    default: '',
   },
 
   studentId: {
-    type: Types.ObjectId
+    type: Types.ObjectId,
   },
 
   volunteerId: {
-    type: Types.ObjectId
+    type: Types.ObjectId,
   },
 
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
 
   studentTutoringFeedback: StudentTutoringFeedbackSchema,
 
   studentCounselingFeedback: StudentCounselingFeedbackSchema,
 
-  volunteerFeedback: VolunteerFeedbackSchema
+  volunteerFeedback: VolunteerFeedbackSchema,
 })
 
 const FeedbackModel = model<FeedbackDocument>('Feedback', feedbackSchema)
@@ -244,35 +244,35 @@ export async function getFeedbackBySessionId(
             {
               $or: [
                 { studentCounselingFeedback: { $ne: null } },
-                { studentCounselingFeedback: { $exists: false } }
-              ]
+                { studentCounselingFeedback: { $exists: false } },
+              ],
             },
             {
               $or: [
                 { studentTutoringFeedback: { $ne: null } },
-                { studentTutoringFeedback: { $exists: false } }
-              ]
+                { studentTutoringFeedback: { $exists: false } },
+              ],
             },
             {
               $or: [
                 { volunteerFeedback: { $ne: null } },
-                { volunteerFeedback: { $exists: false } }
-              ]
-            }
-          ]
-        }
+                { volunteerFeedback: { $exists: false } },
+              ],
+            },
+          ],
+        },
       },
       {
         $group: {
           _id: null,
-          root: { $mergeObjects: '$$ROOT' }
-        }
+          root: { $mergeObjects: '$$ROOT' },
+        },
       },
       {
         $replaceRoot: {
-          newRoot: '$root'
-        }
-      }
+          newRoot: '$root',
+        },
+      },
     ])
     return feedback
   } catch (err) {

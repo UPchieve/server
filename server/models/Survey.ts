@@ -17,28 +17,28 @@ export type SurveyDocument = Survey & Document
 const surveySchema = new Schema({
   session: {
     type: Types.ObjectId,
-    ref: 'Session'
+    ref: 'Session',
   },
 
   user: {
     type: Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
 
   surveyType: {
     type: String,
-    enum: values(SURVEY_TYPES)
+    enum: values(SURVEY_TYPES),
   },
 
   responseData: {
     type: Object,
-    default: ''
+    default: '',
   },
 
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 })
 
 const SurveyModel = model<SurveyDocument>('Survey', surveySchema)

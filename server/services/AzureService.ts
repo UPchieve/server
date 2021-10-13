@@ -29,7 +29,7 @@ async function streamToBuffer(readableStream): Promise<Buffer> {
 
 export const getBlob = async ({
   containerName,
-  blobName
+  blobName,
 }: {
   containerName: string
   blobName: string
@@ -46,7 +46,7 @@ export const getBlob = async ({
 export const uploadBlob = async ({
   containerName,
   blobName,
-  content
+  content,
 }: {
   containerName: string
   blobName: string

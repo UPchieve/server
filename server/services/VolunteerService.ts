@@ -1,7 +1,7 @@
 import { Aggregate, Types, Query } from 'mongoose'
 import VolunteerModel, {
   updateTimeTutored,
-  Volunteer
+  Volunteer,
 } from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
 import { getTimeTutoredForDateRange } from './SessionService'
@@ -31,7 +31,7 @@ export function incrementTotalVolunteerHours(
   update: number
 ): Query<Volunteer> {
   return VolunteerModel.updateOne(query, {
-    $inc: { totalVolunteerHours: update }
+    $inc: { totalVolunteerHours: update },
   })
 }
 
@@ -51,11 +51,11 @@ export const getHourSummaryStats = async (
   const [
     quizzesPassed,
     elapsedAvailability,
-    timeTutoredMS
+    timeTutoredMS,
   ] = await Promise.all([
     getQuizzesPassedForDateRange(volunteerId, fromDate, toDate),
     getElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
-    getTimeTutoredForDateRange(volunteerId, fromDate, toDate)
+    getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
   ])
 
   const timeTutoredInHours = Number(timeTutoredMS / 3600000).toFixed(2)
@@ -72,7 +72,7 @@ export const getHourSummaryStats = async (
     totalCoachingHours,
     totalQuizzesPassed: quizzesPassed.length,
     totalElapsedAvailability: elapsedAvailability,
-    totalVolunteerHours: totalVolunteerHours
+    totalVolunteerHours: totalVolunteerHours,
   }
 }
 
@@ -108,7 +108,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
     category,
     email,
     firstName,
-    volunteerId
+    volunteerId,
   })
 }
 

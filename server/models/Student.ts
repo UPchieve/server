@@ -16,18 +16,18 @@ export type StudentDocument = Student & Document
 
 const schemaOptions = {
   toJSON: {
-    virtuals: true
+    virtuals: true,
   },
   toObject: {
-    virtuals: true
-  }
+    virtuals: true,
+  },
 }
 
 const studentSchema = new Schema(
   {
     approvedHighschool: {
       type: Types.ObjectId,
-      ref: 'School'
+      ref: 'School',
       /* TODO validate approvedHighschool.isApproved: true
        * if this.isVolunteer is false */
     },
@@ -36,8 +36,8 @@ const studentSchema = new Schema(
     partnerSite: String,
     currentGrade: {
       type: String,
-      enum: values(GRADES)
-    }
+      enum: values(GRADES),
+    },
   },
   schemaOptions
 )

@@ -5,7 +5,7 @@ import User from '../models/User'
 import Student, { StudentDocument } from '../models/Student'
 import Volunteer, {
   Certifications,
-  VolunteerDocument
+  VolunteerDocument,
 } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
 import { createByUserId as createUSMByUserId } from '../models/UserSessionMetrics'
@@ -13,7 +13,7 @@ import { createByUserId as createUPFByUserId } from '../models/UserProductFlags'
 import { AccountActionCreator } from './UserActionCtrl'
 
 const {
-  createAvailabilitySnapshot
+  createAvailabilitySnapshot,
 } = require('../services/AvailabilityService')
 
 const generateReferralCode = userId => base64url(Buffer.from(userId, 'hex'))
@@ -101,7 +101,7 @@ export async function createVolunteer(
     volunteer.password = await volunteer.hashPassword(password)
     await Promise.all([
       volunteer.save(),
-      createAvailabilitySnapshot(volunteer._id)
+      createAvailabilitySnapshot(volunteer._id),
     ])
   } catch (error) {
     throw new Error(error)

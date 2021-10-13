@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import {
   AccountActionCreator,
-  QuizActionCreator
+  QuizActionCreator,
 } from '../controllers/UserActionCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import QuestionModel, { QuestionDocument } from '../models/Question'
@@ -15,18 +15,18 @@ import {
   READING_WRITING_CERTS,
   SUBJECT_TYPES,
   COLLEGE_CERTS,
-  EVENTS
+  EVENTS,
 } from '../constants'
 import getSubjectType from '../utils/getSubjectType'
 import { createContact } from '../services/MailService'
 import VolunteerModel, {
   Certifications,
   Volunteer,
-  VolunteerDocument
+  VolunteerDocument,
 } from '../models/Volunteer'
 import {
   queueOnboardingEventEmails,
-  queuePartnerOnboardingEventEmails
+  queuePartnerOnboardingEventEmails,
 } from '../services/VolunteerService'
 
 // change depending on how many of each subcategory are wanted
@@ -51,7 +51,7 @@ const numQuestions = {
   [TRAINING.UPCHIEVE_101]: 27,
   [SAT_CERTS.SAT_MATH]: 1,
   [SAT_CERTS.SAT_READING]: 1,
-  [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: 1
+  [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: 1,
 }
 const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
@@ -85,7 +85,7 @@ export async function getQuestions(
   }
 
   const questions = await QuestionModel.find({
-    category
+    category,
   })
 
   const questionsBySubcategory = _.groupBy(
@@ -166,7 +166,7 @@ export function getUnlockedSubjects(
     // @note: temporarily bypass training requirements until these training courses are added
     [TRAINING.TUTORING_SKILLS]: { passed: true },
     [TRAINING.COLLEGE_COUNSELING]: { passed: true },
-    [TRAINING.SAT_STRATEGIES]: { passed: true }
+    [TRAINING.SAT_STRATEGIES]: { passed: true },
   })
 
   // UPchieve 101 must be completed before a volunteer can be onboarded
@@ -261,7 +261,7 @@ export async function getQuizScore(
   const userUpdates: Partial<VolunteerDocument> & { $addToSet?: any } = {
     [`certifications.${cert}.passed`]: passed,
     [`certifications.${cert}.tries`]: tries,
-    [`certifications.${cert}.lastAttemptedAt`]: new Date()
+    [`certifications.${cert}.lastAttemptedAt`]: new Date(),
   }
 
   if (passed) {
@@ -276,7 +276,7 @@ export async function getQuizScore(
         new QuizActionCreator(user._id, subject, ip).unlockedSubject()
       captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {
         event: EVENTS.SUBJECT_UNLOCKED,
-        subject
+        subject,
       })
     }
 
@@ -292,13 +292,13 @@ export async function getQuizScore(
       if (user.volunteerPartnerOrg) queuePartnerOnboardingEventEmails(user._id)
       new AccountActionCreator(user._id, ip).accountOnboarded()
       captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
-        event: EVENTS.ACCOUNT_ONBOARDED
+        event: EVENTS.ACCOUNT_ONBOARDED,
       })
     }
   }
 
   await VolunteerModel.updateOne({ _id: user._id }, userUpdates, {
-    runValidators: true
+    runValidators: true,
   })
 
   const idCorrectAnswerMap = questions.reduce((correctAnswers, question) => {
@@ -310,6 +310,6 @@ export async function getQuizScore(
     tries,
     passed,
     score,
-    idCorrectAnswerMap
+    idCorrectAnswerMap,
   }
 }

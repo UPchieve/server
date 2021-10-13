@@ -3,7 +3,7 @@ import { Types } from 'mongoose'
 import config from '../config'
 
 const client = new PostHog(config.posthogToken, {
-  host: 'https://app.posthog.com'
+  host: 'https://app.posthog.com',
 })
 
 export const captureEvent = (
@@ -26,10 +26,10 @@ export const captureEvent = (
   client.capture({
     distinctId,
     event: eventName,
-    properties
+    properties,
   })
 }
 
 module.exports = {
-  captureEvent
+  captureEvent,
 }

@@ -6,19 +6,19 @@ const s3 = new AWS.S3({
   accessKeyId: config.awsS3.accessKeyId,
   secretAccessKey: config.awsS3.secretAccessKey,
   region: config.awsS3.region,
-  signatureVersion: 'v4'
+  signatureVersion: 'v4',
 })
 
 export const getObject = async ({
   bucket,
-  s3Key
+  s3Key,
 }: {
   bucket: string
   s3Key: string
 }): Promise<string> => {
   const signedUrlParams = {
     Bucket: config.awsS3[bucket],
-    Key: s3Key
+    Key: s3Key,
   }
 
   try {
@@ -31,7 +31,7 @@ export const getObject = async ({
 }
 
 export const getPhotoIdUploadUrl = async ({
-  photoIdS3Key
+  photoIdS3Key,
 }: {
   photoIdS3Key: string
 }): Promise<string> => {
@@ -39,7 +39,7 @@ export const getPhotoIdUploadUrl = async ({
     Bucket: config.awsS3.photoIdBucket,
     Key: photoIdS3Key,
     Expires: 60 * 60, // link expiration
-    ACL: 'bucket-owner-full-control'
+    ACL: 'bucket-owner-full-control',
   }
 
   try {
@@ -52,13 +52,13 @@ export const getPhotoIdUploadUrl = async ({
 }
 
 export const getPhotoIdUrl = async ({
-  photoIdS3Key
+  photoIdS3Key,
 }: {
   photoIdS3Key: string
 }): Promise<string> => {
   const signedUrlParams = {
     Bucket: config.awsS3.photoIdBucket,
-    Key: photoIdS3Key
+    Key: photoIdS3Key,
   }
 
   try {
@@ -77,7 +77,7 @@ export const getSessionPhotoUploadUrl = async (
     Bucket: config.awsS3.sessionPhotoBucket,
     Key: sessionPhotoS3Key,
     Expires: 60 * 60, // link expiration
-    ACL: 'bucket-owner-full-control'
+    ACL: 'bucket-owner-full-control',
   }
 
   try {
@@ -91,7 +91,7 @@ export const getSessionPhotoUploadUrl = async (
 
 export const getObjects = async ({
   bucket,
-  s3Keys
+  s3Keys,
 }: {
   bucket: string
   s3Keys: string[]

@@ -15,7 +15,7 @@ import {
   READING_WRITING_CERTS,
   TRAINING,
   SUBJECTS,
-  GRADES
+  GRADES,
 } from '../constants'
 import { Message } from '../models/Message'
 import { AvailabilitySnapshot } from '../models/Availability/Snapshot'
@@ -25,13 +25,13 @@ import {
   Availability,
   AvailabilityDay,
   DAYS,
-  HOURS
+  HOURS,
 } from '../models/Availability/types'
 import {
   Certifications,
   Reference,
   TrainingCourses,
-  Volunteer
+  Volunteer,
 } from '../models/Volunteer'
 import { User } from '../models/User'
 import { Student } from '../models/Student'
@@ -41,7 +41,7 @@ import {
   OpenStudentRegData,
   PartnerStudentRegData,
   VolunteerRegData,
-  PartnerVolunteerRegData
+  PartnerVolunteerRegData,
 } from '../utils/auth-utils'
 import { Notification } from '../models/Notification'
 import { PushToken } from '../models/PushToken'
@@ -107,7 +107,7 @@ export const buildCertifications = (overrides = {}): Certifications => {
     [TRAINING.COLLEGE_SKILLS]: { passed: false, tries: 0 },
     [TRAINING.SAT_STRATEGIES]: { passed: false, tries: 0 },
     [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: { passed: false, tries: 0 },
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -116,29 +116,29 @@ export const buildTrainingCourses = (overrides = {}): TrainingCourses => {
     [TRAINING.UPCHIEVE_101]: {
       isComplete: false,
       progress: 0,
-      completedMaterials: []
+      completedMaterials: [],
     },
     [TRAINING.TUTORING_SKILLS]: {
       isComplete: false,
       progress: 0,
-      completedMaterials: []
+      completedMaterials: [],
     },
     [TRAINING.COLLEGE_COUNSELING]: {
       isComplete: false,
       progress: 0,
-      completedMaterials: []
+      completedMaterials: [],
     },
     [TRAINING.COLLEGE_SKILLS]: {
       isComplete: false,
       progress: 0,
-      completedMaterials: []
+      completedMaterials: [],
     },
     [TRAINING.SAT_STRATEGIES]: {
       isComplete: false,
       progress: 0,
-      completedMaterials: []
+      completedMaterials: [],
     },
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -167,7 +167,7 @@ export const buildAvailabilitySnapshot = (
     createdAt: currentDate,
     timezone: 'America/New_York',
     volunteerId: Types.ObjectId(),
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -183,7 +183,7 @@ export const buildAvailabilityHistory = (
     createdAt: currentDate,
     timezone: 'America/New_York',
     volunteerId: Types.ObjectId(),
-    ...overrides
+    ...overrides,
   }
 }
 export function buildUser(overrides = {}) {
@@ -217,7 +217,7 @@ export function buildUser(overrides = {}) {
     ipAddresses: [],
     type: '',
     hashPassword: () => '',
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -229,7 +229,7 @@ export const buildStudent = (overrides = {}): Student => {
     studentPartnerOrg: 'example',
     partnerSite: '',
     currentGrade: GRADES.EIGHTH,
-    ...overrides
+    ...overrides,
   }
 
   return student
@@ -263,7 +263,7 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     experience: {
       collegeCounseling: '',
       mentoring: '',
-      tutoring: ''
+      tutoring: '',
     },
     languages: [],
     country: '',
@@ -274,7 +274,7 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     sentInactiveThirtyDayEmail: false,
     sentInactiveSixtyDayEmail: false,
     sentInactiveNinetyDayEmail: false,
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -292,7 +292,7 @@ export const buildStudentRegistrationForm = (
     zipCode: '11201',
     highSchoolId: '111111111111',
     currentGrade: GRADES.EIGHTH,
-    ...overrides
+    ...overrides,
   } as OpenStudentRegData
 
   return form
@@ -313,7 +313,7 @@ export const buildPartnerStudentRegistrationForm = (
     studentPartnerSite: 'example.org',
     partnerUserId: '123',
     college: 'UPchieve University',
-    ...overrides
+    ...overrides,
   } as PartnerStudentRegData
 
   return form
@@ -331,7 +331,7 @@ export const buildVolunteerRegistrationForm = (
     password: volunteer.password,
     phone: volunteer.phone,
     terms: true,
-    ...overrides
+    ...overrides,
   } as VolunteerRegData
 
   return form
@@ -350,7 +350,7 @@ export const buildPartnerVolunteerRegistrationForm = (
     password: volunteer.password,
     phone: volunteer.phone,
     terms: true,
-    ...overrides
+    ...overrides,
   } as PartnerVolunteerRegData
 
   return form
@@ -365,7 +365,7 @@ export const buildReference = (overrides = {}): Partial<Reference> => {
     firstName: referenceFirstName,
     lastName: referenceLastName,
     email: referenceEmail,
-    ...overrides
+    ...overrides,
   }
 
   return reference
@@ -385,7 +385,7 @@ export const buildReferenceForm = (overrides = {}): Partial<Reference> => {
     communicatesEffectively: randomNumToSix(),
     trustworthyWithChildren: randomNumToFive(),
     status: REFERENCE_STATUS.SUBMITTED,
-    ...overrides
+    ...overrides,
   }
 
   return form
@@ -395,7 +395,7 @@ export const buildReferenceWithForm = (overrides = {}): Partial<Reference> => {
   const data = {
     ...buildReferenceForm(),
     ...buildReference(),
-    ...overrides
+    ...overrides,
   }
 
   return data
@@ -405,7 +405,7 @@ export const buildPhotoIdData = (overrides = {}): Partial<Volunteer> => {
   const data = {
     photoIdS3Key: getUUID(),
     photoIdStatus: PHOTO_ID_STATUS.SUBMITTED,
-    ...overrides
+    ...overrides,
   }
 
   return data
@@ -417,13 +417,13 @@ export const buildBackgroundInfo = (overrides = {}): Partial<Volunteer> => {
     experience: {
       collegeCounseling: 'No prior experience',
       mentoring: '1-2 years',
-      tutoring: '0-1 years'
+      tutoring: '0-1 years',
     },
     languages: ['Spanish'],
     country: 'United States of America',
     state: 'New York',
     city: 'New York City',
-    ...overrides
+    ...overrides,
   }
 
   return data
@@ -456,7 +456,7 @@ export const buildSession = (overrides = {}): Session => {
     toReview: false,
     reviewReasons: [],
     timeTutored: 0,
-    ...overrides
+    ...overrides,
   }
 
   return session
@@ -469,7 +469,7 @@ export const buildMessage = (overrides = {}): Message => {
     user: null,
     contents: faker.lorem.sentence(),
     createdAt: new Date(),
-    ...overrides
+    ...overrides,
   }
 
   return message
@@ -503,7 +503,7 @@ export const buildNotification = (overrides = {}): Notification => {
     type: 'REGULAR',
     wasSuccessful: true,
     messageId: 'message123',
-    ...overrides
+    ...overrides,
   }
 
   return notification as Notification
@@ -529,7 +529,7 @@ export const buildUserAction = (
     ipAddress: null,
     referenceEmail: null,
     banReason: null,
-    ...overrides
+    ...overrides,
   }
 
   return userAction
@@ -561,7 +561,7 @@ export const buildAvailabilityDay = (overrides = {}): AvailabilityDay => {
     '9p': false,
     '10p': false,
     '11p': false,
-    ...overrides
+    ...overrides,
   }
 
   return availabilityDay
@@ -584,32 +584,32 @@ export const buildFeedback = (
         'feel-like-helped-student': null,
         'feel-more-fulfilled': null,
         'good-use-of-time': null,
-        'plan-on-volunteering-again': null
+        'plan-on-volunteering-again': null,
       },
       'other-feedback': null,
       'rate-upchieve': {
         'achieve-goal': null,
         'easy-to-use': null,
         'get-help-faster': null,
-        'use-next-time': null
+        'use-next-time': null,
       },
       'rate-coach': {
         'achieve-goal': null,
         'find-help': null,
         knowledgeable: null,
         nice: null,
-        'want-him/her-again': null
+        'want-him/her-again': null,
       },
       'technical-difficulties': null,
       'asked-unprepared-questions': null,
-      'app-features-needed': null
+      'app-features-needed': null,
     },
     studentTutoringFeedback: {
       'session-goal': null,
       'subject-understanding': null,
       'coach-rating': null,
       'coach-feedback': null,
-      'other-feedback': null
+      'other-feedback': null,
     },
     studentCounselingFeedback: {
       'rate-session': { rating: null },
@@ -617,21 +617,21 @@ export const buildFeedback = (
       'coach-ratings': {
         'coach-knowedgable': null,
         'coach-friendly': null,
-        'coach-help-again': null
+        'coach-help-again': null,
       },
-      'other-feedback': null
+      'other-feedback': null,
     },
     volunteerFeedback: {
       'session-enjoyable': null,
       'session-improvements': null,
       'student-understanding': null,
       'session-obstacles': [],
-      'other-feedback': null
+      'other-feedback': null,
     },
     volunteerId: null,
     studentId: null,
     versionNumber: null,
-    ...overrides
+    ...overrides,
   }
 
   return feedback
@@ -644,7 +644,7 @@ export function buildUserAgent(overrides = {}) {
     browserVersion: '',
     operatingSystem: '',
     operatingSystemVersion: '',
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -656,13 +656,13 @@ export function buildSocket(overrides = {}) {
     disconnected: false,
     request: {
       headers: {
-        'user-agent': ''
-      }
+        'user-agent': '',
+      },
     },
     handshake: {
-      address: ''
+      address: '',
     },
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -672,7 +672,7 @@ export function buildPushToken(overrides = {}): PushToken {
     user: getObjectId(),
     createdAt: new Date(),
     token: '123',
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -686,7 +686,7 @@ export function buildSchool(overrides: Partial<School> = {}): School {
     isApproved: true,
     isPartner: true,
     createdAt: new Date(),
-    ...overrides
+    ...overrides,
   } as School
 }
 
@@ -701,20 +701,20 @@ export function buildGatesQualifiedData(
 ) {
   const session = buildSession({
     subTopic: SUBJECTS.ALGEBRA_ONE,
-    ...overrides.session
+    ...overrides.session,
   })
   const student = buildStudent({
     studentPartnerOrg: '',
     pastSessions: [getObjectId()],
     currentGrade: GRADES.NINTH,
-    ...overrides.student
+    ...overrides.student,
   })
   const school = buildSchool({ isPartner: false, ...overrides.school })
 
   return {
     session,
     student,
-    school
+    school,
   }
 }
 
@@ -744,8 +744,8 @@ export function buildUSM(
       commentFromVolunteer: 0,
       hasBeenUnmatched: 0,
       hasHadTechnicalIssues: 0,
-      ...counterOverrides
-    }
+      ...counterOverrides,
+    },
   }
 }
 

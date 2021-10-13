@@ -11,7 +11,7 @@ import * as UserCtrl from '../controllers/UserCtrl'
 
 import {
   volunteerPartnerManifests,
-  studentPartnerManifests
+  studentPartnerManifests,
 } from '../partnerManifests'
 import { IP_ADDRESS_STATUS } from '../constants'
 
@@ -27,7 +27,7 @@ import {
   checkPassword,
   checkPhone,
   hashPassword,
-  getReferredBy
+  getReferredBy,
 } from '../utils/auth-utils'
 import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
@@ -103,7 +103,7 @@ export async function registerOpenStudent(
     referredByCode,
     firstName,
     lastName,
-    currentGrade
+    currentGrade,
   } = asStudentRegData(data)
 
   await checkCredential({ email, password })
@@ -139,8 +139,8 @@ export async function registerOpenStudent(
     password,
     currentGrade,
     ipAddresses: [
-      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
-    ]
+      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK },
+    ],
   }
 
   const student = await UserCtrl.createStudent(studentData)
@@ -164,7 +164,7 @@ export async function registerPartnerStudent(
     firstName,
     lastName,
     college,
-    partnerSite
+    partnerSite,
   } = asPartnerStudentRegData(data)
 
   await checkCredential({ email, password })
@@ -199,8 +199,8 @@ export async function registerPartnerStudent(
     referredBy,
     password,
     ipAddresses: [
-      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
-    ]
+      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK },
+    ],
   }
 
   const student = await UserCtrl.createStudent(studentData)
@@ -219,7 +219,7 @@ export async function registerVolunteer(
     terms,
     referredByCode,
     firstName,
-    lastName
+    lastName,
   } = asVolunteerRegData(data)
 
   await checkCredential({ email, password })
@@ -243,8 +243,8 @@ export async function registerVolunteer(
     referredBy,
     password,
     ipAddresses: [
-      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK }
-    ]
+      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK },
+    ],
   }
 
   const volunteer = await UserCtrl.createVolunteer(volunteerData)
@@ -266,7 +266,7 @@ export async function registerPartnerVolunteer(
     terms,
     referredByCode,
     firstName,
-    lastName
+    lastName,
   } = asPartnerVolunteerRegData(data)
   await checkCredential({ email, password })
 
@@ -307,7 +307,7 @@ export async function registerPartnerVolunteer(
     verified: false,
     referredBy,
     password,
-    ip
+    ip,
   }
 
   const volunteer = await UserCtrl.createVolunteer(volunteerData)
@@ -349,7 +349,7 @@ export async function lookupPartnerStudent(data: unknown): Promise<string> {
 export async function lookupPartnerStudentCode(data: unknown): Promise<string> {
   const partnerSignupCode = asString(data)
   const studentPartnerKey = findKey(studentPartnerManifests, {
-    signupCode: partnerSignupCode.toUpperCase()
+    signupCode: partnerSignupCode.toUpperCase(),
   })
 
   if (!studentPartnerKey)
@@ -376,7 +376,7 @@ export async function lookupStudentPartners(): Promise<PartnerOrg[]> {
     partnerOrgs.push({
       key,
       displayName: value.name ? value.name : key,
-      sites: value.sites ? value.sites : null
+      sites: value.sites ? value.sites : null,
     })
   }
   return partnerOrgs
@@ -392,7 +392,7 @@ export async function lookupVolunteerPartners(): Promise<PartnerOrg[]> {
     partnerOrgs.push({
       key,
       displayName: value.name ? value.name : key,
-      sites: value.sites ? value.sites : null
+      sites: value.sites ? value.sites : null,
     })
   }
   return partnerOrgs

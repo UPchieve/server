@@ -47,6 +47,6 @@ export async function prepareForGatesQualificationCheck(
   return {
     session,
     student,
-    school
+    school,
   }
 }

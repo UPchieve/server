@@ -19,20 +19,20 @@ const pushTokenSchema = new Schema(
   {
     user: {
       type: Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
     },
     createdAt: { type: Date, default: Date.now },
     // Token ID returned from push token register
-    token: { type: String, unique: true }
+    token: { type: String, unique: true },
   },
   {
     toJSON: {
-      virtuals: true
+      virtuals: true,
     },
 
     toObject: {
-      virtuals: true
-    }
+      virtuals: true,
+    },
   }
 )
 

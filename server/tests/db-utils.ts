@@ -7,14 +7,14 @@ import SessionModel, { Session } from '../models/Session'
 import NotificationModel from '../models/Notification'
 import FeedbackModel, {
   FeedbackVersionOne,
-  FeedbackVersionTwo
+  FeedbackVersionTwo,
 } from '../models/Feedback'
 import config from '../config'
 import AvailabilitySnapshotModel, {
-  AvailabilitySnapshot
+  AvailabilitySnapshot,
 } from '../models/Availability/Snapshot'
 import AvailabilityHistoryModel, {
-  AvailabilityHistory
+  AvailabilityHistory,
 } from '../models/Availability/History'
 import {
   buildNotification,
@@ -24,7 +24,7 @@ import {
   buildAvailabilitySnapshot,
   buildAvailabilityHistory,
   buildUserAction,
-  buildFeedback
+  buildFeedback,
 } from './generate'
 
 const hashPassword = async function(password): Promise<Error | string> {
@@ -53,7 +53,7 @@ export const insertVolunteer = async (
   const hashedPassword = await hashPassword(volunteer.password)
   const createdVolunteer = await VolunteerModel.create({
     ...volunteer,
-    password: hashedPassword
+    password: hashedPassword,
   })
   // Return volunteer with non-hashed password
   return { ...createdVolunteer.toObject(), password: volunteer.password }
@@ -73,7 +73,7 @@ export const insertStudent = async (
   const hashedPassword = await hashPassword(student.password)
   const createdStudent = await StudentModel.create({
     ...student,
-    password: hashedPassword
+    password: hashedPassword,
   })
   // Return student with non-hashed password
   return { ...createdStudent.toObject(), password: student.password }
@@ -89,7 +89,7 @@ export const insertSession = async (
   const student = await insertStudent(studentOverrides)
   const session = buildSession({
     student: student._id, // created student can be overridden
-    ...overrides
+    ...overrides,
   })
   const createdSession = await SessionModel.create(session)
   // Return the session and the student
@@ -117,7 +117,7 @@ export const insertSessionWithVolunteer = async (
     student: student._id,
     volunteer: volunteer._id,
     volunteerJoinedAt: new Date(),
-    ...overrides
+    ...overrides,
   })
   const createdSession = await SessionModel.create(session)
   // Return the session and the student
@@ -133,7 +133,7 @@ export const insertNotification = async (
 }> => {
   const notification = buildNotification({
     volunteer: volunteer._id,
-    ...overrides
+    ...overrides,
   })
   const createdNotification = await NotificationModel.create(notification)
   // Return the notification and the volunteer

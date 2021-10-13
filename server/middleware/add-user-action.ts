@@ -2,7 +2,7 @@ import { Response } from 'express'
 import { captureException } from '@sentry/node'
 import {
   AccountActionCreator,
-  QuizActionCreator
+  QuizActionCreator,
 } from '../controllers/UserActionCtrl'
 import { LoadedRequest } from '../router/app'
 

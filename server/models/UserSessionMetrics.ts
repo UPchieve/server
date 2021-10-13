@@ -7,7 +7,7 @@ import {
   Schema,
   Types,
   SchemaTypeOpts,
-  UpdateQuery
+  UpdateQuery,
 } from 'mongoose'
 import { validUser } from '../utils/validators'
 import { User } from './User'
@@ -21,7 +21,7 @@ export type Counter = number
 export type MetricType = Counter // | Label | Statistic ...
 
 export enum METRIC_TYPES {
-  counters = 'counters'
+  counters = 'counters',
   // labels = 'labels
   // statistics = 'statistics
 }
@@ -53,8 +53,8 @@ const counterSchema = {
   validate: {
     validator: Number.isInteger,
     message: (props: SchemaTypeOpts.ValidatorProps) =>
-      `${props.value} is not an integer`
-  }
+      `${props.value} is not an integer`,
+  },
 }
 
 const userSessionMetricsSchema = new Schema({
@@ -65,8 +65,8 @@ const userSessionMetricsSchema = new Schema({
     unique: true,
     validate: {
       validator: validUser,
-      message: props => `${props.value} is not a valid user`
-    }
+      message: props => `${props.value} is not a valid user`,
+    },
   },
   counters: {
     absentStudent: counterSchema,
@@ -80,8 +80,8 @@ const userSessionMetricsSchema = new Schema({
     commentFromStudent: counterSchema,
     commentFromVolunteer: counterSchema,
     hasBeenUnmatched: counterSchema,
-    hasHadTechnicalIssues: counterSchema
-  }
+    hasHadTechnicalIssues: counterSchema,
+  },
 })
 
 const UserSessionMetricsCollection = 'UserSessionMetrics'
@@ -105,7 +105,7 @@ export async function createByUserId(
 
   try {
     const data = (await UserSessionMetricsModel.create({
-      user: userId
+      user: userId,
     })) as UserSessionMetricsDocument
     if (data) return data.toObject() as UserSessionMetrics
     else throw new Error('Create query did not return created object')
@@ -143,7 +143,7 @@ export async function getByUserId(
 ): Promise<UserSessionMetrics> {
   try {
     return (await UserSessionMetricsModel.findOne({
-      user: userId
+      user: userId,
     })
       .lean()
       .exec()) as UserSessionMetrics

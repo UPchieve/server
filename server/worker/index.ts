@@ -17,8 +17,8 @@ const main = async (): Promise<void> => {
       settings: {
         // to prevent stalling long jobs
         stalledInterval: 1000 * 60 * 30,
-        lockDuration: 1000 * 60 * 30
-      }
+        lockDuration: 1000 * 60 * 30,
+      },
     })
     queue.on('error', error => {
       logger.error(`error in queue: ${error}`)

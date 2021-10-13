@@ -12,7 +12,7 @@ import logger from '../logger'
 import {
   FEEDBACK_VERSIONS,
   DATE_RANGE_COMPARISON_FIELDS,
-  REPORT_FILE_NAMES
+  REPORT_FILE_NAMES,
 } from '../constants'
 import config from '../config'
 import {
@@ -27,7 +27,7 @@ import {
   processAnalyticsReportDataSheet,
   validateVolunteerReportQuery,
   validateStudentSessionReportQuery,
-  validateStudentUsageReportQuery
+  validateStudentUsageReportQuery,
 } from '../utils/reportUtils'
 import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
@@ -119,7 +119,7 @@ export const sessionReport = async (
     sessionRangeTo,
     highSchoolId,
     studentPartnerOrg,
-    studentPartnerSite
+    studentPartnerSite,
   } = validateStudentSessionReportQuery(data)
   const query: {
     approvedHighschool?: Types.ObjectId
@@ -139,7 +139,7 @@ export const sessionReport = async (
 
   const sessions = await User.aggregate([
     {
-      $match: query
+      $match: query,
     },
     {
       $project: {
@@ -147,40 +147,40 @@ export const sessionReport = async (
         lastname: 1,
         email: 1,
         pastSessions: 1,
-        partnerSite: 1
-      }
+        partnerSite: 1,
+      },
     },
     {
       $lookup: {
         from: 'sessions',
         localField: 'pastSessions',
         foreignField: '_id',
-        as: 'session'
-      }
+        as: 'session',
+      },
     },
     {
-      $unwind: '$session'
+      $unwind: '$session',
     },
     {
       $match: {
         'session.createdAt': {
           $gte: sessionRangeStart,
-          $lte: sessionRangeEnd
-        }
-      }
+          $lte: sessionRangeEnd,
+        },
+      },
     },
     {
       $addFields: {
-        sessionId: '$session._id'
-      }
+        sessionId: '$session._id',
+      },
     },
     {
       $lookup: {
         from: 'feedbacks',
         localField: 'sessionId',
         foreignField: 'sessionId',
-        as: 'feedbacks'
-      }
+        as: 'feedbacks',
+      },
     },
     {
       $addFields: {
@@ -188,16 +188,16 @@ export const sessionReport = async (
           $filter: {
             input: '$feedbacks',
             as: 'feedback',
-            cond: { $eq: ['$$feedback.userType', 'student'] }
-          }
-        }
-      }
+            cond: { $eq: ['$$feedback.userType', 'student'] },
+          },
+        },
+      },
     },
     {
       $unwind: {
         path: '$studentFeedback',
-        preserveNullAndEmptyArrays: true
-      }
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $project: {
@@ -211,14 +211,14 @@ export const sessionReport = async (
           firstName: '$firstname',
           lastName: '$lastname',
           email: '$email',
-          partnerSite: '$partnerSite'
+          partnerSite: '$partnerSite',
         },
         volunteer: {
           $cond: {
             if: '$session.volunteer',
             then: 'YES',
-            else: 'NO'
-          }
+            else: 'NO',
+          },
         },
         volunteerJoinedAt: '$session.volunteerJoinedAt',
         endedAt: '$session.endedAt',
@@ -232,17 +232,17 @@ export const sessionReport = async (
                     {
                       $subtract: [
                         '$session.volunteerJoinedAt',
-                        '$session.createdAt'
-                      ]
+                        '$session.createdAt',
+                      ],
                     },
-                    oneMinuteInMs
-                  ]
+                    oneMinuteInMs,
+                  ],
                 },
-                roundDecimalPlace
-              ]
+                roundDecimalPlace,
+              ],
             },
-            else: null
-          }
+            else: null,
+          },
         },
         sessionRating: {
           $switch: {
@@ -253,13 +253,13 @@ export const sessionReport = async (
                     {
                       $eq: [
                         '$studentFeedback.versionNumber',
-                        FEEDBACK_VERSIONS.ONE
-                      ]
+                        FEEDBACK_VERSIONS.ONE,
+                      ],
                     },
-                    '$studentFeedback.responseData.rate-session.rating'
-                  ]
+                    '$studentFeedback.responseData.rate-session.rating',
+                  ],
                 },
-                then: '$studentFeedback.responseData.rate-session.rating'
+                then: '$studentFeedback.responseData.rate-session.rating',
               },
               {
                 case: {
@@ -267,24 +267,24 @@ export const sessionReport = async (
                     {
                       $eq: [
                         '$studentFeedback.versionNumber',
-                        FEEDBACK_VERSIONS.TWO
-                      ]
+                        FEEDBACK_VERSIONS.TWO,
+                      ],
                     },
-                    '$studentFeedback.studentCounselingFeedback.rate-session.rating'
-                  ]
+                    '$studentFeedback.studentCounselingFeedback.rate-session.rating',
+                  ],
                 },
                 then:
-                  '$studentFeedback.studentCounselingFeedback.rate-session.rating'
-              }
+                  '$studentFeedback.studentCounselingFeedback.rate-session.rating',
+              },
             ],
-            default: null
-          }
-        }
-      }
+            default: null,
+          },
+        },
+      },
     },
     {
-      $sort: { createdAt: 1 }
-    }
+      $sort: { createdAt: 1 },
+    },
   ]).read('secondaryPreferred')
 
   const formattedSessions = sessions.map(session => {
@@ -303,7 +303,7 @@ export const sessionReport = async (
       'Volunteer join date': formatDate(session.volunteerJoinedAt),
       'Ended at': formatDate(session.endedAt),
       'Wait time': session.waitTime && `${session.waitTime}mins`,
-      'Session rating': session.sessionRating
+      'Session rating': session.sessionRating,
     }
   })
 
@@ -318,7 +318,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
     sessionRangeTo,
     highSchoolId,
     studentPartnerOrg,
-    studentPartnerSite
+    studentPartnerSite,
   } = validateStudentUsageReportQuery(data)
   const query: {
     createdAt?: {}
@@ -328,8 +328,8 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   } = {
     createdAt: {
       $gte: dateStringToDateEST(joinedAfter),
-      $lte: dateStringToDateEST(joinedBefore)
-    }
+      $lte: dateStringToDateEST(joinedBefore),
+    },
   }
   if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId)
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg
@@ -340,7 +340,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
 
   const students = await User.aggregate([
     {
-      $match: query
+      $match: query,
     },
     {
       $project: {
@@ -351,22 +351,22 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
         createdAt: 1,
         totalSessions: { $size: '$pastSessions' },
         partnerSite: 1,
-        approvedHighschool: 1
-      }
+        approvedHighschool: 1,
+      },
     },
     {
       $lookup: {
         from: 'sessions',
         localField: 'pastSessions',
         foreignField: '_id',
-        as: 'session'
-      }
+        as: 'session',
+      },
     },
     {
       $unwind: {
         path: '$session',
-        preserveNullAndEmptyArrays: true
-      }
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $lookup: {
@@ -378,14 +378,14 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
               $expr: {
                 $and: [
                   { $eq: ['$userType', 'student'] },
-                  { $eq: ['$studentId', '$$studentId'] }
-                ]
-              }
-            }
-          }
+                  { $eq: ['$studentId', '$$studentId'] },
+                ],
+              },
+            },
+          },
         ],
-        as: 'feedback'
-      }
+        as: 'feedback',
+      },
     },
     {
       $addFields: {
@@ -394,10 +394,10 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
           $cond: [
             { $ifNull: ['$session.volunteerJoinedAt', false] },
             { $subtract: ['$session.endedAt', '$session.volunteerJoinedAt'] },
-            0
-          ]
-        }
-      }
+            0,
+          ],
+        },
+      },
     },
     {
       $addFields: {
@@ -406,50 +406,50 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
             {
               $and: [
                 {
-                  $gte: ['$session.createdAt', sessionRangeStart]
+                  $gte: ['$session.createdAt', sessionRangeStart],
                 },
                 {
-                  $lte: ['$session.createdAt', sessionRangeEnd]
-                }
-              ]
+                  $lte: ['$session.createdAt', sessionRangeEnd],
+                },
+              ],
             },
             true,
-            false
-          ]
+            false,
+          ],
         },
         sessionLength: {
           $switch: {
             branches: [
               {
                 case: {
-                  $lt: ['$sessionLength', 0]
+                  $lt: ['$sessionLength', 0],
                 },
-                then: 0
+                then: 0,
               },
               {
                 case: {
-                  $gte: ['$sessionLength', 60 * (1000 * 60)]
+                  $gte: ['$sessionLength', 60 * (1000 * 60)],
                 },
                 then: {
                   $cond: [
                     {
-                      $ifNull: ['$lastMessage', false]
+                      $ifNull: ['$lastMessage', false],
                     },
                     {
                       $subtract: [
                         '$lastMessage.createdAt',
-                        '$session.volunteerJoinedAt'
-                      ]
+                        '$session.volunteerJoinedAt',
+                      ],
                     },
-                    0
-                  ]
-                }
-              }
+                    0,
+                  ],
+                },
+              },
             ],
-            default: '$sessionLength'
-          }
-        }
-      }
+            default: '$sessionLength',
+          },
+        },
+      },
     },
     {
       $group: {
@@ -466,32 +466,32 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
             $cond: [
               { $ifNull: ['$isWithinDateRange', false] },
               '$sessionLength',
-              0
-            ]
-          }
+              0,
+            ],
+          },
         },
         sessionsOverRange: {
           $sum: {
-            $cond: [{ $ifNull: ['$isWithinDateRange', false] }, 1, 0]
-          }
+            $cond: [{ $ifNull: ['$isWithinDateRange', false] }, 1, 0],
+          },
         },
         partnerSite: { $first: '$partnerSite' },
-        approvedHighschool: { $max: '$approvedHighschool' }
-      }
+        approvedHighschool: { $max: '$approvedHighschool' },
+      },
     },
     {
       $lookup: {
         from: 'schools',
         localField: 'approvedHighschool',
         foreignField: '_id',
-        as: 'highschool'
-      }
+        as: 'highschool',
+      },
     },
     {
       $unwind: {
         path: '$highschool',
-        preserveNullAndEmptyArrays: true
-      }
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $project: {
@@ -501,25 +501,25 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
         joinDate: '$createdAt',
         totalSessions: 1,
         totalMinutes: {
-          $round: [{ $divide: ['$sessionLength', 60000] }, 2]
+          $round: [{ $divide: ['$sessionLength', 60000] }, 2],
         },
         sessionsOverDateRange: '$sessionsOverRange',
         minsOverDateRange: {
-          $round: [{ $divide: ['$range', 60000] }, 2]
+          $round: [{ $divide: ['$range', 60000] }, 2],
         },
         feedback: 1,
         partnerSite: 1,
         approvedHighschool: {
-          $ifNull: ['$highschool.nameStored', '$highschool.SCH_NAME']
+          $ifNull: ['$highschool.nameStored', '$highschool.SCH_NAME'],
         },
-        _id: 0
-      }
+        _id: 0,
+      },
     },
     {
       $sort: {
-        joinDate: 1
-      }
-    }
+        joinDate: 1,
+      },
+    },
   ]).read('secondaryPreferred')
 
   const partnerSites =
@@ -539,7 +539,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
       'Average session rating': calcAverageRating(feedback),
       'Sessions over date range': student.sessionsOverDateRange,
       'Minutes over date range': student.minsOverDateRange,
-      'High school name': student.approvedHighschool
+      'High school name': student.approvedHighschool,
     }
 
     if (partnerSites)
@@ -569,7 +569,7 @@ export const getTelecomReport = async ({ partnerOrg, startDate, endDate }) => {
         isFakeUser: false,
         volunteerPartnerOrg: partnerOrg,
         isOnboarded: true,
-        isApproved: true
+        isApproved: true,
       },
       {
         _id: 1,
@@ -579,7 +579,7 @@ export const getTelecomReport = async ({ partnerOrg, startDate, endDate }) => {
         email: 1,
         certifications: 1,
         volunteerPartnerOrg: 1,
-        elapsedAvailability: 1
+        elapsedAvailability: 1,
       }
     )
 
@@ -593,7 +593,7 @@ export const getTelecomReport = async ({ partnerOrg, startDate, endDate }) => {
 export const generatePartnerAnalyticsReport = async ({
   partnerOrg,
   startDate,
-  endDate
+  endDate,
 }) => {
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
@@ -605,8 +605,8 @@ export const generatePartnerAnalyticsReport = async ({
   const volunteers = ((await VolunteerService.getVolunteersWithPipeline([
     {
       $match: {
-        volunteerPartnerOrg: partnerOrg
-      }
+        volunteerPartnerOrg: partnerOrg,
+      },
     },
     // Get the volunteer's user action "ONBOARDED"
     {
@@ -619,20 +619,20 @@ export const generatePartnerAnalyticsReport = async ({
               $expr: {
                 $and: [
                   { $eq: ['$action', 'ONBOARDED'] },
-                  { $eq: ['$user', '$$userId'] }
-                ]
-              }
-            }
-          }
+                  { $eq: ['$user', '$$userId'] },
+                ],
+              },
+            },
+          },
         ],
-        as: 'actionOnboarded'
-      }
+        as: 'actionOnboarded',
+      },
     },
     {
       $unwind: {
         path: '$actionOnboarded',
-        preserveNullAndEmptyArrays: true
-      }
+        preserveNullAndEmptyArrays: true,
+      },
     },
 
     /**
@@ -651,9 +651,9 @@ export const generatePartnerAnalyticsReport = async ({
           {
             $match: {
               $expr: {
-                $eq: ['$volunteer', '$$userId']
-              }
-            }
+                $eq: ['$volunteer', '$$userId'],
+              },
+            },
           },
           {
             $facet: {
@@ -665,8 +665,8 @@ export const generatePartnerAnalyticsReport = async ({
                     frequencyWitinDateRange: getSumOperatorForDateRange(
                       start,
                       end
-                    )
-                  }
+                    ),
+                  },
                 },
                 {
                   $group: {
@@ -674,32 +674,39 @@ export const generatePartnerAnalyticsReport = async ({
                     total: { $sum: 1 },
                     totalWithinDateRange: {
                       $sum: {
-                        $cond: [{ $gte: ['$frequencyWitinDateRange', 1] }, 1, 0]
-                      }
-                    }
-                  }
-                }
+                        $cond: [
+                          { $gte: ['$frequencyWitinDateRange', 1] },
+                          1,
+                          0,
+                        ],
+                      },
+                    },
+                  },
+                },
               ],
               sessionStats: [
                 {
                   $group: {
                     _id: null,
                     total: { $sum: 1 },
-                    totalWithinDateRange: getSumOperatorForDateRange(start, end)
-                  }
-                }
-              ]
-            }
-          }
+                    totalWithinDateRange: getSumOperatorForDateRange(
+                      start,
+                      end
+                    ),
+                  },
+                },
+              ],
+            },
+          },
         ],
-        as: 'sessionAnalytics'
-      }
+        as: 'sessionAnalytics',
+      },
     },
     {
       $unwind: {
         path: '$sessionAnalytics',
-        preserveNullAndEmptyArrays: true
-      }
+        preserveNullAndEmptyArrays: true,
+      },
     },
     // Get the total amount of text messages that were sent to a volunteer
     // and the total amount sent within startDate - endDate
@@ -711,9 +718,9 @@ export const generatePartnerAnalyticsReport = async ({
           {
             $match: {
               $expr: {
-                $eq: ['$volunteer', '$$userId']
-              }
-            }
+                $eq: ['$volunteer', '$$userId'],
+              },
+            },
           },
           {
             $group: {
@@ -723,12 +730,12 @@ export const generatePartnerAnalyticsReport = async ({
                 start,
                 end,
                 DATE_RANGE_COMPARISON_FIELDS.SENT_AT
-              )
-            }
-          }
+              ),
+            },
+          },
         ],
-        as: 'textNotifications'
-      }
+        as: 'textNotifications',
+      },
     },
     {
       $project: {
@@ -745,9 +752,9 @@ export const generatePartnerAnalyticsReport = async ({
         sessionAnalytics: 1,
         textNotifications: { $arrayElemAt: ['$textNotifications', 0] },
         isDeactivated: 1,
-        activityLastAt: 1
-      }
-    }
+        activityLastAt: 1,
+      },
+    },
   ])) as unknown) as PartnerVolunteerAnalytics[]
 
   const report: AnalyticsReportRow[] = []
@@ -766,7 +773,7 @@ export const generatePartnerAnalyticsReport = async ({
     const volunteerWithAnalytics = {
       ...volunteer,
       hourSummaryTotal,
-      hourSummaryDateRange
+      hourSummaryDateRange,
     }
     const row = getAnalyticsReportRow(volunteerWithAnalytics)
     report.push(row)
@@ -783,14 +790,14 @@ export async function writeAnalyticsReport(data, startDate, endDate) {
   await fsPromises.mkdir(path.parse(reportFilePath).dir, { recursive: true })
   const workbook = new exceljs.stream.xlsx.WorkbookWriter({
     filename: reportFilePath,
-    useStyles: true // include this option to apply styling to streams
+    useStyles: true, // include this option to apply styling to streams
   })
   const sheetOptions = {
     pageSetup: {
       orientation: 'landscape',
       showGridLines: true,
-      showRowColHeaders: true
-    }
+      showRowColHeaders: true,
+    },
   } as Partial<exceljs.AddWorksheetOptions>
   const summarySheet = workbook.addWorksheet('Summary', sheetOptions)
   const dataSheet = workbook.addWorksheet('Data', sheetOptions)
@@ -822,7 +829,7 @@ export async function getAnalyticsReport(data: unknown) {
     const analyticsReport = await generatePartnerAnalyticsReport({
       partnerOrg,
       startDate,
-      endDate
+      endDate,
     })
     if (analyticsReport.report.length === 0)
       throw new ReportNoDataFoundError(

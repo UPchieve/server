@@ -26,7 +26,7 @@ const questionSchema = new Schema({
   correctAnswer: String,
   category: String,
   subcategory: String,
-  imageSrc: String
+  imageSrc: String,
 })
 
 // Given a question record, strip out sensitive data for public consumption
@@ -35,7 +35,7 @@ questionSchema.methods.parseQuestion = function(): Partial<Question> {
     _id: this._id,
     questionText: this.questionText,
     possibleAnswers: this.possibleAnswers,
-    imageSrc: this.image
+    imageSrc: this.image,
   }
 }
 

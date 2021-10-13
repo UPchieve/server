@@ -34,15 +34,15 @@ export type UserActionDocument = UserAction & Document
 const userActionSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
   session: {
     type: Schema.Types.ObjectId,
-    ref: 'Session'
+    ref: 'Session',
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   actionType: {
     type: String,
@@ -50,8 +50,8 @@ const userActionSchema = new Schema({
       USER_ACTION.TYPE.QUIZ,
       USER_ACTION.TYPE.SESSION,
       USER_ACTION.TYPE.ACCOUNT,
-      USER_ACTION.TYPE.ADMIN
-    ]
+      USER_ACTION.TYPE.ADMIN,
+    ],
   },
   // Specific action
   action: {
@@ -82,8 +82,8 @@ const userActionSchema = new Schema({
       USER_ACTION.ACCOUNT.REJECTED_PHOTO_ID,
       USER_ACTION.ACCOUNT.REJECTED_REFERENCE,
       USER_ACTION.ACCOUNT.BANNED,
-      USER_ACTION.ACCOUNT.DEACTIVATED
-    ]
+      USER_ACTION.ACCOUNT.DEACTIVATED,
+    ],
   },
   quizCategory: String,
   quizSubcategory: String,
@@ -94,7 +94,7 @@ const userActionSchema = new Schema({
   operatingSystemVersion: String,
   ipAddress: String,
   referenceEmail: String,
-  banReason: String
+  banReason: String,
 })
 
 const UserActionModel = model<UserActionDocument>(

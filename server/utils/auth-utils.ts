@@ -18,7 +18,7 @@ import {
   asBoolean,
   asFactory,
   asOptional,
-  asEnum
+  asEnum,
 } from './type-utils'
 
 // Custom errors
@@ -73,7 +73,7 @@ export interface ResetConfirmData {
 // Function signature interface type checks
 export const asCredentialData = asFactory<CredentialData>({
   email: asString,
-  password: asString
+  password: asString,
 })
 
 const userRegDataValidators = {
@@ -83,14 +83,14 @@ const userRegDataValidators = {
   terms: asBoolean,
   referredByCode: asOptional(asString),
   firstName: asString,
-  lastName: asString
+  lastName: asString,
 }
 
 export const asStudentRegData = asFactory<OpenStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
-  currentGrade: asEnum(GRADES)
+  currentGrade: asEnum(GRADES),
 })
 
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
@@ -100,24 +100,24 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   studentPartnerOrg: asOptional(asString),
   partnerUserId: asOptional(asString),
   partnerSite: asOptional(asString),
-  college: asOptional(asString)
+  college: asOptional(asString),
 })
 
 export const asVolunteerRegData = asFactory<VolunteerRegData>({
   ...userRegDataValidators,
-  phone: asString
+  phone: asString,
 })
 
 export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
-  volunteerPartnerOrg: asString
+  volunteerPartnerOrg: asString,
 })
 
 export const asResetConfirmData = asFactory<ResetConfirmData>({
   email: asString,
   password: asString,
-  token: asString
+  token: asString,
 })
 
 // Validation functions
@@ -174,7 +174,7 @@ export async function getReferredBy(
   const referredBy = await checkReferral(referredByCode)
   if (referredBy) {
     captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
-      event: EVENTS.FRIEND_REFERRED
+      event: EVENTS.FRIEND_REFERRED,
     })
     return Types.ObjectId(referredBy)
   } else return undefined
@@ -221,7 +221,7 @@ function setupPassport() {
     new LocalStrategy(
       {
         usernameField: 'email',
-        passwordField: 'password'
+        passwordField: 'password',
       },
       async function(email, passwordGiven, done) {
         try {
@@ -287,5 +287,5 @@ export const authPassport = {
   isAuthenticated,
   isAdmin,
   isAuthenticatedRedirect,
-  isAdminRedirect
+  isAdminRedirect,
 }

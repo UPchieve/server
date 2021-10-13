@@ -5,7 +5,7 @@ import {
   DocUpdateError,
   NotAllowedError,
   InputError,
-  LookupError
+  LookupError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -42,6 +42,6 @@ export function resError(
     Sentry.captureException(err)
 
   res.status(status).json({
-    err: err.message
+    err: err.message,
   })
 }

@@ -3,7 +3,7 @@ import {
   asFactory,
   asString,
   asEnum,
-  asStringObjectId
+  asStringObjectId,
 } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
@@ -24,7 +24,7 @@ const asInitiateVerificationData = asFactory<InitiateVerificationData>({
   userId: asStringObjectId, // parsed from request as string
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
-  firstName: asString
+  firstName: asString,
 })
 
 export interface ConfirmVerificationData {
@@ -38,7 +38,7 @@ const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   userId: asStringObjectId, // parsed from request as string
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
-  verificationCode: asString
+  verificationCode: asString,
 })
 
 export async function initiateVerification(data: unknown): Promise<void> {
@@ -46,7 +46,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
     userId,
     sendTo,
     verificationMethod,
-    firstName
+    firstName,
   } = asInitiateVerificationData(data)
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
@@ -71,7 +71,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
   await TwilioService.sendVerification({
     sendTo,
     verificationMethod,
-    firstName
+    firstName,
   })
 }
 
@@ -81,18 +81,18 @@ async function sendEmails(userId: string): Promise<void> {
     if (user.volunteerPartnerOrg) {
       await MailService.sendPartnerVolunteerWelcomeEmail({
         email: user.email,
-        volunteerName: user.firstname
+        volunteerName: user.firstname,
       })
     } else {
       await MailService.sendOpenVolunteerWelcomeEmail({
         email: user.email,
-        volunteerName: user.firstname
+        volunteerName: user.firstname,
       })
     }
   } else {
     await MailService.sendStudentWelcomeEmail({
       email: user.email,
-      firstName: user.firstname
+      firstName: user.firstname,
     })
     await StudentService.queueWelcomeEmails(user._id)
   }
@@ -103,7 +103,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     userId,
     sendTo,
     verificationMethod,
-    verificationCode
+    verificationCode,
   } = asConfirmVerificationData(data)
 
   const VERIFICATION_CODE_LENGTH = 6
