@@ -1,4 +1,4 @@
-import { model, Schema, Types } from 'mongoose'
+import { model, Schema, Types, Document } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
 import UserModel, { UserDocument } from './User'
 import { DocCreationError, UserNotFoundError } from './Errors'
@@ -11,6 +11,8 @@ export interface ContactFormSubmission {
   topic: string
   message: string
 }
+
+type ContactFormSubmissionDocument = ContactFormSubmission & Document
 
 const contactFormSubmissionSchema = new Schema({
   createdAt: {
@@ -26,7 +28,7 @@ const contactFormSubmissionSchema = new Schema({
     default: '',
     required: [true, 'email is required'],
     validate: {
-      validator: v => {
+      validator: (v: string) => {
         return isEmail(v)
       },
       message: props => `${props.value} is not a valid email`,
@@ -61,21 +63,21 @@ const ContactFormSubmissionModel = model(
 
 // TODO: put this in the User Repo once we have that refactored
 async function getUserIdAndEmail(id: string) {
-  let user: UserDocument
+  let user: UserDocument | null
   try {
     user = await UserModel.findById(id, { _id: 1, email: 1 })
   } catch (err) {
     throw new UserNotFoundError('_id', id)
   }
   return {
-    id: user._id as Types.ObjectId,
-    userEmail: user.email,
+    id: user?._id as Types.ObjectId,
+    userEmail: user?.email as string,
   }
 }
 
 export async function createFormWithUser(
-  message,
-  topic,
+  message: string,
+  topic: string,
   userId: string
 ): Promise<ContactFormSubmission> {
   // validate that the user exists
@@ -94,38 +96,41 @@ export async function createFormWithUser(
     userEmail,
     userId: userObjectId,
     topic,
-  })
-  let createdDoc
+  }) as ContactFormSubmissionDocument
+  let createdDoc: ContactFormSubmissionDocument
   try {
-    createdDoc = await cfs.save()
+    createdDoc = await cfs.save() as ContactFormSubmissionDocument
+
+    if (!createdDoc) 
+      throw new Error('contact form submission document did not get created')
   } catch (err) {
-    throw new DocCreationError(err.message)
+    throw new DocCreationError((err as Error).message)
   }
   return {
     id: createdDoc._id.toString(),
     createdAt: createdDoc.createdAt,
     userEmail: createdDoc.userEmail,
-    userId: createdDoc.userId.toString(),
+    userId: createdDoc.userId?.toString(),
     topic: createdDoc.topic,
     message: createdDoc.message,
   }
 }
 
 export async function createFormWithEmail(
-  message,
-  topic,
+  message: string,
+  topic: string,
   userEmail: string
 ): Promise<ContactFormSubmission> {
   const cfs = new ContactFormSubmissionModel({
     message,
     userEmail,
     topic,
-  })
-  let createdDoc
+  }) as ContactFormSubmissionDocument
+  let createdDoc: ContactFormSubmissionDocument
   try {
-    createdDoc = await cfs.save()
+    createdDoc = await cfs.save() as ContactFormSubmissionDocument
   } catch (err) {
-    throw new DocCreationError(err.message)
+    throw new DocCreationError((err as Error).message)
   }
   return {
     id: createdDoc._id.toString(),

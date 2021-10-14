@@ -18,26 +18,37 @@ import {
   asOptional,
   asString,
 } from './type-utils'
+import { User } from './models/User'
 
 export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
 export class ReportSessionError extends CustomError {}
 
-export function didParticipantsChat(messages, studentId, volunteerId) {
+export function didParticipantsChat(messages: Message[], studentId: Types.ObjectId, volunteerId: Types.ObjectId): boolean {
   let studentSentMessage = false
   let volunteerSentMessage = false
 
   for (const message of messages) {
-    const messager = message.user.toString()
-    if (studentId.equals(messager)) studentSentMessage = true
-    if (volunteerId.equals(messager)) volunteerSentMessage = true
+    let messagerId
+    if(message.user instanceof Types.ObjectId){
+      messagerId = message.user
+    }
+    else if(message.user instanceof User){
+      messagerId = (message.user as User)._id
+    }
+    else{
+      throw new Error("message user was neither an object id nor a user object")
+    }
+
+    if (studentId.equals(messagerId)) studentSentMessage = true
+    if (volunteerId.equals(messagerId)) volunteerSentMessage = true
     if (studentSentMessage && volunteerSentMessage) break
   }
 
   return studentSentMessage && volunteerSentMessage
 }
 
-export function getMessagesAfterDate(messages, date) {
+export function getMessagesAfterDate(messages: Message[], date) {
   if (!date) return []
 
   for (let i = 0; i < messages.length; i++) {
@@ -48,7 +59,7 @@ export function getMessagesAfterDate(messages, date) {
   return []
 }
 
-export function isSessionParticipant(session, user) {
+export function isSessionParticipant(session: Session, user: User) {
   const userId = user._id.toString()
   const studentId = session.student._id
     ? session.student._id.toString()
@@ -59,7 +70,7 @@ export function isSessionParticipant(session, user) {
   return userId === studentId || userId === volunteerId
 }
 
-export function calculateTimeTutored(session) {
+export function calculateTimeTutored(session: Session) {
   const threeHoursMs = 1000 * 60 * 60 * 3
   const fifteenMinsMs = 1000 * 60 * 15
 
@@ -109,7 +120,7 @@ export function calculateTimeTutored(session) {
   return sessionLengthMs
 }
 
-export function isSessionFulfilled(session) {
+export function isSessionFulfilled((session: Session)) {
   const hasEnded = !!session.endedAt
   const hasVolunteerJoined = !!session.volunteer
 

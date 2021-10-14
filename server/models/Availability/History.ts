@@ -42,5 +42,4 @@ const AvailabilityHistoryModel = model<AvailabilityHistoryDocument>(
   availabilityHistorySchema
 )
 
-module.exports = AvailabilityHistoryModel
 export default AvailabilityHistoryModel

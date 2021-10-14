@@ -23,9 +23,9 @@ export async function processVolunteer(
   const errors: string[] = []
   try {
     await MailService.sendVolunteerInactiveBlackoutOver({ email, firstName })
-  } catch (error) {
+  } catch (error: unknown) {
     errors.push(
-      `Failed to send blackout over email to volunteer ${_id}: ${error.message}`
+      `Failed to send blackout over email to volunteer ${_id}: ${(error as Error).message}`
     )
   }
 
@@ -38,9 +38,9 @@ export async function processVolunteer(
         sentInactiveNinetyDayEmail: true
       }
     )
-  } catch (error) {
+  } catch (error: unknown) {
     errors.push(
-      `Failed to update availability for volunteer ${_id}: ${error.message}`
+      `Failed to update availability for volunteer ${_id}: ${(error as Error).message}`
     )
   }
 
@@ -48,9 +48,9 @@ export async function processVolunteer(
     await updateAvailabilitySnapshot(_id, {
       onCallAvailability: clearedAvailability
     })
-  } catch (error) {
+  } catch (error: unknown) {
     errors.push(
-      `Failed to update snapshot for volunteer ${_id}: ${error.message}`
+      `Failed to update snapshot for volunteer ${_id}: ${(error as Error).message}`
     )
   }
   return errors

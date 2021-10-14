@@ -20,7 +20,7 @@ export class KeyNotFoundError extends CustomError {
   }
 }
 
-export async function save(key, value: string) {
+export async function save(key: string, value: string) {
   await redisClient.set(key, value)
 }
 
@@ -30,7 +30,7 @@ export async function save(key, value: string) {
  * @param value
  * @param seconds defaults to 1 day
  */
-export async function saveWithExpiration(key, value: string, seconds = 86400) {
+export async function saveWithExpiration(key: string, value: string, seconds = 86400) {
   // possible expiryMode values: https://redis.io/commands/set
   await redisClient.set(key, value, 'EX', seconds)
 }

@@ -67,7 +67,7 @@ const baseUserSchema = new Schema(
       unique: true,
       lowercase: true,
       validate: {
-        validator: function(v): boolean {
+        validator: function(v: string): boolean {
           return validator.isEmail(v)
         },
         message: '{VALUE} is not a valid email',
@@ -189,20 +189,20 @@ const baseUserSchema = new Schema(
 )
 
 baseUserSchema.methods.hashPassword = async function(
-  password
+  password: string
 ): Promise<Error | string> {
   try {
     const salt = await bcrypt.genSalt(config.saltRounds)
     const hash = await bcrypt.hash(password, salt)
     return hash
   } catch (error) {
-    throw new Error(error)
+    throw new Error((error as Error).message)
   }
 }
 
 baseUserSchema.statics.verifyPassword = (
-  candidatePassword,
-  userPassword
+  candidatePassword: string,
+  userPassword: string
 ): Promise<Error | boolean> => {
   return new Promise((resolve, reject) => {
     bcrypt.compare(candidatePassword, userPassword, (error, isMatch) => {
@@ -217,5 +217,4 @@ baseUserSchema.statics.verifyPassword = (
 
 const UserModel = model<UserDocument>('User', baseUserSchema)
 
-module.exports = UserModel
 export default UserModel

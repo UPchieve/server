@@ -110,7 +110,7 @@ export async function createByUserId(
     if (data) return data.toObject() as UserSessionMetrics
     else throw new Error('Create query did not return created object')
   } catch (err) {
-    throw new RepoCreateError(err.message)
+    throw new RepoCreateError((err as Error).message)
   }
 }
 
@@ -124,7 +124,7 @@ export async function getByObjectId(
       .lean()
       .exec()) as UserSessionMetrics
   } catch (err) {
-    throw new RepoReadError(err.message)
+    throw new RepoReadError((err as Error).message)
   }
 }
 
@@ -134,7 +134,7 @@ export async function getAll(): Promise<UserSessionMetrics[]> {
       .lean()
       .exec()) as UserSessionMetrics[]
   } catch (err) {
-    throw new RepoReadError(err.message)
+    throw new RepoReadError((err as Error).message)
   }
 }
 
@@ -148,7 +148,7 @@ export async function getByUserId(
       .lean()
       .exec()) as UserSessionMetrics
   } catch (err) {
-    throw new RepoReadError(err.message)
+    throw new RepoReadError((err as Error).message)
   }
 }
 
@@ -176,7 +176,7 @@ export async function executeUpdatesByUserId(
     if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (err) {
     throw new RepoUpdateError(
-      `Failed to execute update ${update} for user ${userId}: ${err.message}`
+      `Failed to execute update ${update} for user ${userId}: ${(err as Error).message}`
     )
   }
 }

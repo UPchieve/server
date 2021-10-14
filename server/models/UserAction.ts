@@ -102,5 +102,4 @@ const UserActionModel = model<UserActionDocument>(
   userActionSchema
 )
 
-module.exports = UserActionModel
 export default UserActionModel

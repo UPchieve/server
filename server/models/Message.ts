@@ -33,21 +33,22 @@ const messageSchema = new Schema(
   }
 )
 
-messageSchema.virtual('userId').get(function() {
-  return this.user._id || this.user
+messageSchema.virtual('userId').get(function(this: MessageDocument) {
+  return (this.user as User)._id || this.user
 })
 
-messageSchema.virtual('name').get(function() {
+messageSchema.virtual('name').get(function(this: MessageDocument) {
   // only works if user is populated
-  return this.user.firstname
+  if("firstname" in this.user)
+    return this.user.firstname
 })
 
-messageSchema.virtual('isVolunteer').get(function() {
+messageSchema.virtual('isVolunteer').get(function(this: MessageDocument) {
   // only works if user is populated
-  return this.user.isVolunteer
+  if("isVolunteer" in this.user)
+    return this.user.isVolunteer
 })
 
 const MessageModel = model<MessageDocument>('Message', messageSchema)
 
-module.exports = MessageModel
 export default MessageModel

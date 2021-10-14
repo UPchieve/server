@@ -173,17 +173,17 @@ export interface Volunteer extends User {
 
 export type VolunteerDocument = Volunteer & Document
 
-const weeksSince = (date): number => {
+const weeksSince = (date: Date): number => {
   // 604800000 = milliseconds in a week
-  return ((new Date().getTime() as number) - date) / 604800000
+  return ((new Date().getTime() as number) - date.getTime()) / 604800000
 }
 
-const minsSince = (date): number => {
+const minsSince = (date: Date): number => {
   // 60000 = milliseconds in a minute
-  return ((new Date().getTime() as number) - date) / 60000
+  return ((new Date().getTime() as number) - date.getTime()) / 60000
 }
 
-const tallyVolunteerPoints = (volunteer): number => {
+const tallyVolunteerPoints = (volunteer: VolunteerDocument): number => {
   let points = 0
 
   // +2 points if no past sessions
@@ -723,7 +723,7 @@ const volunteerSchema = new Schema(
   volunteerSchemaOptions
 )
 
-volunteerSchema.virtual('volunteerPointRank').get(function() {
+volunteerSchema.virtual('volunteerPointRank').get(function(this: VolunteerDocument) {
   if (!this.isVolunteer) return null
   return tallyVolunteerPoints(this)
 })
@@ -758,7 +758,7 @@ const VolunteerModel = UserModel.discriminator<VolunteerDocument>(
   volunteerSchema
 )
 
-export async function updateTimeTutored(volunteerId, timeTutored) {
+export async function updateTimeTutored(volunteerId: Types.ObjectId, timeTutored: number) {
   const query = { _id: volunteerId }
   const update = {
     $inc: {
@@ -768,8 +768,8 @@ export async function updateTimeTutored(volunteerId, timeTutored) {
   }
   try {
     await VolunteerModel.updateOne(query, update)
-  } catch (error) {
-    throw new DocUpdateError(error, query, update)
+  } catch (err) {
+    throw new DocUpdateError((err as Error), query, update)
   }
 }
 

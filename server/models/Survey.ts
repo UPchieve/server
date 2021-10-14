@@ -43,5 +43,4 @@ const surveySchema = new Schema({
 
 const SurveyModel = model<SurveyDocument>('Survey', surveySchema)
 
-module.exports = SurveyModel
 export default SurveyModel

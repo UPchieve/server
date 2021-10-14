@@ -276,6 +276,6 @@ export async function getFeedbackBySessionId(
     ])
     return feedback
   } catch (err) {
-    throw new LookupError(`Error finding feedback: ${err.message}`)
+    throw new LookupError(`Error finding feedback: ${(err as Error).message}`)
   }
 }

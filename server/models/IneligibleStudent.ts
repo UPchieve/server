@@ -41,5 +41,4 @@ const IneligibleStudentModel = model<IneligibleStudentDocument>(
   ineligibleStudentSchema
 )
 
-module.exports = IneligibleStudentModel
 export default IneligibleStudentModel

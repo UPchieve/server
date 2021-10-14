@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * From https://zwibbler.com/collaboration/script.ts
  * @author Steve Hanov

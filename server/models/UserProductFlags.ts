@@ -56,7 +56,7 @@ export async function createByUserId(
     if (data) return data.toObject() as UserProductFlags
     else throw new Error('Create query did not return created object')
   } catch (err) {
-    throw new RepoCreateError(err.message)
+    throw new RepoCreateError((err as Error).message)
   }
 }
 
@@ -70,7 +70,7 @@ export async function getByObjectId(
       .lean()
       .exec()) as UserProductFlags
   } catch (err) {
-    throw new RepoReadError(err.message)
+    throw new RepoReadError((err as Error).message)
   }
 }
 
@@ -80,7 +80,7 @@ export async function getAll(): Promise<UserProductFlags[]> {
       .lean()
       .exec()) as UserProductFlags[]
   } catch (err) {
-    throw new RepoReadError(err.message)
+    throw new RepoReadError((err as Error).message)
   }
 }
 
@@ -94,7 +94,7 @@ export async function getByUserId(
       .lean()
       .exec()) as UserProductFlags
   } catch (err) {
-    throw new RepoReadError(err.message)
+    throw new RepoReadError((err as Error).message)
   }
 }
 
@@ -112,7 +112,7 @@ export async function updateGatesQualifiedFlag(
   try {
     const result = await UserProductFlagsModel.updateOne(query, update)
     if (!result.ok) throw new Error('Update query did not return "ok"')
-  } catch (error) {
-    throw new DocUpdateError(error, query, update)
+  } catch (err) {
+    throw new DocUpdateError((err as Error), query, update)
   }
 }

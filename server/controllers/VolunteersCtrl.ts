@@ -1,5 +1,14 @@
-const VolunteerModel = require('../models/Volunteer').default
-const { getAvailabilities } = require('../services/AvailabilityService')
+import VolunteerModel from '../models/Volunteer'
+import { DAYS, HOURS, Availability } from '../models/Availability/types'
+import { getAvailabilities } from '../services/AvailabilityService'
+
+interface AvailabilityAggregation {
+  daysOfWeek?: DAYS[],
+  timesOfDay?: HOURS[],
+  table: [],
+  min?: number,
+  max?: number,
+}
 
 /**
  * Helper function that, given a single users's
@@ -7,21 +16,21 @@ const { getAvailabilities } = require('../services/AvailabilityService')
  * aggAvailabilities object
  * @param {*} availability
  */
-function aggregateAvailabilities(availability, aggAvailabilities) {
+function aggregateAvailabilities(availability: Availability, aggAvailabilities: AvailabilityAggregation) {
   Object.keys(availability).map(day => {
-    Object.keys(availability[day]).map(time => {
+    Object.keys(availability[day as DAYS]).map(time => {
       // create headers based on the user's availability object
       if (!aggAvailabilities.daysOfWeek) {
-        aggAvailabilities.daysOfWeek = Object.keys(availability)
+        aggAvailabilities.daysOfWeek = Object.keys(availability) as DAYS[]
       }
       if (!aggAvailabilities.timesOfDay) {
-        aggAvailabilities.timesOfDay = Object.keys(availability[day])
+        aggAvailabilities.timesOfDay = Object.keys(availability[day as DAYS]) as HOURS[]
       }
       // gets corresponding day and time index inorder to store in aggAvailabilities table
-      let dayIndex = aggAvailabilities.daysOfWeek.indexOf(day)
-      let timeIndex = aggAvailabilities.timesOfDay.indexOf(time)
+      let dayIndex = aggAvailabilities.daysOfWeek.indexOf(day as DAYS)
+      let timeIndex = aggAvailabilities.timesOfDay.indexOf(time as HOURS)
 
-      if (availability[day][time]) {
+      if (availability[day as DAYS][time as HOURS]) {
         aggAvailabilities.table[dayIndex][timeIndex]++
       }
     })
@@ -34,7 +43,7 @@ function aggregateAvailabilities(availability, aggAvailabilities) {
  * volunteers who signed up that week
  * @param {*} aggAvailabilities
  */
-function findMinAndMax(aggAvailabilities) {
+function findMinAndMax(aggAvailabilities: AvailabilityAggregation) {
   let flatTable = aggAvailabilities.table.flat()
   aggAvailabilities.min = Math.min.apply(Math, flatTable)
   aggAvailabilities.max = Math.max.apply(Math, flatTable)
@@ -73,7 +82,7 @@ module.exports = {
         volunteerId: { $in: volunteerIds }
       })
 
-      let aggAvailabilities = {}
+      const aggAvailabilities: AvailabilityAggregation = {}
       aggAvailabilities.table = Array(7)
         .fill(0)
         .map(() => Array(24).fill(0))

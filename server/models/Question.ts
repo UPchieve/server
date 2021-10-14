@@ -1,5 +1,5 @@
 import { Document, Model, model, Schema, Types } from 'mongoose'
-import { CATEGORY_TO_SUBCATEGORY_MAP } from '../constants'
+import { CATEGORY_TO_SUBCATEGORY_MAP, ACTIVE_QUIZ_CATEGORIES } from '../constants'
 
 export interface Question {
   _id: Types.ObjectId
@@ -29,17 +29,7 @@ const questionSchema = new Schema({
   imageSrc: String,
 })
 
-// Given a question record, strip out sensitive data for public consumption
-questionSchema.methods.parseQuestion = function(): Partial<Question> {
-  return {
-    _id: this._id,
-    questionText: this.questionText,
-    possibleAnswers: this.possibleAnswers,
-    imageSrc: this.image,
-  }
-}
-
-questionSchema.statics.getSubcategories = function(category: string): string[] {
+questionSchema.statics.getSubcategories = function(category: ACTIVE_QUIZ_CATEGORIES): string[] {
   if (typeof category !== 'string') {
     throw new TypeError(
       'Category has a value of ' +
@@ -63,5 +53,4 @@ const QuestionModel = model<QuestionDocument, QuestionStaticModel>(
   'question'
 )
 
-module.exports = QuestionModel
 export default QuestionModel

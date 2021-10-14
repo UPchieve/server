@@ -137,7 +137,7 @@ const schoolSchema = new Schema(
           type: String,
           lowercase: true,
           validate: {
-            validator: function(v): boolean {
+            validator: function(v: string): boolean {
               return validator.isEmail(v)
             },
             message: '{VALUE} is not a valid email',
@@ -233,43 +233,43 @@ schoolSchema.index({ nameStored: 'text', SCH_NAME: 'text' })
 // virtual properties that can reference either stored information or NCES variables
 schoolSchema
   .virtual('name')
-  .get(function() {
+  .get(function(this: SchoolDocument) {
     return this.nameStored || this.SCH_NAME
   })
-  .set(function(value) {
+  .set(function(this: SchoolDocument, value: string) {
     this.nameStored = value
   })
 
 schoolSchema
   .virtual('districtName')
-  .get(function() {
+  .get(function(this: SchoolDocument) {
     return this.districtNameStored || this.LEA_NAME
   })
-  .set(function(value) {
+  .set(function(this: SchoolDocument, value: string) {
     this.districtNameStored = value
   })
 
 schoolSchema
   .virtual('city')
-  .get(function() {
+  .get(function(this: SchoolDocument) {
     return this.cityNameStored || this.LCITY
   })
-  .set(function(value) {
+  .set(function(this: SchoolDocument, value: string) {
     this.cityNameStored = value
   })
 
 schoolSchema
   .virtual('state')
-  .get(function() {
+  .get(function(this: SchoolDocument) {
     return this.stateStored || this.ST
   })
-  .set(function(value) {
+  .set(function(this: SchoolDocument, value: string) {
     this.stateStored = value
   })
 
 // Virtual property giving a searchable name including the school's city
 // name first
-schoolSchema.virtual('searchableName').get(function() {
+schoolSchema.virtual('searchableName').get(function(this: SchoolDocument) {
   return `${this.city} ${this.name}`
 })
 
@@ -298,5 +298,4 @@ const SchoolModel = model<SchoolDocument, SchoolStaticModel>(
   schoolSchema
 )
 
-module.exports = SchoolModel
 export default SchoolModel

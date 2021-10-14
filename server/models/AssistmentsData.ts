@@ -109,8 +109,8 @@ export async function createBySession(
       session,
     })) as AssistmentsDataDocument
     return data.toObject() as AssistmentsData
-  } catch (err) {
-    throw new RepoCreateError(err.message)
+  } catch (err: unknown) {
+      throw new RepoCreateError((err as Error).message)
   }
 }
 
@@ -122,8 +122,8 @@ export async function getByObjectId(
     return (await AssistmentsDataModel.findById(id)
       .lean()
       .exec()) as AssistmentsData
-  } catch (err) {
-    throw new RepoReadError(err.message)
+  } catch (err: unknown) {
+      throw new RepoCreateError((err as Error).message)
   }
 }
 
@@ -132,8 +132,8 @@ export async function getAll(): Promise<AssistmentsData[]> {
     return (await AssistmentsDataModel.find()
       .lean()
       .exec()) as AssistmentsData[]
-  } catch (err) {
-    throw new RepoReadError(err.message)
+  } catch (err: unknown) {
+    throw new RepoReadError((err as Error).message)
   }
 }
 
@@ -146,8 +146,8 @@ export async function getBySession(
     })
       .lean()
       .exec()) as AssistmentsData
-  } catch (err) {
-    throw new RepoReadError(err.message)
+  } catch (err: unknown) {
+    throw new RepoReadError((err as Error).message)
   }
 }
 
@@ -171,8 +171,8 @@ export async function updateSentAtById(
       }
     )
     if (!result.ok) throw new Error('Update query did not return "ok"')
-  } catch (err) {
-    throw new RepoUpdateError(err.message)
+  } catch (err: unknown) {
+    throw new RepoUpdateError((err as Error).message)
   }
 }
 
