@@ -1,5 +1,8 @@
 import { Document, Model, model, Schema, Types } from 'mongoose'
-import { CATEGORY_TO_SUBCATEGORY_MAP, ACTIVE_QUIZ_CATEGORIES } from '../constants'
+import {
+  CATEGORY_TO_SUBCATEGORY_MAP,
+  ACTIVE_QUIZ_CATEGORIES,
+} from '../constants'
 
 export interface Question {
   _id: Types.ObjectId
@@ -29,7 +32,9 @@ const questionSchema = new Schema({
   imageSrc: String,
 })
 
-questionSchema.statics.getSubcategories = function(category: ACTIVE_QUIZ_CATEGORIES): string[] {
+questionSchema.statics.getSubcategories = function(
+  category: ACTIVE_QUIZ_CATEGORIES
+): string[] {
   if (typeof category !== 'string') {
     throw new TypeError(
       'Category has a value of ' +

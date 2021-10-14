@@ -30,10 +30,8 @@ export async function update(
 
 export async function destroy(questionId: string): Promise<QuestionDocument> {
   const deletedQuestion = await QuestionModel.findByIdAndDelete(questionId)
-  if (deletedQuestion)
-    return deletedQuestion
-  else
-    throw new Error('Question to delete not found')
+  if (deletedQuestion) return deletedQuestion
+  else throw new Error('Question to delete not found')
 }
 
 // Return an array of tuples, with each tuple containing a category and array of

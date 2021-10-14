@@ -1,6 +1,11 @@
 import _ from 'lodash'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
-import { DAYS, HOURS, AvailabilityDay, Availability } from '../models/Availability/types'
+import {
+  DAYS,
+  HOURS,
+  AvailabilityDay,
+  Availability,
+} from '../models/Availability/types'
 import { updateAvailabilitySnapshot } from '../services/AvailabilityService'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS } from '../constants'
@@ -46,9 +51,8 @@ async function executeUpdate(
   // @note: this is set to optional to test the absence of an availability object
   tz: string, // FIXME: constrain this to official timezones
   availability?: Availability,
-  onboarded?: boolean,
+  onboarded?: boolean
 ): Promise<void> {
-
   // verify that newAvailability is defined and not null
   if (!availability) {
     // early exit
@@ -80,8 +84,7 @@ async function executeUpdate(
     availability: availability,
     timezone: tz,
   }
-  if (onboarded)
-    volunteerUpdates.isOnboarded = true
+  if (onboarded) volunteerUpdates.isOnboarded = true
 
   const availabilityUpdates = {
     onCallAvailability: availability,

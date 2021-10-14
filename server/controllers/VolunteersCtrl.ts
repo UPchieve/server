@@ -3,11 +3,11 @@ import { DAYS, HOURS, Availability } from '../models/Availability/types'
 import { getAvailabilities } from '../services/AvailabilityService'
 
 interface AvailabilityAggregation {
-  daysOfWeek?: DAYS[],
-  timesOfDay?: HOURS[],
-  table: [],
-  min?: number,
-  max?: number,
+  daysOfWeek?: DAYS[]
+  timesOfDay?: HOURS[]
+  table: []
+  min?: number
+  max?: number
 }
 
 /**
@@ -16,7 +16,10 @@ interface AvailabilityAggregation {
  * aggAvailabilities object
  * @param {*} availability
  */
-function aggregateAvailabilities(availability: Availability, aggAvailabilities: AvailabilityAggregation) {
+function aggregateAvailabilities(
+  availability: Availability,
+  aggAvailabilities: AvailabilityAggregation
+) {
   Object.keys(availability).map(day => {
     Object.keys(availability[day as DAYS]).map(time => {
       // create headers based on the user's availability object
@@ -24,7 +27,9 @@ function aggregateAvailabilities(availability: Availability, aggAvailabilities: 
         aggAvailabilities.daysOfWeek = Object.keys(availability) as DAYS[]
       }
       if (!aggAvailabilities.timesOfDay) {
-        aggAvailabilities.timesOfDay = Object.keys(availability[day as DAYS]) as HOURS[]
+        aggAvailabilities.timesOfDay = Object.keys(
+          availability[day as DAYS]
+        ) as HOURS[]
       }
       // gets corresponding day and time index inorder to store in aggAvailabilities table
       let dayIndex = aggAvailabilities.daysOfWeek.indexOf(day as DAYS)
@@ -68,7 +73,7 @@ module.exports = {
       isFailsafeVolunteer: false,
       isOnboarded: true,
       isDeactivated: false,
-      isBanned: false
+      isBanned: false,
     }
 
     try {
@@ -79,7 +84,7 @@ module.exports = {
         .exec()
       const volunteerIds = volunteers.map(vol => vol._id)
       const availabilityDocs = await getAvailabilities({
-        volunteerId: { $in: volunteerIds }
+        volunteerId: { $in: volunteerIds },
       })
 
       const aggAvailabilities: AvailabilityAggregation = {}
@@ -114,5 +119,5 @@ module.exports = {
         return callback(users, null)
       }
     })
-  }
+  },
 }

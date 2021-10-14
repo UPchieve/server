@@ -723,10 +723,12 @@ const volunteerSchema = new Schema(
   volunteerSchemaOptions
 )
 
-volunteerSchema.virtual('volunteerPointRank').get(function(this: VolunteerDocument) {
-  if (!this.isVolunteer) return null
-  return tallyVolunteerPoints(this)
-})
+volunteerSchema
+  .virtual('volunteerPointRank')
+  .get(function(this: VolunteerDocument) {
+    if (!this.isVolunteer) return null
+    return tallyVolunteerPoints(this)
+  })
 
 // Virtual that gets all notifications that this user has been sent
 volunteerSchema.virtual('notifications', {
@@ -758,7 +760,10 @@ const VolunteerModel = UserModel.discriminator<VolunteerDocument>(
   volunteerSchema
 )
 
-export async function updateTimeTutored(volunteerId: Types.ObjectId, timeTutored: number) {
+export async function updateTimeTutored(
+  volunteerId: Types.ObjectId,
+  timeTutored: number
+) {
   const query = { _id: volunteerId }
   const update = {
     $inc: {
@@ -769,7 +774,7 @@ export async function updateTimeTutored(volunteerId: Types.ObjectId, timeTutored
   try {
     await VolunteerModel.updateOne(query, update)
   } catch (err) {
-    throw new DocUpdateError((err as Error), query, update)
+    throw new DocUpdateError(err as Error, query, update)
   }
 }
 

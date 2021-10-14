@@ -30,7 +30,11 @@ export async function save(key: string, value: string) {
  * @param value
  * @param seconds defaults to 1 day
  */
-export async function saveWithExpiration(key: string, value: string, seconds = 86400) {
+export async function saveWithExpiration(
+  key: string,
+  value: string,
+  seconds = 86400
+) {
   // possible expiryMode values: https://redis.io/commands/set
   await redisClient.set(key, value, 'EX', seconds)
 }

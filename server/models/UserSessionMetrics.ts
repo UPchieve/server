@@ -176,7 +176,9 @@ export async function executeUpdatesByUserId(
     if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (err) {
     throw new RepoUpdateError(
-      `Failed to execute update ${update} for user ${userId}: ${(err as Error).message}`
+      `Failed to execute update ${update} for user ${userId}: ${
+        (err as Error).message
+      }`
     )
   }
 }

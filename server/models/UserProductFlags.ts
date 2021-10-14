@@ -113,6 +113,6 @@ export async function updateGatesQualifiedFlag(
     const result = await UserProductFlagsModel.updateOne(query, update)
     if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (err) {
-    throw new DocUpdateError((err as Error), query, update)
+    throw new DocUpdateError(err as Error, query, update)
   }
 }

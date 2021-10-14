@@ -57,7 +57,13 @@ const numQuestions = {
 const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
 
-type ALL_CERTS = MATH_CERTS | COLLEGE_CERTS | SCIENCE_CERTS | SAT_CERTS | READING_WRITING_CERTS | TRAINING
+type ALL_CERTS =
+  | MATH_CERTS
+  | COLLEGE_CERTS
+  | SCIENCE_CERTS
+  | SAT_CERTS
+  | READING_WRITING_CERTS
+  | TRAINING
 type CERT_TYPE = Record<ALL_CERTS, string>
 
 // Check if a user is certified in a given group of subject certs
@@ -98,7 +104,10 @@ export async function getQuestions(
 
   return _.shuffle(
     Object.entries(questionsBySubcategory).flatMap(([, subQuestions]) =>
-      _.sampleSize(subQuestions, numQuestions[category as keyof typeof numQuestions])
+      _.sampleSize(
+        subQuestions,
+        numQuestions[category as keyof typeof numQuestions]
+      )
     )
   )
 }
@@ -192,7 +201,9 @@ export function getUnlockedSubjects(
     return []
 
   // Add all the certifications that this completed cert unlocks into a Set
-  const currentSubjects = new Set<string>(CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING])
+  const currentSubjects = new Set<string>(
+    CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING]
+  )
 
   for (const cert in userCertifications) {
     // Check that the required training was completed for every certification that a user has
@@ -202,7 +213,9 @@ export function getUnlockedSubjects(
       hasRequiredTraining(cert, userCertifications) &&
       CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING]
     )
-      CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING].forEach(subject => currentSubjects.add(subject))
+      CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING].forEach(subject =>
+        currentSubjects.add(subject)
+      )
   }
 
   // Check if the user has unlocked a new certification based on the current certifications they have
@@ -225,7 +238,7 @@ export function getUnlockedSubjects(
   return Array.from(currentSubjects)
 }
 
-type AnswerMap = {[k: string]: string}
+type AnswerMap = { [k: string]: string }
 
 export interface GetQuizScoreOptions {
   user: Volunteer
@@ -247,7 +260,9 @@ export async function getQuizScore(
   const { user, idAnswerMap, ip } = options
   const cert = options.category
   const objIDs = Object.keys(idAnswerMap)
-  const questions = await QuestionModel.find({ _id: { $in: objIDs } }).lean().exec()
+  const questions = await QuestionModel.find({ _id: { $in: objIDs } })
+    .lean()
+    .exec()
 
   const score = questions.filter(
     question => question.correctAnswer === idAnswerMap[question._id.toString()]

@@ -99,9 +99,9 @@ export async function createFormWithUser(
   }) as ContactFormSubmissionDocument
   let createdDoc: ContactFormSubmissionDocument
   try {
-    createdDoc = await cfs.save() as ContactFormSubmissionDocument
+    createdDoc = (await cfs.save()) as ContactFormSubmissionDocument
 
-    if (!createdDoc) 
+    if (!createdDoc)
       throw new Error('contact form submission document did not get created')
   } catch (err) {
     throw new DocCreationError((err as Error).message)
@@ -128,7 +128,7 @@ export async function createFormWithEmail(
   }) as ContactFormSubmissionDocument
   let createdDoc: ContactFormSubmissionDocument
   try {
-    createdDoc = await cfs.save() as ContactFormSubmissionDocument
+    createdDoc = (await cfs.save()) as ContactFormSubmissionDocument
   } catch (err) {
     throw new DocCreationError((err as Error).message)
   }

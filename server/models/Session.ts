@@ -5,7 +5,7 @@ import {
   FEEDBACK_VERSIONS,
   USER_SESSION_METRICS,
   USER_ACTION,
-  SUBJECT_TYPES
+  SUBJECT_TYPES,
 } from '../constants'
 import MessageModel, { Message } from './Message'
 import { Notification, NotificationDocument } from './Notification'
@@ -155,7 +155,10 @@ const SessionModel = model<SessionDocument, SessionStaticModel>(
 )
 
 /** SessionRepo functions below */
-export async function addNotifications(sessionId: Types.ObjectId, notificationsToAdd: NotificationDocument[]) {
+export async function addNotifications(
+  sessionId: Types.ObjectId,
+  notificationsToAdd: NotificationDocument[]
+) {
   const query = { _id: sessionId }
   const update = {
     $push: { notifications: { $each: notificationsToAdd } },
@@ -163,7 +166,7 @@ export async function addNotifications(sessionId: Types.ObjectId, notificationsT
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -240,7 +243,7 @@ export async function updateFlags(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -256,7 +259,7 @@ export async function updateReviewReasons(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -269,7 +272,7 @@ export async function updateFailedJoins(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -285,21 +288,21 @@ export async function updateReviewedStatus(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
 export async function getSessionToEnd(sessionId: Types.ObjectId | string) {
-  let session: SessionWithPopulatedUsers 
+  let session: SessionWithPopulatedUsers
   try {
-    session = await SessionModel.findOne({ _id: sessionId })
+    session = (await SessionModel.findOne({ _id: sessionId })
       .populate({ path: 'student', select: 'pastSessions firstname email' })
       .populate({
         path: 'volunteer',
         select: 'pastSessions firstname email volunteerPartnerOrg',
       })
       .lean()
-      .exec() as SessionWithPopulatedUsers
+      .exec()) as SessionWithPopulatedUsers
     if (!session) throw new LookupError('Session not found')
     return {
       _id: session._id,
@@ -349,8 +352,8 @@ export async function getSessionsToReview({
   limit,
 }: {
   query: {
-    toReview: boolean,
-    reviewed: boolean,
+    toReview: boolean
+    reviewed: boolean
   }
   skip: number
   limit: number
@@ -454,7 +457,10 @@ export async function getTotalTimeTutoredForDateRange(
       },
       {
         $match: {
-          volunteer: typeof volunteerId === 'string' ? Types.ObjectId(volunteerId) : volunteerId,
+          volunteer:
+            typeof volunteerId === 'string'
+              ? Types.ObjectId(volunteerId)
+              : volunteerId,
           createdAt: {
             $gte: new Date(startDate),
             $lte: new Date(endDate),
@@ -507,7 +513,7 @@ export async function updateReportSession(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -522,7 +528,7 @@ export async function updateSessionMetrics(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -537,7 +543,7 @@ export async function setQuillDoc(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -552,7 +558,7 @@ export async function setHasWhiteboardDoc(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -572,11 +578,14 @@ export async function updateSessionToEnd(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
-export async function getLongRunningSessions(startDate: number, endDate: number) {
+export async function getLongRunningSessions(
+  startDate: number,
+  endDate: number
+) {
   try {
     return await SessionModel.find({
       endedAt: { $exists: false },
@@ -601,7 +610,7 @@ export async function addSessionPhotoKey(
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -621,7 +630,14 @@ interface PublicSession {
 export async function getPublicSession(sessionId: Types.ObjectId | string) {
   try {
     return (await SessionModel.aggregate([
-      { $match: { _id: typeof sessionId === 'string' ? Types.ObjectId(sessionId) : sessionId } },
+      {
+        $match: {
+          _id:
+            typeof sessionId === 'string'
+              ? Types.ObjectId(sessionId)
+              : sessionId,
+        },
+      },
       {
         $lookup: {
           from: 'users',
@@ -686,17 +702,17 @@ export async function getAdminFilteredSessions({
   skip,
   limit,
 }: {
-  startDate: number,
-  endDate: number,
-  minMessagesSent: string,
+  startDate: number
+  endDate: number
+  minMessagesSent: string
   sessionQueryFilter: {
     sessionLength: { $gte: number }
     isReported?: boolean
-  },
+  }
   ratingQueryFilter: {
     studentRating?: number
     volunteerRating?: number
-  },
+  }
   userQueryFilter: {
     'student.isTestUser':
       | boolean
@@ -709,9 +725,9 @@ export async function getAdminFilteredSessions({
     ]
     'student.totalPastSessions'?: number
     'volunteer.totalPastSessions'?: number
-  },
-  showBannedUsers: string,
-  skip: number,
+  }
+  showBannedUsers: string
+  skip: number
   limit: number
 }): Promise<AdminFilteredSessions[]> {
   try {
@@ -1087,9 +1103,9 @@ export async function createSession({
   subTopic,
   isStudentBanned,
 }: {
-  studentId: Types.ObjectId,
-  type: SUBJECT_TYPES,
-  subTopic: string,
+  studentId: Types.ObjectId
+  type: SUBJECT_TYPES
+  subTopic: string
   isStudentBanned: boolean
 }) {
   const session = new SessionModel({
@@ -1173,7 +1189,10 @@ export async function getStudentLatestSession(studentId: Types.ObjectId) {
   }
 }
 
-export async function addVolunteerToSession(sessionId: Types.ObjectId, volunteerId: Types.ObjectId) {
+export async function addVolunteerToSession(
+  sessionId: Types.ObjectId,
+  volunteerId: Types.ObjectId
+) {
   const query = { _id: sessionId }
   const update = {
     volunteerJoinedAt: new Date(),
@@ -1182,7 +1201,7 @@ export async function addVolunteerToSession(sessionId: Types.ObjectId, volunteer
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 
@@ -1192,7 +1211,7 @@ export async function addMessage(sessionId: Types.ObjectId, message: Message) {
   try {
     await SessionModel.updateOne(query, update)
   } catch (error) {
-    throw new DocUpdateError((error as Error), query, update)
+    throw new DocUpdateError(error as Error, query, update)
   }
 }
 

@@ -186,13 +186,28 @@ export enum SUBJECT_TYPES {
   READING_WRITING = 'readingWriting',
 }
 
-export type ACTIVE_COLLEGE_CERTS = Exclude<COLLEGE_CERTS, 'sportsRecruitmentPlanning' | 'financialAid'>
+export type ACTIVE_COLLEGE_CERTS = Exclude<
+  COLLEGE_CERTS,
+  'sportsRecruitmentPlanning' | 'financialAid'
+>
 
-export type ACTIVE_TRAINING_CERTS = Exclude<TRAINING, 'tutoringSkills' | 'collegeCounseling' | 'satStrategies' | 'collegeSkills'>
+export type ACTIVE_TRAINING_CERTS = Exclude<
+  TRAINING,
+  'tutoringSkills' | 'collegeCounseling' | 'satStrategies' | 'collegeSkills'
+>
 
-export type ACTIVE_QUIZ_CATEGORIES = MATH_CERTS | SCIENCE_CERTS | ACTIVE_COLLEGE_CERTS | SAT_CERTS | READING_WRITING_CERTS | ACTIVE_TRAINING_CERTS
+export type ACTIVE_QUIZ_CATEGORIES =
+  | MATH_CERTS
+  | SCIENCE_CERTS
+  | ACTIVE_COLLEGE_CERTS
+  | SAT_CERTS
+  | READING_WRITING_CERTS
+  | ACTIVE_TRAINING_CERTS
 
-export const CATEGORY_TO_SUBCATEGORY_MAP: Record<ACTIVE_QUIZ_CATEGORIES, string[]> = {
+export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
+  ACTIVE_QUIZ_CATEGORIES,
+  string[]
+> = {
   [MATH_CERTS.PREALGREBA]: [
     'numbers',
     'arithmetic properties',

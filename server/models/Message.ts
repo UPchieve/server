@@ -39,14 +39,12 @@ messageSchema.virtual('userId').get(function(this: MessageDocument) {
 
 messageSchema.virtual('name').get(function(this: MessageDocument) {
   // only works if user is populated
-  if("firstname" in this.user)
-    return this.user.firstname
+  if ('firstname' in this.user) return this.user.firstname
 })
 
 messageSchema.virtual('isVolunteer').get(function(this: MessageDocument) {
   // only works if user is populated
-  if("isVolunteer" in this.user)
-    return this.user.isVolunteer
+  if ('isVolunteer' in this.user) return this.user.isVolunteer
 })
 
 const MessageModel = model<MessageDocument>('Message', messageSchema)

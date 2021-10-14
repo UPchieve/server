@@ -20,11 +20,13 @@ const zipCodeSchema = new Schema({
   medianIncome: Number,
 })
 
-zipCodeSchema.virtual('isEligible').get(function(this: ZipCodeDocument): boolean {
-  if (!this.medianIncome) return true
+zipCodeSchema
+  .virtual('isEligible')
+  .get(function(this: ZipCodeDocument): boolean {
+    if (!this.medianIncome) return true
 
-  return this.medianIncome < MEDIUM_INCOME_THRESHOLD
-})
+    return this.medianIncome < MEDIUM_INCOME_THRESHOLD
+  })
 
 zipCodeSchema.statics.findByZipCode = function(
   zipCode: string
