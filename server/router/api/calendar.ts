@@ -4,9 +4,10 @@ import { resError } from '../res-error'
 import { InputError } from '../../models/Errors'
 import { Volunteer } from '../../models/Volunteer'
 import { LoadedRequest } from '../app'
+import { Router, Response } from 'express'
 
-export function routeCalendar(router: expressWs.Router): void {
-  router.post('/calendar/save', async function(req: LoadedRequest, res) {
+export function routeCalendar(router: Router): void {
+  router.post('/calendar/save', async function(req: LoadedRequest, res: Response) {
     try {
       if (!req.body.hasOwnProperty('availability'))
         throw new InputError('No availability object specified')
@@ -19,7 +20,7 @@ export function routeCalendar(router: expressWs.Router): void {
         msg: 'Schedule saved'
       })
     } catch (err) {
-      resError(res, err)
+      resError(res, (err as Error))
     }
   })
 
@@ -30,7 +31,7 @@ export function routeCalendar(router: expressWs.Router): void {
         msg: 'Schedule cleared'
       })
     } catch (err) {
-      resError(res, err)
+      resError(res, (err as Error))
     }
   })
 }

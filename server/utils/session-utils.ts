@@ -18,7 +18,7 @@ import {
   asOptional,
   asString,
 } from './type-utils'
-import { User } from './models/User'
+import { User } from '../models/User'
 
 export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
@@ -33,22 +33,22 @@ export function didParticipantsChat(messages: Message[], studentId: Types.Object
     if(message.user instanceof Types.ObjectId){
       messagerId = message.user
     }
-    else if(message.user instanceof User){
+    else if(message.user){
       messagerId = (message.user as User)._id
     }
     else{
       throw new Error("message user was neither an object id nor a user object")
     }
 
-    if (studentId.equals(messagerId)) studentSentMessage = true
-    if (volunteerId.equals(messagerId)) volunteerSentMessage = true
+    if (studentId === messagerId)) studentSentMessage = true
+    if (volunteerId === messagerId)) volunteerSentMessage = true
     if (studentSentMessage && volunteerSentMessage) break
   }
 
   return studentSentMessage && volunteerSentMessage
 }
 
-export function getMessagesAfterDate(messages: Message[], date) {
+export function getMessagesAfterDate(messages: Message[], date: Date) {
   if (!date) return []
 
   for (let i = 0; i < messages.length; i++) {
@@ -59,14 +59,31 @@ export function getMessagesAfterDate(messages: Message[], date) {
   return []
 }
 
-export function isSessionParticipant(session: Session, user: User) {
-  const userId = user._id.toString()
-  const studentId = session.student._id
-    ? session.student._id.toString()
-    : session.student.toString()
-  const volunteerId = session.volunteer?._id
-    ? session.volunteer._id.toString()
-    : session.volunteer?.toString()
+export function isSessionParticipant(session: Session, user: User): boolean {
+  const userId = user._id
+
+  let studentId
+  if(session.student instanceof Types.ObjectId){
+    studentId = session.student
+  }
+  else if(session.student){
+    studentId = (session.student as Student)._id
+  }
+  else {
+  throw new Error("participant in session was neither an object id nor a student object")
+  }
+
+  let volunteerId
+  if(session.volunteer instanceof Types.ObjectId){
+    volunteerId = session.volunteer
+  }
+  else if(session.volunteer){
+    volunteerId = (session.volunteer as Volunteer)._id
+  }
+  else{
+    throw new Error("participant in session was neither an object id nor a volunteer object")
+  }
+  
   return userId === studentId || userId === volunteerId
 }
 

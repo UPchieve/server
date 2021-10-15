@@ -7,7 +7,7 @@ import { InputError } from '../models/Errors'
 // Use via asOptional(asPrimitive)
 export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {
   return function(s: unknown, errMsg?: string): T | undefined {
-    if (s === undefined || s === null) return s
+    if (s === undefined || s === null) return undefined
     return as(s, errMsg)
   }
 }
@@ -34,8 +34,8 @@ export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
     if (Array.isArray(s)) {
       const maybeT = s as T[]
       if (maybeT.every(item => as(item, errMsg))) return maybeT as T[]
-    } else
-      throw new InputError(`${errMsg} :${s} is not an array of the given type`)
+    }
+    throw new InputError(`${errMsg} :${s} is not an array of the given type`)
   }
 }
 
@@ -70,7 +70,7 @@ export function asAny(s: unknown): any {
  *
  * @todo: create better usage -> asEnum<USER_BAN_REASON>(USER_BAN_REASON.ADMIN)
  **/
-export function asEnum<T>(e: unknown) {
+export function asEnum<T>(e: any) {
   return function(s: unknown, errMsg?: string) {
     for (const value of Object.values(e)) {
       if (value === s) return s as T
