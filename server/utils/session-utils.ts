@@ -63,7 +63,7 @@ interface TimeTutoredProps {
   volunteerJoinedAt: Date
   endedAt: Date
   messages: Message[]
-  volunteer?: any
+  volunteer?: Volunteer | Types.ObjectId
 }
 
 /**
@@ -100,8 +100,8 @@ export function calculateTimeTutored(props: TimeTutoredProps): number {
     while (
       latestMessageIndex > 0 &&
       (wasMessageSentAfterSessionEnded ||
-        Number(messages[latestMessageIndex].createdAt) -
-          Number(messages[latestMessageIndex - 1].createdAt) >
+        messages[latestMessageIndex].createdAt.getTime() -
+          messages[latestMessageIndex - 1].createdAt.getTime() >
           fifteenMinsMs)
     ) {
       latestMessageIndex--

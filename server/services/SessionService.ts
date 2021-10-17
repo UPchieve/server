@@ -260,7 +260,7 @@ export async function processCalculateMetrics(sessionId: string) {
       volunteerJoinedAt: session.volunteerJoinedAt,
       endedAt: session.endedAt,
       messages: session.messages,
-      volunteer: session.volunteerJoinedAt
+      volunteer: session.volunteer
     })
 
   await updateSessionMetrics(sessionId, { timeTutored })
