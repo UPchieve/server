@@ -1,6 +1,6 @@
 import { Express, Router } from 'express'
 import { MongoStore } from 'connect-mongo'
-import expressWs from '@small-tech/express-ws'
+import expressWs from 'express-ws'
 import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
 import { addLastActivity } from '../../middleware/add-last-activity'

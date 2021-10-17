@@ -14,7 +14,7 @@ jest.setTimeout(1000 * 15)
 
 // db connection
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true
@@ -26,7 +26,7 @@ afterAll(async () => {
   await mongoose.connection.close()
 })
 
-describe('Session reported emails', async () => {
+describe('Session reported emails', () => {
   const errorMessage = 'error'
   const reportReason = SESSION_REPORT_REASON.STUDENT_RUDE
   const reportMessage = 'test message'

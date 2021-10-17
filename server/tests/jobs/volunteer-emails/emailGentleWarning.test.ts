@@ -12,7 +12,7 @@ import MailService from '../../../services/MailService'
 import { buildNotification, buildVolunteer } from '../../generate'
 import { Notification } from '../../../models/Notification'
 import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
-jest.mock('../../../logger')
+
 jest.mock('../../../services/MailService')
 
 const createNotifications = (amount, volunteerId): Notification[] => {
@@ -26,7 +26,7 @@ const createNotifications = (amount, volunteerId): Notification[] => {
 
 // db connection
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true

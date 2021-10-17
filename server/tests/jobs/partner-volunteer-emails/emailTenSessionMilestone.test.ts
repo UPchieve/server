@@ -11,13 +11,13 @@ import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
 import { buildFeedback, buildSession } from '../../generate'
-import { FEEDBACK_VERSIONS, SESSION_FLAGS } from '../../../constants'
-jest.mock('../../../logger')
+import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
+
 jest.mock('../../../services/MailService')
 
 // db connection
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true
@@ -152,7 +152,7 @@ describe('Partner volunteer ten session milestone email', () => {
     expect(logger.info).not.toHaveBeenCalled()
   })
 
-  test(`Should not send email to partner volunteer who has sessions flags with ${SESSION_FLAGS.ABSENT_USER}`, async () => {
+  test(`Should not send email to partner volunteer who has sessions flags with ${USER_SESSION_METRICS.absentStudent}`, async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       volunteerPartnerOrg: 'example'
@@ -170,7 +170,7 @@ describe('Partner volunteer ten session milestone email', () => {
       buildSession({
         volunteer: volunteer._id,
         timeTutored: twentyMinutes,
-        flags: [SESSION_FLAGS.ABSENT_USER]
+        flags: [USER_SESSION_METRICS.absentStudent]
       }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })

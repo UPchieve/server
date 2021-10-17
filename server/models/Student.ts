@@ -1,4 +1,6 @@
 import { Document, Schema, Types } from 'mongoose'
+import { values } from 'lodash'
+import { GRADES } from '../constants'
 import UserModel, { User } from './User'
 import { School } from './School'
 
@@ -7,6 +9,7 @@ export interface Student extends User {
   zipCode: string
   studentPartnerOrg: string
   partnerSite: string
+  currentGrade?: GRADES
 }
 
 export type StudentDocument = Student & Document
@@ -30,7 +33,11 @@ const studentSchema = new Schema(
     },
     zipCode: String,
     studentPartnerOrg: String,
-    partnerSite: String
+    partnerSite: String,
+    currentGrade: {
+      type: String,
+      enum: values(GRADES)
+    }
   },
   schemaOptions
 )

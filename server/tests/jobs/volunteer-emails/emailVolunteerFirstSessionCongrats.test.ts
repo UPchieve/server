@@ -4,14 +4,14 @@ import emailVolunteerFirstSessionCongrats from '../../../worker/jobs/volunteer-e
 import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
-import { SESSION_FLAGS } from '../../../constants'
-jest.mock('../../../logger')
+import { USER_SESSION_METRICS } from '../../../constants'
+
 jest.mock('../../../services/MailService')
 jest.setTimeout(1000 * 15)
 
 // db connection
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true
@@ -51,9 +51,9 @@ describe('Volunteer first session congrats email', () => {
     )
   })
 
-  test(`Should not send email if session flags: ${SESSION_FLAGS.ABSENT_USER}, ${SESSION_FLAGS.LOW_MESSAGES}, or ${SESSION_FLAGS.VOLUNTEER_RATING} is present on the session`, async () => {
+  test(`Should not send email if session flags: ${USER_SESSION_METRICS.absentStudent}, ${USER_SESSION_METRICS.absentVolunteer}, or ${USER_SESSION_METRICS.lowSessionRatingFromCoach} is present on the session`, async () => {
     const { session } = await insertSessionWithVolunteer({
-      flags: [SESSION_FLAGS.LOW_MESSAGES]
+      flags: [USER_SESSION_METRICS.absentStudent]
     })
     // @todo: figure out how to properly type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,7 +84,7 @@ describe('Volunteer first session congrats email', () => {
       }
     }
 
-    expect(emailVolunteerFirstSessionCongrats(job)).rejects.toEqual(
+    await expect(emailVolunteerFirstSessionCongrats(job)).rejects.toEqual(
       Error(
         `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
       )

@@ -15,7 +15,8 @@ import {
   buildSession,
   buildSocket,
   buildPushToken,
-  getUUID
+  getUUID,
+  buildUSM
 } from '../generate'
 import {
   mockedGetSessionsToReview,
@@ -30,7 +31,7 @@ import {
 } from '../mocks/repos/session-repo'
 import {
   EVENTS,
-  SESSION_FLAGS,
+  USER_SESSION_METRICS,
   SESSION_REPORT_REASON,
   SUBJECTS,
   SUBJECT_TYPES
@@ -62,6 +63,7 @@ import * as cache from '../../cache'
 import { NotAllowedError, LookupError } from '../../models/Errors'
 import { SESSION_EVENTS } from '../../constants/events'
 import { emitter } from '../../services/EventsService'
+import * as USMRepo from '../../models/UserSessionMetrics'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
@@ -80,6 +82,7 @@ jest.mock('../../services/AwsService')
 jest.mock('../../services/PushTokenService')
 jest.mock('../../services/EventsService')
 jest.mock('../../cache')
+jest.mock('../../models/UserSessionMetrics')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedAssistmentsDataRepo = mocked(AssistmentsDataRepo, true)
@@ -90,6 +93,7 @@ const mockedPushTokenService = mocked(PushTokenService, true)
 const mockedCache = mocked(cache, true)
 const mockedQuillDocService = mocked(QuillDocService, true)
 const mockedWhiteboardService = mocked(WhiteboardService, true)
+const mockedUSMRepo = mocked(USMRepo, true)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -195,6 +199,10 @@ describe('reportSession', () => {
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
     )
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.student))
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(
+      buildUSM(mockValue.volunteer)
+    )
     await SessionService.reportSession(input)
     expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
     expect(UserService.banUser).toHaveBeenCalledTimes(1)
@@ -227,6 +235,10 @@ describe('reportSession', () => {
     })
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
+    )
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.student))
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(
+      buildUSM(mockValue.volunteer)
     )
     await SessionService.reportSession(input)
     expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
@@ -287,7 +299,7 @@ describe('endSession', () => {
   })
 })
 
-describe('processAddPastSession', () => {
+describe('addPastSession', () => {
   test('Should add past session to student', async () => {
     const mockValue = mockedGetSessionById({ student: getObjectId() })
     const sessionId = mockValue._id.toString()
@@ -295,12 +307,8 @@ describe('processAddPastSession', () => {
       async () => mockValue
     )
 
-    await SessionService.processAddPastSession(sessionId)
+    await SessionService.addPastSession(sessionId)
     expect(UserService.addPastSession).toHaveBeenCalledTimes(1)
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.PAST_SESSION_ADDED,
-      sessionId
-    )
   })
 
   test('Should add past session to both student and volunteer', async () => {
@@ -309,16 +317,10 @@ describe('processAddPastSession', () => {
       volunteer: getObjectId()
     })
     const sessionId = mockValue._id.toString()
-    mockedSessionRepo.getSessionById.mockImplementationOnce(
-      async () => mockValue
-    )
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(mockValue)
 
-    await SessionService.processAddPastSession(sessionId)
+    await SessionService.addPastSession(sessionId)
     expect(UserService.addPastSession).toHaveBeenCalledTimes(2)
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.PAST_SESSION_ADDED,
-      sessionId
-    )
   })
 })
 
@@ -435,7 +437,7 @@ describe('processCalculateMetrics', () => {
   test('Should calculate time tutored if there was no absent user in the session', async () => {
     const timeTutored = 1000 * 60 * 20
     const mockValue = mockedGetSessionById({
-      flags: [SESSION_FLAGS.LOW_MESSAGES]
+      flags: [USER_SESSION_METRICS.commentFromVolunteer]
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -456,7 +458,7 @@ describe('processCalculateMetrics', () => {
   test('Should not calculate time tutored if there was an absent user in the session', async () => {
     const timeTutored = 0
     const mockValue = mockedGetSessionById({
-      flags: [SESSION_FLAGS.ABSENT_USER]
+      flags: [USER_SESSION_METRICS.absentStudent]
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -735,57 +737,6 @@ describe('processEmailPartnerVolunteer', () => {
   })
 })
 
-describe('processSetFlags', () => {
-  let spyGetReviewFlags
-  let spyHasReviewTriggerFlags
-  beforeEach(async () => {
-    spyGetReviewFlags = jest.spyOn(SessionUtils, 'getReviewFlags')
-    spyHasReviewTriggerFlags = jest.spyOn(SessionUtils, 'hasReviewTriggerFlags')
-  })
-
-  test('Should set a session to be reviewed if there are flags that trigger a review', async () => {
-    const mockedSession = mockedGetSessionToEnd()
-    const sessionId = mockedSession._id.toString()
-    const flags = [SESSION_FLAGS.FIRST_TIME_VOLUNTEER]
-    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-      async () => mockedSession
-    )
-    spyGetReviewFlags.mockImplementationOnce(() => flags)
-    const toReview = true
-    spyHasReviewTriggerFlags.mockImplementationOnce(() => toReview)
-    await SessionService.processSetFlags(sessionId)
-    expect(SessionRepo.updateFlags).toHaveBeenCalledWith(sessionId, {
-      flags,
-      toReview
-    })
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.FLAGS_SET,
-      sessionId
-    )
-  })
-
-  test('Should not set a session to be reviewed if there are no flags that trigger a review', async () => {
-    const mockedSession = mockedGetSessionToEnd()
-    const sessionId = mockedSession._id.toString()
-    const flags = []
-    mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
-      async () => mockedSession
-    )
-    spyGetReviewFlags.mockImplementationOnce(() => flags)
-    const toReview = false
-    spyHasReviewTriggerFlags.mockImplementationOnce(() => toReview)
-    await SessionService.processSetFlags(sessionId)
-    expect(SessionRepo.updateFlags).toHaveBeenCalledWith(sessionId, {
-      flags,
-      toReview
-    })
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.FLAGS_SET,
-      sessionId
-    )
-  })
-})
-
 describe('processVolunteerTimeTutored', () => {
   test('Should do nothing if the session does not have a volunteer', async () => {
     const mockValue = mockedGetSessionById({ volunteer: null })
@@ -810,61 +761,6 @@ describe('processVolunteerTimeTutored', () => {
       volunteer,
       timeTutored
     )
-  })
-})
-
-describe('processFeedbackSaved', () => {
-  let spyGetFeedbackFlags
-  beforeEach(async () => {
-    spyGetFeedbackFlags = jest.spyOn(SessionUtils, 'getFeedbackFlags')
-  })
-
-  // @todo: fix tests to use the mocked getFeedbackFlags
-  test('Should do nothing if there are no flags', async () => {
-    const mockFeedback = buildFeedback({
-      volunteerFeedback: {
-        'session-enjoyable': 4,
-        'session-improvements': '',
-        'student-understanding': 4,
-        'session-obstacles': [],
-        'other-feedback': null
-      }
-    }) as FeedbackVersionTwo
-    const flags = []
-    mockedFeedbackService.getFeedback.mockImplementationOnce(
-      async () => mockFeedback
-    )
-    // @todo: the spy isn't properly mocking this function
-    spyGetFeedbackFlags.mockImplementationOnce(async () => flags)
-    const sessionId = getStringObjectId()
-
-    await SessionService.processFeedbackSaved(sessionId, 'student')
-    expect(SessionRepo.updateFlags).toHaveBeenCalledTimes(0)
-  })
-
-  test('Should update flags on the session if there are flags that trigger a review', async () => {
-    const mockFeedback = buildFeedback({
-      studentTutoringFeedback: {
-        'session-goal': 2,
-        'subject-understanding': 2,
-        'coach-rating': 2,
-        'coach-feedback': '',
-        'other-feedback': 'the whiteboard did not work'
-      }
-    }) as FeedbackVersionTwo
-    const flags = [SESSION_FLAGS.VOLUNTEER_RATING]
-    mockedFeedbackService.getFeedback.mockImplementationOnce(
-      async () => mockFeedback
-    )
-    // @todo: the spy isn't properly mocking this function
-    spyGetFeedbackFlags.mockImplementationOnce(async () => flags)
-    const sessionId = getStringObjectId()
-
-    await SessionService.processFeedbackSaved(sessionId, 'student')
-    expect(SessionRepo.updateFlags).toHaveBeenCalledWith(sessionId, {
-      flags,
-      toReview: true
-    })
   })
 })
 
@@ -1131,15 +1027,18 @@ describe('finishSession', () => {
     }
 
     const socketService = new SocketService({})
+    const session = buildSession({
+      volunteer: input.user,
+      endedBy: input.user._id,
+      student: buildStudent()._id
+    })
 
     // @todo: call a mocked version or spy of SessionService.endSession
-    const mockedSessionToEnd = mockedGetSessionToEnd({
-      volunteer: input.user,
-      endedBy: input.user._id
-    })
+    const mockedSessionToEnd = mockedGetSessionToEnd({ ...session })
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
       async () => mockedSessionToEnd
     )
+    mockedSessionRepo.getSessionById.mockImplementationOnce(async () => session)
 
     await SessionService.finishSession(input, socketService)
     expect(socketService.emitSessionChange).toHaveBeenCalledTimes(1)

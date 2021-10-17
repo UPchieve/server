@@ -1,9 +1,10 @@
 import moment from 'moment'
-import { Request, Response } from 'express'
+import { Response } from 'express'
 import { updateLastActivityUser } from '../services/UserService'
+import { LoadedRequest } from '../router/app'
 
 export function addLastActivity(
-  req: Request,
+  req: LoadedRequest,
   res: Response,
   next: Function
 ): void {

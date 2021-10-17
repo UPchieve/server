@@ -1,10 +1,10 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
-import express from 'express'
-import bodyParser from 'body-parser'
+
 import * as IpAddressService from '../../services/IpAddressService'
 import { routes as EligibilityRouter } from '../../router/eligibility'
 import { NotAllowedError } from '../../models/Errors'
+import { mockApp } from '../mock-app'
 
 jest.mock('../../services/IpAddressService')
 const mockedIpAddressService = mocked(IpAddressService, true)
@@ -12,9 +12,7 @@ const mockedIpAddressService = mocked(IpAddressService, true)
 const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api-public/eligibility'
 
-const app = express()
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+const app = mockApp()
 
 EligibilityRouter(app)
 

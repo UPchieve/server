@@ -13,7 +13,9 @@ import {
   SAT_CERTS,
   SCIENCE_CERTS,
   READING_WRITING_CERTS,
-  TRAINING
+  TRAINING,
+  SUBJECTS,
+  GRADES
 } from '../constants'
 import { Message } from '../models/Message'
 import { AvailabilitySnapshot } from '../models/Availability/Snapshot'
@@ -36,13 +38,16 @@ import { Student } from '../models/Student'
 import { Session } from '../models/Session'
 import { FeedbackVersionOne, FeedbackVersionTwo } from '../models/Feedback'
 import {
-  StudentRegData,
+  OpenStudentRegData,
   PartnerStudentRegData,
   VolunteerRegData,
   PartnerVolunteerRegData
 } from '../utils/auth-utils'
 import { Notification } from '../models/Notification'
 import { PushToken } from '../models/PushToken'
+import { UserSessionMetrics } from '../models/UserSessionMetrics'
+import { School } from '../models/School'
+
 export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
@@ -223,6 +228,7 @@ export const buildStudent = (overrides = {}): Student => {
     zipCode: '11201',
     studentPartnerOrg: 'example',
     partnerSite: '',
+    currentGrade: GRADES.EIGHTH,
     ...overrides
   }
 
@@ -273,8 +279,8 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
 }
 
 export const buildStudentRegistrationForm = (
-  overrides: Partial<StudentRegData> = {}
-): StudentRegData => {
+  overrides: Partial<OpenStudentRegData> = {}
+): OpenStudentRegData => {
   const student = buildStudent()
   const form = {
     ip: '0.0.0.0',
@@ -285,8 +291,9 @@ export const buildStudentRegistrationForm = (
     terms: true,
     zipCode: '11201',
     highSchoolId: '111111111111',
+    currentGrade: GRADES.EIGHTH,
     ...overrides
-  } as StudentRegData
+  } as OpenStudentRegData
 
   return form
 }
@@ -447,6 +454,7 @@ export const buildSession = (overrides = {}): Session => {
     flags: [],
     reviewed: false,
     toReview: false,
+    reviewReasons: [],
     timeTutored: 0,
     ...overrides
   }
@@ -668,8 +676,86 @@ export function buildPushToken(overrides = {}): PushToken {
   }
 }
 
+export function buildSchool(overrides: Partial<School> = {}): School {
+  const _id = Types.ObjectId()
+  return {
+    _id,
+    nameStored: 'Test School',
+    cityNameStored: 'Brooklyn',
+    stateStored: 'NY',
+    isApproved: true,
+    isPartner: true,
+    createdAt: new Date(),
+    ...overrides
+  } as School
+}
+
+interface GatesQualifiedDataOverrides {
+  session?: Partial<Session>
+  student?: Partial<Student>
+  school?: Partial<School>
+}
+
+export function buildGatesQualifiedData(
+  overrides: GatesQualifiedDataOverrides = {}
+) {
+  const session = buildSession({
+    subTopic: SUBJECTS.ALGEBRA_ONE,
+    ...overrides.session
+  })
+  const student = buildStudent({
+    studentPartnerOrg: '',
+    pastSessions: [getObjectId()],
+    currentGrade: GRADES.NINTH,
+    ...overrides.student
+  })
+  const school = buildSchool({ isPartner: false, ...overrides.school })
+
+  return {
+    session,
+    student,
+    school
+  }
+}
+
 export const authLogin = (agent, { email, password }: Partial<User>): Test =>
   agent
     .post('/auth/login')
     .set('Accept', 'application/json')
     .send({ email, password })
+
+export function buildUSM(
+  userId: Types.ObjectId,
+  counterOverrides: any = {} // TODO: type this better
+): UserSessionMetrics {
+  return {
+    _id: Types.ObjectId(),
+    user: userId,
+    counters: {
+      absentStudent: 0,
+      absentVolunteer: 0,
+      lowSessionRatingFromCoach: 0,
+      lowSessionRatingFromStudent: 0,
+      lowCoachRatingFromStudent: 0,
+      reported: 0,
+      onlyLookingForAnswers: 0,
+      rudeOrInappropriate: 0,
+      commentFromStudent: 0,
+      commentFromVolunteer: 0,
+      hasBeenUnmatched: 0,
+      hasHadTechnicalIssues: 0,
+      ...counterOverrides
+    }
+  }
+}
+
+export function startSession(student: Student): Session {
+  const session = buildSession()
+  session.student = student._id
+  return session
+}
+
+export function joinSession(session: Session, volunteer: Volunteer): void {
+  session.volunteerJoinedAt = new Date()
+  session.volunteer = volunteer._id
+}

@@ -3,7 +3,7 @@ import { values } from 'lodash'
 import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
 import {
   FEEDBACK_VERSIONS,
-  SESSION_FLAGS,
+  USER_SESSION_METRICS,
   USER_ACTION,
   SUBJECT_TYPES
 } from '../constants'
@@ -45,6 +45,7 @@ export interface Session {
   flags: string[]
   reviewed: boolean
   toReview: boolean
+  reviewReasons: USER_SESSION_METRICS[]
   timeTutored: number
 }
 
@@ -132,10 +133,14 @@ const sessionSchema = new Schema({
   reportMessage: String,
   flags: {
     type: [String],
-    enum: values(SESSION_FLAGS)
+    enum: values(USER_SESSION_METRICS)
   },
   reviewed: { type: Boolean, default: false },
   toReview: { type: Boolean, default: false },
+  reviewReasons: {
+    type: [String],
+    enum: values(USER_SESSION_METRICS)
+  },
   timeTutored: { type: Number, default: 0 },
   isStudentBanned: Boolean
 })
@@ -226,12 +231,27 @@ export function getSessionsWithPipeline(pipeline) {
 
 export async function updateFlags(
   sessionId: Types.ObjectId | string,
-  data: { flags: SESSION_FLAGS[]; toReview: boolean }
+  flags: USER_SESSION_METRICS[]
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
-    $addToSet: { flags: { $each: data.flags } },
-    toReview: data.toReview
+    $addToSet: { flags: { $each: flags } }
+  }
+  try {
+    await SessionModel.updateOne(query, update)
+  } catch (error) {
+    throw new DocUpdateError(error, query, update)
+  }
+}
+
+export async function updateReviewReasons(
+  sessionId: Types.ObjectId | string,
+  reviewReasons: USER_SESSION_METRICS[]
+): Promise<void> {
+  const query = { _id: sessionId }
+  const update = {
+    toReview: true,
+    $addToSet: { reviewReasons: { $each: reviewReasons } }
   }
   try {
     await SessionModel.updateOne(query, update)
@@ -399,7 +419,8 @@ export async function getSessionsToReview({
           subTopic: 1,
           studentFirstName: '$student.firstname',
           isReported: 1,
-          flags: 1
+          flags: 1,
+          reviewReasons: 1
         }
       }
     ])
@@ -1018,6 +1039,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
       flags: session.flags,
       reviewed: session.reviewed,
       toReview: session.toReview,
+      reviewReasons: session.reviewReasons,
       timeTutored: session.timeTutored
     }
   } catch (error) {

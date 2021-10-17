@@ -5,7 +5,7 @@ Thanks for contributing to the UPchieve subway project. We really appreciate you
 ## Joining the community
 
 Our open source community chats in our Slack org, and we have a weekly Zoom meeting Wednesday nights at 8:30PM ET. To get invites to both,
-please [send us an email](mailto:tech@upchieve.org)!
+please [sign up here](https://upchieve.org/opensource)!
 
 ## GITLAB
 

@@ -9,7 +9,8 @@ import {
   SchemaTypeOpts,
   UpdateQuery
 } from 'mongoose'
-import UserModel, { User } from './User'
+import { validUser } from '../utils/validators'
+import { User } from './User'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from './Errors'
 
 // The MetricType and METRIC_TYPES below outline the underlying value type of
@@ -23,21 +24,6 @@ export enum METRIC_TYPES {
   counters = 'counters'
   // labels = 'labels
   // statistics = 'statistics
-}
-
-export enum METRICS {
-  absentStudent = 'Absent student',
-  absentVolunteer = 'Absent volunteer',
-  lowSessionRatingFromCoach = 'Low session rating from coach',
-  lowSessionRatingFromStudent = 'Low session rating from student',
-  lowCoachRatingFromStudent = 'Low coach rating from student',
-  reported = 'Reported',
-  onlyLookingForAnswers = 'Only looking for answers',
-  rudeOrInappropriate = 'Rude or inapprioriate',
-  commentFromStudent = 'Comment from student',
-  commentFromVolunteer = 'Comment from volunteer',
-  hasBeenUnmatched = 'Has been unmatched',
-  hasHadTechnicalIssues = 'Has had technical issues'
 }
 
 export interface UserSessionMetrics {
@@ -104,15 +90,6 @@ export const UserSessionMetricsModel = model<UserSessionMetricsDocument>(
   UserSessionMetricsCollection,
   userSessionMetricsSchema
 )
-
-// Utilities
-async function validUser(userId: Types.ObjectId | string): Promise<boolean> {
-  const user = await UserModel.findById(userId)
-    .lean()
-    .exec()
-  if (!user) return false
-  return true
-}
 
 // Create functions
 export async function createByUserId(

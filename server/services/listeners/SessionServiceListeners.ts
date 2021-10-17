@@ -1,37 +1,41 @@
-import { FEEDBACK_EVENTS, SESSION_EVENTS } from '../../constants/events'
-import { emitter } from '../EventsService'
+import { SESSION_EVENTS } from '../../constants/events'
 import * as SessionService from '../SessionService'
+import register from './register'
 
 export function listeners() {
-  emitter.on(
+  register(
     SESSION_EVENTS.SESSION_ENDED,
-    SessionService.processSessionReported
+    SessionService.processSessionReported,
+    'processSessionReported'
   )
-  emitter.on(
+  register(
     SESSION_EVENTS.SESSION_ENDED,
-    SessionService.processAssistmentsSession
+    SessionService.processAssistmentsSession,
+    'processAssistmentsSession'
   )
-  emitter.on(SESSION_EVENTS.SESSION_ENDED, SessionService.processSessionEditors)
-  emitter.on(SESSION_EVENTS.SESSION_ENDED, SessionService.processSetFlags)
-  emitter.on(SESSION_EVENTS.FLAGS_SET, SessionService.processCalculateMetrics)
-  emitter.on(
+  register(
+    SESSION_EVENTS.SESSION_ENDED,
+    SessionService.processSessionEditors,
+    'processSessionEditors'
+  )
+  register(
+    SESSION_EVENTS.SESSION_FLAGS_SET,
+    SessionService.processCalculateMetrics,
+    'processCalculateMetrics'
+  )
+  register(
     SESSION_EVENTS.SESSION_METRICS_CALCULATED,
-    SessionService.processAddPastSession
+    SessionService.processVolunteerTimeTutored,
+    'processVolunteerTimeTutored'
   )
-  emitter.on(
+  register(
     SESSION_EVENTS.SESSION_METRICS_CALCULATED,
-    SessionService.processVolunteerTimeTutored
+    SessionService.processEmailPartnerVolunteer,
+    'processEmailPartnerVolunteer'
   )
-  emitter.on(
-    SESSION_EVENTS.PAST_SESSION_ADDED,
-    SessionService.processEmailPartnerVolunteer
-  )
-  emitter.on(
-    SESSION_EVENTS.PAST_SESSION_ADDED,
-    SessionService.processFirstSessionCongratsEmail
-  )
-  emitter.on(
-    FEEDBACK_EVENTS.FEEDBACK_SAVED,
-    SessionService.processFeedbackSaved
+  register(
+    SESSION_EVENTS.SESSION_METRICS_CALCULATED,
+    SessionService.processFirstSessionCongratsEmail,
+    'processFirstSessionCongratsEmail'
   )
 }

@@ -10,7 +10,7 @@ import {
   USER_BAN_REASON,
   SESSION_REPORT_REASON,
   EVENTS,
-  SESSION_FLAGS,
+  USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING
 } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
@@ -23,11 +23,6 @@ import logger from '../logger'
 import * as cache from '../cache'
 import { NotAllowedError } from '../models/Errors'
 import { SESSION_EVENTS } from '../constants/events'
-import {
-  StudentCounselingFeedback,
-  StudentTutoringFeedback,
-  VolunteerFeedback
-} from '../models/Feedback'
 import * as VolunteerService from './VolunteerService'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
@@ -35,7 +30,6 @@ import * as QuillDocService from './QuillDocService'
 import * as AnalyticsService from './AnalyticsService'
 import * as NotificationService from './NotificationService'
 import UserService from './UserService'
-import * as FeedbackService from './FeedbackService'
 
 import { getSessionRequestedUserAgentFromSessionId } from './UserActionService'
 import * as AwsService from './AwsService'
@@ -59,7 +53,7 @@ const {
   setHasWhiteboardDoc
 } = SessionRepo
 
-const { getFeedbackFlags, isSessionFulfilled } = sessionUtils
+const { isSessionFulfilled } = sessionUtils
 
 export {
   getSessionById,
@@ -70,7 +64,6 @@ export {
   getUnfulfilledSessions,
   addNotifications,
   updateFlags,
-  getFeedbackFlags,
   isSessionFulfilled
 }
 
@@ -159,6 +152,8 @@ export async function reportSession(data: unknown) {
     )
   }
 
+  emitter.emit(SESSION_EVENTS.SESSION_REPORTED, session._id)
+
   // Queue up job to send reporting alert emails
   const emailData = {
     studentId: session.student,
@@ -184,6 +179,25 @@ async function isSessionAssistments(
   return ad && !_.isEmpty(ad)
 }
 
+export async function addPastSession(sessionId: string) {
+  const session = await getSessionById(sessionId)
+  const updates = []
+  updates.push(UserService.addPastSession(session.student, session._id))
+  if (session.volunteer)
+    updates.push(UserService.addPastSession(session.volunteer, session._id))
+
+  const results = await Promise.allSettled(updates)
+  const errors: string[] = []
+  results.forEach(result => {
+    if (result.status === 'rejected')
+      errors.push(
+        `Failed to add past session: ${sessionId} - error: ${result.reason}`
+      )
+  })
+  if (errors.length)
+    throw new Error(`errors saving past session:\n${errors.join('\n')}`)
+}
+
 export async function endSession({
   sessionId,
   endedBy = null,
@@ -207,25 +221,9 @@ export async function endSession({
     //        due to the session being unmatched for an extended period of time
     endedBy: endedBy && endedBy._id
   })
+  await addPastSession(session._id)
 
   emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
-}
-
-export async function processAddPastSession(sessionId: string) {
-  const session = await getSessionById(sessionId)
-  const updates = []
-  updates.push(UserService.addPastSession(session.student, session._id))
-  if (session.volunteer)
-    updates.push(UserService.addPastSession(session.volunteer, session._id))
-
-  const results = await Promise.allSettled(updates)
-  results.forEach(result => {
-    if (result.status === 'rejected')
-      logger.error(
-        `Failed to add past session: ${sessionId} - error: ${result.reason}`
-      )
-  })
-  emitter.emit(SESSION_EVENTS.PAST_SESSION_ADDED, sessionId)
 }
 
 export async function processAssistmentsSession(sessionId: string) {
@@ -252,7 +250,12 @@ export async function processSessionReported(sessionId: string) {
 export async function processCalculateMetrics(sessionId: string) {
   const session = await getSessionById(sessionId)
   let timeTutored = 0
-  if (!session.flags.includes(SESSION_FLAGS.ABSENT_USER))
+  if (
+    !(
+      session.flags.includes(USER_SESSION_METRICS.absentStudent) ||
+      session.flags.includes(USER_SESSION_METRICS.absentVolunteer)
+    )
+  )
     timeTutored = sessionUtils.calculateTimeTutored(session)
 
   await updateSessionMetrics(sessionId, { timeTutored })
@@ -350,14 +353,6 @@ export async function processEmailPartnerVolunteer(sessionId: string) {
   }
 }
 
-export async function processSetFlags(sessionId: string) {
-  const session = await SessionRepo.getSessionToEnd(sessionId)
-  const flags = sessionUtils.getReviewFlags(session)
-  const toReview = flags.length > 0 && sessionUtils.hasReviewTriggerFlags(flags)
-  await updateFlags(sessionId, { flags, toReview })
-  emitter.emit(SESSION_EVENTS.FLAGS_SET, sessionId)
-}
-
 export async function processVolunteerTimeTutored(sessionId: string) {
   const session = await SessionRepo.getSessionById(sessionId)
   if (session.volunteer)
@@ -365,30 +360,6 @@ export async function processVolunteerTimeTutored(sessionId: string) {
       session.volunteer,
       session.timeTutored
     )
-}
-
-export async function processFeedbackSaved(
-  sessionId: string,
-  userType: 'student' | 'volunteer'
-) {
-  const feedback = await FeedbackService.getFeedback({ sessionId, userType })
-  // @todo: properly type
-  let feedbackResponses:
-    | Partial<StudentTutoringFeedback>
-    | Partial<StudentCounselingFeedback>
-    | Partial<VolunteerFeedback> = {}
-
-  if ('studentTutoringFeedback' in feedback)
-    feedbackResponses = feedback.studentTutoringFeedback
-  if ('studentCounselingFeedback' in feedback)
-    feedbackResponses = feedback.studentCounselingFeedback
-  if ('volunteerFeedback' in feedback)
-    feedbackResponses = feedback.volunteerFeedback
-
-  const flags = await getFeedbackFlags(feedbackResponses)
-  if (flags.length > 0)
-    // Feedback flags currently always trigger a need for review
-    await updateFlags(sessionId, { flags, toReview: true })
 }
 
 /**
