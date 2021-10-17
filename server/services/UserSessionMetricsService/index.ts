@@ -37,10 +37,11 @@ export interface MetricProcessorPayload {
 
 const SESSION_METRICS_PROCESSORS = []
 const FEEDBACK_METRICS_PROCESSORS = []
+const REPORT_METRICS_PROCESSORS = []
 for (const metric of Object.values(METRIC_PROCESSORS)) {
   if (metric.requiresFeedback) FEEDBACK_METRICS_PROCESSORS.push(metric)
   // Reported metric is run separately from others since isReported is not guaranteed to be accurate at session end
-  else if (metric.key === 'Reported') continue
+  else if (metric.key === 'Reported') REPORT_METRICS_PROCESSORS.push(metric)
   else SESSION_METRICS_PROCESSORS.push(metric)
 }
 
@@ -83,6 +84,26 @@ export async function prepareFeedbackProcessors(
     volunteerUSM
   )
   emitter.emit(USM_EVENTS.FEEDBACK_PROCESSORS_READY, payload)
+}
+
+// registered as listener on session-reported
+export async function prepareReportProcessors(
+  sessionId: Types.ObjectId | string
+): Promise<void> {
+  const {
+    session,
+    feedback,
+    studentUSM,
+    volunteerUSM
+  } = await getValuesToPrepareMetrics(sessionId)
+  const payload = await prepareMetrics(
+    REPORT_METRICS_PROCESSORS,
+    session,
+    feedback,
+    studentUSM,
+    volunteerUSM
+  )
+  emitter.emit(USM_EVENTS.REPORT_PROCESSORS_READY, payload)
 }
 
 export async function getValuesToPrepareMetrics(
@@ -222,6 +243,21 @@ export const processFeedbackFlags = metricProcessorFactory(
   }
 )
 
+// registered as listener on report-processors-ready
+export const processReportFlags = metricProcessorFactory(
+  METRIC_PROCESSORS,
+  'computeFlag',
+  (acc: USER_SESSION_METRICS[]): USER_SESSION_METRICS[] => acc.flat(),
+  async (flags: USER_SESSION_METRICS[], session: Session): Promise<void> => {
+    try {
+      await updateFlags(session._id as Types.ObjectId, flags)
+      emitter.emit(SESSION_EVENTS.REPORT_FLAGS_SET, session._id.toString())
+    } catch (err) {
+      throw new Error(`failed to set flags for session ${session._id} - ${err}`)
+    }
+  }
+)
+
 // registered as listener on session-processors-ready
 export const processSessionReviewReasons = metricProcessorFactory(
   METRIC_PROCESSORS,
@@ -255,6 +291,28 @@ export const processFeedbackReviewReasons = metricProcessorFactory(
         await updateReviewReasons(session._id as Types.ObjectId, reasons)
         emitter.emit(
           SESSION_EVENTS.FEEDBACK_REVIEW_REASONS_SET,
+          session._id.toString()
+        )
+      }
+    } catch (err) {
+      throw new Error(
+        `failed to set review reason for session ${session._id} - ${err}`
+      )
+    }
+  }
+)
+
+// registered as listener on report-processors-ready
+export const processReportReviewReasons = metricProcessorFactory(
+  METRIC_PROCESSORS,
+  'computeReviewReason',
+  (acc: USER_SESSION_METRICS[]): USER_SESSION_METRICS[] => acc.flat(),
+  async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
+    try {
+      if (reasons.length) {
+        await updateReviewReasons(session._id as Types.ObjectId, reasons)
+        emitter.emit(
+          SESSION_EVENTS.REPORT_REVIEW_REASONS_SET,
           session._id.toString()
         )
       }

@@ -15,7 +15,8 @@ import {
   buildSession,
   buildSocket,
   buildPushToken,
-  getUUID
+  getUUID,
+  buildUSM
 } from '../generate'
 import {
   mockedGetSessionsToReview,
@@ -62,6 +63,7 @@ import * as cache from '../../cache'
 import { NotAllowedError, LookupError } from '../../models/Errors'
 import { SESSION_EVENTS } from '../../constants/events'
 import { emitter } from '../../services/EventsService'
+import * as USMRepo from '../../models/UserSessionMetrics'
 jest.mock('../../models/Session')
 jest.mock('../../models/AssistmentsData')
 jest.mock('../../services/MailService')
@@ -80,6 +82,7 @@ jest.mock('../../services/AwsService')
 jest.mock('../../services/PushTokenService')
 jest.mock('../../services/EventsService')
 jest.mock('../../cache')
+jest.mock('../../models/UserSessionMetrics')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedAssistmentsDataRepo = mocked(AssistmentsDataRepo, true)
@@ -90,6 +93,7 @@ const mockedPushTokenService = mocked(PushTokenService, true)
 const mockedCache = mocked(cache, true)
 const mockedQuillDocService = mocked(QuillDocService, true)
 const mockedWhiteboardService = mocked(WhiteboardService, true)
+const mockedUSMRepo = mocked(USMRepo, true)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -195,6 +199,10 @@ describe('reportSession', () => {
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
     )
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.student))
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(
+      buildUSM(mockValue.volunteer)
+    )
     await SessionService.reportSession(input)
     expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
     expect(UserService.banUser).toHaveBeenCalledTimes(1)
@@ -227,6 +235,10 @@ describe('reportSession', () => {
     })
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
+    )
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(buildUSM(mockValue.student))
+    mockedUSMRepo.getByUserId.mockResolvedValueOnce(
+      buildUSM(mockValue.volunteer)
     )
     await SessionService.reportSession(input)
     expect(SessionRepo.updateReportSession).toHaveBeenCalledTimes(1)
@@ -287,7 +299,7 @@ describe('endSession', () => {
   })
 })
 
-describe('processAddPastSession', () => {
+describe('addPastSession', () => {
   test('Should add past session to student', async () => {
     const mockValue = mockedGetSessionById({ student: getObjectId() })
     const sessionId = mockValue._id.toString()
@@ -295,12 +307,8 @@ describe('processAddPastSession', () => {
       async () => mockValue
     )
 
-    await SessionService.processAddPastSession(sessionId)
+    await SessionService.addPastSession(sessionId)
     expect(UserService.addPastSession).toHaveBeenCalledTimes(1)
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.PAST_SESSION_ADDED,
-      sessionId
-    )
   })
 
   test('Should add past session to both student and volunteer', async () => {
@@ -309,16 +317,10 @@ describe('processAddPastSession', () => {
       volunteer: getObjectId()
     })
     const sessionId = mockValue._id.toString()
-    mockedSessionRepo.getSessionById.mockImplementationOnce(
-      async () => mockValue
-    )
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(mockValue)
 
-    await SessionService.processAddPastSession(sessionId)
+    await SessionService.addPastSession(sessionId)
     expect(UserService.addPastSession).toHaveBeenCalledTimes(2)
-    expect(emitter.emit).toHaveBeenCalledWith(
-      SESSION_EVENTS.PAST_SESSION_ADDED,
-      sessionId
-    )
   })
 })
 
@@ -1025,15 +1027,18 @@ describe('finishSession', () => {
     }
 
     const socketService = new SocketService({})
+    const session = buildSession({
+      volunteer: input.user,
+      endedBy: input.user._id,
+      student: buildStudent()._id
+    })
 
     // @todo: call a mocked version or spy of SessionService.endSession
-    const mockedSessionToEnd = mockedGetSessionToEnd({
-      volunteer: input.user,
-      endedBy: input.user._id
-    })
+    const mockedSessionToEnd = mockedGetSessionToEnd({ ...session })
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
       async () => mockedSessionToEnd
     )
+    mockedSessionRepo.getSessionById.mockImplementationOnce(async () => session)
 
     await SessionService.finishSession(input, socketService)
     expect(socketService.emitSessionChange).toHaveBeenCalledTimes(1)

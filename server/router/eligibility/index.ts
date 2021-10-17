@@ -20,7 +20,8 @@ export function routes(app: Express) {
       schoolUpchieveId,
       zipCode: zipCodeInput,
       email,
-      referredByCode
+      referredByCode,
+      currentGrade
     } = req.body
 
     const existingUser = await UserService.getUser({ email })
@@ -50,7 +51,8 @@ export function routes(app: Express) {
           zipCode: zipCodeInput,
           school: school._id,
           ipAddress: req.ip,
-          referredBy
+          referredBy,
+          currentGrade
         })
 
         newIneligibleStudent.save()
@@ -185,6 +187,21 @@ export function routes(app: Express) {
 
     try {
       await SchoolService.updateApproval(schoolId, isApproved)
+      res.sendStatus(200)
+    } catch (err) {
+      Sentry.captureException(err)
+      res.sendStatus(500)
+    }
+  })
+
+  router.post('/school/partner', authPassport.isAdmin, async function(
+    req,
+    res
+  ) {
+    const { schoolId, isPartner } = req.body
+
+    try {
+      await SchoolService.updateIsPartner(schoolId, isPartner)
       res.sendStatus(200)
     } catch (err) {
       Sentry.captureException(err)

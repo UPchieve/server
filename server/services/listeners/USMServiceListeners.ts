@@ -7,6 +7,7 @@ import * as USMService from '../UserSessionMetricsService'
 import register from './register'
 
 export function listeners() {
+  // prepare processors
   register(
     SESSION_EVENTS.SESSION_ENDED,
     USMService.prepareSessionProcessors,
@@ -16,6 +17,11 @@ export function listeners() {
     FEEDBACK_EVENTS.FEEDBACK_SAVED,
     USMService.prepareFeedbackProcessors,
     'prepareFeedbackProcessors'
+  )
+  register(
+    SESSION_EVENTS.SESSION_REPORTED,
+    USMService.prepareReportProcessors,
+    'prepareReportProcessors'
   )
 
   // process post-session metrics
@@ -40,6 +46,17 @@ export function listeners() {
     USMService.processFeedbackReviewReasons,
     'processFeedbackReviewReasons'
   )
+  // process session reported metrics
+  register(
+    USM_EVENTS.REPORT_PROCESSORS_READY,
+    USMService.processReportFlags,
+    'processReportFlags'
+  )
+  register(
+    USM_EVENTS.REPORT_PROCESSORS_READY,
+    USMService.processReportReviewReasons,
+    'processReportReviewReasons'
+  )
 
   // save student metrics
   register(
@@ -49,6 +66,11 @@ export function listeners() {
   )
   register(
     USM_EVENTS.FEEDBACK_PROCESSORS_READY,
+    USMService.processStudentUpdateQuery,
+    'processStudentUpdateQuery'
+  )
+  register(
+    USM_EVENTS.REPORT_PROCESSORS_READY,
     USMService.processStudentUpdateQuery,
     'processStudentUpdateQuery'
   )
@@ -64,6 +86,11 @@ export function listeners() {
     USMService.processVolunteerUpdateQuery,
     'processVolunteerUpdateQuery'
   )
+  register(
+    USM_EVENTS.REPORT_PROCESSORS_READY,
+    USMService.processVolunteerUpdateQuery,
+    'processVolunteerUpdateQuery'
+  )
 
   // trigger side effects for the session e.g queueing apology emails
   register(
@@ -71,9 +98,13 @@ export function listeners() {
     USMService.processTriggerMetricActions,
     'processTriggerMetricActions'
   )
-  // trigger side effects for the session e.g queueing apology emails
   register(
     USM_EVENTS.FEEDBACK_PROCESSORS_READY,
+    USMService.processTriggerMetricActions,
+    'processTriggerMetricActions'
+  )
+  register(
+    USM_EVENTS.REPORT_PROCESSORS_READY,
     USMService.processTriggerMetricActions,
     'processTriggerMetricActions'
   )

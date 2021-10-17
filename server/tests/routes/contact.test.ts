@@ -1,5 +1,4 @@
 import request from 'supertest'
-import express from 'express'
 import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import * as ContactFormRouter from '../../router/contact'
@@ -9,17 +8,19 @@ import {
   ContactFormDataValidationError,
   MailSendError
 } from '../../services/ContactFormService'
+import { mockApp } from '../mock-app'
+
 jest.mock('../../services/ContactFormService')
 
 const mockedContactFormService = mocked(ContactFormService, true)
 
-const app = express()
+const app = mockApp()
 ContactFormRouter.routes(app)
 
 const agent = request.agent(app)
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
+  await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true

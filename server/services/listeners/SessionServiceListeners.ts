@@ -25,21 +25,16 @@ export function listeners() {
   )
   register(
     SESSION_EVENTS.SESSION_METRICS_CALCULATED,
-    SessionService.processAddPastSession,
-    'processAddPastSession'
-  )
-  register(
-    SESSION_EVENTS.SESSION_METRICS_CALCULATED,
     SessionService.processVolunteerTimeTutored,
     'processVolunteerTimeTutored'
   )
   register(
-    SESSION_EVENTS.PAST_SESSION_ADDED,
+    SESSION_EVENTS.SESSION_METRICS_CALCULATED,
     SessionService.processEmailPartnerVolunteer,
     'processEmailPartnerVolunteer'
   )
   register(
-    SESSION_EVENTS.PAST_SESSION_ADDED,
+    SESSION_EVENTS.SESSION_METRICS_CALCULATED,
     SessionService.processFirstSessionCongratsEmail,
     'processFirstSessionCongratsEmail'
   )
