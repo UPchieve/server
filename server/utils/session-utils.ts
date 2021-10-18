@@ -40,8 +40,8 @@ export function didParticipantsChat(messages: Message[], studentId: Types.Object
       throw new Error("message user was neither an object id nor a user object")
     }
 
-    if (studentId === messagerId)) studentSentMessage = true
-    if (volunteerId === messagerId)) volunteerSentMessage = true
+    if (studentId === messagerId) studentSentMessage = true
+    if (volunteerId === messagerId) volunteerSentMessage = true
     if (studentSentMessage && volunteerSentMessage) break
   }
 
@@ -116,8 +116,8 @@ export function calculateTimeTutored(session: Session) {
     while (
       latestMessageIndex > 0 &&
       (wasMessageSentAfterSessionEnded ||
-        messages[latestMessageIndex].createdAt -
-          messages[latestMessageIndex - 1].createdAt >
+        messages[latestMessageIndex].createdAt.getTime() -
+          messages[latestMessageIndex - 1].createdAt.getTime() >
           fifteenMinsMs)
     ) {
       latestMessageIndex--
@@ -137,7 +137,7 @@ export function calculateTimeTutored(session: Session) {
   return sessionLengthMs
 }
 
-export function isSessionFulfilled((session: Session)) {
+export function isSessionFulfilled(session: Session) {
   const hasEnded = !!session.endedAt
   const hasVolunteerJoined = !!session.volunteer
 

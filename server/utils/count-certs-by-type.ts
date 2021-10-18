@@ -1,8 +1,9 @@
 import { SUBJECT_TYPES } from '../constants'
 import getSubjectType from './getSubjectType'
+import { Certifications, ALL_CERTS_TYPE } from '../models/Volunteer'
 
 export function countCertsByType(
-  certifications
+  certifications: Certifications
 ): {
   total: number
   [SUBJECT_TYPES.MATH]: number
@@ -10,6 +11,7 @@ export function countCertsByType(
   [SUBJECT_TYPES.COLLEGE]: number
   [SUBJECT_TYPES.SAT]: number
   [SUBJECT_TYPES.TRAINING]: number
+  [SUBJECT_TYPES.READING_WRITING]: number
 } {
   const totals = {
     total: 0,
@@ -18,11 +20,12 @@ export function countCertsByType(
     [SUBJECT_TYPES.COLLEGE]: 0,
     [SUBJECT_TYPES.SAT]: 0,
     [SUBJECT_TYPES.TRAINING]: 0,
+    [SUBJECT_TYPES.READING_WRITING]: 0
   }
 
   for (const subject in certifications) {
-    if (certifications[subject].passed) {
-      const subjectType = getSubjectType(subject)
+    if (certifications[subject as ALL_CERTS_TYPE].passed) {
+      const subjectType = getSubjectType(subject as ALL_CERTS_TYPE)
       totals[subjectType]++
       totals.total++
     }

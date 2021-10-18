@@ -315,7 +315,9 @@ export const courses: TrainingCourse[] = [
 ]
 
 export const getCourse = (courseKey: string): TrainingCourse => {
-  return find(courses, { courseKey })
+  const course =  find(courses, { courseKey })
+  if (!course) throw new Error(`Training course does not exist for key ${courseKey}`)
+  return course
 }
 
 const getRequiredMaterials = (courseKey: string): string[] => {

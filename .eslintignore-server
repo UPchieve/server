@@ -1,4 +1,0 @@
-src/**/*
-public/**/*
-server/utils/zwibblerDecoder.ts
-server/dbutils/*

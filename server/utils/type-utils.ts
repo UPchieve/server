@@ -2,7 +2,6 @@ import { Types } from 'mongoose'
 import { InputError } from '../models/Errors'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
-// TODO: test primitive typechecks and factory function
 
 // Use via asOptional(asPrimitive)
 export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {

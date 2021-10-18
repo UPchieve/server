@@ -10,7 +10,5 @@ import { Volunteer } from '../models/Volunteer'
  */
 export interface LoadedRequest extends Request {
   user?: Student | Volunteer
-  login?: Function
-  logout?: Function
   ip: string
 }

@@ -13,7 +13,11 @@ import * as SessionService from '../services/SessionService'
 import * as AvailabilityService from '../services/AvailabilityService'
 import logger from '../logger'
 import { isCertified } from '../controllers/UserCtrl'
-import { Certifications } from '../models/Volunteer'
+import { Session } from '../models/Session'
+import { Volunteer, Certifications } from '../models/Volunteer'
+import { HOURS } from '../models/Availability/types'
+import { AvailabilityHistory } from '../models/Availability/History'
+import { UserAction } from '../models/UserAction'
 import {
   getVolunteersWithPipeline,
   HourSummaryStats,
@@ -28,16 +32,21 @@ import roundUpToNearestInterval from './round-up-to-nearest-interval'
 import { countCertsByType } from './count-certs-by-type'
 import { asFactory, asOptional, asString } from './type-utils'
 
+/**
+ * dateQuery is types as any for now since we know it's a mongo agg date query
+ * acc is also typed any due to issues with Availability type
+ */
+
 interface Stamp {
   day: string
   hour: string
 }
 
-function formatStamp(time: moment): Stamp {
+function formatStamp(time: moment.Moment): Stamp {
   return { day: time.format('MM-DD-YYYY'), hour: time.format('H') }
 }
 
-function addToAcc(acc, time: moment, minutes: number): void {
+function addToAcc(acc: any, time: moment.Moment, minutes: number): void {
   const { day, hour } = formatStamp(time)
   if (day in acc) {
     const sub = acc[day]
@@ -51,7 +60,7 @@ function addToAcc(acc, time: moment, minutes: number): void {
   }
 }
 
-function readFromAcc(acc, time: moment): number {
+function readFromAcc(acc: any, time: moment.Moment): number {
   const { day, hour } = formatStamp(time)
   if (day in acc) {
     const sub = acc[day]
@@ -64,8 +73,8 @@ function readFromAcc(acc, time: moment): number {
 
 // Reduce accumulator to single day totals
 // reduced_acc = { day: number }
-function reduceAcc(acc) {
-  const final = {}
+function reduceAcc(acc: any) {
+  const final: any = {}
   for (const day of Object.keys(acc)) {
     let total = 0
     const sub = acc[day]
@@ -79,14 +88,14 @@ function reduceAcc(acc) {
 }
 
 function telecomTutorTime(
-  sessions,
-  availabilityForDateRange,
-  quizPassedActions
+  sessions: Session[],
+  availabilityForDateRange: AvailabilityHistory[],
+  quizPassedActions: UserAction[]
 ) {
-  const acc = {} // accumulator { MM-DD-YYYY: {H: time volunteered in minutes } }
-  const sessionAcc = {}
-  const availabilityAcc = {}
-  const certificationAcc = {}
+  const acc: any = {} // accumulator { MM-DD-YYYY: {H: time volunteered in minutes } }
+  const sessionAcc: any = {}
+  const availabilityAcc: any = {}
+  const certificationAcc: any = {}
   // TODO: double loop on sessions is inefficient
   // check if tutoring occured on a day
   for (const session of sessions) {
@@ -106,9 +115,9 @@ function telecomTutorTime(
   for (const availabilityHistory of availabilityForDateRange) {
     const availability = availabilityHistory.availability
     for (const hourA of Object.keys(availability)) {
-      if (availability[hourA]) {
+      if (availability[hourA as HOURS]) {
         const temp = moment(availabilityHistory.date)
-        const { day, hour } = formatStamp(temp.hour(HOUR_TO_UTC_MAPPING[hourA]))
+        const { day, hour } = formatStamp(temp.hour(HOUR_TO_UTC_MAPPING[hourA as HOURS]))
         // If day is not aleady accounted for do not add since no tutoring happened
         if (day in acc) {
           acc[day][hour] = 60
@@ -174,14 +183,12 @@ interface TelecomRow {
   hours: number
 }
 
-async function getVolunteerData(volunteer, dateQuery) {
-  // @todo: figure out how the type annotation
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quizPassedActions: any = await UserActionService.getActionsWithPipeline(
+async function getVolunteerData(volunteer: Volunteer, dateQuery: any) {
+  const quizPassedActions: UserAction[] = await UserActionService.getActionsWithPipeline(
     [
       {
         $match: {
-          user: Types.ObjectId(volunteer._id),
+          user: volunteer._id,
           action: USER_ACTION.QUIZ.PASSED,
           createdAt: dateQuery,
         },
@@ -193,7 +200,7 @@ async function getVolunteerData(volunteer, dateQuery) {
       },
     ]
   )
-  const sessions = await SessionService.getSessionsWithPipeline([
+  const sessions: Session[] = await SessionService.getSessionsWithPipeline([
     {
       $sort: {
         createdAt: 1,
@@ -201,7 +208,7 @@ async function getVolunteerData(volunteer, dateQuery) {
     },
     {
       $match: {
-        volunteer: Types.ObjectId(volunteer._id),
+        volunteer: volunteer._id,
         createdAt: dateQuery,
       },
     },
@@ -233,7 +240,7 @@ async function getVolunteerData(volunteer, dateQuery) {
       },
     },
   ])
-  // @todo: figure out how to properly type and cast
+  // TODO: figure out how to properly type and cast
   const availabilityForDateRange: any = await AvailabilityService.getAvailabilityHistoryWithPipeline(
     [
       {
@@ -257,8 +264,8 @@ async function getVolunteerData(volunteer, dateQuery) {
 }
 
 async function telecomProcessVolunteer(
-  volunteer,
-  dateQuery
+  volunteer: Volunteer,
+  dateQuery: any
 ): Promise<TelecomRow[]> {
   const totalCerts = countCerts(volunteer.certifications)
   if (totalCerts === 0) return []
@@ -293,8 +300,8 @@ async function telecomProcessVolunteer(
 }
 
 export async function generateTelecomReport(
-  volunteers,
-  dateQuery
+  volunteers: Volunteer[],
+  dateQuery: any
 ): Promise<TelecomRow[]> {
   const volunteerPartnerReport = []
   const errors = []
@@ -315,7 +322,7 @@ export async function generateTelecomReport(
   return volunteerPartnerReport
 }
 
-function sumHours(acc): number {
+function sumHours(acc: any): number {
   let total = 0
   for (const day of Object.keys(acc)) {
     total += acc[day]
@@ -334,8 +341,8 @@ export function emptyHours(): HourSummaryStats {
 
 // To be used by email/update job(s) for generating telecom volunteer hours
 export async function telecomHourSummaryStats(
-  volunteer,
-  dateQuery
+  volunteer: Volunteer,
+  dateQuery: any
 ): Promise<HourSummaryStats> {
   try {
     const totalCerts = countCerts(volunteer.certifications)

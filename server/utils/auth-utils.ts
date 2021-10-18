@@ -3,6 +3,7 @@ import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
 import passportLocal from 'passport-local'
 import { Types } from 'mongoose'
+import { Request, Response, NextFunction } from 'express'
 
 import config from '../config'
 import User from '../models/User'
@@ -170,7 +171,7 @@ export async function checkPhone(
 
 export async function getReferredBy(
   referredByCode: string
-): Promise<Types.ObjectId> {
+): Promise<Types.ObjectId|undefined> {
   const referredBy = await checkReferral(referredByCode)
   if (referredBy) {
     captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
@@ -187,8 +188,8 @@ export const hashPassword = async function(password: string): Promise<string> {
 }
 
 export function verifyPassword(
-  candidatePassword,
-  userPassword
+  candidatePassword: string,
+  userPassword: string
 ): Promise<Error | boolean> {
   return new Promise((resolve, reject) => {
     bcrypt.compare(candidatePassword, userPassword, (error, isMatch) => {
@@ -238,7 +239,7 @@ function setupPassport() {
             user.password
           )
 
-          user.password = undefined
+          user.password = ''
 
           if (isValidPassword) {
             return done(null, user)
@@ -254,29 +255,29 @@ function setupPassport() {
 }
 
 // Login Required middleware
-function isAuthenticated(req, res, next) {
+function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next()
   }
   return res.status(401).json({ err: 'Not authenticated' })
 }
 
-function isAdmin(req, res, next) {
-  if (req.user.isAdmin) {
+function isAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.user && req.user.isAdmin) {
     return next()
   }
   return res.status(403).json({ err: 'Unauthorized' })
 }
 
-function isAuthenticatedRedirect(req, res, next) {
+function isAuthenticatedRedirect(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next()
   }
   return res.redirect('/')
 }
 
-function isAdminRedirect(req, res, next) {
-  if (req.user.isAdmin) {
+function isAdminRedirect(req: Request, res: Response, next: NextFunction) {
+  if (req.user && req.user.isAdmin) {
     return next()
   }
   return res.redirect('/')

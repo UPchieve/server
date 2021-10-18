@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { Types } from 'mongoose'
 import {
   AccountActionCreator,
   QuizActionCreator,
@@ -21,7 +20,9 @@ import {
 import getSubjectType from '../utils/getSubjectType'
 import { createContact } from '../services/MailService'
 import VolunteerModel, {
+  ALL_CERTS_TYPE,
   Certifications,
+  CERT_TYPE,
   Volunteer,
   VolunteerDocument,
 } from '../models/Volunteer'
@@ -56,15 +57,6 @@ const numQuestions = {
 }
 const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
-
-type ALL_CERTS =
-  | MATH_CERTS
-  | COLLEGE_CERTS
-  | SCIENCE_CERTS
-  | SAT_CERTS
-  | READING_WRITING_CERTS
-  | TRAINING
-type CERT_TYPE = Record<ALL_CERTS, string>
 
 // Check if a user is certified in a given group of subject certs
 const isCertifiedIn = (
@@ -114,7 +106,7 @@ export async function getQuestions(
 
 // Check if a given cert has the required training completed
 export function hasRequiredTraining(
-  subjectCert: string,
+  subjectCert: ALL_CERTS_TYPE,
   userCertifications: Certifications
 ): boolean {
   const subjectCertType = getSubjectType(subjectCert)
@@ -169,7 +161,7 @@ export function hasCertForRequiredTraining(
 }
 
 export function getUnlockedSubjects(
-  cert: string,
+  cert: ALL_CERTS_TYPE,
   userCertifications: Certifications
 ): string[] {
   // update certifications to have the current cert completed set to passed
@@ -210,7 +202,7 @@ export function getUnlockedSubjects(
     // Add all the other subjects that a certification unlocks to the Set
     if (
       userCertifications[cert as keyof CERT_TYPE].passed &&
-      hasRequiredTraining(cert, userCertifications) &&
+      hasRequiredTraining(cert as ALL_CERTS_TYPE, userCertifications) &&
       CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING]
     )
       CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING].forEach(subject =>
@@ -243,7 +235,7 @@ type AnswerMap = { [k: string]: string }
 export interface GetQuizScoreOptions {
   user: Volunteer
   idAnswerMap: AnswerMap
-  category: TRAINING
+  category: ALL_CERTS_TYPE
   ip: string
 }
 
@@ -269,7 +261,7 @@ export async function getQuizScore(
   ).length
 
   const percent = score / questions.length
-  const threshold = Object.values(TRAINING).includes(cert)
+  const threshold = getSubjectType(cert) === SUBJECT_TYPES.TRAINING
     ? TRAINING_THRESHOLD
     : SUBJECT_THRESHOLD
   const passed = percent >= threshold
