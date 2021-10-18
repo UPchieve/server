@@ -127,9 +127,13 @@ jest.mock('unleash-client', () => {
   }
 })
 
+export {} // get typescript to think this is a module
+
 // extend NodeJS global for mongoURI for use with @shelf/jest-mongodb
-declare namespace NodeJS {
-  export interface Global {
-    __MONGO_URI__: string
+declare global {
+  namespace NodeJS {
+    interface Global {
+      __MONGO_URI__: string
+    }
   }
 }
