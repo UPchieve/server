@@ -6,6 +6,8 @@ import {
 import { captureEvent } from '../services/AnalyticsService'
 import QuestionModel, { QuestionDocument } from '../models/Question'
 import {
+  CERT_TYPE,
+  ALL_CERTS_TYPE,
   CERT_UNLOCKING,
   COMPUTED_CERTS,
   TRAINING,
@@ -20,9 +22,7 @@ import {
 import getSubjectType from '../utils/getSubjectType'
 import { createContact } from '../services/MailService'
 import VolunteerModel, {
-  ALL_CERTS_TYPE,
   Certifications,
-  CERT_TYPE,
   Volunteer,
   VolunteerDocument,
 } from '../models/Volunteer'
@@ -283,7 +283,7 @@ export async function getQuizScore(
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
       if (!user.subjects.includes(subject))
-        new QuizActionCreator(user._id, subject, ip).unlockedSubject()
+        new QuizActionCreator(user._id, subject as ALL_CERTS_TYPE, ip).unlockedSubject()
       captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {
         event: EVENTS.SUBJECT_UNLOCKED,
         subject,

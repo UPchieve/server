@@ -3,10 +3,11 @@ import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
 import passportLocal from 'passport-local'
 import { Types } from 'mongoose'
-import { Request, Response, NextFunction } from 'express'
+import { Express, Request, Response, NextFunction } from 'express'
+import { LoadedRequest } from '../router/app'
 
 import config from '../config'
-import User from '../models/User'
+import UserModel, { User } from '../models/User'
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import UserService from '../services/UserService'
@@ -98,7 +99,7 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
-  studentPartnerOrg: asOptional(asString),
+  studentPartnerOrg: asString,
   partnerUserId: asOptional(asString),
   partnerSite: asOptional(asString),
   college: asOptional(asString),
@@ -192,7 +193,7 @@ export function verifyPassword(
   userPassword: string
 ): Promise<Error | boolean> {
   return new Promise((resolve, reject) => {
-    bcrypt.compare(candidatePassword, userPassword, (error, isMatch) => {
+    bcrypt.compare(candidatePassword, userPassword, (error: Error|undefined, isMatch: boolean): any => {
       if (error) {
         return reject(error)
       }
@@ -205,13 +206,13 @@ export function verifyPassword(
 // Passport functions
 const LocalStrategy = passportLocal.Strategy
 function setupPassport() {
-  passport.serializeUser(function(user, done) {
+  passport.serializeUser(function(user: Express.User, done: Function) {
     done(null, user._id)
   })
 
-  passport.deserializeUser(async function(id, done) {
+  passport.deserializeUser(async function(id: Types.ObjectId, done: Function) {
     try {
-      const user = await User.findById(id).lean()
+      const user = await UserModel.findById(id).lean()
       return done(null, user)
     } catch (error) {
       return done(error)
@@ -224,9 +225,9 @@ function setupPassport() {
         usernameField: 'email',
         passwordField: 'password',
       },
-      async function(email, passwordGiven, done) {
+      async function(email: string, passwordGiven: string, done: Function) {
         try {
-          const user = await User.findOne({ email: email }, '+password')
+          const user = await UserModel.findOne({ email: email }, '+password')
             .lean()
             .exec()
 

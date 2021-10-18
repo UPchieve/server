@@ -5,7 +5,7 @@ import UserAction, {
   UserActionAgent,
   UserActionDocument,
 } from '../models/UserAction'
-import { USER_ACTION } from '../constants'
+import { USER_ACTION, ALL_CERTS_TYPE } from '../constants'
 import getSubjectType from '../utils/getSubjectType'
 import getDeviceFromUserAgent from '../utils/getDeviceFromUserAgent'
 
@@ -24,7 +24,7 @@ function getUserAgentInfo(userAgent: string): UserActionAgent {
 export class QuizActionCreator {
   constructor(
     private userId: Types.ObjectId,
-    private quizSubcategory: string,
+    private quizSubcategory: ALL_CERTS_TYPE,
     private ipAddress = ''
   ) {}
 

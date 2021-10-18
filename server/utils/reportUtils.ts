@@ -421,7 +421,7 @@ function getOnboardingStatus({
   return ONBOARDING_STATUS.NOT_STARTED
 }
 
-function isDateWithin(date, startDate, endDate) {
+function isDateWithin(date: string, startDate: Date, endDate: Date) {
   const formatDate = new Date(date).getTime()
   return formatDate >= startDate.getTime() && formatDate < endDate.getTime()
 }
@@ -645,7 +645,7 @@ export async function getAnalyticsReportSummary(
     summary.signUps.total++
     if (isDateWithin(row.dateAccountCreated, startDate, endDate))
       summary.signUps.totalWithinDateRange++
-    if (row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED) {
+    if (row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED && row.dateOnboarded) {
       summary.volunteersOnboarded.total++
       if (isDateWithin(row.dateOnboarded, startDate, endDate))
         summary.volunteersOnboarded.totalWithinDateRange++
@@ -746,13 +746,13 @@ const analyticsReportSummaryHeaderMapping = {
   uniqueStudentsHelped: 'Unique students helped',
 }
 
-const borderRightMediumStyle = {
+const borderRightMediumStyle: Partial<exceljs.Borders> = {
   right: {
     style: 'medium',
   },
 }
 
-export function applyAnalyticsReportDataStyles(worksheet) {
+export function applyAnalyticsReportDataStyles(worksheet: exceljs.Worksheet) {
   /**
    * @note: When applying styles to a cell, column, or row, previous styles applied may be overridden,
    *        so there may need to be styling that is defined again to preserve the styles.
@@ -786,7 +786,7 @@ export function applyAnalyticsReportDataStyles(worksheet) {
     bottom: { style: 'thin' },
   }
 
-  const overridenCellStyle = {
+  const overridenCellStyle: Partial<exceljs.Style> = {
     border: {
       ...borderRightMediumStyle,
       bottom: { style: 'thin' },
@@ -825,19 +825,16 @@ export function processAnalyticsReportDataSheet(
   startDate: string,
   endDate: string
 ) {
-  const reportRowKeys = Object.keys(analyticsReportDataHeaderMapping)
   const columnsWithHeaderKeys = []
   const formattedColumnHeaders = []
-  for (let i = 0; i < reportRowKeys.length; i += 1) {
+  for (const [key, value] of Object.entries(analyticsReportDataHeaderMapping)) {
     const col = {
-      key: reportRowKeys[i],
+      key,
       width: 15,
     } as exceljs.Column
 
     columnsWithHeaderKeys.push(col)
-    formattedColumnHeaders.push(
-      analyticsReportDataHeaderMapping[reportRowKeys[i]]
-    )
+    formattedColumnHeaders.push(value)
   }
   worksheet.columns = columnsWithHeaderKeys
   // Add the headers to the second row
@@ -891,7 +888,7 @@ export function processAnalyticsReportSummarySheet(
     string,
     AnalyticsReportSummaryData
   ][]) {
-    const description = analyticsReportSummaryHeaderMapping[key]
+    const description = analyticsReportSummaryHeaderMapping[key as keyof typeof analyticsReportSummaryHeaderMapping]
     let total: number | string
     let totalWithinDateRange: number | string
     if (key === 'onboardingRate' || key === 'pickupRate') {
@@ -977,7 +974,7 @@ export const asValidateStudentUsageReportQuery = asFactory<
   ...studentReportValidators,
 })
 
-function isValidReportDateFormat(dateString) {
+function isValidReportDateFormat(dateString: string) {
   const isStrictMode = true
   return moment(dateString, 'MM-DD-YYYY', isStrictMode).isValid()
 }

@@ -1,3 +1,4 @@
+import { Types } from 'mongoose'
 import { captureException } from '@sentry/node'
 import base64url from 'base64url'
 import { DeleteWriteOpResultObject } from 'mongodb'
@@ -16,7 +17,7 @@ const {
   createAvailabilitySnapshot,
 } = require('../services/AvailabilityService')
 
-const generateReferralCode = userId => base64url(Buffer.from(userId, 'hex'))
+const generateReferralCode = (userId: Types.ObjectId) => base64url(Buffer.from(userId, 'hex'))
 
 export function deleteUserByEmail(
   userEmail: string

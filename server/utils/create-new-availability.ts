@@ -1,14 +1,14 @@
-import { Availability, DAYS, HOURS } from '../models/Availability/types'
+import { Availability, AvailabilityDay, DAYS, HOURS } from '../models/Availability/types'
 
 function createNewAvailability(): Availability {
-  const availability = {}
+  const availability: any = {}
 
   for (const day in DAYS) {
-    const currentDay = {}
+    const currentDay: any = {}
     for (const hour in HOURS) {
-      currentDay[HOURS[hour]] = false
+      currentDay[hour] = false
     }
-    availability[DAYS[day]] = currentDay
+    availability[day] = currentDay as AvailabilityDay
   }
 
   return availability as Availability

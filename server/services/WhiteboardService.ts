@@ -2,30 +2,31 @@ import config from '../config'
 import logger from '../logger'
 import { redisClient } from './RedisService'
 import { getBlob, uploadBlob } from './AzureService'
+import { Types } from 'mongoose'
 
-const sessionIdToKey = (id): string => `zwibbler-${id}`
+const sessionIdToKey = (id: Types.ObjectId): string => `zwibbler-${id}`
 
-export const createDoc = async (sessionId): Promise<string> => {
+export const createDoc = async (sessionId: Types.ObjectId): Promise<string> => {
   const newDoc = ''
   await redisClient.set(sessionIdToKey(sessionId), newDoc)
   return newDoc
 }
 
-export const getDoc = (sessionId): Promise<string> => {
+export const getDoc = (sessionId: Types.ObjectId): Promise<string> => {
   return redisClient.get(sessionIdToKey(sessionId))
 }
 
-export const getDocLength = async (sessionId): Promise<number> => {
+export const getDocLength = async (sessionId: Types.ObjectId): Promise<number> => {
   const document = await redisClient.get(sessionIdToKey(sessionId))
   if (document === undefined) return 0
   return Buffer.byteLength(document, 'utf8')
 }
 
-export const appendToDoc = (sessionId, docAddition): Promise<number> => {
+export const appendToDoc = (sessionId: Types.ObjectId, docAddition: string): Promise<number> => {
   return redisClient.append(sessionIdToKey(sessionId), docAddition)
 }
 
-export const deleteDoc = (sessionId): Promise<number> => {
+export const deleteDoc = (sessionId: Types.ObjectId): Promise<number> => {
   return redisClient.del(sessionIdToKey(sessionId))
 }
 
