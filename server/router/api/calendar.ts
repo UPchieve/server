@@ -3,11 +3,10 @@ import { updateSchedule, clearSchedule } from '../../controllers/CalendarCtrl'
 import { resError } from '../res-error'
 import { InputError } from '../../models/Errors'
 import { Volunteer } from '../../models/Volunteer'
-import { LoadedRequest } from '../app'
-import { Router, Response } from 'express'
+import { Router } from 'express'
 
 export function routeCalendar(router: Router): void {
-  router.post('/calendar/save', async function(req: LoadedRequest, res: Response) {
+  router.post('/calendar/save', async function(req, res) {
     try {
       if (!req.body.hasOwnProperty('availability'))
         throw new InputError('No availability object specified')
@@ -24,7 +23,7 @@ export function routeCalendar(router: Router): void {
     }
   })
 
-  router.post('/calendar/clear', async function(req: LoadedRequest, res) {
+  router.post('/calendar/clear', async function(req, res) {
     try {
       await clearSchedule(req.user as Volunteer, req.body.tz)
       res.json({

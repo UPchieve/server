@@ -299,3 +299,11 @@ const SchoolModel = model<SchoolDocument, SchoolStaticModel>(
 )
 
 export default SchoolModel
+
+export const findByUpchieveId = async function(id: string): Promise<School | undefined> {
+  const school = await SchoolModel.findOne({ upchieveId: id })
+    .lean()
+    .exec()
+  if (school)
+    return school as School
+}

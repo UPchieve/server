@@ -38,7 +38,7 @@ class AbsentStudent extends CounterMetricProcessor {
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
   public triggerActions = (pd: ProcessorData<Counter>) => {
-    const actions = []
+    const actions: Promise<any>[] = []
     if (!pd.value) return actions
     // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
     if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
@@ -52,7 +52,7 @@ class AbsentStudent extends CounterMetricProcessor {
       )
 
     // Send an apology email to the volunteer the first time he or she encounters an absent student
-    if (this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
+    if (pd.volunteerUSM && this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
       actions.push(
         QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
           sessionSubtopic: pd.session.subTopic,
@@ -86,16 +86,16 @@ class AbsentVolunteer extends CounterMetricProcessor {
     return 0
   }
   public computeReviewReason = (pd: ProcessorData<Counter>) =>
-    pd.value && this.computeFinalValue(pd.volunteerUSM, pd.value) >= 2
+    pd.value && pd.volunteerUSM && this.computeFinalValue(pd.volunteerUSM, pd.value) >= 2
       ? [this.key]
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
   public triggerActions = (pd: ProcessorData<Counter>) => {
-    const actions = []
+    const actions: Promise<any>[] = []
     if (!pd.value) return actions
     // Send a warning email to the volunteer about ghosting students the first time he or she is absent
-    if (this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
+    if (pd.volunteerUSM && this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
       actions.push(
         QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
           sessionSubtopic: pd.session.subTopic,
@@ -129,10 +129,10 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
-        feedback.studentTutoringFeedback['coach-rating'] <= 2
+        (feedback.studentTutoringFeedback['coach-rating'] || 0) <= 2
       )
         return 1
-      else if (feedback.studentCounselingFeedback) {
+      else if (feedback.studentCounselingFeedback && feedback.studentCounselingFeedback['coach-ratings']) {
         for (const value of Object.values(
           feedback.studentCounselingFeedback['coach-ratings']
         )) {
@@ -158,11 +158,12 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
-        feedback.studentTutoringFeedback['session-goal'] <= 2
+        (feedback.studentTutoringFeedback['session-goal'] || 0) <= 2
       )
         return 1
       else if (
         feedback.studentCounselingFeedback &&
+        feedback.studentCounselingFeedback['rate-session'] &&
         feedback.studentCounselingFeedback['rate-session'].rating <= 2
       )
         return 1
@@ -185,7 +186,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.volunteerFeedback &&
-        feedback.volunteerFeedback['session-enjoyable'] <= 2
+        (feedback.volunteerFeedback['session-enjoyable'] || 0) <= 2
       )
         return 1
     }
@@ -218,7 +219,7 @@ class RudeOrInappropriate extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
       const feedback = uvd.feedback
-      if (feedback.volunteerFeedback) {
+      if (feedback.volunteerFeedback && feedback.volunteerFeedback['session-obstacles']) {
         for (const value of Object.values(
           feedback.volunteerFeedback['session-obstacles']
         )) {
@@ -244,7 +245,7 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
       const feedback = uvd.feedback
-      if (feedback.volunteerFeedback) {
+      if (feedback.volunteerFeedback && feedback.volunteerFeedback['session-obstacles']) {
         for (const value of Object.values(
           feedback.volunteerFeedback['session-obstacles']
         )) {
@@ -272,7 +273,7 @@ class CommentFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback.studentTutoringFeedback
         ? uvd.feedback.studentTutoringFeedback
         : uvd.feedback.studentCounselingFeedback
-      return feedback['other-feedback'] ? 1 : 0
+      return (feedback && feedback['other-feedback']) ? 1 : 0
     }
     return 0
   }
@@ -308,7 +309,7 @@ class HasBeenUnmatched extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = () => NO_FLAGS
   public triggerActions = (pd: ProcessorData<Counter>) => {
-    const actions = []
+    const actions: Promise<any>[] = []
     if (!pd.value) return actions
     // Send an apology email to the student the first time their session is unmatched
     if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
@@ -331,7 +332,7 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
-      if (uvd.feedback.volunteerFeedback) {
+      if (uvd.feedback.volunteerFeedback && uvd.feedback.volunteerFeedback['session-obstacles']) {
         for (const value of Object.values(
           uvd.feedback.volunteerFeedback['session-obstacles']
         )) {
@@ -344,7 +345,7 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = () => NO_FLAGS
   public triggerActions = (pd: ProcessorData<Counter>) => {
-    const actions = []
+    const actions: Promise<any>[] = []
     // Send an apology email to the student and volunteer when a tech issue is reported in their session
     if (pd.value)
       actions.push(

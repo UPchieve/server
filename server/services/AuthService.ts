@@ -4,16 +4,17 @@ import validator from 'validator'
 
 import mongoose from 'mongoose'
 import UserModel from '../models/User'
-import { StudentDocument } from '../models/Student'
-import { VolunteerDocument } from '../models/Volunteer'
-import SchoolModel, { School } from '../models/School'
+import { Student } from '../models/Student'
+import { Volunteer } from '../models/Volunteer'
+import { School, findByUpchieveId } from '../models/School'
 import * as UserCtrl from '../controllers/UserCtrl'
 
 import {
+  VolunteerPartnerManifest,
   volunteerPartnerManifests,
+  StudentPartnerManifest,
   studentPartnerManifests,
 } from '../partnerManifests'
-import { IP_ADDRESS_STATUS } from '../constants'
 
 import {
   asCredentialData,
@@ -37,13 +38,6 @@ import * as VolunteerService from './VolunteerService'
 import IpAddressService from './IpAddressService'
 import MailService from './MailService'
 
-// TODO: expose this in School repo
-export const findByUpchieveId = async function(id: string): Promise<School> {
-  return SchoolModel.findOne({ upchieveId: id })
-    .lean()
-    .exec()
-}
-
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await IpAddressService.getIpWhoIs(ip)
 
@@ -64,7 +58,7 @@ async function checkIpAddress(ip: string): Promise<void> {
  */
 
 // TODO: effective logging
-// TODO: make registration functions return User instead of UserDocument types
+// TODO: make registration functions return User instead of User types
 // ^ once UserCtrl is refactored
 
 // Registration handlers
@@ -81,18 +75,18 @@ export async function checkCredential(data: unknown): Promise<boolean> {
     const users = await UserModel.find({ email: email })
       .lean()
       .exec()
-    if (users.length === 0) {
-      return true
-    } else {
+    if (users.length !== 0) {
       throw new LookupError('The email address you entered is already in use')
     }
   }
+
+  return true
 }
 
 // Handles /register/student/open route
 export async function registerOpenStudent(
   data: unknown
-): Promise<StudentDocument> {
+): Promise<Student> {
   const {
     ip,
     email,
@@ -114,7 +108,7 @@ export async function registerOpenStudent(
   }
 
   const highSchoolProvided = !!highSchoolUpchieveId
-  let school: School
+  let school: School | undefined
   if (highSchoolProvided) school = await findByUpchieveId(highSchoolUpchieveId)
 
   const highSchoolApprovalRequired = !zipCode
@@ -125,7 +119,9 @@ export async function registerOpenStudent(
       )
   }
 
-  const referredBy = await getReferredBy(referredByCode)
+  let referredBy: mongoose.Types.ObjectId | undefined
+  if (referredByCode)
+    referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
     firstname: firstName.trim(),
@@ -137,20 +133,17 @@ export async function registerOpenStudent(
     verified: false,
     referredBy,
     password,
-    currentGrade,
-    ipAddresses: [
-      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK },
-    ],
+    currentGrade
   }
 
-  const student = await UserCtrl.createStudent(studentData)
+  const student = await UserCtrl.createStudent(studentData, ip)
   return student
 }
 
 // Handles /register/student/partner route
 export async function registerPartnerStudent(
   data: unknown
-): Promise<StudentDocument> {
+): Promise<Student> {
   const {
     ip,
     email,
@@ -178,11 +171,13 @@ export async function registerPartnerStudent(
     throw new RegistrationError('Invalid student partner organization')
   }
 
-  let school: School
+  let school: School | undefined
   if (highSchoolUpchieveId)
     school = await findByUpchieveId(highSchoolUpchieveId)
 
-  const referredBy = await getReferredBy(referredByCode)
+  let referredBy: mongoose.Types.ObjectId | undefined
+  if (referredByCode)
+    referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
     firstname: firstName.trim(),
@@ -197,20 +192,17 @@ export async function registerPartnerStudent(
     isVolunteer: false,
     verified: false,
     referredBy,
-    password,
-    ipAddresses: [
-      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK },
-    ],
+    password
   }
 
-  const student = await UserCtrl.createStudent(studentData)
+  const student = await UserCtrl.createStudent(studentData, ip)
   return student
 }
 
 // Handles /register/volunteer/open route
 export async function registerVolunteer(
   data: unknown
-): Promise<VolunteerDocument> {
+): Promise<Volunteer> {
   const {
     ip,
     email,
@@ -230,7 +222,9 @@ export async function registerVolunteer(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  const referredBy = await getReferredBy(referredByCode)
+  let referredBy: mongoose.Types.ObjectId | undefined
+  if (referredByCode)
+    referredBy = await getReferredBy(referredByCode)
 
   const volunteerData = {
     email,
@@ -241,13 +235,10 @@ export async function registerVolunteer(
     lastname: lastName.trim(),
     verified: false,
     referredBy,
-    password,
-    ipAddresses: [
-      { createdAt: new Date(), ip, users: [], status: IP_ADDRESS_STATUS.OK },
-    ],
+    password
   }
 
-  const volunteer = await UserCtrl.createVolunteer(volunteerData)
+  const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
   VolunteerService.queueOnboardingReminderOneEmail(volunteer._id)
 
   return volunteer
@@ -256,7 +247,7 @@ export async function registerVolunteer(
 // Handles /register/volunteer/partner route
 export async function registerPartnerVolunteer(
   data: unknown
-): Promise<VolunteerDocument> {
+): Promise<Volunteer> {
   const {
     ip,
     email,
@@ -276,7 +267,9 @@ export async function registerPartnerVolunteer(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  const referredBy = await getReferredBy(referredByCode)
+  let referredBy: mongoose.Types.ObjectId | undefined
+  if (referredByCode)
+    referredBy = await getReferredBy(referredByCode)
 
   // Volunteer partner org check
   const volunteerPartnerManifest =
@@ -307,10 +300,9 @@ export async function registerPartnerVolunteer(
     verified: false,
     referredBy,
     password,
-    ip,
   }
 
-  const volunteer = await UserCtrl.createVolunteer(volunteerData)
+  const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
   VolunteerService.queueOnboardingReminderOneEmail(volunteer._id)
 
   return volunteer
@@ -318,7 +310,7 @@ export async function registerPartnerVolunteer(
 
 // Partner lookup handlers
 // Handles /partner/volunteer route
-export async function lookupPartnerVolunteer(data: unknown): Promise<string> {
+export async function lookupPartnerVolunteer(data: unknown): Promise<VolunteerPartnerManifest> {
   const volunteerPartnerId = asString(data)
   // If missing master manifest error will bubble up
   const partnerManifest = volunteerPartnerManifests[volunteerPartnerId]
@@ -332,7 +324,7 @@ export async function lookupPartnerVolunteer(data: unknown): Promise<string> {
 }
 
 // Handles /partner/student route
-export async function lookupPartnerStudent(data: unknown): Promise<string> {
+export async function lookupPartnerStudent(data: unknown): Promise<StudentPartnerManifest> {
   const studentPartnerId = asString(data)
   // If missing master manifest error will bubble up
   const partnerManifest = studentPartnerManifests[studentPartnerId]
@@ -363,7 +355,7 @@ export async function lookupPartnerStudentCode(data: unknown): Promise<string> {
 interface PartnerOrg {
   key: string
   displayName: string
-  sties: string[]
+  sties?: string[]
 }
 
 // Handles /partner/student-partners route (admin only)
@@ -376,7 +368,7 @@ export async function lookupStudentPartners(): Promise<PartnerOrg[]> {
     partnerOrgs.push({
       key,
       displayName: value.name ? value.name : key,
-      sites: value.sites ? value.sites : null,
+      sites: value.sites ? value.sites : undefined,
     })
   }
   return partnerOrgs
@@ -392,7 +384,7 @@ export async function lookupVolunteerPartners(): Promise<PartnerOrg[]> {
     partnerOrgs.push({
       key,
       displayName: value.name ? value.name : key,
-      sites: value.sites ? value.sites : null,
+      sites: value.sites ? value.sites : undefined,
     })
   }
   return partnerOrgs

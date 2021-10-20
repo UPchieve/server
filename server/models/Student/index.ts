@@ -1,8 +1,8 @@
 import { Document, Schema, Types } from 'mongoose'
 import { values } from 'lodash'
-import { GRADES } from '../constants'
-import UserModel, { User } from './User'
-import { School } from './School'
+import { GRADES } from '../../constants'
+import UserModel, { User } from '../User'
+import { School } from '../School'
 
 export interface Student extends User {
   approvedHighschool: School | Types.ObjectId

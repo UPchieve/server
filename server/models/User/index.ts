@@ -2,10 +2,10 @@ import { values } from 'lodash'
 import { Document, model, Schema, Types } from 'mongoose'
 import bcrypt from 'bcrypt'
 import validator from 'validator'
-import config from '../config'
-import { USER_BAN_REASON } from '../constants'
-import { Session } from './Session'
-import { IpAddress } from './IpAddress'
+import config from '../../config'
+import { USER_BAN_REASON } from '../../constants'
+import { Session } from '../Session'
+import { IpAddress } from '../IpAddress'
 
 export interface User {
   _id: Types.ObjectId
@@ -33,7 +33,7 @@ export interface User {
   lastActivityAt: Date
   referralCode: string
   referredBy?: User | Types.ObjectId
-  ipAddresses: IpAddress[] | Types.ObjectId
+  ipAddresses: IpAddress[] | Types.ObjectId[]
   type: string
   hashPassword?(password: string): string
 }

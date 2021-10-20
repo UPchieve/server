@@ -3,20 +3,13 @@ import { Jobs } from '../index'
 import { updateAvailabilitySnapshot } from '../../../services/AvailabilityService'
 import MailService from '../../../services/MailService'
 import {
-  getVolunteers,
   updateVolunteer
 } from '../../../services/VolunteerService'
 import createNewAvailability from '../../../utils/create-new-availability'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
-
-export interface ContactInfo {
-  _id: string
-  firstname: string
-  email: string
-}
+import { VolunteerContactInfo, getVolunteersForBlackoutOver } from '../../../models/Volunteer/queries'
 
 export async function processVolunteer(
-  volunteer: ContactInfo
+  volunteer: VolunteerContactInfo
 ): Promise<string[]> {
   const { email, firstname: firstName, _id } = volunteer
 
@@ -63,20 +56,7 @@ export default async (): Promise<void> => {
     .startOf('day')
     .toDate()
 
-  const volunteers = ((await getVolunteers(
-    {
-      ...EMAIL_RECIPIENT,
-      sentInactiveNinetyDayEmail: false,
-      lastActivityAt: {
-        $lt: ninetyDaysAgoStartOfDay
-      }
-    },
-    {
-      _id: 1,
-      firstname: 1,
-      email: 1
-    }
-  )) as unknown) as ContactInfo[]
+  const volunteers = await getVolunteersForBlackoutOver(ninetyDaysAgoStartOfDay)
 
   if (volunteers.length) {
     const errors: string[] = []

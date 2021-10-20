@@ -1,6 +1,7 @@
 import { flatten } from 'lodash'
 import { log } from '../logger'
-import VolunteerModel, { Volunteer, Reference } from '../../models/Volunteer'
+import { Volunteer, Reference } from '../../models/Volunteer'
+import { getVolunteers } from '../../models/Volunteer/queries'
 import UserService from '../../services/UserService'
 import { REFERENCE_STATUS } from '../../constants'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
@@ -12,12 +13,10 @@ interface UnsentReference {
 }
 
 export default async (): Promise<void> => {
-  const volunteers = (await VolunteerModel.find({
+  const volunteers = await getVolunteers({
     ...EMAIL_RECIPIENT,
     'references.status': REFERENCE_STATUS.UNSENT
   })
-    .lean()
-    .exec()) as Volunteer[]
 
   const unsent: UnsentReference[] = flatten(
     volunteers.map(vol => {

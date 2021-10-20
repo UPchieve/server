@@ -17,7 +17,7 @@ function eventObservabilityWrapper(
         logger.info(`${name} successfully handled event ${event}`)
       } catch (error) {
         logger.error(`${name} error handling event ${event}: ${error}`)
-        nr.noticeError(error)
+        nr.noticeError(error as Error)
       } finally {
         transaction.end()
       }

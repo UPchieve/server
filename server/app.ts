@@ -13,11 +13,10 @@ import expressPino from 'express-pino-logger'
 import Mustache from 'mustache'
 import swaggerUi from 'swagger-ui-express'
 import YAML from 'yaml'
-import helmet from 'helmet' // eslint-disable-line import/default
+import helmet from 'helmet'
 import logger from './logger'
 import router from './router'
 import config from './config'
-import { LoadedRequest } from './router/app'
 import {
   baseUri,
   blockAllMixedContent,
@@ -78,7 +77,7 @@ function renderIndexHtml() {
   return Mustache.render(template, frontendConfig)
 }
 
-function haltOnTimedout(req, res, next) {
+function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
 }
 
@@ -159,14 +158,14 @@ app.use(
 )
 app.use(haltOnTimedout)
 // see https://stackoverflow.com/questions/51023943/nodejs-getting-username-of-logged-in-user-within-route
-app.use((req: LoadedRequest, res, next) => {
+app.use((req, res, next) => {
   res.locals.user = req.user || null
   next()
 })
 
 // Make req.login async
-app.use((req: LoadedRequest, res, next): void => {
-  req.login = promisify(req.login)
+app.use((req, res, next): void => {
+  req.asyncLogin = promisify(req.login)
   next()
 })
 

@@ -37,6 +37,8 @@ import { asFactory, asOptional, asString } from './type-utils'
  * acc is also typed any due to issues with Availability type
  */
 
+export type VolunteerForTelecomReport = Pick<Volunteer, '_id' | 'certifications'>
+
 interface Stamp {
   day: string
   hour: string
@@ -183,7 +185,7 @@ interface TelecomRow {
   hours: number
 }
 
-async function getVolunteerData(volunteer: Volunteer, dateQuery: any) {
+async function getVolunteerData<V extends VolunteerForTelecomReport>(volunteer: V, dateQuery: any) {
   const quizPassedActions: UserAction[] = await UserActionService.getActionsWithPipeline(
     [
       {
@@ -340,8 +342,8 @@ export function emptyHours(): HourSummaryStats {
 }
 
 // To be used by email/update job(s) for generating telecom volunteer hours
-export async function telecomHourSummaryStats(
-  volunteer: Volunteer,
+export async function telecomHourSummaryStats<V extends VolunteerForTelecomReport>(
+  volunteer: V,
   dateQuery: any
 ): Promise<HourSummaryStats> {
   try {
@@ -1014,7 +1016,7 @@ export function validateStudentReportQuery(data: StudentReportQuery) {
       throw new InputError('Invalid student partner organization')
     else if (
       (data.studentPartnerSite && !studentPartner.hasOwnProperty('sites')) ||
-      (data.studentPartnerSite &&
+      (data.studentPartnerSite && studentPartner.sites &&
         !studentPartner.sites.includes(data.studentPartnerSite))
     )
       throw new InputError(

@@ -4,7 +4,6 @@ import { Server } from 'socket.io'
 
 import { Student } from '../models/Student'
 import { Volunteer } from '../models/Volunteer'
-import { LoadedRequest } from '../router/app'
 import socketServer from '../router/api/socket-server'
 
 export function defaultErrorHandler(
@@ -33,7 +32,7 @@ export function mockPassportMiddleware(
   destroy?: Function
 ) {
   return (
-    req: LoadedRequest,
+    req: express.Request,
     res: express.Response,
     next: express.NextFunction
   ): void => {

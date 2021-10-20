@@ -1,8 +1,7 @@
 import { log } from '../logger'
-import VolunteerModel from '../../models/Volunteer'
+import { getVolunteersContactInfo } from '../../models/Volunteer/queries'
 import { REFERENCE_STATUS } from '../../constants'
 import MailService from '../../services/MailService'
-import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
 
 // Runs every day at 11am EST
@@ -11,7 +10,6 @@ export default async (): Promise<void> => {
   const fiveDaysAgo = Date.now() - oneDay * 5
   const sixDaysAgo = fiveDaysAgo - oneDay
   const query = {
-    ...EMAIL_RECIPIENT,
     'references.status': REFERENCE_STATUS.SENT,
     'references.sentAt': {
       $gt: new Date(sixDaysAgo),
@@ -19,10 +17,7 @@ export default async (): Promise<void> => {
     }
   }
 
-  const volunteers = await VolunteerModel.find(query)
-    .select('firstname email')
-    .lean()
-    .exec()
+  const volunteers = await getVolunteersContactInfo(query)
 
   let totalEmailed = 0
   const errors = []

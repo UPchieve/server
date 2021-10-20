@@ -69,9 +69,7 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
 
   const volunteerIds = documentsWithVolunteerIds.map(doc => doc._id)
 
-  // @todo: properly type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const volunteerNotifications: any = await getNotificationsWithPipeline([
+  const volunteerNotifications: GentleWarningAggregation[] = await getNotificationsWithPipeline([
     {
       $match: {
         volunteer: { $in: volunteerIds },
@@ -101,10 +99,10 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
         email: { $first: '$volunteer.email' }
       }
     }
-  ])
+  ]) as any as GentleWarningAggregation[]
 
   const errors = []
-  for (const volunteer of volunteerNotifications as GentleWarningAggregation[]) {
+  for (const volunteer of volunteerNotifications) {
     if (volunteer.totalNotifications === 5) {
       const { firstName, email, _id } = volunteer
       const contactInfo = { firstName, email }

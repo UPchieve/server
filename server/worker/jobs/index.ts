@@ -257,7 +257,7 @@ export const addJobProcessors = (queue: Queue): void => {
               logger.info(`Completed job: ${job.name}`)
             } catch (error) {
               logger.error(`Error processing job: ${job.name}\n${error}`)
-              newrelic.noticeError(error)
+              newrelic.noticeError(error as Error)
             } finally {
               transaction.end()
             }
@@ -272,6 +272,6 @@ export const addJobProcessors = (queue: Queue): void => {
     )
   } catch (error) {
     logger.error(`error adding job processors: ${error}`)
-    newrelic.noticeError(error)
+    newrelic.noticeError(error as Error)
   }
 }

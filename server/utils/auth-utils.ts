@@ -3,12 +3,10 @@ import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
 import passportLocal from 'passport-local'
 import { Types } from 'mongoose'
-import { Express, Request, Response, NextFunction } from 'express'
-import 
-import { LoadedRequest } from '../router/app'
+import { Request, Response, NextFunction } from 'express'
 
 import config from '../config'
-import UserModel, { User } from '../models/User'
+import UserModel from '../models/User'
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import UserService from '../services/UserService'
@@ -179,8 +177,8 @@ export async function getReferredBy(
     captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
       event: EVENTS.FRIEND_REFERRED,
     })
-    return Types.ObjectId(referredBy)
-  } else return undefined
+    return referredBy
+  }
 }
 
 export const hashPassword = async function(password: string): Promise<string> {
@@ -278,7 +276,7 @@ function isAuthenticatedRedirect(req: Request, res: Response, next: NextFunction
   return res.redirect('/')
 }
 
-function isAdminRedirect(req: Request, res: Response, next: NextFunction) {
+function isAdminRedirect(req: Express.Request, res: Response, next: NextFunction) {
   if (req.user && req.user.isAdmin) {
     return next()
   }

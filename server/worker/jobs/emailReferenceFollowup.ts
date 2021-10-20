@@ -6,7 +6,7 @@ import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
 
 // @note: uses firstName instead of firstname because of the $project aggregation stage
-// @todo: clean up Volunteer model to use firstName instead of firstname
+// TODO: clean up Volunteer model to use firstName instead of firstname (or sendGrid to use firstname instead of firstName)
 interface Volunteer {
   firstName: string
   lastName: string

@@ -359,7 +359,6 @@ export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
   ],
   [SCIENCE_CERTS.PHYSICS_ONE]: [
     'kinematics',
-    // eslint-disable-next-line quotes
     "newton's laws",
     'rotational mechanics',
     'work and energy',

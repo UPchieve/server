@@ -46,7 +46,7 @@ export interface MetricProcessor<T extends MetricType> {
   computeReviewReason(pd: ProcessorData<T>): USER_SESSION_METRICS[]
   // computes list of flags to set on session
   computeFlag(pd: ProcessorData<T>): USER_SESSION_METRICS[]
-  // computes list of flags to set on session
+  // compiles list of side-effect promises to execute on behalf of this metric
   triggerActions(pd: ProcessorData<T>): Promise<void>[]
 }
 
@@ -61,8 +61,9 @@ export abstract class CounterMetricProcessor
   ): Counter => {
     if (!usm) return 0
     const key = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
-    const finalValue = usm[CounterMetricProcessor.path][key] + value
-    return finalValue
+    if (key)
+      return usm[CounterMetricProcessor.path][key] + value
+    throw new Error(`Counter metric processor key ${this.key} is invalid`)
   }
 
   public computeStudentUpdateQuery = (

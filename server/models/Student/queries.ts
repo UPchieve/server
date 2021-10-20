@@ -1,0 +1,37 @@
+import { Types } from 'mongoose'
+import StudentModel, { Student } from './index'
+import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
+import { RepoReadError } from '../Errors'
+
+async function wrapRead<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn()
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+// TODO: proper type for query
+export async function getStudent(query: any): Promise<Student | undefined> {
+  return await wrapRead(async () => {
+    const student = await StudentModel.findOne(query).lean().exec()
+    if (student) return student as Student
+  })
+}
+
+export type StudentContactInfo = Pick<Student, '_id' | 'firstname' | 'email'>
+export async function getStudentContactInfoById(studentId: Types.ObjectId | string): Promise<StudentContactInfo | undefined> {
+  return await wrapRead(async () => {
+    const student = await StudentModel.findOne(
+    {
+      ...EMAIL_RECIPIENT,
+      _id: studentId
+    },
+    {
+      _id: 1,
+      firstname: 1,
+      email: 1
+    }).lean().exec()
+    if (student) return student as StudentContactInfo
+  }) 
+}

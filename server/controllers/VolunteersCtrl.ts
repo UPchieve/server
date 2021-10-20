@@ -5,7 +5,7 @@ import { getAvailabilities } from '../services/AvailabilityService'
 interface AvailabilityAggregation {
   daysOfWeek?: DAYS[]
   timesOfDay?: HOURS[]
-  table: []
+  table: any[][]
   min?: number
   max?: number
 }
@@ -63,7 +63,7 @@ module.exports = {
    * @param {*} options
    * @param {*} callback
    */
-  getVolunteersAvailability: async function(options, callback) {
+  getVolunteersAvailability: async function(options: { certifiedSubject: string }, callback: Function) {
     const certifiedSubjectQuery = `certifications.${options.certifiedSubject}.passed`
 
     const volunteerQuery = {
@@ -87,11 +87,12 @@ module.exports = {
         volunteerId: { $in: volunteerIds },
       })
 
-      const aggAvailabilities: AvailabilityAggregation = {}
-      aggAvailabilities.table = Array(7)
+      let aggAvailabilities: AvailabilityAggregation = {
+        table: Array(7)
         .fill(0)
         .map(() => Array(24).fill(0))
-      aggAvailabilities.min = null
+      }
+      aggAvailabilities.min = undefined
       aggAvailabilities.max = 0
 
       aggAvailabilities = availabilityDocs.reduce((aggAvailabilities, doc) => {
@@ -111,7 +112,7 @@ module.exports = {
    * Gets all users who are volunteers
    * @param {*} callback
    */
-  getVolunteers: function(callback) {
+  getVolunteers: function(callback: Function) {
     VolunteerModel.find({}, function(err, users) {
       if (err) {
         return callback(null, err)

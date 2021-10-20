@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-constructor */
 import UAParser from 'ua-parser-js'
 import { Types } from 'mongoose'
 import UserAction, {

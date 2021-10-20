@@ -2,7 +2,7 @@ import { Document, Model, model, Schema, Types } from 'mongoose'
 import {
   CATEGORY_TO_SUBCATEGORY_MAP,
   ACTIVE_QUIZ_CATEGORIES,
-} from '../constants'
+} from '../../constants'
 
 export interface Question {
   _id: Types.ObjectId

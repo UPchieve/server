@@ -1,15 +1,9 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
-import {
-  MATH_SUBJECTS,
-  SCIENCE_SUBJECTS,
-  SAT_SUBJECTS
-} from '../../../constants'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getNotifications } from '../../../services/NotificationService'
-import { getVolunteer } from '../../../services/UserService'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
+import { getPartnerVolunteerForCollege } from '../../../models/Volunteer/queries'
 
 /**
  *
@@ -31,26 +25,8 @@ export default async (
     data: { volunteerId },
     name: currentJob
   } = job
-  const nonCollegeSubjects = [
-    ...Object.values(MATH_SUBJECTS),
-    ...Object.values(SCIENCE_SUBJECTS),
-    ...Object.values(SAT_SUBJECTS)
-  ]
-  const volunteer = await getVolunteer(
-    {
-      _id: volunteerId,
-      isOnboarded: true,
-      subjects: { $nin: nonCollegeSubjects },
-      volunteerPartnerOrg: { $exists: true },
-      ...EMAIL_RECIPIENT
-    },
-    {
-      _id: 1,
-      email: 1,
-      firstname: 1,
-      availability: 1
-    }
-  )
+
+  const volunteer = await getPartnerVolunteerForCollege(volunteerId)
 
   if (volunteer) {
     const { _id, firstname: firstName, email } = volunteer

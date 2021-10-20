@@ -6,7 +6,7 @@ import {
   model,
   Schema,
   Types,
-  SchemaTypeOpts,
+  ValidatorProps,
   UpdateQuery,
 } from 'mongoose'
 import { validUser } from '../utils/validators'
@@ -52,7 +52,7 @@ const counterSchema = {
   default: 0,
   validate: {
     validator: Number.isInteger,
-    message: (props: SchemaTypeOpts.ValidatorProps) =>
+    message: (props: ValidatorProps) =>
       `${props.value} is not an integer`,
   },
 }
@@ -65,7 +65,7 @@ const userSessionMetricsSchema = new Schema({
     unique: true,
     validate: {
       validator: validUser,
-      message: props => `${props.value} is not a valid user`,
+      message: (props: ValidatorProps) => `${props.value} is not a valid user`,
     },
   },
   counters: {

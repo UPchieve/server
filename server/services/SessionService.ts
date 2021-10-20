@@ -204,7 +204,7 @@ export async function endSession({
   isAdmin = false,
 }: {
   sessionId: string
-  endedBy: User
+  endedBy: User | null
   isAdmin?: boolean
 }) {
   const session = await SessionRepo.getSessionToEnd(sessionId)

@@ -1,6 +1,6 @@
-import { SUBJECT_TYPES } from '../constants'
+import { SUBJECT_TYPES, ALL_CERTS_TYPE } from '../constants'
 import getSubjectType from './getSubjectType'
-import { Certifications, ALL_CERTS_TYPE } from '../models/Volunteer'
+import { Certifications } from '../models/Volunteer'
 
 export function countCertsByType(
   certifications: Certifications

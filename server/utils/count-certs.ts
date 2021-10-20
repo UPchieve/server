@@ -1,4 +1,5 @@
-import { ALL_CERTS_TYPE, Certifications } from '../models/Volunteer'
+import { Certifications } from '../models/Volunteer'
+import { ALL_CERTS_TYPE } from '../constants'
 
 const countCerts = (certifications: Certifications) => {
   let numCerts = 0

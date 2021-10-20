@@ -1,8 +1,5 @@
 import moment from 'moment-timezone'
-import {
-  incrementTotalVolunteerHours,
-  getVolunteers
-} from '../../services/VolunteerService'
+import { getVolunteersForTotalHours, updateVolunteerTotalHoursById } from '../../models/Volunteer/queries'
 import { log } from '../logger'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import config from '../../config'
@@ -16,28 +13,15 @@ async function updateTotalVolunteerHours(): Promise<void> {
   const endDate = moment()
 
   const dateQuery = { $gt: startDate.toDate(), $lte: endDate.toDate() }
-  const volunteers = await getVolunteers(
-    {
-      isTestUser: false,
-      isFakeUser: false,
-      volunteerPartnerOrg: config.customVolunteerPartnerOrg,
-      isOnboarded: true,
-      isApproved: true
-    },
-    {
-      _id: 1,
-      certifications: 1,
-      totalVolunteerHours: 1
-    }
-  )
+  const volunteers = await getVolunteersForTotalHours()
 
   let totalUpdated = 0
   const errors = []
   for (const volunteer of volunteers) {
     try {
       const stats = await telecomHourSummaryStats(volunteer, dateQuery)
-      await incrementTotalVolunteerHours(
-        { _id: volunteer._id },
+      await updateVolunteerTotalHoursById(
+        volunteer._id,
         stats.totalVolunteerHours
       )
     } catch (error) {

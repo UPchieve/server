@@ -6,14 +6,13 @@ import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
-import { LoadedRequest } from '../app'
 
 // @todo: figure out a better way to expose SocketService
 export function routes(router: Router, io: Server) {
   // io is now passed to this module so that API events can trigger socket events as needed
   const socketService = new SocketService(io)
 
-  router.route('/session/new').post(async function(req: LoadedRequest, res) {
+  router.route('/session/new').post(async function(req, res) {
     try {
       const sessionId = await SessionService.startSession({
         ...req.body,
@@ -27,7 +26,7 @@ export function routes(router: Router, io: Server) {
     }
   })
 
-  router.route('/session/end').post(async function(req: LoadedRequest, res) {
+  router.route('/session/end').post(async function(req, res) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
@@ -62,7 +61,7 @@ export function routes(router: Router, io: Server) {
   // @todo: switch to a GET request
   router
     .route('/session/current')
-    .post(async function(req: LoadedRequest, res) {
+    .post(async function(req, res) {
       try {
         const currentSession = await SessionService.currentSession(req.user)
         if (!currentSession) {
@@ -135,7 +134,7 @@ export function routes(router: Router, io: Server) {
   })
 
   router.post('/session/:sessionId/report', async function(
-    req: LoadedRequest,
+    req,
     res
   ) {
     try {
@@ -154,7 +153,7 @@ export function routes(router: Router, io: Server) {
   })
 
   router.post('/session/:sessionId/timed-out', async function(
-    req: LoadedRequest,
+    req,
     res
   ) {
     try {

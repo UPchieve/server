@@ -1,4 +1,4 @@
-import { model, Schema, Types, Document } from 'mongoose'
+import { model, Schema, Types, Document, ValidatorProps } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
 import UserModel, { UserDocument } from './User'
 import { DocCreationError, UserNotFoundError } from './Errors'
@@ -31,7 +31,7 @@ const contactFormSubmissionSchema = new Schema({
       validator: (v: string) => {
         return isEmail(v)
       },
-      message: props => `${props.value} is not a valid email`,
+      message: (props: ValidatorProps) => `${props.value} is not a valid email`,
     },
   },
   topic: {

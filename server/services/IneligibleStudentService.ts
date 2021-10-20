@@ -17,12 +17,15 @@ export interface IneligibleStudentsWithSchoolInfo {
   ipAddress: string
 }
 
-export const getStudent = (
+export const getStudent = async (
   query: Partial<IneligibleStudent>
-): Promise<IneligibleStudent> => {
-  return IneligibleStudentModel.findOne(query)
+): Promise<IneligibleStudent|undefined> => {
+  const result = await IneligibleStudentModel.findOne(query)
     .lean()
     .exec()
+  if (result) {
+    return result as IneligibleStudent
+  }
 }
 
 export const getStudents = async (
@@ -93,6 +96,6 @@ export const getStudents = async (
     const isLastPage = ineligibleStudents.length < PER_PAGE
     return { ineligibleStudents, isLastPage }
   } catch (error) {
-    throw new Error(error.message)
+    throw new Error((error as Error).message)
   }
 }

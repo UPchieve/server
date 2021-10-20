@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import config from './config'
-const ejson = require('mongodb-extended-json')
+const ejson: any = require('mongodb-extended-json')
 
 // Database
 mongoose.connect(config.database, {
@@ -15,7 +15,7 @@ db.on('error', console.error.bind(console, 'connection error:'))
 db.once('open', function() {
   console.log('Connected to database')
 
-  const promises = []
+  const promises: Promise<any>[] = []
   let totalRecords = 0
 
   // Data about the seed data we intend to import / update from this file
@@ -64,14 +64,12 @@ db.once('open', function() {
 
   // For each of the above metadata items, replace each record in each file with the value from seed data
   seedDataMetadata.forEach(seedDataMetadataItem => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     let aModel = require('./models/' + seedDataMetadataItem.model)
     if (seedDataMetadataItem.model === 'Volunteer') {
       aModel = aModel.default
     }
 
     seedDataMetadataItem.files.forEach(file => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const seedData = require('./seeds/' +
         seedDataMetadataItem.folder +
         file +
@@ -80,9 +78,9 @@ db.once('open', function() {
       // use Extended JSON to handle formats like "$date" in json files
       const deserializedSeedData = ejson.deserialize(seedData)
 
-      deserializedSeedData.forEach(record => {
+      deserializedSeedData.forEach((record: any) => {
         // Build a Unique ID Key for each record to be updated. Start with empty object
-        const idKey = {}
+        const idKey: any = {}
 
         // Add a single key/value: key is seedDataMetadataItem.idField
         idKey[seedDataMetadataItem.idField] =

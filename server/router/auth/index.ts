@@ -7,13 +7,12 @@ import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import UserService from '../../services/UserService'
-import { LoadedRequest } from '../app'
 
 // TODO: type passport request member methods/variable correctly (login, logout, user)
 export function routes(app: Express) {
   const router = Router()
 
-  router.route('/logout').get(async function(req: LoadedRequest, res) {
+  router.route('/logout').get(async function(req, res) {
     req.session.destroy(() => {
       /* do nothing */
     })
@@ -33,7 +32,7 @@ export function routes(app: Express) {
     // Delegate auth logic to passport middleware
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
-    function(req: LoadedRequest, res) {
+    function(req, res) {
       res.json({ user: req.user })
     }
   )
@@ -54,7 +53,7 @@ export function routes(app: Express) {
         ip: req.ip
       } as unknown)
       // @ts-expect-error
-      await req.login(student)
+      await req.asyncLogin(student)
       res.json({ user: student })
     } catch (err) {
       resError(res, err)
@@ -68,7 +67,7 @@ export function routes(app: Express) {
         ip: req.ip
       } as unknown)
       // @ts-expect-error
-      await req.login(student)
+      await req.asyncLogin(student)
       res.json({ user: student })
     } catch (err) {
       resError(res, err)
@@ -82,7 +81,7 @@ export function routes(app: Express) {
         ip: req.ip
       } as unknown)
       // @ts-expect-error
-      await req.login(volunteer)
+      await req.asyncLogin(volunteer)
       res.json({ user: volunteer })
     } catch (err) {
       resError(res, err)
@@ -96,7 +95,7 @@ export function routes(app: Express) {
         ip: req.ip
       } as unknown)
       // @ts-expect-error
-      await req.login(volunteer)
+      await req.asyncLogin(volunteer)
       res.json({ user: volunteer })
     } catch (err) {
       resError(res, err)
@@ -166,7 +165,7 @@ export function routes(app: Express) {
       }
     })
 
-  router.route('/reset/send').post(async function(req: LoadedRequest, res) {
+  router.route('/reset/send').post(async function(req, res) {
     try {
       if (!req.body.hasOwnProperty('email'))
         throw new InputError('Missing email body string')
@@ -175,7 +174,7 @@ export function routes(app: Express) {
       // do not respond with info about no email match
       if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
     }
-    let userId: Types.ObjectId
+    let userId: Types.ObjectId | undefined
     if (!req.user) {
       const user = await UserService.getUser(
         { email: req.body.email },

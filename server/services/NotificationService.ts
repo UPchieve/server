@@ -1,19 +1,23 @@
 import { Aggregate } from 'mongoose'
 import NotificationModel, { Notification } from '../models/Notification'
 import * as SessionService from './SessionService'
+import { Types } from 'mongoose'
 
-export const getNotification = (
-  query,
+export const getNotification = async (
+  query: Partial<Notification>,
   projection = {}
-): Promise<Notification> => {
-  return NotificationModel.findOne(query)
+): Promise<Notification|undefined> => {
+  const result = await NotificationModel.findOne(query)
     .select(projection)
     .lean()
     .exec()
+  if (result) {
+    return result as Notification
+  }
 }
 
 export const getNotifications = (
-  query,
+  query: Partial<Notification>,
   projection = {}
 ): Promise<Notification[]> => {
   return NotificationModel.find(query)
@@ -23,12 +27,12 @@ export const getNotifications = (
 }
 
 export const getNotificationsWithPipeline = (
-  pipeline
+  pipeline: any
 ): Aggregate<Notification[]> =>
   NotificationModel.aggregate(pipeline).read('secondaryPreferred')
 
 export const getNotificationWithVolunteer = async (
-  notificationId
+  notificationId: Types.ObjectId
 ): Promise<Notification> => {
   const [notification] = await NotificationModel.aggregate([
     {
@@ -51,7 +55,7 @@ export const getNotificationWithVolunteer = async (
 }
 
 export const getSessionNotifications = async (
-  sessionId
+  sessionId: Types.ObjectId
 ): Promise<Notification[]> => {
   const session = await SessionService.getSessionById(sessionId)
   return NotificationModel.aggregate([

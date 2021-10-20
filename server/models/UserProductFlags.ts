@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-use-before-define: 0 */
 
-import { Document, model, Schema, Types, UpdateQuery } from 'mongoose'
+import { Document, model, Schema, Types, UpdateQuery, ValidatorProps } from 'mongoose'
 import { validUser } from '../utils/validators'
 import { User } from './User'
 import { RepoCreateError, RepoReadError, DocUpdateError } from './Errors'
@@ -21,7 +21,7 @@ const UserProductFlagsSchema = new Schema({
     unique: true,
     validate: {
       validator: validUser,
-      message: props => `${props.value} is not a valid user`,
+      message: (props: ValidatorProps) => `${props.value} is not a valid user`,
     },
   },
   gatesQualified: {

@@ -1,10 +1,9 @@
 import { Job } from 'bull'
 import MailService from '../../services/MailService'
-import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
-import { getUser } from '../../services/UserService'
-import { getStudent } from '../../services/StudentService'
+import { StudentContactInfo, getStudentContactInfoById } from '../../models/Student/queries'
 import { safeAsync } from '../../utils/safe-async'
 import { Jobs } from '.'
+import { getVolunteerContactInfoById, VolunteerContactInfo } from '../../models/Volunteer/queries'
 
 interface TechIssueApology {
   sessionId: string
@@ -12,7 +11,7 @@ interface TechIssueApology {
   volunteerId: string
 }
 
-async function sendEmailToUser(user) {
+async function sendEmailToUser(user: StudentContactInfo | VolunteerContactInfo): Promise<void> {
   const { firstname: firstName, email } = user
   const mailData = {
     firstName,
@@ -26,14 +25,8 @@ export default async (job: Job<TechIssueApology>): Promise<void> => {
   const {
     data: { studentId, volunteerId }
   } = job
-  const student = await getStudent(
-    { _id: studentId, ...EMAIL_RECIPIENT },
-    { firstname: 1, email: 1 }
-  )
-  const volunteer = await getUser(
-    { _id: volunteerId, ...EMAIL_RECIPIENT },
-    { firstname: 1, email: 1 }
-  )
+  const student = await getStudentContactInfoById(studentId)
+  const volunteer = await getVolunteerContactInfoById(volunteerId)
   const errors = []
 
   if (student) {

@@ -3,9 +3,8 @@ import { Types } from 'mongoose'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getNotifications } from '../../../services/NotificationService'
-import { getVolunteer } from '../../../services/UserService'
+import { getPartnerVolunteerForLowHours } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
 /**
  *
@@ -26,29 +25,12 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
     data: { volunteerId },
     name: currentJob
   } = job
-  const volunteer = await getVolunteer(
-    {
-      _id: volunteerId,
-      isOnboarded: true,
-      'pastSessions.1': { $exists: false },
-      volunteerPartnerOrg: { $exists: true },
-      ...EMAIL_RECIPIENT
-    },
-    {
-      _id: 1,
-      email: 1,
-      firstname: 1,
-      availability: 1
-    }
-  )
+  const volunteer = await getPartnerVolunteerForLowHours(volunteerId)
 
   if (volunteer) {
     const { _id, firstname: firstName, email, availability } = volunteer
     const textNotifications = await getNotifications({ volunteer: _id })
-    const totalHoursSelected = countAvailabilitySelected(
-      // @ts-expect-error
-      availability.toObject()
-    )
+    const totalHoursSelected = countAvailabilitySelected(availability)
 
     if (textNotifications.length < 2 && totalHoursSelected < 5) {
       try {

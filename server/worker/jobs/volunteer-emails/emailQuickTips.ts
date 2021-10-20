@@ -3,8 +3,7 @@ import { Types } from 'mongoose'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
 import { getNotifications } from '../../../services/NotificationService'
-import { getVolunteer } from '../../../services/UserService'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
+import { getVolunteerForQuickTips } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
 
 interface EmailQuickTipsJobData {
@@ -16,19 +15,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
     data: { volunteerId },
     name: currentJob
   } = job
-  const volunteer = await getVolunteer(
-    {
-      _id: volunteerId,
-      isOnboarded: true,
-      ...EMAIL_RECIPIENT
-    },
-    {
-      _id: 1,
-      email: 1,
-      firstname: 1,
-      availability: 1
-    }
-  )
+  const volunteer = await getVolunteerForQuickTips(volunteerId)
 
   if (volunteer) {
     const { _id, firstname: firstName, email, availability } = volunteer
@@ -36,8 +23,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
 
     if (
       textNotifications.length === 0 &&
-      // @ts-expect-error
-      countAvailabilitySelected(availability.toObject())
+      countAvailabilitySelected(availability)
     ) {
       try {
         const contactInfo = { firstName, email }

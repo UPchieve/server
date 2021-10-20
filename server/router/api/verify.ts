@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import { LoadedRequest } from '../app'
 
 import * as VerificationService from '../../services/VerificationService'
 import logger from '../../logger'
@@ -11,7 +10,7 @@ export interface TwilioError extends Error {
 }
 
 export function routeVerify(router: Router) {
-  router.route('/verify/send').post(async function(req: LoadedRequest, res) {
+  router.route('/verify/send').post(async function(req, res) {
     const payload = {
       userId: req.user._id.toString(),
       firstName: req.user.firstname,
@@ -43,7 +42,7 @@ export function routeVerify(router: Router) {
     }
   })
 
-  router.route('/verify/confirm').post(async function(req: LoadedRequest, res) {
+  router.route('/verify/confirm').post(async function(req, res) {
     const payload = {
       userId: req.user._id.toString(),
       ...req.body

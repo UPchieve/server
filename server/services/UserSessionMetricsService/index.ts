@@ -26,7 +26,7 @@ import logger from '../../logger'
 import { safeAsync } from '../../utils/safe-async'
 import { getFeedback } from '../FeedbackService'
 import { METRIC_PROCESSORS, MetricProcessorOutputs } from './metrics'
-import { UpdateValueData, ProcessorData, MetricProcessor } from './types'
+import { UpdateValueData, ProcessorData, MetricProcessor, CounterMetricProcessor } from './types'
 
 export interface MetricProcessorPayload {
   session: Session
@@ -35,9 +35,9 @@ export interface MetricProcessorPayload {
   outputs: MetricProcessorOutputs
 }
 
-const SESSION_METRICS_PROCESSORS = []
-const FEEDBACK_METRICS_PROCESSORS = []
-const REPORT_METRICS_PROCESSORS = []
+const SESSION_METRICS_PROCESSORS: CounterMetricProcessor[] = []
+const FEEDBACK_METRICS_PROCESSORS: CounterMetricProcessor[] = []
+const REPORT_METRICS_PROCESSORS: CounterMetricProcessor[] = []
 for (const metric of Object.values(METRIC_PROCESSORS)) {
   if (metric.requiresFeedback) FEEDBACK_METRICS_PROCESSORS.push(metric)
   // Reported metric is run separately from others since isReported is not guaranteed to be accurate at session end
@@ -58,8 +58,8 @@ export async function prepareSessionProcessors(
   const payload = await prepareMetrics(
     SESSION_METRICS_PROCESSORS,
     session,
-    feedback,
     studentUSM,
+    feedback,
     volunteerUSM
   )
   emitter.emit(USM_EVENTS.SESSION_PROCESSORS_READY, payload)
@@ -79,8 +79,8 @@ export async function prepareFeedbackProcessors(
   const payload = await prepareMetrics(
     FEEDBACK_METRICS_PROCESSORS,
     session,
-    feedback,
     studentUSM,
+    feedback,
     volunteerUSM
   )
   emitter.emit(USM_EVENTS.FEEDBACK_PROCESSORS_READY, payload)
@@ -99,8 +99,8 @@ export async function prepareReportProcessors(
   const payload = await prepareMetrics(
     REPORT_METRICS_PROCESSORS,
     session,
-    feedback,
     studentUSM,
+    feedback,
     volunteerUSM
   )
   emitter.emit(USM_EVENTS.REPORT_PROCESSORS_READY, payload)
@@ -111,18 +111,18 @@ export async function getValuesToPrepareMetrics(
   feedbackId?: Types.ObjectId | string
 ): Promise<{
   session: Session
-  feedback: FeedbackVersionTwo
+  feedback?: FeedbackVersionTwo
   studentUSM: UserSessionMetrics
-  volunteerUSM: UserSessionMetrics
+  volunteerUSM?: UserSessionMetrics
 }> {
   const session = await getSessionById(sessionId)
   const feedback = feedbackId
     ? ((await getFeedback({ _id: feedbackId })) as FeedbackVersionTwo)
-    : null
+    : undefined
   const uvd = { session, feedback } as UpdateValueData
 
   const studentUSM = await getByUserId(uvd.session.student as Types.ObjectId)
-  let volunteerUSM: UserSessionMetrics
+  let volunteerUSM: UserSessionMetrics | undefined
   if (uvd.session.volunteer)
     volunteerUSM = await getByUserId(uvd.session.volunteer as Types.ObjectId)
 
@@ -137,8 +137,8 @@ export async function getValuesToPrepareMetrics(
 export async function prepareMetrics(
   metrics: MetricProcessor<MetricType>[],
   session: Session,
-  feedback: FeedbackVersionTwo,
   studentUSM: UserSessionMetrics,
+  feedback?: FeedbackVersionTwo,
   volunteerUSM?: UserSessionMetrics
 ): Promise<MetricProcessorPayload> {
   const uvd = { session, feedback }
@@ -146,7 +146,7 @@ export async function prepareMetrics(
   const outputs: MetricProcessorOutputs = {}
   for (const metric of metrics) {
     try {
-      outputs[metric.constructor.name] = metric.computeUpdateValue(uvd)
+      outputs[metric.constructor.name as keyof MetricProcessorOutputs] = metric.computeUpdateValue(uvd)
     } catch (err) {
       logger.error(
         `Metrics processor ${metric.constructor.name} failed to compute update value`
@@ -195,12 +195,13 @@ export function metricProcessorFactory<T>(
           session,
           studentUSM,
           volunteerUSM,
-          value: outputs[key]
+          value: outputs[key as keyof MetricProcessorOutputs]
         } as ProcessorData<MetricType>
         try {
           acc.push(await (processor[opName] as Function)(processorData))
         } catch (err) {
-          errors.push(`${key}.${opName}(): ${err.message}`)
+          if (err instanceof Error)
+            errors.push(`${key}.${opName}(): ${err.message}`)
         }
       } else errors.push(`${key}.${opName} method does not exist`)
     }

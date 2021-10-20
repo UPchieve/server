@@ -477,6 +477,7 @@ module.exports = {
     )
   },
 
+  // actualy only requires contact info
   sendWaitingOnReferences: volunteer => {
     const overrides = {
       categories: ['waiting on references email']
@@ -495,6 +496,7 @@ module.exports = {
     )
   },
 
+  // actually only requires contact info
   sendNiceToMeetYou: volunteer => {
     const overrides = {
       reply_to: {

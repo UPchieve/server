@@ -9,6 +9,7 @@ import { Volunteer } from '../../models/Volunteer'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
 import { log } from '../logger'
 import { Jobs } from '.'
+import { getIdFromModelReference } from '../../utils/validators'
 
 interface NotifyTutorsJobData {
   sessionId: string
@@ -45,7 +46,8 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   const uniqueRecipients = new Set()
   try {
     for (const n of session.notifications) {
-      const notification = await getNotificationWithVolunteer(n)
+      const id = getIdFromModelReference(n)
+      const notification = await getNotificationWithVolunteer(id)
       uniqueRecipients.add((notification.volunteer as Volunteer)._id.toString())
     }
   } catch (error) {
@@ -64,13 +66,13 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
     // Never send more than 2 texts per person
     if (session.notifications.length >= 2 * uniqueVolunteersNotified) return
     // Wrap around the notifications list to get a notification we've sent before
-    const notificationId =
+    const notification =
       session.notifications[
         session.notifications.length % uniqueVolunteersNotified
       ]
-
+    const id = getIdFromModelReference(notification)
     try {
-      const notification = await getNotificationWithVolunteer(notificationId)
+      const notification = await getNotificationWithVolunteer(id)
       const volunteer = notification.volunteer as Volunteer
 
       await TwilioService.sendFollowupText({

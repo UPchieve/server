@@ -2,63 +2,45 @@ import { Types } from 'mongoose'
 import { captureException } from '@sentry/node'
 import base64url from 'base64url'
 import { DeleteWriteOpResultObject } from 'mongodb'
-import User from '../models/User'
-import Student, { StudentDocument } from '../models/Student'
-import Volunteer, {
+import UserModel from '../models/User'
+import { findUserIdByReferralCode } from '../models/User/queries'
+import StudentModel, { Student } from '../models/Student'
+import VolunteerModel, {
   Certifications,
-  VolunteerDocument,
+  Volunteer,
 } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
 import { createByUserId as createUSMByUserId } from '../models/UserSessionMetrics'
 import { createByUserId as createUPFByUserId } from '../models/UserProductFlags'
 import { AccountActionCreator } from './UserActionCtrl'
-
-const {
+import {
   createAvailabilitySnapshot,
-} = require('../services/AvailabilityService')
+} from '../services/AvailabilityService'
+import { hashPassword } from '../utils/auth-utils'
+import { ALL_CERTS_TYPE } from '../constants'
 
-const generateReferralCode = (userId: Types.ObjectId) => base64url(Buffer.from(userId, 'hex'))
+const generateReferralCode = (userId: Types.ObjectId) => base64url(Buffer.from(userId.toString(), 'hex'))
 
-export function deleteUserByEmail(
-  userEmail: string
-): Promise<DeleteWriteOpResultObject['result'] & { deletedCount?: number }> {
-  return User.deleteOne({ email: userEmail }).exec()
-}
-
-export async function checkReferral(referredByCode: string): Promise<string> {
-  let referredById
-
+export async function checkReferral(referredByCode: string): Promise<Types.ObjectId | undefined> {
   if (referredByCode) {
     try {
-      const referredBy = await User.findOne({ referralCode: referredByCode })
-        .select('_id')
-        .lean()
-        .exec()
-
-      referredById = referredBy._id
+      return await findUserIdByReferralCode(referredByCode)
     } catch (error) {
       captureException(error)
     }
   }
-
-  return referredById
 }
 
 export async function createStudent(
-  studentData: Partial<StudentDocument>
-): Promise<StudentDocument> {
-  const { password, ipAddresses } = studentData
-  const ip = ipAddresses && ipAddresses[0] && ipAddresses[0].ip
-  studentData.ipAddresses = []
-  const student = new Student(studentData)
-  student.referralCode = generateReferralCode(student.id)
+  studentData: Partial<Student> & Pick<Student, 'email' | 'password'>,
+  ip: string
+): Promise<Student> {
+  studentData.password = await hashPassword(studentData.password)
 
-  try {
-    student.password = await student.hashPassword(password)
-    await student.save()
-  } catch (error) {
-    throw new Error(error)
-  }
+  const student = new StudentModel(studentData)
+  student.referralCode = generateReferralCode(student._id)
+
+  await student.save()
 
   // Create a USM object for this new user
   try {
@@ -86,27 +68,22 @@ export async function createStudent(
     captureException(err)
   }
 
-  return student
+  return student.toObject()
 }
 
 export async function createVolunteer(
-  volunteerData: Partial<VolunteerDocument>
-): Promise<VolunteerDocument> {
-  const { password, ipAddresses } = volunteerData
-  const ip = ipAddresses && ipAddresses[0] && ipAddresses[0].ip
-  volunteerData.ipAddresses = []
-  const volunteer = new Volunteer(volunteerData)
+  volunteerData: Partial<Volunteer> & Pick<Volunteer, 'email' | 'password'>,
+  ip: string
+): Promise<Volunteer> {
+  volunteerData.password = await hashPassword(volunteerData.password)
+
+  const volunteer = new VolunteerModel(volunteerData)
   volunteer.referralCode = generateReferralCode(volunteer.id)
 
-  try {
-    volunteer.password = await volunteer.hashPassword(password)
-    await Promise.all([
-      volunteer.save(),
-      createAvailabilitySnapshot(volunteer._id),
-    ])
-  } catch (error) {
-    throw new Error(error)
-  }
+  await Promise.all([
+    volunteer.save(),
+    createAvailabilitySnapshot(volunteer._id),
+  ])
 
   // Create a USM object for this new user
   try {
@@ -134,7 +111,7 @@ export async function createVolunteer(
     captureException(err)
   }
 
-  return volunteer
+  return volunteer.toObject()
 }
 
 export function isCertified(certifications: Certifications): boolean {
@@ -143,7 +120,7 @@ export function isCertified(certifications: Certifications): boolean {
   for (const subject in certifications) {
     if (
       Object.prototype.hasOwnProperty.call(certifications, subject) &&
-      certifications[subject].passed
+      certifications[subject as ALL_CERTS_TYPE].passed
     ) {
       isCertified = true
       break

@@ -29,16 +29,7 @@ export function didParticipantsChat(messages: Message[], studentId: Types.Object
   let volunteerSentMessage = false
 
   for (const message of messages) {
-    let messagerId
-    if(message.user instanceof Types.ObjectId){
-      messagerId = message.user
-    }
-    else if(message.user){
-      messagerId = (message.user as User)._id
-    }
-    else{
-      throw new Error("message user was neither an object id nor a user object")
-    }
+    const messagerId = (message.user instanceof Types.ObjectId) ? message.user : (message.user as User)._id
 
     if (studentId === messagerId) studentSentMessage = true
     if (volunteerId === messagerId) volunteerSentMessage = true
@@ -62,27 +53,8 @@ export function getMessagesAfterDate(messages: Message[], date: Date) {
 export function isSessionParticipant(session: Session, user: User): boolean {
   const userId = user._id
 
-  let studentId
-  if(session.student instanceof Types.ObjectId){
-    studentId = session.student
-  }
-  else if(session.student){
-    studentId = (session.student as Student)._id
-  }
-  else {
-  throw new Error("participant in session was neither an object id nor a student object")
-  }
-
-  let volunteerId
-  if(session.volunteer instanceof Types.ObjectId){
-    volunteerId = session.volunteer
-  }
-  else if(session.volunteer){
-    volunteerId = (session.volunteer as Volunteer)._id
-  }
-  else{
-    throw new Error("participant in session was neither an object id nor a volunteer object")
-  }
+  const studentId = (session.student instanceof Types.ObjectId) ? session.student : (session.student as Student)._id
+  const volunteerId = (session.volunteer instanceof Types.ObjectId || !session.volunteer) ? session.volunteer : (session.volunteer as Volunteer)._id
   
   return userId === studentId || userId === volunteerId
 }
@@ -144,7 +116,8 @@ export function isSessionFulfilled(session: Session) {
   return hasEnded || hasVolunteerJoined
 }
 
-export function isSubjectUsingDocumentEditor(subject) {
+// TODO: use an actual subject type
+export function isSubjectUsingDocumentEditor(subject: string) {
   switch (subject) {
     case SUBJECTS.SAT_READING:
     case SUBJECTS.ESSAYS:
@@ -166,14 +139,14 @@ export type HeatMap = {
 }
 
 export function createEmptyHeatMap() {
-  const heatMap = {}
+  const heatMap: any = {}
 
   for (const day in DAYS) {
-    const currentDay = {}
+    const currentDay: any = {}
     for (const hour in HOURS) {
-      currentDay[HOURS[hour]] = 0
+      currentDay[hour as HOURS] = 0
     }
-    heatMap[DAYS[day]] = currentDay
+    heatMap[day as DAYS] = currentDay as HeatMapDay
   }
 
   return heatMap as HeatMap

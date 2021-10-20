@@ -1,7 +1,7 @@
 import { backOff } from 'exponential-backoff'
 import logger from './logger'
 import config from './config'
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 export async function connect() {
   const connectAction = async () =>

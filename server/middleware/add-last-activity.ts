@@ -1,14 +1,13 @@
 import moment from 'moment'
-import { Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { Volunteer } from '../models/Volunteer'
 import { Student } from '../models/Student'
 import { updateLastActivityUser } from '../services/UserService'
-import { LoadedRequest } from '../router/app'
 
 export function addLastActivity(
-  req: LoadedRequest,
+  req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ): void {
   if (Object.prototype.hasOwnProperty.call(req, 'user')) {
     const { _id, lastActivityAt } = req.user as Volunteer | Student

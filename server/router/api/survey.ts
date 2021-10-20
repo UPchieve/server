@@ -1,12 +1,12 @@
 import expressWs from 'express-ws'
 import { Types } from 'mongoose'
 import * as SurveyService from '../../services/SurveyService'
-import { LoadedRequest } from '../app'
+import { Request, Response, NextFunction } from 'express'
 
 export function routeSurvey(router: expressWs.Router): void {
   router.post(
     '/survey/presession/:sessionId',
-    async (req: LoadedRequest, res, next) => {
+    async (req, res, next) => {
       const { user } = req
       const { sessionId } = req.params
       const { responseData } = req.body
@@ -25,7 +25,7 @@ export function routeSurvey(router: expressWs.Router): void {
 
   router.get(
     '/survey/presession/:sessionId',
-    async (req: LoadedRequest, res, next) => {
+    async (req, res, next) => {
       const { user } = req
       const { sessionId } = req.params
 

@@ -3,11 +3,11 @@ import { backOff } from 'exponential-backoff'
 import { Job } from 'bull'
 import { Types } from 'mongoose'
 import config from '../../config'
-import {
-  AssistmentsData,
-  getBySession,
-  updateSentAtById
-} from '../../models/AssistmentsData'
+import { AssistmentsData } from '../../models/AssistmentsData'
+import { 
+  getAssistmentsDataBySession,
+  updateAssistmentsDataSentAtById
+} from '../../models/AssistmentsData/queries'
 import { Message } from '../../models/Message'
 import { getSessionById } from '../../services/SessionService'
 import { log } from '../logger'
@@ -83,11 +83,11 @@ export async function buildRequest(
       assignmentId: data.assignmentId,
       problemId: String(data.problemId),
       session: partSession
-    }
+    } as Payload
     return { params, payload }
   } catch (err) {
     throw new Error(
-      `Error building request to send AssistmentsData ${data._id}: ${err.message}`
+      `Error building request to send AssistmentsData ${data._id}: ${(err as Error).message}`
     )
   }
 }
@@ -119,7 +119,7 @@ export async function sendData(
     message = res.data
     status = res.status.toString()
   } catch (err) {
-    throw new Error(`Retry: ${err.message}`)
+    throw new Error(`Retry: ${(err as Error).message}`)
   }
   const FAILS = ['401', '403', '404']
   if (status === '201') {
@@ -164,15 +164,15 @@ export default async (job: Job<SendAssistmentsDataJobData>): Promise<void> => {
   const {
     data: { sessionId }
   } = job
-  const data = await getBySession(sessionId)
+  const data = await getAssistmentsDataBySession(sessionId)
   if (data && !data.sent) {
     const { params, payload } = await buildRequest(data)
     await sendWrapper(params, payload)
     try {
-      await updateSentAtById(data._id, new Date())
+      await updateAssistmentsDataSentAtById(data._id, new Date())
     } catch (err) {
       throw new Error(
-        `Error updating assistments data ${data._id}: ${err.message}`
+        `Error updating assistments data ${data._id}: ${(err as Error).message}`
       )
     }
   }

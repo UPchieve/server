@@ -1,16 +1,13 @@
 import moment from 'moment-timezone'
 import { log } from '../logger'
-import {
-  getVolunteers,
-  getHourSummaryStats
-} from '../../services/VolunteerService'
+import { getHourSummaryStats } from '../../services/VolunteerService'
 import MailService from '../../services/MailService'
-import VolunteerModel from '../../models/Volunteer'
+import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import { volunteerPartnerManifests } from '../../partnerManifests'
 import config from '../../config'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
-import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
+import { getVolunteersForWeeklyHourSummary } from '../../models/Volunteer/queries'
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
@@ -24,25 +21,13 @@ export default async (): Promise<void> => {
     .subtract(1, 'weeks')
     .endOf('isoWeek')
 
-  const unsubscribedPartners = []
+  const unsubscribedPartners: string[] = []
   for (const partnerOrg in volunteerPartnerManifests) {
     if (!volunteerPartnerManifests[partnerOrg].receiveWeeklyHourSummaryEmail)
       unsubscribedPartners.push(partnerOrg)
   }
 
-  const volunteers = await getVolunteers(
-    {
-      ...EMAIL_RECIPIENT,
-      volunteerPartnerOrg: { $nin: unsubscribedPartners }
-    },
-    {
-      firstname: 1,
-      email: 1,
-      sentHourSummaryIntroEmail: 1,
-      volunteerPartnerOrg: 1,
-      certifications: 1
-    }
-  )
+  const volunteers = await getVolunteersForWeeklyHourSummary(unsubscribedPartners)
 
   const dateQuery = { $gt: lastMonday.toDate(), $lte: lastSunday.toDate() }
 

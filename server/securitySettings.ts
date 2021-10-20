@@ -110,7 +110,7 @@ export const frameAncestors = ["'self'", 'http://localhost'] // eslint-disable-l
 export const objectSrc = ["'none'"] // eslint-disable-line quotes
 export const scriptSrcAttr = ["'none'"] // eslint-disable-line quotes
 export const styleSrc = ["'self'", 'https:', "'unsafe-inline'"] // eslint-disable-line quotes
-export let upgradeInsecureRequests
+export let upgradeInsecureRequests: string[] | null
 if (config.NODE_ENV === 'production') {
   upgradeInsecureRequests = []
 } else {
