@@ -1,6 +1,6 @@
 import VolunteerModel from '../models/Volunteer'
 import { DAYS, HOURS, Availability } from '../models/Availability/types'
-import { getAvailabilities } from '../services/AvailabilityService'
+import { getSnapshotsByVolunteerIds } from '../models/Availability/queries'
 
 interface AvailabilityAggregation {
   daysOfWeek?: DAYS[]
@@ -63,7 +63,10 @@ module.exports = {
    * @param {*} options
    * @param {*} callback
    */
-  getVolunteersAvailability: async function(options: { certifiedSubject: string }, callback: Function) {
+  getVolunteersAvailability: async function(
+    options: { certifiedSubject: string },
+    callback: Function
+  ) {
     const certifiedSubjectQuery = `certifications.${options.certifiedSubject}.passed`
 
     const volunteerQuery = {
@@ -83,14 +86,12 @@ module.exports = {
         .lean()
         .exec()
       const volunteerIds = volunteers.map(vol => vol._id)
-      const availabilityDocs = await getAvailabilities({
-        volunteerId: { $in: volunteerIds },
-      })
+      const availabilityDocs = await getSnapshotsByVolunteerIds(volunteerIds)
 
       let aggAvailabilities: AvailabilityAggregation = {
         table: Array(7)
-        .fill(0)
-        .map(() => Array(24).fill(0))
+          .fill(0)
+          .map(() => Array(24).fill(0)),
       }
       aggAvailabilities.min = undefined
       aggAvailabilities.max = 0

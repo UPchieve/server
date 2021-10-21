@@ -36,6 +36,8 @@ import * as AwsService from './AwsService'
 import { getFeedbackForSession } from './FeedbackService'
 import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
 import { captureEvent } from './AnalyticsService'
+import { PushToken } from '../models/PushToken'
+import { getPushTokensByUserId } from '../models/PushToken/queries'
 import * as PushTokenService from './PushTokenService'
 import { emitter } from './EventsService'
 
@@ -502,10 +504,9 @@ export async function adminSessionView(data: unknown) {
     sessionId
   )
   const feedback = await getFeedbackForSession(sessionId)
-  const sessionPhotos = await AwsService.getObjects({
-    bucket: 'sessionPhotoBucket',
-    s3Keys: session.photos,
-  })
+  const bucket: keyof typeof config.awsS3 = 'sessionPhotoBucket'
+  let s3Keys
+  const sessionPhotos = await AwsService.getObjects(bucket, session.photos)
 
   return {
     ...session,
@@ -706,11 +707,9 @@ export async function joinSession(data: unknown): Promise<void> {
       sessionId: session._id.toString(),
     })
 
-    const pushTokens = await PushTokenService.getAllPushTokensByUserId(
-      session.student
-    )
+    const pushTokens = await getPushTokensByUserId(session.student)
     if (pushTokens && pushTokens.length > 0) {
-      const tokens = pushTokens.map(token => token.token)
+      const tokens = pushTokens.map((token: PushToken) => token.token)
       await PushTokenService.sendVolunteerJoined(session, tokens)
     }
   }

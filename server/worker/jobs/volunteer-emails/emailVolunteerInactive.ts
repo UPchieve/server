@@ -2,7 +2,7 @@ import moment from 'moment-timezone'
 import { Jobs } from '..'
 import logger from '../../../logger'
 import { Volunteer } from '../../../models/Volunteer'
-import { updateAvailabilitySnapshot } from '../../../services/AvailabilityService'
+import { updateSnapshotOnCallByVolunteerId } from '../../../models/Availability/queries'
 import MailService from '../../../services/MailService'
 import {
   getVolunteersWithPipeline,
@@ -49,9 +49,7 @@ async function sendEmailToInactiveVolunteers(
             sentInactiveNinetyDayEmail: true
           }
         )
-        await updateAvailabilitySnapshot(_id, {
-          onCallAvailability: clearedAvailability
-        })
+        await updateSnapshotOnCallByVolunteerId(_id, clearedAvailability)
       }
       logger.info(`Sent ${currentJob} to volunteer ${_id}`)
     } catch (error) {

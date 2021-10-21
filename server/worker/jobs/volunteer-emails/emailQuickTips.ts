@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
-import { getNotifications } from '../../../services/NotificationService'
+import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getVolunteerForQuickTips } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
 
@@ -19,7 +19,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
 
   if (volunteer) {
     const { _id, firstname: firstName, email, availability } = volunteer
-    const textNotifications = await getNotifications({ volunteer: _id })
+    const textNotifications = await getNotificationsByVolunteerId(_id)
 
     if (
       textNotifications.length === 0 &&

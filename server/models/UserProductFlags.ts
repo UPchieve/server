@@ -1,6 +1,13 @@
 /* eslint @typescript-eslint/no-use-before-define: 0 */
 
-import { Document, model, Schema, Types, UpdateQuery, ValidatorProps } from 'mongoose'
+import {
+  Document,
+  model,
+  Schema,
+  Types,
+  UpdateQuery,
+  ValidatorProps,
+} from 'mongoose'
 import { validUser } from '../utils/validators'
 import { User } from './User'
 import { RepoCreateError, RepoReadError, DocUpdateError } from './Errors'

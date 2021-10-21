@@ -1,22 +1,6 @@
 import { Types } from 'mongoose'
-import StudentModel, { Student } from '../models/Student'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
-
-export const getStudent = async (query, projection = {}): Promise<Student> =>
-  StudentModel.findOne(query)
-    .select(projection)
-    .lean()
-    .exec()
-
-export const getStudents = async (query, projection = {}): Promise<Student[]> =>
-  StudentModel.find(query)
-    .select(projection)
-    .lean()
-    .exec()
-
-export const updateStudent = (query, update) =>
-  StudentModel.updateOne(query, update)
 
 export const queueWelcomeEmails = async (
   studentId: Types.ObjectId | string

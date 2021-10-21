@@ -31,12 +31,14 @@ import {
 } from '../utils/reportUtils'
 import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
+import { AnyFeedback } from '../models/Feedback/queries'
+import { getVolunteersForTelecomReport } from '../models/Volunteer/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
 
 const fsPromises = fs.promises
 
-const getReportFilePath = fileName =>
+const getReportFilePath = (fileName: string) =>
   `${config.fileWorkRootPath}/${uuidv4()}/${fileName}.xlsx`
 
 const ObjectId = mongoose.Types.ObjectId
@@ -68,14 +70,14 @@ interface UsageReport {
   'Average session rating': number
 }
 
-const formatDate = (date): Date | string => {
+const formatDate = (date: string): Date | string => {
   if (!date) return '--'
   return moment(date)
     .tz('America/New_York')
     .format('l h:mm a')
 }
 
-function calcAverageRating(allFeedback): number {
+function calcAverageRating(allFeedback: AnyFeedback[]): number {
   let ratingsSum = 0
   let ratingsCount = 0
 
@@ -338,6 +340,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
   const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
 
+  // TODO: type this insane agg
   const students = await User.aggregate([
     {
       $match: query,
@@ -523,20 +526,21 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   ]).read('secondaryPreferred')
 
   const partnerSites =
+    studentPartnerOrg &&
     studentPartnerManifests[studentPartnerOrg] &&
     studentPartnerManifests[studentPartnerOrg].sites
 
   const studentUsage = students.map(student => {
     const feedback = Array.from(student.feedback)
 
-    const dataFormat = {
+    const dataFormat: any = {
       'First name': student.firstName,
       'Last name': student.lastName,
       Email: student.email,
       'Join date': formatDate(student.joinDate),
       'Total sessions': student.totalSessions,
       'Total minutes': student.totalMinutes,
-      'Average session rating': calcAverageRating(feedback),
+      'Average session rating': calcAverageRating(feedback as AnyFeedback[]),
       'Sessions over date range': student.sessionsOverDateRange,
       'Minutes over date range': student.minsOverDateRange,
       'High school name': student.approvedHighschool,
@@ -558,43 +562,33 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   return studentUsage
 }
 
-export const getTelecomReport = async ({ partnerOrg, startDate, endDate }) => {
+export async function getTelecomReport(
+  partnerOrg: string,
+  startDate: string,
+  endDate: string
+) {
   // Only generate the telecom report for a specific partner
   if (partnerOrg !== config.customVolunteerPartnerOrg) return []
   try {
     const dateQuery = { $gt: new Date(startDate), $lte: new Date(endDate) }
-    const volunteers = await VolunteerService.getVolunteers(
-      {
-        isTestUser: false,
-        isFakeUser: false,
-        volunteerPartnerOrg: partnerOrg,
-        isOnboarded: true,
-        isApproved: true,
-      },
-      {
-        _id: 1,
-        createdAt: 1,
-        firstname: 1,
-        lastname: 1,
-        email: 1,
-        certifications: 1,
-        volunteerPartnerOrg: 1,
-        elapsedAvailability: 1,
-      }
-    )
+    const volunteers = await getVolunteersForTelecomReport()
 
     return await generateTelecomReport(volunteers, dateQuery)
   } catch (error) {
-    logger.error(error)
-    throw new Error(error.message)
+    logger.error(error as Error)
+    throw new Error((error as Error).message)
   }
 }
 
-export const generatePartnerAnalyticsReport = async ({
-  partnerOrg,
-  startDate,
-  endDate,
-}) => {
+type FullReport = {
+  summary: AnalyticsReportSummary
+  report: AnalyticsReportRow[]
+}
+export async function generatePartnerAnalyticsReport(
+  partnerOrg: string,
+  startDate: string,
+  endDate: string
+): Promise<FullReport> {
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
 
@@ -763,7 +757,9 @@ export const generatePartnerAnalyticsReport = async ({
     const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
       volunteer._id,
       new Date(volunteer.createdAt),
-      moment().utc()
+      moment()
+        .utc()
+        .toDate()
     )
     const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
       volunteer._id,
@@ -785,7 +781,11 @@ export const generatePartnerAnalyticsReport = async ({
   return { summary, report }
 }
 
-export async function writeAnalyticsReport(data, startDate, endDate) {
+export async function writeAnalyticsReport(
+  data: FullReport,
+  startDate: string,
+  endDate: string
+) {
   const reportFilePath = getReportFilePath(REPORT_FILE_NAMES.ANALYTICS_REPORT)
   await fsPromises.mkdir(path.parse(reportFilePath).dir, { recursive: true })
   const workbook = new exceljs.stream.xlsx.WorkbookWriter({
@@ -826,21 +826,21 @@ export async function getAnalyticsReport(data: unknown) {
     const { partnerOrg, startDate, endDate } = validateVolunteerReportQuery(
       data
     )
-    const analyticsReport = await generatePartnerAnalyticsReport({
+    const analyticsReport = await generatePartnerAnalyticsReport(
       partnerOrg,
       startDate,
-      endDate,
-    })
+      endDate
+    )
     if (analyticsReport.report.length === 0)
       throw new ReportNoDataFoundError(
         'No analytics report data for the requested partner'
       )
     return await writeAnalyticsReport(analyticsReport, startDate, endDate)
   } catch (error) {
-    logger.error(error)
+    logger.error(error as Error)
     if (error instanceof ReportNoDataFoundError || error instanceof InputError)
       throw error
-    throw new Error(error.message)
+    throw new Error((error as Error).message)
   }
 }
 
@@ -857,7 +857,7 @@ export async function deleteReport(reportFilePath: string) {
     // @ts-expect-error
     await fsPromises.rmdir(path.parse(reportFilePath).dir, { recursive: true })
   } catch (error) {
-    logger.error(error)
-    throw new Error(error.message)
+    logger.error(error as Error)
+    throw new Error((error as Error).message)
   }
 }

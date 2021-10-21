@@ -47,7 +47,9 @@ async function main() {
         finalQuestions.push(q)
       } catch (err) {
         console.log(
-          `Failed to add question: ${q.questionText}\n--${(err as Error).message}`
+          `Failed to add question: ${q.questionText}\n--${
+            (err as Error).message
+          }`
         )
       }
     }

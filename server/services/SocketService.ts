@@ -1,12 +1,13 @@
 import { Types } from 'mongoose'
+import { Server } from 'socket.io'
 import SessionModel, { getUnfulfilledSessions } from '../models/Session'
 import MessageModel, { MessageDocument } from '../models/Message'
 import getSessionRoom from '../utils/get-session-room'
 
 class SocketService {
-  private io
+  private io: Server
 
-  constructor(io) {
+  constructor(io: Server) {
     this.io = io
   }
 
@@ -46,6 +47,7 @@ class SocketService {
     await this.updateSessionList()
   }
 
+  // TODO: type these once api socket router is converted
   bump(socket, data, err): void {
     console.log('Could not join session')
     console.log(err)
@@ -53,5 +55,4 @@ class SocketService {
   }
 }
 
-module.exports = SocketService
 export default SocketService

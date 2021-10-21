@@ -9,7 +9,6 @@ import {
   READING_WRITING_SUBJECTS
 } from '../../constants'
 import config from '../../config'
-import { VolunteerForTelecomReport } from '../../utils/reportUtils'
 
 async function wrapRead<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -35,18 +34,21 @@ export async function getVolunteers(query: any): Promise<Volunteer[]> {
 }
 
 export type VolunteerContactInfo = Pick<Volunteer, '_id' | 'email' | 'firstname' | 'volunteerPartnerOrg'>
+const CONTACT_INFO_PROJECTION = {
+  _id: 1,
+  firstname: 1,
+  email: 1,
+  volunteerPartnerOrg: 1
+}
 export async function getVolunteerContactInfoById(volunteerId: Types.ObjectId | string): Promise<VolunteerContactInfo | undefined> {
   return await wrapRead(async () => {
     const volunteer = await VolunteerModel.findOne(
-    {
-      ...EMAIL_RECIPIENT,
-      _id: volunteerId
-    },
-    {
-      _id: 1,
-      firstname: 1,
-      email: 1
-    }).lean().exec()
+      {
+        ...EMAIL_RECIPIENT,
+        _id: volunteerId
+      },
+      CONTACT_INFO_PROJECTION
+    ).lean().exec()
     if (volunteer) return volunteer as VolunteerContactInfo
   }) 
 }
@@ -54,15 +56,12 @@ export async function getVolunteerContactInfoById(volunteerId: Types.ObjectId | 
 export async function getVolunteersContactInfo(query: any): Promise<VolunteerContactInfo[]> {
   return await wrapRead(async () => {
     return await VolunteerModel.find(
-    {
-      ...EMAIL_RECIPIENT,
-      query
-    },
-    {
-      _id: 1,
-      firstname: 1,
-      email: 1
-    }).lean().exec()
+      {
+        ...EMAIL_RECIPIENT,
+        query
+      },
+      CONTACT_INFO_PROJECTION
+    ).lean().exec()
   }) 
 }
 
@@ -76,11 +75,7 @@ export async function getVolunteersForBlackoutOver(startDate: Date): Promise<Vol
           $lt: startDate
         }
       },
-      {
-        _id: 1,
-        firstname: 1,
-        email: 1
-      }
+      CONTACT_INFO_PROJECTION
     ).lean().exec()
   })
 }
@@ -95,9 +90,7 @@ export async function getVolunteerForQuickTips(volunteerId: Types.ObjectId | str
         _id: volunteerId
       },
       {
-        _id: 1,
-        email: 1,
-        firstname: 1,
+        ...CONTACT_INFO_PROJECTION,
         availability: 1
       }).lean().exec()
     if (volunteer) return volunteer as Volunteer
@@ -114,9 +107,7 @@ export async function getPartnerVolunteerForLowHours(volunteerId: Types.ObjectId
         ...EMAIL_RECIPIENT
       },
       {
-        _id: 1,
-        email: 1,
-        firstname: 1,
+        ...CONTACT_INFO_PROJECTION,
         availability: 1
       }).lean().exec()
     if (volunteer) return volunteer as Volunteer
@@ -181,7 +172,8 @@ export async function getVolunteerIdsForElapsedAvailability(): Promise<Types.Obj
   })
 }
 
-export async function getVolunteersForTotalHours(): Promise<VolunteerForTelecomReport[]> {
+export type VolunteerForHourSummary = Pick<Volunteer, '_id' | 'certifications'>
+export async function getVolunteersForTotalHours(): Promise<VolunteerForHourSummary[]> {
   return await wrapRead(async () => {
     return await VolunteerModel.find(
       {
@@ -194,6 +186,29 @@ export async function getVolunteersForTotalHours(): Promise<VolunteerForTelecomR
       {
         _id: 1,
         certifications: 1
+      }
+    ).lean().exec()
+  })
+}
+
+export type VolunteerForTelecomReport = Pick<Volunteer, 'firstname' | 'lastname' | 'email'> & VolunteerForHourSummary
+export async function getVolunteersForTelecomReport(): Promise<VolunteerForTelecomReport[]> {
+  return await wrapRead(async () => {
+    return await VolunteerModel.find(
+      {
+        isTestUser: false,
+        isFakeUser: false,
+        volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+        isOnboarded: true,
+        isApproved: true,
+      },
+      {
+        _id: 1,
+        createdAt: 1,
+        firstname: 1,
+        lastname: 1,
+        email: 1,
+        certifications: 1,
       }
     ).lean().exec()
   })
@@ -233,14 +248,35 @@ export async function updateVolunteerElapsedAvailabilityById(volunteerId: Types.
   }
 }
 
-export function updateVolunteerTotalHoursById(volunteerId: Types.ObjectId | string, update: number): Promise<void> {
+export async function updateVolunteerTotalHoursById(volunteerId: Types.ObjectId | string, update: number): Promise<void> {
   try {
-    const result = VolunteerModel.updateOne(
+    const result = await VolunteerModel.updateOne(
       {
         _id: volunteerId
       },
       {
         $inc: { totalVolunteerHours: update },
+      }
+    ).exec()
+    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateVolunteerTrainingById(volunteerId: Types.ObjectId | string, courseKey: string): Promise<void> {
+  try {
+    const reult = await Volunteer.updateOne(
+      { _id: volunteer._id },
+      {
+        $set: {
+          [`trainingCourses.${courseKey}.isComplete`]: isComplete,
+          [`trainingCourses.${courseKey}.progress`]: progress,
+        },
+        $addToSet: {
+          [`trainingCourses.${courseKey}.completedMaterials`]: materialKey,
+        },
       }
     ).exec()
     if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')

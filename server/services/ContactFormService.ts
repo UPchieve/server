@@ -5,6 +5,7 @@ import isLength from 'validator/lib/isLength'
 import nr from 'newrelic'
 import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission'
 import * as MailService from './MailService/smtp'
+import { asString, asFactory, asOptional } from '../utils/type-utils'
 
 interface ContactFormSubmissionData {
   message: string
@@ -13,6 +14,13 @@ interface ContactFormSubmissionData {
   userId?: string
 }
 
+const asContactFormSubmissionData = asFactory<ContactFormSubmissionData>({
+  message: asString,
+  topic: asString,
+  userEmail: asString,
+  userId: asOptional(asString),
+})
+
 export class ContactFormDataValidationError extends CustomError {
   constructor(errors: string[]) {
     super(`contact form data was invalid: ${errors}`)
@@ -20,7 +28,7 @@ export class ContactFormDataValidationError extends CustomError {
 }
 
 export class MailSendError extends CustomError {
-  constructor(mailType, err: string) {
+  constructor(mailType: string, err: string) {
     super(`failed to send ${mailType} through email provider: ${err}`)
   }
 }
@@ -88,9 +96,11 @@ function requestBodyIsValid(
   } else {
     errors.push('email is invalid')
   }
+  const contactData = asContactFormSubmissionData(data)
   if (
-    Object.prototype.hasOwnProperty.call(data, 'userId') &&
-    userIdIsValid((data as ContactFormSubmissionData).userId)
+    Object.prototype.hasOwnProperty.call(contactData, 'userId') &&
+    contactData.userId &&
+    userIdIsValid(contactData.userId)
   ) {
     validUserId = true
   } else {

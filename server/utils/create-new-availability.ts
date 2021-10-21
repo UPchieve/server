@@ -1,4 +1,9 @@
-import { Availability, AvailabilityDay, DAYS, HOURS } from '../models/Availability/types'
+import {
+  Availability,
+  AvailabilityDay,
+  DAYS,
+  HOURS,
+} from '../models/Availability/types'
 
 function createNewAvailability(): Availability {
   const availability: any = {}

@@ -1,6 +1,6 @@
 import moment from 'moment'
 import { Jobs } from '../index'
-import { updateAvailabilitySnapshot } from '../../../services/AvailabilityService'
+import { updateSnapshotOnCallByVolunteerId } from '../../../models/Availability/queries'
 import MailService from '../../../services/MailService'
 import {
   updateVolunteer
@@ -38,9 +38,7 @@ export async function processVolunteer(
   }
 
   try {
-    await updateAvailabilitySnapshot(_id, {
-      onCallAvailability: clearedAvailability
-    })
+    await updateSnapshotOnCallByVolunteerId(_id, clearedAvailability)
   } catch (error: unknown) {
     errors.push(
       `Failed to update snapshot for volunteer ${_id}: ${(error as Error).message}`

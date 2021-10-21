@@ -6,7 +6,7 @@ import {
   AvailabilityDay,
   Availability,
 } from '../models/Availability/types'
-import { updateAvailabilitySnapshot } from '../services/AvailabilityService'
+import { updateSnapshotFullByVolunteerId } from '../models/Availability/queries'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS } from '../constants'
 import {
@@ -93,7 +93,7 @@ async function executeUpdate(
   }
 
   await Promise.all([
-    updateAvailabilitySnapshot(user._id, availabilityUpdates),
+    updateSnapshotFullByVolunteerId(user._id, availability, tz, currentDate),
     VolunteerModel.updateOne({ _id: user._id }, volunteerUpdates),
   ])
 }

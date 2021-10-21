@@ -16,7 +16,7 @@ import UserModel, { User } from '../User'
 import { DocUpdateError } from '../Errors'
 import { Notification } from '../Notification'
 import { Session } from '../Session'
-import { HOURS, DAYS, AvailabilityDay, Availability } from '../Availability/types'
+import { HOURS, DAYS, Availability } from '../Availability/types'
 
 export interface Reference {
   _id: Types.ObjectId

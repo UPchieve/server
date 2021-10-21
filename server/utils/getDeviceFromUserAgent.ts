@@ -14,7 +14,7 @@ const getDeviceFromUserAgent = (userAgent: string) => {
     iPod: /iPod/i,
     Mac: /Macintosh/i,
     Windows: /IEMobile|Windows/i,
-    Zebra: /TC70|TC55/i
+    Zebra: /TC70|TC55/i,
   }
   Object.keys(userAgentDevices).forEach((item: string) => {
     if (userAgent.match((userAgentDevices as Record<string, any>)[item])) {

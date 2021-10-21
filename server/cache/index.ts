@@ -20,6 +20,18 @@ export class KeyNotFoundError extends CustomError {
   }
 }
 
+export class AppendLengthZeroError extends CustomError {
+  constructor(attemptedKey: string) {
+    super(`length of doucment ${attemptedKey} after append was 0`)
+  }
+}
+
+export class KeyDeletionFailureError extends CustomError {
+  constructor(attemptedKey: string) {
+    super(`deletion of key ${attemptedKey} failed`)
+  }
+}
+
 export async function save(key: string, value: string) {
   await redisClient.set(key, value)
 }
@@ -51,6 +63,12 @@ export async function get(key: string): Promise<string> {
   return value
 }
 
-export async function remove(key: string) {
-  await redisClient.del(key)
+export async function remove(key: string): Promise<void> {
+  const docsRemoved = await redisClient.del(key)
+  if (docsRemoved === 0) throw new KeyDeletionFailureError(key)
+}
+
+export async function append(key: string, addition: string): Promise<void> {
+  const docLength = await redisClient.append(key, addition)
+  if (docLength === 0) throw new AppendLengthZeroError(key)
 }

@@ -1,5 +1,5 @@
 import Delta from 'quill-delta'
-import { redisClient } from './RedisService'
+import * as cache from '../cache'
 
 function sessionIdToKey(id: string): string {
   return `quill-${id}`
@@ -7,14 +7,17 @@ function sessionIdToKey(id: string): string {
 
 export async function createDoc(sessionId: string): Promise<Delta> {
   const newDoc = new Delta()
-  await redisClient.set(sessionIdToKey(sessionId), JSON.stringify(newDoc))
+  await cache.save(sessionIdToKey(sessionId), JSON.stringify(newDoc))
   return newDoc
 }
 
 export async function getDoc(sessionId: string): Promise<Delta | undefined> {
-  const docString = await redisClient.get(sessionIdToKey(sessionId))
-  if (!docString) return
-  return new Delta(JSON.parse(docString))
+  try {
+    const docString = await cache.get(sessionIdToKey(sessionId))
+    return new Delta(JSON.parse(docString))
+  } catch (err) {
+    if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
 }
 
 export async function appendToDoc(
@@ -22,12 +25,19 @@ export async function appendToDoc(
   delta: Delta
 ): Promise<void> {
   const redisKey = sessionIdToKey(sessionId)
-  const docString = await redisClient.get(redisKey)
-  if (!docString) return
-  const updatedDoc = new Delta(JSON.parse(docString)).compose(delta)
-  await redisClient.set(redisKey, JSON.stringify(updatedDoc))
+  try {
+    const docString = await cache.get(redisKey)
+    const updatedDoc = new Delta(JSON.parse(docString)).compose(delta)
+    await cache.save(redisKey, JSON.stringify(updatedDoc))
+  } catch (err) {
+    if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
 }
 
 export async function deleteDoc(sessionId: string): Promise<void> {
-  await redisClient.del(sessionIdToKey(sessionId))
+  try {
+    await cache.remove(sessionIdToKey(sessionId))
+  } catch (err) {
+    if (!(err instanceof cache.KeyDeletionFailureError)) throw err
+  }
 }

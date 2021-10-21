@@ -22,29 +22,40 @@ export class DocUpdateError extends CustomError {
 
 export class RepoCreateError extends CustomError {
   constructor(arg: unknown) {
-    const msg = (typeof arg === 'string') ? arg : `Database create error: ${(arg as Error).message}`
+    const msg =
+      typeof arg === 'string'
+        ? arg
+        : `Database create error: ${(arg as Error).message}`
     super(msg)
   }
 }
 export class RepoReadError extends CustomError {
   constructor(arg: unknown) {
-    const msg = (typeof arg === 'string') ? arg : `Database read error: ${(arg as Error).message}`
+    const msg =
+      typeof arg === 'string'
+        ? arg
+        : `Database read error: ${(arg as Error).message}`
     super(msg)
   }
 }
 export class RepoUpdateError extends CustomError {
   constructor(arg: unknown) {
-    const msg = (typeof arg === 'string') ? arg : `Database update error: ${(arg as Error).message}`
+    const msg =
+      typeof arg === 'string'
+        ? arg
+        : `Database update error: ${(arg as Error).message}`
     super(msg)
   }
 }
 export class RepoDeleteError extends CustomError {
   constructor(arg: unknown) {
-    const msg = (typeof arg === 'string') ? arg : `Database delete error: ${(arg as Error).message}`
+    const msg =
+      typeof arg === 'string'
+        ? arg
+        : `Database delete error: ${(arg as Error).message}`
     super(msg)
   }
 }
-
 
 export class NotAllowedError extends CustomError {}
 export class InputError extends CustomError {}

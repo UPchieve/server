@@ -5,7 +5,7 @@ import MailService from '../../../services/MailService'
 import { Jobs } from '../index'
 import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 import { getUser } from '../../../services/UserService'
-import { getStudent } from '../../../services/StudentService'
+import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { ISOString } from '../../../constants'
 import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
 
@@ -33,17 +33,9 @@ export default async (job: Job<VolunteerSessionTriggers>): Promise<void> => {
       firstname: 1
     }
   )
-  const student = await getStudent(
-    {
-      _id: studentId,
-      ...EMAIL_RECIPIENT
-    },
-    {
-      firstname: 1
-    }
-  )
+  const student = await getStudentContactInfoById(studentId)
 
-  if (volunteer) {
+  if (student && volunteer) {
     try {
       const { firstname: firstName, email } = volunteer
       const mailData = {

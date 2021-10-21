@@ -1,33 +1,38 @@
 import config from '../config'
 import logger from '../logger'
-import { redisClient } from './RedisService'
 import { getBlob, uploadBlob } from './AzureService'
 import { Types } from 'mongoose'
+import * as cache from '../cache'
 
 const sessionIdToKey = (id: Types.ObjectId): string => `zwibbler-${id}`
 
 export const createDoc = async (sessionId: Types.ObjectId): Promise<string> => {
   const newDoc = ''
-  await redisClient.set(sessionIdToKey(sessionId), newDoc)
+  await cache.save(sessionIdToKey(sessionId), newDoc)
   return newDoc
 }
 
 export const getDoc = (sessionId: Types.ObjectId): Promise<string> => {
-  return redisClient.get(sessionIdToKey(sessionId))
+  return cache.get(sessionIdToKey(sessionId))
 }
 
-export const getDocLength = async (sessionId: Types.ObjectId): Promise<number> => {
-  const document = await redisClient.get(sessionIdToKey(sessionId))
+export const getDocLength = async (
+  sessionId: Types.ObjectId
+): Promise<number> => {
+  const document = await cache.get(sessionIdToKey(sessionId))
   if (document === undefined) return 0
   return Buffer.byteLength(document, 'utf8')
 }
 
-export const appendToDoc = (sessionId: Types.ObjectId, docAddition: string): Promise<number> => {
-  return redisClient.append(sessionIdToKey(sessionId), docAddition)
+export const appendToDoc = (
+  sessionId: Types.ObjectId,
+  docAddition: string
+): Promise<void> => {
+  return cache.append(sessionIdToKey(sessionId), docAddition)
 }
 
-export const deleteDoc = (sessionId: Types.ObjectId): Promise<number> => {
-  return redisClient.del(sessionIdToKey(sessionId))
+export const deleteDoc = (sessionId: Types.ObjectId): Promise<void> => {
+  return cache.remove(sessionIdToKey(sessionId))
 }
 
 export const uploadedToStorage = async (
@@ -45,14 +50,18 @@ export const uploadedToStorage = async (
   } catch (error) {
     if (attempts === 1) {
       logger.error(
-        `Retry uploading of whiteboard failed ${sessionId}: ${error.message}`
+        `Retry uploading of whiteboard failed ${sessionId}: ${
+          (error as Error).message
+        }`
       )
 
       return false
     }
 
     logger.error(
-      `Uploading of whiteboard failed ${sessionId}, retrying: ${error.message}`
+      `Uploading of whiteboard failed ${sessionId}, retrying: ${
+        (error as Error).message
+      }`
     )
     attempts++
     return uploadedToStorage(sessionId, whiteboardDoc, attempts)
@@ -67,7 +76,9 @@ export const getDocFromStorage = async (sessionId: string): Promise<string> => {
     })
     return whiteboardDoc
   } catch (error) {
-    logger.error(`Getting the whiteboard failed ${sessionId}: ${error.message}`)
+    logger.error(
+      `Getting the whiteboard failed ${sessionId}: ${(error as Error).message}`
+    )
     return ''
   }
 }

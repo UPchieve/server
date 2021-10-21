@@ -6,10 +6,13 @@ import { Types } from 'mongoose'
 import { Request, Response, NextFunction } from 'express'
 
 import config from '../config'
-import UserModel from '../models/User'
+import {
+  findUserById,
+  findUserByEmail,
+  findUserIdByPhone,
+} from '../models/User/queries'
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
-import UserService from '../services/UserService'
 import { EVENTS, GRADES } from '../constants'
 
 import { LookupError } from '../models/Errors'
@@ -162,7 +165,7 @@ export async function checkPhone(
   if (!isValidInternationalPhoneNumber(phone))
     throw new RegistrationError('Must supply a valid phone number')
 
-  const existingUser = await UserService.getUser({ phone }, { _id: 1 })
+  const existingUser = await findUserIdByPhone(phone)
   if (existingUser)
     throw new LookupError('The phone number you entered is already in use')
 
@@ -171,7 +174,7 @@ export async function checkPhone(
 
 export async function getReferredBy(
   referredByCode: string
-): Promise<Types.ObjectId|undefined> {
+): Promise<Types.ObjectId | undefined> {
   const referredBy = await checkReferral(referredByCode)
   if (referredBy) {
     captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
@@ -192,13 +195,17 @@ export function verifyPassword(
   userPassword: string
 ): Promise<Error | boolean> {
   return new Promise((resolve, reject) => {
-    bcrypt.compare(candidatePassword, userPassword, (error: Error|undefined, isMatch: boolean): any => {
-      if (error) {
-        return reject(error)
-      }
+    bcrypt.compare(
+      candidatePassword,
+      userPassword,
+      (error: Error | undefined, isMatch: boolean): any => {
+        if (error) {
+          return reject(error)
+        }
 
-      return resolve(isMatch)
-    })
+        return resolve(isMatch)
+      }
+    )
   })
 }
 
@@ -211,7 +218,7 @@ function setupPassport() {
 
   passport.deserializeUser(async function(id: Types.ObjectId, done: Function) {
     try {
-      const user = await UserModel.findById(id).lean()
+      const user = await findUserById(id)
       return done(null, user)
     } catch (error) {
       return done(error)
@@ -226,9 +233,7 @@ function setupPassport() {
       },
       async function(email: string, passwordGiven: string, done: Function) {
         try {
-          const user = await UserModel.findOne({ email: email }, '+password')
-            .lean()
-            .exec()
+          const user = await findUserByEmail(email)
 
           if (!user) {
             return done(null, false)
@@ -269,14 +274,22 @@ function isAdmin(req: Request, res: Response, next: NextFunction) {
   return res.status(403).json({ err: 'Unauthorized' })
 }
 
-function isAuthenticatedRedirect(req: Request, res: Response, next: NextFunction) {
+function isAuthenticatedRedirect(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (req.isAuthenticated()) {
     return next()
   }
   return res.redirect('/')
 }
 
-function isAdminRedirect(req: Express.Request, res: Response, next: NextFunction) {
+function isAdminRedirect(
+  req: Express.Request,
+  res: Response,
+  next: NextFunction
+) {
   if (req.user && req.user.isAdmin) {
     return next()
   }

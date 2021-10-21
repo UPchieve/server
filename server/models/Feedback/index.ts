@@ -1,6 +1,5 @@
 import { Document, model, Schema, Types } from 'mongoose'
-import { FEEDBACK_VERSIONS } from '../constants'
-import { LookupError } from './Errors'
+import { FEEDBACK_VERSIONS } from '../../constants'
 
 export interface ResponseData {
   'rate-session': { rating: number }
@@ -223,59 +222,3 @@ const feedbackSchema = new Schema({
 const FeedbackModel = model<FeedbackDocument>('Feedback', feedbackSchema)
 
 export default FeedbackModel
-
-/**
- * Gets version 2 feedback associated with a session from both the student
- * and volunteer.
- *
- * @param sessionId {Types.ObjectId} session whose Feedback we want
- * @returns feedback {FeedbackVersionTwo} a feedback object containing student and volunteer feedback associated with the session
- */
-export async function getFeedbackBySessionId(
-  sessionId: Types.ObjectId
-): Promise<Feedback | FeedbackVersionOne | FeedbackVersionTwo> {
-  try {
-    const [feedback] = await FeedbackModel.aggregate([
-      {
-        $match: {
-          sessionId,
-          versionNumber: 2,
-          $and: [
-            {
-              $or: [
-                { studentCounselingFeedback: { $ne: null } },
-                { studentCounselingFeedback: { $exists: false } },
-              ],
-            },
-            {
-              $or: [
-                { studentTutoringFeedback: { $ne: null } },
-                { studentTutoringFeedback: { $exists: false } },
-              ],
-            },
-            {
-              $or: [
-                { volunteerFeedback: { $ne: null } },
-                { volunteerFeedback: { $exists: false } },
-              ],
-            },
-          ],
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          root: { $mergeObjects: '$$ROOT' },
-        },
-      },
-      {
-        $replaceRoot: {
-          newRoot: '$root',
-        },
-      },
-    ])
-    return feedback
-  } catch (err) {
-    throw new LookupError(`Error finding feedback: ${(err as Error).message}`)
-  }
-}

@@ -9,13 +9,10 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4',
 })
 
-export const getObject = async ({
-  bucket,
-  s3Key,
-}: {
-  bucket: string
+export const getObject = async (
+  bucket: keyof typeof config.awsS3,
   s3Key: string
-}): Promise<string> => {
+): Promise<string> => {
   const signedUrlParams = {
     Bucket: config.awsS3[bucket],
     Key: s3Key,
@@ -26,7 +23,7 @@ export const getObject = async ({
     return objectUrl
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
@@ -47,7 +44,7 @@ export const getPhotoIdUploadUrl = async ({
     return uploadUrl
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
@@ -66,7 +63,7 @@ export const getPhotoIdUrl = async ({
     return photoUrl
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
@@ -85,21 +82,18 @@ export const getSessionPhotoUploadUrl = async (
     return uploadUrl
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
-export const getObjects = async ({
-  bucket,
-  s3Keys,
-}: {
-  bucket: string
+export const getObjects = async (
+  bucket: keyof typeof config.awsS3,
   s3Keys: string[]
-}): Promise<string[]> => {
+): Promise<string[]> => {
   const urls = []
 
   for (const s3Key of s3Keys) {
-    urls.push(getObject({ bucket, s3Key }))
+    urls.push(getObject(bucket, s3Key))
   }
 
   return Promise.all(urls)

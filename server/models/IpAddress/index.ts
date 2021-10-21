@@ -1,7 +1,7 @@
 import { values } from 'lodash'
 import { Document, model, Schema, Types } from 'mongoose'
-import { IP_ADDRESS_STATUS } from '../constants'
-import { User } from './User'
+import { IP_ADDRESS_STATUS } from '../../constants'
+import { User } from '../User'
 
 export interface IpAddress {
   _id: Types.ObjectId

@@ -261,9 +261,10 @@ export async function getQuizScore(
   ).length
 
   const percent = score / questions.length
-  const threshold = getSubjectType(cert) === SUBJECT_TYPES.TRAINING
-    ? TRAINING_THRESHOLD
-    : SUBJECT_THRESHOLD
+  const threshold =
+    getSubjectType(cert) === SUBJECT_TYPES.TRAINING
+      ? TRAINING_THRESHOLD
+      : SUBJECT_THRESHOLD
   const passed = percent >= threshold
 
   const tries = user.certifications[cert]['tries'] + 1
@@ -283,7 +284,11 @@ export async function getQuizScore(
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
       if (!user.subjects.includes(subject))
-        new QuizActionCreator(user._id, subject as ALL_CERTS_TYPE, ip).unlockedSubject()
+        new QuizActionCreator(
+          user._id,
+          subject as ALL_CERTS_TYPE,
+          ip
+        ).unlockedSubject()
       captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {
         event: EVENTS.SUBJECT_UNLOCKED,
         subject,

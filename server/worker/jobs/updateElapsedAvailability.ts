@@ -2,12 +2,8 @@ import moment from 'moment-timezone'
 import { getVolunteerIdsForElapsedAvailability, updateVolunteerElapsedAvailabilityById } from '../../models/Volunteer/queries'
 import { log } from '../logger'
 import { DAYS } from '../../models/Availability/types'
-import { AvailabilitySnapshot } from '../../models/Availability/Snapshot'
-import {
-  createAvailabilityHistory,
-  getAvailability,
-  getElapsedAvailability
-} from '../../services/AvailabilityService'
+import { getElapsedAvailability } from '../../services/AvailabilityService'
+import { getSnapshotByVolunteerId, createHistoryFromBaseHistory } from '../../models/Availability/queries'
 import { Jobs } from '.'
 
 export default async (): Promise<void> => {
@@ -17,9 +13,7 @@ export default async (): Promise<void> => {
   const errors = []
 
   for (const volunteerId of volunteerIds) {
-    const availability: AvailabilitySnapshot = await getAvailability({
-      volunteerId
-    })
+    const availability = await getSnapshotByVolunteerId(volunteerId)
     if (!availability) return
 
     const endOfYesterday = moment()
@@ -50,7 +44,7 @@ export default async (): Promise<void> => {
       date: endOfYesterday
     }
     try {
-      await createAvailabilityHistory(newAvailabilityHistory)
+      await createHistoryFromBaseHistory(newAvailabilityHistory)
     } catch (error) {
       errors.push(
         `Volunteer ${volunteerId} updated availability but failed to create availability history: ${error}`

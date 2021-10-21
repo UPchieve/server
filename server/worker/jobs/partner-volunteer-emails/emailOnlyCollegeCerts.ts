@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
-import { getNotifications } from '../../../services/NotificationService'
+import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getPartnerVolunteerForCollege } from '../../../models/Volunteer/queries'
 
 /**
@@ -30,7 +30,7 @@ export default async (
 
   if (volunteer) {
     const { _id, firstname: firstName, email } = volunteer
-    const textNotifications = await getNotifications({ volunteer: _id })
+    const textNotifications = await getNotificationsByVolunteerId(_id)
 
     if (textNotifications.length < 2) {
       try {

@@ -14,10 +14,10 @@ const blobServiceClient = new BlobServiceClient(
 )
 
 // a helper method used to read a Node.js readable stream into a Buffer
-async function streamToBuffer(readableStream): Promise<Buffer> {
+async function streamToBuffer(readableStream: any): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const chunks = []
-    readableStream.on('data', data => {
+    const chunks: any[] = []
+    readableStream.on('data', (data: any) => {
       chunks.push(data instanceof Buffer ? data : Buffer.from(data))
     })
     readableStream.on('end', () => {

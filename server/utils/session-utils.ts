@@ -24,12 +24,19 @@ export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
 export class ReportSessionError extends CustomError {}
 
-export function didParticipantsChat(messages: Message[], studentId: Types.ObjectId, volunteerId: Types.ObjectId): boolean {
+export function didParticipantsChat(
+  messages: Message[],
+  studentId: Types.ObjectId,
+  volunteerId: Types.ObjectId
+): boolean {
   let studentSentMessage = false
   let volunteerSentMessage = false
 
   for (const message of messages) {
-    const messagerId = (message.user instanceof Types.ObjectId) ? message.user : (message.user as User)._id
+    const messagerId =
+      message.user instanceof Types.ObjectId
+        ? message.user
+        : (message.user as User)._id
 
     if (studentId === messagerId) studentSentMessage = true
     if (volunteerId === messagerId) volunteerSentMessage = true
@@ -53,9 +60,15 @@ export function getMessagesAfterDate(messages: Message[], date: Date) {
 export function isSessionParticipant(session: Session, user: User): boolean {
   const userId = user._id
 
-  const studentId = (session.student instanceof Types.ObjectId) ? session.student : (session.student as Student)._id
-  const volunteerId = (session.volunteer instanceof Types.ObjectId || !session.volunteer) ? session.volunteer : (session.volunteer as Volunteer)._id
-  
+  const studentId =
+    session.student instanceof Types.ObjectId
+      ? session.student
+      : (session.student as Student)._id
+  const volunteerId =
+    session.volunteer instanceof Types.ObjectId || !session.volunteer
+      ? session.volunteer
+      : (session.volunteer as Volunteer)._id
+
   return userId === studentId || userId === volunteerId
 }
 

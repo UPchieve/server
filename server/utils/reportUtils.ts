@@ -10,7 +10,7 @@ import {
 } from '../constants'
 import * as UserActionService from '../services/UserActionService'
 import * as SessionService from '../services/SessionService'
-import * as AvailabilityService from '../services/AvailabilityService'
+import { getHistoryForDatesByVolunteerId } from '../models/Availability/queries'
 import logger from '../logger'
 import { isCertified } from '../controllers/UserCtrl'
 import { Session } from '../models/Session'
@@ -18,6 +18,10 @@ import { Volunteer, Certifications } from '../models/Volunteer'
 import { HOURS } from '../models/Availability/types'
 import { AvailabilityHistory } from '../models/Availability/History'
 import { UserAction } from '../models/UserAction'
+import {
+  VolunteerForHourSummary,
+  VolunteerForTelecomReport,
+} from '../models/Volunteer/queries'
 import {
   getVolunteersWithPipeline,
   HourSummaryStats,
@@ -36,8 +40,6 @@ import { asFactory, asOptional, asString } from './type-utils'
  * dateQuery is types as any for now since we know it's a mongo agg date query
  * acc is also typed any due to issues with Availability type
  */
-
-export type VolunteerForTelecomReport = Pick<Volunteer, '_id' | 'certifications'>
 
 interface Stamp {
   day: string
@@ -119,7 +121,9 @@ function telecomTutorTime(
     for (const hourA of Object.keys(availability)) {
       if (availability[hourA as HOURS]) {
         const temp = moment(availabilityHistory.date)
-        const { day, hour } = formatStamp(temp.hour(HOUR_TO_UTC_MAPPING[hourA as HOURS]))
+        const { day, hour } = formatStamp(
+          temp.hour(HOUR_TO_UTC_MAPPING[hourA as HOURS])
+        )
         // If day is not aleady accounted for do not add since no tutoring happened
         if (day in acc) {
           acc[day][hour] = 60
@@ -185,7 +189,10 @@ interface TelecomRow {
   hours: number
 }
 
-async function getVolunteerData<V extends VolunteerForTelecomReport>(volunteer: V, dateQuery: any) {
+async function getVolunteerData<V extends VolunteerForHourSummary>(
+  volunteer: V,
+  dateQuery: any
+) {
   const quizPassedActions: UserAction[] = await UserActionService.getActionsWithPipeline(
     [
       {
@@ -243,20 +250,10 @@ async function getVolunteerData<V extends VolunteerForTelecomReport>(volunteer: 
     },
   ])
   // TODO: figure out how to properly type and cast
-  const availabilityForDateRange: any = await AvailabilityService.getAvailabilityHistoryWithPipeline(
-    [
-      {
-        $match: {
-          volunteerId: volunteer._id,
-          date: dateQuery,
-        },
-      },
-      {
-        $sort: {
-          date: 1,
-        },
-      },
-    ]
+  const availabilityForDateRange = await getHistoryForDatesByVolunteerId(
+    volunteer._id,
+    dateQuery.$gt,
+    dateQuery.$lte
   )
   return {
     sessions,
@@ -265,8 +262,8 @@ async function getVolunteerData<V extends VolunteerForTelecomReport>(volunteer: 
   }
 }
 
-async function telecomProcessVolunteer(
-  volunteer: Volunteer,
+async function telecomProcessVolunteer<V extends VolunteerForTelecomReport>(
+  volunteer: V,
   dateQuery: any
 ): Promise<TelecomRow[]> {
   const totalCerts = countCerts(volunteer.certifications)
@@ -301,10 +298,9 @@ async function telecomProcessVolunteer(
   return rows
 }
 
-export async function generateTelecomReport(
-  volunteers: Volunteer[],
-  dateQuery: any
-): Promise<TelecomRow[]> {
+export async function generateTelecomReport<
+  V extends VolunteerForTelecomReport
+>(volunteers: V[], dateQuery: any): Promise<TelecomRow[]> {
   const volunteerPartnerReport = []
   const errors = []
   for (const volunteer of volunteers) {
@@ -342,10 +338,9 @@ export function emptyHours(): HourSummaryStats {
 }
 
 // To be used by email/update job(s) for generating telecom volunteer hours
-export async function telecomHourSummaryStats<V extends VolunteerForTelecomReport>(
-  volunteer: V,
-  dateQuery: any
-): Promise<HourSummaryStats> {
+export async function telecomHourSummaryStats<
+  V extends VolunteerForHourSummary
+>(volunteer: V, dateQuery: any): Promise<HourSummaryStats> {
   try {
     const totalCerts = countCerts(volunteer.certifications)
     if (totalCerts === 0) return emptyHours()
@@ -647,7 +642,10 @@ export async function getAnalyticsReportSummary(
     summary.signUps.total++
     if (isDateWithin(row.dateAccountCreated, startDate, endDate))
       summary.signUps.totalWithinDateRange++
-    if (row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED && row.dateOnboarded) {
+    if (
+      row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED &&
+      row.dateOnboarded
+    ) {
       summary.volunteersOnboarded.total++
       if (isDateWithin(row.dateOnboarded, startDate, endDate))
         summary.volunteersOnboarded.totalWithinDateRange++
@@ -890,7 +888,10 @@ export function processAnalyticsReportSummarySheet(
     string,
     AnalyticsReportSummaryData
   ][]) {
-    const description = analyticsReportSummaryHeaderMapping[key as keyof typeof analyticsReportSummaryHeaderMapping]
+    const description =
+      analyticsReportSummaryHeaderMapping[
+        key as keyof typeof analyticsReportSummaryHeaderMapping
+      ]
     let total: number | string
     let totalWithinDateRange: number | string
     if (key === 'onboardingRate' || key === 'pickupRate') {
@@ -1016,7 +1017,8 @@ export function validateStudentReportQuery(data: StudentReportQuery) {
       throw new InputError('Invalid student partner organization')
     else if (
       (data.studentPartnerSite && !studentPartner.hasOwnProperty('sites')) ||
-      (data.studentPartnerSite && studentPartner.sites &&
+      (data.studentPartnerSite &&
+        studentPartner.sites &&
         !studentPartner.sites.includes(data.studentPartnerSite))
     )
       throw new InputError(

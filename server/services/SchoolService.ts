@@ -14,7 +14,7 @@ function createUpchieveId() {
 }
 
 // search for schools by name or ID
-export const search = async (query): Promise<any> => {
+export async function search(query: any): Promise<any> {
   // @note: Atlas Search is unavailable for local development. This is a
   // fallback query to be able to search for schools in local development
   if (config.NODE_ENV === 'dev') {
@@ -26,7 +26,7 @@ export const search = async (query): Promise<any> => {
       .limit(100)
 
     return results
-      .sort((s1, s2) => s1.name.localeCompare(s2.name))
+      .sort((s1: School, s2: School) => s1.name.localeCompare(s2.name))
       .map(school => {
         return {
           _id: school._id,
@@ -104,10 +104,10 @@ export const search = async (query): Promise<any> => {
   }
 }
 
-export const getSchool = async (schoolId): Promise<School> => {
+export async function getSchool(schoolId: Types.ObjectId): Promise<School> {
   try {
     const [school] = await SchoolModel.aggregate([
-      { $match: { _id: Types.ObjectId(schoolId) } },
+      { $match: { _id: schoolId } },
       {
         $project: {
           name: {
@@ -141,12 +141,17 @@ export const getSchool = async (schoolId): Promise<School> => {
 
     return school
   } catch (error) {
-    throw new Error(error.message)
+    throw new Error((error as Error).message)
   }
 }
 
-export const getSchools = async ({ name, state, city, page }) => {
-  const pageNum = parseInt(page) || 1
+export async function getSchools(
+  name: string,
+  state: string,
+  city: string,
+  page: number
+) {
+  const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
   const queries = []
@@ -226,21 +231,21 @@ export const getSchools = async ({ name, state, city, page }) => {
   }
 }
 
-export const updateApproval = (schoolId, isApproved) => {
+export function updateApproval(schoolId: Types.ObjectId, isApproved: boolean) {
   return SchoolModel.updateOne({ _id: schoolId }, { isApproved })
 }
 
-export const updateIsPartner = (schoolId, isPartner) => {
+export function updateIsPartner(schoolId: Types.ObjectId, isPartner: boolean) {
   return SchoolModel.updateOne({ _id: schoolId }, { isPartner })
 }
 
-export const createSchool = async ({
-  name,
-  city,
-  state,
-  zipCode,
-  isApproved,
-}) => {
+export async function createSchool(
+  name: string,
+  city: string,
+  state: string,
+  zipCode: string,
+  isApproved: boolean
+) {
   let upchieveId = createUpchieveId()
   let existingSchool = await SchoolModel.findOne({ upchieveId })
     .lean()
@@ -268,14 +273,14 @@ export const createSchool = async ({
   return school.save()
 }
 
-export const adminUpdateSchool = async ({
-  schoolId,
-  name,
-  city,
-  state,
-  zipCode,
-  isApproved,
-}) => {
+export async function adminUpdateSchool(
+  schoolId: Types.ObjectId,
+  name: string,
+  city: string,
+  state: string,
+  zipCode: string,
+  isApproved: boolean
+) {
   const schoolData = {
     isApproved,
     nameStored: name,

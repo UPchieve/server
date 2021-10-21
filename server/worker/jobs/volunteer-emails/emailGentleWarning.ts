@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
 import MailService from '../../../services/MailService'
-import { getNotificationsWithPipeline } from '../../../services/NotificationService'
+import { getNotificationsWithPipeline } from '../../../models/Notification/queries'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
 import { emailRecipientPrefixed } from '../../../utils/aggregation-snippets'
 

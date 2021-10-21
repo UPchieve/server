@@ -5,23 +5,21 @@ import { DeleteWriteOpResultObject } from 'mongodb'
 import UserModel from '../models/User'
 import { findUserIdByReferralCode } from '../models/User/queries'
 import StudentModel, { Student } from '../models/Student'
-import VolunteerModel, {
-  Certifications,
-  Volunteer,
-} from '../models/Volunteer'
+import VolunteerModel, { Certifications, Volunteer } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
 import { createByUserId as createUSMByUserId } from '../models/UserSessionMetrics'
 import { createByUserId as createUPFByUserId } from '../models/UserProductFlags'
 import { AccountActionCreator } from './UserActionCtrl'
-import {
-  createAvailabilitySnapshot,
-} from '../services/AvailabilityService'
+import { createSnapshotByVolunteerId } from '../models/Availability/queries'
 import { hashPassword } from '../utils/auth-utils'
 import { ALL_CERTS_TYPE } from '../constants'
 
-const generateReferralCode = (userId: Types.ObjectId) => base64url(Buffer.from(userId.toString(), 'hex'))
+const generateReferralCode = (userId: Types.ObjectId) =>
+  base64url(Buffer.from(userId.toString(), 'hex'))
 
-export async function checkReferral(referredByCode: string): Promise<Types.ObjectId | undefined> {
+export async function checkReferral(
+  referredByCode: string
+): Promise<Types.ObjectId | undefined> {
   if (referredByCode) {
     try {
       return await findUserIdByReferralCode(referredByCode)
@@ -82,7 +80,7 @@ export async function createVolunteer(
 
   await Promise.all([
     volunteer.save(),
-    createAvailabilitySnapshot(volunteer._id),
+    createSnapshotByVolunteerId(volunteer._id),
   ])
 
   // Create a USM object for this new user

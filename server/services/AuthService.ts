@@ -3,10 +3,17 @@ import { findKey } from 'lodash'
 import validator from 'validator'
 
 import mongoose from 'mongoose'
-import UserModel from '../models/User'
+import {
+  findUserByEmail,
+  findUserByResetToken,
+  updateUserResetTokenById,
+  updateUserPasswordById,
+  findUserIdByEmail,
+} from '../models/User/queries'
 import { Student } from '../models/Student'
 import { Volunteer } from '../models/Volunteer'
-import { School, findByUpchieveId } from '../models/School'
+import { School } from '../models/School'
+import { findSchoolByUpchieveId } from '../models/School/queries'
 import * as UserCtrl from '../controllers/UserCtrl'
 
 import {
@@ -35,11 +42,11 @@ import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import { sessionStoreCollectionName } from '../router/api/session-store'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
-import IpAddressService from './IpAddressService'
+import { getIpWhoIs } from './IpAddressService'
 import MailService from './MailService'
 
 async function checkIpAddress(ip: string): Promise<void> {
-  const { country_code: countryCode } = await IpAddressService.getIpWhoIs(ip)
+  const { country_code: countryCode } = await getIpWhoIs(ip)
 
   if (countryCode && countryCode !== 'US') {
     throw new NotAllowedError(
@@ -58,8 +65,6 @@ async function checkIpAddress(ip: string): Promise<void> {
  */
 
 // TODO: effective logging
-// TODO: make registration functions return User instead of User types
-// ^ once UserCtrl is refactored
 
 // Registration handlers
 // Handles /register/checkcred route
@@ -72,10 +77,8 @@ export async function checkCredential(data: unknown): Promise<boolean> {
     throw new RegistrationError('Must supply a valid email address')
 
   if (checkPassword(password)) {
-    const users = await UserModel.find({ email: email })
-      .lean()
-      .exec()
-    if (users.length !== 0) {
+    const user = await findUserIdByEmail(email)
+    if (user) {
       throw new LookupError('The email address you entered is already in use')
     }
   }
@@ -84,9 +87,7 @@ export async function checkCredential(data: unknown): Promise<boolean> {
 }
 
 // Handles /register/student/open route
-export async function registerOpenStudent(
-  data: unknown
-): Promise<Student> {
+export async function registerOpenStudent(data: unknown): Promise<Student> {
   const {
     ip,
     email,
@@ -109,7 +110,8 @@ export async function registerOpenStudent(
 
   const highSchoolProvided = !!highSchoolUpchieveId
   let school: School | undefined
-  if (highSchoolProvided) school = await findByUpchieveId(highSchoolUpchieveId)
+  if (highSchoolProvided)
+    school = await findSchoolByUpchieveId(highSchoolUpchieveId)
 
   const highSchoolApprovalRequired = !zipCode
   if (highSchoolApprovalRequired) {
@@ -120,8 +122,7 @@ export async function registerOpenStudent(
   }
 
   let referredBy: mongoose.Types.ObjectId | undefined
-  if (referredByCode)
-    referredBy = await getReferredBy(referredByCode)
+  if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
     firstname: firstName.trim(),
@@ -133,7 +134,7 @@ export async function registerOpenStudent(
     verified: false,
     referredBy,
     password,
-    currentGrade
+    currentGrade,
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
@@ -141,9 +142,7 @@ export async function registerOpenStudent(
 }
 
 // Handles /register/student/partner route
-export async function registerPartnerStudent(
-  data: unknown
-): Promise<Student> {
+export async function registerPartnerStudent(data: unknown): Promise<Student> {
   const {
     ip,
     email,
@@ -173,11 +172,10 @@ export async function registerPartnerStudent(
 
   let school: School | undefined
   if (highSchoolUpchieveId)
-    school = await findByUpchieveId(highSchoolUpchieveId)
+    school = await findSchoolByUpchieveId(highSchoolUpchieveId)
 
   let referredBy: mongoose.Types.ObjectId | undefined
-  if (referredByCode)
-    referredBy = await getReferredBy(referredByCode)
+  if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
     firstname: firstName.trim(),
@@ -192,7 +190,7 @@ export async function registerPartnerStudent(
     isVolunteer: false,
     verified: false,
     referredBy,
-    password
+    password,
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
@@ -200,9 +198,7 @@ export async function registerPartnerStudent(
 }
 
 // Handles /register/volunteer/open route
-export async function registerVolunteer(
-  data: unknown
-): Promise<Volunteer> {
+export async function registerVolunteer(data: unknown): Promise<Volunteer> {
   const {
     ip,
     email,
@@ -223,8 +219,7 @@ export async function registerVolunteer(
   }
 
   let referredBy: mongoose.Types.ObjectId | undefined
-  if (referredByCode)
-    referredBy = await getReferredBy(referredByCode)
+  if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const volunteerData = {
     email,
@@ -235,7 +230,7 @@ export async function registerVolunteer(
     lastname: lastName.trim(),
     verified: false,
     referredBy,
-    password
+    password,
   }
 
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
@@ -268,8 +263,7 @@ export async function registerPartnerVolunteer(
   }
 
   let referredBy: mongoose.Types.ObjectId | undefined
-  if (referredByCode)
-    referredBy = await getReferredBy(referredByCode)
+  if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   // Volunteer partner org check
   const volunteerPartnerManifest =
@@ -310,7 +304,9 @@ export async function registerPartnerVolunteer(
 
 // Partner lookup handlers
 // Handles /partner/volunteer route
-export async function lookupPartnerVolunteer(data: unknown): Promise<VolunteerPartnerManifest> {
+export async function lookupPartnerVolunteer(
+  data: unknown
+): Promise<VolunteerPartnerManifest> {
   const volunteerPartnerId = asString(data)
   // If missing master manifest error will bubble up
   const partnerManifest = volunteerPartnerManifests[volunteerPartnerId]
@@ -324,7 +320,9 @@ export async function lookupPartnerVolunteer(data: unknown): Promise<VolunteerPa
 }
 
 // Handles /partner/student route
-export async function lookupPartnerStudent(data: unknown): Promise<StudentPartnerManifest> {
+export async function lookupPartnerStudent(
+  data: unknown
+): Promise<StudentPartnerManifest> {
   const studentPartnerId = asString(data)
   // If missing master manifest error will bubble up
   const partnerManifest = studentPartnerManifests[studentPartnerId]
@@ -394,13 +392,12 @@ export async function lookupVolunteerPartners(): Promise<PartnerOrg[]> {
 // Handles /reset/send route
 export async function sendReset(data: unknown): Promise<void> {
   const email = asString(data)
-  const user = await UserModel.findOne({ email })
+  const user = await findUserByEmail(email)
   if (!user) throw new LookupError(`No account with ${email} found`)
 
   const buffer: Buffer = randomBytes(16)
   const token = buffer.toString('hex')
-  user.passwordResetToken = token
-  await user.save()
+  await updateUserResetTokenById(user._id, token)
 
   await MailService.sendReset({ email, token })
 }
@@ -413,7 +410,7 @@ export async function confirmReset(data: unknown): Promise<void> {
     throw new ResetError('Invalid password reset token')
   }
 
-  const user = await UserModel.findOne({ passwordResetToken: token })
+  const user = await findUserByResetToken(token)
 
   if (!user)
     throw new LookupError('No account found with provided password reset token')
@@ -424,9 +421,7 @@ export async function confirmReset(data: unknown): Promise<void> {
 
   checkPassword(password)
 
-  user.passwordResetToken = undefined
-  user.password = await hashPassword(password)
-  await user.save()
+  await updateUserPasswordById(user._id, await hashPassword(password))
 }
 
 export async function deleteAllUserSessions(userId: string) {

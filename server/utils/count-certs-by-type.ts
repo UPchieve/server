@@ -20,7 +20,7 @@ export function countCertsByType(
     [SUBJECT_TYPES.COLLEGE]: 0,
     [SUBJECT_TYPES.SAT]: 0,
     [SUBJECT_TYPES.TRAINING]: 0,
-    [SUBJECT_TYPES.READING_WRITING]: 0
+    [SUBJECT_TYPES.READING_WRITING]: 0,
   }
 
   for (const subject in certifications) {

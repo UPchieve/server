@@ -1,5 +1,3 @@
-/* eslint @typescript-eslint/no-use-before-define: 0 */
-
 import { Types } from 'mongoose'
 
 import {
@@ -10,11 +8,13 @@ import {
 } from '../../models/Session'
 import {
   UserSessionMetrics,
-  UserSessionMetricsUpdateQuery,
   MetricType,
-  getByUserId,
-  executeUpdatesByUserId
 } from '../../models/UserSessionMetrics'
+import {
+  UserSessionMetricsUpdateQuery,
+  getUSMByUserId,
+  executeUSMUpdatesByUserId
+} from '../../models/UserSessionMetrics/queries'
 import {
   USER_SESSION_METRICS,
   SESSION_EVENTS,
@@ -24,7 +24,7 @@ import { FeedbackVersionTwo } from '../../models/Feedback'
 import { emitter } from '../EventsService'
 import logger from '../../logger'
 import { safeAsync } from '../../utils/safe-async'
-import { getFeedback } from '../FeedbackService'
+import { getFeedbackById } from '../../models/Feedback/queries'
 import { METRIC_PROCESSORS, MetricProcessorOutputs } from './metrics'
 import { UpdateValueData, ProcessorData, MetricProcessor, CounterMetricProcessor } from './types'
 
@@ -117,14 +117,17 @@ export async function getValuesToPrepareMetrics(
 }> {
   const session = await getSessionById(sessionId)
   const feedback = feedbackId
-    ? ((await getFeedback({ _id: feedbackId })) as FeedbackVersionTwo)
+    ? ((await getFeedbackById(feedbackId)) as FeedbackVersionTwo)
     : undefined
   const uvd = { session, feedback } as UpdateValueData
 
-  const studentUSM = await getByUserId(uvd.session.student as Types.ObjectId)
+  const studentUSM = await getUSMByUserId(uvd.session.student as Types.ObjectId)
+  if (!studentUSM) throw new Error(`Could not find USM for student ${uvd.session.student}`)
   let volunteerUSM: UserSessionMetrics | undefined
-  if (uvd.session.volunteer)
-    volunteerUSM = await getByUserId(uvd.session.volunteer as Types.ObjectId)
+  if (uvd.session.volunteer) {
+    volunteerUSM = await getUSMByUserId(uvd.session.volunteer as Types.ObjectId)
+    if (!volunteerUSM) throw new Error(`Could not find USM for volunteer ${uvd.session.volunteer}`)
+  }
 
   return {
     session,
@@ -336,7 +339,7 @@ export const processStudentUpdateQuery = metricProcessorFactory(
     session: Session
   ): Promise<void> => {
     try {
-      await executeUpdatesByUserId(session.student as Types.ObjectId, updates)
+      await executeUSMUpdatesByUserId(session.student as Types.ObjectId, updates)
     } catch (err) {
       throw new Error(
         `failed to update USM for user ${session.student as Types.ObjectId} - ${err}`
@@ -357,7 +360,7 @@ export const processVolunteerUpdateQuery = metricProcessorFactory(
   ): Promise<void> => {
     try {
       if (session.volunteer)
-        await executeUpdatesByUserId(
+        await executeUSMUpdatesByUserId(
           session.volunteer as Types.ObjectId,
           updates
         )

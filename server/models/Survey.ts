@@ -6,7 +6,7 @@ import { User } from './User'
 export interface Survey {
   _id: Types.ObjectId
   session: Types.ObjectId
-  responseData: { [key: string]: any } // eslint-disable-line @typescript-eslint/no-explicit-any
+  responseData: { [key: string]: any }
   user: Types.ObjectId | User
   surveyType: SURVEY_TYPES
   createdAt: Date

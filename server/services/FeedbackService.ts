@@ -1,30 +1,13 @@
 import FeedbackModel, {
-  Feedback,
   FeedbackDocument,
   ResponseData,
   StudentCounselingFeedback,
   StudentTutoringFeedback,
   VolunteerFeedback,
-  FeedbackVersionOne,
-  FeedbackVersionTwo,
 } from '../models/Feedback'
 import { FEEDBACK_VERSIONS } from '../constants'
 import { FEEDBACK_EVENTS } from '../constants/events'
 import { emitter } from './EventsService'
-
-export const getFeedback = (
-  query
-): Promise<Feedback | FeedbackVersionOne | FeedbackVersionTwo> => {
-  return FeedbackModel.findOne(query)
-    .lean()
-    .exec()
-}
-
-export function getFeedbackForSession(sessionId: string): Promise<Feedback[]> {
-  return FeedbackModel.find({ sessionId })
-    .lean()
-    .exec()
-}
 
 export const saveFeedback = async (data: {
   sessionId: string

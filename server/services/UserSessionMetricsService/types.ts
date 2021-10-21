@@ -3,8 +3,8 @@ import {
   Counter,
   MetricType,
   UserSessionMetrics,
-  UserSessionMetricsUpdateQuery
 } from '../../models/UserSessionMetrics'
+import { UserSessionMetricsUpdateQuery } from '../../models/UserSessionMetrics/queries'
 import { Session } from '../../models/Session'
 import { FeedbackVersionTwo } from '../../models/Feedback'
 import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
