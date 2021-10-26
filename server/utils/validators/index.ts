@@ -4,6 +4,7 @@ import UserModel from '../../models/User'
 export async function validUser(
   userId: Types.ObjectId | string
 ): Promise<boolean> {
+  // TODO: should this go through the repo?
   const user = await UserModel.findById(userId)
     .lean()
     .exec()

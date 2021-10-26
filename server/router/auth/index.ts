@@ -6,7 +6,7 @@ import * as AuthService from '../../services/AuthService'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
-import UserService from '../../services/UserService'
+import * as UserService from '../../services/UserService'
 
 // TODO: type passport request member methods/variable correctly (login, logout, user)
 export function routes(app: Express) {

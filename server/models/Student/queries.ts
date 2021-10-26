@@ -19,6 +19,13 @@ export async function getStudent(query: any): Promise<Student | undefined> {
   })
 }
 
+export async function getStudentById(studentId: Types.ObjectId): Promise<Student | undefined> {
+  return await wrapRead(async () => {
+    const student = await StudentModel.findOne({ _id: studentId }).lean().exec()
+    if (student) return student as Student
+  })
+}
+
 export type StudentContactInfo = Pick<Student, '_id' | 'firstname' | 'email'>
 export async function getStudentContactInfoById(studentId: Types.ObjectId | string): Promise<StudentContactInfo | undefined> {
   return await wrapRead(async () => {
@@ -34,4 +41,17 @@ export async function getStudentContactInfoById(studentId: Types.ObjectId | stri
     }).lean().exec()
     if (student) return student as StudentContactInfo
   }) 
+}
+
+export async function getTestStudentById(studentId: Types.ObjectId | string): Promise<boolean> {
+  try {
+    const student = await StudentModel.findOne({ _id: studentId })
+      .select('isTestUser')
+      .lean()
+      .exec()
+    if (student) return student.isTestUser
+    return false
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }

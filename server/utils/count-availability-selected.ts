@@ -17,5 +17,4 @@ const countAvailabilitySelected = (availability: Availability): number => {
   return selectedHours
 }
 
-module.exports = countAvailabilitySelected
 export default countAvailabilitySelected

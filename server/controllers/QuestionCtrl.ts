@@ -1,6 +1,7 @@
 import { FilterQuery } from 'mongoose'
 import QuestionModel, { Question, QuestionDocument } from '../models/Question'
 
+// TODO: refactor to use repo pattern
 export async function list(
   filters: FilterQuery<QuestionDocument>[]
 ): Promise<QuestionDocument[]> {

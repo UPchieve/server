@@ -5,7 +5,7 @@
  */
 import { values } from 'lodash'
 import { Document, model, Schema, Types } from 'mongoose'
-import { Volunteer } from './Volunteer'
+import { Volunteer } from '../Volunteer'
 
 export enum NotificationType {
   REGULAR = 'REGULAR',

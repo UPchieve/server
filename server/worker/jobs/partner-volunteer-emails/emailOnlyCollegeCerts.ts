@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getPartnerVolunteerForCollege } from '../../../models/Volunteer/queries'
 
@@ -29,13 +29,12 @@ export default async (
   const volunteer = await getPartnerVolunteerForCollege(volunteerId)
 
   if (volunteer) {
-    const { _id, firstname: firstName, email } = volunteer
+    const { _id, firstname, email } = volunteer
     const textNotifications = await getNotificationsByVolunteerId(_id)
 
     if (textNotifications.length < 2) {
       try {
-        const contactInfo = { firstName, email }
-        await MailService.sendPartnerVolunteerOnlyCollegeCerts(contactInfo)
+        await MailService.sendPartnerVolunteerOnlyCollegeCerts(email, firstname)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(

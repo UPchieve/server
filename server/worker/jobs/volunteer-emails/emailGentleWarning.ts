@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getNotificationsWithPipeline } from '../../../models/Notification/queries'
 import { getSessionsWithPipeline } from '../../../services/SessionService'
 import { emailRecipientPrefixed } from '../../../utils/aggregation-snippets'
@@ -105,9 +105,8 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
   for (const volunteer of volunteerNotifications) {
     if (volunteer.totalNotifications === 5) {
       const { firstName, email, _id } = volunteer
-      const contactInfo = { firstName, email }
       try {
-        await MailService.sendVolunteerGentleWarning(contactInfo)
+        await MailService.sendVolunteerGentleWarning(email, firstName)
         logger.info(`Sent ${currentJob} to volunteer ${_id}`)
       } catch (error) {
         errors.push(`volunteer ${_id}: ${error}`)

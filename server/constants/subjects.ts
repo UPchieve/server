@@ -24,20 +24,20 @@ export enum MATH_CERTS {
   STATISTICS = 'statistics',
 }
 
-export const MATH_SUBJECTS = {
-  PREALGREBA: 'prealgebra',
-  ALGEBRA_ONE: 'algebraOne',
-  ALGEBRA_TWO: 'algebraTwo',
-  GEOMETRY: 'geometry',
-  TRIGONOMETRY: 'trigonometry',
-  PRECALCULUS: 'precalculus',
-  CALCULUS_AB: 'calculusAB',
-  CALCULUS_BC: 'calculusBC',
-  STATISTICS: 'statistics',
-  INTEGRATED_MATH_ONE: 'integratedMathOne',
-  INTEGRATED_MATH_TWO: 'integratedMathTwo',
-  INTEGRATED_MATH_THREE: 'integratedMathThree',
-  INTEGRATED_MATH_FOUR: 'integratedMathFour',
+export enum MATH_SUBJECTS {
+  PREALGREBA = 'prealgebra',
+  ALGEBRA_ONE = 'algebraOne',
+  ALGEBRA_TWO = 'algebraTwo',
+  GEOMETRY = 'geometry',
+  TRIGONOMETRY = 'trigonometry',
+  PRECALCULUS = 'precalculus',
+  CALCULUS_AB = 'calculusAB',
+  CALCULUS_BC = 'calculusBC',
+  STATISTICS = 'statistics',
+  INTEGRATED_MATH_ONE = 'integratedMathOne',
+  INTEGRATED_MATH_TWO = 'integratedMathTwo',
+  INTEGRATED_MATH_THREE = 'integratedMathThree',
+  INTEGRATED_MATH_FOUR = 'integratedMathFour',
 }
 
 export enum SCIENCE_CERTS {
@@ -47,12 +47,12 @@ export enum SCIENCE_CERTS {
   PHYSICS_TWO = 'physicsTwo',
   ENVIRONMENTAL_SCIENCE = 'environmentalScience',
 }
-export const SCIENCE_SUBJECTS = {
-  BIOLOGY: 'biology',
-  CHEMISTRY: 'chemistry',
-  PHYSICS_ONE: 'physicsOne',
-  PHYSICS_TWO: 'physicsTwo',
-  ENVIRONMENTAL_SCIENCE: 'environmentalScience',
+export enum SCIENCE_SUBJECTS {
+  BIOLOGY = 'biology',
+  CHEMISTRY = 'chemistry',
+  PHYSICS_ONE = 'physicsOne',
+  PHYSICS_TWO = 'physicsTwo',
+  ENVIRONMENTAL_SCIENCE = 'environmentalScience',
 }
 
 export enum COLLEGE_CERTS {
@@ -76,9 +76,9 @@ export enum SAT_CERTS {
   SAT_READING = 'satReading',
 }
 
-export const SAT_SUBJECTS = {
-  SAT_MATH: 'satMath',
-  SAT_READING: 'satReading',
+export enum SAT_SUBJECTS {
+  SAT_MATH = 'satMath',
+  SAT_READING = 'satReading',
 }
 
 export enum READING_WRITING_CERTS {
@@ -95,6 +95,15 @@ export const SUBJECTS = {
   ...COLLEGE_SUBJECTS,
   ...SAT_SUBJECTS,
   ...READING_WRITING_SUBJECTS,
+}
+
+export const CERTS = {
+  ...MATH_CERTS,
+  ...SCIENCE_CERTS,
+  ...COLLEGE_CERTS,
+  ...SAT_CERTS,
+  ...READING_WRITING_CERTS,
+  ...TRAINING,
 }
 
 export const CERT_UNLOCKING = {
@@ -474,21 +483,3 @@ export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
   [SAT_SUBJECTS.SAT_READING]: 'SAT Reading',
   [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays',
 }
-
-export type ALL_CERTS_TYPE =
-  | MATH_CERTS
-  | COLLEGE_CERTS
-  | SCIENCE_CERTS
-  | SAT_CERTS
-  | READING_WRITING_CERTS
-  | TRAINING
-export type CERT_TYPE = Record<ALL_CERTS_TYPE, string>
-
-export type ALL_SUBJECTS_TYPE =
-  | typeof MATH_SUBJECTS
-  | COLLEGE_SUBJECTS
-  | typeof SCIENCE_SUBJECTS
-  | typeof SAT_SUBJECTS
-  | READING_WRITING_SUBJECTS
-  | TRAINING
-export type SUBJECT_TYPE = Record<ALL_SUBJECTS_TYPE, string>

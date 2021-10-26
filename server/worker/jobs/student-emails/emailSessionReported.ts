@@ -1,7 +1,8 @@
 import { Job } from 'bull'
+import { Types } from 'mongoose'
 import { getStudent } from '../../../models/Student/queries'
 import { USER_BAN_REASON } from '../../../constants'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { safeAsync } from '../../../utils/safe-async'
 import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
@@ -42,11 +43,11 @@ async function emailReportedSession(
   else {
     if (isBanReason) {
       const banAlert = await safeAsync(
-        MailService.sendBannedUserAlert({
-          userId: student._id,
-          banReason: USER_BAN_REASON.SESSION_REPORTED,
-          sessionId
-        })
+        MailService.sendBannedUserAlert(
+          student._id,
+          USER_BAN_REASON.SESSION_REPORTED,
+          Types.ObjectId(sessionId)
+        )
       )
       if (banAlert.error)
         errors.push(`Failed to send ban alert email: ${banAlert.error.message}`)
@@ -58,12 +59,12 @@ async function emailReportedSession(
     }
 
     const reportAlert = await safeAsync(
-      MailService.sendReportedSessionAlert({
-        sessionId,
-        reportedByEmail: reportedBy,
+      MailService.sendReportedSessionAlert(
+        Types.ObjectId(sessionId),
+        reportedBy,
         reportReason,
         reportMessage
-      })
+      )
     )
     if (reportAlert.error)
       errors.push(
@@ -71,11 +72,11 @@ async function emailReportedSession(
       )
 
     const studentEmail = await safeAsync(
-      MailService.sendStudentReported({
-        email: student.email,
-        firstName: student.firstname,
+      MailService.sendStudentReported(
+        student.email,
+        student.firstname,
         reportReason
-      })
+      )
     )
     if (studentEmail.error)
       errors.push(

@@ -1,7 +1,7 @@
 import { log } from '../logger'
 import { getVolunteersContactInfo } from '../../models/Volunteer/queries'
 import { REFERENCE_STATUS } from '../../constants'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
 
 // Runs every day at 11am EST

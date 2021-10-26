@@ -8,13 +8,14 @@ import {
   ONBOARDING_STATUS,
   DATE_RANGE_COMPARISON_FIELDS,
 } from '../constants'
-import * as UserActionService from '../services/UserActionService'
+import { getActionsWithPipeline } from '../models/UserAction/queries'
 import * as SessionService from '../services/SessionService'
 import { getHistoryForDatesByVolunteerId } from '../models/Availability/queries'
 import logger from '../logger'
 import { isCertified } from '../controllers/UserCtrl'
 import { Session } from '../models/Session'
-import { Volunteer, Certifications } from '../models/Volunteer'
+import { Certifications } from '../models/Volunteer'
+import { getVolunteersWithPipeline } from '../models/Volunteer/queries'
 import { HOURS } from '../models/Availability/types'
 import { AvailabilityHistory } from '../models/Availability/History'
 import { UserAction } from '../models/UserAction'
@@ -22,10 +23,7 @@ import {
   VolunteerForHourSummary,
   VolunteerForTelecomReport,
 } from '../models/Volunteer/queries'
-import {
-  getVolunteersWithPipeline,
-  HourSummaryStats,
-} from '../services/VolunteerService'
+import { HourSummaryStats } from '../services/VolunteerService'
 import {
   studentPartnerManifests,
   volunteerPartnerManifests,
@@ -193,22 +191,20 @@ async function getVolunteerData<V extends VolunteerForHourSummary>(
   volunteer: V,
   dateQuery: any
 ) {
-  const quizPassedActions: UserAction[] = await UserActionService.getActionsWithPipeline(
-    [
-      {
-        $match: {
-          user: volunteer._id,
-          action: USER_ACTION.QUIZ.PASSED,
-          createdAt: dateQuery,
-        },
+  const quizPassedActions: UserAction[] = await getActionsWithPipeline([
+    {
+      $match: {
+        user: volunteer._id,
+        action: USER_ACTION.QUIZ.PASSED,
+        createdAt: dateQuery,
       },
-      {
-        $sort: {
-          createdAt: 1,
-        },
+    },
+    {
+      $sort: {
+        createdAt: 1,
       },
-    ]
-  )
+    },
+  ])
   const sessions: Session[] = await SessionService.getSessionsWithPipeline([
     {
       $sort: {

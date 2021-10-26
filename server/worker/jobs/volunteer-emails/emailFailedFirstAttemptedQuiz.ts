@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 
 interface EmailFailedFirstAttemptedQuizJobData {
@@ -22,11 +22,11 @@ export default async (
     const volunteer = await getVolunteerContactInfoById(volunteerId)
     // Only send email if vounteer is found to be a recipient
     if (volunteer) {
-      await MailService.sendFailedFirstAttemptedQuiz({
+      await MailService.sendFailedFirstAttemptedQuiz(
         category,
         email,
         firstName
-      })
+      )
       logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     }
   } catch (error) {

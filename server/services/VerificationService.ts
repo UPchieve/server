@@ -1,3 +1,4 @@
+import { Types } from 'mongoose'
 import { VERIFICATION_METHOD } from '../constants'
 import {
   asFactory,
@@ -9,9 +10,15 @@ import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
 import * as StudentService from './StudentService'
-import MailService from './MailService'
-import TwilioService from './twilio'
-import UserService from './UserService'
+import * as MailService from './MailService'
+import * as TwilioService from './TwilioService'
+import {
+  updateUserVerifiedInfoById,
+  getUserById,
+  getUserIdByPhone,
+  getUserIdByEmail,
+} from '../models/User/queries'
+import { Volunteer } from '../models/Volunteer'
 
 export interface InitiateVerificationData {
   userId: string
@@ -50,51 +57,44 @@ export async function initiateVerification(data: unknown): Promise<void> {
   } = asInitiateVerificationData(data)
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
-  let lookupField: string
   let existingUserErrorMessage: string
+  let existingUserId: Types.ObjectId | undefined
   if (isPhoneVerification) {
-    lookupField = 'phone'
     existingUserErrorMessage = 'The phone number you entered is already in use'
     if (!isValidInternationalPhoneNumber(sendTo))
       throw new InputError('Must supply a valid phone number')
+    existingUserId = await getUserIdByPhone(sendTo)
   } else {
-    lookupField = 'email'
     existingUserErrorMessage = 'The email address you entered is already in use'
     if (!isValidEmail(sendTo))
       throw new InputError('Must supply a valid email address')
+    existingUserId = await getUserIdByEmail(sendTo)
   }
-
-  const existingUser = await UserService.getUser({ [lookupField]: sendTo })
-  if (existingUser && userId !== existingUser._id.toString())
+  if (existingUserId && userId !== existingUserId.toString())
     throw new LookupError(existingUserErrorMessage)
 
-  await TwilioService.sendVerification({
-    sendTo,
-    verificationMethod,
-    firstName,
-  })
+  await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
 }
 
 async function sendEmails(userId: string): Promise<void> {
-  const user = await UserService.getUser({ _id: userId })
-  if (user.isVolunteer) {
-    if (user.volunteerPartnerOrg) {
-      await MailService.sendPartnerVolunteerWelcomeEmail({
-        email: user.email,
-        volunteerName: user.firstname,
-      })
+  const user = await getUserById(userId)
+  if (user) {
+    if (user.isVolunteer) {
+      if ((user as Volunteer).volunteerPartnerOrg) {
+        await MailService.sendPartnerVolunteerWelcomeEmail(
+          user.email,
+          user.firstname
+        )
+      } else {
+        await MailService.sendOpenVolunteerWelcomeEmail(
+          user.email,
+          user.firstname
+        )
+      }
     } else {
-      await MailService.sendOpenVolunteerWelcomeEmail({
-        email: user.email,
-        volunteerName: user.firstname,
-      })
+      await MailService.sendStudentWelcomeEmail(user.email, user.firstname)
+      await StudentService.queueWelcomeEmails(user._id)
     }
-  } else {
-    await MailService.sendStudentWelcomeEmail({
-      email: user.email,
-      firstName: user.firstname,
-    })
-    await StudentService.queueWelcomeEmails(user._id)
   }
 }
 
@@ -115,28 +115,12 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
   try {
-    const verificationResult = await TwilioService.confirmVerification(
+    const isVerified = await TwilioService.confirmVerification(
       sendTo,
       verificationCode
     )
-    const isVerified = verificationResult.valid
     if (isVerified) {
-      const update: {
-        verified: boolean
-        phone?: string
-        verifiedPhone?: boolean
-        email?: string
-        verifiedEmail?: boolean
-      } = { verified: true }
-      if (isPhoneVerification) {
-        update.verifiedPhone = true
-        update.phone = sendTo
-      } else {
-        update.verifiedEmail = true
-        update.email = sendTo
-      }
-
-      await UserService.updateUser({ _id: userId }, update)
+      await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
       await sendEmails(userId)
     }
     return isVerified

@@ -4,10 +4,11 @@ import * as VolunteersCtrl from '../../controllers/VolunteersCtrl'
 import * as UserService from '../../services/UserService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
+import { Router } from 'express'
 
-export default function(router) {
+export default function(router: Router) {
   router.get('/volunteers', authPassport.isAdmin, function(req, res, next) {
-    VolunteersCtrl.getVolunteers(function(volunteers, err) {
+    VolunteersCtrl.getVolunteers(function(volunteers: any, err: Error) {
       if (err) {
         next(err)
       } else {
@@ -28,7 +29,7 @@ export default function(router) {
         {
           certifiedSubject: certifiedSubject
         },
-        function(aggAvailabilities, err) {
+        function(aggAvailabilities: any, err: Error) {
           if (err) {
             next(err)
           } else {
@@ -75,7 +76,7 @@ export default function(router) {
       })
       res.sendStatus(200)
     } catch (error) {
-      res.status(500).json({ err: error.message })
+      res.status(500).json({ err: (error as Error).message })
     }
   })
 
@@ -92,7 +93,7 @@ export default function(router) {
       } else {
         res.status(500)
       }
-      res.json({ err: error.message })
+      res.json({ err: (error as Error).message })
     }
   })
 }

@@ -5,7 +5,8 @@ import { Types } from 'mongoose'
 import { User } from '@sentry/types'
 import Case from 'case'
 import { isEnabled } from 'unleash-client'
-import * as SessionRepo from '../models/Session'
+import SessionModel, { Session } from '../models/Session'
+import * as SessionRepo from '../models/Session/queries'
 import {
   USER_BAN_REASON,
   SESSION_REPORT_REASON,
@@ -18,23 +19,27 @@ import * as sessionUtils from '../utils/session-utils'
 import config from '../config'
 import { asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
-import * as AssistmentsDataRepo from '../models/AssistmentsData'
+import * as AssistmentsDataRepo from '../models/AssistmentsData/queries'
 import logger from '../logger'
 import * as cache from '../cache'
 import { NotAllowedError } from '../models/Errors'
 import { SESSION_EVENTS } from '../constants/events'
-import * as VolunteerService from './VolunteerService'
+import * as VolunteerRepo from '../models/Volunteer'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
 import * as QuillDocService from './QuillDocService'
 import * as AnalyticsService from './AnalyticsService'
-import * as NotificationService from './NotificationService'
-import UserService from './UserService'
+import * as NotificationRepo from '../models/Notification/queries'
+import SocketService from './SocketService'
+import * as UserRepo from '../models/User/queries'
 
-import { getSessionRequestedUserAgentFromSessionId } from './UserActionService'
+import { getSessionRequestedUserAgentFromSessionId } from '../models/UserAction/queries'
 import * as AwsService from './AwsService'
-import { getFeedbackForSession } from './FeedbackService'
-import { beginRegularNotifications, beginFailsafeNotifications } from './twilio'
+import { getFeedbackV2BySessionId } from '../models/Feedback/queries'
+import {
+  beginRegularNotifications,
+  beginFailsafeNotifications,
+} from './TwilioService'
 import { captureEvent } from './AnalyticsService'
 import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken/queries'
@@ -96,9 +101,9 @@ export async function sessionsToReview(data: unknown) {
 }
 
 export async function getTimeTutoredForDateRange(
-  volunteerId,
-  fromDate,
-  toDate
+  volunteerId: Types.ObjectId | string,
+  fromDate: Date,
+  toDate: Date
 ) {
   const [result] = await SessionRepo.getTotalTimeTutoredForDateRange(
     volunteerId,
@@ -131,10 +136,10 @@ export async function reportSession(data: unknown) {
 
   const isBanReason = reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
   if (isBanReason && reportedBy.isVolunteer) {
-    await UserService.banUser({
-      userId: session.student,
-      banReason: USER_BAN_REASON.SESSION_REPORTED,
-    })
+    await UserRepo.banUserById(
+      session.student as Types.Object,
+      USER_BAN_REASON.SESSION_REPORTED
+    )
     await new UserActionCtrl.AccountActionCreator(
       session.student as Types.ObjectId,
       '',
@@ -177,16 +182,23 @@ export async function reportSession(data: unknown) {
 async function isSessionAssistments(
   sessionId: Types.ObjectId | string
 ): Promise<boolean> {
-  const ad = await AssistmentsDataRepo.getBySession(sessionId)
+  const ad = await AssistmentsDataRepo.getAssistmentsDataBySession(sessionId)
   return ad && !_.isEmpty(ad)
 }
 
 export async function addPastSession(sessionId: string) {
   const session = await getSessionById(sessionId)
   const updates = []
-  updates.push(UserService.addPastSession(session.student, session._id))
+  updates.push(
+    UserRepo.addUserPastSession(session.student as Types.ObjectId, session._id)
+  )
   if (session.volunteer)
-    updates.push(UserService.addPastSession(session.volunteer, session._id))
+    updates.push(
+      UserRepo.addUserPastSession(
+        session.volunteer as Types.ObjectId,
+        session._id
+      )
+    )
 
   const results = await Promise.allSettled(updates)
   const errors: string[] = []
@@ -219,11 +231,11 @@ export async function endSession({
 
   await SessionRepo.updateSessionToEnd(session._id, {
     endedAt: new Date(),
-    // @note: endedBy is sometimes null when the session is ended by a job from the queue
+    // NOTE: endedBy is sometimes null when the session is ended by a job from the queue
     //        due to the session being unmatched for an extended period of time
     endedBy: endedBy && endedBy._id,
   })
-  await addPastSession(session._id)
+  await addPastSession(session._id.toString())
 
   emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
 }
@@ -310,13 +322,14 @@ export async function storeAndDeleteQuillDoc(sessionId: string) {
 }
 
 export async function storeAndDeleteWhiteboardDoc(sessionId: string) {
-  const whiteboardDoc = await WhiteboardService.getDoc(sessionId)
+  const sessionObjectId = Types.ObjectId(sessionId)
+  const whiteboardDoc = await WhiteboardService.getDoc(sessionObjectId)
   const hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
     sessionId,
     whiteboardDoc
   )
   await setHasWhiteboardDoc(sessionId, hasWhiteboardDoc)
-  await WhiteboardService.deleteDoc(sessionId)
+  await WhiteboardService.deleteDoc(sessionObjectId)
 }
 
 export async function processSessionEditors(sessionId: string) {
@@ -358,8 +371,8 @@ export async function processEmailPartnerVolunteer(sessionId: string) {
 export async function processVolunteerTimeTutored(sessionId: string) {
   const session = await SessionRepo.getSessionById(sessionId)
   if (session.volunteer)
-    await VolunteerService.updateTimeTutored(
-      session.volunteer,
+    await VolunteerRepo.updateTimeTutored(
+      session.volunteer as Types.ObjectId,
       session.timeTutored
     )
 }
@@ -383,7 +396,7 @@ export async function getStaleSessions(staleThreshold = 43200000) {
   )
 }
 
-export async function getSessionPhotoUploadUrl(sessionId) {
+export async function getSessionPhotoUploadUrl(sessionId: string) {
   const sessionPhotoS3Key = `${sessionId}${crypto
     .randomBytes(8)
     .toString('hex')}`
@@ -503,7 +516,7 @@ export async function adminSessionView(data: unknown) {
   const sessionUserAgent = await getSessionRequestedUserAgentFromSessionId(
     sessionId
   )
-  const feedback = await getFeedbackForSession(sessionId)
+  const feedback = await getFeedbackV2BySessionId(session._id)
   const bucket: keyof typeof config.awsS3 = 'sessionPhotoBucket'
   let s3Keys
   const sessionPhotos = await AwsService.getObjects(bucket, session.photos)
@@ -549,7 +562,7 @@ export async function startSession(data: unknown) {
 
   const newSession = await SessionRepo.createSession({
     studentId: userId,
-    // @note: sessionType and subtopic are kebab-case
+    // NOTE: sessionType and subtopic are kebab-case
     type: Case.camel(sessionType),
     subTopic: Case.camel(sessionSubTopic),
     isStudentBanned: user.isBanned,
@@ -558,7 +571,7 @@ export async function startSession(data: unknown) {
   const numProblemId = Number(problemId)
   if (numProblemId && assignmentId && studentId)
     try {
-      await AssistmentsDataRepo.createBySession(
+      await AssistmentsDataRepo.createAssistmentsDataBySession(
         numProblemId,
         assignmentId,
         studentId,
@@ -566,7 +579,11 @@ export async function startSession(data: unknown) {
       )
     } catch (error) {
       logger.error(
-        `Unable to create ASSISTments data for session: ${newSession._id}, ASSISTments studentId: ${studentId}, assignmentId: ${assignmentId}, problemId: ${problemId}, error: ${error.message}`
+        `Unable to create ASSISTments data for session: ${
+          newSession._id
+        }, ASSISTments studentId: ${studentId}, assignmentId: ${assignmentId}, problemId: ${problemId}, error: ${
+          (error as Error).message
+        }`
       )
     }
 
@@ -585,7 +602,7 @@ export async function startSession(data: unknown) {
 
   await new UserActionCtrl.SessionActionCreator(
     user._id,
-    newSession._id,
+    newSession._id.toString(),
     userAgent,
     ip
   ).requestedSession()
@@ -593,7 +610,10 @@ export async function startSession(data: unknown) {
   return newSession._id
 }
 
-export async function finishSession(data: unknown, SocketService) {
+export async function finishSession(
+  data: unknown,
+  socketService: SocketService
+) {
   const { sessionId, user, userAgent, ip } = sessionUtils.asFinishSessionData(
     data
   )
@@ -602,8 +622,8 @@ export async function finishSession(data: unknown, SocketService) {
     sessionId,
     endedBy: user,
   })
-  // @todo: figure out a better way to instantiate SocketService
-  await SocketService.emitSessionChange(sessionId)
+  // @todo: figure out a better way to instantiate socketService
+  await socketService.emitSessionChange(sessionId)
   await new UserActionCtrl.SessionActionCreator(
     user._id,
     sessionId,
@@ -625,7 +645,7 @@ export async function currentSession(data: unknown) {
 
 export async function studentLatestSession(data: unknown) {
   const userId = asString(data)
-  return SessionRepo.getStudentLatestSession(userId)
+  return SessionRepo.getStudentLatestSession(Types.ObjectId(userId))
 }
 
 export async function sessionTimedOut(data: unknown) {
@@ -651,7 +671,7 @@ export async function publicSession(data: unknown) {
 
 export async function getSessionNotifications(data: unknown) {
   const sessionId = asString(data)
-  return NotificationService.getSessionNotifications(sessionId)
+  return NotificationRepo.getSessionNotificationsWithSessionId(sessionId)
 }
 
 export async function joinSession(data: unknown): Promise<void> {
@@ -707,7 +727,9 @@ export async function joinSession(data: unknown): Promise<void> {
       sessionId: session._id.toString(),
     })
 
-    const pushTokens = await getPushTokensByUserId(session.student)
+    const pushTokens = await getPushTokensByUserId(
+      session.student as Types.ObjectId
+    )
     if (pushTokens && pushTokens.length > 0) {
       const tokens = pushTokens.map((token: PushToken) => token.token)
       await PushTokenService.sendVolunteerJoined(session, tokens)

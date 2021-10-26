@@ -1,53 +1,30 @@
 import {
-  ALL_CERTS_TYPE,
-  ALL_SUBJECTS_TYPE,
   SUBJECT_TYPES,
   MATH_CERTS,
-  MATH_SUBJECTS,
   SCIENCE_CERTS,
-  SCIENCE_SUBJECTS,
   COLLEGE_CERTS,
-  COLLEGE_SUBJECTS,
   READING_WRITING_CERTS,
-  READING_WRITING_SUBJECTS,
   SAT_CERTS,
-  SAT_SUBJECTS,
   TRAINING,
 } from '../constants'
-import { getEnumKeyByEnumValue } from './enum-utils'
+import { Certifications } from '../models/Volunteer'
 
-export function getSubjectType(
-  subject: ALL_CERTS_TYPE | ALL_SUBJECTS_TYPE
+export function getSubjectTypeForCert(
+  cert: keyof Certifications
 ): SUBJECT_TYPES {
-  const type =
-    getEnumKeyByEnumValue(MATH_CERTS, subject as ALL_CERTS_TYPE) ||
-    getEnumKeyByEnumValue(MATH_SUBJECTS, subject as ALL_SUBJECTS_TYPE)
-      ? SUBJECT_TYPES.MATH
-      : getEnumKeyByEnumValue(SCIENCE_CERTS, subject as ALL_CERTS_TYPE) ||
-        getEnumKeyByEnumValue(SCIENCE_SUBJECTS, subject as ALL_SUBJECTS_TYPE)
-      ? SUBJECT_TYPES.SCIENCE
-      : getEnumKeyByEnumValue(COLLEGE_CERTS, subject as ALL_CERTS_TYPE) ||
-        getEnumKeyByEnumValue(COLLEGE_SUBJECTS, subject as ALL_SUBJECTS_TYPE)
-      ? SUBJECT_TYPES.COLLEGE
-      : getEnumKeyByEnumValue(SAT_CERTS, subject as ALL_CERTS_TYPE) ||
-        getEnumKeyByEnumValue(SAT_SUBJECTS, subject as ALL_SUBJECTS_TYPE)
-      ? SUBJECT_TYPES.SAT
-      : getEnumKeyByEnumValue(
-          READING_WRITING_CERTS,
-          subject as ALL_CERTS_TYPE
-        ) ||
-        getEnumKeyByEnumValue(
-          READING_WRITING_SUBJECTS,
-          subject as ALL_SUBJECTS_TYPE
-        )
-      ? SUBJECT_TYPES.READING_WRITING
-      : getEnumKeyByEnumValue(TRAINING, subject as ALL_CERTS_TYPE)
-      ? SUBJECT_TYPES.TRAINING
-      : undefined
+  let type: SUBJECT_TYPES | undefined
+  if (Object.values<string>(MATH_CERTS).includes(cert))
+    type = SUBJECT_TYPES.MATH
+  if (Object.values<string>(SCIENCE_CERTS).includes(cert))
+    type = SUBJECT_TYPES.SCIENCE
+  if (Object.values<string>(COLLEGE_CERTS).includes(cert))
+    type = SUBJECT_TYPES.COLLEGE
+  if (Object.values<string>(SAT_CERTS).includes(cert)) type = SUBJECT_TYPES.SAT
+  if (Object.values<string>(TRAINING).includes(cert))
+    type = SUBJECT_TYPES.TRAINING
+  if (Object.values<string>(READING_WRITING_CERTS).includes(cert))
+    type = SUBJECT_TYPES.READING_WRITING
 
-  if (!type)
-    throw new Error('Provided subject/cert has no associated subject type')
-  return type
+  if (type) return type
+  throw new Error('Could not determine type of certification')
 }
-
-export default getSubjectType

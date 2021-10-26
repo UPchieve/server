@@ -24,17 +24,17 @@ export interface Reference {
   lastName: string
   createdAt: Date
   email: string
-  status: string
-  sentAt: Date
-  affiliation: string
-  relationshipLength: string
-  patient: number
-  positiveRoleModel: number
-  agreeableAndApproachable: number
-  communicatesEffectively: number
-  trustworthyWithChildren: number
-  rejectionReason: string
-  additionalInfo: string
+  status?: string
+  sentAt?: Date
+  affiliation?: string
+  relationshipLength?: string
+  patient?: number
+  positiveRoleModel?: number
+  agreeableAndApproachable?: number
+  communicatesEffectively?: number
+  trustworthyWithChildren?: number
+  rejectionReason?: string
+  additionalInfo?: string
 }
 
 export interface CertificationInfo {
@@ -72,7 +72,7 @@ export interface Certifications {
   [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: CertificationInfo
 }
 
-interface TrainingCourseData {
+export interface TrainingCourseData {
   isComplete: boolean
   progress: number
   completedMaterials: string[]

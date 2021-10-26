@@ -6,8 +6,6 @@ import {
 import { captureEvent } from '../services/AnalyticsService'
 import QuestionModel, { QuestionDocument } from '../models/Question'
 import {
-  CERT_TYPE,
-  ALL_CERTS_TYPE,
   CERT_UNLOCKING,
   COMPUTED_CERTS,
   TRAINING,
@@ -19,7 +17,7 @@ import {
   COLLEGE_CERTS,
   EVENTS,
 } from '../constants'
-import getSubjectType from '../utils/getSubjectType'
+import { getSubjectTypeForCert } from '../utils/getSubjectType'
 import { createContact } from '../services/MailService'
 import VolunteerModel, {
   Certifications,
@@ -30,6 +28,8 @@ import {
   queueOnboardingEventEmails,
   queuePartnerOnboardingEventEmails,
 } from '../services/VolunteerService'
+
+// TODO: refactor to use repo pattern
 
 // change depending on how many of each subcategory are wanted
 const numQuestions = {
@@ -59,13 +59,10 @@ const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
 
 // Check if a user is certified in a given group of subject certs
-const isCertifiedIn = (
-  subjectCerts: any,
-  certifications: Certifications
-): boolean => {
-  for (const cert in subjectCerts) {
-    const subject = subjectCerts[cert] as keyof CERT_TYPE
-    if (certifications[subject].passed) return true
+const isCertifiedIn = (givenCerts: any, userCerts: Certifications): boolean => {
+  for (const cert in givenCerts) {
+    const subject = givenCerts[cert] as keyof Certifications
+    if (userCerts[subject].passed) return true
   }
 
   return false
@@ -106,10 +103,10 @@ export async function getQuestions(
 
 // Check if a given cert has the required training completed
 export function hasRequiredTraining(
-  subjectCert: ALL_CERTS_TYPE,
+  subjectCert: keyof Certifications,
   userCertifications: Certifications
 ): boolean {
-  const subjectCertType = getSubjectType(subjectCert)
+  const subjectCertType = getSubjectTypeForCert(subjectCert)
 
   if (
     (subjectCertType === SUBJECT_TYPES.MATH ||
@@ -136,7 +133,7 @@ export function hasRequiredTraining(
 
 // Check if a required training cert has any associated passed certifications for it
 export function hasCertForRequiredTraining(
-  trainingCert: string,
+  trainingCert: keyof Certifications,
   userCertifications: Certifications
 ): boolean {
   // UPchieve 101 doesn't need any associated certs
@@ -161,7 +158,7 @@ export function hasCertForRequiredTraining(
 }
 
 export function getUnlockedSubjects(
-  cert: ALL_CERTS_TYPE,
+  cert: keyof Certifications,
   userCertifications: Certifications
 ): string[] {
   // update certifications to have the current cert completed set to passed
@@ -176,7 +173,7 @@ export function getUnlockedSubjects(
   // UPchieve 101 must be completed before a volunteer can be onboarded
   if (!userCertifications[TRAINING.UPCHIEVE_101].passed) return []
 
-  const certType = getSubjectType(cert)
+  const certType = getSubjectTypeForCert(cert)
 
   // Check if the user has a certification for the required training
   if (
@@ -201,8 +198,8 @@ export function getUnlockedSubjects(
     // Check that the required training was completed for every certification that a user has
     // Add all the other subjects that a certification unlocks to the Set
     if (
-      userCertifications[cert as keyof CERT_TYPE].passed &&
-      hasRequiredTraining(cert as ALL_CERTS_TYPE, userCertifications) &&
+      userCertifications[cert as keyof Certifications].passed &&
+      hasRequiredTraining(cert as keyof Certifications, userCertifications) &&
       CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING]
     )
       CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING].forEach(subject =>
@@ -212,7 +209,8 @@ export function getUnlockedSubjects(
 
   // Check if the user has unlocked a new certification based on the current certifications they have
   for (const cert in COMPUTED_CERTS) {
-    const prerequisiteCerts = COMPUTED_CERTS[cert]
+    const prerequisiteCerts =
+      COMPUTED_CERTS[cert as keyof typeof COMPUTED_CERTS]
     let meetsRequirements = true
 
     for (let i = 0; i < prerequisiteCerts.length; i++) {
@@ -235,7 +233,7 @@ type AnswerMap = { [k: string]: string }
 export interface GetQuizScoreOptions {
   user: Volunteer
   idAnswerMap: AnswerMap
-  category: ALL_CERTS_TYPE
+  category: keyof Certifications
   ip: string
 }
 
@@ -262,7 +260,7 @@ export async function getQuizScore(
 
   const percent = score / questions.length
   const threshold =
-    getSubjectType(cert) === SUBJECT_TYPES.TRAINING
+    getSubjectTypeForCert(cert) === SUBJECT_TYPES.TRAINING
       ? TRAINING_THRESHOLD
       : SUBJECT_THRESHOLD
   const passed = percent >= threshold
@@ -286,7 +284,7 @@ export async function getQuizScore(
       if (!user.subjects.includes(subject))
         new QuizActionCreator(
           user._id,
-          subject as ALL_CERTS_TYPE,
+          subject as keyof Certifications,
           ip
         ).unlockedSubject()
       captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {

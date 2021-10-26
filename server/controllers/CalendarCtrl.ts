@@ -94,6 +94,7 @@ async function executeUpdate(
 
   await Promise.all([
     updateSnapshotFullByVolunteerId(user._id, availability, tz, currentDate),
+    // TODO: use repo pattern
     VolunteerModel.updateOne({ _id: user._id }, volunteerUpdates),
   ])
 }

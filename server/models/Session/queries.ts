@@ -6,155 +6,15 @@ import {
   USER_SESSION_METRICS,
   USER_ACTION,
   SUBJECT_TYPES,
-} from '../constants'
-import MessageModel, { Message } from './Message'
-import { Notification, NotificationDocument } from './Notification'
-import { User } from './User'
-import { Student } from './Student'
-import { Volunteer } from './Volunteer'
-import { DocUpdateError, DocCreationError, LookupError } from './Errors'
+} from '../../constants'
+import MessageModel, { Message } from '../Message'
+import { Notification, NotificationDocument } from '../Notification'
+import { User } from '../User'
+import { Student } from '../Student'
+import { Volunteer } from '../Volunteer'
+import { DocUpdateError, DocCreationError, LookupError } from '../Errors'
+import SessionModel, { Session } from '../Session'
 
-const validTypes = [
-  SUBJECT_TYPES.MATH,
-  SUBJECT_TYPES.COLLEGE,
-  SUBJECT_TYPES.SCIENCE,
-  SUBJECT_TYPES.SAT,
-  SUBJECT_TYPES.READING_WRITING,
-]
-
-export interface Session {
-  _id: Types.ObjectId
-  student: Types.ObjectId | Student
-  volunteer: Types.ObjectId | Volunteer
-  type: string
-  subTopic: string
-  messages: Message[]
-  hasWhiteboardDoc?: boolean
-  whiteboardDoc?: string
-  quillDoc: string
-  createdAt: Date
-  volunteerJoinedAt: Date
-  failedJoins: (Types.ObjectId | User)[]
-  endedAt: Date
-  endedBy: Types.ObjectId | User
-  notifications: (Types.ObjectId | Notification)[]
-  photos: string[]
-  isReported: boolean
-  reportReason: string
-  reportMessage: string
-  flags: string[]
-  reviewed: boolean
-  toReview: boolean
-  reviewReasons: USER_SESSION_METRICS[]
-  timeTutored: number
-}
-
-export type SessionDocument = Session & Document
-
-const sessionSchema = new Schema({
-  student: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    // TODO: validate isVolunteer: false
-  },
-  volunteer: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    // TODO: validate isVolunteer: true
-  },
-  type: {
-    type: String,
-    validate: {
-      validator: function(v: string): boolean {
-        const type = v.toLowerCase()
-        return validTypes.some(function(validType) {
-          return validType.toLowerCase() === type
-        })
-      },
-      message: '{VALUE} is not a valid type',
-    },
-  },
-
-  subTopic: {
-    type: String,
-    default: '',
-  },
-
-  messages: [MessageModel.schema],
-
-  hasWhiteboardDoc: {
-    type: Boolean,
-  },
-
-  quillDoc: {
-    type: String,
-    default: '',
-    select: false,
-  },
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-
-  volunteerJoinedAt: {
-    type: Date,
-  },
-
-  failedJoins: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-    },
-  ],
-
-  endedAt: {
-    type: Date,
-  },
-
-  endedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  },
-
-  notifications: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: 'Notification',
-    },
-  ],
-
-  photos: [String],
-  isReported: {
-    type: Boolean,
-    default: false,
-  },
-  reportReason: String,
-  reportMessage: String,
-  flags: {
-    type: [String],
-    enum: values(USER_SESSION_METRICS),
-  },
-  reviewed: { type: Boolean, default: false },
-  toReview: { type: Boolean, default: false },
-  reviewReasons: {
-    type: [String],
-    enum: values(USER_SESSION_METRICS),
-  },
-  timeTutored: { type: Number, default: 0 },
-  isStudentBanned: Boolean,
-})
-
-export interface SessionStaticModel extends Model<SessionDocument> {
-  getUnfulfilledSessions(): Promise<SessionDocument[]>
-}
-
-const SessionModel = model<SessionDocument, SessionStaticModel>(
-  'Session',
-  sessionSchema
-)
-
-/** SessionRepo functions below */
 export async function addNotifications(
   sessionId: Types.ObjectId | string,
   notificationsToAdd: NotificationDocument[]
@@ -217,7 +77,7 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
 export async function getSessionById(
   sessionId: Types.ObjectId | string,
   projection = {}
-): Promise<Session> {
+): Promise<Pick<Session, keyof Session>> {
   const session = await SessionModel.findOne({ _id: sessionId })
     .select(projection)
     .lean()
@@ -227,7 +87,7 @@ export async function getSessionById(
   return session
 }
 
-// @todo: move queries using this pipeline to this repo
+// TODO: move queries using this pipeline to this repo. This should not be used
 export function getSessionsWithPipeline(pipeline: any[]) {
   return (SessionModel.aggregate(pipeline) as unknown) as Promise<any[]>
 }
@@ -292,43 +152,36 @@ export async function updateReviewedStatus(
   }
 }
 
-export async function getSessionToEnd(sessionId: Types.ObjectId | string) {
-  let session: SessionWithPopulatedUsers
+export type SessionToEndUserInfo = '_id' | 'firstname' | 'email' | 'pastSessions'
+
+export type SessionToEnd = Pick<Session, '_id' | 'createdAt' | 'endedAt' | 'isReported' | 'messages' | 'type' | 'subTopic' | 'volunteerJoinedAt'> & {
+  student: Pick<Student, SessionToEndUserInfo> 
+} & { volunteer: Pick<Volunteer, SessionToEndUserInfo | 'volunteerPartnerOrg'> }
+
+export async function getSessionToEnd(sessionId: Types.ObjectId | string): Promise<SessionToEnd> {
+  let session: SessionToEnd
   try {
-    session = (await SessionModel.findOne({ _id: sessionId })
+    session = (await SessionModel.findOne({ _id: sessionId }, {
+      _id: 1,
+      createdAt: 1,
+      endedAt: 1,
+      isReported: 1,
+      messages: 1,
+      type: 1,
+      subTopic: 1,
+      student: 1,
+      volunteer: 1,
+      volunteerJoinedAt: 1,
+    })
       .populate({ path: 'student', select: 'pastSessions firstname email' })
       .populate({
         path: 'volunteer',
         select: 'pastSessions firstname email volunteerPartnerOrg',
       })
       .lean()
-      .exec()) as SessionWithPopulatedUsers
+      .exec()) as SessionToEnd
     if (!session) throw new LookupError('Session not found')
-    return {
-      _id: session._id,
-      createdAt: session.createdAt,
-      endedAt: session.endedAt,
-      isReported: session.isReported,
-      messages: session.messages,
-      type: session.type,
-      subTopic: session.subTopic,
-      student: {
-        _id: session.student._id,
-        firstname: session.student.firstname,
-        email: session.student.email,
-        pastSessions: session.student.pastSessions,
-      },
-      volunteer: {
-        // @note: uses optional chaining operator
-        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
-        _id: session.volunteer?._id,
-        firstname: session.volunteer?.firstname,
-        email: session.volunteer?.email,
-        pastSessions: session.volunteer?.pastSessions,
-        volunteerPartnerOrg: session.volunteer?.volunteerPartnerOrg,
-      },
-      volunteerJoinedAt: session.volunteerJoinedAt,
-    }
+    return session
   } catch (error) {
     throw error
   }
@@ -441,9 +294,7 @@ export async function getSessionsToReview({
   }
 }
 
-interface TotalTimeTutoredForDateRange {
-  timeTutored: number
-}
+type TotalTimeTutoredForDateRange = Pick<Session, 'timeTutored'>
 
 export async function getTotalTimeTutoredForDateRange(
   volunteerId: Types.ObjectId | string,
@@ -486,7 +337,7 @@ export async function getTotalTimeTutoredForDateRange(
   }
 }
 
-export async function getActiveSessionsWithVolunteers() {
+export async function getActiveSessionsWithVolunteers(): Promise<Pick<Session, 'volunteer'>[]> {
   try {
     return await SessionModel.find({
       endedAt: { $exists: false },
@@ -503,7 +354,7 @@ export async function getActiveSessionsWithVolunteers() {
 export async function updateReportSession(
   sessionId: Types.ObjectId | string,
   report: { reportReason: string; reportMessage: string }
-) {
+): Promise<void> {
   const query = { _id: sessionId }
   const update = {
     isReported: true,
@@ -520,7 +371,7 @@ export async function updateReportSession(
 export async function updateSessionMetrics(
   sessionId: Types.ObjectId | string,
   metrics: { timeTutored: number }
-) {
+): Promise<void> {
   const query = { _id: sessionId }
   const update = {
     timeTutored: metrics.timeTutored,
@@ -535,7 +386,7 @@ export async function updateSessionMetrics(
 export async function setQuillDoc(
   sessionId: Types.ObjectId | string,
   quillDoc: string
-) {
+): Promise<void> {
   const query = { _id: sessionId }
   const update = {
     quillDoc,
@@ -550,7 +401,7 @@ export async function setQuillDoc(
 export async function setHasWhiteboardDoc(
   sessionId: Types.ObjectId | string,
   hasWhiteboardDoc: boolean
-) {
+): Promise<void> {
   const query = { _id: sessionId }
   const update = {
     hasWhiteboardDoc,
@@ -568,7 +419,7 @@ export async function updateSessionToEnd(
     endedAt: Date
     endedBy: Types.ObjectId
   }
-) {
+): Promise<void> {
   const query = { _id: sessionId }
   const update = {
     endedAt: data.endedAt,
@@ -585,7 +436,7 @@ export async function updateSessionToEnd(
 export async function getLongRunningSessions(
   startDate: number,
   endDate: number
-) {
+): Promise<Session[]> {
   try {
     return await SessionModel.find({
       endedAt: { $exists: false },
@@ -604,7 +455,7 @@ export async function getLongRunningSessions(
 export async function addSessionPhotoKey(
   sessionId: Types.ObjectId | string,
   photoKey: string
-) {
+): Promise<void> {
   const query = { _id: sessionId }
   const update = { $push: { photos: photoKey } }
   try {
@@ -614,18 +465,11 @@ export async function addSessionPhotoKey(
   }
 }
 
-interface PublicSession {
-  _id: Types.ObjectId
-  student: { _id: Types.ObjectId; firstName: string }
-  volunteer: {
-    _id: Types.ObjectId
-    firstName: string
-  }
-  type: string
-  subTopic: string
-  createdAt: Date
-  endedAt: Date
-}
+export type PublicSessionUserInfo = '_id' | 'firstname'
+
+export type PublicSession = Pick<Session, '_id' | 'createdAt' | 'endedAt' | 'type' | 'subTopic'> & {
+  student: Pick<Student, PublicSessionUserInfo> 
+} & { volunteer: Pick<Volunteer, PublicSessionUserInfo> }
 
 export async function getPublicSession(sessionId: Types.ObjectId | string) {
   try {
@@ -1039,59 +883,26 @@ export type SessionWithPopulatedUsers = Omit<
   volunteer: Partial<Volunteer>
 }
 
+export type SessionByIdWithStudentAndVolunteerUserInfo =  '_id' | 'firstname' | 'createdAt' | 'pastSessions' | 'isVolunteer' 
+
+export type SessionByIdWithStudentAndVolunteer = Session & {
+  student: Pick<Student, SessionByIdWithStudentAndVolunteerUserInfo> 
+} & { volunteer: Pick<Volunteer, SessionByIdWithStudentAndVolunteerUserInfo> }
+
 export async function getSessionByIdWithStudentAndVolunteer(
   sessionId: Types.ObjectId | string
-) {
+): Promise<SessionByIdWithStudentAndVolunteer> {
   try {
     const session = (await SessionModel.findOne({ _id: sessionId })
       .populate('student volunteer')
+      .populate({ path: 'student', select: 'firstname createdAt pastSessions isVolunteer' })
+      .populate({ path: 'volunteer', select: 'firstname createdAt pastSessions isVolunteer' })
       .select('+quillDoc')
       .lean()
-      .exec()) as SessionWithPopulatedUsers
+      .exec()) as SessionByIdWithStudentAndVolunteer
 
     if (!session) throw new LookupError('No session found')
-
-    return {
-      _id: session._id,
-      student: {
-        _id: session.student._id,
-        isVolunteer: session.student.isVolunteer,
-        firstname: session.student.firstname,
-        pastSessions: session.student.pastSessions,
-        createdAt: session.student.createdAt,
-      },
-      volunteer:
-        session.volunteer && session.volunteer.firstname
-          ? {
-              _id: session.volunteer?._id,
-              isVolunteer: session.volunteer?.isVolunteer,
-              firstname: session.volunteer?.firstname,
-              pastSessions: session.volunteer?.pastSessions,
-              createdAt: session.volunteer?.createdAt,
-            }
-          : null,
-      subTopic: session.subTopic,
-      type: session.type,
-      messages: session.messages,
-      hasWhiteboardDoc: session.hasWhiteboardDoc,
-      whiteboardDoc: session.whiteboardDoc,
-      quillDoc: session.quillDoc,
-      createdAt: session.createdAt,
-      volunteerJoinedAt: session.volunteerJoinedAt,
-      failedJoins: session.failedJoins,
-      endedAt: session.endedAt,
-      endedBy: session.endedBy,
-      notifications: session.notifications,
-      photos: session.photos,
-      isReported: session.isReported,
-      reportReason: session.reportReason,
-      reportMessage: session.reportMessage,
-      flags: session.flags,
-      reviewed: session.reviewed,
-      toReview: session.toReview,
-      reviewReasons: session.reviewReasons,
-      timeTutored: session.timeTutored,
-    }
+    return session
   } catch (error) {
     throw error
   }
@@ -1107,7 +918,7 @@ export async function createSession({
   type: SUBJECT_TYPES
   subTopic: string
   isStudentBanned: boolean
-}) {
+}): Promise<Session> {
   const session = new SessionModel({
     student: studentId,
     type: type,
@@ -1116,62 +927,54 @@ export async function createSession({
   })
   try {
     const newSession = await session.save()
-    return {
-      _id: newSession._id,
-      type: newSession.type,
-      subTopic: newSession.subTopic,
-      student: newSession.student,
-    }
+    return newSession.toObject() as Session
   } catch (error) {
     throw new DocCreationError((error as Error).message)
   }
 }
+
+export type CurrentSessionUserInfo =  '_id' | 'firstname' | 'isVolunteer' 
+
+export type CurrentSession = Session & {
+  student: Pick<Student, CurrentSessionUserInfo> 
+} & { volunteer: Pick<Volunteer, CurrentSessionUserInfo> }
 
 export async function getCurrentSession(userId: Types.ObjectId) {
   try {
     const session = (await SessionModel.findOne({
       $or: [{ student: userId }, { volunteer: userId }],
       endedAt: { $exists: false },
+    }, {
+      _id: 1,
+      student: 1,
+      volunteer: 1,
+      subTopic: 1,
+      type: 1,
+      messages: 1,
+      createdAt: 1,
+      endedAt: 1,
+      volunteerJoinedAt: 1
     })
       .sort({ createdAt: -1 })
       .populate({ path: 'volunteer', select: 'firstname isVolunteer' })
       .populate({ path: 'student', select: 'firstname isVolunteer' })
       .lean()
-      .exec()) as SessionWithPopulatedUsers
+      .exec()) as CurrentSession
 
     if (!session) return null
 
-    return {
-      _id: session._id,
-      student: {
-        _id: session.student._id?.toString(),
-        firstname: session.student.firstname,
-        isVolunteer: session.student.isVolunteer,
-      },
-      volunteer:
-        session.volunteer && session.volunteer.firstname
-          ? {
-              _id: session.volunteer._id?.toString(),
-              firstname: session.volunteer?.firstname,
-              isVolunteer: session.volunteer?.isVolunteer,
-            }
-          : null,
-      subTopic: session.subTopic,
-      type: session.type,
-      messages: session.messages,
-      createdAt: session.createdAt,
-      endedAt: session.endedAt && session.endedAt,
-      volunteerJoinedAt: session.volunteerJoinedAt,
-    }
+    return session
   } catch (error) {
     throw error
   }
 }
 
-// @todo: refactor. the client only needs the session's createdAt.
-//        this is used to show the wait time banner on the dashboard
-//        after a student requests a session.
-export async function getStudentLatestSession(studentId: Types.ObjectId) {
+interface StudentLatestSession {
+  _id: string
+  createdAt: string
+}
+
+export async function getStudentLatestSession(studentId: Types.ObjectId): Promise<StudentLatestSession> {
   try {
     const session = await SessionModel.findOne({ student: studentId })
       .sort({ createdAt: -1 })
@@ -1183,7 +986,7 @@ export async function getStudentLatestSession(studentId: Types.ObjectId) {
     return {
       _id: session._id.toString(),
       createdAt: session.createdAt.toISOString(),
-    }
+    } as StudentLatestSession
   } catch (error) {
     throw error
   }
@@ -1192,7 +995,7 @@ export async function getStudentLatestSession(studentId: Types.ObjectId) {
 export async function addVolunteerToSession(
   sessionId: Types.ObjectId,
   volunteerId: Types.ObjectId
-) {
+): Promise<void> {
   const query = { _id: sessionId }
   const update = {
     volunteerJoinedAt: new Date(),
@@ -1205,7 +1008,7 @@ export async function addVolunteerToSession(
   }
 }
 
-export async function addMessage(sessionId: Types.ObjectId, message: Message) {
+export async function addMessage(sessionId: Types.ObjectId, message: Message): Promise<void> {
   const query = { _id: sessionId }
   const update = { $push: { messages: message } }
   try {
@@ -1293,5 +1096,3 @@ export function getSessionsWithAvgWaitTimePerDayAndHour(
     },
   ]) as Aggregate<SessionsWithAvgWaitTimePerDayAndHour[]>
 }
-
-export default SessionModel

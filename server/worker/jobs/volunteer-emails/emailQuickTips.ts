@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getVolunteerForQuickTips } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
@@ -18,7 +18,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
   const volunteer = await getVolunteerForQuickTips(volunteerId)
 
   if (volunteer) {
-    const { _id, firstname: firstName, email, availability } = volunteer
+    const { _id, firstname, email, availability } = volunteer
     const textNotifications = await getNotificationsByVolunteerId(_id)
 
     if (
@@ -26,8 +26,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
       countAvailabilitySelected(availability)
     ) {
       try {
-        const contactInfo = { firstName, email }
-        await MailService.sendVolunteerQuickTips(contactInfo)
+        await MailService.sendVolunteerQuickTips(email, firstname)
         logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(

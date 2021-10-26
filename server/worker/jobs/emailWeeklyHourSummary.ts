@@ -1,7 +1,7 @@
 import moment from 'moment-timezone'
 import { log } from '../logger'
 import { getHourSummaryStats } from '../../services/VolunteerService'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import { volunteerPartnerManifests } from '../../partnerManifests'
 import config from '../../config'
@@ -36,7 +36,7 @@ export default async (): Promise<void> => {
   for (const volunteer of volunteers) {
     const {
       _id,
-      firstname: firstName,
+      firstname,
       email,
       sentHourSummaryIntroEmail,
       volunteerPartnerOrg
@@ -63,16 +63,18 @@ export default async (): Promise<void> => {
       */
       if (!summaryStats || summaryStats.totalVolunteerHours <= 0.01) continue
 
-      const data = {
-        firstName,
+      await MailService.sendHourSummaryEmail(
+        firstname,
         email,
         sentHourSummaryIntroEmail,
-        fromDate: lastMonday.format('dddd, MMM D'),
-        toDate: lastSunday.format('dddd, MMM D'),
-        customOrg: customCheck,
-        ...summaryStats
-      }
-      await MailService.sendHourSummaryEmail(data)
+        lastMonday.format('dddd, MMM D'),
+        lastSunday.format('dddd, MMM D'),
+        summaryStats.totalCoachingHours,
+        summaryStats.totalElapsedAvailability,
+        summaryStats.totalQuizzesPassed,
+        summaryStats.totalVolunteerHours,
+        customCheck
+      )
       if (!sentHourSummaryIntroEmail)
         await VolunteerModel.updateOne(
           { _id },

@@ -8,8 +8,6 @@ import {
   updateIpUserById,
 } from '../models/IpAddress/queries'
 import { updateUserIpById } from '../models/User/queries'
-import { IP_ADDRESS_STATUS, USER_BAN_REASON } from '../constants'
-import MailService from './MailService'
 import { NotAllowedError } from '../models/Errors'
 import { asString } from '../utils/type-utils'
 import net from 'net'

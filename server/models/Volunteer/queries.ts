@@ -1,14 +1,18 @@
 import { Types } from 'mongoose'
 import VolunteerModel, { Volunteer } from './index'
+import NotificationModel from '../Notification'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import {
   MATH_SUBJECTS,
   SCIENCE_SUBJECTS,
   SAT_SUBJECTS,
-  READING_WRITING_SUBJECTS
+  READING_WRITING_SUBJECTS,
+  REFERENCE_STATUS,
+  PHOTO_ID_STATUS
 } from '../../constants'
 import config from '../../config'
+import { Availability } from '../Availability/types'
 
 async function wrapRead<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -16,6 +20,11 @@ async function wrapRead<T>(fn: () => Promise<T>): Promise<T> {
   } catch (err) {
     throw new RepoReadError(err)
   }
+}
+
+// TODO: THIS SHOULD NOT BE USED (reportutils)
+export async function getVolunteersWithPipeline(pipeline: any): Promise<any> {
+  return await VolunteerModel.aggregate(pipeline)
 }
 
 // TODO: proper type for query
@@ -33,12 +42,26 @@ export async function getVolunteers(query: any): Promise<Volunteer[]> {
   })
 }
 
-export type VolunteerContactInfo = Pick<Volunteer, '_id' | 'email' | 'firstname' | 'volunteerPartnerOrg'>
+export async function getAllVolunteers(): Promise<Volunteer[]> {
+  return await wrapRead(async () => {
+    return await VolunteerModel.find().lean().exec()
+  })
+}
+
+export async function getVolunteerById(volunteerId: Types.ObjectId): Promise<Volunteer | undefined> {
+  return await wrapRead(async () => {
+    const volunteer = await VolunteerModel.findOne({_id: volunteerId }).lean().exec()
+    if (volunteer) return volunteer as Volunteer
+  })
+}
+
+export type VolunteerContactInfo = Pick<Volunteer, '_id' | 'email' | 'phone' | 'firstname' | 'volunteerPartnerOrg'>
 const CONTACT_INFO_PROJECTION = {
   _id: 1,
   firstname: 1,
   email: 1,
-  volunteerPartnerOrg: 1
+  volunteerPartnerOrg: 1,
+  phone: 1
 }
 export async function getVolunteerContactInfoById(volunteerId: Types.ObjectId | string): Promise<VolunteerContactInfo | undefined> {
   return await wrapRead(async () => {
@@ -80,6 +103,17 @@ export async function getVolunteersForBlackoutOver(startDate: Date): Promise<Vol
   })
 }
 
+export async function getVolunteersFailsafe(): Promise<VolunteerContactInfo[]> {
+  try {
+    return await VolunteerModel.find(
+      { isFailsafeVolunteer: true },
+      CONTACT_INFO_PROJECTION
+    ).lean().exec() as VolunteerContactInfo[]
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type VolunteerContactAndAvailability = VolunteerContactInfo & Pick<Volunteer, 'availability'>
 export async function getVolunteerForQuickTips(volunteerId: Types.ObjectId | string): Promise<VolunteerContactAndAvailability | undefined> {
   return await wrapRead(async () => {
@@ -119,12 +153,12 @@ export async function getPartnerVolunteerForCollege(volunteerId: Types.ObjectId 
       {
         _id: volunteerId,
         isOnboarded: true,
-        subjects: { $nin: [
-          ...Object.values(MATH_SUBJECTS),
-          ...Object.values(SCIENCE_SUBJECTS),
-          ...Object.values(SAT_SUBJECTS),
-          ...Object.values(READING_WRITING_SUBJECTS)
-        ]},
+        subjects: { $nin: Object.values({
+          ...MATH_SUBJECTS,
+          ...SCIENCE_SUBJECTS,
+          ...SAT_SUBJECTS,
+          ...READING_WRITING_SUBJECTS
+        })},
         volunteerPartnerOrg: { $exists: true },
         ...EMAIL_RECIPIENT
       },
@@ -191,6 +225,32 @@ export async function getVolunteersForTotalHours(): Promise<VolunteerForHourSumm
   })
 }
 
+export type VolunteerForOnboarding = Pick<Volunteer, 'certifications' | 'subjects' | 'availabilityLastModifiedAt' | 'country'> & VolunteerContactInfo
+export async function getVolunteerForOnboardingById(volunteerId: Types.ObjectId | string): Promise<VolunteerForOnboarding | undefined> {
+  try {
+    const volunteer = await VolunteerModel.findOne(
+      {
+        _id: volunteerId,
+        isOnboarded: false,
+        ...EMAIL_RECIPIENT
+      },
+      {
+        _id: 1,
+        email: 1,
+        firstname: 1,
+        isOnboarded: 1,
+        certifications: 1,
+        subjects: 1,
+        availabilityLastModifiedAt: 1,
+        country: 1
+      }
+    ).lean().exec()
+    if (volunteer) return volunteer as VolunteerForOnboarding
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type VolunteerForTelecomReport = Pick<Volunteer, 'firstname' | 'lastname' | 'email'> & VolunteerForHourSummary
 export async function getVolunteersForTelecomReport(): Promise<VolunteerForTelecomReport[]> {
   return await wrapRead(async () => {
@@ -212,6 +272,166 @@ export async function getVolunteersForTelecomReport(): Promise<VolunteerForTelec
       }
     ).lean().exec()
   })
+}
+
+export async function getVolunteersNotifiedSinceDate(sinceDate: Date): Promise<Volunteer[]> {
+  try {
+    const notifications = await NotificationModel.find({
+      sentAt: { $gt: sinceDate }
+    })
+      .select('volunteer')
+      .lean()
+      .exec()
+
+    return notifications.map(notif => notif.volunteer as Volunteer)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export interface ReferenceData {
+  firstName: string,
+  lastName: string,
+  email: string
+}
+export async function addVolunteerReferenceById(volunteerId: Types.ObjectId, reference: ReferenceData): Promise<void> {
+  try {
+    const result = await VolunteerModel.updateOne(
+      { _id: volunteerId },
+      { $push: { references: reference } }
+    ).exec()
+    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export interface InactiveVolunteersAggregation {
+  inactiveThirtyDays: Volunteer[]
+  inactiveSixtyDays: Volunteer[]
+  inactiveNinetyDays: Volunteer[]
+}
+export async function getInactiveVolunteers(
+  thirtyDaysAgoStartOfDay: Date,
+  thirtyDaysAgoEndOfDay: Date,
+  sixtyDaysAgoStartOfDay: Date,
+  sixtyDaysAgoEndOfDay: Date,
+  ninetyDaysAgoStartOfDay: Date,
+  ninetyDaysAgoEndOfDay: Date
+): Promise<InactiveVolunteersAggregation> {
+  try {
+    const thirtyDaysAgoQuery = {
+      sentInactiveThirtyDayEmail: false,
+      lastActivityAt: {
+        $gte: new Date(thirtyDaysAgoStartOfDay),
+        $lt: new Date(thirtyDaysAgoEndOfDay)
+      }
+    }
+    const sixtyDaysAgoQuery = {
+      sentInactiveSixtyDayEmail: false,
+      lastActivityAt: {
+        $gte: new Date(sixtyDaysAgoStartOfDay),
+        $lt: new Date(sixtyDaysAgoEndOfDay)
+      }
+    }
+    const ninetyDaysAgoQuery = {
+      sentInactiveNinetyDayEmail: false,
+      lastActivityAt: {
+        $gte: new Date(ninetyDaysAgoStartOfDay),
+        $lt: new Date(ninetyDaysAgoEndOfDay)
+      }
+    }
+    const [agg] = await getVolunteersWithPipeline([
+      {
+        $match: {
+          $or: [thirtyDaysAgoQuery, sixtyDaysAgoQuery, ninetyDaysAgoQuery],
+          ...EMAIL_RECIPIENT
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          inactiveThirtyDays: {
+            $push: {
+              $cond: [
+                {
+                  $and: [
+                    { $gt: ['$lastActivityAt', thirtyDaysAgoStartOfDay] },
+                    { $lt: ['$lastActivityAt', thirtyDaysAgoEndOfDay] }
+                  ]
+                },
+                '$$ROOT',
+                '$$REMOVE'
+              ]
+            }
+          },
+          inactiveSixtyDays: {
+            $push: {
+              $cond: [
+                {
+                  $and: [
+                    { $gt: ['$lastActivityAt', sixtyDaysAgoStartOfDay] },
+                    { $lt: ['$lastActivityAt', sixtyDaysAgoEndOfDay] }
+                  ]
+                },
+                '$$ROOT',
+                '$$REMOVE'
+              ]
+            }
+          },
+          inactiveNinetyDays: {
+            $push: {
+              $cond: [
+                {
+                  $and: [
+                    { $gt: ['$lastActivityAt', ninetyDaysAgoStartOfDay] },
+                    { $lt: ['$lastActivityAt', ninetyDaysAgoEndOfDay] }
+                  ]
+                },
+                '$$ROOT',
+                '$$REMOVE'
+              ]
+            }
+          }
+        }
+      }
+    ]) as unknown as InactiveVolunteersAggregation[]
+    return agg
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function updateVolunteerReferenceStatusById(referenceId: Types.ObjectId, sentAt: Date): Promise<void> {
+  try {
+    const result = await VolunteerModel.updateOne(
+      { 'references._id': referenceId },
+      {
+        $set: {
+          'references.$.status': REFERENCE_STATUS.SENT,
+          'references.$.sentAt': sentAt
+        }
+      }
+    ).exec()
+    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function deleteVolunteerReferenceById(volunteerId: Types.ObjectId, referenceEmail: string): Promise<void> {
+  try {
+    const result = await VolunteerModel.updateOne(
+      { _id: volunteerId },
+      { $pull: { references: { email: referenceEmail } } }
+    ).exec()
+    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
 }
 
 export async function updateVolunteersReadyToCoachByIds(volunteerIds: (string | Types.ObjectId)[]): Promise<void> {
@@ -265,10 +485,16 @@ export async function updateVolunteerTotalHoursById(volunteerId: Types.ObjectId 
   }
 }
 
-export async function updateVolunteerTrainingById(volunteerId: Types.ObjectId | string, courseKey: string): Promise<void> {
+export async function updateVolunteerTrainingById(
+  volunteerId: Types.ObjectId | string,
+  courseKey: string, 
+  isComplete: boolean,
+  progress: number,
+  materialKey: string
+): Promise<void> {
   try {
-    const reult = await Volunteer.updateOne(
-      { _id: volunteer._id },
+    const result = await VolunteerModel.updateOne(
+      { _id: volunteerId },
       {
         $set: {
           [`trainingCourses.${courseKey}.isComplete`]: isComplete,
@@ -285,3 +511,49 @@ export async function updateVolunteerTrainingById(volunteerId: Types.ObjectId | 
     throw new RepoUpdateError(err)
   }
 }
+
+export async function updateVolunteerPhotoIdById(volunteerId: Types.ObjectId, photoIdS3Key: string): Promise<void> {
+  try {
+    const result = await VolunteerModel.updateOne(
+      { _id: volunteerId },
+      { $set: { photoIdS3Key, photoIdStatus: PHOTO_ID_STATUS.SUBMITTED } }
+    ).exec()
+    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateVolunteerSentInactiveEmail(volunteerId: Types.ObjectId, sentInactiveThirtyDayEmail: boolean, sentInactiveSixtyDayEmail: boolean): Promise<void> {
+  try {
+    const result = await VolunteerModel.updateOne(
+      { _id: volunteerId },
+      {
+        sentInactiveThirtyDayEmail,
+        sentInactiveSixtyDayEmail
+      }
+    ).exec()
+    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateVolunteerInactiveAvailability(volunteerId: Types.ObjectId, availability: Availability): Promise<void> {
+  try {
+    const result = await VolunteerModel.updateOne(
+      { _id: volunteerId },
+      {
+        availability,
+        sentInactiveNinetyDayEmail: true
+      }
+    ).exec()
+    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+ 

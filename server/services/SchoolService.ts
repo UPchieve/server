@@ -1,6 +1,6 @@
 import * as crypto from 'crypto'
 import { Types } from 'mongoose'
-import SchoolModel, { School } from '../models/School'
+import SchoolModel, { School } from '../models/School/index'
 import config from '../config'
 
 // helper to escape regex special characters
@@ -13,6 +13,7 @@ function createUpchieveId() {
   return String(parsedHex).slice(0, 8)
 }
 
+// TODO: need to turn this into repo pattern once we have stronger school type
 // search for schools by name or ID
 export async function search(query: any): Promise<any> {
   // @note: Atlas Search is unavailable for local development. This is a
@@ -26,7 +27,12 @@ export async function search(query: any): Promise<any> {
       .limit(100)
 
     return results
-      .sort((s1: School, s2: School) => s1.name.localeCompare(s2.name))
+      .sort((s1: School, s2: School) => {
+        if (s1.name && s2.name) {
+          return s1.name.localeCompare(s2.name)
+        }
+        return 0
+      })
       .map(school => {
         return {
           _id: school._id,
@@ -227,7 +233,7 @@ export async function getSchools(
     const isLastPage = schools.length < PER_PAGE
     return { schools, isLastPage }
   } catch (error) {
-    throw new Error(error.message)
+    throw new Error((error as Error).message)
   }
 }
 
@@ -278,7 +284,7 @@ export async function adminUpdateSchool(
   name: string,
   city: string,
   state: string,
-  zipCode: string,
+  zipCode: number,
   isApproved: boolean
 ) {
   const schoolData = {

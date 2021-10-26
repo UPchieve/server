@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { StudentContactInfo, getStudentContactInfoById } from '../../models/Student/queries'
 import { safeAsync } from '../../utils/safe-async'
 import { Jobs } from '.'
@@ -12,13 +12,9 @@ interface TechIssueApology {
 }
 
 async function sendEmailToUser(user: StudentContactInfo | VolunteerContactInfo): Promise<void> {
-  const { firstname: firstName, email } = user
-  const mailData = {
-    firstName,
-    email
-  }
+  const { firstname, email } = user
 
-  await MailService.sendTechIssueApology(mailData)
+  await MailService.sendTechIssueApology(email, firstname)
 }
 
 export default async (job: Job<TechIssueApology>): Promise<void> => {

@@ -6,7 +6,7 @@ const VoiceResponse = twilio.twiml.VoiceResponse
 const MessagingResponse = require('twilio').twiml.MessagingResponse
 
 const config = require('../../config')
-const twilioService = require('../../services/twilio')
+const twilioService = require('../../services/TwilioService')
 const Volunteer = require('../../models/Volunteer').default
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
 

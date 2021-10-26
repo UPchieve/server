@@ -1,16 +1,9 @@
 import { log } from '../logger'
-import VolunteerModel, { Reference } from '../../models/Volunteer'
+import VolunteerModel, { Reference, Volunteer } from '../../models/Volunteer'
 import { REFERENCE_STATUS } from '../../constants'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
-
-// @note: uses firstName instead of firstname because of the $project aggregation stage
-// TODO: clean up Volunteer model to use firstName instead of firstname (or sendGrid to use firstname instead of firstName)
-interface Volunteer {
-  firstName: string
-  lastName: string
-}
 
 interface ReferencesToEmail {
   reference: Reference
@@ -51,8 +44,8 @@ export default async (): Promise<void> => {
         $project: {
           _id: 0,
           volunteer: {
-            firstName: '$firstname',
-            lastName: '$lastname'
+            firstname: 1,
+            lastname: 1
           },
           reference: '$references'
         }
@@ -66,12 +59,12 @@ export default async (): Promise<void> => {
   if (referencesToEmail.length === 0)
     return log('No references to email for a follow-up')
 
-  for (const ref of referencesToEmail) {
+  for (const { reference, volunteer } of referencesToEmail) {
     try {
-      await MailService.sendReferenceFollowup(ref)
+      await MailService.sendReferenceFollowup(reference, volunteer)
       totalEmailed++
     } catch (error) {
-      errors.push(`reference ${ref.reference._id}: ${error}`)
+      errors.push(`reference ${reference._id}: ${error}`)
     }
   }
 

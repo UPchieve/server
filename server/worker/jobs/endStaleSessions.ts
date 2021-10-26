@@ -8,6 +8,7 @@ export default async (): Promise<void> => {
   const errors = []
   for (const session of staleSessions) {
     try {
+      // TODO: fix this signature when session service is done
       await SessionService.endSession({
         sessionId: session._id,
         isAdmin: true,

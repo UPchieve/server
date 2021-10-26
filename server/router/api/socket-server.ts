@@ -10,13 +10,14 @@ const {
   socketIoPubClient,
   socketIoSubClient
 } = require('../../services/RedisService')
+import { Express } from 'express'
 
 // Create an HTTPS server if in production, otherwise use HTTP.
-const createServer = app => {
+const createServer = (app: Express) => {
   return http.createServer(app)
 }
 
-export default function(app) {
+export default function(app: Express) {
   const server = createServer(app)
 
   const port =

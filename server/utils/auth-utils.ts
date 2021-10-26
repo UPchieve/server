@@ -7,9 +7,9 @@ import { Request, Response, NextFunction } from 'express'
 
 import config from '../config'
 import {
-  findUserById,
-  findUserByEmail,
-  findUserIdByPhone,
+  getUserById,
+  getUserByEmail,
+  getUserIdByPhone,
 } from '../models/User/queries'
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
@@ -165,7 +165,7 @@ export async function checkPhone(
   if (!isValidInternationalPhoneNumber(phone))
     throw new RegistrationError('Must supply a valid phone number')
 
-  const existingUser = await findUserIdByPhone(phone)
+  const existingUser = await getUserIdByPhone(phone)
   if (existingUser)
     throw new LookupError('The phone number you entered is already in use')
 
@@ -218,7 +218,7 @@ function setupPassport() {
 
   passport.deserializeUser(async function(id: Types.ObjectId, done: Function) {
     try {
-      const user = await findUserById(id)
+      const user = await getUserById(id)
       return done(null, user)
     } catch (error) {
       return done(error)
@@ -233,7 +233,7 @@ function setupPassport() {
       },
       async function(email: string, passwordGiven: string, done: Function) {
         try {
-          const user = await findUserByEmail(email)
+          const user = await getUserByEmail(email)
 
           if (!user) {
             return done(null, false)

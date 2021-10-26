@@ -1,12 +1,13 @@
 import session from 'express-session'
 import connectMongo from 'connect-mongo'
 import config from '../../config'
+import { Express } from 'express'
 
 const MongoStore = connectMongo(session)
 
 export const sessionStoreCollectionName = 'auth-sessions'
 
-export default function(app) {
+export default function(app: Express) {
   const sessionStore = new MongoStore({
     url: config.database,
     collection: sessionStoreCollectionName

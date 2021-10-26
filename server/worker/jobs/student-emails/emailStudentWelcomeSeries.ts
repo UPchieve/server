@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
 import { Job } from 'bull'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { Jobs } from '../index'
 
@@ -18,16 +18,15 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
 
   if (student) {
     try {
-      const { firstname: firstName, email } = student
-      const mailData = { firstName, email }
+      const { firstname, email } = student
       if (currentJob === Jobs.EmailStudentUseCases)
-        await MailService.sendStudentUseCases(mailData)
+        await MailService.sendStudentUseCases(email, firstname)
       if (currentJob === Jobs.EmailMeetOurVolunteers)
-        await MailService.sendMeetOurVolunteers(mailData)
+        await MailService.sendMeetOurVolunteers(email, firstname)
       if (currentJob === Jobs.EmailIndependentLearning)
-        await MailService.sendIndependentLearning(mailData)
+        await MailService.sendIndependentLearning(email, firstname)
       if (currentJob === Jobs.EmailStudentGoalSetting)
-        await MailService.sendStudentGoalSetting(mailData)
+        await MailService.sendStudentGoalSetting(email, firstname)
 
       logger.info(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {

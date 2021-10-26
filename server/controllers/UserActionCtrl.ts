@@ -4,8 +4,9 @@ import UserAction, {
   UserActionAgent,
   UserActionDocument,
 } from '../models/UserAction'
-import { USER_ACTION, ALL_CERTS_TYPE } from '../constants'
-import getSubjectType from '../utils/getSubjectType'
+import { Certifications } from '../models/Volunteer'
+import { USER_ACTION } from '../constants'
+import { getSubjectTypeForCert } from '../utils/getSubjectType'
 import getDeviceFromUserAgent from '../utils/getDeviceFromUserAgent'
 
 function getUserAgentInfo(userAgent: string): UserActionAgent {
@@ -20,10 +21,12 @@ function getUserAgentInfo(userAgent: string): UserActionAgent {
   }
 }
 
+// TODO: refactor to use db calls instead of documents
+
 export class QuizActionCreator {
   constructor(
     private userId: Types.ObjectId,
-    private quizSubcategory: ALL_CERTS_TYPE,
+    private quizSubcategory: keyof Certifications,
     private ipAddress = ''
   ) {}
 
@@ -32,8 +35,8 @@ export class QuizActionCreator {
       actionType: USER_ACTION.TYPE.QUIZ,
       action,
       user: this.userId,
-      quizSubcategory: this.quizSubcategory.toUpperCase(),
-      quizCategory: getSubjectType(this.quizSubcategory).toUpperCase(),
+      quizSubcategory: (this.quizSubcategory as string).toUpperCase(),
+      quizCategory: getSubjectTypeForCert(this.quizSubcategory).toUpperCase(),
       ipAddress: this.ipAddress ?? '',
     })
 

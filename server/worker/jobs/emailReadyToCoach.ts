@@ -1,5 +1,5 @@
 import { getVolunteersContactInfo, updateVolunteersReadyToCoachByIds } from '../../models/Volunteer/queries'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { log } from '../logger'
 import { Jobs } from '.'
 

@@ -5,6 +5,7 @@ import { Volunteer } from '../models/Volunteer'
 import { Student } from '../models/Student'
 import { USER_SESSION_METRICS, SUBJECTS } from '../constants'
 import { Session } from '../models/Session'
+import { SessionToEnd } from '../models/Session/queries'
 import { Message } from '../models/Message'
 import { DAYS, HOURS } from '../models/Availability/types'
 import {
@@ -57,7 +58,10 @@ export function getMessagesAfterDate(messages: Message[], date: Date) {
   return []
 }
 
-export function isSessionParticipant(session: Session, user: User): boolean {
+export function isSessionParticipant(
+  session: SessionToEnd,
+  user: User
+): boolean {
   const userId = user._id
 
   const studentId =

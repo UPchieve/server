@@ -2,7 +2,7 @@ import moment from 'moment'
 import { Request, Response, NextFunction } from 'express'
 import { Volunteer } from '../models/Volunteer'
 import { Student } from '../models/Student'
-import { updateLastActivityUser } from '../services/UserService'
+import { updateUserLastActivityById } from '../models/User/queries'
 
 export function addLastActivity(
   req: Request,
@@ -15,9 +15,9 @@ export function addLastActivity(
     const today = moment().utc()
     const lastActivityMoment = moment(lastActivityAt).utc()
     if (today.isAfter(lastActivityMoment, 'day')) {
-      updateLastActivityUser({ userId: _id, lastActivityAt: today.toDate() })
+      updateUserLastActivityById(_id, today.toDate())
         .then(() => next())
-        .catch(err => next(err))
+        .catch((err: Error) => next(err))
     } else {
       next()
     }

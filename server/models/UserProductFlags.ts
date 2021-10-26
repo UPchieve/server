@@ -1,5 +1,3 @@
-/* eslint @typescript-eslint/no-use-before-define: 0 */
-
 import {
   Document,
   model,

@@ -39,7 +39,7 @@ export async function updateIpUserById(ipId: Types.ObjectId | string, userId: Ty
   }
 }
 
-export async function updateIpBanByUser(userId: Types.ObjectId | string): Promise<void> {
+export async function unbanIpsByUser(userId: Types.ObjectId): Promise<void> {
   try {
     const result = await IpAddressModel.updateMany(
       { users: userId },

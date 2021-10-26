@@ -55,71 +55,53 @@ function findMinAndMax(aggAvailabilities: AvailabilityAggregation) {
   return aggAvailabilities
 }
 
-module.exports = {
-  /**
-   * Gets all users who are volunteers, and who are certified in the
-   * subject passed in, and aggregates their availability tables into
-   * aggAvailabilities.table
-   * @param {*} options
-   * @param {*} callback
-   */
-  getVolunteersAvailability: async function(
-    options: { certifiedSubject: string },
-    callback: Function
-  ) {
-    const certifiedSubjectQuery = `certifications.${options.certifiedSubject}.passed`
+/**
+ * Gets all users who are volunteers, and who are certified in the
+ * subject passed in, and aggregates their availability tables into
+ * aggAvailabilities.table
+ * @param {*} options
+ * @param {*} callback
+ */
+export async function getVolunteersAvailability(
+  options: { certifiedSubject: string },
+  callback: Function
+) {
+  const certifiedSubjectQuery = `certifications.${options.certifiedSubject}.passed`
 
-    const volunteerQuery = {
-      [certifiedSubjectQuery]: true,
-      isFakeUser: false,
-      isTestUser: false,
-      isFailsafeVolunteer: false,
-      isOnboarded: true,
-      isDeactivated: false,
-      isBanned: false,
+  const volunteerQuery = {
+    [certifiedSubjectQuery]: true,
+    isFakeUser: false,
+    isTestUser: false,
+    isFailsafeVolunteer: false,
+    isOnboarded: true,
+    isDeactivated: false,
+    isBanned: false,
+  }
+
+  try {
+    // TODO: refactor to repo pattern
+    // the projection returns { _id: 1, type: 1}
+    const volunteers = await VolunteerModel.find(volunteerQuery)
+      .select({ _id: 1 })
+      .lean()
+      .exec()
+    const volunteerIds = volunteers.map(vol => vol._id)
+    const availabilityDocs = await getSnapshotsByVolunteerIds(volunteerIds)
+
+    let aggAvailabilities: AvailabilityAggregation = {
+      table: Array(7)
+        .fill(0)
+        .map(() => Array(24).fill(0)),
     }
+    aggAvailabilities.min = undefined
+    aggAvailabilities.max = 0
 
-    try {
-      // the projection returns { _id: 1, type: 1}
-      const volunteers = await VolunteerModel.find(volunteerQuery)
-        .select({ _id: 1 })
-        .lean()
-        .exec()
-      const volunteerIds = volunteers.map(vol => vol._id)
-      const availabilityDocs = await getSnapshotsByVolunteerIds(volunteerIds)
-
-      let aggAvailabilities: AvailabilityAggregation = {
-        table: Array(7)
-          .fill(0)
-          .map(() => Array(24).fill(0)),
-      }
-      aggAvailabilities.min = undefined
-      aggAvailabilities.max = 0
-
-      aggAvailabilities = availabilityDocs.reduce((aggAvailabilities, doc) => {
-        return aggregateAvailabilities(
-          doc.onCallAvailability,
-          aggAvailabilities
-        )
-      }, aggAvailabilities)
-      aggAvailabilities = findMinAndMax(aggAvailabilities)
-      return callback(aggAvailabilities, null)
-    } catch (error) {
-      return callback(null, error)
-    }
-  },
-
-  /**
-   * Gets all users who are volunteers
-   * @param {*} callback
-   */
-  getVolunteers: function(callback: Function) {
-    VolunteerModel.find({}, function(err, users) {
-      if (err) {
-        return callback(null, err)
-      } else {
-        return callback(users, null)
-      }
-    })
-  },
+    aggAvailabilities = availabilityDocs.reduce((aggAvailabilities, doc) => {
+      return aggregateAvailabilities(doc.onCallAvailability, aggAvailabilities)
+    }, aggAvailabilities)
+    aggAvailabilities = findMinAndMax(aggAvailabilities)
+    return callback(aggAvailabilities, null)
+  } catch (error) {
+    return callback(null, error)
+  }
 }

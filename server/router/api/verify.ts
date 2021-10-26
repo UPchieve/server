@@ -12,8 +12,8 @@ export interface TwilioError extends Error {
 export function routeVerify(router: Router) {
   router.route('/verify/send').post(async function(req, res) {
     const payload = {
-      userId: req.user._id.toString(),
-      firstName: req.user.firstname,
+      userId: req.user?._id.toString(),
+      firstName: req.user?.firstname,
       ...req.body
     } as unknown
 
@@ -21,7 +21,7 @@ export function routeVerify(router: Router) {
       await VerificationService.initiateVerification(payload)
       res.sendStatus(200)
     } catch (err) {
-      const status = err.status
+      const status = (err as TwilioError).status
       let message: string
       if (status === 429) {
         message =
@@ -31,12 +31,12 @@ export function routeVerify(router: Router) {
         message =
           'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
       } else {
-        message = err.message
+        message = (err as TwilioError).message
       }
       // custom logging for NR alerts
       logger.error(
         { 'error.name': 'twilio verification', error: err },
-        err.message
+        (err as TwilioError).message
       )
       resError(res, new Error(message), status)
     }
@@ -44,7 +44,7 @@ export function routeVerify(router: Router) {
 
   router.route('/verify/confirm').post(async function(req, res) {
     const payload = {
-      userId: req.user._id.toString(),
+      userId: req.user?._id.toString(),
       ...req.body
     } as unknown
 
@@ -55,7 +55,7 @@ export function routeVerify(router: Router) {
       // custom logging for NR alerts
       logger.error(
         { 'error.name': 'twilio verification', error: err },
-        err.message
+        (err as Error).message
       )
       resError(res, err)
     }

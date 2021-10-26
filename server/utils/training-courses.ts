@@ -1,6 +1,6 @@
 import { find, chain } from 'lodash'
 
-interface TrainingCourse {
+export interface TrainingCourse {
   name: string
   courseKey: string
   description: string

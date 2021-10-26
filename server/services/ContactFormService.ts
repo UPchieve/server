@@ -125,7 +125,7 @@ async function sendContactForm(data: {
   try {
     await MailService.sendContactFormEmail(data)
   } catch (err) {
-    throw new MailSendError('contact form submission', err.message)
+    throw new MailSendError('contact form submission', (err as Error).message)
   }
 }
 

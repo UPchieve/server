@@ -1,18 +1,15 @@
 import { Types } from 'mongoose'
 import { captureException } from '@sentry/node'
 import base64url from 'base64url'
-import { DeleteWriteOpResultObject } from 'mongodb'
-import UserModel from '../models/User'
-import { findUserIdByReferralCode } from '../models/User/queries'
+import { getUserIdByReferralCode } from '../models/User/queries'
 import StudentModel, { Student } from '../models/Student'
 import VolunteerModel, { Certifications, Volunteer } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
-import { createByUserId as createUSMByUserId } from '../models/UserSessionMetrics'
+import { createUSMByUserId } from '../models/UserSessionMetrics/queries'
 import { createByUserId as createUPFByUserId } from '../models/UserProductFlags'
 import { AccountActionCreator } from './UserActionCtrl'
 import { createSnapshotByVolunteerId } from '../models/Availability/queries'
 import { hashPassword } from '../utils/auth-utils'
-import { ALL_CERTS_TYPE } from '../constants'
 
 const generateReferralCode = (userId: Types.ObjectId) =>
   base64url(Buffer.from(userId.toString(), 'hex'))
@@ -22,7 +19,7 @@ export async function checkReferral(
 ): Promise<Types.ObjectId | undefined> {
   if (referredByCode) {
     try {
-      return await findUserIdByReferralCode(referredByCode)
+      return await getUserIdByReferralCode(referredByCode)
     } catch (error) {
       captureException(error)
     }
@@ -34,7 +31,7 @@ export async function createStudent(
   ip: string
 ): Promise<Student> {
   studentData.password = await hashPassword(studentData.password)
-
+  // TODO: refactor to repo pattern
   const student = new StudentModel(studentData)
   student.referralCode = generateReferralCode(student._id)
 
@@ -74,7 +71,7 @@ export async function createVolunteer(
   ip: string
 ): Promise<Volunteer> {
   volunteerData.password = await hashPassword(volunteerData.password)
-
+  // TODO: refactor to repo pattern
   const volunteer = new VolunteerModel(volunteerData)
   volunteer.referralCode = generateReferralCode(volunteer.id)
 
@@ -118,7 +115,7 @@ export function isCertified(certifications: Certifications): boolean {
   for (const subject in certifications) {
     if (
       Object.prototype.hasOwnProperty.call(certifications, subject) &&
-      certifications[subject as ALL_CERTS_TYPE].passed
+      certifications[subject as keyof Certifications].passed
     ) {
       isCertified = true
       break

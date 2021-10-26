@@ -32,7 +32,10 @@ import {
 import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
 import { AnyFeedback } from '../models/Feedback/queries'
-import { getVolunteersForTelecomReport } from '../models/Volunteer/queries'
+import {
+  getVolunteersForTelecomReport,
+  getVolunteersWithPipeline,
+} from '../models/Volunteer/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -139,6 +142,7 @@ export const sessionReport = async (
   const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
   const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
 
+  // TODO: refactor to repo pattern
   const sessions = await User.aggregate([
     {
       $match: query,
@@ -340,7 +344,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
   const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
 
-  // TODO: type this insane agg
+  // TODO: refactor to repo pattern
   const students = await User.aggregate([
     {
       $match: query,
@@ -596,7 +600,7 @@ export async function generatePartnerAnalyticsReport(
   if (start >= end) throw new Error('Invalid date range')
 
   // get volunteers for analytics
-  const volunteers = ((await VolunteerService.getVolunteersWithPipeline([
+  const volunteers = ((await getVolunteersWithPipeline([
     {
       $match: {
         volunteerPartnerOrg: partnerOrg,

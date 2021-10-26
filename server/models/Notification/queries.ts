@@ -8,9 +8,9 @@ export async function getNotificationsByVolunteerId(id: Types.ObjectId): Promise
     .exec()
 }
 
-export const getNotificationWithVolunteer = async (
+export async function getNotificationWithVolunteer(
   notificationId: Types.ObjectId
-): Promise<Notification> => {
+): Promise<Notification> {
   const [notification] = await NotificationModel.aggregate([
     {
       $match: {
@@ -29,6 +29,31 @@ export const getNotificationWithVolunteer = async (
   ])
 
   return notification
+}
+
+export async function getSessionNotificationsWithSessionId(
+  sessionId: Types.ObjectId
+): Promise<Notification[]> {
+  // TODO: fix signature wwhen session service done
+  const session = await SessionService.getSessionById(sessionId)
+  return NotificationModel.aggregate([
+    {
+      $match: {
+        $expr: {
+          $in: ['$_id', session.notifications]
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'volunteer',
+        foreignField: '_id',
+        as: 'volunteer'
+      }
+    },
+    { $unwind: '$volunteer' }
+  ]).exec()
 }
 
 export const getNotificationsWithPipeline = (

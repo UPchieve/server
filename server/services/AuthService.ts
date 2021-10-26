@@ -4,11 +4,11 @@ import validator from 'validator'
 
 import mongoose from 'mongoose'
 import {
-  findUserByEmail,
-  findUserByResetToken,
+  getUserByEmail,
+  getUserByResetToken,
   updateUserResetTokenById,
   updateUserPasswordById,
-  findUserIdByEmail,
+  getUserIdByEmail,
 } from '../models/User/queries'
 import { Student } from '../models/Student'
 import { Volunteer } from '../models/Volunteer'
@@ -43,7 +43,7 @@ import { sessionStoreCollectionName } from '../router/api/session-store'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
 import { getIpWhoIs } from './IpAddressService'
-import MailService from './MailService'
+import * as MailService from './MailService'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -77,7 +77,7 @@ export async function checkCredential(data: unknown): Promise<boolean> {
     throw new RegistrationError('Must supply a valid email address')
 
   if (checkPassword(password)) {
-    const user = await findUserIdByEmail(email)
+    const user = await getUserIdByEmail(email)
     if (user) {
       throw new LookupError('The email address you entered is already in use')
     }
@@ -392,14 +392,14 @@ export async function lookupVolunteerPartners(): Promise<PartnerOrg[]> {
 // Handles /reset/send route
 export async function sendReset(data: unknown): Promise<void> {
   const email = asString(data)
-  const user = await findUserByEmail(email)
+  const user = await getUserByEmail(email)
   if (!user) throw new LookupError(`No account with ${email} found`)
 
   const buffer: Buffer = randomBytes(16)
   const token = buffer.toString('hex')
   await updateUserResetTokenById(user._id, token)
 
-  await MailService.sendReset({ email, token })
+  await MailService.sendReset(email, token)
 }
 
 export async function confirmReset(data: unknown): Promise<void> {
@@ -410,7 +410,7 @@ export async function confirmReset(data: unknown): Promise<void> {
     throw new ResetError('Invalid password reset token')
   }
 
-  const user = await findUserByResetToken(token)
+  const user = await getUserByResetToken(token)
 
   if (!user)
     throw new LookupError('No account found with provided password reset token')

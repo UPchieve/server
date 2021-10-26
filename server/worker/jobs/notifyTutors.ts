@@ -3,7 +3,7 @@ import { Job } from 'bull'
 import SessionModel from '../../models/Session'
 import * as SessionService from '../../services/SessionService'
 import QueueService from '../../services/QueueService'
-import TwilioService from '../../services/twilio'
+import * as TwilioService from '../../services/TwilioService'
 import { getNotificationWithVolunteer } from '../../models/Notification/queries'
 import { Volunteer } from '../../models/Volunteer'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
@@ -75,11 +75,11 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
       const notification = await getNotificationWithVolunteer(id)
       const volunteer = notification.volunteer as Volunteer
 
-      await TwilioService.sendFollowupText({
-        session,
-        volunteerId: volunteer._id,
-        volunteerPhone: volunteer.phone
-      })
+      await TwilioService.sendFollowupText(
+        session._id,
+        volunteer._id,
+        volunteer.phone as string
+      )
       log(
         `Successfully sent follow up for session ${session._id} to volunteer ${volunteer._id}`
       )
@@ -94,7 +94,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
 
       if (volunteerNotified)
         log(
-          `Successfully sent notification for session ${session._id} to volunteer ${volunteerNotified._id}`
+          `Successfully sent notification for session ${session._id} to volunteer ${volunteerNotified}`
         )
       else
         log(

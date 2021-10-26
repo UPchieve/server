@@ -1,18 +1,18 @@
-import express, { Express } from 'express'
+import express, { Express, Router } from 'express'
 import * as Sentry from '@sentry/node'
 import { authPassport } from '../../utils/auth-utils'
 import * as SchoolService from '../../services/SchoolService'
-import UserService from '../../services/UserService'
+import * as UserService from '../../services/UserService'
 import * as UserCtrl from '../../controllers/UserCtrl'
 import School from '../../models/School'
 import ZipCode from '../../models/ZipCode'
 import IneligibleStudent from '../../models/IneligibleStudent'
 import * as IneligibleStudentService from '../../services/IneligibleStudentService'
 import { resError } from '../res-error'
-import IpAddressService from '../../services/IpAddressService'
+import * as IpAddressService from '../../services/IpAddressService'
 
 export function routes(app: Express) {
-  const router: any = express.Router()
+  const router: Router = express.Router()
 
   // Check if a student is eligible
   router.route('/check').post(async function(req, res, next) {
@@ -88,8 +88,8 @@ export function routes(app: Express) {
         },
         null,
         {
-          limit: parseInt(req.query.limit),
-          skip: parseInt(req.query.skip)
+          limit: parseInt(req.query?.limit) || 0, //to check
+          skip: parseInt(req.query?.skip) || 0
         }
       )
         .exec()
@@ -130,7 +130,7 @@ export function routes(app: Express) {
   router.get('/school/:schoolId', authPassport.isAdmin, async function(
     req,
     res,
-    next
+    next,
   ) {
     const { schoolId } = req.params
 
@@ -145,7 +145,7 @@ export function routes(app: Express) {
   router.put('/school/:schoolId', authPassport.isAdmin, async function(
     req,
     res,
-    next
+    next,
   ) {
     const { schoolId } = req.params
 
@@ -169,7 +169,7 @@ export function routes(app: Express) {
   router.post('/school/new', authPassport.isAdmin, async function(
     req,
     res,
-    next
+    next,
   ) {
     try {
       const school = await SchoolService.createSchool(req.body)
@@ -181,7 +181,7 @@ export function routes(app: Express) {
 
   router.post('/school/approval', authPassport.isAdmin, async function(
     req,
-    res
+    res,
   ) {
     const { schoolId, isApproved } = req.body
 
@@ -196,7 +196,7 @@ export function routes(app: Express) {
 
   router.post('/school/partner', authPassport.isAdmin, async function(
     req,
-    res
+    res,
   ) {
     const { schoolId, isPartner } = req.body
 
@@ -210,11 +210,11 @@ export function routes(app: Express) {
   })
 
   router.get('/ineligible-students', authPassport.isAdmin, async function(
-    req,
-    res,
+    req: any,
+    res: any,
     next
   ) {
-    const page = parseInt(req.query.page) || 1
+    const page = parseInt(req.query?.page) || 1
 
     try {
       const {
@@ -229,8 +229,8 @@ export function routes(app: Express) {
   })
 
   router.get('/zip-codes/:zipCode', authPassport.isAdmin, async function(
-    req,
-    res
+    req: any,
+    res: any,
   ) {
     const { zipCode } = req.params
 
@@ -247,7 +247,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.get('/ip-check', async function(req, res) {
+  router.get('/ip-check', async function(req: any, res: any) {
     try {
       await IpAddressService.checkIpAddress(req.ip)
       res.sendStatus(200)

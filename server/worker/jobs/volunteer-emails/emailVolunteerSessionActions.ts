@@ -1,10 +1,9 @@
 import { Job } from 'bull'
 import moment from 'moment'
 import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { Jobs } from '../index'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
-import { getUser } from '../../../services/UserService'
+import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { ISOString } from '../../../constants'
 import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
@@ -22,33 +21,28 @@ export default async (job: Job<VolunteerSessionTriggers>): Promise<void> => {
     name: currentJob
   } = job
 
-  const volunteer = await getUser(
-    {
-      _id: volunteerId,
-      ...EMAIL_RECIPIENT
-    },
-    {
-      _id: 1,
-      email: 1,
-      firstname: 1
-    }
-  )
+  const volunteer = await getVolunteerContactInfoById(volunteerId)
   const student = await getStudentContactInfoById(studentId)
 
   if (student && volunteer) {
     try {
-      const { firstname: firstName, email } = volunteer
-      const mailData = {
-        firstName,
-        email,
-        studentFirstName: student.firstname,
-        sessionSubject: formatMultiWordSubject(sessionSubtopic),
-        sessionDate: moment(sessionDate).format('MMMM Do')
-      }
+      const { firstname, email } = volunteer
       if (currentJob === Jobs.EmailVolunteerAbsentWarning)
-        await MailService.sendVolunteerAbsentWarning(mailData)
+        await MailService.sendVolunteerAbsentWarning(
+          firstname,
+          email,
+          student.firstname,
+          formatMultiWordSubject(sessionSubtopic),
+          moment(sessionDate).format('MMMM Do')
+        )
       if (currentJob === Jobs.EmailVolunteerAbsentStudentApology)
-        await MailService.sendVolunteerAbsentStudentApology(mailData)
+        await MailService.sendVolunteerAbsentStudentApology(
+          firstname,
+          email,
+          student.firstname,
+          formatMultiWordSubject(sessionSubtopic),
+          moment(sessionDate).format('MMMM Do')
+        )
 
       logger.info(`Emailed ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
