@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-import { SessionWithPopulatedUsers } from '../../../models/Session'
+import { SessionWithPopulatedUsers } from '../../../models/Session/queries'
 import {
   buildSession,
   buildStudent,

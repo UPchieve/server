@@ -7,7 +7,7 @@ const MongoStore = connectMongo(session)
 
 export const sessionStoreCollectionName = 'auth-sessions'
 
-export default function(app: Express) {
+export default function(app: Express): connectMongo.MongoStore {
   const sessionStore = new MongoStore({
     url: config.database,
     collection: sessionStoreCollectionName

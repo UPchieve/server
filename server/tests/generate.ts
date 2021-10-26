@@ -78,7 +78,7 @@ export function hugeText() {
   return faker.lorem.words(300)
 }
 
-// @todo: Figure out how to use with MATH_CERTS, SCIENCE_CERTS
+// TODO: Figure out how to use with MATH_CERTS, SCIENCE_CERTS
 export const buildCertifications = (overrides = {}): Certifications => {
   return {
     [MATH_CERTS.PREALGREBA]: { passed: false, tries: 0 },
@@ -484,7 +484,7 @@ export const buildPastSessions = (): Types.ObjectId[] => {
 
 /**
  *
- * @todo: use Partial<Notification> instead of Partial<any>
+ * TODO: use Partial<Notification> instead of Partial<any>
  * Enums NotificationMethod & NotificationType do not exists at runtime, so
  * a type error like "Cannot read property 'SMS' of undefined" is thrown
  *
@@ -496,10 +496,10 @@ export const buildNotification = (overrides = {}): Notification => {
   const notification = {
     _id,
     sentAt: new Date(),
-    // @todo:  use NotificationMethod from models/Notification
+    // TODO:  use NotificationMethod from models/Notification
     method: 'SMS',
     volunteer: null,
-    // @todo:  use NotificationType from models/Notification
+    // TODO:  use NotificationType from models/Notification
     type: 'REGULAR',
     wasSuccessful: true,
     messageId: 'message123',
@@ -648,7 +648,7 @@ export function buildUserAgent(overrides = {}) {
   }
 }
 
-// @todo: return PartialSocket or use a mocked socket
+// TODO: return PartialSocket or use a mocked socket
 export function buildSocket(overrides = {}) {
   return {
     id: getStringObjectId(),

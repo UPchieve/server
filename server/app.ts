@@ -165,7 +165,11 @@ app.use((req, res, next) => {
 
 // Make req.login async
 app.use((req, res, next): void => {
-  req.asyncLogin = promisify(req.login)
+  // Wrapper around promise to allow for no callback when using with await
+  req.asyncLogin = (
+    arg1: Express.User,
+    arg2?: any,
+  ) => promisify(req.login)(arg1, arg2, () => {})
   next()
 })
 

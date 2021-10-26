@@ -4,7 +4,7 @@ import {
 } from '../partnerManifests'
 import crypto from 'crypto'
 import { omit } from 'lodash'
-import UserModel from '../models/User'
+import UserModel, { User } from '../models/User'
 import { getUserById } from '../models/User/queries'
 import VolunteerModel, { Volunteer, Reference } from '../models/Volunteer'
 import {
@@ -22,13 +22,20 @@ import { REFERENCE_STATUS, USER_BAN_REASON, EVENTS } from '../constants'
 import * as AnalyticsService from './AnalyticsService'
 import { Types } from 'mongoose'
 import { asReferenceFormData } from '../utils/reference-utils'
+import {
+  asFactory,
+  asObjectId,
+  asString,
+  asBoolean,
+  asOptional,
+  asNumber,
+} from '../utils/type-utils'
 
-export async function parseUser(user: Student | Volunteer) {
+export async function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
   if (user.isVolunteer && (user as Volunteer).isApproved) {
-    user = user as Volunteer
-    user.hoursTutored = new Types.Decimal128(
-      new Buffer(user.hoursTutored.toString())
+    ;(user as Volunteer).hoursTutored = new Types.Decimal128(
+      new Buffer((user as Volunteer).hoursTutored.toString())
     )
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
@@ -47,13 +54,29 @@ export async function addPhotoId(
   return photoIdS3Key
 }
 
-export async function addReference(
-  userId: Types.ObjectId,
-  referenceFirstName: string,
-  referenceLastName: string,
-  referenceEmail: string,
+interface AddReferencePayload {
+  userId: Types.ObjectId
+  referenceFirstName: string
+  referenceLastName: string
+  referenceEmail: string
   ip: string
-) {
+}
+const asAddReferencePayload = asFactory<AddReferencePayload>({
+  userId: asObjectId,
+  referenceFirstName: asString,
+  referenceLastName: asString,
+  referenceEmail: asString,
+  ip: asString,
+})
+
+export async function addReference(data: unknown) {
+  const {
+    userId,
+    referenceFirstName,
+    referenceLastName,
+    referenceEmail,
+    ip,
+  } = asAddReferencePayload(data)
   const referenceData = {
     firstName: referenceFirstName,
     lastName: referenceLastName,
@@ -133,18 +156,44 @@ export async function deleteReference(
   await deleteVolunteerReferenceById(userId, referenceEmail)
 }
 
-export async function adminUpdateUser(
-  userId: Types.ObjectId,
-  firstName: string,
-  lastName: string,
-  email: string,
-  partnerOrg: string,
-  partnerSite: string,
-  isVerified: boolean,
-  isBanned: boolean,
-  isDeactivated: boolean,
-  isApproved: boolean
-) {
+interface AdminUpdate {
+  userId: Types.ObjectId
+  firstName?: string
+  lastName?: string
+  email?: string
+  partnerOrg?: string
+  partnerSite?: string
+  isVerified?: boolean
+  isBanned?: boolean
+  isDeactivated?: boolean
+  isApproved?: boolean
+}
+const asAdminUpdate = asFactory<AdminUpdate>({
+  userId: asObjectId,
+  firstName: asOptional(asString),
+  lastName: asOptional(asString),
+  email: asOptional(asString),
+  partnerOrg: asOptional(asString),
+  partnerSite: asOptional(asString),
+  isVerified: asOptional(asBoolean),
+  isBanned: asOptional(asBoolean),
+  isDeactivated: asOptional(asBoolean),
+  isApproved: asOptional(asBoolean),
+})
+
+export async function adminUpdateUser(data: unknown) {
+  const {
+    userId,
+    firstName,
+    lastName,
+    email,
+    partnerOrg,
+    partnerSite,
+    isVerified,
+    isBanned,
+    isDeactivated,
+    isApproved,
+  } = asAdminUpdate(data)
   const userBeforeUpdate = await getUserById(userId)
   if (userBeforeUpdate === undefined) {
     throw new UserNotFoundError('_id', userId.toString())
@@ -209,19 +258,40 @@ export async function adminUpdateUser(
   }
 }
 
+interface UserQuery {
+  userId: Types.ObjectId
+  firstName?: string
+  lastName?: string
+  email?: string
+  partnerOrg?: string
+  highSchool?: Types.ObjectId
+  page?: number
+}
+
+const asUserQuery = asFactory<UserQuery>({
+  userId: asObjectId,
+  firstName: asOptional(asString),
+  lastName: asOptional(asString),
+  email: asOptional(asString),
+  partnerOrg: asOptional(asString),
+  highSchool: asOptional(asObjectId),
+  page: asOptional(asNumber),
+})
+
 // TODO: reafactor this to use a query in UserModel like
 // getUsersForAdmin with a typed interface for these query params
-export async function getUsers(
-  userId: Types.ObjectId,
-  firstName: string,
-  lastName: string,
-  email: string,
-  partnerOrg: string,
-  highSchool: Types.ObjectId,
-  page: number = 1
-) {
+export async function getUsers(data: unknown) {
+  const {
+    userId,
+    firstName,
+    lastName,
+    email,
+    partnerOrg,
+    highSchool,
+    page,
+  } = asUserQuery(data)
   const query: any = {}
-  const pageNum = page
+  const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
 

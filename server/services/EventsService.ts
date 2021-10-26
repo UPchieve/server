@@ -1,5 +1,5 @@
 // TODO: remove merkury
-import Merkury from 'merkury'
+const Merkury = require('merkury')
 import { v4 as uuidv4 } from 'uuid'
 import config from '../config'
 

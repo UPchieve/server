@@ -8,7 +8,7 @@ import AvailabilityHistoryModel, {
 import { Availability } from './types'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 
-export async function getSnapshotByVolunteerId(volunteerId: Types.ObjectId | string): Promise<AvailabilitySnapshot | undefined> {
+export async function getSnapshotByVolunteerId(volunteerId: Types.ObjectId): Promise<AvailabilitySnapshot | undefined> {
   try {
     const snap = await AvailabilitySnapshotModel.findOne({ volunteerId }).lean().exec()
     if (snap) return snap as AvailabilitySnapshot
@@ -17,7 +17,7 @@ export async function getSnapshotByVolunteerId(volunteerId: Types.ObjectId | str
   }
 }
 
-export async function getSnapshotsByVolunteerIds(volunteerIds: (Types.ObjectId | string)[]): Promise<AvailabilitySnapshot[]> {
+export async function getSnapshotsByVolunteerIds(volunteerIds: (Types.ObjectId)[]): Promise<AvailabilitySnapshot[]> {
   try {
     return await AvailabilitySnapshotModel.find(
       { volunteerId: { $in: volunteerIds } }
@@ -27,7 +27,7 @@ export async function getSnapshotsByVolunteerIds(volunteerIds: (Types.ObjectId |
   }
 }
 
-export async function getHistoryForDatesByVolunteerId(volunteerId: Types.ObjectId | string, start: Date, end: Date): Promise<AvailabilityHistory[]> {
+export async function getHistoryForDatesByVolunteerId(volunteerId: Types.ObjectId, start: Date, end: Date): Promise<AvailabilityHistory[]> {
   try {
     return await AvailabilityHistoryModel.find(
       {
@@ -43,7 +43,7 @@ export async function getHistoryForDatesByVolunteerId(volunteerId: Types.ObjectI
   }
 }
 
-export async function createSnapshotByVolunteerId(volunteerId: Types.ObjectId | string): Promise<AvailabilitySnapshot> {
+export async function createSnapshotByVolunteerId(volunteerId: Types.ObjectId): Promise<AvailabilitySnapshot> {
   try {
     const snap = await AvailabilitySnapshotModel.create({ volunteerId })
     return snap.toObject() as AvailabilitySnapshot
@@ -52,7 +52,7 @@ export async function createSnapshotByVolunteerId(volunteerId: Types.ObjectId | 
   }
 }
 
-export async function updateSnapshotOnCallByVolunteerId(volunteerId: Types.ObjectId | string, availability: Availability): Promise<void> {
+export async function updateSnapshotOnCallByVolunteerId(volunteerId: Types.ObjectId, availability: Availability): Promise<void> {
   try {
     const result = await AvailabilitySnapshotModel.updateOne({ volunteerId }, { onCallAvailability: availability }).exec()
     if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
@@ -62,7 +62,7 @@ export async function updateSnapshotOnCallByVolunteerId(volunteerId: Types.Objec
 }
 
 export async function updateSnapshotFullByVolunteerId(
-  volunteerId: Types.ObjectId | string,
+  volunteerId: Types.ObjectId,
   availability: Availability,
   timezone: string,
   modifiedAt: Date

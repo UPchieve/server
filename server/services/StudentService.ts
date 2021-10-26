@@ -3,7 +3,7 @@ import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 
 export const queueWelcomeEmails = async (
-  studentId: Types.ObjectId | string
+  studentId: Types.ObjectId
 ): Promise<void> => {
   QueueService.add(
     Jobs.EmailStudentUseCases,

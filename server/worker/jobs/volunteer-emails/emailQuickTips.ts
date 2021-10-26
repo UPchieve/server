@@ -7,7 +7,7 @@ import { getVolunteerForQuickTips } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
 
 interface EmailQuickTipsJobData {
-  volunteerId: string | Types.ObjectId
+  volunteerId: Types.ObjectId
 }
 
 export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {

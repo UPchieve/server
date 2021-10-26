@@ -27,7 +27,7 @@ export async function getStudentById(studentId: Types.ObjectId): Promise<Student
 }
 
 export type StudentContactInfo = Pick<Student, '_id' | 'firstname' | 'email'>
-export async function getStudentContactInfoById(studentId: Types.ObjectId | string): Promise<StudentContactInfo | undefined> {
+export async function getStudentContactInfoById(studentId: Types.ObjectId): Promise<StudentContactInfo | undefined> {
   return await wrapRead(async () => {
     const student = await StudentModel.findOne(
     {
@@ -43,7 +43,7 @@ export async function getStudentContactInfoById(studentId: Types.ObjectId | stri
   }) 
 }
 
-export async function getTestStudentById(studentId: Types.ObjectId | string): Promise<boolean> {
+export async function getTestStudentById(studentId: Types.ObjectId): Promise<boolean> {
   try {
     const student = await StudentModel.findOne({ _id: studentId })
       .select('isTestUser')

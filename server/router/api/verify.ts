@@ -1,8 +1,9 @@
 import { Router } from 'express'
-
+import { User } from '../../models/User'
 import * as VerificationService from '../../services/VerificationService'
 import logger from '../../logger'
 import { resError } from '../res-error'
+import { NotAuthenticatedError } from '../../models/Errors'
 
 export interface TwilioError extends Error {
   message: string
@@ -11,9 +12,11 @@ export interface TwilioError extends Error {
 
 export function routeVerify(router: Router) {
   router.route('/verify/send').post(async function(req, res) {
+    if (!req.user) throw new NotAuthenticatedError()
+    const user = req.user as User
     const payload = {
-      userId: req.user?._id.toString(),
-      firstName: req.user?.firstname,
+      userId: user._id.toString(),
+      firstName: user.firstname,
       ...req.body
     } as unknown
 

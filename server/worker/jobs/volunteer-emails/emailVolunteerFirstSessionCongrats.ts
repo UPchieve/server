@@ -3,11 +3,11 @@ import { Types } from 'mongoose'
 import { USER_SESSION_METRICS } from '../../../constants'
 import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
-import { getSessionsWithPipeline } from '../../../services/SessionService'
+import { getSessionsWithPipeline } from '../../../models/Session/queries'
 import { emailRecipientPrefixed } from '../../../utils/aggregation-snippets'
 
 interface EmailVolunteerFirstSessionJobData {
-  sessionId: string | Types.ObjectId
+  sessionId: Types.ObjectId
 }
 
 export default async (

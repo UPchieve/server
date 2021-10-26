@@ -73,7 +73,7 @@ export const AssistmentsDataModel = model<AssistmentsDataDocument>(
 
 // Utilities
 export async function validSession(
-  sessionId: Types.ObjectId | string
+  sessionId: Types.ObjectId
 ): Promise<boolean> {
   const session = await SessionModel.findById(sessionId)
     .lean()

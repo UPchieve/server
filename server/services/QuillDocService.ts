@@ -1,17 +1,20 @@
 import Delta from 'quill-delta'
+import { Types } from 'mongoose'
 import * as cache from '../cache'
 
-function sessionIdToKey(id: string): string {
-  return `quill-${id}`
+function sessionIdToKey(id: Types.ObjectId): string {
+  return `quill-${id.toString()}`
 }
 
-export async function createDoc(sessionId: string): Promise<Delta> {
+export async function createDoc(sessionId: Types.ObjectId): Promise<Delta> {
   const newDoc = new Delta()
   await cache.save(sessionIdToKey(sessionId), JSON.stringify(newDoc))
   return newDoc
 }
 
-export async function getDoc(sessionId: string): Promise<Delta | undefined> {
+export async function getDoc(
+  sessionId: Types.ObjectId
+): Promise<Delta | undefined> {
   try {
     const docString = await cache.get(sessionIdToKey(sessionId))
     return new Delta(JSON.parse(docString))
@@ -21,7 +24,7 @@ export async function getDoc(sessionId: string): Promise<Delta | undefined> {
 }
 
 export async function appendToDoc(
-  sessionId: string,
+  sessionId: Types.ObjectId,
   delta: Delta
 ): Promise<void> {
   const redisKey = sessionIdToKey(sessionId)
@@ -34,7 +37,7 @@ export async function appendToDoc(
   }
 }
 
-export async function deleteDoc(sessionId: string): Promise<void> {
+export async function deleteDoc(sessionId: Types.ObjectId): Promise<void> {
   try {
     await cache.remove(sessionIdToKey(sessionId))
   } catch (err) {

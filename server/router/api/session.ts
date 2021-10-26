@@ -7,7 +7,7 @@ import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
 
-// @todo: figure out a better way to expose SocketService
+// TODO: figure out a better way to expose SocketService
 export function routes(router: Router, io: Server) {
   // io is now passed to this module so that API events can trigger socket events as needed
   const socketService = new SocketService(io)
@@ -58,7 +58,7 @@ export function routes(router: Router, io: Server) {
     }
   })
 
-  // @todo: switch to a GET request
+  // TODO: switch to a GET request
   router
     .route('/session/current')
     .post(async function(req, res) {

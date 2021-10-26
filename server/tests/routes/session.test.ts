@@ -18,7 +18,7 @@ import {
   mockedGetSessionsToReview,
   mockedGetStudentLatestSession
 } from '../mocks/repos/session-repo'
-import { AdminFilteredSessions } from '../../models/Session'
+import { AdminFilteredSessions } from '../../models/Session/queries'
 import {
   mockApp,
   mockRouter,

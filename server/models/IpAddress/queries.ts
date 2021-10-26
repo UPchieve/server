@@ -22,7 +22,7 @@ export async function createIpByRawString(rawIpString: string): Promise<IpAddres
   }
 }
 
-export async function updateIpUserById(ipId: Types.ObjectId | string, userId: Types.ObjectId | string): Promise<void> {
+export async function updateIpUserById(ipId: Types.ObjectId, userId: Types.ObjectId): Promise<void> {
   try {
     const result = await IpAddressModel.updateOne(
       {

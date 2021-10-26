@@ -15,7 +15,7 @@ import { getPartnerVolunteerForCollege } from '../../../models/Volunteer/queries
  */
 
 interface EmailOnlyCollegeCertsJobData {
-  volunteerId: string | Types.ObjectId
+  volunteerId: Types.ObjectId
 }
 
 export default async (

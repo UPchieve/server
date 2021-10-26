@@ -1,18 +1,14 @@
-import moment from 'moment-timezone'
 import { values } from 'lodash'
-import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
+import {  Document, model, Model, Schema, Types } from 'mongoose'
 import {
-  FEEDBACK_VERSIONS,
   USER_SESSION_METRICS,
-  USER_ACTION,
   SUBJECT_TYPES,
 } from '../../constants'
 import MessageModel, { Message } from '../Message'
-import { Notification, NotificationDocument } from '../Notification'
+import { Notification } from '../Notification'
 import { User } from '../User'
 import { Student } from '../Student'
 import { Volunteer } from '../Volunteer'
-import { DocUpdateError, DocCreationError, LookupError } from '../Errors'
 
 const validTypes = [
   SUBJECT_TYPES.MATH,
@@ -36,7 +32,9 @@ export interface Session {
   volunteerJoinedAt: Date
   failedJoins: (Types.ObjectId | User)[]
   endedAt: Date
-  endedBy: Types.ObjectId | User
+  // NOTE: endedBy is sometimes null when the session is ended by worker job
+  //        due to the session being unmatched for an extended period of time
+  endedBy: Types.ObjectId | User | null
   notifications: (Types.ObjectId | Notification)[]
   photos: string[]
   isReported: boolean

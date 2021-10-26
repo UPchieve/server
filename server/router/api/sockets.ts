@@ -1,36 +1,49 @@
 /**
  * Processes incoming socket messages
  */
+// TODO: types for passport
 const passportSocketIo = require('passport.socketio')
-const cookieParser = require('cookie-parser')
-const Sentry = require('@sentry/node')
-const config = require('../../config')
-const SocketService = require('../../services/SocketService')
-const SessionService = require('../../services/SessionService')
-const QuillDocService = require('../../services/QuillDocService')
-const getSessionRoom = require('../../utils/get-session-room')
-const newrelic = require('newrelic')
+import redisAdapter from 'socket.io-redis'
+import cookieParser from 'cookie-parser'
+import Sentry from '@sentry/node'
+import { Server } from 'socket.io'
+import connectMongo from 'connect-mongo'
 
-module.exports = function(io, sessionStore) {
+import config from '../../config'
+import { Session } from '../../models/Session'
+import SocketService from '../../services/SocketService'
+import * as SessionService from '../../services/SessionService'
+import * as SessionRepo from '../../models/Session/queries'
+import * as QuillDocService from '../../services/QuillDocService'
+import getSessionRoom from '../../utils/get-session-room'
+import newrelic from 'newrelic'
+import { getIdFromModelReference } from '../../utils/validators'
+
+// TODO: upgrade socketio and adapter so we can async this whole file
+export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore): void {
   const socketService = new SocketService(io)
 
-  const getSocketIdsFromRoom = room =>
-    new Promise((resolve, reject) => {
-      io.in(room).clients((err, clients) => {
+  // TODO: figure out why these are async (is it the adapter?)
+  async function getSocketIdsFromRoom(room: string): Promise<string[]> {
+    return await new Promise((resolve, reject) => {
+      io.in(room).clients((err: Error, clients: string[]) => {
         if (err) return reject(err)
         return resolve(clients)
       })
     })
+  }
 
-  const remoteJoinRoom = (socketId, room) =>
-    new Promise((resolve, reject) => {
-      io.of('/').adapter.remoteJoin(socketId, room, err => {
+  async function remoteJoinRoom(socketId: string, room: string) {
+    return await new Promise((resolve, reject) => {
+      (io.of('/').adapter as redisAdapter.RedisAdapter).remoteJoin(socketId, room, (err: Error) => {
         if (err) reject(err)
         resolve('success')
       })
     })
+  }
 
   // Authentication for sockets
+  // TODO: types for passport
   io.use(
     passportSocketIo.authorize({
       cookieParser: cookieParser,
@@ -38,7 +51,7 @@ module.exports = function(io, sessionStore) {
       secret: config.sessionSecret,
       store: sessionStore,
       // only allow authenticated users to connect to the socket instance
-      fail: (data, message, error, accept) => {
+      fail: (data: any, message: string, error: Error, accept: any) => {
         if (error) {
           console.log(new Error(message))
           throw new Error(message)
@@ -79,7 +92,7 @@ module.exports = function(io, sessionStore) {
       newrelic.startWebTransaction(
         '/socket-io/join',
         () =>
-          new Promise(async (resolve, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             if (!data || !data.sessionId) {
               socket.emit('redirect')
               resolve()
@@ -90,15 +103,14 @@ module.exports = function(io, sessionStore) {
             const {
               request: { user }
             } = socket
-            let session
+            let session: Session
 
             try {
-              // @todo: have middleware handle the auth
+              // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
               if (user.isVolunteer && !user.isApproved)
                 throw new Error('Volunteer not approved')
-
-              session = await SessionService.getSessionById(sessionId)
+              session = await SessionRepo.getSessionById(sessionId)
             } catch (error) {
               socket.emit('redirect')
               reject(error)
@@ -127,10 +139,10 @@ module.exports = function(io, sessionStore) {
                 socket,
                 {
                   endedAt: session.endedAt,
-                  volunteer: session.volunteer || null,
-                  student: session.student
+                  volunteer: getIdFromModelReference(session.volunteer),
+                  student: getIdFromModelReference(session.student)
                 },
-                error
+                error as Error
               )
               reject(error)
             }
@@ -142,9 +154,9 @@ module.exports = function(io, sessionStore) {
       newrelic.startWebTransaction(
         '/socket-io/list',
         () =>
-          new Promise(async (resolve, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             try {
-              const sessions = await SessionService.getUnfulfilledSessions()
+              const sessions = await SessionRepo.getUnfulfilledSessions()
               socket.emit('sessions', sessions)
               resolve()
             } catch (error) {
@@ -170,12 +182,11 @@ module.exports = function(io, sessionStore) {
       newrelic.startWebTransaction(
         '/socket-io/message',
         () =>
-          new Promise(async (resolve, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             const { user, sessionId, message } = data
-            // @todo: handle this differently?
+            // TODO: handle this differently?
             if (!sessionId) {
-              resolve()
-              return
+              return resolve()
             }
 
             try {
@@ -212,7 +223,7 @@ module.exports = function(io, sessionStore) {
       newrelic.startWebTransaction(
         '/socket-io/requestQuillState',
         () =>
-          new Promise(async (resolve, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             try {
               let docState = await QuillDocService.getDoc(sessionId)
               if (!docState)
@@ -232,12 +243,12 @@ module.exports = function(io, sessionStore) {
       newrelic.startWebTransaction(
         '/socket-io/transmitQuillDelta',
         () =>
-          new Promise(async (resolve, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             QuillDocService.appendToDoc(sessionId, delta)
             socket.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
               delta
             })
-            resolve()
+            return resolve()
           })
       )
     })

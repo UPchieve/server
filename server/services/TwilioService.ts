@@ -10,7 +10,7 @@ import {
 } from '../models/Volunteer/queries'
 import { Session } from '../models/Session'
 import queue from './QueueService'
-import * as SessionService from './SessionService'
+import * as SessionRepo from '../models/Session/queries'
 import NotificationModel, {
   Notification,
   NotificationDocument,
@@ -158,7 +158,7 @@ export function getSessionUrl(session: Session): string {
 }
 
 export async function getActiveSessionVolunteers(): Promise<Volunteer[]> {
-  const activeSessions = await SessionService.getActiveSessionsWithVolunteers()
+  const activeSessions = await SessionRepo.getActiveSessionsWithVolunteers()
   return activeSessions.map(session => session.volunteer as Volunteer)
 }
 
@@ -167,8 +167,8 @@ export function relativeDate(msAgo: number): Date {
 }
 
 export async function sendFollowupText(
-  sessionId: Types.ObjectId | string,
-  volunteerId: Types.ObjectId | string,
+  sessionId: Types.ObjectId,
+  volunteerId: Types.ObjectId,
   volunteerPhone: string
 ): Promise<void> {
   const messageText = `Head's up: this student is still waiting for help!`
@@ -182,7 +182,9 @@ export async function sendFollowupText(
   })
 
   await recordNotification(sid, notification)
-  await SessionService.addNotifications(sessionId, [notification])
+  await SessionRepo.addSessionNotifications(sessionId, [
+    notification.toObject(),
+  ])
 }
 
 export async function notifyVolunteer(
@@ -320,7 +322,9 @@ export async function notifyVolunteer(
   })
 
   await recordNotification(sid, notification)
-  await SessionService.addNotifications(session._id, [notification])
+  await SessionRepo.addSessionNotifications(session._id, [
+    notification.toObject(),
+  ])
 
   return volunteer._id
 }
@@ -366,9 +370,7 @@ export async function notifyFailsafe(
   }
 
   // save notifications to session object
-  // TODO: wtf
-  // @ts-expect-error
-  await SessionService.addNotifications(session._id, notifications)
+  await SessionRepo.addSessionNotifications(session._id, notifications)
 }
 
 /**

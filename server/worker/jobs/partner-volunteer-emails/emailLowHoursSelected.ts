@@ -17,7 +17,7 @@ import countAvailabilitySelected from '../../../utils/count-availability-selecte
  */
 
 interface EmailLowHoursJobData {
-  volunteerId: string | Types.ObjectId
+  volunteerId: Types.ObjectId
 }
 
 export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {

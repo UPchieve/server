@@ -1,13 +1,14 @@
-const express = require('express')
+import express from 'express'
+// no typesfor ejs layouts
 const expressLayouts = require('express-ejs-layouts')
 
-const config = require('../../config')
-const { authPassport } = require('../../utils/auth-utils')
-const Question = require('../../models/Question')
-const QuestionCtrl = require('../../controllers/QuestionCtrl')
-const { questionsPath, isActivePage, frontEndPath } = require('./helpers')
-const logger = require('../../logger')
-const path = require('path')
+import config from '../../config'
+import { authPassport } from '../../utils/auth-utils'
+import QuestionModel from '../../models/Question'
+import * as QuestionCtrl from '../../controllers/QuestionCtrl'
+import { questionsPath, isActivePage, frontEndPath } from './helpers'
+import logger from '../../logger'
+import path from 'path'
 
 const edu = express()
 edu.set('view engine', 'ejs')
@@ -24,10 +25,10 @@ edu.locals = {
 edu.get('/', async (req, res) => {
   try {
     const categories = (await QuestionCtrl.categories()).reduce(
-      (acc, [category, subcategories]) => [
+      (acc: any, [category, subcategories]) => [
         ...acc,
         questionsPath(category),
-        subcategories.map(subcategory => questionsPath(category, subcategory))
+        subcategories.map((subcategory: string) => questionsPath(category, subcategory))
       ],
       []
     )
@@ -40,7 +41,7 @@ edu.get('/', async (req, res) => {
       isActive: isActivePage(req)
     })
   } catch (error) {
-    logger.error(error)
+    logger.error(error as Error)
     res.status(500).send(`<h1>Internal Server Error</h1> <pre>${error}</pre>`)
   }
 })
@@ -52,7 +53,7 @@ edu.route('/questions').get(async (req, res) => {
     const isActive = isActivePage(req)
 
     // question._id --> URL
-    const imagePaths = questions.reduce((map, question) => {
+    const imagePaths = questions.reduce((map: any, question) => {
       map[question._id] = frontEndPath(
         question.imageSrc,
         edu.locals.frontEndRoot
@@ -86,13 +87,13 @@ eduApi.post('/categoryquestions', async (req, res) => {
   const limit = req.body.limit
 
   try {
-    const questions = await Question.find({ category }, null, {
+    const questions = await QuestionModel.find({ category }, null, {
       skip,
       limit
     }).exec()
     res.status(200).json({ questions: questions })
   } catch (error) {
-    res.status(422).json({ error: error.toString() })
+    res.status(422).json({ error: (error as Error).toString() })
   }
 })
 
@@ -129,7 +130,7 @@ eduApi.delete('/questions/:id', async (req, res) => {
   }
 })
 
-module.exports = rootApp => {
+export default (rootApp: express.Express) => {
   rootApp.use(
     '/edu',
     [authPassport.isAuthenticatedRedirect, authPassport.isAdminRedirect],

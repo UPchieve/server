@@ -151,7 +151,7 @@ export const Config = Record({
   redisPort: String,
   redisPassword: String,
   firebase: Record({
-    projectId: Number
+    projectId: String
   }),
   bannedServiceProviders: Array(String),
   awsS3: Record({

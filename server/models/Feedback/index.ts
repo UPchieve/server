@@ -109,7 +109,7 @@ const ResponseDataSchema = new Schema(
     'technical-difficulties': String,
     'asked-unprepared-questions': String,
     'app-features-needed': String,
-    // @todo: uncomment once migration is completed. To allow for downgrading the migration,
+    // TODO: uncomment once migration is completed. To allow for downgrading the migration,
     //        we will use the Schema.Types.Mixed on this property for now
     // 'session-goal': String,
     'coach-ratings': {
@@ -117,7 +117,7 @@ const ResponseDataSchema = new Schema(
       'coach-friendly': Number,
       'coach-help-again': Number,
     },
-    // @todo: the 8 keys below are for backwards compatibility to allow for downgrading the migration.
+    // TODO: the 8 keys below are for backwards compatibility to allow for downgrading the migration.
     //        remove the below keys from this schema once migration is completed
     'subject-understanding': Number,
     'coach-rating': Number,

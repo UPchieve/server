@@ -103,7 +103,7 @@ export const insertSessionMany = async (
   return SessionModel.collection.insertMany(sessions)
 }
 
-// @todo: make the student and volunteer configurable
+// TODO: make the student and volunteer configurable
 export const insertSessionWithVolunteer = async (
   overrides = {}
 ): Promise<{

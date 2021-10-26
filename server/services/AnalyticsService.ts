@@ -7,7 +7,7 @@ const client = new PostHog(config.posthogToken, {
 })
 
 export const captureEvent = (
-  userId: string | Types.ObjectId,
+  userId: Types.ObjectId,
   eventName: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   properties: {
@@ -19,12 +19,8 @@ export const captureEvent = (
     joinedFrom?: string
   }
 ): void => {
-  let distinctId = ''
-  if (Types.ObjectId.isValid(userId)) distinctId = userId.toString()
-  else distinctId = userId as string
-
   client.capture({
-    distinctId,
+    distinctId: userId.toString(),
     event: eventName,
     properties,
   })

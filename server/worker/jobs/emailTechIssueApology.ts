@@ -1,14 +1,16 @@
 import { Job } from 'bull'
+import { Types } from 'mongoose'
 import * as MailService from '../../services/MailService'
 import { StudentContactInfo, getStudentContactInfoById } from '../../models/Student/queries'
 import { safeAsync } from '../../utils/safe-async'
 import { Jobs } from '.'
 import { getVolunteerContactInfoById, VolunteerContactInfo } from '../../models/Volunteer/queries'
+import { asObjectId } from '../../utils/type-utils'
 
 interface TechIssueApology {
-  sessionId: string
-  studentId: string
-  volunteerId: string
+  sessionId: Types.ObjectId
+  studentId: Types.ObjectId
+  volunteerId: Types.ObjectId
 }
 
 async function sendEmailToUser(user: StudentContactInfo | VolunteerContactInfo): Promise<void> {
@@ -18,9 +20,8 @@ async function sendEmailToUser(user: StudentContactInfo | VolunteerContactInfo):
 }
 
 export default async (job: Job<TechIssueApology>): Promise<void> => {
-  const {
-    data: { studentId, volunteerId }
-  } = job
+  const studentId = asObjectId(job.data.studentId)
+  const volunteerId = asObjectId(job.data.volunteerId)
   const student = await getStudentContactInfoById(studentId)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
   const errors = []

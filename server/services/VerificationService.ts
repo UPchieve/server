@@ -1,11 +1,6 @@
 import { Types } from 'mongoose'
 import { VERIFICATION_METHOD } from '../constants'
-import {
-  asFactory,
-  asString,
-  asEnum,
-  asStringObjectId,
-} from '../utils/type-utils'
+import { asFactory, asString, asEnum, asObjectId } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
@@ -21,28 +16,28 @@ import {
 import { Volunteer } from '../models/Volunteer'
 
 export interface InitiateVerificationData {
-  userId: string
+  userId: Types.ObjectId
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   firstName: string
 }
 
 const asInitiateVerificationData = asFactory<InitiateVerificationData>({
-  userId: asStringObjectId, // parsed from request as string
+  userId: asObjectId,
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   firstName: asString,
 })
 
 export interface ConfirmVerificationData {
-  userId: string
+  userId: Types.ObjectId
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
 }
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
-  userId: asStringObjectId, // parsed from request as string
+  userId: asObjectId,
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
@@ -70,13 +65,13 @@ export async function initiateVerification(data: unknown): Promise<void> {
       throw new InputError('Must supply a valid email address')
     existingUserId = await getUserIdByEmail(sendTo)
   }
-  if (existingUserId && userId !== existingUserId.toString())
+  if (existingUserId && userId.equals(existingUserId))
     throw new LookupError(existingUserErrorMessage)
 
   await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
 }
 
-async function sendEmails(userId: string): Promise<void> {
+async function sendEmails(userId: Types.ObjectId): Promise<void> {
   const user = await getUserById(userId)
   if (user) {
     if (user.isVolunteer) {

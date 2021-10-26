@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { Types } from 'mongoose'
 import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
-import { getSessionsWithPipeline } from '../../../services/SessionService'
+import { getSessionsWithPipeline } from '../../../models/Session/queries'
 import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { volunteerPartnerManifests } from '../../../partnerManifests'
 import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../../constants'
@@ -17,7 +17,7 @@ import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../../constants'
  */
 
 interface EmailReferCoworkerJobData {
-  volunteerId: string | Types.ObjectId
+  volunteerId: Types.ObjectId
   firstName: string
   email: string
   partnerOrg: string

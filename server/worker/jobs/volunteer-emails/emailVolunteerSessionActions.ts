@@ -1,4 +1,5 @@
 import { Job } from 'bull'
+import { Types } from 'mongoose'
 import moment from 'moment'
 import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
@@ -7,20 +8,22 @@ import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { ISOString } from '../../../constants'
 import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
+import { asObjectId } from '../../../utils/type-utils'
 
 interface VolunteerSessionTriggers {
-  volunteerId: string
-  studentId: string
+  volunteerId: Types.ObjectId
+  studentId: Types.ObjectId
   sessionSubtopic: string
   sessionDate: ISOString
 }
 
 export default async (job: Job<VolunteerSessionTriggers>): Promise<void> => {
   const {
-    data: { volunteerId, studentId, sessionSubtopic, sessionDate },
+    data: { sessionSubtopic, sessionDate },
     name: currentJob
   } = job
-
+  const studentId = asObjectId(job.data.studentId)
+  const volunteerId = asObjectId(job.data.volunteerId)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
   const student = await getStudentContactInfoById(studentId)
 

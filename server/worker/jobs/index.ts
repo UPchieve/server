@@ -73,7 +73,7 @@ export enum Jobs {
   EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
   EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
   SendAssistmentsData = ' SendAssistmentsData',
-  // @todo: add the tech issue apology job to the job processor once it is ready to be released
+  // TODO: add the tech issue apology job to the job processor once it is ready to be released
   EmailTechIssueApology = 'EmailTechIssueApology'
 }
 

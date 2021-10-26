@@ -3,18 +3,18 @@ import { Types } from 'mongoose'
 import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getNotificationsWithPipeline } from '../../../models/Notification/queries'
-import { getSessionsWithPipeline } from '../../../services/SessionService'
+import { getSessionsWithPipeline } from '../../../models/Session/queries'
 import { emailRecipientPrefixed } from '../../../utils/aggregation-snippets'
 
 interface GentleWarningAggregation {
-  _id: string | Types.ObjectId
+  _id: Types.ObjectId
   totalNotifications: number
   firstName: string
   email: string
 }
 
 interface EmailGentleWarningJobData {
-  sessionId: string | Types.ObjectId
+  sessionId: Types.ObjectId
 }
 
 /**

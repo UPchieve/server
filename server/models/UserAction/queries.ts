@@ -8,7 +8,7 @@ export async function getActionsWithPipeline(pipeline: any): Promise<UserAction[
 }
 
 export async function getQuizzesPassedForDateRange(
-  volunteerId: Types.ObjectId | string,
+  volunteerId: Types.ObjectId,
   fromDate: Date,
   toDate: Date
 ): Promise<UserAction[]> {
@@ -26,7 +26,7 @@ export async function getQuizzesPassedForDateRange(
   }
 }
 
-export async function getSessionRequestedUserAgentFromSessionId(sessionId: Types.ObjectId | string): Promise<UserActionAgent | undefined> {
+export async function getSessionRequestedUserAgentFromSessionId(sessionId: Types.ObjectId): Promise<UserActionAgent | undefined> {
   try {
     const doc = await UserActionModel.findOne({
       session: sessionId,

@@ -1,6 +1,7 @@
+import { Types } from 'mongoose'
 import { Session } from '../models/Session'
 import { MATH_SUBJECTS, GRADES } from '../constants'
-import { getSessionById } from '../services/SessionService'
+import { getSessionById } from '../models/Session/queries'
 import { getStudentById } from '../models/Student/queries'
 import { getSchool } from '../services/SchoolService'
 import { Student } from '../models/Student'
@@ -40,7 +41,7 @@ export function isGatesQualifiedSession(data: GatesQualifiedData) {
 }
 
 export async function prepareForGatesQualificationCheck(
-  sessionId: string
+  sessionId: Types.ObjectId
 ): Promise<GatesQualifiedData> {
   const session = await getSessionById(sessionId)
   const student = await getStudentById(getIdFromModelReference(session.student))

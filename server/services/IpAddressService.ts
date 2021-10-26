@@ -54,10 +54,7 @@ export async function checkIpAddress(data: unknown | string) {
   if (countryCode && countryCode !== 'US') throw new NotAllowedError()
 }
 
-export async function record(
-  userId: Types.ObjectId | string,
-  ipString: string
-) {
+export async function record(userId: Types.ObjectId, ipString: string) {
   const userIpAddress = await findOrCreateIpAddress(ipString)
   const alreadyRecorded = (userIpAddress.users as Types.ObjectId[]).some(u =>
     u.equals(userId)

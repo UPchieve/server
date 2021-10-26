@@ -1,13 +1,14 @@
 import { Types } from 'mongoose'
-import { Server } from 'socket.io'
-import SessionModel, { getUnfulfilledSessions } from '../models/Session'
+import socketio from 'socket.io'
+import SessionModel from '../models/Session'
+import { getUnfulfilledSessions } from '../models/Session/queries'
 import MessageModel, { MessageDocument } from '../models/Message'
 import getSessionRoom from '../utils/get-session-room'
 
 class SocketService {
-  private io: Server
+  private io: socketio.Server
 
-  constructor(io: Server) {
+  constructor(io: socketio.Server) {
     this.io = io
   }
 
@@ -17,14 +18,14 @@ class SocketService {
    * @returns the session object
    */
   private async getSessionData(
-    sessionId: Types.ObjectId | string
+    sessionId: Types.ObjectId
   ): Promise<MessageDocument> {
     const populateOptions = [
       { path: 'student', select: 'firstname isVolunteer' },
       { path: 'volunteer', select: 'firstname isVolunteer' },
     ]
 
-    // @todo: import from SessionService instead of directly from the model
+    // TODO: import from SessionService instead of directly from the model
     const populatedSession = await SessionModel.findById(sessionId)
       .populate(populateOptions)
       .exec()
@@ -40,15 +41,23 @@ class SocketService {
     this.io.in('volunteers').emit('sessions', sessions)
   }
 
-  async emitSessionChange(sessionId: Types.ObjectId | string): Promise<void> {
+  async emitSessionChange(sessionId: Types.ObjectId): Promise<void> {
     const session = await this.getSessionData(sessionId)
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
 
     await this.updateSessionList()
   }
 
-  // TODO: type these once api socket router is converted
-  bump(socket, data, err): void {
+  // TODO: type these once api socket router is fully typed
+  bump(
+    socket: socketio.Socket,
+    data: {
+      endedAt: Date
+      volunteer?: Types.ObjectId
+      student?: Types.ObjectId
+    },
+    err: Error
+  ): void {
     console.log('Could not join session')
     console.log(err)
     socket.emit('bump', data, err.toString())

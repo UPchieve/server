@@ -60,3 +60,8 @@ export class RepoDeleteError extends CustomError {
 export class NotAllowedError extends CustomError {}
 export class InputError extends CustomError {}
 export class LookupError extends CustomError {}
+export class NotAuthenticatedError extends CustomError {
+  constructor() {
+    super('Request is not authenticated')
+  }
+}

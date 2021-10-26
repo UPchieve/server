@@ -4,8 +4,8 @@ import { SURVEY_TYPES } from '../../constants'
 import { RepoReadError, RepoCreateError } from '../Errors'
 
 export async function savePresessionSurvey(
-  userId: Types.ObjectId | string,
-  sessionId: string,
+  userId: Types.ObjectId,
+  sessionId: Types.ObjectId,
   responseData: object
 ): Promise<Survey> {
   try {
@@ -22,9 +22,9 @@ export async function savePresessionSurvey(
 }
 
 export async function getPresessionSurvey(
-  session: Types.ObjectId | string,
-  user: Types.ObjectId | string,
-  surveyType: SURVEY_TYPES
+  session: Types.ObjectId,
+  user: Types.ObjectId,
+  surveyType?: SURVEY_TYPES
 ): Promise<Survey | undefined> {
   try {
     const survey = await SurveyModel.findOne(

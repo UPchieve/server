@@ -37,7 +37,7 @@ export async function getUserIdByReferralCode(referralCode: string): Promise<Typ
   }
 }
 
-export async function getUserById(userId: Types.ObjectId | string): Promise<User | undefined> {
+export async function getUserById(userId: Types.ObjectId): Promise<User | undefined> {
   try {
     const user = await UserModel.findOne({ _id: userId }).lean().exec()
     if (user) return user as User
@@ -64,7 +64,7 @@ export async function getUserByResetToken(token: string): Promise<User | undefin
   }
 }
 
-export async function getUsersReferredByOtherId(otherId: Types.ObjectId | string): Promise<User[]> {
+export async function getUsersReferredByOtherId(otherId: Types.ObjectId): Promise<User[]> {
   try {
     return UserModel.find({ referredBy: otherId, verified: true })
       .lean()
@@ -74,7 +74,7 @@ export async function getUsersReferredByOtherId(otherId: Types.ObjectId | string
   }
 }
 
-export async function updateUserResetTokenById(userId: Types.ObjectId | string, token: string): Promise<void> {
+export async function updateUserResetTokenById(userId: Types.ObjectId, token: string): Promise<void> {
   try {
     const result = await UserModel.updateOne({ _id: userId }, { passwordResetToken: token }).exec()
     if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
@@ -84,7 +84,7 @@ export async function updateUserResetTokenById(userId: Types.ObjectId | string, 
   }
 }
 
-export async function updateUserPasswordById(userId: Types.ObjectId | string, password: string): Promise<void> {
+export async function updateUserPasswordById(userId: Types.ObjectId, password: string): Promise<void> {
   try {
     const result = await UserModel.updateOne({ _id: userId }, { $unset: { passwordResetToken: '' }, password }).exec()
     if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
@@ -94,7 +94,7 @@ export async function updateUserPasswordById(userId: Types.ObjectId | string, pa
   }
 }
 
-export async function updateUserIpById(userId: Types.ObjectId | string, ipId: Types.ObjectId | string): Promise<void> {
+export async function updateUserIpById(userId: Types.ObjectId, ipId: Types.ObjectId): Promise<void> {
   try {
     const result = await UserModel.updateOne({ _id: userId }, { $addToSet: { ipAddresses: ipId } }).exec()
     if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
@@ -105,7 +105,7 @@ export async function updateUserIpById(userId: Types.ObjectId | string, ipId: Ty
 }
 
 export async function updateUserVerifiedInfoById(
-  userId: Types.ObjectId | string, 
+  userId: Types.ObjectId, 
   sendTo: string,
   isPhoneVerification: boolean
 ): Promise<void> {

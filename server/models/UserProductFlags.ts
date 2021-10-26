@@ -44,7 +44,7 @@ export const UserProductFlagsModel = model<UserProductFlagsDocument>(
 
 // Create functions
 export async function createByUserId(
-  userId: Types.ObjectId | string
+  userId: Types.ObjectId
 ): Promise<UserProductFlags> {
   const upf = await getByUserId(userId)
   if (upf)
@@ -67,7 +67,7 @@ export async function createByUserId(
 
 // Read functions
 export async function getByObjectId(
-  id: Types.ObjectId | string,
+  id: Types.ObjectId,
   projection: any = {}
 ): Promise<UserProductFlags> {
   try {
@@ -90,7 +90,7 @@ export async function getAll(): Promise<UserProductFlags[]> {
 }
 
 export async function getByUserId(
-  userId: Types.ObjectId | string
+  userId: Types.ObjectId
 ): Promise<UserProductFlags> {
   try {
     return (await UserProductFlagsModel.findOne({
@@ -107,7 +107,7 @@ export async function getByUserId(
 export type UserProductFlagsUpdateQuery = UpdateQuery<UserProductFlagsDocument>
 
 export async function updateGatesQualifiedFlag(
-  userId: Types.ObjectId | string,
+  userId: Types.ObjectId,
   status: boolean
 ): Promise<void> {
   const query = { user: userId }

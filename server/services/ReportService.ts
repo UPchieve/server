@@ -36,6 +36,7 @@ import {
   getVolunteersForTelecomReport,
   getVolunteersWithPipeline,
 } from '../models/Volunteer/queries'
+import { asFactory, asString } from '../utils/type-utils'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -566,12 +567,21 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   return studentUsage
 }
 
-export async function getTelecomReport(
-  partnerOrg: string,
-  startDate: string,
+interface TelecomReportPayload {
+  partnerOrg: string
+  startDate: string
   endDate: string
-) {
+}
+
+const asTelecomReportPayload = asFactory<TelecomReportPayload>({
+  partnerOrg: asString,
+  startDate: asString,
+  endDate: asString,
+})
+
+export async function getTelecomReport(data: unknown) {
   // Only generate the telecom report for a specific partner
+  const { partnerOrg, startDate, endDate } = asTelecomReportPayload(data)
   if (partnerOrg !== config.customVolunteerPartnerOrg) return []
   try {
     const dateQuery = { $gt: new Date(startDate), $lte: new Date(endDate) }

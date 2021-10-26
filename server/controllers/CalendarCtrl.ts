@@ -26,6 +26,7 @@ export interface UpdateScheduleOptions {
 export async function updateSchedule(
   options: UpdateScheduleOptions
 ): Promise<void> {
+  // TODO: duck type payload with asFactory
   const user = options.user
   const newAvailability = options.availability
   const newTimezone = options.tz

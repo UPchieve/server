@@ -1,9 +1,14 @@
 import expressWs from 'express-ws'
+import { Types } from 'mongoose'
 import Case from 'case'
 import * as FeedbackService from '../../services/FeedbackService'
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+import { getFeedbackBySessionIdUserType } from '../../models/Feedback/queries'
+import { InputError } from '../../models/Errors'
+import { asString } from '../../utils/type-utils'
+
 export function routeFeedback(router: expressWs.Router): void {
   router.post('/feedback', async (req, res, next) => {
+    // TODO: use duck type validators
     const {
       sessionId,
       topic,
@@ -38,12 +43,14 @@ export function routeFeedback(router: expressWs.Router): void {
   })
 
   router.get('/feedback', async (req, res, next) => {
+    if (!req.query.hasOwnProperty('sessionId') || !req.query.hasOwnProperty('userType'))
+      throw new InputError('Missing query parameters')
     const { sessionId, userType } = req.query
     try {
-      const feedback = await FeedbackService.getFeedback({
-        sessionId,
-        userType
-      })
+      const feedback = await getFeedbackBySessionIdUserType(
+        Types.ObjectId(asString(sessionId)),
+        asString(userType)
+      )
 
       res.json({
         feedback: feedback ? feedback._id : null

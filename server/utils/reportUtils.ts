@@ -9,7 +9,7 @@ import {
   DATE_RANGE_COMPARISON_FIELDS,
 } from '../constants'
 import { getActionsWithPipeline } from '../models/UserAction/queries'
-import * as SessionService from '../services/SessionService'
+import * as SessionRepo from '../models/Session/queries'
 import { getHistoryForDatesByVolunteerId } from '../models/Availability/queries'
 import logger from '../logger'
 import { isCertified } from '../controllers/UserCtrl'
@@ -205,7 +205,7 @@ async function getVolunteerData<V extends VolunteerForHourSummary>(
       },
     },
   ])
-  const sessions: Session[] = await SessionService.getSessionsWithPipeline([
+  const sessions: Session[] = await SessionRepo.getSessionsWithPipeline([
     {
       $sort: {
         createdAt: 1,
@@ -426,7 +426,7 @@ export interface GroupStats {
 }
 
 export interface PartnerVolunteerAnalytics {
-  _id: Types.ObjectId | string
+  _id: Types.ObjectId
   firstName: string
   lastName: string
   email: string

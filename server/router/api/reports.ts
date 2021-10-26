@@ -1,8 +1,9 @@
 import expressWs from 'express-ws'
 import { resError } from '../res-error'
 
-const { authPassport } = require('../../utils/auth-utils')
-const ReportService = require('../../services/ReportService')
+import { authPassport } from '../../utils/auth-utils'
+import * as ReportService from '../../services/ReportService'
+import { InputError } from '../../models/Errors'
 
 export function routeReports(router: expressWs.Router): void {
   router.get('/reports/session-report', authPassport.isAdmin, async function(
@@ -37,7 +38,7 @@ export function routeReports(router: expressWs.Router): void {
         const data = await ReportService.getTelecomReport(req.query)
         res.json({ data })
       } catch (error) {
-        next(error)
+        resError(res, error)
       }
     }
   )

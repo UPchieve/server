@@ -6,7 +6,7 @@ import { getVolunteerForOnboardingById } from '../../../models/Volunteer/queries
 import { Jobs } from '../index'
 
 interface OnboardingReminder {
-  volunteerId: string | Types.ObjectId
+  volunteerId: Types.ObjectId
 }
 
 export default async (job: Job<OnboardingReminder>): Promise<void> => {

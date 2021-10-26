@@ -6,10 +6,10 @@ import socket from 'socket.io'
 import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import logger from '../../logger'
-const {
+import {
   socketIoPubClient,
   socketIoSubClient
-} = require('../../services/RedisService')
+} from '../../services/RedisService'
 import { Express } from 'express'
 
 // Create an HTTPS server if in production, otherwise use HTTP.
@@ -22,7 +22,7 @@ export default function(app: Express) {
 
   const port =
     process.env.NODE_ENV === 'test'
-      ? // @todo: utilize the superagent port
+      ? // TODO: utilize the superagent port
         4000 + Math.floor(Math.random() * 5000) + 1
       : config.socketsPort
 

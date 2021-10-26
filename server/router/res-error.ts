@@ -6,6 +6,7 @@ import {
   NotAllowedError,
   InputError,
   LookupError,
+  NotAuthenticatedError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -23,6 +24,8 @@ export function resError(
     if (status) {
       /* keep provided status */
     }
+    // user is not authenticated
+    else if (err instanceof NotAuthenticatedError) status = 401
     // user is authenthicated, but not authorized to retrieve resource
     else if (err instanceof NotAllowedError) status = 403
     // database lookup unexpectedly returned null

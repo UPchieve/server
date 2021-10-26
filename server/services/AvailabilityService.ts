@@ -13,7 +13,7 @@ export function getElapsedAvailability(day: AvailabilityDay): number {
 }
 
 export async function getElapsedAvailabilityForDateRange(
-  volunteerId: Types.ObjectId | string,
+  volunteerId: Types.ObjectId,
   fromDate: Date,
   toDate: Date
 ): Promise<number> {

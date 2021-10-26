@@ -1,4 +1,3 @@
-import expressWs from 'express-ws'
 import { updateSchedule, clearSchedule } from '../../controllers/CalendarCtrl'
 import { resError } from '../res-error'
 import { InputError } from '../../models/Errors'
@@ -10,6 +9,7 @@ export function routeCalendar(router: Router): void {
     try {
       if (!req.body.hasOwnProperty('availability'))
         throw new InputError('No availability object specified')
+      // TODO: use duck type validators
       await updateSchedule({
         ...req.body,
         user: req.user as Volunteer,
@@ -19,7 +19,7 @@ export function routeCalendar(router: Router): void {
         msg: 'Schedule saved'
       })
     } catch (err) {
-      resError(res, (err as Error))
+      resError(res, err)
     }
   })
 
@@ -30,7 +30,7 @@ export function routeCalendar(router: Router): void {
         msg: 'Schedule cleared'
       })
     } catch (err) {
-      resError(res, (err as Error))
+      resError(res, err)
     }
   })
 }

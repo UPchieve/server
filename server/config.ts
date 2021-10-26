@@ -109,7 +109,7 @@ const config: Static<typeof Config> = {
     volunteerAbsentWarningTemplate: 'd-7458c9322ae747c78b90bd93e27b9269',
     volunteerAbsentStudentApologyTemplate: 'd-e45797aba9d04bb29a9745988a52fc1f',
     failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
-    // @todo: get template id
+    // @\TODO: get template id
     techIssueApologyTemplate: '',
     unsubscribeGroup: {
       newsletter: 12567,
@@ -268,7 +268,7 @@ const config: Static<typeof Config> = {
   redisPort,
   redisPassword,
   firebase: {
-    projectId: Number(process.env.SUBWAY_FIREBASE_PROJECT_ID) || 123456789012
+    projectId: process.env.SUBWAY_FIREBASE_PROJECT_ID || '123456789012'
   },
   bannedServiceProviders: bannedServiceProviders,
   awsS3: {

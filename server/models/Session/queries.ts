@@ -1,23 +1,21 @@
 import moment from 'moment-timezone'
-import { values } from 'lodash'
-import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
+import { Aggregate, Types } from 'mongoose'
 import {
   FEEDBACK_VERSIONS,
   USER_SESSION_METRICS,
   USER_ACTION,
   SUBJECT_TYPES,
 } from '../../constants'
-import MessageModel, { Message } from '../Message'
-import { Notification, NotificationDocument } from '../Notification'
-import { User } from '../User'
+import { Message } from '../Message'
+import { Notification } from '../Notification'
 import { Student } from '../Student'
 import { Volunteer } from '../Volunteer'
 import { DocUpdateError, DocCreationError, LookupError } from '../Errors'
-import SessionModel, { Session } from '../Session'
+import SessionModel, { Session } from './index'
 
-export async function addNotifications(
-  sessionId: Types.ObjectId | string,
-  notificationsToAdd: NotificationDocument[]
+export async function addSessionNotifications(
+  sessionId: Types.ObjectId,
+  notificationsToAdd: Notification[]
 ) {
   const query = { _id: sessionId }
   const update = {
@@ -39,7 +37,6 @@ interface UnfulfilledSessions {
   volunteer: Types.ObjectId
 }
 
-// @todo: break this query apart to utilize Repo layer
 // sessions that have not yet been fulfilled by a volunteer
 export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
   // @note: this query is sorted in memory and uses the volunteer: 1, endedAt: 1 index
@@ -75,11 +72,9 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
 }
 
 export async function getSessionById(
-  sessionId: Types.ObjectId | string,
-  projection = {}
-): Promise<Pick<Session, keyof Session>> {
+  sessionId: Types.ObjectId,
+): Promise<Session> {
   const session = await SessionModel.findOne({ _id: sessionId })
-    .select(projection)
     .lean()
     .exec()
   if (!session) throw new LookupError('Session not found')
@@ -92,8 +87,8 @@ export function getSessionsWithPipeline(pipeline: any[]) {
   return (SessionModel.aggregate(pipeline) as unknown) as Promise<any[]>
 }
 
-export async function updateFlags(
-  sessionId: Types.ObjectId | string,
+export async function updateSessionFlagsById(
+  sessionId: Types.ObjectId,
   flags: USER_SESSION_METRICS[]
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -107,8 +102,8 @@ export async function updateFlags(
   }
 }
 
-export async function updateReviewReasons(
-  sessionId: Types.ObjectId | string,
+export async function updateSessionReviewReasonsById(
+  sessionId: Types.ObjectId,
   reviewReasons: USER_SESSION_METRICS[]
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -123,8 +118,8 @@ export async function updateReviewReasons(
   }
 }
 
-export async function updateFailedJoins(
-  sessionId: Types.ObjectId | string,
+export async function updateSessionFailedJoinsById(
+  sessionId: Types.ObjectId,
   userId: Types.ObjectId
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -136,8 +131,8 @@ export async function updateFailedJoins(
   }
 }
 
-export async function updateReviewedStatus(
-  sessionId: Types.ObjectId | string,
+export async function updateSessionReviewedStatusById(
+  sessionId: Types.ObjectId,
   { reviewed, toReview }: { reviewed: boolean; toReview: boolean }
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -158,7 +153,7 @@ export type SessionToEnd = Pick<Session, '_id' | 'createdAt' | 'endedAt' | 'isRe
   student: Pick<Student, SessionToEndUserInfo> 
 } & { volunteer: Pick<Volunteer, SessionToEndUserInfo | 'volunteerPartnerOrg'> }
 
-export async function getSessionToEnd(sessionId: Types.ObjectId | string): Promise<SessionToEnd> {
+export async function getSessionToEndById(sessionId: Types.ObjectId): Promise<SessionToEnd> {
   let session: SessionToEnd
   try {
     session = (await SessionModel.findOne({ _id: sessionId }, {
@@ -297,7 +292,7 @@ export async function getSessionsToReview({
 type TotalTimeTutoredForDateRange = Pick<Session, 'timeTutored'>
 
 export async function getTotalTimeTutoredForDateRange(
-  volunteerId: Types.ObjectId | string,
+  volunteerId: Types.ObjectId,
   startDate: Date,
   endDate: Date
 ): Promise<TotalTimeTutoredForDateRange[]> {
@@ -352,7 +347,7 @@ export async function getActiveSessionsWithVolunteers(): Promise<Pick<Session, '
 }
 
 export async function updateReportSession(
-  sessionId: Types.ObjectId | string,
+  sessionId: Types.ObjectId,
   report: { reportReason: string; reportMessage: string }
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -369,7 +364,7 @@ export async function updateReportSession(
 }
 
 export async function updateSessionMetrics(
-  sessionId: Types.ObjectId | string,
+  sessionId: Types.ObjectId,
   metrics: { timeTutored: number }
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -384,7 +379,7 @@ export async function updateSessionMetrics(
 }
 
 export async function setQuillDoc(
-  sessionId: Types.ObjectId | string,
+  sessionId: Types.ObjectId,
   quillDoc: string
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -399,7 +394,7 @@ export async function setQuillDoc(
 }
 
 export async function setHasWhiteboardDoc(
-  sessionId: Types.ObjectId | string,
+  sessionId: Types.ObjectId,
   hasWhiteboardDoc: boolean
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -414,10 +409,10 @@ export async function setHasWhiteboardDoc(
 }
 
 export async function updateSessionToEnd(
-  sessionId: Types.ObjectId | string,
+  sessionId: Types.ObjectId,
   data: {
     endedAt: Date
-    endedBy: Types.ObjectId
+    endedBy: Types.ObjectId | null
   }
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -453,7 +448,7 @@ export async function getLongRunningSessions(
 }
 
 export async function addSessionPhotoKey(
-  sessionId: Types.ObjectId | string,
+  sessionId: Types.ObjectId,
   photoKey: string
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -471,7 +466,7 @@ export type PublicSession = Pick<Session, '_id' | 'createdAt' | 'endedAt' | 'typ
   student: Pick<Student, PublicSessionUserInfo> 
 } & { volunteer: Pick<Volunteer, PublicSessionUserInfo> }
 
-export async function getPublicSession(sessionId: Types.ObjectId | string) {
+export async function getPublicSession(sessionId: Types.ObjectId) {
   try {
     return (await SessionModel.aggregate([
       {
@@ -890,7 +885,7 @@ export type SessionByIdWithStudentAndVolunteer = Session & {
 } & { volunteer: Pick<Volunteer, SessionByIdWithStudentAndVolunteerUserInfo> }
 
 export async function getSessionByIdWithStudentAndVolunteer(
-  sessionId: Types.ObjectId | string
+  sessionId: Types.ObjectId
 ): Promise<SessionByIdWithStudentAndVolunteer> {
   try {
     const session = (await SessionModel.findOne({ _id: sessionId })

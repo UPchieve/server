@@ -1,6 +1,7 @@
 import { Types } from 'mongoose'
 import IneligibleStudentModel, { IneligibleStudent } from './index'
-import { RepoReadError } from '../Errors'
+import { RepoReadError, RepoCreateError } from '../Errors'
+import { GRADES } from '../../constants'
 
 export async function getIneligibleStudentByEmail(email: string): Promise<IneligibleStudent | undefined> {
   try {
@@ -94,5 +95,30 @@ export async function getIneligibleStudentsPaginated(page: number): Promise<{
     return { ineligibleStudents, isLastPage }
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function createIneligibleStudent(
+  email: string,
+  zipCode: string,
+  schoolId: Types.ObjectId | undefined,
+  ipAddress: string,
+  referredBy: Types.ObjectId | undefined,
+  currentGrade?: GRADES
+): Promise<IneligibleStudent> {
+  try {
+    const data = await IneligibleStudentModel.create({
+      email,
+      zipCode,
+      school: schoolId,
+      ipAddress,
+      referredBy,
+      currentGrade
+    })
+    if (data) return data.toObject() as IneligibleStudent
+    else throw new RepoCreateError('Create query did not return created object')
+  } catch (err) {
+    if (err instanceof RepoCreateError) throw err
+    throw new RepoCreateError(err)
   }
 }

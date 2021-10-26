@@ -26,8 +26,9 @@ export const getDocLength = async (
 
 export const appendToDoc = (
   sessionId: Types.ObjectId,
-  docAddition: string
+  docAddition: string | undefined
 ): Promise<void> => {
+  if (docAddition === undefined) return Promise.resolve()
   return cache.append(sessionIdToKey(sessionId), docAddition)
 }
 
@@ -36,14 +37,14 @@ export const deleteDoc = (sessionId: Types.ObjectId): Promise<void> => {
 }
 
 export const uploadedToStorage = async (
-  sessionId: string,
+  sessionId: Types.ObjectId,
   whiteboardDoc: string,
   attempts = 0
 ): Promise<boolean> => {
   try {
     await uploadBlob({
       containerName: config.whiteboardStorageContainer,
-      blobName: sessionId,
+      blobName: sessionId.toString(),
       content: whiteboardDoc,
     })
     return true
@@ -68,11 +69,13 @@ export const uploadedToStorage = async (
   }
 }
 
-export const getDocFromStorage = async (sessionId: string): Promise<string> => {
+export const getDocFromStorage = async (
+  sessionId: Types.ObjectId
+): Promise<string> => {
   try {
     const whiteboardDoc = await getBlob({
       containerName: config.whiteboardStorageContainer,
-      blobName: sessionId,
+      blobName: sessionId.toString(),
     })
     return whiteboardDoc
   } catch (error) {

@@ -1,47 +1,31 @@
 import moment from 'moment'
 import config from '../../config'
 import * as VolunteersCtrl from '../../controllers/VolunteersCtrl'
-import * as UserService from '../../services/UserService'
+import * as VolunteerService from '../../services/VolunteerService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
 import { Router } from 'express'
+import { asNumber, asObjectId, asString } from '../../utils/type-utils'
+import { resError } from '../res-error'
 
-export default function(router: Router) {
-  router.get('/volunteers', authPassport.isAdmin, function(req, res, next) {
-    VolunteersCtrl.getVolunteers(function(volunteers: any, err: Error) {
-      if (err) {
-        next(err)
-      } else {
-        res.json({
-          msg: 'Users retreived from database',
-          volunteers: volunteers
-        })
-      }
-    })
-  })
-
+export function routeVolunteers(router: Router): void {
   router.get(
     '/volunteers/availability/:certifiedSubject',
     authPassport.isAdmin,
-    function(req, res, next) {
-      const certifiedSubject = req.params.certifiedSubject
-      VolunteersCtrl.getVolunteersAvailability(
-        {
-          certifiedSubject: certifiedSubject
-        },
-        function(aggAvailabilities: any, err: Error) {
-          if (err) {
-            next(err)
-          } else {
-            res.json({
-              msg: 'Users retreived from database',
-              aggAvailabilities: aggAvailabilities
-            })
-          }
-        }
-      )
-    }
-  )
+    async function(req, res) {
+      try {
+        const certifiedSubject = asString(req.params.certifiedSubject)
+        const aggAvailabilities = await VolunteersCtrl.getVolunteersAvailability(
+          certifiedSubject
+        )
+        res.json({
+          msg: 'Users retreived from database',
+          aggAvailabilities: aggAvailabilities
+        })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 
   router.get('/volunteers/review', authPassport.isAdmin, async function(
     req,
@@ -49,10 +33,11 @@ export default function(router: Router) {
   ) {
     try {
       const { page } = req.query
+      const pageNum = asNumber(page)
       const {
         volunteers,
         isLastPage
-      } = await UserService.getVolunteersToReview(page)
+      } = await VolunteerService.getVolunteersToReview(pageNum)
       res.json({ volunteers, isLastPage })
     } catch (error) {
       res
@@ -65,15 +50,14 @@ export default function(router: Router) {
     req,
     res
   ) {
-    const { id } = req.params
-    const { photoIdStatus, referencesStatus } = req.body
-
     try {
-      await UserService.updatePendingVolunteerStatus({
-        volunteerId: id,
-        photoIdStatus,
-        referencesStatus
-      })
+      const volunteerId = asObjectId(req.params.id)
+      const { photoIdStatus, referencesStatus } = req.body
+      await VolunteerService.updatePendingVolunteerStatus(
+        volunteerId,
+        asString(photoIdStatus),
+        asString(referencesStatus)
+      )
       res.sendStatus(200)
     } catch (error) {
       res.status(500).json({ err: (error as Error).message })

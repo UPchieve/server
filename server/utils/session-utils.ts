@@ -3,13 +3,12 @@ import { CustomError } from 'ts-custom-error'
 import { Socket } from 'socket.io'
 import { Volunteer } from '../models/Volunteer'
 import { Student } from '../models/Student'
-import { USER_SESSION_METRICS, SUBJECTS } from '../constants'
+import { SUBJECTS, SUBJECT_TYPES } from '../constants'
 import { Session } from '../models/Session'
 import { SessionToEnd } from '../models/Session/queries'
 import { Message } from '../models/Message'
 import { DAYS, HOURS } from '../models/Availability/types'
 import {
-  asArray,
   asBoolean,
   asDate,
   asEnum,
@@ -20,6 +19,8 @@ import {
   asString,
 } from './type-utils'
 import { User } from '../models/User'
+import { InputError } from '../models/Errors'
+import Case from 'case'
 
 export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
@@ -59,9 +60,11 @@ export function getMessagesAfterDate(messages: Message[], date: Date) {
 }
 
 export function isSessionParticipant(
-  session: SessionToEnd,
-  user: User
+  session: Session | SessionToEnd,
+  user: User | null
 ): boolean {
+  if (user === null) return false
+
   const userId = user._id
 
   const studentId =
@@ -96,7 +99,7 @@ export function calculateTimeTutored(session: Session) {
   let wasMessageSentAfterSessionEnded =
     messages[latestMessageIndex].createdAt > sessionEndDate
 
-  // @todo: refactor - Don't allow users to send a message once the sessions ends
+  // TODO: refactor - Don't allow users to send a message once the sessions ends
   // get the latest message that was sent within a 15 minute window of the message prior.
   // Sometimes sessions are not ended by either participant and one of the participants may send
   // a message to see if the other participant is still active before ending the session.
@@ -161,9 +164,9 @@ export function createEmptyHeatMap() {
   for (const day in DAYS) {
     const currentDay: any = {}
     for (const hour in HOURS) {
-      currentDay[hour as HOURS] = 0
+      currentDay[HOURS[hour as keyof typeof HOURS]] = 0
     }
-    heatMap[day as DAYS] = currentDay as HeatMapDay
+    heatMap[DAYS[day as keyof typeof DAYS]] = currentDay as HeatMapDay
   }
 
   return heatMap as HeatMap
@@ -174,7 +177,7 @@ export interface RequestIdentifier {
   ip: string
 }
 
-// @todo: use User interface instead
+// TODO: use User interface instead
 interface RequestUser {
   _id: Types.ObjectId
   createdAt: Date
@@ -185,23 +188,18 @@ interface RequestUser {
   isBanned: boolean
 }
 
-export type SocketUser = Omit<RequestUser, '_id' | 'createdAt'> & {
-  _id: string
-  createdAt: string
-}
-
 export interface StartSessionOptions extends RequestIdentifier {
-  user: RequestUser
+  user: User
   sessionSubTopic: string
-  sessionType: string
+  sessionType: SUBJECT_TYPES
   problemId?: string
   assignmentId?: string
   studentId?: string
 }
 
 export interface FinishSessionOptions extends RequestIdentifier {
-  user: RequestUser
-  sessionId: string
+  user: User
+  sessionId: Types.ObjectId
 }
 
 export interface SessionsToReviewOptions {
@@ -210,21 +208,21 @@ export interface SessionsToReviewOptions {
 }
 
 export interface ReviewSessionOptions {
-  sessionId: string
+  sessionId: Types.ObjectId
   reviewed: boolean
   toReview: boolean
 }
 
 export interface ReportSessionOptions {
-  user: RequestUser
-  sessionId: string
+  user: User
+  sessionId: Types.ObjectId
   reportReason: string
   reportMessage: string
 }
 
 export interface SessionTimedOutOptions {
-  user: Partial<Student | Volunteer>
-  sessionId: string
+  user: User
+  sessionId: Types.ObjectId
   timeout: number
   ip: string
   userAgent: string
@@ -241,7 +239,7 @@ const requestIdentifierValidators = {
   userAgent: asString,
 }
 
-// @todo: add more properties to validate against
+// TODO: add more properties to validate against
 const userDataValidators = {
   _id: asObjectId,
   createdAt: asDate,
@@ -262,55 +260,55 @@ const socketUserDataValidators = {
   isBanned: asBoolean,
 }
 
-// @todo: create asSession factory
-const sessionDataValidators = {
-  session: asFactory<Session>({
+interface JoinSessionData {
+  _id: Types.ObjectId
+  createdAt: Date
+  endedAt?: Date
+  type: string
+  subTopic: string
+  student: Types.ObjectId
+  volunteer?: Types.ObjectId
+}
+
+const partialJoinSessionValidators = {
+  session: asFactory<JoinSessionData>({
     _id: asObjectId,
     createdAt: asDate,
+    endedAt: asOptional(asDate),
     type: asString,
     subTopic: asString,
     student: asObjectId,
     volunteer: asOptional(asObjectId),
-    messages: asOptional(
-      asArray(
-        asFactory<Message>({
-          _id: asObjectId,
-          user: asObjectId,
-          contents: asString,
-          createdAt: asDate,
-        })
-      )
-    ),
-    hasWhiteboardDoc: asOptional(asBoolean),
-    quillDoc: asOptional(asString),
-    volunteerJoinedAt: asOptional(asDate),
-    failedJoins: asArray(asObjectId),
-    endedAt: asOptional(asDate),
-    endedBy: asOptional(asObjectId),
-    notifications: asArray(asObjectId),
-    photos: asArray(asString),
-    isReported: asOptional(asBoolean),
-    reportReason: asOptional(asString),
-    reportMessage: asOptional(asString),
-    flags: asArray(asEnum(USER_SESSION_METRICS)),
-    reviewed: asOptional(asBoolean),
-    toReview: asOptional(asBoolean),
-    reviewReasons: asArray(asEnum(USER_SESSION_METRICS)),
-    timeTutored: asOptional(asNumber),
-    whiteboardDoc: asOptional(asString),
   }),
 }
 
-// @todo: move the factory methods and validators to a shared file
-// @todo: create a factory using User
-export const asUser = asFactory<RequestUser>(userDataValidators)
-export const asSocketUser = asFactory<SocketUser>(socketUserDataValidators)
+export function asSubjectType(s: unknown, errMsg?: string): SUBJECT_TYPES {
+  const cb = asEnum<SUBJECT_TYPES>(SUBJECT_TYPES)
+  if (typeof s === 'string') {
+    const subjectType = Case.camel(s)
+    return cb(subjectType)
+  }
+  throw new InputError(`${errMsg} ${s} is not a string`)
+}
+
+// TODO: move the factory methods and validators to a shared file
+// TODO: create a factory using User instead of RequestUser
+export function asUser(s: unknown, errMsg?: string): User {
+  const cb = asFactory<RequestUser>(userDataValidators)
+  try {
+    const val = cb(s, errMsg)
+    return val as User
+  } catch (error) {
+    throw error
+  }
+}
 
 export const asStartSessionData = asFactory<StartSessionOptions>({
   ...requestIdentifierValidators,
   user: asUser,
+  // TODO: use validation against the enums SUBJECT_TYPES and SUBJECTS
   sessionSubTopic: asString,
-  sessionType: asString,
+  sessionType: asSubjectType,
   problemId: asOptional(asString),
   assignmentId: asOptional(asString),
   studentId: asOptional(asString),
@@ -319,7 +317,7 @@ export const asStartSessionData = asFactory<StartSessionOptions>({
 export const asFinishSessionData = asFactory<FinishSessionOptions>({
   ...requestIdentifierValidators,
   user: asUser,
-  sessionId: asString,
+  sessionId: asObjectId,
 })
 
 export const asSessionsToReviewData = asFactory<SessionsToReviewOptions>({
@@ -328,14 +326,14 @@ export const asSessionsToReviewData = asFactory<SessionsToReviewOptions>({
 })
 
 export const asReviewSessionData = asFactory<ReviewSessionOptions>({
-  sessionId: asString,
+  sessionId: asObjectId,
   reviewed: asBoolean,
   toReview: asBoolean,
 })
 
 export const asReportSessionData = asFactory<ReportSessionOptions>({
   user: asUser,
-  sessionId: asString,
+  sessionId: asObjectId,
   reportReason: asString,
   reportMessage: asString,
 })
@@ -343,7 +341,7 @@ export const asReportSessionData = asFactory<ReportSessionOptions>({
 export const asSessionTimedOutData = asFactory<SessionTimedOutOptions>({
   ...requestIdentifierValidators,
   user: asUser,
-  sessionId: asString,
+  sessionId: asObjectId,
   timeout: asNumber,
 })
 
@@ -381,9 +379,9 @@ export const asAdminFilteredSessionsData = asFactory<
 
 interface JoinSessionOptions {
   socket: Partial<Socket>
-  session: Session
-  user: Partial<Student | Volunteer>
-  joinedFrom: string
+  session: JoinSessionData
+  user: User
+  joinedFrom?: string
 }
 
 export const asJoinSessionData = asFactory<JoinSessionOptions>({
@@ -392,28 +390,30 @@ export const asJoinSessionData = asFactory<JoinSessionOptions>({
     connected: asBoolean,
     disconnected: asBoolean,
   }),
-  ...sessionDataValidators,
+  ...partialJoinSessionValidators,
   user: asUser,
   joinedFrom: asOptional(asString),
 })
 
 interface NewMessage {
-  user: string
+  _id: Types.ObjectId
+  user: Types.ObjectId
   contents: string
   createdAt: Date
 }
 
 interface SaveMessageOptions {
-  sessionId: string
-  user: SocketUser
+  sessionId: Types.ObjectId
+  user: User
   message: NewMessage
 }
 
 export const asSaveMessageData = asFactory<SaveMessageOptions>({
-  sessionId: asString,
-  user: asSocketUser,
+  sessionId: asObjectId,
+  user: asUser,
   message: asFactory<NewMessage>({
-    user: asString,
+    _id: asObjectId,
+    user: asObjectId,
     contents: asString,
     createdAt: asDate,
   }),

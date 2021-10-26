@@ -2,6 +2,14 @@ import * as crypto from 'crypto'
 import { Types } from 'mongoose'
 import SchoolModel, { School } from '../models/School/index'
 import config from '../config'
+import {
+  asString,
+  asBoolean,
+  asFactory,
+  asNumber,
+  asOptional,
+  asObjectId,
+} from '../utils/type-utils'
 
 // helper to escape regex special characters
 function escapeRegex(str: string) {
@@ -151,12 +159,21 @@ export async function getSchool(schoolId: Types.ObjectId): Promise<School> {
   }
 }
 
-export async function getSchools(
-  name: string,
-  state: string,
-  city: string,
-  page: number
-) {
+interface GetSchoolsPayload {
+  name: string
+  state: string
+  city: string
+  page?: number
+}
+const asGetSchoolsPayload = asFactory<GetSchoolsPayload>({
+  name: asString,
+  state: asString,
+  city: asString,
+  page: asOptional(asNumber),
+})
+
+export async function getSchools(data: unknown) {
+  const { name, state, city, page } = asGetSchoolsPayload(data)
   const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
@@ -245,13 +262,23 @@ export function updateIsPartner(schoolId: Types.ObjectId, isPartner: boolean) {
   return SchoolModel.updateOne({ _id: schoolId }, { isPartner })
 }
 
-export async function createSchool(
-  name: string,
-  city: string,
-  state: string,
-  zipCode: string,
+interface CreateSchoolPayload {
+  name: string
+  city: string
+  state: string
+  zipCode: string
   isApproved: boolean
-) {
+}
+const asCreateSchoolPayload = asFactory<CreateSchoolPayload>({
+  name: asString,
+  city: asString,
+  state: asString,
+  zipCode: asString,
+  isApproved: asBoolean,
+})
+
+export async function createSchool(data: unknown) {
+  const { name, city, state, zipCode, isApproved } = asCreateSchoolPayload(data)
   let upchieveId = createUpchieveId()
   let existingSchool = await SchoolModel.findOne({ upchieveId })
     .lean()
@@ -279,14 +306,27 @@ export async function createSchool(
   return school.save()
 }
 
-export async function adminUpdateSchool(
-  schoolId: Types.ObjectId,
-  name: string,
-  city: string,
-  state: string,
-  zipCode: number,
-  isApproved: boolean
-) {
+interface AdminUpdate {
+  schoolId: Types.ObjectId
+  name?: string
+  city?: string
+  state?: string
+  zipCode?: number
+  isApproved?: boolean
+}
+const asAdminUpdate = asFactory<AdminUpdate>({
+  schoolId: asObjectId,
+  name: asOptional(asString),
+  city: asOptional(asString),
+  state: asOptional(asString),
+  zipCode: asOptional(asNumber),
+  isApproved: asOptional(asBoolean),
+})
+
+export async function adminUpdateSchool(data: unknown) {
+  const { schoolId, name, city, state, zipCode, isApproved } = asAdminUpdate(
+    data
+  )
   const schoolData = {
     isApproved,
     nameStored: name,

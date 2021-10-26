@@ -27,11 +27,9 @@ export const getObject = async (
   }
 }
 
-export const getPhotoIdUploadUrl = async ({
-  photoIdS3Key,
-}: {
+export async function getPhotoIdUploadUrl(
   photoIdS3Key: string
-}): Promise<string> => {
+): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3.photoIdBucket,
     Key: photoIdS3Key,
@@ -48,11 +46,7 @@ export const getPhotoIdUploadUrl = async ({
   }
 }
 
-export const getPhotoIdUrl = async ({
-  photoIdS3Key,
-}: {
-  photoIdS3Key: string
-}): Promise<string> => {
+export async function getPhotoIdUrl(photoIdS3Key: string): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3.photoIdBucket,
     Key: photoIdS3Key,

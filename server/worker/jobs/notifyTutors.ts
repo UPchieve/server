@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 
-import SessionModel from '../../models/Session'
-import * as SessionService from '../../services/SessionService'
+import { getSessionById } from '../../models/Session/queries'
+import * as sessionUtils from '../../utils/session-utils'
 import QueueService from '../../services/QueueService'
 import * as TwilioService from '../../services/TwilioService'
 import { getNotificationWithVolunteer } from '../../models/Notification/queries'
@@ -10,6 +10,7 @@ import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
 import { log } from '../logger'
 import { Jobs } from '.'
 import { getIdFromModelReference } from '../../utils/validators'
+import { asObjectId, asArray, asNumber } from '../../utils/type-utils'
 
 interface NotifyTutorsJobData {
   sessionId: string
@@ -17,10 +18,11 @@ interface NotifyTutorsJobData {
 }
 
 export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
-  const { sessionId, notificationSchedule } = job.data
-  const session = await SessionModel.findById(sessionId)
+  const sessionId = asObjectId(job.data.sessionId)
+  const notificationSchedule = job.data.notificationSchedule
+  const session = await getSessionById(sessionId)
   if (!session) return
-  const fulfilled = SessionService.isSessionFulfilled(session)
+  const fulfilled = sessionUtils.isSessionFulfilled(session)
   if (fulfilled) {
     QueueService.add(Jobs.EmailVolunteerGentleWarning, {
       sessionId,
@@ -32,7 +34,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   if (delay)
     job.queue.add(
       Jobs.NotifyTutors,
-      { sessionId, notificationSchedule },
+      { sessionId: sessionId.toString(), notificationSchedule },
       { delay }
     )
 

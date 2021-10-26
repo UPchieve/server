@@ -7,7 +7,7 @@ export async function createAssistmentsDataBySession(
   problemId: number,
   assignmentId: string,
   studentId: string,
-  session: Types.ObjectId | string
+  session: Types.ObjectId
 ): Promise<AssistmentsData> {
   const ad = await getAssistmentsDataBySession(session)
   if (ad)
@@ -32,7 +32,7 @@ export async function createAssistmentsDataBySession(
 
 // Read functions
 export async function getAssistmentsDataByObjectId(
-  id: Types.ObjectId | string
+  id: Types.ObjectId
 ): Promise<AssistmentsData | undefined> {
   try {
     const ad = await AssistmentsDataModel.findById(id)
@@ -55,7 +55,7 @@ export async function getAllAssistmentsData(): Promise<AssistmentsData[]> {
 }
 
 export async function getAssistmentsDataBySession(
-  sessionId: Types.ObjectId | string
+  sessionId: Types.ObjectId
 ): Promise<AssistmentsData | undefined> {
   try {
     const ad = await AssistmentsDataModel.findOne({
@@ -75,7 +75,7 @@ export function getAssistmentsDataWithPipeline(pipeline: any[]): Promise<any[]> 
 
 // Update functions
 export async function updateAssistmentsDataSentAtById(
-  id: Types.ObjectId | string,
+  id: Types.ObjectId,
   sentAt: Date
 ): Promise<void> {
   try {

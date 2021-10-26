@@ -461,7 +461,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date },
       },
-      // @todo: remove once college counseling required training is created
+      // TODO: remove once college counseling required training is created
       [COLLEGE_SUBJECTS.PLANNING]: {
         passed: {
           type: Boolean,
@@ -473,7 +473,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date },
       },
-      // @todo: remove once college counseling required training is created
+      // TODO: remove once college counseling required training is created
       [SUBJECTS.APPLICATIONS]: {
         passed: {
           type: Boolean,

@@ -1,17 +1,14 @@
-const express = require('express')
-const twilio = require('twilio')
-const _ = require('lodash')
+import { Express, Router } from 'express'
+import twilio from 'twilio'
+import _ from 'lodash'
 
-const VoiceResponse = twilio.twiml.VoiceResponse
-const MessagingResponse = require('twilio').twiml.MessagingResponse
+import config from '../../config'
+import * as twilioService from'../../services/TwilioService'
+import VolunteerModel, { Volunteer } from '../../models/Volunteer'
+import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 
-const config = require('../../config')
-const twilioService = require('../../services/TwilioService')
-const Volunteer = require('../../models/Volunteer').default
-const UserActionCtrl = require('../../controllers/UserActionCtrl')
-
-module.exports = function(app) {
-  const router = new express.Router()
+export default function(app: Express) {
+  const router = Router()
 
   // This route is called by Twilio to receive TwiML instructions for
   // voice calls. The Twilio API for voice calling requires that a URL be
@@ -21,11 +18,11 @@ module.exports = function(app) {
   // in it. When the call is answered, Twilio sends a request to this
   // URL, and our server responds with TwiML containing the decoded message text
   // and the configured voice for the text-to-speech conversion.
-  router.post('/message/:message', function(req, res, next) {
+  router.post('/message/:message', function(req, res) {
     const message = decodeURIComponent(req.params.message)
     console.log('Making TwiML for voice message')
 
-    const twiml = new VoiceResponse()
+    const twiml = new twilio.twiml.VoiceResponse()
 
     twiml.say({ voice: config.voice }, message)
 
@@ -37,7 +34,7 @@ module.exports = function(app) {
    * This route handles SMS messages sent to our Twilio numbers
    */
   router.post('/incoming-sms', async function(req, res, next) {
-    const twiml = new MessagingResponse()
+    const twiml = new twilio.twiml.MessagingResponse()
 
     const incomingMessage = req.body.Body
     const incomingPhoneNumber = req.body.From
@@ -61,7 +58,8 @@ module.exports = function(app) {
          * 2. Populate their most recent notification
          * 3. Populate that notification's session
          */
-        const populatedUser = await Volunteer.findOne({
+        // TODO: use repo arch
+        const populatedUser = await VolunteerModel.findOne({
           phone: incomingPhoneNumber
         }).populate({
           path: 'volunteerLastNotification',
@@ -69,7 +67,7 @@ module.exports = function(app) {
             path: 'session',
             select: '_id volunteerJoinedAt endedAt'
           }
-        })
+        }).lean().exec()
 
         userId = _.get(populatedUser, '_id')
 

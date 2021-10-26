@@ -9,8 +9,9 @@ import {
   updateAssistmentsDataSentAtById
 } from '../../models/AssistmentsData/queries'
 import { Message } from '../../models/Message'
-import { getSessionById } from '../../services/SessionService'
+import { getSessionById } from '../../models/Session/queries'
 import { log } from '../logger'
+import { asObjectId } from '../../utils/type-utils'
 
 interface PartMessage {
   contents: string
@@ -157,13 +158,11 @@ export async function sendWrapper(
 }
 
 export interface SendAssistmentsDataJobData {
-  sessionId: string | Types.ObjectId
+  sessionId: string
 }
 
 export default async (job: Job<SendAssistmentsDataJobData>): Promise<void> => {
-  const {
-    data: { sessionId }
-  } = job
+  const sessionId = asObjectId(job.data.sessionId)
   const data = await getAssistmentsDataBySession(sessionId)
   if (data && !data.sent) {
     const { params, payload } = await buildRequest(data)

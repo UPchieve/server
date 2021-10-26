@@ -26,7 +26,7 @@ export interface HourSummaryStats {
 }
 
 export const getHourSummaryStats = async (
-  volunteerId: Types.ObjectId | string,
+  volunteerId: Types.ObjectId,
   fromDate: Date,
   toDate: Date
 ): Promise<HourSummaryStats> => {
@@ -60,7 +60,7 @@ export const getHourSummaryStats = async (
 }
 
 export const queueOnboardingReminderOneEmail = async (
-  volunteerId: string | Types.ObjectId
+  volunteerId: Types.ObjectId
 ): Promise<void> => {
   const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7
   QueueService.add(
@@ -71,7 +71,7 @@ export const queueOnboardingReminderOneEmail = async (
 }
 
 export const queueOnboardingEventEmails = async (
-  volunteerId: string | Types.ObjectId
+  volunteerId: Types.ObjectId
 ): Promise<void> => {
   QueueService.add(
     Jobs.EmailVolunteerQuickTips,
@@ -85,7 +85,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
   category: string,
   email: string,
   firstName: string,
-  volunteerId: string
+  volunteerId: Types.ObjectId
 ) {
   QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
     category,
@@ -96,7 +96,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
 }
 
 export const queuePartnerOnboardingEventEmails = async (
-  volunteerId: string | Types.ObjectId
+  volunteerId: Types.ObjectId
 ): Promise<void> => {
   QueueService.add(
     Jobs.EmailPartnerVolunteerLowHoursSelected,

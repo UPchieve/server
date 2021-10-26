@@ -6,7 +6,8 @@ import * as AuthService from '../../services/AuthService'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
-import * as UserService from '../../services/UserService'
+import { getUserIdByEmail } from '../../models/User/queries'
+import { asString } from '../../utils/type-utils'
 
 // TODO: type passport request member methods/variable correctly (login, logout, user)
 export function routes(app: Express) {
@@ -52,7 +53,6 @@ export function routes(app: Express) {
         ...req.body,
         ip: req.ip
       } as unknown)
-      // @ts-expect-error
       await req.asyncLogin(student)
       res.json({ user: student })
     } catch (err) {
@@ -66,7 +66,6 @@ export function routes(app: Express) {
         ...req.body,
         ip: req.ip
       } as unknown)
-      // @ts-expect-error
       await req.asyncLogin(student)
       res.json({ user: student })
     } catch (err) {
@@ -80,7 +79,6 @@ export function routes(app: Express) {
         ...req.body,
         ip: req.ip
       } as unknown)
-      // @ts-expect-error
       await req.asyncLogin(volunteer)
       res.json({ user: volunteer })
     } catch (err) {
@@ -94,7 +92,6 @@ export function routes(app: Express) {
         ...req.body,
         ip: req.ip
       } as unknown)
-      // @ts-expect-error
       await req.asyncLogin(volunteer)
       res.json({ user: volunteer })
     } catch (err) {
@@ -167,32 +164,33 @@ export function routes(app: Express) {
 
   router.route('/reset/send').post(async function(req, res) {
     try {
-      if (!req.body.hasOwnProperty('email'))
-        throw new InputError('Missing email body string')
-      await AuthService.sendReset(req.body.email as unknown)
+      const email = asString(req.body.email)
+      try {
+        await AuthService.sendReset(email as unknown)
+      } catch (err) {
+        // do not respond with info about no email match
+        if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
+      }
+      let userId: Types.ObjectId | undefined
+      if (!req.user) {  // user not logged in
+        userId = await getUserIdByEmail(email)
+      } else // logged in
+        userId = req.user._id
+      req.session.destroy(() => {
+        /* do nothing */
+      })
+      // if account with given email exists then try to destroy its sessions
+      if (userId) {
+        await AuthService.deleteAllUserSessions(userId.toString())
+        req.logout()
+      }
+      res.status(200).json({
+        msg:
+          'If an account with this email address exists then we will send a password reset email'
+      })
     } catch (err) {
-      // do not respond with info about no email match
-      if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
+      resError(res, err)
     }
-    let userId: Types.ObjectId | undefined
-    if (!req.user) {
-      const user = await UserService.getUser(
-        { email: req.body.email },
-        { _id: 1 }
-      )
-      if (user) userId = user._id
-    } else userId = req.user._id
-    req.session.destroy(() => {
-      /* do nothing */
-    })
-    if (userId) {
-      await AuthService.deleteAllUserSessions(userId.toString())
-      req.logout()
-    }
-    res.status(200).json({
-      msg:
-        'If an account with this email address exists then we will send a password reset email'
-    })
   })
 
   router.route('/reset/confirm').post(async function(req, res) {

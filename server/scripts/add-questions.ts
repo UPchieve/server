@@ -36,7 +36,7 @@ async function main() {
 
     console.log(`Attempting to clean and add ${questions.length} questions`)
     const finalQuestions = []
-    // @todo: use better typing here (possibleAnswers from compass has _id)
+    // TODO: use better typing here (possibleAnswers from compass has _id)
     for (const q of questions) {
       try {
         if (q.hasOwnProperty('_id')) delete q._id

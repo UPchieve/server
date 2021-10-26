@@ -39,7 +39,7 @@ import {
 import * as WhiteboardService from '../../services/WhiteboardService'
 import QueueService from '../../services/QueueService'
 import { Jobs } from '../../worker/jobs'
-import * as SessionRepo from '../../models/Session'
+import * as SessionRepo from '../../models/Session/queries'
 import * as AssistmentsDataRepo from '../../models/AssistmentsData'
 import {
   EndSessionError,

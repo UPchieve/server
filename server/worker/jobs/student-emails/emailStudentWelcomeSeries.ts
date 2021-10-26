@@ -6,7 +6,7 @@ import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { Jobs } from '../index'
 
 interface WelcomeEmail {
-  studentId: string | Types.ObjectId
+  studentId: Types.ObjectId
 }
 
 export default async (job: Job<WelcomeEmail>): Promise<void> => {

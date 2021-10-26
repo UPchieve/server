@@ -50,6 +50,14 @@ export function asFunction(s: unknown, errMsg?: string): Function {
 
 export function asObjectId(s: unknown, errMsg?: string): Types.ObjectId {
   if (s instanceof Types.ObjectId) return s as Types.ObjectId
+  else if (typeof s === 'string' || typeof s === 'number') {
+    try {
+      const x = Types.ObjectId(s as string | number)
+      return x
+    } catch (err) {
+      throw new InputError(`${errMsg} :${s} is not an ObjectId`)
+    }
+  }
   throw new InputError(`${errMsg} :${s} is not an ObjectId`)
 }
 

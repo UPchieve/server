@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
-import SessionModel, * as SessionRepo from '../../models/Session'
+import SessionModel from '../../models/Session'
+import * as SessionRepo from '../../models/Session/queries'
 import {
   getSession,
   insertSession,

@@ -1,8 +1,9 @@
-const uri = require('querystring').escape
+import { escape as uri } from 'querystring'
+import Express from 'express'
 
 // Return an object containing the `path` and `label` for a given category /
 // subcategory link
-const questionsPath = (category, subcategory) => {
+export function questionsPath(category?: string, subcategory?: string) {
   const query = []
 
   if (category) {
@@ -21,24 +22,18 @@ const questionsPath = (category, subcategory) => {
 
 // Return a function used by templates to determine if the current page is the
 // one currently selected on the navbar.
-const isActivePage = req => {
-  return navUrl => {
+export function isActivePage(req: Express.Request) {
+  return (navUrl: string) => {
     return navUrl === req.path ? 'active' : ''
   }
 }
 
 // Convert a given path of a front-end-served asset to the correct absolute or
 // relative path, based on the given frontEndRoot
-const frontEndPath = (relativePath, frontEndRoot) => {
+export function frontEndPath(relativePath: string, frontEndRoot?: string): string {
   if (frontEndRoot) {
     return new URL(relativePath, frontEndRoot).toString()
   } else {
     return relativePath
   }
-}
-
-module.exports = {
-  questionsPath,
-  isActivePage,
-  frontEndPath
 }

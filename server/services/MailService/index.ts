@@ -9,6 +9,7 @@ import {
 } from '../../partnerManifests'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
 import { SESSION_REPORT_REASON } from '../../constants'
+import { User } from '../../models/User'
 import { VolunteerContactInfo } from '../../models/Volunteer/queries'
 import { Reference, Volunteer } from '../../models/Volunteer'
 import { Student } from '../../models/Student'
@@ -1058,7 +1059,7 @@ export async function sendTechIssueApology(email: string, firstName: string): Pr
   )
 }
 
-export async function createContact(user: Student | Volunteer): Promise<any> {
+export async function createContact(user: User | Student | Volunteer): Promise<any> {
   const customFields = {
     [SG_CUSTOM_FIELDS.isBanned]: String(user.isBanned),
     [SG_CUSTOM_FIELDS.isTestUser]: String(user.isTestUser),

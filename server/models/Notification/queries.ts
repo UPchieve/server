@@ -1,5 +1,6 @@
 import { Aggregate, Types } from 'mongoose'
 import NotificationModel, { Notification } from './index'
+import * as SessionRepo from '../Session/queries'
 
 export async function getNotificationsByVolunteerId(id: Types.ObjectId): Promise<Notification[]> {
   return NotificationModel.find({ volunteer: id })
@@ -34,8 +35,7 @@ export async function getNotificationWithVolunteer(
 export async function getSessionNotificationsWithSessionId(
   sessionId: Types.ObjectId
 ): Promise<Notification[]> {
-  // TODO: fix signature wwhen session service done
-  const session = await SessionService.getSessionById(sessionId)
+  const session = await SessionRepo.getSessionById(sessionId)
   return NotificationModel.aggregate([
     {
       $match: {

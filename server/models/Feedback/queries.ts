@@ -1,7 +1,6 @@
 import { Types } from 'mongoose'
 import FeedbackModel, { Feedback, FeedbackVersionOne, FeedbackVersionTwo } from './index'
 import { RepoReadError } from '../Errors'
-import { FEEDBACK_VERSIONS } from '../../constants'
 
 export type AnyFeedback = Feedback | FeedbackVersionOne | FeedbackVersionTwo
 
@@ -61,9 +60,18 @@ export type AnyFeedback = Feedback | FeedbackVersionOne | FeedbackVersionTwo
   }
 }
 
-export async function getFeedbackById(feedbackId: Types.ObjectId | string): Promise<AnyFeedback | undefined> {
+export async function getFeedbackById(feedbackId: Types.ObjectId): Promise<AnyFeedback | undefined> {
   try {
     const feedback = await FeedbackModel.findOne({ _id: feedbackId }).lean().exec()
+    if (feedback) return feedback as AnyFeedback
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getFeedbackBySessionIdUserType(sessionId: Types.ObjectId, userType: string): Promise<AnyFeedback | undefined> {
+  try {
+    const feedback = await FeedbackModel.findOne({ sessionId, userType }).lean().exec()
     if (feedback) return feedback as AnyFeedback
   } catch (err) {
     throw new RepoReadError(err)

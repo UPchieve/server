@@ -68,14 +68,9 @@ const isCertifiedIn = (givenCerts: any, userCerts: Certifications): boolean => {
   return false
 }
 
-interface GetQuestionsOptions {
-  category: string
-}
-
 export async function getQuestions(
-  options: GetQuestionsOptions
+  category: string
 ): Promise<QuestionDocument[]> {
-  const { category } = options
   const subcategories = QuestionModel.getSubcategories(category)
 
   if (!subcategories) {
@@ -230,6 +225,7 @@ export function getUnlockedSubjects(
 
 type AnswerMap = { [k: string]: string }
 
+// TODO: type validate these when Volunteer has a strong validator
 export interface GetQuizScoreOptions {
   user: Volunteer
   idAnswerMap: AnswerMap

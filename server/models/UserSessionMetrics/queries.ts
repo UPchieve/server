@@ -6,7 +6,7 @@ import { validUser } from '../../utils/validators'
 
 // Create functions
 export async function createUSMByUserId(
-  userId: Types.ObjectId | string
+  userId: Types.ObjectId
 ): Promise<UserSessionMetrics> {
   const usm = await getUSMByUserId(userId)
   if (usm)
@@ -30,7 +30,7 @@ export async function createUSMByUserId(
 
 // Read functions
 export async function getUSMByObjectId(
-  id: Types.ObjectId | string
+  id: Types.ObjectId
 ): Promise<UserSessionMetrics | undefined> {
   try {
     const usm = await UserSessionMetricsModel.findOne({ _id: id })
@@ -53,7 +53,7 @@ export async function getAllUSM(): Promise<UserSessionMetrics[]> {
 }
 
 export async function getUSMByUserId(
-  userId: Types.ObjectId | string
+  userId: Types.ObjectId
 ): Promise<UserSessionMetrics | undefined> {
   try {
     const usm = await UserSessionMetricsModel.findOne({
@@ -76,7 +76,7 @@ export type UserSessionMetricsUpdateQuery = UpdateQuery<
 // ex: a = { a: { aa: 1, bb: 2 } }, b = { a: { aa: 3, cc: 4 } }
 // merge(a,b) => a = { a: { aa: 3, bb: 2, cc: 4 } }
 export async function executeUSMUpdatesByUserId(
-  userId: Types.ObjectId | string,
+  userId: Types.ObjectId,
   queries: UserSessionMetricsUpdateQuery[]
 ): Promise<void> {
   const update = {}
