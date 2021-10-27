@@ -6,7 +6,7 @@ import {
   GATES_STUDY_PERIOD_START,
   GATES_STUDY_PERIOD_END,
 } from '../constants'
-import * as UserProductFlagsRepo from '../models/UserProductFlags'
+import * as UserProductFlagsRepo from '../models/UserProductFlags/queries'
 import * as gatesStudyUtils from '../utils/gates-study-utils'
 import { isDateWithinRange } from '../utils/is-date-within-range'
 
@@ -27,6 +27,9 @@ export async function processGatesQualifiedSession(sessionId: Types.ObjectId) {
       sessionId
     )
     if (gatesStudyUtils.isGatesQualifiedSession(data))
-      UserProductFlagsRepo.updateGatesQualifiedFlag(data.student._id, true)
+      UserProductFlagsRepo.updateUPFGatesQualifiedFlagById(
+        data.student._id,
+        true
+      )
   }
 }
