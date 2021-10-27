@@ -20,7 +20,7 @@ interface VolunteerSessionTriggers {
 export default async (job: Job<VolunteerSessionTriggers>): Promise<void> => {
   const {
     data: { sessionSubtopic, sessionDate },
-    name: currentJob
+    name: currentJob,
   } = job
   const studentId = asObjectId(job.data.studentId)
   const volunteerId = asObjectId(job.data.volunteerId)

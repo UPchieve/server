@@ -15,18 +15,18 @@ import {
 } from '../services/VolunteerService'
 import { AccountActionCreator } from './UserActionCtrl'
 
+// TODO: duck type validation
 export interface UpdateScheduleOptions {
   ip: string
   user: Volunteer
   // @note: this is set to optional to test the absence of an availability object
   availability?: Availability
-  tz: string // FIXME: constrain this to official timezones
+  tz: string // TODO: constrain this to official timezones
 }
 
 export async function updateSchedule(
   options: UpdateScheduleOptions
 ): Promise<void> {
-  // TODO: duck type payload with asFactory
   const user = options.user
   const newAvailability = options.availability
   const newTimezone = options.tz

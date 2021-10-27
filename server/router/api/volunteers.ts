@@ -20,12 +20,13 @@ export function routeVolunteers(router: Router): void {
         )
         res.json({
           msg: 'Users retreived from database',
-          aggAvailabilities: aggAvailabilities
+          aggAvailabilities: aggAvailabilities,
         })
       } catch (err) {
         resError(res, err)
       }
-    })
+    }
+  )
 
   router.get('/volunteers/review', authPassport.isAdmin, async function(
     req,
@@ -36,7 +37,7 @@ export function routeVolunteers(router: Router): void {
       const pageNum = asNumber(page)
       const {
         volunteers,
-        isLastPage
+        isLastPage,
       } = await VolunteerService.getVolunteersToReview(pageNum)
       res.json({ volunteers, isLastPage })
     } catch (error) {

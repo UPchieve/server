@@ -12,7 +12,7 @@ interface WelcomeEmail {
 export default async (job: Job<WelcomeEmail>): Promise<void> => {
   const {
     data: { studentId },
-    name: currentJob
+    name: currentJob,
   } = job
   const student = await getStudentContactInfoById(studentId)
 

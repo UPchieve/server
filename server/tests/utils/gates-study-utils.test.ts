@@ -9,7 +9,7 @@ import {
   buildStudent,
   buildSchool,
   getObjectId,
-  buildGatesQualifiedData
+  buildGatesQualifiedData,
 } from '../generate'
 import { GRADES, SUBJECTS } from '../../constants'
 
@@ -29,8 +29,8 @@ describe('isGatesQualifiedSession', () => {
   test('Should not qualify as a Gates-qualified session if the student is from a partner school', () => {
     const data = buildGatesQualifiedData({
       school: {
-        isPartner: true
-      }
+        isPartner: true,
+      },
     })
 
     const isGatesQualified = gatesStudyUtils.isGatesQualifiedSession(data)
@@ -40,8 +40,8 @@ describe('isGatesQualifiedSession', () => {
   test('Should not qualify as a Gates-qualified session if the student is from a partner org', () => {
     const data = buildGatesQualifiedData({
       student: {
-        studentPartnerOrg: 'example'
-      }
+        studentPartnerOrg: 'example',
+      },
     })
 
     const isGatesQualified = gatesStudyUtils.isGatesQualifiedSession(data)
@@ -51,8 +51,8 @@ describe('isGatesQualifiedSession', () => {
   test('Should not qualify as a Gates-qualified session if the student has completed more than one session', () => {
     const data = buildGatesQualifiedData({
       student: {
-        pastSessions: [getObjectId(), getObjectId()]
-      }
+        pastSessions: [getObjectId(), getObjectId()],
+      },
     })
 
     const isGatesQualified = gatesStudyUtils.isGatesQualifiedSession(data)
@@ -62,8 +62,8 @@ describe('isGatesQualifiedSession', () => {
   test('Should not qualify as a Gates-qualified session if the student is not in 9th or 10th grade', () => {
     const data = buildGatesQualifiedData({
       student: {
-        currentGrade: GRADES.ELEVENTH
-      }
+        currentGrade: GRADES.ELEVENTH,
+      },
     })
 
     const isGatesQualified = gatesStudyUtils.isGatesQualifiedSession(data)
@@ -73,8 +73,8 @@ describe('isGatesQualifiedSession', () => {
   test('Should not qualify as a Gates-qualified session if the session was reported', () => {
     const data = buildGatesQualifiedData({
       session: {
-        isReported: true
-      }
+        isReported: true,
+      },
     })
 
     const isGatesQualified = gatesStudyUtils.isGatesQualifiedSession(data)
@@ -84,8 +84,8 @@ describe('isGatesQualifiedSession', () => {
   test('Should not qualify as a Gates-qualified session if the session was not in a math subject', () => {
     const data = buildGatesQualifiedData({
       session: {
-        subTopic: SUBJECTS.CHEMISTRY
-      }
+        subTopic: SUBJECTS.CHEMISTRY,
+      },
     })
 
     const isGatesQualified = gatesStudyUtils.isGatesQualifiedSession(data)
@@ -117,7 +117,7 @@ describe('prepareForGatesQualificationCheck', () => {
     const expected = {
       session: mockSession,
       student: mockStudent,
-      school: mockSchool
+      school: mockSchool,
     }
 
     expect(result).toEqual(expected)

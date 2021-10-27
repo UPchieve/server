@@ -36,8 +36,8 @@ jest.mock('aws-sdk', () => {
         .mockImplementationOnce(() => '')
         .mockImplementationOnce(
           () => 'https://photos.s3.us-east-2.amazonaws.com/12345'
-        )
-    }))
+        ),
+    })),
   }
 })
 
@@ -45,7 +45,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -71,7 +71,7 @@ test('Volunteer submits a reference', async () => {
     .send({
       referenceFirstName: reference.firstName,
       referenceLastName: reference.lastName,
-      referenceEmail: reference.email
+      referenceEmail: reference.email,
     })
     .expect(200)
 })
@@ -86,7 +86,7 @@ test('Volunteer deletes a reference', async () => {
   await agent
     .post('/api/user/volunteer-approval/reference/delete')
     .send({
-      referenceEmail: reference.email
+      referenceEmail: reference.email,
     })
     .expect(200)
 })
@@ -102,7 +102,7 @@ test('Volunteer recieves an error requesting photo id upload url', async () => {
     .expect(200)
 
   const {
-    body: { success, message }
+    body: { success, message },
   } = response
   const expectedMessage = 'Pre-signed URL error'
 
@@ -121,7 +121,7 @@ test('Volunteer recieves a photo id upload url', async () => {
     .expect(200)
 
   const {
-    body: { success, message, uploadUrl }
+    body: { success, message, uploadUrl },
   } = response
   const expectedMessage = 'AWS SDK S3 pre-signed URL generated successfully'
 

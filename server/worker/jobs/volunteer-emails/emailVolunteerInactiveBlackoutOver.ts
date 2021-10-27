@@ -3,7 +3,11 @@ import { Jobs } from '../index'
 import { updateSnapshotOnCallByVolunteerId } from '../../../models/Availability/queries'
 import * as MailService from '../../../services/MailService'
 import createNewAvailability from '../../../utils/create-new-availability'
-import { VolunteerContactInfo, getVolunteersForBlackoutOver, updateVolunteerInactiveAvailability } from '../../../models/Volunteer/queries'
+import {
+  VolunteerContactInfo,
+  getVolunteersForBlackoutOver,
+  updateVolunteerInactiveAvailability,
+} from '../../../models/Volunteer/queries'
 
 export async function processVolunteer(
   volunteer: VolunteerContactInfo
@@ -13,26 +17,32 @@ export async function processVolunteer(
   const errors: string[] = []
   try {
     await MailService.sendVolunteerInactiveBlackoutOver(email, firstname)
-  } catch (error: unknown) {
+  } catch (error) {
     errors.push(
-      `Failed to send blackout over email to volunteer ${_id}: ${(error as Error).message}`
+      `Failed to send blackout over email to volunteer ${_id}: ${
+        (error as Error).message
+      }`
     )
   }
 
   const clearedAvailability = createNewAvailability()
   try {
     updateVolunteerInactiveAvailability(_id, clearedAvailability)
-  } catch (error: unknown) {
+  } catch (error) {
     errors.push(
-      `Failed to update availability for volunteer ${_id}: ${(error as Error).message}`
+      `Failed to update availability for volunteer ${_id}: ${
+        (error as Error).message
+      }`
     )
   }
 
   try {
     await updateSnapshotOnCallByVolunteerId(_id, clearedAvailability)
-  } catch (error: unknown) {
+  } catch (error) {
     errors.push(
-      `Failed to update snapshot for volunteer ${_id}: ${(error as Error).message}`
+      `Failed to update snapshot for volunteer ${_id}: ${
+        (error as Error).message
+      }`
     )
   }
   return errors

@@ -4,7 +4,7 @@ import { Types } from 'mongoose'
 import { getEmail, buildStudent, buildVolunteer } from '../generate'
 import {
   confirmVerification,
-  initiateVerification
+  initiateVerification,
 } from '../../services/VerificationService'
 import TwilioService from '../../services/twilio'
 import { VERIFICATION_METHOD } from '../../constants'
@@ -22,7 +22,7 @@ const mockedTwilioService = mocked(TwilioService, true)
 function mockTwilioConfirmation(value: boolean) {
   // @ts-expect-error twilio verification object has lots of metadata we dont care to mock
   mockedTwilioService.confirmVerification.mockResolvedValueOnce({
-    valid: value
+    valid: value,
   })
 }
 
@@ -41,7 +41,7 @@ describe('initiate verification', () => {
       userId: student._id.toString(),
       sendTo: student.email,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
-      firstName: student.firstname
+      firstName: student.firstname,
     }
     await initiateVerification(payload)
 
@@ -54,7 +54,7 @@ describe('initiate verification', () => {
       userId: student._id.toString(),
       sendTo: 'bad email',
       verificationMethod: VERIFICATION_METHOD.EMAIL,
-      firstName: student.firstname
+      firstName: student.firstname,
     }
 
     await expect(initiateVerification(payload)).rejects.toEqual(
@@ -67,7 +67,7 @@ describe('initiate verification', () => {
       userId: student._id.toString(),
       sendTo: 'bad phone',
       verificationMethod: VERIFICATION_METHOD.SMS,
-      firstName: student.firstname
+      firstName: student.firstname,
     }
 
     await expect(initiateVerification(payload)).rejects.toEqual(
@@ -82,7 +82,7 @@ describe('initiate verification', () => {
       userId: Types.ObjectId().toString(),
       sendTo: student.email,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
-      firstName: student.firstname
+      firstName: student.firstname,
     }
 
     await expect(initiateVerification(payload)).rejects.toEqual(
@@ -99,7 +99,7 @@ describe('confirmVerification', () => {
       userId: student._id.toString(),
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: student.email,
-      verificationCode: 'bad code'
+      verificationCode: 'bad code',
     }
 
     await expect(confirmVerification(payload)).rejects.toEqual(
@@ -114,7 +114,7 @@ describe('confirmVerification', () => {
       userId: student._id.toString(),
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: student.email,
-      verificationCode: '123456'
+      verificationCode: '123456',
     })
     expect(result).toBeFalsy()
   })
@@ -127,21 +127,21 @@ describe('confirmVerification', () => {
       userId: student._id.toString(),
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: student.email,
-      verificationCode: '123456'
+      verificationCode: '123456',
     }
 
     await confirmVerification(payload)
 
     expect(MailService.sendStudentWelcomeEmail).toHaveBeenCalledWith({
       email: student.email,
-      firstName: student.firstname
+      firstName: student.firstname,
     })
     expect(StudentService.queueWelcomeEmails).toHaveBeenCalledWith(student._id)
   })
 
   test('Should send all volunteer emails when verified', async () => {
     const volunteer = buildVolunteer({
-      volunteerPartnerOrg: 'test'
+      volunteerPartnerOrg: 'test',
     })
     mockTwilioConfirmation(true)
     mockedUserService.getUser.mockResolvedValueOnce(volunteer)
@@ -150,14 +150,14 @@ describe('confirmVerification', () => {
       userId: volunteer._id.toString(),
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: volunteer.email,
-      verificationCode: '123456'
+      verificationCode: '123456',
     }
 
     await confirmVerification(payload)
 
     expect(MailService.sendPartnerVolunteerWelcomeEmail).toHaveBeenCalledWith({
       email: volunteer.email,
-      volunteerName: volunteer.firstname
+      volunteerName: volunteer.firstname,
     })
   })
 
@@ -169,12 +169,12 @@ describe('confirmVerification', () => {
       userId: student._id.toString(),
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: student.email,
-      verificationCode: '123456'
+      verificationCode: '123456',
     })
     const expected = {
       verified: true,
       verifiedEmail: true,
-      email: student.email
+      email: student.email,
     }
 
     expect(result).toBeTruthy()
@@ -192,12 +192,12 @@ describe('confirmVerification', () => {
       userId: student._id.toString(),
       verificationMethod: VERIFICATION_METHOD.SMS,
       sendTo: student.phone,
-      verificationCode: '123456'
+      verificationCode: '123456',
     })
     const expected = {
       verified: true,
       verifiedPhone: true,
-      phone: student.phone
+      phone: student.phone,
     }
     expect(result).toBeTruthy()
     expect(UserService.updateUser).toHaveBeenCalledWith(
@@ -215,12 +215,12 @@ describe('confirmVerification', () => {
       userId: student._id.toString(),
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: newEmail,
-      verificationCode: '123456'
+      verificationCode: '123456',
     })
     const expected = {
       verified: true,
       verifiedEmail: true,
-      email: newEmail
+      email: newEmail,
     }
 
     expect(result).toBeTruthy()

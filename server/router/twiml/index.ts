@@ -3,7 +3,7 @@ import twilio from 'twilio'
 import _ from 'lodash'
 
 import config from '../../config'
-import * as twilioService from'../../services/TwilioService'
+import * as twilioService from '../../services/TwilioService'
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 
@@ -60,14 +60,17 @@ export default function(app: Express) {
          */
         // TODO: use repo arch
         const populatedUser = await VolunteerModel.findOne({
-          phone: incomingPhoneNumber
-        }).populate({
-          path: 'volunteerLastNotification',
-          populate: {
-            path: 'session',
-            select: '_id volunteerJoinedAt endedAt'
-          }
-        }).lean().exec()
+          phone: incomingPhoneNumber,
+        })
+          .populate({
+            path: 'volunteerLastNotification',
+            populate: {
+              path: 'session',
+              select: '_id volunteerJoinedAt endedAt',
+            },
+          })
+          .lean()
+          .exec()
 
         userId = _.get(populatedUser, '_id')
 

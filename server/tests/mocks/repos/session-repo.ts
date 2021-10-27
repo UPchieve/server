@@ -5,7 +5,7 @@ import {
   buildStudent,
   buildVolunteer,
   getFirstName,
-  getObjectId
+  getObjectId,
 } from '../../generate'
 
 export function mockedGetSessionsToReview(overrides = {}) {
@@ -20,7 +20,7 @@ export function mockedGetSessionsToReview(overrides = {}) {
     isReported: session.isReported,
     flags: session.flags,
     reviewReasons: session.reviewReasons,
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -51,7 +51,7 @@ export function mockedGetSessionById(overrides = {}) {
     toReview: newSession.toReview,
     reviewReasons: newSession.reviewReasons,
     timeTutored: newSession.timeTutored,
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -71,17 +71,17 @@ export function mockedGetSessionToEnd(overrides = {}) {
       _id: student._id,
       firstname: student.firstname,
       email: student.email,
-      pastSessions: student.pastSessions
+      pastSessions: student.pastSessions,
     },
     volunteer: {
       _id: volunteer._id,
       firstname: volunteer.firstname,
       email: volunteer.email,
       pastSessions: volunteer.pastSessions,
-      volunteerPartnerOrg: volunteer.volunteerPartnerOrg
+      volunteerPartnerOrg: volunteer.volunteerPartnerOrg,
     },
     volunteerJoinedAt: session.volunteerJoinedAt,
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -94,7 +94,7 @@ export function mockedGetAdminFilteredSessions(overrides = {}) {
     endedAt: new Date(),
     volunteer: {
       firstname: volunteer.firstname,
-      totalPastSessions: volunteer.pastSessions.length
+      totalPastSessions: volunteer.pastSessions.length,
     },
     totalMessages: 0,
     type: 'math',
@@ -102,11 +102,11 @@ export function mockedGetAdminFilteredSessions(overrides = {}) {
     student: {
       firstname: student.firstname,
       isTestUser: student.isTestUser,
-      totalPastSessions: student.pastSessions.length
+      totalPastSessions: student.pastSessions.length,
     },
     studentFirstName: student.firstname,
     studentRating: 1,
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -121,16 +121,16 @@ export function mockedGetSessionByIdWithStudentAndVolunteer(overrides = {}) {
       isVolunteer: student.isVolunteer,
       firstname: student.firstname,
       pastSessions: student.pastSessions,
-      createdAt: student.createdAt
+      createdAt: student.createdAt,
     },
     volunteer: {
       _id: volunteer._id,
       isVolunteer: volunteer.isVolunteer,
       firstname: volunteer.firstname,
       pastSessions: volunteer.pastSessions,
-      createdAt: volunteer.createdAt
+      createdAt: volunteer.createdAt,
     },
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -141,7 +141,7 @@ export function buildUserAgent(overrides = {}) {
     browserVersion: '',
     operatingSystem: '',
     operatingSystemVersion: '',
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -154,7 +154,7 @@ export function mockedGetSessionRequestedUserAgentFromSessionId(
     ...mockedGetSessionById(),
     student,
     volunteer,
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -165,27 +165,27 @@ export function mockedGetFeedbackForSession(overrides = {}) {
     ...mockedGetSessionById(),
     student,
     volunteer,
-    ...overrides
+    ...overrides,
   }
 }
 
 export function mockedGetCurrentSession(overrides = {}) {
   const session = buildSession({
-    student: buildStudent()
+    student: buildStudent(),
   }) as SessionWithPopulatedUsers
   return {
     _id: session._id,
     student: {
       _id: session.student._id.toString(),
       firstname: session.student.firstname,
-      isVolunteer: session.student.isVolunteer
+      isVolunteer: session.student.isVolunteer,
     },
     volunteer:
       session.volunteer && session.volunteer.firstname
         ? {
             _id: session.volunteer?._id.toString(),
             firstname: session.volunteer?.firstname,
-            isVolunteer: session.volunteer?.isVolunteer
+            isVolunteer: session.volunteer?.isVolunteer,
           }
         : null,
     subTopic: session.subTopic,
@@ -194,7 +194,7 @@ export function mockedGetCurrentSession(overrides = {}) {
     createdAt: session.createdAt,
     endedAt: session.endedAt && session.endedAt,
     volunteerJoinedAt: session.volunteerJoinedAt,
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -209,7 +209,7 @@ export function mockedCreateSession(overrides = {}) {
     messages: session.messages,
     createdAt: session.createdAt,
     volunteerJoinedAt: session.volunteerJoinedAt,
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -218,7 +218,7 @@ export function mockedGetStudentLatestSession(overrides = {}) {
   return {
     _id: session._id.toString(),
     createdAt: session.createdAt.toISOString(),
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -230,16 +230,16 @@ export function mockedGetPublicSession(overrides = {}) {
     _id: session._id,
     student: {
       _id: student._id,
-      firstName: student.firstname
+      firstName: student.firstname,
     },
     volunteer: {
       _id: volunteer._id,
-      firstName: volunteer.firstname
+      firstName: volunteer.firstname,
     },
     subTopic: session.subTopic,
     type: session.type,
     createdAt: session.createdAt,
     endedAt: session.endedAt,
-    ...overrides
+    ...overrides,
   }
 }

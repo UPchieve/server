@@ -17,7 +17,7 @@ export function routeVerify(router: Router) {
     const payload = {
       userId: user._id.toString(),
       firstName: user.firstname,
-      ...req.body
+      ...req.body,
     } as unknown
 
     try {
@@ -48,7 +48,7 @@ export function routeVerify(router: Router) {
   router.route('/verify/confirm').post(async function(req, res) {
     const payload = {
       userId: req.user?._id.toString(),
-      ...req.body
+      ...req.body,
     } as unknown
 
     try {

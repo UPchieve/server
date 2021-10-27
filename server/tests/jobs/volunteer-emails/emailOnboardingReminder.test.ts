@@ -12,7 +12,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -28,7 +28,7 @@ describe('Volunteer onboarding email reminders', () => {
   const onboardingReminderJobs = [
     { name: Jobs.EmailOnboardingReminderOne, delay: 1000 * 60 * 60 * 24 * 7 },
     { name: Jobs.EmailOnboardingReminderTwo, delay: 1000 * 60 * 60 * 24 * 10 },
-    { name: Jobs.EmailOnboardingReminderThree }
+    { name: Jobs.EmailOnboardingReminderThree },
   ]
 
   beforeEach(async () => {
@@ -46,11 +46,11 @@ describe('Volunteer onboarding email reminders', () => {
       const job: any = {
         name: currentJob.name,
         data: {
-          volunteerId: volunteer._id
+          volunteerId: volunteer._id,
         },
         queue: {
-          add: jest.fn()
-        }
+          add: jest.fn(),
+        },
       }
 
       await emailOnboardingReminder(job)
@@ -63,7 +63,7 @@ describe('Volunteer onboarding email reminders', () => {
         expect(job.queue.add).toHaveBeenCalledWith(
           nextJob,
           {
-            volunteerId: volunteer._id
+            volunteerId: volunteer._id,
           },
           { delay: currentJob.delay }
         )
@@ -84,8 +84,8 @@ describe('Volunteer onboarding email reminders', () => {
       const job: any = {
         name: currentJob.name,
         data: {
-          volunteerId: volunteer._id
-        }
+          volunteerId: volunteer._id,
+        },
       }
 
       await expect(emailOnboardingReminder(job)).rejects.toEqual(
@@ -104,8 +104,8 @@ describe('Volunteer onboarding email reminders', () => {
       const job: any = {
         name: currentJob,
         data: {
-          volunteerId: volunteer._id
-        }
+          volunteerId: volunteer._id,
+        },
       }
 
       await emailOnboardingReminder(job)

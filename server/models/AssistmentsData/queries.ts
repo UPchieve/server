@@ -1,5 +1,10 @@
 import { Types } from 'mongoose'
-import { AssistmentsDataModel, validSession, AssistmentsData, AssistmentsDataDocument } from './index'
+import {
+  AssistmentsDataModel,
+  validSession,
+  AssistmentsData,
+  AssistmentsDataDocument,
+} from './index'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 
 // Create functions
@@ -69,7 +74,10 @@ export async function getAssistmentsDataBySession(
   }
 }
 
-export function getAssistmentsDataWithPipeline(pipeline: any[]): Promise<any[]> {
+// TODO: this should not be used - make a specific getter if you need a pipeline
+export function getAssistmentsDataWithPipeline(
+  pipeline: any[]
+): Promise<any[]> {
   return (AssistmentsDataModel.aggregate(pipeline) as unknown) as Promise<any[]>
 }
 
@@ -88,10 +96,10 @@ export async function updateAssistmentsDataSentAtById(
         sentAt: sentAt,
       }
     )
-    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.ok)
+      throw new RepoUpdateError('Update query did not return "ok"')
   } catch (err) {
-    if (err instanceof RepoUpdateError)
-      throw err
+    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }

@@ -17,7 +17,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -40,7 +40,7 @@ describe('Session reported emails', () => {
     const { session, student, volunteer } = await insertSessionWithVolunteer({
       isReported: true,
       reportReason,
-      reportMessage
+      reportMessage,
     })
     const payload = {
       studentId: student._id.toString(),
@@ -48,11 +48,11 @@ describe('Session reported emails', () => {
       reportReason,
       reportMessage,
       isBanReason: true,
-      sessionId: session._id.toString()
+      sessionId: session._id.toString(),
     }
     job = {
       name: Jobs.EmailSessionReported,
-      data: payload
+      data: payload,
     }
   })
 

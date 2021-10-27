@@ -6,10 +6,7 @@ import { User } from '../../models/User'
 import { resError } from '../res-error'
 
 export function routes(router: Router) {
-  router.get('/stats/volunteer/heatmap', async function(
-    req,
-    res
-  ) {
+  router.get('/stats/volunteer/heatmap', async function(req, res) {
     try {
       if (!req.user) throw new NotAuthenticatedError()
       const user = req.user as User
@@ -17,7 +14,7 @@ export function routes(router: Router) {
       res.json({ heatMap })
     } catch (error) {
       if (error instanceof KeyNotFoundError) return res.sendStatus(404)
-      resError(res, (error as Error))
+      resError(res, error as Error)
     }
   })
 }

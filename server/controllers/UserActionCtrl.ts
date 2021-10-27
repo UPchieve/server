@@ -21,7 +21,7 @@ function getUserAgentInfo(userAgent: string): UserActionAgent {
   }
 }
 
-// TODO: refactor to use db calls instead of documents
+// TODO: repo pattern - refactor to use db calls instead of documents
 
 export class QuizActionCreator {
   constructor(

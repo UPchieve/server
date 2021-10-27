@@ -1,6 +1,10 @@
 import { merge } from 'lodash'
 import { Types, UpdateQuery } from 'mongoose'
-import { UserSessionMetrics, UserSessionMetricsDocument, UserSessionMetricsModel } from './index'
+import {
+  UserSessionMetrics,
+  UserSessionMetricsDocument,
+  UserSessionMetricsModel,
+} from './index'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { validUser } from '../../utils/validators'
 
@@ -29,7 +33,7 @@ export async function createUSMByUserId(
 }
 
 // Read functions
-export async function getUSMByObjectId(
+export async function getUSMById(
   id: Types.ObjectId
 ): Promise<UserSessionMetrics | undefined> {
   try {
@@ -88,10 +92,11 @@ export async function executeUSMUpdatesByUserId(
       { user: userId },
       update
     )
-    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.ok)
+      throw new RepoUpdateError('Update query did not return "ok"')
   } catch (err) {
     throw new RepoUpdateError(
-      `Failed to execute update ${update} for user ${userId}: ${
+      `Failed to execute merged update ${update} for user ${userId}: ${
         (err as Error).message
       }`
     )

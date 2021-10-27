@@ -14,7 +14,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -33,7 +33,7 @@ describe('Volunteer quick tips email', () => {
 
   test('Should send quick tips email', async () => {
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true }
+      Saturday: { '1p': true, '2p': true },
     })
     const volunteer = await insertVolunteer({ isOnboarded: true, availability })
     // @todo: figure out how to properly type
@@ -41,8 +41,8 @@ describe('Volunteer quick tips email', () => {
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailQuickTips(job)
@@ -59,8 +59,8 @@ describe('Volunteer quick tips email', () => {
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailQuickTips(job)
@@ -76,8 +76,8 @@ describe('Volunteer quick tips email', () => {
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailQuickTips(job)
@@ -87,7 +87,7 @@ describe('Volunteer quick tips email', () => {
 
   test('Should throw error when sending email fails', async () => {
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true }
+      Saturday: { '1p': true, '2p': true },
     })
     const volunteer = await insertVolunteer({ isOnboarded: true, availability })
     const errorMessage = 'Unable to send'
@@ -98,8 +98,8 @@ describe('Volunteer quick tips email', () => {
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await expect(emailQuickTips(job)).rejects.toEqual(

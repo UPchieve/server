@@ -9,7 +9,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -28,12 +28,12 @@ describe('End stale sessions', () => {
 
     await Promise.all([
       insertSession({
-        createdAt: new Date(new Date().getTime() - thirteenHours)
+        createdAt: new Date(new Date().getTime() - thirteenHours),
       }),
       insertSession({
-        createdAt: new Date(new Date().getTime() - twelveHours)
+        createdAt: new Date(new Date().getTime() - twelveHours),
       }),
-      insertSession()
+      insertSession(),
     ])
     await endStaleSessions()
 

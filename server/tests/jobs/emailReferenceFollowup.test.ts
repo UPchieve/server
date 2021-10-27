@@ -19,7 +19,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -40,11 +40,11 @@ describe('Follow-up email to references', () => {
     const references = [
       buildReference({
         status: REFERENCE_STATUS.SENT,
-        sentAt: new Date(Date.now() - threeDays - oneHour * 3)
+        sentAt: new Date(Date.now() - threeDays - oneHour * 3),
       }),
       buildReference({
-        status: REFERENCE_STATUS.UNSENT
-      })
+        status: REFERENCE_STATUS.UNSENT,
+      }),
     ]
     await Promise.all([insertVolunteer(buildVolunteer({ references }))])
     await emailReferenceFollowup()
@@ -63,12 +63,12 @@ describe('Follow-up email to references', () => {
     const references = [
       buildReference({
         status: REFERENCE_STATUS.SENT,
-        sentAt: new Date(Date.now() - oneDay)
+        sentAt: new Date(Date.now() - oneDay),
       }),
       buildReference({
         status: REFERENCE_STATUS.SENT,
-        sentAt: new Date(Date.now() - threeDays - oneDay - oneHour)
-      })
+        sentAt: new Date(Date.now() - threeDays - oneDay - oneHour),
+      }),
     ]
     await Promise.all([insertVolunteer(buildVolunteer({ references }))])
     await emailReferenceFollowup()
@@ -83,14 +83,14 @@ describe('Follow-up email to references', () => {
   test('Should throw error when sending email fails', async () => {
     const referenceOne = buildReference({
       status: REFERENCE_STATUS.SENT,
-      sentAt: new Date(Date.now() - threeDays - oneHour * 3)
+      sentAt: new Date(Date.now() - threeDays - oneHour * 3),
     })
     const references = [
       referenceOne,
       buildReference({
         status: REFERENCE_STATUS.SENT,
-        sentAt: new Date(Date.now() - oneDay)
-      })
+        sentAt: new Date(Date.now() - oneDay),
+      }),
     ]
 
     const errorMessage = 'Unable to send'

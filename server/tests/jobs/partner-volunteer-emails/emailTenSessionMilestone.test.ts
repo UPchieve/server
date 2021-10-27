@@ -4,7 +4,7 @@ import {
   insertVolunteer,
   insertSessionMany,
   insertFeedback,
-  insertFeedbackMany
+  insertFeedbackMany,
 } from '../../db-utils'
 import emailTenSessionMilestone from '../../../worker/jobs/partner-volunteer-emails/emailTenSessionMilestone'
 import logger from '../../../logger'
@@ -20,7 +20,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -51,16 +51,16 @@ describe('Partner volunteer ten session milestone email', () => {
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
     await insertFeedback({
       sessionId: sessions[2]._id,
       volunteerId: volunteer._id,
       volunteerFeedback: {
-        'session-enjoyable': 4
+        'session-enjoyable': 4,
       },
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     })
 
     // @todo: figure out how to properly type
@@ -71,8 +71,8 @@ describe('Partner volunteer ten session milestone email', () => {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await emailTenSessionMilestone(job)
@@ -87,7 +87,7 @@ describe('Partner volunteer ten session milestone email', () => {
   test('Should not send email to partner volunteer who has left more than 2 low session ratings', async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const twentyMinutes = 1000 * 60 * 20
     const thirtyMinutes = 1000 * 60 * 30
@@ -101,7 +101,7 @@ describe('Partner volunteer ten session milestone email', () => {
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
     await insertFeedback()
@@ -110,26 +110,26 @@ describe('Partner volunteer ten session milestone email', () => {
         sessionId: sessions[1]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 1
+          'session-enjoyable': 1,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
+        versionNumber: FEEDBACK_VERSIONS.TWO,
       }),
       buildFeedback({
         sessionId: sessions[2]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 2
+          'session-enjoyable': 2,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
+        versionNumber: FEEDBACK_VERSIONS.TWO,
       }),
       buildFeedback({
         sessionId: sessions[6]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 1
+          'session-enjoyable': 1,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
-      })
+        versionNumber: FEEDBACK_VERSIONS.TWO,
+      }),
     ]
     await insertFeedbackMany(feedback)
 
@@ -141,8 +141,8 @@ describe('Partner volunteer ten session milestone email', () => {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await emailTenSessionMilestone(job)
@@ -155,7 +155,7 @@ describe('Partner volunteer ten session milestone email', () => {
   test(`Should not send email to partner volunteer who has sessions flags with ${USER_SESSION_METRICS.absentStudent}`, async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const twentyMinutes = 1000 * 60 * 20
     const thirtyMinutes = 1000 * 60 * 30
@@ -170,10 +170,10 @@ describe('Partner volunteer ten session milestone email', () => {
       buildSession({
         volunteer: volunteer._id,
         timeTutored: twentyMinutes,
-        flags: [USER_SESSION_METRICS.absentStudent]
+        flags: [USER_SESSION_METRICS.absentStudent],
       }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
     const feedback = [
@@ -181,26 +181,26 @@ describe('Partner volunteer ten session milestone email', () => {
         sessionId: sessions[1]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 1
+          'session-enjoyable': 1,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
+        versionNumber: FEEDBACK_VERSIONS.TWO,
       }),
       buildFeedback({
         sessionId: sessions[2]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 2
+          'session-enjoyable': 2,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
+        versionNumber: FEEDBACK_VERSIONS.TWO,
       }),
       buildFeedback({
         sessionId: sessions[6]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 1
+          'session-enjoyable': 1,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
-      })
+        versionNumber: FEEDBACK_VERSIONS.TWO,
+      }),
     ]
     await insertFeedbackMany(feedback)
 
@@ -212,8 +212,8 @@ describe('Partner volunteer ten session milestone email', () => {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await emailTenSessionMilestone(job)
@@ -226,7 +226,7 @@ describe('Partner volunteer ten session milestone email', () => {
   test('Should not send email to partner volunteer who has 5 sessions with one of a duration less than 15 minutes', async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const tenMinutes = 1000 * 60 * 10
     const twentyMinutes = 1000 * 60 * 20
@@ -236,7 +236,7 @@ describe('Partner volunteer ten session milestone email', () => {
       buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: tenMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
 
@@ -248,8 +248,8 @@ describe('Partner volunteer ten session milestone email', () => {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await emailTenSessionMilestone(job)
@@ -262,7 +262,7 @@ describe('Partner volunteer ten session milestone email', () => {
   test('Should throw error when sending email fails', async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const twentyMinutes = 1000 * 60 * 20
     const thirtyMinutes = 1000 * 60 * 30
@@ -276,16 +276,16 @@ describe('Partner volunteer ten session milestone email', () => {
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
     await insertFeedback({
       sessionId: sessions[2]._id,
       volunteerId: volunteer._id,
       volunteerFeedback: {
-        'session-enjoyable': 4
+        'session-enjoyable': 4,
       },
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     })
     const errorMessage = 'Unable to send'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
@@ -298,8 +298,8 @@ describe('Partner volunteer ten session milestone email', () => {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await expect(emailTenSessionMilestone(job)).rejects.toEqual(

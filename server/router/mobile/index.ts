@@ -9,7 +9,7 @@ export default function(app: express.Express): void {
       projectId: config.firebase.projectId,
       credential: admin.credential.cert(
         JSON.parse(process.env.FIREBASE_PRIVATE_KEY_JSON)
-      )
+      ),
     })
   }
 

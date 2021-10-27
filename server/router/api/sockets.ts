@@ -20,7 +20,10 @@ import newrelic from 'newrelic'
 import { getIdFromModelReference } from '../../utils/validators'
 
 // TODO: upgrade socketio and adapter so we can async this whole file
-export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore): void {
+export function routeSockets(
+  io: Server,
+  sessionStore: connectMongo.MongoStore
+): void {
   const socketService = new SocketService(io)
 
   // TODO: figure out why these are async (is it the adapter?)
@@ -35,10 +38,14 @@ export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore):
 
   async function remoteJoinRoom(socketId: string, room: string) {
     return await new Promise((resolve, reject) => {
-      (io.of('/').adapter as redisAdapter.RedisAdapter).remoteJoin(socketId, room, (err: Error) => {
-        if (err) reject(err)
-        resolve('success')
-      })
+      ;(io.of('/').adapter as redisAdapter.RedisAdapter).remoteJoin(
+        socketId,
+        room,
+        (err: Error) => {
+          if (err) reject(err)
+          resolve('success')
+        }
+      )
     })
   }
 
@@ -59,13 +66,13 @@ export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore):
           console.log(message)
           accept(null, false)
         }
-      }
+      },
     })
   )
 
   io.on('connection', async function(socket) {
     const {
-      request: { user }
+      request: { user },
     } = socket
     if (!user) {
       socket.emit('redirect')
@@ -101,7 +108,7 @@ export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore):
 
             const { sessionId, joinedFrom } = data
             const {
-              request: { user }
+              request: { user },
             } = socket
             let session: Session
 
@@ -122,7 +129,7 @@ export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore):
                 socket,
                 session,
                 user,
-                joinedFrom
+                joinedFrom,
               })
 
               const sessionRoom = getSessionRoom(sessionId)
@@ -140,7 +147,7 @@ export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore):
                 {
                   endedAt: session.endedAt,
                   volunteer: getIdFromModelReference(session.volunteer),
-                  student: getIdFromModelReference(session.student)
+                  student: getIdFromModelReference(session.student),
                 },
                 error as Error
               )
@@ -193,19 +200,19 @@ export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore):
               const newMessage = {
                 contents: message,
                 user: user._id,
-                createdAt: new Date()
+                createdAt: new Date(),
               }
               await SessionService.saveMessage({
                 sessionId: data.sessionId,
                 user: data.user,
-                message: newMessage
+                message: newMessage,
               })
 
               const messageData = {
                 contents: newMessage.contents,
                 createdAt: newMessage.createdAt,
                 isVolunteer: user.isVolunteer,
-                userId: user._id
+                userId: user._id,
               }
 
               const socketRoom = getSessionRoom(data.sessionId)
@@ -229,7 +236,7 @@ export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore):
               if (!docState)
                 docState = await QuillDocService.createDoc(sessionId)
               socket.emit('quillState', {
-                delta: docState
+                delta: docState,
               })
               resolve()
             } catch (error) {
@@ -246,7 +253,7 @@ export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore):
           new Promise<void>(async (resolve, reject) => {
             QuillDocService.appendToDoc(sessionId, delta)
             socket.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
-              delta
+              delta,
             })
             return resolve()
           })
@@ -256,7 +263,7 @@ export function routeSockets(io: Server, sessionStore: connectMongo.MongoStore):
     socket.on('transmitQuillSelection', async ({ sessionId, range }) => {
       newrelic.startWebTransaction('/socket-io/transmitQuillSelection', () => {
         socket.to(getSessionRoom(sessionId)).emit('quillPartnerSelection', {
-          range
+          range,
         })
       })
     })

@@ -20,7 +20,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -42,44 +42,44 @@ describe('Email waiting on references to volunteer', () => {
       references: [
         buildReference({
           status: REFERENCE_STATUS.SENT,
-          sentAt: new Date(Date.now() - fiveDays - oneHour * 3)
+          sentAt: new Date(Date.now() - fiveDays - oneHour * 3),
         }),
         buildReference({
-          status: REFERENCE_STATUS.SUBMITTED
-        })
-      ]
+          status: REFERENCE_STATUS.SUBMITTED,
+        }),
+      ],
     })
 
     const volunteerTwo = buildVolunteer({
       references: [
         buildReference({
           status: REFERENCE_STATUS.SENT,
-          sentAt: new Date(Date.now() - sixDays - oneDay)
+          sentAt: new Date(Date.now() - sixDays - oneDay),
         }),
         buildReference({
           status: REFERENCE_STATUS.SENT,
-          sentAt: new Date(Date.now() - sixDays - fiveDays)
-        })
-      ]
+          sentAt: new Date(Date.now() - sixDays - fiveDays),
+        }),
+      ],
     })
 
     const volunteerThree = buildVolunteer({
       references: [
         buildReference({
           status: REFERENCE_STATUS.SUBMITTED,
-          sentAt: new Date(Date.now() - fiveDays - oneHour * 3)
+          sentAt: new Date(Date.now() - fiveDays - oneHour * 3),
         }),
         buildReference({
           status: REFERENCE_STATUS.SUBMITTED,
-          sentAt: new Date(Date.now() - sixDays - fiveDays)
-        })
-      ]
+          sentAt: new Date(Date.now() - sixDays - fiveDays),
+        }),
+      ],
     })
 
     await Promise.all([
       insertVolunteer(volunteerOne),
       insertVolunteer(volunteerTwo),
-      insertVolunteer(volunteerThree)
+      insertVolunteer(volunteerThree),
     ])
     await emailWaitingOnReferences()
 
@@ -98,12 +98,12 @@ describe('Email waiting on references to volunteer', () => {
       references: [
         buildReference({
           status: REFERENCE_STATUS.SENT,
-          sentAt: new Date(Date.now() - fiveDays - oneHour * 3)
+          sentAt: new Date(Date.now() - fiveDays - oneHour * 3),
         }),
         buildReference({
-          status: REFERENCE_STATUS.SUBMITTED
-        })
-      ]
+          status: REFERENCE_STATUS.SUBMITTED,
+        }),
+      ],
     })
 
     await insertVolunteer(volunteer)

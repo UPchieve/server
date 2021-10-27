@@ -2,7 +2,9 @@ import { Types } from 'mongoose'
 import PushTokenModel, { PushToken } from './index'
 import { RepoReadError, RepoCreateError } from '../Errors'
 
-export async function getPushTokensByUserId(userId: Types.ObjectId): Promise<PushToken[]> {
+export async function getPushTokensByUserId(
+  userId: Types.ObjectId
+): Promise<PushToken[]> {
   try {
     return await PushTokenModel.find({ user: userId })
       .lean()
@@ -12,11 +14,14 @@ export async function getPushTokensByUserId(userId: Types.ObjectId): Promise<Pus
   }
 }
 
-export async function createPushTokenByUserIdToken(userId: Types.ObjectId, token: string): Promise<PushToken> {
+export async function createPushTokenByUserIdToken(
+  userId: Types.ObjectId,
+  token: string
+): Promise<PushToken> {
   try {
     const data = await PushTokenModel.create({
       user: userId,
-      token
+      token,
     })
     if (data) return data.toObject() as PushToken
     else throw new RepoCreateError('Create query did not return created object')

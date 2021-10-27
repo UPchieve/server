@@ -61,8 +61,7 @@ export abstract class CounterMetricProcessor
   ): Counter => {
     if (!usm) return 0
     const key = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
-    if (key)
-      return usm[CounterMetricProcessor.path][key] + value
+    if (key) return usm[CounterMetricProcessor.path][key] + value
     throw new Error(`Counter metric processor key ${this.key} is invalid`)
   }
 

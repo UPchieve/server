@@ -1,7 +1,5 @@
 import { model, Schema, Types, Document, ValidatorProps } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
-import UserModel, { UserDocument } from '../User'
-import { DocCreationError, UserNotFoundError } from '../Errors'
 
 export interface ContactFormSubmission {
   _id: string
@@ -12,7 +10,7 @@ export interface ContactFormSubmission {
   message: string
 }
 
-type ContactFormSubmissionDocument = ContactFormSubmission & Document
+export type ContactFormSubmissionDocument = ContactFormSubmission & Document
 
 const contactFormSubmissionSchema = new Schema({
   createdAt: {

@@ -16,7 +16,7 @@ export function questionsPath(category?: string, subcategory?: string) {
 
   return {
     path: `questions?${query.join('&')}`,
-    label: subcategory || category
+    label: subcategory || category,
   }
 }
 
@@ -30,7 +30,10 @@ export function isActivePage(req: Express.Request) {
 
 // Convert a given path of a front-end-served asset to the correct absolute or
 // relative path, based on the given frontEndRoot
-export function frontEndPath(relativePath: string, frontEndRoot?: string): string {
+export function frontEndPath(
+  relativePath: string,
+  frontEndRoot?: string
+): string {
   if (frontEndRoot) {
     return new URL(relativePath, frontEndRoot).toString()
   } else {

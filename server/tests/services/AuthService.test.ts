@@ -10,7 +10,7 @@ import {
   buildPartnerStudentRegistrationForm,
   buildVolunteer,
   buildVolunteerRegistrationForm,
-  buildPartnerVolunteerRegistrationForm
+  buildPartnerVolunteerRegistrationForm,
 } from '../generate'
 
 import UserModel from '../../models/User'
@@ -26,7 +26,7 @@ import * as AuthService from '../../services/AuthService'
 import {
   RegistrationError,
   ResetError,
-  checkPassword
+  checkPassword,
 } from '../../utils/auth-utils'
 import { NotAllowedError, InputError, LookupError } from '../../models/Errors'
 
@@ -36,7 +36,7 @@ jest.mock('../../controllers/UserCtrl', () => ({
   __esModule: true,
   checkReferral: jest.fn().mockImplementation(() => '111111111111'),
   createStudent: jest.fn(),
-  createVolunteer: jest.fn()
+  createVolunteer: jest.fn(),
 }))
 const mockedUserCtrl = mocked(UserCtrl)
 
@@ -66,7 +66,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -139,19 +139,19 @@ describe('Registration tests', () => {
   const studentOpenOverrides = {
     zipCode: '11201',
     highSchoolId: '111111111111',
-    currentGrade: GRADES.EIGHTH
+    currentGrade: GRADES.EIGHTH,
   }
   const studentPartnerOverrides = {
     studentPartnerOrg: 'example',
     studentPartnerSite: 'example.org',
     partnerUserId: '123',
-    college: 'UPchieve University'
+    college: 'UPchieve University',
   }
   const studentOpen = buildStudent(studentOpenOverrides)
   const studentPartner = buildStudent(studentPartnerOverrides)
 
   const volunteerPartnerOverrides = {
-    volunteerPartnerOrg: 'example'
+    volunteerPartnerOrg: 'example',
   }
   const volunteerOpen = buildVolunteer()
   const volunteerPartner = buildVolunteer(volunteerPartnerOverrides)
@@ -159,7 +159,7 @@ describe('Registration tests', () => {
   test('Check valid credentials', async () => {
     const payload = {
       email: studentOpen.email,
-      password: studentOpen.password
+      password: studentOpen.password,
     }
 
     const result = await AuthService.checkCredential(payload)
@@ -171,7 +171,7 @@ describe('Registration tests', () => {
   test('Check invalid credentials via no email', async () => {
     const payload = {
       email: '',
-      password: studentOpen.password
+      password: studentOpen.password,
     }
 
     let err: InputError
@@ -190,7 +190,7 @@ describe('Registration tests', () => {
   test('Check invalid credentials via no password', async () => {
     const payload = {
       email: studentOpen.email,
-      password: ''
+      password: '',
     }
 
     let err: InputError
@@ -209,7 +209,7 @@ describe('Registration tests', () => {
   test('Check invalid credentials via bad email', async () => {
     const payload = {
       email: 'bad email',
-      password: studentOpen.password
+      password: studentOpen.password,
     }
 
     let err: RegistrationError
@@ -266,7 +266,7 @@ describe('Registration tests', () => {
 
   test('Register invalid open student via existing email', async () => {
     await insertStudent({
-      email: studentOpen.email
+      email: studentOpen.email,
     })
 
     // Test payload
@@ -275,7 +275,7 @@ describe('Registration tests', () => {
       await AuthService.registerOpenStudent(
         buildStudentRegistrationForm({
           ...studentOpenOverrides,
-          email: studentOpen.email
+          email: studentOpen.email,
         })
       )
     } catch (error) {
@@ -294,7 +294,7 @@ describe('Registration tests', () => {
     // Test payload
     const form = buildStudentRegistrationForm({
       ...studentOpenOverrides,
-      zipCode: '' // check for school not zip
+      zipCode: '', // check for school not zip
     })
     let err: RegistrationError
     try {
@@ -315,7 +315,7 @@ describe('Registration tests', () => {
     // Test payload
     const form = buildPartnerStudentRegistrationForm({
       ...studentPartnerOverrides,
-      studentPartnerOrg: 'bad org'
+      studentPartnerOrg: 'bad org',
     })
     let err: RegistrationError
     try {
@@ -341,7 +341,7 @@ describe('Registration tests', () => {
     try {
       await AuthService.registerOpenStudent(
         buildStudentRegistrationForm({
-          ...studentOpenOverrides
+          ...studentOpenOverrides,
         })
       )
     } catch (error) {
@@ -364,7 +364,7 @@ describe('Registration tests', () => {
       await AuthService.registerOpenStudent(
         buildStudentRegistrationForm({
           ...studentOpenOverrides,
-          terms: false
+          terms: false,
         })
       )
     } catch (error) {
@@ -383,7 +383,7 @@ describe('Registration tests', () => {
     const secondStudent = buildStudent({
       ...studentPartnerOverrides,
       referredByCode: code,
-      referredBy: firstStudent._id
+      referredBy: firstStudent._id,
     })
 
     mockedUserCtrl.createStudent.mockImplementationOnce(
@@ -398,7 +398,7 @@ describe('Registration tests', () => {
     const postStudent = await AuthService.registerOpenStudent(
       buildStudentRegistrationForm({
         ...studentPartnerOverrides,
-        referredByCode: code
+        referredByCode: code,
       })
     )
 
@@ -455,7 +455,7 @@ describe('Registration tests', () => {
 
   test('Register invalid open volunteer via existing phone', async () => {
     await insertVolunteer({
-      phone: volunteerOpen.phone
+      phone: volunteerOpen.phone,
     })
 
     // Test payload
@@ -463,7 +463,7 @@ describe('Registration tests', () => {
     try {
       await AuthService.registerVolunteer(
         buildVolunteerRegistrationForm({
-          phone: volunteerOpen.phone
+          phone: volunteerOpen.phone,
         })
       )
     } catch (error) {
@@ -483,7 +483,7 @@ describe('Registration tests', () => {
     // Test payload
     const form = buildPartnerVolunteerRegistrationForm({
       ...volunteerPartnerOverrides,
-      volunteerPartnerOrg: 'bad org'
+      volunteerPartnerOrg: 'bad org',
     })
     let err: RegistrationError
     try {
@@ -506,7 +506,7 @@ describe('Registration tests', () => {
     const form = buildPartnerVolunteerRegistrationForm({
       ...volunteerPartnerOverrides,
       volunteerPartnerOrg: 'example2',
-      email: 'email@baddomain.bad'
+      email: 'email@baddomain.bad',
     })
     let err: RegistrationError
     try {
@@ -531,7 +531,7 @@ describe('Registration tests', () => {
     try {
       await AuthService.registerVolunteer(
         buildVolunteerRegistrationForm({
-          terms: false
+          terms: false,
         })
       )
     } catch (error) {
@@ -549,7 +549,7 @@ describe('Registration tests', () => {
 
     const secondVolunteer = buildVolunteer({
       referredByCode: code,
-      referredBy: firstVolunteer._id
+      referredBy: firstVolunteer._id,
     })
 
     mockedUserCtrl.createVolunteer.mockImplementationOnce(
@@ -563,7 +563,7 @@ describe('Registration tests', () => {
 
     const postVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm({
-        referredByCode: code
+        referredByCode: code,
       })
     )
 
@@ -582,7 +582,7 @@ describe('Registration tests', () => {
       await AuthService.registerPartnerVolunteer(
         buildPartnerVolunteerRegistrationForm({
           ...volunteerPartnerOverrides,
-          terms: false
+          terms: false,
         })
       )
     } catch (error) {
@@ -601,7 +601,7 @@ describe('Registration tests', () => {
     const secondVolunteer = buildVolunteer({
       ...volunteerPartnerOverrides,
       referredByCode: code,
-      referredBy: firstVolunteer._id
+      referredBy: firstVolunteer._id,
     })
 
     mockedUserCtrl.createVolunteer.mockImplementationOnce(
@@ -616,7 +616,7 @@ describe('Registration tests', () => {
     const postVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm({
         ...volunteerPartnerOverrides,
-        referredByCode: code
+        referredByCode: code,
       })
     )
 
@@ -647,7 +647,7 @@ describe('Password reset tests', () => {
       /* do nothing */
     })
     await insertStudent({
-      email: user.email
+      email: user.email,
     })
 
     await AuthService.sendReset(user.email)
@@ -675,13 +675,13 @@ describe('Password reset tests', () => {
 
     await insertStudent({
       email: user.email,
-      passwordResetToken: token
+      passwordResetToken: token,
     })
 
     await AuthService.confirmReset({
       email: user.email,
       password: newPassword,
-      token: token
+      token: token,
     })
 
     expect(UserModel.findOne).toHaveBeenCalledTimes(1)
@@ -740,7 +740,7 @@ describe('Password reset tests', () => {
       await AuthService.confirmReset({
         email: '',
         password: '',
-        token: badToken
+        token: badToken,
       })
     } catch (error) {
       err = error
@@ -758,7 +758,7 @@ describe('Password reset tests', () => {
       await AuthService.confirmReset({
         email: '',
         password: '',
-        token: unlistedToken
+        token: unlistedToken,
       })
     } catch (error) {
       err = error
@@ -777,7 +777,7 @@ describe('Password reset tests', () => {
 
     await insertStudent({
       email: user.email, // good email
-      passwordResetToken: unmatchedToken
+      passwordResetToken: unmatchedToken,
     })
 
     let err: ResetError
@@ -785,7 +785,7 @@ describe('Password reset tests', () => {
       await AuthService.confirmReset({
         email: badEmail,
         password: '',
-        token: unmatchedToken
+        token: unmatchedToken,
       })
     } catch (error) {
       err = error

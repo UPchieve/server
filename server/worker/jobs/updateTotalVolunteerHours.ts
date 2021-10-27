@@ -1,5 +1,8 @@
 import moment from 'moment-timezone'
-import { getVolunteersForTotalHours, updateVolunteerTotalHoursById } from '../../models/Volunteer/queries'
+import {
+  getVolunteersForTotalHours,
+  updateVolunteerTotalHoursById,
+} from '../../models/Volunteer/queries'
 import { log } from '../logger'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import config from '../../config'

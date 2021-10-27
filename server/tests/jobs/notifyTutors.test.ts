@@ -6,7 +6,7 @@ import {
   insertSessionWithVolunteer,
   insertSession,
   insertNotificationMany,
-  insertVolunteerMany
+  insertVolunteerMany,
 } from '../db-utils'
 import notifyTutors from '../../worker/jobs/notifyTutors'
 import config from '../../config'
@@ -28,7 +28,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -57,7 +57,7 @@ const fillNotifications = async (
 
   await Promise.all([
     insertVolunteerMany(volunteers),
-    insertNotificationMany(notifications)
+    insertNotificationMany(notifications),
   ])
 
   return { notifications, volunteers }
@@ -75,8 +75,8 @@ describe('Notify tutors', () => {
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: config.notificationSchedule
-      }
+        notificationSchedule: config.notificationSchedule,
+      },
     }
 
     await notifyTutors(job)
@@ -93,11 +93,11 @@ describe('Notify tutors', () => {
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: []
+        notificationSchedule: [],
       },
       queue: {
-        add: jest.fn()
-      }
+        add: jest.fn(),
+      },
     }
 
     TwilioService.notifyVolunteer = jest.fn(() => null)
@@ -116,11 +116,11 @@ describe('Notify tutors', () => {
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: [1000, 1000]
+        notificationSchedule: [1000, 1000],
       },
       queue: {
-        add: jest.fn()
-      }
+        add: jest.fn(),
+      },
     }
     const volunteer = buildVolunteer()
 
@@ -138,7 +138,7 @@ describe('Notify tutors', () => {
     const { notifications, volunteers } = await fillNotifications()
     for (let i = 0; i < 3; i++) {
       const followUp = buildNotification({
-        volunteer: notifications[i].volunteer
+        volunteer: notifications[i].volunteer,
       })
       await insertNotificationMany([followUp])
       notifications.push(followUp)
@@ -153,11 +153,11 @@ describe('Notify tutors', () => {
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: config.notificationSchedule
+        notificationSchedule: config.notificationSchedule,
       },
       queue: {
-        add: jest.fn()
-      }
+        add: jest.fn(),
+      },
     }
 
     await notifyTutors(job)
@@ -176,7 +176,7 @@ describe('Notify tutors', () => {
     )
     for (let i = 0; i < 3; i++) {
       const followUp = buildNotification({
-        volunteer: notifications[i].volunteer
+        volunteer: notifications[i].volunteer,
       })
       await insertNotificationMany([followUp])
       notifications.push(followUp)
@@ -185,7 +185,7 @@ describe('Notify tutors', () => {
       notifications,
       createdAt: moment()
         .subtract(6, 'minutes')
-        .toDate()
+        .toDate(),
     })
 
     const expectedVolunteerIndex =
@@ -196,11 +196,11 @@ describe('Notify tutors', () => {
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: config.notificationSchedule
+        notificationSchedule: config.notificationSchedule,
       },
       queue: {
-        add: jest.fn()
-      }
+        add: jest.fn(),
+      },
     }
 
     await notifyTutors(job)

@@ -29,7 +29,7 @@ import {
   queuePartnerOnboardingEventEmails,
 } from '../services/VolunteerService'
 
-// TODO: refactor to use repo pattern
+// TODO: repo pattern - whole file
 
 // change depending on how many of each subcategory are wanted
 const numQuestions = {
@@ -59,7 +59,7 @@ const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
 
 // Check if a user is certified in a given group of subject certs
-const isCertifiedIn = (givenCerts: any, userCerts: Certifications): boolean => {
+function isCertifiedIn(givenCerts: any, userCerts: Certifications): boolean {
   for (const cert in givenCerts) {
     const subject = givenCerts[cert] as keyof Certifications
     if (userCerts[subject].passed) return true
@@ -225,7 +225,7 @@ export function getUnlockedSubjects(
 
 type AnswerMap = { [k: string]: string }
 
-// TODO: type validate these when Volunteer has a strong validator
+// TODO: duck type validation
 export interface GetQuizScoreOptions {
   user: Volunteer
   idAnswerMap: AnswerMap

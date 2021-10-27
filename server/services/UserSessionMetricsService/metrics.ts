@@ -9,7 +9,7 @@ import {
   ProcessorData,
   CounterMetricProcessor,
   NO_FLAGS,
-  NO_ACTIONS
+  NO_ACTIONS,
 } from './types'
 
 class AbsentStudent extends CounterMetricProcessor {
@@ -47,18 +47,21 @@ class AbsentStudent extends CounterMetricProcessor {
           sessionSubtopic: pd.session.subTopic,
           sessionDate: pd.session.createdAt,
           studentId: pd.session.student,
-          volunteerId: pd.session.volunteer
+          volunteerId: pd.session.volunteer,
         })
       )
 
     // Send an apology email to the volunteer the first time he or she encounters an absent student
-    if (pd.volunteerUSM && this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
+    if (
+      pd.volunteerUSM &&
+      this.computeFinalValue(pd.volunteerUSM, pd.value) === 1
+    )
       actions.push(
         QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
           sessionSubtopic: pd.session.subTopic,
           sessionDate: pd.session.createdAt,
           studentId: pd.session.student,
-          volunteerId: pd.session.volunteer
+          volunteerId: pd.session.volunteer,
         })
       )
 
@@ -86,7 +89,9 @@ class AbsentVolunteer extends CounterMetricProcessor {
     return 0
   }
   public computeReviewReason = (pd: ProcessorData<Counter>) =>
-    pd.value && pd.volunteerUSM && this.computeFinalValue(pd.volunteerUSM, pd.value) >= 2
+    pd.value &&
+    pd.volunteerUSM &&
+    this.computeFinalValue(pd.volunteerUSM, pd.value) >= 2
       ? [this.key]
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
@@ -95,13 +100,16 @@ class AbsentVolunteer extends CounterMetricProcessor {
     const actions: Promise<any>[] = []
     if (!pd.value) return actions
     // Send a warning email to the volunteer about ghosting students the first time he or she is absent
-    if (pd.volunteerUSM && this.computeFinalValue(pd.volunteerUSM, pd.value) === 1)
+    if (
+      pd.volunteerUSM &&
+      this.computeFinalValue(pd.volunteerUSM, pd.value) === 1
+    )
       actions.push(
         QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
           sessionSubtopic: pd.session.subTopic,
           sessionDate: pd.session.createdAt,
           studentId: pd.session.student,
-          volunteerId: pd.session.volunteer
+          volunteerId: pd.session.volunteer,
         })
       )
 
@@ -112,7 +120,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
           sessionSubtopic: pd.session.subTopic,
           sessionDate: pd.session.createdAt,
           studentId: pd.session.student,
-          volunteerId: pd.session.volunteer
+          volunteerId: pd.session.volunteer,
         })
       )
 
@@ -132,7 +140,10 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
         (feedback.studentTutoringFeedback['coach-rating'] || 0) <= 2
       )
         return 1
-      else if (feedback.studentCounselingFeedback && feedback.studentCounselingFeedback['coach-ratings']) {
+      else if (
+        feedback.studentCounselingFeedback &&
+        feedback.studentCounselingFeedback['coach-ratings']
+      ) {
         for (const value of Object.values(
           feedback.studentCounselingFeedback['coach-ratings']
         )) {
@@ -219,7 +230,10 @@ class RudeOrInappropriate extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
       const feedback = uvd.feedback
-      if (feedback.volunteerFeedback && feedback.volunteerFeedback['session-obstacles']) {
+      if (
+        feedback.volunteerFeedback &&
+        feedback.volunteerFeedback['session-obstacles']
+      ) {
         for (const value of Object.values(
           feedback.volunteerFeedback['session-obstacles']
         )) {
@@ -245,7 +259,10 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
       const feedback = uvd.feedback
-      if (feedback.volunteerFeedback && feedback.volunteerFeedback['session-obstacles']) {
+      if (
+        feedback.volunteerFeedback &&
+        feedback.volunteerFeedback['session-obstacles']
+      ) {
         for (const value of Object.values(
           feedback.volunteerFeedback['session-obstacles']
         )) {
@@ -273,7 +290,7 @@ class CommentFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback.studentTutoringFeedback
         ? uvd.feedback.studentTutoringFeedback
         : uvd.feedback.studentCounselingFeedback
-      return (feedback && feedback['other-feedback']) ? 1 : 0
+      return feedback && feedback['other-feedback'] ? 1 : 0
     }
     return 0
   }
@@ -318,7 +335,7 @@ class HasBeenUnmatched extends CounterMetricProcessor {
           sessionSubtopic: pd.session.subTopic,
           sessionDate: pd.session.createdAt,
           studentId: pd.session.student,
-          volunteerId: pd.session.volunteer
+          volunteerId: pd.session.volunteer,
         })
       )
 
@@ -332,7 +349,10 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     if (uvd.feedback && uvd.feedback.versionNumber === FEEDBACK_VERSIONS.TWO) {
-      if (uvd.feedback.volunteerFeedback && uvd.feedback.volunteerFeedback['session-obstacles']) {
+      if (
+        uvd.feedback.volunteerFeedback &&
+        uvd.feedback.volunteerFeedback['session-obstacles']
+      ) {
         for (const value of Object.values(
           uvd.feedback.volunteerFeedback['session-obstacles']
         )) {
@@ -351,7 +371,7 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
       actions.push(
         QueueService.add(Jobs.EmailTechIssueApology, {
           studentId: pd.session.student,
-          volunteerId: pd.session.volunteer
+          volunteerId: pd.session.volunteer,
         })
       )
 
@@ -372,7 +392,7 @@ export const METRIC_PROCESSORS = {
   OnlyLookingForAnswers: new OnlyLookingForAnswers(),
   CommentFromStudent: new CommentFromStudent(),
   CommentFromVolunteer: new CommentFromVolunteer(),
-  HasHadTechnicalIssues: new HasHadTechnicalIssues()
+  HasHadTechnicalIssues: new HasHadTechnicalIssues(),
 }
 
 export type MetricProcessorOutputs = {

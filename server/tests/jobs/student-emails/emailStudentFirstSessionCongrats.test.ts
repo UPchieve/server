@@ -14,7 +14,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -38,8 +38,8 @@ describe('Student first session congrats email', () => {
     const job: any = {
       name: Jobs.EmailStudentFirstSessionCongrats,
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
 
     await emailStudentFirstSessionCongrats(job)
@@ -51,15 +51,15 @@ describe('Student first session congrats email', () => {
 
   test(`Should not send email if session flags: ${USER_SESSION_METRICS.absentStudent}, ${USER_SESSION_METRICS.lowCoachRatingFromStudent}, or ${USER_SESSION_METRICS.lowSessionRatingFromStudent} is present on the session`, async () => {
     const { session } = await insertSessionWithVolunteer({
-      flags: [USER_SESSION_METRICS.absentStudent]
+      flags: [USER_SESSION_METRICS.absentStudent],
     })
     // @todo: figure out how to properly type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const job: any = {
       name: Jobs.EmailStudentFirstSessionCongrats,
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
 
     await emailStudentFirstSessionCongrats(job)
@@ -76,8 +76,8 @@ describe('Student first session congrats email', () => {
     const job: any = {
       name: Jobs.EmailStudentFirstSessionCongrats,
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
 
     await expect(emailStudentFirstSessionCongrats(job)).rejects.toEqual(

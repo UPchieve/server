@@ -10,13 +10,18 @@ import { Message } from '../Message'
 import { Notification } from '../Notification'
 import { Student } from '../Student'
 import { Volunteer } from '../Volunteer'
-import { DocUpdateError, DocCreationError, LookupError } from '../Errors'
+import {
+  DocUpdateError,
+  DocCreationError,
+  LookupError,
+  RepoReadError,
+} from '../Errors'
 import SessionModel, { Session } from './index'
 
 export async function addSessionNotifications(
   sessionId: Types.ObjectId,
   notificationsToAdd: Notification[]
-) {
+): Promise<void> {
   const query = { _id: sessionId }
   const update = {
     $push: { notifications: { $each: notificationsToAdd } },
@@ -40,39 +45,44 @@ interface UnfulfilledSessions {
 // sessions that have not yet been fulfilled by a volunteer
 export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
   // @note: this query is sorted in memory and uses the volunteer: 1, endedAt: 1 index
-  const query = {
-    volunteer: { $exists: false },
-    endedAt: { $exists: false },
-    createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-    isStudentBanned: false,
-  }
+  try {
+    const query = {
+      volunteer: { $exists: false },
+      endedAt: { $exists: false },
+      createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      isStudentBanned: false,
+    }
 
-  const sessions = (await SessionModel.find(query)
-    .populate({
-      path: 'student',
-      select: 'firstname isTestUser pastSessions',
+    const sessions = (await SessionModel.find(query)
+      .populate({
+        path: 'student',
+        select: 'firstname isTestUser pastSessions',
+      })
+      .sort({ createdAt: -1 })
+      .select({ student: 1, subTopic: 1, createdAt: 1, type: 1 })
+      .lean()
+      .exec()) as UnfulfilledSessions[]
+
+    const oneMinuteAgo = moment().subtract(1, 'minutes')
+
+    return sessions.filter(session => {
+      const isNewStudent =
+        session.student.pastSessions &&
+        session.student.pastSessions.length === 0
+      const wasSessionCreatedAMinuteAgo = moment(oneMinuteAgo).isBefore(
+        session.createdAt
+      )
+      // Don't show new students' sessions for a minute (they often cancel immediately)
+      if (isNewStudent && wasSessionCreatedAMinuteAgo) return false
+      return true
     })
-    .sort({ createdAt: -1 })
-    .select({ student: 1, subTopic: 1, createdAt: 1, type: 1 })
-    .lean()
-    .exec()) as UnfulfilledSessions[]
-
-  const oneMinuteAgo = moment().subtract(1, 'minutes')
-
-  return sessions.filter(session => {
-    const isNewStudent =
-      session.student.pastSessions && session.student.pastSessions.length === 0
-    const wasSessionCreatedAMinuteAgo = moment(oneMinuteAgo).isBefore(
-      session.createdAt
-    )
-    // Don't show new students' sessions for a minute (they often cancel immediately)
-    if (isNewStudent && wasSessionCreatedAMinuteAgo) return false
-    return true
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 export async function getSessionById(
-  sessionId: Types.ObjectId,
+  sessionId: Types.ObjectId
 ): Promise<Session> {
   const session = await SessionModel.findOne({ _id: sessionId })
     .lean()
@@ -82,7 +92,7 @@ export async function getSessionById(
   return session
 }
 
-// TODO: move queries using this pipeline to this repo. This should not be used
+// TODO: This should not be used - move queries using this pipeline to this repo as custom getters
 export function getSessionsWithPipeline(pipeline: any[]) {
   return (SessionModel.aggregate(pipeline) as unknown) as Promise<any[]>
 }
@@ -96,7 +106,8 @@ export async function updateSessionFlagsById(
     $addToSet: { flags: { $each: flags } },
   }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update).exec()
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -112,7 +123,8 @@ export async function updateSessionReviewReasonsById(
     $addToSet: { reviewReasons: { $each: reviewReasons } },
   }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -125,7 +137,8 @@ export async function updateSessionFailedJoinsById(
   const query = { _id: sessionId }
   const update = { $addToSet: { failedJoins: userId } }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -141,33 +154,53 @@ export async function updateSessionReviewedStatusById(
     toReview,
   }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
 }
 
-export type SessionToEndUserInfo = '_id' | 'firstname' | 'email' | 'pastSessions'
+export type SessionToEndUserInfo =
+  | '_id'
+  | 'firstname'
+  | 'email'
+  | 'pastSessions'
 
-export type SessionToEnd = Pick<Session, '_id' | 'createdAt' | 'endedAt' | 'isReported' | 'messages' | 'type' | 'subTopic' | 'volunteerJoinedAt'> & {
-  student: Pick<Student, SessionToEndUserInfo> 
+export type SessionToEnd = Pick<
+  Session,
+  | '_id'
+  | 'createdAt'
+  | 'endedAt'
+  | 'isReported'
+  | 'messages'
+  | 'type'
+  | 'subTopic'
+  | 'volunteerJoinedAt'
+> & {
+  student: Pick<Student, SessionToEndUserInfo>
 } & { volunteer: Pick<Volunteer, SessionToEndUserInfo | 'volunteerPartnerOrg'> }
 
-export async function getSessionToEndById(sessionId: Types.ObjectId): Promise<SessionToEnd> {
+export async function getSessionToEndById(
+  sessionId: Types.ObjectId
+): Promise<SessionToEnd> {
   let session: SessionToEnd
   try {
-    session = (await SessionModel.findOne({ _id: sessionId }, {
-      _id: 1,
-      createdAt: 1,
-      endedAt: 1,
-      isReported: 1,
-      messages: 1,
-      type: 1,
-      subTopic: 1,
-      student: 1,
-      volunteer: 1,
-      volunteerJoinedAt: 1,
-    })
+    session = (await SessionModel.findOne(
+      { _id: sessionId },
+      {
+        _id: 1,
+        createdAt: 1,
+        endedAt: 1,
+        isReported: 1,
+        messages: 1,
+        type: 1,
+        subTopic: 1,
+        student: 1,
+        volunteer: 1,
+        volunteerJoinedAt: 1,
+      }
+    )
       .populate({ path: 'student', select: 'pastSessions firstname email' })
       .populate({
         path: 'volunteer',
@@ -178,7 +211,7 @@ export async function getSessionToEndById(sessionId: Types.ObjectId): Promise<Se
     if (!session) throw new LookupError('Session not found')
     return session
   } catch (error) {
-    throw error
+    throw new RepoReadError(error)
   }
 }
 
@@ -194,6 +227,7 @@ interface SessionsToReview {
   flags: string[]
 }
 
+// TODO: duck type validation - options payload
 export async function getSessionsToReview({
   query,
   skip,
@@ -285,7 +319,7 @@ export async function getSessionsToReview({
       .skip(skip)
       .limit(limit)) as SessionsToReview[]
   } catch (error) {
-    throw error
+    throw new RepoReadError(error)
   }
 }
 
@@ -328,11 +362,11 @@ export async function getTotalTimeTutoredForDateRange(
       },
     ])
   } catch (error) {
-    throw error
+    throw new RepoReadError(error)
   }
 }
 
-export async function getActiveSessionsWithVolunteers(): Promise<Pick<Session, 'volunteer'>[]> {
+export async function getActiveSessionsWithVolunteers(): Promise<Session[]> {
   try {
     return await SessionModel.find({
       endedAt: { $exists: false },
@@ -342,12 +376,13 @@ export async function getActiveSessionsWithVolunteers(): Promise<Pick<Session, '
       .lean()
       .exec()
   } catch (error) {
-    throw error
+    throw new RepoReadError(error)
   }
 }
 
-export async function updateReportSession(
+export async function updateSessionReported(
   sessionId: Types.ObjectId,
+  // TODO: duck type validation - repo payload
   report: { reportReason: string; reportMessage: string }
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -357,28 +392,30 @@ export async function updateReportSession(
     reportMessage: report.reportMessage,
   }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
 }
 
-export async function updateSessionMetrics(
+export async function updateSessionTimeTutored(
   sessionId: Types.ObjectId,
-  metrics: { timeTutored: number }
+  timeTutored: number
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = {
-    timeTutored: metrics.timeTutored,
+    timeTutored,
   }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
 }
 
-export async function setQuillDoc(
+export async function updateSessionQuillDoc(
   sessionId: Types.ObjectId,
   quillDoc: string
 ): Promise<void> {
@@ -387,13 +424,14 @@ export async function setQuillDoc(
     quillDoc,
   }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
 }
 
-export async function setHasWhiteboardDoc(
+export async function updateSessionHasWhiteboardDoc(
   sessionId: Types.ObjectId,
   hasWhiteboardDoc: boolean
 ): Promise<void> {
@@ -402,7 +440,8 @@ export async function setHasWhiteboardDoc(
     hasWhiteboardDoc,
   }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -410,6 +449,7 @@ export async function setHasWhiteboardDoc(
 
 export async function updateSessionToEnd(
   sessionId: Types.ObjectId,
+  // TODO: duck type validation
   data: {
     endedAt: Date
     endedBy: Types.ObjectId | null
@@ -422,7 +462,8 @@ export async function updateSessionToEnd(
   }
 
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -443,18 +484,19 @@ export async function getLongRunningSessions(
       .lean()
       .exec()
   } catch (error) {
-    throw error
+    throw new RepoReadError(error)
   }
 }
 
-export async function addSessionPhotoKey(
+export async function updateSessionPhotoKey(
   sessionId: Types.ObjectId,
   photoKey: string
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = { $push: { photos: photoKey } }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -462,19 +504,21 @@ export async function addSessionPhotoKey(
 
 export type PublicSessionUserInfo = '_id' | 'firstname'
 
-export type PublicSession = Pick<Session, '_id' | 'createdAt' | 'endedAt' | 'type' | 'subTopic'> & {
-  student: Pick<Student, PublicSessionUserInfo> 
+export type PublicSession = Pick<
+  Session,
+  '_id' | 'createdAt' | 'endedAt' | 'type' | 'subTopic'
+> & {
+  student: Pick<Student, PublicSessionUserInfo>
 } & { volunteer: Pick<Volunteer, PublicSessionUserInfo> }
 
-export async function getPublicSession(sessionId: Types.ObjectId) {
+export async function getPublicSessionById(
+  sessionId: Types.ObjectId
+): Promise<PublicSession | undefined> {
   try {
-    return (await SessionModel.aggregate([
+    const [session] = await SessionModel.aggregate([
       {
         $match: {
-          _id:
-            typeof sessionId === 'string'
-              ? Types.ObjectId(sessionId)
-              : sessionId,
+          _id: sessionId,
         },
       },
       {
@@ -512,9 +556,10 @@ export async function getPublicSession(sessionId: Types.ObjectId) {
           endedAt: 1,
         },
       },
-    ])) as PublicSession[]
+    ])
+    if (session) return session
   } catch (error) {
-    throw error
+    throw new RepoReadError(error)
   }
 }
 
@@ -530,6 +575,7 @@ export interface AdminFilteredSessions {
   studentRating: number
 }
 
+// TODO: duck type validation
 export async function getAdminFilteredSessions({
   startDate,
   endDate,
@@ -866,7 +912,7 @@ export async function getAdminFilteredSessions({
       },
     ])) as AdminFilteredSessions[]
   } catch (error) {
-    throw error
+    throw new RepoReadError(error)
   }
 }
 
@@ -878,10 +924,15 @@ export type SessionWithPopulatedUsers = Omit<
   volunteer: Partial<Volunteer>
 }
 
-export type SessionByIdWithStudentAndVolunteerUserInfo =  '_id' | 'firstname' | 'createdAt' | 'pastSessions' | 'isVolunteer' 
+export type SessionByIdWithStudentAndVolunteerUserInfo =
+  | '_id'
+  | 'firstname'
+  | 'createdAt'
+  | 'pastSessions'
+  | 'isVolunteer'
 
 export type SessionByIdWithStudentAndVolunteer = Session & {
-  student: Pick<Student, SessionByIdWithStudentAndVolunteerUserInfo> 
+  student: Pick<Student, SessionByIdWithStudentAndVolunteerUserInfo>
 } & { volunteer: Pick<Volunteer, SessionByIdWithStudentAndVolunteerUserInfo> }
 
 export async function getSessionByIdWithStudentAndVolunteer(
@@ -890,8 +941,14 @@ export async function getSessionByIdWithStudentAndVolunteer(
   try {
     const session = (await SessionModel.findOne({ _id: sessionId })
       .populate('student volunteer')
-      .populate({ path: 'student', select: 'firstname createdAt pastSessions isVolunteer' })
-      .populate({ path: 'volunteer', select: 'firstname createdAt pastSessions isVolunteer' })
+      .populate({
+        path: 'student',
+        select: 'firstname createdAt pastSessions isVolunteer',
+      })
+      .populate({
+        path: 'volunteer',
+        select: 'firstname createdAt pastSessions isVolunteer',
+      })
       .select('+quillDoc')
       .lean()
       .exec()) as SessionByIdWithStudentAndVolunteer
@@ -903,6 +960,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
   }
 }
 
+// TODO: duck type validation
 export async function createSession({
   studentId,
   type,
@@ -914,6 +972,7 @@ export async function createSession({
   subTopic: string
   isStudentBanned: boolean
 }): Promise<Session> {
+  // TODO: use model.create
   const session = new SessionModel({
     student: studentId,
     type: type,
@@ -928,39 +987,42 @@ export async function createSession({
   }
 }
 
-export type CurrentSessionUserInfo =  '_id' | 'firstname' | 'isVolunteer' 
+export type CurrentSessionUserInfo = '_id' | 'firstname' | 'isVolunteer'
 
 export type CurrentSession = Session & {
-  student: Pick<Student, CurrentSessionUserInfo> 
+  student: Pick<Student, CurrentSessionUserInfo>
 } & { volunteer: Pick<Volunteer, CurrentSessionUserInfo> }
 
-export async function getCurrentSession(userId: Types.ObjectId) {
+export async function getCurrentSessionById(
+  userId: Types.ObjectId
+): Promise<CurrentSession | undefined> {
   try {
-    const session = (await SessionModel.findOne({
-      $or: [{ student: userId }, { volunteer: userId }],
-      endedAt: { $exists: false },
-    }, {
-      _id: 1,
-      student: 1,
-      volunteer: 1,
-      subTopic: 1,
-      type: 1,
-      messages: 1,
-      createdAt: 1,
-      endedAt: 1,
-      volunteerJoinedAt: 1
-    })
+    const session = (await SessionModel.findOne(
+      {
+        $or: [{ student: userId }, { volunteer: userId }],
+        endedAt: { $exists: false },
+      },
+      {
+        _id: 1,
+        student: 1,
+        volunteer: 1,
+        subTopic: 1,
+        type: 1,
+        messages: 1,
+        createdAt: 1,
+        endedAt: 1,
+        volunteerJoinedAt: 1,
+      }
+    )
       .sort({ createdAt: -1 })
       .populate({ path: 'volunteer', select: 'firstname isVolunteer' })
       .populate({ path: 'student', select: 'firstname isVolunteer' })
       .lean()
       .exec()) as CurrentSession
 
-    if (!session) return null
-
-    return session
+    if (session) return session
   } catch (error) {
-    throw error
+    throw new RepoReadError(error)
   }
 }
 
@@ -969,9 +1031,14 @@ interface StudentLatestSession {
   createdAt: string
 }
 
-export async function getStudentLatestSession(studentId: Types.ObjectId): Promise<StudentLatestSession> {
+export async function getLatestSessionByStudentId(
+  studentId: Types.ObjectId
+): Promise<StudentLatestSession> {
   try {
-    const session = await SessionModel.findOne({ student: studentId })
+    const session = await SessionModel.findOne(
+      { student: studentId },
+      { _id: 1, createdAt: 1 }
+    )
       .sort({ createdAt: -1 })
       .lean()
       .exec()
@@ -987,7 +1054,7 @@ export async function getStudentLatestSession(studentId: Types.ObjectId): Promis
   }
 }
 
-export async function addVolunteerToSession(
+export async function updateSessionVolunteerById(
   sessionId: Types.ObjectId,
   volunteerId: Types.ObjectId
 ): Promise<void> {
@@ -997,17 +1064,22 @@ export async function addVolunteerToSession(
     volunteer: volunteerId,
   }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
 }
 
-export async function addMessage(sessionId: Types.ObjectId, message: Message): Promise<void> {
+export async function addMessageToSessionbyId(
+  sessionId: Types.ObjectId,
+  message: Message
+): Promise<void> {
   const query = { _id: sessionId }
   const update = { $push: { messages: message } }
   try {
-    await SessionModel.updateOne(query, update)
+    const result = await SessionModel.updateOne(query, update)
+    if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -1020,74 +1092,78 @@ export interface SessionsWithAvgWaitTimePerDayAndHour {
   hour: number
 }
 
-export function getSessionsWithAvgWaitTimePerDayAndHour(
+export async function getSessionsWithAvgWaitTimePerDayAndHour(
   startDate: Date,
   endDate: Date
-) {
-  return SessionModel.aggregate([
-    {
-      $match: {
-        createdAt: {
-          $gt: startDate,
-          $lt: endDate,
-        },
-      },
-    },
-    {
-      $project: {
-        createdAt: 1,
-        sessionLength: { $subtract: ['$endedAt', '$createdAt'] },
-        dayCreatedAt: {
-          $isoDayOfWeek: '$createdAt',
-        },
-        hourCreatedAt: {
-          $hour: '$createdAt',
-        },
-        waitTime: {
-          $cond: {
-            if: '$volunteer',
-            then: { $subtract: ['$volunteerJoinedAt', '$createdAt'] },
-            else: { $subtract: ['$endedAt', '$createdAt'] },
+): Promise<SessionsWithAvgWaitTimePerDayAndHour[]> {
+  try {
+    return (await SessionModel.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gt: startDate,
+            $lt: endDate,
           },
         },
       },
-    },
-    {
-      $match: {
-        // exclude sessions less than one minute in length
-        sessionLength: {
-          $gt: 1000 * 60,
-        },
-      },
-    },
-    {
-      $addFields: {
-        dayHourCompoundKey: {
-          $concat: [
-            {
-              $toString: '$dayCreatedAt',
+      {
+        $project: {
+          createdAt: 1,
+          sessionLength: { $subtract: ['$endedAt', '$createdAt'] },
+          dayCreatedAt: {
+            $isoDayOfWeek: '$createdAt',
+          },
+          hourCreatedAt: {
+            $hour: '$createdAt',
+          },
+          waitTime: {
+            $cond: {
+              if: '$volunteer',
+              then: { $subtract: ['$volunteerJoinedAt', '$createdAt'] },
+              else: { $subtract: ['$endedAt', '$createdAt'] },
             },
-            '-',
-            {
-              $toString: '$hourCreatedAt',
-            },
-          ],
+          },
         },
       },
-    },
-    {
-      $group: {
-        _id: '$dayHourCompoundKey',
-        averageWaitTime: {
-          $avg: '$waitTime',
-        },
-        day: {
-          $first: '$dayCreatedAt',
-        },
-        hour: {
-          $first: '$hourCreatedAt',
+      {
+        $match: {
+          // exclude sessions less than one minute in length
+          sessionLength: {
+            $gt: 1000 * 60,
+          },
         },
       },
-    },
-  ]) as Aggregate<SessionsWithAvgWaitTimePerDayAndHour[]>
+      {
+        $addFields: {
+          dayHourCompoundKey: {
+            $concat: [
+              {
+                $toString: '$dayCreatedAt',
+              },
+              '-',
+              {
+                $toString: '$hourCreatedAt',
+              },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$dayHourCompoundKey',
+          averageWaitTime: {
+            $avg: '$waitTime',
+          },
+          day: {
+            $first: '$dayCreatedAt',
+          },
+          hour: {
+            $first: '$hourCreatedAt',
+          },
+        },
+      },
+    ])) as SessionsWithAvgWaitTimePerDayAndHour[]
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }

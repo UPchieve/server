@@ -1,10 +1,16 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
 import * as MailService from '../../services/MailService'
-import { StudentContactInfo, getStudentContactInfoById } from '../../models/Student/queries'
+import {
+  StudentContactInfo,
+  getStudentContactInfoById,
+} from '../../models/Student/queries'
 import { safeAsync } from '../../utils/safe-async'
 import { Jobs } from '.'
-import { getVolunteerContactInfoById, VolunteerContactInfo } from '../../models/Volunteer/queries'
+import {
+  getVolunteerContactInfoById,
+  VolunteerContactInfo,
+} from '../../models/Volunteer/queries'
 import { asObjectId } from '../../utils/type-utils'
 
 interface TechIssueApology {
@@ -13,7 +19,9 @@ interface TechIssueApology {
   volunteerId: Types.ObjectId
 }
 
-async function sendEmailToUser(user: StudentContactInfo | VolunteerContactInfo): Promise<void> {
+async function sendEmailToUser(
+  user: StudentContactInfo | VolunteerContactInfo
+): Promise<void> {
   const { firstname, email } = user
 
   await MailService.sendTechIssueApology(email, firstname)

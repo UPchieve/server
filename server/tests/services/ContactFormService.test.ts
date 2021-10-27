@@ -14,49 +14,49 @@ const mockedMailService = mocked(MailService, true)
 const validEmailData = {
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const validUserIdData = {
   userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidEmailData = {
   userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
   userEmail: 'test@test',
   message: 'This is some feedback for you.',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidUserIdData = {
   userId: 'not a valid id',
   userEmail: 'test@test',
   message: 'This is some feedback for you.',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidShortMessageData = {
   userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
   userEmail: 'test@test.com',
   message: '',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidLongMessageData = {
   userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
   userEmail: 'test@test.com',
   message: hugeText(),
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidTopicData = {
   userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
-  topic: 'not a valid topic'
+  topic: 'not a valid topic',
 }
 
 test('contact form service saves form submission with email', async () => {
@@ -69,7 +69,7 @@ test('contact form service saves form submission with email', async () => {
           userEmail: 'test@test.com',
           message: 'This is some feedback for you.',
           topic: 'General feedback',
-          createdAt: new Date()
+          createdAt: new Date(),
         }
         resolve(doc)
       })
@@ -98,7 +98,7 @@ test('contact form service saves form submission with user id', async () => {
           userEmail: 'test@test.com',
           message: 'This is some feedback for you.',
           topic: 'General feedback',
-          createdAt: new Date()
+          createdAt: new Date(),
         }
         resolve(doc)
       })

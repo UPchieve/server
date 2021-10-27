@@ -7,7 +7,7 @@ import {
   Message,
   MessageType,
   DecodeError,
-  CreationMode
+  CreationMode,
 } from '../../utils/zwibblerDecoder'
 import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
 import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
@@ -27,7 +27,7 @@ const messageHandlers: {
   [type in MessageType]: ({
     message,
     sessionId,
-    wsClient
+    wsClient,
   }: {
     message: Message
     sessionId: string
@@ -43,7 +43,7 @@ const messageHandlers: {
           messageType: MessageType.ERROR,
           errorCode: DecodeError.DOES_NOT_EXIST,
           more: 0,
-          description: 'does not exist'
+          description: 'does not exist',
         })
       )
     }
@@ -53,7 +53,7 @@ const messageHandlers: {
           messageType: MessageType.ERROR,
           errorCode: DecodeError.ALREADY_EXISTS,
           more: 0,
-          description: 'already exists'
+          description: 'already exists',
         })
       )
     }
@@ -71,7 +71,7 @@ const messageHandlers: {
           messageType: MessageType.APPEND,
           offset: docLength,
           data: '',
-          more: 0
+          more: 0,
         })
       )
     }
@@ -80,7 +80,7 @@ const messageHandlers: {
         messageType: MessageType.APPEND,
         offset: 0,
         data: document,
-        more: 0
+        more: 0,
       })
     )
   },
@@ -93,7 +93,7 @@ const messageHandlers: {
           messageType: MessageType.ACK_NACK,
           ack: 0,
           offset: documentLength,
-          more: 0
+          more: 0,
         })
       )
     }
@@ -107,7 +107,7 @@ const messageHandlers: {
           messageType: MessageType.ACK_NACK,
           ack: 1,
           offset: newDocLength,
-          more: 0
+          more: 0,
         })
       )
     }
@@ -117,8 +117,8 @@ const messageHandlers: {
         messageType: MessageType.APPEND,
         offset: documentLength,
         data: message.data,
-        more: message.more
-      }
+        more: message.more,
+      },
     }
     wsEmitter.broadcast(sessionId, packet)
   },
@@ -129,7 +129,7 @@ const messageHandlers: {
         messageType: MessageType.ERROR,
         description: 'not implemented',
         errorCode: DecodeError.UNIMPLEMENTED_ERROR,
-        more: 0
+        more: 0,
       })
     )
   },
@@ -140,7 +140,7 @@ const messageHandlers: {
         messageType: MessageType.ERROR,
         description: 'not implemented',
         errorCode: DecodeError.UNIMPLEMENTED_ERROR,
-        more: 0
+        more: 0,
       })
     )
   },
@@ -151,7 +151,7 @@ const messageHandlers: {
         messageType: MessageType.ERROR,
         description: 'not implemented',
         errorCode: DecodeError.UNIMPLEMENTED_ERROR,
-        more: 0
+        more: 0,
       })
     )
   },
@@ -162,7 +162,7 @@ const messageHandlers: {
         messageType: MessageType.ERROR,
         description: 'not implemented',
         errorCode: DecodeError.UNIMPLEMENTED_ERROR,
-        more: 0
+        more: 0,
       })
     )
   },
@@ -173,7 +173,7 @@ const messageHandlers: {
         messageType: MessageType.ERROR,
         description: 'not implemented',
         errorCode: DecodeError.UNIMPLEMENTED_ERROR,
-        more: 0
+        more: 0,
       })
     )
   },
@@ -184,7 +184,7 @@ const messageHandlers: {
         messageType: MessageType.ERROR,
         description: 'not implemented',
         errorCode: DecodeError.UNIMPLEMENTED_ERROR,
-        more: 0
+        more: 0,
       })
     )
   },
@@ -197,8 +197,8 @@ const messageHandlers: {
       message: {
         messageType: MessageType.CONTINUATION,
         data: message.data,
-        more: message.more
-      }
+        more: message.more,
+      },
     }
     wsEmitter.broadcast(sessionId, packet)
 
@@ -209,11 +209,11 @@ const messageHandlers: {
           messageType: MessageType.ACK_NACK,
           ack: 1,
           offset: newDocLength,
-          more: 0
+          more: 0,
         })
       )
     }
-  }
+  },
 }
 
 const whiteboardRouter = function(app: Express): void {
@@ -257,7 +257,7 @@ const whiteboardRouter = function(app: Express): void {
       if (!message || !message.messageType) {
         console.log(`unsupported zwibbler client in session ${sessionId}`)
         message = {
-          messageType: MessageType.ERROR
+          messageType: MessageType.ERROR,
         }
       }
       if (message.messageType === MessageType.INIT) initialized = true
@@ -265,7 +265,7 @@ const whiteboardRouter = function(app: Express): void {
         ? messageHandlers[message.messageType as MessageType]({
             message,
             sessionId,
-            wsClient
+            wsClient,
           })
         : wsClient.send({ error: 'unsupported message type' })
     })
@@ -290,7 +290,7 @@ const whiteboardRouter = function(app: Express): void {
             messageType: MessageType.APPEND,
             offset: 0,
             data: document,
-            more: 0
+            more: 0,
           })
         )
       }
@@ -299,7 +299,7 @@ const whiteboardRouter = function(app: Express): void {
 
   router.route('/reset').post(async function(req, res, next) {
     const {
-      body: { sessionId }
+      body: { sessionId },
     } = req
 
     try {

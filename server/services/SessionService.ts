@@ -107,7 +107,7 @@ export async function reportSession(data: unknown) {
     throw new sessionUtils.ReportSessionError('Unable to report this session')
 
   const reportedBy = user
-  await SessionRepo.updateReportSession(sessionId, {
+  await SessionRepo.updateSessionReported(sessionId, {
     reportMessage,
     reportReason,
   })
@@ -254,7 +254,7 @@ export async function processCalculateMetrics(sessionId: Types.ObjectId) {
   )
     timeTutored = sessionUtils.calculateTimeTutored(session)
 
-  await SessionRepo.updateSessionMetrics(sessionId, { timeTutored })
+  await SessionRepo.updateSessionTimeTutored(sessionId, timeTutored)
   emitter.emit(SESSION_EVENTS.SESSION_METRICS_CALCULATED, sessionId)
 }
 
@@ -301,7 +301,7 @@ export async function processFirstSessionCongratsEmail(
 
 export async function storeAndDeleteQuillDoc(sessionId: Types.ObjectId) {
   const quillDoc = await QuillDocService.getDoc(sessionId)
-  await SessionRepo.setQuillDoc(sessionId, JSON.stringify(quillDoc))
+  await SessionRepo.updateSessionQuillDoc(sessionId, JSON.stringify(quillDoc))
   await QuillDocService.deleteDoc(sessionId)
 }
 
@@ -311,7 +311,7 @@ export async function storeAndDeleteWhiteboardDoc(sessionId: Types.ObjectId) {
     sessionId,
     whiteboardDoc
   )
-  await SessionRepo.setHasWhiteboardDoc(sessionId, hasWhiteboardDoc)
+  await SessionRepo.updateSessionHasWhiteboardDoc(sessionId, hasWhiteboardDoc)
   await WhiteboardService.deleteDoc(sessionId)
 }
 
@@ -383,7 +383,7 @@ export async function getSessionPhotoUploadUrl(sessionId: Types.ObjectId) {
   const sessionPhotoS3Key = `${sessionId}${crypto
     .randomBytes(8)
     .toString('hex')}`
-  await SessionRepo.addSessionPhotoKey(sessionId, sessionPhotoS3Key)
+  await SessionRepo.updateSessionPhotoKey(sessionId, sessionPhotoS3Key)
   return sessionPhotoS3Key
 }
 
@@ -537,7 +537,7 @@ export async function startSession(data: unknown) {
       )
   }
 
-  const currentSession = await SessionRepo.getCurrentSession(userId)
+  const currentSession = await SessionRepo.getCurrentSessionById(userId)
   if (currentSession)
     throw new sessionUtils.StartSessionError(
       'Student already has an active session'
@@ -623,12 +623,12 @@ export async function checkSession(data: unknown) {
 
 export async function currentSession(data: unknown) {
   const user = sessionUtils.asUser(data)
-  return SessionRepo.getCurrentSession(user._id)
+  return SessionRepo.getCurrentSessionById(user._id)
 }
 
 export async function studentLatestSession(data: unknown) {
   const userId = asObjectId(data)
-  return SessionRepo.getStudentLatestSession(userId)
+  return SessionRepo.getLatestSessionByStudentId(userId)
 }
 
 export async function sessionTimedOut(data: unknown) {
@@ -649,7 +649,7 @@ export async function sessionTimedOut(data: unknown) {
 
 export async function publicSession(data: unknown) {
   const sessionId = asObjectId(data)
-  return SessionRepo.getPublicSession(sessionId)
+  return SessionRepo.getPublicSessionById(sessionId)
 }
 
 export async function getSessionNotifications(data: unknown) {
@@ -689,7 +689,7 @@ export async function joinSession(data: unknown): Promise<void> {
 
   const isInitialVolunteerJoin = user.isVolunteer && !session.volunteer
   if (isInitialVolunteerJoin) {
-    await SessionRepo.addVolunteerToSession(session._id, user._id)
+    await SessionRepo.updateSessionVolunteerById(session._id, user._id)
     await new UserActionCtrl.SessionActionCreator(
       user._id,
       session._id.toString(),
@@ -743,7 +743,7 @@ export async function saveMessage(data: unknown): Promise<void> {
   if (!sessionUtils.isSessionParticipant(session, user))
     throw new Error('Only session participants are allowed to send messages')
 
-  await SessionRepo.addMessage(sessionId, message)
+  await SessionRepo.addMessageToSessionbyId(sessionId, message)
 }
 
 export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {

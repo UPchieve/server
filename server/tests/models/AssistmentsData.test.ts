@@ -5,7 +5,7 @@ import SessionModel, { Session } from '../../models/Session'
 import {
   RepoCreateError,
   RepoReadError,
-  RepoUpdateError
+  RepoUpdateError,
 } from '../../models/Errors'
 import { insertSession, resetDb } from '../db-utils'
 import { mockMongooseFindQuery } from '../utils'
@@ -18,7 +18,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -46,7 +46,7 @@ describe('Test create AssistmentData objects', () => {
     const { session: newSession } = await insertSession(
       {},
       {
-        studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS
+        studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS,
       }
     )
     validSession = newSession
@@ -156,7 +156,7 @@ describe('Test read AssistmentData objects', () => {
     const { session: newSession } = await insertSession(
       {},
       {
-        studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS
+        studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS,
       }
     )
     validSession = newSession
@@ -164,7 +164,7 @@ describe('Test read AssistmentData objects', () => {
       problemId,
       assignmentId,
       studentId,
-      session: validSession._id
+      session: validSession._id,
     })
     createdAD = newAD.toObject() as AssistmentsDataRepo.AssistmentsData
   })
@@ -283,7 +283,7 @@ describe('Update AssistmentData objects', () => {
     const { session: newSession } = await insertSession(
       {},
       {
-        studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS
+        studentPartnerOrg: AssistmentsDataRepo.ASSISTMENTS,
       }
     )
     validSession = newSession
@@ -291,7 +291,7 @@ describe('Update AssistmentData objects', () => {
       problemId,
       assignmentId,
       studentId,
-      session: validSession._id
+      session: validSession._id,
     })
     createdAD = newAD.toObject() as AssistmentsDataRepo.AssistmentsData
   })

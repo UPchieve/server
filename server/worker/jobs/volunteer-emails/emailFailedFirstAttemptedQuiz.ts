@@ -17,18 +17,14 @@ export default async (
 ): Promise<void> => {
   const {
     data: { category, email, firstName },
-    name: currentJob
+    name: currentJob,
   } = job
   const volunteerId = asObjectId(job.data.volunteerId)
   try {
     const volunteer = await getVolunteerContactInfoById(volunteerId)
     // Only send email if vounteer is found to be a recipient
     if (volunteer) {
-      await MailService.sendFailedFirstAttemptedQuiz(
-        category,
-        email,
-        firstName
-      )
+      await MailService.sendFailedFirstAttemptedQuiz(category, email, firstName)
       logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     }
   } catch (error) {

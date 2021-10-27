@@ -1,6 +1,6 @@
 import QuestionModel, { Question, QuestionDocument } from '../models/Question'
 
-// TODO: refactor to use repo pattern
+// TODO: repo pattern - whole file
 export async function list(
   filters: any // FilterQuery<QuestionDocument>[]
 ): Promise<QuestionDocument[]> {
@@ -11,6 +11,7 @@ export async function create(question: Question): Promise<Question> {
   return QuestionModel.create(question)
 }
 
+// TODO: duck type validation
 export interface QuestionUpdateOptions {
   id: string
   question: Partial<Question>

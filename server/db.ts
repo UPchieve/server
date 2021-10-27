@@ -9,7 +9,7 @@ export async function connect() {
       poolSize: 5,
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      useCreateIndex: true
+      useCreateIndex: true,
     })
   return backOff(connectAction, {
     jitter: 'full',
@@ -20,7 +20,7 @@ export async function connect() {
         `database connection attempt ${attemptNumber} failed, retrying`
       )
       return true
-    }
+    },
   })
 }
 

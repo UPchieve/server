@@ -8,7 +8,7 @@ test('Should count the total certs that a user has', async () => {
     [MATH_CERTS.GEOMETRY]: { passed: true, tries: 0 },
     [MATH_CERTS.CALCULUS_BC]: { passed: true, tries: 0 },
     [SCIENCE_CERTS.BIOLOGY]: { passed: true, tries: 0 },
-    [SCIENCE_CERTS.CHEMISTRY]: { passed: true, tries: 0 }
+    [SCIENCE_CERTS.CHEMISTRY]: { passed: true, tries: 0 },
   }
   const certifications = buildCertifications(certificationOverride)
   const result = countCerts(certifications)

@@ -8,7 +8,7 @@ import {
   buildVolunteer,
   buildUserAgent,
   getObjectId,
-  getStringObjectId
+  getStringObjectId,
 } from '../generate'
 import {
   mockedGetAdminFilteredSessions,
@@ -16,14 +16,14 @@ import {
   mockedGetPublicSession,
   mockedGetSessionByIdWithStudentAndVolunteer,
   mockedGetSessionsToReview,
-  mockedGetStudentLatestSession
+  mockedGetStudentLatestSession,
 } from '../mocks/repos/session-repo'
 import { AdminFilteredSessions } from '../../models/Session/queries'
 import {
   mockApp,
   mockRouter,
   mockSocketServer,
-  mockPassportMiddleware
+  mockPassportMiddleware,
 } from '../mock-app'
 import { routes as routeSessions } from '../../router/api/session'
 import { authPassport } from '../../utils/auth-utils'
@@ -117,7 +117,7 @@ describe(SESSION_NEW_PATH, () => {
     mockedSessionService.startSession.mockImplementationOnce(async () => id)
     const response = await sendPost(SESSION_NEW_PATH, payload)
     const {
-      body: { sessionId }
+      body: { sessionId },
     } = response
     expect(SessionService.startSession).toHaveBeenCalledTimes(1)
     expect(sessionId).toBe(id)
@@ -133,7 +133,7 @@ describe(SESSION_END_PATH, () => {
     )
     const response = await sendPost(SESSION_END_PATH, payload)
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(SessionService.finishSession).toHaveBeenCalledTimes(0)
     expect(err).toBe('Missing sessionId body string')
@@ -147,7 +147,7 @@ describe(SESSION_END_PATH, () => {
     )
     const response = await sendPost(SESSION_END_PATH, payload)
     const {
-      body: { sessionId }
+      body: { sessionId },
     } = response
     expect(SessionService.finishSession).toHaveBeenCalledTimes(1)
     expect(sessionId).toBe(id)
@@ -163,7 +163,7 @@ describe(SESSION_CHECK_PATH, () => {
     )
     const response = await sendPost(SESSION_CHECK_PATH, payload)
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(SessionService.checkSession).toHaveBeenCalledTimes(0)
     expect(err).toBe('Missing sessionId body string')
@@ -177,7 +177,7 @@ describe(SESSION_CHECK_PATH, () => {
     )
     const response = await sendPost(SESSION_CHECK_PATH, payload)
     const {
-      body: { sessionId }
+      body: { sessionId },
     } = response
     expect(SessionService.checkSession).toHaveBeenCalledTimes(1)
     expect(sessionId).toEqual(mockValue)
@@ -191,7 +191,7 @@ describe(SESSION_CURRENT_PATH, () => {
     mockedSessionService.currentSession.mockImplementationOnce(async () => null)
     const response = await sendPost(SESSION_CURRENT_PATH, payload)
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(response.status).toEqual(404)
     expect(SessionService.currentSession).toHaveBeenCalledTimes(1)
@@ -206,7 +206,7 @@ describe(SESSION_CURRENT_PATH, () => {
     )
     const response = await sendPost(SESSION_CURRENT_PATH, payload)
     const {
-      body: { sessionId, data }
+      body: { sessionId, data },
     } = response
     expect(SessionService.currentSession).toHaveBeenCalledTimes(1)
     expect(sessionId).toEqual(currentSession._id.toString())
@@ -223,7 +223,7 @@ describe(SESSION_LATEST_PATH, () => {
     )
     const response = await sendPost(SESSION_LATEST_PATH, payload)
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(SessionService.studentLatestSession).toHaveBeenCalledTimes(0)
     expect(err).toBe('Missing userId body string')
@@ -237,7 +237,7 @@ describe(SESSION_LATEST_PATH, () => {
     )
     const response = await sendPost(SESSION_LATEST_PATH, payload)
     const {
-      body: { sessionId, data }
+      body: { sessionId, data },
     } = response
     expect(SessionService.studentLatestSession).toHaveBeenCalledTimes(1)
     expect(sessionId).toEqual(latestSession._id)
@@ -250,7 +250,7 @@ describe(SESSION_REVIEW_PATH, () => {
   test('Should send sessions and isLastPage with valid request', async () => {
     const sessionsToReview = [
       mockedGetSessionsToReview(),
-      mockedGetSessionsToReview()
+      mockedGetSessionsToReview(),
     ]
     const mockedValue = { isLastPage: true, sessions: sessionsToReview }
     mockedSessionService.sessionsToReview.mockImplementationOnce(
@@ -258,7 +258,7 @@ describe(SESSION_REVIEW_PATH, () => {
     )
     const response = await sendGetQuery(SESSION_REVIEW_PATH, {})
     const {
-      body: { sessions, isLastPage }
+      body: { sessions, isLastPage },
     } = response
     expect(SessionService.sessionsToReview).toHaveBeenCalledTimes(1)
     expect(isLastPage).toBe(mockedValue.isLastPage)
@@ -285,7 +285,7 @@ describe(SESSION_PHOTO_URL_PATH(':sessionId'), () => {
     const sessionId = getObjectId()
     const expected = {
       uploadUrl: 'https://upload.com.b4.com/12345',
-      imageUrl: 'https://upload.com/12345'
+      imageUrl: 'https://upload.com/12345',
     }
     mockedSessionService.getImageAndUploadUrl.mockImplementationOnce(
       async () => expected
@@ -304,7 +304,7 @@ describe(SESSION_REPORT_PATH(':sessionId'), () => {
       async () => undefined
     )
     const {
-      body: { msg }
+      body: { msg },
     } = await sendPost(SESSION_REPORT_PATH(sessionId), {})
     expect(SessionService.reportSession).toHaveBeenCalledTimes(1)
     expect(msg).toBe('Success')
@@ -329,7 +329,7 @@ describe(SESSION_ADMIN_VIEW_PATH, () => {
   test('Should send sessions and isLastPage with valid request', async () => {
     const filteredSessions = [
       mockedGetAdminFilteredSessions(),
-      mockedGetAdminFilteredSessions()
+      mockedGetAdminFilteredSessions(),
     ] as AdminFilteredSessions[]
     const expected = { isLastPage: true, sessions: filteredSessions }
     mockedSessionService.adminFilteredSessions.mockImplementationOnce(
@@ -337,7 +337,7 @@ describe(SESSION_ADMIN_VIEW_PATH, () => {
     )
     const response = await sendGet(SESSION_ADMIN_VIEW_PATH, {})
     const {
-      body: { sessions, isLastPage }
+      body: { sessions, isLastPage },
     } = response
 
     expect(SessionService.adminFilteredSessions).toHaveBeenCalledTimes(1)
@@ -352,13 +352,13 @@ const SESSION_ADMIN_SESSION_VIEW_PATH = sessionId =>
 describe(SESSION_ADMIN_SESSION_VIEW_PATH(':sessionId'), () => {
   test('Should send session with valid request', async () => {
     const mockSession = mockedGetSessionByIdWithStudentAndVolunteer({
-      type: 'college'
+      type: 'college',
     })
     const mockValue = {
       ...mockSession,
       userAgent: buildUserAgent(),
       feedbacks: [],
-      photos: []
+      photos: [],
     }
     mockedSessionService.adminSessionView.mockImplementationOnce(
       // @todo: fix
@@ -370,7 +370,7 @@ describe(SESSION_ADMIN_SESSION_VIEW_PATH(':sessionId'), () => {
       {}
     )
     const {
-      body: { session }
+      body: { session },
     } = response
     const student = stringifyObjectIdsAndDates(mockValue.student)
     const volunteer = stringifyObjectIdsAndDates(mockValue.volunteer)
@@ -379,7 +379,7 @@ describe(SESSION_ADMIN_SESSION_VIEW_PATH(':sessionId'), () => {
       _id: mockValue._id.toString(),
       createdAt: mockValue.createdAt.toISOString(),
       student,
-      volunteer
+      volunteer,
     }
     expect(SessionService.adminSessionView).toHaveBeenCalledTimes(1)
     expect(session).toEqual(expected)
@@ -396,7 +396,7 @@ describe(SESSION_PUBLIC_PATH(':sessionId'), () => {
     )
     const response = await sendGet(SESSION_PUBLIC_PATH(expectedSession._id), {})
     const {
-      body: { session }
+      body: { session },
     } = response
     expect(SessionService.publicSession).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
@@ -416,7 +416,7 @@ describe(SESSION_NOTIFICATIONS_PATH(':sessionId'), () => {
     )
     const response = await sendGet(SESSION_NOTIFICATIONS_PATH('123456789'), {})
     const {
-      body: { notifications }
+      body: { notifications },
     } = response
     expect(SessionService.getSessionNotifications).toHaveBeenCalledTimes(1)
     expect(notifications).toEqual(stringifyArrayResponse(mockedNotifications))

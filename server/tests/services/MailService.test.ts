@@ -19,7 +19,7 @@ test('contact form email sends correctly', async () => {
     await sendContactFormEmail({
       email: 'test@test.com',
       message: 'This is some test feedback.',
-      topic: 'General feedback'
+      topic: 'General feedback',
     })
   } catch (err) {
     expect(err).toBeUndefined()

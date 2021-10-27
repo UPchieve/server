@@ -2,7 +2,7 @@ import twilio from 'twilio'
 import moment from 'moment-timezone'
 import config from '../config'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
-import { getTestStudentById } from '../models/Student/queries'
+import { getTestStudentExistsById } from '../models/Student/queries'
 import {
   VolunteerContactInfo,
   getVolunteersFailsafe,
@@ -336,7 +336,7 @@ export async function notifyFailsafe(
   const subtopic = session.subTopic
   const sessionUrl = getSessionUrl(session)
   const volunteersToNotify = await getVolunteersFailsafe()
-  const isTestUser = await getTestStudentById(
+  const isTestUser = await getTestStudentExistsById(
     getIdFromModelReference(session.student)
   )
 
@@ -439,7 +439,7 @@ export async function confirmVerification(
 export async function beginRegularNotifications(
   session: Session
 ): Promise<void> {
-  const isTestUser = await getTestStudentById(
+  const isTestUser = await getTestStudentExistsById(
     getIdFromModelReference(session.student)
   )
 

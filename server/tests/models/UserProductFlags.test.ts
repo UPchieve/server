@@ -16,7 +16,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
   student = await insertStudent()
   volunteer = await insertVolunteer()
@@ -153,7 +153,7 @@ describe('Test read UserProductFlag documents', () => {
   beforeAll(async () => {
     await resetUPF()
     const newUPF = await UserProductFlagsRepo.UserProductFlagsModel.create({
-      user: student._id
+      user: student._id,
     })
     createdUPF = newUPF.toObject() as UserProductFlagsRepo.UserProductFlags
   })

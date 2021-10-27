@@ -1,12 +1,12 @@
 import { Types } from 'mongoose'
-import UserProductFlagsModel, { UserProductFlags } from "./index"
+import UserProductFlagsModel, { UserProductFlags } from './index'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { validUser } from '../../utils/validators'
 
 // Create functions
 export async function createUPFByUserId(
   userId: Types.ObjectId
-): Promise<UserProductFlags | undefined> {
+): Promise<UserProductFlags> {
   const upf = await getUPFByUserId(userId)
   if (upf)
     throw new RepoCreateError(
@@ -28,7 +28,7 @@ export async function createUPFByUserId(
 
 // Read functions
 export async function getUPFByObjectId(
-  id: Types.ObjectId,
+  id: Types.ObjectId
 ): Promise<UserProductFlags | undefined> {
   try {
     const upf = await UserProductFlagsModel.findOne({ _id: id })
@@ -52,13 +52,14 @@ export async function getAllUPF(): Promise<UserProductFlags[]> {
 
 export async function getUPFByUserId(
   userId: Types.ObjectId
-): Promise<UserProductFlags> {
+): Promise<UserProductFlags | undefined> {
   try {
-    return (await UserProductFlagsModel.findOne({
+    const upf = await UserProductFlagsModel.findOne({
       user: userId,
     })
       .lean()
-      .exec()) as UserProductFlags
+      .exec()
+    if (upf) return upf as UserProductFlags
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -74,8 +75,10 @@ export async function updateUPFGatesQualifiedFlagById(
       { user: userId },
       {
         gatesQualified: status,
-      })
-    if (!result.ok) throw new Error('Update query did not return "ok"')
+      }
+    )
+    if (!result.ok)
+      throw new RepoUpdateError('Update query did not return "ok"')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

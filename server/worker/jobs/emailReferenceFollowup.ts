@@ -20,16 +20,16 @@ export default async (): Promise<void> => {
     'references.status': REFERENCE_STATUS.SENT,
     'references.sentAt': {
       $gt: new Date(fourDaysAgo),
-      $lt: new Date(threeDaysAgo)
-    }
+      $lt: new Date(threeDaysAgo),
+    },
   }
   const referencesToEmail: ReferencesToEmail[] = await VolunteerModel.aggregate(
     [
       {
-        $match: query
+        $match: query,
       },
       {
-        $unwind: '$references'
+        $unwind: '$references',
       },
       {
         /**
@@ -38,18 +38,18 @@ export default async (): Promise<void> => {
          * $unwind allows us to get separate documents from that array, but we need to filter by the
          * same query to get only references with a status of "SENT"
          **/
-        $match: query
+        $match: query,
       },
       {
         $project: {
           _id: 0,
           volunteer: {
             firstname: 1,
-            lastname: 1
+            lastname: 1,
           },
-          reference: '$references'
-        }
-      }
+          reference: '$references',
+        },
+      },
     ]
   )
 

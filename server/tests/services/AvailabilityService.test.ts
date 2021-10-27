@@ -5,18 +5,18 @@ import {
   getAvailabilityHistory,
   getRecentAvailabilityHistory,
   getElapsedAvailabilityForDateRange,
-  getElapsedAvailability
+  getElapsedAvailability,
 } from '../../services/AvailabilityService'
 import {
   insertAvailabilitySnapshot,
   insertAvailabilityHistory,
-  resetDb
+  resetDb,
 } from '../db-utils'
 import {
   buildVolunteer,
   buildAvailabilitySnapshot,
   buildAvailabilityHistory,
-  buildAvailabilityDay
+  buildAvailabilityDay,
 } from '../generate'
 import AvailabilityHistoryModel from '../../models/Availability/History'
 import AvailabilitySnapshotModel from '../../models/Availability/Snapshot'
@@ -27,7 +27,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -44,7 +44,7 @@ describe('getAvailability', () => {
   test('Should get an availability document given a query', async () => {
     const snapshot = await insertAvailabilitySnapshot()
     const result = await getAvailability({
-      _id: snapshot._id
+      _id: snapshot._id,
     })
 
     expect(result._id).toEqual(snapshot._id)
@@ -56,23 +56,23 @@ describe('getAvailabilities', () => {
   test('Should get multiple availability documents given a query', async () => {
     const snapshots = [
       buildAvailabilitySnapshot({
-        createdAt: new Date('10/10/2020')
+        createdAt: new Date('10/10/2020'),
       }),
       buildAvailabilitySnapshot({
-        createdAt: new Date('10/11/2020')
+        createdAt: new Date('10/11/2020'),
       }),
       buildAvailabilitySnapshot({
-        createdAt: new Date('10/10/2021')
+        createdAt: new Date('10/10/2021'),
       }),
       buildAvailabilitySnapshot({
-        createdAt: new Date('10/11/2021')
-      })
+        createdAt: new Date('10/11/2021'),
+      }),
     ]
     await AvailabilitySnapshotModel.insertMany(snapshots)
 
     const dateFilter = new Date('10/01/2021')
     const results = await getAvailabilities({
-      createdAt: { $gte: dateFilter }
+      createdAt: { $gte: dateFilter },
     })
     const expectedLength = 2
     expect(results).toHaveLength(expectedLength)
@@ -87,7 +87,7 @@ describe('getAvailabilityHistory', () => {
   test('Should get an availability history document given a query', async () => {
     const availabilityHistory = await insertAvailabilityHistory()
     const result = await getAvailabilityHistory({
-      _id: availabilityHistory._id
+      _id: availabilityHistory._id,
     })
 
     expect(result._id).toEqual(availabilityHistory._id)
@@ -102,15 +102,15 @@ describe('getRecentAvailabilityHistory', () => {
     const date = new Date()
     const newestDoc = buildAvailabilityHistory({
       date,
-      volunteerId
+      volunteerId,
     })
     const oldestDoc = buildAvailabilityHistory({
       date: new Date('10/10/2020'),
-      volunteerId
+      volunteerId,
     })
     const oldDoc = buildAvailabilityHistory({
       date: new Date('10/11/2020'),
-      volunteerId
+      volunteerId,
     })
     await AvailabilityHistoryModel.insertMany([newestDoc, oldestDoc, oldDoc])
 
@@ -127,12 +127,12 @@ describe('getElapsedAvailabilityForDateRange', () => {
       buildAvailabilityHistory({
         date: new Date('12/01/2020'),
         volunteerId,
-        availability: buildAvailabilityDay({ '12p': true, '1p': true })
+        availability: buildAvailabilityDay({ '12p': true, '1p': true }),
       }),
       buildAvailabilityHistory({
         date: new Date('12/02/2020'),
         volunteerId,
-        availability: buildAvailabilityDay()
+        availability: buildAvailabilityDay(),
       }),
       buildAvailabilityHistory({
         date: new Date('12/03/2020'),
@@ -141,19 +141,19 @@ describe('getElapsedAvailabilityForDateRange', () => {
           '10a': true,
           '11a': true,
           '12p': true,
-          '4p': true
-        })
+          '4p': true,
+        }),
       }),
       buildAvailabilityHistory({
         date: new Date('12/04/2020'),
         volunteerId,
-        availability: buildAvailabilityDay({ '4p': true, '5p': true })
+        availability: buildAvailabilityDay({ '4p': true, '5p': true }),
       }),
       buildAvailabilityHistory({
         date: new Date('12/14/2020'),
         volunteerId,
-        availability: buildAvailabilityDay({ '4p': true, '5p': true })
-      })
+        availability: buildAvailabilityDay({ '4p': true, '5p': true }),
+      }),
     ])
 
     const fromDate = new Date('12/03/2020')
@@ -202,7 +202,7 @@ describe('getElapsedAvailability', () => {
       '8p': true,
       '9p': true,
       '10p': true,
-      '11p': true
+      '11p': true,
     }
     const availabilityDay = buildAvailabilityDay(overrides)
     const result = getElapsedAvailability(availabilityDay)
@@ -216,7 +216,7 @@ describe('getElapsedAvailability', () => {
       '11a': true,
       '12p': true,
       '4p': true,
-      '5p': true
+      '5p': true,
     }
     const availabilityDay = buildAvailabilityDay(overrides)
     const result = getElapsedAvailability(availabilityDay)

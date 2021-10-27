@@ -25,8 +25,8 @@ export interface Notification {
   type: NotificationType
   method: NotificationMethod
   wasSuccessful: boolean
-  messageId: string
-  priorityGroup: string
+  messageId: string // twilio/messaging service id
+  priorityGroup: string // volunteer priority group (i.e. notified last 24 hours, etc)
 }
 
 export type NotificationDocument = Notification & Document

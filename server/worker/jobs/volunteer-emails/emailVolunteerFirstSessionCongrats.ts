@@ -15,7 +15,7 @@ export default async (
 ): Promise<void> => {
   const {
     data: { sessionId },
-    name: currentJob
+    name: currentJob,
   } = job
   // TODO: refactor when sessionservice done
   const [session] = await getSessionsWithPipeline([
@@ -27,28 +27,28 @@ export default async (
           $nin: [
             USER_SESSION_METRICS.absentStudent,
             USER_SESSION_METRICS.absentVolunteer,
-            USER_SESSION_METRICS.lowSessionRatingFromCoach
-          ]
-        }
-      }
+            USER_SESSION_METRICS.lowSessionRatingFromCoach,
+          ],
+        },
+      },
     },
     {
       $lookup: {
         from: 'users',
         foreignField: '_id',
         localField: 'volunteer',
-        as: 'volunteer'
-      }
+        as: 'volunteer',
+      },
     },
     {
-      $unwind: '$volunteer'
+      $unwind: '$volunteer',
     },
     {
-      $match: emailRecipientPrefixed('volunteer')
+      $match: emailRecipientPrefixed('volunteer'),
     },
     {
-      $project: { volunteer: 1 }
-    }
+      $project: { volunteer: 1 },
+    },
   ])
 
   if (session) {

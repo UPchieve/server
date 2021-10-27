@@ -27,8 +27,8 @@ describe('Tech issue apology email', () => {
       name: Jobs.EmailTechIssueApology,
       data: {
         studentId: student._id,
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
   })
 
@@ -43,7 +43,7 @@ describe('Tech issue apology email', () => {
     await emailTechIssueApology(job)
     const expected = {
       firstName: student.firstname,
-      email: student.email
+      email: student.email,
     }
     expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(expected)
   })
@@ -55,7 +55,7 @@ describe('Tech issue apology email', () => {
     await emailTechIssueApology(job)
     const expected = {
       firstName: volunteer.firstname,
-      email: volunteer.email
+      email: volunteer.email,
     }
     expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(expected)
   })

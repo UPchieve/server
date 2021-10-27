@@ -7,17 +7,17 @@ let volunteerManifestsYaml: string | undefined
 let studentManifestsYaml: string | undefined
 
 export interface StudentPartnerManifest {
-  name: string,
-  highSchoolSignup?: boolean,
-  collegeSignup?: boolean,
-  schoolSignupRequired?: boolean,
-  signupCode?: string,
+  name: string
+  highSchoolSignup?: boolean
+  collegeSignup?: boolean
+  schoolSignupRequired?: boolean
+  signupCode?: string
   sites?: string[]
 }
 
 export interface VolunteerPartnerManifest {
-  name: string,
-  requiredEmailDomains?: string[],
+  name: string
+  requiredEmailDomains?: string[]
   receiveWeeklyHourSummaryEmail?: boolean
 }
 

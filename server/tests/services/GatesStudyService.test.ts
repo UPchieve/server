@@ -13,7 +13,7 @@ jest.mock('../../utils/gates-study-utils')
 jest.mock('../../utils/is-date-within-range')
 jest.mock('unleash-client', () => {
   return {
-    isEnabled: jest.fn()
+    isEnabled: jest.fn(),
   }
 })
 

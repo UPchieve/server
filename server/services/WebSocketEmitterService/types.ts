@@ -17,5 +17,5 @@ export interface WebSocketEmitterOptions {
 
 export const asWebSocketPacket = asFactory<Packet>({
   socketId: asString,
-  message: asAny
+  message: asAny,
 })

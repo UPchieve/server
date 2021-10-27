@@ -21,7 +21,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -66,7 +66,7 @@ describe('Volunteer inactive emails', () => {
 
   test('Should send to volunteers who fall on inactive period of 30, 60, or 90 days ago before blackout period', async () => {
     const hemingway = buildVolunteer({
-      lastActivityAt: fifteenDaysAgo
+      lastActivityAt: fifteenDaysAgo,
     })
     const angelou = buildVolunteer({ lastActivityAt: thirtyDaysAgo })
     const woolf = buildVolunteer({ lastActivityAt: fourtyDaysAgo })
@@ -102,7 +102,7 @@ describe('Volunteer inactive emails', () => {
       .subtract(90, 'days')
       .toDate()
     const kafka = buildVolunteer({
-      lastActivityAt: ninetyDaysAgo
+      lastActivityAt: ninetyDaysAgo,
     })
     await insertVolunteer(kafka)
 
@@ -116,15 +116,15 @@ describe('Volunteer inactive emails', () => {
   test('Should not send to volunteers who have already received an inactive email', async () => {
     const angelou = buildVolunteer({
       lastActivityAt: thirtyDaysAgo,
-      sentInactiveThirtyDayEmail: true
+      sentInactiveThirtyDayEmail: true,
     })
     const dickens = buildVolunteer({
       lastActivityAt: sixtyDaysAgo,
-      sentInactiveSixtyDayEmail: true
+      sentInactiveSixtyDayEmail: true,
     })
     const twain = buildVolunteer({
       lastActivityAt: ninetyDaysAgo,
-      sentInactiveNinetyDayEmail: true
+      sentInactiveNinetyDayEmail: true,
     })
     const faulkner = buildVolunteer({ lastActivityAt: ninetyDaysAgo })
     const volunteers = [angelou, dickens, twain, faulkner]
@@ -142,11 +142,11 @@ describe('Volunteer inactive emails', () => {
 
   test('Should clear the availability of a volunteer who has been inactive for 90 days', async () => {
     const availability = buildAvailability({
-      Wednesday: { '1p': true, '2p': true }
+      Wednesday: { '1p': true, '2p': true },
     })
     const twain = buildVolunteer({
       lastActivityAt: ninetyDaysAgo,
-      availability
+      availability,
     })
     await insertVolunteer(twain)
     await emailVolunteerInactive()

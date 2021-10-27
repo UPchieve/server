@@ -1,5 +1,9 @@
 import { Types } from 'mongoose'
-import FeedbackModel, { Feedback, FeedbackVersionOne, FeedbackVersionTwo } from './index'
+import FeedbackModel, {
+  Feedback,
+  FeedbackVersionOne,
+  FeedbackVersionTwo,
+} from './index'
 import { RepoReadError } from '../Errors'
 
 export type AnyFeedback = Feedback | FeedbackVersionOne | FeedbackVersionTwo
@@ -11,7 +15,7 @@ export type AnyFeedback = Feedback | FeedbackVersionOne | FeedbackVersionTwo
  * @param sessionId {Types.ObjectId} session whose Feedback we want
  * @returns feedback {FeedbackVersionTwo} a feedback object containing student and volunteer feedback associated with the session
  */
- export async function getFeedbackV2BySessionId(
+export async function getFeedbackV2BySessionId(
   sessionId: Types.ObjectId
 ): Promise<AnyFeedback | undefined> {
   try {
@@ -60,18 +64,27 @@ export type AnyFeedback = Feedback | FeedbackVersionOne | FeedbackVersionTwo
   }
 }
 
-export async function getFeedbackById(feedbackId: Types.ObjectId): Promise<AnyFeedback | undefined> {
+export async function getFeedbackById(
+  feedbackId: Types.ObjectId
+): Promise<AnyFeedback | undefined> {
   try {
-    const feedback = await FeedbackModel.findOne({ _id: feedbackId }).lean().exec()
+    const feedback = await FeedbackModel.findOne({ _id: feedbackId })
+      .lean()
+      .exec()
     if (feedback) return feedback as AnyFeedback
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function getFeedbackBySessionIdUserType(sessionId: Types.ObjectId, userType: string): Promise<AnyFeedback | undefined> {
+export async function getFeedbackBySessionIdUserType(
+  sessionId: Types.ObjectId,
+  userType: string
+): Promise<AnyFeedback | undefined> {
   try {
-    const feedback = await FeedbackModel.findOne({ sessionId, userType }).lean().exec()
+    const feedback = await FeedbackModel.findOne({ sessionId, userType })
+      .lean()
+      .exec()
     if (feedback) return feedback as AnyFeedback
   } catch (err) {
     throw new RepoReadError(err)

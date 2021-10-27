@@ -7,7 +7,7 @@ import * as MailService from '../../../services/MailService'
 import {
   updateVolunteerInactiveAvailability,
   updateVolunteerSentInactiveEmail,
-  getInactiveVolunteers
+  getInactiveVolunteers,
 } from '../../../models/Volunteer/queries'
 import createNewAvailability from '../../../utils/create-new-availability'
 import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../../../constants'
@@ -15,7 +15,7 @@ import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../../../constants'
 enum InactiveGroup {
   inactiveThirtyDays = 'inactiveThirtyDays',
   inactiveSixtyDays = 'inactiveSixtyDays',
-  inactiveNinetyDays = 'inactiveNinetyDays'
+  inactiveNinetyDays = 'inactiveNinetyDays',
 }
 
 async function sendEmailToInactiveVolunteers(
@@ -31,7 +31,7 @@ async function sendEmailToInactiveVolunteers(
       const contactInfo = { email, firstName }
       await mailHandler(contactInfo)
       if (group === InactiveGroup.inactiveThirtyDays)
-        await updateVolunteerSentInactiveEmail(_id ,true, false)
+        await updateVolunteerSentInactiveEmail(_id, true, false)
       if (group === InactiveGroup.inactiveSixtyDays)
         await updateVolunteerSentInactiveEmail(_id, true, true)
       if (group === InactiveGroup.inactiveNinetyDays) {
@@ -101,7 +101,7 @@ export default async (): Promise<void> => {
     const {
       inactiveThirtyDays,
       inactiveSixtyDays,
-      inactiveNinetyDays
+      inactiveNinetyDays,
     } = volunteers
     const errors = []
     try {
@@ -112,8 +112,7 @@ export default async (): Promise<void> => {
         InactiveGroup.inactiveThirtyDays
       )
     } catch (error) {
-      if (Array.isArray(error))
-        errors.push(...error)
+      if (Array.isArray(error)) errors.push(...error)
     }
     try {
       await sendEmailToInactiveVolunteers(
@@ -123,8 +122,7 @@ export default async (): Promise<void> => {
         InactiveGroup.inactiveSixtyDays
       )
     } catch (error) {
-      if (Array.isArray(error))
-        errors.push(...error)
+      if (Array.isArray(error)) errors.push(...error)
     }
     try {
       await sendEmailToInactiveVolunteers(
@@ -134,8 +132,7 @@ export default async (): Promise<void> => {
         InactiveGroup.inactiveNinetyDays
       )
     } catch (error) {
-      if (Array.isArray(error))
-        errors.push(...error)
+      if (Array.isArray(error)) errors.push(...error)
     }
     if (errors.length) {
       throw new Error(`Failed to send inactivity emails: ${errors}`)

@@ -6,13 +6,13 @@ import config from './config'
 // script sources
 const googleUrls = [
   'https://www.googletagmanager.com',
-  'https://www.google-analytics.com'
+  'https://www.google-analytics.com',
 ]
 const cdnUrl = 'https://cdn.upchieve.org'
 const mathJaxScriptUrl = 'https://cdnjs.cloudflare.com'
 const newrelicUrls = [
   'https://js-agent.newrelic.com',
-  'https://bam.nr-data.net'
+  'https://bam.nr-data.net',
 ]
 
 // connect sources
@@ -24,20 +24,20 @@ const mathJaxFetchUrl = 'https://api.cdnjs.com'
 // img srcs
 const s3PhotoConnectUrls = [
   `${config.awsS3.photoIdBucket}.s3.us-east-2.amazonaws.com`,
-  `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`
+  `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`,
 ]
 
 const s3PhotoImageUrls = [
   `${config.awsS3.photoIdBucket}.s3.amazonaws.com`,
   `${config.awsS3.photoIdBucket}.s3.us-east-2.amazonaws.com`,
   `${config.awsS3.sessionPhotoBucket}.s3.amazonaws.com`,
-  `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`
+  `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`,
 ]
 
 const adminEduUrls = [
   'https://code.jquery.com',
   'https://stackpath.bootstrapcdn.com',
-  'https://cdn.jsdelivr.net'
+  'https://cdn.jsdelivr.net',
 ]
 
 // default srcs
@@ -60,7 +60,7 @@ export const scriptSrc = [
   ...newrelicUrls,
   ...adminEduUrls,
   "'unsafe-eval'", // eslint-disable-line quotes
-  "'unsafe-inline'" // eslint-disable-line quotes
+  "'unsafe-inline'", // eslint-disable-line quotes
 ]
 
 export const imgSrc = [
@@ -70,7 +70,7 @@ export const imgSrc = [
   cdnUrl,
   'data:',
   'blob:',
-  `https://${config.host}`
+  `https://${config.host}`,
 ]
 
 export const connectSrc = [
@@ -84,7 +84,7 @@ export const connectSrc = [
   ...googleUrls,
   config.vueAppUnleashUrl,
   `wss://${config.host}`,
-  `https://${config.host}`
+  `https://${config.host}`,
 ]
 
 if (config.NODE_ENV !== 'production') {
@@ -99,7 +99,7 @@ export const defaultSrc = [
   "'unsafe-inline'", // eslint-disable-line quotes
   vimeoUrl,
   googleDocsUrl,
-  trainingMaterialsS3
+  trainingMaterialsS3,
 ]
 
 // the rest are defaults

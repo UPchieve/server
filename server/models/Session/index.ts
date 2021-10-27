@@ -1,9 +1,6 @@
 import { values } from 'lodash'
-import {  Document, model, Model, Schema, Types } from 'mongoose'
-import {
-  USER_SESSION_METRICS,
-  SUBJECT_TYPES,
-} from '../../constants'
+import { Document, model, Model, Schema, Types } from 'mongoose'
+import { USER_SESSION_METRICS, SUBJECT_TYPES } from '../../constants'
 import MessageModel, { Message } from '../Message'
 import { Notification } from '../Notification'
 import { User } from '../User'

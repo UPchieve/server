@@ -23,7 +23,7 @@ export default async (
 ): Promise<void> => {
   const {
     data: { volunteerId },
-    name: currentJob
+    name: currentJob,
   } = job
 
   const volunteer = await getPartnerVolunteerForCollege(volunteerId)

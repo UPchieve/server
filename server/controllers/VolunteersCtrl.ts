@@ -2,6 +2,7 @@ import VolunteerModel from '../models/Volunteer'
 import { DAYS, HOURS, Availability } from '../models/Availability/types'
 import { getSnapshotsByVolunteerIds } from '../models/Availability/queries'
 
+// TODO: refactor this to be more functional (testable)
 interface AvailabilityAggregation {
   daysOfWeek?: DAYS[]
   timesOfDay?: HOURS[]
@@ -19,7 +20,7 @@ interface AvailabilityAggregation {
 function aggregateAvailabilities(
   availability: Availability,
   aggAvailabilities: AvailabilityAggregation
-) {
+): AvailabilityAggregation {
   Object.keys(availability).map(day => {
     Object.keys(availability[day as DAYS]).map(time => {
       // create headers based on the user's availability object
@@ -48,7 +49,9 @@ function aggregateAvailabilities(
  * volunteers who signed up that week
  * @param {*} aggAvailabilities
  */
-function findMinAndMax(aggAvailabilities: AvailabilityAggregation) {
+function findMinAndMax(
+  aggAvailabilities: AvailabilityAggregation
+): AvailabilityAggregation {
   let flatTable = aggAvailabilities.table.flat()
   aggAvailabilities.min = Math.min.apply(Math, flatTable)
   aggAvailabilities.max = Math.max.apply(Math, flatTable)
@@ -61,7 +64,9 @@ function findMinAndMax(aggAvailabilities: AvailabilityAggregation) {
  * aggAvailabilities.table
  * @param {*} certifiedSubject
  */
-export async function getVolunteersAvailability(certifiedSubject: string) {
+export async function getVolunteersAvailability(
+  certifiedSubject: string
+): Promise<AvailabilityAggregation> {
   const certifiedSubjectQuery = `certifications.${certifiedSubject}.passed`
 
   const volunteerQuery = {

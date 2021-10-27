@@ -1,4 +1,7 @@
-import { getVolunteersContactInfo, updateVolunteersReadyToCoachByIds } from '../../models/Volunteer/queries'
+import {
+  getVolunteersContactInfo,
+  updateVolunteersReadyToCoachByIds,
+} from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
 import { log } from '../logger'
 import { Jobs } from '.'
@@ -7,7 +10,7 @@ export default async (): Promise<void> => {
   const volunteers = await getVolunteersContactInfo({
     isOnboarded: true,
     isApproved: true,
-    sentReadyToCoachEmail: false
+    sentReadyToCoachEmail: false,
   })
 
   const errors = []
@@ -22,7 +25,9 @@ export default async (): Promise<void> => {
   }
 
   await updateVolunteersReadyToCoachByIds(succeededVolunteers)
-  log(`Sent ${Jobs.EmailReadyToCoach} to ${succeededVolunteers.length} volunteers`)
+  log(
+    `Sent ${Jobs.EmailReadyToCoach} to ${succeededVolunteers.length} volunteers`
+  )
 
   if (errors.length) {
     throw new Error(`Failed to send ${Jobs.EmailReadyToCoach} to ${errors}`)

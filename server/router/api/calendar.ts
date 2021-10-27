@@ -13,10 +13,10 @@ export function routeCalendar(router: Router): void {
       await updateSchedule({
         ...req.body,
         user: req.user as Volunteer,
-        ip: req.ip
+        ip: req.ip,
       })
       res.json({
-        msg: 'Schedule saved'
+        msg: 'Schedule saved',
       })
     } catch (err) {
       resError(res, err)
@@ -27,7 +27,7 @@ export function routeCalendar(router: Router): void {
     try {
       await clearSchedule(req.user as Volunteer, req.body.tz)
       res.json({
-        msg: 'Schedule cleared'
+        msg: 'Schedule cleared',
       })
     } catch (err) {
       resError(res, err)

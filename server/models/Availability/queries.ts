@@ -1,49 +1,60 @@
 import { Types } from 'mongoose'
-import AvailabilitySnapshotModel, {
-  AvailabilitySnapshot,
-} from './Snapshot'
-import AvailabilityHistoryModel, {
-  AvailabilityHistory,
-} from './History'
+import AvailabilitySnapshotModel, { AvailabilitySnapshot } from './Snapshot'
+import AvailabilityHistoryModel, { AvailabilityHistory } from './History'
 import { Availability } from './types'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 
-export async function getSnapshotByVolunteerId(volunteerId: Types.ObjectId): Promise<AvailabilitySnapshot | undefined> {
+export async function getSnapshotByVolunteerId(
+  volunteerId: Types.ObjectId
+): Promise<AvailabilitySnapshot | undefined> {
   try {
-    const snap = await AvailabilitySnapshotModel.findOne({ volunteerId }).lean().exec()
+    const snap = await AvailabilitySnapshotModel.findOne({ volunteerId })
+      .lean()
+      .exec()
     if (snap) return snap as AvailabilitySnapshot
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function getSnapshotsByVolunteerIds(volunteerIds: (Types.ObjectId)[]): Promise<AvailabilitySnapshot[]> {
+export async function getSnapshotsByVolunteerIds(
+  volunteerIds: Types.ObjectId[]
+): Promise<AvailabilitySnapshot[]> {
   try {
-    return await AvailabilitySnapshotModel.find(
-      { volunteerId: { $in: volunteerIds } }
-    ).lean().exec()
+    return await AvailabilitySnapshotModel.find({
+      volunteerId: { $in: volunteerIds },
+    })
+      .lean()
+      .exec()
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function getHistoryForDatesByVolunteerId(volunteerId: Types.ObjectId, start: Date, end: Date): Promise<AvailabilityHistory[]> {
+export async function getHistoryForDatesByVolunteerId(
+  volunteerId: Types.ObjectId,
+  start: Date,
+  end: Date
+): Promise<AvailabilityHistory[]> {
   try {
-    return await AvailabilityHistoryModel.find(
-      {
-        volunteerId,
-        date: {
-          $gte: start,
-          $lte: end,
-        }
-      }
-    ).sort({ date: 1 }).lean().exec() as AvailabilityHistory[]
+    return (await AvailabilityHistoryModel.find({
+      volunteerId,
+      date: {
+        $gte: start,
+        $lte: end,
+      },
+    })
+      .sort({ date: 1 })
+      .lean()
+      .exec()) as AvailabilityHistory[]
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function createSnapshotByVolunteerId(volunteerId: Types.ObjectId): Promise<AvailabilitySnapshot> {
+export async function createSnapshotByVolunteerId(
+  volunteerId: Types.ObjectId
+): Promise<AvailabilitySnapshot> {
   try {
     const snap = await AvailabilitySnapshotModel.create({ volunteerId })
     return snap.toObject() as AvailabilitySnapshot
@@ -52,10 +63,17 @@ export async function createSnapshotByVolunteerId(volunteerId: Types.ObjectId): 
   }
 }
 
-export async function updateSnapshotOnCallByVolunteerId(volunteerId: Types.ObjectId, availability: Availability): Promise<void> {
+export async function updateSnapshotOnCallByVolunteerId(
+  volunteerId: Types.ObjectId,
+  availability: Availability
+): Promise<void> {
   try {
-    const result = await AvailabilitySnapshotModel.updateOne({ volunteerId }, { onCallAvailability: availability }).exec()
-    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+    const result = await AvailabilitySnapshotModel.updateOne(
+      { volunteerId },
+      { onCallAvailability: availability }
+    ).exec()
+    if (!result.ok)
+      throw new RepoUpdateError('Update query did not return "ok"')
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -68,21 +86,28 @@ export async function updateSnapshotFullByVolunteerId(
   modifiedAt: Date
 ): Promise<void> {
   try {
-    const result = await AvailabilitySnapshotModel.updateOne({ volunteerId },
+    const result = await AvailabilitySnapshotModel.updateOne(
+      { volunteerId },
       {
         onCallAvailability: availability,
         timezone,
-        modifiedAt
+        modifiedAt,
       }
     ).exec()
-    if (!result.ok) throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.ok)
+      throw new RepoUpdateError('Update query did not return "ok"')
   } catch (err) {
     throw new RepoUpdateError(err)
   }
 }
 
-export type BaseHistory = Pick<AvailabilityHistory, 'availability' | 'volunteerId' | 'timezone' | 'date'>
-export async function createHistoryFromBaseHistory(base: BaseHistory): Promise<AvailabilityHistory> {
+export type BaseHistory = Pick<
+  AvailabilityHistory,
+  'availability' | 'volunteerId' | 'timezone' | 'date'
+>
+export async function createHistoryFromBaseHistory(
+  base: BaseHistory
+): Promise<AvailabilityHistory> {
   try {
     const history = await AvailabilityHistoryModel.create(base)
     return history.toObject() as AvailabilityHistory

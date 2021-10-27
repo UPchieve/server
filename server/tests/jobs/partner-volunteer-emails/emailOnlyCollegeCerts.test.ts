@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import {
   resetDb,
   insertVolunteer,
-  insertNotificationMany
+  insertNotificationMany,
 } from '../../db-utils'
 import emailOnlyCollegeCerts from '../../../worker/jobs/partner-volunteer-emails/emailOnlyCollegeCerts'
 import logger from '../../../logger'
@@ -17,7 +17,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -39,15 +39,15 @@ describe('Parnter volunteer only college certs email', () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       volunteerPartnerOrg: 'example',
-      subjects
+      subjects,
     })
     // @todo: figure out how to properly type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailOnlyCollegeCerts(job)
@@ -66,8 +66,8 @@ describe('Parnter volunteer only college certs email', () => {
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailOnlyCollegeCerts(job)
@@ -82,7 +82,7 @@ describe('Parnter volunteer only college certs email', () => {
     const notifications = [
       buildNotification({ volunteer: volunteer._id }),
       buildNotification({ volunteer: volunteer._id }),
-      buildNotification({ volunteer: volunteer._id })
+      buildNotification({ volunteer: volunteer._id }),
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
@@ -90,8 +90,8 @@ describe('Parnter volunteer only college certs email', () => {
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailOnlyCollegeCerts(job)
@@ -106,12 +106,12 @@ describe('Parnter volunteer only college certs email', () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       volunteerPartnerOrg: 'example',
-      subjects
+      subjects,
     })
     const notifications = [
       buildNotification({ volunteer: volunteer._id }),
       buildNotification({ volunteer: volunteer._id }),
-      buildNotification({ volunteer: volunteer._id })
+      buildNotification({ volunteer: volunteer._id }),
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
@@ -119,8 +119,8 @@ describe('Parnter volunteer only college certs email', () => {
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailOnlyCollegeCerts(job)
@@ -135,7 +135,7 @@ describe('Parnter volunteer only college certs email', () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       volunteerPartnerOrg: 'example',
-      subjects
+      subjects,
     })
     const errorMessage = 'Unable to send'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
@@ -145,8 +145,8 @@ describe('Parnter volunteer only college certs email', () => {
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await expect(emailOnlyCollegeCerts(job)).rejects.toEqual(

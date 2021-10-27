@@ -18,7 +18,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -38,15 +38,15 @@ describe('Email nice to meet you to volunteers', () => {
   test('Should only send emails to volunteers created a day ago', async () => {
     const volunteerOne = buildVolunteer()
     const volunteerTwo = buildVolunteer({
-      createdAt: new Date(Date.now() - oneDay)
+      createdAt: new Date(Date.now() - oneDay),
     })
     const volunteerThree = buildVolunteer({
-      createdAt: new Date(Date.now() - oneDay * 3)
+      createdAt: new Date(Date.now() - oneDay * 3),
     })
     await Promise.all([
       insertVolunteer(volunteerOne),
       insertVolunteer(volunteerTwo),
-      insertVolunteer(volunteerThree)
+      insertVolunteer(volunteerThree),
     ])
     await emailNiceToMeetYou()
 
@@ -62,7 +62,7 @@ describe('Email nice to meet you to volunteers', () => {
 
   test('Should throw error when sending email fails', async () => {
     const volunteer = buildVolunteer({
-      createdAt: new Date(Date.now() - oneDay)
+      createdAt: new Date(Date.now() - oneDay),
     })
     await insertVolunteer(volunteer)
 

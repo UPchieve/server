@@ -15,7 +15,7 @@ function getMockedWebSocket() {
     onmessage: jest.fn(),
 
     close: jest.fn(),
-    send: jest.fn()
+    send: jest.fn(),
   }
   // @note: partial mock of WebSocket
   return (mockedWs as unknown) as UpgradedWebSocket

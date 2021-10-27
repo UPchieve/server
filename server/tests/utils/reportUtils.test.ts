@@ -17,7 +17,7 @@ function buildAnalyticVolunteer(
   overrides: Partial<reportUtils.PartnerVolunteerAnalytics> = {}
 ): reportUtils.PartnerVolunteerAnalytics {
   const volunteer = buildVolunteer({
-    volunteerPartnerOrg: 'example'
+    volunteerPartnerOrg: 'example',
   })
   return {
     _id: volunteer._id,
@@ -37,31 +37,31 @@ function buildAnalyticVolunteer(
         {
           _id: null,
           total: 0,
-          totalWithinDateRange: 0
-        }
+          totalWithinDateRange: 0,
+        },
       ],
       sessionStats: [
         {
           _id: null,
           total: 0,
-          totalWithinDateRange: 0
-        }
-      ]
+          totalWithinDateRange: 0,
+        },
+      ],
     },
     textNotifications: { _id: null, total: 0, totalWithinDateRange: 0 },
     hourSummaryTotal: {
       totalCoachingHours: 0,
       totalQuizzesPassed: 0,
       totalElapsedAvailability: 0,
-      totalVolunteerHours: 0
+      totalVolunteerHours: 0,
     },
     hourSummaryDateRange: {
       totalCoachingHours: 0,
       totalQuizzesPassed: 0,
       totalElapsedAvailability: 0,
-      totalVolunteerHours: 0
+      totalVolunteerHours: 0,
     },
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -70,8 +70,8 @@ describe('Generate telecom report', () => {
   const rootTime = moment('2021-04-20', 'YYYY-MM-DD').tz('America/New_York')
   const certifications = {
     math: {
-      passed: true
-    }
+      passed: true,
+    },
   }
   const volunteers = [
     {
@@ -79,8 +79,8 @@ describe('Generate telecom report', () => {
       firstname: 'Test',
       lastname: 'User',
       email: 'email@email.com',
-      certifications: certifications
-    }
+      certifications: certifications,
+    },
   ]
   const session1Time = moment(rootTime)
     .subtract(1, 'week')
@@ -103,26 +103,26 @@ describe('Generate telecom report', () => {
       timeTutored: 43 * 60000,
       volunteerJoinedAt: session1Time,
       endedAt: moment(session1Time).add(43, 'minutes'), // contribute 30 min
-      name: 'session 1'
+      name: 'session 1',
     },
     {
       timeTutored: 12 * 60000,
       volunteerJoinedAt: session2Time,
       endedAt: moment(session2Time).add(12, 'minutes'), // contribute 0 min
-      name: 'session 2'
+      name: 'session 2',
     },
     {
       timeTutored: 88 * 60000,
       volunteerJoinedAt: session3Time,
       endedAt: moment(session3Time).add(88, 'minutes'), // contribute 90 min
-      name: 'session 3'
+      name: 'session 3',
     },
     {
       timeTutored: 60 * 60000,
       volunteerJoinedAt: session4Time,
       endedAt: moment(session4Time).add(60, 'minutes'), // contribute 60 min
-      name: 'session 4'
-    }
+      name: 'session 4',
+    },
   ]
   const availabilityDateRange = [
     {
@@ -151,9 +151,9 @@ describe('Generate telecom report', () => {
         '8p': false,
         '9p': false,
         '10p': false,
-        '11p': false
-      }
-    }
+        '11p': false,
+      },
+    },
   ]
   const actions = [
     {
@@ -161,8 +161,8 @@ describe('Generate telecom report', () => {
       createdAt: moment(rootTime)
         .subtract(1, 'week')
         .hour(10)
-        .toDate()
-    }
+        .toDate(),
+    },
   ]
 
   beforeEach(() => {
@@ -238,7 +238,7 @@ describe('getAnalyticsReportRow', () => {
       dateRangeTutoringHours: 0,
       dateRangeTrainingHours: 0,
       dateRangeElapsedAvailabilityHours: 0,
-      dateRangeVolunteerHours: 0
+      dateRangeVolunteerHours: 0,
     })
   })
 })
@@ -255,30 +255,30 @@ describe('getAnalyticsReportSummary', () => {
             {
               _id: null,
               total: 0,
-              totalWithinDateRange: 0
-            }
+              totalWithinDateRange: 0,
+            },
           ],
           sessionStats: [
             {
               _id: null,
               total: 5,
-              totalWithinDateRange: 2
-            }
-          ]
+              totalWithinDateRange: 2,
+            },
+          ],
         },
         textNotifications: { _id: null, total: 10, totalWithinDateRange: 5 },
         hourSummaryTotal: {
           totalCoachingHours: 2,
           totalQuizzesPassed: 2,
           totalElapsedAvailability: 1,
-          totalVolunteerHours: 5
+          totalVolunteerHours: 5,
         },
         hourSummaryDateRange: {
           totalCoachingHours: 2,
           totalQuizzesPassed: 1,
           totalElapsedAvailability: 1,
-          totalVolunteerHours: 4
-        }
+          totalVolunteerHours: 4,
+        },
       })
     )
     const rowTwo = reportUtils.getAnalyticsReportRow(
@@ -291,30 +291,30 @@ describe('getAnalyticsReportSummary', () => {
             {
               _id: null,
               total: 0,
-              totalWithinDateRange: 0
-            }
+              totalWithinDateRange: 0,
+            },
           ],
           sessionStats: [
             {
               _id: null,
               total: 12,
-              totalWithinDateRange: 4
-            }
-          ]
+              totalWithinDateRange: 4,
+            },
+          ],
         },
         textNotifications: { _id: null, total: 100, totalWithinDateRange: 30 },
         hourSummaryTotal: {
           totalCoachingHours: 10,
           totalQuizzesPassed: 4,
           totalElapsedAvailability: 5,
-          totalVolunteerHours: 19
+          totalVolunteerHours: 19,
         },
         hourSummaryDateRange: {
           totalCoachingHours: 5,
           totalQuizzesPassed: 3,
           totalElapsedAvailability: 3,
-          totalVolunteerHours: 11
-        }
+          totalVolunteerHours: 11,
+        },
       })
     )
     const report = [rowOne, rowTwo]
@@ -333,36 +333,36 @@ describe('getAnalyticsReportSummary', () => {
     const expected = {
       signUps: {
         total: 2,
-        totalWithinDateRange: 1
+        totalWithinDateRange: 1,
       },
       volunteersOnboarded: {
         total: 2,
-        totalWithinDateRange: 1
+        totalWithinDateRange: 1,
       },
       onboardingRate: {
         total: 100,
-        totalWithinDateRange: 100
+        totalWithinDateRange: 100,
       },
       opportunities: {
         total: 110,
-        totalWithinDateRange: 35
+        totalWithinDateRange: 35,
       },
       sessionsCompleted: {
         total: 17,
-        totalWithinDateRange: 6
+        totalWithinDateRange: 6,
       },
       pickupRate: {
         total: 15.45,
-        totalWithinDateRange: 17.14
+        totalWithinDateRange: 17.14,
       },
       volunteerHours: {
         total: 24,
-        totalWithinDateRange: 15
+        totalWithinDateRange: 15,
       },
       uniqueStudentsHelped: {
         total: 0,
-        totalWithinDateRange: 0
-      }
+        totalWithinDateRange: 0,
+      },
     }
 
     expect(summary).toEqual(expected)
@@ -375,7 +375,7 @@ describe('validateSessionDateRanges', () => {
     try {
       reportUtils.validateSessionDateRanges({
         sessionRangeFrom: '01/01/2021',
-        sessionRangeTo: ''
+        sessionRangeTo: '',
       })
     } catch (error) {
       expect(error).toBeInstanceOf(InputError)
@@ -390,7 +390,7 @@ describe('validateSessionDateRanges', () => {
     try {
       reportUtils.validateSessionDateRanges({
         sessionRangeFrom: '01-01-2021',
-        sessionRangeTo: '01/02/2021'
+        sessionRangeTo: '01/02/2021',
       })
     } catch (error) {
       expect(error).toBeInstanceOf(InputError)
@@ -405,7 +405,7 @@ describe('validateSessionDateRanges', () => {
     try {
       reportUtils.validateSessionDateRanges({
         sessionRangeFrom: '',
-        sessionRangeTo: '01-02-2021'
+        sessionRangeTo: '01-02-2021',
       })
     } catch (error) {
       expect(error).toBeInstanceOf(InputError)
@@ -422,7 +422,7 @@ describe('validateJoinedDateRanges', () => {
     try {
       reportUtils.validateJoinedDateRanges({
         joinedAfter: '01/01/2021',
-        joinedBefore: ''
+        joinedBefore: '',
       })
     } catch (error) {
       expect(error).toBeInstanceOf(InputError)
@@ -437,7 +437,7 @@ describe('validateJoinedDateRanges', () => {
     try {
       reportUtils.validateJoinedDateRanges({
         joinedAfter: '01-01-2021',
-        joinedBefore: '01/02/2021'
+        joinedBefore: '01/02/2021',
       })
     } catch (error) {
       expect(error).toBeInstanceOf(InputError)
@@ -452,7 +452,7 @@ describe('validateJoinedDateRanges', () => {
     try {
       reportUtils.validateJoinedDateRanges({
         joinedAfter: '',
-        joinedBefore: '01-02-2021'
+        joinedBefore: '01-02-2021',
       })
     } catch (error) {
       expect(error).toBeInstanceOf(InputError)
@@ -471,7 +471,7 @@ describe('validateStudentReportQuery', () => {
       sessionRangeTo: '01-02-2021',
       studentPartnerOrg: 'bogus-org',
       studentPartnerSite: '',
-      highschoolId: ''
+      highschoolId: '',
     } as reportUtils.StudentReportQuery
     try {
       reportUtils.validateStudentReportQuery(data)
@@ -488,7 +488,7 @@ describe('validateStudentReportQuery', () => {
       sessionRangeTo: '01-02-2021',
       studentPartnerOrg: 'example',
       studentPartnerSite: 'bogus',
-      highschoolId: ''
+      highschoolId: '',
     } as reportUtils.StudentReportQuery
     try {
       reportUtils.validateStudentReportQuery(data)
@@ -507,7 +507,7 @@ describe('validateStudentReportQuery', () => {
       sessionRangeTo: '01-02-2021',
       studentPartnerOrg: 'example4',
       studentPartnerSite: 'bogus',
-      highschoolId: ''
+      highschoolId: '',
     } as reportUtils.StudentReportQuery
     try {
       reportUtils.validateStudentReportQuery(data)
@@ -526,7 +526,7 @@ describe('validateStudentReportQuery', () => {
       sessionRangeTo: '01-02-2021',
       studentPartnerOrg: '',
       studentPartnerSite: '',
-      highSchoolId: '1234'
+      highSchoolId: '1234',
     } as reportUtils.StudentReportQuery
     try {
       reportUtils.validateStudentReportQuery(data)

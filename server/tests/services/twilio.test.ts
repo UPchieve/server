@@ -6,39 +6,39 @@ import {
   buildAvailability,
   buildSession,
   buildVolunteer,
-  getObjectId
+  getObjectId,
 } from '../generate'
 import {
   insertNotification,
   insertSession,
   insertSessionWithVolunteer,
   insertVolunteer,
-  resetDb
+  resetDb,
 } from '../db-utils'
 import * as SessionService from '../../services/SessionService'
 
 const MOCK_MOMENT = moment.utc('2020-01-01T05:00:00') // Midnight EST
 const MATCHING_AVAILABILITY = buildAvailability({ Wednesday: { '12a': true } })
 const NON_MATCHING_AVAILABILITY = buildAvailability({
-  Friday: { '12a': true }
+  Friday: { '12a': true },
 })
 
 const SESSION = buildSession({
   _id: getObjectId(),
   type: 'college',
   subTopic: SAT_SUBJECTS.SAT_READING,
-  addNotifications: jest.fn()
+  addNotifications: jest.fn(),
 })
 
 jest.mock('moment-timezone', () => ({
-  utc: jest.fn(() => MOCK_MOMENT)
+  utc: jest.fn(() => MOCK_MOMENT),
 }))
 
 jest.mock('twilio', () =>
   jest.fn(() => ({
     messages: {
-      create: jest.fn(() => Promise.resolve({ sid: 'MM12345' }))
-    }
+      create: jest.fn(() => Promise.resolve({ sid: 'MM12345' })),
+    },
   }))
 )
 
@@ -46,7 +46,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -73,7 +73,7 @@ test('Properly notifies a volunteer', async () => {
       firstname: 'Austin',
       isApproved: true,
       availability: MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING]
+      subjects: [SAT_SUBJECTS.SAT_READING],
     })
   )
   const notifiedVolunteer = await TwilioService.notifyVolunteer(SESSION)
@@ -86,7 +86,7 @@ test('Does nothing when no suitable volunteers are found', async () => {
     buildVolunteer({
       isApproved: true,
       availability: NON_MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING]
+      subjects: [SAT_SUBJECTS.SAT_READING],
     })
   )
   const notifiedVolunteer = await TwilioService.notifyVolunteer(SESSION)
@@ -100,7 +100,7 @@ test('Does nothing when all volunteers are in an active session', async () => {
       firstname: 'Austin',
       isApproved: true,
       availability: MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING]
+      subjects: [SAT_SUBJECTS.SAT_READING],
     })
   )
   const firstVolunteer = await TwilioService.notifyVolunteer(SESSION)
@@ -118,7 +118,7 @@ test('Prioritizes partner volunteers', async () => {
       volunteerPartnerOrg: 'Twilio',
       isApproved: true,
       availability: MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING]
+      subjects: [SAT_SUBJECTS.SAT_READING],
     })
   )
   await insertVolunteer(
@@ -126,7 +126,7 @@ test('Prioritizes partner volunteers', async () => {
       firstname: 'Schmilion',
       isApproved: true,
       availability: MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING]
+      subjects: [SAT_SUBJECTS.SAT_READING],
     })
   )
   const notifiedVolunteer = await TwilioService.notifyVolunteer(SESSION)
@@ -144,7 +144,7 @@ test('Prioritizes non-high-level SME volunteers for non-high-level subjects', as
       firstname: 'Einstein',
       isApproved: true,
       availability: MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING, MATH_SUBJECTS.CALCULUS_AB]
+      subjects: [SAT_SUBJECTS.SAT_READING, MATH_SUBJECTS.CALCULUS_AB],
     })
   )
   const hemingway = await insertVolunteer(
@@ -152,7 +152,7 @@ test('Prioritizes non-high-level SME volunteers for non-high-level subjects', as
       firstname: 'Hemingway',
       isApproved: true,
       availability: MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING]
+      subjects: [SAT_SUBJECTS.SAT_READING],
     })
   )
   await insertNotification(einstein, { sentAt: fiveDaysAgo })
@@ -165,7 +165,7 @@ test('Prioritizes non-high-level SME volunteers for non-high-level subjects', as
 test('Notifies only the failsafe volunteers', async () => {
   await insertVolunteer(
     buildVolunteer({
-      isFailsafeVolunteer: true
+      isFailsafeVolunteer: true,
     })
   )
   await insertVolunteer(buildVolunteer())

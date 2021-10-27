@@ -6,7 +6,7 @@ const ejson: any = require('mongodb-extended-json')
 mongoose.connect(config.database, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  useCreateIndex: true
+  useCreateIndex: true,
 })
 const db = mongoose.connection
 
@@ -24,25 +24,25 @@ db.once('open', function() {
       folder: 'students/',
       idField: 'email',
       model: 'Student',
-      files: ['test_students']
+      files: ['test_students'],
     },
     {
       folder: 'volunteers/',
       idField: 'email',
       model: 'Volunteer',
-      files: ['test_volunteers']
+      files: ['test_volunteers'],
     },
     {
       folder: 'schools/',
       idField: 'upchieveId',
       model: 'School',
-      files: ['test_high_schools']
+      files: ['test_high_schools'],
     },
     {
       folder: 'zipcodes/',
       idField: 'zipCode',
       model: 'ZipCode',
-      files: ['test_zipcodes']
+      files: ['test_zipcodes'],
     },
     {
       folder: 'questions/',
@@ -57,9 +57,9 @@ db.once('open', function() {
         'planning',
         'essays',
         'applications',
-        'upchieve101'
-      ]
-    }
+        'upchieve101',
+      ],
+    },
   ]
 
   // For each of the above metadata items, replace each record in each file with the value from seed data
@@ -89,7 +89,7 @@ db.once('open', function() {
         const replacePromise = aModel.findOneAndReplace(idKey, record, {
           upsert: true,
           new: true,
-          setDefaultsOnInsert: true
+          setDefaultsOnInsert: true,
         })
 
         promises.push(replacePromise)

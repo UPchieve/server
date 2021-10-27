@@ -29,7 +29,7 @@ import {
   scriptSrc,
   scriptSrcAttr,
   styleSrc,
-  upgradeInsecureRequests
+  upgradeInsecureRequests,
 } from './securitySettings'
 
 const distDir = '../dist'
@@ -71,7 +71,7 @@ function renderIndexHtml() {
     version: config.version,
     sentryEnv: config.vueAppSentryEnv,
     sentryDsn: config.vueAppSentryDsn,
-    customVolunteerPartnerOrg: config.customVolunteerPartnerOrg
+    customVolunteerPartnerOrg: config.customVolunteerPartnerOrg,
   }
 
   return Mustache.render(template, frontendConfig)
@@ -85,7 +85,7 @@ function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
 Sentry.init({
   dsn: config.sentryDsn,
   environment: config.NODE_ENV,
-  release: `uc-server@${config.version}`
+  release: `uc-server@${config.version}`,
 })
 
 // Express App
@@ -108,10 +108,10 @@ app.use(
         scriptSrc,
         scriptSrcAttr,
         styleSrc,
-        upgradeInsecureRequests
-      }
+        upgradeInsecureRequests,
+      },
     },
-    frameguard: false
+    frameguard: false,
   })
 )
 
@@ -146,14 +146,14 @@ app.use(
   cors({
     origin: originRegex,
     credentials: true,
-    exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined
+    exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined,
   })
 )
 // for now, send directive to never cache to prevent Zwibbler issues
 // until we figure out a caching strategy
 app.use(
   cacheControl({
-    noCache: true
+    noCache: true,
   })
 )
 app.use(haltOnTimedout)
@@ -166,10 +166,8 @@ app.use((req, res, next) => {
 // Make req.login async
 app.use((req, res, next): void => {
   // Wrapper around promise to allow for no callback when using with await
-  req.asyncLogin = (
-    arg1: Express.User,
-    arg2?: any,
-  ) => promisify(req.login)(arg1, arg2, () => {})
+  req.asyncLogin = (arg1: Express.User, arg2?: any) =>
+    promisify(req.login)(arg1, arg2, () => {})
   next()
 })
 

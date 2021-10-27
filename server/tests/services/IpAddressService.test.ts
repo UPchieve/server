@@ -15,8 +15,8 @@ describe('checkIpAddress', () => {
     return {
       data: {
         // eslint-disable-next-line @typescript-eslint/camelcase
-        country_code: countryCode
-      }
+        country_code: countryCode,
+      },
     }
   }
 

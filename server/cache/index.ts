@@ -32,7 +32,7 @@ export class KeyDeletionFailureError extends CustomError {
   }
 }
 
-export async function save(key: string, value: string) {
+export async function save(key: string, value: string): Promise<void> {
   await redisClient.set(key, value)
 }
 
@@ -46,12 +46,12 @@ export async function saveWithExpiration(
   key: string,
   value: string,
   seconds = 86400
-) {
+): Promise<void> {
   // possible expiryMode values: https://redis.io/commands/set
   await redisClient.set(key, value, 'EX', seconds)
 }
 
-export async function getTimeToExpiration(key: string) {
+export async function getTimeToExpiration(key: string): Promise<number> {
   return redisClient.ttl(key)
 }
 

@@ -1,10 +1,4 @@
-import {
-  Document,
-  model,
-  Schema,
-  Types,
-  ValidatorProps,
-} from 'mongoose'
+import { Document, model, Schema, Types, ValidatorProps } from 'mongoose'
 import { validUser } from '../../utils/validators'
 import { User } from '../User'
 
@@ -47,8 +41,7 @@ const counterSchema = {
   default: 0,
   validate: {
     validator: Number.isInteger,
-    message: (props: ValidatorProps) =>
-      `${props.value} is not an integer`,
+    message: (props: ValidatorProps) => `${props.value} is not an integer`,
   },
 }
 

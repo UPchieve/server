@@ -3,12 +3,12 @@ import * as CalendarCtrl from '../../controllers/CalendarCtrl'
 import {
   insertAvailabilitySnapshot,
   insertVolunteer,
-  resetDb
+  resetDb,
 } from '../db-utils'
 import {
   buildAvailability,
   buildVolunteer,
-  buildCertifications
+  buildCertifications,
 } from '../generate'
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import UserActionModel from '../../models/UserAction'
@@ -22,7 +22,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -39,7 +39,7 @@ describe('Save availability and time zone', () => {
     const input = {
       user: await insertVolunteer(),
       tz: 'American/New York',
-      ip: ''
+      ip: '',
     }
 
     await expect(CalendarCtrl.updateSchedule(input)).rejects.toThrow(
@@ -55,7 +55,7 @@ describe('Save availability and time zone', () => {
       user: volunteer,
       tz: 'American/New York',
       availability,
-      ip: ''
+      ip: '',
     }
 
     await expect(CalendarCtrl.updateSchedule(input)).rejects.toThrow(
@@ -67,31 +67,31 @@ describe('Save availability and time zone', () => {
     const volunteer = await insertVolunteer()
     await insertAvailabilitySnapshot({ volunteerId: volunteer._id })
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true }
+      Saturday: { '1p': true, '2p': true },
     })
     const input = {
       user: volunteer,
       tz: 'American/New York',
       availability,
-      ip: ''
+      ip: '',
     }
     await CalendarCtrl.updateSchedule(input)
 
     const {
       availability: updatedAvailability,
-      isOnboarded
+      isOnboarded,
     } = (await VolunteerModel.findOne({
-      _id: volunteer._id
+      _id: volunteer._id,
     })
       .lean()
       .select('availability isOnboarded')
       .exec()) as Volunteer
     const availabilitySnapshot = await AvailabilityService.getAvailability({
-      volunteerId: volunteer._id
+      volunteerId: volunteer._id,
     })
     const expectedUserAction = await UserActionModel.findOne({
       user: volunteer._id,
-      action: USER_ACTION.ACCOUNT.ONBOARDED
+      action: USER_ACTION.ACCOUNT.ONBOARDED,
     })
 
     expect(updatedAvailability).toMatchObject(availability)
@@ -102,7 +102,7 @@ describe('Save availability and time zone', () => {
 
   test('Should update availability (and user action) and becomes onboarded - with user action', async () => {
     const certifications = buildCertifications({
-      algebra: { passed: true, tries: 1 }
+      algebra: { passed: true, tries: 1 },
     })
     const volunteer = await insertVolunteer(
       buildVolunteer({
@@ -110,43 +110,43 @@ describe('Save availability and time zone', () => {
         subjects: [
           SUBJECTS.ALGEBRA_TWO,
           SUBJECTS.ALGEBRA_ONE,
-          SUBJECTS.PREALGREBA
+          SUBJECTS.PREALGREBA,
         ],
-        volunteerPartnerOrg: 'example'
+        volunteerPartnerOrg: 'example',
       })
     )
     await insertAvailabilitySnapshot({ volunteerId: volunteer._id })
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true }
+      Saturday: { '1p': true, '2p': true },
     })
     const input = {
       user: volunteer,
       tz: 'American/New York',
       availability,
-      ip: ''
+      ip: '',
     }
     await CalendarCtrl.updateSchedule(input)
 
     const {
       availability: updatedAvailability,
-      isOnboarded
+      isOnboarded,
     } = (await VolunteerModel.findOne({
-      _id: volunteer._id
+      _id: volunteer._id,
     })
       .lean()
       .select('availability isOnboarded')
       .exec()) as Volunteer
     const userAction = await UserActionModel.findOne({
       user: volunteer._id,
-      action: USER_ACTION.ACCOUNT.ONBOARDED
+      action: USER_ACTION.ACCOUNT.ONBOARDED,
     })
     const availabilitySnapshot = await AvailabilityService.getAvailability({
-      volunteerId: volunteer._id
+      volunteerId: volunteer._id,
     })
     const expectedUserAction = {
       user: volunteer._id,
       actionType: USER_ACTION.TYPE.ACCOUNT,
-      action: USER_ACTION.ACCOUNT.ONBOARDED
+      action: USER_ACTION.ACCOUNT.ONBOARDED,
     }
 
     expect(updatedAvailability).toMatchObject(availability)
@@ -163,10 +163,10 @@ describe('Save availability and time zone', () => {
 describe('Clear schedule', () => {
   test('Should clear schedule', async () => {
     const certifications = buildCertifications({
-      algebra: { passed: true, tries: 1 }
+      algebra: { passed: true, tries: 1 },
     })
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true }
+      Saturday: { '1p': true, '2p': true },
     })
     const volunteer = await insertVolunteer(
       buildVolunteer({ availability, certifications })
@@ -178,7 +178,7 @@ describe('Clear schedule', () => {
     const emptyAvailability = buildAvailability()
     const { availability: updatedAvailability } = (await VolunteerModel.findOne(
       {
-        _id: volunteer._id
+        _id: volunteer._id,
       }
     )
       .lean()

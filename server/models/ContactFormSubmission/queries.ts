@@ -15,7 +15,7 @@ export async function createContactFormByUser(
     const data = await ContactFormSubmissionModel.create({
       message,
       topic,
-      userId: user._id
+      userId: user._id,
     })
     if (data) return data.toObject() as ContactFormSubmission
     else throw new RepoCreateError('Create query did not return created object')
@@ -34,7 +34,7 @@ export async function createContactFormByEmail(
     const data = await ContactFormSubmissionModel.create({
       message,
       topic,
-      userEmail
+      userEmail,
     })
     if (data) return data.toObject() as ContactFormSubmission
     else throw new RepoCreateError('Create query did not return created object')

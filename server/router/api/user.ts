@@ -3,7 +3,7 @@ import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
 import { updateVolunteerProfileById } from '../../models/Volunteer/queries'
-import { getUsersReferredByOtherId,  } from '../../models/User/queries'
+import { getUsersReferredByOtherId } from '../../models/User/queries'
 import { authPassport } from '../../utils/auth-utils'
 import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 
@@ -37,7 +37,10 @@ export function routeUser(router: Router): void {
         MailService.createContact(updatedUser)
 
         if (isDeactivated)
-          new UserActionCtrl.AccountActionCreator(user._id, ip).accountDeactivated()
+          new UserActionCtrl.AccountActionCreator(
+            user._id,
+            ip
+          ).accountDeactivated()
       }
       await updateVolunteerProfileById(user._id, isDeactivated, phone)
       res.sendStatus(200)
@@ -51,7 +54,7 @@ export function routeUser(router: Router): void {
     const { userId } = req.params
 
     try {
-      await UserService.adminUpdateUser({ userId, ...req.body} as unknown)
+      await UserService.adminUpdateUser({ userId, ...req.body } as unknown)
       res.sendStatus(200)
     } catch (err) {
       resError(res, err)
@@ -66,7 +69,7 @@ export function routeUser(router: Router): void {
       await UserService.addReference({
         userId: user._id,
         ip,
-        ...req.body
+        ...req.body,
       } as unknown)
       res.sendStatus(200)
     } catch (err) {
@@ -102,12 +105,12 @@ export function routeUser(router: Router): void {
         res.json({
           success: true,
           message: 'AWS SDK S3 pre-signed URL generated successfully',
-          uploadUrl
+          uploadUrl,
         })
       } else {
         res.json({
           success: false,
-          message: 'Pre-signed URL error'
+          message: 'Pre-signed URL error',
         })
       }
     } catch (err) {
@@ -132,7 +135,7 @@ export function routeUser(router: Router): void {
         languages,
         country,
         state,
-        city
+        city,
       } = req.body
 
       const update = {
@@ -144,15 +147,11 @@ export function routeUser(router: Router): void {
         languages,
         country,
         state,
-        city
+        city,
       }
 
       try {
-        await VolunteerService.addBackgroundInfo(
-          user._id,
-          update,
-          ip
-        )
+        await VolunteerService.addBackgroundInfo(user._id, update, ip)
         res.sendStatus(200)
       } catch (error) {
         res.sendStatus(500)
@@ -171,15 +170,15 @@ export function routeUser(router: Router): void {
     }
   })
 
-  router.get('/user/:userId', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
+  router.get('/user/:userId', authPassport.isAdmin, async function(req, res) {
     const { userId } = req.params
     const { page } = req.query
 
     try {
-      const user = await UserService.adminGetUser(asObjectId(userId), parseInt(asString(page)))
+      const user = await UserService.adminGetUser(
+        asObjectId(userId),
+        parseInt(asString(page))
+      )
 
       if (user.isVolunteer && user.photoIdS3Key)
         user.photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
@@ -195,9 +194,11 @@ export function routeUser(router: Router): void {
     try {
       const payload = {
         ...req.query,
-        page: req.query.page ? req.query.page : 1
+        page: req.query.page ? req.query.page : 1,
       }
-      const { users, isLastPage } = await UserService.getUsers(payload as unknown)
+      const { users, isLastPage } = await UserService.getUsers(
+        payload as unknown
+      )
       res.json({ users, isLastPage })
     } catch (err) {
       resError(res, err)

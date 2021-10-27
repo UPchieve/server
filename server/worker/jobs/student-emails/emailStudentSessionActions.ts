@@ -22,14 +22,13 @@ export default async (
 ): Promise<void> => {
   const {
     data: { sessionSubtopic, sessionDate },
-    name: currentJob
+    name: currentJob,
   } = job
   const studentId = asObjectId(job.data.studentId)
   const volunteerId = asObjectId(job.data.volunteerId)
   const student = await getStudentContactInfoById(studentId)
   let volunteer
-  if (volunteerId)
-    volunteer = await getVolunteerContactInfoById(volunteerId)
+  if (volunteerId) volunteer = await getVolunteerContactInfoById(volunteerId)
 
   if (student) {
     try {

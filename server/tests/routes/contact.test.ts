@@ -6,7 +6,7 @@ import * as ContactFormService from '../../services/ContactFormService'
 import { DocCreationError, UserNotFoundError } from '../../models/Errors'
 import {
   ContactFormDataValidationError,
-  MailSendError
+  MailSendError,
 } from '../../services/ContactFormService'
 import { mockApp } from '../mock-app'
 
@@ -23,7 +23,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -45,7 +45,7 @@ test('contact form returns 200 with valid request with only email', async () => 
     .send({
       userEmail: 'test@test.com',
       message: 'This is some feedback for you.',
-      topic: 'General feedback'
+      topic: 'General feedback',
     })
 
   expect(res.status).toEqual(200)
@@ -68,7 +68,7 @@ test('contact form returns 200 with valid request with userId', async () => {
       userEmail: 'test@test.com',
       message: 'This is some feedback for you.',
       topic: 'General feedback',
-      userId: id
+      userId: id,
     })
 
   expect(res.status).toEqual(200)
@@ -91,7 +91,7 @@ test('contact form returns 400 with invalid userId', async () => {
       userEmail: 'test@test.com',
       message: 'This is some feedback for you.',
       topic: 'General feedback',
-      userId: id
+      userId: id,
     })
 
   expect(res.status).toEqual(400)
@@ -116,7 +116,7 @@ test('contact form returns 400 with invalid data', async () => {
       userEmail: 'test@test.com',
       message: 'This is some feedback for you.',
       topic: 'General feedback',
-      userId: id
+      userId: id,
     })
 
   expect(res.status).toEqual(400)
@@ -139,7 +139,7 @@ test('contact form returns 500 with invalid data', async () => {
       userEmail: 'test@test.com',
       message: 'This is some feedback for you.',
       topic: 'General feedback',
-      userId: id
+      userId: id,
     })
 
   expect(res.status).toEqual(500)
@@ -162,7 +162,7 @@ test('contact form returns 500 with doc creation error', async () => {
       userEmail: 'test@test.com',
       message: 'This is some feedback for you.',
       topic: 'General feedback',
-      userId: id
+      userId: id,
     })
 
   expect(res.status).toEqual(500)

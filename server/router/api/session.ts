@@ -18,7 +18,7 @@ export function routes(router: Router, io: Server) {
         ...req.body,
         user: req.user,
         userAgent: req.get('User-Agent'),
-        ip: req.ip
+        ip: req.ip,
       })
       res.json({ sessionId })
     } catch (error) {
@@ -35,7 +35,7 @@ export function routes(router: Router, io: Server) {
           ...req.body,
           user: req.user,
           userAgent: req.get('User-Agent'),
-          ip: req.ip
+          ip: req.ip,
         },
         socketService
       )
@@ -51,7 +51,7 @@ export function routes(router: Router, io: Server) {
         throw new InputError('Missing sessionId body string')
       const sessionId = await SessionService.checkSession(req.body.sessionId)
       res.json({
-        sessionId
+        sessionId,
       })
     } catch (error) {
       resError(res, error)
@@ -59,23 +59,21 @@ export function routes(router: Router, io: Server) {
   })
 
   // TODO: switch to a GET request
-  router
-    .route('/session/current')
-    .post(async function(req, res) {
-      try {
-        const currentSession = await SessionService.currentSession(req.user)
-        if (!currentSession) {
-          resError(res, new LookupError('No current session'), 404)
-        } else {
-          res.json({
-            sessionId: currentSession._id,
-            data: currentSession
-          })
-        }
-      } catch (error) {
-        resError(res, error)
+  router.route('/session/current').post(async function(req, res) {
+    try {
+      const currentSession = await SessionService.currentSession(req.user)
+      if (!currentSession) {
+        resError(res, new LookupError('No current session'), 404)
+      } else {
+        res.json({
+          sessionId: currentSession._id,
+          data: currentSession,
+        })
       }
-    })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
 
   router.route('/session/latest').post(async function(req, res) {
     try {
@@ -87,7 +85,7 @@ export function routes(router: Router, io: Server) {
 
       res.json({
         sessionId: latestSession._id,
-        data: latestSession
+        data: latestSession,
       })
     } catch (error) {
       resError(res, error)
@@ -113,7 +111,7 @@ export function routes(router: Router, io: Server) {
       const { sessionId } = req.params
       await SessionService.reviewSession({
         ...req.body,
-        sessionId
+        sessionId,
       })
       res.sendStatus(200)
     } catch (error) {
@@ -133,17 +131,14 @@ export function routes(router: Router, io: Server) {
     }
   })
 
-  router.post('/session/:sessionId/report', async function(
-    req,
-    res
-  ) {
+  router.post('/session/:sessionId/report', async function(req, res) {
     try {
       const { sessionId } = req.params
       const { user } = req
       await SessionService.reportSession({
         sessionId,
         user,
-        ...req.body
+        ...req.body,
       })
       res.json({ msg: 'Success' })
     } catch (error) {
@@ -152,10 +147,7 @@ export function routes(router: Router, io: Server) {
     }
   })
 
-  router.post('/session/:sessionId/timed-out', async function(
-    req,
-    res
-  ) {
+  router.post('/session/:sessionId/timed-out', async function(req, res) {
     try {
       const { sessionId } = req.params
       const { timeout } = req.body
@@ -166,7 +158,7 @@ export function routes(router: Router, io: Server) {
         timeout,
         user,
         ip,
-        userAgent
+        userAgent,
       })
       res.sendStatus(200)
     } catch (error) {
@@ -178,7 +170,7 @@ export function routes(router: Router, io: Server) {
     try {
       const {
         sessions,
-        isLastPage
+        isLastPage,
       } = await SessionService.adminFilteredSessions(req.query)
       res.json({ sessions, isLastPage })
     } catch (error) {
@@ -202,7 +194,8 @@ export function routes(router: Router, io: Server) {
   router.get('/session/:sessionId', async function(req, res) {
     try {
       const { sessionId } = req.params
-      const [session] = await SessionService.publicSession(sessionId)
+      // TODO: could be undefined
+      const session = await SessionService.publicSession(sessionId)
       res.json({ session })
     } catch (error) {
       resError(res, error)

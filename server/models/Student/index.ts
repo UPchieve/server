@@ -9,7 +9,7 @@ export interface Student extends User {
   zipCode: string
   studentPartnerOrg: string
   partnerSite: string
-  currentGrade?: GRADES
+  currentGrade?: GRADES // optional for backwards compatibility
 }
 
 export type StudentDocument = Student & Document
@@ -28,8 +28,7 @@ const studentSchema = new Schema(
     approvedHighschool: {
       type: Types.ObjectId,
       ref: 'School',
-      /* TODO validate approvedHighschool.isApproved: true
-       * if this.isVolunteer is false */
+      // TODO: validate approvedHighschool.isApproved if this.isVolunteer is false
     },
     zipCode: String,
     studentPartnerOrg: String,

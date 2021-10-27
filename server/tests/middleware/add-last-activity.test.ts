@@ -4,7 +4,7 @@ import { addLastActivity } from '../../middleware/add-last-activity'
 import { ONE_DAY_ELAPSED_MILLISECONDS } from '../../constants'
 import { updateLastActivityUser } from '../../services/UserService'
 jest.mock('../../services/UserService', () => ({
-  updateLastActivityUser: jest.fn()
+  updateLastActivityUser: jest.fn(),
 }))
 
 const USER_ID = '5a39d174a6f3b3973d5633z7'
@@ -37,8 +37,8 @@ test('Should execute next() and update when user has lastActivityAt value has ex
   const mockDecoration = {
     user: {
       _id: USER_ID,
-      lastActivityAt: new Date(Date.now() - ONE_DAY_ELAPSED_MILLISECONDS * 2)
-    }
+      lastActivityAt: new Date(Date.now() - ONE_DAY_ELAPSED_MILLISECONDS * 2),
+    },
   }
   const req: any = Object.assign({}, new Request(), mockDecoration)
   const mockUpdateLastActivityUser = mocked(updateLastActivityUser)

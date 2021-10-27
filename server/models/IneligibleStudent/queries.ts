@@ -3,13 +3,14 @@ import IneligibleStudentModel, { IneligibleStudent } from './index'
 import { RepoReadError, RepoCreateError } from '../Errors'
 import { GRADES } from '../../constants'
 
-export async function getIneligibleStudentByEmail(email: string): Promise<IneligibleStudent | undefined> {
+export async function getIneligibleStudentByEmail(
+  email: string
+): Promise<IneligibleStudent | undefined> {
   try {
     const result = await IneligibleStudentModel.findOne({ email })
       .lean()
       .exec()
-    if (result)
-      return result as IneligibleStudent
+    if (result) return result as IneligibleStudent
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -28,7 +29,9 @@ export interface IneligibleStudentsWithSchoolInfo {
   isApproved: boolean
   ipAddress: string
 }
-export async function getIneligibleStudentsPaginated(page: number): Promise<{
+export async function getIneligibleStudentsPaginated(
+  page: number
+): Promise<{
   ineligibleStudents: IneligibleStudentsWithSchoolInfo[]
   isLastPage: boolean
 }> {
@@ -113,7 +116,7 @@ export async function createIneligibleStudent(
       school: schoolId,
       ipAddress,
       referredBy,
-      currentGrade
+      currentGrade,
     })
     if (data) return data.toObject() as IneligibleStudent
     else throw new RepoCreateError('Create query did not return created object')

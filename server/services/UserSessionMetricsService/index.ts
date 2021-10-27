@@ -1,26 +1,21 @@
 import { Types } from 'mongoose'
 
-import {
-  Session
-} from '../../models/Session'
+import { Session } from '../../models/Session'
 import {
   getSessionById,
   updateSessionFlagsById,
-  updateSessionReviewReasonsById
+  updateSessionReviewReasonsById,
 } from '../../models/Session/queries'
-import {
-  UserSessionMetrics,
-  MetricType,
-} from '../../models/UserSessionMetrics'
+import { UserSessionMetrics, MetricType } from '../../models/UserSessionMetrics'
 import {
   UserSessionMetricsUpdateQuery,
   getUSMByUserId,
-  executeUSMUpdatesByUserId
+  executeUSMUpdatesByUserId,
 } from '../../models/UserSessionMetrics/queries'
 import {
   USER_SESSION_METRICS,
   SESSION_EVENTS,
-  USM_EVENTS
+  USM_EVENTS,
 } from '../../constants'
 import { FeedbackVersionTwo } from '../../models/Feedback'
 import { emitter } from '../EventsService'
@@ -28,7 +23,12 @@ import logger from '../../logger'
 import { safeAsync } from '../../utils/safe-async'
 import { getFeedbackById } from '../../models/Feedback/queries'
 import { METRIC_PROCESSORS, MetricProcessorOutputs } from './metrics'
-import { UpdateValueData, ProcessorData, MetricProcessor, CounterMetricProcessor } from './types'
+import {
+  UpdateValueData,
+  ProcessorData,
+  MetricProcessor,
+  CounterMetricProcessor,
+} from './types'
 import { asObjectId } from '../../utils/type-utils'
 
 export interface MetricProcessorPayload {
@@ -56,7 +56,7 @@ export async function prepareSessionProcessors(
     session,
     feedback,
     studentUSM,
-    volunteerUSM
+    volunteerUSM,
   } = await getValuesToPrepareMetrics(asObjectId(sessionId))
   const payload = await prepareMetrics(
     SESSION_METRICS_PROCESSORS,
@@ -77,8 +77,11 @@ export async function prepareFeedbackProcessors(
     session,
     feedback,
     studentUSM,
-    volunteerUSM
-  } = await getValuesToPrepareMetrics(asObjectId(sessionId), asObjectId(feedbackId))
+    volunteerUSM,
+  } = await getValuesToPrepareMetrics(
+    asObjectId(sessionId),
+    asObjectId(feedbackId)
+  )
   const payload = await prepareMetrics(
     FEEDBACK_METRICS_PROCESSORS,
     session,
@@ -97,7 +100,7 @@ export async function prepareReportProcessors(
     session,
     feedback,
     studentUSM,
-    volunteerUSM
+    volunteerUSM,
   } = await getValuesToPrepareMetrics(asObjectId(sessionId))
   const payload = await prepareMetrics(
     REPORT_METRICS_PROCESSORS,
@@ -125,18 +128,22 @@ export async function getValuesToPrepareMetrics(
   const uvd = { session, feedback } as UpdateValueData
 
   const studentUSM = await getUSMByUserId(uvd.session.student as Types.ObjectId)
-  if (!studentUSM) throw new Error(`Could not find USM for student ${uvd.session.student}`)
+  if (!studentUSM)
+    throw new Error(`Could not find USM for student ${uvd.session.student}`)
   let volunteerUSM: UserSessionMetrics | undefined
   if (uvd.session.volunteer) {
     volunteerUSM = await getUSMByUserId(uvd.session.volunteer as Types.ObjectId)
-    if (!volunteerUSM) throw new Error(`Could not find USM for volunteer ${uvd.session.volunteer}`)
+    if (!volunteerUSM)
+      throw new Error(
+        `Could not find USM for volunteer ${uvd.session.volunteer}`
+      )
   }
 
   return {
     session,
     feedback,
     studentUSM,
-    volunteerUSM
+    volunteerUSM,
   }
 }
 
@@ -152,7 +159,9 @@ export async function prepareMetrics(
   const outputs: MetricProcessorOutputs = {}
   for (const metric of metrics) {
     try {
-      outputs[metric.constructor.name as keyof MetricProcessorOutputs] = metric.computeUpdateValue(uvd)
+      outputs[
+        metric.constructor.name as keyof MetricProcessorOutputs
+      ] = metric.computeUpdateValue(uvd)
     } catch (err) {
       logger.error(
         `Metrics processor ${metric.constructor.name} failed to compute update value`
@@ -163,7 +172,7 @@ export async function prepareMetrics(
     session: uvd.session,
     studentUSM,
     volunteerUSM,
-    outputs
+    outputs,
   } as MetricProcessorPayload
 }
 
@@ -201,7 +210,7 @@ export function metricProcessorFactory<T>(
           session,
           studentUSM,
           volunteerUSM,
-          value: outputs[key as keyof MetricProcessorOutputs]
+          value: outputs[key as keyof MetricProcessorOutputs],
         } as ProcessorData<MetricType>
         try {
           acc.push(await (processor[opName] as Function)(processorData))
@@ -273,7 +282,10 @@ export const processSessionReviewReasons = metricProcessorFactory(
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
       if (reasons.length) {
-        await updateSessionReviewReasonsById(session._id as Types.ObjectId, reasons)
+        await updateSessionReviewReasonsById(
+          session._id as Types.ObjectId,
+          reasons
+        )
         emitter.emit(
           SESSION_EVENTS.SESSION_REVIEW_REASONS_SET,
           session._id.toString()
@@ -295,7 +307,10 @@ export const processFeedbackReviewReasons = metricProcessorFactory(
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
       if (reasons.length) {
-        await updateSessionReviewReasonsById(session._id as Types.ObjectId, reasons)
+        await updateSessionReviewReasonsById(
+          session._id as Types.ObjectId,
+          reasons
+        )
         emitter.emit(
           SESSION_EVENTS.FEEDBACK_REVIEW_REASONS_SET,
           session._id.toString()
@@ -317,7 +332,10 @@ export const processReportReviewReasons = metricProcessorFactory(
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
       if (reasons.length) {
-        await updateSessionReviewReasonsById(session._id as Types.ObjectId, reasons)
+        await updateSessionReviewReasonsById(
+          session._id as Types.ObjectId,
+          reasons
+        )
         emitter.emit(
           SESSION_EVENTS.REPORT_REVIEW_REASONS_SET,
           session._id.toString()
@@ -342,7 +360,10 @@ export const processStudentUpdateQuery = metricProcessorFactory(
     session: Session
   ): Promise<void> => {
     try {
-      await executeUSMUpdatesByUserId(session.student as Types.ObjectId, updates)
+      await executeUSMUpdatesByUserId(
+        session.student as Types.ObjectId,
+        updates
+      )
     } catch (err) {
       throw new Error(
         `failed to update USM for user ${session.student as Types.ObjectId} - ${err}`

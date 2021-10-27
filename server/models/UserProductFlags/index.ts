@@ -1,10 +1,4 @@
-import {
-  Document,
-  model,
-  Schema,
-  Types,
-  ValidatorProps,
-} from 'mongoose'
+import { Document, model, Schema, Types, ValidatorProps } from 'mongoose'
 import { validUser } from '../../utils/validators'
 import { User } from '../User'
 

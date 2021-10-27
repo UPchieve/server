@@ -4,9 +4,9 @@ import { Job } from 'bull'
 import { Types } from 'mongoose'
 import config from '../../config'
 import { AssistmentsData } from '../../models/AssistmentsData'
-import { 
+import {
   getAssistmentsDataBySession,
-  updateAssistmentsDataSentAtById
+  updateAssistmentsDataSentAtById,
 } from '../../models/AssistmentsData/queries'
 import { Message } from '../../models/Message'
 import { getSessionById } from '../../models/Session/queries'
@@ -50,7 +50,7 @@ export function pluckMessages(messages: Message[]): PartMessage[] {
     final.push({
       contents: message.contents,
       createdAt: message.createdAt.getTime(),
-      userId: message.user.toString()
+      userId: message.user.toString(),
     })
   }
   return final
@@ -62,7 +62,7 @@ export async function buildRequest(
   try {
     const params = {
       assignmentXref: data.assignmentId,
-      userXref: data.studentId
+      userXref: data.studentId,
     }
     const session = await getSessionById(data.session as Types.ObjectId)
     const partSession = {
@@ -77,18 +77,20 @@ export async function buildRequest(
       volunteerJoinedAt: session.volunteerJoinedAt
         ? session.volunteerJoinedAt.getTime()
         : undefined,
-      volunteerId: session.volunteer ? session.volunteer.toString() : undefined
+      volunteerId: session.volunteer ? session.volunteer.toString() : undefined,
     }
     const payload = {
       studentId: data.studentId,
       assignmentId: data.assignmentId,
       problemId: String(data.problemId),
-      session: partSession
+      session: partSession,
     } as Payload
     return { params, payload }
   } catch (err) {
     throw new Error(
-      `Error building request to send AssistmentsData ${data._id}: ${(err as Error).message}`
+      `Error building request to send AssistmentsData ${data._id}: ${
+        (err as Error).message
+      }`
     )
   }
 }
@@ -112,9 +114,9 @@ export async function sendData(
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: buildAuthHeader()
+          Authorization: buildAuthHeader(),
         },
-        validateStatus: () => true // always reolve the promise regardless of status code
+        validateStatus: () => true, // always reolve the promise regardless of status code
       }
     )
     message = res.data
@@ -148,7 +150,7 @@ export async function sendWrapper(
           log(`Stopping due to status ${e.message}`)
           return false
         }
-      }
+      },
     })
   } catch (err) {
     throw new Error(

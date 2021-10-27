@@ -26,7 +26,7 @@ interface EmailReferCoworkerJobData {
 export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
   const {
     data: { volunteerId, firstName, email, partnerOrg },
-    name: currentJob
+    name: currentJob,
   } = job
 
   const volunteer = await getVolunteerContactInfoById(volunteerId)
@@ -45,25 +45,25 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
         flags: {
           $nin: [
             USER_SESSION_METRICS.absentStudent,
-            USER_SESSION_METRICS.absentVolunteer
-          ]
-        }
-      }
+            USER_SESSION_METRICS.absentVolunteer,
+          ],
+        },
+      },
     },
     {
       $lookup: {
         from: 'feedbacks',
         localField: 'volunteer',
         foreignField: 'volunteerId',
-        as: 'feedbacks'
-      }
+        as: 'feedbacks',
+      },
     },
     {
       $lookup: {
         from: 'feedbacks',
         let: {
           volunteerId: '$volunteer',
-          sessionId: '$_id'
+          sessionId: '$_id',
         },
         pipeline: [
           {
@@ -71,20 +71,20 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
               $expr: {
                 $and: [
                   { $eq: ['$sessionId', '$$sessionId'] },
-                  { $eq: ['$volunteerId', '$$volunteerId'] }
-                ]
-              }
-            }
-          }
+                  { $eq: ['$volunteerId', '$$volunteerId'] },
+                ],
+              },
+            },
+          },
         ],
-        as: 'feedback'
-      }
+        as: 'feedback',
+      },
     },
     {
       $unwind: {
         path: '$feedback',
-        preserveNullAndEmptyArrays: true
-      }
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $project: {
@@ -96,30 +96,30 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
                 case: {
                   $and: [
                     {
-                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.ONE]
+                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.ONE],
                     },
-                    '$feedback.responseData.session-rating.rating'
-                  ]
+                    '$feedback.responseData.session-rating.rating',
+                  ],
                 },
-                then: '$feedback.responseData.session-rating.rating'
+                then: '$feedback.responseData.session-rating.rating',
               },
               {
                 case: {
                   $and: [
                     {
-                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.TWO]
+                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.TWO],
                     },
-                    '$feedback.volunteerFeedback.session-enjoyable'
-                  ]
+                    '$feedback.volunteerFeedback.session-enjoyable',
+                  ],
                 },
-                then: '$feedback.volunteerFeedback.session-enjoyable'
-              }
+                then: '$feedback.volunteerFeedback.session-enjoyable',
+              },
             ],
-            default: null
-          }
-        }
-      }
-    }
+            default: null,
+          },
+        },
+      },
+    },
   ])
 
   if (sessions.length === 5) {

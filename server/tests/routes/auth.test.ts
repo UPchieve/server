@@ -17,8 +17,8 @@ jest.mock('../../utils/auth-utils', () => ({
     setupPassport: jest.fn(),
     isAdmin: jest.fn((req, res, next) => {
       return next()
-    })
-  }
+    }),
+  },
 }))
 
 const US_IP_ADDRESS = '161.185.160.93'
@@ -78,7 +78,7 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(PARTNER_VOLUNTEER, payload)
 
     const {
-      body: { volunteerPartner }
+      body: { volunteerPartner },
     } = response
     expect(AuthService.lookupPartnerVolunteer).toHaveBeenCalledTimes(1)
     expect(volunteerPartner).toEqual(payload.partnerId)
@@ -89,7 +89,7 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(PARTNER_VOLUNTEER, payload)
 
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(AuthService.lookupPartnerVolunteer).toHaveBeenCalledTimes(0)
     expect(err).toEqual('Missing volunteerPartnerId query string')
@@ -104,7 +104,7 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
 
     const {
-      body: { studentPartner }
+      body: { studentPartner },
     } = response
     expect(AuthService.lookupPartnerStudent).toHaveBeenCalledTimes(1)
     expect(studentPartner).toEqual(payload.partnerId)
@@ -115,7 +115,7 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
 
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(AuthService.lookupPartnerStudent).toHaveBeenCalledTimes(0)
     expect(err).toEqual('Missing studentPartnerId query string')
@@ -132,7 +132,7 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(STUDENT_CODE, payload)
 
     const {
-      body: { studentPartnerKey }
+      body: { studentPartnerKey },
     } = response
     expect(AuthService.lookupPartnerStudentCode).toHaveBeenCalledTimes(1)
     expect(studentPartnerKey).toEqual(payload.partnerSignupCode)
@@ -143,7 +143,7 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(STUDENT_CODE, payload)
 
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(AuthService.lookupPartnerStudentCode).toHaveBeenCalledTimes(0)
     expect(err).toEqual('Missing partnerSignupCode query string')
@@ -158,7 +158,7 @@ describe('Test router logic', () => {
     const response = await sendPost(SEND_RESET, payload)
 
     const {
-      body: { msg }
+      body: { msg },
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(1)
     expect(mockDestroy).toHaveBeenCalledTimes(1)
@@ -174,7 +174,7 @@ describe('Test router logic', () => {
     const response = await sendPost(SEND_RESET, payload)
 
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(0)
     expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(0)
@@ -193,7 +193,7 @@ describe('Test simple routes hit AuthService', () => {
     const response = await sendPost('/register/checkcred', payload)
 
     const {
-      body: { checked }
+      body: { checked },
     } = response
     expect(AuthService.checkCredential).toHaveBeenCalledTimes(1)
     expect(checked).toBeTruthy()
@@ -208,7 +208,7 @@ describe('Test simple routes hit AuthService', () => {
     const response = await sendPost('/register/student/open', payload)
 
     const {
-      body: { user }
+      body: { user },
     } = response
     expect(AuthService.registerOpenStudent).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
@@ -224,7 +224,7 @@ describe('Test simple routes hit AuthService', () => {
     const response = await sendPost('/register/student/partner', payload)
 
     const {
-      body: { user }
+      body: { user },
     } = response
     expect(AuthService.registerPartnerStudent).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
@@ -239,7 +239,7 @@ describe('Test simple routes hit AuthService', () => {
     const response = await sendPost('/register/volunteer/open', {})
 
     const {
-      body: { user }
+      body: { user },
     } = response
     expect(AuthService.registerVolunteer).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
@@ -254,7 +254,7 @@ describe('Test simple routes hit AuthService', () => {
     const response = await sendPost('/register/volunteer/partner', {})
 
     const {
-      body: { user }
+      body: { user },
     } = response
     expect(AuthService.registerPartnerVolunteer).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
@@ -269,7 +269,7 @@ describe('Test simple routes hit AuthService', () => {
     const response = await sendGet('/partner/student-partners', {})
 
     const {
-      body: { partnerOrgs }
+      body: { partnerOrgs },
     } = response
     expect(AuthService.lookupStudentPartners).toHaveBeenCalledTimes(1)
     expect(partnerOrgs).toEqual(payload)
@@ -283,7 +283,7 @@ describe('Test simple routes hit AuthService', () => {
     const response = await sendGet('/partner/volunteer-partners', {})
 
     const {
-      body: { partnerOrgs }
+      body: { partnerOrgs },
     } = response
     expect(AuthService.lookupVolunteerPartners).toHaveBeenCalledTimes(1)
     expect(partnerOrgs).toEqual(payload)

@@ -27,13 +27,13 @@ export async function getPresessionSurvey(
   surveyType?: SURVEY_TYPES
 ): Promise<Survey | undefined> {
   try {
-    const survey = await SurveyModel.findOne(
-      {
-        session,
-        user,
-        surveyType
-      }
-    ).lean().exec()
+    const survey = await SurveyModel.findOne({
+      session,
+      user,
+      surveyType,
+    })
+      .lean()
+      .exec()
     if (survey) return survey as Survey
   } catch (err) {
     throw new RepoReadError(err)

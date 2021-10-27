@@ -58,7 +58,7 @@ describe(STUDENT_SEND_ROUTE, () => {
     mockedVerificationService.initiateVerification.mockResolvedValueOnce()
     const input = {
       sendTo: '1234567890',
-      verificationMethod: VERIFICATION_METHOD.SMS
+      verificationMethod: VERIFICATION_METHOD.SMS,
     }
 
     const response = await sendVerificationCode(input)
@@ -68,7 +68,7 @@ describe(STUDENT_SEND_ROUTE, () => {
     expect(VerificationService.initiateVerification).toHaveBeenCalledWith({
       userId: student._id.toString(),
       firstName: student.firstname,
-      ...input
+      ...input,
     })
   })
 
@@ -80,13 +80,13 @@ describe(STUDENT_SEND_ROUTE, () => {
     )
     const input = {
       sendTo: student.email,
-      verificationMethod: VERIFICATION_METHOD.EMAIL
+      verificationMethod: VERIFICATION_METHOD.EMAIL,
     }
 
     const response = await sendVerificationCode(input)
     const {
       status,
-      body: { err }
+      body: { err },
     } = response
 
     const expected =
@@ -108,13 +108,13 @@ describe(STUDENT_SEND_ROUTE, () => {
     )
     const input = {
       sendTo: student.email,
-      verificationMethod: VERIFICATION_METHOD.EMAIL
+      verificationMethod: VERIFICATION_METHOD.EMAIL,
     }
 
     const response = await sendVerificationCode(input)
     const {
       status,
-      body: { err }
+      body: { err },
     } = response
 
     const expected =
@@ -136,7 +136,7 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
     const input = {
       sendTo: '1234567890',
       verificationMethod: VERIFICATION_METHOD.SMS,
-      verificationCode: '123456'
+      verificationCode: '123456',
     }
 
     const response = await confirmVerificationCode(input)
@@ -145,7 +145,7 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
     expect(status).toEqual(200)
     expect(VerificationService.confirmVerification).toHaveBeenCalledWith({
       userId: student._id.toString(),
-      ...input
+      ...input,
     })
   })
 
@@ -157,13 +157,13 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
     const input = {
       sendTo: student.email,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
-      verificationCode: '123456'
+      verificationCode: '123456',
     }
 
     const response = await confirmVerificationCode(input)
     const {
       status,
-      body: { err }
+      body: { err },
     } = response
 
     expect(err).toEqual(testError.message)

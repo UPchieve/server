@@ -17,12 +17,12 @@ describe('Volunteer session action emails', () => {
   const volunteerSessionActionJobs: { jobName: string; jobFn }[] = [
     {
       jobName: Jobs.EmailVolunteerAbsentWarning,
-      jobFn: MailService.sendVolunteerAbsentWarning
+      jobFn: MailService.sendVolunteerAbsentWarning,
     },
     {
       jobName: Jobs.EmailVolunteerAbsentStudentApology,
-      jobFn: MailService.sendVolunteerAbsentStudentApology
-    }
+      jobFn: MailService.sendVolunteerAbsentStudentApology,
+    },
   ]
 
   beforeEach(async () => {
@@ -42,8 +42,8 @@ describe('Volunteer session action emails', () => {
         studentId: student._id,
         volunteerId: volunteer._id,
         sessionSubject: session.subTopic,
-        sessionDate: session.createdAt
-      }
+        sessionDate: session.createdAt,
+      },
     }
 
     test(`Should execute ${job.name} successfully`, async () => {

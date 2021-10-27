@@ -5,7 +5,7 @@ import UserModel, { User } from '../../models/User'
 import {
   RepoCreateError,
   RepoReadError,
-  RepoUpdateError
+  RepoUpdateError,
 } from '../../models/Errors'
 import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
 import { mockMongooseFindQuery } from '../utils'
@@ -23,7 +23,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
   student = await insertStudent()
   volunteer = await insertVolunteer()
@@ -166,7 +166,7 @@ describe('Test read UserSessionModel objects', () => {
   beforeAll(async () => {
     await resetUSM()
     const newUSM = await UserSessionMetricsRepo.UserSessionMetricsModel.create({
-      user: student._id
+      user: student._id,
     })
     createdUSM = newUSM.toObject() as UserSessionMetricsRepo.UserSessionMetrics
   })
@@ -283,7 +283,7 @@ describe('Test update UserSessionModel objects', () => {
     jest.resetAllMocks()
     await resetUSM()
     const newUSM = await UserSessionMetricsRepo.UserSessionMetricsModel.create({
-      user: student._id
+      user: student._id,
     })
     createdUSM = newUSM.toObject() as UserSessionMetricsRepo.UserSessionMetrics
   })
@@ -294,14 +294,14 @@ describe('Test update UserSessionModel objects', () => {
         [`counters.${getEnumKeyByEnumValue(
           USER_SESSION_METRICS,
           USER_SESSION_METRICS.absentStudent
-        )}`]: 2
+        )}`]: 2,
       },
       {
         [`counters.${getEnumKeyByEnumValue(
           USER_SESSION_METRICS,
           USER_SESSION_METRICS.hasHadTechnicalIssues
-        )}`]: 5
-      }
+        )}`]: 5,
+      },
     ]
     await UserSessionMetricsRepo.executeUpdatesByUserId(student._id, queries)
     const foundUSM = await UserSessionMetricsRepo.getByObjectId(createdUSM._id)
@@ -318,8 +318,8 @@ describe('Test update UserSessionModel objects', () => {
     const queries = [
       { yipee: 2 },
       {
-        [`counters.${USER_SESSION_METRICS.hasHadTechnicalIssues}`]: 5
-      }
+        [`counters.${USER_SESSION_METRICS.hasHadTechnicalIssues}`]: 5,
+      },
     ]
     const update = merge(queries[0], queries[1])
     const user = student._id
@@ -347,8 +347,8 @@ describe('Test update UserSessionModel objects', () => {
     const queries = [
       { [`counters.${USER_SESSION_METRICS.absentStudent}`]: 2 },
       {
-        [`counters.${USER_SESSION_METRICS.hasHadTechnicalIssues}`]: 5
-      }
+        [`counters.${USER_SESSION_METRICS.hasHadTechnicalIssues}`]: 5,
+      },
     ]
     const update = merge(queries[0], queries[1])
     const user = student._id

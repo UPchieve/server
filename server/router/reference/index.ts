@@ -13,12 +13,11 @@ export default function(app: Express) {
       const { body: referenceFormData, ip } = req
       const volunteer = await getVolunteerByReference(referenceId)
       if (!volunteer) return res.sendStatus(404)
-    
+
       const { references, _id: userId } = volunteer
       let referenceEmail: string | undefined
       for (const reference of references) {
-        if (reference._id.equals(referenceId))
-          referenceEmail = reference.email
+        if (reference._id.equals(referenceId)) referenceEmail = reference.email
       }
       if (!referenceEmail) return res.sendStatus(404)
       await UserService.saveReferenceForm(

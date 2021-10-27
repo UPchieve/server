@@ -8,7 +8,7 @@ import config from '../../config'
 import logger from '../../logger'
 import {
   socketIoPubClient,
-  socketIoSubClient
+  socketIoSubClient,
 } from '../../services/RedisService'
 import { Express } from 'express'
 
@@ -36,7 +36,7 @@ export default function(app: Express) {
     // in 3.0 they're increasing it again
     // (default interval is 25000)
     pingInterval: 25000,
-    pingTimeout: 30000
+    pingTimeout: 30000,
   })
   if (process.env.NODE_ENV === 'test') return io
 

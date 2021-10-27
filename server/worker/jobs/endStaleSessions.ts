@@ -11,7 +11,7 @@ export default async (): Promise<void> => {
       await SessionService.endSession({
         sessionId: session._id,
         isAdmin: true,
-        endedBy: null
+        endedBy: null,
       })
       totalEnded += 1
     } catch (error) {

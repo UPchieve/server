@@ -19,7 +19,7 @@ export function routeFeedback(router: expressWs.Router): void {
       volunteerFeedback,
       userType,
       studentId,
-      volunteerId
+      volunteerId,
     } = req.body
     try {
       const feedback = await FeedbackService.saveFeedback({
@@ -32,10 +32,10 @@ export function routeFeedback(router: expressWs.Router): void {
         volunteerFeedback,
         userType,
         studentId,
-        volunteerId
+        volunteerId,
       })
       res.json({
-        feedback: feedback._id
+        feedback: feedback._id,
       })
     } catch (error) {
       next(error)
@@ -43,7 +43,10 @@ export function routeFeedback(router: expressWs.Router): void {
   })
 
   router.get('/feedback', async (req, res, next) => {
-    if (!req.query.hasOwnProperty('sessionId') || !req.query.hasOwnProperty('userType'))
+    if (
+      !req.query.hasOwnProperty('sessionId') ||
+      !req.query.hasOwnProperty('userType')
+    )
       throw new InputError('Missing query parameters')
     const { sessionId, userType } = req.query
     try {
@@ -53,7 +56,7 @@ export function routeFeedback(router: expressWs.Router): void {
       )
 
       res.json({
-        feedback: feedback ? feedback._id : null
+        feedback: feedback ? feedback._id : null,
       })
     } catch (error) {
       next(error)

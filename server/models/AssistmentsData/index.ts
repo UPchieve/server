@@ -32,7 +32,8 @@ const assistmentsDataSchema = new Schema({
       validator: (v: string) => {
         return validator.isUUID(v, 4)
       },
-      message: (props: ValidatorProps) => `${props.value} is not a valid UUIDv4`,
+      message: (props: ValidatorProps) =>
+        `${props.value} is not a valid UUIDv4`,
     },
   },
   studentId: {
@@ -42,7 +43,8 @@ const assistmentsDataSchema = new Schema({
       validator: (v: string) => {
         return validator.isUUID(v, 4)
       },
-      message: (props: ValidatorProps) => `${props.value} is not a valid UUIDv4`,
+      message: (props: ValidatorProps) =>
+        `${props.value} is not a valid UUIDv4`,
     },
   },
   session: {
@@ -51,7 +53,8 @@ const assistmentsDataSchema = new Schema({
     required: true,
     validate: {
       validator: validSession,
-      message: (props: ValidatorProps) => `${props.value} is not a valid session`,
+      message: (props: ValidatorProps) =>
+        `${props.value} is not a valid session`,
     },
   },
   sent: {

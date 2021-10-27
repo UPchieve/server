@@ -23,7 +23,7 @@ interface EmailLowHoursJobData {
 export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
   const {
     data: { volunteerId },
-    name: currentJob
+    name: currentJob,
   } = job
   const volunteer = await getPartnerVolunteerForLowHours(volunteerId)
 

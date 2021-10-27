@@ -26,7 +26,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   if (fulfilled) {
     QueueService.add(Jobs.EmailVolunteerGentleWarning, {
       sessionId,
-      notifications: session.notifications
+      notifications: session.notifications,
     })
     return log(`Cancel ${Jobs.NotifyTutors} for ${sessionId}: fulfilled`)
   }

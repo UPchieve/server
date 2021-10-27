@@ -5,7 +5,7 @@ import { Volunteer } from '../../../models/Volunteer'
 import { buildVolunteer } from '../../generate'
 import EmailVolunteerInactiveBlackoutOver, {
   processVolunteer,
-  ContactInfo
+  ContactInfo,
 } from '../../../worker/jobs/volunteer-emails/emailVolunteerInactiveBlackoutOver'
 import MailService from '../../../services/MailService'
 import * as AvailabilityService from '../../../services/AvailabilityService'
@@ -22,7 +22,7 @@ describe('Test process volunteer subroutine', () => {
   const volunteer: ContactInfo = {
     _id: Types.ObjectId().toString(),
     firstname: 'Test',
-    email: 'test@example.com'
+    email: 'test@example.com',
   }
 
   beforeEach(() => {
@@ -88,7 +88,7 @@ describe('Test email blackout over job', () => {
       volunteers.push({
         _id: temp._id,
         firstname: temp.firstname,
-        email: temp.email
+        email: temp.email,
       } as Partial<Volunteer>)
     }
   })

@@ -18,7 +18,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>
 jest.mock('../../models/AssistmentsData', () => ({
   ...jest.requireActual('../../models/AssistmentsData'),
   getBySession: jest.fn(),
-  updateSentAtById: jest.fn()
+  updateSentAtById: jest.fn(),
 }))
 const mockedAssistmentsData = mocked(AssistmentsData)
 
@@ -37,7 +37,7 @@ function generateTestMessages(
     if (i % 2 === 0) sender = student
     messages.push(
       buildMessage({
-        user: sender
+        user: sender,
       })
     )
   }
@@ -54,7 +54,7 @@ function generateTestSession(): Session {
     volunteerJoinedAt: new Date(),
     endedAt: new Date(),
     timeTutored: 1,
-    messages
+    messages,
   })
   return session
 }
@@ -68,7 +68,7 @@ function generateAssistmentsData(
     assignmentId: 'assignment',
     studentId: 'student',
     session: session._id,
-    sent: false
+    sent: false,
   }
 }
 
@@ -91,7 +91,7 @@ describe('Test build request subroutine', () => {
 
     const params = {
       assignmentXref: ad.assignmentId,
-      userXref: ad.studentId
+      userXref: ad.studentId,
     }
     const partSession = {
       createdAt: session.createdAt.getTime(),
@@ -103,13 +103,13 @@ describe('Test build request subroutine', () => {
       subTopic: session.subTopic,
       timeTutored: session.timeTutored,
       volunteerJoinedAt: session.volunteerJoinedAt.getTime(),
-      volunteerId: session.volunteer.toString()
+      volunteerId: session.volunteer.toString(),
     }
     const payload = {
       studentId: ad.studentId,
       assignmentId: ad.assignmentId,
       problemId: String(ad.problemId),
-      session: partSession
+      session: partSession,
     }
     const expected = { params, payload }
 
@@ -144,7 +144,7 @@ describe('Test send data subroutine', () => {
     // build request as tested above
     params = {
       assignmentXref: ad.assignmentId,
-      userXref: ad.studentId
+      userXref: ad.studentId,
     }
     const partSession = {
       createdAt: session.createdAt.getTime(),
@@ -156,13 +156,13 @@ describe('Test send data subroutine', () => {
       subTopic: session.subTopic,
       timeTutored: session.timeTutored,
       volunteerJoinedAt: session.volunteerJoinedAt.getTime(),
-      volunteerId: session.volunteer.toString()
+      volunteerId: session.volunteer.toString(),
     }
     payload = {
       studentId: ad.studentId,
       assignmentId: ad.assignmentId,
       problemId: String(ad.problemId),
-      session: partSession
+      session: partSession,
     }
     // restore spys between test suites
     jest.restoreAllMocks()

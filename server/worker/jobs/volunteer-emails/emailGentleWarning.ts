@@ -26,80 +26,82 @@ interface EmailGentleWarningJobData {
 export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
   const {
     data: { sessionId },
-    name: currentJob
+    name: currentJob,
   } = job
   const documentsWithVolunteerIds = await getSessionsWithPipeline([
     {
       $match: {
         _id:
-          typeof sessionId === 'string' ? Types.ObjectId(sessionId) : sessionId
-      }
+          typeof sessionId === 'string' ? Types.ObjectId(sessionId) : sessionId,
+      },
     },
     {
       $lookup: {
         from: 'notifications',
         foreignField: '_id',
         localField: 'notifications',
-        as: 'notifications'
-      }
+        as: 'notifications',
+      },
     },
     { $unwind: '$notifications' },
     {
       $project: {
         isSessionsVolunteer: {
-          $eq: ['$volunteer', '$notifications.volunteer']
+          $eq: ['$volunteer', '$notifications.volunteer'],
         },
-        volunteerId: '$notifications.volunteer'
-      }
+        volunteerId: '$notifications.volunteer',
+      },
     },
     {
       $match: {
         // Exclude from sending the email to the volunteer who joined this session
-        isSessionsVolunteer: false
-      }
+        isSessionsVolunteer: false,
+      },
     },
     {
       $group: {
-        _id: '$volunteerId'
-      }
-    }
+        _id: '$volunteerId',
+      },
+    },
   ])
 
   if (documentsWithVolunteerIds.length === 0) return
 
   const volunteerIds = documentsWithVolunteerIds.map(doc => doc._id)
 
-  const volunteerNotifications: GentleWarningAggregation[] = await getNotificationsWithPipeline([
-    {
-      $match: {
-        volunteer: { $in: volunteerIds },
-        priorityGroup: { $ne: 'follow-up' }
-      }
-    },
-    {
-      $lookup: {
-        from: 'users',
-        foreignField: '_id',
-        localField: 'volunteer',
-        as: 'volunteer'
-      }
-    },
-    { $unwind: '$volunteer' },
-    {
-      $match: {
-        'volunteer.pastSessions': { $size: 0 },
-        ...emailRecipientPrefixed('volunteer')
-      }
-    },
-    {
-      $group: {
-        _id: '$volunteer._id',
-        totalNotifications: { $sum: 1 },
-        firstName: { $first: '$volunteer.firstname' },
-        email: { $first: '$volunteer.email' }
-      }
-    }
-  ]) as any as GentleWarningAggregation[]
+  const volunteerNotifications: GentleWarningAggregation[] = ((await getNotificationsWithPipeline(
+    [
+      {
+        $match: {
+          volunteer: { $in: volunteerIds },
+          priorityGroup: { $ne: 'follow-up' },
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          foreignField: '_id',
+          localField: 'volunteer',
+          as: 'volunteer',
+        },
+      },
+      { $unwind: '$volunteer' },
+      {
+        $match: {
+          'volunteer.pastSessions': { $size: 0 },
+          ...emailRecipientPrefixed('volunteer'),
+        },
+      },
+      {
+        $group: {
+          _id: '$volunteer._id',
+          totalNotifications: { $sum: 1 },
+          firstName: { $first: '$volunteer.firstname' },
+          email: { $first: '$volunteer.email' },
+        },
+      },
+    ]
+  )) as any) as GentleWarningAggregation[]
 
   const errors = []
   for (const volunteer of volunteerNotifications) {

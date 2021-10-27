@@ -25,21 +25,20 @@ async function emailReportedSession(
       reportReason,
       reportMessage,
       isBanReason,
-      sessionId
-    }
+      sessionId,
+    },
   } = job
 
   // need full student to create sendGrid contact below
   const student = await getStudent({
     ...EMAIL_RECIPIENT,
     isBanned: undefined, // we're ok emailing banned students
-    _id: studentId
+    _id: studentId,
   })
 
   const errors: string[] = []
 
-  if (!student)
-    errors.push(`Student ${studentId} not found`)
+  if (!student) errors.push(`Student ${studentId} not found`)
   else {
     if (isBanReason) {
       const banAlert = await safeAsync(

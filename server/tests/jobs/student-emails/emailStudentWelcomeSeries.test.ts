@@ -12,7 +12,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -29,7 +29,7 @@ describe('Student welcome email series', () => {
     Jobs.EmailStudentUseCases,
     Jobs.EmailMeetOurVolunteers,
     Jobs.EmailIndependentLearning,
-    Jobs.EmailStudentGoalSetting
+    Jobs.EmailStudentGoalSetting,
   ]
 
   beforeEach(async () => {
@@ -44,8 +44,8 @@ describe('Student welcome email series', () => {
       const job: any = {
         name: currentJob,
         data: {
-          studentId: student._id
-        }
+          studentId: student._id,
+        },
       }
 
       await emailStudentWelcomeSeries(job)
@@ -70,8 +70,8 @@ describe('Student welcome email series', () => {
       const job: any = {
         name: currentJob,
         data: {
-          studentId: student._id
-        }
+          studentId: student._id,
+        },
       }
 
       await expect(emailStudentWelcomeSeries(job)).rejects.toEqual(
@@ -90,8 +90,8 @@ describe('Student welcome email series', () => {
       const job: any = {
         name: currentJob,
         data: {
-          studentId: student._id
-        }
+          studentId: student._id,
+        },
       }
 
       await emailStudentWelcomeSeries(job)

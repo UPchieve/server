@@ -15,7 +15,7 @@ interface UnsentReference {
 export default async (): Promise<void> => {
   const volunteers = await getVolunteers({
     ...EMAIL_RECIPIENT,
-    'references.status': REFERENCE_STATUS.UNSENT
+    'references.status': REFERENCE_STATUS.UNSENT,
   })
 
   const unsent: UnsentReference[] = flatten(
@@ -24,7 +24,7 @@ export default async (): Promise<void> => {
         .filter(ref => ref.status === REFERENCE_STATUS.UNSENT)
         .map(ref => ({
           reference: ref,
-          volunteer: vol
+          volunteer: vol,
         }))
     })
   )

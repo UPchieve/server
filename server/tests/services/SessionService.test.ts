@@ -16,7 +16,7 @@ import {
   buildSocket,
   buildPushToken,
   getUUID,
-  buildUSM
+  buildUSM,
 } from '../generate'
 import {
   mockedGetSessionsToReview,
@@ -27,14 +27,14 @@ import {
   mockedGetCurrentSession,
   mockedCreateSession,
   mockedGetStudentLatestSession,
-  mockedGetPublicSession
+  mockedGetPublicSession,
 } from '../mocks/repos/session-repo'
 import {
   EVENTS,
   USER_SESSION_METRICS,
   SESSION_REPORT_REASON,
   SUBJECTS,
-  SUBJECT_TYPES
+  SUBJECT_TYPES,
 } from '../../constants'
 import * as WhiteboardService from '../../services/WhiteboardService'
 import QueueService from '../../services/QueueService'
@@ -44,7 +44,7 @@ import * as AssistmentsDataRepo from '../../models/AssistmentsData'
 import {
   EndSessionError,
   ReportSessionError,
-  StartSessionError
+  StartSessionError,
 } from '../../utils/session-utils'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as UserActionCtrl from '../../controllers/UserActionCtrl'
@@ -107,7 +107,7 @@ describe('reviewSession', () => {
     const input = {
       sessionId,
       reviewed: true,
-      toReview: false
+      toReview: false,
     }
     await SessionService.reviewSession(input)
     expect(SessionRepo.updateReviewedStatus).toHaveBeenCalledTimes(1)
@@ -119,7 +119,7 @@ describe('sessionsToReview', () => {
     const page = '1'
     const mockedSessions = [
       mockedGetSessionsToReview(),
-      mockedGetSessionsToReview()
+      mockedGetSessionsToReview(),
     ]
     mockedSessionRepo.getSessionsToReview.mockImplementationOnce(
       async () => mockedSessions
@@ -130,7 +130,7 @@ describe('sessionsToReview', () => {
     expect(mockedSessionRepo.getSessionsToReview).toHaveBeenCalledWith({
       limit: 15,
       query: { toReview: true, reviewed: false },
-      skip: 0
+      skip: 0,
     })
   })
 
@@ -154,7 +154,7 @@ describe('reportSession', () => {
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
       reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
-      reportMessage: generateSentence()
+      reportMessage: generateSentence(),
     }
     const mockValue = mockedGetSessionById()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -172,7 +172,7 @@ describe('reportSession', () => {
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
       reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
-      reportMessage: generateSentence()
+      reportMessage: generateSentence(),
     }
     const mockValue = mockedGetSessionById({ volunteer: getObjectId() })
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -190,11 +190,11 @@ describe('reportSession', () => {
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
       reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
-      reportMessage: generateSentence()
+      reportMessage: generateSentence(),
     }
     const mockValue = mockedGetSessionById({
       volunteer: input.user._id,
-      student: getStringObjectId()
+      student: getStringObjectId(),
     })
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
@@ -216,7 +216,7 @@ describe('reportSession', () => {
         reportReason: input.reportReason,
         reportMessage: input.reportMessage,
         isBanReason: true,
-        sessionId: input.sessionId
+        sessionId: input.sessionId,
       })
     )
   })
@@ -226,12 +226,12 @@ describe('reportSession', () => {
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
       reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
-      reportMessage: generateSentence()
+      reportMessage: generateSentence(),
     }
     const mockValue = mockedGetSessionById({
       volunteer: input.user._id,
       student: getStringObjectId(),
-      endedAt: new Date()
+      endedAt: new Date(),
     })
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
@@ -252,7 +252,7 @@ describe('reportSession', () => {
       reportReason: input.reportReason,
       reportMessage: input.reportMessage,
       isBanReason: true,
-      sessionId: input.sessionId
+      sessionId: input.sessionId,
     })
   })
 })
@@ -263,7 +263,7 @@ describe('endSession', () => {
     const input = {
       sessionId: mockedSession._id.toString(),
       endedBy: null,
-      isAdmin: false
+      isAdmin: false,
     }
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
       async () => mockedSession
@@ -282,7 +282,7 @@ describe('endSession', () => {
     const input = {
       sessionId: mockedSession._id.toString(),
       endedBy: getObjectId(),
-      isAdmin: false
+      isAdmin: false,
     }
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
       async () => mockedSession
@@ -314,7 +314,7 @@ describe('addPastSession', () => {
   test('Should add past session to both student and volunteer', async () => {
     const mockValue = mockedGetSessionById({
       student: getObjectId(),
-      volunteer: getObjectId()
+      volunteer: getObjectId(),
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(mockValue)
@@ -328,7 +328,7 @@ describe('processAssistmentsSession', () => {
   test('Should queue job to send assistments data for assistments session if session was matched', async () => {
     const mockValue = mockedGetSessionById({
       student: getObjectId(),
-      volunteer: getObjectId()
+      volunteer: getObjectId(),
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -337,21 +337,21 @@ describe('processAssistmentsSession', () => {
     const mockedAd = {
       studentId: 'student',
       assignmentId: 'assignment',
-      problemId: 12345
+      problemId: 12345,
     } as AssistmentsDataRepo.AssistmentsData
     mockedAssistmentsDataRepo.getBySession.mockResolvedValueOnce(mockedAd)
 
     await SessionService.processAssistmentsSession(sessionId)
 
     expect(QueueService.add).toHaveBeenCalledWith(Jobs.SendAssistmentsData, {
-      sessionId
+      sessionId,
     })
   })
 
   test('Should do nothing for an unmatched session', async () => {
     const mockValue = mockedGetSessionById({
       student: getObjectId(),
-      volunteer: null
+      volunteer: null,
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -360,7 +360,7 @@ describe('processAssistmentsSession', () => {
     const mockedAd = {
       studentId: 'student',
       assignmentId: 'assignment',
-      problemId: 12345
+      problemId: 12345,
     } as AssistmentsDataRepo.AssistmentsData
     mockedAssistmentsDataRepo.getBySession.mockResolvedValueOnce(mockedAd)
 
@@ -372,7 +372,7 @@ describe('processAssistmentsSession', () => {
   test('Should do nothing when no session is found', async () => {
     const mockValue = mockedGetSessionById({
       student: getObjectId(),
-      volunteer: null
+      volunteer: null,
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -381,7 +381,7 @@ describe('processAssistmentsSession', () => {
     const mockedAd = {
       studentId: 'student',
       assignmentId: 'assignment',
-      problemId: 12345
+      problemId: 12345,
     } as AssistmentsDataRepo.AssistmentsData
     mockedAssistmentsDataRepo.getBySession.mockResolvedValueOnce(mockedAd)
 
@@ -400,7 +400,7 @@ describe('processSessionReported', () => {
       reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
       reportMessage: 'Student made a your mom joke',
       isBanReason: true,
-      sessionId: sessionId
+      sessionId: sessionId,
     }
     mockedCache.get.mockImplementationOnce(async () => {
       return JSON.stringify(jobData)
@@ -437,7 +437,7 @@ describe('processCalculateMetrics', () => {
   test('Should calculate time tutored if there was no absent user in the session', async () => {
     const timeTutored = 1000 * 60 * 20
     const mockValue = mockedGetSessionById({
-      flags: [USER_SESSION_METRICS.commentFromVolunteer]
+      flags: [USER_SESSION_METRICS.commentFromVolunteer],
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -447,7 +447,7 @@ describe('processCalculateMetrics', () => {
 
     await SessionService.processCalculateMetrics(sessionId)
     expect(SessionRepo.updateSessionMetrics).toHaveBeenCalledWith(sessionId, {
-      timeTutored
+      timeTutored,
     })
     expect(emitter.emit).toHaveBeenCalledWith(
       SESSION_EVENTS.SESSION_METRICS_CALCULATED,
@@ -458,7 +458,7 @@ describe('processCalculateMetrics', () => {
   test('Should not calculate time tutored if there was an absent user in the session', async () => {
     const timeTutored = 0
     const mockValue = mockedGetSessionById({
-      flags: [USER_SESSION_METRICS.absentStudent]
+      flags: [USER_SESSION_METRICS.absentStudent],
     })
     const sessionId = mockValue._id.toString()
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -469,7 +469,7 @@ describe('processCalculateMetrics', () => {
     await SessionService.processCalculateMetrics(sessionId)
     expect(spyCalculateTimeTutored).not.toHaveBeenCalled()
     expect(SessionRepo.updateSessionMetrics).toHaveBeenCalledWith(sessionId, {
-      timeTutored
+      timeTutored,
     })
     expect(emitter.emit).toHaveBeenCalledWith(
       SESSION_EVENTS.SESSION_METRICS_CALCULATED,
@@ -484,9 +484,9 @@ describe('processFirstSessionCongratsEmail', () => {
     const mockedSession = mockedGetSessionByIdWithStudentAndVolunteer({
       timeTutored,
       student: {
-        pastSessions: [getObjectId()]
+        pastSessions: [getObjectId()],
       },
-      volunteer: null
+      volunteer: null,
     })
     const sessionId = mockedSession._id.toString()
     mockedSessionRepo.getSessionByIdWithStudentAndVolunteer.mockImplementationOnce(
@@ -498,14 +498,14 @@ describe('processFirstSessionCongratsEmail', () => {
     expect(QueueService.add).toHaveBeenCalledWith(
       Jobs.EmailStudentFirstSessionCongrats,
       {
-        sessionId: mockedSession._id
+        sessionId: mockedSession._id,
       },
       expect.anything()
     )
     expect(QueueService.add).not.toHaveBeenCalledWith(
       Jobs.EmailVolunteerFirstSessionCongrats,
       {
-        sessionId: mockedSession._id
+        sessionId: mockedSession._id,
       },
       expect.anything()
     )
@@ -516,11 +516,11 @@ describe('processFirstSessionCongratsEmail', () => {
     const mockedSession = mockedGetSessionByIdWithStudentAndVolunteer({
       timeTutored,
       student: {
-        pastSessions: [getObjectId()]
+        pastSessions: [getObjectId()],
       },
       volunteer: {
-        pastSessions: [getObjectId()]
-      }
+        pastSessions: [getObjectId()],
+      },
     })
     const sessionId = mockedSession._id.toString()
     mockedSessionRepo.getSessionByIdWithStudentAndVolunteer.mockImplementationOnce(
@@ -532,14 +532,14 @@ describe('processFirstSessionCongratsEmail', () => {
     expect(QueueService.add).toHaveBeenCalledWith(
       Jobs.EmailStudentFirstSessionCongrats,
       {
-        sessionId: mockedSession._id
+        sessionId: mockedSession._id,
       },
       expect.anything()
     )
     expect(QueueService.add).toHaveBeenCalledWith(
       Jobs.EmailVolunteerFirstSessionCongrats,
       {
-        sessionId: mockedSession._id
+        sessionId: mockedSession._id,
       },
       expect.anything()
     )
@@ -592,7 +592,7 @@ describe('processSessionEditors', () => {
   test('Should store and delete the quill doc if session that uses the quill doc', async () => {
     // @todo: storeAndDeleteQuillDoc should be mocked
     const mockedSession = mockedGetSessionToEnd({
-      subTopic: SUBJECTS.ESSAYS
+      subTopic: SUBJECTS.ESSAYS,
     })
     const sessionId = mockedSession._id.toString()
     const docString = { ops: [] }
@@ -615,7 +615,7 @@ describe('processSessionEditors', () => {
   test('Should store and delete the whiteboard doc if session that uses the whiteboard doc', async () => {
     // @todo: storeAndDeleteWhiteboardDoc should be mocked
     const mockedSession = mockedGetSessionToEnd({
-      subTopic: SUBJECTS.ALGEBRA_ONE
+      subTopic: SUBJECTS.ALGEBRA_ONE,
     })
     const sessionId = mockedSession._id.toString()
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
@@ -647,7 +647,7 @@ describe('processSessionEditors', () => {
 describe('processEmailPartnerVolunteer', () => {
   test('Should do nothing if a volunteer did not join the session', async () => {
     const mockedSession = mockedGetSessionToEnd({
-      volunteer: null
+      volunteer: null,
     })
     const sessionId = mockedSession._id.toString()
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
@@ -674,7 +674,7 @@ describe('processEmailPartnerVolunteer', () => {
     }
     const volunteer = buildVolunteer({
       volunteerPartnerOrg: 'example',
-      pastSessions
+      pastSessions,
     })
     const mockedSession = mockedGetSessionToEnd({
       volunteer: {
@@ -682,8 +682,8 @@ describe('processEmailPartnerVolunteer', () => {
         firstname: volunteer.firstname,
         email: volunteer.email,
         pastSessions: volunteer.pastSessions,
-        volunteerPartnerOrg: volunteer.volunteerPartnerOrg
-      }
+        volunteerPartnerOrg: volunteer.volunteerPartnerOrg,
+      },
     })
     const sessionId = mockedSession._id.toString()
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
@@ -696,7 +696,7 @@ describe('processEmailPartnerVolunteer', () => {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
+        partnerOrg: volunteer.volunteerPartnerOrg,
       },
       expect.anything()
     )
@@ -709,7 +709,7 @@ describe('processEmailPartnerVolunteer', () => {
     }
     const volunteer = buildVolunteer({
       volunteerPartnerOrg: 'example',
-      pastSessions
+      pastSessions,
     })
     const mockedSession = mockedGetSessionToEnd({
       volunteer: {
@@ -717,8 +717,8 @@ describe('processEmailPartnerVolunteer', () => {
         firstname: volunteer.firstname,
         email: volunteer.email,
         pastSessions: volunteer.pastSessions,
-        volunteerPartnerOrg: volunteer.volunteerPartnerOrg
-      }
+        volunteerPartnerOrg: volunteer.volunteerPartnerOrg,
+      },
     })
     const sessionId = mockedSession._id.toString()
     mockedSessionRepo.getSessionToEnd.mockImplementationOnce(
@@ -730,7 +730,7 @@ describe('processEmailPartnerVolunteer', () => {
       {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
-        email: volunteer.email
+        email: volunteer.email,
       },
       expect.anything()
     )
@@ -812,12 +812,12 @@ describe('adminFilteredSessions', () => {
       firstTimeStudent: '1',
       firstTimeVolunteer: '',
       isReported: '',
-      page: '1'
+      page: '1',
     }
     const mockValue = [
       mockedGetAdminFilteredSessions(),
       mockedGetAdminFilteredSessions(),
-      mockedGetAdminFilteredSessions()
+      mockedGetAdminFilteredSessions(),
     ]
     mockedSessionRepo.getAdminFilteredSessions.mockImplementationOnce(
       async () => mockValue
@@ -842,7 +842,7 @@ describe('adminFilteredSessions', () => {
       firstTimeStudent: '1',
       firstTimeVolunteer: '',
       isReported: '',
-      page: '1'
+      page: '1',
     }
     const mockValue = []
     for (let i = 0; i < 20; i++) {
@@ -864,7 +864,7 @@ describe('adminSessionView', () => {
     const sessionId = getStringObjectId()
     const mockSession = mockedGetSessionByIdWithStudentAndVolunteer({
       type: SUBJECT_TYPES.COLLEGE,
-      subTopic: SUBJECTS.ESSAYS
+      subTopic: SUBJECTS.ESSAYS,
     })
     const mockUserAgent = buildUserAgent()
     const mockFeedback = [buildFeedback() as FeedbackVersionTwo]
@@ -889,7 +889,7 @@ describe('adminSessionView', () => {
       ...mockSession,
       userAgent: mockUserAgent,
       feedbacks: mockFeedback,
-      photos: mockSessionPhotos
+      photos: mockSessionPhotos,
     })
   })
 })
@@ -901,7 +901,7 @@ describe('startSession', () => {
       user: buildVolunteer(),
       sessionSubTopic: SUBJECTS.PREALGREBA,
       sessionType: SUBJECT_TYPES.MATH,
-      userAgent: getUserAgent()
+      userAgent: getUserAgent(),
     }
     try {
       await SessionService.startSession(input)
@@ -917,7 +917,7 @@ describe('startSession', () => {
       user: buildStudent({ isBanned: true }),
       sessionSubTopic: SUBJECTS.PREALGREBA,
       sessionType: SUBJECT_TYPES.MATH,
-      userAgent: getUserAgent()
+      userAgent: getUserAgent(),
     }
     try {
       await SessionService.startSession(input)
@@ -933,7 +933,7 @@ describe('startSession', () => {
       user: buildStudent(),
       sessionSubTopic: SUBJECTS.PREALGREBA,
       sessionType: SUBJECT_TYPES.MATH,
-      userAgent: getUserAgent()
+      userAgent: getUserAgent(),
     }
     const mockValue = mockedGetCurrentSession()
     mockedSessionRepo.getCurrentSession.mockImplementationOnce(
@@ -953,7 +953,7 @@ describe('startSession', () => {
       user: buildStudent(),
       sessionSubTopic: SUBJECTS.PREALGREBA,
       sessionType: SUBJECT_TYPES.MATH,
-      userAgent: getUserAgent()
+      userAgent: getUserAgent(),
     }
     const mockValue = mockedCreateSession()
     mockedSessionRepo.getCurrentSession.mockImplementationOnce(async () => null)
@@ -964,7 +964,7 @@ describe('startSession', () => {
     expect(QueueService.add).toHaveBeenCalledWith(
       Jobs.EndUnmatchedSession,
       {
-        sessionId: mockValue._id
+        sessionId: mockValue._id,
       },
       expect.anything()
     )
@@ -987,7 +987,7 @@ describe('startSession', () => {
       problemId: '12345',
       assignmentId: getUUID(),
       studentId: getUUID(),
-      userAgent: getUserAgent()
+      userAgent: getUserAgent(),
     }
     const mockValue = mockedCreateSession()
     mockedSessionRepo.getCurrentSession.mockImplementationOnce(async () => null)
@@ -998,7 +998,7 @@ describe('startSession', () => {
     expect(QueueService.add).toHaveBeenCalledWith(
       Jobs.EndUnmatchedSession,
       {
-        sessionId: mockValue._id
+        sessionId: mockValue._id,
       },
       expect.anything()
     )
@@ -1023,14 +1023,14 @@ describe('finishSession', () => {
       ip: getIpAddress(),
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
-      userAgent: getUserAgent()
+      userAgent: getUserAgent(),
     }
 
     const socketService = new SocketService({})
     const session = buildSession({
       volunteer: input.user,
       endedBy: input.user._id,
-      student: buildStudent()._id
+      student: buildStudent()._id,
     })
 
     // @todo: call a mocked version or spy of SessionService.endSession
@@ -1092,7 +1092,7 @@ describe('sessionTimedOut', () => {
       user: buildVolunteer(),
       sessionId: getStringObjectId(),
       userAgent: getUserAgent(),
-      timeout: 15
+      timeout: 15,
     }
 
     await SessionService.sessionTimedOut(input)
@@ -1105,7 +1105,7 @@ describe('publicSession', () => {
     const sessionId = getStringObjectId()
     const mockValue = mockedGetPublicSession()
     mockedSessionRepo.getPublicSession.mockImplementationOnce(async () => [
-      mockValue
+      mockValue,
     ])
     const [actual] = await SessionService.publicSession(sessionId)
     expect(SessionRepo.getPublicSession).toHaveBeenCalledTimes(1)
@@ -1118,7 +1118,7 @@ describe('getSessionNotifications', () => {
     const sessionId = getStringObjectId()
     const mockValue = mockedGetPublicSession()
     mockedSessionRepo.getPublicSession.mockImplementationOnce(async () => [
-      mockValue
+      mockValue,
     ])
     const [actual] = await SessionService.publicSession(sessionId)
     expect(SessionRepo.getPublicSession).toHaveBeenCalledTimes(1)
@@ -1132,7 +1132,7 @@ describe('joinSession', () => {
       socket: buildSocket(),
       session: buildSession({ student: getObjectId(), endedAt: new Date() }),
       user: buildVolunteer(),
-      joinedFrom: ''
+      joinedFrom: '',
     }
     try {
       await SessionService.joinSession(input)
@@ -1152,10 +1152,10 @@ describe('joinSession', () => {
     const input = {
       socket: buildSocket(),
       session: buildSession({
-        student: getObjectId()
+        student: getObjectId(),
       }),
       user: buildStudent(),
-      joinedFrom: ''
+      joinedFrom: '',
     }
     try {
       await SessionService.joinSession(input)
@@ -1178,10 +1178,10 @@ describe('joinSession', () => {
       socket: buildSocket(),
       session: buildSession({
         student: getObjectId(),
-        volunteer: getObjectId()
+        volunteer: getObjectId(),
       }),
       user: buildVolunteer(),
-      joinedFrom: ''
+      joinedFrom: '',
     }
     try {
       await SessionService.joinSession(input)
@@ -1200,10 +1200,10 @@ describe('joinSession', () => {
     const input = {
       socket: buildSocket(),
       session: buildSession({
-        student: getObjectId()
+        student: getObjectId(),
       }),
       user: buildVolunteer(),
-      joinedFrom: ''
+      joinedFrom: '',
     }
 
     mockedPushTokenService.getAllPushTokensByUserId.mockImplementationOnce(
@@ -1223,7 +1223,7 @@ describe('joinSession', () => {
       {
         event: EVENTS.SESSION_JOINED,
         sessionId: input.session._id.toString(),
-        joinedFrom: input.joinedFrom
+        joinedFrom: input.joinedFrom,
       }
     )
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
@@ -1231,7 +1231,7 @@ describe('joinSession', () => {
       EVENTS.SESSION_MATCHED,
       {
         event: EVENTS.SESSION_MATCHED,
-        sessionId: input.session._id.toString()
+        sessionId: input.session._id.toString(),
       }
     )
     expect(PushTokenService.getAllPushTokensByUserId).toBeCalledTimes(1)
@@ -1245,10 +1245,10 @@ describe('joinSession', () => {
       session: buildSession({
         student: getObjectId(),
         volunteer: volunteer._id,
-        createdAt: new Date(new Date().getTime() - 1000 * 60 * 10)
+        createdAt: new Date(new Date().getTime() - 1000 * 60 * 10),
       }),
       user: volunteer,
-      joinedFrom: ''
+      joinedFrom: '',
     }
 
     mockedPushTokenService.getAllPushTokensByUserId.mockImplementationOnce(
@@ -1263,7 +1263,7 @@ describe('joinSession', () => {
       EVENTS.SESSION_REJOINED,
       {
         event: EVENTS.SESSION_REJOINED,
-        sessionId: input.session._id.toString()
+        sessionId: input.session._id.toString(),
       }
     )
   })
@@ -1273,12 +1273,12 @@ describe('saveMessage', () => {
   test('Should throw error if no session is found', async () => {
     const user = buildStudent({
       _id: getStringObjectId(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     })
     const input = {
       sessionId: getStringObjectId(),
       user,
-      message: buildMessage({ user: user._id })
+      message: buildMessage({ user: user._id }),
     }
     const errorMessage = 'No session found'
     mockedSessionRepo.getSessionById.mockImplementationOnce(async () => {
@@ -1295,12 +1295,12 @@ describe('saveMessage', () => {
   test('Should add new message to the session', async () => {
     const user = buildStudent({
       _id: getStringObjectId(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     })
     const input = {
       sessionId: getStringObjectId(),
       user,
-      message: buildMessage({ user: user._id })
+      message: buildMessage({ user: user._id }),
     }
     const mockValue = mockedGetSessionById({ student: user._id })
     mockedSessionRepo.getSessionById.mockImplementationOnce(
@@ -1331,7 +1331,7 @@ describe('getTimeTutoredForDateRange', () => {
   test('Should get total timeTutored over a date range', async () => {
     const mockValue = {
       _id: null,
-      timeTutored: 1000 * 60 * 10
+      timeTutored: 1000 * 60 * 10,
     }
     mockedSessionRepo.getTotalTimeTutoredForDateRange.mockImplementationOnce(
       async () => [mockValue]
@@ -1351,7 +1351,7 @@ describe('generateWaitTimeHeatMap', () => {
   test('Should create and return a heat map for session wait times', async () => {
     const mockedSessions = [
       { _id: '1-12', averageWaitTime: 10000, day: 1, hour: 12 },
-      { _id: '4-18', averageWaitTime: 50000, day: 4, hour: 18 }
+      { _id: '4-18', averageWaitTime: 50000, day: 4, hour: 18 },
     ]
     mockedSessionRepo.getSessionsWithAvgWaitTimePerDayAndHour.mockImplementationOnce(
       // @todo: return type Aggregate of mockedSessions
@@ -1370,7 +1370,7 @@ describe('generateWaitTimeHeatMap', () => {
 describe('generateAndStoreWaitTimeHeatMap', () => {
   test('Should save the generated wait time heat map', async () => {
     const mockedSessions = [
-      { _id: '1-12', averageWaitTime: 10000, day: 1, hour: 12 }
+      { _id: '1-12', averageWaitTime: 10000, day: 1, hour: 12 },
     ]
     mockedSessionRepo.getSessionsWithAvgWaitTimePerDayAndHour.mockImplementationOnce(
       // @todo: return type Aggregate of mockedSessions

@@ -11,8 +11,9 @@ import { AccountActionCreator } from './UserActionCtrl'
 import { createSnapshotByVolunteerId } from '../models/Availability/queries'
 import { hashPassword } from '../utils/auth-utils'
 
-const generateReferralCode = (userId: Types.ObjectId) =>
-  base64url(Buffer.from(userId.toString(), 'hex'))
+function generateReferralCode(userId: Types.ObjectId) {
+  return base64url(Buffer.from(userId.toString(), 'hex'))
+}
 
 export async function checkReferral(
   referredByCode: string
@@ -26,12 +27,13 @@ export async function checkReferral(
   }
 }
 
+// TODO: duck type validation - studentData payload
 export async function createStudent(
   studentData: Partial<Student> & Pick<Student, 'email' | 'password'>,
   ip: string
 ): Promise<Student> {
   studentData.password = await hashPassword(studentData.password)
-  // TODO: refactor to repo pattern
+  // TODO: repo pattern
   const student = new StudentModel(studentData)
   student.referralCode = generateReferralCode(student._id)
 
@@ -66,12 +68,13 @@ export async function createStudent(
   return student.toObject()
 }
 
+// TODO: duck type validation - volunteerData payload
 export async function createVolunteer(
   volunteerData: Partial<Volunteer> & Pick<Volunteer, 'email' | 'password'>,
   ip: string
 ): Promise<Volunteer> {
   volunteerData.password = await hashPassword(volunteerData.password)
-  // TODO: refactor to repo pattern
+  // TODO: repo pattern
   const volunteer = new VolunteerModel(volunteerData)
   volunteer.referralCode = generateReferralCode(volunteer.id)
 

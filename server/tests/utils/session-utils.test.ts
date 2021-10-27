@@ -4,7 +4,7 @@ import {
   calculateTimeTutored,
   isSessionParticipant,
   isSessionFulfilled,
-  isSubjectUsingDocumentEditor
+  isSubjectUsingDocumentEditor,
 } from '../../utils/session-utils'
 import { Student } from '../../models/Student'
 import { Volunteer } from '../../models/Volunteer'
@@ -14,7 +14,7 @@ import {
   buildVolunteer,
   buildSession,
   buildPastSessions,
-  getObjectId
+  getObjectId,
 } from '../generate'
 import { Message } from '../../models/Message'
 import { SUBJECTS } from '../../constants'
@@ -33,7 +33,7 @@ const loadMessages = ({
   volunteerSentMessages,
   messagesPerUser = 10,
   studentOverrides = {},
-  volunteerOverrides = {}
+  volunteerOverrides = {},
 }): {
   messages: Message[]
   student: Partial<Student>
@@ -42,24 +42,24 @@ const loadMessages = ({
   const messages = []
   const student = buildStudent({
     pastSessions: buildPastSessions(),
-    ...studentOverrides
+    ...studentOverrides,
   })
   const volunteer = buildVolunteer({
     pastSessions: buildPastSessions(),
-    ...volunteerOverrides
+    ...volunteerOverrides,
   })
 
   for (let i = 0; i < messagesPerUser; i++) {
     if (studentSentMessages)
       messages.push(
         buildMessage({
-          user: student._id
+          user: student._id,
         })
       )
     if (volunteerSentMessages)
       messages.push(
         buildMessage({
-          user: volunteer._id
+          user: volunteer._id,
         })
       )
   }
@@ -76,7 +76,7 @@ describe('calculateTimeTutored', () => {
   const similarTestCases = [
     'Return 0ms if no volunteer has joined the session',
     'Return 0ms if no volunteerJoinedAt and no endedAt',
-    'Return 0ms if no messages were sent during the session'
+    'Return 0ms if no messages were sent during the session',
   ]
   for (const testCase of similarTestCases) {
     test(testCase, async () => {
@@ -100,8 +100,8 @@ describe('calculateTimeTutored', () => {
       volunteer: volunteer._id,
       messages: buildMessage({
         user: volunteer._id,
-        createdAt: new Date('2020-10-05T12:03:00.000Z')
-      })
+        createdAt: new Date('2020-10-05T12:03:00.000Z'),
+      }),
     })
 
     const result = calculateTimeTutored(session)
@@ -124,8 +124,8 @@ describe('calculateTimeTutored', () => {
       student: student._id,
       messages: buildMessage({
         user: student._id,
-        createdAt: new Date('2020-10-05T12:03:00.000Z')
-      })
+        createdAt: new Date('2020-10-05T12:03:00.000Z'),
+      }),
     })
 
     const result = calculateTimeTutored(session)
@@ -148,9 +148,9 @@ describe('calculateTimeTutored', () => {
       messages: [
         buildMessage({
           user: volunteer._id,
-          createdAt: lastMessageSentAt
-        })
-      ]
+          createdAt: lastMessageSentAt,
+        }),
+      ],
     })
 
     const result = calculateTimeTutored(session)
@@ -174,9 +174,9 @@ describe('calculateTimeTutored', () => {
       messages: [
         buildMessage({
           user: volunteer._id,
-          createdAt: lastMessageSentAt
-        })
-      ]
+          createdAt: lastMessageSentAt,
+        }),
+      ],
     })
 
     const result = calculateTimeTutored(session)
@@ -201,17 +201,17 @@ describe('calculateTimeTutored', () => {
       messages: [
         buildMessage({
           user: volunteer._id,
-          createdAt: new Date('2020-10-05T14:05:00.000Z')
+          createdAt: new Date('2020-10-05T14:05:00.000Z'),
         }),
         buildMessage({
           user: volunteer._id,
-          createdAt: new Date('2020-10-05T15:58:00.000Z')
+          createdAt: new Date('2020-10-05T15:58:00.000Z'),
         }),
         buildMessage({
           user: volunteer._id,
-          createdAt: lastMessageSentAt
-        })
-      ]
+          createdAt: lastMessageSentAt,
+        }),
+      ],
     })
 
     const result = calculateTimeTutored(session)
@@ -225,7 +225,7 @@ describe('didParticipantsChat', () => {
   test('Should return true when student and volunteer sent messages back and forth', async () => {
     const { messages, student, volunteer } = loadMessages({
       studentSentMessages: true,
-      volunteerSentMessages: true
+      volunteerSentMessages: true,
     })
 
     const result = didParticipantsChat(messages, student._id, volunteer._id)
@@ -235,7 +235,7 @@ describe('didParticipantsChat', () => {
   test('Should return false when only the student sent messages', async () => {
     const { messages, student, volunteer } = loadMessages({
       studentSentMessages: true,
-      volunteerSentMessages: false
+      volunteerSentMessages: false,
     })
 
     const result = didParticipantsChat(messages, student._id, volunteer._id)
@@ -245,7 +245,7 @@ describe('didParticipantsChat', () => {
   test('Should return false when only the volunteer sent messages', async () => {
     const { messages, student, volunteer } = loadMessages({
       studentSentMessages: false,
-      volunteerSentMessages: true
+      volunteerSentMessages: true,
     })
 
     const result = didParticipantsChat(messages, student._id, volunteer._id)
@@ -256,7 +256,7 @@ describe('didParticipantsChat', () => {
     const { messages, student, volunteer } = loadMessages({
       studentSentMessages: false,
       volunteerSentMessages: false,
-      messagesPerUser: 0
+      messagesPerUser: 0,
     })
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeFalsy()
@@ -271,24 +271,24 @@ describe('getMessagesAfterDate', () => {
     const messages = [
       buildMessage({
         user: student._id,
-        createdAt: new Date('2021-01-14T11:45:00.000Z')
+        createdAt: new Date('2021-01-14T11:45:00.000Z'),
       }),
       buildMessage({
         user: student._id,
-        createdAt: new Date('2021-01-14T11:55:00.000Z')
+        createdAt: new Date('2021-01-14T11:55:00.000Z'),
       }),
       buildMessage({
         user: student._id,
-        createdAt: new Date('2021-01-14T12:00:00.000Z')
+        createdAt: new Date('2021-01-14T12:00:00.000Z'),
       }),
       buildMessage({
         user: volunteer._id,
-        createdAt: new Date('2021-01-14T12:10:00.000Z')
+        createdAt: new Date('2021-01-14T12:10:00.000Z'),
       }),
       buildMessage({
         user: student._id,
-        createdAt: new Date('2021-01-14T12:15:00.000Z')
-      })
+        createdAt: new Date('2021-01-14T12:15:00.000Z'),
+      }),
     ]
 
     const results = getMessagesAfterDate(messages, volunteerJoinedAt)
@@ -317,7 +317,7 @@ describe('isSessionParticipant', () => {
     const volunteer = buildVolunteer()
     const session = buildSession({
       student: buildStudent(),
-      volunteer: volunteer._id
+      volunteer: volunteer._id,
     })
     const result = isSessionParticipant(session, volunteer)
     expect(result).toBeTruthy()
@@ -342,7 +342,7 @@ describe('isSessionParticipant', () => {
     const volunteer = buildVolunteer()
     const session = buildSession({
       student: buildStudent(),
-      volunteer: getObjectId()
+      volunteer: getObjectId(),
     })
     try {
       isSessionParticipant(session, volunteer)
@@ -380,7 +380,7 @@ describe('isSubjectUsingDocumentEditor', () => {
       SUBJECTS.ESSAYS,
       SUBJECTS.PLANNING,
       SUBJECTS.APPLICATIONS,
-      SUBJECTS.HUMANITIES_ESSAYS
+      SUBJECTS.HUMANITIES_ESSAYS,
     ]
 
     for (const subject of subjects) {
@@ -394,7 +394,7 @@ describe('isSubjectUsingDocumentEditor', () => {
       SUBJECTS.CALCULUS_AB,
       SUBJECTS.SAT_MATH,
       SUBJECTS.PHYSICS_ONE,
-      SUBJECTS.BIOLOGY
+      SUBJECTS.BIOLOGY,
     ]
 
     for (const subject of subjects) {

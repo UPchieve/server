@@ -7,7 +7,7 @@ export enum DAYS {
   WEDNESDAY = 'Wednesday',
   THURSDAY = 'Thursday',
   FRIDAY = 'Friday',
-  SATURDAY = 'Saturday'
+  SATURDAY = 'Saturday',
 }
 
 export enum HOURS {
@@ -34,7 +34,7 @@ export enum HOURS {
   '8PM' = '8p',
   '9PM' = '9p',
   '10PM' = '10p',
-  '11PM' = '11p'
+  '11PM' = '11p',
 }
 
 export type AvailabilityDay = {
@@ -71,7 +71,7 @@ export const availabilityDaySchema = new Schema(
     [HOURS['8PM']]: { type: Boolean, default: false },
     [HOURS['9PM']]: { type: Boolean, default: false },
     [HOURS['10PM']]: { type: Boolean, default: false },
-    [HOURS['11PM']]: { type: Boolean, default: false }
+    [HOURS['11PM']]: { type: Boolean, default: false },
   },
   { _id: false }
 )

@@ -5,19 +5,30 @@ import * as SchoolService from '../../services/SchoolService'
 import * as UserCtrl from '../../controllers/UserCtrl'
 import { findSchoolByUpchieveId } from '../../models/School/queries'
 import { getZipCodeByZipCode } from '../../models/ZipCode/queries'
-import { getIneligibleStudentByEmail, createIneligibleStudent, getIneligibleStudentsPaginated } from '../../models/IneligibleStudent/queries'
+import {
+  getIneligibleStudentByEmail,
+  createIneligibleStudent,
+  getIneligibleStudentsPaginated,
+} from '../../models/IneligibleStudent/queries'
 import { resError } from '../res-error'
 import * as IpAddressService from '../../services/IpAddressService'
 import { getUserIdByEmail } from '../../models/User/queries'
-import { asFactory, asString, asEnum, asOptional, asObjectId, asBoolean } from '../../utils/type-utils'
-import { GRADES} from '../../constants'
+import {
+  asFactory,
+  asString,
+  asEnum,
+  asOptional,
+  asObjectId,
+  asBoolean,
+} from '../../utils/type-utils'
+import { GRADES } from '../../constants'
 import SchoolModel from '../../models/School'
 
 interface CheckEligibilityPayload {
-  schoolUpchieveId: string,
-  zipCode: string,
-  email: string,
-  referredByCode: string,
+  schoolUpchieveId: string
+  zipCode: string
+  email: string
+  referredByCode: string
   currentGrade?: GRADES
 }
 const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
@@ -25,7 +36,7 @@ const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
   zipCode: asString,
   email: asString,
   referredByCode: asString,
-  currentGrade: asOptional(asEnum(GRADES))
+  currentGrade: asOptional(asEnum(GRADES)),
 })
 
 export function routes(app: Express) {
@@ -39,13 +50,13 @@ export function routes(app: Express) {
         zipCode: zipCodeInput,
         email,
         referredByCode,
-        currentGrade
+        currentGrade,
       } = asCheckEligibilityPayload(req.body as unknown)
 
       const existingUser = await getUserIdByEmail(email)
       if (existingUser)
         return res.status(422).json({
-          message: 'Email already in use'
+          message: 'Email already in use',
         })
 
       const existingIneligible = await getIneligibleStudentByEmail(email)
@@ -82,7 +93,7 @@ export function routes(app: Express) {
     try {
       const results = await SchoolService.search(q)
       res.json({
-        results: results
+        results: results,
       })
     } catch (error) {
       next(error)
@@ -98,24 +109,25 @@ export function routes(app: Express) {
         // TODO: use repo arch
         const eligibleSchools = await SchoolModel.find(
           {
-            isApproved: true
+            isApproved: true,
           },
           null,
           {
             limit: req.query.limit ? parseInt(req.query.limit as string) : 0, //to check
-            skip: req.query.skip ? parseInt(req.query.skip as string) : 0
+            skip: req.query.skip ? parseInt(req.query.skip as string) : 0,
           }
-        ).lean().exec()
+        )
+          .lean()
+          .exec()
         res.json({ eligibleSchools })
-      } catch(err) {
+      } catch (err) {
         resError(res, err)
       }
-    }
-  )
+    })
 
   router.get('/school/:schoolId', authPassport.isAdmin, async function(
     req,
-    res,
+    res
   ) {
     try {
       const schoolId = asObjectId(req.params.schoolId)
@@ -127,12 +139,14 @@ export function routes(app: Express) {
   })
   router.put('/school/:schoolId', authPassport.isAdmin, async function(
     req,
-    res,
+    res
   ) {
-
     try {
       const schoolId = asObjectId(req.params.schoolId)
-      await SchoolService.adminUpdateSchool({ schoolId, ...req.body} as unknown)
+      await SchoolService.adminUpdateSchool({
+        schoolId,
+        ...req.body,
+      } as unknown)
       res.sendStatus(200)
     } catch (err) {
       resError(res, err)
@@ -141,17 +155,16 @@ export function routes(app: Express) {
 
   router.get('/schools', authPassport.isAdmin, async function(req, res) {
     try {
-      const { schools, isLastPage } = await SchoolService.getSchools(req.query as unknown)
+      const { schools, isLastPage } = await SchoolService.getSchools(
+        req.query as unknown
+      )
       res.json({ schools, isLastPage })
     } catch (err) {
       resError(res, err)
     }
   })
 
-  router.post('/school/new', authPassport.isAdmin, async function(
-    req,
-    res,
-  ) {
+  router.post('/school/new', authPassport.isAdmin, async function(req, res) {
     try {
       const school = await SchoolService.createSchool(req.body as unknown)
       res.json({ schoolId: school._id })
@@ -162,7 +175,7 @@ export function routes(app: Express) {
 
   router.post('/school/approval', authPassport.isAdmin, async function(
     req,
-    res,
+    res
   ) {
     try {
       const schoolId = asObjectId(req.body.schoolId)
@@ -177,7 +190,7 @@ export function routes(app: Express) {
 
   router.post('/school/partner', authPassport.isAdmin, async function(
     req,
-    res,
+    res
   ) {
     try {
       const schoolId = asObjectId(req.body.schoolId)
@@ -192,13 +205,13 @@ export function routes(app: Express) {
 
   router.get('/ineligible-students', authPassport.isAdmin, async function(
     req,
-    res,
+    res
   ) {
     try {
       const page = req.query.page ? parseInt(req.query.page as string) : 0
       const {
         ineligibleStudents,
-        isLastPage
+        isLastPage,
       } = await getIneligibleStudentsPaginated(page)
 
       res.json({ ineligibleStudents, isLastPage })
@@ -209,7 +222,7 @@ export function routes(app: Express) {
 
   router.get('/zip-codes/:zipCode', authPassport.isAdmin, async function(
     req,
-    res,
+    res
   ) {
     const zipCode = asString(req.params.zipCode)
 
@@ -218,7 +231,7 @@ export function routes(app: Express) {
       if (!result) res.sendStatus(404)
       else
         res.json({
-          zipCode: { ...result, isEligible: result.isEligible }
+          zipCode: { ...result, isEligible: result.isEligible },
         })
     } catch (err) {
       Sentry.captureException(err)

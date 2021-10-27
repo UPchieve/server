@@ -7,16 +7,22 @@ import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
-import { Volunteer, Certifications, TrainingCourses } from '../../models/Volunteer'
+import {
+  Volunteer,
+  Certifications,
+  TrainingCourses,
+} from '../../models/Volunteer'
 import { userHasTakenQuiz } from '../../models/UserAction/queries'
 
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function(req, res) {
     try {
-      const questions = await TrainingCtrl.getQuestions(asString(req.body.category))
+      const questions = await TrainingCtrl.getQuestions(
+        asString(req.body.category)
+      )
       res.json({
         msg: 'Questions retrieved from database',
-        questions: questions
+        questions: questions,
       })
     } catch (err) {
       resError(res, err)
@@ -29,18 +35,18 @@ export function routeTraining(router: Router): void {
       const user = extractUser(req)
 
       const category = asString(req.body.category)
-      const idAnswerMap = req.body.idAnswerMap  // TODO: type validation
+      const idAnswerMap = req.body.idAnswerMap // TODO: type validation
 
       const {
         tries,
         passed,
         score,
-        idCorrectAnswerMap
+        idCorrectAnswerMap,
       } = await TrainingCtrl.getQuizScore({
         user: user as Volunteer,
         ip,
         category: category as keyof Certifications,
-        idAnswerMap
+        idAnswerMap,
       })
 
       const quizActionCreator = new UserActionCtrl.QuizActionCreator(
@@ -75,7 +81,7 @@ export function routeTraining(router: Router): void {
         tries,
         passed,
         score,
-        idCorrectAnswerMap
+        idCorrectAnswerMap,
       })
     } catch (err) {
       resError(res, err)
@@ -88,7 +94,11 @@ export function routeTraining(router: Router): void {
       const category = asString(req.params.category)
       const { ip: ipAddress } = req
 
-      new UserActionCtrl.QuizActionCreator(user._id, category as keyof Certifications, ipAddress)
+      new UserActionCtrl.QuizActionCreator(
+        user._id,
+        category as keyof Certifications,
+        ipAddress
+      )
         .viewedMaterials()
         .catch(error => Sentry.captureException(error))
 
@@ -102,7 +112,10 @@ export function routeTraining(router: Router): void {
     try {
       const user = extractUser(req)
       const courseKey = asString(req.params.courseKey)
-      const course = TrainingCourseService.getCourse(user as Volunteer, courseKey as keyof TrainingCourses)
+      const course = TrainingCourseService.getCourse(
+        user as Volunteer,
+        courseKey as keyof TrainingCourses
+      )
       if (!course) return res.sendStatus(404)
       res.status(200).json({ course })
     } catch (err) {
@@ -110,10 +123,7 @@ export function routeTraining(router: Router): void {
     }
   })
 
-  router.post('/training/course/:courseKey/progress', async function(
-    req,
-    res,
-  ) {
+  router.post('/training/course/:courseKey/progress', async function(req, res) {
     try {
       const user = extractUser(req)
       const courseKey = asString(req.params.courseKey)
@@ -123,7 +133,8 @@ export function routeTraining(router: Router): void {
         courseKey as keyof TrainingCourses,
         materialKey
       )
-      if (result)  // TODO: can I exit early?
+      if (result)
+        // TODO: can I exit early?
         res.status(200).json(result)
     } catch (err) {
       resError(res, err)

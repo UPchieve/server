@@ -13,8 +13,8 @@ export default async (): Promise<void> => {
     'references.status': REFERENCE_STATUS.SENT,
     'references.sentAt': {
       $gt: new Date(sixDaysAgo),
-      $lt: new Date(fiveDaysAgo)
-    }
+      $lt: new Date(fiveDaysAgo),
+    },
   }
 
   const volunteers = await getVolunteersContactInfo(query)

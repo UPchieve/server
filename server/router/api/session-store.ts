@@ -10,7 +10,7 @@ export const sessionStoreCollectionName = 'auth-sessions'
 export default function(app: Express): connectMongo.MongoStore {
   const sessionStore = new MongoStore({
     url: config.database,
-    collection: sessionStoreCollectionName
+    collection: sessionStoreCollectionName,
   })
 
   app.use(
@@ -21,8 +21,8 @@ export default function(app: Express): connectMongo.MongoStore {
       store: sessionStore,
       cookie: {
         httpOnly: false,
-        maxAge: config.sessionCookieMaxAge
-      }
+        maxAge: config.sessionCookieMaxAge,
+      },
     })
   )
 

@@ -4,24 +4,24 @@ import * as SessionRepo from '../../models/Session/queries'
 import {
   getSession,
   insertSession,
-  insertSessionWithVolunteer
+  insertSessionWithVolunteer,
 } from '../db-utils'
 import {
   DocCreationError,
   DocUpdateError,
-  LookupError
+  LookupError,
 } from '../../models/Errors'
 import {
   buildMessage,
   buildNotification,
   getObjectId,
-  getStringObjectId
+  getStringObjectId,
 } from '../generate'
 import {
   USER_SESSION_METRICS,
   SESSION_REPORT_REASON,
   SUBJECTS,
-  SUBJECT_TYPES
+  SUBJECT_TYPES,
 } from '../../constants'
 import VolunteerModel from '../../models/Volunteer'
 import StudentModel from '../../models/Student'
@@ -40,7 +40,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -58,14 +58,14 @@ describe('createSession', () => {
       studentId: getObjectId(),
       type: SUBJECT_TYPES.MATH,
       subTopic: SUBJECTS.ALGEBRA_ONE,
-      isStudentBanned: false
+      isStudentBanned: false,
     }
 
     const result = await SessionRepo.createSession(newSession)
     const expected = {
       type: newSession.type,
       subTopic: newSession.subTopic,
-      student: newSession.studentId
+      student: newSession.studentId,
     }
     expect(result._id).toBeDefined()
     expect(result).toMatchObject(expected)
@@ -76,7 +76,7 @@ describe('createSession', () => {
       studentId: null,
       type: 'bogus',
       subTopic: SUBJECTS.ALGEBRA_ONE,
-      isStudentBanned: false
+      isStudentBanned: false,
     }
 
     await expect(SessionRepo.createSession(newSession)).rejects.toBeInstanceOf(
@@ -101,11 +101,11 @@ describe('addNotifications', () => {
     expect(session.notifications).toHaveLength(0)
     const notifications = [
       buildNotification({
-        volunteer: getObjectId()
+        volunteer: getObjectId(),
       }),
       buildNotification({
-        volunteer: getObjectId()
-      })
+        volunteer: getObjectId(),
+      }),
     ]
     await SessionRepo.addNotifications(session._id, notifications)
     const updatedSession = await getSession(
@@ -120,7 +120,7 @@ describe('addNotifications', () => {
       SessionRepo.addNotifications(
         session._id,
         buildNotification({
-          volunteer: getObjectId()
+          volunteer: getObjectId(),
         })
       )
     ).rejects.toBeInstanceOf(DocUpdateError)
@@ -178,7 +178,7 @@ describe('updateFlags', () => {
   test('Should update flags', async () => {
     const flags = [
       USER_SESSION_METRICS.absentStudent,
-      USER_SESSION_METRICS.commentFromVolunteer
+      USER_SESSION_METRICS.commentFromVolunteer,
     ]
     await SessionRepo.updateFlags(session._id, flags)
 
@@ -203,7 +203,7 @@ describe('updateReviewReasons', () => {
   test('Should update reviewReasons', async () => {
     const reviewReasons = [
       USER_SESSION_METRICS.absentStudent,
-      USER_SESSION_METRICS.commentFromVolunteer
+      USER_SESSION_METRICS.commentFromVolunteer,
     ]
     await SessionRepo.updateReviewReasons(session._id, reviewReasons)
 
@@ -262,7 +262,7 @@ describe('updateReviewedStatus', () => {
   test('Should update reviewed and toReview', async () => {
     await SessionRepo.updateReviewedStatus(session._id, {
       toReview: false,
-      reviewed: true
+      reviewed: true,
     })
     const updatedSession = await getSession(
       { _id: session._id },
@@ -276,7 +276,7 @@ describe('updateReviewedStatus', () => {
     await expect(
       SessionRepo.updateReviewedStatus(invalidId, {
         toReview: false,
-        reviewed: false
+        reviewed: false,
       })
     ).rejects.toBeInstanceOf(DocUpdateError)
   })
@@ -301,10 +301,10 @@ describe('getSessionToEnd', () => {
         _id: student._id,
         firstname: student.firstname,
         email: student.email,
-        pastSessions: student.pastSessions
+        pastSessions: student.pastSessions,
       },
       volunteer: {},
-      volunteerJoinedAt: session.volunteerJoinedAt
+      volunteerJoinedAt: session.volunteerJoinedAt,
     }
     expect(result._id).toBeDefined()
     expect(result).toMatchObject(expected)
@@ -324,16 +324,16 @@ describe('getSessionToEnd', () => {
         _id: student._id,
         firstname: student.firstname,
         email: student.email,
-        pastSessions: student.pastSessions
+        pastSessions: student.pastSessions,
       },
       volunteer: {
         _id: volunteer._id,
         firstname: volunteer.firstname,
         email: volunteer.email,
         pastSessions: volunteer.pastSessions,
-        volunteerPartnerOrg: volunteer.volunteerPartnerOrg
+        volunteerPartnerOrg: volunteer.volunteerPartnerOrg,
       },
-      volunteerJoinedAt: session.volunteerJoinedAt
+      volunteerJoinedAt: session.volunteerJoinedAt,
     }
     expect(result._id).toBeDefined()
     expect(result).toMatchObject(expected)
@@ -361,11 +361,11 @@ describe('getTotalTimeTutoredForDateRange', () => {
 
   test('Should get total time tutored for date range', async () => {
     const { volunteer } = await insertSessionWithVolunteer({
-      timeTutored: 10000
+      timeTutored: 10000,
     })
     await insertSession({
       volunteer: volunteer._id,
-      timeTutored: 5000
+      timeTutored: 5000,
     })
 
     const result = await SessionRepo.getTotalTimeTutoredForDateRange(
@@ -376,8 +376,8 @@ describe('getTotalTimeTutoredForDateRange', () => {
     const expected = [
       {
         _id: null,
-        timeTutored: 15000
-      }
+        timeTutored: 15000,
+      },
     ]
     expect(result).toEqual(expected)
   })
@@ -400,14 +400,14 @@ describe('getActiveSessionsWithVolunteers', () => {
 
   test('Should get all matched sessions that have not ended', async () => {
     const { session, volunteer } = await insertSessionWithVolunteer({
-      endedAt: undefined
+      endedAt: undefined,
     })
     const result = await SessionRepo.getActiveSessionsWithVolunteers()
     const expected = [
       {
         _id: session._id,
-        volunteer: volunteer._id
-      }
+        volunteer: volunteer._id,
+      },
     ]
     expect(result).toEqual(expected)
   })
@@ -429,7 +429,7 @@ describe('updateReportSession', () => {
 
   const report = {
     reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
-    reportMessage: 'made a your mom joke'
+    reportMessage: 'made a your mom joke',
   }
 
   test('Should report a session', async () => {
@@ -459,20 +459,20 @@ describe('updateSessionToEnd', () => {
     const { session, student } = await insertSession()
     const data = {
       endedAt: new Date(),
-      endedBy: student._id
+      endedBy: student._id,
     }
     await SessionRepo.updateSessionToEnd(session._id.toString(), data)
     const updatedSession = await getSession(
       { _id: session._id },
       {
         endedAt: 1,
-        endedBy: 1
+        endedBy: 1,
       }
     )
 
     const expected = {
       _id: session._id,
-      ...data
+      ...data,
     }
     expect(updatedSession).toEqual(expected)
   })
@@ -481,7 +481,7 @@ describe('updateSessionToEnd', () => {
     await expect(
       SessionRepo.updateSessionToEnd(invalidId, {
         endedAt: new Date(),
-        endedBy: getObjectId()
+        endedBy: getObjectId(),
       })
     ).rejects.toBeInstanceOf(DocUpdateError)
   })
@@ -535,7 +535,7 @@ describe('addSessionPhotoKey', () => {
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        photos: 1
+        photos: 1,
       }
     )
     expect(updatedSession.photos).toContain(photoKey)
@@ -575,13 +575,13 @@ describe('getPublicSession', () => {
         subTopic: session.subTopic,
         student: {
           _id: student._id,
-          firstName: student.firstname
+          firstName: student.firstname,
         },
         volunteer: {
           _id: volunteer._id,
-          firstName: volunteer.firstname
-        }
-      }
+          firstName: volunteer.firstname,
+        },
+      },
     ]
     expect(result).toEqual(expected)
   })
@@ -616,14 +616,14 @@ describe('getSessionByIdWithStudentAndVolunteer', () => {
         isVolunteer: student.isVolunteer,
         firstname: student.firstname,
         pastSessions: student.pastSessions,
-        createdAt: student.createdAt
+        createdAt: student.createdAt,
       },
       volunteer: {
         _id: volunteer._id,
         isVolunteer: volunteer.isVolunteer,
         firstname: volunteer.firstname,
         pastSessions: volunteer.pastSessions,
-        createdAt: volunteer.createdAt
+        createdAt: volunteer.createdAt,
       },
       messages: session.messages,
       hasWhiteboardDoc: session.hasWhiteboardDoc,
@@ -641,7 +641,7 @@ describe('getSessionByIdWithStudentAndVolunteer', () => {
       reviewed: session.reviewed,
       toReview: session.toReview,
       reviewReasons: session.reviewReasons,
-      timeTutored: session.timeTutored
+      timeTutored: session.timeTutored,
     }
 
     expect(result).toEqual(expected)
@@ -661,7 +661,7 @@ describe('getCurrentSession', () => {
 
   test('Should get the current session for the given userId', async () => {
     const { session, student, volunteer } = await insertSessionWithVolunteer({
-      endedAt: undefined
+      endedAt: undefined,
     })
     const result = await SessionRepo.getCurrentSession(volunteer._id.toString())
     const expected = {
@@ -669,19 +669,19 @@ describe('getCurrentSession', () => {
       student: {
         _id: student._id.toString(),
         firstname: student.firstname,
-        isVolunteer: student.isVolunteer
+        isVolunteer: student.isVolunteer,
       },
       volunteer: {
         _id: volunteer._id.toString(),
         firstname: volunteer.firstname,
-        isVolunteer: volunteer.isVolunteer
+        isVolunteer: volunteer.isVolunteer,
       },
       subTopic: session.subTopic,
       type: session.type,
       messages: session.messages,
       createdAt: session.createdAt,
       endedAt: session.endedAt && session.endedAt,
-      volunteerJoinedAt: session.volunteerJoinedAt
+      volunteerJoinedAt: session.volunteerJoinedAt,
     }
 
     expect(result).toEqual(expected)
@@ -714,7 +714,7 @@ describe('getStudentLatestSession', () => {
     )
     const expected = {
       _id: session._id.toString(),
-      createdAt: session.createdAt.toISOString()
+      createdAt: session.createdAt.toISOString(),
     }
 
     expect(result).toEqual(expected)
@@ -736,7 +736,7 @@ describe('addVolunteerToSession', () => {
       { _id: session._id },
       {
         volunteer: 1,
-        volunteerJoinedAt: 1
+        volunteerJoinedAt: 1,
       }
     )
     expect(updatedSession.volunteerJoinedAt).toBeTruthy()
@@ -766,13 +766,13 @@ describe('addMessage', () => {
 
   test('Should add message to messages', async () => {
     const message = buildMessage({
-      user: student._id
+      user: student._id,
     })
     await SessionRepo.addMessage(session._id.toString(), message)
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        messages: 1
+        messages: 1,
       }
     )
     expect(updatedSession.messages).toHaveLength(1)
@@ -792,12 +792,12 @@ describe('getSessionsWithAvgWaitTimePerDayAndHour', () => {
   const firstSessionData = {
     createdAt: new Date('2021-01-07T10:00:00.000Z'),
     endedAt: new Date('2021-01-07T10:30:00.000Z'),
-    volunteerJoinedAt: new Date('2021-01-07T10:05:00.000Z')
+    volunteerJoinedAt: new Date('2021-01-07T10:05:00.000Z'),
   }
   // wait time of 15 minutes for unmatched session
   const secondSessionData = {
     createdAt: new Date('2021-01-07T10:15:00.000Z'),
-    endedAt: new Date('2021-01-07T10:30:00.000Z')
+    endedAt: new Date('2021-01-07T10:30:00.000Z'),
   }
 
   beforeAll(async () => {
@@ -826,12 +826,12 @@ describe('updateSessionMetrics', () => {
     const { session } = await insertSession()
     const timeTutored = 1000 * 60 * 20
     await SessionRepo.updateSessionMetrics(session._id.toString(), {
-      timeTutored
+      timeTutored,
     })
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        timeTutored: 1
+        timeTutored: 1,
       }
     )
     expect(updatedSession.timeTutored).toBe(timeTutored)
@@ -847,7 +847,7 @@ describe('updateSessionMetrics', () => {
     const timeTutored = 1000 * 60 * 20
     try {
       await SessionRepo.updateSessionMetrics(sessionId.toString(), {
-        timeTutored
+        timeTutored,
       })
     } catch (err) {
       error = err
@@ -869,7 +869,7 @@ describe('setQuillDoc', () => {
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        quillDoc: 1
+        quillDoc: 1,
       }
     )
     expect(JSON.parse(updatedSession.quillDoc)).toEqual(quillDoc)
@@ -905,7 +905,7 @@ describe('setHasWhiteboardDoc', () => {
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        hasWhiteboardDoc: 1
+        hasWhiteboardDoc: 1,
       }
     )
     expect(updatedSession.hasWhiteboardDoc).toBeTruthy()

@@ -14,8 +14,8 @@ export default async (): Promise<void> => {
   const volunteers = await getVolunteersContactInfo({
     createdAt: {
       $gte: new Date(oneDayAgo),
-      $lte: new Date(todaysDate)
-    }
+      $lte: new Date(todaysDate),
+    },
   })
 
   let totalEmailed = 0

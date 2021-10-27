@@ -27,7 +27,9 @@ export default async (): Promise<void> => {
       unsubscribedPartners.push(partnerOrg)
   }
 
-  const volunteers = await getVolunteersForWeeklyHourSummary(unsubscribedPartners)
+  const volunteers = await getVolunteersForWeeklyHourSummary(
+    unsubscribedPartners
+  )
 
   const dateQuery = { $gt: lastMonday.toDate(), $lte: lastSunday.toDate() }
 
@@ -39,7 +41,7 @@ export default async (): Promise<void> => {
       firstname,
       email,
       sentHourSummaryIntroEmail,
-      volunteerPartnerOrg
+      volunteerPartnerOrg,
     } = volunteer
     try {
       const customCheck =

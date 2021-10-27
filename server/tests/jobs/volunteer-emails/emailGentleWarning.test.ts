@@ -3,7 +3,7 @@ import {
   resetDb,
   insertSession,
   insertNotificationMany,
-  insertVolunteerMany
+  insertVolunteerMany,
 } from '../../db-utils'
 import emailGentleWarning from '../../../worker/jobs/volunteer-emails/emailGentleWarning'
 import logger from '../../../logger'
@@ -29,7 +29,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -52,7 +52,7 @@ describe('Volunteer gentle warning email', () => {
     const kant = buildVolunteer(EMAIL_RECIPIENT)
     const sartre = buildVolunteer({
       pastSessions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()],
-      EMAIL_RECIPIENT
+      EMAIL_RECIPIENT,
     })
     const platoNotifications = createNotifications(5, plato._id)
     const aristotleNotifications = createNotifications(5, aristotle._id)
@@ -60,14 +60,14 @@ describe('Volunteer gentle warning email', () => {
     await insertNotificationMany([
       ...platoNotifications,
       ...aristotleNotifications,
-      kantNotification
+      kantNotification,
     ])
     const { session } = await insertSession({
       notifications: [
         platoNotifications[1]._id,
         aristotleNotifications[1]._id,
-        kantNotification
-      ]
+        kantNotification,
+      ],
     })
     await insertVolunteerMany([plato, aristotle, kant, sartre])
     // @todo: figure out how to properly type
@@ -75,8 +75,8 @@ describe('Volunteer gentle warning email', () => {
     const job: any = {
       name: Jobs.EmailVolunteerGentleWarning,
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
 
     await emailGentleWarning(job)
@@ -100,7 +100,7 @@ describe('Volunteer gentle warning email', () => {
     const kant = buildVolunteer(EMAIL_RECIPIENT)
     const sartre = buildVolunteer({
       pastSessions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()],
-      EMAIL_RECIPIENT
+      EMAIL_RECIPIENT,
     })
     const platoNotifications = createNotifications(5, plato._id)
     const kantNotification = buildNotification({ volunteer: kant._id })
@@ -110,7 +110,7 @@ describe('Volunteer gentle warning email', () => {
     MailService.sendVolunteerGentleWarning = rejectionFn
     await insertNotificationMany([...platoNotifications, kantNotification])
     const { session } = await insertSession({
-      notifications: [platoNotifications[1]._id, kantNotification]
+      notifications: [platoNotifications[1]._id, kantNotification],
     })
     await insertVolunteerMany([plato, kant, sartre])
     // @todo: figure out how to properly type
@@ -118,8 +118,8 @@ describe('Volunteer gentle warning email', () => {
     const job: any = {
       name: Jobs.EmailVolunteerGentleWarning,
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
 
     await expect(emailGentleWarning(job)).rejects.toEqual(

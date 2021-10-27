@@ -27,7 +27,7 @@ test('Should save string content in the cache', async () => {
 test('Should save json stringified content in the cache', async () => {
   const testKey = uuid()
   const testObj = {
-    aKey: 'a value'
+    aKey: 'a value',
   }
   const jsonString = JSON.stringify(testObj)
 
@@ -52,7 +52,7 @@ test('Should save json stringified content in the cache', async () => {
 test('Should retrieve parse-able json stringified content from the cache', async () => {
   const testKey = uuid()
   const testObj = {
-    aKey: 'a value'
+    aKey: 'a value',
   }
   const jsonString = JSON.stringify(testObj)
 

@@ -18,7 +18,7 @@ edu.use(expressLayouts)
 edu.locals = {
   homeLink: config.NODE_ENV === 'dev' ? 'http://localhost:3000' : '/',
   frontEndRoot:
-    config.NODE_ENV === 'dev' ? new URL('http://localhost:3000') : null
+    config.NODE_ENV === 'dev' ? new URL('http://localhost:3000') : null,
 }
 
 // GET /edu
@@ -28,7 +28,9 @@ edu.get('/', async (req, res) => {
       (acc: any, [category, subcategories]) => [
         ...acc,
         questionsPath(category),
-        subcategories.map((subcategory: string) => questionsPath(category, subcategory))
+        subcategories.map((subcategory: string) =>
+          questionsPath(category, subcategory)
+        ),
       ],
       []
     )
@@ -36,9 +38,9 @@ edu.get('/', async (req, res) => {
     res.render('edu/index', {
       adminPages: [
         { path: 'questions', label: 'All Questions' },
-        ...categories
+        ...categories,
       ],
-      isActive: isActivePage(req)
+      isActive: isActivePage(req),
     })
   } catch (error) {
     logger.error(error as Error)
@@ -70,7 +72,7 @@ edu.route('/questions').get(async (req, res) => {
 // GET /edu/questions/new
 edu.route('/questions/new').get((req, res) => {
   const question = {
-    possibleAnswers: [{ val: 'a' }, { val: 'b' }, { val: 'c' }, { val: 'd' }]
+    possibleAnswers: [{ val: 'a' }, { val: 'b' }, { val: 'c' }, { val: 'd' }],
   }
   const isActive = isActivePage(req)
   res.render('edu/questions/new', { question, isActive })
@@ -89,7 +91,7 @@ eduApi.post('/categoryquestions', async (req, res) => {
   try {
     const questions = await QuestionModel.find({ category }, null, {
       skip,
-      limit
+      limit,
     }).exec()
     res.status(200).json({ questions: questions })
   } catch (error) {
@@ -112,7 +114,7 @@ eduApi.put('/questions/:id', async (req, res) => {
   try {
     const updatedQuestion = await QuestionCtrl.update({
       id: req.params.id,
-      question: req.body.question
+      question: req.body.question,
     })
     res.status(200).json({ question: updatedQuestion })
   } catch (error) {

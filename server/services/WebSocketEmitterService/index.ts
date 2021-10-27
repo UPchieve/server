@@ -7,7 +7,7 @@ import {
   UpgradedWebSocket,
   Packet,
   WebSocketEmitterOptions,
-  asWebSocketPacket
+  asWebSocketPacket,
 } from './types'
 
 export class WebSocketEmitter {
@@ -42,8 +42,7 @@ export class WebSocketEmitter {
         `Unsuitable WebSocket packet shape for room ${roomId}`
       )
     } catch (error) {
-      if (error instanceof Error)
-        logger.error(error.message)
+      if (error instanceof Error) logger.error(error.message)
       return
     }
 

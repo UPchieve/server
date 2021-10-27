@@ -25,7 +25,7 @@ export function routes(app: Express) {
 
     req.logout()
     res.json({
-      msg: 'You have been logged out'
+      msg: 'You have been logged out',
     })
   })
 
@@ -51,7 +51,7 @@ export function routes(app: Express) {
     try {
       const student = await AuthService.registerOpenStudent({
         ...req.body,
-        ip: req.ip
+        ip: req.ip,
       } as unknown)
       await req.asyncLogin(student)
       res.json({ user: student })
@@ -64,7 +64,7 @@ export function routes(app: Express) {
     try {
       const student = await AuthService.registerPartnerStudent({
         ...req.body,
-        ip: req.ip
+        ip: req.ip,
       } as unknown)
       await req.asyncLogin(student)
       res.json({ user: student })
@@ -77,7 +77,7 @@ export function routes(app: Express) {
     try {
       const volunteer = await AuthService.registerVolunteer({
         ...req.body,
-        ip: req.ip
+        ip: req.ip,
       } as unknown)
       await req.asyncLogin(volunteer)
       res.json({ user: volunteer })
@@ -90,7 +90,7 @@ export function routes(app: Express) {
     try {
       const volunteer = await AuthService.registerPartnerVolunteer({
         ...req.body,
-        ip: req.ip
+        ip: req.ip,
       } as unknown)
       await req.asyncLogin(volunteer)
       res.json({ user: volunteer })
@@ -172,10 +172,11 @@ export function routes(app: Express) {
         if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
       }
       let userId: Types.ObjectId | undefined
-      if (!req.user) {  // user not logged in
+      if (!req.user) {
+        // user not logged in
         userId = await getUserIdByEmail(email)
-      } else // logged in
-        userId = req.user._id
+      } // logged in
+      else userId = req.user._id
       req.session.destroy(() => {
         /* do nothing */
       })
@@ -186,7 +187,7 @@ export function routes(app: Express) {
       }
       res.status(200).json({
         msg:
-          'If an account with this email address exists then we will send a password reset email'
+          'If an account with this email address exists then we will send a password reset email',
       })
     } catch (err) {
       resError(res, err)

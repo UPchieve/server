@@ -3,7 +3,7 @@ import {
   resetDb,
   insertSessionWithVolunteer,
   insertSession,
-  getSession
+  getSession,
 } from '../db-utils'
 import endUnmatchedSession from '../../worker/jobs/endUnmatchedSession'
 import { log } from '../../worker/logger'
@@ -17,7 +17,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -40,8 +40,8 @@ describe('End unmatched session', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const job: any = {
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
 
     await endUnmatchedSession(job)
@@ -56,8 +56,8 @@ describe('End unmatched session', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const job: any = {
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
     const errorMessage = 'unable to end session'
     const mockEndSession = jest
@@ -78,8 +78,8 @@ describe('End unmatched session', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const job: any = {
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
 
     await endUnmatchedSession(job)

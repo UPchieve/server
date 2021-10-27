@@ -5,7 +5,7 @@ import {
   getVolunteer,
   insertAvailabilitySnapshot,
   insertVolunteer,
-  resetDb
+  resetDb,
 } from '../db-utils'
 import { buildAvailability, buildVolunteer } from '../generate'
 import { log } from '../../worker/logger'
@@ -20,7 +20,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -52,7 +52,7 @@ describe('updateElapsedAvailability', () => {
     const hendrix = buildVolunteer({
       isOnboarded: true,
       isApproved: true,
-      elapsedAvailability: 10
+      elapsedAvailability: 10,
     })
     const berry = buildVolunteer()
     const day = moment()
@@ -63,8 +63,8 @@ describe('updateElapsedAvailability', () => {
     await insertAvailabilitySnapshot({
       volunteerId: hendrix._id,
       onCallAvailability: buildAvailability({
-        [day]: { '1p': true, '2p': true }
-      })
+        [day]: { '1p': true, '2p': true },
+      }),
     })
 
     await updateElapsedAvailability()
@@ -107,7 +107,7 @@ describe('updateElapsedAvailability', () => {
       '8p': false,
       '9p': false,
       '10p': false,
-      '11p': false
+      '11p': false,
     }
     expect(newAvailabilityHistory.availability).toMatchObject(
       expectedAvailabilityDay

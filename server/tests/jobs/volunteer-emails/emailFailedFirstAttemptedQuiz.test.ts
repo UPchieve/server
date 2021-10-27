@@ -25,13 +25,13 @@ describe('first attempted quiz failed email job', () => {
       email: 'testy@mctesterson.com',
       category: 'Pre-algebra',
       firstName: 'Testy',
-      volunteerId: volunteer._id
-    }
+      volunteerId: volunteer._id,
+    },
   }
 
   test('should send email', async () => {
     mockedVolunteerService.getVolunteers.mockImplementation(async () => [
-      volunteer
+      volunteer,
     ])
 
     await emailFailedFirstAttemptedQuiz(job)
@@ -45,7 +45,7 @@ describe('first attempted quiz failed email job', () => {
   test('should throw error if email fails to send', async () => {
     const errorMessage = 'Unable to send'
     mockedVolunteerService.getVolunteers.mockImplementation(async () => [
-      volunteer
+      volunteer,
     ])
     mockedMailService.sendFailedFirstAttemptedQuiz.mockImplementationOnce(() =>
       Promise.reject(errorMessage)

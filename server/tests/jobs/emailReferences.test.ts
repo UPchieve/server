@@ -13,19 +13,19 @@ const buildVolunteerWithReferences = (): Partial<Volunteer> => {
   return buildVolunteer({
     references: [
       buildReference({
-        status: REFERENCE_STATUS.UNSENT
+        status: REFERENCE_STATUS.UNSENT,
       }),
       buildReference({
-        status: REFERENCE_STATUS.UNSENT
-      })
-    ]
+        status: REFERENCE_STATUS.UNSENT,
+      }),
+    ],
   })
 }
 
 const getReferences = (): Aggregate<Reference[]> => {
   return VolunteerModel.aggregate([
     {
-      $unwind: '$references'
+      $unwind: '$references',
     },
     {
       $project: {
@@ -35,9 +35,9 @@ const getReferences = (): Aggregate<Reference[]> => {
         lastName: '$references.lastName',
         email: '$references.email',
         createdAt: '$references.createdAt',
-        sentAt: '$references.sentAt'
-      }
-    }
+        sentAt: '$references.sentAt',
+      },
+    },
   ])
 }
 
@@ -46,7 +46,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -66,7 +66,7 @@ describe('Email references', () => {
   test('Should send email references the reference form', async () => {
     await Promise.all([
       insertVolunteer(buildVolunteerWithReferences()),
-      insertVolunteer(buildVolunteerWithReferences())
+      insertVolunteer(buildVolunteerWithReferences()),
     ])
     await emailReferences()
 
@@ -87,10 +87,10 @@ describe('Email references', () => {
         buildVolunteer({
           references: [
             buildReference({ status: REFERENCE_STATUS.SENT }),
-            buildReference({ status: REFERENCE_STATUS.SUBMITTED })
-          ]
+            buildReference({ status: REFERENCE_STATUS.SUBMITTED }),
+          ],
         })
-      )
+      ),
     ])
     await emailReferences()
 

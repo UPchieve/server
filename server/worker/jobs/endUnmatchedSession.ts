@@ -22,7 +22,7 @@ export default async (job: Job<EndUnmatchedSessionJobData>): Promise<void> => {
         await SessionService.endSession({
           sessionId,
           isAdmin: true,
-          endedBy: null
+          endedBy: null,
         })
         log(`Successfuly ${Jobs.EndUnmatchedSession}: session ${sessionId}`)
       } catch (error) {

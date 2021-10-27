@@ -14,7 +14,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -34,7 +34,7 @@ describe('createVolunteer', () => {
     await createVolunteer(newVolunteer)
     const einstein = await getVolunteer({ _id: newVolunteer._id })
     const newAvailability = await getAvailability({
-      volunteerId: einstein._id
+      volunteerId: einstein._id,
     })
 
     expect(einstein._id).toEqual(newVolunteer._id)

@@ -9,7 +9,7 @@ import {
   asString,
   asEnum,
   asUnion,
-  asStringObjectId
+  asStringObjectId,
 } from '../../utils/type-utils'
 import { getObjectId, getStringObjectId } from '../generate'
 
