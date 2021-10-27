@@ -34,11 +34,9 @@ export function routeUser(router: Router): void {
         MailService.createContact(updatedUser)
 
         if (isDeactivated)
-          new UserActionCtrl.AccountActionCreator(
-            user._id,
-            ip
-          ).accountDeactivated()
-          .catch(error => Sentry.captureException(error))
+          new UserActionCtrl.AccountActionCreator(user._id, ip)
+            .accountDeactivated()
+            .catch(error => Sentry.captureException(error))
       }
       await updateVolunteerProfileById(user._id, isDeactivated, phone)
       res.sendStatus(200)
@@ -119,7 +117,6 @@ export function routeUser(router: Router): void {
     async (req, res) => {
       const { ip } = req
       const user = extractUser(req)
-
 
       // TODO: duck type validation
       const {

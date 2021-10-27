@@ -238,12 +238,15 @@ export async function getVolunteersForWeeklyHourSummary(
       .exec()
   })
 }
-export async function updateVolunteerHourSummaryIntroById(volunteerId: Types.ObjectId, sentHourSummaryIntroEmail: boolean): Promise<void> {
+export async function updateVolunteerHourSummaryIntroById(
+  volunteerId: Types.ObjectId,
+  sentHourSummaryIntroEmail: boolean
+): Promise<void> {
   try {
     const result = await VolunteerModel.updateOne(
       { _id: volunteerId },
       {
-        sentHourSummaryIntroEmail
+        sentHourSummaryIntroEmail,
       }
     ).exec()
     if (!result.ok)

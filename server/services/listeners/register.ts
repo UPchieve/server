@@ -11,7 +11,7 @@ function eventObservabilityWrapper(
   return (...args: any[]) => {
     nr.startBackgroundTransaction(`event:${event}`, async () => {
       const transaction = nr.getTransaction()
-      logger.info(`handling ${event} with ${name}`)
+      logger.info(`handling ${event} with ${name} on args ${args}`)
       try {
         await handler(...args)
         logger.info(`${name} successfully handled event ${event}`)

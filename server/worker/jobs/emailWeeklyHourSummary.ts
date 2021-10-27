@@ -6,7 +6,10 @@ import { volunteerPartnerManifests } from '../../partnerManifests'
 import config from '../../config'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import { Jobs } from '.'
-import { getVolunteersForWeeklyHourSummary, updateVolunteerHourSummaryIntroById } from '../../models/Volunteer/queries'
+import {
+  getVolunteersForWeeklyHourSummary,
+  updateVolunteerHourSummaryIntroById,
+} from '../../models/Volunteer/queries'
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {

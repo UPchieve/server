@@ -14,6 +14,7 @@ import config from '../config'
 
 const redisClient = new Redis(config.redisConnectionString)
 
+// TODO: we should just return undefiend on KeyNotFound
 export class KeyNotFoundError extends CustomError {
   constructor(attemptedKey: string) {
     super(`key ${attemptedKey} was not found in the cache`)

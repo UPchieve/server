@@ -25,12 +25,12 @@ export interface HourSummaryStats {
   totalVolunteerHours: number
 }
 
-export const getHourSummaryStats = async (
+export async function getHourSummaryStats(
   volunteerId: Types.ObjectId,
   fromDate: Date,
   toDate: Date
-): Promise<HourSummaryStats> => {
-  // TODO: promise.all fails fast, do we want this? - handle error
+): Promise<HourSummaryStats> {
+  // TODO: promise.all fails fast, do we want this? - handle error?
   const [
     quizzesPassed,
     elapsedAvailability,
@@ -59,21 +59,21 @@ export const getHourSummaryStats = async (
   }
 }
 
-export const queueOnboardingReminderOneEmail = async (
+export async function queueOnboardingReminderOneEmail(
   volunteerId: Types.ObjectId
-): Promise<void> => {
+): Promise<void> {
   const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7
-  QueueService.add(
+  await QueueService.add(
     Jobs.EmailOnboardingReminderOne,
     { volunteerId },
     { delay: sevenDaysInMs }
   )
 }
 
-export const queueOnboardingEventEmails = async (
+export async function queueOnboardingEventEmails(
   volunteerId: Types.ObjectId
-): Promise<void> => {
-  QueueService.add(
+): Promise<void> {
+  await QueueService.add(
     Jobs.EmailVolunteerQuickTips,
     { volunteerId },
     // process job 5 days after the volunteer is onboarded
@@ -87,7 +87,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
   firstName: string,
   volunteerId: Types.ObjectId
 ) {
-  QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
+  await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
     category,
     email,
     firstName,
@@ -95,16 +95,16 @@ export async function queueFailedFirstAttemptedQuizEmail(
   })
 }
 
-export const queuePartnerOnboardingEventEmails = async (
+export async function queuePartnerOnboardingEventEmails(
   volunteerId: Types.ObjectId
-): Promise<void> => {
-  QueueService.add(
+): Promise<void> {
+  await QueueService.add(
     Jobs.EmailPartnerVolunteerLowHoursSelected,
     { volunteerId },
     // process job 10 days after the volunteer is onboarded
     { delay: 1000 * 60 * 60 * 24 * 10 }
   )
-  QueueService.add(
+  await QueueService.add(
     Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
     { volunteerId },
     // process job 15 days after the volunteer is onboarded
@@ -123,7 +123,7 @@ export async function getVolunteersToReview(
   const skip = (pageNum - 1) * PER_PAGE
 
   try {
-    // TODO: do this with the repo arch
+    // TODO: repo pattern
     const volunteers = await VolunteerModel.aggregate([
       {
         $match: {
@@ -225,7 +225,7 @@ export async function updatePendingVolunteerStatus(
     'references.0.status': referenceOneStatus,
     'references.1.status': referenceTwoStatus,
   }
-  // TODO: use Repo arch
+  // TODO: repo pattern
   await VolunteerModel.updateOne({ _id: volunteerId }, update)
 
   if (
@@ -297,6 +297,6 @@ export async function addBackgroundInfo(
     volunteerId,
     ip
   ).completedBackgroundInfo()
-  // TODO: use repo arch
+  // TODO: repo pattern
   await VolunteerModel.updateOne({ _id: volunteerId }, update)
 }

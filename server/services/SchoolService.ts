@@ -21,7 +21,7 @@ function createUpchieveId() {
   return String(parsedHex).slice(0, 8)
 }
 
-// TODO: need to turn this into repo pattern once we have stronger school type
+// TODO: repo pattern - once we have stronger school type
 // search for schools by name or ID
 // TODO: duck type validation
 export async function search(query: any): Promise<any> {
@@ -119,7 +119,9 @@ export async function search(query: any): Promise<any> {
   }
 }
 
-export async function getSchool(schoolId: Types.ObjectId): Promise<School> {
+export async function getSchool(
+  schoolId: Types.ObjectId
+): Promise<School | undefined> {
   try {
     const [school] = await SchoolModel.aggregate([
       { $match: { _id: schoolId } },
@@ -154,7 +156,7 @@ export async function getSchool(schoolId: Types.ObjectId): Promise<School> {
       },
     ]).exec()
 
-    return school
+    if (school) return school
   } catch (error) {
     throw new Error((error as Error).message)
   }
@@ -172,7 +174,7 @@ const asGetSchoolsPayload = asFactory<GetSchoolsPayload>({
   city: asString,
   page: asOptional(asNumber),
 })
-
+// TODO: clean up return type
 export async function getSchools(data: unknown) {
   const { name, state, city, page } = asGetSchoolsPayload(data)
   const pageNum = page || 1
@@ -256,11 +258,11 @@ export async function getSchools(data: unknown) {
 }
 
 export function updateApproval(schoolId: Types.ObjectId, isApproved: boolean) {
-  return SchoolModel.updateOne({ _id: schoolId }, { isApproved })
+  return SchoolModel.updateOne({ _id: schoolId }, { isApproved }).exec()
 }
 
 export function updateIsPartner(schoolId: Types.ObjectId, isPartner: boolean) {
-  return SchoolModel.updateOne({ _id: schoolId }, { isPartner })
+  return SchoolModel.updateOne({ _id: schoolId }, { isPartner }).exec()
 }
 
 interface CreateSchoolPayload {
@@ -304,7 +306,8 @@ export async function createSchool(data: unknown) {
   }
   const school = new SchoolModel(schoolData)
 
-  return school.save()
+  await school.save()
+  return school.toObject()
 }
 
 interface AdminUpdate {

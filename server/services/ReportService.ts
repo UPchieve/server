@@ -143,7 +143,7 @@ export const sessionReport = async (
   const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
   const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
 
-  // TODO: refactor to repo pattern
+  // TODO: repo pattern
   const sessions = await User.aggregate([
     {
       $match: query,
@@ -345,7 +345,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
   const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
 
-  // TODO: refactor to repo pattern
+  // TODO: repo pattern
   const students = await User.aggregate([
     {
       $match: query,
@@ -860,15 +860,7 @@ export async function getAnalyticsReport(data: unknown) {
 
 export async function deleteReport(reportFilePath: string) {
   try {
-    /**
-     *  @note: passing an optional object config to fs.rmdir is available with our
-     *  current version of Node, however it is not recognized with TS. It throws
-     *  an saying that `.rmdir` is expecting 1 argument, but got 2
-     * https://nodejs.org/docs/latest-v12.x/api/fs.html#fs_fspromises_rmdir_path_options
-     *
-     * @note: recursive is expiremental with our current version of Node
-     */
-    await fsPromises.rmdir(path.parse(reportFilePath).dir, { recursive: true })
+    await fsPromises.rm(path.parse(reportFilePath).dir, { recursive: true })
   } catch (error) {
     logger.error(error as Error)
     throw new Error((error as Error).message)

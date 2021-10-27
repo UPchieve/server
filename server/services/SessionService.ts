@@ -149,7 +149,8 @@ export async function reportSession(data: unknown) {
     sessionId,
   }
 
-  if (session.endedAt) QueueService.add(Jobs.EmailSessionReported, emailData)
+  if (session.endedAt)
+    await QueueService.add(Jobs.EmailSessionReported, emailData)
   else
     await cache.saveWithExpiration(
       `${sessionId}-reported`,
@@ -232,7 +233,7 @@ export async function processAssistmentsSession(sessionId: Types.ObjectId) {
 
 export async function processSessionReported(sessionId: Types.ObjectId) {
   try {
-    QueueService.add(
+    await QueueService.add(
       Jobs.EmailSessionReported,
       JSON.parse(await cache.get(`${sessionId}-reported`))
     )
@@ -281,7 +282,7 @@ export async function processFirstSessionCongratsEmail(
   const nowInMS = new Date().getTime()
   const delay = hourToSendTomorrowInMS - nowInMS
   if (sendStudentFirstSessionCongrats)
-    QueueService.add(
+    await QueueService.add(
       Jobs.EmailStudentFirstSessionCongrats,
       {
         sessionId: session._id,
@@ -289,7 +290,7 @@ export async function processFirstSessionCongratsEmail(
       { delay }
     )
   if (sendVolunteerFirstSessionCongrats) {
-    QueueService.add(
+    await QueueService.add(
       Jobs.EmailVolunteerFirstSessionCongrats,
       {
         sessionId: session._id,
@@ -327,7 +328,7 @@ export async function processEmailPartnerVolunteer(sessionId: Types.ObjectId) {
   if (session.volunteer?.volunteerPartnerOrg) {
     const delay = 1000 * 60 * 5
     if (session.volunteer.pastSessions.length === 5)
-      QueueService.add(
+      await QueueService.add(
         Jobs.EmailPartnerVolunteerReferACoworker,
         {
           volunteerId: session.volunteer._id,
@@ -339,7 +340,7 @@ export async function processEmailPartnerVolunteer(sessionId: Types.ObjectId) {
       )
 
     if (session.volunteer.pastSessions.length === 10)
-      QueueService.add(
+      await QueueService.add(
         Jobs.EmailPartnerVolunteerTenSessionMilestone,
         {
           volunteerId: session.volunteer._id,
@@ -577,7 +578,7 @@ export async function startSession(data: unknown) {
 
   // Auto end the session after 45 minutes if the session is unmatched
   const delay = 1000 * 60 * 45
-  QueueService.add(
+  await QueueService.add(
     Jobs.EndUnmatchedSession,
     { sessionId: newSession._id },
     { delay }

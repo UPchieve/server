@@ -52,7 +52,9 @@ export function routeSession(router: Router, io: Server) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
-      const sessionId = await SessionService.checkSession(req.body.sessionId as unknown)
+      const sessionId = await SessionService.checkSession(
+        req.body.sessionId as unknown
+      )
       res.json({
         sessionId,
       })
@@ -189,7 +191,9 @@ export function routeSession(router: Router, io: Server) {
   ) {
     try {
       const { sessionId } = req.params
-      const session = await SessionService.adminSessionView(sessionId as unknown)
+      const session = await SessionService.adminSessionView(
+        sessionId as unknown
+      )
       res.json({ session })
     } catch (error) {
       resError(res, error)

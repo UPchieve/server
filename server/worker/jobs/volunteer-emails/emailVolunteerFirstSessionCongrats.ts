@@ -13,9 +13,7 @@ interface EmailVolunteerFirstSessionJobData {
 export default async (
   job: Job<EmailVolunteerFirstSessionJobData>
 ): Promise<void> => {
-  const {
-    name: currentJob,
-  } = job
+  const { name: currentJob } = job
   const sessionId = asObjectId(job.data.sessionId)
   // TODO: repo pattern
   const [session] = await getSessionsWithPipeline([

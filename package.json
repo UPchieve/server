@@ -166,6 +166,7 @@
     "@types/morgan": "^1.9.0",
     "@types/mustache": "^4.1.1",
     "@types/newrelic": "^7.0.1",
+    "@types/node": "^16.11.6",
     "@types/nodemailer": "^6.4.1",
     "@types/nodemailer-express-handlebars": "^4.0.0",
     "@types/passport": "^1.0.7",

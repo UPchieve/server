@@ -34,6 +34,10 @@ export interface CredentialData {
   email: string
   password: string
 }
+export const asCredentialData = asFactory<CredentialData>({
+  email: asString,
+  password: asString,
+})
 
 interface UserRegData {
   ip: string
@@ -44,42 +48,6 @@ interface UserRegData {
   firstName: string
   lastName: string
 }
-
-export interface StudentRegData extends UserRegData {
-  highSchoolId?: string
-  zipCode?: string
-}
-export interface OpenStudentRegData extends StudentRegData {
-  currentGrade?: GRADES
-}
-
-export interface PartnerStudentRegData extends StudentRegData {
-  studentPartnerOrg: string
-  partnerUserId?: string
-  partnerSite?: string
-  college?: string
-}
-
-export interface VolunteerRegData extends UserRegData {
-  phone: string
-}
-
-export interface PartnerVolunteerRegData extends VolunteerRegData {
-  volunteerPartnerOrg: string
-}
-
-export interface ResetConfirmData {
-  email: string
-  password: string
-  token: string
-}
-
-// Function signature interface type checks
-export const asCredentialData = asFactory<CredentialData>({
-  email: asString,
-  password: asString,
-})
-
 const userRegDataValidators = {
   ip: asString,
   email: asString,
@@ -90,13 +58,27 @@ const userRegDataValidators = {
   lastName: asString,
 }
 
-export const asStudentRegData = asFactory<OpenStudentRegData>({
+export interface StudentRegData extends UserRegData {
+  highSchoolId?: string
+  zipCode?: string
+}
+
+export interface OpenStudentRegData extends StudentRegData {
+  currentGrade?: GRADES
+}
+export const asOpenStudentRegData = asFactory<OpenStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
   currentGrade: asEnum(GRADES),
 })
 
+export interface PartnerStudentRegData extends StudentRegData {
+  studentPartnerOrg: string
+  partnerUserId?: string
+  partnerSite?: string
+  college?: string
+}
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
@@ -107,17 +89,28 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   college: asOptional(asString),
 })
 
+export interface VolunteerRegData extends UserRegData {
+  phone: string
+}
 export const asVolunteerRegData = asFactory<VolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
 })
 
+export interface PartnerVolunteerRegData extends VolunteerRegData {
+  volunteerPartnerOrg: string
+}
 export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
   volunteerPartnerOrg: asString,
 })
 
+export interface ResetConfirmData {
+  email: string
+  password: string
+  token: string
+}
 export const asResetConfirmData = asFactory<ResetConfirmData>({
   email: asString,
   password: asString,
@@ -125,7 +118,7 @@ export const asResetConfirmData = asFactory<ResetConfirmData>({
 })
 
 // Validation functions
-export function checkPassword(password: string): boolean | RegistrationError {
+export function checkPassword(password: string): boolean {
   if (password.length < 8) {
     throw new RegistrationError('Password must be 8 characters or longer')
   }
@@ -159,9 +152,7 @@ export function checkPassword(password: string): boolean | RegistrationError {
   return true
 }
 
-export async function checkPhone(
-  phone: string
-): Promise<boolean | RegistrationError> {
+export async function checkPhone(phone: string): Promise<boolean> {
   if (!isValidInternationalPhoneNumber(phone))
     throw new RegistrationError('Must supply a valid phone number')
 
@@ -193,7 +184,8 @@ export const hashPassword = async function(password: string): Promise<string> {
 export function verifyPassword(
   candidatePassword: string,
   userPassword: string
-): Promise<Error | boolean> {
+): Promise<boolean> {
+  // TODO: is there an async bcrypt compare?
   return new Promise((resolve, reject) => {
     bcrypt.compare(
       candidatePassword,

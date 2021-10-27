@@ -13,7 +13,7 @@ import {
 import { asObjectId } from '../../utils/type-utils'
 
 interface TechIssueApology {
-  sessionId: string  // TODO: we don't need this?
+  sessionId: string // TODO: we don't need this?
   studentId: string
   volunteerId: string
 }

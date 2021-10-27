@@ -35,7 +35,7 @@ export async function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
   if (user.isVolunteer && (user as Volunteer).isApproved) {
     ;(user as Volunteer).hoursTutored = new Types.Decimal128(
-      new Buffer((user as Volunteer).hoursTutored.toString())
+      Buffer.from((user as Volunteer).hoursTutored.toString())
     )
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
@@ -112,7 +112,7 @@ export async function saveReferenceForm(
   }).submittedReferenceForm()
 
   // See: https://docs.mongodb.com/manual/reference/operator/update/positional/#up._S_
-  // TODO: use repo pattern
+  // TODO: repo pattern
   return VolunteerModel.updateOne(
     { 'references._id': referenceId },
     {
@@ -136,7 +136,7 @@ export async function notifyReference(
   reference: Reference,
   volunteer: Volunteer
 ) {
-  // TODO: error handling
+  // TODO: error handling - these need to be 'atomic'
   await MailService.sendReferenceForm(reference, volunteer)
   await updateVolunteerReferenceStatusById(reference._id, new Date())
 }
@@ -146,7 +146,7 @@ export async function deleteReference(
   referenceEmail: string,
   ip: string
 ) {
-  new UserActionCtrl.AccountActionCreator(userId, ip, {
+  await new UserActionCtrl.AccountActionCreator(userId, ip, {
     referenceEmail,
   }).deletedReference()
   AnalyticsService.captureEvent(userId, EVENTS.REFERENCE_DELETED, {
@@ -195,7 +195,7 @@ export async function adminUpdateUser(data: unknown) {
     isApproved,
   } = asAdminUpdate(data)
   const userBeforeUpdate = await getUserById(userId)
-  if (userBeforeUpdate === undefined) {
+  if (!userBeforeUpdate) {
     throw new UserNotFoundError('_id', userId.toString())
   }
   const { isVolunteer } = userBeforeUpdate
@@ -212,7 +212,8 @@ export async function adminUpdateUser(data: unknown) {
     await unbanIpsByUser(userBeforeUpdate._id)
 
   if (!userBeforeUpdate.isBanned && isBanned)
-    MailService.sendBannedUserAlert(userId, USER_BAN_REASON.ADMIN)
+    // TODO: queue email
+    await MailService.sendBannedUserAlert(userId, USER_BAN_REASON.ADMIN)
 
   const update: any = {
     firstname: firstName,
@@ -240,18 +241,19 @@ export async function adminUpdateUser(data: unknown) {
 
   if (isBanned) update.banReason = USER_BAN_REASON.ADMIN
   if (isDeactivated && !userBeforeUpdate.isDeactivated)
-    new UserActionCtrl.AdminActionCreator(
+    await new UserActionCtrl.AdminActionCreator(
       userId.toString()
     ).adminDeactivatedAccount()
 
   // Remove $unset property if it has no properties to remove
   if (Object.keys(update.$unset).length === 0) delete update.$unset
 
+  // TODO: shouldn't this totally fuck up the objects????
   const updatedUser = Object.assign(userBeforeUpdate, update)
   MailService.createContact(updatedUser)
 
   if (isVolunteer) {
-    // TODO: use repo style here
+    // TODO: repo pattern
     return VolunteerModel.updateOne({ _id: userId }, update)
   } else {
     return StudentModel.updateOne({ _id: userId }, update)
@@ -278,7 +280,6 @@ const asUserQuery = asFactory<UserQuery>({
   page: asOptional(asNumber),
 })
 
-// TODO: reafactor this to use a query in UserModel like
 // getUsersForAdmin with a typed interface for these query params
 export async function getUsers(data: unknown) {
   const {
@@ -333,7 +334,7 @@ export async function getUsers(data: unknown) {
   if (highSchool) aggregateQuery.push(...highSchoolQuery)
 
   try {
-    // TODO: use repo arch
+    // TODO: repo pattern
     const users = await UserModel.aggregate(aggregateQuery)
       .skip(skip)
       .limit(PER_PAGE)
@@ -349,8 +350,8 @@ export async function getUsers(data: unknown) {
 // @note: this query is making a request for user data on every page transition
 //        for new pastSessions to display. May be better served as a separate
 //        service method for getting the user's past sessions
-// TODO: use repo arch
 export async function adminGetUser(userId: Types.ObjectId, page: number = 1) {
+  // TODO: repo pattern
   const [results] = await UserModel.aggregate([
     {
       $match: {

@@ -47,7 +47,9 @@ export function routeReports(router: expressWs.Router): void {
     authPassport.isAdmin,
     async function(req, res) {
       try {
-        const reportFilePath = await ReportService.getAnalyticsReport(req.query as unknown)
+        const reportFilePath = await ReportService.getAnalyticsReport(
+          req.query as unknown
+        )
         res.status(201).download(reportFilePath)
         await ReportService.deleteReport(reportFilePath)
       } catch (error) {

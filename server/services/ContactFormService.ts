@@ -4,7 +4,7 @@ import isEmail from 'validator/lib/isEmail'
 import isLength from 'validator/lib/isLength'
 import nr from 'newrelic'
 import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission/queries'
-import * as MailService from './MailService/smtp'
+import * as MailService from './MailService'
 import {
   asString,
   asFactory,
@@ -52,13 +52,14 @@ function messageIsValid(message: string) {
   })
 }
 
-async function sendContactForm(data: {
-  topic: string
-  message: string
-  email: string
-}) {
+// TODO: this function is redundant
+async function sendContactForm(topic: string, message: string, email: string) {
   try {
-    await MailService.sendContactFormEmail(data)
+    await MailService.sendContactForm({
+      topic,
+      message,
+      email,
+    })
   } catch (err) {
     throw new MailSendError('contact form submission', (err as Error).message)
   }
@@ -94,17 +95,12 @@ export async function saveContactFormSubmission(data: unknown) {
     }
   )
 
-  const mailData = {
-    email: userEmail,
-    message: message,
-    topic: topic,
-  }
   await nr.startSegment(
     'service:contactFormSubmission:sendEmail',
     true,
     async () => {
       try {
-        await sendContactForm(mailData)
+        await sendContactForm(userEmail, message, topic)
       } catch (err) {
         throw err
       }

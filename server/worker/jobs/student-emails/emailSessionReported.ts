@@ -19,12 +19,7 @@ async function emailReportedSession(
   job: Job<EmailSessionReportedJobData>
 ): Promise<void> {
   const {
-    data: {
-      reportedBy,
-      reportReason,
-      reportMessage,
-      isBanReason,
-    },
+    data: { reportedBy, reportReason, reportMessage, isBanReason },
   } = job
   const studentId = asObjectId(job.data.studentId)
   const sessionId = asObjectId(job.data.sessionId)

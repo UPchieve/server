@@ -37,7 +37,7 @@ export function routeSockets(
 
   async function remoteJoinRoom(socketId: string, room: string) {
     return await new Promise((resolve, reject) => {
-      (io.of('/').adapter as redisAdapter.RedisAdapter).remoteJoin(
+      ;(io.of('/').adapter as redisAdapter.RedisAdapter).remoteJoin(
         socketId,
         room,
         (err: Error) => {

@@ -8,7 +8,7 @@ import { resError } from '../res-error'
 
 export function routeFeedback(router: expressWs.Router): void {
   router.post('/feedback', async (req, res) => {
-    // TODO: use duck type validators
+    // TODO: duck type validators
     const {
       sessionId,
       topic,

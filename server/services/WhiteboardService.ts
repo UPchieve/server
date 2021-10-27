@@ -42,11 +42,11 @@ export const uploadedToStorage = async (
   attempts = 0
 ): Promise<boolean> => {
   try {
-    await uploadBlob({
-      containerName: config.whiteboardStorageContainer,
-      blobName: sessionId.toString(),
-      content: whiteboardDoc,
-    })
+    await uploadBlob(
+      config.whiteboardStorageContainer,
+      sessionId.toString(),
+      whiteboardDoc
+    )
     return true
   } catch (error) {
     if (attempts === 1) {
@@ -73,10 +73,10 @@ export const getDocFromStorage = async (
   sessionId: Types.ObjectId
 ): Promise<string> => {
   try {
-    const whiteboardDoc = await getBlob({
-      containerName: config.whiteboardStorageContainer,
-      blobName: sessionId.toString(),
-    })
+    const whiteboardDoc = await getBlob(
+      config.whiteboardStorageContainer,
+      sessionId.toString()
+    )
     return whiteboardDoc
   } catch (error) {
     logger.error(

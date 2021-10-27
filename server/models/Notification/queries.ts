@@ -37,7 +37,9 @@ export async function getNotificationWithVolunteer(
     ])
 
     if (!notification)
-      throw new LookupError(`Notification for id ${notificationId} does not exist`)
+      throw new LookupError(
+        `Notification for id ${notificationId} does not exist`
+      )
     return notification as Notification
   } catch (err) {
     throw new RepoReadError(err)

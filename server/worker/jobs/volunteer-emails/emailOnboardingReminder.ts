@@ -10,9 +10,7 @@ interface OnboardingReminder {
 }
 
 export default async (job: Job<OnboardingReminder>): Promise<void> => {
-  const {
-    name: currentJob,
-  } = job
+  const { name: currentJob } = job
   const volunteerId = asObjectId(job.data.volunteerId)
   const volunteer = await getVolunteerForOnboardingById(volunteerId)
 
@@ -53,7 +51,12 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
         await MailService.sendOnboardingReminderThree(email, firstname)
       }
       log(`Emailed ${currentJob} to volunteer ${volunteerId}`)
-      if (nextJob) job.queue.add(nextJob, { volunteerId: volunteerId.toString() }, { delay })
+      if (nextJob)
+        job.queue.add(
+          nextJob,
+          { volunteerId: volunteerId.toString() },
+          { delay }
+        )
     } catch (error) {
       throw new Error(
         `Failed to email ${currentJob} to volunteer ${volunteerId}: ${error}`

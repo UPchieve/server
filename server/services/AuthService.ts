@@ -25,7 +25,7 @@ import {
 
 import {
   asCredentialData,
-  asStudentRegData,
+  asOpenStudentRegData,
   asPartnerStudentRegData,
   asVolunteerRegData,
   asPartnerVolunteerRegData,
@@ -99,7 +99,7 @@ export async function registerOpenStudent(data: unknown): Promise<Student> {
     firstName,
     lastName,
     currentGrade,
-  } = asStudentRegData(data)
+  } = asOpenStudentRegData(data)
 
   await checkCredential({ email, password })
   await checkIpAddress(ip)

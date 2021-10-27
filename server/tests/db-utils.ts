@@ -95,9 +95,7 @@ export const insertSession = async (
   return { session: createdSession.toObject(), student }
 }
 
-export const insertSessionMany = async (
-  sessions
-): Promise<any> => {
+export const insertSessionMany = async (sessions): Promise<any> => {
   return SessionModel.collection.insertMany(sessions)
 }
 
@@ -138,10 +136,7 @@ export const insertNotification = async (
   return { notification: createdNotification.toObject(), volunteer }
 }
 
-export const insertNotificationMany = async (
-  notifications
-
-): Promise<any> => {
+export const insertNotificationMany = async (notifications): Promise<any> => {
   return NotificationModel.collection.insertMany(notifications)
 }
 
@@ -209,8 +204,6 @@ export const insertFeedback = async (
   return { ...createdFeedback.toObject() }
 }
 
-export const insertFeedbackMany = async (
-  feedback
-): Promise<any> => {
+export const insertFeedbackMany = async (feedback): Promise<any> => {
   return FeedbackModel.collection.insertMany(feedback)
 }

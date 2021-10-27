@@ -47,7 +47,10 @@ async function sendToUser(
   })
 }
 
-export async function sendVolunteerJoined(session: Session, tokens: string[]) {
+export async function sendVolunteerJoined(
+  session: Session,
+  tokens: string[]
+): Promise<void> {
   const { type, subTopic, _id } = session
   const title = 'We found a volunteer!'
   const text = 'Start chatting with your coach now.'
@@ -55,5 +58,5 @@ export async function sendVolunteerJoined(session: Session, tokens: string[]) {
     path: `/session/${Case.kebab(type)}/${Case.kebab(subTopic)}/${_id}`,
   }
 
-  return await sendToUser(title, text, data, tokens)
+  await sendToUser(title, text, data, tokens)
 }

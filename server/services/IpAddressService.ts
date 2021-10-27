@@ -26,6 +26,7 @@ export async function getIpWhoIs(rawIpString: string) {
     return data
   } catch (err) {
     Sentry.captureException(err)
+    // TODO: should we just throw here?
     return {}
   }
 }
@@ -42,8 +43,9 @@ export async function findOrCreateIpAddress(
   return newIpAddress
 }
 
-function isValidIp(ip: string) {
-  return net.isIP(ip)
+function isValidIp(ip: string): boolean {
+  // net.isIp return 0 for non-IPs, 4 for ipv4, and 6 for ipv6
+  return net.isIP(ip) > 0
 }
 
 export async function checkIpAddress(data: unknown | string) {

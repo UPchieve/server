@@ -3,6 +3,8 @@ import { Volunteer, TrainingCourses } from '../models/Volunteer'
 import { updateVolunteerTrainingById } from '../models/Volunteer/queries'
 import * as TrainingUtils from '../utils/training-courses'
 
+// @note: this type was derived from how the return type is used by the frontend
+// TODO: come back and verify this is the return shape we want
 export interface EditableTrainingCourseData {
   modules: EditableModule[]
   courseKey: string
@@ -38,7 +40,7 @@ function insertEditableFields(
 export function getCourse(
   volunteer: Volunteer,
   courseKey: keyof TrainingCourses
-) {
+): EditableTrainingCourseData | undefined {
   const courseData = TrainingUtils.getCourse(courseKey)
   if (!courseData) return
   const courseProgress = volunteer.trainingCourses[courseKey]
@@ -55,6 +57,7 @@ export function getCourse(
   return course
 }
 
+// TODO: clean up return type
 export async function recordProgress(
   volunteer: Volunteer,
   courseKey: keyof TrainingCourses,

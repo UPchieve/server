@@ -25,7 +25,7 @@ class SocketService {
       { path: 'volunteer', select: 'firstname isVolunteer' },
     ]
 
-    // TODO: import from SessionService instead of directly from the model
+    // TODO: repo pattern
     const populatedSession = await SessionModel.findById(sessionId)
       .populate(populateOptions)
       .exec()
@@ -48,7 +48,6 @@ class SocketService {
     await this.updateSessionList()
   }
 
-  // TODO: type these once api socket router is fully typed
   bump(
     socket: socketio.Socket,
     data: {

@@ -25,9 +25,7 @@ interface EmailGentleWarningJobData {
  *
  */
 export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
-  const {
-    name: currentJob,
-  } = job
+  const { name: currentJob } = job
   const sessionId = asObjectId(job.data.sessionId)
   const documentsWithVolunteerIds = await getSessionsWithPipeline([
     {

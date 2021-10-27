@@ -83,7 +83,7 @@ export async function getNextVolunteer(
     ...priorityFilter,
   }
 
-  // TODO: convert to repo pattern
+  // TODO: repo pattern
   const [volunteer] = (await VolunteerModel.aggregate([
     { $match: filter },
     { $project: { phone: 1, firstname: 1 } },
@@ -172,8 +172,8 @@ export async function sendFollowupText(
   volunteerPhone: string
 ): Promise<void> {
   const messageText = `Head's up: this student is still waiting for help!`
-  const sid = await sendTextMessage(volunteerPhone, messageText)
-  // TODO: use repo to create notification
+  const sidPromise = sendTextMessage(volunteerPhone, messageText)
+  // TODO: repo pattern
   const notification = new NotificationModel({
     volunteer: volunteerId,
     type: 'REGULAR',
@@ -181,7 +181,7 @@ export async function sendFollowupText(
     priorityGroup: 'follow-up',
   })
 
-  await recordNotification(sid, notification)
+  await recordNotification(sidPromise, notification)
   await SessionRepo.addSessionNotifications(sessionId, [
     notification.toObject(),
   ])
@@ -311,9 +311,9 @@ export async function notifyVolunteer(
 
   const sessionUrl = getSessionUrl(session)
   const messageText = `Hi ${volunteer.firstname}, a student needs help in ${subtopic} on UPchieve! ${sessionUrl}`
-  const sid = await sendTextMessage(volunteer.phone as string, messageText)
+  const sidPromise = sendTextMessage(volunteer.phone as string, messageText)
 
-  // TODO: use repo to create notification
+  // TODO: repo pattern
   const notification = new NotificationModel({
     volunteer,
     type: 'REGULAR',
@@ -321,7 +321,7 @@ export async function notifyVolunteer(
     priorityGroup,
   })
 
-  await recordNotification(sid, notification)
+  await recordNotification(sidPromise, notification)
   await SessionRepo.addSessionNotifications(session._id, [
     notification.toObject(),
   ])
@@ -350,12 +350,12 @@ export async function notifyFailsafe(
     if (isTestUser) messageText = '[TEST USER] ' + messageText
     if (!voice) messageText = messageText + `\n${sessionUrl}`
 
-    let sid: string
-    if (voice) sid = await sendVoiceMessage(phoneNumber, messageText)
-    else sid = await sendTextMessage(phoneNumber, messageText)
+    let sidPromise: Promise<string>
+    if (voice) sidPromise = sendVoiceMessage(phoneNumber, messageText)
+    else sidPromise = sendTextMessage(phoneNumber, messageText)
 
     // record notification to database
-    // TODO: refactor to use a db query instad of document
+    // TODO: repo pattern
     const notification = new NotificationModel({
       volunteer: volunteer,
       type: 'FAILSAFE',
@@ -363,7 +363,7 @@ export async function notifyFailsafe(
     })
 
     try {
-      notifications.push(await recordNotification(sid, notification))
+      notifications.push(await recordNotification(sidPromise, notification))
     } catch (err) {
       logger.error(err as Error)
     }
@@ -383,13 +383,14 @@ export async function notifyFailsafe(
  * object
  */
 export async function recordNotification(
-  sendId: string,
+  sidPromise: Promise<string>,
   notification: NotificationDocument
 ): Promise<Notification> {
   try {
+    const sid = await sidPromise
     // record notification in database
     notification.wasSuccessful = true
-    notification.messageId = sendId
+    notification.messageId = sid
   } catch (err) {
     // record notification failure in database
     logger.error(err as Error)
