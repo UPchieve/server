@@ -6,20 +6,22 @@ import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
+import { extractUser } from '../extract-user'
 
 // TODO: figure out a better way to expose SocketService
-export function routes(router: Router, io: Server) {
+export function routeSession(router: Router, io: Server) {
   // io is now passed to this module so that API events can trigger socket events as needed
   const socketService = new SocketService(io)
 
   router.route('/session/new').post(async function(req, res) {
     try {
+      const user = extractUser(req)
       const sessionId = await SessionService.startSession({
         ...req.body,
-        user: req.user,
+        user,
         userAgent: req.get('User-Agent'),
         ip: req.ip,
-      })
+      } as unknown)
       res.json({ sessionId })
     } catch (error) {
       resError(res, error)
@@ -30,13 +32,14 @@ export function routes(router: Router, io: Server) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
+      const user = extractUser(req)
       await SessionService.finishSession(
         {
           ...req.body,
-          user: req.user,
+          user,
           userAgent: req.get('User-Agent'),
           ip: req.ip,
-        },
+        } as unknown,
         socketService
       )
       res.json({ sessionId: req.body.sessionId })
@@ -49,7 +52,7 @@ export function routes(router: Router, io: Server) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
-      const sessionId = await SessionService.checkSession(req.body.sessionId)
+      const sessionId = await SessionService.checkSession(req.body.sessionId as unknown)
       res.json({
         sessionId,
       })
@@ -61,7 +64,9 @@ export function routes(router: Router, io: Server) {
   // TODO: switch to a GET request
   router.route('/session/current').post(async function(req, res) {
     try {
-      const currentSession = await SessionService.currentSession(req.user)
+      const user = extractUser(req)
+      const currentSession = await SessionService.currentSession(user._id)
+      // TODO: should not return an error is session is missing
       if (!currentSession) {
         resError(res, new LookupError('No current session'), 404)
       } else {
@@ -80,7 +85,7 @@ export function routes(router: Router, io: Server) {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'userId'))
         throw new InputError('Missing userId body string')
       const latestSession = await SessionService.studentLatestSession(
-        req.body.userId
+        req.body.userId as unknown
       )
 
       res.json({
@@ -95,7 +100,7 @@ export function routes(router: Router, io: Server) {
   router.get('/session/review', authPassport.isAdmin, async function(req, res) {
     try {
       const { sessions, isLastPage } = await SessionService.sessionsToReview(
-        req.query.page
+        req.query.page as unknown
       )
       res.json({ sessions, isLastPage })
     } catch (error) {
@@ -112,7 +117,7 @@ export function routes(router: Router, io: Server) {
       await SessionService.reviewSession({
         ...req.body,
         sessionId,
-      })
+      } as unknown)
       res.sendStatus(200)
     } catch (error) {
       resError(res, error)
@@ -123,7 +128,7 @@ export function routes(router: Router, io: Server) {
     try {
       const { sessionId } = req.params
       const { uploadUrl, imageUrl } = await SessionService.getImageAndUploadUrl(
-        sessionId
+        sessionId as unknown
       )
       res.json({ uploadUrl, imageUrl })
     } catch (error) {
@@ -139,7 +144,7 @@ export function routes(router: Router, io: Server) {
         sessionId,
         user,
         ...req.body,
-      })
+      } as unknown)
       res.json({ msg: 'Success' })
     } catch (error) {
       if (error instanceof ReportSessionError) return resError(res, error, 422)
@@ -159,7 +164,7 @@ export function routes(router: Router, io: Server) {
         user,
         ip,
         userAgent,
-      })
+      } as unknown)
       res.sendStatus(200)
     } catch (error) {
       resError(res, error)
@@ -171,7 +176,7 @@ export function routes(router: Router, io: Server) {
       const {
         sessions,
         isLastPage,
-      } = await SessionService.adminFilteredSessions(req.query)
+      } = await SessionService.adminFilteredSessions(req.query as unknown)
       res.json({ sessions, isLastPage })
     } catch (error) {
       resError(res, error)
@@ -184,7 +189,7 @@ export function routes(router: Router, io: Server) {
   ) {
     try {
       const { sessionId } = req.params
-      const session = await SessionService.adminSessionView(sessionId)
+      const session = await SessionService.adminSessionView(sessionId as unknown)
       res.json({ session })
     } catch (error) {
       resError(res, error)
@@ -195,7 +200,7 @@ export function routes(router: Router, io: Server) {
     try {
       const { sessionId } = req.params
       // TODO: could be undefined
-      const session = await SessionService.publicSession(sessionId)
+      const session = await SessionService.publicSession(sessionId as unknown)
       res.json({ session })
     } catch (error) {
       resError(res, error)
@@ -209,7 +214,7 @@ export function routes(router: Router, io: Server) {
       try {
         const { sessionId } = req.params
         const notifications = await SessionService.getSessionNotifications(
-          sessionId
+          sessionId as unknown
         )
         res.json({ notifications })
       } catch (error) {

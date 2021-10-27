@@ -1,5 +1,5 @@
 import express from 'express'
-// no typesfor ejs layouts
+// TODO: no typesfor ejs layouts
 const expressLayouts = require('express-ejs-layouts')
 
 import config from '../../config'
@@ -9,6 +9,7 @@ import * as QuestionCtrl from '../../controllers/QuestionCtrl'
 import { questionsPath, isActivePage, frontEndPath } from './helpers'
 import logger from '../../logger'
 import path from 'path'
+import { asString } from '../../utils/type-utils'
 
 const edu = express()
 edu.set('view engine', 'ejs')
@@ -82,8 +83,9 @@ const eduApi = express()
 
 // POST[JSON] /edu/categoryquestions
 eduApi.post('/categoryquestions', async (req, res) => {
-  const category = req.body.category.toString()
+  const category = asString(req.body.category)
 
+  // TODO: duck typing on optionals here
   const skip = req.body.skip
 
   const limit = req.body.limit
@@ -125,14 +127,14 @@ eduApi.put('/questions/:id', async (req, res) => {
 // DELETE[JSON] /edu/questions/:id
 eduApi.delete('/questions/:id', async (req, res) => {
   try {
-    const question = await QuestionCtrl.destroy(req.params.id)
+    const question = await QuestionCtrl.destroy(asString(req.params.id))
     res.status(200).json({ question: question })
   } catch (error) {
     res.status(422).json({ error })
   }
 })
 
-export default (rootApp: express.Express) => {
+export function routes(rootApp: express.Express): void {
   rootApp.use(
     '/edu',
     [authPassport.isAuthenticatedRedirect, authPassport.isAdminRedirect],

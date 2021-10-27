@@ -7,7 +7,7 @@ import { Jobs } from '../worker/jobs'
 
 interface JobTemplate {
   name: Jobs
-  data?: any // eslint-disable-line @typescript-eslint/no-explicit-any
+  data?: any
   options?: Queue.JobOptions
 }
 

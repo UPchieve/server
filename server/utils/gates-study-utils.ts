@@ -6,7 +6,7 @@ import { getStudentById } from '../models/Student/queries'
 import { getSchool } from '../services/SchoolService'
 import { Student } from '../models/Student'
 import { School } from '../models/School'
-import { getIdFromModelReference } from '../utils/validators'
+import { getIdFromModelReference } from '../utils/model-reference'
 
 export interface GatesQualifiedData {
   session: Session

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { createPushTokenByUserIdToken } from '../../models/PushToken/queries'
 import { authPassport } from '../../utils/auth-utils'
+import { asString } from '../../utils/type-utils'
 
 export function routePushToken(router: Router): void {
   router.post('/push-token/save', authPassport.isAuthenticated, async function(
@@ -11,7 +12,7 @@ export function routePushToken(router: Router): void {
 
     try {
       if (req.user) {
-        await createPushTokenByUserIdToken(req.user._id, token)
+        await createPushTokenByUserIdToken(req.user._id, asString(token))
         res.sendStatus(200)
       }
     } catch (error) {

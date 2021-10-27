@@ -216,7 +216,7 @@ const messageHandlers: {
   },
 }
 
-const whiteboardRouter = function(app: Express): void {
+export function routes(app: Express): void {
   const router = express.Router()
 
   router.ws('/room/:sessionId', function(wsClient, req, next) {
@@ -313,5 +313,3 @@ const whiteboardRouter = function(app: Express): void {
 
   app.use('/whiteboard', router)
 }
-
-export default whiteboardRouter

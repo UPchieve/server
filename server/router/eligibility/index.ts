@@ -43,7 +43,7 @@ export function routes(app: Express) {
   const router: Router = express.Router()
 
   // Check if a student is eligible
-  router.route('/check').post(async function(req, res, next) {
+  router.route('/check').post(async function(req, res) {
     try {
       const {
         schoolUpchieveId,
@@ -65,8 +65,8 @@ export function routes(app: Express) {
       const school = await findSchoolByUpchieveId(schoolUpchieveId)
       const zipCode = await getZipCodeByZipCode(zipCodeInput)
 
-      const isSchoolApproved = school && school.isApproved
-      const isZipCodeEligible = zipCode && zipCode.isEligible
+      const isSchoolApproved = !!school && school.isApproved
+      const isZipCodeEligible = !!zipCode && zipCode.isEligible
       const isStudentEligible = isSchoolApproved || isZipCodeEligible
 
       if (!isStudentEligible) {
@@ -87,7 +87,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/school/search').get(async (req, res, next) => {
+  router.route('/school/search').get(async (req, res) => {
     const { q } = req.query
 
     try {
@@ -96,7 +96,7 @@ export function routes(app: Express) {
         results: results,
       })
     } catch (error) {
-      next(error)
+      resError(res, error)
     }
   })
 
@@ -106,14 +106,14 @@ export function routes(app: Express) {
     .all(authPassport.isAdmin)
     .get(async function(req, res) {
       try {
-        // TODO: use repo arch
+        // TODO: repo pattern
         const eligibleSchools = await SchoolModel.find(
           {
             isApproved: true,
           },
           null,
           {
-            limit: req.query.limit ? parseInt(req.query.limit as string) : 0, //to check
+            limit: req.query.limit ? parseInt(req.query.limit as string) : 0,
             skip: req.query.skip ? parseInt(req.query.skip as string) : 0,
           }
         )
@@ -208,7 +208,7 @@ export function routes(app: Express) {
     res
   ) {
     try {
-      const page = req.query.page ? parseInt(req.query.page as string) : 0
+      const page = req.query.page ? parseInt(req.query.page as string) : 1
       const {
         ineligibleStudents,
         isLastPage,
@@ -231,7 +231,7 @@ export function routes(app: Express) {
       if (!result) res.sendStatus(404)
       else
         res.json({
-          zipCode: { ...result, isEligible: result.isEligible },
+          zipCode: { ...result },
         })
     } catch (err) {
       Sentry.captureException(err)

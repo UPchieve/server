@@ -7,7 +7,7 @@ export const EMAIL_RECIPIENT = {
 
 const SEPARATOR = '.'
 
-export const emailRecipientPrefixed = function(prefix: string) {
+export function emailRecipientPrefixed(prefix: string): any {
   const emailRecipientPrefixed: any = {}
   for (const [key, value] of Object.entries(EMAIL_RECIPIENT)) {
     emailRecipientPrefixed[prefix + SEPARATOR + key] = value

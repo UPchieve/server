@@ -35,7 +35,7 @@ export function routeTraining(router: Router): void {
       const user = extractUser(req)
 
       const category = asString(req.body.category)
-      const idAnswerMap = req.body.idAnswerMap // TODO: type validation
+      const idAnswerMap = req.body.idAnswerMap // TODO: duck type validation
 
       const {
         tries,
@@ -65,7 +65,7 @@ export function routeTraining(router: Router): void {
         // because there would always be a failed quiz
         const takenQuizBefore = await userHasTakenQuiz(user._id)
         if (!takenQuizBefore)
-          VolunteerService.queueFailedFirstAttemptedQuizEmail(
+          await VolunteerService.queueFailedFirstAttemptedQuizEmail(
             category,
             user.email,
             user.firstname,

@@ -489,7 +489,6 @@ export const buildPastSessions = (): Types.ObjectId[] => {
  * a type error like "Cannot read property 'SMS' of undefined" is thrown
  *
  **/
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const buildNotification = (overrides = {}): Notification => {
   const _id = Types.ObjectId()
 

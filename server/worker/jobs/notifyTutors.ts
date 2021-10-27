@@ -9,8 +9,8 @@ import { Volunteer } from '../../models/Volunteer'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
 import { log } from '../logger'
 import { Jobs } from '.'
-import { getIdFromModelReference } from '../../utils/validators'
-import { asObjectId, asArray, asNumber } from '../../utils/type-utils'
+import { getIdFromModelReference } from '../../utils/model-reference'
+import { asObjectId } from '../../utils/type-utils'
 
 interface NotifyTutorsJobData {
   sessionId: string

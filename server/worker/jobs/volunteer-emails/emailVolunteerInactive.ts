@@ -1,6 +1,6 @@
 import moment from 'moment-timezone'
 import { Jobs } from '..'
-import logger from '../../../logger'
+import { log } from '../../logger'
 import { Volunteer } from '../../../models/Volunteer'
 import { updateSnapshotOnCallByVolunteerId } from '../../../models/Availability/queries'
 import * as MailService from '../../../services/MailService'
@@ -39,7 +39,7 @@ async function sendEmailToInactiveVolunteers(
         await updateVolunteerInactiveAvailability(_id, clearedAvailability)
         await updateSnapshotOnCallByVolunteerId(_id, clearedAvailability)
       }
-      logger.info(`Sent ${currentJob} to volunteer ${_id}`)
+      log(`Sent ${currentJob} to volunteer ${_id}`)
     } catch (error) {
       errors.push(`${currentJob} to volunteer ${_id}: ${error}`)
     }
@@ -71,7 +71,7 @@ export default async (): Promise<void> => {
 
   const todaysDate = new Date().getTime()
   if (todaysDate >= blackoutPeriodStart && todaysDate <= blackoutPeriodEnd) {
-    logger.info(
+    log(
       `Skipping ${Jobs.EmailVolunteerInactive} because today's date, ${new Date(
         todaysDate
       ).toISOString()}, is within the blackout period: ${new Date(

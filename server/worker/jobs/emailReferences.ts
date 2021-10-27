@@ -31,7 +31,7 @@ export default async (): Promise<void> => {
 
   if (unsent.length === 0) return log('No references to email')
 
-  const errors = []
+  const errors: string[] = []
   let totalEmailed = 0
   for (const u of unsent) {
     try {

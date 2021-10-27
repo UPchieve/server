@@ -59,7 +59,6 @@ export const insertVolunteer = async (
   return { ...createdVolunteer.toObject(), password: volunteer.password }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const insertVolunteerMany = async (volunteers): Promise<any> => {
   // @note: Reasons for using collection.insertMany is because Mongoose casts each document in insertMany()
   // this bypasses the overhead and speeds up the test
@@ -98,7 +97,6 @@ export const insertSession = async (
 
 export const insertSessionMany = async (
   sessions
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
   return SessionModel.collection.insertMany(sessions)
 }
@@ -143,7 +141,6 @@ export const insertNotification = async (
 export const insertNotificationMany = async (
   notifications
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
   return NotificationModel.collection.insertMany(notifications)
 }
@@ -214,7 +211,6 @@ export const insertFeedback = async (
 
 export const insertFeedbackMany = async (
   feedback
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
   return FeedbackModel.collection.insertMany(feedback)
 }

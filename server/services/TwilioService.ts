@@ -20,7 +20,7 @@ import Case from 'case'
 import logger from '../logger'
 import { Types } from 'mongoose'
 import { VERIFICATION_METHOD } from '../constants'
-import { getIdFromModelReference } from '../utils/validators'
+import { getIdFromModelReference } from '../utils/model-reference'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =

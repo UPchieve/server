@@ -1,5 +1,4 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import * as MailService from '../../services/MailService'
 import {
   StudentContactInfo,
@@ -14,9 +13,9 @@ import {
 import { asObjectId } from '../../utils/type-utils'
 
 interface TechIssueApology {
-  sessionId: Types.ObjectId
-  studentId: Types.ObjectId
-  volunteerId: Types.ObjectId
+  sessionId: string  // TODO: we don't need this?
+  studentId: string
+  volunteerId: string
 }
 
 async function sendEmailToUser(
@@ -32,7 +31,7 @@ export default async (job: Job<TechIssueApology>): Promise<void> => {
   const volunteerId = asObjectId(job.data.volunteerId)
   const student = await getStudentContactInfoById(studentId)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
-  const errors = []
+  const errors: string[] = []
 
   if (student) {
     const emailResult = await safeAsync(sendEmailToUser(student))

@@ -1,20 +1,20 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
-import logger from '../../../logger'
+import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getVolunteerForQuickTips } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
+import { asObjectId } from '../../../utils/type-utils'
 
 interface EmailQuickTipsJobData {
-  volunteerId: Types.ObjectId
+  volunteerId: string
 }
 
 export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
   const {
-    data: { volunteerId },
     name: currentJob,
   } = job
+  const volunteerId = asObjectId(job.data.volunteerId)
   const volunteer = await getVolunteerForQuickTips(volunteerId)
 
   if (volunteer) {
@@ -27,7 +27,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
     ) {
       try {
         await MailService.sendVolunteerQuickTips(email, firstname)
-        logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
+        log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(
           `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

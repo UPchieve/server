@@ -13,7 +13,7 @@ export default async (): Promise<void> => {
     sentReadyToCoachEmail: false,
   })
 
-  const errors = []
+  const errors: string[] = []
   const succeededVolunteers = []
   for (const volunteer of volunteers) {
     try {

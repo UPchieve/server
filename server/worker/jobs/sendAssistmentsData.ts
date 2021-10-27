@@ -45,7 +45,7 @@ export interface Payload {
 }
 
 export function pluckMessages(messages: Message[]): PartMessage[] {
-  const final = []
+  const final: PartMessage[] = []
   for (const message of messages) {
     final.push({
       contents: message.contents,
@@ -95,7 +95,7 @@ export async function buildRequest(
   }
 }
 
-function buildAuthHeader() {
+function buildAuthHeader(): string {
   const parts = config.assistmentsAuthSchema.split('{TOKEN}')
   if (parts.length === 2) return parts[0] + config.assistmentsToken + parts[1]
   throw new Error('Could not build Assistments auth token')

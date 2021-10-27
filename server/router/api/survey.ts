@@ -1,23 +1,21 @@
 import expressWs from 'express-ws'
-import { User } from '../../models/User'
 import {
   savePresessionSurvey,
   getPresessionSurvey,
 } from '../../models/Survey/queries'
-import { NotAuthenticatedError } from '../../models/Errors'
 import { asObjectId } from '../../utils/type-utils'
+import { extractUser } from '../extract-user'
 
 export function routeSurvey(router: expressWs.Router): void {
   router.post('/survey/presession/:sessionId', async (req, res, next) => {
-    if (!req.user) throw new NotAuthenticatedError()
-    const user = req.user as User
+    const user = extractUser(req)
     const { sessionId } = req.params
     const { responseData } = req.body
     try {
       await savePresessionSurvey(
         user._id,
         asObjectId(sessionId),
-        responseData // TODO: type validation on this
+        responseData // TODO: duck type validation
       )
       res.sendStatus(200)
     } catch (error) {
@@ -26,8 +24,7 @@ export function routeSurvey(router: expressWs.Router): void {
   })
 
   router.get('/survey/presession/:sessionId', async (req, res, next) => {
-    if (!req.user) throw new NotAuthenticatedError()
-    const user = req.user as User
+    const user = extractUser(req)
     const { sessionId } = req.params
 
     try {

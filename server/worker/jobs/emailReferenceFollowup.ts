@@ -54,7 +54,7 @@ export default async (): Promise<void> => {
   )
 
   let totalEmailed = 0
-  const errors = []
+  const errors: string[] = []
 
   if (referencesToEmail.length === 0)
     return log('No references to email for a follow-up')

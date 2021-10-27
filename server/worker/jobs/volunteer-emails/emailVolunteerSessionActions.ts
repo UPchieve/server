@@ -1,7 +1,6 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import moment from 'moment'
-import logger from '../../../logger'
+import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { Jobs } from '../index'
 import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
@@ -11,8 +10,8 @@ import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
 import { asObjectId } from '../../../utils/type-utils'
 
 interface VolunteerSessionTriggers {
-  volunteerId: Types.ObjectId
-  studentId: Types.ObjectId
+  volunteerId: string
+  studentId: string
   sessionSubtopic: string
   sessionDate: ISOString
 }
@@ -47,7 +46,7 @@ export default async (job: Job<VolunteerSessionTriggers>): Promise<void> => {
           moment(sessionDate).format('MMMM Do')
         )
 
-      logger.info(`Emailed ${currentJob} to volunteer ${volunteerId}`)
+      log(`Emailed ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
       throw new Error(
         `Failed to email ${currentJob} to volunteer ${volunteerId}: ${error}`

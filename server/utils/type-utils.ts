@@ -19,6 +19,10 @@ export function asString(s: unknown, errMsg = ''): string {
 
 export function asNumber(s: unknown, errMsg?: string): number {
   if (typeof s === 'number') return s as number
+  else {
+    const coerced = isNaN(parseInt(s as string)) ? parseFloat(s as string) : NaN
+    if (!isNaN(coerced)) return coerced as number
+  }
   throw new InputError(`${errMsg} :${s} is not a number`)
 }
 
@@ -48,6 +52,7 @@ export function asFunction(s: unknown, errMsg?: string): Function {
   throw new InputError(`${errMsg} :${s} is not a function`)
 }
 
+// Checks if arg is actual ObjectId OR coerces into objectId if possible
 export function asObjectId(s: unknown, errMsg?: string): Types.ObjectId {
   if (s instanceof Types.ObjectId) return s as Types.ObjectId
   else if (typeof s === 'string' || typeof s === 'number') {

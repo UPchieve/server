@@ -868,7 +868,6 @@ export async function deleteReport(reportFilePath: string) {
      *
      * @note: recursive is expiremental with our current version of Node
      */
-    // @ts-expect-error
     await fsPromises.rmdir(path.parse(reportFilePath).dir, { recursive: true })
   } catch (error) {
     logger.error(error as Error)

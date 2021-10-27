@@ -2,12 +2,11 @@ import moment from 'moment-timezone'
 import { log } from '../logger'
 import { getHourSummaryStats } from '../../services/VolunteerService'
 import * as MailService from '../../services/MailService'
-import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import { volunteerPartnerManifests } from '../../partnerManifests'
 import config from '../../config'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import { Jobs } from '.'
-import { getVolunteersForWeeklyHourSummary } from '../../models/Volunteer/queries'
+import { getVolunteersForWeeklyHourSummary, updateVolunteerHourSummaryIntroById } from '../../models/Volunteer/queries'
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
@@ -34,7 +33,7 @@ export default async (): Promise<void> => {
   const dateQuery = { $gt: lastMonday.toDate(), $lte: lastSunday.toDate() }
 
   let totalEmailed = 0
-  const errors = []
+  const errors: string[] = []
   for (const volunteer of volunteers) {
     const {
       _id,
@@ -78,10 +77,7 @@ export default async (): Promise<void> => {
         customCheck
       )
       if (!sentHourSummaryIntroEmail)
-        await VolunteerModel.updateOne(
-          { _id },
-          { sentHourSummaryIntroEmail: true }
-        )
+        await updateVolunteerHourSummaryIntroById(volunteer._id, true)
       totalEmailed++
     } catch (error) {
       errors.push(`${_id}: ${error}\n`)

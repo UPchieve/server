@@ -1,10 +1,10 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import { getStudent } from '../../../models/Student/queries'
 import { USER_BAN_REASON } from '../../../constants'
 import * as MailService from '../../../services/MailService'
 import { safeAsync } from '../../../utils/safe-async'
 import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
+import { asObjectId } from '../../../utils/type-utils'
 
 export interface EmailSessionReportedJobData {
   studentId: string // mongoose.Types.ObjectID is serialized to string on queue
@@ -20,14 +20,14 @@ async function emailReportedSession(
 ): Promise<void> {
   const {
     data: {
-      studentId,
       reportedBy,
       reportReason,
       reportMessage,
       isBanReason,
-      sessionId,
     },
   } = job
+  const studentId = asObjectId(job.data.studentId)
+  const sessionId = asObjectId(job.data.sessionId)
 
   // need full student to create sendGrid contact below
   const student = await getStudent({
@@ -45,7 +45,7 @@ async function emailReportedSession(
         MailService.sendBannedUserAlert(
           student._id,
           USER_BAN_REASON.SESSION_REPORTED,
-          Types.ObjectId(sessionId)
+          sessionId
         )
       )
       if (banAlert.error)
@@ -59,7 +59,7 @@ async function emailReportedSession(
 
     const reportAlert = await safeAsync(
       MailService.sendReportedSessionAlert(
-        Types.ObjectId(sessionId),
+        sessionId,
         reportedBy,
         reportReason,
         reportMessage

@@ -8,7 +8,7 @@ import { addUserAction } from '../../middleware/add-user-action'
 import socketServer from './socket-server'
 import { routeVolunteers } from './volunteers'
 import { routeVerify } from './verify'
-import { routes as routeSessions } from './session'
+import { routeSession } from './session'
 import { routeCalendar } from './calendar'
 import { routeFeedback } from './feedback'
 import { routeSockets } from './sockets'
@@ -28,7 +28,7 @@ export function routes(app: Express, sessionStore: MongoStore): void {
   routeVolunteers(router)
   routeUser(router)
   routeVerify(router)
-  routeSessions(router as Router, io)
+  routeSession(router as Router, io)
   routeCalendar(router)
   routeTraining(router)
   routeFeedback(router)

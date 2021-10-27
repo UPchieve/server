@@ -9,14 +9,12 @@ import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 
 import { Router } from 'express'
 import { resError } from '../res-error'
-import { User } from '../../models/User'
-import { NotAuthenticatedError } from '../../models/Errors'
 import { asString, asBoolean, asObjectId } from '../../utils/type-utils'
+import { extractUser } from '../extract-user'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(function(req, res) {
-    if (!req.user) throw new NotAuthenticatedError()
-    const user = req.user as User
+    const user = extractUser(req)
 
     const parsedUser = UserService.parseUser(user)
     return res.json({ user: parsedUser })
@@ -26,8 +24,7 @@ export function routeUser(router: Router): void {
   router.put('/user', async (req, res) => {
     try {
       const { ip } = req
-      if (!req.user) throw new NotAuthenticatedError()
-      const user = req.user as User
+      const user = extractUser(req)
       let { phone, isDeactivated } = req.body
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
@@ -41,6 +38,7 @@ export function routeUser(router: Router): void {
             user._id,
             ip
           ).accountDeactivated()
+          .catch(error => Sentry.captureException(error))
       }
       await updateVolunteerProfileById(user._id, isDeactivated, phone)
       res.sendStatus(200)
@@ -64,8 +62,7 @@ export function routeUser(router: Router): void {
   router.post('/user/volunteer-approval/reference', async (req, res) => {
     try {
       const { ip } = req
-      if (!req.user) throw new NotAuthenticatedError()
-      const user = req.user as User
+      const user = extractUser(req)
       await UserService.addReference({
         userId: user._id,
         ip,
@@ -80,8 +77,7 @@ export function routeUser(router: Router): void {
   router.post('/user/volunteer-approval/reference/delete', async (req, res) => {
     try {
       const { ip } = req
-      if (!req.user) throw new NotAuthenticatedError()
-      const user = req.user as User
+      const user = extractUser(req)
       await UserService.deleteReference(
         user._id,
         asString(req.body.referenceEmail),
@@ -96,8 +92,8 @@ export function routeUser(router: Router): void {
   router.get('/user/volunteer-approval/photo-url', async (req, res) => {
     try {
       const { ip } = req
-      if (!req.user) throw new NotAuthenticatedError()
-      const user = req.user as User
+      const user = extractUser(req)
+
       const photoIdS3Key = await UserService.addPhotoId(user._id, ip)
       const uploadUrl = await AwsService.getPhotoIdUploadUrl(photoIdS3Key)
 
@@ -122,10 +118,10 @@ export function routeUser(router: Router): void {
     '/user/volunteer-approval/background-information',
     async (req, res) => {
       const { ip } = req
-      if (!req.user) throw new NotAuthenticatedError()
-      const user = req.user as User
+      const user = extractUser(req)
 
-      // TODO: type validate update
+
+      // TODO: duck type validation
       const {
         occupation,
         experience,
@@ -161,8 +157,7 @@ export function routeUser(router: Router): void {
 
   router.get('/user/referred-friends', async (req, res) => {
     try {
-      if (!req.user) throw new NotAuthenticatedError()
-      const user = req.user as User
+      const user = extractUser(req)
       const referredFriends = await getUsersReferredByOtherId(user._id)
       res.json({ referredFriends })
     } catch (err) {

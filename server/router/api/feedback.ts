@@ -1,13 +1,13 @@
 import expressWs from 'express-ws'
-import { Types } from 'mongoose'
 import Case from 'case'
 import * as FeedbackService from '../../services/FeedbackService'
 import { getFeedbackBySessionIdUserType } from '../../models/Feedback/queries'
 import { InputError } from '../../models/Errors'
-import { asString } from '../../utils/type-utils'
+import { asString, asObjectId } from '../../utils/type-utils'
+import { resError } from '../res-error'
 
 export function routeFeedback(router: expressWs.Router): void {
-  router.post('/feedback', async (req, res, next) => {
+  router.post('/feedback', async (req, res) => {
     // TODO: use duck type validators
     const {
       sessionId,
@@ -38,11 +38,11 @@ export function routeFeedback(router: expressWs.Router): void {
         feedback: feedback._id,
       })
     } catch (error) {
-      next(error)
+      resError(res, error)
     }
   })
 
-  router.get('/feedback', async (req, res, next) => {
+  router.get('/feedback', async (req, res) => {
     if (
       !req.query.hasOwnProperty('sessionId') ||
       !req.query.hasOwnProperty('userType')
@@ -51,7 +51,7 @@ export function routeFeedback(router: expressWs.Router): void {
     const { sessionId, userType } = req.query
     try {
       const feedback = await getFeedbackBySessionIdUserType(
-        Types.ObjectId(asString(sessionId)),
+        asObjectId(sessionId),
         asString(userType)
       )
 
@@ -59,7 +59,7 @@ export function routeFeedback(router: expressWs.Router): void {
         feedback: feedback ? feedback._id : null,
       })
     } catch (error) {
-      next(error)
+      resError(res, error)
     }
   })
 }

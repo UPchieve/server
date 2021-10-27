@@ -621,14 +621,13 @@ export async function checkSession(data: unknown) {
   return session._id.toString()
 }
 
-export async function currentSession(data: unknown) {
-  const user = sessionUtils.asUser(data)
-  return SessionRepo.getCurrentSessionById(user._id)
+export async function currentSession(userId: Types.ObjectId) {
+  return await SessionRepo.getCurrentSessionById(userId)
 }
 
 export async function studentLatestSession(data: unknown) {
   const userId = asObjectId(data)
-  return SessionRepo.getLatestSessionByStudentId(userId)
+  return await SessionRepo.getLatestSessionByStudentId(userId)
 }
 
 export async function sessionTimedOut(data: unknown) {

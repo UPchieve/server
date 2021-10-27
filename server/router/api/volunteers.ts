@@ -34,7 +34,7 @@ export function routeVolunteers(router: Router): void {
   ) {
     try {
       const { page } = req.query
-      const pageNum = asNumber(page)
+      const pageNum = page ? asNumber(page) : 1
       const {
         volunteers,
         isLastPage,

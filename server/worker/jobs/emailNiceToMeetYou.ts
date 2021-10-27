@@ -20,7 +20,7 @@ export default async (): Promise<void> => {
 
   let totalEmailed = 0
 
-  const errors = []
+  const errors: string[] = []
   for (const volunteer of volunteers) {
     try {
       await MailService.sendNiceToMeetYou(volunteer)

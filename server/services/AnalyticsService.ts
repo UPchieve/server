@@ -9,7 +9,6 @@ const client = new PostHog(config.posthogToken, {
 export const captureEvent = (
   userId: Types.ObjectId,
   eventName: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   properties: {
     event: string
     sessionId?: string

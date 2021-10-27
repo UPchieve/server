@@ -2,7 +2,7 @@ import admin from 'firebase-admin'
 import config from '../../config'
 import express from 'express'
 
-export default function(app: express.Express): void {
+export function routes(app: express.Express): void {
   // TODO: need to set FIREBASE_PRIVATE_KEY_JSON in local development to run
   if (process.env.FIREBASE_PRIVATE_KEY_JSON) {
     admin.initializeApp({

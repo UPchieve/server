@@ -17,7 +17,7 @@ import * as SessionRepo from '../../models/Session/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import getSessionRoom from '../../utils/get-session-room'
 import newrelic from 'newrelic'
-import { getIdFromModelReference } from '../../utils/validators'
+import { getIdFromModelReference } from '../../utils/model-reference'
 
 // TODO: upgrade socketio and adapter so we can async this whole file
 export function routeSockets(
@@ -26,7 +26,6 @@ export function routeSockets(
 ): void {
   const socketService = new SocketService(io)
 
-  // TODO: figure out why these are async (is it the adapter?)
   async function getSocketIdsFromRoom(room: string): Promise<string[]> {
     return await new Promise((resolve, reject) => {
       io.in(room).clients((err: Error, clients: string[]) => {
@@ -38,7 +37,7 @@ export function routeSockets(
 
   async function remoteJoinRoom(socketId: string, room: string) {
     return await new Promise((resolve, reject) => {
-      ;(io.of('/').adapter as redisAdapter.RedisAdapter).remoteJoin(
+      (io.of('/').adapter as redisAdapter.RedisAdapter).remoteJoin(
         socketId,
         room,
         (err: Error) => {
@@ -50,7 +49,6 @@ export function routeSockets(
   }
 
   // Authentication for sockets
-  // TODO: types for passport
   io.use(
     passportSocketIo.authorize({
       cookieParser: cookieParser,

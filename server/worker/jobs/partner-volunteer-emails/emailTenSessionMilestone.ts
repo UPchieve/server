@@ -1,10 +1,10 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
-import logger from '../../../logger'
+import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getSessionsWithPipeline } from '../../../models/Session/queries'
 import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../../constants'
+import { asObjectId } from '../../../utils/type-utils'
 
 /**
  *
@@ -16,7 +16,7 @@ import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../../constants'
  */
 
 interface EmailTenSessionJobData {
-  volunteerId: Types.ObjectId
+  volunteerId: string
   firstName: string
   email: string
 }
@@ -27,18 +27,16 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
     name: currentJob,
   } = job
 
-  const volunteer = await getVolunteerContactInfoById(volunteerId)
+  const volunteer = await getVolunteerContactInfoById(asObjectId(volunteerId))
   // Do not send email if volunteer does not match email recipient spec
   if (!volunteer) return
 
   const fifteenMins = 1000 * 60 * 15
+  // TODO: repo pattern
   const sessions = await getSessionsWithPipeline([
     {
       $match: {
-        volunteer:
-          typeof volunteerId === 'string'
-            ? Types.ObjectId(volunteerId)
-            : volunteerId,
+        volunteer: volunteerId,
         timeTutored: { $gte: fifteenMins },
         reviewFlags: {
           $nin: [
@@ -138,7 +136,7 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
         email,
         firstName
       )
-      logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
+      log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
       throw new Error(
         `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

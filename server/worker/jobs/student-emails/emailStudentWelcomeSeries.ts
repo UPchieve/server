@@ -1,12 +1,12 @@
-import { Types } from 'mongoose'
 import { Job } from 'bull'
-import logger from '../../../logger'
+import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { Jobs } from '../index'
+import { asObjectId } from '../../../utils/type-utils'
 
 interface WelcomeEmail {
-  studentId: Types.ObjectId
+  studentId: string
 }
 
 export default async (job: Job<WelcomeEmail>): Promise<void> => {
@@ -14,7 +14,7 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
     data: { studentId },
     name: currentJob,
   } = job
-  const student = await getStudentContactInfoById(studentId)
+  const student = await getStudentContactInfoById(asObjectId(studentId))
 
   if (student) {
     try {
@@ -28,7 +28,7 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
       if (currentJob === Jobs.EmailStudentGoalSetting)
         await MailService.sendStudentGoalSetting(email, firstname)
 
-      logger.info(`Emailed ${currentJob} to student ${studentId}`)
+      log(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {
       throw new Error(
         `Failed to email ${currentJob} to student ${studentId}: ${error}`

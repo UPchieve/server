@@ -8,6 +8,7 @@ export class UserNotFoundError extends CustomError {
   }
 }
 
+// TODO: deprecate DocFooError in favor of RepoFooErrors
 export class DocCreationError extends CustomError {}
 
 export class DocUpdateError extends CustomError {

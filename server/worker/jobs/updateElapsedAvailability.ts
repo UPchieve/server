@@ -16,7 +16,7 @@ export default async (): Promise<void> => {
   const volunteerIds = await getVolunteerIdsForElapsedAvailability()
 
   let totalUpdated = 0
-  const errors = []
+  const errors: string[] = []
 
   for (const volunteerId of volunteerIds) {
     const availability = await getSnapshotByVolunteerId(volunteerId)

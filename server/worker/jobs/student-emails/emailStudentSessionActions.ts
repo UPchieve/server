@@ -1,7 +1,6 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import moment from 'moment'
-import logger from '../../../logger'
+import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
@@ -11,8 +10,8 @@ import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
 import { asObjectId } from '../../../utils/type-utils'
 
 interface StudentSessionActionsJobData {
-  studentId: Types.ObjectId
-  volunteerId: Types.ObjectId
+  studentId: string
+  volunteerId: string
   sessionSubtopic: string
   sessionDate: ISOString
 }
@@ -51,7 +50,7 @@ export default async (
           moment(sessionDate).format('MMMM Do')
         )
 
-      logger.info(`Emailed ${currentJob} to student ${studentId}`)
+      log(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {
       throw new Error(
         `Failed to email ${currentJob} to student ${studentId}: ${error}`

@@ -1,10 +1,11 @@
 import { Job } from 'bull'
 import { Types } from 'mongoose'
-import logger from '../../../logger'
+import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getNotificationsWithPipeline } from '../../../models/Notification/queries'
 import { getSessionsWithPipeline } from '../../../models/Session/queries'
 import { emailRecipientPrefixed } from '../../../utils/aggregation-snippets'
+import { asObjectId } from '../../../utils/type-utils'
 
 interface GentleWarningAggregation {
   _id: Types.ObjectId
@@ -14,7 +15,7 @@ interface GentleWarningAggregation {
 }
 
 interface EmailGentleWarningJobData {
-  sessionId: Types.ObjectId
+  sessionId: string
 }
 
 /**
@@ -25,9 +26,9 @@ interface EmailGentleWarningJobData {
  */
 export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
   const {
-    data: { sessionId },
     name: currentJob,
   } = job
+  const sessionId = asObjectId(job.data.sessionId)
   const documentsWithVolunteerIds = await getSessionsWithPipeline([
     {
       $match: {
@@ -109,7 +110,7 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
       const { firstName, email, _id } = volunteer
       try {
         await MailService.sendVolunteerGentleWarning(email, firstName)
-        logger.info(`Sent ${currentJob} to volunteer ${_id}`)
+        log(`Sent ${currentJob} to volunteer ${_id}`)
       } catch (error) {
         errors.push(`volunteer ${_id}: ${error}`)
       }

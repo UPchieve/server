@@ -67,7 +67,6 @@ export const courses: TrainingCourse[] = [
               'https://join.slack.com/t/upchieveaccommunity/shared_invite/zt-qktuitjb-g6YlDPHsSr6voER3pClz7A',
           },
           {
-            // eslint-disable-next-line quotes
             name: "Register for UPchieve's Monthly Coach Meetings",
             materialKey: '42j392',
             type: MaterialType.LINK,
@@ -94,7 +93,6 @@ export const courses: TrainingCourse[] = [
                   'http://pellinstitute.org/downloads/publications-Indicators_of_Higher_Education_Equity_in_the_US_2018_Historical_Trend_Report.pdf',
               },
               {
-                // eslint-disable-next-line quotes
                 displayName: "Overview of COVID-19's impact on education",
                 url:
                   'https://www.mckinsey.com/industries/public-and-social-sector/our-insights/covid-19-and-student-learning-in-the-united-states-the-hurt-could-last-a-lifetime',
@@ -270,7 +268,6 @@ export const courses: TrainingCourse[] = [
               },
               {
                 displayName:
-                  // eslint-disable-next-line quotes
                   "Examples of how implicit bias can influence educators' behavior",
                 url: 'https://poorvucenter.yale.edu/ImplicitBiasAwareness',
               },

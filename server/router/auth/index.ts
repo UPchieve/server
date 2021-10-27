@@ -9,7 +9,6 @@ import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
 import { asString } from '../../utils/type-utils'
 
-// TODO: type passport request member methods/variable correctly (login, logout, user)
 export function routes(app: Express) {
   const router = Router()
 

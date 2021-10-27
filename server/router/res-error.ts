@@ -19,8 +19,8 @@ export function resError(
   err: unknown | Error | CustomError,
   status?: number
 ): void {
-  logger.error(err as any)
   if (err instanceof Error || err instanceof CustomError) {
+    logger.error(err as any)
     if (status) {
       /* keep provided status */
     }
@@ -48,5 +48,8 @@ export function resError(
     res.status(status).json({
       err: err.message,
     })
+  } else {
+    logger.error(`Unexpected non-error type thrown: ${err as any}`)
+    res.status(500)
   }
 }

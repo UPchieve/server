@@ -1,10 +1,10 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
-import logger from '../../../logger'
+import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getPartnerVolunteerForLowHours } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
+import { asObjectId } from '../../../utils/type-utils'
 
 /**
  *
@@ -17,7 +17,7 @@ import countAvailabilitySelected from '../../../utils/count-availability-selecte
  */
 
 interface EmailLowHoursJobData {
-  volunteerId: Types.ObjectId
+  volunteerId: string
 }
 
 export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
@@ -25,7 +25,7 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
     data: { volunteerId },
     name: currentJob,
   } = job
-  const volunteer = await getPartnerVolunteerForLowHours(volunteerId)
+  const volunteer = await getPartnerVolunteerForLowHours(asObjectId(volunteerId))
 
   if (volunteer) {
     const { _id, firstname, email, availability } = volunteer
@@ -35,7 +35,7 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
     if (textNotifications.length < 2 && totalHoursSelected < 5) {
       try {
         await MailService.sendPartnerVolunteerLowHoursSelected(email, firstname)
-        logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
+        log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(
           `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

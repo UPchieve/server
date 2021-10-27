@@ -3,11 +3,13 @@ import twilio from 'twilio'
 import _ from 'lodash'
 
 import config from '../../config'
+import logger from '../../logger'
 import * as twilioService from '../../services/TwilioService'
-import VolunteerModel, { Volunteer } from '../../models/Volunteer'
+import VolunteerModel from '../../models/Volunteer'
 import * as UserActionCtrl from '../../controllers/UserActionCtrl'
+import { resError } from '../res-error'
 
-export default function(app: Express) {
+export function routes(app: Express): void {
   const router = Router()
 
   // This route is called by Twilio to receive TwiML instructions for
@@ -19,15 +21,20 @@ export default function(app: Express) {
   // URL, and our server responds with TwiML containing the decoded message text
   // and the configured voice for the text-to-speech conversion.
   router.post('/message/:message', function(req, res) {
-    const message = decodeURIComponent(req.params.message)
-    console.log('Making TwiML for voice message')
+    try {
+      const message = decodeURIComponent(req.params.message)
+      logger.info('Making TwiML for voice message')
 
-    const twiml = new twilio.twiml.VoiceResponse()
+      const twiml = new twilio.twiml.VoiceResponse()
 
-    twiml.say({ voice: config.voice }, message)
+      twiml.say({ voice: config.voice }, message)
 
-    res.type('text/xml')
-    res.send(twiml.toString())
+      res.type('text/xml')
+      res.send(twiml.toString())
+    } catch (err) {
+      // TODO: should we bother replying to twilio?
+      resError(res, err)
+    }
   })
 
   /**
@@ -36,6 +43,7 @@ export default function(app: Express) {
   router.post('/incoming-sms', async function(req, res, next) {
     const twiml = new twilio.twiml.MessagingResponse()
 
+    // TODO: duck type validation
     const incomingMessage = req.body.Body
     const incomingPhoneNumber = req.body.From
     let userId
@@ -58,7 +66,7 @@ export default function(app: Express) {
          * 2. Populate their most recent notification
          * 3. Populate that notification's session
          */
-        // TODO: use repo arch
+        // TODO: repo pattern
         const populatedUser = await VolunteerModel.findOne({
           phone: incomingPhoneNumber,
         })

@@ -23,6 +23,7 @@ function createUpchieveId() {
 
 // TODO: need to turn this into repo pattern once we have stronger school type
 // search for schools by name or ID
+// TODO: duck type validation
 export async function search(query: any): Promise<any> {
   // @note: Atlas Search is unavailable for local development. This is a
   // fallback query to be able to search for schools in local development

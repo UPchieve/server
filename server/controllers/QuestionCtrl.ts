@@ -1,12 +1,15 @@
 import QuestionModel, { Question, QuestionDocument } from '../models/Question'
 
 // TODO: repo pattern - whole file
+
+// TODO: duck type validation
 export async function list(
   filters: any // FilterQuery<QuestionDocument>[]
 ): Promise<QuestionDocument[]> {
   return await QuestionModel.find(filters).exec()
 }
 
+// TODO: duck type validation
 export async function create(question: Question): Promise<Question> {
   return QuestionModel.create(question)
 }

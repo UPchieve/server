@@ -80,7 +80,7 @@ export enum Jobs {
 // register new job processors here
 interface JobProcessor {
   name: Jobs
-  processor: ProcessPromiseFunction<any> // eslint-disable-line @typescript-eslint/no-explicit-any
+  processor: ProcessPromiseFunction<any>
 }
 
 const jobProcessors: JobProcessor[] = [
