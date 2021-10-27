@@ -65,8 +65,12 @@ export async function initiateVerification(data: unknown): Promise<void> {
       throw new InputError('Must supply a valid email address')
     existingUserId = await getUserIdByEmail(sendTo)
   }
-  if (existingUserId && userId.equals(existingUserId))
+  if (existingUserId && !userId.equals(existingUserId))
     throw new LookupError(existingUserErrorMessage)
+  if (verificationMethod === VERIFICATION_METHOD.EMAIL && !existingUserId)
+    throw new LookupError(
+      'The email address you entered does not match your account email address'
+    )
 
   await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
 }

@@ -37,7 +37,8 @@ export async function getBlob(
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blobClient = containerClient.getBlobClient(blobName)
   const downloadBlockBlobResponse = await blobClient.download()
-  const blobContent = ( // readableStreamBody always available within Node
+  const blobContent = // readableStreamBody always available within Node
+  (
     await streamToBuffer(
       downloadBlockBlobResponse.readableStreamBody as NodeJS.ReadableStream
     )
