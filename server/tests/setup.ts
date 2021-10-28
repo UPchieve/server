@@ -41,8 +41,6 @@ jest.mock('../config', () => {
       apiKey: process.env.SUBWAY_SENDGRID_API_KEY,
       failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
     },
-    // global.__MONGO_URI__ is set by '@shelf/jest-mongodb' when a test runs
-    database: global.__MONGO_URI__,
     volunteerPartnerManifests: {
       example: {
         name: 'Example - Regular',
@@ -127,13 +125,5 @@ jest.mock('unleash-client', () => {
   }
 })
 
-export {} // get typescript to think this is a module
-
-// extend NodeJS global for mongoURI for use with @shelf/jest-mongodb
-declare global {
-  namespace NodeJS {
-    interface Global {
-      __MONGO_URI__: string
-    }
-  }
-}
+// initialize global mongoURI for use with @shelf/jest-mongodb
+var __MONGO_URI__: string

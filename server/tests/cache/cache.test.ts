@@ -6,19 +6,9 @@ import { KeyNotFoundError } from '../../cache'
 test('Should save string content in the cache', async () => {
   const testKey = uuid()
   const testValue = faker.lorem.words(10)
-  try {
-    await Cache.save(testKey, testValue)
-  } catch (err) {
-    expect(err).toBeUndefined()
-  }
+  await expect(Cache.save(testKey, testValue)).resolves.not.toThrow()
 
-  let value: string
-  try {
-    value = await Cache.get(testKey)
-  } catch (err) {
-    expect(err).toBeUndefined()
-  }
-  expect(value).toEqual(testValue)
+  await expect(Cache.get(testKey)).resolves.toEqual(testValue)
 
   // clean up
   await Cache.remove(testKey)
@@ -30,20 +20,9 @@ test('Should save json stringified content in the cache', async () => {
     aKey: 'a value',
   }
   const jsonString = JSON.stringify(testObj)
+  await expect(Cache.save(testKey, jsonString)).resolves.not.toThrow()
 
-  try {
-    await Cache.save(testKey, jsonString)
-  } catch (err) {
-    expect(err).toBeUndefined()
-  }
-
-  let value: string
-  try {
-    value = await Cache.get(testKey)
-  } catch (err) {
-    expect(err).toBeUndefined()
-  }
-  expect(value).toEqual(jsonString)
+  await expect(Cache.get(testKey)).resolves.toEqual(jsonString)
 
   // clean up
   await Cache.remove(testKey)
@@ -56,11 +35,7 @@ test('Should retrieve parse-able json stringified content from the cache', async
   }
   const jsonString = JSON.stringify(testObj)
 
-  try {
-    await Cache.save(testKey, jsonString)
-  } catch (err) {
-    expect(err).toBeUndefined()
-  }
+  await expect(Cache.save(testKey, jsonString)).resolves.not.toThrow()
 
   let value: string
   try {
@@ -88,17 +63,9 @@ test('Should throw KeyNotFoundError if non-existent key is passed', async () => 
 test('Should remove a key from the cache', async () => {
   const testKey = uuid()
   const testValue = faker.lorem.words(10)
-  try {
-    await Cache.save(testKey, testValue)
-  } catch (err) {
-    expect(err).toBeUndefined()
-  }
+  await expect(Cache.save(testKey, testValue)).resolves.not.toThrow()
 
-  try {
-    await Cache.remove(testKey)
-  } catch (err) {
-    expect(err).toBeUndefined()
-  }
+  await expect(Cache.remove(testKey)).resolves.not.toThrow()
 
   let value: string
   try {
