@@ -92,9 +92,8 @@ export async function getTimeTutoredForDateRange(
   else return 0
 }
 
-export async function reportSession(data: unknown) {
+export async function reportSession(user: User, data: unknown) {
   const {
-    user,
     sessionId,
     reportReason,
     reportMessage,
@@ -223,9 +222,11 @@ export async function endSession({
   emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
 }
 
-export async function processAssistmentsSession(sessionId: Types.ObjectId) {
-  const session = await SessionRepo.getSessionById(sessionId)
-  if (session?.volunteer && (await isSessionAssistments(sessionId))) {
+// registered as listener
+export async function processAssistmentsSession(sessionId: string) {
+  const sessionObjectId = asObjectId(sessionId)
+  const session = await SessionRepo.getSessionById(sessionObjectId)
+  if (session?.volunteer && (await isSessionAssistments(sessionObjectId))) {
     logger.info(`Ending an assistments session: ${sessionId}`)
     await QueueService.add(Jobs.SendAssistmentsData, { sessionId })
   }
@@ -513,10 +514,9 @@ export async function adminSessionView(data: unknown) {
   }
 }
 
-export async function startSession(data: unknown) {
+export async function startSession(user: User, data: unknown) {
   const {
     ip,
-    user,
     sessionSubTopic,
     sessionType,
     problemId,
@@ -595,12 +595,11 @@ export async function startSession(data: unknown) {
 }
 
 export async function finishSession(
+  user: User,
   data: unknown,
   socketService: SocketService
 ) {
-  const { sessionId, user, userAgent, ip } = sessionUtils.asFinishSessionData(
-    data
-  )
+  const { sessionId, userAgent, ip } = sessionUtils.asFinishSessionData(data)
 
   await endSession({
     sessionId,
@@ -631,11 +630,10 @@ export async function studentLatestSession(data: unknown) {
   return await SessionRepo.getLatestSessionByStudentId(userId)
 }
 
-export async function sessionTimedOut(data: unknown) {
+export async function sessionTimedOut(user: User, data: unknown) {
   const {
     sessionId,
     timeout,
-    user,
     ip,
     userAgent,
   } = sessionUtils.asSessionTimedOutData(data)
@@ -657,10 +655,8 @@ export async function getSessionNotifications(data: unknown) {
   return NotificationRepo.getSessionNotificationsWithSessionId(sessionId)
 }
 
-export async function joinSession(data: unknown): Promise<void> {
-  const { socket, session, user, joinedFrom } = sessionUtils.asJoinSessionData(
-    data
-  )
+export async function joinSession(user: User, data: unknown): Promise<void> {
+  const { socket, session, joinedFrom } = sessionUtils.asJoinSessionData(data)
   const userAgent = socket.request.headers['user-agent']
   const ipAddress = socket.request.connection.remoteAddress
 
@@ -737,8 +733,8 @@ export async function joinSession(data: unknown): Promise<void> {
   }
 }
 
-export async function saveMessage(data: unknown): Promise<void> {
-  const { sessionId, user, message } = sessionUtils.asSaveMessageData(data)
+export async function saveMessage(user: User, data: unknown): Promise<void> {
+  const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   if (!sessionUtils.isSessionParticipant(session, user))
     throw new Error('Only session participants are allowed to send messages')

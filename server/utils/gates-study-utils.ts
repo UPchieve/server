@@ -49,7 +49,7 @@ export async function prepareForGatesQualificationCheck(
   const school = await getSchool(
     getIdFromModelReference(student.approvedHighschool)
   )
-
+  if (!school) throw new Error('Gates school not found')
   return {
     session,
     student,

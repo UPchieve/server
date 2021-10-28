@@ -93,6 +93,13 @@ const app = express()
 
 const indexHtml = renderIndexHtml()
 
+/**
+ * @note: must typecast many handlers with express.RequestHandler
+ * due to @types/node >=15.9.x and @types/express <14.7.1
+ * see https://github.com/helmetjs/helmet/issues/325
+ * see https://github.com/expressjs/express/issues/4618
+ */
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -112,11 +119,11 @@ app.use(
       },
     },
     frameguard: false,
-  })
+  }) as express.RequestHandler
 )
 
 const expressLogger = expressPino({ logger })
-app.use(expressLogger)
+app.use(expressLogger as express.RequestHandler)
 
 app.use(timeout('300000'))
 
@@ -127,9 +134,9 @@ app.use(timeout('300000'))
 app.set('trust proxy', true)
 
 // Setup middleware
-app.use(Sentry.Handlers.requestHandler()) // The Sentry request handler must be the first middleware on the app
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(Sentry.Handlers.requestHandler() as express.RequestHandler) // The Sentry request handler must be the first middleware on the app
+app.use(bodyParser.json() as express.RequestHandler)
+app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
 app.use(cookieParser(config.sessionSecret))
 app.use(express.static(path.join(__dirname, 'dist')))
 
@@ -167,12 +174,12 @@ app.use((req, res, next) => {
 app.use((req, res, next): void => {
   // Wrapper around promise to allow for no callback when using with await
   req.asyncLogin = (arg1: Express.User, arg2?: any) =>
-    promisify(req.login)(arg1, arg2, () => {})
+    promisify(req.login)(arg1)
   next()
 })
 
 // The error handler must be before any other error middleware and after all controllers
-app.use(Sentry.Handlers.errorHandler())
+app.use(Sentry.Handlers.errorHandler() as express.ErrorRequestHandler)
 
 // Swagger docs
 const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')

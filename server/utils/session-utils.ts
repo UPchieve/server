@@ -48,7 +48,10 @@ export function didParticipantsChat(
   return studentSentMessage && volunteerSentMessage
 }
 
-export function getMessagesAfterDate(messages: Message[], date: Date) {
+export function getMessagesAfterDate(
+  messages: Message[],
+  date: Date
+): Message[] {
   if (!date) return []
 
   for (let i = 0; i < messages.length; i++) {
@@ -79,7 +82,7 @@ export function isSessionParticipant(
   return userId === studentId || userId === volunteerId
 }
 
-export function calculateTimeTutored(session: Session) {
+export function calculateTimeTutored(session: Session): number {
   const threeHoursMs = 1000 * 60 * 60 * 3
   const fifteenMinsMs = 1000 * 60 * 15
 
@@ -176,111 +179,78 @@ export interface RequestIdentifier {
   userAgent: string
   ip: string
 }
-
-// TODO: use User interface instead
-interface RequestUser {
-  _id: Types.ObjectId
-  createdAt: Date
-  email: string
-  firstname: string
-  lastname: string
-  isVolunteer: boolean
-  isBanned: boolean
+const requestIdentifierValidators = {
+  ip: asString,
+  userAgent: asString,
 }
 
-export interface StartSessionOptions extends RequestIdentifier {
-  user: User
+export interface StartSessionData extends RequestIdentifier {
   sessionSubTopic: string
   sessionType: SUBJECT_TYPES
   problemId?: string
   assignmentId?: string
   studentId?: string
 }
+export const asStartSessionData = asFactory<StartSessionData>({
+  ...requestIdentifierValidators,
+  // TODO: use validation against the enums SUBJECT_TYPES and SUBJECTS
+  sessionSubTopic: asString,
+  sessionType: asSubjectType,
+  problemId: asOptional(asString),
+  assignmentId: asOptional(asString),
+  studentId: asOptional(asString),
+})
 
-export interface FinishSessionOptions extends RequestIdentifier {
-  user: User
+export interface FinishSessionData extends RequestIdentifier {
   sessionId: Types.ObjectId
 }
+export const asFinishSessionData = asFactory<FinishSessionData>({
+  ...requestIdentifierValidators,
+  sessionId: asObjectId,
+})
 
-export interface SessionsToReviewOptions {
+export interface SessionsToReviewData {
   users: string
   page: string
 }
+export const asSessionsToReviewData = asFactory<SessionsToReviewData>({
+  users: asString,
+  page: asString,
+})
 
-export interface ReviewSessionOptions {
+export interface ReviewSessionData {
   sessionId: Types.ObjectId
   reviewed: boolean
   toReview: boolean
 }
+export const asReviewSessionData = asFactory<ReviewSessionData>({
+  sessionId: asObjectId,
+  reviewed: asBoolean,
+  toReview: asBoolean,
+})
 
-export interface ReportSessionOptions {
-  user: User
+export interface ReportSessionData {
   sessionId: Types.ObjectId
   reportReason: string
   reportMessage: string
 }
+export const asReportSessionData = asFactory<ReportSessionData>({
+  sessionId: asObjectId,
+  reportReason: asString,
+  reportMessage: asString,
+})
 
-export interface SessionTimedOutOptions {
-  user: User
+export interface SessionTimedOutData {
   sessionId: Types.ObjectId
   timeout: number
   ip: string
   userAgent: string
 }
-
-interface PartialSocket {
-  id: string
-  connected: boolean
-  disconnected: boolean
-}
-
-const requestIdentifierValidators = {
-  ip: asString,
-  userAgent: asString,
-}
-
-// TODO: add more properties to validate against
-const userDataValidators = {
-  _id: asObjectId,
-  createdAt: asDate,
-  email: asString,
-  firstname: asString,
-  lastname: asString,
-  isVolunteer: asBoolean,
-  isBanned: asBoolean,
-}
-
-const socketUserDataValidators = {
-  _id: asString,
-  createdAt: asString,
-  email: asString,
-  firstname: asString,
-  lastname: asString,
-  isVolunteer: asBoolean,
-  isBanned: asBoolean,
-}
-
-interface JoinSessionData {
-  _id: Types.ObjectId
-  createdAt: Date
-  endedAt?: Date
-  type: string
-  subTopic: string
-  student: Types.ObjectId
-  volunteer?: Types.ObjectId
-}
-
-const partialJoinSessionValidators = {
-  session: asFactory<JoinSessionData>({
-    _id: asObjectId,
-    createdAt: asDate,
-    endedAt: asOptional(asDate),
-    type: asString,
-    subTopic: asString,
-    student: asObjectId,
-    volunteer: asOptional(asObjectId),
-  }),
-}
+export const asSessionTimedOutData = asFactory<SessionTimedOutData>({
+  ...requestIdentifierValidators,
+  sessionId: asObjectId,
+  timeout: asNumber,
+})
 
 export function asSubjectType(s: unknown, errMsg?: string): SUBJECT_TYPES {
   const cb = asEnum<SUBJECT_TYPES>(SUBJECT_TYPES)
@@ -291,61 +261,7 @@ export function asSubjectType(s: unknown, errMsg?: string): SUBJECT_TYPES {
   throw new InputError(`${errMsg} ${s} is not a string`)
 }
 
-// TODO: move the factory methods and validators to a shared file
-// TODO: create a factory using User instead of RequestUser
-export function asUser(s: unknown, errMsg?: string): User {
-  const cb = asFactory<RequestUser>(userDataValidators)
-  try {
-    const val = cb(s, errMsg)
-    return val as User
-  } catch (error) {
-    throw error
-  }
-}
-
-export const asStartSessionData = asFactory<StartSessionOptions>({
-  ...requestIdentifierValidators,
-  user: asUser,
-  // TODO: use validation against the enums SUBJECT_TYPES and SUBJECTS
-  sessionSubTopic: asString,
-  sessionType: asSubjectType,
-  problemId: asOptional(asString),
-  assignmentId: asOptional(asString),
-  studentId: asOptional(asString),
-})
-
-export const asFinishSessionData = asFactory<FinishSessionOptions>({
-  ...requestIdentifierValidators,
-  user: asUser,
-  sessionId: asObjectId,
-})
-
-export const asSessionsToReviewData = asFactory<SessionsToReviewOptions>({
-  users: asString,
-  page: asString,
-})
-
-export const asReviewSessionData = asFactory<ReviewSessionOptions>({
-  sessionId: asObjectId,
-  reviewed: asBoolean,
-  toReview: asBoolean,
-})
-
-export const asReportSessionData = asFactory<ReportSessionOptions>({
-  user: asUser,
-  sessionId: asObjectId,
-  reportReason: asString,
-  reportMessage: asString,
-})
-
-export const asSessionTimedOutData = asFactory<SessionTimedOutOptions>({
-  ...requestIdentifierValidators,
-  user: asUser,
-  sessionId: asObjectId,
-  timeout: asNumber,
-})
-
-interface AdminFilteredSessionsOptions {
+interface AdminFilteredSessionsData {
   showBannedUsers: string
   showTestUsers: string
   minSessionLength: string
@@ -359,39 +275,57 @@ interface AdminFilteredSessionsOptions {
   isReported: string
   page: string
 }
+export const asAdminFilteredSessionsData = asFactory<AdminFilteredSessionsData>(
+  {
+    showBannedUsers: asString,
+    showTestUsers: asString,
+    minSessionLength: asString,
+    sessionActivityFrom: asString,
+    sessionActivityTo: asString,
+    minMessagesSent: asString,
+    studentRating: asString,
+    volunteerRating: asString,
+    firstTimeStudent: asString,
+    firstTimeVolunteer: asString,
+    isReported: asString,
+    page: asString,
+  }
+)
 
-export const asAdminFilteredSessionsData = asFactory<
-  AdminFilteredSessionsOptions
->({
-  showBannedUsers: asString,
-  showTestUsers: asString,
-  minSessionLength: asString,
-  sessionActivityFrom: asString,
-  sessionActivityTo: asString,
-  minMessagesSent: asString,
-  studentRating: asString,
-  volunteerRating: asString,
-  firstTimeStudent: asString,
-  firstTimeVolunteer: asString,
-  isReported: asString,
-  page: asString,
-})
-
-interface JoinSessionOptions {
+interface PartialSocket {
+  id: string
+  connected: boolean
+  disconnected: boolean
+}
+interface JoinSessionData {
   socket: Partial<Socket>
-  session: JoinSessionData
-  user: User
+  session: JoinSession
   joinedFrom?: string
 }
-
-export const asJoinSessionData = asFactory<JoinSessionOptions>({
+interface JoinSession {
+  _id: Types.ObjectId
+  createdAt: Date
+  endedAt?: Date
+  type: string
+  subTopic: string
+  student: Types.ObjectId
+  volunteer?: Types.ObjectId
+}
+export const asJoinSessionData = asFactory<JoinSessionData>({
   socket: asFactory<PartialSocket>({
     id: asString,
     connected: asBoolean,
     disconnected: asBoolean,
   }),
-  ...partialJoinSessionValidators,
-  user: asUser,
+  session: asFactory<JoinSession>({
+    _id: asObjectId,
+    createdAt: asDate,
+    endedAt: asOptional(asDate),
+    type: asString,
+    subTopic: asString,
+    student: asObjectId,
+    volunteer: asOptional(asObjectId),
+  }),
   joinedFrom: asOptional(asString),
 })
 
@@ -401,16 +335,12 @@ interface NewMessage {
   contents: string
   createdAt: Date
 }
-
-interface SaveMessageOptions {
+interface SaveMessageData {
   sessionId: Types.ObjectId
-  user: User
   message: NewMessage
 }
-
-export const asSaveMessageData = asFactory<SaveMessageOptions>({
+export const asSaveMessageData = asFactory<SaveMessageData>({
   sessionId: asObjectId,
-  user: asUser,
   message: asFactory<NewMessage>({
     _id: asObjectId,
     user: asObjectId,

@@ -25,11 +25,12 @@ interface EmailReferCoworkerJobData {
 
 export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
   const {
-    data: { volunteerId, firstName, email, partnerOrg },
+    data: { firstName, email, partnerOrg },
     name: currentJob,
   } = job
 
-  const volunteer = await getVolunteerContactInfoById(asObjectId(volunteerId))
+  const volunteerId = asObjectId(job.data.volunteerId)
+  const volunteer = await getVolunteerContactInfoById(volunteerId)
   // Do not send email if volunteer does not match email recipient spec
   if (!volunteer) return
 

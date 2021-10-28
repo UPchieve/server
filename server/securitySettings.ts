@@ -46,12 +46,8 @@ const googleDocsUrl = 'https://docs.google.com'
 const trainingMaterialsS3 =
   'https://upc-training-materials.s3.us-east-2.amazonaws.com'
 
-// the alternative to disabling eslint here
-// is to do '\'self\'' which looks...terrible
-// 'self' must come through in single-quotes
-// to the front end
 export const scriptSrc = [
-  "'self'", // eslint-disable-line quotes
+  "'self'",
   `https://${config.host}`,
   ...googleUrls,
   cdnUrl,
@@ -59,12 +55,12 @@ export const scriptSrc = [
   posthogUrl,
   ...newrelicUrls,
   ...adminEduUrls,
-  "'unsafe-eval'", // eslint-disable-line quotes
-  "'unsafe-inline'", // eslint-disable-line quotes
+  "'unsafe-eval'",
+  "'unsafe-inline'",
 ]
 
 export const imgSrc = [
-  "'self'", // eslint-disable-line quotes
+  "'self'",
   ...googleUrls,
   ...s3PhotoImageUrls,
   cdnUrl,
@@ -74,7 +70,7 @@ export const imgSrc = [
 ]
 
 export const connectSrc = [
-  "'self'", // eslint-disable-line quotes
+  "'self'",
   posthogUrl,
   unleashUrl,
   sentryUrl,
@@ -94,22 +90,22 @@ if (config.NODE_ENV !== 'production') {
 }
 
 export const defaultSrc = [
-  "'self'", // eslint-disable-line quotes
+  "'self'",
   `https://${config.host}`,
-  "'unsafe-inline'", // eslint-disable-line quotes
+  "'unsafe-inline'",
   vimeoUrl,
   googleDocsUrl,
   trainingMaterialsS3,
 ]
 
 // the rest are defaults
-export const baseUri = ["'self'"] // eslint-disable-line quotes
-export const blockAllMixedContent = []
-export const fontSrc = ["'self'", 'https:', 'data:'] // eslint-disable-line quotes
-export const frameAncestors = ["'self'", 'http://localhost'] // eslint-disable-line quotes
-export const objectSrc = ["'none'"] // eslint-disable-line quotes
-export const scriptSrcAttr = ["'none'"] // eslint-disable-line quotes
-export const styleSrc = ["'self'", 'https:', "'unsafe-inline'"] // eslint-disable-line quotes
+export const baseUri = ["'self'"]
+export const blockAllMixedContent: string[] = []
+export const fontSrc = ["'self'", 'https:', 'data:']
+export const frameAncestors = ["'self'", 'http://localhost']
+export const objectSrc = ["'none'"]
+export const scriptSrcAttr = ["'none'"]
+export const styleSrc = ["'self'", 'https:', "'unsafe-inline'"]
 export let upgradeInsecureRequests: string[] | null
 if (config.NODE_ENV === 'production') {
   upgradeInsecureRequests = []

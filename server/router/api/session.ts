@@ -16,9 +16,8 @@ export function routeSession(router: Router, io: Server) {
   router.route('/session/new').post(async function(req, res) {
     try {
       const user = extractUser(req)
-      const sessionId = await SessionService.startSession({
+      const sessionId = await SessionService.startSession(user, {
         ...req.body,
-        user,
         userAgent: req.get('User-Agent'),
         ip: req.ip,
       } as unknown)
@@ -34,9 +33,9 @@ export function routeSession(router: Router, io: Server) {
         throw new InputError('Missing sessionId body string')
       const user = extractUser(req)
       await SessionService.finishSession(
+        user,
         {
           ...req.body,
-          user,
           userAgent: req.get('User-Agent'),
           ip: req.ip,
         } as unknown,
@@ -141,10 +140,9 @@ export function routeSession(router: Router, io: Server) {
   router.post('/session/:sessionId/report', async function(req, res) {
     try {
       const { sessionId } = req.params
-      const { user } = req
-      await SessionService.reportSession({
+      const user = extractUser(req)
+      await SessionService.reportSession(user, {
         sessionId,
-        user,
         ...req.body,
       } as unknown)
       res.json({ msg: 'Success' })
@@ -158,12 +156,12 @@ export function routeSession(router: Router, io: Server) {
     try {
       const { sessionId } = req.params
       const { timeout } = req.body
-      const { user, ip } = req
+      const { ip } = req
+      const user = extractUser(req)
       const userAgent = req.get('User-Agent')
-      await SessionService.sessionTimedOut({
+      await SessionService.sessionTimedOut(user, {
         sessionId,
         timeout,
-        user,
         ip,
         userAgent,
       } as unknown)

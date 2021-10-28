@@ -9,9 +9,11 @@ import {
 import * as UserProductFlagsRepo from '../models/UserProductFlags/queries'
 import * as gatesStudyUtils from '../utils/gates-study-utils'
 import { isDateWithinRange } from '../utils/is-date-within-range'
+import { asObjectId } from '../utils/type-utils'
 
 // registered as listener on session-ended
-export async function processGatesQualifiedSession(sessionId: Types.ObjectId) {
+export async function processGatesQualifiedSession(sessionId: string) {
+  const sessionObjectId = asObjectId(sessionId)
   const todaysDate = moment()
     .utc()
     .toDate()
@@ -24,7 +26,7 @@ export async function processGatesQualifiedSession(sessionId: Types.ObjectId) {
     )
   ) {
     const data = await gatesStudyUtils.prepareForGatesQualificationCheck(
-      sessionId
+      sessionObjectId
     )
     if (gatesStudyUtils.isGatesQualifiedSession(data))
       UserProductFlagsRepo.updateUPFGatesQualifiedFlagById(

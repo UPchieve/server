@@ -123,10 +123,10 @@ export function routeSockets(
             }
 
             try {
-              await SessionService.joinSession({
+              // TODO: correctly type User from passport
+              await SessionService.joinSession(user, {
                 socket,
                 session,
-                user,
                 joinedFrom,
               })
 
@@ -200,10 +200,10 @@ export function routeSockets(
                 user: user._id,
                 createdAt: new Date(),
               }
-              await SessionService.saveMessage({
-                sessionId: data.sessionId,
-                user: data.user,
-                message: newMessage,
+              // TODO: correctly type user from passport
+              await SessionService.saveMessage(user, {
+                sessionId,
+                newMessage,
               })
 
               const messageData = {
