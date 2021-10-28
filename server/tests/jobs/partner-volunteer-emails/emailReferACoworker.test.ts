@@ -1,3 +1,4 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import {
   resetDb,
@@ -7,13 +8,15 @@ import {
   insertFeedbackMany,
 } from '../../db-utils'
 import emailPartnerVolunteerReferACoworker from '../../../worker/jobs/partner-volunteer-emails/emailReferACoworker'
-import logger from '../../../logger'
+import { log } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
-import { buildFeedback, buildSession } from '../../generate'
+import * as MailService from '../../../services/MailService'
+import { buildFeedback, buildSession, buildStudent } from '../../generate'
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 
 jest.mock('../../../services/MailService')
+
+const mockedMailService = mocked(MailService, true)
 
 // db connection
 beforeAll(async () => {
@@ -59,10 +62,11 @@ describe('Partner volunteer refer a coworker email', () => {
         'session-enjoyable': 4,
       },
       versionNumber: FEEDBACK_VERSIONS.TWO,
+      studentId: buildStudent()._id
     })
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
@@ -77,7 +81,7 @@ describe('Partner volunteer refer a coworker email', () => {
     expect(
       MailService.sendPartnerVolunteerReferACoworker
     ).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(log).toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${volunteer._id}`
     )
   })
@@ -118,7 +122,7 @@ describe('Partner volunteer refer a coworker email', () => {
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
@@ -133,7 +137,7 @@ describe('Partner volunteer refer a coworker email', () => {
     expect(
       MailService.sendPartnerVolunteerReferACoworker
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   test(`Should not send email to partner volunteer who has sessions flags with ${USER_SESSION_METRICS.absentStudent}`, async () => {
@@ -176,7 +180,7 @@ describe('Partner volunteer refer a coworker email', () => {
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
@@ -191,7 +195,7 @@ describe('Partner volunteer refer a coworker email', () => {
     expect(
       MailService.sendPartnerVolunteerReferACoworker
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   test('Should not send email to partner volunteer who has 5 sessions with one of a duration less than 15 minutes', async () => {
@@ -212,7 +216,7 @@ describe('Partner volunteer refer a coworker email', () => {
     await insertSessionMany(sessions)
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
@@ -227,7 +231,7 @@ describe('Partner volunteer refer a coworker email', () => {
     expect(
       MailService.sendPartnerVolunteerReferACoworker
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   test('Should throw error when sending email fails', async () => {
@@ -252,12 +256,13 @@ describe('Partner volunteer refer a coworker email', () => {
         'session-enjoyable': 4,
       },
       versionNumber: FEEDBACK_VERSIONS.TWO,
+      studentId: buildStudent()._id
     })
     const errorMessage = 'Unable to send'
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendPartnerVolunteerReferACoworker = rejectionFn
+    mockedMailService.sendPartnerVolunteerReferACoworker.mockRejectedValueOnce(errorMessage)
+
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {

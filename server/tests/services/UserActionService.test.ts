@@ -3,7 +3,7 @@ import { USER_ACTION } from '../../constants'
 import {
   getQuizzesPassedForDateRange,
   userHasTakenQuiz,
-} from '../../services/UserActionService'
+} from '../../models/UserAction/queries'
 import { insertUserAction, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
 

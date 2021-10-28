@@ -4,7 +4,7 @@ import * as GatesStudyService from '../../services/GatesStudyService'
 import * as gatesStudyUtils from '../../utils/gates-study-utils'
 import { isDateWithinRange } from '../../utils/is-date-within-range'
 
-import * as UserProductFlagsRepo from '../../models/UserProductFlags'
+import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
 
 import { getStringObjectId, buildGatesQualifiedData } from '../generate'
 
@@ -44,7 +44,7 @@ describe('processGatesQualifiedSession', () => {
 
     await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
 
-    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(1)
+    expect(mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById).toBeCalledTimes(1)
   })
 
   test('Student completes a non-Gates-qualified session within the Gates study period', async () => {
@@ -60,7 +60,7 @@ describe('processGatesQualifiedSession', () => {
 
     await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
 
-    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(0)
+    expect(mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById).toBeCalledTimes(0)
   })
 
   test('Student completes a Gates-qualified session within the study period and the Gates feature flag is off', async () => {
@@ -80,7 +80,7 @@ describe('processGatesQualifiedSession', () => {
 
     await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
 
-    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(1)
+    expect(mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById).toBeCalledTimes(1)
   })
 
   test('Student completes a Gates-qualified session outside of the study period and the Gates feature flag is off', async () => {
@@ -100,6 +100,6 @@ describe('processGatesQualifiedSession', () => {
 
     await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
 
-    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(0)
+    expect(mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById).toBeCalledTimes(0)
   })
 })

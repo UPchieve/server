@@ -4,23 +4,24 @@ import { Volunteer } from '../models/Volunteer'
 import { Student } from '../models/Student'
 import { updateUserLastActivityById } from '../models/User/queries'
 
-export function addLastActivity(
+export async function addLastActivity(
   req: Request,
   res: Response,
   next: NextFunction
-): void {
+): Promise<void> {
   if (Object.prototype.hasOwnProperty.call(req, 'user')) {
     const { _id, lastActivityAt } = req.user as Volunteer | Student
     // Convert all times to UTC for consistency
     const today = moment().utc()
     const lastActivityMoment = moment(lastActivityAt).utc()
     if (today.isAfter(lastActivityMoment, 'day')) {
-      updateUserLastActivityById(_id, today.toDate())
-        .then(() => next())
-        .catch((err: Error) => next(err))
-    } else {
-      next()
+      try {
+        await updateUserLastActivityById(_id, today.toDate())
+      } catch (err) {
+        return next(err)
+      }
     }
+    next()
   } else {
     next()
   }

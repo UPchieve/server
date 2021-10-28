@@ -1,6 +1,6 @@
 import roundToNearestInterval from '../../utils/round-up-to-nearest-interval'
 
-test('Should round up to the nearest interval', async () => {
+test('Should round up to the nearest interval', () => {
   expect(roundToNearestInterval(1, 3)).toEqual(3)
   expect(roundToNearestInterval(15, 3)).toEqual(15)
   expect(roundToNearestInterval(5, 5)).toEqual(5)

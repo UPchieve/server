@@ -13,6 +13,28 @@ import {
 } from '../../utils/type-utils'
 import { getObjectId, getStringObjectId } from '../generate'
 
+describe('asNumber', () => {
+  test('Should pass if given a type Date', () => {
+    const id = 5 as unknown
+    expect(() => asNumber(id)).not.toThrow()
+  })
+
+  test('Should pass if given a string coercible to a number', () => {
+    expect(() => asNumber('5')).not.toThrow()
+    expect(() => asNumber('.50')).not.toThrow()
+    expect(() => asNumber('5.0')).not.toThrow()
+  })
+
+  test('Should throw error if not given an ObjectId', () => {
+    expect(() => asNumber({} as unknown)).toThrow()
+    expect(() => asNumber(1 as unknown)).toThrow()
+    expect(() => asNumber('hello' as unknown)).toThrow()
+    expect(() => asNumber(null as unknown)).toThrow()
+    expect(() => asNumber(undefined as unknown)).toThrow()
+    expect(() => asNumber([] as unknown)).toThrow()
+  })
+})
+
 describe('asArray', () => {
   test('Should pass if given correct array type', () => {
     expect(() => asArray(asNumber)([1, 2, 3] as unknown)).not.toThrow()
@@ -33,6 +55,11 @@ describe('asArray', () => {
 describe('asObjectId', () => {
   test('Should pass if given an ObjectId', () => {
     const id = getObjectId() as unknown
+    expect(() => asObjectId(id)).not.toThrow()
+  })
+
+  test('Should pass if given a string coercible to an ObjectId', () => {
+    const id = getStringObjectId() as unknown
     expect(() => asObjectId(id)).not.toThrow()
   })
 

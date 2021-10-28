@@ -24,7 +24,3 @@ export const captureEvent = (
     properties,
   })
 }
-
-module.exports = {
-  captureEvent,
-}

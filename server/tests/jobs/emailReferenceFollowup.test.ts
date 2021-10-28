@@ -1,14 +1,19 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import emailReferenceFollowup from '../../worker/jobs/emailReferenceFollowup'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer, buildReference } from '../generate'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { REFERENCE_STATUS } from '../../constants'
 import { log } from '../../worker/logger'
 import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 jest.setTimeout(1000 * 15)
+
+// TODO: refactor test to mock out DB calls
+
+const mockedMailService = mocked(MailService, true)
 
 const oneHour = 1000 * 60 * 60 * 1
 const oneDay = oneHour * 24 * 1
@@ -95,9 +100,7 @@ describe('Follow-up email to references', () => {
 
     const errorMessage = 'Unable to send'
     const referenceOneError = `reference ${referenceOne._id}: ${errorMessage}`
-    MailService.sendReferenceFollowup = jest.fn(() =>
-      Promise.reject(errorMessage)
-    )
+    mockedMailService.sendReferenceFollowup.mockRejectedValueOnce(errorMessage)
 
     await Promise.all([insertVolunteer(buildVolunteer({ references }))])
     await expect(emailReferenceFollowup()).rejects.toEqual(

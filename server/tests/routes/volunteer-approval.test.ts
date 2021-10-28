@@ -3,7 +3,7 @@ import request from 'supertest'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer, buildReference } from '../generate'
 import { mockApp, mockRouter, mockPassportMiddleware } from '../mock-app'
-import routeUser from '../../router/api/user'
+import { routeUser } from '../../router/api/user'
 import { authPassport } from '../../utils/auth-utils'
 
 const app = mockApp()

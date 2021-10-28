@@ -4,6 +4,8 @@ import SessionModel from '../../models/Session'
 import endStaleSessions from '../../worker/jobs/endStaleSessions'
 jest.setTimeout(15000)
 
+// TODO: refactor test to mock out DB calls
+
 // db connection
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {

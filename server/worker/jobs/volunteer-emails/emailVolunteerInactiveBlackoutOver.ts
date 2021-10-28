@@ -27,7 +27,7 @@ export async function processVolunteer(
 
   const clearedAvailability = createNewAvailability()
   try {
-    updateVolunteerInactiveAvailability(_id, clearedAvailability)
+    await updateVolunteerInactiveAvailability(_id, clearedAvailability)
   } catch (error) {
     errors.push(
       `Failed to update availability for volunteer ${_id}: ${

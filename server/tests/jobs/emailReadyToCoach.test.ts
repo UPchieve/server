@@ -3,10 +3,12 @@ import emailReadyToCoach from '../../worker/jobs/emailReadyToCoach'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 jest.mock('../../services/MailService')
 
 jest.setTimeout(1000 * 15)
+
+// TODO: refactor test to mock out DB calls
 
 const buildReadyToSendVolunteer = (): Partial<Volunteer> => {
   return buildVolunteer({

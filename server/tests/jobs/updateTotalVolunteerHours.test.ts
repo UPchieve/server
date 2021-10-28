@@ -120,22 +120,20 @@ describe('Test updating total volunteer hours', () => {
     )
     const volunteerError = `${preVolunteer._id}: ${statsError}\n`
 
-    let err
     try {
       await UpdateTotalVolunteerHours()
     } catch (error) {
-      err = error
+      expect((error as Error).message).toBe(
+        `Failed to ${Jobs.UpdateTotalVolunteerHours} for volunteers:\n${[
+          volunteerError,
+        ]}`
+      )
     }
 
     const expected = 0
     expect(log).toHaveBeenCalledTimes(1)
     expect(log).toHaveBeenCalledWith(
       `Successfully ${Jobs.UpdateTotalVolunteerHours} for ${expected} volunteers`
-    )
-    expect(err.message).toBe(
-      `Failed to ${Jobs.UpdateTotalVolunteerHours} for volunteers:\n${[
-        volunteerError,
-      ]}`
     )
   })
 })

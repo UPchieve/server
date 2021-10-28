@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils'
 import * as gatesStudyUtils from '../../utils/gates-study-utils'
-import * as SessionService from '../../services/SessionService'
-import * as UserService from '../../services/UserService'
+import * as SessionRepo from '../../models/Session/queries'
+import * as StudentRepo from '../../models/Student/queries'
 import * as SchoolService from '../../services/SchoolService'
 
 import {
@@ -17,8 +17,8 @@ jest.mock('../../services/SessionService')
 jest.mock('../../services/UserService')
 jest.mock('../../services/SchoolService')
 
-const mockedSessionService = mocked(SessionService, true)
-const mockedUserService = mocked(UserService, true)
+const mockedSessionRepo = mocked(SessionRepo, true)
+const mockedStudentRepo = mocked(StudentRepo, true)
 const mockedSchoolService = mocked(SchoolService, true)
 
 beforeEach(() => {
@@ -102,16 +102,16 @@ describe('isGatesQualifiedSession', () => {
 
 describe('prepareForGatesQualificationCheck', () => {
   test('Should retrieve the data for the gates qualification check', async () => {
-    const mockSession = buildSession()
     const mockStudent = buildStudent()
+    const mockSession = buildSession({ student: mockStudent._id })
     const mockSchool = buildSchool()
 
-    mockedSessionService.getSessionById.mockResolvedValueOnce(mockSession)
-    mockedUserService.getUser.mockResolvedValueOnce(mockStudent)
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(mockSession)
+    mockedStudentRepo.getStudentById.mockResolvedValueOnce(mockStudent)
     mockedSchoolService.getSchool.mockResolvedValueOnce(mockSchool)
 
     const result = await gatesStudyUtils.prepareForGatesQualificationCheck(
-      mockSession._id.toString()
+      mockSession._id
     )
 
     const expected = {

@@ -73,7 +73,7 @@ describe('Prepare metrics', () => {
       },
     } as USMService.MetricProcessorPayload
     await expect(
-      USMService.prepareMetrics(testMetrics, session, feedback, studentUSM)
+      USMService.prepareMetrics(testMetrics, session, studentUSM, feedback)
     ).resolves.toEqual(expected)
     expect(logger.error).toHaveBeenCalledWith(
       `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
@@ -96,8 +96,8 @@ describe('Prepare metrics', () => {
       USMService.prepareMetrics(
         testMetrics,
         session,
-        feedback,
         studentUSM,
+        feedback,
         volunteerUSM
       )
     ).resolves.toEqual(expected)
@@ -114,7 +114,7 @@ describe('Prepare metrics', () => {
       },
     } as USMService.MetricProcessorPayload
     await expect(
-      USMService.prepareMetrics(testMetrics, session, feedback, studentUSM)
+      USMService.prepareMetrics(testMetrics, session, studentUSM, feedback)
     ).resolves.toEqual(expected)
     expect(logger.error).toHaveBeenCalledWith(
       `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
@@ -132,7 +132,7 @@ describe('Prepare metrics', () => {
       },
     } as USMService.MetricProcessorPayload
     await expect(
-      USMService.prepareMetrics(testMetrics, session, feedback, studentUSM)
+      USMService.prepareMetrics(testMetrics, session, studentUSM, feedback)
     ).resolves.toEqual(expected)
     expect(logger.error).toHaveBeenCalledWith(
       `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`

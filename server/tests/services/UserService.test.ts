@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
-import UserService from '../../services/UserService'
-import VolunteerModel, { Volunteer } from '../../models/Volunteer'
+import * as UserService from '../../services/UserService'
+import * as VolunteerService from '../../services/VolunteerService'
+import VolunteerModel from '../../models/Volunteer'
 import UserActionModel from '../../models/UserAction'
 import {
   PHOTO_ID_STATUS,
@@ -39,7 +40,7 @@ test('Successfully adds photoIdS3Key and photoIdStatus', async () => {
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
   const { _id: userId } = volunteer
-  const newPhotoIdS3Key = await UserService.addPhotoId({ userId, ip: '' })
+  const newPhotoIdS3Key = await UserService.addPhotoId(userId, '')
   // @note: UserActionCtrl methods are not being awaited in the UserService. tests can potentially
   //        fail if the test completes before the user action is stored
   const userAction = await UserActionModel.findOne({
@@ -47,7 +48,7 @@ test('Successfully adds photoIdS3Key and photoIdStatus', async () => {
     action: USER_ACTION.ACCOUNT.ADDED_PHOTO_ID,
   })
 
-  const updatedVolunteer: Partial<Volunteer> = await VolunteerModel.findOne({
+  const updatedVolunteer = await VolunteerModel.findOne({
     _id: userId,
   })
     .select('photoIdS3Key photoIdStatus')
@@ -60,9 +61,9 @@ test('Successfully adds photoIdS3Key and photoIdStatus', async () => {
   }
 
   expect(newPhotoIdS3Key).toMatch(/^[a-f0-9]{64}$/)
-  expect(updatedVolunteer.photoIdS3Key).toEqual(newPhotoIdS3Key)
-  expect(updatedVolunteer.photoIdStatus).toEqual(PHOTO_ID_STATUS.SUBMITTED)
-  expect(updatedVolunteer.photoIdStatus).not.toEqual(PHOTO_ID_STATUS.EMPTY)
+  expect(updatedVolunteer!.photoIdS3Key).toEqual(newPhotoIdS3Key)
+  expect(updatedVolunteer!.photoIdStatus).toEqual(PHOTO_ID_STATUS.SUBMITTED)
+  expect(updatedVolunteer!.photoIdStatus).not.toEqual(PHOTO_ID_STATUS.EMPTY)
   expect(userAction).toMatchObject(expectedUserAction)
 })
 
@@ -81,7 +82,7 @@ test('Should add a reference', async () => {
 
   await UserService.addReference(input)
 
-  const updatedVolunteer: Partial<Volunteer> = await VolunteerModel.findOne({
+  const updatedVolunteer = await VolunteerModel.findOne({
     _id: userId,
   })
     .select('references')
@@ -104,8 +105,8 @@ test('Should add a reference', async () => {
     referenceEmail: input.referenceEmail,
   }
 
-  expect(updatedVolunteer.references[0]).toMatchObject(expectedReference)
-  expect(updatedVolunteer.references.length).toEqual(1)
+  expect(updatedVolunteer!.references[0]).toMatchObject(expectedReference)
+  expect(updatedVolunteer!.references.length).toEqual(1)
   expect(userAction).toMatchObject(expectedUserAction)
 })
 
@@ -117,15 +118,10 @@ test('Should delete a reference', async () => {
   await insertVolunteer(volunteer)
 
   const { _id: userId } = volunteer
-  const input = {
-    userId,
-    referenceEmail: referenceOne.email,
-    ip: '',
-  }
 
-  await UserService.deleteReference(input)
+  await UserService.deleteReference(userId, referenceOne.email, '')
 
-  const updatedVolunteer: Partial<Volunteer> = await VolunteerModel.findOne({
+  const updatedVolunteer = await VolunteerModel.findOne({
     _id: userId,
   })
     .select('references')
@@ -150,14 +146,14 @@ test('Should delete a reference', async () => {
   const expectedUserAction = {
     user: userId,
     action: USER_ACTION.ACCOUNT.DELETED_REFERENCE,
-    referenceEmail: input.referenceEmail,
+    referenceEmail: referenceOne.email,
   }
 
-  expect(updatedVolunteer.references.length).toEqual(1)
-  expect(updatedVolunteer.references).not.toContainEqual(
+  expect(updatedVolunteer!.references.length).toEqual(1)
+  expect(updatedVolunteer!.references).not.toContainEqual(
     expect.objectContaining({ ...removedReference })
   )
-  expect(updatedVolunteer.references[0]).toMatchObject(remainingReference)
+  expect(updatedVolunteer!.references[0]).toMatchObject(remainingReference)
   expect(userAction).toMatchObject(expectedUserAction)
 })
 
@@ -168,24 +164,16 @@ test('Should save reference form data', async () => {
   await insertVolunteer(volunteer)
   const { _id: userId } = volunteer
 
-  const referenceFormInput = {
-    userId,
-    referenceId: reference._id,
-    referenceFormData: buildReferenceForm(),
-    referenceEmail: reference.email,
-    ip: '',
-  }
+  const form = buildReferenceForm()
+  await UserService.saveReferenceForm(userId, reference._id, reference.email, form, '')
 
-  await UserService.saveReferenceForm(referenceFormInput)
-
-  const {
-    references: updatedReferences,
-  }: Partial<Volunteer> = await VolunteerModel.findOne({
+  const foundVolunteer = await VolunteerModel.findOne({
     _id: userId,
   })
     .select('references')
     .lean()
     .exec()
+  const updatedReferences = foundVolunteer!.references
   const userAction = await UserActionModel.findOne({
     user: userId,
     action: USER_ACTION.ACCOUNT.SUBMITTED_REFERENCE_FORM,
@@ -195,219 +183,202 @@ test('Should save reference form data', async () => {
   const expectedUserAction = {
     user: userId,
     action: USER_ACTION.ACCOUNT.SUBMITTED_REFERENCE_FORM,
-    referenceEmail: referenceFormInput.referenceEmail,
+    referenceEmail: reference.email,
   }
 
-  expect(updatedReference).toMatchObject(referenceFormInput.referenceFormData)
+  expect(updatedReference).toMatchObject(form)
   expect(userAction).toMatchObject(expectedUserAction)
 })
 
 test.todo('Admin should get pending volunteers')
 
-test('Pending volunteer should not be approved after being rejected', async () => {
-  const references = [buildReferenceWithForm(), buildReferenceWithForm()]
-  const options = {
-    references,
-    ...buildPhotoIdData(),
-  }
-  const volunteer = buildVolunteer(options)
-  await insertVolunteer(volunteer)
-  const input = {
-    volunteerId: volunteer._id,
-    photoIdStatus: PHOTO_ID_STATUS.REJECTED,
-    referencesStatus: [REFERENCE_STATUS.APPROVED, REFERENCE_STATUS.REJECTED],
-  }
-
-  await UserService.updatePendingVolunteerStatus(input)
-  const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
-    .lean()
-    .select('photoIdStatus references.status isApproved')
-    .exec()
-  const accountApprovedUserAction = await UserActionModel.findOne({
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.APPROVED,
+// TODO: these test should be in volunteerservice tests
+describe('Volunteer tests', () => {
+  test('Pending volunteer should not be approved after being rejected', async () => {
+    const references = [buildReferenceWithForm(), buildReferenceWithForm()]
+    const options = {
+      references,
+      ...buildPhotoIdData(),
+    }
+    const volunteer = buildVolunteer(options)
+    await insertVolunteer(volunteer)
+  
+    await VolunteerService.updatePendingVolunteerStatus(volunteer._id, PHOTO_ID_STATUS.REJECTED, [REFERENCE_STATUS.APPROVED, REFERENCE_STATUS.REJECTED])
+    const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
+      .lean()
+      .select('photoIdStatus references.status isApproved')
+      .exec()
+    const accountApprovedUserAction = await UserActionModel.findOne({
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.APPROVED,
+    })
+    const rejectedReferenceUserAction = await UserActionModel.findOne({
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.REJECTED_REFERENCE,
+    })
+    const rejectedPhotoIdUserAction = await UserActionModel.findOne({
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.REJECTED_PHOTO_ID,
+    })
+  
+    const expectedVolunteer = {
+      photoIdStatus: PHOTO_ID_STATUS.REJECTED,
+      references: [
+        { status: REFERENCE_STATUS.APPROVED },
+        { status: REFERENCE_STATUS.REJECTED },
+      ],
+      isApproved: false,
+    }
+    const expectedRejectedReferenceUserAction = {
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.REJECTED_REFERENCE,
+      referenceEmail: references[1].email,
+    }
+    const expectedRejectedPhotoIdUserAction = {
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.REJECTED_PHOTO_ID,
+    }
+  
+    expect(updatedVolunteer).toMatchObject(expectedVolunteer)
+    expect(accountApprovedUserAction).toBeNull()
+    expect(rejectedReferenceUserAction).toMatchObject(
+      expectedRejectedReferenceUserAction
+    )
+    expect(rejectedPhotoIdUserAction).toMatchObject(
+      expectedRejectedPhotoIdUserAction
+    )
   })
-  const rejectedReferenceUserAction = await UserActionModel.findOne({
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.REJECTED_REFERENCE,
+  
+  test('Pending volunteer should be approved after approval', async () => {
+    const options = {
+      references: [buildReferenceWithForm(), buildReferenceWithForm()],
+      ...buildPhotoIdData(),
+      ...buildBackgroundInfo(),
+    }
+    const volunteer = buildVolunteer(options)
+    await insertVolunteer(volunteer)
+  
+    await VolunteerService.updatePendingVolunteerStatus(volunteer._id, PHOTO_ID_STATUS.APPROVED, [REFERENCE_STATUS.APPROVED, REFERENCE_STATUS.APPROVED])
+    const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
+      .lean()
+      .select('photoIdStatus references.status isApproved')
+      .exec()
+    const userAction = await UserActionModel.findOne({
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.APPROVED,
+    })
+  
+    const expectedVolunteer = {
+      photoIdStatus: PHOTO_ID_STATUS.APPROVED,
+      references: [
+        { status: REFERENCE_STATUS.APPROVED },
+        { status: REFERENCE_STATUS.REJECTED },
+      ],
+      isApproved: true,
+    }
+    const expectedUserAction = {
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.APPROVED,
+    }
+  
+    expect(updatedVolunteer).toMatchObject(expectedVolunteer)
+    expect(userAction).toMatchObject(expectedUserAction)
   })
-  const rejectedPhotoIdUserAction = await UserActionModel.findOne({
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.REJECTED_PHOTO_ID,
+  
+  test('Open volunteer is not approved when submitting their background info', async () => {
+    const volunteer = buildVolunteer({
+      references: [
+        buildReference({ status: STATUS.APPROVED }),
+        buildReference({ status: STATUS.APPROVED }),
+      ],
+      photoIdStatus: STATUS.APPROVED,
+    })
+    await insertVolunteer(volunteer)
+  
+    const update = buildBackgroundInfo()
+  
+    await VolunteerService.addBackgroundInfo(volunteer._id, update, '')
+    const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
+      .lean()
+      .select('isApproved')
+      .exec()
+    const backgroundInfoUserAction = await UserActionModel.findOne({
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO,
+    })
+    const accountApprovedUserAction = await UserActionModel.findOne({
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.APPROVED,
+    })
+  
+    const expectedVolunteer = {
+      isApproved: false,
+    }
+    const expectedBackgroundInfoUserAction = {
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO,
+    }
+  
+    expect(updatedVolunteer).toMatchObject(expectedVolunteer)
+    expect(backgroundInfoUserAction).toMatchObject(
+      expectedBackgroundInfoUserAction
+    )
+    expect(accountApprovedUserAction).toBeNull()
   })
-
-  const expectedVolunteer = {
-    photoIdStatus: input.photoIdStatus,
-    references: [
-      { status: input.referencesStatus[0] },
-      { status: input.referencesStatus[1] },
-    ],
-    isApproved: false,
-  }
-  const expectedRejectedReferenceUserAction = {
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.REJECTED_REFERENCE,
-    referenceEmail: references[1].email,
-  }
-  const expectedRejectedPhotoIdUserAction = {
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.REJECTED_PHOTO_ID,
-  }
-
-  expect(updatedVolunteer).toMatchObject(expectedVolunteer)
-  expect(accountApprovedUserAction).toBeNull()
-  expect(rejectedReferenceUserAction).toMatchObject(
-    expectedRejectedReferenceUserAction
-  )
-  expect(rejectedPhotoIdUserAction).toMatchObject(
-    expectedRejectedPhotoIdUserAction
-  )
-})
-
-test('Pending volunteer should be approved after approval', async () => {
-  const options = {
-    references: [buildReferenceWithForm(), buildReferenceWithForm()],
-    ...buildPhotoIdData(),
-    ...buildBackgroundInfo(),
-  }
-  const volunteer = buildVolunteer(options)
-  await insertVolunteer(volunteer)
-  const input = {
-    volunteerId: volunteer._id,
-    photoIdStatus: PHOTO_ID_STATUS.APPROVED,
-    referencesStatus: [REFERENCE_STATUS.APPROVED, REFERENCE_STATUS.APPROVED],
-  }
-
-  await UserService.updatePendingVolunteerStatus(input)
-  const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
-    .lean()
-    .select('photoIdStatus references.status isApproved')
-    .exec()
-  const userAction = await UserActionModel.findOne({
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.APPROVED,
+  
+  test('Partner volunteer is approved when submitting background info', async () => {
+    const volunteer = buildVolunteer({
+      references: [
+        buildReference({ status: STATUS.APPROVED }),
+        buildReference({ status: STATUS.APPROVED }),
+      ],
+      photoIdStatus: STATUS.APPROVED,
+      volunteerPartnerOrg: 'example',
+    })
+    await insertVolunteer(volunteer)
+  
+    const update = buildBackgroundInfo({ languages: [] })
+  
+    await VolunteerService.addBackgroundInfo(volunteer._id, update, '')
+    const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
+      .lean()
+      .select('isApproved occupation experience languages country state city')
+      .exec()
+    const backgroundInfoUserAction = await UserActionModel.findOne({
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO,
+    })
+    const accountApprovedUserAction = await UserActionModel.findOne({
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.APPROVED,
+    })
+  
+    const expectedVolunteer = {
+      isApproved: true,
+      occupation: update.occupation,
+      experience: update.experience,
+      country: update.country,
+      state: update.state,
+      city: update.city,
+      // @note: UserService.addBackgroundInfo manipulates `update` and removes a property if
+      //        it contains an empty string or empty array
+      languages: [],
+    }
+    const expectedBackgroundInfoUserAction = {
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO,
+    }
+    const expectedAccountApprovedUserAction = {
+      user: volunteer._id,
+      action: USER_ACTION.ACCOUNT.APPROVED,
+    }
+  
+    expect(updatedVolunteer).toMatchObject(expectedVolunteer)
+    expect(backgroundInfoUserAction).toMatchObject(
+      expectedBackgroundInfoUserAction
+    )
+    expect(accountApprovedUserAction).toMatchObject(
+      expectedAccountApprovedUserAction
+    )
   })
-
-  const expectedVolunteer = {
-    photoIdStatus: input.photoIdStatus,
-    references: [
-      { status: input.referencesStatus[0] },
-      { status: input.referencesStatus[1] },
-    ],
-    isApproved: true,
-  }
-  const expectedUserAction = {
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.APPROVED,
-  }
-
-  expect(updatedVolunteer).toMatchObject(expectedVolunteer)
-  expect(userAction).toMatchObject(expectedUserAction)
-})
-
-test('Open volunteer is not approved when submitting their background info', async () => {
-  const volunteer = buildVolunteer({
-    references: [
-      buildReference({ status: STATUS.APPROVED }),
-      buildReference({ status: STATUS.APPROVED }),
-    ],
-    photoIdStatus: STATUS.APPROVED,
-  })
-  await insertVolunteer(volunteer)
-
-  const update = buildBackgroundInfo()
-  const input = {
-    volunteerId: volunteer._id,
-    update,
-    ip: '',
-  }
-
-  await UserService.addBackgroundInfo(input)
-  const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
-    .lean()
-    .select('isApproved')
-    .exec()
-  const backgroundInfoUserAction = await UserActionModel.findOne({
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO,
-  })
-  const accountApprovedUserAction = await UserActionModel.findOne({
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.APPROVED,
-  })
-
-  const expectedVolunteer = {
-    isApproved: false,
-  }
-  const expectedBackgroundInfoUserAction = {
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO,
-  }
-
-  expect(updatedVolunteer).toMatchObject(expectedVolunteer)
-  expect(backgroundInfoUserAction).toMatchObject(
-    expectedBackgroundInfoUserAction
-  )
-  expect(accountApprovedUserAction).toBeNull()
-})
-
-test('Partner volunteer is approved when submitting background info', async () => {
-  const volunteer = buildVolunteer({
-    references: [
-      buildReference({ status: STATUS.APPROVED }),
-      buildReference({ status: STATUS.APPROVED }),
-    ],
-    photoIdStatus: STATUS.APPROVED,
-    volunteerPartnerOrg: 'example',
-  })
-  await insertVolunteer(volunteer)
-
-  const update = buildBackgroundInfo({ languages: [] })
-  const input = {
-    volunteerId: volunteer._id,
-    update,
-    ip: '',
-  }
-
-  await UserService.addBackgroundInfo(input)
-  const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
-    .lean()
-    .select('isApproved occupation experience languages country state city')
-    .exec()
-  const backgroundInfoUserAction = await UserActionModel.findOne({
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO,
-  })
-  const accountApprovedUserAction = await UserActionModel.findOne({
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.APPROVED,
-  })
-
-  const expectedVolunteer = {
-    isApproved: true,
-    occupation: update.occupation,
-    experience: update.experience,
-    country: update.country,
-    state: update.state,
-    city: update.city,
-    // @note: UserService.addBackgroundInfo manipulates `update` and removes a property if
-    //        it contains an empty string or empty array
-    languages: [],
-  }
-  const expectedBackgroundInfoUserAction = {
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO,
-  }
-  const expectedAccountApprovedUserAction = {
-    user: input.volunteerId,
-    action: USER_ACTION.ACCOUNT.APPROVED,
-  }
-
-  expect(updatedVolunteer).toMatchObject(expectedVolunteer)
-  expect(backgroundInfoUserAction).toMatchObject(
-    expectedBackgroundInfoUserAction
-  )
-  expect(accountApprovedUserAction).toMatchObject(
-    expectedAccountApprovedUserAction
-  )
 })

@@ -1,13 +1,15 @@
 import bcrypt from 'bcrypt'
+import { Types } from 'mongoose'
 import UserModel from '../models/User'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
 import StudentModel, { Student } from '../models/Student'
 import UserActionModel, { UserAction } from '../models/UserAction'
 import SessionModel, { Session } from '../models/Session'
-import NotificationModel from '../models/Notification'
+import NotificationModel, { Notification } from '../models/Notification'
 import FeedbackModel, {
   FeedbackVersionOne,
   FeedbackVersionTwo,
+  Feedback
 } from '../models/Feedback'
 import config from '../config'
 import AvailabilitySnapshotModel, {
@@ -26,15 +28,12 @@ import {
   buildUserAction,
   buildFeedback,
 } from './generate'
+import { FEEDBACK_VERSIONS } from '../constants'
 
-const hashPassword = async function(password): Promise<Error | string> {
-  try {
-    const salt = await bcrypt.genSalt(config.saltRounds)
-    const hash = await bcrypt.hash(password, salt)
-    return hash
-  } catch (error) {
-    throw new Error(error)
-  }
+const hashPassword = async function(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(config.saltRounds)
+  const hash = await bcrypt.hash(password, salt)
+  return hash
 }
 
 export const resetDb = async (): Promise<void> => {
@@ -59,7 +58,7 @@ export const insertVolunteer = async (
   return { ...createdVolunteer.toObject(), password: volunteer.password }
 }
 
-export const insertVolunteerMany = async (volunteers): Promise<any> => {
+export const insertVolunteerMany = async (volunteers: Volunteer[]): Promise<any> => {
   // @note: Reasons for using collection.insertMany is because Mongoose casts each document in insertMany()
   // this bypasses the overhead and speeds up the test
   return VolunteerModel.collection.insertMany(volunteers)
@@ -95,7 +94,7 @@ export const insertSession = async (
   return { session: createdSession.toObject(), student }
 }
 
-export const insertSessionMany = async (sessions): Promise<any> => {
+export const insertSessionMany = async (sessions: Session[]): Promise<any> => {
   return SessionModel.collection.insertMany(sessions)
 }
 
@@ -136,38 +135,44 @@ export const insertNotification = async (
   return { notification: createdNotification.toObject(), volunteer }
 }
 
-export const insertNotificationMany = async (notifications): Promise<any> => {
+export const insertNotificationMany = async (notifications: Notification[]): Promise<any> => {
   return NotificationModel.collection.insertMany(notifications)
 }
 
-export const getStudent = (
-  query,
+export const getStudent = async (
+  query: any,
   projection = {}
 ): Promise<Partial<Student>> => {
-  return StudentModel.findOne(query)
-    .select(projection)
-    .lean()
-    .exec()
+  const student = await StudentModel.findOne(query)
+  .select(projection)
+  .lean()
+  .exec()
+  if (student) return student
+  else return {}
 }
 
-export const getVolunteer = (
-  query,
+export const getVolunteer = async (
+  query: any,
   projection = {}
 ): Promise<Partial<Volunteer>> => {
-  return VolunteerModel.findOne(query)
+  const volunteer = await VolunteerModel.findOne(query)
     .select(projection)
     .lean()
     .exec()
+  if (volunteer) return volunteer
+  else return {}
 }
 
-export const getSession = (
-  query,
+export const getSession = async (
+  query: any,
   projection = {}
 ): Promise<Partial<Session>> => {
-  return SessionModel.findOne(query)
+  const session = await SessionModel.findOne(query)
     .select(projection)
     .lean()
     .exec()
+  if (session) return session
+  else return {}
 }
 
 export const insertAvailabilitySnapshot = async (
@@ -193,17 +198,17 @@ export const insertUserAction = async (
 ): Promise<UserAction> => {
   const userAction = buildUserAction(overrides)
   const createdUserAction = await UserActionModel.create(userAction)
-  return { ...createdUserAction.toObject() }
+  return createdUserAction.toObject()
 }
 
 export const insertFeedback = async (
-  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> = {}
+  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> & { versionNumber: FEEDBACK_VERSIONS }
 ): Promise<FeedbackVersionOne | FeedbackVersionTwo> => {
   const feedback = buildFeedback(overrides)
   const createdFeedback = await FeedbackModel.create(feedback)
-  return { ...createdFeedback.toObject() }
+  return createdFeedback.toObject() as FeedbackVersionOne | FeedbackVersionTwo
 }
 
-export const insertFeedbackMany = async (feedback): Promise<any> => {
+export const insertFeedbackMany = async (feedback: Feedback[]): Promise<any> => {
   return FeedbackModel.collection.insertMany(feedback)
 }

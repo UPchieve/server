@@ -7,6 +7,7 @@ import * as AuthService from '../../services/AuthService'
 import * as AuthRouter from '../../router/auth'
 import { mockApp, mockPassportMiddleware } from '../mock-app'
 import { buildStudent } from '../generate'
+import { VolunteerPartnerManifest } from '../../partnerManifests'
 
 jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService, true)
@@ -70,11 +71,7 @@ describe('Test router logic', () => {
   const PARTNER_VOLUNTEER = '/partner/volunteer'
   test(`Route ${PARTNER_VOLUNTEER} valid payload`, async () => {
     const payload = { partnerId: 'test' }
-    mockedAuthService.lookupPartnerVolunteer.mockImplementationOnce(
-      async () => {
-        return payload.partnerId
-      }
-    )
+    mockedAuthService.lookupPartnerVolunteer.mockResolvedValueOnce({ name: payload.partnerId } as VolunteerPartnerManifest)
     const response = await sendGetQuery(PARTNER_VOLUNTEER, payload)
 
     const {
@@ -98,7 +95,7 @@ describe('Test router logic', () => {
   const PARTNER_STUDENT = '/partner/student'
   test(`Route ${PARTNER_STUDENT} valid payload`, async () => {
     const payload = { partnerId: 'test' }
-    mockedAuthService.lookupPartnerStudent.mockImplementationOnce(async () => {
+    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce(async () => {
       return payload.partnerId
     })
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
@@ -124,11 +121,7 @@ describe('Test router logic', () => {
   const STUDENT_CODE = '/partner/student/code'
   test(`Route ${STUDENT_CODE} valid payload`, async () => {
     const payload = { partnerSignupCode: 'test' }
-    mockedAuthService.lookupPartnerStudentCode.mockImplementationOnce(
-      async () => {
-        return payload.partnerSignupCode
-      }
-    )
+    mockedAuthService.lookupPartnerStudentCode.mockResolvedValueOnce(payload.partnerSignupCode)
     const response = await sendGetQuery(STUDENT_CODE, payload)
 
     const {
@@ -152,9 +145,6 @@ describe('Test router logic', () => {
   const SEND_RESET = '/reset/send'
   test(`Route ${SEND_RESET} valid payload`, async () => {
     const payload = { email: 'test@email.com' }
-    mockedAuthService.sendReset.mockImplementationOnce(async () => {
-      /* do nothing */
-    })
     const response = await sendPost(SEND_RESET, payload)
 
     const {
@@ -189,7 +179,7 @@ describe('Test simple routes hit AuthService', () => {
 
   test('Route /register/checkcred', async () => {
     const payload = {}
-    mockedAuthService.checkCredential.mockImplementationOnce(async () => true)
+    mockedAuthService.checkCredential.mockResolvedValueOnce(true)
     const response = await sendPost('/register/checkcred', payload)
 
     const {
@@ -202,9 +192,7 @@ describe('Test simple routes hit AuthService', () => {
   test('Route /register/student/open', async () => {
     const payload = {}
     const result = { _id: '123' } as StudentDocument
-    mockedAuthService.registerOpenStudent.mockImplementationOnce(
-      async () => result
-    )
+    mockedAuthService.registerOpenStudent.mockResolvedValueOnce(result)
     const response = await sendPost('/register/student/open', payload)
 
     const {
@@ -218,9 +206,7 @@ describe('Test simple routes hit AuthService', () => {
   test('Route /register/student/partner', async () => {
     const payload = {}
     const result = { _id: '123' } as StudentDocument
-    mockedAuthService.registerPartnerStudent.mockImplementationOnce(
-      async () => result
-    )
+    mockedAuthService.registerPartnerStudent.mockResolvedValueOnce(result)
     const response = await sendPost('/register/student/partner', payload)
 
     const {
@@ -233,9 +219,7 @@ describe('Test simple routes hit AuthService', () => {
 
   test('Route /register/volunteer/open', async () => {
     const payload = { _id: '123' } as VolunteerDocument
-    mockedAuthService.registerVolunteer.mockImplementationOnce(
-      async () => payload
-    )
+    mockedAuthService.registerVolunteer.mockResolvedValueOnce(payload)
     const response = await sendPost('/register/volunteer/open', {})
 
     const {
@@ -248,9 +232,7 @@ describe('Test simple routes hit AuthService', () => {
 
   test('Route /register/volunteer/partner', async () => {
     const payload = { _id: '123' } as VolunteerDocument
-    mockedAuthService.registerPartnerVolunteer.mockImplementationOnce(
-      async () => payload
-    )
+    mockedAuthService.registerPartnerVolunteer.mockResolvedValueOnce(payload)
     const response = await sendPost('/register/volunteer/partner', {})
 
     const {
@@ -262,10 +244,8 @@ describe('Test simple routes hit AuthService', () => {
   })
 
   test('Route /partner/student-partners', async () => {
-    const payload = []
-    mockedAuthService.lookupStudentPartners.mockImplementationOnce(
-      async () => payload
-    )
+    const payload: any[] = []
+    mockedAuthService.lookupStudentPartners.mockResolvedValueOnce(payload)
     const response = await sendGet('/partner/student-partners', {})
 
     const {
@@ -276,10 +256,8 @@ describe('Test simple routes hit AuthService', () => {
   })
 
   test('Route /partner/volunteer-partners', async () => {
-    const payload = []
-    mockedAuthService.lookupVolunteerPartners.mockImplementationOnce(
-      async () => payload
-    )
+    const payload: any[] = []
+    mockedAuthService.lookupVolunteerPartners.mockResolvedValueOnce(payload)
     const response = await sendGet('/partner/volunteer-partners', {})
 
     const {
@@ -290,9 +268,6 @@ describe('Test simple routes hit AuthService', () => {
   })
 
   test('Route /reset/confirm', async () => {
-    mockedAuthService.confirmReset.mockImplementationOnce(async () => {
-      /* do nothing */
-    })
     const response = await sendPost('/reset/confirm', {})
 
     expect(response.status).toEqual(200)

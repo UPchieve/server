@@ -1,3 +1,4 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import {
   resetDb,
@@ -6,16 +7,20 @@ import {
   insertVolunteerMany,
 } from '../../db-utils'
 import emailGentleWarning from '../../../worker/jobs/volunteer-emails/emailGentleWarning'
-import logger from '../../../logger'
+import { log as logger} from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { buildNotification, buildVolunteer } from '../../generate'
 import { Notification } from '../../../models/Notification'
 import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 
 jest.mock('../../../services/MailService')
 
-const createNotifications = (amount, volunteerId): Notification[] => {
+const mockedMailService = mocked(MailService, true)
+
+// TODO: refactor test to mock out DB calls
+
+const createNotifications = (amount: number, volunteerId: mongoose.Types.ObjectId): Notification[] => {
   const notifications = []
   for (let i = 0; i < amount; i++) {
     notifications.push(buildNotification({ volunteer: volunteerId }))
@@ -71,7 +76,7 @@ describe('Volunteer gentle warning email', () => {
     })
     await insertVolunteerMany([plato, aristotle, kant, sartre])
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailVolunteerGentleWarning,
       data: {
@@ -81,16 +86,16 @@ describe('Volunteer gentle warning email', () => {
 
     await emailGentleWarning(job)
     expect(MailService.sendVolunteerGentleWarning).toHaveBeenCalledTimes(1)
-    expect(logger.info).not.toHaveBeenCalledWith(
+    expect(logger).not.toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${plato._id}`
     )
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${aristotle._id}`
     )
-    expect(logger.info).not.toHaveBeenCalledWith(
+    expect(logger).not.toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${kant._id}`
     )
-    expect(logger.info).not.toHaveBeenCalledWith(
+    expect(logger).not.toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${sartre._id}`
     )
   })
@@ -106,15 +111,15 @@ describe('Volunteer gentle warning email', () => {
     const kantNotification = buildNotification({ volunteer: kant._id })
     const errorMessage = 'Unable to send'
     const platoError = `volunteer ${plato._id}: ${errorMessage}`
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendVolunteerGentleWarning = rejectionFn
+    mockedMailService.sendVolunteerGentleWarning.mockRejectedValueOnce(errorMessage)
+
     await insertNotificationMany([...platoNotifications, kantNotification])
     const { session } = await insertSession({
       notifications: [platoNotifications[1]._id, kantNotification],
     })
     await insertVolunteerMany([plato, kant, sartre])
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailVolunteerGentleWarning,
       data: {

@@ -87,7 +87,7 @@ export function calculateTimeTutored(session: Session): number {
   const fifteenMinsMs = 1000 * 60 * 15
 
   const { volunteerJoinedAt, endedAt, messages, volunteer } = session
-  if (!volunteer) return 0
+  if (!volunteer || !volunteerJoinedAt || !endedAt) return 0
   // skip if no messages are sent
   if (messages.length === 0) return 0
 

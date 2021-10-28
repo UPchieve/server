@@ -28,16 +28,16 @@ import { SUBJECTS } from '../../constants'
  * the volunteerJoinedAt is greater than the createdAt of the messages. refactor to
  * allow an easier way to trigger or not trigger ABSENT_USER or LOW_MESSAGES flags
  */
-const loadMessages = ({
-  studentSentMessages,
-  volunteerSentMessages,
+const loadMessages = (
+  studentSentMessages: boolean,
+  volunteerSentMessages: boolean,
   messagesPerUser = 10,
   studentOverrides = {},
   volunteerOverrides = {},
-}): {
+): {
   messages: Message[]
-  student: Partial<Student>
-  volunteer: Partial<Volunteer>
+  student: Student
+  volunteer: Volunteer
 } => {
   const messages = []
   const student = buildStudent({
@@ -223,41 +223,29 @@ describe('calculateTimeTutored', () => {
 
 describe('didParticipantsChat', () => {
   test('Should return true when student and volunteer sent messages back and forth', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-    })
+    const { messages, student, volunteer } = loadMessages(true, true)
 
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeTruthy()
   })
 
   test('Should return false when only the student sent messages', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: false,
-    })
+    const { messages, student, volunteer } = loadMessages(true, false)
 
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeFalsy()
   })
 
   test('Should return false when only the volunteer sent messages', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: true,
-    })
+    const { messages, student, volunteer } = loadMessages(false, true)
 
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeFalsy()
   })
 
   test('Should return false when no messages were sent', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: false,
-      messagesPerUser: 0,
-    })
+    const { messages, student, volunteer } = loadMessages(false, false, 0)
+
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeFalsy()
   })
@@ -297,7 +285,7 @@ describe('getMessagesAfterDate', () => {
 
   test('Should return an empty array if no messages were sent', async () => {
     const volunteerJoinedAt = new Date('2021-01-14T12:00:00.000Z')
-    const messages = []
+    const messages: Message[] = []
 
     const results = getMessagesAfterDate(messages, volunteerJoinedAt)
 
@@ -347,7 +335,7 @@ describe('isSessionParticipant', () => {
     try {
       isSessionParticipant(session, volunteer)
     } catch (error) {
-      expect(error.message).toBe(
+      expect((error as Error).message).toBe(
         'Only session participants are allowed to send messages'
       )
     }

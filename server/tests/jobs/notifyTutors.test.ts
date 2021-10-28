@@ -1,3 +1,4 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import moment from 'moment'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
@@ -10,18 +11,20 @@ import {
 } from '../db-utils'
 import notifyTutors from '../../worker/jobs/notifyTutors'
 import config from '../../config'
-import TwilioService from '../../services/twilio'
+import * as TwilioService from '../../services/TwilioService'
 import { buildVolunteer, buildNotification } from '../generate'
 import { Jobs } from '../../worker/jobs'
 import { log } from '../../worker/logger'
 import { Volunteer } from '../../models/Volunteer'
 import { Notification } from '../../models/Notification'
 import QueueService from '../../services/QueueService'
-jest.mock('../../services/twilio')
+jest.mock('../../services/TwilioService')
 jest.mock('../../services/QueueService')
 jest.mock('../../worker/logger')
 
 jest.setTimeout(15000)
+
+const mockedTwilioService = mocked(TwilioService, true)
 
 // db connection
 beforeAll(async () => {
@@ -71,7 +74,7 @@ describe('Notify tutors', () => {
   test('Should not notify volunteers when session is fulfilled', async () => {
     const { session } = await insertSessionWithVolunteer()
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       data: {
         sessionId: session._id,
@@ -89,7 +92,7 @@ describe('Notify tutors', () => {
   test('Should not notify volunteers when notification schedule is empty', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       data: {
         sessionId: session._id,
@@ -100,7 +103,8 @@ describe('Notify tutors', () => {
       },
     }
 
-    TwilioService.notifyVolunteer = jest.fn(() => null)
+    mockedTwilioService.notifyVolunteer.mockResolvedValueOnce(undefined)
+
     await notifyTutors(job)
 
     expect(job.queue.add).toHaveBeenCalledTimes(0)
@@ -112,7 +116,7 @@ describe('Notify tutors', () => {
   test('Should notify volunteers', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       data: {
         sessionId: session._id,
@@ -124,7 +128,7 @@ describe('Notify tutors', () => {
     }
     const volunteer = buildVolunteer()
 
-    TwilioService.notifyVolunteer = jest.fn(() => Promise.resolve(volunteer))
+    mockedTwilioService.notifyVolunteer.mockResolvedValueOnce(volunteer._id)
     await notifyTutors(job)
 
     expect(job.queue.add).toHaveBeenCalledTimes(1)
@@ -149,7 +153,7 @@ describe('Notify tutors', () => {
       notifications.length % TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       data: {
         sessionId: session._id,
@@ -192,7 +196,7 @@ describe('Notify tutors', () => {
       notifications.length % totalVolunteersNotified
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       data: {
         sessionId: session._id,

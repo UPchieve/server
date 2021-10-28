@@ -13,7 +13,7 @@ import {
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
 import UserActionModel from '../../models/UserAction'
 import { USER_ACTION, SUBJECTS } from '../../constants'
-import * as AvailabilityService from '../../services/AvailabilityService'
+import { getSnapshotByVolunteerId } from '../../models/Availability/queries'
 import * as VolunteerService from '../../services/VolunteerService'
 jest.mock('../../services/VolunteerService')
 
@@ -34,6 +34,33 @@ beforeEach(async () => {
   await resetDb()
 })
 
+const mockSaturdayAvailability = {
+  '10a': false,
+  '11a': false,
+  '12a': false,
+  '1a': false,
+  '2a': false,
+  '3a': false,
+  '4a': false,
+  '5a': false,
+  '6a': false,
+  '7a': false,
+  '8a': false,
+  '9a': false,
+  '3p': false,
+  '4p': false,
+  '5p': false,
+  '6p': false,
+  '7p': false,
+  '8p': false,
+  '9p': false,
+  '10p': false,
+  '11p': false,
+  '12p': false,
+  '1p': true, 
+  '2p': true
+}
+
 describe('Save availability and time zone', () => {
   test('Should throw error when not provided an availability', async () => {
     const input = {
@@ -49,7 +76,7 @@ describe('Save availability and time zone', () => {
 
   test('Should throw error when provided availability with missing keys', async () => {
     const volunteer: Volunteer = await insertVolunteer()
-    const availability = buildAvailability()
+    const availability: any = buildAvailability()
     availability.Saturday = undefined
     const input = {
       user: volunteer,
@@ -67,7 +94,7 @@ describe('Save availability and time zone', () => {
     const volunteer = await insertVolunteer()
     await insertAvailabilitySnapshot({ volunteerId: volunteer._id })
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true },
+      Saturday: mockSaturdayAvailability,
     })
     const input = {
       user: volunteer,
@@ -86,16 +113,14 @@ describe('Save availability and time zone', () => {
       .lean()
       .select('availability isOnboarded')
       .exec()) as Volunteer
-    const availabilitySnapshot = await AvailabilityService.getAvailability({
-      volunteerId: volunteer._id,
-    })
+    const availabilitySnapshot = await getSnapshotByVolunteerId(volunteer._id)
     const expectedUserAction = await UserActionModel.findOne({
       user: volunteer._id,
       action: USER_ACTION.ACCOUNT.ONBOARDED,
     })
 
     expect(updatedAvailability).toMatchObject(availability)
-    expect(availabilitySnapshot.onCallAvailability).toMatchObject(availability)
+    expect(availabilitySnapshot!.onCallAvailability).toMatchObject(availability)
     expect(isOnboarded).toBeFalsy()
     expect(expectedUserAction).toBeNull()
   })
@@ -117,7 +142,7 @@ describe('Save availability and time zone', () => {
     )
     await insertAvailabilitySnapshot({ volunteerId: volunteer._id })
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true },
+      Saturday: mockSaturdayAvailability,
     })
     const input = {
       user: volunteer,
@@ -140,9 +165,7 @@ describe('Save availability and time zone', () => {
       user: volunteer._id,
       action: USER_ACTION.ACCOUNT.ONBOARDED,
     })
-    const availabilitySnapshot = await AvailabilityService.getAvailability({
-      volunteerId: volunteer._id,
-    })
+    const availabilitySnapshot = await getSnapshotByVolunteerId(volunteer._id)
     const expectedUserAction = {
       user: volunteer._id,
       actionType: USER_ACTION.TYPE.ACCOUNT,
@@ -150,7 +173,7 @@ describe('Save availability and time zone', () => {
     }
 
     expect(updatedAvailability).toMatchObject(availability)
-    expect(availabilitySnapshot.onCallAvailability).toMatchObject(availability)
+    expect(availabilitySnapshot!.onCallAvailability).toMatchObject(availability)
     expect(isOnboarded).toBeTruthy()
     expect(userAction).toMatchObject(expectedUserAction)
     expect(VolunteerService.queueOnboardingEventEmails).toBeCalledTimes(1)
@@ -166,7 +189,7 @@ describe('Clear schedule', () => {
       algebra: { passed: true, tries: 1 },
     })
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true },
+      Saturday: mockSaturdayAvailability,
     })
     const volunteer = await insertVolunteer(
       buildVolunteer({ availability, certifications })

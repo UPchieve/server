@@ -6,8 +6,9 @@ import { buildMessage, buildSession } from '../generate'
 import * as sendAssistmentsData from '../../worker/jobs/sendAssistmentsData'
 import { Session } from '../../models/Session'
 import { Message } from '../../models/Message'
-import * as AssistmentsData from '../../models/AssistmentsData'
-import * as SessionService from '../../services/SessionService'
+import { AssistmentsData } from '../../models/AssistmentsData'
+import * as AssistmentsDataRepo from '../../models/AssistmentsData/queries'
+import * as SessionRepo from '../../models/Session/queries'
 import * as log from '../../worker/logger'
 
 jest.setTimeout(25 * 1000)
@@ -15,15 +16,11 @@ jest.setTimeout(25 * 1000)
 jest.mock('axios')
 const mockedAxios = axios as jest.Mocked<typeof axios>
 
-jest.mock('../../models/AssistmentsData', () => ({
-  ...jest.requireActual('../../models/AssistmentsData'),
-  getBySession: jest.fn(),
-  updateSentAtById: jest.fn(),
-}))
-const mockedAssistmentsData = mocked(AssistmentsData)
+jest.mock('../../models/AssistmentsData/queries')
+const mockedAssistmentsDataRepo = mocked(AssistmentsDataRepo)
 
-jest.mock('../../services/SessionService')
-const mockedSessionService = mocked(SessionService)
+jest.mock('../../models/Session/queries')
+const mockedSessionRepo = mocked(SessionRepo)
 
 jest.mock('../../worker/logger')
 
@@ -32,7 +29,7 @@ function generateTestMessages(
   volunteer: Types.ObjectId
 ): Message[] {
   const messages = []
-  for (let i: number; i < 5; i++) {
+  for (let i: number = 0; i < 5; i++) {
     let sender = volunteer
     if (i % 2 === 0) sender = student
     messages.push(
@@ -61,7 +58,7 @@ function generateTestSession(): Session {
 
 function generateAssistmentsData(
   session: Session
-): AssistmentsData.AssistmentsData {
+): AssistmentsData {
   return {
     _id: Types.ObjectId(),
     problemId: 12345,
@@ -87,7 +84,7 @@ describe('Test build request subroutine', () => {
 
   test('Successfully builds request from assistments data object', async () => {
     expect.assertions(1)
-    mockedSessionService.getSessionById.mockResolvedValueOnce(session)
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
 
     const params = {
       assignmentXref: ad.assignmentId,
@@ -95,21 +92,21 @@ describe('Test build request subroutine', () => {
     }
     const partSession = {
       createdAt: session.createdAt.getTime(),
-      endedAt: session.endedAt.getTime(),
+      endedAt: session.endedAt && session.endedAt.getTime(),
       id: session._id.toString(),
       messages: sendAssistmentsData.pluckMessages(session.messages),
       studentId: session.student.toString(),
       subject: session.type,
       subTopic: session.subTopic,
       timeTutored: session.timeTutored,
-      volunteerJoinedAt: session.volunteerJoinedAt.getTime(),
-      volunteerId: session.volunteer.toString(),
+      volunteerJoinedAt: session.volunteerJoinedAt && session.volunteerJoinedAt.getTime(),
+      volunteerId: session.volunteer && session.volunteer.toString(),
     }
     const payload = {
       studentId: ad.studentId,
       assignmentId: ad.assignmentId,
       problemId: String(ad.problemId),
-      session: partSession,
+      session: partSession as sendAssistmentsData.PartSession,
     }
     const expected = { params, payload }
 
@@ -123,7 +120,7 @@ describe('Test build request subroutine', () => {
     const clone = Object.assign({}, session)
     delete clone.endedAt
 
-    mockedSessionService.getSessionById.mockResolvedValueOnce(clone)
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(clone)
 
     await expect(sendAssistmentsData.buildRequest(ad)).rejects.toThrow(
       `Error building request to send AssistmentsData ${ad._id}: `
@@ -134,7 +131,7 @@ describe('Test build request subroutine', () => {
 describe('Test send data subroutine', () => {
   const session = generateTestSession()
   const ad = generateAssistmentsData(session)
-  let params, payload
+  let params: sendAssistmentsData.Parameters, payload: sendAssistmentsData.Payload
 
   beforeEach(() => {
     jest.resetAllMocks()
@@ -148,21 +145,21 @@ describe('Test send data subroutine', () => {
     }
     const partSession = {
       createdAt: session.createdAt.getTime(),
-      endedAt: session.endedAt.getTime(),
+      endedAt: session.endedAt && session.endedAt.getTime(),
       id: session._id.toString(),
       messages: sendAssistmentsData.pluckMessages(session.messages),
       studentId: session.student.toString(),
       subject: session.type,
       subTopic: session.subTopic,
       timeTutored: session.timeTutored,
-      volunteerJoinedAt: session.volunteerJoinedAt.getTime(),
-      volunteerId: session.volunteer.toString(),
+      volunteerJoinedAt: session.volunteerJoinedAt && session.volunteerJoinedAt.getTime(),
+      volunteerId: session.volunteer && session.volunteer.toString(),
     }
     payload = {
       studentId: ad.studentId,
       assignmentId: ad.assignmentId,
       problemId: String(ad.problemId),
-      session: partSession,
+      session: partSession as sendAssistmentsData.PartSession,
     }
     // restore spys between test suites
     jest.restoreAllMocks()
@@ -217,9 +214,9 @@ describe('Test full job', () => {
   beforeEach(() => {
     // jest.resetAllMocks()
     // ensure ad is always found
-    mockedAssistmentsData.getBySession.mockResolvedValue(ad)
+    mockedAssistmentsDataRepo.getAssistmentsDataBySession.mockResolvedValue(ad)
     // ensure session for ad is always found
-    mockedSessionService.getSessionById.mockResolvedValue(session)
+    mockedSessionRepo.getSessionById.mockResolvedValue(session)
   })
 
   test('Successfully runs', async () => {
@@ -234,7 +231,7 @@ describe('Test full job', () => {
   test('Throws on build request fail', async () => {
     expect.assertions(1)
     const errMsg = 'test'
-    mockedSessionService.getSessionById.mockRejectedValue(new Error(errMsg))
+    mockedSessionRepo.getSessionById.mockRejectedValue(new Error(errMsg))
 
     // @ts-expect-error job partial type not accepted
     await expect(sendAssistmentsData.default(job)).rejects.toThrow(
@@ -263,7 +260,7 @@ describe('Test full job', () => {
     mockedAxios.post.mockResolvedValueOnce({ status: 201 })
 
     const errMsg = 'test'
-    mockedAssistmentsData.updateSentAtById.mockRejectedValueOnce(
+    mockedAssistmentsDataRepo.updateAssistmentsDataSentAtById.mockRejectedValueOnce(
       new Error(errMsg)
     )
 

@@ -15,18 +15,18 @@ export interface UserActionAgent {
   operatingSystemVersion: string
 }
 
-export interface UserAction extends Document, UserActionAgent {
+export interface UserAction extends UserActionAgent {
   _id: Types.ObjectId
   user: Types.ObjectId
-  session: Types.ObjectId
+  session?: Types.ObjectId
   createdAt: Date
-  actionType: string
-  action: string
-  quizCategory: string
-  quizSubcategory: string
-  ipAddress: string
-  referenceEmail: string
-  banReason: string
+  actionType?: string
+  action?: string
+  quizCategory?: string
+  quizSubcategory?: string
+  ipAddress?: string
+  referenceEmail?: string
+  banReason?: string
 }
 
 export type UserActionDocument = UserAction & Document

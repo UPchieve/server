@@ -109,7 +109,7 @@ function telecomTutorTime(
         sessionAcc,
         startedAt,
         // convert ms -> min
-        roundUpToNearestInterval(session.timeTutored / 60000, 15)
+        roundUpToNearestInterval((session.timeTutored ? session.timeTutored : 0) / 60000, 15)
       )
     }
   }
@@ -245,7 +245,6 @@ async function getVolunteerData<V extends VolunteerForHourSummary>(
       },
     },
   ])
-  // TODO: figure out how to properly type and cast
   const availabilityForDateRange = await getHistoryForDatesByVolunteerId(
     volunteer._id,
     dateQuery.$gt,

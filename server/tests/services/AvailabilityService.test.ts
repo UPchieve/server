@@ -1,25 +1,20 @@
 import mongoose from 'mongoose'
 import {
-  getAvailability,
-  getAvailabilities,
-  getAvailabilityHistory,
-  getRecentAvailabilityHistory,
   getElapsedAvailabilityForDateRange,
   getElapsedAvailability,
 } from '../../services/AvailabilityService'
 import {
-  insertAvailabilitySnapshot,
-  insertAvailabilityHistory,
+  getHistoryForDatesByVolunteerId
+} from '../../models/Availability/queries'
+import {
   resetDb,
 } from '../db-utils'
 import {
   buildVolunteer,
-  buildAvailabilitySnapshot,
   buildAvailabilityHistory,
   buildAvailabilityDay,
 } from '../generate'
 import AvailabilityHistoryModel from '../../models/Availability/History'
-import AvailabilitySnapshotModel from '../../models/Availability/Snapshot'
 
 jest.setTimeout(15000) // db queries can run slow on local dev environments
 
@@ -40,68 +35,15 @@ beforeEach(async () => {
   jest.clearAllMocks()
 })
 
-describe('getAvailability', () => {
-  test('Should get an availability document given a query', async () => {
-    const snapshot = await insertAvailabilitySnapshot()
-    const result = await getAvailability({
-      _id: snapshot._id,
-    })
 
-    expect(result._id).toEqual(snapshot._id)
-    expect(result.volunteerId).toEqual(snapshot.volunteerId)
-  })
-})
-
-describe('getAvailabilities', () => {
-  test('Should get multiple availability documents given a query', async () => {
-    const snapshots = [
-      buildAvailabilitySnapshot({
-        createdAt: new Date('10/10/2020'),
-      }),
-      buildAvailabilitySnapshot({
-        createdAt: new Date('10/11/2020'),
-      }),
-      buildAvailabilitySnapshot({
-        createdAt: new Date('10/10/2021'),
-      }),
-      buildAvailabilitySnapshot({
-        createdAt: new Date('10/11/2021'),
-      }),
-    ]
-    await AvailabilitySnapshotModel.insertMany(snapshots)
-
-    const dateFilter = new Date('10/01/2021')
-    const results = await getAvailabilities({
-      createdAt: { $gte: dateFilter },
-    })
-    const expectedLength = 2
-    expect(results).toHaveLength(expectedLength)
-
-    for (const doc of results) {
-      expect(doc.createdAt.getTime()).toBeGreaterThan(dateFilter.getTime())
-    }
-  })
-})
-
-describe('getAvailabilityHistory', () => {
-  test('Should get an availability history document given a query', async () => {
-    const availabilityHistory = await insertAvailabilityHistory()
-    const result = await getAvailabilityHistory({
-      _id: availabilityHistory._id,
-    })
-
-    expect(result._id).toEqual(availabilityHistory._id)
-    expect(result.volunteerId).toEqual(availabilityHistory.volunteerId)
-  })
-})
-
-describe('getRecentAvailabilityHistory', () => {
-  test('Should get most recent availability history for a volunteer', async () => {
+// TODO: should be tested by Availabilitymodel/queries
+describe('getHistoryForDatesByVolunteerId', () => {
+  test('Should get recent availability history for a volunteer', async () => {
     const newton = buildVolunteer()
     const volunteerId = newton._id
-    const date = new Date()
+    const date = new Date('10/11/2020')
     const newestDoc = buildAvailabilityHistory({
-      date,
+      date: new Date(),
       volunteerId,
     })
     const oldestDoc = buildAvailabilityHistory({
@@ -109,13 +51,13 @@ describe('getRecentAvailabilityHistory', () => {
       volunteerId,
     })
     const oldDoc = buildAvailabilityHistory({
-      date: new Date('10/11/2020'),
+      date,
       volunteerId,
     })
     await AvailabilityHistoryModel.insertMany([newestDoc, oldestDoc, oldDoc])
 
-    const result = await getRecentAvailabilityHistory(volunteerId)
-    expect(result.date).toEqual(date)
+    const result = await getHistoryForDatesByVolunteerId(volunteerId, new Date('10/9/2020'), new Date('10/12/2021'))
+    expect(result[0]!.date).toEqual(date)
   })
 })
 

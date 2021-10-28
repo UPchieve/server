@@ -1,13 +1,18 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { resetDb, insertVolunteer, insertNotification } from '../../db-utils'
 import emailQuickTips from '../../../worker/jobs/volunteer-emails/emailQuickTips'
-import logger from '../../../logger'
+import { log as logger} from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { buildAvailability } from '../../generate'
 
 jest.mock('../../../services/MailService')
 jest.setTimeout(1000 * 15)
+
+const mockedMailService = mocked(MailService, true)
+
+// TODO: refactor test to mock out DB calls
 
 // db connection
 beforeAll(async () => {
@@ -37,7 +42,7 @@ describe('Volunteer quick tips email', () => {
     })
     const volunteer = await insertVolunteer({ isOnboarded: true, availability })
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
@@ -47,7 +52,7 @@ describe('Volunteer quick tips email', () => {
 
     await emailQuickTips(job)
     expect(MailService.sendVolunteerQuickTips).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${volunteer._id}`
     )
   })
@@ -55,7 +60,7 @@ describe('Volunteer quick tips email', () => {
   test('Should not send quick tips email if volunteer is not onboarded', async () => {
     const volunteer = await insertVolunteer({ isOnboarded: false })
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
@@ -65,14 +70,14 @@ describe('Volunteer quick tips email', () => {
 
     await emailQuickTips(job)
     expect(MailService.sendVolunteerQuickTips).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(logger).not.toHaveBeenCalledWith()
   })
 
   test('Should not send quick tips email if volunteer is onboarded and received text notifications', async () => {
     const volunteer = await insertVolunteer({ isOnboarded: true })
     await insertNotification(volunteer)
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
@@ -82,7 +87,7 @@ describe('Volunteer quick tips email', () => {
 
     await emailQuickTips(job)
     expect(MailService.sendVolunteerQuickTips).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(logger).not.toHaveBeenCalledWith()
   })
 
   test('Should throw error when sending email fails', async () => {
@@ -91,10 +96,9 @@ describe('Volunteer quick tips email', () => {
     })
     const volunteer = await insertVolunteer({ isOnboarded: true, availability })
     const errorMessage = 'Unable to send'
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendVolunteerQuickTips = rejectionFn
+    mockedMailService.sendVolunteerQuickTips.mockRejectedValueOnce(errorMessage)
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {

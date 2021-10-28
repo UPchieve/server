@@ -18,30 +18,30 @@ const validTypes = [
 export interface Session {
   _id: Types.ObjectId
   student: Types.ObjectId | Student
-  volunteer: Types.ObjectId | Volunteer
+  volunteer?: Types.ObjectId | Volunteer
   type: string
   subTopic: string
   messages: Message[]
   hasWhiteboardDoc?: boolean
   whiteboardDoc?: string
-  quillDoc: string
+  quillDoc?: string
   createdAt: Date
-  volunteerJoinedAt: Date
+  volunteerJoinedAt?: Date
   failedJoins: (Types.ObjectId | User)[]
-  endedAt: Date
+  endedAt?: Date
   // NOTE: endedBy is sometimes null when the session is ended by worker job
   //        due to the session being unmatched for an extended period of time
-  endedBy: Types.ObjectId | User | null
+  endedBy?: Types.ObjectId | User | null
   notifications: (Types.ObjectId | Notification)[]
   photos: string[]
   isReported: boolean
-  reportReason: string
-  reportMessage: string
+  reportReason?: string
+  reportMessage?: string
   flags: string[]
   reviewed: boolean
   toReview: boolean
   reviewReasons: USER_SESSION_METRICS[]
-  timeTutored: number
+  timeTutored?: number
 }
 
 export type SessionDocument = Session & Document

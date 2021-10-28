@@ -27,7 +27,6 @@ async function emailReportedSession(
   // need full student to create sendGrid contact below
   const student = await getStudent({
     ...EMAIL_RECIPIENT,
-    isBanned: undefined, // we're ok emailing banned students
     _id: studentId,
   })
 

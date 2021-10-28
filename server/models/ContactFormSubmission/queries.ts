@@ -16,6 +16,7 @@ export async function createContactFormByUser(
       message,
       topic,
       userId: user._id,
+      userEmail: user.email
     })
     if (data) return data.toObject() as ContactFormSubmission
     else throw new RepoCreateError('Create query did not return created object')

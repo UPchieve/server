@@ -1,6 +1,5 @@
 import moment from 'moment-timezone'
 import faker from 'faker'
-import { Test } from 'supertest'
 import { Types } from 'mongoose'
 import base64url from 'base64url'
 import { merge } from 'lodash'
@@ -16,6 +15,7 @@ import {
   TRAINING,
   SUBJECTS,
   GRADES,
+  FEEDBACK_VERSIONS
 } from '../constants'
 import { Message } from '../models/Message'
 import { AvailabilitySnapshot } from '../models/Availability/Snapshot'
@@ -59,8 +59,8 @@ export const getId = faker.random.uuid
 export const getIpAddress = faker.internet.ip
 export const getUserAgent = faker.internet.userAgent
 
-const generateReferralCode = (userId): string =>
-  base64url(Buffer.from(userId, 'hex'))
+const generateReferralCode = (userId: Types.ObjectId): string =>
+  base64url(Buffer.from(userId.toString(), 'hex'))
 
 export const getDayOfWeek = (): string => {
   return moment()
@@ -74,7 +74,7 @@ export const getPhoneNumber = (): string => {
   return `+1${formattedPhoneNumber}`
 }
 
-export function hugeText() {
+export function hugeText(): string {
   return faker.lorem.words(300)
 }
 
@@ -145,10 +145,11 @@ export const buildTrainingCourses = (overrides = {}): TrainingCourses => {
 export const buildAvailability = (overrides = {}): Availability => {
   const availability = {} as Availability
   for (const day in DAYS) {
-    availability[DAYS[day]] = {}
+    const tempDay: any = {}
     for (const hour in HOURS) {
-      availability[DAYS[day]][HOURS[hour]] = false
+      tempDay[HOURS[hour as keyof typeof HOURS] as HOURS] = false
     }
+    availability[DAYS[day as keyof typeof DAYS] as DAYS] = tempDay as AvailabilityDay
   }
 
   const mergedAvailability = merge(availability, overrides)
@@ -177,7 +178,7 @@ export const buildAvailabilityHistory = (
   const currentDate = new Date()
   return {
     _id: Types.ObjectId(),
-    availability: buildAvailability()[getDayOfWeek()],
+    availability: buildAvailability()[getDayOfWeek() as DAYS],
     date: currentDate,
     modifiedAt: currentDate,
     createdAt: currentDate,
@@ -186,7 +187,7 @@ export const buildAvailabilityHistory = (
     ...overrides,
   }
 }
-export function buildUser(overrides = {}) {
+export function buildUser(overrides = {}): User {
   const _id = getObjectId()
   return {
     _id,
@@ -210,10 +211,10 @@ export function buildUser(overrides = {}) {
     isFakeUser: false,
     isDeactivated: false,
     pastSessions: [],
-    partnerUserId: null,
+    partnerUserId: undefined,
     lastActivityAt: new Date(),
-    referralCode: generateReferralCode(_id.toString()),
-    referredBy: null,
+    referralCode: generateReferralCode(_id),
+    referredBy: undefined,
     ipAddresses: [],
     type: '',
     hashPassword: () => '',
@@ -232,7 +233,7 @@ export const buildStudent = (overrides = {}): Student => {
     ...overrides,
   }
 
-  return student
+  return student as Student
 }
 
 export const buildVolunteer = (overrides = {}): Volunteer => {
@@ -256,7 +257,7 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     timezone: 'America/New_York',
     availabilityLastModifiedAt: new Date(),
     photoIdS3Key: '',
-    photoIdStatus: undefined,
+    photoIdStatus: PHOTO_ID_STATUS.EMPTY,
     references: [],
     occupation: [],
     company: '',
@@ -356,15 +357,16 @@ export const buildPartnerVolunteerRegistrationForm = (
   return form
 }
 
-export const buildReference = (overrides = {}): Partial<Reference> => {
+export const buildReference = (overrides = {}): Reference => {
   const referenceFirstName = getFirstName()
   const referenceLastName = getLastName()
   const referenceEmail = getEmail()
   const reference = {
-    _id: Types.ObjectId(),
+    _id: getObjectId(),
     firstName: referenceFirstName,
     lastName: referenceLastName,
     email: referenceEmail,
+    createdAt: new Date(),
     ...overrides,
   }
 
@@ -433,8 +435,8 @@ export const buildSession = (overrides = {}): Session => {
   const _id = Types.ObjectId()
   const session = {
     _id,
-    student: null,
-    volunteer: null,
+    student: getObjectId(),
+    volunteer: undefined,
     type: 'math',
     subTopic: 'algebra',
     messages: [],
@@ -442,15 +444,15 @@ export const buildSession = (overrides = {}): Session => {
     whiteboardDoc: '',
     quillDoc: '',
     createdAt: new Date(),
-    volunteerJoinedAt: null,
-    endedAt: null,
-    endedBy: null,
+    volunteerJoinedAt: undefined,
+    endedAt: undefined,
+    endedBy: undefined,
     failedJoins: [],
     notifications: [],
     photos: [],
     isReported: false,
-    reportReason: null,
-    reportMessage: null,
+    reportReason: undefined,
+    reportMessage: undefined,
     flags: [],
     reviewed: false,
     toReview: false,
@@ -462,11 +464,10 @@ export const buildSession = (overrides = {}): Session => {
   return session
 }
 
-export const buildMessage = (overrides = {}): Message => {
+export const buildMessage = <T extends { user: Types.ObjectId }>(overrides: T): Message => {
   const _id = Types.ObjectId()
   const message = {
     _id,
-    user: null,
     contents: faker.lorem.sentence(),
     createdAt: new Date(),
     ...overrides,
@@ -497,11 +498,12 @@ export const buildNotification = (overrides = {}): Notification => {
     sentAt: new Date(),
     // TODO:  use NotificationMethod from models/Notification
     method: 'SMS',
-    volunteer: null,
+    volunteer: getObjectId(),
     // TODO:  use NotificationType from models/Notification
     type: 'REGULAR',
     wasSuccessful: true,
     messageId: 'message123',
+    priorityGroup: 'Default',
     ...overrides,
   }
 
@@ -510,24 +512,20 @@ export const buildNotification = (overrides = {}): Notification => {
 
 export const buildUserAction = (
   overrides: Partial<UserAction> = {}
-): Partial<UserAction> => {
+): UserAction => {
   const userAction = {
-    _id: Types.ObjectId(),
-    user: null,
-    session: null,
+    _id: getObjectId(),
+    user: getObjectId(),
+    session: undefined,
     createdAt: new Date(),
-    actionType: null,
-    action: null,
-    quizCategory: null,
-    quizSubcategory: null,
-    device: null,
-    browser: null,
-    browserVersion: null,
-    operatingSystem: null,
-    operatingSystemVersion: null,
-    ipAddress: null,
-    referenceEmail: null,
-    banReason: null,
+    actionType: undefined,
+    action: undefined,
+    quizCategory: undefined,
+    quizSubcategory: undefined,
+    ipAddress: undefined,
+    referenceEmail: undefined,
+    banReason: undefined,
+    ...buildUserAgent(),
     ...overrides,
   }
 
@@ -567,69 +565,68 @@ export const buildAvailabilityDay = (overrides = {}): AvailabilityDay => {
 }
 
 export const buildFeedback = (
-  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> = {}
-): Partial<FeedbackVersionOne | FeedbackVersionTwo> => {
+  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> & { versionNumber: FEEDBACK_VERSIONS }
+): FeedbackVersionOne | FeedbackVersionTwo => {
   const feedback = {
     _id: Types.ObjectId(),
     createdAt: new Date(),
-    sessionId: null,
-    userType: null,
-    type: null,
-    subTopic: null,
+    sessionId: getObjectId(),
+    userType: '',
+    type: '',
+    subTopic: '',
     responseData: {
-      'rate-session': { rating: null },
+      'rate-session': { rating: 0 },
       'session-experience': {
-        'easy-to-answer-questions': null,
-        'feel-like-helped-student': null,
-        'feel-more-fulfilled': null,
-        'good-use-of-time': null,
-        'plan-on-volunteering-again': null,
+        'easy-to-answer-questions': 0,
+        'feel-like-helped-student': 0,
+        'feel-more-fulfilled': 0,
+        'good-use-of-time': 0,
+        'plan-on-volunteering-again': 0
       },
-      'other-feedback': null,
+      'other-feedback': '',
       'rate-upchieve': {
-        'achieve-goal': null,
-        'easy-to-use': null,
-        'get-help-faster': null,
-        'use-next-time': null,
+        'achieve-goal': 0,
+        'easy-to-use': 0,
+        'get-help-faster': 0,
+        'use-next-time': 0
       },
       'rate-coach': {
-        'achieve-goal': null,
-        'find-help': null,
-        knowledgeable: null,
-        nice: null,
-        'want-him/her-again': null,
+        'achieve-goal': 0,
+        'find-help': 0,
+        knowledgeable: 0,
+        nice: 0,
+        'want-him/her-again': 0,
       },
-      'technical-difficulties': null,
-      'asked-unprepared-questions': null,
-      'app-features-needed': null,
+      'technical-difficulties': '',
+      'asked-unprepared-questions': '',
+      'app-features-needed': ''
     },
     studentTutoringFeedback: {
-      'session-goal': null,
-      'subject-understanding': null,
-      'coach-rating': null,
-      'coach-feedback': null,
-      'other-feedback': null,
+      'session-goal': 0,
+      'subject-understanding': 0,
+      'coach-rating': 0,
+      'coach-feedback': '',
+      'other-feedback': ''
     },
     studentCounselingFeedback: {
-      'rate-session': { rating: null },
-      'session-goal': null,
+      'rate-session': { rating: 0 },
+      'session-goal': '',
       'coach-ratings': {
-        'coach-knowedgable': null,
-        'coach-friendly': null,
-        'coach-help-again': null,
+        'coach-knowedgable': 0,
+        'coach-friendly': 0,
+        'coach-help-again': 0
       },
-      'other-feedback': null,
+      'other-feedback': '',
     },
     volunteerFeedback: {
-      'session-enjoyable': null,
-      'session-improvements': null,
-      'student-understanding': null,
+      'session-enjoyable': 0,
+      'session-improvements': '',
+      'student-understanding': 0,
       'session-obstacles': [],
-      'other-feedback': null,
+      'other-feedback': ''
     },
-    volunteerId: null,
-    studentId: null,
-    versionNumber: null,
+    volunteerId: getObjectId(),
+    studentId: getObjectId(),
     ...overrides,
   }
 
@@ -676,7 +673,7 @@ export function buildPushToken(overrides = {}): PushToken {
 }
 
 export function buildSchool(overrides: Partial<School> = {}): School {
-  const _id = Types.ObjectId()
+  const _id = getObjectId()
   return {
     _id,
     nameStored: 'Test School',
@@ -716,12 +713,6 @@ export function buildGatesQualifiedData(
     school,
   }
 }
-
-export const authLogin = (agent, { email, password }: Partial<User>): Test =>
-  agent
-    .post('/auth/login')
-    .set('Accept', 'application/json')
-    .send({ email, password })
 
 export function buildUSM(
   userId: Types.ObjectId,

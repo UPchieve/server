@@ -1,11 +1,16 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { resetDb, insertVolunteer } from '../../db-utils'
 import emailOnboardingReminder from '../../../worker/jobs/volunteer-emails/emailOnboardingReminder'
-import logger from '../../../logger'
+import { log as logger} from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 
 jest.mock('../../../services/MailService')
+
+const mockedMailService = mocked(MailService, true)
+
+// TODO: refactor test to mock out DB calls
 
 // db connection
 beforeAll(async () => {
@@ -42,7 +47,7 @@ describe('Volunteer onboarding email reminders', () => {
       const nextJob =
         onboardingReminderJobs[i + 1] && onboardingReminderJobs[i + 1].name
       // @todo: figure out how to properly type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
       const job: any = {
         name: currentJob.name,
         data: {
@@ -54,7 +59,7 @@ describe('Volunteer onboarding email reminders', () => {
       }
 
       await emailOnboardingReminder(job)
-      expect(logger.info).toHaveBeenCalledWith(
+      expect(logger).toHaveBeenCalledWith(
         `Emailed ${currentJob.name} to volunteer ${volunteer._id}`
       )
       if (currentJob.name === Jobs.EmailOnboardingReminderThree)
@@ -63,7 +68,7 @@ describe('Volunteer onboarding email reminders', () => {
         expect(job.queue.add).toHaveBeenCalledWith(
           nextJob,
           {
-            volunteerId: volunteer._id,
+            volunteerId: volunteer._id.toString(),
           },
           { delay: currentJob.delay }
         )
@@ -73,14 +78,13 @@ describe('Volunteer onboarding email reminders', () => {
   test('Should throw error when sending onboarding email reminder fails', async () => {
     const volunteer = await insertVolunteer()
     const errorMessage = 'Error sending onboarding reminder email'
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendOnboardingReminderOne = rejectionFn
-    MailService.sendOnboardingReminderTwo = rejectionFn
-    MailService.sendOnboardingReminderThree = rejectionFn
+    mockedMailService.sendOnboardingReminderOne.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendOnboardingReminderTwo.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendOnboardingReminderThree.mockRejectedValueOnce(errorMessage)
 
     for (const currentJob of onboardingReminderJobs) {
       // @todo: figure out how to properly type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
       const job: any = {
         name: currentJob.name,
         data: {
@@ -100,7 +104,7 @@ describe('Volunteer onboarding email reminders', () => {
     const volunteer = await insertVolunteer({ isOnboarded: true })
     for (const currentJob of onboardingReminderJobs) {
       // @todo: figure out how to properly type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
       const job: any = {
         name: currentJob,
         data: {
@@ -109,8 +113,7 @@ describe('Volunteer onboarding email reminders', () => {
       }
 
       await emailOnboardingReminder(job)
-      expect(logger.info).not.toHaveBeenCalled()
-      expect(logger.error).not.toHaveBeenCalled()
+      expect(logger).not.toHaveBeenCalled()
     }
   })
 })

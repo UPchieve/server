@@ -1,3 +1,4 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import {
   resetDb,
@@ -7,13 +8,18 @@ import {
   insertFeedbackMany,
 } from '../../db-utils'
 import emailTenSessionMilestone from '../../../worker/jobs/partner-volunteer-emails/emailTenSessionMilestone'
-import logger from '../../../logger'
+import { log } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
-import { buildFeedback, buildSession } from '../../generate'
+import * as MailService from '../../../services/MailService'
+import { buildFeedback, buildSession, buildStudent } from '../../generate'
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
+import { FeedbackVersionTwo } from '../../../models/Feedback'
 
 jest.mock('../../../services/MailService')
+
+// TODO: refactor test to mock out DB calls
+
+const mockedMailService = mocked(MailService, true)
 
 // db connection
 beforeAll(async () => {
@@ -61,10 +67,11 @@ describe('Partner volunteer ten session milestone email', () => {
         'session-enjoyable': 4,
       },
       versionNumber: FEEDBACK_VERSIONS.TWO,
+      studentId: buildStudent()._id
     })
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {
@@ -79,7 +86,7 @@ describe('Partner volunteer ten session milestone email', () => {
     expect(
       MailService.sendPartnerVolunteerTenSessionMilestone
     ).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(log).toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${volunteer._id}`
     )
   })
@@ -104,7 +111,7 @@ describe('Partner volunteer ten session milestone email', () => {
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
-    await insertFeedback()
+    await insertFeedback(buildFeedback({} as FeedbackVersionTwo))
     const feedback = [
       buildFeedback({
         sessionId: sessions[1]._id,
@@ -112,7 +119,7 @@ describe('Partner volunteer ten session milestone email', () => {
         volunteerFeedback: {
           'session-enjoyable': 1,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO,
+        versionNumber: FEEDBACK_VERSIONS.TWO as FEEDBACK_VERSIONS,
       }),
       buildFeedback({
         sessionId: sessions[2]._id,
@@ -134,7 +141,7 @@ describe('Partner volunteer ten session milestone email', () => {
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {
@@ -149,7 +156,7 @@ describe('Partner volunteer ten session milestone email', () => {
     expect(
       MailService.sendPartnerVolunteerTenSessionMilestone
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   test(`Should not send email to partner volunteer who has sessions flags with ${USER_SESSION_METRICS.absentStudent}`, async () => {
@@ -205,7 +212,7 @@ describe('Partner volunteer ten session milestone email', () => {
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {
@@ -220,7 +227,7 @@ describe('Partner volunteer ten session milestone email', () => {
     expect(
       MailService.sendPartnerVolunteerTenSessionMilestone
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   test('Should not send email to partner volunteer who has 5 sessions with one of a duration less than 15 minutes', async () => {
@@ -241,7 +248,7 @@ describe('Partner volunteer ten session milestone email', () => {
     await insertSessionMany(sessions)
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {
@@ -256,7 +263,7 @@ describe('Partner volunteer ten session milestone email', () => {
     expect(
       MailService.sendPartnerVolunteerTenSessionMilestone
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   test('Should throw error when sending email fails', async () => {
@@ -281,17 +288,17 @@ describe('Partner volunteer ten session milestone email', () => {
     await insertSessionMany(sessions)
     await insertFeedback({
       sessionId: sessions[2]._id,
+      studentId: buildStudent()._id,
       volunteerId: volunteer._id,
       volunteerFeedback: {
         'session-enjoyable': 4,
       },
       versionNumber: FEEDBACK_VERSIONS.TWO,
-    })
+    } as FeedbackVersionTwo)
     const errorMessage = 'Unable to send'
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendPartnerVolunteerTenSessionMilestone = rejectionFn
+    mockedMailService.sendPartnerVolunteerTenSessionMilestone.mockRejectedValueOnce(errorMessage)
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {

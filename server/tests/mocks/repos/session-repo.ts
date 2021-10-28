@@ -1,5 +1,6 @@
 import { Types } from 'mongoose'
-import { SessionWithPopulatedUsers } from '../../../models/Session/queries'
+import { Session } from '../../../models/Session'
+import { CurrentSession, PublicSession, SessionsToReview, SessionToEnd, StudentLatestSession } from '../../../models/Session/queries'
 import {
   buildSession,
   buildStudent,
@@ -8,11 +9,11 @@ import {
   getObjectId,
 } from '../../generate'
 
-export function mockedGetSessionsToReview(overrides = {}) {
+export function mockedGetSessionsToReview(overrides = {}): SessionsToReview {
   const session = buildSession()
   return {
     createdAt: session.createdAt,
-    endedAt: session.endedAt,
+    endedAt: session.endedAt ? session.endedAt : new Date(),
     totalMessages: session.messages.length,
     type: session.type,
     subTopic: session.subTopic,
@@ -24,7 +25,7 @@ export function mockedGetSessionsToReview(overrides = {}) {
   }
 }
 
-export function mockedGetSessionById(overrides = {}) {
+export function mockedGetSessionById(overrides = {}): Session {
   const newSession = buildSession()
   return {
     _id: newSession._id,
@@ -55,7 +56,7 @@ export function mockedGetSessionById(overrides = {}) {
   }
 }
 
-export function mockedGetSessionToEnd(overrides = {}) {
+export function mockedGetSessionToEnd(overrides = {}): SessionToEnd {
   const session = buildSession()
   const student = buildStudent()
   const volunteer = buildVolunteer()
@@ -170,50 +171,30 @@ export function mockedGetFeedbackForSession(overrides = {}) {
 }
 
 export function mockedGetCurrentSession(overrides = {}) {
-  const session = buildSession({
-    student: buildStudent(),
-  }) as SessionWithPopulatedUsers
-  return {
-    _id: session._id,
-    student: {
-      _id: session.student._id.toString(),
-      firstname: session.student.firstname,
-      isVolunteer: session.student.isVolunteer,
-    },
-    volunteer:
-      session.volunteer && session.volunteer.firstname
-        ? {
-            _id: session.volunteer?._id.toString(),
-            firstname: session.volunteer?.firstname,
-            isVolunteer: session.volunteer?.isVolunteer,
-          }
-        : null,
-    subTopic: session.subTopic,
-    type: session.type,
-    messages: session.messages,
-    createdAt: session.createdAt,
-    endedAt: session.endedAt && session.endedAt,
-    volunteerJoinedAt: session.volunteerJoinedAt,
-    ...overrides,
-  }
-}
-
-export function mockedCreateSession(overrides = {}) {
   const session = buildSession()
+  const student = buildStudent()
+  const volunteer = buildVolunteer()
   return {
-    _id: session._id,
-    student: session.student,
-    volunteer: session.volunteer,
-    subTopic: session.subTopic,
-    type: session.type,
-    messages: session.messages,
-    createdAt: session.createdAt,
-    volunteerJoinedAt: session.volunteerJoinedAt,
+    ...session,
+    student: {
+      _id: student._id,
+      firstname: student.firstname,
+      isVolunteer: student.isVolunteer,
+    },
+    volunteer: {
+      _id: volunteer._id,
+      firstname: volunteer.firstname,
+      isVolunteer: volunteer.isVolunteer,
+    },
     ...overrides,
-  }
+  } as CurrentSession
 }
 
-export function mockedGetStudentLatestSession(overrides = {}) {
+export function mockedCreateSession(overrides = {}): Session {
+  return buildSession(overrides)
+}
+
+export function mockedGetStudentLatestSession(overrides = {}): StudentLatestSession {
   const session = buildSession()
   return {
     _id: session._id.toString(),
@@ -222,19 +203,19 @@ export function mockedGetStudentLatestSession(overrides = {}) {
   }
 }
 
-export function mockedGetPublicSession(overrides = {}) {
+export function mockedGetPublicSession(overrides = {}): PublicSession {
   const session = buildSession()
   const student = buildStudent()
-  const volunteer = buildVolunteer()
-  return {
+  const volunteer = buildVolunteer() 
+ return {
     _id: session._id,
     student: {
       _id: student._id,
-      firstName: student.firstname,
+      firstname: student.firstname,
     },
     volunteer: {
       _id: volunteer._id,
-      firstName: volunteer.firstname,
+      firstname: volunteer.firstname,
     },
     subTopic: session.subTopic,
     type: session.type,

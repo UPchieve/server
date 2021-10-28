@@ -42,14 +42,14 @@ const generateIdAnswerMapHelper = async (
     .exec()
 
   const idAnswerList = questions.map(question => {
-    const data = {}
+    const data: any = {}
     const questionId = question._id
     data[questionId] = question.correctAnswer
 
     return data
   })
 
-  const idAnswerMap = {}
+  const idAnswerMap: any = {}
 
   for (let i = 0; i < idAnswerList.length; i++) {
     const questionId = Object.keys(idAnswerList[i])[0]
@@ -103,8 +103,7 @@ describe('getQuizScore', () => {
 
     // Volunteer completes a quiz in Statistics
     const idAnswerMap = await generateIdAnswerMapHelper()
-    // @todo: figure out how to set a type for quizScoreInput
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // TODO: figure out how to set a type for quizScoreInput
     let quizScoreInput: any = {
       user: volunteer,
       category: MATH_CERTS.STATISTICS,
@@ -120,7 +119,7 @@ describe('getQuizScore', () => {
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[MATH_CERTS.STATISTICS].passed
+      updatedVolunteer.certifications![MATH_CERTS.STATISTICS].passed
     ).toBeTruthy()
 
     // Volunteer then completes UPchieve 101
@@ -140,7 +139,7 @@ describe('getQuizScore', () => {
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeTruthy()
     expect(
-      updatedVolunteer.certifications[TRAINING.UPCHIEVE_101].passed
+      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
     ).toBeTruthy()
     expect(VolunteerService.queueOnboardingEventEmails).toBeCalledTimes(1)
     expect(VolunteerService.queuePartnerOnboardingEventEmails).toBeCalledTimes(
@@ -174,7 +173,7 @@ describe('getQuizScore', () => {
     )
     // Volunteer first completes required training for Math and Science - Tutoring Skills
     const idAnswerMap = await generateIdAnswerMapHelper()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     let quizScoreInput: any = {
       user: volunteer,
       category: TRAINING.TUTORING_SKILLS,
@@ -190,7 +189,7 @@ describe('getQuizScore', () => {
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[TRAINING.TUTORING_SKILLS].passed
+      updatedVolunteer.certifications![TRAINING.TUTORING_SKILLS].passed
     ).toBeTruthy()
 
     // Volunteer completes a second course
@@ -211,7 +210,7 @@ describe('getQuizScore', () => {
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[SCIENCE_CERTS.PHYSICS_TWO].passed
+      updatedVolunteer.certifications![SCIENCE_CERTS.PHYSICS_TWO].passed
     ).toBeTruthy()
 
     // Volunteer then completes UPchieve 101
@@ -231,7 +230,7 @@ describe('getQuizScore', () => {
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeTruthy()
     expect(
-      updatedVolunteer.certifications[TRAINING.UPCHIEVE_101].passed
+      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
     ).toBeTruthy()
   })
   test('Should onboard a user after completing UPchieve 101, then Tutoring Skills, and then a math certification', async () => {
@@ -241,7 +240,7 @@ describe('getQuizScore', () => {
 
     // Volunteer completes UPchieve 101
     const idAnswerMap = await generateIdAnswerMapHelper()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     let quizScoreInput: any = {
       user: volunteer,
       category: TRAINING.UPCHIEVE_101,
@@ -257,7 +256,7 @@ describe('getQuizScore', () => {
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[TRAINING.UPCHIEVE_101].passed
+      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
     ).toBeTruthy()
 
     // Volunteer completes Tutoring Skills
@@ -277,7 +276,7 @@ describe('getQuizScore', () => {
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[TRAINING.TUTORING_SKILLS].passed
+      updatedVolunteer.certifications![TRAINING.TUTORING_SKILLS].passed
     ).toBeTruthy()
 
     // Volunteer completes Precalculus
@@ -297,7 +296,7 @@ describe('getQuizScore', () => {
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeTruthy()
     expect(
-      updatedVolunteer.certifications[MATH_CERTS.PRECALCULUS].passed
+      updatedVolunteer.certifications![MATH_CERTS.PRECALCULUS].passed
     ).toBeTruthy()
   })
 
@@ -360,7 +359,7 @@ describe('getQuizScore', () => {
 
     expect(result).toMatchObject(expectedResult)
     expect(
-      updatedVolunteer.certifications[TRAINING.UPCHIEVE_101].passed
+      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
     ).toBeFalsy()
   })
 
@@ -383,7 +382,7 @@ describe('getQuizScore', () => {
     )
 
     const idAnswerMap = await generateIdAnswerMapHelper()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     let quizScoreInput: any = {
       user: volunteer,
       category: TRAINING.TUTORING_SKILLS,
@@ -414,7 +413,7 @@ describe('getUnlockedSubjects', () => {
         [MATH_CERTS.PREALGREBA]: { passed: true, tries: 1 },
         [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
-      const expected = []
+      const expected: string[] = []
 
       const result = getUnlockedSubjects(cert, certifications)
       expect(result).toEqual(expected)
@@ -617,7 +616,7 @@ describe('getUnlockedSubjects', () => {
       const certifications = buildCertifications({
         [MATH_CERTS.PREALGREBA]: { passed: true, tries: 1 },
       })
-      const expected = []
+      const expected: string[] = []
 
       const result = getUnlockedSubjects(cert, certifications)
       expect(result).toEqual(expected)
@@ -818,7 +817,7 @@ describe('getUnlockedSubjects', () => {
   describe('Completing a required training cert', () => {
     test('Completing Tutoring Skills should not unlock any subjects', async () => {
       const certifications = buildCertificationsWithUpchieve101()
-      const expected = []
+      const expected: string[] = []
 
       const result = getUnlockedSubjects(
         TRAINING.TUTORING_SKILLS,

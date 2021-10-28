@@ -19,7 +19,7 @@ interface PartMessage {
   userId: string
 }
 
-interface PartSession {
+export interface PartSession {
   createdAt: number // ms since epoch
   endedAt: number // ms since epoch
   id: string
@@ -65,6 +65,7 @@ export async function buildRequest(
       userXref: data.studentId,
     }
     const session = await getSessionById(data.session as Types.ObjectId)
+    if (!session.endedAt) throw new Error('Assistments session has not ended!')
     const partSession = {
       createdAt: session.createdAt.getTime(),
       endedAt: session.endedAt.getTime(),

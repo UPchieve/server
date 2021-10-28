@@ -4,6 +4,7 @@ import SessionModel from '../models/Session'
 import { getUnfulfilledSessions } from '../models/Session/queries'
 import MessageModel, { MessageDocument } from '../models/Message'
 import getSessionRoom from '../utils/get-session-room'
+import logger from '../logger'
 
 class SocketService {
   private io: socketio.Server
@@ -51,14 +52,14 @@ class SocketService {
   bump(
     socket: socketio.Socket,
     data: {
-      endedAt: Date
+      endedAt?: Date
       volunteer?: Types.ObjectId
-      student?: Types.ObjectId
+      student: Types.ObjectId
     },
     err: Error
   ): void {
-    console.log('Could not join session')
-    console.log(err)
+    logger.error('Could not join session')
+    logger.error(err)
     socket.emit('bump', data, err.toString())
   }
 }

@@ -20,8 +20,9 @@ export async function createUPFByUserId(
       user: userId,
     })
     if (data) return data.toObject() as UserProductFlags
-    else throw new Error('Create query did not return created object')
+    else throw new RepoCreateError('Create query did not return created object')
   } catch (err) {
+    if (err instanceof RepoCreateError) throw err
     throw new RepoCreateError(err)
   }
 }

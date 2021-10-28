@@ -1,7 +1,6 @@
 import mongoose from 'mongoose'
 import moment from 'moment-timezone'
 import {
-  getVolunteers,
   getHourSummaryStats,
 } from '../../services/VolunteerService'
 import { insertVolunteer, resetDb } from '../db-utils'
@@ -35,32 +34,6 @@ beforeEach(async () => {
   jest.clearAllMocks()
 })
 
-describe('getVolunteers', () => {
-  test('Should get volunteers given a query', async () => {
-    const dateFilter = new Date('12/20/2020')
-    const query = {
-      createdAt: {
-        $gte: dateFilter,
-      },
-    }
-    await Promise.all([
-      insertVolunteer({ createdAt: new Date('12/10/2020') }),
-      insertVolunteer({ createdAt: new Date('12/14/2020') }),
-      insertVolunteer({ createdAt: new Date('12/21/2020') }),
-      insertVolunteer({ createdAt: new Date('12/25/2020') }),
-    ])
-
-    const volunteers = await getVolunteers(query)
-    expect(volunteers).toHaveLength(2)
-
-    for (const volunteer of volunteers) {
-      expect(volunteer.createdAt.getTime()).toBeGreaterThan(
-        dateFilter.getTime()
-      )
-    }
-  })
-})
-
 describe('getHourSummaryStats', () => {
   test('Should get hour summary stats for one week', async () => {
     const { _id: volunteerId } = buildVolunteer()
@@ -74,10 +47,12 @@ describe('getHourSummaryStats', () => {
       .utc()
       .subtract(1, 'weeks')
       .startOf('week')
+      .toDate()
     const endOfLastWeek = moment(today)
       .utc()
       .subtract(1, 'weeks')
       .endOf('week')
+      .toDate()
 
     await SessionModel.insertMany([
       buildSession({

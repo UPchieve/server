@@ -3,9 +3,8 @@ import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import * as ContactFormRouter from '../../router/contact'
 import * as ContactFormService from '../../services/ContactFormService'
-import { DocCreationError, UserNotFoundError } from '../../models/Errors'
+import { DocCreationError, UserNotFoundError, InputError } from '../../models/Errors'
 import {
-  ContactFormDataValidationError,
   MailSendError,
 } from '../../services/ContactFormService'
 import { mockApp } from '../mock-app'
@@ -105,7 +104,7 @@ test('contact form returns 400 with invalid data', async () => {
   mockedContactFormService.saveContactFormSubmission.mockImplementationOnce(
     () => {
       return new Promise((resolve, reject) => {
-        reject(new ContactFormDataValidationError(['your data was bad']))
+        reject(new InputError('your data was bad'))
       })
     }
   )

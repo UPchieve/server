@@ -1,20 +1,25 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import moment from 'moment-timezone'
 import MockDate from 'mockdate'
 import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../../../constants'
 import { resetDb, insertVolunteer, getVolunteer } from '../../db-utils'
 import emailVolunteerInactive from '../../../worker/jobs/volunteer-emails/emailVolunteerInactive'
-import logger from '../../../logger'
+import { log as logger} from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { buildAvailability, buildVolunteer } from '../../generate'
 import { noHoursSelected } from '../../mocks/volunteer-availability'
 import VolunteerModel from '../../../models/Volunteer'
-import * as VolunteerService from '../../../services/VolunteerService'
+import * as VolunteerRepo from '../../../models/Volunteer/queries'
 
 jest.mock('../../../services/MailService')
 
 jest.setTimeout(1000 * 15)
+
+// TODO: refactor test to mock out DB calls
+
+const mockedMailService = mocked(MailService, true)
 
 // db connection
 beforeAll(async () => {
@@ -80,16 +85,16 @@ describe('Volunteer inactive emails', () => {
     expect(MailService.sendVolunteerInactiveThirtyDays).toHaveBeenCalledTimes(1)
     expect(MailService.sendVolunteerInactiveSixtyDays).toHaveBeenCalledTimes(1)
     expect(MailService.sendVolunteerInactiveNinetyDays).toHaveBeenCalledTimes(2)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveThirtyDays} to volunteer ${angelou._id}`
     )
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveSixtyDays} to volunteer ${dickens._id}`
     )
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveNinetyDays} to volunteer ${twain._id}`
     )
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveNinetyDays} to volunteer ${faulkner._id}`
     )
   })
@@ -108,7 +113,7 @@ describe('Volunteer inactive emails', () => {
 
     await emailVolunteerInactive()
     expect(MailService.sendVolunteerInactiveNinetyDays).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveNinetyDays} to volunteer ${kafka._id}`
     )
   })
@@ -135,7 +140,7 @@ describe('Volunteer inactive emails', () => {
     expect(MailService.sendVolunteerInactiveThirtyDays).toHaveBeenCalledTimes(0)
     expect(MailService.sendVolunteerInactiveSixtyDays).toHaveBeenCalledTimes(0)
     expect(MailService.sendVolunteerInactiveNinetyDays).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveNinetyDays} to volunteer ${faulkner._id}`
     )
   })
@@ -165,8 +170,7 @@ describe('Volunteer inactive emails', () => {
 
     const errorMessage = 'Unable to send'
     const inactiveSixtyDayError = `${Jobs.EmailVolunteerInactiveSixtyDays} to volunteer ${hemingway._id}: ${errorMessage}`
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendVolunteerInactiveSixtyDays = rejectionFn
+    mockedMailService.sendVolunteerInactiveSixtyDays.mockRejectedValueOnce(errorMessage)
 
     await expect(emailVolunteerInactive()).rejects.toEqual(
       Error(`Failed to send inactivity emails: ${[inactiveSixtyDayError]}`)
@@ -174,16 +178,17 @@ describe('Volunteer inactive emails', () => {
     expect(MailService.sendVolunteerInactiveThirtyDays).toHaveBeenCalledTimes(1)
     expect(MailService.sendVolunteerInactiveSixtyDays).toHaveBeenCalledTimes(1)
     expect(MailService.sendVolunteerInactiveNinetyDays).not.toHaveBeenCalled()
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerInactiveThirtyDays} to volunteer ${angelou._id}`
     )
   })
 
   describe('Should not send emails to inactive volunteers if the job is run in the blackout period', () => {
-    let getVolunteersWithPipelineSpy
+    // TODO: proper typing of SpyInstance
+    let getVolunteersWithPipelineSpy: any
     beforeEach(() => {
       getVolunteersWithPipelineSpy = jest.spyOn(
-        VolunteerService,
+        VolunteerRepo,
         'getVolunteersWithPipeline'
       )
     })

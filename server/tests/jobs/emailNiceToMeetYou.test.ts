@@ -1,14 +1,19 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import emailNiceToMeetYou from '../../worker/jobs/emailNiceToMeetYou'
 import { Jobs } from '../../worker/jobs'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { log } from '../../worker/logger'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 
 jest.setTimeout(1000 * 15)
+
+// TODO: refactor test to mock out DB calls
+
+const mockedMailService = mocked(MailService, true)
 
 const oneHour = 1000 * 60 * 60 * 1
 const oneDay = oneHour * 24 * 1
@@ -68,10 +73,10 @@ describe('Email nice to meet you to volunteers', () => {
 
     const errorMessage = 'Unable to send'
     const volunteerError = `volunteer ${volunteer._id}: ${errorMessage}`
-    MailService.sendNiceToMeetYou = jest.fn(() => Promise.reject(errorMessage))
+    mockedMailService.sendNiceToMeetYou.mockRejectedValueOnce(errorMessage)
 
     await expect(emailNiceToMeetYou()).rejects.toEqual(
-      Error(`Failed to send ${Jobs.EmailNiceToMeetYou} to: ${volunteerError}`)
+      new Error(`Failed to send ${Jobs.EmailNiceToMeetYou} to: ${volunteerError}`)
     )
 
     const expectedEmailsSent = 0

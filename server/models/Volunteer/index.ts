@@ -13,7 +13,6 @@ import {
   COLLEGE_SUBJECTS,
 } from '../../constants'
 import UserModel, { User } from '../User'
-import { DocUpdateError } from '../Errors'
 import { Notification } from '../Notification'
 import { Session } from '../Session'
 import { HOURS, DAYS, Availability } from '../Availability/types'
@@ -87,7 +86,7 @@ export interface TrainingCourses {
 }
 
 export interface Volunteer extends User {
-  volunteerPartnerOrg: string
+  volunteerPartnerOrg?: string
   isFailsafeVolunteer: boolean
   favoriteAcademicSubject: string
   availability: Availability
@@ -715,23 +714,5 @@ const VolunteerModel = UserModel.discriminator<VolunteerDocument>(
   'Volunteer',
   volunteerSchema
 )
-
-export async function updateTimeTutored(
-  volunteerId: Types.ObjectId,
-  timeTutored: number
-) {
-  const query = { _id: volunteerId }
-  const update = {
-    $inc: {
-      hoursTutored: Number((timeTutored / 3600000).toFixed(2)),
-      timeTutored,
-    },
-  }
-  try {
-    await VolunteerModel.updateOne(query, update)
-  } catch (err) {
-    throw new DocUpdateError(err as Error, query, update)
-  }
-}
 
 export default VolunteerModel

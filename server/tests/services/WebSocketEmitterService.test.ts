@@ -23,7 +23,7 @@ function getMockedWebSocket() {
 
 describe('WebSocketEmitterService public methods', () => {
   const channel = 'test-channel'
-  let roomId
+  let roomId: string
   beforeEach(() => {
     roomId = getUUID()
   })

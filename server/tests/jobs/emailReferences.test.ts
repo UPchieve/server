@@ -3,11 +3,13 @@ import emailReferences from '../../worker/jobs/emailReferences'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer, buildReference } from '../generate'
 import VolunteerModel, { Volunteer, Reference } from '../../models/Volunteer'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { REFERENCE_STATUS } from '../../constants'
 jest.mock('../../services/MailService')
 
 jest.setTimeout(15000)
+
+// TODO: refactor test to mock out DB calls
 
 const buildVolunteerWithReferences = (): Partial<Volunteer> => {
   return buildVolunteer({

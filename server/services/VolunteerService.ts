@@ -201,7 +201,7 @@ export async function getVolunteersToReview(
 export async function updatePendingVolunteerStatus(
   volunteerId: Types.ObjectId,
   photoIdStatus: string,
-  referencesStatus: string
+  referencesStatus: string[]
 ): Promise<void> {
   const volunteerBeforeUpdate = await getVolunteerById(volunteerId)
   if (!volunteerBeforeUpdate) return

@@ -27,7 +27,7 @@ import logger from '../logger'
 import * as cache from '../cache'
 import { NotAllowedError } from '../models/Errors'
 import { SESSION_EVENTS } from '../constants/events'
-import * as VolunteerRepo from '../models/Volunteer'
+import * as VolunteerRepo from '../models/Volunteer/queries'
 import QueueService from './QueueService'
 import * as WhiteboardService from './WhiteboardService'
 import * as QuillDocService from './QuillDocService'
@@ -82,13 +82,13 @@ export async function getTimeTutoredForDateRange(
   volunteerId: Types.ObjectId,
   fromDate: Date,
   toDate: Date
-) {
+): Promise<number> {
   const [result] = await SessionRepo.getTotalTimeTutoredForDateRange(
     volunteerId,
     fromDate,
     toDate
   )
-  if (result) return result.timeTutored
+  if (result && result.timeTutored) return result.timeTutored
   else return 0
 }
 
@@ -267,7 +267,7 @@ export async function processFirstSessionCongratsEmail(
     sessionId
   )
   const fifteenMinutes = 1000 * 60 * 15
-  const isLongSession = session.timeTutored >= fifteenMinutes
+  const isLongSession = (session.timeTutored ? session.timeTutored >= fifteenMinutes : false)
   const sendStudentFirstSessionCongrats =
     session.student.pastSessions.length === 1 && isLongSession
   const sendVolunteerFirstSessionCongrats =
@@ -358,7 +358,7 @@ export async function processVolunteerTimeTutored(sessionId: Types.ObjectId) {
   if (session.volunteer)
     await VolunteerRepo.updateTimeTutored(
       session.volunteer as Types.ObjectId,
-      session.timeTutored
+      session.timeTutored || 0
     )
 }
 
@@ -373,11 +373,11 @@ export async function processVolunteerTimeTutored(sessionId: Types.ObjectId) {
 export async function getStaleSessions(staleThreshold = 43200000) {
   const cutoffDate = Date.now() - staleThreshold
   const cronJobScheduleTime = 1000 * 60 * 60 * 2 // 2 hours
-  const lastCheckedCreatedAtTime = cutoffDate - cronJobScheduleTime
+  const lastCheckedCreatedAtTime = new Date(cutoffDate - cronJobScheduleTime)
 
   return SessionRepo.getLongRunningSessions(
     lastCheckedCreatedAtTime,
-    cutoffDate
+    new Date(cutoffDate)
   )
 }
 
@@ -637,7 +637,7 @@ export async function sessionTimedOut(user: User, data: unknown) {
     ip,
     userAgent,
   } = sessionUtils.asSessionTimedOutData(data)
-  return new UserActionCtrl.SessionActionCreator(
+  await new UserActionCtrl.SessionActionCreator(
     user._id,
     sessionId.toString(),
     userAgent,
@@ -739,7 +739,7 @@ export async function saveMessage(user: User, data: unknown): Promise<void> {
   if (!sessionUtils.isSessionParticipant(session, user))
     throw new Error('Only session participants are allowed to send messages')
 
-  await SessionRepo.addMessageToSessionbyId(sessionId, message)
+  await SessionRepo.addMessageToSessionById(sessionId, message)
 }
 
 export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {

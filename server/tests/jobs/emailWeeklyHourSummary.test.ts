@@ -3,12 +3,15 @@ import { mocked } from 'ts-jest/utils'
 import emailWeeklyHourSummary from '../../worker/jobs/emailWeeklyHourSummary'
 import { getVolunteer, insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { log } from '../../worker/logger'
 import * as VolunteerService from '../../services/VolunteerService'
 import { Jobs } from '../../worker/jobs'
 import * as reportUtils from '../../utils/reportUtils'
 import config from '../../config'
+
+// TODO: refactor test to mock out DB calls
+
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 

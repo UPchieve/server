@@ -1,14 +1,19 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import emailWaitingOnReferences from '../../worker/jobs/emailWaitingOnReferences'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer, buildReference } from '../generate'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { REFERENCE_STATUS } from '../../constants'
 import { log } from '../../worker/logger'
 import { Jobs } from '../../worker/jobs'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 jest.setTimeout(1000 * 25)
+
+// TODO: refactor test to mock out DB calls
+
+const mockedMailService = mocked(MailService, true)
 
 const oneHour = 1000 * 60 * 60 * 1
 const oneDay = oneHour * 24 * 1
@@ -109,9 +114,7 @@ describe('Email waiting on references to volunteer', () => {
     await insertVolunteer(volunteer)
     const errorMessage = 'Unable to send'
     const volunteerError = `volunteer ${volunteer._id}: ${errorMessage}`
-    MailService.sendWaitingOnReferences = jest.fn(() =>
-      Promise.reject(errorMessage)
-    )
+    mockedMailService.sendWaitingOnReferences.mockRejectedValueOnce(errorMessage)
 
     await expect(emailWaitingOnReferences()).rejects.toEqual(
       Error(

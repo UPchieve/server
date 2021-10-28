@@ -17,7 +17,7 @@ import {
   COLLEGE_CERTS,
   EVENTS,
 } from '../constants'
-import { getSubjectTypeForCert } from '../utils/getSubjectType'
+import { getSubjectType } from '../utils/getSubjectType'
 import { createContact } from '../services/MailService'
 import VolunteerModel, {
   Certifications,
@@ -101,7 +101,7 @@ export function hasRequiredTraining(
   subjectCert: keyof Certifications,
   userCertifications: Certifications
 ): boolean {
-  const subjectCertType = getSubjectTypeForCert(subjectCert)
+  const subjectCertType = getSubjectType(subjectCert)
 
   if (
     (subjectCertType === SUBJECT_TYPES.MATH ||
@@ -168,7 +168,7 @@ export function getUnlockedSubjects(
   // UPchieve 101 must be completed before a volunteer can be onboarded
   if (!userCertifications[TRAINING.UPCHIEVE_101].passed) return []
 
-  const certType = getSubjectTypeForCert(cert)
+  const certType = getSubjectType(cert)
 
   // Check if the user has a certification for the required training
   if (
@@ -256,7 +256,7 @@ export async function getQuizScore(
 
   const percent = score / questions.length
   const threshold =
-    getSubjectTypeForCert(cert) === SUBJECT_TYPES.TRAINING
+    getSubjectType(cert) === SUBJECT_TYPES.TRAINING
       ? TRAINING_THRESHOLD
       : SUBJECT_THRESHOLD
   const passed = percent >= threshold

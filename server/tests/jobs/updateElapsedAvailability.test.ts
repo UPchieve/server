@@ -10,7 +10,7 @@ import {
 import { buildAvailability, buildVolunteer } from '../generate'
 import { log } from '../../worker/logger'
 import { Jobs } from '../../worker/jobs'
-import * as AvailabilityService from '../../services/AvailabilityService'
+import AvailabilityHistoryModel from '../../models/Availability/History'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 jest.setTimeout(1000 * 15)
@@ -31,6 +31,13 @@ afterAll(async () => {
 beforeEach(async () => {
   await resetDb()
 })
+
+function getAvailabilityHistory(query: any, projection = {}){
+  return AvailabilityHistoryModel.findOne(query)
+  .select(projection)
+  .lean()
+  .exec()
+}
 
 describe('updateElapsedAvailability', () => {
   beforeEach(() => {
@@ -73,7 +80,8 @@ describe('updateElapsedAvailability', () => {
       { elapsedAvailability: 1 }
     )
 
-    const newAvailabilityHistory = await AvailabilityService.getAvailabilityHistory(
+    // TODO: refactor test to mock out db calls
+    const newAvailabilityHistory = await getAvailabilityHistory(
       { volunteerId: hendrix._id },
       { availability: 1 }
     )
@@ -109,7 +117,7 @@ describe('updateElapsedAvailability', () => {
       '10p': false,
       '11p': false,
     }
-    expect(newAvailabilityHistory.availability).toMatchObject(
+    expect(newAvailabilityHistory!.availability).toMatchObject(
       expectedAvailabilityDay
     )
 

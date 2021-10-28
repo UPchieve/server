@@ -5,6 +5,8 @@ jest.mock('../services/AnalyticsService')
 
 jest.mock('merkury')
 
+jest.mock('../worker/logger')
+
 jest.mock('../config', () => {
   return {
     NODE_ENV: 'dev',

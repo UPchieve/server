@@ -1,3 +1,4 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import {
   resetDb,
@@ -5,12 +6,14 @@ import {
   insertNotificationMany,
 } from '../../db-utils'
 import emailOnlyCollegeCerts from '../../../worker/jobs/partner-volunteer-emails/emailOnlyCollegeCerts'
-import logger from '../../../logger'
+import { log } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { buildNotification } from '../../generate'
 import { SUBJECTS } from '../../../constants'
 jest.mock('../../../services/MailService')
+
+const mockedMailService = mocked(MailService, true)
 
 // db connection
 beforeAll(async () => {
@@ -42,7 +45,7 @@ describe('Parnter volunteer only college certs email', () => {
       subjects,
     })
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
@@ -54,7 +57,7 @@ describe('Parnter volunteer only college certs email', () => {
     expect(
       MailService.sendPartnerVolunteerOnlyCollegeCerts
     ).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(log).toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${volunteer._id}`
     )
   })
@@ -62,7 +65,7 @@ describe('Parnter volunteer only college certs email', () => {
   test('Should not send if partner volunteer is not onboarded', async () => {
     const volunteer = await insertVolunteer({ isOnboarded: false })
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
@@ -74,7 +77,7 @@ describe('Parnter volunteer only college certs email', () => {
     expect(
       MailService.sendPartnerVolunteerOnlyCollegeCerts
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(log).not.toHaveBeenCalledWith()
   })
 
   test('Should not send email if partner volunteer is onboarded and received more than 2 text notifications', async () => {
@@ -86,7 +89,7 @@ describe('Parnter volunteer only college certs email', () => {
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
@@ -98,7 +101,7 @@ describe('Parnter volunteer only college certs email', () => {
     expect(
       MailService.sendPartnerVolunteerOnlyCollegeCerts
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(log).not.toHaveBeenCalledWith()
   })
 
   test('Should not email if volunteer is certified in subjects other than college related subjects', async () => {
@@ -115,7 +118,7 @@ describe('Parnter volunteer only college certs email', () => {
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
@@ -127,7 +130,7 @@ describe('Parnter volunteer only college certs email', () => {
     expect(
       MailService.sendPartnerVolunteerOnlyCollegeCerts
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(log).not.toHaveBeenCalledWith()
   })
 
   test('Should throw error when sending email fails', async () => {
@@ -138,10 +141,9 @@ describe('Parnter volunteer only college certs email', () => {
       subjects,
     })
     const errorMessage = 'Unable to send'
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendPartnerVolunteerOnlyCollegeCerts = rejectionFn
+    mockedMailService.sendPartnerVolunteerOnlyCollegeCerts.mockRejectedValueOnce(errorMessage)
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {

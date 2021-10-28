@@ -95,7 +95,7 @@ export async function getVolunteersContactInfo(
     return await VolunteerModel.find(
       {
         ...EMAIL_RECIPIENT,
-        query,
+        ...query,
       },
       CONTACT_INFO_PROJECTION
     )
@@ -720,6 +720,24 @@ export async function updateVolunteerProfileById(
       throw new RepoUpdateError('Update query did not return "ok"')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateTimeTutored(
+  volunteerId: Types.ObjectId,
+  timeTutored: number
+) {
+  const query = { _id: volunteerId }
+  const update = {
+    $inc: {
+      hoursTutored: Number((timeTutored / 3600000).toFixed(2)),
+      timeTutored,
+    },
+  }
+  try {
+    await VolunteerModel.updateOne(query, update)
+  } catch (err) {
     throw new RepoUpdateError(err)
   }
 }

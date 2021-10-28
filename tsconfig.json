@@ -16,7 +16,6 @@
   },
   "exclude": [
     "server/dbutils",
-    "server/tests",
     "node_modules/",
     "build/",
     "src/",

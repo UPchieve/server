@@ -3,6 +3,7 @@ import request, { Test } from 'supertest'
 import { Types } from 'mongoose'
 
 import * as SessionService from '../../services/SessionService'
+import * as SessionRepo from '../../models/Session/queries'
 import {
   buildNotification,
   buildVolunteer,
@@ -25,7 +26,7 @@ import {
   mockSocketServer,
   mockPassportMiddleware,
 } from '../mock-app'
-import { routes as routeSessions } from '../../router/api/session'
+import { routeSession as routeSessions } from '../../router/api/session'
 import { authPassport } from '../../utils/auth-utils'
 
 jest.mock('../../services/IpAddressService')
@@ -82,14 +83,14 @@ async function sendPut(route: string, payload: any): Promise<Test> {
     .send(payload)
 }
 
-function stringifyObjectIdsAndDates(data) {
+function stringifyObjectIdsAndDates(data: any) {
   const item = { ...data }
   for (const [key, value] of Object.entries(data)) {
     if (
       typeof value === 'object' &&
       Types.ObjectId.isValid(value as Types.ObjectId)
     )
-      item[key] = value.toString()
+      item[key] = value!.toString()
     if (value instanceof Date) item[key] = value.toISOString()
   }
 
@@ -113,8 +114,8 @@ const SESSION_NEW_PATH = '/session/new'
 describe(SESSION_NEW_PATH, () => {
   test('Should send sessionId with valid request', async () => {
     const payload = {}
-    const id = getStringObjectId()
-    mockedSessionService.startSession.mockImplementationOnce(async () => id)
+    const id = getObjectId()
+    mockedSessionService.startSession.mockResolvedValueOnce(id)
     const response = await sendPost(SESSION_NEW_PATH, payload)
     const {
       body: { sessionId },
@@ -159,7 +160,7 @@ describe(SESSION_CHECK_PATH, () => {
   test('Should send InputError when the sessionId is missing from the request body', async () => {
     const payload = {}
     mockedSessionService.checkSession.mockImplementationOnce(
-      async () => undefined
+      async () => ''
     )
     const response = await sendPost(SESSION_CHECK_PATH, payload)
     const {
@@ -188,7 +189,7 @@ const SESSION_CURRENT_PATH = '/session/current'
 describe(SESSION_CURRENT_PATH, () => {
   test('Should send LookupError when no session is found', async () => {
     const payload = {}
-    mockedSessionService.currentSession.mockImplementationOnce(async () => null)
+    mockedSessionService.currentSession.mockImplementationOnce(async () => undefined)
     const response = await sendPost(SESSION_CURRENT_PATH, payload)
     const {
       body: { err },
@@ -201,9 +202,7 @@ describe(SESSION_CURRENT_PATH, () => {
   test('Should send sessionId and session when a session is found', async () => {
     const payload = {}
     const currentSession = mockedGetCurrentSession()
-    mockedSessionService.currentSession.mockImplementationOnce(
-      async () => currentSession
-    )
+    mockedSessionService.currentSession.mockResolvedValueOnce(currentSession as SessionRepo.CurrentSession)
     const response = await sendPost(SESSION_CURRENT_PATH, payload)
     const {
       body: { sessionId, data },
@@ -218,9 +217,7 @@ const SESSION_LATEST_PATH = '/session/latest'
 describe(SESSION_LATEST_PATH, () => {
   test('Should send InputError when the userId is missing from the request body', async () => {
     const payload = {}
-    mockedSessionService.studentLatestSession.mockImplementationOnce(
-      async () => undefined
-    )
+   
     const response = await sendPost(SESSION_LATEST_PATH, payload)
     const {
       body: { err },
@@ -253,9 +250,8 @@ describe(SESSION_REVIEW_PATH, () => {
       mockedGetSessionsToReview(),
     ]
     const mockedValue = { isLastPage: true, sessions: sessionsToReview }
-    mockedSessionService.sessionsToReview.mockImplementationOnce(
-      async () => mockedValue
-    )
+    mockedSessionService.sessionsToReview.mockResolvedValueOnce(mockedValue)
+
     const response = await sendGetQuery(SESSION_REVIEW_PATH, {})
     const {
       body: { sessions, isLastPage },
@@ -266,10 +262,10 @@ describe(SESSION_REVIEW_PATH, () => {
   })
 })
 
-const UPDATE_SESSION_REVIEW_PATH = sessionId => `/session/${sessionId}`
+const UPDATE_SESSION_REVIEW_PATH = (sessionId: string) => `/session/${sessionId}`
 describe(UPDATE_SESSION_REVIEW_PATH(':sessionId'), () => {
   test('Should update the session with valid request', async () => {
-    const sessionId = getObjectId()
+    const sessionId = getObjectId().toString()
     mockedSessionService.reviewSession.mockImplementationOnce(
       async () => undefined
     )
@@ -279,10 +275,10 @@ describe(UPDATE_SESSION_REVIEW_PATH(':sessionId'), () => {
   })
 })
 
-const SESSION_PHOTO_URL_PATH = sessionId => `/session/${sessionId}/photo-url`
+const SESSION_PHOTO_URL_PATH = (sessionId: string) => `/session/${sessionId}/photo-url`
 describe(SESSION_PHOTO_URL_PATH(':sessionId'), () => {
   test('Should send uploadUrl and imageUrl with valid request', async () => {
-    const sessionId = getObjectId()
+    const sessionId = getObjectId().toString()
     const expected = {
       uploadUrl: 'https://upload.com.b4.com/12345',
       imageUrl: 'https://upload.com/12345',
@@ -296,10 +292,10 @@ describe(SESSION_PHOTO_URL_PATH(':sessionId'), () => {
   })
 })
 
-const SESSION_REPORT_PATH = sessionId => `/session/${sessionId}/report`
+const SESSION_REPORT_PATH = (sessionId: string) => `/session/${sessionId}/report`
 describe(SESSION_REPORT_PATH(':sessionId'), () => {
   test('Should send success message with valid request', async () => {
-    const sessionId = getObjectId()
+    const sessionId = getObjectId().toString()
     mockedSessionService.reportSession.mockImplementationOnce(
       async () => undefined
     )
@@ -311,13 +307,10 @@ describe(SESSION_REPORT_PATH(':sessionId'), () => {
   })
 })
 
-const SESSION_TIMED_OUT_PATH = sessionId => `/session/${sessionId}/timed-out`
+const SESSION_TIMED_OUT_PATH = (sessionId: string) => `/session/${sessionId}/timed-out`
 describe(SESSION_TIMED_OUT_PATH(':sessionId'), () => {
   test('Should send status code 200 with valid request', async () => {
-    const sessionId = getObjectId()
-    mockedSessionService.sessionTimedOut.mockImplementationOnce(
-      async () => undefined
-    )
+    const sessionId = getObjectId().toString()
     const response = await sendPost(SESSION_TIMED_OUT_PATH(sessionId), {})
     expect(SessionService.sessionTimedOut).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
@@ -347,7 +340,7 @@ describe(SESSION_ADMIN_VIEW_PATH, () => {
   })
 })
 
-const SESSION_ADMIN_SESSION_VIEW_PATH = sessionId =>
+const SESSION_ADMIN_SESSION_VIEW_PATH = (sessionId: string) =>
   `/session/${sessionId}/admin`
 describe(SESSION_ADMIN_SESSION_VIEW_PATH(':sessionId'), () => {
   test('Should send session with valid request', async () => {
@@ -366,7 +359,7 @@ describe(SESSION_ADMIN_SESSION_VIEW_PATH(':sessionId'), () => {
       async () => mockValue
     )
     const response = await sendGet(
-      SESSION_ADMIN_SESSION_VIEW_PATH(mockSession._id),
+      SESSION_ADMIN_SESSION_VIEW_PATH(mockSession._id.toString()),
       {}
     )
     const {
@@ -386,25 +379,22 @@ describe(SESSION_ADMIN_SESSION_VIEW_PATH(':sessionId'), () => {
   })
 })
 
-const SESSION_PUBLIC_PATH = sessionId => `/session/${sessionId}`
+const SESSION_PUBLIC_PATH = (sessionId: string) => `/session/${sessionId}`
 describe(SESSION_PUBLIC_PATH(':sessionId'), () => {
   test('Should send status code 200 with valid request', async () => {
-    const expected = [mockedGetPublicSession()]
-    const expectedSession = expected[0]
-    mockedSessionService.publicSession.mockImplementationOnce(
-      async () => expected
-    )
-    const response = await sendGet(SESSION_PUBLIC_PATH(expectedSession._id), {})
+    const expected = mockedGetPublicSession()
+    mockedSessionService.publicSession.mockResolvedValueOnce(expected )
+    const response = await sendGet(SESSION_PUBLIC_PATH((expected._id).toString()), {})
     const {
       body: { session },
     } = response
     expect(SessionService.publicSession).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
-    expect(session._id).toEqual(expectedSession._id.toString())
+    expect(session._id).toEqual(expected._id.toString())
   })
 })
 
-const SESSION_NOTIFICATIONS_PATH = sessionId =>
+const SESSION_NOTIFICATIONS_PATH = (sessionId: string) =>
   `/session/${sessionId}/notifications`
 describe(SESSION_NOTIFICATIONS_PATH(':sessionId'), () => {
   test('Should send notifications with valid request', async () => {

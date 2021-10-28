@@ -1,30 +1,27 @@
 import {
-  SUBJECT_TYPES,
+  MATH_SUBJECTS,
   MATH_CERTS,
-  SCIENCE_CERTS,
-  COLLEGE_CERTS,
-  READING_WRITING_CERTS,
-  SAT_CERTS,
+  SCIENCE_SUBJECTS,
+  COLLEGE_SUBJECTS,
+  SAT_SUBJECTS,
+  READING_WRITING_SUBJECTS,
   TRAINING,
+  SUBJECT_TYPES
 } from '../constants'
-import { Certifications } from '../models/Volunteer'
 
-export function getSubjectTypeForCert(
-  cert: keyof Certifications
-): SUBJECT_TYPES {
-  let type: SUBJECT_TYPES | undefined
-  if (Object.values<string>(MATH_CERTS).includes(cert))
-    type = SUBJECT_TYPES.MATH
-  if (Object.values<string>(SCIENCE_CERTS).includes(cert))
+export function getSubjectType(subject: string): string {
+  let type = ''
+
+  if (Object.values<string>(MATH_SUBJECTS).includes(subject)) type = SUBJECT_TYPES.MATH
+  if (Object.values<string>(MATH_CERTS).includes(subject)) type = SUBJECT_TYPES.MATH
+  if (Object.values<string>(SCIENCE_SUBJECTS).includes(subject))
     type = SUBJECT_TYPES.SCIENCE
-  if (Object.values<string>(COLLEGE_CERTS).includes(cert))
+  if (Object.values<string>(COLLEGE_SUBJECTS).includes(subject))
     type = SUBJECT_TYPES.COLLEGE
-  if (Object.values<string>(SAT_CERTS).includes(cert)) type = SUBJECT_TYPES.SAT
-  if (Object.values<string>(TRAINING).includes(cert))
-    type = SUBJECT_TYPES.TRAINING
-  if (Object.values<string>(READING_WRITING_CERTS).includes(cert))
+  if (Object.values<string>(SAT_SUBJECTS).includes(subject)) type = SUBJECT_TYPES.SAT
+  if (Object.values<string>(TRAINING).includes(subject)) type = SUBJECT_TYPES.TRAINING
+  if (Object.values<string>(READING_WRITING_SUBJECTS).includes(subject))
     type = SUBJECT_TYPES.READING_WRITING
 
-  if (type) return type
-  throw new Error('Could not determine type of certification')
+  return type
 }

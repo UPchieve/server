@@ -1,6 +1,6 @@
 import moment from 'moment'
 import mongoose from 'mongoose'
-import TwilioService from '../../services/twilio'
+import * as TwilioService from '../../services/TwilioService'
 import { MATH_SUBJECTS, SAT_SUBJECTS } from '../../constants'
 import {
   buildAvailability,
@@ -16,6 +16,8 @@ import {
   resetDb,
 } from '../db-utils'
 import * as SessionService from '../../services/SessionService'
+import * as SessionRepo from '../../models/Session/queries'
+jest.mock('../../models/SessionRepo')
 
 const MOCK_MOMENT = moment.utc('2020-01-01T05:00:00') // Midnight EST
 const MATCHING_AVAILABILITY = buildAvailability({ Wednesday: { '12a': true } })
@@ -68,58 +70,62 @@ test('Properly builds a session URL', () => {
 })
 
 test('Properly notifies a volunteer', async () => {
+  const volunteer = buildVolunteer({
+    firstname: 'Austin',
+    isApproved: true,
+    availability: MATCHING_AVAILABILITY,
+    subjects: [SAT_SUBJECTS.SAT_READING],
+  })
   await insertVolunteer(
-    buildVolunteer({
-      firstname: 'Austin',
-      isApproved: true,
-      availability: MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING],
-    })
+    volunteer
   )
-  const notifiedVolunteer = await TwilioService.notifyVolunteer(SESSION)
+  const notifiedVolunteerId = await TwilioService.notifyVolunteer(SESSION)
 
-  expect(notifiedVolunteer.firstname).toEqual('Austin')
+  expect(notifiedVolunteerId!).toEqual(volunteer._id)
 })
 
 test('Does nothing when no suitable volunteers are found', async () => {
+  const volunteer = buildVolunteer({
+    isApproved: true,
+    availability: NON_MATCHING_AVAILABILITY,
+    subjects: [SAT_SUBJECTS.SAT_READING],
+  })
   await insertVolunteer(
-    buildVolunteer({
-      isApproved: true,
-      availability: NON_MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING],
-    })
+    volunteer
   )
-  const notifiedVolunteer = await TwilioService.notifyVolunteer(SESSION)
+  const notifiedVolunteerId = await TwilioService.notifyVolunteer(SESSION)
 
-  expect(notifiedVolunteer).toBeNull()
+  expect(notifiedVolunteerId).toBeUndefined()
 })
 
 test('Does nothing when all volunteers are in an active session', async () => {
+  const volunteer = buildVolunteer({
+    firstname: 'Austin',
+    isApproved: true,
+    availability: MATCHING_AVAILABILITY,
+    subjects: [SAT_SUBJECTS.SAT_READING],
+  })
   const sessionVolunteer = await insertVolunteer(
-    buildVolunteer({
-      firstname: 'Austin',
-      isApproved: true,
-      availability: MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING],
-    })
+    volunteer
   )
-  const firstVolunteer = await TwilioService.notifyVolunteer(SESSION)
+  const firstVolunteerId = await TwilioService.notifyVolunteer(SESSION)
   await insertSessionWithVolunteer({ volunteer: sessionVolunteer })
-  const secondVolunteer = await TwilioService.notifyVolunteer(SESSION)
+  const secondVolunteerId = await TwilioService.notifyVolunteer(SESSION)
 
-  expect(firstVolunteer.firstname).toEqual('Austin')
-  expect(secondVolunteer).toBeNull()
+  expect(firstVolunteerId!).toEqual(volunteer._id)
+  expect(secondVolunteerId).toBeUndefined()
 })
 
 test('Prioritizes partner volunteers', async () => {
+  const volunteer = buildVolunteer({
+    firstname: 'Twilion',
+    volunteerPartnerOrg: 'Twilio',
+    isApproved: true,
+    availability: MATCHING_AVAILABILITY,
+    subjects: [SAT_SUBJECTS.SAT_READING],
+  })
   await insertVolunteer(
-    buildVolunteer({
-      firstname: 'Twilion',
-      volunteerPartnerOrg: 'Twilio',
-      isApproved: true,
-      availability: MATCHING_AVAILABILITY,
-      subjects: [SAT_SUBJECTS.SAT_READING],
-    })
+    volunteer
   )
   await insertVolunteer(
     buildVolunteer({
@@ -129,9 +135,9 @@ test('Prioritizes partner volunteers', async () => {
       subjects: [SAT_SUBJECTS.SAT_READING],
     })
   )
-  const notifiedVolunteer = await TwilioService.notifyVolunteer(SESSION)
+  const notifiedVolunteerId = await TwilioService.notifyVolunteer(SESSION)
 
-  expect(notifiedVolunteer.firstname).toEqual('Twilion')
+  expect(notifiedVolunteerId!).toEqual(volunteer._id)
 })
 
 test('Prioritizes non-high-level SME volunteers for non-high-level subjects', async () => {
@@ -157,9 +163,9 @@ test('Prioritizes non-high-level SME volunteers for non-high-level subjects', as
   )
   await insertNotification(einstein, { sentAt: fiveDaysAgo })
   await insertNotification(hemingway, { sentAt: fiveDaysAgo })
-  const notifiedVolunteer = await TwilioService.notifyVolunteer(SESSION)
+  const notifiedVolunteerId = await TwilioService.notifyVolunteer(SESSION)
 
-  expect(notifiedVolunteer.firstname).toEqual('Hemingway')
+  expect(notifiedVolunteerId!).toEqual(hemingway._id)
 })
 
 test('Notifies only the failsafe volunteers', async () => {
@@ -170,7 +176,7 @@ test('Notifies only the failsafe volunteers', async () => {
   )
   await insertVolunteer(buildVolunteer())
   const { session } = await insertSession()
-  const spyAddNotifications = jest.spyOn(SessionService, 'addNotifications')
+  const spyAddNotifications = jest.spyOn(SessionRepo, 'addSessionNotifications')
 
   await TwilioService.beginFailsafeNotifications(session)
 

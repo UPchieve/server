@@ -6,7 +6,7 @@ import UserAction, {
 } from '../models/UserAction'
 import { Certifications } from '../models/Volunteer'
 import { USER_ACTION } from '../constants'
-import { getSubjectTypeForCert } from '../utils/getSubjectType'
+import { getSubjectType } from '../utils/getSubjectType'
 import getDeviceFromUserAgent from '../utils/getDeviceFromUserAgent'
 
 function getUserAgentInfo(userAgent: string): UserActionAgent {
@@ -36,7 +36,7 @@ export class QuizActionCreator {
       action,
       user: this.userId,
       quizSubcategory: (this.quizSubcategory as string).toUpperCase(),
-      quizCategory: getSubjectTypeForCert(this.quizSubcategory).toUpperCase(),
+      quizCategory: getSubjectType(this.quizSubcategory).toUpperCase(),
       ipAddress: this.ipAddress ?? '',
     })
 

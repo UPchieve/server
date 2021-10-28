@@ -2,6 +2,7 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import { Server } from 'socket.io'
 
+import { User } from '../models/User'
 import { Student } from '../models/Student'
 import { Volunteer } from '../models/Volunteer'
 import socketServer from '../router/api/socket-server'
@@ -18,8 +19,8 @@ export function defaultErrorHandler(
 
 export function mockApp(): express.Express {
   const app = express()
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(bodyParser.json() as express.RequestHandler)
+  app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
   app.use(defaultErrorHandler)
 
   return app
@@ -27,8 +28,8 @@ export function mockApp(): express.Express {
 
 export function mockPassportMiddleware(
   getUser: () => Student | Volunteer,
-  login?: Function,
-  logout?: Function,
+  login?: (arg1: User, arg2?: any) => Promise<void>,
+  logout?: () => void,
   destroy?: Function
 ) {
   return (

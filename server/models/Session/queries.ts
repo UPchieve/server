@@ -184,9 +184,8 @@ export type SessionToEnd = Pick<
 export async function getSessionToEndById(
   sessionId: Types.ObjectId
 ): Promise<SessionToEnd> {
-  let session: SessionToEnd
   try {
-    session = (await SessionModel.findOne(
+    const session = (await SessionModel.findOne(
       { _id: sessionId },
       {
         _id: 1,
@@ -211,11 +210,12 @@ export async function getSessionToEndById(
     if (!session) throw new LookupError('Session not found')
     return session
   } catch (error) {
+    if (error instanceof LookupError) throw error
     throw new RepoReadError(error)
   }
 }
 
-interface SessionsToReview {
+export interface SessionsToReview {
   createdAt: Date
   endedAt: Date
   volunteer?: Types.ObjectId
@@ -225,6 +225,7 @@ interface SessionsToReview {
   studentFirstName: string
   isReported: boolean
   flags: string[]
+  reviewReasons: USER_SESSION_METRICS[]
 }
 
 // TODO: duck type validation - options payload
@@ -470,15 +471,15 @@ export async function updateSessionToEnd(
 }
 
 export async function getLongRunningSessions(
-  startDate: number,
-  endDate: number
+  startDate: Date,
+  endDate: Date
 ): Promise<Session[]> {
   try {
     return await SessionModel.find({
       endedAt: { $exists: false },
       createdAt: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
+        $gte: startDate,
+        $lte: endDate,
       },
     })
       .lean()
@@ -956,6 +957,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
     if (!session) throw new LookupError('No session found')
     return session
   } catch (error) {
+    if (error instanceof LookupError) throw error
     throw error
   }
 }
@@ -1026,7 +1028,7 @@ export async function getCurrentSessionById(
   }
 }
 
-interface StudentLatestSession {
+export interface StudentLatestSession {
   _id: string
   createdAt: string
 }
@@ -1046,7 +1048,7 @@ export async function getLatestSessionByStudentId(
     if (!session) throw new LookupError('No session found')
 
     return {
-      _id: session._id.toString(),
+      _id: session._id,
       createdAt: session.createdAt.toISOString(),
     } as StudentLatestSession
   } catch (error) {
@@ -1071,7 +1073,7 @@ export async function updateSessionVolunteerById(
   }
 }
 
-export async function addMessageToSessionbyId(
+export async function addMessageToSessionById(
   sessionId: Types.ObjectId,
   message: Message
 ): Promise<void> {

@@ -2,7 +2,7 @@ import { MATH_CERTS, SCIENCE_CERTS } from '../../constants'
 import countCerts from '../../utils/count-certs'
 import { buildCertifications } from '../generate'
 
-test('Should count the total certs that a user has', async () => {
+test('Should count the total certs that a user has', () => {
   const certificationOverride = {
     [MATH_CERTS.ALGEBRA]: { passed: true, tries: 0 },
     [MATH_CERTS.GEOMETRY]: { passed: true, tries: 0 },
