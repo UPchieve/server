@@ -5,10 +5,11 @@ import passportLocal from 'passport-local'
 import { Types } from 'mongoose'
 import { Request, Response, NextFunction } from 'express'
 
+import logger from '../logger'
 import config from '../config'
 import {
   getUserById,
-  getUserByEmail,
+  getUserForPassport,
   getUserIdByPhone,
 } from '../models/User/queries'
 import { checkReferral } from '../controllers/UserCtrl'
@@ -225,7 +226,7 @@ function setupPassport() {
       },
       async function(email: string, passwordGiven: string, done: Function) {
         try {
-          const user = await getUserByEmail(email)
+          const user = await getUserForPassport(email)
 
           if (!user) {
             return done(null, false)

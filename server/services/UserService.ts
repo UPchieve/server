@@ -31,7 +31,7 @@ import {
   asNumber,
 } from '../utils/type-utils'
 
-export async function parseUser(user: User | Student | Volunteer) {
+export function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
   if (user.isVolunteer && (user as Volunteer).isApproved) {
     ;(user as Volunteer).hoursTutored = new Types.Decimal128(

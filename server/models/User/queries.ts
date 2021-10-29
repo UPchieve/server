@@ -55,6 +55,17 @@ export async function getUserById(
   }
 }
 
+export async function getUserForPassport(email: string): Promise<User | undefined> {
+  try {
+    const user = await UserModel.findOne({ email: email }, '+password')
+      .lean()
+      .exec()
+    if (user) return user as User
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getUserByEmail(email: string): Promise<User | undefined> {
   try {
     const user = await UserModel.findOne({ email: email })
