@@ -1,18 +1,18 @@
 import { Types } from 'mongoose'
-import VolunteerModel, { Volunteer } from './index'
-import NotificationModel from '../Notification'
-import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
-import { RepoReadError, RepoUpdateError } from '../Errors'
+import config from '../../config'
 import {
   MATH_SUBJECTS,
-  SCIENCE_SUBJECTS,
-  SAT_SUBJECTS,
+  PHOTO_ID_STATUS,
   READING_WRITING_SUBJECTS,
   REFERENCE_STATUS,
-  PHOTO_ID_STATUS,
+  SAT_SUBJECTS,
+  SCIENCE_SUBJECTS,
 } from '../../constants'
-import config from '../../config'
+import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Availability } from '../Availability/types'
+import { RepoReadError, RepoUpdateError } from '../Errors'
+import NotificationModel from '../Notification'
+import VolunteerModel, { Volunteer } from './index'
 
 /**
  * Wraps a db read to throw a RepoReadError if anything went wrong
@@ -703,7 +703,7 @@ export async function updateVolunteerInactiveAvailability(
 
 export async function updateVolunteerProfileById(
   volunteerId: Types.ObjectId,
-  deactivated?: boolean,
+  isDeactivated?: boolean,
   phone?: string
 ): Promise<void> {
   try {
@@ -712,7 +712,7 @@ export async function updateVolunteerProfileById(
         _id: volunteerId,
       },
       {
-        deactivated,
+        isDeactivated,
         phone,
       }
     ).exec()
