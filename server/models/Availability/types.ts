@@ -1,5 +1,10 @@
 import { Schema } from 'mongoose'
 
+// https://www.petermorlion.com/iterating-a-typescript-enum/ don't @ me - Dave
+export function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
+  return Object.keys(obj).filter(k => Number.isNaN(+k)) as K[];
+}
+
 export enum DAYS {
   SUNDAY = 'Sunday',
   MONDAY = 'Monday',
