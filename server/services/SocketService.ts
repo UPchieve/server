@@ -1,10 +1,10 @@
 import { Types } from 'mongoose'
 import socketio from 'socket.io'
+import logger from '../logger'
+import MessageModel, { MessageDocument } from '../models/Message'
 import SessionModel from '../models/Session'
 import { getUnfulfilledSessions } from '../models/Session/queries'
-import MessageModel, { MessageDocument } from '../models/Message'
 import getSessionRoom from '../utils/get-session-room'
-import logger from '../logger'
 
 class SocketService {
   private io: socketio.Server
@@ -31,6 +31,8 @@ class SocketService {
       .populate(populateOptions)
       .exec()
 
+      console.log('the populated session', populatedSession)
+
     return MessageModel.populate(populatedSession, {
       path: 'messages.user',
       select: 'firstname isVolunteer',
@@ -44,6 +46,7 @@ class SocketService {
 
   async emitSessionChange(sessionId: Types.ObjectId): Promise<void> {
     const session = await this.getSessionData(sessionId)
+    console.log('session returnneded', session)
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
 
     await this.updateSessionList()

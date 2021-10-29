@@ -2,21 +2,16 @@ import moment from 'moment'
 import 'moment-timezone'
 import { Types } from 'mongoose'
 import {
-  FEEDBACK_VERSIONS,
-  USER_SESSION_METRICS,
-  USER_ACTION,
-  SUBJECT_TYPES,
+  FEEDBACK_VERSIONS, SUBJECT_TYPES, USER_ACTION, USER_SESSION_METRICS
 } from '../../constants'
+import {
+  DocCreationError, DocUpdateError, LookupError,
+  RepoReadError
+} from '../Errors'
 import { Message } from '../Message'
 import { Notification } from '../Notification'
 import { Student } from '../Student'
 import { Volunteer } from '../Volunteer'
-import {
-  DocUpdateError,
-  DocCreationError,
-  LookupError,
-  RepoReadError,
-} from '../Errors'
 import SessionModel, { Session } from './index'
 
 export async function addSessionNotifications(
@@ -1076,7 +1071,7 @@ export async function updateSessionVolunteerById(
 
 export async function addMessageToSessionById(
   sessionId: Types.ObjectId,
-  message: Message
+  message: Omit<Message, '_id'>
 ): Promise<void> {
   const query = { _id: sessionId }
   const update = { $push: { messages: message } }

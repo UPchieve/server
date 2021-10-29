@@ -1,53 +1,47 @@
+import Case from 'case'
 import crypto from 'crypto'
 import _ from 'lodash'
 import moment from 'moment'
 import { Types } from 'mongoose'
-import { User } from '../models/User'
-import Case from 'case'
 import { isEnabled } from 'unleash-client'
-import { Session } from '../models/Session'
-import * as SessionRepo from '../models/Session/queries'
-import {
-  USER_BAN_REASON,
-  SESSION_REPORT_REASON,
-  EVENTS,
-  USER_SESSION_METRICS,
-  UTC_TO_HOUR_MAPPING,
-  HOURS_UTC,
-  SUBJECT_TYPES,
-} from '../constants'
-import { DAYS } from '../models/Availability/types'
-import * as UserActionCtrl from '../controllers/UserActionCtrl'
-import * as sessionUtils from '../utils/session-utils'
-import config from '../config'
-import { asObjectId, asString } from '../utils/type-utils'
-import { Jobs } from '../worker/jobs'
-import * as AssistmentsDataRepo from '../models/AssistmentsData/queries'
-import logger from '../logger'
 import * as cache from '../cache'
-import { NotAllowedError } from '../models/Errors'
-import { SESSION_EVENTS } from '../constants/events'
-import * as VolunteerRepo from '../models/Volunteer/queries'
-import QueueService from './QueueService'
-import * as WhiteboardService from './WhiteboardService'
-import * as QuillDocService from './QuillDocService'
-import * as AnalyticsService from './AnalyticsService'
-import * as NotificationRepo from '../models/Notification/queries'
-import SocketService from './SocketService'
-import * as UserRepo from '../models/User/queries'
-
-import { getSessionRequestedUserAgentFromSessionId } from '../models/UserAction/queries'
-import * as AwsService from './AwsService'
-import { getFeedbackV2BySessionId } from '../models/Feedback/queries'
+import config from '../config'
 import {
-  beginRegularNotifications,
-  beginFailsafeNotifications,
-} from './TwilioService'
-import { captureEvent } from './AnalyticsService'
+  EVENTS, HOURS_UTC, SESSION_REPORT_REASON, SUBJECT_TYPES, USER_BAN_REASON, USER_SESSION_METRICS,
+  UTC_TO_HOUR_MAPPING
+} from '../constants'
+import { SESSION_EVENTS } from '../constants/events'
+import * as UserActionCtrl from '../controllers/UserActionCtrl'
+import logger from '../logger'
+import * as AssistmentsDataRepo from '../models/AssistmentsData/queries'
+import { DAYS } from '../models/Availability/types'
+import { NotAllowedError } from '../models/Errors'
+import { getFeedbackV2BySessionId } from '../models/Feedback/queries'
+import * as NotificationRepo from '../models/Notification/queries'
 import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken/queries'
-import * as PushTokenService from './PushTokenService'
+import { Session } from '../models/Session'
+import * as SessionRepo from '../models/Session/queries'
+import { User } from '../models/User'
+import * as UserRepo from '../models/User/queries'
+import { getSessionRequestedUserAgentFromSessionId } from '../models/UserAction/queries'
+import * as VolunteerRepo from '../models/Volunteer/queries'
+import * as sessionUtils from '../utils/session-utils'
+import { asObjectId, asString } from '../utils/type-utils'
+import { Jobs } from '../worker/jobs'
+import * as AnalyticsService from './AnalyticsService'
+import { captureEvent } from './AnalyticsService'
+import * as AwsService from './AwsService'
 import { emitter } from './EventsService'
+import * as PushTokenService from './PushTokenService'
+import QueueService from './QueueService'
+import * as QuillDocService from './QuillDocService'
+import SocketService from './SocketService'
+import {
+  beginFailsafeNotifications, beginRegularNotifications
+} from './TwilioService'
+import * as WhiteboardService from './WhiteboardService'
+
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -206,7 +200,7 @@ export async function endSession({
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.endedAt)
     throw new sessionUtils.EndSessionError('Session has already ended')
-  if (!isAdmin && !sessionUtils.isSessionParticipant(session, endedBy))
+  if (!isAdmin && !sessionUtils.isSessionParticipant(session, endedBy ? endedBy._id : null))
     throw new sessionUtils.EndSessionError(
       'Only session participants can end a session'
     )
@@ -743,13 +737,19 @@ export async function joinSession(user: User, data: unknown): Promise<void> {
   }
 }
 
-export async function saveMessage(user: User, data: unknown): Promise<void> {
+// TODO: we don't know the shape of the user coming from a socket. user is provided from the client at the moment
+export async function saveMessage(user: any, createdAt: Date, data: unknown): Promise<void> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
-  if (!sessionUtils.isSessionParticipant(session, user))
+  if (!sessionUtils.isSessionParticipant(session, asObjectId(user._id)))
     throw new Error('Only session participants are allowed to send messages')
 
-  await SessionRepo.addMessageToSessionById(sessionId, message)
+  const newMessage = {
+    user: user._id,
+    contents: message,
+    createdAt
+  }  
+  await SessionRepo.addMessageToSessionById(sessionId, newMessage)
 }
 
 export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {

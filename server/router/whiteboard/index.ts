@@ -1,18 +1,16 @@
-import express, { Express } from 'express'
 import * as Sentry from '@sentry/node'
-import * as WhiteboardService from '../../services/WhiteboardService'
-import {
-  decode,
-  encode,
-  Message,
-  MessageType,
-  DecodeError,
-  CreationMode,
-} from '../../utils/zwibblerDecoder'
+import express, { Express } from 'express'
+import { KeyNotFoundError } from '../../cache'
+import logger from '../../logger'
 import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
 import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
-import { asStringObjectId, asObjectId } from '../../utils/type-utils'
-import logger from '../../logger'
+import * as WhiteboardService from '../../services/WhiteboardService'
+import { asObjectId, asStringObjectId } from '../../utils/type-utils'
+import {
+  CreationMode, decode, DecodeError, encode,
+  Message,
+  MessageType
+} from '../../utils/zwibblerDecoder'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
   Sentry.captureMessage(
@@ -36,7 +34,12 @@ const messageHandlers: {
 } = {
   [MessageType.INIT]: async ({ message, sessionId, wsClient }) => {
     const sessionObjectId = asObjectId(sessionId)
-    const document = await WhiteboardService.getDoc(sessionObjectId)
+    let document
+    try {
+      document = await WhiteboardService.getDoc(sessionObjectId)
+    } catch (error) {
+      if(!(error instanceof KeyNotFoundError)) throw error
+    }
     if (message.creationMode === CreationMode.NEVER_CREATE && !document) {
       return wsClient.send(
         encode({

@@ -1,13 +1,16 @@
+import Case from 'case'
 import { Types } from 'mongoose'
-import { CustomError } from 'ts-custom-error'
 import { Socket } from 'socket.io'
-import { Volunteer } from '../models/Volunteer'
-import { Student } from '../models/Student'
+import { CustomError } from 'ts-custom-error'
 import { SUBJECTS, SUBJECT_TYPES } from '../constants'
+import { DAYS, HOURS } from '../models/Availability/types'
+import { InputError } from '../models/Errors'
+import { Message } from '../models/Message'
 import { Session } from '../models/Session'
 import { SessionToEnd } from '../models/Session/queries'
-import { Message } from '../models/Message'
-import { DAYS, HOURS } from '../models/Availability/types'
+import { Student } from '../models/Student'
+import { User } from '../models/User'
+import { Volunteer } from '../models/Volunteer'
 import {
   asBoolean,
   asDate,
@@ -16,11 +19,8 @@ import {
   asNumber,
   asObjectId,
   asOptional,
-  asString,
+  asString
 } from './type-utils'
-import { User } from '../models/User'
-import { InputError } from '../models/Errors'
-import Case from 'case'
 
 export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
@@ -64,11 +64,9 @@ export function getMessagesAfterDate(
 
 export function isSessionParticipant(
   session: Session | SessionToEnd,
-  user: User | null
+  userId: Types.ObjectId | null
 ): boolean {
-  if (user === null) return false
-
-  const userId = user._id
+  if (!userId) return false
 
   const studentId =
     session.student instanceof Types.ObjectId
@@ -79,7 +77,7 @@ export function isSessionParticipant(
       ? session.volunteer
       : (session.volunteer as Volunteer)._id
 
-  return userId === studentId || userId === volunteerId
+  return userId.equals(studentId as Types.ObjectId) || userId.equals(volunteerId as Types.ObjectId)
 }
 
 export function calculateTimeTutored(session: Session): number {
@@ -329,22 +327,12 @@ export const asJoinSessionData = asFactory<JoinSessionData>({
   joinedFrom: asOptional(asString),
 })
 
-interface NewMessage {
-  _id: Types.ObjectId
-  user: Types.ObjectId
-  contents: string
-  createdAt: Date
-}
 interface SaveMessageData {
   sessionId: Types.ObjectId
-  message: NewMessage
+  message: string
 }
 export const asSaveMessageData = asFactory<SaveMessageData>({
   sessionId: asObjectId,
-  message: asFactory<NewMessage>({
-    _id: asObjectId,
-    user: asObjectId,
-    contents: asString,
-    createdAt: asDate,
-  }),
+  message: asString,
 })
+

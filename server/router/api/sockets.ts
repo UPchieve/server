@@ -3,20 +3,19 @@
  */
 // TODO: types for passport
 const passportSocketIo = require('passport.socketio')
-import redisAdapter from 'socket.io-redis'
-import cookieParser from 'cookie-parser'
 import Sentry from '@sentry/node'
-import { Server } from 'socket.io'
 import connectMongo from 'connect-mongo'
-
+import cookieParser from 'cookie-parser'
+import newrelic from 'newrelic'
+import { Server } from 'socket.io'
+import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import { Session } from '../../models/Session'
-import SocketService from '../../services/SocketService'
-import * as SessionService from '../../services/SessionService'
 import * as SessionRepo from '../../models/Session/queries'
 import * as QuillDocService from '../../services/QuillDocService'
+import * as SessionService from '../../services/SessionService'
+import SocketService from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
-import newrelic from 'newrelic'
 import { getIdFromModelReference } from '../../utils/model-reference'
 
 // TODO: upgrade socketio and adapter so we can async this whole file
@@ -195,22 +194,18 @@ export function routeSockets(
             if (!sessionId) {
               return resolve()
             }
+            const createdAt = new Date()
 
             try {
-              const newMessage = {
-                contents: message,
-                user: user._id,
-                createdAt: new Date(),
-              }
               // TODO: correctly type user from passport
-              await SessionService.saveMessage(user, {
+              await SessionService.saveMessage(user, createdAt, {
                 sessionId,
-                newMessage,
+                message,
               })
 
               const messageData = {
-                contents: newMessage.contents,
-                createdAt: newMessage.createdAt,
+                contents: message,
+                createdAt: createdAt,
                 isVolunteer: user.isVolunteer,
                 userId: user._id,
               }
