@@ -1,18 +1,17 @@
 import { mocked } from 'ts-jest/utils'
-import { Types } from 'mongoose'
 import * as ContactFormSubmissionRepo from '../../models/ContactFormSubmission/queries'
 import { ContactFormSubmission } from '../../models/ContactFormSubmission'
 import * as ContactFormService from '../../services/ContactFormService'
-import { hugeText } from '../generate'
-import * as MailService from '../../services/MailService/smtp'
+import { getObjectId, hugeText } from '../generate'
+import * as MailService from '../../services/MailService'
 import { InputError } from '../../models/Errors'
-import { asObjectId } from '../../utils/type-utils'
-jest.mock('../../models/ContactFormSubmission')
-jest.mock('../../services/MailService/smtp')
+jest.mock('../../models/ContactFormSubmission/queries')
+jest.mock('../../services/MailService')
 
 const mockedContactFormSubmissionRepo = mocked(ContactFormSubmissionRepo, true)
 const mockedMailService = mocked(MailService, true)
 
+const userId = getObjectId()
 const validEmailData = {
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
@@ -20,14 +19,14 @@ const validEmailData = {
 }
 
 const validUserIdData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
   topic: 'General feedback',
 }
 
 const invalidEmailData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test',
   message: 'This is some feedback for you.',
   topic: 'General feedback',
@@ -41,21 +40,21 @@ const invalidUserIdData = {
 }
 
 const invalidShortMessageData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test.com',
   message: '',
   topic: 'General feedback',
 }
 
 const invalidLongMessageData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test.com',
   message: hugeText(),
   topic: 'General feedback',
 }
 
 const invalidTopicData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
   topic: 'not a valid topic',
@@ -65,7 +64,7 @@ test('contact form service saves form submission with email', async () => {
   mockedContactFormSubmissionRepo.createContactFormByEmail.mockImplementationOnce(
     () => {
       return new Promise(resolve => {
-        const id = Types.ObjectId().toString()
+        const id = getObjectId()
         const doc: ContactFormSubmission = {
           _id: id,
           userEmail: 'test@test.com',
@@ -77,7 +76,7 @@ test('contact form service saves form submission with email', async () => {
       })
     }
   )
-  mockedMailService.sendContactFormEmail.mockImplementationOnce(() => {
+  mockedMailService.sendContactForm.mockImplementationOnce(() => {
     return new Promise<void>(resolve => {
       resolve()
     })
@@ -93,10 +92,9 @@ test('contact form service saves form submission with user id', async () => {
   mockedContactFormSubmissionRepo.createContactFormByEmail.mockImplementationOnce(
     () => {
       return new Promise(resolve => {
-        const id = Types.ObjectId().toString()
         const doc: ContactFormSubmission = {
-          _id: id,
-          userId: asObjectId('43rTcoyKkRD2UCHK658RJQBUwqnN6jiu'),
+          _id: getObjectId(),
+          userId: getObjectId(),
           userEmail: 'test@test.com',
           message: 'This is some feedback for you.',
           topic: 'General feedback',
@@ -106,7 +104,7 @@ test('contact form service saves form submission with user id', async () => {
       })
     }
   )
-  mockedMailService.sendContactFormEmail.mockImplementationOnce(() => {
+  mockedMailService.sendContactForm.mockImplementationOnce(() => {
     return new Promise<void>(resolve => {
       resolve()
     })

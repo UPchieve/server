@@ -290,7 +290,7 @@ describe('Volunteer tests', () => {
       photoIdStatus: PHOTO_ID_STATUS.APPROVED,
       references: [
         { status: REFERENCE_STATUS.APPROVED },
-        { status: REFERENCE_STATUS.REJECTED },
+        { status: REFERENCE_STATUS.APPROVED },
       ],
       isApproved: true,
     }

@@ -25,6 +25,7 @@ import {
   ResetError,
   checkPassword,
   hashPassword,
+  verifyPassword,
 } from '../../utils/auth-utils'
 import { NotAllowedError, InputError, LookupError } from '../../models/Errors'
 
@@ -341,7 +342,7 @@ describe('Registration tests', () => {
     const t = async <T>(p: T) => await AuthService.registerVolunteer(p)
 
     await expect(t(payload)).rejects.toThrow(
-      new LookupError('The email address you entered is already in use')
+      new LookupError('The phone number you entered is already in use')
     )
   })
 
@@ -452,7 +453,7 @@ describe('Registration tests', () => {
 
 describe('Password reset tests', () => {
   beforeEach(async () => {
-    jest.clearAllMocks()
+    jest.resetAllMocks()
   })
 
   // test objects
@@ -464,9 +465,13 @@ describe('Password reset tests', () => {
     await AuthService.sendReset(user.email)
 
     expect(MailService.sendReset).toHaveBeenCalledWith(
-      expect.objectContaining({ email: user.email })
+      user.email,
+      expect.anything()
     )
-    expect(UserRepo.updateUserResetTokenById).toHaveBeenCalledWith(user._id)
+    expect(UserRepo.updateUserResetTokenById).toHaveBeenCalledWith(
+      user._id,
+      expect.anything()
+    )
   })
 
   test('Confirm valid reset', async () => {
@@ -480,11 +485,14 @@ describe('Password reset tests', () => {
       token: token,
     })
 
-    const hashed = await hashPassword(newPassword)
     expect(UserRepo.updateUserPasswordById).toHaveBeenCalledWith(
       user._id,
-      hashed
+      expect.anything()
     )
+    const computedHash = mockedUserRepo.updateUserPasswordById.mock.calls[0][1]
+    await expect(
+      verifyPassword(newPassword, computedHash)
+    ).resolves.toBeTruthy()
   })
 
   test('Initiate invalid reset via bad email', async () => {

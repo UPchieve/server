@@ -8,7 +8,7 @@ import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
 
 import { getStringObjectId, buildGatesQualifiedData } from '../generate'
 
-jest.mock('../../models/UserProductFlags')
+jest.mock('../../models/UserProductFlags/queries')
 jest.mock('../../utils/gates-study-utils')
 jest.mock('../../utils/is-date-within-range')
 jest.mock('unleash-client', () => {

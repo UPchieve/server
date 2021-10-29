@@ -2,7 +2,7 @@ import { model, Schema, Types, Document, ValidatorProps } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
 
 export interface ContactFormSubmission {
-  _id: string
+  _id: Types.ObjectId
   createdAt: Date
   userEmail: string
   userId?: Types.ObjectId

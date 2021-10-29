@@ -96,6 +96,7 @@ export async function saveReferenceForm(
   ip: string
 ) {
   const {
+    sentAt,
     affiliation,
     relationshipLength,
     rejectionReason,
@@ -117,6 +118,7 @@ export async function saveReferenceForm(
     { 'references._id': referenceId },
     {
       $set: {
+        'references.$.sentAt': sentAt,
         'references.$.status': REFERENCE_STATUS.SUBMITTED,
         'references.$.affiliation': affiliation,
         'references.$.relationshipLength': relationshipLength,

@@ -44,7 +44,7 @@ export async function getHistoryForDatesByVolunteerId(
         $lte: end,
       },
     })
-      .sort({ date: 1 })
+      .sort({ date: -1 })
       .lean()
       .exec()) as AvailabilityHistory[]
   } catch (err) {

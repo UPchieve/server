@@ -54,9 +54,7 @@ import {
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 import * as UserActionRepo from '../../models/UserAction/queries'
-import * as UserService from '../../services/UserService'
 import * as QuillDocService from '../../services/QuillDocService'
-import * as VolunteerService from '../../services/VolunteerService'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as AwsService from '../../services/AwsService'
 import * as FeedbackService from '../../services/FeedbackService'
@@ -74,7 +72,7 @@ import { emitter } from '../../services/EventsService'
 import * as USMRepo from '../../models/UserSessionMetrics/queries'
 import * as UserRepo from '../../models/User/queries'
 import { mockApp, mockSocketServer } from '../mock-app'
-jest.mock('../../models/Session')
+jest.mock('../../models/Session/queries')
 jest.mock('../../models/AssistmentsData/queries')
 jest.mock('../../services/MailService')
 jest.mock('../../services/FeedbackService')
@@ -111,6 +109,7 @@ const mockedWhiteboardService = mocked(WhiteboardService, true)
 const mockedUSMRepo = mocked(USMRepo, true)
 const mockedVolunteerRepo = mocked(VolunteerRepo, true)
 const mockedUserActionRepo = mocked(UserActionRepo, true)
+const mockedUserRepo = mocked(UserRepo, true)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -216,7 +215,9 @@ describe('reportSession', () => {
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
     )
-    mockedUSMRepo.getUSMByUserId.mockResolvedValueOnce(buildUSM((mockValue.student as Student)._id))
+    mockedUSMRepo.getUSMByUserId.mockResolvedValueOnce(
+      buildUSM((mockValue.student as Student)._id)
+    )
     mockedUSMRepo.getUSMByUserId.mockResolvedValueOnce(
       buildUSM((mockValue.volunteer! as Volunteer)._id)
     )
@@ -253,7 +254,9 @@ describe('reportSession', () => {
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
     )
-    mockedUSMRepo.getUSMByUserId.mockResolvedValueOnce(buildUSM((mockValue.student as Student)._id))
+    mockedUSMRepo.getUSMByUserId.mockResolvedValueOnce(
+      buildUSM((mockValue.student as Student)._id)
+    )
     mockedUSMRepo.getUSMByUserId.mockResolvedValueOnce(
       buildUSM((mockValue.volunteer as Volunteer)._id)
     )
@@ -290,7 +293,9 @@ describe('endSession', () => {
       fail('should throw error')
     } catch (error) {
       expect(error).toBeInstanceOf(EndSessionError)
-      expect((error as EndSessionError).message).toBe('Session has already ended')
+      expect((error as EndSessionError).message).toBe(
+        'Session has already ended'
+      )
     }
   })
 
@@ -311,7 +316,9 @@ describe('endSession', () => {
       fail('should throw error')
     } catch (error) {
       expect(error).toBeInstanceOf(EndSessionError)
-      expect((error as EndSessionError).message).toBe('Only session participants can end a session')
+      expect((error as EndSessionError).message).toBe(
+        'Only session participants can end a session'
+      )
     }
   })
 })
@@ -325,7 +332,7 @@ describe('addPastSession', () => {
     )
 
     await SessionService.addPastSession(sessionId)
-    expect(SessionService.addPastSession).toHaveBeenCalledTimes(1)
+    expect(mockedUserRepo.addUserPastSessionById).toHaveBeenCalledTimes(1)
   })
 
   test('Should add past session to both student and volunteer', async () => {
@@ -337,7 +344,7 @@ describe('addPastSession', () => {
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(mockValue)
 
     await SessionService.addPastSession(sessionId)
-    expect(SessionService.addPastSession).toHaveBeenCalledTimes(2)
+    expect(mockedUserRepo.addUserPastSessionById).toHaveBeenCalledTimes(2)
   })
 })
 
@@ -356,7 +363,9 @@ describe('processAssistmentsSession', () => {
       assignmentId: 'assignment',
       problemId: 12345,
     } as AssistmentsData
-    mockedAssistmentsDataRepo.getAssistmentsDataBySession.mockResolvedValueOnce(mockedAd)
+    mockedAssistmentsDataRepo.getAssistmentsDataBySession.mockResolvedValueOnce(
+      mockedAd
+    )
 
     await SessionService.processAssistmentsSession(sessionId)
 
@@ -379,7 +388,9 @@ describe('processAssistmentsSession', () => {
       assignmentId: 'assignment',
       problemId: 12345,
     } as AssistmentsData
-    mockedAssistmentsDataRepo.getAssistmentsDataBySession.mockResolvedValueOnce(mockedAd)
+    mockedAssistmentsDataRepo.getAssistmentsDataBySession.mockResolvedValueOnce(
+      mockedAd
+    )
 
     await SessionService.processAssistmentsSession(sessionId)
 
@@ -392,15 +403,17 @@ describe('processAssistmentsSession', () => {
       volunteer: null,
     })
     const sessionId = mockValue._id.toString()
-    mockedSessionRepo.getSessionById.mockImplementationOnce(
-      async () => buildSession()
+    mockedSessionRepo.getSessionById.mockImplementationOnce(async () =>
+      buildSession()
     )
     const mockedAd = {
       studentId: 'student',
       assignmentId: 'assignment',
       problemId: 12345,
     } as AssistmentsData
-    mockedAssistmentsDataRepo.getAssistmentsDataBySession.mockResolvedValueOnce(mockedAd)
+    mockedAssistmentsDataRepo.getAssistmentsDataBySession.mockResolvedValueOnce(
+      mockedAd
+    )
 
     await SessionService.processAssistmentsSession(sessionId)
 
@@ -412,12 +425,12 @@ describe('processSessionReported', () => {
   test('Should queue job to send emails for reported session from cache', async () => {
     const sessionId = getObjectId()
     const jobData = {
-      studentId: getObjectId(),
+      studentId: getStringObjectId(),
       reportedBy: 'volunteer1@upchieve.org',
       reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
       reportMessage: 'Student made a your mom joke',
       isBanReason: true,
-      sessionId: sessionId,
+      sessionId: sessionId.toString(),
     }
     mockedCache.get.mockImplementationOnce(async () => {
       return JSON.stringify(jobData)
@@ -446,7 +459,7 @@ describe('processSessionReported', () => {
 })
 
 describe('processCalculateMetrics', () => {
-  let spyCalculateTimeTutored: jest.SpyInstance<number, [session: Session]>
+  let spyCalculateTimeTutored: jest.SpyInstance<number, any>
   beforeEach(async () => {
     spyCalculateTimeTutored = jest.spyOn(SessionUtils, 'calculateTimeTutored')
   })
@@ -463,9 +476,10 @@ describe('processCalculateMetrics', () => {
     spyCalculateTimeTutored.mockImplementationOnce(() => timeTutored)
 
     await SessionService.processCalculateMetrics(sessionId)
-    expect(SessionRepo.updateSessionTimeTutored).toHaveBeenCalledWith(sessionId, {
-      timeTutored,
-    })
+    expect(SessionRepo.updateSessionTimeTutored).toHaveBeenCalledWith(
+      sessionId,
+      timeTutored
+    )
     expect(emitter.emit).toHaveBeenCalledWith(
       SESSION_EVENTS.SESSION_METRICS_CALCULATED,
       sessionId
@@ -485,9 +499,10 @@ describe('processCalculateMetrics', () => {
 
     await SessionService.processCalculateMetrics(sessionId)
     expect(spyCalculateTimeTutored).not.toHaveBeenCalled()
-    expect(SessionRepo.updateSessionTimeTutored).toHaveBeenCalledWith(sessionId, {
-      timeTutored,
-    })
+    expect(SessionRepo.updateSessionTimeTutored).toHaveBeenCalledWith(
+      sessionId,
+      timeTutored
+    )
     expect(emitter.emit).toHaveBeenCalledWith(
       SESSION_EVENTS.SESSION_METRICS_CALCULATED,
       sessionId
@@ -884,7 +899,9 @@ describe('adminSessionView', () => {
       subTopic: SUBJECTS.ESSAYS,
     })
     const mockUserAgent = buildUserAgent()
-    const mockFeedback = buildFeedback({versionNumber: FEEDBACK_VERSIONS.TWO}) as FeedbackVersionTwo
+    const mockFeedback = buildFeedback({
+      versionNumber: FEEDBACK_VERSIONS.TWO,
+    }) as FeedbackVersionTwo
     const mockSessionPhotos = ['12345', '54321']
     mockedSessionRepo.getSessionByIdWithStudentAndVolunteer.mockImplementationOnce(
       // @todo: fix
@@ -913,10 +930,9 @@ describe('adminSessionView', () => {
 
 describe('startSession', () => {
   test('Should throw an error that volunteers cannot create sessions', async () => {
-    const user = buildStudent()
+    const user = buildVolunteer()
     const input = {
       ip: getIpAddress(),
-      user: buildVolunteer(),
       sessionSubTopic: SUBJECTS.PREALGREBA,
       sessionType: SUBJECT_TYPES.MATH,
       userAgent: getUserAgent(),
@@ -925,15 +941,16 @@ describe('startSession', () => {
       await SessionService.startSession(user, input)
     } catch (error) {
       expect(error).toBeInstanceOf(StartSessionError)
-      expect((error as StartSessionError).message).toBe('Volunteers cannot create new sessions')
+      expect((error as StartSessionError).message).toBe(
+        'Volunteers cannot create new sessions'
+      )
     }
   })
 
   test('Should throw an error that banned students cannot request sessions', async () => {
-    const user = buildStudent()
+    const user = buildStudent({ isBanned: true })
     const input = {
       ip: getIpAddress(),
-      user: buildStudent({ isBanned: true }),
       sessionSubTopic: SUBJECTS.PREALGREBA,
       sessionType: SUBJECT_TYPES.MATH,
       userAgent: getUserAgent(),
@@ -942,7 +959,9 @@ describe('startSession', () => {
       await SessionService.startSession(user, input)
     } catch (error) {
       expect(error).toBeInstanceOf(StartSessionError)
-      expect((error as StartSessionError).message).toBe('Banned students cannot request a new session')
+      expect((error as StartSessionError).message).toBe(
+        'Banned students cannot request a new session'
+      )
     }
   })
 
@@ -962,7 +981,9 @@ describe('startSession', () => {
       await SessionService.startSession(user, input)
     } catch (error) {
       expect(error).toBeInstanceOf(StartSessionError)
-      expect((error as StartSessionError).message).toBe('Student already has an active session')
+      expect((error as StartSessionError).message).toBe(
+        'Student already has an active session'
+      )
     }
   })
 
@@ -975,7 +996,9 @@ describe('startSession', () => {
       userAgent: getUserAgent(),
     }
     const mockValue = mockedCreateSession()
-    mockedSessionRepo.getCurrentSessionById.mockImplementationOnce(async () => undefined)
+    mockedSessionRepo.getCurrentSessionById.mockImplementationOnce(
+      async () => undefined
+    )
     mockedSessionRepo.createSession.mockImplementationOnce(
       async () => mockValue
     )
@@ -987,7 +1010,9 @@ describe('startSession', () => {
       },
       expect.anything()
     )
-    expect(AssistmentsDataRepo.createAssistmentsDataBySession).not.toHaveBeenCalled()
+    expect(
+      AssistmentsDataRepo.createAssistmentsDataBySession
+    ).not.toHaveBeenCalled()
     expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
     expect(TwilioService.beginRegularNotifications).toHaveBeenCalledWith(
       mockValue
@@ -998,7 +1023,7 @@ describe('startSession', () => {
   })
 
   test('Should create a new session and create an ASSISTments data record', async () => {
-    const user =  buildStudent()
+    const user = buildStudent()
     const input = {
       ip: getIpAddress(),
       sessionSubTopic: SUBJECTS.PREALGREBA,
@@ -1009,7 +1034,9 @@ describe('startSession', () => {
       userAgent: getUserAgent(),
     }
     const mockValue = mockedCreateSession()
-    mockedSessionRepo.getCurrentSessionById.mockImplementationOnce(async () => undefined)
+    mockedSessionRepo.getCurrentSessionById.mockImplementationOnce(
+      async () => undefined
+    )
     mockedSessionRepo.createSession.mockImplementationOnce(
       async () => mockValue
     )
@@ -1022,7 +1049,9 @@ describe('startSession', () => {
       expect.anything()
     )
     expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
-    expect(AssistmentsDataRepo.createAssistmentsDataBySession).toHaveBeenCalled()
+    expect(
+      AssistmentsDataRepo.createAssistmentsDataBySession
+    ).toHaveBeenCalled()
     expect(TwilioService.beginRegularNotifications).toHaveBeenCalledWith(
       mockValue
     )
@@ -1045,7 +1074,8 @@ describe('finishSession', () => {
       userAgent: getUserAgent(),
     }
 
-    const socketService = new SocketService(mockSocketServer(mockApp()))
+    const socketServer = mockSocketServer(mockApp())
+    const socketService = new SocketService(socketServer)
     const session = buildSession({
       volunteer: user,
       endedBy: user._id,
@@ -1062,6 +1092,8 @@ describe('finishSession', () => {
     await SessionService.finishSession(user, input, socketService)
     expect(socketService.emitSessionChange).toHaveBeenCalledTimes(1)
     expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
+
+    socketServer.close()
   })
 })
 
@@ -1123,7 +1155,9 @@ describe('publicSession', () => {
   test('Should get session', async () => {
     const sessionId = getStringObjectId()
     const mockValue = mockedGetPublicSession()
-    mockedSessionRepo.getPublicSessionById.mockImplementationOnce(async () => mockValue)
+    mockedSessionRepo.getPublicSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
     const actual = await SessionService.publicSession(sessionId)
     expect(SessionRepo.getPublicSessionById).toHaveBeenCalledTimes(1)
     expect(actual).toEqual(mockValue)
@@ -1134,7 +1168,9 @@ describe('getSessionNotifications', () => {
   test('Should get session', async () => {
     const sessionId = getStringObjectId()
     const mockValue = mockedGetPublicSession()
-    mockedSessionRepo.getPublicSessionById.mockImplementationOnce(async () => mockValue)
+    mockedSessionRepo.getPublicSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
     const actual = await SessionService.publicSession(sessionId)
     expect(SessionRepo.getPublicSessionById).toHaveBeenCalledTimes(1)
     expect(actual).toEqual(mockValue)
@@ -1154,7 +1190,10 @@ describe('joinSession', () => {
       fail('should throw error')
     } catch (error) {
       expect(SessionRepo.updateSessionFailedJoinsById).toBeCalledTimes(1)
-      expect(SessionRepo.updateSessionFailedJoinsById).toHaveBeenCalledWith(input.session._id.toString(), user._id)
+      expect(SessionRepo.updateSessionFailedJoinsById).toHaveBeenCalledWith(
+        input.session._id,
+        user._id
+      )
       expect((error as Error).message).toBe('Session has ended')
     }
   })
@@ -1175,7 +1214,7 @@ describe('joinSession', () => {
     } catch (error) {
       expect(SessionRepo.updateSessionFailedJoinsById).toBeCalledTimes(1)
       expect(SessionRepo.updateSessionFailedJoinsById).toHaveBeenCalledWith(
-        input.session._id.toString(),
+        input.session._id,
         user._id
       )
       expect((error as Error).message).toBe(
@@ -1201,10 +1240,12 @@ describe('joinSession', () => {
     } catch (error) {
       expect(SessionRepo.updateSessionFailedJoinsById).toBeCalledTimes(1)
       expect(SessionRepo.updateSessionFailedJoinsById).toHaveBeenCalledWith(
-        input.session._id.toString(),
+        input.session._id,
         user._id
       )
-      expect((error as Error).message).toBe('A volunteer has already joined the session')
+      expect((error as Error).message).toBe(
+        'A volunteer has already joined the session'
+      )
     }
   })
 
@@ -1229,7 +1270,8 @@ describe('joinSession', () => {
       user._id
     )
     expect(UserActionCtrl.SessionActionCreator).toBeCalledTimes(1)
-    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+    expect(AnalyticsService.captureEvent).toHaveBeenNthCalledWith(
+      1,
       user._id,
       EVENTS.SESSION_JOINED,
       {
@@ -1238,8 +1280,9 @@ describe('joinSession', () => {
         joinedFrom: input.joinedFrom,
       }
     )
-    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
-      input.session.student.toString(),
+    expect(AnalyticsService.captureEvent).toHaveBeenNthCalledWith(
+      2,
+      input.session.student,
       EVENTS.SESSION_MATCHED,
       {
         event: EVENTS.SESSION_MATCHED,
@@ -1305,10 +1348,7 @@ describe('saveMessage', () => {
   })
 
   test('Should add new message to the session', async () => {
-    const user = buildStudent({
-      _id: getStringObjectId(),
-      createdAt: new Date().toISOString(),
-    })
+    const user = buildStudent()
     const input = {
       sessionId: getStringObjectId(),
       user,

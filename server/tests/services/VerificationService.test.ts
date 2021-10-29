@@ -21,32 +21,32 @@ jest.mock('../../services/StudentService')
 jest.mock('../../models/User/queries')
 
 const mockedTwilioService = mocked(TwilioService, true)
-function mockTwilioConfirmation(value: boolean) {
-  mockedTwilioService.confirmVerification.mockResolvedValueOnce(value)
-}
 
 const mockedUserService = mocked(UserService, true)
 const mockedUserRepo = mocked(UserRepo, true)
 
 beforeEach(async () => {
-  jest.clearAllMocks()
+  jest.resetAllMocks()
 })
 
 describe('initiate verification', () => {
   const student = buildStudent()
 
   test('Should call sendVerification', async () => {
-    mockedUserRepo.getUserById.mockResolvedValueOnce(student)
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(student._id)
     const payload = {
-      userId: student._id.toString(),
+      userId: student._id,
       sendTo: student.email,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       firstName: student.firstname,
     }
     await initiateVerification(payload)
 
-    const { userId, ...expected } = payload
-    expect(TwilioService.sendVerification).toHaveBeenCalledWith(expected)
+    expect(TwilioService.sendVerification).toHaveBeenCalledWith(
+      student.email,
+      VERIFICATION_METHOD.EMAIL,
+      student.firstname
+    )
   })
 
   test('Should throw on invalid email', async () => {
@@ -86,7 +86,9 @@ describe('initiate verification', () => {
     }
 
     await expect(initiateVerification(payload)).rejects.toEqual(
-      new LookupError('The email address you entered is already in use')
+      new LookupError(
+        'The email address you entered does not match your account email address'
+      )
     )
   })
 })
@@ -108,7 +110,7 @@ describe('confirmVerification', () => {
   })
 
   test('Should return false for a verification code that is not valid', async () => {
-    mockTwilioConfirmation(false)
+    mockedTwilioService.confirmVerification.mockResolvedValueOnce(false)
 
     const result = await confirmVerification({
       userId: student._id.toString(),
@@ -120,7 +122,7 @@ describe('confirmVerification', () => {
   })
 
   test('Should send all student emails when verified', async () => {
-    mockTwilioConfirmation(true)
+    mockedTwilioService.confirmVerification.mockResolvedValueOnce(true)
     mockedUserRepo.getUserById.mockResolvedValueOnce(student)
 
     const payload = {
@@ -132,10 +134,10 @@ describe('confirmVerification', () => {
 
     await confirmVerification(payload)
 
-    expect(MailService.sendStudentWelcomeEmail).toHaveBeenCalledWith({
-      email: student.email,
-      firstName: student.firstname,
-    })
+    expect(MailService.sendStudentWelcomeEmail).toHaveBeenCalledWith(
+      student.email,
+      student.firstname
+    )
     expect(StudentService.queueWelcomeEmails).toHaveBeenCalledWith(student._id)
   })
 
@@ -143,7 +145,7 @@ describe('confirmVerification', () => {
     const volunteer = buildVolunteer({
       volunteerPartnerOrg: 'test',
     })
-    mockTwilioConfirmation(true)
+    mockedTwilioService.confirmVerification.mockResolvedValueOnce(true)
     mockedUserRepo.getUserById.mockResolvedValueOnce(volunteer)
 
     const payload = {
@@ -155,78 +157,67 @@ describe('confirmVerification', () => {
 
     await confirmVerification(payload)
 
-    expect(MailService.sendPartnerVolunteerWelcomeEmail).toHaveBeenCalledWith({
-      email: volunteer.email,
-      volunteerName: volunteer.firstname,
-    })
+    expect(MailService.sendPartnerVolunteerWelcomeEmail).toHaveBeenCalledWith(
+      volunteer.email,
+      volunteer.firstname
+    )
   })
 
   test('Should update verified/verifiedEmail when email is verified', async () => {
-    mockTwilioConfirmation(true)
+    mockedTwilioService.confirmVerification.mockResolvedValueOnce(true)
     mockedUserRepo.getUserById.mockResolvedValueOnce(student)
 
     const result = await confirmVerification({
-      userId: student._id.toString(),
+      userId: student._id,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: student.email,
       verificationCode: '123456',
     })
-    const expected = {
-      verified: true,
-      verifiedEmail: true,
-      email: student.email,
-    }
 
     expect(result).toBeTruthy()
     expect(UserRepo.updateUserVerifiedInfoById).toHaveBeenCalledWith(
       student._id,
-      expected
+      student.email,
+      expect.anything()
     )
   })
 
   test('Should update verified/verifiedPhone when phone is verified', async () => {
-    mockTwilioConfirmation(true)
+    mockedTwilioService.confirmVerification.mockResolvedValueOnce(true)
     mockedUserRepo.getUserById.mockResolvedValueOnce(student)
 
     const result = await confirmVerification({
-      userId: student._id.toString(),
+      userId: student._id,
       verificationMethod: VERIFICATION_METHOD.SMS,
       sendTo: student.phone,
       verificationCode: '123456',
     })
-    const expected = {
-      verified: true,
-      verifiedPhone: true,
-      phone: student.phone,
-    }
+
     expect(result).toBeTruthy()
     expect(UserRepo.updateUserVerifiedInfoById).toHaveBeenCalledWith(
       student._id,
-      expected
+      student.phone,
+      expect.anything()
     )
   })
 
   test('Should update to new email address when given', async () => {
-    mockTwilioConfirmation(true)
+    mockedTwilioService.confirmVerification.mockResolvedValueOnce(true)
     mockedUserRepo.getUserById.mockResolvedValueOnce(student)
     const newEmail = getEmail()
 
     const result = await confirmVerification({
-      userId: student._id.toString(),
+      userId: student._id,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: newEmail,
       verificationCode: '123456',
     })
-    const expected = {
-      verified: true,
-      verifiedEmail: true,
-      email: newEmail,
-    }
 
     expect(result).toBeTruthy()
     expect(UserRepo.updateUserVerifiedInfoById).toHaveBeenCalledWith(
       student._id,
-      expected
+      newEmail,
+      expect.anything()
     )
   })
 })
