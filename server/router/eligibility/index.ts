@@ -28,14 +28,14 @@ interface CheckEligibilityPayload {
   schoolUpchieveId: string
   zipCode: string
   email: string
-  referredByCode: string
+  referredByCode?: string
   currentGrade?: GRADES
 }
 const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
   schoolUpchieveId: asString,
   zipCode: asString,
   email: asString,
-  referredByCode: asString,
+  referredByCode: asOptional(asString),
   currentGrade: asOptional(asEnum(GRADES)),
 })
 
@@ -69,7 +69,7 @@ export function routes(app: Express) {
       const isZipCodeEligible = !!zipCode && zipCode.isEligible
       const isStudentEligible = isSchoolApproved || isZipCodeEligible
 
-      if (!isStudentEligible) {
+      if (!isStudentEligible && referredByCode) {
         const referredBy = await UserCtrl.checkReferral(referredByCode)
         await createIneligibleStudent(
           email,
