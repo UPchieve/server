@@ -1,35 +1,35 @@
-import {
-  volunteerPartnerManifests,
-  studentPartnerManifests,
-} from '../partnerManifests'
 import crypto from 'crypto'
 import { omit } from 'lodash'
-import UserModel, { User } from '../models/User'
-import { getUserById } from '../models/User/queries'
-import VolunteerModel, { Volunteer, Reference } from '../models/Volunteer'
-import {
-  updateVolunteerPhotoIdById,
-  addVolunteerReferenceById,
-  updateVolunteerReferenceStatusById,
-  deleteVolunteerReferenceById,
-} from '../models/Volunteer/queries'
-import StudentModel, { Student } from '../models/Student'
-import * as MailService from './MailService'
-import { unbanIpsByUser } from '../models/IpAddress/queries'
+import { Types } from 'mongoose'
+import { EVENTS, REFERENCE_STATUS, USER_BAN_REASON } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import { UserNotFoundError } from '../models/Errors'
-import { REFERENCE_STATUS, USER_BAN_REASON, EVENTS } from '../constants'
-import * as AnalyticsService from './AnalyticsService'
-import { Types } from 'mongoose'
+import { unbanIpsByUser } from '../models/IpAddress/queries'
+import StudentModel, { Student } from '../models/Student'
+import UserModel, { User } from '../models/User'
+import { getUserById } from '../models/User/queries'
+import VolunteerModel, { Reference, Volunteer } from '../models/Volunteer'
+import {
+  addVolunteerReferenceById,
+  deleteVolunteerReferenceById,
+  updateVolunteerPhotoIdById,
+  updateVolunteerReferenceStatusById,
+} from '../models/Volunteer/queries'
+import {
+  studentPartnerManifests,
+  volunteerPartnerManifests,
+} from '../partnerManifests'
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
-  asFactory,
-  asObjectId,
-  asString,
   asBoolean,
-  asOptional,
+  asFactory,
   asNumber,
+  asObjectId,
+  asOptional,
+  asString,
 } from '../utils/type-utils'
+import * as AnalyticsService from './AnalyticsService'
+import * as MailService from './MailService'
 
 export function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
@@ -263,22 +263,22 @@ export async function adminUpdateUser(data: unknown) {
 }
 
 interface UserQuery {
-  userId: Types.ObjectId
+  userId?: string
   firstName?: string
   lastName?: string
   email?: string
   partnerOrg?: string
-  highSchool?: Types.ObjectId
+  highSchool?: string
   page?: number
 }
 
 const asUserQuery = asFactory<UserQuery>({
-  userId: asObjectId,
+  userId: asOptional(asString),
   firstName: asOptional(asString),
   lastName: asOptional(asString),
   email: asOptional(asString),
   partnerOrg: asOptional(asString),
-  highSchool: asOptional(asObjectId),
+  highSchool: asOptional(asString),
   page: asOptional(asNumber),
 })
 
@@ -298,7 +298,7 @@ export async function getUsers(data: unknown) {
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
 
-  if (userId) query._id = userId
+  if (userId) query._id = asObjectId(userId)
   if (firstName) query.firstname = { $regex: firstName, $options: 'i' }
   if (lastName) query.lastname = { $regex: lastName, $options: 'i' }
   if (email) query.email = { $regex: email, $options: 'i' }
