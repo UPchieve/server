@@ -78,3 +78,5 @@ export const UserSessionMetricsModel = model<UserSessionMetricsDocument>(
   UserSessionMetricsCollection,
   userSessionMetricsSchema
 )
+
+export default UserSessionMetricsModel

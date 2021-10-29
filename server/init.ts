@@ -64,10 +64,7 @@ db.once('open', function() {
 
   // For each of the above metadata items, replace each record in each file with the value from seed data
   seedDataMetadata.forEach(seedDataMetadataItem => {
-    let aModel = require('./models/' + seedDataMetadataItem.model)
-    if (seedDataMetadataItem.model === 'Volunteer') {
-      aModel = aModel.default
-    }
+    let aModel = require('./models/' + seedDataMetadataItem.model).default
 
     seedDataMetadataItem.files.forEach(file => {
       const seedData = require('./seeds/' +
