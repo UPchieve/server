@@ -1,8 +1,6 @@
-import express from 'express'
 import bodyParser from 'body-parser'
+import express from 'express'
 import { Server } from 'socket.io'
-
-import { User } from '../models/User'
 import { Student } from '../models/Student'
 import { Volunteer } from '../models/Volunteer'
 import socketServer from '../router/api/socket-server'
@@ -28,7 +26,7 @@ export function mockApp(): express.Express {
 
 export function mockPassportMiddleware(
   getUser: () => Student | Volunteer,
-  login?: (arg1: User, arg2?: any) => Promise<void>,
+  login?: (arg1: Express.User, arg2?: any) => Promise<unknown>,
   logout?: () => void,
   destroy?: Function
 ) {
@@ -38,7 +36,7 @@ export function mockPassportMiddleware(
     next: express.NextFunction
   ): void => {
     req.user = getUser()
-    req.login = login || jest.fn()
+    req.asyncLogin = login || jest.fn()
     req.logout = logout || jest.fn()
     req.session = {
       // @ts-expect-error: mocking a partial express session

@@ -1,12 +1,14 @@
+import mongoose from 'mongoose'
 import request from 'supertest'
 import { mocked } from 'ts-jest/utils'
-import mongoose from 'mongoose'
+import {
+  DocCreationError,
+  InputError,
+  UserNotFoundError
+} from '../../models/Errors'
 import * as ContactFormRouter from '../../router/contact'
 import * as ContactFormService from '../../services/ContactFormService'
-import { DocCreationError, UserNotFoundError, InputError } from '../../models/Errors'
-import {
-  MailSendError,
-} from '../../services/ContactFormService'
+import { MailSendError } from '../../services/ContactFormService'
 import { mockApp } from '../mock-app'
 
 jest.mock('../../services/ContactFormService')
@@ -74,14 +76,10 @@ test('contact form returns 200 with valid request with userId', async () => {
   expect(res.body.message).toEqual('contact form submission has been sent')
 })
 
-test('contact form returns 400 with invalid userId', async () => {
+test('contact form returns 500 with invalid userId', async () => {
   const id = mongoose.Types.ObjectId().toString()
-  mockedContactFormService.saveContactFormSubmission.mockImplementationOnce(
-    () => {
-      return new Promise((resolve, reject) => {
-        reject(new UserNotFoundError('userId', id))
-      })
-    }
+  mockedContactFormService.saveContactFormSubmission.mockRejectedValueOnce(
+    new UserNotFoundError('userId', id)
   )
   const res = await agent
     .post('/api-public/contact/send')
@@ -92,21 +90,15 @@ test('contact form returns 400 with invalid userId', async () => {
       topic: 'General feedback',
       userId: id,
     })
-
-  expect(res.status).toEqual(400)
   expect(res.body.error).toEqual(
     `user not found via parameter userId and value ${id}`
   )
 })
 
-test('contact form returns 400 with invalid data', async () => {
+test('contact form returns 500 with invalid data', async () => {
   const id = mongoose.Types.ObjectId().toString()
-  mockedContactFormService.saveContactFormSubmission.mockImplementationOnce(
-    () => {
-      return new Promise((resolve, reject) => {
-        reject(new InputError('your data was bad'))
-      })
-    }
+  mockedContactFormService.saveContactFormSubmission.mockRejectedValueOnce(
+    new InputError('your data was bad')
   )
   const res = await agent
     .post('/api-public/contact/send')
@@ -118,8 +110,7 @@ test('contact form returns 400 with invalid data', async () => {
       userId: id,
     })
 
-  expect(res.status).toEqual(400)
-  expect(res.body.error).toEqual('')
+  expect(res.body.error).toEqual('your data was bad')
 })
 
 test('contact form returns 500 with invalid data', async () => {

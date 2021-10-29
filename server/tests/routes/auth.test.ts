@@ -1,13 +1,12 @@
-import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
-
+import { mocked } from 'ts-jest/utils'
 import { StudentDocument } from '../../models/Student'
 import { VolunteerDocument } from '../../models/Volunteer'
-import * as AuthService from '../../services/AuthService'
+import { StudentPartnerManifest, VolunteerPartnerManifest } from '../../partnerManifests'
 import * as AuthRouter from '../../router/auth'
-import { mockApp, mockPassportMiddleware } from '../mock-app'
+import * as AuthService from '../../services/AuthService'
 import { buildStudent } from '../generate'
-import { VolunteerPartnerManifest } from '../../partnerManifests'
+import { mockApp, mockPassportMiddleware } from '../mock-app'
 
 jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService, true)
@@ -78,7 +77,7 @@ describe('Test router logic', () => {
       body: { volunteerPartner },
     } = response
     expect(AuthService.lookupPartnerVolunteer).toHaveBeenCalledTimes(1)
-    expect(volunteerPartner).toEqual(payload.partnerId)
+    expect(volunteerPartner.name).toEqual(payload.partnerId)
   })
 
   test(`Route ${PARTNER_VOLUNTEER} invalid payload`, async () => {
@@ -95,16 +94,14 @@ describe('Test router logic', () => {
   const PARTNER_STUDENT = '/partner/student'
   test(`Route ${PARTNER_STUDENT} valid payload`, async () => {
     const payload = { partnerId: 'test' }
-    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce(async () => {
-      return payload.partnerId
-    })
+    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce({ name: payload.partnerId } as StudentPartnerManifest)
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
 
     const {
       body: { studentPartner },
     } = response
     expect(AuthService.lookupPartnerStudent).toHaveBeenCalledTimes(1)
-    expect(studentPartner).toEqual(payload.partnerId)
+    expect(studentPartner.name).toEqual(payload.partnerId)
   })
 
   test(`Route ${PARTNER_STUDENT} invalid payload`, async () => {
@@ -168,7 +165,7 @@ describe('Test router logic', () => {
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(0)
     expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(0)
-    expect(err).toEqual('Missing email body string')
+    expect(err).toContain('is not a string')
   })
 })
 
