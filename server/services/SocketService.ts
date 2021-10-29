@@ -1,8 +1,7 @@
 import { Types } from 'mongoose'
 import socketio from 'socket.io'
 import logger from '../logger'
-import MessageModel, { MessageDocument } from '../models/Message'
-import SessionModel from '../models/Session'
+import SessionModel, { SessionDocument } from '../models/Session'
 import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 
@@ -20,7 +19,7 @@ class SocketService {
    */
   private async getSessionData(
     sessionId: Types.ObjectId
-  ): Promise<MessageDocument> {
+  ): Promise<SessionDocument> {
     const populateOptions = [
       { path: 'student', select: 'firstname isVolunteer' },
       { path: 'volunteer', select: 'firstname isVolunteer' },
@@ -31,12 +30,8 @@ class SocketService {
       .populate(populateOptions)
       .exec()
 
-      console.log('the populated session', populatedSession)
-
-    return MessageModel.populate(populatedSession, {
-      path: 'messages.user',
-      select: 'firstname isVolunteer',
-    })
+    if (populatedSession) return populatedSession
+    else throw new Error(`Session data for ${sessionId} not found`)
   }
 
   async updateSessionList(): Promise<void> {
@@ -46,7 +41,6 @@ class SocketService {
 
   async emitSessionChange(sessionId: Types.ObjectId): Promise<void> {
     const session = await this.getSessionData(sessionId)
-    console.log('session returnneded', session)
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
 
     await this.updateSessionList()
