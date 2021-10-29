@@ -1340,7 +1340,7 @@ describe('saveMessage', () => {
       throw new LookupError(errorMessage)
     })
     try {
-      await SessionService.saveMessage(user, input)
+      await SessionService.saveMessage(user, new Date(), input)
     } catch (error) {
       expect(error).toBeInstanceOf(LookupError)
       expect((error as LookupError).message).toBe(errorMessage)
@@ -1359,7 +1359,7 @@ describe('saveMessage', () => {
       async () => mockValue
     )
 
-    await SessionService.saveMessage(user, input)
+    await SessionService.saveMessage(user, new Date(), input)
     expect(SessionRepo.addMessageToSessionById).toHaveBeenCalledTimes(1)
   })
 })
