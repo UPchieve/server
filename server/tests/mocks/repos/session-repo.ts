@@ -1,6 +1,12 @@
 import { Types } from 'mongoose'
 import { Session } from '../../../models/Session'
-import { CurrentSession, PublicSession, SessionsToReview, SessionToEnd, StudentLatestSession } from '../../../models/Session/queries'
+import {
+  CurrentSession,
+  PublicSession,
+  SessionsToReview,
+  SessionToEnd,
+  StudentLatestSession,
+} from '../../../models/Session/queries'
 import {
   buildSession,
   buildStudent,
@@ -194,7 +200,9 @@ export function mockedCreateSession(overrides = {}): Session {
   return buildSession(overrides)
 }
 
-export function mockedGetStudentLatestSession(overrides = {}): StudentLatestSession {
+export function mockedGetStudentLatestSession(
+  overrides = {}
+): StudentLatestSession {
   const session = buildSession()
   return {
     _id: session._id.toString(),
@@ -206,8 +214,8 @@ export function mockedGetStudentLatestSession(overrides = {}): StudentLatestSess
 export function mockedGetPublicSession(overrides = {}): PublicSession {
   const session = buildSession()
   const student = buildStudent()
-  const volunteer = buildVolunteer() 
- return {
+  const volunteer = buildVolunteer()
+  return {
     _id: session._id,
     student: {
       _id: student._id,

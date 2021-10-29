@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import updateElapsedAvailability from '../../worker/jobs/updateElapsedAvailability'
 import {
   getVolunteer,
@@ -32,11 +33,11 @@ beforeEach(async () => {
   await resetDb()
 })
 
-function getAvailabilityHistory(query: any, projection = {}){
+function getAvailabilityHistory(query: any, projection = {}) {
   return AvailabilityHistoryModel.findOne(query)
-  .select(projection)
-  .lean()
-  .exec()
+    .select(projection)
+    .lean()
+    .exec()
 }
 
 describe('updateElapsedAvailability', () => {

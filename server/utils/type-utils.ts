@@ -20,15 +20,17 @@ export function asString(s: unknown, errMsg = ''): string {
 export function asNumber(s: unknown, errMsg?: string): number {
   if (typeof s === 'number') return s as number
   else {
-    const coerced = isNaN(parseInt(s as string)) ? parseFloat(s as string) : NaN
+    const coerced = isNaN(parseInt(s as string))
+      ? parseFloat(s as string)
+      : parseInt(s as string)
     if (!isNaN(coerced)) return coerced as number
   }
-  throw new InputError(`${errMsg} :${s} is not a number`)
+  throw new InputError(`${errMsg} : ${s} is not a number`)
 }
 
 export function asBoolean(s: unknown, errMsg?: string): boolean {
   if (typeof s === 'boolean') return s as boolean
-  throw new InputError(`${errMsg} :${s} is not a boolean`)
+  throw new InputError(`${errMsg} : ${s} is not a boolean`)
 }
 
 // Use via asArray(asPrimitive)
@@ -38,38 +40,38 @@ export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
       const maybeT = s as T[]
       if (maybeT.every(item => as(item, errMsg))) return maybeT as T[]
     }
-    throw new InputError(`${errMsg} :${s} is not an array of the given type`)
+    throw new InputError(`${errMsg} : ${s} is not an array of the given type`)
   }
 }
 
 export function asDate(s: unknown, errMsg?: string): Date {
   if (s instanceof Date) return s as Date
-  throw new InputError(`${errMsg} :${s} is not a Date`)
+  throw new InputError(`${errMsg} : ${s} is not a Date`)
 }
 
 export function asFunction(s: unknown, errMsg?: string): Function {
   if (typeof s === 'function') return s as Function
-  throw new InputError(`${errMsg} :${s} is not a function`)
+  throw new InputError(`${errMsg} : ${s} is not a function`)
 }
 
 // Checks if arg is actual ObjectId OR coerces into objectId if possible
 export function asObjectId(s: unknown, errMsg?: string): Types.ObjectId {
   if (s instanceof Types.ObjectId) return s as Types.ObjectId
-  else if (typeof s === 'string' || typeof s === 'number') {
+  else if (typeof s === 'string') {
     try {
-      const x = Types.ObjectId(s as string | number)
+      const x = Types.ObjectId(s as string)
       return x
     } catch (err) {
-      throw new InputError(`${errMsg} :${s} is not an ObjectId`)
+      throw new InputError(`${errMsg} : ${s} is not an ObjectId`)
     }
   }
-  throw new InputError(`${errMsg} :${s} is not an ObjectId`)
+  throw new InputError(`${errMsg} : ${s} is not an ObjectId`)
 }
 
 export function asStringObjectId(s: unknown, errMsg?: string): string {
   if (typeof s === 'string' && Types.ObjectId.isValid(s)) return s as string
   else
-    throw new InputError(`${errMsg} :${s} is not a string formatted ObjectId`)
+    throw new InputError(`${errMsg} : ${s} is not a string formatted ObjectId`)
 }
 
 export function asAny(s: unknown): any {
@@ -87,7 +89,7 @@ export function asEnum<T>(e: any) {
     for (const value of Object.values(e)) {
       if (value === s) return s as T
     }
-    throw new InputError(`${errMsg} :${s} is not a type of the given enum`)
+    throw new InputError(`${errMsg} : ${s} is not a type of the given enum`)
   }
 }
 
@@ -144,6 +146,6 @@ export function asUnion<T>(fns: ((s: unknown, errMsg?: string) => T)[]) {
       }
       if (!isUnion) throw new Error(errors.join(', '))
     } else
-      throw new InputError(`${errMsg} :${fns} is not an array of validators`)
+      throw new InputError(`${errMsg} : ${fns} is not an array of validators`)
   }
 }

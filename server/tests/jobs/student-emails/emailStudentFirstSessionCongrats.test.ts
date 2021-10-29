@@ -2,7 +2,7 @@ import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { resetDb, insertSessionWithVolunteer } from '../../db-utils'
 import emailStudentFirstSessionCongrats from '../../../worker/jobs/student-emails/emailStudentFirstSessionCongrats'
-import { log as logger} from '../../../worker/logger'
+import { log as logger } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import * as MailService from '../../../services/MailService'
 import { USER_SESSION_METRICS } from '../../../constants'
@@ -37,7 +37,7 @@ describe('Student first session congrats email', () => {
   test('Should send email', async () => {
     const { session, student } = await insertSessionWithVolunteer()
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailStudentFirstSessionCongrats,
       data: {
@@ -57,7 +57,7 @@ describe('Student first session congrats email', () => {
       flags: [USER_SESSION_METRICS.absentStudent],
     })
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailStudentFirstSessionCongrats,
       data: {
@@ -73,9 +73,11 @@ describe('Student first session congrats email', () => {
     const { session, student } = await insertSessionWithVolunteer()
     const errorMessage = 'Unable to send'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    mockedMailService.sendStudentFirstSessionCongrats.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendStudentFirstSessionCongrats.mockRejectedValueOnce(
+      errorMessage
+    )
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailStudentFirstSessionCongrats,
       data: {

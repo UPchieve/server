@@ -67,7 +67,11 @@ test('contact form rejects invalid email', async () => {
 
 test('contact form rejects too short message', async () => {
   try {
-    await ContactFormSubmissionRepo.createContactFormByEmail('', topic, user.email)
+    await ContactFormSubmissionRepo.createContactFormByEmail(
+      '',
+      topic,
+      user.email
+    )
   } catch (err) {
     expect(err).toBeInstanceOf(RepoCreateError)
   }

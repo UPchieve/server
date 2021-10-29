@@ -13,6 +13,8 @@ import {
 } from '../generate'
 import { GRADES, SUBJECTS } from '../../constants'
 
+jest.mock('../../models/Session/queries')
+jest.mock('../../models/Student/queries')
 jest.mock('../../services/SessionService')
 jest.mock('../../services/UserService')
 jest.mock('../../services/SchoolService')

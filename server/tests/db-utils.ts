@@ -9,7 +9,7 @@ import NotificationModel, { Notification } from '../models/Notification'
 import FeedbackModel, {
   FeedbackVersionOne,
   FeedbackVersionTwo,
-  Feedback
+  Feedback,
 } from '../models/Feedback'
 import config from '../config'
 import AvailabilitySnapshotModel, {
@@ -58,7 +58,9 @@ export const insertVolunteer = async (
   return { ...createdVolunteer.toObject(), password: volunteer.password }
 }
 
-export const insertVolunteerMany = async (volunteers: Volunteer[]): Promise<any> => {
+export const insertVolunteerMany = async (
+  volunteers: Volunteer[]
+): Promise<any> => {
   // @note: Reasons for using collection.insertMany is because Mongoose casts each document in insertMany()
   // this bypasses the overhead and speeds up the test
   return VolunteerModel.collection.insertMany(volunteers)
@@ -135,7 +137,9 @@ export const insertNotification = async (
   return { notification: createdNotification.toObject(), volunteer }
 }
 
-export const insertNotificationMany = async (notifications: Notification[]): Promise<any> => {
+export const insertNotificationMany = async (
+  notifications: Notification[]
+): Promise<any> => {
   return NotificationModel.collection.insertMany(notifications)
 }
 
@@ -144,9 +148,9 @@ export const getStudent = async (
   projection = {}
 ): Promise<Partial<Student>> => {
   const student = await StudentModel.findOne(query)
-  .select(projection)
-  .lean()
-  .exec()
+    .select(projection)
+    .lean()
+    .exec()
   if (student) return student
   else return {}
 }
@@ -202,13 +206,17 @@ export const insertUserAction = async (
 }
 
 export const insertFeedback = async (
-  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> & { versionNumber: FEEDBACK_VERSIONS }
+  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> & {
+    versionNumber: FEEDBACK_VERSIONS
+  }
 ): Promise<FeedbackVersionOne | FeedbackVersionTwo> => {
   const feedback = buildFeedback(overrides)
   const createdFeedback = await FeedbackModel.create(feedback)
   return createdFeedback.toObject() as FeedbackVersionOne | FeedbackVersionTwo
 }
 
-export const insertFeedbackMany = async (feedback: Feedback[]): Promise<any> => {
+export const insertFeedbackMany = async (
+  feedback: Feedback[]
+): Promise<any> => {
   return FeedbackModel.collection.insertMany(feedback)
 }

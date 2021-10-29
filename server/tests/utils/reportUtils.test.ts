@@ -3,15 +3,19 @@ import { mocked } from 'ts-jest/utils'
 import * as reportUtils from '../../utils/reportUtils'
 import * as UserActionRepo from '../../models/UserAction/queries'
 import * as SessionRepo from '../../models/Session/queries'
+import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as AvailabilityRepo from '../../models/Availability/queries'
 import * as VolunteerService from '../../services/VolunteerService'
 import { buildVolunteer, getObjectId, buildUserAction } from '../generate'
 import { InputError } from '../../models/Errors'
 jest.mock('../../services/SessionService')
 jest.mock('../../services/VolunteerService')
+jest.mock('../../models/Session/queries')
+jest.mock('../../models/Volunteer/queries')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedVolunteerService = mocked(VolunteerService, true)
+const mockedVolunteerRepo = mocked(VolunteerRepo, true)
 
 function buildAnalyticVolunteer(
   overrides: Partial<reportUtils.PartnerVolunteerAnalytics> = {}
@@ -72,9 +76,7 @@ describe('Generate telecom report', () => {
       passed: true,
     },
   }
-  const volunteers = [
-    buildVolunteer({ certifications })
-  ]
+  const volunteers = [buildVolunteer({ certifications })]
   const session1Time = moment(rootTime)
     .subtract(1, 'week')
     .hour(12)
@@ -154,14 +156,12 @@ describe('Generate telecom report', () => {
     },
   ]
   const actions = [
-    buildUserAction(
-      { 
-        createdAt: moment(rootTime)
-          .subtract(1, 'week')
-          .hour(10)
-          .toDate()
-      }
-    )
+    buildUserAction({
+      createdAt: moment(rootTime)
+        .subtract(1, 'week')
+        .hour(10)
+        .toDate(),
+    }),
   ]
 
   beforeEach(() => {
@@ -304,8 +304,9 @@ describe('getAnalyticsReportSummary', () => {
     const startDate = new Date('2021-01-01T00:00:00.000+00:00')
     const endDate = new Date('2021-03-01T00:00:00.000+00:00')
 
-    // @ts-expect-error type error on empty aggregate
-    mockedVolunteerService.getVolunteersWithPipeline.mockReturnValue([])
+    mockedVolunteerRepo.getVolunteersWithPipeline.mockResolvedValueOnce(
+      [] as any[]
+    )
 
     const summary = await reportUtils.getAnalyticsReportSummary(
       'example',
@@ -407,7 +408,9 @@ describe('validateJoinedDateRanges', () => {
       })
     }
     expect(t).toThrow(InputError)
-    expect(t).toThrow('"Joined before" date does not follow a MM-DD-YYYY format')
+    expect(t).toThrow(
+      '"Joined before" date does not follow a MM-DD-YYYY format'
+    )
   })
 
   test('Should throw an error for when passing an empty string as a date', () => {
@@ -449,7 +452,9 @@ describe('validateStudentReportQuery', () => {
       reportUtils.validateStudentReportQuery(data)
     }
     expect(t).toThrow(InputError)
-    expect(t).toThrow(`Invalid student partner site for ${data.studentPartnerOrg}`)
+    expect(t).toThrow(
+      `Invalid student partner site for ${data.studentPartnerOrg}`
+    )
   })
 
   test('Should throw an error for invalid student partner org site if not a listed site for a parter', () => {
@@ -464,7 +469,9 @@ describe('validateStudentReportQuery', () => {
       reportUtils.validateStudentReportQuery(data)
     }
     expect(t).toThrow(InputError)
-    expect(t).toThrow(`Invalid student partner site for ${data.studentPartnerOrg}`)
+    expect(t).toThrow(
+      `Invalid student partner site for ${data.studentPartnerOrg}`
+    )
   })
 
   test('Should throw an error for invalid high school id', () => {

@@ -6,7 +6,7 @@ import {
   insertNotificationMany,
 } from '../../db-utils'
 import emailLowHoursSelected from '../../../worker/jobs/partner-volunteer-emails/emailLowHoursSelected'
-import { log }  from '../../../worker/logger'
+import { log } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import * as MailService from '../../../services/MailService'
 import {
@@ -71,7 +71,7 @@ describe('Partner volunteer low hours selected email', () => {
   test('Should not send email if volunteer is not onboarded', async () => {
     const volunteer = await insertVolunteer({ isOnboarded: false })
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerLowHoursSelected,
       data: {
@@ -98,7 +98,7 @@ describe('Partner volunteer low hours selected email', () => {
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerLowHoursSelected,
       data: {
@@ -161,9 +161,11 @@ describe('Partner volunteer low hours selected email', () => {
       volunteerPartnerOrg: 'example',
     })
     const errorMessage = 'Unable to send'
-    mockedMailService.sendPartnerVolunteerLowHoursSelected.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendPartnerVolunteerLowHoursSelected.mockRejectedValueOnce(
+      errorMessage
+    )
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerLowHoursSelected,
       data: {

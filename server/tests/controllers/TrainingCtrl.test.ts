@@ -173,7 +173,7 @@ describe('getQuizScore', () => {
     )
     // Volunteer first completes required training for Math and Science - Tutoring Skills
     const idAnswerMap = await generateIdAnswerMapHelper()
-    
+
     let quizScoreInput: any = {
       user: volunteer,
       category: TRAINING.TUTORING_SKILLS,
@@ -240,7 +240,7 @@ describe('getQuizScore', () => {
 
     // Volunteer completes UPchieve 101
     const idAnswerMap = await generateIdAnswerMapHelper()
-    
+
     let quizScoreInput: any = {
       user: volunteer,
       category: TRAINING.UPCHIEVE_101,
@@ -382,7 +382,7 @@ describe('getQuizScore', () => {
     )
 
     const idAnswerMap = await generateIdAnswerMapHelper()
-    
+
     let quizScoreInput: any = {
       user: volunteer,
       category: TRAINING.TUTORING_SKILLS,

@@ -56,9 +56,7 @@ function generateTestSession(): Session {
   return session
 }
 
-function generateAssistmentsData(
-  session: Session
-): AssistmentsData {
+function generateAssistmentsData(session: Session): AssistmentsData {
   return {
     _id: Types.ObjectId(),
     problemId: 12345,
@@ -99,7 +97,8 @@ describe('Test build request subroutine', () => {
       subject: session.type,
       subTopic: session.subTopic,
       timeTutored: session.timeTutored,
-      volunteerJoinedAt: session.volunteerJoinedAt && session.volunteerJoinedAt.getTime(),
+      volunteerJoinedAt:
+        session.volunteerJoinedAt && session.volunteerJoinedAt.getTime(),
       volunteerId: session.volunteer && session.volunteer.toString(),
     }
     const payload = {
@@ -131,7 +130,8 @@ describe('Test build request subroutine', () => {
 describe('Test send data subroutine', () => {
   const session = generateTestSession()
   const ad = generateAssistmentsData(session)
-  let params: sendAssistmentsData.Parameters, payload: sendAssistmentsData.Payload
+  let params: sendAssistmentsData.Parameters,
+    payload: sendAssistmentsData.Payload
 
   beforeEach(() => {
     jest.resetAllMocks()
@@ -152,7 +152,8 @@ describe('Test send data subroutine', () => {
       subject: session.type,
       subTopic: session.subTopic,
       timeTutored: session.timeTutored,
-      volunteerJoinedAt: session.volunteerJoinedAt && session.volunteerJoinedAt.getTime(),
+      volunteerJoinedAt:
+        session.volunteerJoinedAt && session.volunteerJoinedAt.getTime(),
       volunteerId: session.volunteer && session.volunteer.toString(),
     }
     payload = {

@@ -9,7 +9,7 @@ import {
   buildVolunteerRegistrationForm,
   buildPartnerVolunteerRegistrationForm,
   buildSchool,
-  getObjectId
+  getObjectId,
 } from '../generate'
 
 import { User } from '../../models/User'
@@ -110,7 +110,11 @@ describe('Registration tests', () => {
     partnerUserId: '123',
     college: 'UPchieve University',
   }
-  const studentOpen = buildStudent({ ...studentOpenOverrides, approvedHighSchool: highSchool._id, highSchoolId: undefined })
+  const studentOpen = buildStudent({
+    ...studentOpenOverrides,
+    approvedHighSchool: highSchool._id,
+    highSchoolId: undefined,
+  })
   const studentPartner = buildStudent(studentPartnerOverrides)
 
   const volunteerPartnerOverrides = {
@@ -138,9 +142,9 @@ describe('Registration tests', () => {
 
     const t = async <T>(p: T) => await AuthService.checkCredential(p)
 
-    await expect(t(payload)).rejects.toThrow(new InputError(
-      'Must supply an email and password for registration'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new InputError('Must supply an email and password for registration')
+    )
   })
 
   test('Check invalid credentials via no password', async () => {
@@ -151,9 +155,9 @@ describe('Registration tests', () => {
 
     const t = async <T>(p: T) => await AuthService.checkCredential(p)
 
-    await expect(t(payload)).rejects.toThrow(new InputError(
-      'Must supply an email and password for registration'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new InputError('Must supply an email and password for registration')
+    )
   })
 
   test('Check invalid credentials via bad email', async () => {
@@ -164,9 +168,9 @@ describe('Registration tests', () => {
 
     const t = async <T>(p: T) => await AuthService.checkCredential(p)
 
-    await expect(t(payload)).rejects.toThrow(new RegistrationError(
-      'Must supply a valid email address'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new RegistrationError('Must supply a valid email address')
+    )
   })
 
   test('Register valid open student', async () => {
@@ -206,17 +210,19 @@ describe('Registration tests', () => {
     })
     const t = async <T>(p: T) => await AuthService.registerOpenStudent(p)
 
-    await expect(t(payload)).rejects.toThrow(new LookupError(
-      'The email address you entered is already in use'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new LookupError('The email address you entered is already in use')
+    )
   })
 
   test('Register invalid open student via bad school', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedIpAddressService.getIpWhoIs.mockResolvedValue(ip)
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValue(buildSchool({
-      isApproved: false
-    }))
+    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValue(
+      buildSchool({
+        isApproved: false,
+      })
+    )
 
     const payload = buildStudentRegistrationForm({
       ...studentOpenOverrides,
@@ -224,9 +230,9 @@ describe('Registration tests', () => {
     })
     const t = async <T>(p: T) => await AuthService.registerOpenStudent(p)
 
-    await expect(t(payload)).rejects.toThrow(new RegistrationError(
-      `School ${payload.highSchoolId} is not approved`
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new RegistrationError(`School ${payload.highSchoolId} is not approved`)
+    )
   })
 
   test('Register invalid partner student via bad org', async () => {
@@ -238,23 +244,26 @@ describe('Registration tests', () => {
     })
     const t = async <T>(p: T) => await AuthService.registerPartnerStudent(p)
 
-    await expect(t(payload)).rejects.toThrow(new RegistrationError(
-      'Invalid student partner organization'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new RegistrationError('Invalid student partner organization')
+    )
   })
 
   test('Register invalid open student via bad country', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
-    mockedIpAddressService.getIpWhoIs.mockResolvedValue({ country_code: 'RU', org: 'example' })
+    mockedIpAddressService.getIpWhoIs.mockResolvedValue({
+      country_code: 'RU',
+      org: 'example',
+    })
 
     const payload = buildStudentRegistrationForm({
       ...studentOpenOverrides,
     })
     const t = async <T>(p: T) => await AuthService.registerOpenStudent(p)
 
-    await expect(t(payload)).rejects.toThrow(new NotAllowedError(
-      'Cannot register from an international IP address'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new NotAllowedError('Cannot register from an international IP address')
+    )
   })
 
   test('Register invalid open student form via falsy terms', async () => {
@@ -267,9 +276,9 @@ describe('Registration tests', () => {
     })
     const t = async <T>(p: T) => await AuthService.registerOpenStudent(p)
 
-    await expect(t(payload)).rejects.toThrow(new RegistrationError(
-      'Must accept the user agreement'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new RegistrationError('Must accept the user agreement')
+    )
   })
 
   test('Register valid open student via working referral', async () => {
@@ -282,7 +291,7 @@ describe('Registration tests', () => {
       referredBy: referrer._id,
       referredByCode: referrer._id.toString(),
       approvedHighSchool: highSchool._id,
-      highSchoolId: undefined
+      highSchoolId: undefined,
     })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer._id)
     mockedUserCtrl.createStudent.mockResolvedValue(referree)
@@ -290,7 +299,7 @@ describe('Registration tests', () => {
     const serviceStudent = await AuthService.registerOpenStudent(
       buildStudentRegistrationForm({
         ...studentOpenOverrides,
-        referredByCode: referrer._id.toString()
+        referredByCode: referrer._id.toString(),
       })
     )
 
@@ -318,7 +327,7 @@ describe('Registration tests', () => {
     const serviceVolunteer = await AuthService.registerPartnerVolunteer(
       buildPartnerVolunteerRegistrationForm(volunteerPartnerOverrides)
     )
-  
+
     expect(serviceVolunteer).toMatchObject(volunteerPartner)
   })
 
@@ -327,13 +336,13 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(getObjectId())
 
     const payload = buildVolunteerRegistrationForm({
-      phone: volunteerOpen.phone
+      phone: volunteerOpen.phone,
     })
     const t = async <T>(p: T) => await AuthService.registerVolunteer(p)
 
-    await expect(t(payload)).rejects.toThrow(new LookupError(
-      'The email address you entered is already in use'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new LookupError('The email address you entered is already in use')
+    )
   })
 
   test('Register invalid partner volunteer via bad org', async () => {
@@ -346,9 +355,9 @@ describe('Registration tests', () => {
     })
     const t = async <T>(p: T) => await AuthService.registerPartnerVolunteer(p)
 
-    await expect(t(payload)).rejects.toThrow(new RegistrationError(
-      'Invalid volunteer partner organization'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new RegistrationError('Invalid volunteer partner organization')
+    )
   })
 
   test('Register invalid partner volunteer via bad email domain', async () => {
@@ -362,9 +371,11 @@ describe('Registration tests', () => {
     })
     const t = async <T>(p: T) => await AuthService.registerPartnerVolunteer(p)
 
-    await expect(t(payload)).rejects.toThrow(new RegistrationError(
-      'Invalid email domain for volunteer partner organization'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new RegistrationError(
+        'Invalid email domain for volunteer partner organization'
+      )
+    )
   })
 
   test('Register invalid open volunteer form via falsy terms', async () => {
@@ -376,9 +387,9 @@ describe('Registration tests', () => {
     })
     const t = async <T>(p: T) => await AuthService.registerVolunteer(p)
 
-    await expect(t(payload)).rejects.toThrow(new RegistrationError(
-      'Must accept the user agreement'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new RegistrationError('Must accept the user agreement')
+    )
   })
 
   test('Register valid open volunteer via working referral', async () => {
@@ -394,7 +405,7 @@ describe('Registration tests', () => {
 
     const serviceVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm({
-        referredByCode: referrer._id.toString()
+        referredByCode: referrer._id.toString(),
       })
     )
 
@@ -411,9 +422,9 @@ describe('Registration tests', () => {
     })
     const t = async <T>(p: T) => await AuthService.registerPartnerVolunteer(p)
 
-    await expect(t(payload)).rejects.toThrow(new RegistrationError(
-      'Must accept the user agreement'
-    ))
+    await expect(t(payload)).rejects.toThrow(
+      new RegistrationError('Must accept the user agreement')
+    )
   })
 
   test('Register valid partner volunteer via working referral', async () => {
@@ -431,7 +442,7 @@ describe('Registration tests', () => {
     const serviceVolunteer = await AuthService.registerPartnerVolunteer(
       buildPartnerVolunteerRegistrationForm({
         ...volunteerPartnerOverrides,
-        referredByCode: referrer._id.toString()
+        referredByCode: referrer._id.toString(),
       })
     )
 
@@ -449,7 +460,7 @@ describe('Password reset tests', () => {
 
   test('Initiate valid reset', async () => {
     mockedUserRepo.getUserByEmail.mockResolvedValue(user as User)
-    
+
     await AuthService.sendReset(user.email)
 
     expect(MailService.sendReset).toHaveBeenCalledWith(
@@ -478,18 +489,20 @@ describe('Password reset tests', () => {
 
   test('Initiate invalid reset via bad email', async () => {
     mockedUserRepo.getUserByEmail.mockResolvedValue(undefined)
-    
+
     const badEmail = 'email@baddomain.bad'
     const t = async <T>(p: T) => await AuthService.sendReset(p)
 
-    await expect(t(badEmail)).rejects.toThrow(new LookupError(`No account with ${badEmail} found`))
+    await expect(t(badEmail)).rejects.toThrow(
+      new LookupError(`No account with ${badEmail} found`)
+    )
   })
 
   // Redundant test of email typecheck due to a previous security vulnerability
   // that used an array of emails to have reset tokens sent to the attacker's email
   test('Initiate invalid reset via malformed email as array', async () => {
     mockedUserRepo.getUserByEmail.mockResolvedValue(undefined)
-    
+
     const badEmail = ['victim@email.com', 'attacker@blackhat.bad']
     const t = async <T>(p: T) => await AuthService.sendReset(p)
 
@@ -498,7 +511,7 @@ describe('Password reset tests', () => {
 
   test('Confirm invalid reset via bad token', async () => {
     mockedUserRepo.getUserByResetToken.mockResolvedValue(user as User)
-  
+
     const payload = {
       email: user.email,
       password: 'Password456',
@@ -507,12 +520,14 @@ describe('Password reset tests', () => {
 
     const t = async <T>(p: T) => await AuthService.confirmReset(p)
 
-    await expect(t(payload)).rejects.toThrow(new ResetError('Invalid password reset token'))
+    await expect(t(payload)).rejects.toThrow(
+      new ResetError('Invalid password reset token')
+    )
   })
 
   test('Confirm invalid reset via unlisted token', async () => {
     mockedUserRepo.getUserByResetToken.mockResolvedValue(undefined)
-  
+
     const payload = {
       email: user.email,
       password: 'Password456',
@@ -521,12 +536,14 @@ describe('Password reset tests', () => {
 
     const t = async <T>(p: T) => await AuthService.confirmReset(p)
 
-    await expect(t(payload)).rejects.toThrow(new LookupError('No account found with provided password reset token'))
+    await expect(t(payload)).rejects.toThrow(
+      new LookupError('No account found with provided password reset token')
+    )
   })
 
   test('Confirm invalid reset via unmatched token', async () => {
     mockedUserRepo.getUserByResetToken.mockResolvedValue(user as User)
-  
+
     const payload = {
       email: 'different email',
       password: 'Password456',
@@ -535,6 +552,8 @@ describe('Password reset tests', () => {
 
     const t = async <T>(p: T) => await AuthService.confirmReset(p)
 
-    await expect(t(payload)).rejects.toThrow(new ResetError('Email did not match the password reset token'))
+    await expect(t(payload)).rejects.toThrow(
+      new ResetError('Email did not match the password reset token')
+    )
   })
 })

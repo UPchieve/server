@@ -39,7 +39,7 @@ describe('Student session action emails', () => {
     const session = buildSession()
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: currentJob.jobName,
       data: {
@@ -51,15 +51,23 @@ describe('Student session action emails', () => {
     }
 
     test(`Should execute ${job.name} successfully`, async () => {
-      mockedStudentRepo.getStudentContactInfoById.mockImplementation(async () => student)
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockImplementation(async () => volunteer)
+      mockedStudentRepo.getStudentContactInfoById.mockImplementation(
+        async () => student
+      )
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockImplementation(
+        async () => volunteer
+      )
       await emailStudentSessionActions(job)
       expect(currentJob.jobFn).toHaveBeenCalledTimes(1)
     })
 
     test(`Should not execute ${job.name} if there is no student`, async () => {
-      mockedStudentRepo.getStudentContactInfoById.mockImplementation(async () => undefined)
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockImplementation(async () => volunteer)
+      mockedStudentRepo.getStudentContactInfoById.mockImplementation(
+        async () => undefined
+      )
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockImplementation(
+        async () => volunteer
+      )
       await emailStudentSessionActions(job)
       expect(currentJob.jobFn).toHaveBeenCalledTimes(0)
     })
@@ -68,8 +76,12 @@ describe('Student session action emails', () => {
       const errorMessage = 'Error sending email'
       const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
       currentJob.jobFn.mockImplementationOnce(rejectionFn)
-      mockedStudentRepo.getStudentContactInfoById.mockImplementation(async () => student)
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockImplementation(async () => volunteer)
+      mockedStudentRepo.getStudentContactInfoById.mockImplementation(
+        async () => student
+      )
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockImplementation(
+        async () => volunteer
+      )
 
       await expect(emailStudentSessionActions(job)).rejects.toEqual(
         Error(

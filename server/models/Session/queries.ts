@@ -1,5 +1,6 @@
-import moment from 'moment-timezone'
-import { Aggregate, Types } from 'mongoose'
+import moment from 'moment'
+import 'moment-timezone'
+import { Types } from 'mongoose'
 import {
   FEEDBACK_VERSIONS,
   USER_SESSION_METRICS,

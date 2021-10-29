@@ -4,7 +4,7 @@ import { mocked } from 'ts-jest/utils'
 import {
   DocCreationError,
   InputError,
-  UserNotFoundError
+  UserNotFoundError,
 } from '../../models/Errors'
 import * as ContactFormRouter from '../../router/contact'
 import * as ContactFormService from '../../services/ContactFormService'

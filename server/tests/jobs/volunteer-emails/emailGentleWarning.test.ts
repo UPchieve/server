@@ -7,7 +7,7 @@ import {
   insertVolunteerMany,
 } from '../../db-utils'
 import emailGentleWarning from '../../../worker/jobs/volunteer-emails/emailGentleWarning'
-import { log as logger} from '../../../worker/logger'
+import { log as logger } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import * as MailService from '../../../services/MailService'
 import { buildNotification, buildVolunteer } from '../../generate'
@@ -20,7 +20,10 @@ const mockedMailService = mocked(MailService, true)
 
 // TODO: refactor test to mock out DB calls
 
-const createNotifications = (amount: number, volunteerId: mongoose.Types.ObjectId): Notification[] => {
+const createNotifications = (
+  amount: number,
+  volunteerId: mongoose.Types.ObjectId
+): Notification[] => {
   const notifications = []
   for (let i = 0; i < amount; i++) {
     notifications.push(buildNotification({ volunteer: volunteerId }))
@@ -76,7 +79,7 @@ describe('Volunteer gentle warning email', () => {
     })
     await insertVolunteerMany([plato, aristotle, kant, sartre])
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailVolunteerGentleWarning,
       data: {
@@ -111,7 +114,9 @@ describe('Volunteer gentle warning email', () => {
     const kantNotification = buildNotification({ volunteer: kant._id })
     const errorMessage = 'Unable to send'
     const platoError = `volunteer ${plato._id}: ${errorMessage}`
-    mockedMailService.sendVolunteerGentleWarning.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendVolunteerGentleWarning.mockRejectedValueOnce(
+      errorMessage
+    )
 
     await insertNotificationMany([...platoNotifications, kantNotification])
     const { session } = await insertSession({
@@ -119,7 +124,7 @@ describe('Volunteer gentle warning email', () => {
     })
     await insertVolunteerMany([plato, kant, sartre])
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailVolunteerGentleWarning,
       data: {

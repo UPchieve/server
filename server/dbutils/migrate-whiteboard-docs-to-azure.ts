@@ -8,7 +8,8 @@ import {
 import { SUBJECT_TYPES } from '../constants'
 import config from '../config'
 import util from 'util'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 const setImmediatePromise = util.promisify(setImmediate)
 
 if (config.whiteboardStorageAccountName === 'bogus') {

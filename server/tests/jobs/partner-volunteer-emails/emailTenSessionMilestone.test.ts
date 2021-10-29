@@ -67,11 +67,11 @@ describe('Partner volunteer ten session milestone email', () => {
         'session-enjoyable': 4,
       },
       versionNumber: FEEDBACK_VERSIONS.TWO,
-      studentId: buildStudent()._id
+      studentId: buildStudent()._id,
     })
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {
@@ -141,7 +141,7 @@ describe('Partner volunteer ten session milestone email', () => {
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {
@@ -212,7 +212,7 @@ describe('Partner volunteer ten session milestone email', () => {
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {
@@ -248,7 +248,7 @@ describe('Partner volunteer ten session milestone email', () => {
     await insertSessionMany(sessions)
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {
@@ -296,9 +296,11 @@ describe('Partner volunteer ten session milestone email', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO,
     } as FeedbackVersionTwo)
     const errorMessage = 'Unable to send'
-    mockedMailService.sendPartnerVolunteerTenSessionMilestone.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendPartnerVolunteerTenSessionMilestone.mockRejectedValueOnce(
+      errorMessage
+    )
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
       data: {

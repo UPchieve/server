@@ -35,7 +35,7 @@ describe('Volunteer session action emails', () => {
     const session = buildSession()
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: currentJob.jobName,
       data: {
@@ -48,14 +48,18 @@ describe('Volunteer session action emails', () => {
 
     test(`Should execute ${job.name} successfully`, async () => {
       mockedStudentRepo.getStudentContactInfoById.mockResolvedValueOnce(student)
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(volunteer)
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+        volunteer
+      )
       await emailVolunteerSessionActions(job)
       expect(currentJob.jobFn).toHaveBeenCalledTimes(1)
     })
 
     test(`Should not execute ${job.name} if there is no volunteer`, async () => {
       mockedStudentRepo.getStudentContactInfoById.mockResolvedValueOnce(student)
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(undefined)
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+        undefined
+      )
       await emailVolunteerSessionActions(job)
       expect(currentJob.jobFn).toHaveBeenCalledTimes(0)
     })
@@ -64,7 +68,9 @@ describe('Volunteer session action emails', () => {
       const errorMessage = 'Error sending email'
       currentJob.jobFn.mockRejectedValueOnce(errorMessage)
       mockedStudentRepo.getStudentContactInfoById.mockResolvedValueOnce(student)
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(volunteer)
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+        volunteer
+      )
 
       await expect(emailVolunteerSessionActions(job)).rejects.toEqual(
         Error(

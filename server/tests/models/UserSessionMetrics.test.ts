@@ -1,6 +1,9 @@
 import mongoose from 'mongoose'
 import { merge } from 'lodash'
-import { UserSessionMetricsModel, UserSessionMetrics } from '../../models/UserSessionMetrics'
+import {
+  UserSessionMetricsModel,
+  UserSessionMetrics,
+} from '../../models/UserSessionMetrics'
 import * as UserSessionMetricsRepo from '../../models/UserSessionMetrics/queries'
 import UserModel, { User } from '../../models/User'
 import {
@@ -52,11 +55,11 @@ describe('Test create UserSessionModel objects', () => {
   })
 
   test('Create succeeds for student', async () => {
-    const createdUSM = await UserSessionMetricsRepo.createUSMByUserId(student._id)
-
-    const foundUSM = await UserSessionMetricsModel.findById(
-      createdUSM._id
+    const createdUSM = await UserSessionMetricsRepo.createUSMByUserId(
+      student._id
     )
+
+    const foundUSM = await UserSessionMetricsModel.findById(createdUSM._id)
       .lean()
       .exec()
     expect(foundUSM!.user).toEqual(student._id)
@@ -67,9 +70,7 @@ describe('Test create UserSessionModel objects', () => {
       volunteer._id
     )
 
-    const foundUSM = await UserSessionMetricsModel.findById(
-      createdUSM._id
-    )
+    const foundUSM = await UserSessionMetricsModel.findById(createdUSM._id)
       .lean()
       .exec()
     expect(foundUSM!.user).toEqual(volunteer._id)
@@ -101,7 +102,9 @@ describe('Test create UserSessionModel objects', () => {
       error = err as Error
     }
     expect(error!).toBeInstanceOf(RepoCreateError)
-    expect((error! as RepoCreateError).message).toContain(`User ${user} does not exist`)
+    expect((error! as RepoCreateError).message).toContain(
+      `User ${user} does not exist`
+    )
   })
 
   test('Create errors with no data returned from db', async () => {
@@ -121,7 +124,9 @@ describe('Test create UserSessionModel objects', () => {
     }
 
     expect(error!).toBeInstanceOf(RepoCreateError)
-    expect((error! as RepoCreateError).message).toBe('Create query did not return created object')
+    expect((error! as RepoCreateError).message).toBe(
+      'Create query did not return created object'
+    )
   })
 
   test('Create bubbles up errors from database find', async () => {
@@ -300,7 +305,9 @@ describe('Test update UserSessionModel objects', () => {
     for (const query of queries) {
       for (const key in query) {
         const [type, path]: string[] = key.split('.')
-        expect((((foundUSM! as any)[type]! as any)[path]! as string)).toEqual(query[key])
+        expect(((foundUSM! as any)[type]! as any)[path]! as string).toEqual(
+          query[key]
+        )
       }
     }
   })

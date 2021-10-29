@@ -1,4 +1,5 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import faker from 'faker'
 import { Types } from 'mongoose'
 import base64url from 'base64url'
@@ -15,7 +16,7 @@ import {
   TRAINING,
   SUBJECTS,
   GRADES,
-  FEEDBACK_VERSIONS
+  FEEDBACK_VERSIONS,
 } from '../constants'
 import { Message } from '../models/Message'
 import { AvailabilitySnapshot } from '../models/Availability/Snapshot'
@@ -149,7 +150,9 @@ export const buildAvailability = (overrides = {}): Availability => {
     for (const hour in HOURS) {
       tempDay[HOURS[hour as keyof typeof HOURS] as HOURS] = false
     }
-    availability[DAYS[day as keyof typeof DAYS] as DAYS] = tempDay as AvailabilityDay
+    availability[
+      DAYS[day as keyof typeof DAYS] as DAYS
+    ] = tempDay as AvailabilityDay
   }
 
   const mergedAvailability = merge(availability, overrides)
@@ -206,15 +209,12 @@ export function buildUser(overrides = {}): User {
     isVolunteer: false,
     isAdmin: false,
     isBanned: false,
-    banReason: undefined,
     isTestUser: false,
     isFakeUser: false,
     isDeactivated: false,
     pastSessions: [],
-    partnerUserId: undefined,
     lastActivityAt: new Date(),
     referralCode: generateReferralCode(_id),
-    referredBy: undefined,
     ipAddresses: [],
     type: '',
     hashPassword: () => '',
@@ -251,7 +251,6 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     timeTutored: 0,
     elapsedAvailability: 0,
     sentHourSummaryIntroEmail: false,
-    volunteerPartnerOrg: undefined,
     isFailsafeVolunteer: false,
     favoriteAcademicSubject: '',
     timezone: 'America/New_York',
@@ -436,7 +435,6 @@ export const buildSession = (overrides = {}): Session => {
   const session = {
     _id,
     student: getObjectId(),
-    volunteer: undefined,
     type: 'math',
     subTopic: 'algebra',
     messages: [],
@@ -444,15 +442,10 @@ export const buildSession = (overrides = {}): Session => {
     whiteboardDoc: '',
     quillDoc: '',
     createdAt: new Date(),
-    volunteerJoinedAt: undefined,
-    endedAt: undefined,
-    endedBy: undefined,
     failedJoins: [],
     notifications: [],
     photos: [],
     isReported: false,
-    reportReason: undefined,
-    reportMessage: undefined,
     flags: [],
     reviewed: false,
     toReview: false,
@@ -464,7 +457,9 @@ export const buildSession = (overrides = {}): Session => {
   return session
 }
 
-export const buildMessage = <T extends { user: Types.ObjectId }>(overrides: T): Message => {
+export const buildMessage = <T extends { user: Types.ObjectId }>(
+  overrides: T
+): Message => {
   const _id = Types.ObjectId()
   const message = {
     _id,
@@ -516,15 +511,7 @@ export const buildUserAction = (
   const userAction = {
     _id: getObjectId(),
     user: getObjectId(),
-    session: undefined,
     createdAt: new Date(),
-    actionType: undefined,
-    action: undefined,
-    quizCategory: undefined,
-    quizSubcategory: undefined,
-    ipAddress: undefined,
-    referenceEmail: undefined,
-    banReason: undefined,
     ...buildUserAgent(),
     ...overrides,
   }
@@ -565,7 +552,9 @@ export const buildAvailabilityDay = (overrides = {}): AvailabilityDay => {
 }
 
 export const buildFeedback = (
-  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> & { versionNumber: FEEDBACK_VERSIONS }
+  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> & {
+    versionNumber: FEEDBACK_VERSIONS
+  }
 ): FeedbackVersionOne | FeedbackVersionTwo => {
   const feedback = {
     _id: Types.ObjectId(),
@@ -581,14 +570,14 @@ export const buildFeedback = (
         'feel-like-helped-student': 0,
         'feel-more-fulfilled': 0,
         'good-use-of-time': 0,
-        'plan-on-volunteering-again': 0
+        'plan-on-volunteering-again': 0,
       },
       'other-feedback': '',
       'rate-upchieve': {
         'achieve-goal': 0,
         'easy-to-use': 0,
         'get-help-faster': 0,
-        'use-next-time': 0
+        'use-next-time': 0,
       },
       'rate-coach': {
         'achieve-goal': 0,
@@ -599,14 +588,14 @@ export const buildFeedback = (
       },
       'technical-difficulties': '',
       'asked-unprepared-questions': '',
-      'app-features-needed': ''
+      'app-features-needed': '',
     },
     studentTutoringFeedback: {
       'session-goal': 0,
       'subject-understanding': 0,
       'coach-rating': 0,
       'coach-feedback': '',
-      'other-feedback': ''
+      'other-feedback': '',
     },
     studentCounselingFeedback: {
       'rate-session': { rating: 0 },
@@ -614,7 +603,7 @@ export const buildFeedback = (
       'coach-ratings': {
         'coach-knowedgable': 0,
         'coach-friendly': 0,
-        'coach-help-again': 0
+        'coach-help-again': 0,
       },
       'other-feedback': '',
     },
@@ -623,7 +612,7 @@ export const buildFeedback = (
       'session-improvements': '',
       'student-understanding': 0,
       'session-obstacles': [],
-      'other-feedback': ''
+      'other-feedback': '',
     },
     volunteerId: getObjectId(),
     studentId: getObjectId(),

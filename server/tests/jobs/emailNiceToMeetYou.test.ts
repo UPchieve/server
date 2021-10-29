@@ -76,7 +76,9 @@ describe('Email nice to meet you to volunteers', () => {
     mockedMailService.sendNiceToMeetYou.mockRejectedValueOnce(errorMessage)
 
     await expect(emailNiceToMeetYou()).rejects.toEqual(
-      new Error(`Failed to send ${Jobs.EmailNiceToMeetYou} to: ${volunteerError}`)
+      new Error(
+        `Failed to send ${Jobs.EmailNiceToMeetYou} to: ${volunteerError}`
+      )
     )
 
     const expectedEmailsSent = 0

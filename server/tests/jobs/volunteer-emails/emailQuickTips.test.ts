@@ -2,7 +2,7 @@ import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { resetDb, insertVolunteer, insertNotification } from '../../db-utils'
 import emailQuickTips from '../../../worker/jobs/volunteer-emails/emailQuickTips'
-import { log as logger} from '../../../worker/logger'
+import { log as logger } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import * as MailService from '../../../services/MailService'
 import { buildAvailability } from '../../generate'
@@ -42,7 +42,7 @@ describe('Volunteer quick tips email', () => {
     })
     const volunteer = await insertVolunteer({ isOnboarded: true, availability })
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
@@ -60,7 +60,7 @@ describe('Volunteer quick tips email', () => {
   test('Should not send quick tips email if volunteer is not onboarded', async () => {
     const volunteer = await insertVolunteer({ isOnboarded: false })
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
@@ -77,7 +77,7 @@ describe('Volunteer quick tips email', () => {
     const volunteer = await insertVolunteer({ isOnboarded: true })
     await insertNotification(volunteer)
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {
@@ -98,7 +98,7 @@ describe('Volunteer quick tips email', () => {
     const errorMessage = 'Unable to send'
     mockedMailService.sendVolunteerQuickTips.mockRejectedValueOnce(errorMessage)
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailVolunteerQuickTips,
       data: {

@@ -57,8 +57,8 @@ const mockSaturdayAvailability = {
   '10p': false,
   '11p': false,
   '12p': false,
-  '1p': true, 
-  '2p': true
+  '1p': true,
+  '2p': true,
 }
 
 describe('Save availability and time zone', () => {

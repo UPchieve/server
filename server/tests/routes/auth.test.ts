@@ -2,7 +2,10 @@ import request, { Test } from 'supertest'
 import { mocked } from 'ts-jest/utils'
 import { StudentDocument } from '../../models/Student'
 import { VolunteerDocument } from '../../models/Volunteer'
-import { StudentPartnerManifest, VolunteerPartnerManifest } from '../../partnerManifests'
+import {
+  StudentPartnerManifest,
+  VolunteerPartnerManifest,
+} from '../../partnerManifests'
 import * as AuthRouter from '../../router/auth'
 import * as AuthService from '../../services/AuthService'
 import { buildStudent } from '../generate'
@@ -70,7 +73,9 @@ describe('Test router logic', () => {
   const PARTNER_VOLUNTEER = '/partner/volunteer'
   test(`Route ${PARTNER_VOLUNTEER} valid payload`, async () => {
     const payload = { partnerId: 'test' }
-    mockedAuthService.lookupPartnerVolunteer.mockResolvedValueOnce({ name: payload.partnerId } as VolunteerPartnerManifest)
+    mockedAuthService.lookupPartnerVolunteer.mockResolvedValueOnce({
+      name: payload.partnerId,
+    } as VolunteerPartnerManifest)
     const response = await sendGetQuery(PARTNER_VOLUNTEER, payload)
 
     const {
@@ -94,7 +99,9 @@ describe('Test router logic', () => {
   const PARTNER_STUDENT = '/partner/student'
   test(`Route ${PARTNER_STUDENT} valid payload`, async () => {
     const payload = { partnerId: 'test' }
-    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce({ name: payload.partnerId } as StudentPartnerManifest)
+    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce({
+      name: payload.partnerId,
+    } as StudentPartnerManifest)
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
 
     const {
@@ -118,7 +125,9 @@ describe('Test router logic', () => {
   const STUDENT_CODE = '/partner/student/code'
   test(`Route ${STUDENT_CODE} valid payload`, async () => {
     const payload = { partnerSignupCode: 'test' }
-    mockedAuthService.lookupPartnerStudentCode.mockResolvedValueOnce(payload.partnerSignupCode)
+    mockedAuthService.lookupPartnerStudentCode.mockResolvedValueOnce(
+      payload.partnerSignupCode
+    )
     const response = await sendGetQuery(STUDENT_CODE, payload)
 
     const {

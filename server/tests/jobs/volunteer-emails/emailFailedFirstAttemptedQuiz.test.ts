@@ -3,7 +3,7 @@ import { Jobs } from '../../../worker/jobs'
 import * as VolunteerRepo from '../../../models/Volunteer/queries'
 import * as MailService from '../../../services/MailService'
 import emailFailedFirstAttemptedQuiz from '../../../worker/jobs/volunteer-emails/emailFailedFirstAttemptedQuiz'
-import { log as logger} from '../../../worker/logger'
+import { log as logger } from '../../../worker/logger'
 import { buildVolunteer } from '../../generate'
 
 jest.mock('../../../services/MailService')
@@ -47,7 +47,9 @@ describe('first attempted quiz failed email job', () => {
     mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
       volunteer as VolunteerRepo.VolunteerContactInfo
     )
-    mockedMailService.sendFailedFirstAttemptedQuiz.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendFailedFirstAttemptedQuiz.mockRejectedValueOnce(
+      errorMessage
+    )
     await expect(emailFailedFirstAttemptedQuiz(job)).rejects.toEqual(
       Error(
         `Failed to send ${job.name} to volunteer ${volunteer._id}: Unable to send`

@@ -65,7 +65,9 @@ test('Should insert key with custom expiry', async () => {
   const testKey = uuid()
   const testValue = faker.lorem.words(10)
 
-  await expect(Cache.saveWithExpiration(testKey, testValue, 1000)).resolves.not.toThrow()
+  await expect(
+    Cache.saveWithExpiration(testKey, testValue, 1000)
+  ).resolves.not.toThrow()
 
   const ttl = await Cache.getTimeToExpiration(testKey)
   expect(ttl).toBeGreaterThan(0)
@@ -76,7 +78,9 @@ test('Should insert key with default expiry', async () => {
   const testKey = uuid()
   const testValue = faker.lorem.words(10)
 
-  await expect(Cache.saveWithExpiration(testKey, testValue)).resolves.not.toThrow()
+  await expect(
+    Cache.saveWithExpiration(testKey, testValue)
+  ).resolves.not.toThrow()
 
   const ttl = await Cache.getTimeToExpiration(testKey)
   expect(ttl).toBeGreaterThan(10000)

@@ -1,6 +1,8 @@
 import { Types } from 'mongoose'
 
-export const convertObjectIdListToStringList = (objectIdList: Types.ObjectId[]): string[] => {
+export const convertObjectIdListToStringList = (
+  objectIdList: Types.ObjectId[]
+): string[] => {
   const arr = []
   for (let i = 0; i < objectIdList.length; i++) {
     arr.push(objectIdList[i].toString())

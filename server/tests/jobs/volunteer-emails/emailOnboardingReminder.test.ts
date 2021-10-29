@@ -2,7 +2,7 @@ import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { resetDb, insertVolunteer } from '../../db-utils'
 import emailOnboardingReminder from '../../../worker/jobs/volunteer-emails/emailOnboardingReminder'
-import { log as logger} from '../../../worker/logger'
+import { log as logger } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import * as MailService from '../../../services/MailService'
 
@@ -47,7 +47,7 @@ describe('Volunteer onboarding email reminders', () => {
       const nextJob =
         onboardingReminderJobs[i + 1] && onboardingReminderJobs[i + 1].name
       // @todo: figure out how to properly type
-      
+
       const job: any = {
         name: currentJob.name,
         data: {
@@ -78,13 +78,19 @@ describe('Volunteer onboarding email reminders', () => {
   test('Should throw error when sending onboarding email reminder fails', async () => {
     const volunteer = await insertVolunteer()
     const errorMessage = 'Error sending onboarding reminder email'
-    mockedMailService.sendOnboardingReminderOne.mockRejectedValueOnce(errorMessage)
-    mockedMailService.sendOnboardingReminderTwo.mockRejectedValueOnce(errorMessage)
-    mockedMailService.sendOnboardingReminderThree.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendOnboardingReminderOne.mockRejectedValueOnce(
+      errorMessage
+    )
+    mockedMailService.sendOnboardingReminderTwo.mockRejectedValueOnce(
+      errorMessage
+    )
+    mockedMailService.sendOnboardingReminderThree.mockRejectedValueOnce(
+      errorMessage
+    )
 
     for (const currentJob of onboardingReminderJobs) {
       // @todo: figure out how to properly type
-      
+
       const job: any = {
         name: currentJob.name,
         data: {
@@ -104,7 +110,7 @@ describe('Volunteer onboarding email reminders', () => {
     const volunteer = await insertVolunteer({ isOnboarded: true })
     for (const currentJob of onboardingReminderJobs) {
       // @todo: figure out how to properly type
-      
+
       const job: any = {
         name: currentJob,
         data: {

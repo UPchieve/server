@@ -267,7 +267,9 @@ export async function processFirstSessionCongratsEmail(
     sessionId
   )
   const fifteenMinutes = 1000 * 60 * 15
-  const isLongSession = (session.timeTutored ? session.timeTutored >= fifteenMinutes : false)
+  const isLongSession = session.timeTutored
+    ? session.timeTutored >= fifteenMinutes
+    : false
   const sendStudentFirstSessionCongrats =
     session.student.pastSessions.length === 1 && isLongSession
   const sendVolunteerFirstSessionCongrats =

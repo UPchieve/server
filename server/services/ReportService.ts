@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import mongoose, { Types } from 'mongoose'
 import _ from 'lodash'
 import exceljs from 'exceljs'

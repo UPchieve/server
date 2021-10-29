@@ -114,7 +114,9 @@ describe('Email waiting on references to volunteer', () => {
     await insertVolunteer(volunteer)
     const errorMessage = 'Unable to send'
     const volunteerError = `volunteer ${volunteer._id}: ${errorMessage}`
-    mockedMailService.sendWaitingOnReferences.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendWaitingOnReferences.mockRejectedValueOnce(
+      errorMessage
+    )
 
     await expect(emailWaitingOnReferences()).rejects.toEqual(
       Error(

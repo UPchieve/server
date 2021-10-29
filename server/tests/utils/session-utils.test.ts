@@ -33,7 +33,7 @@ const loadMessages = (
   volunteerSentMessages: boolean,
   messagesPerUser = 10,
   studentOverrides = {},
-  volunteerOverrides = {},
+  volunteerOverrides = {}
 ): {
   messages: Message[]
   student: Student

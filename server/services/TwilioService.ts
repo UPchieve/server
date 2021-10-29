@@ -1,5 +1,5 @@
 import twilio from 'twilio'
-import moment from 'moment-timezone'
+import { getCurrentNewYorkTime } from '../utils/get-times'
 import config from '../config'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
 import { getTestStudentExistsById } from '../models/Student/queries'
@@ -35,8 +35,7 @@ const twilioClient =
 
 // get the availability field to query for the current time
 function getCurrentAvailabilityPath(): string {
-  const dateString = new Date().toUTCString()
-  const date = moment.utc(dateString).tz('America/New_York')
+  const date = getCurrentNewYorkTime()
   const day = date.isoWeekday() - 1
   let baseHour = date.hour()
   let hour: string

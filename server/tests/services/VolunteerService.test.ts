@@ -1,8 +1,7 @@
 import mongoose from 'mongoose'
-import moment from 'moment-timezone'
-import {
-  getHourSummaryStats,
-} from '../../services/VolunteerService'
+import moment from 'moment'
+import 'moment-timezone'
+import { getHourSummaryStats } from '../../services/VolunteerService'
 import { insertVolunteer, resetDb } from '../db-utils'
 import {
   buildVolunteer,

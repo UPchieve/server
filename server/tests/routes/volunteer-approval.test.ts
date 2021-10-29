@@ -58,13 +58,14 @@ afterAll(async () => {
 //        workaround is to run jest with the '--runInBand' to run the tests serially
 beforeEach(async () => {
   await resetDb()
+  mockGetUser.mockReset()
 })
 
 test('Volunteer submits a reference', async () => {
   const reference = buildReference()
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
-  mockGetUser.mockResolvedValueOnce(volunteer)
+  mockGetUser.mockReturnValueOnce(volunteer)
 
   await agent
     .post('/api/user/volunteer-approval/reference')
@@ -81,7 +82,7 @@ test('Volunteer deletes a reference', async () => {
   const references = [reference]
   const volunteer = buildVolunteer({ references })
   await insertVolunteer(volunteer)
-  mockGetUser.mockResolvedValueOnce(volunteer)
+  mockGetUser.mockReturnValueOnce(volunteer)
 
   await agent
     .post('/api/user/volunteer-approval/reference/delete')
@@ -95,7 +96,7 @@ test('Volunteer deletes a reference', async () => {
 test('Volunteer recieves an error requesting photo id upload url', async () => {
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
-  mockGetUser.mockResolvedValueOnce(volunteer)
+  mockGetUser.mockReturnValueOnce(volunteer)
 
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')
@@ -114,7 +115,7 @@ test('Volunteer recieves an error requesting photo id upload url', async () => {
 test('Volunteer recieves a photo id upload url', async () => {
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
-  mockGetUser.mockResolvedValueOnce(volunteer)
+  mockGetUser.mockReturnValueOnce(volunteer)
 
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')

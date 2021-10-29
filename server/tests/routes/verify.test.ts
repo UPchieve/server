@@ -66,7 +66,7 @@ describe(STUDENT_SEND_ROUTE, () => {
 
     expect(status).toEqual(200)
     expect(VerificationService.initiateVerification).toHaveBeenCalledWith({
-      userId: student._id.toString(),
+      userId: student._id,
       firstName: student.firstname,
       ...input,
     })
@@ -144,7 +144,7 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
 
     expect(status).toEqual(200)
     expect(VerificationService.confirmVerification).toHaveBeenCalledWith({
-      userId: student._id.toString(),
+      userId: student._id,
       ...input,
     })
   })

@@ -62,11 +62,11 @@ describe('Partner volunteer refer a coworker email', () => {
         'session-enjoyable': 4,
       },
       versionNumber: FEEDBACK_VERSIONS.TWO,
-      studentId: buildStudent()._id
+      studentId: buildStudent()._id,
     })
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
@@ -122,7 +122,7 @@ describe('Partner volunteer refer a coworker email', () => {
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
@@ -180,7 +180,7 @@ describe('Partner volunteer refer a coworker email', () => {
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
@@ -216,7 +216,7 @@ describe('Partner volunteer refer a coworker email', () => {
     await insertSessionMany(sessions)
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
@@ -256,13 +256,15 @@ describe('Partner volunteer refer a coworker email', () => {
         'session-enjoyable': 4,
       },
       versionNumber: FEEDBACK_VERSIONS.TWO,
-      studentId: buildStudent()._id
+      studentId: buildStudent()._id,
     })
     const errorMessage = 'Unable to send'
-    mockedMailService.sendPartnerVolunteerReferACoworker.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendPartnerVolunteerReferACoworker.mockRejectedValueOnce(
+      errorMessage
+    )
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {

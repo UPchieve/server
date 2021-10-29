@@ -1,4 +1,5 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import { Types } from 'mongoose'
 import { capitalize } from 'lodash'
 import exceljs from 'exceljs'
@@ -109,7 +110,10 @@ function telecomTutorTime(
         sessionAcc,
         startedAt,
         // convert ms -> min
-        roundUpToNearestInterval((session.timeTutored ? session.timeTutored : 0) / 60000, 15)
+        roundUpToNearestInterval(
+          (session.timeTutored ? session.timeTutored : 0) / 60000,
+          15
+        )
       )
     }
   }

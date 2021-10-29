@@ -45,7 +45,7 @@ describe('Parnter volunteer only college certs email', () => {
       subjects,
     })
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
@@ -65,7 +65,7 @@ describe('Parnter volunteer only college certs email', () => {
   test('Should not send if partner volunteer is not onboarded', async () => {
     const volunteer = await insertVolunteer({ isOnboarded: false })
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
@@ -89,7 +89,7 @@ describe('Parnter volunteer only college certs email', () => {
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
@@ -118,7 +118,7 @@ describe('Parnter volunteer only college certs email', () => {
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
@@ -141,9 +141,11 @@ describe('Parnter volunteer only college certs email', () => {
       subjects,
     })
     const errorMessage = 'Unable to send'
-    mockedMailService.sendPartnerVolunteerOnlyCollegeCerts.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendPartnerVolunteerOnlyCollegeCerts.mockRejectedValueOnce(
+      errorMessage
+    )
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {

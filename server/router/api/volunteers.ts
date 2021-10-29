@@ -5,7 +5,13 @@ import * as VolunteerService from '../../services/VolunteerService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
 import { Router } from 'express'
-import { asNumber, asObjectId, asString, asArray, asFactory } from '../../utils/type-utils'
+import {
+  asNumber,
+  asObjectId,
+  asString,
+  asArray,
+  asFactory,
+} from '../../utils/type-utils'
 import { resError } from '../res-error'
 
 export function routeVolunteers(router: Router): void {
@@ -51,7 +57,7 @@ export function routeVolunteers(router: Router): void {
     test: string[]
   }
   const stringArrayValidator = asFactory<Test>({
-    test: asArray(asString)
+    test: asArray(asString),
   })
   router.post('/volunteers/review/:id', authPassport.isAdmin, async function(
     req,
@@ -60,7 +66,9 @@ export function routeVolunteers(router: Router): void {
     try {
       const volunteerId = asObjectId(req.params.id)
       const { photoIdStatus, referencesStatus } = req.body
-      const { test: validStatuses } = stringArrayValidator({ test: referencesStatus})
+      const { test: validStatuses } = stringArrayValidator({
+        test: referencesStatus,
+      })
       await VolunteerService.updatePendingVolunteerStatus(
         volunteerId,
         asString(photoIdStatus),

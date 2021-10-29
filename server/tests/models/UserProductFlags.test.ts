@@ -1,6 +1,8 @@
 import mongoose from 'mongoose'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
-import UserProductFlagsModel, { UserProductFlags } from '../../models/UserProductFlags'
+import UserProductFlagsModel, {
+  UserProductFlags,
+} from '../../models/UserProductFlags'
 import UserModel, { User } from '../../models/User'
 import { RepoCreateError, RepoReadError } from '../../models/Errors'
 import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
@@ -43,20 +45,18 @@ describe('Test create UserProductFlag model documents', () => {
   test('Create succeeds for student', async () => {
     const createdUPF = await UserProductFlagsRepo.createUPFByUserId(student._id)
 
-    const result = await UserProductFlagsModel.findById(
-      createdUPF._id
-    )
+    const result = await UserProductFlagsModel.findById(createdUPF._id)
       .lean()
       .exec()
     expect(result!.user).toEqual(student._id)
   })
 
   test('Create succeeds for volunteer', async () => {
-    const createdUPF = await UserProductFlagsRepo.createUPFByUserId(volunteer._id)
-
-    const result = await UserProductFlagsModel.findById(
-      createdUPF._id
+    const createdUPF = await UserProductFlagsRepo.createUPFByUserId(
+      volunteer._id
     )
+
+    const result = await UserProductFlagsModel.findById(createdUPF._id)
       .lean()
       .exec()
     expect(result!.user).toEqual(volunteer._id)
@@ -88,7 +88,9 @@ describe('Test create UserProductFlag model documents', () => {
       error = err as Error
     }
     expect(error!).toBeInstanceOf(RepoCreateError)
-    expect((error! as RepoCreateError).message).toBe(`User ${user} does not exist`)
+    expect((error! as RepoCreateError).message).toBe(
+      `User ${user} does not exist`
+    )
   })
 
   test('Create errors with no data returned from db', async () => {
@@ -108,7 +110,9 @@ describe('Test create UserProductFlag model documents', () => {
     }
 
     expect(error!).toBeInstanceOf(RepoCreateError)
-    expect((error! as RepoCreateError).message).toBe('Create query did not return created object')
+    expect((error! as RepoCreateError).message).toBe(
+      'Create query did not return created object'
+    )
   })
 
   test('Create bubbles up errors from database find', async () => {

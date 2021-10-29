@@ -74,7 +74,7 @@ describe('Notify tutors', () => {
   test('Should not notify volunteers when session is fulfilled', async () => {
     const { session } = await insertSessionWithVolunteer()
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       data: {
         sessionId: session._id,
@@ -92,7 +92,7 @@ describe('Notify tutors', () => {
   test('Should not notify volunteers when notification schedule is empty', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       data: {
         sessionId: session._id,
@@ -116,7 +116,7 @@ describe('Notify tutors', () => {
   test('Should notify volunteers', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       data: {
         sessionId: session._id,
@@ -153,7 +153,7 @@ describe('Notify tutors', () => {
       notifications.length % TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       data: {
         sessionId: session._id,
@@ -196,7 +196,7 @@ describe('Notify tutors', () => {
       notifications.length % totalVolunteersNotified
 
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       data: {
         sessionId: session._id,

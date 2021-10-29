@@ -34,9 +34,7 @@ describe('createVolunteer', () => {
     const createdAccountMockMethod = (AccountActionCreator.prototype.createdAccount = jest.fn())
     await createVolunteer(newVolunteer, '0.0.0.0')
     const einstein = await getVolunteer({ _id: newVolunteer._id })
-    const newAvailability = await getSnapshotByVolunteerId(
-      einstein._id!,
-    )
+    const newAvailability = await getSnapshotByVolunteerId(einstein._id!)
 
     expect(einstein._id).toEqual(newVolunteer._id)
     expect(newAvailability!.volunteerId).toEqual(newVolunteer._id)

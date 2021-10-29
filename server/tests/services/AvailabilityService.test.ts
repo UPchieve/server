@@ -3,12 +3,8 @@ import {
   getElapsedAvailabilityForDateRange,
   getElapsedAvailability,
 } from '../../services/AvailabilityService'
-import {
-  getHistoryForDatesByVolunteerId
-} from '../../models/Availability/queries'
-import {
-  resetDb,
-} from '../db-utils'
+import { getHistoryForDatesByVolunteerId } from '../../models/Availability/queries'
+import { resetDb } from '../db-utils'
 import {
   buildVolunteer,
   buildAvailabilityHistory,
@@ -35,7 +31,6 @@ beforeEach(async () => {
   jest.clearAllMocks()
 })
 
-
 // TODO: should be tested by Availabilitymodel/queries
 describe('getHistoryForDatesByVolunteerId', () => {
   test('Should get recent availability history for a volunteer', async () => {
@@ -56,7 +51,11 @@ describe('getHistoryForDatesByVolunteerId', () => {
     })
     await AvailabilityHistoryModel.insertMany([newestDoc, oldestDoc, oldDoc])
 
-    const result = await getHistoryForDatesByVolunteerId(volunteerId, new Date('10/9/2020'), new Date('10/12/2021'))
+    const result = await getHistoryForDatesByVolunteerId(
+      volunteerId,
+      new Date('10/9/2020'),
+      new Date('10/12/2021')
+    )
     expect(result[0]!.date).toEqual(date)
   })
 })

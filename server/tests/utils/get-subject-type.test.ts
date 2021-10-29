@@ -7,7 +7,6 @@ import {
   SAT_CERTS,
   TRAINING,
 } from '../../constants'
-import { Certifications } from '../../models/Volunteer'
 import { getSubjectType } from '../../utils/getSubjectType'
 
 describe('Get subject type', () => {
@@ -16,7 +15,6 @@ describe('Get subject type', () => {
   })
   test('Science', () => {
     expect(getSubjectType(SCIENCE_CERTS.BIOLOGY)).toEqual(SUBJECT_TYPES.SCIENCE)
-
   })
   test('SAT', () => {
     expect(getSubjectType(SAT_CERTS.SAT_MATH)).toEqual(SUBJECT_TYPES.SAT)
@@ -37,6 +35,6 @@ describe('Get subject type', () => {
     )
   })
   test('Invalid subject', () => {
-    expect(() => getSubjectType('hello' as keyof Certifications)).toThrow()
+    expect(() => getSubjectType('hello')).toThrow()
   })
 })

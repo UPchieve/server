@@ -7,7 +7,8 @@ test('Check incorrect email succeeds', done => {
 })
 
 test('Check incorrect phone number succeeds', done => {
-  const phoneNumber = 'a message including 0.001193067% which is not a phone number'
+  const phoneNumber =
+    'a message including 0.001193067% which is not a phone number'
   expect(moderateMessage(phoneNumber)).toBeTruthy()
   done()
 })
@@ -31,7 +32,8 @@ test('Check non-vulgar word succeeds', done => {
 })
 
 test('Check correct phone number fails', done => {
-  const phoneNumber = 'a message including (555)555-5555 which is a phone number'
+  const phoneNumber =
+    'a message including (555)555-5555 which is a phone number'
   expect(moderateMessage(phoneNumber)).toBeFalsy()
   done()
 })

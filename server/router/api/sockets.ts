@@ -144,7 +144,9 @@ export function routeSockets(
                 socket,
                 {
                   endedAt: session.endedAt,
-                  volunteer: session.volunteer ? getIdFromModelReference(session.volunteer) : undefined,
+                  volunteer: session.volunteer
+                    ? getIdFromModelReference(session.volunteer)
+                    : undefined,
                   student: getIdFromModelReference(session.student),
                 },
                 error as Error

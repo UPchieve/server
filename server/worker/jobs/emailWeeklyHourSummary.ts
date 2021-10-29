@@ -1,4 +1,5 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import { log } from '../logger'
 import { getHourSummaryStats } from '../../services/VolunteerService'
 import * as MailService from '../../services/MailService'

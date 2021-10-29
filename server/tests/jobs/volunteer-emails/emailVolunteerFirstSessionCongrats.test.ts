@@ -2,7 +2,7 @@ import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { resetDb, insertSessionWithVolunteer } from '../../db-utils'
 import emailVolunteerFirstSessionCongrats from '../../../worker/jobs/volunteer-emails/emailVolunteerFirstSessionCongrats'
-import { log as logger} from '../../../worker/logger'
+import { log as logger } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import * as MailService from '../../../services/MailService'
 import { USER_SESSION_METRICS } from '../../../constants'
@@ -39,7 +39,7 @@ describe('Volunteer first session congrats email', () => {
   test('Should send email', async () => {
     const { session, volunteer } = await insertSessionWithVolunteer()
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailVolunteerFirstSessionCongrats,
       data: {
@@ -61,7 +61,7 @@ describe('Volunteer first session congrats email', () => {
       flags: [USER_SESSION_METRICS.absentStudent],
     })
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailVolunteerFirstSessionCongrats,
       data: {
@@ -78,9 +78,11 @@ describe('Volunteer first session congrats email', () => {
   test('Should throw error when sending email saild', async () => {
     const { session, volunteer } = await insertSessionWithVolunteer()
     const errorMessage = 'Unable to send'
-    mockedMailService.sendVolunteerFirstSessionCongrats.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendVolunteerFirstSessionCongrats.mockRejectedValueOnce(
+      errorMessage
+    )
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       name: Jobs.EmailVolunteerFirstSessionCongrats,
       data: {

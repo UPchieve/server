@@ -25,9 +25,8 @@ describe('asNumber', () => {
     expect(() => asNumber('5.0')).not.toThrow()
   })
 
-  test('Should throw error if not given an ObjectId', () => {
+  test('Should throw error if not given a number', () => {
     expect(() => asNumber({} as unknown)).toThrow()
-    expect(() => asNumber(1 as unknown)).toThrow()
     expect(() => asNumber('hello' as unknown)).toThrow()
     expect(() => asNumber(null as unknown)).toThrow()
     expect(() => asNumber(undefined as unknown)).toThrow()
@@ -47,8 +46,7 @@ describe('asArray', () => {
   test('Should throw error if given wrong type', () => {
     expect(() => asArray(asBoolean)([1, 2, 3] as unknown)).toThrow()
     expect(() => asArray(asString)([1, 2, 3] as unknown)).toThrow()
-    expect(() => asArray(asNumber)(['1', '2', '3'] as unknown)).toThrow()
-    expect(() => asArray(asNumber)(['1', '2', '3'] as unknown)).toThrow()
+    expect(() => asArray(asNumber)(['hey', 'hello', 'hi'] as unknown)).toThrow()
   })
 })
 

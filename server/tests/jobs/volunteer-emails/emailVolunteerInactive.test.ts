@@ -1,11 +1,12 @@
 import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import MockDate from 'mockdate'
 import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../../../constants'
 import { resetDb, insertVolunteer, getVolunteer } from '../../db-utils'
 import emailVolunteerInactive from '../../../worker/jobs/volunteer-emails/emailVolunteerInactive'
-import { log as logger} from '../../../worker/logger'
+import { log as logger } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import * as MailService from '../../../services/MailService'
 import { buildAvailability, buildVolunteer } from '../../generate'
@@ -170,7 +171,9 @@ describe('Volunteer inactive emails', () => {
 
     const errorMessage = 'Unable to send'
     const inactiveSixtyDayError = `${Jobs.EmailVolunteerInactiveSixtyDays} to volunteer ${hemingway._id}: ${errorMessage}`
-    mockedMailService.sendVolunteerInactiveSixtyDays.mockRejectedValueOnce(errorMessage)
+    mockedMailService.sendVolunteerInactiveSixtyDays.mockRejectedValueOnce(
+      errorMessage
+    )
 
     await expect(emailVolunteerInactive()).rejects.toEqual(
       Error(`Failed to send inactivity emails: ${[inactiveSixtyDayError]}`)

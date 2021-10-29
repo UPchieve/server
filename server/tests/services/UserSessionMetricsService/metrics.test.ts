@@ -72,8 +72,8 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     const feedback = buildFeedback({
       versionNumber: FEEDBACK_VERSIONS.TWO,
       studentTutoringFeedback: {
-        'coach-rating': 1
-      }
+        'coach-rating': 1,
+      },
     }) as FeedbackVersionTwo
 
     const uvd = buildUpdateValueData(session, feedback)
@@ -86,8 +86,8 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     const feedback = buildFeedback({
       versionNumber: FEEDBACK_VERSIONS.TWO,
       studentTutoringFeedback: {
-        'session-goal': 1
-      }
+        'session-goal': 1,
+      },
     }) as FeedbackVersionTwo
 
     feedback.studentTutoringFeedback!['session-goal'] = 1
@@ -103,7 +103,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    ((feedback.studentCounselingFeedback!)['coach-ratings']!)['coach-friendly'] = 1
+    feedback.studentCounselingFeedback!['coach-ratings']!['coach-friendly'] = 1
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.LowCoachRatingFromStudent
@@ -116,7 +116,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    ((feedback.studentCounselingFeedback!)['rate-session']!).rating = 1
+    feedback.studentCounselingFeedback!['rate-session']!.rating = 1
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.LowSessionRatingFromStudent
@@ -130,7 +130,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    (feedback.volunteerFeedback!)['session-enjoyable'] = 1
+    feedback.volunteerFeedback!['session-enjoyable'] = 1
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.LowSessionRatingFromCoach
@@ -153,7 +153,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    (feedback.volunteerFeedback!)['session-obstacles'] = [7]
+    feedback.volunteerFeedback!['session-obstacles'] = [7]
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.RudeOrInappropriate
@@ -167,7 +167,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    (feedback.volunteerFeedback!)['session-obstacles'] = [8]
+    feedback.volunteerFeedback!['session-obstacles'] = [8]
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.OnlyLookingForAnswers
@@ -180,7 +180,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    (feedback.studentTutoringFeedback!)['other-feedback'] = 'hello'
+    feedback.studentTutoringFeedback!['other-feedback'] = 'hello'
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.CommentFromStudent
@@ -194,7 +194,7 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
       versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    (feedback.volunteerFeedback!)['other-feedback'] = 'hello'
+    feedback.volunteerFeedback!['other-feedback'] = 'hello'
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.CommentFromVolunteer

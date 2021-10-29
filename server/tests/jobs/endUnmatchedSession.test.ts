@@ -39,7 +39,7 @@ describe('End unmatched session', () => {
   test('Should not end session when session is fulfilled', async () => {
     const { session } = await insertSessionWithVolunteer()
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       data: {
         sessionId: session._id,
@@ -55,7 +55,7 @@ describe('End unmatched session', () => {
   test('Should throw error when ending a session fails', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       data: {
         sessionId: session._id,
@@ -77,7 +77,7 @@ describe('End unmatched session', () => {
   test('Should end session unmatched session', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    
+
     const job: any = {
       data: {
         sessionId: session._id,

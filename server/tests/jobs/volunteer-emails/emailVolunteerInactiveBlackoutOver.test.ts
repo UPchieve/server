@@ -92,13 +92,17 @@ describe('Test email blackout over job', () => {
   })
 
   test('Successfully runs', async () => {
-    mockedVolunteerRepo.getVolunteersForBlackoutOver.mockResolvedValueOnce(volunteers)
+    mockedVolunteerRepo.getVolunteersForBlackoutOver.mockResolvedValueOnce(
+      volunteers
+    )
 
     await expect(EmailVolunteerInactiveBlackoutOver()).resolves.not.toThrow()
   })
 
   test('Handles procesVolunteer errors', async () => {
-    mockedVolunteerRepo.getVolunteersForBlackoutOver.mockResolvedValueOnce(volunteers)
+    mockedVolunteerRepo.getVolunteersForBlackoutOver.mockResolvedValueOnce(
+      volunteers
+    )
 
     const mailError = 'foo'
     mockedMailService.sendVolunteerInactiveBlackoutOver.mockRejectedValueOnce(

@@ -2,7 +2,7 @@ import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { resetDb, insertStudent } from '../../db-utils'
 import emailStudentWelcomeSeries from '../../../worker/jobs/student-emails/emailStudentWelcomeSeries'
-import { log as logger} from '../../../worker/logger'
+import { log as logger } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import * as MailService from '../../../services/MailService'
 
@@ -43,7 +43,7 @@ describe('Student welcome email series', () => {
     const student = await insertStudent()
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
-      
+
       const job: any = {
         name: currentJob,
         data: {
@@ -64,12 +64,14 @@ describe('Student welcome email series', () => {
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
     mockedMailService.sendStudentUseCases.mockImplementationOnce(rejectionFn)
     mockedMailService.sendMeetOurVolunteers.mockImplementationOnce(rejectionFn)
-    mockedMailService.sendIndependentLearning.mockImplementationOnce(rejectionFn)
+    mockedMailService.sendIndependentLearning.mockImplementationOnce(
+      rejectionFn
+    )
     mockedMailService.sendStudentGoalSetting.mockImplementationOnce(rejectionFn)
 
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
-      
+
       const job: any = {
         name: currentJob,
         data: {
@@ -89,7 +91,7 @@ describe('Student welcome email series', () => {
     const student = await insertStudent({ isBanned: true })
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
-      
+
       const job: any = {
         name: currentJob,
         data: {

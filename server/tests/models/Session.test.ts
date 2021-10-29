@@ -481,21 +481,21 @@ describe('getPublicSessionById', () => {
   test('Should get a public session', async () => {
     const result = await SessionRepo.getPublicSessionById(session._id)
     const expected = {
-        _id: session._id,
-        createdAt: session.createdAt,
-        endedAt: session.endedAt,
-        type: session.type,
-        subTopic: session.subTopic,
-        student: {
-          _id: student._id,
-          firstName: student.firstname,
-        },
-        volunteer: {
-          _id: volunteer._id,
-          firstName: volunteer.firstname,
-        },
-      }
-    
+      _id: session._id,
+      createdAt: session.createdAt,
+      endedAt: session.endedAt,
+      type: session.type,
+      subTopic: session.subTopic,
+      student: {
+        _id: student._id,
+        firstName: student.firstname,
+      },
+      volunteer: {
+        _id: volunteer._id,
+        firstName: volunteer.firstname,
+      },
+    }
+
     expect(result).toEqual(expected)
   })
 })
@@ -600,9 +600,7 @@ describe('getLatestSessionByStudentId', () => {
   })
 
   test('Should get the latest session for the given studentId', async () => {
-    const result = await SessionRepo.getLatestSessionByStudentId(
-      student._id
-    )
+    const result = await SessionRepo.getLatestSessionByStudentId(student._id)
     const expected = {
       _id: session._id,
       createdAt: session.createdAt.toISOString(),
@@ -715,7 +713,10 @@ describe('updateSessionTimeTutored', () => {
 
     const sessionId = getObjectId()
     const timeTutored = 1000 * 60 * 20
-    await expect(async () => await SessionRepo.updateSessionTimeTutored(sessionId, timeTutored)).rejects.toThrow(DocUpdateError)
+    await expect(
+      async () =>
+        await SessionRepo.updateSessionTimeTutored(sessionId, timeTutored)
+    ).rejects.toThrow(DocUpdateError)
   })
 })
 
@@ -745,7 +746,13 @@ describe('updateSessionQuillDoc', () => {
     const sessionId = getObjectId()
     const quillDoc = { ops: [] }
 
-    await expect(async () => await SessionRepo.updateSessionQuillDoc(sessionId, JSON.stringify(quillDoc))).rejects.toThrow(DocUpdateError)
+    await expect(
+      async () =>
+        await SessionRepo.updateSessionQuillDoc(
+          sessionId,
+          JSON.stringify(quillDoc)
+        )
+    ).rejects.toThrow(DocUpdateError)
   })
 })
 
@@ -775,6 +782,12 @@ describe('updateSessionHasWhiteboardDoc', () => {
     const sessionId = getObjectId()
     const hasWhiteboardDoc = false
 
-    await expect(async () => await SessionRepo.updateSessionHasWhiteboardDoc(sessionId, hasWhiteboardDoc)).rejects.toThrow(DocUpdateError)
+    await expect(
+      async () =>
+        await SessionRepo.updateSessionHasWhiteboardDoc(
+          sessionId,
+          hasWhiteboardDoc
+        )
+    ).rejects.toThrow(DocUpdateError)
   })
 })

@@ -39,27 +39,39 @@ describe('Tech issue apology email', () => {
 
   test('Should send tech issue apology successfully to both users', async () => {
     mockedStudentRepo.getStudentContactInfoById.mockResolvedValueOnce(student)
-    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(undefined)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      undefined
+    )
 
     await emailTechIssueApology(job)
 
-    expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(student.email, student.firstname)
+    expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(
+      student.email,
+      student.firstname
+    )
   })
 
   test('Should send tech issue apology successfully to volunteer', async () => {
     mockedStudentRepo.getStudentContactInfoById.mockResolvedValueOnce(undefined)
-    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(volunteer)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      volunteer
+    )
 
     await emailTechIssueApology(job)
 
-    expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(volunteer.email, volunteer.firstname)
+    expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(
+      volunteer.email,
+      volunteer.firstname
+    )
   })
 
   test('Should throw error when email fails', async () => {
     const errorMessage = 'Error sending email'
     mockedMailService.sendTechIssueApology.mockRejectedValue(errorMessage)
     mockedStudentRepo.getStudentContactInfoById.mockResolvedValueOnce(student)
-    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(volunteer)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      volunteer
+    )
     await expect(emailTechIssueApology(job)).rejects.toEqual(
       Error(
         `Failed to send ${Jobs.EmailTechIssueApology} to: student ${student._id}: ${errorMessage},volunteer ${volunteer._id}: ${errorMessage}`

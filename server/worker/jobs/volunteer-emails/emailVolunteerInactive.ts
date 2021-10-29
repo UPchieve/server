@@ -1,4 +1,5 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import { Jobs } from '..'
 import { log } from '../../logger'
 import { Volunteer } from '../../../models/Volunteer'
