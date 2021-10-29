@@ -55,7 +55,9 @@ export async function getUserById(
   }
 }
 
-export async function getUserForPassport(email: string): Promise<User | undefined> {
+export async function getUserForPassport(
+  email: string
+): Promise<User | undefined> {
   try {
     const user = await UserModel.findOne({ email: email }, '+password')
       .lean()

@@ -7,9 +7,12 @@ import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
 import * as WhiteboardService from '../../services/WhiteboardService'
 import { asObjectId, asStringObjectId } from '../../utils/type-utils'
 import {
-  CreationMode, decode, DecodeError, encode,
+  CreationMode,
+  decode,
+  DecodeError,
+  encode,
   Message,
-  MessageType
+  MessageType,
 } from '../../utils/zwibblerDecoder'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
@@ -38,7 +41,7 @@ const messageHandlers: {
     try {
       document = await WhiteboardService.getDoc(sessionObjectId)
     } catch (error) {
-      if(!(error instanceof KeyNotFoundError)) throw error
+      if (!(error instanceof KeyNotFoundError)) throw error
     }
     if (message.creationMode === CreationMode.NEVER_CREATE && !document) {
       return wsClient.send(

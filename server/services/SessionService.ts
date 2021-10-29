@@ -7,8 +7,13 @@ import { isEnabled } from 'unleash-client'
 import * as cache from '../cache'
 import config from '../config'
 import {
-  EVENTS, HOURS_UTC, SESSION_REPORT_REASON, SUBJECT_TYPES, USER_BAN_REASON, USER_SESSION_METRICS,
-  UTC_TO_HOUR_MAPPING
+  EVENTS,
+  HOURS_UTC,
+  SESSION_REPORT_REASON,
+  SUBJECT_TYPES,
+  USER_BAN_REASON,
+  USER_SESSION_METRICS,
+  UTC_TO_HOUR_MAPPING,
 } from '../constants'
 import { SESSION_EVENTS } from '../constants/events'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
@@ -38,10 +43,10 @@ import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
 import {
-  beginFailsafeNotifications, beginRegularNotifications
+  beginFailsafeNotifications,
+  beginRegularNotifications,
 } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
-
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -200,7 +205,10 @@ export async function endSession({
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.endedAt)
     throw new sessionUtils.EndSessionError('Session has already ended')
-  if (!isAdmin && !sessionUtils.isSessionParticipant(session, endedBy ? endedBy._id : null))
+  if (
+    !isAdmin &&
+    !sessionUtils.isSessionParticipant(session, endedBy ? endedBy._id : null)
+  )
     throw new sessionUtils.EndSessionError(
       'Only session participants can end a session'
     )
@@ -738,7 +746,11 @@ export async function joinSession(user: User, data: unknown): Promise<void> {
 }
 
 // TODO: we don't know the shape of the user coming from a socket. user is provided from the client at the moment
-export async function saveMessage(user: any, createdAt: Date, data: unknown): Promise<void> {
+export async function saveMessage(
+  user: any,
+  createdAt: Date,
+  data: unknown
+): Promise<void> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   if (!sessionUtils.isSessionParticipant(session, asObjectId(user._id)))
@@ -747,8 +759,8 @@ export async function saveMessage(user: any, createdAt: Date, data: unknown): Pr
   const newMessage = {
     user: user._id,
     contents: message,
-    createdAt
-  }  
+    createdAt,
+  }
   await SessionRepo.addMessageToSessionById(sessionId, newMessage)
 }
 

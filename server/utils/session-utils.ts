@@ -19,7 +19,7 @@ import {
   asNumber,
   asObjectId,
   asOptional,
-  asString
+  asString,
 } from './type-utils'
 
 export class StartSessionError extends CustomError {}
@@ -77,7 +77,10 @@ export function isSessionParticipant(
       ? session.volunteer
       : (session.volunteer as Volunteer)._id
 
-  return userId.equals(studentId as Types.ObjectId) || userId.equals(volunteerId as Types.ObjectId)
+  return (
+    userId.equals(studentId as Types.ObjectId) ||
+    userId.equals(volunteerId as Types.ObjectId)
+  )
 }
 
 export function calculateTimeTutored(session: Session): number {
@@ -335,4 +338,3 @@ export const asSaveMessageData = asFactory<SaveMessageData>({
   sessionId: asObjectId,
   message: asString,
 })
-

@@ -2,11 +2,16 @@ import moment from 'moment'
 import 'moment-timezone'
 import { Types } from 'mongoose'
 import {
-  FEEDBACK_VERSIONS, SUBJECT_TYPES, USER_ACTION, USER_SESSION_METRICS
+  FEEDBACK_VERSIONS,
+  SUBJECT_TYPES,
+  USER_ACTION,
+  USER_SESSION_METRICS,
 } from '../../constants'
 import {
-  DocCreationError, DocUpdateError, LookupError,
-  RepoReadError
+  DocCreationError,
+  DocUpdateError,
+  LookupError,
+  RepoReadError,
 } from '../Errors'
 import { Message } from '../Message'
 import { Notification } from '../Notification'
