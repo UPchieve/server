@@ -297,7 +297,7 @@ describe('isSessionParticipant', () => {
   test('Student as ObjectId should be session participant', async () => {
     const student = buildStudent()
     const session = buildSession({ student: student._id })
-    const result = isSessionParticipant(session, student)
+    const result = isSessionParticipant(session, student._id)
     expect(result).toBeTruthy()
   })
 
@@ -307,14 +307,14 @@ describe('isSessionParticipant', () => {
       student: buildStudent(),
       volunteer: volunteer._id,
     })
-    const result = isSessionParticipant(session, volunteer)
+    const result = isSessionParticipant(session, volunteer._id)
     expect(result).toBeTruthy()
   })
 
   test('Populated student should be session participant', async () => {
     const student = buildStudent()
     const session = buildSession({ student })
-    const result = isSessionParticipant(session, student)
+    const result = isSessionParticipant(session, student._id)
     expect(result).toBeTruthy()
   })
 
@@ -322,7 +322,7 @@ describe('isSessionParticipant', () => {
     const student = buildStudent()
     const volunteer = buildVolunteer()
     const session = buildSession({ student, volunteer })
-    const result = isSessionParticipant(session, volunteer)
+    const result = isSessionParticipant(session, volunteer._id)
     expect(result).toBeTruthy()
   })
 
@@ -333,7 +333,7 @@ describe('isSessionParticipant', () => {
       volunteer: getObjectId(),
     })
     try {
-      isSessionParticipant(session, volunteer)
+      isSessionParticipant(session, volunteer._id)
     } catch (error) {
       expect((error as Error).message).toBe(
         'Only session participants are allowed to send messages'
