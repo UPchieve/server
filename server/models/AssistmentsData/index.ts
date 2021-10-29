@@ -84,3 +84,5 @@ export async function validSession(
   if (!session) return false
   return true
 }
+
+export default AssistmentsDataModel
