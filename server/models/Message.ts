@@ -34,8 +34,6 @@ const messageSchema = new Schema(
 )
 
 messageSchema.virtual('userId').get(function(this: MessageDocument) {
-  console.log('this ,', this)
-  console.log('User', this.user)
   return this.user instanceof Types.ObjectId ? this.user : (this.user as User)._id
 })
 
