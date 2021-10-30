@@ -1327,13 +1327,12 @@ describe('joinSession', () => {
 describe('saveMessage', () => {
   test('Should throw error if no session is found', async () => {
     const user = buildStudent({
-      _id: getStringObjectId(),
-      createdAt: new Date().toISOString(),
+      _id: getObjectId(),
+      createdAt: new Date(),
     })
     const input = {
-      sessionId: getStringObjectId(),
-      user,
-      message: buildMessage({ user: user._id }),
+      sessionId: getObjectId(),
+      message: 'test message',
     }
     const errorMessage = 'No session found'
     mockedSessionRepo.getSessionById.mockImplementationOnce(async () => {
@@ -1350,9 +1349,8 @@ describe('saveMessage', () => {
   test('Should add new message to the session', async () => {
     const user = buildStudent()
     const input = {
-      sessionId: getStringObjectId(),
-      user,
-      message: buildMessage({ user: user._id }),
+      sessionId: getObjectId(),
+      message: 'test message',
     }
     const mockValue = mockedGetSessionById({ student: user._id })
     mockedSessionRepo.getSessionById.mockImplementationOnce(
