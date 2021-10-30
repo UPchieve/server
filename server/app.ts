@@ -1,22 +1,22 @@
-import path from 'path'
-import fs from 'fs'
-import { promisify } from 'util'
 import * as Sentry from '@sentry/node'
 import bodyParser from 'body-parser'
+import timeout from 'connect-timeout'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express, { Request, Response, NextFunction } from 'express'
-import expressWs from 'express-ws'
+import express, { NextFunction, Request, Response } from 'express'
 import cacheControl from 'express-cache-controller'
-import timeout from 'connect-timeout'
 import expressPino from 'express-pino-logger'
-import Mustache from 'mustache'
-import swaggerUi from 'swagger-ui-express'
-import YAML from 'yaml'
+import expressWs from 'express-ws'
+import fs from 'fs'
 import helmet from 'helmet'
+import Mustache from 'mustache'
+import path from 'path'
+import swaggerUi from 'swagger-ui-express'
+import { promisify } from 'util'
+import YAML from 'yaml'
+import config from './config'
 import logger from './logger'
 import router from './router'
-import config from './config'
 import {
   baseUri,
   blockAllMixedContent,
@@ -174,7 +174,7 @@ app.use((req, res, next) => {
 app.use((req, res, next): void => {
   // Wrapper around promise to allow for no callback when using with await
   req.asyncLogin = (arg1: Express.User, arg2?: any) =>
-    promisify(req.login)(arg1)
+    promisify(req.login.bind(req))(arg1)
   next()
 })
 
