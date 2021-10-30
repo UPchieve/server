@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
 import { captureException } from '@sentry/node'
 import base64url from 'base64url'
-import { getUserIdByReferralCode } from '../models/User/queries'
+import { getUserByReferralCode } from '../models/User/queries'
 import StudentModel, { Student } from '../models/Student'
 import VolunteerModel, { Certifications, Volunteer } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
@@ -20,7 +20,8 @@ export async function checkReferral(
 ): Promise<Types.ObjectId | undefined> {
   if (referredByCode) {
     try {
-      return await getUserIdByReferralCode(referredByCode)
+      const user = await getUserByReferralCode(referredByCode)
+      if (user) return user._id
     } catch (error) {
       captureException(error)
     }

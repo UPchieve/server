@@ -376,7 +376,6 @@ export const buildReferenceForm = (overrides = {}): Partial<Reference> => {
   const randomNumToSix = (): number => Math.floor(Math.random() * 6) + 1
   const randomNumToFive = (): number => Math.floor(Math.random() * 5) + 1
   const form = {
-    sentAt: new Date(),
     affiliation: faker.lorem.word(),
     relationshipLength: faker.lorem.word(),
     rejectionReason: faker.lorem.word(),
@@ -386,7 +385,6 @@ export const buildReferenceForm = (overrides = {}): Partial<Reference> => {
     agreeableAndApproachable: randomNumToSix(),
     communicatesEffectively: randomNumToSix(),
     trustworthyWithChildren: randomNumToFive(),
-    status: REFERENCE_STATUS.SUBMITTED,
     ...overrides,
   }
 

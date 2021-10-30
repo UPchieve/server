@@ -3,11 +3,9 @@ import { asDate, asFactory, asNumber, asString } from './type-utils'
 
 export type ReferenceFormData = Omit<
   Reference,
-  '_id' | 'firstName' | 'lastName' | 'email' | 'createdAt'
+  '_id' | 'firstName' | 'lastName' | 'email' | 'createdAt' | 'status' | 'sentAt'
 >
 export const asReferenceFormData = asFactory<ReferenceFormData>({
-  status: asString,
-  sentAt: asDate,
   affiliation: asString,
   relationshipLength: asString,
   patient: asNumber,

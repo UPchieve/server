@@ -29,14 +29,14 @@ export async function getUserIdByEmail(
   }
 }
 
-export async function getUserIdByReferralCode(
+export async function getUserByReferralCode(
   referralCode: string
-): Promise<Types.ObjectId | undefined> {
+): Promise<User | undefined> {
   try {
-    const user = await UserModel.findOne({ referralCode }, { _id: 1 })
+    const user = await UserModel.findOne({ referralCode })
       .lean()
       .exec()
-    if (user) return user._id
+    if (user) return user
   } catch (err) {
     throw new RepoReadError(err)
   }
