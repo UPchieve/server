@@ -1,6 +1,6 @@
 import moment from 'moment-timezone'
 import { values } from 'lodash'
-import { Aggregate, Document, model, Model, Schema, Types } from 'mongoose'
+import { Aggregate, Document, DocumentDefinition, model, Model, Schema, Types } from 'mongoose'
 import {
   FEEDBACK_VERSIONS,
   USER_SESSION_METRICS,
@@ -486,6 +486,18 @@ export async function getActiveSessionsWithVolunteers() {
   } catch (error) {
     throw error
   }
+}
+
+export async function recentSubjectsByStudentId(studentId: Types.ObjectId, limit: number): Promise<DocumentDefinition<SessionDocument>[]> {
+  return await SessionModel.find({
+    student: studentId
+  })
+  .sort({createdAt: -1})
+  .select({type: 1, subtopic: 1})
+  .lean()
+  .distinct()
+  .limit(limit)
+  .exec()
 }
 
 export async function updateReportSession(

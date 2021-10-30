@@ -8,8 +8,8 @@ import * as ApiRoutes from '../../router/api'
 import { buildUser } from '../generate'
 import * as StudentService from '../../services/StudentService'
 import SessionStore from '../../router/api/session-store'
-import { validTypes } from '../../models/Session'
 import { UserNotFoundError } from '../../models/Errors'
+import { MATH_SUBJECTS, SUBJECT_TYPES } from '../../constants/subjects'
 jest.mock('../../services/IpAddressService')
 
 jest.mock('../../services/StudentService')
@@ -55,9 +55,9 @@ beforeEach(async () => {
 describe('/v1/students/1/recent-subjects', () => {
   test('Should return a list if this is a valid ID', async () => {
     const expectedTypes = [
-      { type: 'math', subTopic: validTypes[1] },
-      { type: 'math', subTopic: validTypes[2] },
-      { type: 'math', subTopic: validTypes[3] }
+      { type: SUBJECT_TYPES.MATH, subTopic: MATH_SUBJECTS[Object.keys(MATH_SUBJECTS)[0]] },
+      { type: SUBJECT_TYPES.MATH, subTopic: MATH_SUBJECTS[Object.keys(MATH_SUBJECTS)[1]] },
+      { type: SUBJECT_TYPES.MATH, subTopic: MATH_SUBJECTS[Object.keys(MATH_SUBJECTS)[2]] }
     ]
     mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
       async () => expectedTypes

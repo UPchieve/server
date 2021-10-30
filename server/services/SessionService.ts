@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import _ from 'lodash'
 import moment from 'moment'
-import { Types } from 'mongoose'
+import { DocumentDefinition, Types } from 'mongoose'
 import { User } from '@sentry/types'
 import Case from 'case'
 import { isEnabled } from 'unleash-client'
@@ -781,4 +781,25 @@ export async function getWaitTimeHeatMap(
     throw new NotAllowedError('Only volunteers may view the heat map')
   const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
   return JSON.parse(heatMap)
+}
+
+interface RecentSessionInfo {
+  type: string
+  subTopic: string
+}
+
+/**
+ * Return the most recent unique session subTopics with associated type attended by a student.
+ * @param studentID ID of the student for which to list sessions
+ * @param limit count of session subTopics to return, starting with the last session
+ * @returns list of most recent unique session subTopics with associated type
+ */
+export async function getSessionsByStudentId(studentId: Types.ObjectId, limit: number): Promise<RecentSessionInfo[]> {
+  const sessions =  await SessionRepo.recentSubjectsByStudentId(studentId, limit)
+  return sessions.map(session => {
+    return {
+      type: session.type,
+      subTopic: session.subTopic,
+    }
+  })
 }
