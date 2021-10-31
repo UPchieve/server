@@ -583,7 +583,9 @@ const asTelecomReportPayload = asFactory<TelecomReportPayload>({
 export async function getTelecomReport(data: unknown) {
   // Only generate the telecom report for a specific partner
   const { partnerOrg, startDate, endDate } = asTelecomReportPayload(data)
-  if (partnerOrg !== config.customVolunteerPartnerOrg) return []
+  if (!config.customVolunteerPartnerOrgs.some(org => {
+    return org === partnerOrg
+  })) return []
   try {
     const dateQuery = { $gt: new Date(startDate), $lte: new Date(endDate) }
     const volunteers = await getVolunteersForTelecomReport()

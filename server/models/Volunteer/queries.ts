@@ -285,7 +285,9 @@ export async function getVolunteersForTotalHours(): Promise<
       {
         isTestUser: false,
         isFakeUser: false,
-        volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+        volunteerPartnerOrg: {
+          $in: config.customVolunteerPartnerOrgs
+        },
         isOnboarded: true,
         isApproved: true,
       },
@@ -346,7 +348,9 @@ export async function getVolunteersForTelecomReport(): Promise<
       {
         isTestUser: false,
         isFakeUser: false,
-        volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+        volunteerPartnerOrg: {
+          $in: config.customVolunteerPartnerOrgs
+        },
         isOnboarded: true,
         isApproved: true,
       },

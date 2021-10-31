@@ -48,7 +48,9 @@ export default async (): Promise<void> => {
     } = volunteer
     try {
       const customCheck =
-        volunteerPartnerOrg === config.customVolunteerPartnerOrg
+        config.customVolunteerPartnerOrgs.some(org => {
+          return org === volunteerPartnerOrg
+        })
       let summaryStats
       if (customCheck)
         summaryStats = await telecomHourSummaryStats(volunteer, dateQuery)
