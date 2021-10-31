@@ -11,6 +11,7 @@ import { log } from '../logger'
 import { Jobs } from '.'
 import { getIdFromModelReference } from '../../utils/model-reference'
 import { asObjectId } from '../../utils/type-utils'
+import newrelic from 'newrelic'
 
 interface NotifyTutorsJobData {
   sessionId: string
@@ -82,6 +83,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
         volunteer._id,
         volunteer.phone as string
       )
+      newrelic.incrementMetric('Custom/Jobs/NotifyTutors/SendFollowupNotification', 1)
       log(
         `Successfully sent follow up for session ${session._id} to volunteer ${volunteer._id}`
       )
@@ -94,14 +96,15 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
     try {
       const volunteerNotified = await TwilioService.notifyVolunteer(session)
 
-      if (volunteerNotified)
-        log(
-          `Successfully sent notification for session ${session._id} to volunteer ${volunteerNotified}`
-        )
-      else
-        log(
-          `Unable to send notification for session ${session._id}: no volunteers available`
-        )
+      if (volunteerNotified) {
+          newrelic.incrementMetric('Custom/Jobs/NotifyTutors/SendInitialNotification', 1)
+          log(
+            `Successfully sent notification for session ${session._id} to volunteer ${volunteerNotified}`
+          )
+        } else
+          log(
+            `Unable to send notification for session ${session._id}: no volunteers available`
+          )
     } catch (error) {
       throw new Error(
         `Failed to send notification for session ${session._id}: ${error}`
