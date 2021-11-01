@@ -201,7 +201,7 @@ module.exports = {
       email,
       config.mail.senders.students,
       'UPchieve Student Success Team',
-      config.sendgrid.studentWelcomeTemplate,
+      config.sendgrid.studentOnboardingWelcomeTemplate,
       { firstName },
       null,
       overrides
@@ -220,7 +220,7 @@ module.exports = {
       email,
       config.mail.senders.students,
       'UPchieve Student Success Team',
-      config.sendgrid.studentUseCasesTemplate,
+      config.sendgrid.studentOnboardingHowItWorksTemplate,
       { firstName },
       null,
       overrides
@@ -258,7 +258,7 @@ module.exports = {
       email,
       config.mail.senders.students,
       'UPchieve Student Success Team',
-      config.sendgrid.studentIndependentLearningTemplate,
+      config.sendgrid.studentOnboardingMissionTemplate,
       { firstName },
       null,
       overrides
@@ -276,7 +276,7 @@ module.exports = {
       email,
       config.mail.senders.students,
       'UPchieve Student Success Team',
-      config.sendgrid.studentGoalSettingTemplate,
+      config.sendgrid.studentOnboardingSurveyTemplate,
       { firstName },
       null,
       overrides
