@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { resetDb, insertStudent } from '../../db-utils'
-import emailStudentWelcomeSeries from '../../../worker/jobs/student-emails/emailStudentWelcomeSeries'
+import emailStudentOnboardingSeries from '../../../worker/jobs/student-emails/emailStudentOnboardingSeries'
 import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import MailService from '../../../services/MailService'
@@ -48,7 +48,7 @@ describe('Student welcome email series', () => {
         }
       }
 
-      await emailStudentWelcomeSeries(job)
+      await emailStudentOnboardingSeries(job)
       expect(logger.info).toHaveBeenCalledWith(
         `Emailed ${currentJob} to student ${student._id}`
       )
@@ -74,7 +74,7 @@ describe('Student welcome email series', () => {
         }
       }
 
-      await expect(emailStudentWelcomeSeries(job)).rejects.toEqual(
+      await expect(emailStudentOnboardingSeries(job)).rejects.toEqual(
         Error(
           `Failed to email ${currentJob} to student ${student._id}: ${errorMessage}`
         )
@@ -94,7 +94,7 @@ describe('Student welcome email series', () => {
         }
       }
 
-      await emailStudentWelcomeSeries(job)
+      await emailStudentOnboardingSeries(job)
       expect(logger.info).not.toHaveBeenCalled()
       expect(logger.error).not.toHaveBeenCalled()
     }

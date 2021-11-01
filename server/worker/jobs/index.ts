@@ -18,7 +18,7 @@ import emailOnboardingReminder from './volunteer-emails/emailOnboardingReminder'
 import emailQuickTips from './volunteer-emails/emailQuickTips'
 import emailPartnerVolunteerOnlyCollegeCerts from './partner-volunteer-emails/emailOnlyCollegeCerts'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
-import emailStudentWelcomeSeries from './student-emails/emailStudentWelcomeSeries'
+import emailStudentOnboardingSeries from './student-emails/emailStudentOnboardingSeries'
 import emailStudentSessionActions from './student-emails/emailStudentSessionActions'
 import emailPartnerVolunteerReferACoworker from './partner-volunteer-emails/emailReferACoworker'
 import emailPartnerVolunteerTenSessionMilestone from './partner-volunteer-emails/emailTenSessionMilestone'
@@ -146,19 +146,19 @@ const jobProcessors: JobProcessor[] = [
   },
   {
     name: Jobs.EmailStudentUseCases,
-    processor: emailStudentWelcomeSeries
+    processor: emailStudentOnboardingSeries
   },
   {
     name: Jobs.EmailMeetOurVolunteers,
-    processor: emailStudentWelcomeSeries
+    processor: emailStudentOnboardingSeries
   },
   {
     name: Jobs.EmailIndependentLearning,
-    processor: emailStudentWelcomeSeries
+    processor: emailStudentOnboardingSeries
   },
   {
     name: Jobs.EmailStudentGoalSetting,
-    processor: emailStudentWelcomeSeries
+    processor: emailStudentOnboardingSeries
   },
   {
     name: Jobs.EmailStudentAbsentWarning,
