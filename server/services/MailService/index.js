@@ -237,8 +237,8 @@ module.exports = {
 
     sendEmail(
       email,
-      config.mail.senders.volunteerManager,
-      config.mail.people.volunteerManager.firstName,
+      config.mail.senders.students,
+      'UPchieve Student Success Team',
       config.sendgrid.meetOurVolunteersTemplate,
       { firstName },
       null,
