@@ -195,7 +195,7 @@ module.exports = {
       reply_to: {
         email: config.mail.receivers.students
       },
-      categories: ['student welcome email']
+      categories: ['Student Onboarding Email 1 - Welcome']
     }
     sendEmail(
       email,
@@ -213,7 +213,7 @@ module.exports = {
       reply_to: {
         email: config.mail.receivers.students
       },
-      categories: ['student welcome email - student use cases']
+      categories: ['Student Onboarding Email 2 - How It Works']
     }
 
     sendEmail(
@@ -232,7 +232,7 @@ module.exports = {
       reply_to: {
         email: config.mail.receivers.students
       },
-      categories: ['student welcome email - meet our volunteers']
+      categories: ['Student Onboarding Email 3 - Meet Our Volunteers']
     }
 
     sendEmail(
@@ -251,7 +251,7 @@ module.exports = {
       reply_to: {
         email: config.mail.receivers.students
       },
-      categories: ['student welcome email - independent learning']
+      categories: ['Student Onboarding Email 4 - Mission']
     }
 
     sendEmail(
@@ -270,7 +270,7 @@ module.exports = {
       reply_to: {
         email: config.mail.receivers.students
       },
-      categories: ['student welcome email - goal setting']
+      categories: ['Student Onboarding Email 5 - Survey']
     }
     sendEmail(
       email,
