@@ -170,7 +170,7 @@ export async function sendFollowupText(
   volunteerId: Types.ObjectId,
   volunteerPhone: string
 ): Promise<void> {
-  const messageText = `Head's up: this student is still waiting for help!`
+  const messageText = `Heads up: this student is still waiting for help!`
   const sidPromise = sendTextMessage(volunteerPhone, messageText)
   // TODO: repo pattern
   const notification = new NotificationModel({
