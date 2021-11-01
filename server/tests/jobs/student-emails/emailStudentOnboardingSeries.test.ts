@@ -26,10 +26,10 @@ beforeEach(async () => {
 
 describe('Student welcome email series', () => {
   const studentWelcomeSeriesJobs = [
-    Jobs.EmailStudentUseCases,
+    Jobs.EmailStudentOnboardingHowItWorks,
     Jobs.EmailMeetOurVolunteers,
-    Jobs.EmailIndependentLearning,
-    Jobs.EmailStudentGoalSetting
+    Jobs.EmailStudentOnboardingMission,
+    Jobs.EmailStudentOnboardingSurvey
   ]
 
   beforeEach(async () => {

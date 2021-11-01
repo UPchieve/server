@@ -48,10 +48,10 @@ export enum Jobs {
   EmailOnboardingReminderOne = 'EmailOnboardingReminderOne',
   EmailOnboardingReminderTwo = 'EmailOnboardingReminderTwo',
   EmailOnboardingReminderThree = 'EmailOnboardingReminderThree',
-  EmailStudentUseCases = 'EmailStudentUseCases',
-  EmailIndependentLearning = 'EmailIndependentLearning',
+  EmailStudentOnboardingHowItWorks = 'EmailStudentOnboardingHowItWorks',
+  EmailStudentOnboardingMission = 'EmailStudentOnboardingMission',
   EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
-  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
+  EmailStudentOnboardingSurvey = 'EmailStudentOnboardingSurvey',
   EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
   EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
   EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
@@ -145,7 +145,7 @@ const jobProcessors: JobProcessor[] = [
     processor: emailOnboardingReminder
   },
   {
-    name: Jobs.EmailStudentUseCases,
+    name: Jobs.EmailStudentOnboardingHowItWorks,
     processor: emailStudentOnboardingSeries
   },
   {
@@ -153,11 +153,11 @@ const jobProcessors: JobProcessor[] = [
     processor: emailStudentOnboardingSeries
   },
   {
-    name: Jobs.EmailIndependentLearning,
+    name: Jobs.EmailStudentOnboardingMission,
     processor: emailStudentOnboardingSeries
   },
   {
-    name: Jobs.EmailStudentGoalSetting,
+    name: Jobs.EmailStudentOnboardingSurvey,
     processor: emailStudentOnboardingSeries
   },
   {
