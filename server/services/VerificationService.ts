@@ -98,7 +98,7 @@ async function sendEmails(userId: string): Promise<void> {
       email: user.email,
       firstName: user.firstname
     })
-    await StudentService.queueWelcomeEmails(user._id)
+    await StudentService.queueOnboardingEmails(user._id)
   }
 }
 

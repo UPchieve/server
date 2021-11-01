@@ -136,7 +136,7 @@ describe('confirmVerification', () => {
       email: student.email,
       firstName: student.firstname
     })
-    expect(StudentService.queueWelcomeEmails).toHaveBeenCalledWith(student._id)
+    expect(StudentService.queueOnboardingEmails).toHaveBeenCalledWith(student._id)
   })
 
   test('Should send all volunteer emails when verified', async () => {
