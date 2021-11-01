@@ -24,7 +24,7 @@ beforeEach(async () => {
   await resetDb()
 })
 
-describe('Student welcome email series', () => {
+describe('Student onboarding email series', () => {
   const studentWelcomeSeriesJobs = [
     Jobs.EmailStudentOnboardingHowItWorks,
     Jobs.EmailMeetOurVolunteers,
@@ -36,7 +36,7 @@ describe('Student welcome email series', () => {
     jest.resetAllMocks()
   })
 
-  test('Should send all student welcome series jobs', async () => {
+  test('Should send all student onboarding series jobs', async () => {
     const student = await insertStudent()
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
@@ -55,7 +55,7 @@ describe('Student welcome email series', () => {
     }
   })
 
-  test('Should throw error when sending student welcome series email fails', async () => {
+  test('Should throw error when sending student onboarding series email fails', async () => {
     const student = await insertStudent()
     const errorMessage = 'Error sending email'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
