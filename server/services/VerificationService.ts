@@ -94,7 +94,7 @@ async function sendEmails(userId: string): Promise<void> {
       })
     }
   } else {
-    await MailService.sendStudentWelcomeEmail({
+    await MailService.sendStudentOnboardingWelcomeEmail({
       email: user.email,
       firstName: user.firstname
     })

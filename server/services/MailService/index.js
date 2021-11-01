@@ -190,7 +190,7 @@ module.exports = {
     )
   },
 
-  sendStudentWelcomeEmail: ({ email, firstName }) => {
+  sendStudentOnboardingWelcomeEmail: ({ email, firstName }) => {
     const overrides = {
       reply_to: {
         email: config.mail.receivers.students
@@ -208,7 +208,7 @@ module.exports = {
     )
   },
 
-  sendStudentUseCases: ({ email, firstName }) => {
+  sendStudentOnboardingHowItWorks: ({ email, firstName }) => {
     const overrides = {
       reply_to: {
         email: config.mail.receivers.students
@@ -246,7 +246,7 @@ module.exports = {
     )
   },
 
-  sendIndependentLearning: ({ email, firstName }) => {
+  sendStudentOnboardingMission: ({ email, firstName }) => {
     const overrides = {
       reply_to: {
         email: config.mail.receivers.students
@@ -265,7 +265,7 @@ module.exports = {
     )
   },
 
-  sendStudentGoalSetting: ({ email, firstName }) => {
+  sendStudentOnboardingSurvey: ({ email, firstName }) => {
     const overrides = {
       reply_to: {
         email: config.mail.receivers.students

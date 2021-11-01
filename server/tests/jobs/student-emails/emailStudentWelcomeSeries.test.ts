@@ -59,10 +59,10 @@ describe('Student welcome email series', () => {
     const student = await insertStudent()
     const errorMessage = 'Error sending email'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendStudentUseCases = rejectionFn
+    MailService.sendStudentOnboardingHowItWorks = rejectionFn
     MailService.sendMeetOurVolunteers = rejectionFn
-    MailService.sendIndependentLearning = rejectionFn
-    MailService.sendStudentGoalSetting = rejectionFn
+    MailService.sendStudentOnboardingMission = rejectionFn
+    MailService.sendStudentOnboardingSurvey = rejectionFn
 
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type

@@ -132,7 +132,7 @@ describe('confirmVerification', () => {
 
     await confirmVerification(payload)
 
-    expect(MailService.sendStudentWelcomeEmail).toHaveBeenCalledWith({
+    expect(MailService.sendStudentOnboardingWelcomeEmail).toHaveBeenCalledWith({
       email: student.email,
       firstName: student.firstname
     })
