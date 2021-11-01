@@ -591,7 +591,7 @@ export async function getTelecomReport(data: unknown) {
     return []
   try {
     const dateQuery = { $gt: new Date(startDate), $lte: new Date(endDate) }
-    const volunteers = await getVolunteersForTelecomReport()
+    const volunteers = await getVolunteersForTelecomReport(partnerOrg)
 
     return await generateTelecomReport(volunteers, dateQuery)
   } catch (error) {

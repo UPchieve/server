@@ -340,7 +340,7 @@ export type VolunteerForTelecomReport = Pick<
   'firstname' | 'lastname' | 'email'
 > &
   VolunteerForHourSummary
-export async function getVolunteersForTelecomReport(): Promise<
+export async function getVolunteersForTelecomReport(customVolunteerPartnerOrg: string): Promise<
   VolunteerForTelecomReport[]
 > {
   return await wrapRead(async () => {
@@ -348,9 +348,7 @@ export async function getVolunteersForTelecomReport(): Promise<
       {
         isTestUser: false,
         isFakeUser: false,
-        volunteerPartnerOrg: {
-          $in: config.customVolunteerPartnerOrgs,
-        },
+        volunteerPartnerOrg: customVolunteerPartnerOrg,
         isOnboarded: true,
         isApproved: true,
       },
