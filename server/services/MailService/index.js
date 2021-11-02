@@ -369,8 +369,8 @@ module.exports = {
   sendReadyToCoachEmail: volunteer => {
     const readyToCoachTemplate = volunteer.volunteerPartnerOrg
       ? config.customVolunteerPartnerOrgs.some(org => {
-        return org === volunteer.volunteerPartnerOrg
-      })
+          return org === volunteer.volunteerPartnerOrg
+        })
         ? config.sendgrid.customPartnerReadyToCoachTemplate
         : config.sendgrid.partnerReadyToCoachTemplate
       : config.sendgrid.openReadyToCoachTemplate
