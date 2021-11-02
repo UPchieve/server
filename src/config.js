@@ -24,7 +24,7 @@ if (configElement !== null) {
 }
 
 const customVolunteerPartnerOrgList =
-process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
+  process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
 const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
 config.customVolunteerPartnerOrgs = customVolunteerPartnerOrgs
 
