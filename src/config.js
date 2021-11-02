@@ -23,7 +23,7 @@ if (configElement !== null) {
   config.sentryDsn = process.env.VUE_APP_SENTRY_DSN
   config.sentryDsn = process.env.VUE_APP_SENTRY_DSN
   config.customVolunteerPartnerOrgs =
-    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS
+    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
 }
 const customVolunteerPartnerOrgList = config.customVolunteerPartnerOrgs.split(
   ','
