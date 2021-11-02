@@ -35,6 +35,10 @@ if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
   nodeEnv = 'dev'
 }
 
+const customVolunteerPartnerOrgList =
+  process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
+const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
+
 const config: Static<typeof Config> = {
   NODE_ENV: nodeEnv,
   SSL_CERT_PATH: '',
@@ -191,8 +195,7 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
     'localManifests/volunteer.yaml',
 
-  customVolunteerPartnerOrg:
-    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORG || 'bogus',
+  customVolunteerPartnerOrgs: customVolunteerPartnerOrgs,
 
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||

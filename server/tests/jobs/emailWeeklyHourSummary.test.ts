@@ -160,7 +160,7 @@ describe('emailWeeklyHourSummary', () => {
 
   test('Should log error in generating custom analytics', async () => {
     const pablo = buildVolunteer({
-      volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+      volunteerPartnerOrg: config.customVolunteerPartnerOrgs[0],
       isOnboarded: true,
       isApproved: true
     })
@@ -188,7 +188,7 @@ describe('emailWeeklyHourSummary', () => {
 
   test('Should send email to both regular and custom partner volunteers', async () => {
     const raul = buildVolunteer({
-      volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+      volunteerPartnerOrg: config.customVolunteerPartnerOrgs[0],
       isOnboarded: true,
       isApproved: true,
       sentHourSummaryIntroEmail: true

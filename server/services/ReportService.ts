@@ -560,7 +560,12 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
 
 export const getTelecomReport = async ({ partnerOrg, startDate, endDate }) => {
   // Only generate the telecom report for a specific partner
-  if (partnerOrg !== config.customVolunteerPartnerOrg) return []
+  if (
+    !config.customVolunteerPartnerOrgs.some(org => {
+      return org === partnerOrg
+    })
+  )
+    return []
   try {
     const dateQuery = { $gt: new Date(startDate), $lte: new Date(endDate) }
     const volunteers = await VolunteerService.getVolunteers(

@@ -5,6 +5,10 @@ jest.mock('../services/AnalyticsService')
 
 jest.mock('merkury')
 
+const customVolunteerPartnerOrgList =
+  process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'example'
+const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
+
 jest.mock('../config', () => {
   return {
     NODE_ENV: 'dev',
@@ -53,8 +57,7 @@ jest.mock('../config', () => {
       }
     },
 
-    customVolunteerPartnerOrg:
-      process.env.SUBWAY_CUSTOM_PARTNER_ORG || 'example',
+    customVolunteerPartnerOrgs: customVolunteerPartnerOrgs,
 
     assistmentsBaseURL: 'https://example.com',
 
