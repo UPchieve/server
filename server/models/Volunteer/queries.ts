@@ -340,9 +340,9 @@ export type VolunteerForTelecomReport = Pick<
   'firstname' | 'lastname' | 'email'
 > &
   VolunteerForHourSummary
-export async function getVolunteersForTelecomReport(customVolunteerPartnerOrg: string): Promise<
-  VolunteerForTelecomReport[]
-> {
+export async function getVolunteersForTelecomReport(
+  customVolunteerPartnerOrg: string
+): Promise<VolunteerForTelecomReport[]> {
   return await wrapRead(async () => {
     return await VolunteerModel.find(
       {
