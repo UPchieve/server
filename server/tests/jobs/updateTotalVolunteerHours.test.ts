@@ -45,7 +45,7 @@ describe('Test updating total volunteer hours', () => {
 
   // test objects
   const customOverrides = {
-    volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+    volunteerPartnerOrg: config.customVolunteerPartnerOrgs[0],
     totalVolunteerHours: 4,
     isTestUser: false,
     isFakeUser: false,
