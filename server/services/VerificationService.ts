@@ -38,7 +38,6 @@ const asInitiateVerificationData = asFactory<InitiateVerificationData>({
 
 export interface ConfirmVerificationData {
   userId: Types.ObjectId
-  isVolunteer: boolean
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
@@ -46,7 +45,6 @@ export interface ConfirmVerificationData {
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   userId: asObjectId,
-  isVolunteer: asBoolean,
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
@@ -109,13 +107,10 @@ async function sendEmails(userId: Types.ObjectId): Promise<void> {
 export async function confirmVerification(data: unknown): Promise<boolean> {
   const {
     userId,
-    isVolunteer,
     sendTo,
     verificationMethod,
     verificationCode,
   } = asConfirmVerificationData(data)
-
-  newrelic.addCustomAttribute('role', isVolunteer ? 'volunteer' : 'student')
 
   const VERIFICATION_CODE_LENGTH = 6
   if (
