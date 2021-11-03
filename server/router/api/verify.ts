@@ -47,6 +47,7 @@ export function routeVerify(router: Router) {
     const user = extractUser(req)
     const payload = {
       userId: user._id,
+      isVolunteer: user.isVolunteer,
       ...req.body,
     } as unknown
 

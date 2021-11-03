@@ -83,10 +83,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
         volunteer._id,
         volunteer.phone as string
       )
-      newrelic.incrementMetric(
-        'UPchieve/Jobs/NotifyTutors/SendFollowupNotification',
-        1
-      )
+
       log(
         `Successfully sent follow up for session ${session._id} to volunteer ${volunteer._id}`
       )
@@ -100,10 +97,6 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
       const volunteerNotified = await TwilioService.notifyVolunteer(session)
 
       if (volunteerNotified) {
-        newrelic.incrementMetric(
-          'UPchieve/Jobs/NotifyTutors/SendInitialNotification',
-          1
-        )
         log(
           `Successfully sent notification for session ${session._id} to volunteer ${volunteerNotified}`
         )
