@@ -1,9 +1,9 @@
-import { log } from '../logger'
-import VolunteerModel, { Reference, Volunteer } from '../../models/Volunteer'
+import { Jobs } from '.'
 import { REFERENCE_STATUS } from '../../constants'
+import VolunteerModel, { Reference, Volunteer } from '../../models/Volunteer'
 import * as MailService from '../../services/MailService'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
-import { Jobs } from '.'
+import { log } from '../logger'
 
 interface ReferencesToEmail {
   reference: Reference
@@ -44,8 +44,8 @@ export default async (): Promise<void> => {
         $project: {
           _id: 0,
           volunteer: {
-            firstname: 1,
-            lastname: 1,
+            firstname: '$firstname',
+            lastname: '$lastname',
           },
           reference: '$references',
         },
