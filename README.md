@@ -13,17 +13,30 @@ NOTE: Active development on this project has moved to https://gitlab.com/upchiev
 
 **Table of Contents**
 
-- [Local Development](#local-development)
+- [UPchieve Web App](#upchieve-web-app)
+  - [GITLAB](#gitlab)
+  - [Local Development](#local-development)
+  - [docker-compose](#docker-compose)
+  - [Without docker-compose](#without-docker-compose)
     - [Dependencies](#dependencies)
+      - [Local Node](#local-node)
+      - [Mongo 4.4.8](#mongo-448)
+      - [Redis 6.2.3](#redis-623)
     - [Setup](#setup)
-    - [Test Users](#test-users)
-- [Structure](#structure)
-    - [config.ts](#config)
-    - [models](#models)
-    - [router](#router)
-    - [controllers](#controllers)
-    - [services](#services)
-- [Endpoints](#endpoints)
+      - [Running dev](#running-dev)
+  - [Test Users](#test-users)
+  - [Structure](#structure)
+  - [Server](#server)
+    - [Config](#config)
+    - [Models](#models)
+    - [Router](#router)
+    - [Services](#services)
+  - [Endpoints](#endpoints)
+  - [Worker](#worker)
+    - [Worker Jobs](#worker-jobs)
+  - [Component Library](#component-library)
+    - [Testing](#testing)
+      - [Known issue with visually testing SVG components:](#known-issue-with-visually-testing-svg-components)
 
 Local Development
 -----------------
@@ -182,7 +195,6 @@ Routes use services to perform the business logic of the server, providing
 separation of concerns: the services have no need to be aware of how the
 endpoints work. Instead, a controller provides ways to allow the routes to
 trigger something (a user update, e.g.).
-
 
 ## Endpoints
 
