@@ -11,7 +11,6 @@ import { log } from '../logger'
 import { Jobs } from '.'
 import { getIdFromModelReference } from '../../utils/model-reference'
 import { asObjectId } from '../../utils/type-utils'
-import newrelic from 'newrelic'
 
 interface NotifyTutorsJobData {
   sessionId: string
