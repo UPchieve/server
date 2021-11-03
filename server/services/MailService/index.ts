@@ -404,9 +404,9 @@ export async function sendReadyToCoachEmail<V extends VolunteerContactInfo>(
   volunteer: V
 ): Promise<void> {
   const readyToCoachTemplate = volunteer.volunteerPartnerOrg
-    ? config.customVolunteerPartnerOrgs.some(org => {
-        return org === volunteer.volunteerPartnerOrg
-      })
+    ? config.customVolunteerPartnerOrgs.some(
+        org => org === volunteer.volunteerPartnerOrg
+      )
       ? config.sendgrid.customPartnerReadyToCoachTemplate
       : config.sendgrid.partnerReadyToCoachTemplate
     : config.sendgrid.openReadyToCoachTemplate
