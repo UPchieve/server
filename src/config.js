@@ -22,10 +22,11 @@ if (configElement !== null) {
   config.sentryEnv = process.env.VUE_APP_SENTRY_ENV
   config.sentryDsn = process.env.VUE_APP_SENTRY_DSN
 
-  const customVolunteerPartnerOrgList =
+  config.customVolunteerPartnerOrgs =
     process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
-  const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
-  config.customVolunteerPartnerOrgs = customVolunteerPartnerOrgs
 }
+
+const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
+config.customVolunteerPartnerOrgs = customVolunteerPartnerOrgs
 
 export default config
