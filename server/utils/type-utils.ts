@@ -1,5 +1,6 @@
 import { Types } from 'mongoose'
 import { InputError } from '../models/Errors'
+import validator from 'validator'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
 
@@ -15,6 +16,11 @@ export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {
 export function asString(s: unknown, errMsg = ''): string {
   if (typeof s === 'string') return s as string
   throw new InputError(`${errMsg} ${s} is not a string`)
+}
+
+export function asEmail(s: unknown, errMsg = ''): string {
+  if (typeof s === 'string' && validator.isEmail(s)) return s as string
+  throw new InputError(`${errMsg} ${s} is not a valid email`)
 }
 
 export function asNumber(s: unknown, errMsg?: string): number {

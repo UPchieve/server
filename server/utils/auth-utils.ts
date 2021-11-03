@@ -5,7 +5,6 @@ import passportLocal from 'passport-local'
 import { Types } from 'mongoose'
 import { Request, Response, NextFunction } from 'express'
 
-import logger from '../logger'
 import config from '../config'
 import {
   getUserById,
@@ -19,6 +18,7 @@ import { EVENTS, GRADES } from '../constants'
 import { LookupError } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
+  asEmail,
   asString,
   asBoolean,
   asFactory,
@@ -36,7 +36,7 @@ export interface CredentialData {
   password: string
 }
 export const asCredentialData = asFactory<CredentialData>({
-  email: asString,
+  email: asEmail,
   password: asString,
 })
 
@@ -180,6 +180,14 @@ export const hashPassword = async function(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(config.saltRounds)
   const hash = await bcrypt.hash(password, salt)
   return hash
+}
+
+export function namesAreValid(firstName: string, lastName: string) {
+  // https://stackoverflow.com/questions/10570286/check-if-string-contains-url-anywhere-in-string-using-javascript
+  const internalUrlRegExp = new RegExp(
+    '([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?'
+  )
+  return !internalUrlRegExp.test(firstName) && !internalUrlRegExp.test(lastName)
 }
 
 export function verifyPassword(

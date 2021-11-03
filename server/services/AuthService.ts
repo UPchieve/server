@@ -36,6 +36,7 @@ import {
   checkPhone,
   hashPassword,
   getReferredBy,
+  namesAreValid,
 } from '../utils/auth-utils'
 import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
@@ -103,6 +104,9 @@ export async function registerOpenStudent(data: unknown): Promise<Student> {
 
   await checkCredential({ email, password })
   await checkIpAddress(ip)
+  if (!namesAreValid) {
+    throw new InputError('Names can only contain letters, spaces and hyphens')
+  }
 
   if (!terms) {
     throw new RegistrationError('Must accept the user agreement')
