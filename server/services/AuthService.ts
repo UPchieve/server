@@ -164,6 +164,9 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
   } = asPartnerStudentRegData(data)
 
   await checkCredential({ email, password })
+  if (!namesAreValid) {
+    throw new InputError('Names can only contain letters, spaces and hyphens')
+  }
 
   if (!terms) {
     throw new RegistrationError('Must accept the user agreement')
@@ -215,6 +218,10 @@ export async function registerVolunteer(data: unknown): Promise<Volunteer> {
   } = asVolunteerRegData(data)
 
   await checkCredential({ email, password })
+  
+  if (!namesAreValid) {
+    throw new InputError('Names can only contain letters, spaces and hyphens')
+  }
 
   await checkPhone(phone)
 
@@ -259,6 +266,10 @@ export async function registerPartnerVolunteer(
     lastName,
   } = asPartnerVolunteerRegData(data)
   await checkCredential({ email, password })
+
+  if (!namesAreValid) {
+    throw new InputError('Names can only contain letters, spaces and hyphens')
+  }
 
   await checkPhone(phone)
 
