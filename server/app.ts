@@ -71,7 +71,7 @@ function renderIndexHtml() {
     version: config.version,
     sentryEnv: config.vueAppSentryEnv,
     sentryDsn: config.vueAppSentryDsn,
-    customVolunteerPartnerOrg: config.customVolunteerPartnerOrg,
+    customVolunteerPartnerOrgs: config.customVolunteerPartnerOrgs,
   }
 
   return Mustache.render(template, frontendConfig)
