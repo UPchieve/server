@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import newrelic from 'newrelic'
 import * as VerificationService from '../../services/VerificationService'
 import logger from '../../logger'
 import { resError } from '../res-error'
@@ -49,6 +50,11 @@ export function routeVerify(router: Router) {
       userId: user._id,
       ...req.body,
     } as unknown
+
+    newrelic.addCustomAttribute(
+      'role',
+      user.isVolunteer ? 'volunteer' : 'student'
+    )
 
     try {
       const isVerified = await VerificationService.confirmVerification(payload)
