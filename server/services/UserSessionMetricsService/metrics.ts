@@ -11,19 +11,22 @@ import {
   NO_FLAGS,
   NO_ACTIONS,
 } from './types'
+import { ONE_MINUTE_ELAPSED_MILLISECONDS } from '../../constants/time'
 
 class AbsentStudent extends CounterMetricProcessor {
   public key = USER_SESSION_METRICS.absentStudent
   public requiresFeedback = false
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    const volunteerWaitingMins = 10
     if (uvd.session.volunteerJoinedAt) {
+      const volunteerHasJoined = new Date(uvd.session.volunteerJoinedAt.getTime() + volunteerWaitingMins*ONE_MINUTE_ELAPSED_MILLISECONDS);
       for (const msg of uvd.session.messages) {
         if (
           (msg.user as Types.ObjectId).equals(
             uvd.session.student as Types.ObjectId
           ) &&
-          msg.createdAt > uvd.session.volunteerJoinedAt
+          msg.createdAt > volunteerHasJoined
         )
           return 0
       }
@@ -74,16 +77,18 @@ class AbsentVolunteer extends CounterMetricProcessor {
   public requiresFeedback = false
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    const studentWaitingMins = 5
     if (uvd.session.volunteerJoinedAt) {
-      for (const msg of uvd.session.messages) {
-        if (
-          (msg.user as Types.ObjectId).equals(
-            uvd.session.volunteer as Types.ObjectId
-          ) &&
-          msg.createdAt > uvd.session.volunteerJoinedAt
-        )
-          return 0
-      }
+      const volunteerHasJoined = new Date(uvd.session.volunteerJoinedAt.getTime() + studentWaitingMins*ONE_MINUTE_ELAPSED_MILLISECONDS);
+        for (const msg of uvd.session.messages) {
+          if (
+            (msg.user as Types.ObjectId).equals(
+              uvd.session.volunteer as Types.ObjectId
+            ) &&
+            msg.createdAt > volunteerHasJoined
+          )
+            return 0
+        }
       return 1
     }
     return 0
