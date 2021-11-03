@@ -1,11 +1,6 @@
 import { Types } from 'mongoose'
 import { VERIFICATION_METHOD } from '../constants'
-import {
-  asFactory,
-  asString,
-  asEnum,
-  asObjectId,
-} from '../utils/type-utils'
+import { asFactory, asString, asEnum, asObjectId } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
