@@ -1,12 +1,10 @@
 import { Types } from 'mongoose'
-import newrelic from 'newrelic'
 import { VERIFICATION_METHOD } from '../constants'
 import {
   asFactory,
   asString,
   asEnum,
   asObjectId,
-  asBoolean,
 } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
