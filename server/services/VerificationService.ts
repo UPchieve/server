@@ -122,6 +122,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
       await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
       await sendEmails(userId)
     }
+
     return isVerified
   } catch (error) {
     throw error

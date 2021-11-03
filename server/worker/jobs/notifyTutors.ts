@@ -82,6 +82,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
         volunteer._id,
         volunteer.phone as string
       )
+
       log(
         `Successfully sent follow up for session ${session._id} to volunteer ${volunteer._id}`
       )
@@ -94,11 +95,11 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
     try {
       const volunteerNotified = await TwilioService.notifyVolunteer(session)
 
-      if (volunteerNotified)
+      if (volunteerNotified) {
         log(
           `Successfully sent notification for session ${session._id} to volunteer ${volunteerNotified}`
         )
-      else
+      } else
         log(
           `Unable to send notification for session ${session._id}: no volunteers available`
         )

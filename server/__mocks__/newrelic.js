@@ -16,5 +16,8 @@ module.exports = {
   },
   startSegment: async (name, record, handler) => {
     await handler()
+  },
+  addCustomAttribute: (key, value) => {
+    return
   }
 }
