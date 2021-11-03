@@ -1,7 +1,13 @@
 import { Types } from 'mongoose'
 import newrelic from 'newrelic'
 import { VERIFICATION_METHOD } from '../constants'
-import { asFactory, asString, asEnum, asObjectId, asBoolean } from '../utils/type-utils'
+import {
+  asFactory,
+  asString,
+  asEnum,
+  asObjectId,
+  asBoolean,
+} from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
@@ -109,10 +115,8 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     verificationCode,
   } = asConfirmVerificationData(data)
 
-  newrelic.addCustomAttribute(
-    'role', isVolunteer? 'volunteer' : 'student'
-  )
-  
+  newrelic.addCustomAttribute('role', isVolunteer ? 'volunteer' : 'student')
+
   const VERIFICATION_CODE_LENGTH = 6
   if (
     verificationCode.length !== VERIFICATION_CODE_LENGTH ||
@@ -130,7 +134,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
       await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
       await sendEmails(userId)
     }
-    
+
     return isVerified
   } catch (error) {
     throw error

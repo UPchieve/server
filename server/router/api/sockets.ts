@@ -192,7 +192,7 @@ export function routeSockets(
             const { user, sessionId, message } = data
 
             newrelic.addCustomAttribute('sessionId', sessionId)
-            
+
             // TODO: handle this differently?
             if (!sessionId) {
               return resolve()
