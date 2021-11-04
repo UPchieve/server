@@ -16,19 +16,13 @@ import {
 } from '../../../utils/type-utils'
 
 interface StudentSessionActionsJobData {
-  studentId: string
-  volunteerId?: string
+  studentId: Types.ObjectId
+  volunteerId?: Types.ObjectId
   sessionSubtopic: string
   sessionDate: ISOString
 }
 
-interface StudentActionsData
-  extends Omit<StudentSessionActionsJobData, 'studentId' | 'volunteerId'> {
-  studentId: Types.ObjectId
-  volunteerId?: Types.ObjectId
-}
-
-export const asStudentActionsData = asFactory<StudentActionsData>({
+const asStudentActionsData = asFactory<StudentSessionActionsJobData>({
   studentId: asObjectId,
   volunteerId: asOptional(asObjectId),
   sessionSubtopic: asString,
