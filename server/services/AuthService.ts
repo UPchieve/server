@@ -36,6 +36,8 @@ import {
   checkPhone,
   hashPassword,
   getReferredBy,
+  checkNames,
+  checkEmail,
 } from '../utils/auth-utils'
 import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
@@ -101,8 +103,12 @@ export async function registerOpenStudent(data: unknown): Promise<Student> {
     currentGrade,
   } = asOpenStudentRegData(data)
 
-  await checkCredential({ email, password })
-  await checkIpAddress(ip)
+  await Promise.all([
+    checkCredential({ email, password }),
+    checkIpAddress(ip),
+    checkNames(firstName, lastName),
+    checkEmail(email),
+  ])
 
   if (!terms) {
     throw new RegistrationError('Must accept the user agreement')
@@ -159,7 +165,11 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
     partnerSite,
   } = asPartnerStudentRegData(data)
 
-  await checkCredential({ email, password })
+  await Promise.all([
+    checkCredential({ email, password }),
+    checkNames(firstName, lastName),
+    checkEmail(email),
+  ])
 
   if (!terms) {
     throw new RegistrationError('Must accept the user agreement')
@@ -210,9 +220,12 @@ export async function registerVolunteer(data: unknown): Promise<Volunteer> {
     lastName,
   } = asVolunteerRegData(data)
 
-  await checkCredential({ email, password })
-
-  await checkPhone(phone)
+  await Promise.all([
+    checkCredential({ email, password }),
+    checkNames(firstName, lastName),
+    checkPhone(phone),
+    checkEmail(email),
+  ])
 
   if (!terms) {
     throw new RegistrationError('Must accept the user agreement')
@@ -254,9 +267,12 @@ export async function registerPartnerVolunteer(
     firstName,
     lastName,
   } = asPartnerVolunteerRegData(data)
-  await checkCredential({ email, password })
-
-  await checkPhone(phone)
+  await Promise.all([
+    checkCredential({ email, password }),
+    checkNames(firstName, lastName),
+    checkPhone(phone),
+    checkEmail(email),
+  ])
 
   if (!terms) {
     throw new RegistrationError('Must accept the user agreement')
