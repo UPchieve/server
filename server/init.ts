@@ -1,12 +1,12 @@
 import mongoose from 'mongoose'
 import config from './config'
-const ejson = require('mongodb-extended-json')
+const ejson: any = require('mongodb-extended-json')
 
 // Database
 mongoose.connect(config.database, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  useCreateIndex: true
+  useCreateIndex: true,
 })
 const db = mongoose.connection
 
@@ -15,7 +15,7 @@ db.on('error', console.error.bind(console, 'connection error:'))
 db.once('open', function() {
   console.log('Connected to database')
 
-  const promises = []
+  const promises: Promise<any>[] = []
   let totalRecords = 0
 
   // Data about the seed data we intend to import / update from this file
@@ -24,25 +24,25 @@ db.once('open', function() {
       folder: 'students/',
       idField: 'email',
       model: 'Student',
-      files: ['test_students']
+      files: ['test_students'],
     },
     {
       folder: 'volunteers/',
       idField: 'email',
       model: 'Volunteer',
-      files: ['test_volunteers']
+      files: ['test_volunteers'],
     },
     {
       folder: 'schools/',
       idField: 'upchieveId',
       model: 'School',
-      files: ['test_high_schools']
+      files: ['test_high_schools'],
     },
     {
       folder: 'zipcodes/',
       idField: 'zipCode',
       model: 'ZipCode',
-      files: ['test_zipcodes']
+      files: ['test_zipcodes'],
     },
     {
       folder: 'questions/',
@@ -57,21 +57,16 @@ db.once('open', function() {
         'planning',
         'essays',
         'applications',
-        'upchieve101'
-      ]
-    }
+        'upchieve101',
+      ],
+    },
   ]
 
   // For each of the above metadata items, replace each record in each file with the value from seed data
   seedDataMetadata.forEach(seedDataMetadataItem => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    let aModel = require('./models/' + seedDataMetadataItem.model)
-    if (seedDataMetadataItem.model === 'Volunteer') {
-      aModel = aModel.default
-    }
+    let aModel = require('./models/' + seedDataMetadataItem.model).default
 
     seedDataMetadataItem.files.forEach(file => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const seedData = require('./seeds/' +
         seedDataMetadataItem.folder +
         file +
@@ -80,9 +75,9 @@ db.once('open', function() {
       // use Extended JSON to handle formats like "$date" in json files
       const deserializedSeedData = ejson.deserialize(seedData)
 
-      deserializedSeedData.forEach(record => {
+      deserializedSeedData.forEach((record: any) => {
         // Build a Unique ID Key for each record to be updated. Start with empty object
-        const idKey = {}
+        const idKey: any = {}
 
         // Add a single key/value: key is seedDataMetadataItem.idField
         idKey[seedDataMetadataItem.idField] =
@@ -91,7 +86,7 @@ db.once('open', function() {
         const replacePromise = aModel.findOneAndReplace(idKey, record, {
           upsert: true,
           new: true,
-          setDefaultsOnInsert: true
+          setDefaultsOnInsert: true,
         })
 
         promises.push(replacePromise)

@@ -18,7 +18,7 @@ const main = async (): Promise<void> => {
 
   try {
     await db.connect()
-    // @todo: the update operations below should utilize db transactions, and fail if
+    // TODO: the update operations below should utilize db transactions, and fail if
     //        one of the write operations does not succeed
     const studentUpdateResults = await StudentModel.updateMany(
       {

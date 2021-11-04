@@ -1,16 +1,19 @@
 import { isEnabled } from 'unleash-client'
 import moment from 'moment'
+import { Types } from 'mongoose'
 import {
   FEATURE_FLAGS,
   GATES_STUDY_PERIOD_START,
-  GATES_STUDY_PERIOD_END
+  GATES_STUDY_PERIOD_END,
 } from '../constants'
-import * as UserProductFlagsRepo from '../models/UserProductFlags'
+import * as UserProductFlagsRepo from '../models/UserProductFlags/queries'
 import * as gatesStudyUtils from '../utils/gates-study-utils'
 import { isDateWithinRange } from '../utils/is-date-within-range'
+import { asObjectId } from '../utils/type-utils'
 
 // registered as listener on session-ended
 export async function processGatesQualifiedSession(sessionId: string) {
+  const sessionObjectId = asObjectId(sessionId)
   const todaysDate = moment()
     .utc()
     .toDate()
@@ -23,9 +26,12 @@ export async function processGatesQualifiedSession(sessionId: string) {
     )
   ) {
     const data = await gatesStudyUtils.prepareForGatesQualificationCheck(
-      sessionId
+      sessionObjectId
     )
     if (gatesStudyUtils.isGatesQualifiedSession(data))
-      UserProductFlagsRepo.updateGatesQualifiedFlag(data.student._id, true)
+      UserProductFlagsRepo.updateUPFGatesQualifiedFlagById(
+        data.student._id,
+        true
+      )
   }
 }

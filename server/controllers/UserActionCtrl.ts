@@ -1,12 +1,12 @@
-/* eslint-disable no-useless-constructor */
 import UAParser from 'ua-parser-js'
 import { Types } from 'mongoose'
 import UserAction, {
   UserActionAgent,
-  UserActionDocument
+  UserActionDocument,
 } from '../models/UserAction'
+import { Certifications } from '../models/Volunteer'
 import { USER_ACTION } from '../constants'
-import getSubjectType from '../utils/getSubjectType'
+import { getSubjectType } from '../utils/getSubjectType'
 import getDeviceFromUserAgent from '../utils/getDeviceFromUserAgent'
 
 function getUserAgentInfo(userAgent: string): UserActionAgent {
@@ -17,14 +17,16 @@ function getUserAgentInfo(userAgent: string): UserActionAgent {
     browser: browser.name || '',
     browserVersion: browser.version || '',
     operatingSystem: os.name || '',
-    operatingSystemVersion: os.version || ''
+    operatingSystemVersion: os.version || '',
   }
 }
+
+// TODO: repo pattern - refactor to use db calls instead of documents
 
 export class QuizActionCreator {
   constructor(
     private userId: Types.ObjectId,
-    private quizSubcategory: string,
+    private quizSubcategory: keyof Certifications,
     private ipAddress = ''
   ) {}
 
@@ -33,9 +35,9 @@ export class QuizActionCreator {
       actionType: USER_ACTION.TYPE.QUIZ,
       action,
       user: this.userId,
-      quizSubcategory: this.quizSubcategory.toUpperCase(),
+      quizSubcategory: (this.quizSubcategory as string).toUpperCase(),
       quizCategory: getSubjectType(this.quizSubcategory).toUpperCase(),
-      ipAddress: this.ipAddress ?? ''
+      ipAddress: this.ipAddress ?? '',
     })
 
     return userActionDoc.save()
@@ -79,7 +81,7 @@ export class SessionActionCreator {
       actionType: USER_ACTION.TYPE.SESSION,
       action,
       ipAddress: this.ipAddress,
-      ...userAgentResult
+      ...userAgentResult,
     })
 
     return userActionDoc.save()
@@ -126,7 +128,7 @@ export class AccountActionCreator {
       actionType: USER_ACTION.TYPE.ACCOUNT,
       ipAddress: this.ipAddress,
       action,
-      ...this.options
+      ...this.options,
     })
     return userActionDoc.save()
   }
@@ -200,7 +202,7 @@ export class AdminActionCreator {
       user: this.userId,
       actionType: USER_ACTION.TYPE.ADMIN,
       action,
-      ...this.options
+      ...this.options,
     })
     return userActionDoc.save()
   }

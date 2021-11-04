@@ -1,7 +1,8 @@
 import { flatten } from 'lodash'
 import { log } from '../logger'
-import VolunteerModel, { Volunteer, Reference } from '../../models/Volunteer'
-import UserService from '../../services/UserService'
+import { Volunteer, Reference } from '../../models/Volunteer'
+import { getVolunteers } from '../../models/Volunteer/queries'
+import * as UserService from '../../services/UserService'
 import { REFERENCE_STATUS } from '../../constants'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
@@ -12,12 +13,10 @@ interface UnsentReference {
 }
 
 export default async (): Promise<void> => {
-  const volunteers = (await VolunteerModel.find({
+  const volunteers = await getVolunteers({
     ...EMAIL_RECIPIENT,
-    'references.status': REFERENCE_STATUS.UNSENT
+    'references.status': REFERENCE_STATUS.UNSENT,
   })
-    .lean()
-    .exec()) as Volunteer[]
 
   const unsent: UnsentReference[] = flatten(
     volunteers.map(vol => {
@@ -25,21 +24,18 @@ export default async (): Promise<void> => {
         .filter(ref => ref.status === REFERENCE_STATUS.UNSENT)
         .map(ref => ({
           reference: ref,
-          volunteer: vol
+          volunteer: vol,
         }))
     })
   )
 
   if (unsent.length === 0) return log('No references to email')
 
-  const errors = []
+  const errors: string[] = []
   let totalEmailed = 0
   for (const u of unsent) {
     try {
-      await UserService.notifyReference({
-        reference: u.reference,
-        volunteer: u.volunteer
-      })
+      await UserService.notifyReference(u.reference, u.volunteer)
       totalEmailed += 1
     } catch (error) {
       errors.push(`reference ${u.reference._id}: ${error}`)

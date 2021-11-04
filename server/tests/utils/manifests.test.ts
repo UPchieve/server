@@ -8,6 +8,8 @@ test('Example3 volunteer has all data', () => {
     volunteerPartnerManifests['example3']['requiredEmailDomains']
   ).toHaveLength(2)
   expect(
-    volunteerPartnerManifests['example3']['requiredEmailDomains'][0]
+    (volunteerPartnerManifests['example3'][
+      'requiredEmailDomains'
+    ] as string[])[0]
   ).toEqual('example.org')
 })

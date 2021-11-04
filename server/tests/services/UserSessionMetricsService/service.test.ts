@@ -9,7 +9,7 @@ import {
   buildFeedback,
   buildUSM,
   startSession,
-  joinSession
+  joinSession,
 } from '../../generate'
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import logger from '../../../logger'
@@ -21,7 +21,7 @@ const volunteer = buildVolunteer()
 const volunteerUSM = buildUSM(volunteer._id)
 
 const feedback = buildFeedback({
-  versionNumber: FEEDBACK_VERSIONS.TWO
+  versionNumber: FEEDBACK_VERSIONS.TWO,
 }) as FeedbackVersionTwo
 
 const counterError = new Error('test')
@@ -69,11 +69,11 @@ describe('Prepare metrics', () => {
       studentUSM,
       session,
       outputs: {
-        TestCounter: updateValue
-      }
+        TestCounter: updateValue,
+      },
     } as USMService.MetricProcessorPayload
     await expect(
-      USMService.prepareMetrics(testMetrics, session, feedback, studentUSM)
+      USMService.prepareMetrics(testMetrics, session, studentUSM, feedback)
     ).resolves.toEqual(expected)
     expect(logger.error).toHaveBeenCalledWith(
       `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
@@ -89,15 +89,15 @@ describe('Prepare metrics', () => {
       volunteerUSM,
       session,
       outputs: {
-        TestCounter: updateValue
-      }
+        TestCounter: updateValue,
+      },
     } as USMService.MetricProcessorPayload
     await expect(
       USMService.prepareMetrics(
         testMetrics,
         session,
-        feedback,
         studentUSM,
+        feedback,
         volunteerUSM
       )
     ).resolves.toEqual(expected)
@@ -110,11 +110,11 @@ describe('Prepare metrics', () => {
       studentUSM,
       session,
       outputs: {
-        TestCounter: updateValue
-      }
+        TestCounter: updateValue,
+      },
     } as USMService.MetricProcessorPayload
     await expect(
-      USMService.prepareMetrics(testMetrics, session, feedback, studentUSM)
+      USMService.prepareMetrics(testMetrics, session, studentUSM, feedback)
     ).resolves.toEqual(expected)
     expect(logger.error).toHaveBeenCalledWith(
       `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
@@ -128,11 +128,11 @@ describe('Prepare metrics', () => {
       studentUSM,
       session,
       outputs: {
-        TestCounter: updateValue
-      }
+        TestCounter: updateValue,
+      },
     } as USMService.MetricProcessorPayload
     await expect(
-      USMService.prepareMetrics(testMetrics, session, feedback, studentUSM)
+      USMService.prepareMetrics(testMetrics, session, studentUSM, feedback)
     ).resolves.toEqual(expected)
     expect(logger.error).toHaveBeenCalledWith(
       `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
@@ -144,7 +144,7 @@ describe('Metric processor factory', () => {
   const testProcessorFunction = USMService.metricProcessorFactory(
     {
       [TestCounter.name]: testProcessor,
-      [ErrorCounter.name]: errorProcessor
+      [ErrorCounter.name]: errorProcessor,
     },
     'computeFlag',
     (acc: USER_SESSION_METRICS[]): USER_SESSION_METRICS[] => acc.flat(),
@@ -159,8 +159,8 @@ describe('Metric processor factory', () => {
     studentUSM,
     outputs: {
       [TestCounter.name]: updateValue,
-      [ErrorCounter.name]: 0
-    }
+      [ErrorCounter.name]: 0,
+    },
   } as USMService.MetricProcessorPayload
 
   beforeEach(() => {
@@ -172,7 +172,7 @@ describe('Metric processor factory', () => {
     await expect(testProcessorFunction(payload)).rejects.toThrowError(errMsg)
 
     expect(logger.info).toHaveBeenNthCalledWith(1, [
-      USER_SESSION_METRICS.absentStudent
+      USER_SESSION_METRICS.absentStudent,
     ])
     expect(logger.info).toHaveBeenNthCalledWith(2, session)
   })

@@ -3,24 +3,31 @@ import { Types } from 'mongoose'
 import isEmail from 'validator/lib/isEmail'
 import isLength from 'validator/lib/isLength'
 import nr from 'newrelic'
-import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission'
-import * as MailService from './MailService/smtp'
+import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission/queries'
+import * as MailService from './MailService'
+import {
+  asString,
+  asFactory,
+  asOptional,
+  asObjectId,
+} from '../utils/type-utils'
+import { InputError } from '../models/Errors'
 
 interface ContactFormSubmissionData {
   message: string
   topic: string
   userEmail: string
-  userId?: string
+  userId?: Types.ObjectId
 }
-
-export class ContactFormDataValidationError extends CustomError {
-  constructor(errors: string[]) {
-    super(`contact form data was invalid: ${errors}`)
-  }
-}
+const asContactFormSubmissionData = asFactory<ContactFormSubmissionData>({
+  message: asString,
+  topic: asString,
+  userEmail: asString,
+  userId: asOptional(asObjectId),
+})
 
 export class MailSendError extends CustomError {
-  constructor(mailType, err: string) {
+  constructor(mailType: string, err: string) {
     super(`failed to send ${mailType} through email provider: ${err}`)
   }
 }
@@ -31,116 +38,55 @@ const topics = [
   'Technical issue',
   'Feature request',
   'Subject suggestion',
-  'Other'
+  'Other',
 ]
 
 function topicIsValid(topic: string) {
   return topics.includes(topic)
 }
 
-function userIdIsValid(id: string) {
-  return Types.ObjectId.isValid(id)
-}
-
-function emailIsValid(email: string) {
-  return isEmail(email)
-}
-
 function messageIsValid(message: string) {
   return isLength(message, {
     min: 1,
-    max: 500
+    max: 500,
   })
 }
 
-function requestBodyIsValid(
-  data: unknown
-): { valid: boolean; errors: string[] } {
-  let validMessage = false
-  let validTopic = false
-  let validUserEmail = false
-  let validUserId = false
-
-  let valid = false
-  const errors: string[] = []
-
-  if (
-    Object.prototype.hasOwnProperty.call(data, 'message') &&
-    messageIsValid((data as ContactFormSubmissionData).message)
-  ) {
-    validMessage = true
-  } else {
-    errors.push('message is invalid')
-  }
-  if (
-    Object.prototype.hasOwnProperty.call(data, 'topic') &&
-    topicIsValid((data as ContactFormSubmissionData).topic)
-  ) {
-    validTopic = true
-  } else {
-    errors.push('topic is invalid')
-  }
-  if (
-    Object.prototype.hasOwnProperty.call(data, 'userEmail') &&
-    emailIsValid((data as ContactFormSubmissionData).userEmail)
-  ) {
-    validUserEmail = true
-  } else {
-    errors.push('email is invalid')
-  }
-  if (
-    Object.prototype.hasOwnProperty.call(data, 'userId') &&
-    userIdIsValid((data as ContactFormSubmissionData).userId)
-  ) {
-    validUserId = true
-  } else {
-    errors.push('user id is invalid')
-  }
-
-  if (validMessage && validTopic && (validUserEmail || validUserId)) {
-    valid = true
-  }
-
-  return {
-    valid,
-    errors
-  }
-}
-
-async function sendContactForm(data: {
-  topic: string
-  message: string
-  email: string
-}) {
+// TODO: this function is redundant
+async function sendContactForm(topic: string, message: string, email: string) {
   try {
-    await MailService.sendContactFormEmail(data)
+    await MailService.sendContactForm({
+      topic,
+      message,
+      email,
+    })
   } catch (err) {
-    throw new MailSendError('contact form submission', err.message)
+    throw new MailSendError('contact form submission', (err as Error).message)
   }
 }
 
 export async function saveContactFormSubmission(data: unknown) {
-  const validity = requestBodyIsValid(data)
-  if (!validity.valid) {
-    throw new ContactFormDataValidationError(validity.errors)
-  }
-  const validatedData = data as ContactFormSubmissionData
+  const { topic, userEmail, userId, message } = asContactFormSubmissionData(
+    data
+  )
+  if (!topicIsValid(topic) || !isEmail(userEmail) || !messageIsValid(message))
+    throw new InputError('Contact form submission data not valid')
   await nr.startSegment(
     'service:contactFormSubmission:saveToDatabase',
     true,
     async () => {
       try {
-        if (!validatedData.userId) {
-          await ContactFormSubmissionRepo.createFormWithEmail(
-            validatedData.message,
-            validatedData.topic,
-            validatedData.userEmail
+        if (!userId) {
+          await ContactFormSubmissionRepo.createContactFormByEmail(
+            message,
+            topic,
+            userEmail
           )
         } else {
-          await ContactFormSubmissionRepo.createFormWithUser(
-            validatedData.message,
-            validatedData.topic,
-            validatedData.userId
+          await ContactFormSubmissionRepo.createContactFormByUser(
+            message,
+            topic,
+            userId
           )
         }
       } catch (err) {
@@ -149,17 +95,12 @@ export async function saveContactFormSubmission(data: unknown) {
     }
   )
 
-  const mailData = {
-    email: validatedData.userEmail,
-    message: validatedData.message,
-    topic: validatedData.topic
-  }
   await nr.startSegment(
     'service:contactFormSubmission:sendEmail',
     true,
     async () => {
       try {
-        await sendContactForm(mailData)
+        await sendContactForm(userEmail, message, topic)
       } catch (err) {
         throw err
       }

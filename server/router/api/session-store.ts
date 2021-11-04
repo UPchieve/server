@@ -1,15 +1,16 @@
 import session from 'express-session'
 import connectMongo from 'connect-mongo'
 import config from '../../config'
+import { Express } from 'express'
 
 const MongoStore = connectMongo(session)
 
 export const sessionStoreCollectionName = 'auth-sessions'
 
-export default function(app) {
+export default function(app: Express): connectMongo.MongoStore {
   const sessionStore = new MongoStore({
     url: config.database,
-    collection: sessionStoreCollectionName
+    collection: sessionStoreCollectionName,
   })
 
   app.use(
@@ -20,8 +21,8 @@ export default function(app) {
       store: sessionStore,
       cookie: {
         httpOnly: false,
-        maxAge: config.sessionCookieMaxAge
-      }
+        maxAge: config.sessionCookieMaxAge,
+      },
     })
   )
 

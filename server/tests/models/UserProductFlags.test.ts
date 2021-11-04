@@ -1,12 +1,15 @@
 import mongoose from 'mongoose'
-import * as UserProductFlagsRepo from '../../models/UserProductFlags'
+import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
+import UserProductFlagsModel, {
+  UserProductFlags,
+} from '../../models/UserProductFlags'
 import UserModel, { User } from '../../models/User'
 import { RepoCreateError, RepoReadError } from '../../models/Errors'
 import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
 import { mockMongooseFindQuery } from '../utils'
 
 async function resetUPF(): Promise<void> {
-  await UserProductFlagsRepo.UserProductFlagsModel.deleteMany({})
+  await UserProductFlagsModel.deleteMany({})
 }
 
 let student: User
@@ -16,7 +19,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
   student = await insertStudent()
   volunteer = await insertVolunteer()
@@ -40,39 +43,37 @@ describe('Test create UserProductFlag model documents', () => {
   })
 
   test('Create succeeds for student', async () => {
-    const createdUPF = await UserProductFlagsRepo.createByUserId(student._id)
+    const createdUPF = await UserProductFlagsRepo.createUPFByUserId(student._id)
 
-    const result = await UserProductFlagsRepo.UserProductFlagsModel.findById(
-      createdUPF._id
-    )
+    const result = await UserProductFlagsModel.findById(createdUPF._id)
       .lean()
       .exec()
-    expect(result.user).toEqual(student._id)
+    expect(result!.user).toEqual(student._id)
   })
 
   test('Create succeeds for volunteer', async () => {
-    const createdUPF = await UserProductFlagsRepo.createByUserId(volunteer._id)
-
-    const result = await UserProductFlagsRepo.UserProductFlagsModel.findById(
-      createdUPF._id
+    const createdUPF = await UserProductFlagsRepo.createUPFByUserId(
+      volunteer._id
     )
+
+    const result = await UserProductFlagsModel.findById(createdUPF._id)
       .lean()
       .exec()
-    expect(result.user).toEqual(volunteer._id)
+    expect(result!.user).toEqual(volunteer._id)
   })
 
   test('Create errors with re-used user', async () => {
-    await UserProductFlagsRepo.createByUserId(student._id)
+    await UserProductFlagsRepo.createUPFByUserId(student._id)
 
     let error: RepoCreateError
     try {
-      await UserProductFlagsRepo.createByUserId(student._id)
+      await UserProductFlagsRepo.createUPFByUserId(student._id)
     } catch (err) {
-      error = err
+      error = err as Error
     }
 
-    expect(error).toBeInstanceOf(RepoCreateError)
-    expect(error.message).toBe(
+    expect(error!).toBeInstanceOf(RepoCreateError)
+    expect((error! as RepoCreateError).message).toBe(
       `UserProductFlags document for user ${student._id} already exists`
     )
   })
@@ -82,17 +83,19 @@ describe('Test create UserProductFlag model documents', () => {
 
     let error: RepoCreateError
     try {
-      await UserProductFlagsRepo.createByUserId(user)
+      await UserProductFlagsRepo.createUPFByUserId(user)
     } catch (err) {
-      error = err
+      error = err as Error
     }
-    expect(error).toBeInstanceOf(RepoCreateError)
-    expect(error.message).toBe(`User ${user} does not exist`)
+    expect(error!).toBeInstanceOf(RepoCreateError)
+    expect((error! as RepoCreateError).message).toBe(
+      `User ${user} does not exist`
+    )
   })
 
   test('Create errors with no data returned from db', async () => {
     const mockedUserProductModelCreate = jest.spyOn(
-      UserProductFlagsRepo.UserProductFlagsModel,
+      UserProductFlagsModel,
       'create'
     )
     // MongooseModel.create has multiple overloads which return type 'void'
@@ -101,13 +104,15 @@ describe('Test create UserProductFlag model documents', () => {
 
     let error: RepoCreateError
     try {
-      await UserProductFlagsRepo.createByUserId(student._id)
+      await UserProductFlagsRepo.createUPFByUserId(student._id)
     } catch (err) {
-      error = err
+      error = err as Error
     }
 
-    expect(error).toBeInstanceOf(RepoCreateError)
-    expect(error.message).toBe('Create query did not return created object')
+    expect(error!).toBeInstanceOf(RepoCreateError)
+    expect((error! as RepoCreateError).message).toBe(
+      'Create query did not return created object'
+    )
   })
 
   test('Create bubbles up errors from database find', async () => {
@@ -121,13 +126,13 @@ describe('Test create UserProductFlag model documents', () => {
     )
 
     await expect(
-      UserProductFlagsRepo.createByUserId(student._id)
+      UserProductFlagsRepo.createUPFByUserId(student._id)
     ).rejects.toThrow(testError)
   })
 
   test('Create wraps errors from database creation', async () => {
     const mockedUserProductModelCreate = jest.spyOn(
-      UserProductFlagsRepo.UserProductFlagsModel,
+      UserProductFlagsModel,
       'create'
     )
     const testError = new Error('Test error')
@@ -137,25 +142,25 @@ describe('Test create UserProductFlag model documents', () => {
 
     let error: RepoCreateError
     try {
-      await UserProductFlagsRepo.createByUserId(student._id)
+      await UserProductFlagsRepo.createUPFByUserId(student._id)
     } catch (err) {
-      error = err
+      error = err as Error
     }
 
-    expect(error).toBeInstanceOf(RepoCreateError)
-    expect(error.message).toBe(testError.message)
+    expect(error!).toBeInstanceOf(RepoCreateError)
+    expect((error! as RepoCreateError).message).toContain(testError.message)
   })
 })
 
 describe('Test read UserProductFlag documents', () => {
-  let createdUPF: UserProductFlagsRepo.UserProductFlags
+  let createdUPF: UserProductFlags
 
   beforeAll(async () => {
     await resetUPF()
-    const newUPF = await UserProductFlagsRepo.UserProductFlagsModel.create({
-      user: student._id
+    const newUPF = await UserProductFlagsModel.create({
+      user: student._id,
     })
-    createdUPF = newUPF.toObject() as UserProductFlagsRepo.UserProductFlags
+    createdUPF = newUPF.toObject() as UserProductFlags
   })
 
   beforeEach(() => {
@@ -163,80 +168,15 @@ describe('Test read UserProductFlag documents', () => {
   })
 
   test('GetByObjectId succeeds', async () => {
-    const result = await UserProductFlagsRepo.getByObjectId(createdUPF._id)
+    const result = await UserProductFlagsRepo.getUPFByObjectId(createdUPF._id)
 
-    expect(result._id).toEqual(createdUPF._id)
-    expect(result.user).toEqual(student._id)
+    expect(result!._id).toEqual(createdUPF._id)
+    expect(result!.user).toEqual(student._id)
   })
 
   test('GetByObjectId wraps errors from database find', async () => {
     const mockedUserProductFlagsModelFind = jest.spyOn(
-      UserProductFlagsRepo.UserProductFlagsModel,
-      'findById'
-    )
-    const testError = new Error('Test error')
-    mockedUserProductFlagsModelFind.mockImplementationOnce(
-      // @ts-expect-error
-      mockMongooseFindQuery(() => {
-        throw testError
-      })
-    )
-
-    let error: RepoReadError
-    try {
-      await UserProductFlagsRepo.getByObjectId(createdUPF._id)
-    } catch (err) {
-      error = err
-    }
-
-    expect(error).toBeInstanceOf(RepoReadError)
-    expect(error.message).toBe(testError.message)
-  })
-
-  test('GetAll succeeds', async () => {
-    const result = await UserProductFlagsRepo.UserProductFlagsModel.find()
-      .lean()
-      .exec()
-
-    expect(result.length).toEqual(1)
-    expect(result[0]._id).toEqual(createdUPF._id)
-    expect(result[0].user).toEqual(student._id)
-  })
-
-  test('GetAll bubbles up errors from database find', async () => {
-    const mockedUserProductFlagsModelFind = jest.spyOn(
-      UserProductFlagsRepo.UserProductFlagsModel,
-      'find'
-    )
-    const testError = new Error('Test error')
-    mockedUserProductFlagsModelFind.mockImplementationOnce(
-      // @ts-expect-error
-      mockMongooseFindQuery(() => {
-        throw testError
-      })
-    )
-
-    let error: RepoReadError
-    try {
-      await UserProductFlagsRepo.getAll()
-    } catch (err) {
-      error = err
-    }
-
-    expect(error).toBeInstanceOf(RepoReadError)
-    expect(error.message).toBe(testError.message)
-  })
-
-  test('GetByUserId succeeds', async () => {
-    const result = await UserProductFlagsRepo.getByUserId(student._id)
-
-    expect(result._id).toEqual(createdUPF._id)
-    expect(result.user).toEqual(student._id)
-  })
-
-  test('GetByUserId bubbles up errors from database find', async () => {
-    const mockedUserProductFlagsModelFind = jest.spyOn(
-      UserProductFlagsRepo.UserProductFlagsModel,
+      UserProductFlagsModel,
       'findOne'
     )
     const testError = new Error('Test error')
@@ -249,12 +189,77 @@ describe('Test read UserProductFlag documents', () => {
 
     let error: RepoReadError
     try {
-      await UserProductFlagsRepo.getByUserId(student._id)
+      await UserProductFlagsRepo.getUPFByObjectId(createdUPF._id)
     } catch (err) {
-      error = err
+      error = err as Error
     }
 
-    expect(error).toBeInstanceOf(RepoReadError)
-    expect(error.message).toBe(testError.message)
+    expect(error!).toBeInstanceOf(RepoReadError)
+    expect((error! as RepoReadError).message).toContain(testError.message)
+  })
+
+  test('GetAll succeeds', async () => {
+    const result = await UserProductFlagsModel.find()
+      .lean()
+      .exec()
+
+    expect(result.length).toEqual(1)
+    expect(result[0]._id).toEqual(createdUPF._id)
+    expect(result[0].user).toEqual(student._id)
+  })
+
+  test('GetAll bubbles up errors from database find', async () => {
+    const mockedUserProductFlagsModelFind = jest.spyOn(
+      UserProductFlagsModel,
+      'find'
+    )
+    const testError = new Error('Test error')
+    mockedUserProductFlagsModelFind.mockImplementationOnce(
+      // @ts-expect-error
+      mockMongooseFindQuery(() => {
+        throw testError
+      })
+    )
+
+    let error: RepoReadError
+    try {
+      await UserProductFlagsRepo.getAllUPF()
+    } catch (err) {
+      error = err as Error
+    }
+
+    expect(error!).toBeInstanceOf(RepoReadError)
+    expect((error! as RepoReadError).message).toContain(testError.message)
+  })
+
+  test('GetByUserId succeeds', async () => {
+    const result = await UserProductFlagsRepo.getUPFByUserId(student._id)
+
+    expect(result!._id).toEqual(createdUPF._id)
+    expect(result!.user).toEqual(student._id)
+  })
+
+  test('GetByUserId bubbles up errors from database find', async () => {
+    const mockedUserProductFlagsModelFind = jest.spyOn(
+      UserProductFlagsModel,
+      'findOne'
+    )
+    const testError = new Error('Test error')
+    mockedUserProductFlagsModelFind.mockImplementationOnce(
+      // @ts-expect-error
+      mockMongooseFindQuery(() => {
+        throw testError
+      })
+    )
+
+    let error: RepoReadError
+    try {
+      await UserProductFlagsRepo.getUPFByUserId(student._id)
+    } catch (err) {
+      error = err as Error
+    }
+
+    expect(error!).toBeInstanceOf(RepoReadError)
+    expect((error! as RepoReadError).message).toContain(testError.message)
   })
 })

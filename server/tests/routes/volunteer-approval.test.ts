@@ -3,7 +3,7 @@ import request from 'supertest'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer, buildReference } from '../generate'
 import { mockApp, mockRouter, mockPassportMiddleware } from '../mock-app'
-import routeUser from '../../router/api/user'
+import { routeUser } from '../../router/api/user'
 import { authPassport } from '../../utils/auth-utils'
 
 const app = mockApp()
@@ -36,8 +36,8 @@ jest.mock('aws-sdk', () => {
         .mockImplementationOnce(() => '')
         .mockImplementationOnce(
           () => 'https://photos.s3.us-east-2.amazonaws.com/12345'
-        )
-    }))
+        ),
+    })),
   }
 })
 
@@ -45,7 +45,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -58,20 +58,21 @@ afterAll(async () => {
 //        workaround is to run jest with the '--runInBand' to run the tests serially
 beforeEach(async () => {
   await resetDb()
+  mockGetUser.mockReset()
 })
 
 test('Volunteer submits a reference', async () => {
   const reference = buildReference()
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
-  mockGetUser.mockResolvedValueOnce(volunteer)
+  mockGetUser.mockReturnValueOnce(volunteer)
 
   await agent
     .post('/api/user/volunteer-approval/reference')
     .send({
       referenceFirstName: reference.firstName,
       referenceLastName: reference.lastName,
-      referenceEmail: reference.email
+      referenceEmail: reference.email,
     })
     .expect(200)
 })
@@ -81,12 +82,12 @@ test('Volunteer deletes a reference', async () => {
   const references = [reference]
   const volunteer = buildVolunteer({ references })
   await insertVolunteer(volunteer)
-  mockGetUser.mockResolvedValueOnce(volunteer)
+  mockGetUser.mockReturnValueOnce(volunteer)
 
   await agent
     .post('/api/user/volunteer-approval/reference/delete')
     .send({
-      referenceEmail: reference.email
+      referenceEmail: reference.email,
     })
     .expect(200)
 })
@@ -95,14 +96,14 @@ test('Volunteer deletes a reference', async () => {
 test('Volunteer recieves an error requesting photo id upload url', async () => {
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
-  mockGetUser.mockResolvedValueOnce(volunteer)
+  mockGetUser.mockReturnValueOnce(volunteer)
 
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')
     .expect(200)
 
   const {
-    body: { success, message }
+    body: { success, message },
   } = response
   const expectedMessage = 'Pre-signed URL error'
 
@@ -114,14 +115,14 @@ test('Volunteer recieves an error requesting photo id upload url', async () => {
 test('Volunteer recieves a photo id upload url', async () => {
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)
-  mockGetUser.mockResolvedValueOnce(volunteer)
+  mockGetUser.mockReturnValueOnce(volunteer)
 
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')
     .expect(200)
 
   const {
-    body: { success, message, uploadUrl }
+    body: { success, message, uploadUrl },
   } = response
   const expectedMessage = 'AWS SDK S3 pre-signed URL generated successfully'
 

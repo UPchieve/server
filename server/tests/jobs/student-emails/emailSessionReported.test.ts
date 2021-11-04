@@ -4,7 +4,7 @@ import { mocked } from 'ts-jest/utils'
 import { Jobs } from '../../../worker/jobs'
 import { resetDb, insertSessionWithVolunteer } from '../../db-utils'
 import EmailSessionReported from '../../../worker/jobs/student-emails/emailSessionReported'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { SESSION_REPORT_REASON } from '../../../constants'
 import { safeAsync } from '../../../utils/safe-async'
 
@@ -17,7 +17,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -30,7 +30,7 @@ describe('Session reported emails', () => {
   const errorMessage = 'error'
   const reportReason = SESSION_REPORT_REASON.STUDENT_RUDE
   const reportMessage = 'test message'
-  let job
+  let job: any
 
   beforeEach(async () => {
     jest.resetAllMocks()
@@ -40,7 +40,7 @@ describe('Session reported emails', () => {
     const { session, student, volunteer } = await insertSessionWithVolunteer({
       isReported: true,
       reportReason,
-      reportMessage
+      reportMessage,
     })
     const payload = {
       studentId: student._id.toString(),
@@ -48,11 +48,11 @@ describe('Session reported emails', () => {
       reportReason,
       reportMessage,
       isBanReason: true,
-      sessionId: session._id.toString()
+      sessionId: session._id.toString(),
     }
     job = {
       name: Jobs.EmailSessionReported,
-      data: payload
+      data: payload,
     }
   })
 
@@ -70,7 +70,7 @@ describe('Session reported emails', () => {
     const { error } = await safeAsync(EmailSessionReported(job))
 
     expect(error).toBeDefined()
-    expect(error.message).toEqual(
+    expect((error as Error).message).toEqual(
       `Failed to send ban alert email: ${errorMessage}\n`
     )
   })
@@ -83,7 +83,7 @@ describe('Session reported emails', () => {
     const { error } = await safeAsync(EmailSessionReported(job))
 
     expect(error).toBeDefined()
-    expect(error.message).toEqual(
+    expect((error as Error).message).toEqual(
       `Failed to add student ${job.data.studentId} to ban email group: ${errorMessage}\n`
     )
   })
@@ -96,7 +96,7 @@ describe('Session reported emails', () => {
     const { error } = await safeAsync(EmailSessionReported(job))
 
     expect(error).toBeDefined()
-    expect(error.message).toEqual(
+    expect((error as Error).message).toEqual(
       `Failed to send report alert email: ${errorMessage}\n`
     )
   })
@@ -109,7 +109,7 @@ describe('Session reported emails', () => {
     const { error } = await safeAsync(EmailSessionReported(job))
 
     expect(error).toBeDefined()
-    expect(error.message).toEqual(
+    expect((error as Error).message).toEqual(
       `Failed to send student ${job.data.studentId} email for report: ${errorMessage}\n`
     )
   })

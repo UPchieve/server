@@ -1,3 +1,4 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import moment from 'moment'
 import { TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP } from '../../constants'
@@ -6,29 +7,31 @@ import {
   insertSessionWithVolunteer,
   insertSession,
   insertNotificationMany,
-  insertVolunteerMany
+  insertVolunteerMany,
 } from '../db-utils'
 import notifyTutors from '../../worker/jobs/notifyTutors'
 import config from '../../config'
-import TwilioService from '../../services/twilio'
+import * as TwilioService from '../../services/TwilioService'
 import { buildVolunteer, buildNotification } from '../generate'
 import { Jobs } from '../../worker/jobs'
 import { log } from '../../worker/logger'
 import { Volunteer } from '../../models/Volunteer'
 import { Notification } from '../../models/Notification'
 import QueueService from '../../services/QueueService'
-jest.mock('../../services/twilio')
+jest.mock('../../services/TwilioService')
 jest.mock('../../services/QueueService')
 jest.mock('../../worker/logger')
 
 jest.setTimeout(15000)
+
+const mockedTwilioService = mocked(TwilioService, true)
 
 // db connection
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -57,7 +60,7 @@ const fillNotifications = async (
 
   await Promise.all([
     insertVolunteerMany(volunteers),
-    insertNotificationMany(notifications)
+    insertNotificationMany(notifications),
   ])
 
   return { notifications, volunteers }
@@ -71,12 +74,12 @@ describe('Notify tutors', () => {
   test('Should not notify volunteers when session is fulfilled', async () => {
     const { session } = await insertSessionWithVolunteer()
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: config.notificationSchedule
-      }
+        notificationSchedule: config.notificationSchedule,
+      },
     }
 
     await notifyTutors(job)
@@ -89,18 +92,19 @@ describe('Notify tutors', () => {
   test('Should not notify volunteers when notification schedule is empty', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: []
+        notificationSchedule: [],
       },
       queue: {
-        add: jest.fn()
-      }
+        add: jest.fn(),
+      },
     }
 
-    TwilioService.notifyVolunteer = jest.fn(() => null)
+    mockedTwilioService.notifyVolunteer.mockResolvedValueOnce(undefined)
+
     await notifyTutors(job)
 
     expect(job.queue.add).toHaveBeenCalledTimes(0)
@@ -112,19 +116,19 @@ describe('Notify tutors', () => {
   test('Should notify volunteers', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: [1000, 1000]
+        notificationSchedule: [1000, 1000],
       },
       queue: {
-        add: jest.fn()
-      }
+        add: jest.fn(),
+      },
     }
     const volunteer = buildVolunteer()
 
-    TwilioService.notifyVolunteer = jest.fn(() => Promise.resolve(volunteer))
+    mockedTwilioService.notifyVolunteer.mockResolvedValueOnce(volunteer._id)
     await notifyTutors(job)
 
     expect(job.queue.add).toHaveBeenCalledTimes(1)
@@ -138,7 +142,7 @@ describe('Notify tutors', () => {
     const { notifications, volunteers } = await fillNotifications()
     for (let i = 0; i < 3; i++) {
       const followUp = buildNotification({
-        volunteer: notifications[i].volunteer
+        volunteer: notifications[i].volunteer,
       })
       await insertNotificationMany([followUp])
       notifications.push(followUp)
@@ -149,15 +153,15 @@ describe('Notify tutors', () => {
       notifications.length % TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: config.notificationSchedule
+        notificationSchedule: config.notificationSchedule,
       },
       queue: {
-        add: jest.fn()
-      }
+        add: jest.fn(),
+      },
     }
 
     await notifyTutors(job)
@@ -176,7 +180,7 @@ describe('Notify tutors', () => {
     )
     for (let i = 0; i < 3; i++) {
       const followUp = buildNotification({
-        volunteer: notifications[i].volunteer
+        volunteer: notifications[i].volunteer,
       })
       await insertNotificationMany([followUp])
       notifications.push(followUp)
@@ -185,22 +189,22 @@ describe('Notify tutors', () => {
       notifications,
       createdAt: moment()
         .subtract(6, 'minutes')
-        .toDate()
+        .toDate(),
     })
 
     const expectedVolunteerIndex =
       notifications.length % totalVolunteersNotified
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       data: {
         sessionId: session._id,
-        notificationSchedule: config.notificationSchedule
+        notificationSchedule: config.notificationSchedule,
       },
       queue: {
-        add: jest.fn()
-      }
+        add: jest.fn(),
+      },
     }
 
     await notifyTutors(job)

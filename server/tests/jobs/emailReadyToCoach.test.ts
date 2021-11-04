@@ -3,16 +3,18 @@ import emailReadyToCoach from '../../worker/jobs/emailReadyToCoach'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
 import VolunteerModel, { Volunteer } from '../../models/Volunteer'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 jest.mock('../../services/MailService')
 
 jest.setTimeout(1000 * 15)
+
+// TODO: refactor test to mock out DB calls
 
 const buildReadyToSendVolunteer = (): Partial<Volunteer> => {
   return buildVolunteer({
     isOnboarded: true,
     isApproved: true,
-    sentReadyToCoachEmail: false
+    sentReadyToCoachEmail: false,
   })
 }
 
@@ -21,7 +23,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -42,7 +44,7 @@ describe('Ready to coach email', () => {
     await Promise.all([
       insertVolunteer(buildReadyToSendVolunteer()),
       insertVolunteer(buildReadyToSendVolunteer()),
-      insertVolunteer(buildReadyToSendVolunteer())
+      insertVolunteer(buildReadyToSendVolunteer()),
     ])
 
     await emailReadyToCoach()
@@ -64,7 +66,7 @@ describe('Ready to coach email', () => {
     await Promise.all([
       insertVolunteer(buildVolunteer()),
       insertVolunteer(buildVolunteer()),
-      insertVolunteer(buildVolunteer())
+      insertVolunteer(buildVolunteer()),
     ])
 
     await emailReadyToCoach()

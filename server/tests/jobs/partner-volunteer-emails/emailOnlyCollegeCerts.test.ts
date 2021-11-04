@@ -1,23 +1,26 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import {
   resetDb,
   insertVolunteer,
-  insertNotificationMany
+  insertNotificationMany,
 } from '../../db-utils'
 import emailOnlyCollegeCerts from '../../../worker/jobs/partner-volunteer-emails/emailOnlyCollegeCerts'
-import logger from '../../../logger'
+import { log } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import { buildNotification } from '../../generate'
 import { SUBJECTS } from '../../../constants'
 jest.mock('../../../services/MailService')
+
+const mockedMailService = mocked(MailService, true)
 
 // db connection
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -39,22 +42,22 @@ describe('Parnter volunteer only college certs email', () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       volunteerPartnerOrg: 'example',
-      subjects
+      subjects,
     })
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailOnlyCollegeCerts(job)
     expect(
       MailService.sendPartnerVolunteerOnlyCollegeCerts
     ).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(log).toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${volunteer._id}`
     )
   })
@@ -62,19 +65,19 @@ describe('Parnter volunteer only college certs email', () => {
   test('Should not send if partner volunteer is not onboarded', async () => {
     const volunteer = await insertVolunteer({ isOnboarded: false })
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailOnlyCollegeCerts(job)
     expect(
       MailService.sendPartnerVolunteerOnlyCollegeCerts
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(log).not.toHaveBeenCalledWith()
   })
 
   test('Should not send email if partner volunteer is onboarded and received more than 2 text notifications', async () => {
@@ -82,23 +85,23 @@ describe('Parnter volunteer only college certs email', () => {
     const notifications = [
       buildNotification({ volunteer: volunteer._id }),
       buildNotification({ volunteer: volunteer._id }),
-      buildNotification({ volunteer: volunteer._id })
+      buildNotification({ volunteer: volunteer._id }),
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailOnlyCollegeCerts(job)
     expect(
       MailService.sendPartnerVolunteerOnlyCollegeCerts
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(log).not.toHaveBeenCalledWith()
   })
 
   test('Should not email if volunteer is certified in subjects other than college related subjects', async () => {
@@ -106,28 +109,28 @@ describe('Parnter volunteer only college certs email', () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       volunteerPartnerOrg: 'example',
-      subjects
+      subjects,
     })
     const notifications = [
       buildNotification({ volunteer: volunteer._id }),
       buildNotification({ volunteer: volunteer._id }),
-      buildNotification({ volunteer: volunteer._id })
+      buildNotification({ volunteer: volunteer._id }),
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailOnlyCollegeCerts(job)
     expect(
       MailService.sendPartnerVolunteerOnlyCollegeCerts
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(log).not.toHaveBeenCalledWith()
   })
 
   test('Should throw error when sending email fails', async () => {
@@ -135,18 +138,19 @@ describe('Parnter volunteer only college certs email', () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       volunteerPartnerOrg: 'example',
-      subjects
+      subjects,
     })
     const errorMessage = 'Unable to send'
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendPartnerVolunteerOnlyCollegeCerts = rejectionFn
+    mockedMailService.sendPartnerVolunteerOnlyCollegeCerts.mockRejectedValueOnce(
+      errorMessage
+    )
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await expect(emailOnlyCollegeCerts(job)).rejects.toEqual(

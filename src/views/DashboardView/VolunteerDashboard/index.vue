@@ -241,9 +241,9 @@ export default {
     }),
 
     isCustomVolunteerPartner() {
-      return config.customVolunteerPartnerOrgs.some(org => {
-        return org === this.user.volunteerPartnerOrg
-      })
+      return config.customVolunteerPartnerOrgs.some(
+        org => org === this.user.volunteerPartnerOrg
+      )
     },
 
     isNewVolunteer() {

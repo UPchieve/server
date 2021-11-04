@@ -1,44 +1,46 @@
+import { Types } from 'mongoose'
 import { VERIFICATION_METHOD } from '../constants'
-import {
-  asFactory,
-  asString,
-  asEnum,
-  asStringObjectId
-} from '../utils/type-utils'
+import { asFactory, asString, asEnum, asObjectId } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
 import * as StudentService from './StudentService'
-import MailService from './MailService'
-import TwilioService from './twilio'
-import UserService from './UserService'
+import * as MailService from './MailService'
+import * as TwilioService from './TwilioService'
+import {
+  updateUserVerifiedInfoById,
+  getUserById,
+  getUserIdByPhone,
+  getUserIdByEmail,
+} from '../models/User/queries'
+import { Volunteer } from '../models/Volunteer'
 
 export interface InitiateVerificationData {
-  userId: string
+  userId: Types.ObjectId
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   firstName: string
 }
 
 const asInitiateVerificationData = asFactory<InitiateVerificationData>({
-  userId: asStringObjectId, // parsed from request as string
+  userId: asObjectId,
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
-  firstName: asString
+  firstName: asString,
 })
 
 export interface ConfirmVerificationData {
-  userId: string
+  userId: Types.ObjectId
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
 }
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
-  userId: asStringObjectId, // parsed from request as string
+  userId: asObjectId,
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
-  verificationCode: asString
+  verificationCode: asString,
 })
 
 export async function initiateVerification(data: unknown): Promise<void> {
@@ -46,59 +48,52 @@ export async function initiateVerification(data: unknown): Promise<void> {
     userId,
     sendTo,
     verificationMethod,
-    firstName
+    firstName,
   } = asInitiateVerificationData(data)
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
-  let lookupField: string
   let existingUserErrorMessage: string
+  let existingUserId: Types.ObjectId | undefined
   if (isPhoneVerification) {
-    lookupField = 'phone'
     existingUserErrorMessage = 'The phone number you entered is already in use'
     if (!isValidInternationalPhoneNumber(sendTo))
       throw new InputError('Must supply a valid phone number')
+    existingUserId = await getUserIdByPhone(sendTo)
   } else {
-    lookupField = 'email'
     existingUserErrorMessage = 'The email address you entered is already in use'
     if (!isValidEmail(sendTo))
       throw new InputError('Must supply a valid email address')
+    existingUserId = await getUserIdByEmail(sendTo)
   }
-
-  const existingUser = await UserService.getUser({ [lookupField]: sendTo })
-  if (existingUser && userId !== existingUser._id.toString())
+  if (existingUserId && !userId.equals(existingUserId))
     throw new LookupError(existingUserErrorMessage)
-  if (lookupField === 'email' && !existingUser)
+  if (verificationMethod === VERIFICATION_METHOD.EMAIL && !existingUserId)
     throw new LookupError(
       'The email address you entered does not match your account email address'
     )
 
-  await TwilioService.sendVerification({
-    sendTo,
-    verificationMethod,
-    firstName
-  })
+  await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
 }
 
-async function sendEmails(userId: string): Promise<void> {
-  const user = await UserService.getUser({ _id: userId })
-  if (user.isVolunteer) {
-    if (user.volunteerPartnerOrg) {
-      await MailService.sendPartnerVolunteerWelcomeEmail({
-        email: user.email,
-        volunteerName: user.firstname
-      })
+async function sendEmails(userId: Types.ObjectId): Promise<void> {
+  const user = await getUserById(userId)
+  if (user) {
+    if (user.isVolunteer) {
+      if ((user as Volunteer).volunteerPartnerOrg) {
+        await MailService.sendPartnerVolunteerWelcomeEmail(
+          user.email,
+          user.firstname
+        )
+      } else {
+        await MailService.sendOpenVolunteerWelcomeEmail(
+          user.email,
+          user.firstname
+        )
+      }
     } else {
-      await MailService.sendOpenVolunteerWelcomeEmail({
-        email: user.email,
-        volunteerName: user.firstname
-      })
+      await MailService.sendStudentWelcomeEmail(user.email, user.firstname)
+      await StudentService.queueWelcomeEmails(user._id)
     }
-  } else {
-    await MailService.sendStudentWelcomeEmail({
-      email: user.email,
-      firstName: user.firstname
-    })
-    await StudentService.queueWelcomeEmails(user._id)
   }
 }
 
@@ -107,7 +102,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     userId,
     sendTo,
     verificationMethod,
-    verificationCode
+    verificationCode,
   } = asConfirmVerificationData(data)
 
   const VERIFICATION_CODE_LENGTH = 6
@@ -119,30 +114,15 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
   try {
-    const verificationResult = await TwilioService.confirmVerification(
+    const isVerified = await TwilioService.confirmVerification(
       sendTo,
       verificationCode
     )
-    const isVerified = verificationResult.valid
     if (isVerified) {
-      const update: {
-        verified: boolean
-        phone?: string
-        verifiedPhone?: boolean
-        email?: string
-        verifiedEmail?: boolean
-      } = { verified: true }
-      if (isPhoneVerification) {
-        update.verifiedPhone = true
-        update.phone = sendTo
-      } else {
-        update.verifiedEmail = true
-        update.email = sendTo
-      }
-
-      await UserService.updateUser({ _id: userId }, update)
+      await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
       await sendEmails(userId)
     }
+
     return isVerified
   } catch (error) {
     throw error

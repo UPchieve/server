@@ -2,11 +2,11 @@ import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
 
 enum NumericEnum {
   foo,
-  bar = 1
+  bar = 1,
 }
 
 enum StringEnum {
-  Foo = 'foo'
+  Foo = 'foo',
 }
 
 describe('Reverse map getter', () => {

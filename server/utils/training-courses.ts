@@ -1,6 +1,6 @@
 import { find, chain } from 'lodash'
 
-interface TrainingCourse {
+export interface TrainingCourse {
   name: string
   courseKey: string
   description: string
@@ -19,7 +19,7 @@ enum MaterialType {
   VIDEO = 'video',
   DOCUMENT = 'document',
   LINK = 'link',
-  RESOURCES = 'resources'
+  RESOURCES = 'resources',
 }
 
 interface TrainingMaterial {
@@ -56,7 +56,7 @@ export const courses: TrainingCourse[] = [
             materialKey: '31rgp3',
             type: MaterialType.VIDEO,
             isRequired: true,
-            resourceId: '459021055'
+            resourceId: '459021055',
           },
           {
             name: 'Join the UPchieve Slack community',
@@ -64,16 +64,15 @@ export const courses: TrainingCourse[] = [
             type: MaterialType.LINK,
             isRequired: false,
             linkUrl:
-              'https://join.slack.com/t/upchieveaccommunity/shared_invite/zt-qktuitjb-g6YlDPHsSr6voER3pClz7A'
+              'https://join.slack.com/t/upchieveaccommunity/shared_invite/zt-qktuitjb-g6YlDPHsSr6voER3pClz7A',
           },
           {
-            // eslint-disable-next-line quotes
             name: "Register for UPchieve's Monthly Coach Meetings",
             materialKey: '42j392',
             type: MaterialType.LINK,
             isRequired: false,
             linkUrl:
-              'https://us02web.zoom.us/meeting/register/uZUsduiqrzgiO4_zJG9YvVJcx8vBxt4snA'
+              'https://us02web.zoom.us/meeting/register/uZUsduiqrzgiO4_zJG9YvVJcx8vBxt4snA',
           },
           {
             name: 'Additional resources',
@@ -86,22 +85,21 @@ export const courses: TrainingCourse[] = [
               {
                 displayName: 'UPchieve student testimonials and feedback',
                 url:
-                  'https://upc-training-materials.s3.us-east-2.amazonaws.com/student-testimonials-and-feedback.pdf'
+                  'https://upc-training-materials.s3.us-east-2.amazonaws.com/student-testimonials-and-feedback.pdf',
               },
               {
                 displayName: 'Overview of inequity in higher education',
                 url:
-                  'http://pellinstitute.org/downloads/publications-Indicators_of_Higher_Education_Equity_in_the_US_2018_Historical_Trend_Report.pdf'
+                  'http://pellinstitute.org/downloads/publications-Indicators_of_Higher_Education_Equity_in_the_US_2018_Historical_Trend_Report.pdf',
               },
               {
-                // eslint-disable-next-line quotes
                 displayName: "Overview of COVID-19's impact on education",
                 url:
-                  'https://www.mckinsey.com/industries/public-and-social-sector/our-insights/covid-19-and-student-learning-in-the-united-states-the-hurt-could-last-a-lifetime'
-              }
-            ]
-          }
-        ]
+                  'https://www.mckinsey.com/industries/public-and-social-sector/our-insights/covid-19-and-student-learning-in-the-united-states-the-hurt-could-last-a-lifetime',
+              },
+            ],
+          },
+        ],
       },
       {
         name: 'Becoming an Active Coach',
@@ -112,14 +110,14 @@ export const courses: TrainingCourse[] = [
             materialKey: '412g45',
             type: MaterialType.VIDEO,
             isRequired: true,
-            resourceId: '458744762'
+            resourceId: '458744762',
           },
           {
             name: 'Guide to choosing your references',
             materialKey: 'vrwv5g',
             type: MaterialType.DOCUMENT,
             isRequired: true,
-            resourceId: 'choosing-references'
+            resourceId: 'choosing-references',
           },
           {
             name: 'Additional resources',
@@ -129,15 +127,15 @@ export const courses: TrainingCourse[] = [
             links: [
               {
                 displayName: 'Approval process demo',
-                url: 'https://vimeo.com/451872809'
+                url: 'https://vimeo.com/451872809',
               },
               {
                 displayName: 'Onboarding process demo',
-                url: 'https://vimeo.com/451872896'
-              }
-            ]
-          }
-        ]
+                url: 'https://vimeo.com/451872896',
+              },
+            ],
+          },
+        ],
       },
       {
         name: 'Helping Your First Student',
@@ -148,7 +146,7 @@ export const courses: TrainingCourse[] = [
             materialKey: '212h45',
             type: MaterialType.VIDEO,
             isRequired: true,
-            resourceId: '458744827'
+            resourceId: '458744827',
           },
           {
             name: 'Additional resources',
@@ -158,15 +156,15 @@ export const courses: TrainingCourse[] = [
             links: [
               {
                 displayName: 'Tutoring session demo',
-                url: 'https://vimeo.com/457909355'
+                url: 'https://vimeo.com/457909355',
               },
               {
                 displayName: 'College counseling session demo',
-                url: 'https://vimeo.com/457909309'
-              }
-            ]
-          }
-        ]
+                url: 'https://vimeo.com/457909309',
+              },
+            ],
+          },
+        ],
       },
       {
         name: 'Student Safety',
@@ -177,23 +175,23 @@ export const courses: TrainingCourse[] = [
             materialKey: '839fi9',
             type: MaterialType.VIDEO,
             isRequired: true,
-            resourceId: '458744863'
+            resourceId: '458744863',
           },
           {
             name: 'UPchieve Student Safety Policy',
             materialKey: 'ps87f9',
             type: MaterialType.DOCUMENT,
             isRequired: true,
-            resourceId: 'student-safety-policy'
+            resourceId: 'student-safety-policy',
           },
           {
             name: 'Guide to personal questions',
             materialKey: 'c8cjre',
             type: MaterialType.DOCUMENT,
             isRequired: true,
-            resourceId: 'personal-questions'
-          }
-        ]
+            resourceId: 'personal-questions',
+          },
+        ],
       },
       {
         name: 'Academic Integrity',
@@ -204,23 +202,23 @@ export const courses: TrainingCourse[] = [
             materialKey: 'jgu55k',
             type: MaterialType.VIDEO,
             isRequired: true,
-            resourceId: '459021109'
+            resourceId: '459021109',
           },
           {
             name: 'UPchieve Academic Integrity Policy',
             materialKey: '3gh7dh',
             type: MaterialType.DOCUMENT,
             isRequired: true,
-            resourceId: 'academic-integrity'
+            resourceId: 'academic-integrity',
           },
           {
             name: 'Examples of cheating',
             materialKey: '1w5fp0',
             type: MaterialType.DOCUMENT,
             isRequired: true,
-            resourceId: 'cheating-examples'
-          }
-        ]
+            resourceId: 'cheating-examples',
+          },
+        ],
       },
       {
         name: 'Diversity, Equity, and Inclusion',
@@ -231,14 +229,14 @@ export const courses: TrainingCourse[] = [
             materialKey: 'chduq3',
             type: MaterialType.VIDEO,
             isRequired: true,
-            resourceId: '459021056'
+            resourceId: '459021056',
           },
           {
             name: 'UPchieve DEI Policy',
             materialKey: 'fj8tzq',
             type: MaterialType.DOCUMENT,
             isRequired: true,
-            resourceId: 'dei-policy'
+            resourceId: 'dei-policy',
           },
           {
             name: 'Complete implicit bias training',
@@ -247,14 +245,14 @@ export const courses: TrainingCourse[] = [
             materialKey: 'k3k37t',
             type: MaterialType.LINK,
             isRequired: true,
-            linkUrl: 'http://kirwaninstitute.osu.edu/implicit-bias-training/'
+            linkUrl: 'http://kirwaninstitute.osu.edu/implicit-bias-training/',
           },
           {
             name: 'Take the race IAT',
             materialKey: 'sk8lyf',
             type: MaterialType.LINK,
             isRequired: true,
-            linkUrl: 'https://implicit.harvard.edu/implicit/selectatest.html'
+            linkUrl: 'https://implicit.harvard.edu/implicit/selectatest.html',
           },
           {
             name: 'Additional resources',
@@ -266,22 +264,21 @@ export const courses: TrainingCourse[] = [
             links: [
               {
                 displayName: 'Examples of microaggressions',
-                url: 'https://sph.umn.edu/site/docs/hewg/microaggressions.pdf'
+                url: 'https://sph.umn.edu/site/docs/hewg/microaggressions.pdf',
               },
               {
                 displayName:
-                  // eslint-disable-next-line quotes
                   "Examples of how implicit bias can influence educators' behavior",
-                url: 'https://poorvucenter.yale.edu/ImplicitBiasAwareness'
+                url: 'https://poorvucenter.yale.edu/ImplicitBiasAwareness',
               },
               {
                 displayName: 'Podcast on desegregation',
                 url:
-                  'https://www.thisamericanlife.org/562/the-problem-we-all-live-with-part-one'
-              }
-            ]
-          }
-        ]
+                  'https://www.thisamericanlife.org/562/the-problem-we-all-live-with-part-one',
+              },
+            ],
+          },
+        ],
       },
       {
         name: 'Worst Case Scenarios',
@@ -292,30 +289,33 @@ export const courses: TrainingCourse[] = [
             materialKey: 'xgvd64',
             type: MaterialType.VIDEO,
             isRequired: true,
-            resourceId: '458744858'
+            resourceId: '458744858',
           },
           {
             name: 'Guidelines for Reporting a Student',
             materialKey: '1axg8b',
             type: MaterialType.DOCUMENT,
             isRequired: true,
-            resourceId: 'reporting-guidelines'
+            resourceId: 'reporting-guidelines',
           },
           {
             name: 'More tips on handling challenging scenarios',
             materialKey: 'jkkm20',
             type: MaterialType.DOCUMENT,
             isRequired: true,
-            resourceId: 'challenging-scenarios'
-          }
-        ]
-      }
-    ]
-  }
+            resourceId: 'challenging-scenarios',
+          },
+        ],
+      },
+    ],
+  },
 ]
 
 export const getCourse = (courseKey: string): TrainingCourse => {
-  return find(courses, { courseKey })
+  const course = find(courses, { courseKey })
+  if (!course)
+    throw new Error(`Training course does not exist for key ${courseKey}`)
+  return course
 }
 
 const getRequiredMaterials = (courseKey: string): string[] => {

@@ -1,20 +1,22 @@
 import bcrypt from 'bcrypt'
+import { Types } from 'mongoose'
 import UserModel from '../models/User'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
 import StudentModel, { Student } from '../models/Student'
 import UserActionModel, { UserAction } from '../models/UserAction'
 import SessionModel, { Session } from '../models/Session'
-import NotificationModel from '../models/Notification'
+import NotificationModel, { Notification } from '../models/Notification'
 import FeedbackModel, {
   FeedbackVersionOne,
-  FeedbackVersionTwo
+  FeedbackVersionTwo,
+  Feedback,
 } from '../models/Feedback'
 import config from '../config'
 import AvailabilitySnapshotModel, {
-  AvailabilitySnapshot
+  AvailabilitySnapshot,
 } from '../models/Availability/Snapshot'
 import AvailabilityHistoryModel, {
-  AvailabilityHistory
+  AvailabilityHistory,
 } from '../models/Availability/History'
 import {
   buildNotification,
@@ -24,17 +26,14 @@ import {
   buildAvailabilitySnapshot,
   buildAvailabilityHistory,
   buildUserAction,
-  buildFeedback
+  buildFeedback,
 } from './generate'
+import { FEEDBACK_VERSIONS } from '../constants'
 
-const hashPassword = async function(password): Promise<Error | string> {
-  try {
-    const salt = await bcrypt.genSalt(config.saltRounds)
-    const hash = await bcrypt.hash(password, salt)
-    return hash
-  } catch (error) {
-    throw new Error(error)
-  }
+const hashPassword = async function(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(config.saltRounds)
+  const hash = await bcrypt.hash(password, salt)
+  return hash
 }
 
 export const resetDb = async (): Promise<void> => {
@@ -53,14 +52,15 @@ export const insertVolunteer = async (
   const hashedPassword = await hashPassword(volunteer.password)
   const createdVolunteer = await VolunteerModel.create({
     ...volunteer,
-    password: hashedPassword
+    password: hashedPassword,
   })
   // Return volunteer with non-hashed password
   return { ...createdVolunteer.toObject(), password: volunteer.password }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const insertVolunteerMany = async (volunteers): Promise<any> => {
+export const insertVolunteerMany = async (
+  volunteers: Volunteer[]
+): Promise<any> => {
   // @note: Reasons for using collection.insertMany is because Mongoose casts each document in insertMany()
   // this bypasses the overhead and speeds up the test
   return VolunteerModel.collection.insertMany(volunteers)
@@ -73,7 +73,7 @@ export const insertStudent = async (
   const hashedPassword = await hashPassword(student.password)
   const createdStudent = await StudentModel.create({
     ...student,
-    password: hashedPassword
+    password: hashedPassword,
   })
   // Return student with non-hashed password
   return { ...createdStudent.toObject(), password: student.password }
@@ -89,21 +89,18 @@ export const insertSession = async (
   const student = await insertStudent(studentOverrides)
   const session = buildSession({
     student: student._id, // created student can be overridden
-    ...overrides
+    ...overrides,
   })
   const createdSession = await SessionModel.create(session)
   // Return the session and the student
   return { session: createdSession.toObject(), student }
 }
 
-export const insertSessionMany = async (
-  sessions
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> => {
+export const insertSessionMany = async (sessions: Session[]): Promise<any> => {
   return SessionModel.collection.insertMany(sessions)
 }
 
-// @todo: make the student and volunteer configurable
+// TODO: make the student and volunteer configurable
 export const insertSessionWithVolunteer = async (
   overrides = {}
 ): Promise<{
@@ -117,7 +114,7 @@ export const insertSessionWithVolunteer = async (
     student: student._id,
     volunteer: volunteer._id,
     volunteerJoinedAt: new Date(),
-    ...overrides
+    ...overrides,
   })
   const createdSession = await SessionModel.create(session)
   // Return the session and the student
@@ -133,7 +130,7 @@ export const insertNotification = async (
 }> => {
   const notification = buildNotification({
     volunteer: volunteer._id,
-    ...overrides
+    ...overrides,
   })
   const createdNotification = await NotificationModel.create(notification)
   // Return the notification and the volunteer
@@ -141,41 +138,45 @@ export const insertNotification = async (
 }
 
 export const insertNotificationMany = async (
-  notifications
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  notifications: Notification[]
 ): Promise<any> => {
   return NotificationModel.collection.insertMany(notifications)
 }
 
-export const getStudent = (
-  query,
+export const getStudent = async (
+  query: any,
   projection = {}
 ): Promise<Partial<Student>> => {
-  return StudentModel.findOne(query)
+  const student = await StudentModel.findOne(query)
     .select(projection)
     .lean()
     .exec()
+  if (student) return student
+  else return {}
 }
 
-export const getVolunteer = (
-  query,
+export const getVolunteer = async (
+  query: any,
   projection = {}
 ): Promise<Partial<Volunteer>> => {
-  return VolunteerModel.findOne(query)
+  const volunteer = await VolunteerModel.findOne(query)
     .select(projection)
     .lean()
     .exec()
+  if (volunteer) return volunteer
+  else return {}
 }
 
-export const getSession = (
-  query,
+export const getSession = async (
+  query: any,
   projection = {}
 ): Promise<Partial<Session>> => {
-  return SessionModel.findOne(query)
+  const session = await SessionModel.findOne(query)
     .select(projection)
     .lean()
     .exec()
+  if (session) return session
+  else return {}
 }
 
 export const insertAvailabilitySnapshot = async (
@@ -201,20 +202,21 @@ export const insertUserAction = async (
 ): Promise<UserAction> => {
   const userAction = buildUserAction(overrides)
   const createdUserAction = await UserActionModel.create(userAction)
-  return { ...createdUserAction.toObject() }
+  return createdUserAction.toObject()
 }
 
 export const insertFeedback = async (
-  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> = {}
+  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> & {
+    versionNumber: FEEDBACK_VERSIONS
+  }
 ): Promise<FeedbackVersionOne | FeedbackVersionTwo> => {
   const feedback = buildFeedback(overrides)
   const createdFeedback = await FeedbackModel.create(feedback)
-  return { ...createdFeedback.toObject() }
+  return createdFeedback.toObject() as FeedbackVersionOne | FeedbackVersionTwo
 }
 
 export const insertFeedbackMany = async (
-  feedback
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  feedback: Feedback[]
 ): Promise<any> => {
   return FeedbackModel.collection.insertMany(feedback)
 }

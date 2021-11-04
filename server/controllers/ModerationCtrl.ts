@@ -16,9 +16,7 @@ export interface ModerateMessageOptions {
 }
 
 // Returns whether message is clean
-export function moderateMessage(data: ModerateMessageOptions): boolean {
-  const message = data.content
-
+export function moderateMessage(message: string): boolean {
   return !(
     EMAIL_REGEX.test(message) ||
     PHONE_REGEX.test(message) ||

@@ -2,8 +2,8 @@ import mongoose from 'mongoose'
 import { USER_ACTION } from '../../constants'
 import {
   getQuizzesPassedForDateRange,
-  userHasTakenQuiz
-} from '../../services/UserActionService'
+  userHasTakenQuiz,
+} from '../../models/UserAction/queries'
 import { insertUserAction, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
 
@@ -11,7 +11,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -34,26 +34,26 @@ describe('getQuizzesPassedForDateRange', () => {
         createdAt: new Date('12/10/2020'),
         action,
         actionType,
-        user: volunteerId
+        user: volunteerId,
       }),
       insertUserAction({
         createdAt: new Date('12/14/2020'),
         action,
         actionType,
-        user: volunteerId
+        user: volunteerId,
       }),
       insertUserAction({
         createdAt: new Date('12/21/2020'),
         action,
         actionType,
-        user: volunteerId
+        user: volunteerId,
       }),
       insertUserAction({
         createdAt: new Date('12/25/2020'),
         action,
         actionType,
-        user: volunteerId
-      })
+        user: volunteerId,
+      }),
     ])
 
     const fromDate = new Date('12/13/2020')
@@ -84,7 +84,7 @@ describe('user has taken quiz', () => {
       createdAt: new Date('12/10/2020'),
       action,
       actionType,
-      user: volunteerId
+      user: volunteerId,
     })
     const quizTaken = await userHasTakenQuiz(volunteerId)
     expect(quizTaken).toBe(true)
@@ -97,7 +97,7 @@ describe('user has taken quiz', () => {
       createdAt: new Date('12/10/2020'),
       action,
       actionType,
-      user: volunteerId
+      user: volunteerId,
     })
     const quizTaken = await userHasTakenQuiz(volunteerId)
     expect(quizTaken).toBe(true)
@@ -111,13 +111,13 @@ describe('user has taken quiz', () => {
       createdAt: new Date('12/10/2020'),
       action: passedAction,
       actionType,
-      user: volunteerId
+      user: volunteerId,
     })
     await insertUserAction({
       createdAt: new Date('12/10/2020'),
       action: failedAction,
       actionType,
-      user: volunteerId
+      user: volunteerId,
     })
     const quizTaken = await userHasTakenQuiz(volunteerId)
     expect(quizTaken).toBe(true)
@@ -130,7 +130,7 @@ describe('user has taken quiz', () => {
       createdAt: new Date('12/10/2020'),
       action,
       actionType,
-      user: volunteerId
+      user: volunteerId,
     })
     const quizTaken = await userHasTakenQuiz(volunteerId)
     expect(quizTaken).toBe(false)

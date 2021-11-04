@@ -1,48 +1,31 @@
 import { messaging } from 'firebase-admin'
-import { Types } from 'mongoose'
+import { Session } from '../models/Session'
 import Case from 'case'
-import { getAllPushTokensByUserId } from '../models/PushToken'
 
-// This interface feels cleaner than inlining it in the
-// sendToUser definition
-interface SendToUserData {
-  title: string
-  text: string
-  data: {
-    path: string
-  }
+async function sendToUser(
+  title: string,
+  text: string,
+  data: { path: string },
   tokens: string[]
-}
-
-// Until the Session model is converted to TS,
-// we need to represent the parts of it used in
-// sendToVolunteer() here. When that model conversion
-// is done, this can be refactored to use that model directly.
-interface Session {
-  type: string
-  subTopic: string
-  _id: Types.ObjectId
-}
-
-const sendToUser = ({ title, text, data, tokens }: SendToUserData) => {
-  return messaging().sendMulticast({
+) {
+  return await messaging().sendMulticast({
     tokens, // can also send to a topic (group of people)
     // ios and android process data a little differently, so setup separate objects for each
     apns: {
       payload: Object.assign(
         {
-          data
+          data,
         },
         {
           aps: {
             alert: {
               title: title,
               body: text,
-              'content-available': 1
-            }
-          }
+              'content-available': 1,
+            },
+          },
         }
-      )
+      ),
     },
     android: {
       // TS says this needs to be a string,
@@ -58,24 +41,22 @@ const sendToUser = ({ title, text, data, tokens }: SendToUserData) => {
         'content-available': '1',
         // type: message.type,
         icon: 'notification_icon',
-        color: '#16d2aa'
-      }
-    }
+        color: '#16d2aa',
+      },
+    },
   })
 }
 
-export function sendVolunteerJoined(session: Session, tokens: string[]) {
+export async function sendVolunteerJoined(
+  session: Session,
+  tokens: string[]
+): Promise<void> {
   const { type, subTopic, _id } = session
+  const title = 'We found a volunteer!'
+  const text = 'Start chatting with your coach now.'
   const data = {
-    title: 'We found a volunteer!',
-    text: 'Start chatting with your coach now.',
-    data: {
-      path: `/session/${Case.kebab(type)}/${Case.kebab(subTopic)}/${_id}`
-    },
-    tokens
+    path: `/session/${Case.kebab(type)}/${Case.kebab(subTopic)}/${_id}`,
   }
 
-  return sendToUser(data)
+  await sendToUser(title, text, data, tokens)
 }
-
-export { getAllPushTokensByUserId }

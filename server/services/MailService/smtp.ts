@@ -9,8 +9,8 @@ const transporter = nodemailer.createTransport({
   secure: config.smtp.secure,
   auth: {
     user: config.smtp.user,
-    pass: config.smtp.password
-  }
+    pass: config.smtp.password,
+  },
 })
 
 transporter.use(
@@ -18,10 +18,10 @@ transporter.use(
   hbs({
     viewEngine: exphbs.create({
       layoutsDir: `${__dirname}/views`,
-      extname: '.hbs'
+      extname: '.hbs',
     }),
     viewPath: `${__dirname}/views`,
-    extName: '.hbs'
+    extName: '.hbs',
   })
 )
 
@@ -37,7 +37,7 @@ export async function sendContactFormEmail(context: {
     to: config.mail.receivers.contact,
     subject: 'New contact form submission',
     template: 'ContactUs',
-    context
+    context,
   }
   try {
     return transporter.sendMail(mail)

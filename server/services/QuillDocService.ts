@@ -1,33 +1,46 @@
 import Delta from 'quill-delta'
-import { redisClient } from './RedisService'
+import { Types } from 'mongoose'
+import * as cache from '../cache'
 
-function sessionIdToKey(id: string): string {
-  return `quill-${id}`
+function sessionIdToKey(id: Types.ObjectId): string {
+  return `quill-${id.toString()}`
 }
 
-export async function createDoc(sessionId: string): Promise<Delta> {
+export async function createDoc(sessionId: Types.ObjectId): Promise<Delta> {
   const newDoc = new Delta()
-  await redisClient.set(sessionIdToKey(sessionId), JSON.stringify(newDoc))
+  await cache.save(sessionIdToKey(sessionId), JSON.stringify(newDoc))
   return newDoc
 }
 
-export async function getDoc(sessionId: string): Promise<Delta | undefined> {
-  const docString = await redisClient.get(sessionIdToKey(sessionId))
-  if (!docString) return
-  return new Delta(JSON.parse(docString))
+export async function getDoc(
+  sessionId: Types.ObjectId
+): Promise<Delta | undefined> {
+  try {
+    const docString = await cache.get(sessionIdToKey(sessionId))
+    return new Delta(JSON.parse(docString))
+  } catch (err) {
+    if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
 }
 
 export async function appendToDoc(
-  sessionId: string,
+  sessionId: Types.ObjectId,
   delta: Delta
 ): Promise<void> {
   const redisKey = sessionIdToKey(sessionId)
-  const docString = await redisClient.get(redisKey)
-  if (!docString) return
-  const updatedDoc = new Delta(JSON.parse(docString)).compose(delta)
-  await redisClient.set(redisKey, JSON.stringify(updatedDoc))
+  try {
+    const docString = await cache.get(redisKey)
+    const updatedDoc = new Delta(JSON.parse(docString)).compose(delta)
+    await cache.save(redisKey, JSON.stringify(updatedDoc))
+  } catch (err) {
+    if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
 }
 
-export async function deleteDoc(sessionId: string): Promise<void> {
-  await redisClient.del(sessionIdToKey(sessionId))
+export async function deleteDoc(sessionId: Types.ObjectId): Promise<void> {
+  try {
+    await cache.remove(sessionIdToKey(sessionId))
+  } catch (err) {
+    if (!(err instanceof cache.KeyDeletionFailureError)) throw err
+  }
 }

@@ -8,7 +8,7 @@ const upgrade = async (): Promise<void> => {
   try {
     await db.connect();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     const volunteers: any = await Volunteer.find({})
       .lean()
       .exec();
