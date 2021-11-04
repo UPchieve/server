@@ -2,31 +2,49 @@ import { Job } from 'bull'
 import moment from 'moment'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
+import { Types } from 'mongoose'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { Jobs } from '../index'
 import { ISOString } from '../../../constants'
 import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
-import { asObjectId } from '../../../utils/type-utils'
+import {
+  asFactory,
+  asObjectId,
+  asOptional,
+  asString,
+} from '../../../utils/type-utils'
 
 interface StudentSessionActionsJobData {
   studentId: string
-  volunteerId: string
+  volunteerId?: string
   sessionSubtopic: string
   sessionDate: ISOString
 }
 
+interface StudentActionsData
+  extends Omit<StudentSessionActionsJobData, 'studentId' | 'volunteerId'> {
+  studentId: Types.ObjectId
+  volunteerId?: Types.ObjectId
+}
+
+export const asStudentActionsData = asFactory<StudentActionsData>({
+  studentId: asObjectId,
+  volunteerId: asOptional(asObjectId),
+  sessionSubtopic: asString,
+  sessionDate: asString,
+})
+
 export default async (
   job: Job<StudentSessionActionsJobData>
 ): Promise<void> => {
+  const { data, name: currentJob } = job
   const {
-    data: { sessionSubtopic, sessionDate },
-    name: currentJob,
-  } = job
-  const studentId = asObjectId(job.data.studentId)
-  const volunteerId = job.data.volunteerId
-  ? asObjectId(job.data.volunteerId)
-  : null
+    studentId,
+    volunteerId,
+    sessionSubtopic,
+    sessionDate,
+  } = asStudentActionsData(data)
   const student = await getStudentContactInfoById(studentId)
   let volunteer
   if (volunteerId) volunteer = await getVolunteerContactInfoById(volunteerId)
