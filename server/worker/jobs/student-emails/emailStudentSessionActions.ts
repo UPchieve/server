@@ -24,7 +24,9 @@ export default async (
     name: currentJob,
   } = job
   const studentId = asObjectId(job.data.studentId)
-  const volunteerId = asObjectId(job.data.volunteerId)
+  const volunteerId = job.data.volunteerId
+  ? asObjectId(job.data.volunteerId)
+  : null
   const student = await getStudentContactInfoById(studentId)
   let volunteer
   if (volunteerId) volunteer = await getVolunteerContactInfoById(volunteerId)
