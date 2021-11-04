@@ -18,11 +18,6 @@ export function asString(s: unknown, errMsg = ''): string {
   throw new InputError(`${errMsg} ${s} is not a string`)
 }
 
-export function asEmail(s: unknown, errMsg = ''): string {
-  if (typeof s === 'string' && validator.isEmail(s)) return s as string
-  throw new InputError(`${errMsg} ${s} is not a valid email`)
-}
-
 export function asNumber(s: unknown, errMsg?: string): number {
   if (typeof s === 'number') return s as number
   else {

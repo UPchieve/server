@@ -1,7 +1,6 @@
 import { USER_BAN_REASON } from '../../constants'
 import {
   asDate,
-  asEmail,
   asFunction,
   asObjectId,
   asArray,
@@ -102,24 +101,6 @@ describe('asDate', () => {
     expect(() => asDate(null as unknown)).toThrow()
     expect(() => asDate(undefined as unknown)).toThrow()
     expect(() => asDate([] as unknown)).toThrow()
-  })
-})
-
-describe('asEmail', () => {
-  test('should pass if given a valid email', () => {
-    expect(() => asEmail('email@email.com')).not.toThrow()
-  })
-
-  test('should throw error if not given an email', () => {
-    expect(() => asEmail('hello')).toThrow()
-    expect(() => asEmail('email@email')).toThrow()
-    expect(() => asEmail('@email.com')).toThrow()
-    expect(() => asEmail('')).toThrow()
-    expect(() => asEmail(1)).toThrow()
-    expect(() => asEmail(null)).toThrow()
-    expect(() => asEmail(undefined)).toThrow()
-    expect(() => asEmail([])).toThrow()
-    expect(() => asEmail({})).toThrow()
   })
 })
 

@@ -1,4 +1,6 @@
 import { Types } from 'mongoose'
+import validator from 'validator'
+import { InputError } from '../../models/Errors'
 import UserModel from '../../models/User'
 
 export async function validUser(userId: Types.ObjectId): Promise<boolean> {
