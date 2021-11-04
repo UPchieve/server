@@ -1,82 +1,83 @@
 import { mocked } from 'ts-jest/utils'
-import { Types } from 'mongoose'
-import * as ContactFormSubmissionRepo from '../../models/ContactFormSubmission'
+import * as ContactFormSubmissionRepo from '../../models/ContactFormSubmission/queries'
+import { ContactFormSubmission } from '../../models/ContactFormSubmission'
 import * as ContactFormService from '../../services/ContactFormService'
-import { hugeText } from '../generate'
-import * as MailService from '../../services/MailService/smtp'
-import { ContactFormDataValidationError } from '../../services/ContactFormService'
-jest.mock('../../models/ContactFormSubmission')
-jest.mock('../../services/MailService/smtp')
+import { getObjectId, hugeText } from '../generate'
+import * as MailService from '../../services/MailService'
+import { InputError } from '../../models/Errors'
+jest.mock('../../models/ContactFormSubmission/queries')
+jest.mock('../../services/MailService')
 
 const mockedContactFormSubmissionRepo = mocked(ContactFormSubmissionRepo, true)
 const mockedMailService = mocked(MailService, true)
 
+const userId = getObjectId()
 const validEmailData = {
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const validUserIdData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidEmailData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test',
   message: 'This is some feedback for you.',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidUserIdData = {
   userId: 'not a valid id',
   userEmail: 'test@test',
   message: 'This is some feedback for you.',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidShortMessageData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test.com',
   message: '',
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidLongMessageData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test.com',
   message: hugeText(),
-  topic: 'General feedback'
+  topic: 'General feedback',
 }
 
 const invalidTopicData = {
-  userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+  userId,
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
-  topic: 'not a valid topic'
+  topic: 'not a valid topic',
 }
 
 test('contact form service saves form submission with email', async () => {
-  mockedContactFormSubmissionRepo.createFormWithEmail.mockImplementationOnce(
+  mockedContactFormSubmissionRepo.createContactFormByEmail.mockImplementationOnce(
     () => {
       return new Promise(resolve => {
-        const id = Types.ObjectId().toString()
-        const doc: ContactFormSubmissionRepo.ContactFormSubmission = {
-          id: id,
+        const id = getObjectId()
+        const doc: ContactFormSubmission = {
+          _id: id,
           userEmail: 'test@test.com',
           message: 'This is some feedback for you.',
           topic: 'General feedback',
-          createdAt: new Date()
+          createdAt: new Date(),
         }
         resolve(doc)
       })
     }
   )
-  mockedMailService.sendContactFormEmail.mockImplementationOnce(() => {
-    return new Promise(resolve => {
+  mockedMailService.sendContactForm.mockImplementationOnce(() => {
+    return new Promise<void>(resolve => {
       resolve()
     })
   })
@@ -88,24 +89,23 @@ test('contact form service saves form submission with email', async () => {
 })
 
 test('contact form service saves form submission with user id', async () => {
-  mockedContactFormSubmissionRepo.createFormWithEmail.mockImplementationOnce(
+  mockedContactFormSubmissionRepo.createContactFormByEmail.mockImplementationOnce(
     () => {
       return new Promise(resolve => {
-        const id = Types.ObjectId().toString()
-        const doc: ContactFormSubmissionRepo.ContactFormSubmission = {
-          id: id,
-          userId: '43rTcoyKkRD2UCHK658RJQBUwqnN6jiu',
+        const doc: ContactFormSubmission = {
+          _id: getObjectId(),
+          userId: getObjectId(),
           userEmail: 'test@test.com',
           message: 'This is some feedback for you.',
           topic: 'General feedback',
-          createdAt: new Date()
+          createdAt: new Date(),
         }
         resolve(doc)
       })
     }
   )
-  mockedMailService.sendContactFormEmail.mockImplementationOnce(() => {
-    return new Promise(resolve => {
+  mockedMailService.sendContactForm.mockImplementationOnce(() => {
+    return new Promise<void>(resolve => {
       resolve()
     })
   })
@@ -120,7 +120,7 @@ test('contact form service rejects invalid email', async () => {
   try {
     await ContactFormService.saveContactFormSubmission(invalidEmailData)
   } catch (err) {
-    expect(err).toBeInstanceOf(ContactFormDataValidationError)
+    expect(err).toBeInstanceOf(InputError)
   }
 })
 
@@ -128,7 +128,7 @@ test('contact form service rejects invalid userId', async () => {
   try {
     await ContactFormService.saveContactFormSubmission(invalidUserIdData)
   } catch (err) {
-    expect(err).toBeInstanceOf(ContactFormDataValidationError)
+    expect(err).toBeInstanceOf(InputError)
   }
 })
 
@@ -136,7 +136,7 @@ test('contact form service rejects too short message', async () => {
   try {
     await ContactFormService.saveContactFormSubmission(invalidShortMessageData)
   } catch (err) {
-    expect(err).toBeInstanceOf(ContactFormDataValidationError)
+    expect(err).toBeInstanceOf(InputError)
   }
 })
 
@@ -144,7 +144,7 @@ test('contact form service rejects too long message', async () => {
   try {
     await ContactFormService.saveContactFormSubmission(invalidLongMessageData)
   } catch (err) {
-    expect(err).toBeInstanceOf(ContactFormDataValidationError)
+    expect(err).toBeInstanceOf(InputError)
   }
 })
 
@@ -152,6 +152,6 @@ test('contact form service rejects invalid topic', async () => {
   try {
     await ContactFormService.saveContactFormSubmission(invalidTopicData)
   } catch (err) {
-    expect(err).toBeInstanceOf(ContactFormDataValidationError)
+    expect(err).toBeInstanceOf(InputError)
   }
 })

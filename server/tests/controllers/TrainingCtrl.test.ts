@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import {
   getQuizScore,
-  getUnlockedSubjects
+  getUnlockedSubjects,
 } from '../../controllers/TrainingCtrl'
 import { resetDb, insertVolunteer, getVolunteer } from '../db-utils'
 import { buildCertifications, buildVolunteer } from '../generate'
@@ -14,7 +14,7 @@ import {
   MATH_SUBJECTS,
   SCIENCE_SUBJECTS,
   SAT_SUBJECTS,
-  USER_ACTION
+  USER_ACTION,
 } from '../../constants'
 import Question from '../../models/Question'
 import algebraQuestions from '../../seeds/questions/algebra.json'
@@ -27,7 +27,7 @@ jest.mock('../../services/VolunteerService')
 const buildCertificationsWithUpchieve101 = (options = {}): Certifications => {
   return buildCertifications({
     [TRAINING.UPCHIEVE_101]: { passed: true, tries: 1 },
-    ...options
+    ...options,
   })
 }
 
@@ -42,14 +42,14 @@ const generateIdAnswerMapHelper = async (
     .exec()
 
   const idAnswerList = questions.map(question => {
-    const data = {}
+    const data: any = {}
     const questionId = question._id
     data[questionId] = question.correctAnswer
 
     return data
   })
 
-  const idAnswerMap = {}
+  const idAnswerMap: any = {}
 
   for (let i = 0; i < idAnswerList.length; i++) {
     const questionId = Object.keys(idAnswerList[i])[0]
@@ -71,7 +71,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -97,50 +97,49 @@ describe('getQuizScore', () => {
     const volunteer = await insertVolunteer(
       buildVolunteer({
         availabilityLastModifiedAt: new Date(),
-        volunteerPartnerOrg: 'example'
+        volunteerPartnerOrg: 'example',
       })
     )
 
     // Volunteer completes a quiz in Statistics
     const idAnswerMap = await generateIdAnswerMapHelper()
-    // @todo: figure out how to set a type for quizScoreInput
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // TODO: figure out how to set a type for quizScoreInput
     let quizScoreInput: any = {
       user: volunteer,
       category: MATH_CERTS.STATISTICS,
-      idAnswerMap
+      idAnswerMap,
     }
 
     let result = await getQuizScore(quizScoreInput)
     let updatedVolunteer = await getVolunteer({ _id: volunteer._id })
     let expectedResult = {
       tries: 1,
-      passed: true
+      passed: true,
     }
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[MATH_CERTS.STATISTICS].passed
+      updatedVolunteer.certifications![MATH_CERTS.STATISTICS].passed
     ).toBeTruthy()
 
     // Volunteer then completes UPchieve 101
     quizScoreInput = {
       user: updatedVolunteer,
       category: TRAINING.UPCHIEVE_101,
-      idAnswerMap
+      idAnswerMap,
     }
 
     result = await getQuizScore(quizScoreInput)
     updatedVolunteer = await getVolunteer({ _id: volunteer._id })
     expectedResult = {
       tries: 1,
-      passed: true
+      passed: true,
     }
 
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeTruthy()
     expect(
-      updatedVolunteer.certifications[TRAINING.UPCHIEVE_101].passed
+      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
     ).toBeTruthy()
     expect(VolunteerService.queueOnboardingEventEmails).toBeCalledTimes(1)
     expect(VolunteerService.queuePartnerOnboardingEventEmails).toBeCalledTimes(
@@ -174,23 +173,23 @@ describe('getQuizScore', () => {
     )
     // Volunteer first completes required training for Math and Science - Tutoring Skills
     const idAnswerMap = await generateIdAnswerMapHelper()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     let quizScoreInput: any = {
       user: volunteer,
       category: TRAINING.TUTORING_SKILLS,
-      idAnswerMap
+      idAnswerMap,
     }
 
     let result = await getQuizScore(quizScoreInput)
     let updatedVolunteer = await getVolunteer({ _id: volunteer._id })
     let expectedResult = {
       tries: 1,
-      passed: true
+      passed: true,
     }
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[TRAINING.TUTORING_SKILLS].passed
+      updatedVolunteer.certifications![TRAINING.TUTORING_SKILLS].passed
     ).toBeTruthy()
 
     // Volunteer completes a second course
@@ -198,7 +197,7 @@ describe('getQuizScore', () => {
       user: updatedVolunteer,
 
       category: SCIENCE_CERTS.PHYSICS_TWO,
-      idAnswerMap
+      idAnswerMap,
     }
 
     result = await getQuizScore(quizScoreInput)
@@ -206,19 +205,19 @@ describe('getQuizScore', () => {
 
     expectedResult = {
       tries: 1,
-      passed: true
+      passed: true,
     }
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[SCIENCE_CERTS.PHYSICS_TWO].passed
+      updatedVolunteer.certifications![SCIENCE_CERTS.PHYSICS_TWO].passed
     ).toBeTruthy()
 
     // Volunteer then completes UPchieve 101
     quizScoreInput = {
       user: updatedVolunteer,
       category: TRAINING.UPCHIEVE_101,
-      idAnswerMap
+      idAnswerMap,
     }
 
     result = await getQuizScore(quizScoreInput)
@@ -226,12 +225,12 @@ describe('getQuizScore', () => {
 
     expectedResult = {
       tries: 1,
-      passed: true
+      passed: true,
     }
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeTruthy()
     expect(
-      updatedVolunteer.certifications[TRAINING.UPCHIEVE_101].passed
+      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
     ).toBeTruthy()
   })
   test('Should onboard a user after completing UPchieve 101, then Tutoring Skills, and then a math certification', async () => {
@@ -241,30 +240,30 @@ describe('getQuizScore', () => {
 
     // Volunteer completes UPchieve 101
     const idAnswerMap = await generateIdAnswerMapHelper()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     let quizScoreInput: any = {
       user: volunteer,
       category: TRAINING.UPCHIEVE_101,
-      idAnswerMap
+      idAnswerMap,
     }
 
     let result = await getQuizScore(quizScoreInput)
     let updatedVolunteer = await getVolunteer({ _id: volunteer._id })
     let expectedResult = {
       tries: 1,
-      passed: true
+      passed: true,
     }
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[TRAINING.UPCHIEVE_101].passed
+      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
     ).toBeTruthy()
 
     // Volunteer completes Tutoring Skills
     quizScoreInput = {
       user: updatedVolunteer,
       category: TRAINING.TUTORING_SKILLS,
-      idAnswerMap
+      idAnswerMap,
     }
 
     result = await getQuizScore(quizScoreInput)
@@ -272,19 +271,19 @@ describe('getQuizScore', () => {
 
     expectedResult = {
       tries: 1,
-      passed: true
+      passed: true,
     }
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeFalsy()
     expect(
-      updatedVolunteer.certifications[TRAINING.TUTORING_SKILLS].passed
+      updatedVolunteer.certifications![TRAINING.TUTORING_SKILLS].passed
     ).toBeTruthy()
 
     // Volunteer completes Precalculus
     quizScoreInput = {
       user: updatedVolunteer,
       category: MATH_CERTS.PRECALCULUS,
-      idAnswerMap
+      idAnswerMap,
     }
 
     result = await getQuizScore(quizScoreInput)
@@ -292,18 +291,18 @@ describe('getQuizScore', () => {
 
     expectedResult = {
       tries: 1,
-      passed: true
+      passed: true,
     }
     expect(result).toMatchObject(expectedResult)
     expect(updatedVolunteer.isOnboarded).toBeTruthy()
     expect(
-      updatedVolunteer.certifications[MATH_CERTS.PRECALCULUS].passed
+      updatedVolunteer.certifications![MATH_CERTS.PRECALCULUS].passed
     ).toBeTruthy()
   })
 
   test('Should create user actions for unlocking a subject', async () => {
     const certifications = buildCertificationsWithUpchieve101({
-      [MATH_CERTS.CALCULUS_AB]: { passed: true, tries: 1 }
+      [MATH_CERTS.CALCULUS_AB]: { passed: true, tries: 1 },
     })
     const volunteer = await insertVolunteer(
       buildVolunteer({ availabilityLastModifiedAt: new Date(), certifications })
@@ -314,12 +313,12 @@ describe('getQuizScore', () => {
       user: volunteer,
       category: TRAINING.TUTORING_SKILLS,
       idAnswerMap,
-      ip: ''
+      ip: '',
     }
 
     await getQuizScore(quizScoreInput)
     const userActions = await UserActionModel.find({
-      action: USER_ACTION.QUIZ.UNLOCKED_SUBJECT
+      action: USER_ACTION.QUIZ.UNLOCKED_SUBJECT,
     })
       .select('quizSubcategory -_id')
       .lean()
@@ -331,7 +330,7 @@ describe('getQuizScore', () => {
       { quizSubcategory: SUBJECTS.ALGEBRA_ONE.toUpperCase() },
       { quizSubcategory: SUBJECTS.ALGEBRA_TWO.toUpperCase() },
       { quizSubcategory: SUBJECTS.PREALGREBA.toUpperCase() },
-      { quizSubcategory: SUBJECTS.INTEGRATED_MATH_FOUR.toUpperCase() }
+      { quizSubcategory: SUBJECTS.INTEGRATED_MATH_FOUR.toUpperCase() },
     ]
 
     expect(userActions).toEqual(expect.arrayContaining(expectedUserActions))
@@ -347,7 +346,7 @@ describe('getQuizScore', () => {
       user: volunteer,
       category: TRAINING.UPCHIEVE_101,
       idAnswerMap,
-      ip: ''
+      ip: '',
     }
 
     const result = await getQuizScore(quizScoreInput)
@@ -355,39 +354,39 @@ describe('getQuizScore', () => {
 
     const expectedResult = {
       tries: 1,
-      passed: false
+      passed: false,
     }
 
     expect(result).toMatchObject(expectedResult)
     expect(
-      updatedVolunteer.certifications[TRAINING.UPCHIEVE_101].passed
+      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
     ).toBeFalsy()
   })
 
   test('Grace period volunteer (an existing volunteer) should have the same subjects when completing required training', async () => {
     const certifications = buildCertifications({
-      [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 }
+      [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
     })
     const subjects = [
       SUBJECTS.PREALGREBA,
       SUBJECTS.ALGEBRA_ONE,
-      SUBJECTS.ALGEBRA_TWO
+      SUBJECTS.ALGEBRA_TWO,
     ]
     const volunteer = await insertVolunteer(
       buildVolunteer({
         availabilityLastModifiedAt: new Date(),
         subjects,
         certifications,
-        isOnboarded: true
+        isOnboarded: true,
       })
     )
 
     const idAnswerMap = await generateIdAnswerMapHelper()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     let quizScoreInput: any = {
       user: volunteer,
       category: TRAINING.TUTORING_SKILLS,
-      idAnswerMap
+      idAnswerMap,
     }
     await getQuizScore(quizScoreInput)
     let updatedVolunteer = await getVolunteer({ _id: volunteer._id })
@@ -396,7 +395,7 @@ describe('getQuizScore', () => {
     quizScoreInput = {
       user: updatedVolunteer,
       category: TRAINING.UPCHIEVE_101,
-      idAnswerMap
+      idAnswerMap,
     }
     await getQuizScore(quizScoreInput)
     updatedVolunteer = await getVolunteer({ _id: volunteer._id })
@@ -412,9 +411,9 @@ describe('getUnlockedSubjects', () => {
       const cert = MATH_CERTS.PRECALCULUS
       const certifications = buildCertifications({
         [MATH_CERTS.PREALGREBA]: { passed: true, tries: 1 },
-        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 }
+        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
-      const expected = []
+      const expected: string[] = []
 
       const result = getUnlockedSubjects(cert, certifications)
       expect(result).toEqual(expected)
@@ -424,7 +423,7 @@ describe('getUnlockedSubjects', () => {
       const cert = MATH_CERTS.PRECALCULUS
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.PREALGREBA]: { passed: true, tries: 1 },
-        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 }
+        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.PRECALCULUS,
@@ -432,7 +431,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.ALGEBRA_ONE,
         MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -442,7 +441,7 @@ describe('getUnlockedSubjects', () => {
     test('Should unlock proper certs when taking Calculus BC', async () => {
       const cert = MATH_CERTS.CALCULUS_BC
       const certifications = buildCertificationsWithUpchieve101({
-        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 }
+        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.CALCULUS_BC,
@@ -452,7 +451,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.ALGEBRA_ONE,
         MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -462,7 +461,7 @@ describe('getUnlockedSubjects', () => {
     test('Should unlock proper certs when taking Calculus AB', async () => {
       const cert = MATH_CERTS.CALCULUS_AB
       const certifications = buildCertificationsWithUpchieve101({
-        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 }
+        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.CALCULUS_AB,
@@ -471,7 +470,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.ALGEBRA_ONE,
         MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -483,7 +482,7 @@ describe('getUnlockedSubjects', () => {
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
-        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 }
+        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.ALGEBRA_ONE,
@@ -491,7 +490,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.STATISTICS,
-        MATH_SUBJECTS.INTEGRATED_MATH_ONE
+        MATH_SUBJECTS.INTEGRATED_MATH_ONE,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -504,7 +503,7 @@ describe('getUnlockedSubjects', () => {
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
         [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
-        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 }
+        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.TRIGONOMETRY,
@@ -514,7 +513,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.STATISTICS,
         MATH_SUBJECTS.INTEGRATED_MATH_ONE,
-        MATH_SUBJECTS.INTEGRATED_MATH_TWO
+        MATH_SUBJECTS.INTEGRATED_MATH_TWO,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -525,7 +524,7 @@ describe('getUnlockedSubjects', () => {
       const cert = MATH_CERTS.PRECALCULUS
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
-        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 }
+        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.PRECALCULUS,
@@ -535,7 +534,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.STATISTICS,
         MATH_SUBJECTS.INTEGRATED_MATH_THREE,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -547,7 +546,7 @@ describe('getUnlockedSubjects', () => {
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
-        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 }
+        [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.PRECALCULUS,
@@ -560,7 +559,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.INTEGRATED_MATH_ONE,
         MATH_SUBJECTS.INTEGRATED_MATH_TWO,
         MATH_SUBJECTS.INTEGRATED_MATH_THREE,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -576,7 +575,7 @@ describe('getUnlockedSubjects', () => {
         SCIENCE_CERTS.CHEMISTRY,
         SCIENCE_CERTS.PHYSICS_ONE,
         SCIENCE_CERTS.PHYSICS_TWO,
-        SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE
+        SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE,
       ]
 
       const expected = [
@@ -587,12 +586,12 @@ describe('getUnlockedSubjects', () => {
         [SCIENCE_SUBJECTS.CHEMISTRY],
         [SCIENCE_SUBJECTS.PHYSICS_ONE],
         [SCIENCE_SUBJECTS.PHYSICS_TWO],
-        [SCIENCE_SUBJECTS.ENVIRONMENTAL_SCIENCE]
+        [SCIENCE_SUBJECTS.ENVIRONMENTAL_SCIENCE],
       ]
 
       for (let i = 0; i < certs.length; i++) {
         const certifications = buildCertificationsWithUpchieve101({
-          [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 }
+          [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
         })
         const result = getUnlockedSubjects(certs[i], certifications)
         await expect(result).toEqual(expected[i])
@@ -602,7 +601,7 @@ describe('getUnlockedSubjects', () => {
     test('Completing SAT Math should unlock SAT Math when certified in SAT Strategies', async () => {
       const cert = SAT_CERTS.SAT_MATH
       const certifications = buildCertificationsWithUpchieve101({
-        [TRAINING.SAT_STRATEGIES]: { passed: true, tries: 1 }
+        [TRAINING.SAT_STRATEGIES]: { passed: true, tries: 1 },
       })
       const expected = [SAT_SUBJECTS.SAT_MATH]
 
@@ -615,9 +614,9 @@ describe('getUnlockedSubjects', () => {
     test('Should not unlock any subjects if UPchieve 101 is not completed', async () => {
       const cert = TRAINING.TUTORING_SKILLS
       const certifications = buildCertifications({
-        [MATH_CERTS.PREALGREBA]: { passed: true, tries: 1 }
+        [MATH_CERTS.PREALGREBA]: { passed: true, tries: 1 },
       })
-      const expected = []
+      const expected: string[] = []
 
       const result = getUnlockedSubjects(cert, certifications)
       expect(result).toEqual(expected)
@@ -626,7 +625,7 @@ describe('getUnlockedSubjects', () => {
     test('Should unlock proper certs when taking Precalculus and Pre-algebra is prior cert', async () => {
       const cert = TRAINING.TUTORING_SKILLS
       const certifications = buildCertificationsWithUpchieve101({
-        [MATH_CERTS.PRECALCULUS]: { passed: true, tries: 1 }
+        [MATH_CERTS.PRECALCULUS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.PRECALCULUS,
@@ -634,7 +633,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.ALGEBRA_ONE,
         MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -644,7 +643,7 @@ describe('getUnlockedSubjects', () => {
     test('Should unlock proper certs when taking Calculus BC', async () => {
       const subject = TRAINING.TUTORING_SKILLS
       const certifications = buildCertificationsWithUpchieve101({
-        [MATH_CERTS.CALCULUS_BC]: { passed: true, tries: 1 }
+        [MATH_CERTS.CALCULUS_BC]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.CALCULUS_BC,
@@ -654,7 +653,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.ALGEBRA_ONE,
         MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(subject, certifications)
@@ -664,7 +663,7 @@ describe('getUnlockedSubjects', () => {
     test('Should unlock proper certs when taking Calculus AB', async () => {
       const cert = TRAINING.TUTORING_SKILLS
       const certifications = buildCertificationsWithUpchieve101({
-        [MATH_CERTS.CALCULUS_AB]: { passed: true, tries: 1 }
+        [MATH_CERTS.CALCULUS_AB]: { passed: true, tries: 1 },
       })
 
       const expected = [
@@ -674,7 +673,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.ALGEBRA_ONE,
         MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -686,7 +685,7 @@ describe('getUnlockedSubjects', () => {
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
-        [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 }
+        [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.ALGEBRA_ONE,
@@ -694,7 +693,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.STATISTICS,
-        MATH_SUBJECTS.INTEGRATED_MATH_ONE
+        MATH_SUBJECTS.INTEGRATED_MATH_ONE,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -707,7 +706,7 @@ describe('getUnlockedSubjects', () => {
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
         [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
-        [MATH_CERTS.TRIGONOMETRY]: { passed: true, tries: 1 }
+        [MATH_CERTS.TRIGONOMETRY]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.ALGEBRA_ONE,
@@ -717,7 +716,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.TRIGONOMETRY,
         MATH_SUBJECTS.STATISTICS,
         MATH_SUBJECTS.INTEGRATED_MATH_ONE,
-        MATH_SUBJECTS.INTEGRATED_MATH_TWO
+        MATH_SUBJECTS.INTEGRATED_MATH_TWO,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -728,7 +727,7 @@ describe('getUnlockedSubjects', () => {
       const cert = TRAINING.TUTORING_SKILLS
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
-        [MATH_CERTS.PRECALCULUS]: { passed: true, tries: 1 }
+        [MATH_CERTS.PRECALCULUS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.PRECALCULUS,
@@ -738,7 +737,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.STATISTICS,
         MATH_SUBJECTS.INTEGRATED_MATH_THREE,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -750,7 +749,7 @@ describe('getUnlockedSubjects', () => {
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
-        [MATH_CERTS.PRECALCULUS]: { passed: true, tries: 1 }
+        [MATH_CERTS.PRECALCULUS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.GEOMETRY,
@@ -763,7 +762,7 @@ describe('getUnlockedSubjects', () => {
         MATH_SUBJECTS.INTEGRATED_MATH_ONE,
         MATH_SUBJECTS.INTEGRATED_MATH_TWO,
         MATH_SUBJECTS.INTEGRATED_MATH_THREE,
-        MATH_SUBJECTS.INTEGRATED_MATH_FOUR
+        MATH_SUBJECTS.INTEGRATED_MATH_FOUR,
       ]
 
       const result = getUnlockedSubjects(cert, certifications)
@@ -780,7 +779,7 @@ describe('getUnlockedSubjects', () => {
         SCIENCE_CERTS.CHEMISTRY,
         SCIENCE_CERTS.PHYSICS_ONE,
         SCIENCE_CERTS.PHYSICS_TWO,
-        SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE
+        SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE,
       ]
 
       const expected = [
@@ -791,12 +790,12 @@ describe('getUnlockedSubjects', () => {
         [SCIENCE_SUBJECTS.CHEMISTRY],
         [SCIENCE_SUBJECTS.PHYSICS_ONE],
         [SCIENCE_SUBJECTS.PHYSICS_TWO],
-        [SCIENCE_SUBJECTS.ENVIRONMENTAL_SCIENCE]
+        [SCIENCE_SUBJECTS.ENVIRONMENTAL_SCIENCE],
       ]
 
       for (let i = 0; i < passedCerts.length; i++) {
         const certifications = buildCertificationsWithUpchieve101({
-          [passedCerts[i]]: { passed: true, tries: 1 }
+          [passedCerts[i]]: { passed: true, tries: 1 },
         })
         const result = getUnlockedSubjects(cert, certifications)
         await expect(result).toEqual(expected[i])
@@ -806,7 +805,7 @@ describe('getUnlockedSubjects', () => {
     test('Completing SAT Strategies should unlock SAT Math when certified in SAT Math', async () => {
       const cert = TRAINING.SAT_STRATEGIES
       const certifications = buildCertificationsWithUpchieve101({
-        [SAT_CERTS.SAT_MATH]: { passed: true, tries: 1 }
+        [SAT_CERTS.SAT_MATH]: { passed: true, tries: 1 },
       })
       const expected = [SAT_SUBJECTS.SAT_MATH]
 
@@ -818,7 +817,7 @@ describe('getUnlockedSubjects', () => {
   describe('Completing a required training cert', () => {
     test('Completing Tutoring Skills should not unlock any subjects', async () => {
       const certifications = buildCertificationsWithUpchieve101()
-      const expected = []
+      const expected: string[] = []
 
       const result = getUnlockedSubjects(
         TRAINING.TUTORING_SKILLS,

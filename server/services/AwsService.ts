@@ -6,19 +6,18 @@ const s3 = new AWS.S3({
   accessKeyId: config.awsS3.accessKeyId,
   secretAccessKey: config.awsS3.secretAccessKey,
   region: config.awsS3.region,
-  signatureVersion: 'v4'
+  signatureVersion: 'v4',
 })
 
-export const getObject = async ({
-  bucket,
-  s3Key
-}: {
-  bucket: string
+// TODO: we should error or return undefined instead of empty string on failure
+
+export async function getObject(
+  bucket: keyof typeof config.awsS3,
   s3Key: string
-}): Promise<string> => {
+): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3[bucket],
-    Key: s3Key
+    Key: s3Key,
   }
 
   try {
@@ -26,20 +25,18 @@ export const getObject = async ({
     return objectUrl
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
-export const getPhotoIdUploadUrl = async ({
-  photoIdS3Key
-}: {
+export async function getPhotoIdUploadUrl(
   photoIdS3Key: string
-}): Promise<string> => {
+): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3.photoIdBucket,
     Key: photoIdS3Key,
     Expires: 60 * 60, // link expiration
-    ACL: 'bucket-owner-full-control'
+    ACL: 'bucket-owner-full-control',
   }
 
   try {
@@ -47,18 +44,14 @@ export const getPhotoIdUploadUrl = async ({
     return uploadUrl
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
-export const getPhotoIdUrl = async ({
-  photoIdS3Key
-}: {
-  photoIdS3Key: string
-}): Promise<string> => {
+export async function getPhotoIdUrl(photoIdS3Key: string): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3.photoIdBucket,
-    Key: photoIdS3Key
+    Key: photoIdS3Key,
   }
 
   try {
@@ -66,18 +59,18 @@ export const getPhotoIdUrl = async ({
     return photoUrl
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
-export const getSessionPhotoUploadUrl = async (
+export async function getSessionPhotoUploadUrl(
   sessionPhotoS3Key: string
-): Promise<string> => {
+): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3.sessionPhotoBucket,
     Key: sessionPhotoS3Key,
     Expires: 60 * 60, // link expiration
-    ACL: 'bucket-owner-full-control'
+    ACL: 'bucket-owner-full-control',
   }
 
   try {
@@ -85,21 +78,18 @@ export const getSessionPhotoUploadUrl = async (
     return uploadUrl
   } catch (error) {
     Sentry.captureException(error)
-    return null
+    return ''
   }
 }
 
-export const getObjects = async ({
-  bucket,
-  s3Keys
-}: {
-  bucket: string
+export async function getObjects(
+  bucket: keyof typeof config.awsS3,
   s3Keys: string[]
-}): Promise<string[]> => {
-  const urls = []
+): Promise<string[]> {
+  const urls: Promise<string>[] = []
 
   for (const s3Key of s3Keys) {
-    urls.push(getObject({ bucket, s3Key }))
+    urls.push(getObject(bucket, s3Key))
   }
 
   return Promise.all(urls)

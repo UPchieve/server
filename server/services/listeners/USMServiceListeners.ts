@@ -1,7 +1,7 @@
 import {
   SESSION_EVENTS,
   FEEDBACK_EVENTS,
-  USM_EVENTS
+  USM_EVENTS,
 } from '../../constants/events'
 import * as USMService from '../UserSessionMetricsService'
 import register from './register'

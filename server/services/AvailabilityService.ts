@@ -1,63 +1,8 @@
-import { Query, Types, Aggregate } from 'mongoose'
-import AvailabilitySnapshotModel, {
-  AvailabilitySnapshot,
-  AvailabilitySnapshotDocument
-} from '../models/Availability/Snapshot'
-import AvailabilityHistoryModel, {
-  AvailabilityHistory,
-  AvailabilityHistoryDocument
-} from '../models/Availability/History'
+import { Types } from 'mongoose'
 import { AvailabilityDay } from '../models/Availability/types'
+import { getHistoryForDatesByVolunteerId } from '../models/Availability/queries'
 
-export const getAvailability = (
-  query,
-  projection = {}
-): Promise<AvailabilitySnapshot> => {
-  return AvailabilitySnapshotModel.findOne(query)
-    .select(projection)
-    .lean()
-    .exec()
-}
-
-export const getAvailabilities = (
-  query,
-  projection = {}
-): Promise<AvailabilitySnapshot[]> => {
-  return AvailabilitySnapshotModel.find(query)
-    .select(projection)
-    .lean()
-    .exec()
-}
-
-export const getAvailabilityHistory = (
-  query,
-  projection = {}
-): Promise<AvailabilityHistory> => {
-  return AvailabilityHistoryModel.findOne(query)
-    .select(projection)
-    .lean()
-    .exec()
-}
-
-export const getAvailabilityHistoryWithPipeline = (
-  pipeline
-): Aggregate<AvailabilityHistory[]> =>
-  AvailabilityHistoryModel.aggregate(pipeline).read('secondaryPreferred')
-
-// @todo: Create a compound index on date and volunteerId
-export const getRecentAvailabilityHistory = async (
-  volunteerId: Types.ObjectId | string
-): Promise<AvailabilityHistory> => {
-  const [document] = await AvailabilityHistoryModel.find({ volunteerId })
-    .sort({ date: -1 })
-    .limit(1)
-    .lean()
-    .exec()
-
-  return document
-}
-
-export const getElapsedAvailability = (day: AvailabilityDay): number => {
+export function getElapsedAvailability(day: AvailabilityDay): number {
   let elapsedAvailability = 0
   const availabileTimes = Object.values(day)
   for (const time of availabileTimes) {
@@ -67,27 +12,16 @@ export const getElapsedAvailability = (day: AvailabilityDay): number => {
   return elapsedAvailability
 }
 
-export const getElapsedAvailabilityForDateRange = async (
-  volunteerId: Types.ObjectId | string,
+export async function getElapsedAvailabilityForDateRange(
+  volunteerId: Types.ObjectId,
   fromDate: Date,
   toDate: Date
-): Promise<number> => {
-  const historyDocs = await AvailabilityHistoryModel.aggregate([
-    {
-      $match: {
-        volunteerId,
-        date: {
-          $gte: new Date(fromDate),
-          $lte: new Date(toDate)
-        }
-      }
-    },
-    {
-      $project: {
-        availability: 1
-      }
-    }
-  ]).read('secondaryPreferred')
+): Promise<number> {
+  const historyDocs = await getHistoryForDatesByVolunteerId(
+    volunteerId,
+    fromDate,
+    toDate
+  )
 
   let totalElapsedAvailability = 0
   for (const doc of historyDocs) {
@@ -96,27 +30,3 @@ export const getElapsedAvailabilityForDateRange = async (
 
   return totalElapsedAvailability
 }
-
-export const createAvailabilitySnapshot = (
-  volunteerId: Types.ObjectId | string
-): Promise<AvailabilitySnapshotDocument> =>
-  AvailabilitySnapshotModel.create({ volunteerId })
-
-export const updateAvailabilitySnapshot = (
-  volunteerId: Types.ObjectId | string,
-  update: Partial<AvailabilitySnapshot>
-): Query<AvailabilitySnapshotDocument> =>
-  AvailabilitySnapshotModel.updateOne(
-    {
-      volunteerId
-    },
-    update
-  )
-
-export const createAvailabilityHistory = (data: {
-  availability: AvailabilityDay
-  volunteerId: Types.ObjectId
-  timezone: string
-  date: Date
-}): Promise<AvailabilityHistoryDocument> =>
-  AvailabilityHistoryModel.create(data)

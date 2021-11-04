@@ -1,26 +1,29 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import {
   resetDb,
   insertVolunteer,
-  insertNotificationMany
+  insertNotificationMany,
 } from '../../db-utils'
 import emailLowHoursSelected from '../../../worker/jobs/partner-volunteer-emails/emailLowHoursSelected'
-import logger from '../../../logger'
+import { log } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 import {
   buildAvailability,
   buildNotification,
-  buildSession
+  buildSession,
 } from '../../generate'
 jest.mock('../../../services/MailService')
+
+const mockedMailService = mocked(MailService, true)
 
 // db connection
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -40,28 +43,27 @@ describe('Partner volunteer low hours selected email', () => {
   test('Should send email to partner volunteer', async () => {
     const pastSessions = [buildSession()._id]
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true }
+      Saturday: { '1p': true, '2p': true },
     })
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       pastSessions,
       availability,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
-    // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // TODO: figure out how to properly type
     const job: any = {
       name: Jobs.EmailPartnerVolunteerLowHoursSelected,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailLowHoursSelected(job)
     expect(
       MailService.sendPartnerVolunteerLowHoursSelected
     ).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(log).toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${volunteer._id}`
     )
   })
@@ -69,46 +71,46 @@ describe('Partner volunteer low hours selected email', () => {
   test('Should not send email if volunteer is not onboarded', async () => {
     const volunteer = await insertVolunteer({ isOnboarded: false })
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerLowHoursSelected,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailLowHoursSelected(job)
     expect(
       MailService.sendPartnerVolunteerLowHoursSelected
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(log).not.toHaveBeenCalledWith()
   })
 
   test('Should not send email if volunteer is onboarded and received more than 2 text notifications', async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const notifications = [
       buildNotification({ volunteer: volunteer._id }),
       buildNotification({ volunteer: volunteer._id }),
-      buildNotification({ volunteer: volunteer._id })
+      buildNotification({ volunteer: volunteer._id }),
     ]
     await insertNotificationMany(notifications)
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerLowHoursSelected,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailLowHoursSelected(job)
     expect(
       MailService.sendPartnerVolunteerLowHoursSelected
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(log).not.toHaveBeenCalledWith()
   })
 
   test('Should not send email if onboarded partner volunteer, has 5+ hours of availability, and received more than 2 text notifications', async () => {
@@ -119,57 +121,56 @@ describe('Partner volunteer low hours selected email', () => {
         '3p': true,
         '4p': true,
         '5p': true,
-        '6p': true
-      }
+        '6p': true,
+      },
     })
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       volunteerPartnerOrg: 'example',
-      availability
+      availability,
     })
     const notifications = [
       buildNotification({ volunteer: volunteer._id }),
       buildNotification({ volunteer: volunteer._id }),
-      buildNotification({ volunteer: volunteer._id })
+      buildNotification({ volunteer: volunteer._id }),
     ]
     await insertNotificationMany(notifications)
-    // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const job: any = {
       name: Jobs.EmailPartnerVolunteerLowHoursSelected,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await emailLowHoursSelected(job)
     expect(
       MailService.sendPartnerVolunteerLowHoursSelected
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalledWith()
+    expect(log).not.toHaveBeenCalledWith()
   })
 
   test('Should throw error when sending email fails', async () => {
     const pastSessions = [buildSession()._id]
     const availability = buildAvailability({
-      Saturday: { '1p': true, '2p': true }
+      Saturday: { '1p': true, '2p': true },
     })
     const volunteer = await insertVolunteer({
       isOnboarded: true,
       pastSessions,
       availability,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const errorMessage = 'Unable to send'
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendPartnerVolunteerLowHoursSelected = rejectionFn
+    mockedMailService.sendPartnerVolunteerLowHoursSelected.mockRejectedValueOnce(
+      errorMessage
+    )
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerLowHoursSelected,
       data: {
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
 
     await expect(emailLowHoursSelected(job)).rejects.toEqual(

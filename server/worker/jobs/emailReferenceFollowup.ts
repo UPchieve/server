@@ -1,16 +1,9 @@
-import { log } from '../logger'
-import VolunteerModel, { Reference } from '../../models/Volunteer'
-import { REFERENCE_STATUS } from '../../constants'
-import MailService from '../../services/MailService'
-import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
-
-// @note: uses firstName instead of firstname because of the $project aggregation stage
-// @todo: clean up Volunteer model to use firstName instead of firstname
-interface Volunteer {
-  firstName: string
-  lastName: string
-}
+import { REFERENCE_STATUS } from '../../constants'
+import VolunteerModel, { Reference, Volunteer } from '../../models/Volunteer'
+import * as MailService from '../../services/MailService'
+import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
+import { log } from '../logger'
 
 interface ReferencesToEmail {
   reference: Reference
@@ -27,16 +20,16 @@ export default async (): Promise<void> => {
     'references.status': REFERENCE_STATUS.SENT,
     'references.sentAt': {
       $gt: new Date(fourDaysAgo),
-      $lt: new Date(threeDaysAgo)
-    }
+      $lt: new Date(threeDaysAgo),
+    },
   }
   const referencesToEmail: ReferencesToEmail[] = await VolunteerModel.aggregate(
     [
       {
-        $match: query
+        $match: query,
       },
       {
-        $unwind: '$references'
+        $unwind: '$references',
       },
       {
         /**
@@ -45,33 +38,33 @@ export default async (): Promise<void> => {
          * $unwind allows us to get separate documents from that array, but we need to filter by the
          * same query to get only references with a status of "SENT"
          **/
-        $match: query
+        $match: query,
       },
       {
         $project: {
           _id: 0,
           volunteer: {
-            firstName: '$firstname',
-            lastName: '$lastname'
+            firstname: '$firstname',
+            lastname: '$lastname',
           },
-          reference: '$references'
-        }
-      }
+          reference: '$references',
+        },
+      },
     ]
   )
 
   let totalEmailed = 0
-  const errors = []
+  const errors: string[] = []
 
   if (referencesToEmail.length === 0)
     return log('No references to email for a follow-up')
 
-  for (const ref of referencesToEmail) {
+  for (const { reference, volunteer } of referencesToEmail) {
     try {
-      await MailService.sendReferenceFollowup(ref)
+      await MailService.sendReferenceFollowup(reference, volunteer)
       totalEmailed++
     } catch (error) {
-      errors.push(`reference ${ref.reference._id}: ${error}`)
+      errors.push(`reference ${reference._id}: ${error}`)
     }
   }
 

@@ -41,7 +41,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -55,13 +55,13 @@ describe('Calendar routes', () => {
 
   test('Volunteer should see error when saving without availability object', async () => {
     const input = {
-      tz: 'American/New York'
+      tz: 'American/New York',
     }
 
     const response = await saveCalendar(input)
 
     const {
-      body: { err }
+      body: { err },
     } = response
     const expected = 'No availability object specified'
     expect(err).toEqual(expected)
@@ -91,17 +91,17 @@ describe('Calendar routes', () => {
   test('Volunteer should save schedule', async () => {
     const availability = buildAvailability({
       Saturday: { '1a': true },
-      Friday: { '11a': true }
+      Friday: { '11a': true },
     })
     const input = {
       tz: 'American/New York',
-      availability
+      availability,
     }
 
     const response = await saveCalendar(input)
 
     const {
-      body: { msg, err }
+      body: { msg, err },
     } = response
     expect(err).toBeUndefined()
     const expected = 'Schedule saved'
@@ -110,13 +110,13 @@ describe('Calendar routes', () => {
 
   test('Volunteer should be able to clear schedule', async () => {
     const input = {
-      tz: 'American/New York'
+      tz: 'American/New York',
     }
 
     const response = await clearCalendar(input)
 
     const {
-      body: { msg }
+      body: { msg },
     } = response
     const expected = 'Schedule cleared'
     expect(msg).toEqual(expected)

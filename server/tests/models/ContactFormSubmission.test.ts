@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
-import * as ContactFormSubmissionRepo from '../../models/ContactFormSubmission'
-import UserModel from '../../models/User'
+import * as ContactFormSubmissionRepo from '../../models/ContactFormSubmission/queries'
+import UserModel, { User } from '../../models/User'
 import { insertVolunteer } from '../db-utils'
-import { DocCreationError } from '../../models/Errors'
+import { RepoCreateError } from '../../models/Errors'
 import { hugeText } from '../generate'
 
-let user
+let user: User
 const message = 'This is some great feedback for you!'
 const topic = 'General feedback'
 
@@ -13,7 +13,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
   user = await insertVolunteer()
 })
@@ -23,8 +23,8 @@ afterAll(async () => {
   await mongoose.connection.close()
 })
 
-test('save contact form with email', async () => {
-  const doc = await ContactFormSubmissionRepo.createFormWithEmail(
+test('save contact form by email', async () => {
+  const doc = await ContactFormSubmissionRepo.createContactFormByEmail(
     message,
     topic,
     user.email
@@ -32,27 +32,22 @@ test('save contact form with email', async () => {
   expect(doc.userEmail).toBe(user.email)
   expect(doc.message).toBe(message)
   expect(doc.topic).toBe(topic)
-  expect(doc.id).toBeDefined()
+  expect(doc._id).toBeDefined()
   expect(doc.createdAt).toBeDefined()
   expect(doc.userId).toBeUndefined()
 })
 
-test('save contact form with user', async () => {
-  const doc = await ContactFormSubmissionRepo.createFormWithUser(
+test('save contact form by user', async () => {
+  const doc = await ContactFormSubmissionRepo.createContactFormByUser(
     message,
     topic,
     user._id
   )
-  expect(doc.userId).toStrictEqual(user._id.toString())
-  expect(typeof doc.userId).toBe('string')
+  expect(doc.userId).toStrictEqual(user._id)
   expect(doc.userEmail).toBe(user.email)
-  expect(typeof doc.userEmail).toBe('string')
   expect(doc.message).toBe(message)
-  expect(typeof doc.message).toBe('string')
   expect(doc.topic).toBe(topic)
-  expect(typeof doc.topic).toBe('string')
-  expect(doc.id).toBeDefined()
-  expect(typeof doc.id).toBe('string')
+  expect(doc._id).toBeDefined()
   expect(doc.createdAt).toBeDefined()
   expect(doc.createdAt).toBeInstanceOf(Date)
 })
@@ -60,44 +55,48 @@ test('save contact form with user', async () => {
 test('contact form rejects invalid email', async () => {
   const invalidEmail = 'test@test'
   try {
-    await ContactFormSubmissionRepo.createFormWithEmail(
+    await ContactFormSubmissionRepo.createContactFormByEmail(
       message,
       topic,
       invalidEmail
     )
   } catch (err) {
-    expect(err).toBeInstanceOf(DocCreationError)
+    expect(err).toBeInstanceOf(RepoCreateError)
   }
 })
 
 test('contact form rejects too short message', async () => {
   try {
-    await ContactFormSubmissionRepo.createFormWithEmail('', topic, user.email)
+    await ContactFormSubmissionRepo.createContactFormByEmail(
+      '',
+      topic,
+      user.email
+    )
   } catch (err) {
-    expect(err).toBeInstanceOf(DocCreationError)
+    expect(err).toBeInstanceOf(RepoCreateError)
   }
 })
 
 test('contact form rejects too long message', async () => {
   try {
-    await ContactFormSubmissionRepo.createFormWithEmail(
+    await ContactFormSubmissionRepo.createContactFormByEmail(
       hugeText(),
       topic,
       user.email
     )
   } catch (err) {
-    expect(err).toBeInstanceOf(DocCreationError)
+    expect(err).toBeInstanceOf(RepoCreateError)
   }
 })
 
 test('contact from rejects invalid topic', async () => {
   try {
-    await ContactFormSubmissionRepo.createFormWithEmail(
+    await ContactFormSubmissionRepo.createContactFormByEmail(
       message,
       'not valid',
       user.email
     )
   } catch (err) {
-    expect(err).toBeInstanceOf(DocCreationError)
+    expect(err).toBeInstanceOf(RepoCreateError)
   }
 })

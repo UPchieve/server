@@ -1,11 +1,12 @@
 import { Request } from 'jest-express/lib/request'
+import { Response } from 'jest-express/lib/response'
 import { mocked } from 'ts-jest/utils'
 import { addLastActivity } from '../../middleware/add-last-activity'
 import { ONE_DAY_ELAPSED_MILLISECONDS } from '../../constants'
-import { updateLastActivityUser } from '../../services/UserService'
-jest.mock('../../services/UserService', () => ({
-  updateLastActivityUser: jest.fn()
-}))
+import * as UserRepo from '../../models/User/queries'
+
+jest.mock('../../models/User/queries')
+const mockedUserRepo = mocked(UserRepo, true)
 
 const USER_ID = '5a39d174a6f3b3973d5633z7'
 
@@ -14,12 +15,13 @@ const mockNextCallback = jest.fn()
 beforeEach(() => {
   jest.resetAllMocks()
 })
+const res: any = new Response()
 
 test('Should execute next() when given no req.user', () => {
   // TODO: Proper type on this const
   const req: any = new Request()
 
-  addLastActivity(req, null, mockNextCallback)
+  addLastActivity(req, res, mockNextCallback)
 
   expect(mockNextCallback.mock.calls.length).toBe(1)
 })
@@ -28,7 +30,7 @@ test('Should execute next() when user has lastActivityAt value within one day ra
   const mockDecoration = { user: { _id: USER_ID, lastActivityAt: new Date() } }
   const req: any = Object.assign({}, new Request(), mockDecoration)
 
-  addLastActivity(req, null, mockNextCallback)
+  addLastActivity(req, res, mockNextCallback)
 
   expect(mockNextCallback.mock.calls.length).toBe(1)
 })
@@ -37,16 +39,14 @@ test('Should execute next() and update when user has lastActivityAt value has ex
   const mockDecoration = {
     user: {
       _id: USER_ID,
-      lastActivityAt: new Date(Date.now() - ONE_DAY_ELAPSED_MILLISECONDS * 2)
-    }
+      lastActivityAt: new Date(Date.now() - ONE_DAY_ELAPSED_MILLISECONDS * 2),
+    },
   }
   const req: any = Object.assign({}, new Request(), mockDecoration)
-  const mockUpdateLastActivityUser = mocked(updateLastActivityUser)
-  mockUpdateLastActivityUser.mockImplementation(() => Promise.resolve())
 
-  await addLastActivity(req, null, mockNextCallback)
+  await addLastActivity(req, res, mockNextCallback)
 
-  expect(updateLastActivityUser).toBeCalledTimes(1)
+  expect(UserRepo.updateUserLastActivityById).toBeCalledTimes(1)
   expect(mockNextCallback.mock.calls.length).toBe(1)
 })
 

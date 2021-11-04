@@ -1,44 +1,36 @@
 import moment from 'moment'
 import config from '../../config'
 import * as VolunteersCtrl from '../../controllers/VolunteersCtrl'
-import * as UserService from '../../services/UserService'
+import * as VolunteerService from '../../services/VolunteerService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
+import { Router } from 'express'
+import {
+  asNumber,
+  asObjectId,
+  asString,
+  asArray,
+  asFactory,
+} from '../../utils/type-utils'
+import { resError } from '../res-error'
 
-export default function(router) {
-  router.get('/volunteers', authPassport.isAdmin, function(req, res, next) {
-    VolunteersCtrl.getVolunteers(function(volunteers, err) {
-      if (err) {
-        next(err)
-      } else {
-        res.json({
-          msg: 'Users retreived from database',
-          volunteers: volunteers
-        })
-      }
-    })
-  })
-
+export function routeVolunteers(router: Router): void {
   router.get(
     '/volunteers/availability/:certifiedSubject',
     authPassport.isAdmin,
-    function(req, res, next) {
-      const certifiedSubject = req.params.certifiedSubject
-      VolunteersCtrl.getVolunteersAvailability(
-        {
-          certifiedSubject: certifiedSubject
-        },
-        function(aggAvailabilities, err) {
-          if (err) {
-            next(err)
-          } else {
-            res.json({
-              msg: 'Users retreived from database',
-              aggAvailabilities: aggAvailabilities
-            })
-          }
-        }
-      )
+    async function(req, res) {
+      try {
+        const certifiedSubject = asString(req.params.certifiedSubject)
+        const aggAvailabilities = await VolunteersCtrl.getVolunteersAvailability(
+          certifiedSubject
+        )
+        res.json({
+          msg: 'Users retreived from database',
+          aggAvailabilities: aggAvailabilities,
+        })
+      } catch (err) {
+        resError(res, err)
+      }
     }
   )
 
@@ -48,10 +40,11 @@ export default function(router) {
   ) {
     try {
       const { page } = req.query
+      const pageNum = page ? asNumber(page) : 1
       const {
         volunteers,
-        isLastPage
-      } = await UserService.getVolunteersToReview(page)
+        isLastPage,
+      } = await VolunteerService.getVolunteersToReview(pageNum)
       res.json({ volunteers, isLastPage })
     } catch (error) {
       res
@@ -60,22 +53,30 @@ export default function(router) {
     }
   })
 
+  interface Test {
+    test: string[]
+  }
+  const stringArrayValidator = asFactory<Test>({
+    test: asArray(asString),
+  })
   router.post('/volunteers/review/:id', authPassport.isAdmin, async function(
     req,
     res
   ) {
-    const { id } = req.params
-    const { photoIdStatus, referencesStatus } = req.body
-
     try {
-      await UserService.updatePendingVolunteerStatus({
-        volunteerId: id,
-        photoIdStatus,
-        referencesStatus
+      const volunteerId = asObjectId(req.params.id)
+      const { photoIdStatus, referencesStatus } = req.body
+      const { test: validStatuses } = stringArrayValidator({
+        test: referencesStatus,
       })
+      await VolunteerService.updatePendingVolunteerStatus(
+        volunteerId,
+        asString(photoIdStatus),
+        validStatuses
+      )
       res.sendStatus(200)
     } catch (error) {
-      res.status(500).json({ err: error.message })
+      res.status(500).json({ err: (error as Error).message })
     }
   })
 
@@ -92,7 +93,7 @@ export default function(router) {
       } else {
         res.status(500)
       }
-      res.json({ err: error.message })
+      res.json({ err: (error as Error).message })
     }
   })
 }

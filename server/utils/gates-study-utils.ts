@@ -1,10 +1,12 @@
+import { Types } from 'mongoose'
 import { Session } from '../models/Session'
 import { MATH_SUBJECTS, GRADES } from '../constants'
-import { getSessionById } from '../services/SessionService'
-import { getUser } from '../services/UserService'
+import { getSessionById } from '../models/Session/queries'
+import { getStudentById } from '../models/Student/queries'
 import { getSchool } from '../services/SchoolService'
 import { Student } from '../models/Student'
 import { School } from '../models/School'
+import { getIdFromModelReference } from '../utils/model-reference'
 
 export interface GatesQualifiedData {
   session: Session
@@ -33,20 +35,24 @@ export function isGatesQualifiedSession(data: GatesQualifiedData) {
     (student.currentGrade === GRADES.NINTH ||
       student.currentGrade === GRADES.TENTH) &&
     !session.isReported &&
-    Object.values(MATH_SUBJECTS).includes(session.subTopic)
+    // must typecast values to string since typescript treats enum RHS values weirdly
+    Object.values<string>(MATH_SUBJECTS).includes(session.subTopic)
   )
 }
 
 export async function prepareForGatesQualificationCheck(
-  sessionId: string
+  sessionId: Types.ObjectId
 ): Promise<GatesQualifiedData> {
   const session = await getSessionById(sessionId)
-  const student = await getUser({ _id: session.student })
-  const school = await getSchool(student.approvedHighschool)
-
+  const student = await getStudentById(getIdFromModelReference(session.student))
+  if (!student) throw new Error('Gates student not found')
+  const school = await getSchool(
+    getIdFromModelReference(student.approvedHighschool)
+  )
+  if (!school) throw new Error('Gates school not found')
   return {
     session,
     student,
-    school
+    school,
   }
 }

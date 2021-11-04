@@ -1,4 +1,5 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import { Types } from 'mongoose'
 import { capitalize } from 'lodash'
 import exceljs from 'exceljs'
@@ -6,21 +7,27 @@ import {
   USER_ACTION,
   HOUR_TO_UTC_MAPPING,
   ONBOARDING_STATUS,
-  DATE_RANGE_COMPARISON_FIELDS
+  DATE_RANGE_COMPARISON_FIELDS,
 } from '../constants'
-import * as UserActionService from '../services/UserActionService'
-import * as SessionService from '../services/SessionService'
-import * as AvailabilityService from '../services/AvailabilityService'
+import { getActionsWithPipeline } from '../models/UserAction/queries'
+import * as SessionRepo from '../models/Session/queries'
+import { getHistoryForDatesByVolunteerId } from '../models/Availability/queries'
 import logger from '../logger'
 import { isCertified } from '../controllers/UserCtrl'
+import { Session } from '../models/Session'
 import { Certifications } from '../models/Volunteer'
+import { getVolunteersWithPipeline } from '../models/Volunteer/queries'
+import { HOURS } from '../models/Availability/types'
+import { AvailabilityHistory } from '../models/Availability/History'
+import { UserAction } from '../models/UserAction'
 import {
-  getVolunteersWithPipeline,
-  HourSummaryStats
-} from '../services/VolunteerService'
+  VolunteerForHourSummary,
+  VolunteerForTelecomReport,
+} from '../models/Volunteer/queries'
+import { HourSummaryStats } from '../services/VolunteerService'
 import {
   studentPartnerManifests,
-  volunteerPartnerManifests
+  volunteerPartnerManifests,
 } from '../partnerManifests'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
@@ -28,16 +35,21 @@ import roundUpToNearestInterval from './round-up-to-nearest-interval'
 import { countCertsByType } from './count-certs-by-type'
 import { asFactory, asOptional, asString } from './type-utils'
 
+/**
+ * dateQuery is types as any for now since we know it's a mongo agg date query
+ * acc is also typed any due to issues with Availability type
+ */
+
 interface Stamp {
   day: string
   hour: string
 }
 
-function formatStamp(time: moment): Stamp {
+function formatStamp(time: moment.Moment): Stamp {
   return { day: time.format('MM-DD-YYYY'), hour: time.format('H') }
 }
 
-function addToAcc(acc, time: moment, minutes: number): void {
+function addToAcc(acc: any, time: moment.Moment, minutes: number): void {
   const { day, hour } = formatStamp(time)
   if (day in acc) {
     const sub = acc[day]
@@ -51,7 +63,7 @@ function addToAcc(acc, time: moment, minutes: number): void {
   }
 }
 
-function readFromAcc(acc, time: moment): number {
+function readFromAcc(acc: any, time: moment.Moment): number {
   const { day, hour } = formatStamp(time)
   if (day in acc) {
     const sub = acc[day]
@@ -64,8 +76,8 @@ function readFromAcc(acc, time: moment): number {
 
 // Reduce accumulator to single day totals
 // reduced_acc = { day: number }
-function reduceAcc(acc) {
-  const final = {}
+function reduceAcc(acc: any) {
+  const final: any = {}
   for (const day of Object.keys(acc)) {
     let total = 0
     const sub = acc[day]
@@ -79,14 +91,14 @@ function reduceAcc(acc) {
 }
 
 function telecomTutorTime(
-  sessions,
-  availabilityForDateRange,
-  quizPassedActions
+  sessions: Session[],
+  availabilityForDateRange: AvailabilityHistory[],
+  quizPassedActions: UserAction[]
 ) {
-  const acc = {} // accumulator { MM-DD-YYYY: {H: time volunteered in minutes } }
-  const sessionAcc = {}
-  const availabilityAcc = {}
-  const certificationAcc = {}
+  const acc: any = {} // accumulator { MM-DD-YYYY: {H: time volunteered in minutes } }
+  const sessionAcc: any = {}
+  const availabilityAcc: any = {}
+  const certificationAcc: any = {}
   // TODO: double loop on sessions is inefficient
   // check if tutoring occured on a day
   for (const session of sessions) {
@@ -98,7 +110,10 @@ function telecomTutorTime(
         sessionAcc,
         startedAt,
         // convert ms -> min
-        roundUpToNearestInterval(session.timeTutored / 60000, 15)
+        roundUpToNearestInterval(
+          (session.timeTutored ? session.timeTutored : 0) / 60000,
+          15
+        )
       )
     }
   }
@@ -106,9 +121,11 @@ function telecomTutorTime(
   for (const availabilityHistory of availabilityForDateRange) {
     const availability = availabilityHistory.availability
     for (const hourA of Object.keys(availability)) {
-      if (availability[hourA]) {
+      if (availability[hourA as HOURS]) {
         const temp = moment(availabilityHistory.date)
-        const { day, hour } = formatStamp(temp.hour(HOUR_TO_UTC_MAPPING[hourA]))
+        const { day, hour } = formatStamp(
+          temp.hour(HOUR_TO_UTC_MAPPING[hourA as HOURS])
+        )
         // If day is not aleady accounted for do not add since no tutoring happened
         if (day in acc) {
           acc[day][hour] = 60
@@ -160,7 +177,7 @@ function telecomTutorTime(
     totalTime: reduceAcc(acc),
     sessionTime: reduceAcc(sessionAcc),
     availabilityTime: reduceAcc(availabilityAcc),
-    certificationTime: reduceAcc(certificationAcc)
+    certificationTime: reduceAcc(certificationAcc),
   }
 }
 
@@ -174,53 +191,52 @@ interface TelecomRow {
   hours: number
 }
 
-async function getVolunteerData(volunteer, dateQuery) {
-  // @todo: figure out how the type annotation
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quizPassedActions: any = await UserActionService.getActionsWithPipeline(
-    [
-      {
-        $match: {
-          user: Types.ObjectId(volunteer._id),
-          action: USER_ACTION.QUIZ.PASSED,
-          createdAt: dateQuery
-        }
+async function getVolunteerData<V extends VolunteerForHourSummary>(
+  volunteer: V,
+  dateQuery: any
+) {
+  const quizPassedActions: UserAction[] = await getActionsWithPipeline([
+    {
+      $match: {
+        user: volunteer._id,
+        action: USER_ACTION.QUIZ.PASSED,
+        createdAt: dateQuery,
       },
-      {
-        $sort: {
-          createdAt: 1
-        }
-      }
-    ]
-  )
-  const sessions = await SessionService.getSessionsWithPipeline([
+    },
     {
       $sort: {
-        createdAt: 1
-      }
+        createdAt: 1,
+      },
+    },
+  ])
+  const sessions: Session[] = await SessionRepo.getSessionsWithPipeline([
+    {
+      $sort: {
+        createdAt: 1,
+      },
     },
     {
       $match: {
-        volunteer: Types.ObjectId(volunteer._id),
-        createdAt: dateQuery
-      }
+        volunteer: volunteer._id,
+        createdAt: dateQuery,
+      },
     },
     {
       $lookup: {
         from: 'users',
         localField: 'student',
         foreignField: '_id',
-        as: 'student'
-      }
+        as: 'student',
+      },
     },
     {
-      $unwind: '$student'
+      $unwind: '$student',
     },
     {
       $match: {
         'student.isFakeUser': false,
-        'student.isTestUser': false
-      }
+        'student.isTestUser': false,
+      },
     },
     {
       $project: {
@@ -229,43 +245,32 @@ async function getVolunteerData(volunteer, dateQuery) {
         endedAt: 1,
         subTopic: 1,
         timeTutored: 1,
-        volunteerJoinedAt: 1
-      }
-    }
-  ])
-  // @todo: figure out how to properly type and cast
-  const availabilityForDateRange: any = await AvailabilityService.getAvailabilityHistoryWithPipeline(
-    [
-      {
-        $match: {
-          volunteerId: volunteer._id,
-          date: dateQuery
-        }
+        volunteerJoinedAt: 1,
       },
-      {
-        $sort: {
-          date: 1
-        }
-      }
-    ]
+    },
+  ])
+  const availabilityForDateRange = await getHistoryForDatesByVolunteerId(
+    volunteer._id,
+    dateQuery.$gt,
+    dateQuery.$lte
   )
   return {
     sessions,
     availabilityForDateRange,
-    quizPassedActions
+    quizPassedActions,
   }
 }
 
-async function telecomProcessVolunteer(
-  volunteer,
-  dateQuery
+async function telecomProcessVolunteer<V extends VolunteerForTelecomReport>(
+  volunteer: V,
+  dateQuery: any
 ): Promise<TelecomRow[]> {
   const totalCerts = countCerts(volunteer.certifications)
   if (totalCerts === 0) return []
   const {
     sessions,
     availabilityForDateRange,
-    quizPassedActions
+    quizPassedActions,
   } = await getVolunteerData(volunteer, dateQuery)
   // Accumulate hours into rows
   const rows = []
@@ -286,16 +291,15 @@ async function telecomProcessVolunteer(
       email,
       eventId,
       date,
-      hours
+      hours,
     })
   }
   return rows
 }
 
-export async function generateTelecomReport(
-  volunteers,
-  dateQuery
-): Promise<TelecomRow[]> {
+export async function generateTelecomReport<
+  V extends VolunteerForTelecomReport
+>(volunteers: V[], dateQuery: any): Promise<TelecomRow[]> {
   const volunteerPartnerReport = []
   const errors = []
   for (const volunteer of volunteers) {
@@ -315,7 +319,7 @@ export async function generateTelecomReport(
   return volunteerPartnerReport
 }
 
-function sumHours(acc): number {
+function sumHours(acc: any): number {
   let total = 0
   for (const day of Object.keys(acc)) {
     total += acc[day]
@@ -328,15 +332,14 @@ export function emptyHours(): HourSummaryStats {
     totalVolunteerHours: 0,
     totalCoachingHours: 0,
     totalElapsedAvailability: 0,
-    totalQuizzesPassed: 0
+    totalQuizzesPassed: 0,
   }
 }
 
 // To be used by email/update job(s) for generating telecom volunteer hours
-export async function telecomHourSummaryStats(
-  volunteer,
-  dateQuery
-): Promise<HourSummaryStats> {
+export async function telecomHourSummaryStats<
+  V extends VolunteerForHourSummary
+>(volunteer: V, dateQuery: any): Promise<HourSummaryStats> {
   try {
     const totalCerts = countCerts(volunteer.certifications)
     if (totalCerts === 0) return emptyHours()
@@ -344,19 +347,19 @@ export async function telecomHourSummaryStats(
     const {
       sessions,
       availabilityForDateRange,
-      quizPassedActions
+      quizPassedActions,
     } = await getVolunteerData(volunteer, dateQuery)
     const {
       totalTime,
       sessionTime,
       availabilityTime,
-      certificationTime
+      certificationTime,
     } = telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
     const row = {
       totalVolunteerHours: sumHours(totalTime),
       totalCoachingHours: sumHours(sessionTime),
       totalElapsedAvailability: sumHours(availabilityTime),
-      totalQuizzesPassed: sumHours(certificationTime)
+      totalQuizzesPassed: sumHours(certificationTime),
     } as HourSummaryStats
     return row
   } catch (error) {
@@ -375,17 +378,17 @@ export function getSumOperatorForDateRange(
         {
           $and: [
             {
-              $gte: [fieldToCompareDateRange, startDate]
+              $gte: [fieldToCompareDateRange, startDate],
             },
             {
-              $lte: [fieldToCompareDateRange, endDate]
-            }
-          ]
+              $lte: [fieldToCompareDateRange, endDate],
+            },
+          ],
         },
         1,
-        0
-      ]
-    }
+        0,
+      ],
+    },
   }
 }
 
@@ -402,7 +405,7 @@ function getOnboardingStatus({
   isDeactivated,
   lastActivityAt,
   availabilityLastModifiedAt,
-  certifications
+  certifications,
 }: GetOnboardingStatusOptions): ONBOARDING_STATUS {
   if (isOnboarded) return ONBOARDING_STATUS.ONBOARDED
   if (isDeactivated) return ONBOARDING_STATUS.DEACTIVATED
@@ -414,7 +417,7 @@ function getOnboardingStatus({
   return ONBOARDING_STATUS.NOT_STARTED
 }
 
-function isDateWithin(date, startDate, endDate) {
+function isDateWithin(date: string, startDate: Date, endDate: Date) {
   const formatDate = new Date(date).getTime()
   return formatDate >= startDate.getTime() && formatDate < endDate.getTime()
 }
@@ -426,7 +429,7 @@ export interface GroupStats {
 }
 
 export interface PartnerVolunteerAnalytics {
-  _id: Types.ObjectId | string
+  _id: Types.ObjectId
   firstName: string
   lastName: string
   email: string
@@ -493,7 +496,7 @@ export function getAnalyticsReportRow(
     availabilityLastModifiedAt: volunteer.availabilityLastModifiedAt,
     isDeactivated: volunteer.isDeactivated,
     lastActivityAt: volunteer.lastActivityAt,
-    certifications: volunteer.certifications
+    certifications: volunteer.certifications,
   })
   row.dateAccountCreated = moment(volunteer.createdAt).format(
     'MM/DD/YYYY HH:mm'
@@ -552,19 +555,19 @@ export async function getUniqueStudentStats(
   return ((await getVolunteersWithPipeline([
     {
       $match: {
-        volunteerPartnerOrg: partnerOrg
-      }
+        volunteerPartnerOrg: partnerOrg,
+      },
     },
     {
       $lookup: {
         from: 'sessions',
         foreignField: '_id',
         localField: 'pastSessions',
-        as: 'pastSession'
-      }
+        as: 'pastSession',
+      },
     },
     {
-      $unwind: '$pastSession'
+      $unwind: '$pastSession',
     },
     {
       $group: {
@@ -574,8 +577,8 @@ export async function getUniqueStudentStats(
           startDate,
           endDate,
           DATE_RANGE_COMPARISON_FIELDS.PAST_SESSION_CREATED_AT
-        )
-      }
+        ),
+      },
     },
     {
       $group: {
@@ -583,11 +586,11 @@ export async function getUniqueStudentStats(
         total: { $sum: 1 },
         totalWithinDateRange: {
           $sum: {
-            $cond: [{ $gte: ['$frequencyWitinDateRange', 1] }, 1, 0]
-          }
-        }
-      }
-    }
+            $cond: [{ $gte: ['$frequencyWitinDateRange', 1] }, 1, 0],
+          },
+        },
+      },
+    },
   ])) as unknown) as GroupStats[]
 }
 
@@ -621,7 +624,7 @@ export async function getAnalyticsReportSummary(
 ): Promise<AnalyticsReportSummary> {
   const defaultData = {
     total: 0,
-    totalWithinDateRange: 0
+    totalWithinDateRange: 0,
   }
   const summary = {
     signUps: { ...defaultData },
@@ -631,14 +634,17 @@ export async function getAnalyticsReportSummary(
     sessionsCompleted: { ...defaultData },
     pickupRate: { ...defaultData },
     volunteerHours: { ...defaultData },
-    uniqueStudentsHelped: { ...defaultData }
+    uniqueStudentsHelped: { ...defaultData },
   } as AnalyticsReportSummary
 
   for (const row of report) {
     summary.signUps.total++
     if (isDateWithin(row.dateAccountCreated, startDate, endDate))
       summary.signUps.totalWithinDateRange++
-    if (row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED) {
+    if (
+      row.onboardingStatus === ONBOARDING_STATUS.ONBOARDED &&
+      row.dateOnboarded
+    ) {
       summary.volunteersOnboarded.total++
       if (isDateWithin(row.dateOnboarded, startDate, endDate))
         summary.volunteersOnboarded.totalWithinDateRange++
@@ -725,7 +731,7 @@ const analyticsReportDataHeaderMapping = {
   dateRangeTrainingHours: 'Training hours within date range',
   dateRangeElapsedAvailabilityHours:
     'Elapsed availability hours within date range',
-  dateRangeVolunteerHours: 'Total hours within date range'
+  dateRangeVolunteerHours: 'Total hours within date range',
 }
 
 const analyticsReportSummaryHeaderMapping = {
@@ -736,16 +742,16 @@ const analyticsReportSummaryHeaderMapping = {
   sessionsCompleted: 'Sessions completed',
   pickupRate: 'Pick-up rate',
   volunteerHours: 'Volunteer hours completed',
-  uniqueStudentsHelped: 'Unique students helped'
+  uniqueStudentsHelped: 'Unique students helped',
 }
 
-const borderRightMediumStyle = {
+const borderRightMediumStyle: Partial<exceljs.Borders> = {
   right: {
-    style: 'medium'
-  }
+    style: 'medium',
+  },
 }
 
-export function applyAnalyticsReportDataStyles(worksheet) {
+export function applyAnalyticsReportDataStyles(worksheet: exceljs.Worksheet) {
   /**
    * @note: When applying styles to a cell, column, or row, previous styles applied may be overridden,
    *        so there may need to be styling that is defined again to preserve the styles.
@@ -773,18 +779,18 @@ export function applyAnalyticsReportDataStyles(worksheet) {
   const rowWithFormattedColumnHeaders = worksheet.getRow(2)
   rowWithFormattedColumnHeaders.height = 80
   rowWithFormattedColumnHeaders.alignment = {
-    wrapText: true
+    wrapText: true,
   }
   rowWithFormattedColumnHeaders.border = {
-    bottom: { style: 'thin' }
+    bottom: { style: 'thin' },
   }
 
-  const overridenCellStyle = {
+  const overridenCellStyle: Partial<exceljs.Style> = {
     border: {
       ...borderRightMediumStyle,
-      bottom: { style: 'thin' }
+      bottom: { style: 'thin' },
     },
-    alignment: { wrapText: true }
+    alignment: { wrapText: true },
   }
 
   // Update styling on cells that were overriden due to specific column styles being applied
@@ -799,12 +805,12 @@ export function applyAnalyticsReportSummaryStyles(
   worksheet: exceljs.Worksheet
 ) {
   worksheet.getColumn('A').alignment = {
-    wrapText: true
+    wrapText: true,
   }
   const rightAlignText = {
     alignment: {
-      horizontal: 'right'
-    }
+      horizontal: 'right',
+    },
   } as Partial<exceljs.Style>
   worksheet.getCell('B4').style = rightAlignText
   worksheet.getCell('C4').style = rightAlignText
@@ -818,19 +824,16 @@ export function processAnalyticsReportDataSheet(
   startDate: string,
   endDate: string
 ) {
-  const reportRowKeys = Object.keys(analyticsReportDataHeaderMapping)
   const columnsWithHeaderKeys = []
   const formattedColumnHeaders = []
-  for (let i = 0; i < reportRowKeys.length; i += 1) {
+  for (const [key, value] of Object.entries(analyticsReportDataHeaderMapping)) {
     const col = {
-      key: reportRowKeys[i],
-      width: 15
+      key,
+      width: 15,
     } as exceljs.Column
 
     columnsWithHeaderKeys.push(col)
-    formattedColumnHeaders.push(
-      analyticsReportDataHeaderMapping[reportRowKeys[i]]
-    )
+    formattedColumnHeaders.push(value)
   }
   worksheet.columns = columnsWithHeaderKeys
   // Add the headers to the second row
@@ -864,7 +867,7 @@ export function processAnalyticsReportSummarySheet(
   const summaryColumnMapping = {
     description: '',
     total: 'Cumulative',
-    totalWithinDateRange: `${startDate} - ${endDate}`
+    totalWithinDateRange: `${startDate} - ${endDate}`,
   }
 
   const summaryCols = []
@@ -874,7 +877,7 @@ export function processAnalyticsReportSummarySheet(
     const col = {
       header: columnHeader,
       key: columnKey,
-      width: 25
+      width: 25,
     } as exceljs.Column
     summaryCols.push(col)
   }
@@ -884,7 +887,10 @@ export function processAnalyticsReportSummarySheet(
     string,
     AnalyticsReportSummaryData
   ][]) {
-    const description = analyticsReportSummaryHeaderMapping[key]
+    const description =
+      analyticsReportSummaryHeaderMapping[
+        key as keyof typeof analyticsReportSummaryHeaderMapping
+      ]
     let total: number | string
     let totalWithinDateRange: number | string
     if (key === 'onboardingRate' || key === 'pickupRate') {
@@ -909,7 +915,7 @@ export interface VolunteerReportQuery {
 export const asValidateVolunteerReportQuery = asFactory<VolunteerReportQuery>({
   partnerOrg: asString,
   startDate: asString,
-  endDate: asString
+  endDate: asString,
 })
 
 export function validateVolunteerReportQuery(data: unknown) {
@@ -953,13 +959,13 @@ const studentReportValidators = {
   sessionRangeTo: asString,
   highSchoolId: asOptional(asString),
   studentPartnerOrg: asOptional(asString),
-  studentPartnerSite: asOptional(asString)
+  studentPartnerSite: asOptional(asString),
 }
 
 export const asValidateStudentSessionReportQuery = asFactory<
   StudentReportQuery
 >({
-  ...studentReportValidators
+  ...studentReportValidators,
 })
 
 export const asValidateStudentUsageReportQuery = asFactory<
@@ -967,17 +973,17 @@ export const asValidateStudentUsageReportQuery = asFactory<
 >({
   joinedBefore: asString,
   joinedAfter: asString,
-  ...studentReportValidators
+  ...studentReportValidators,
 })
 
-function isValidReportDateFormat(dateString) {
+function isValidReportDateFormat(dateString: string) {
   const isStrictMode = true
   return moment(dateString, 'MM-DD-YYYY', isStrictMode).isValid()
 }
 
 export function validateSessionDateRanges({
   sessionRangeFrom,
-  sessionRangeTo
+  sessionRangeTo,
 }: SessionDateRanges) {
   if (!isValidReportDateFormat(sessionRangeFrom))
     throw new InputError(
@@ -991,7 +997,7 @@ export function validateSessionDateRanges({
 
 export function validateJoinedDateRanges({
   joinedAfter,
-  joinedBefore
+  joinedBefore,
 }: JoinedDateRanges) {
   if (!isValidReportDateFormat(joinedAfter))
     throw new InputError(
@@ -1011,6 +1017,7 @@ export function validateStudentReportQuery(data: StudentReportQuery) {
     else if (
       (data.studentPartnerSite && !studentPartner.hasOwnProperty('sites')) ||
       (data.studentPartnerSite &&
+        studentPartner.sites &&
         !studentPartner.sites.includes(data.studentPartnerSite))
     )
       throw new InputError(

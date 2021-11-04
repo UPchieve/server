@@ -6,7 +6,7 @@ const initializeUnleash = (): void => {
     initialize({
       url: config.unleashUrl,
       appName: config.unleashName,
-      instanceId: config.unleashId
+      instanceId: config.unleashId,
     })
 }
 

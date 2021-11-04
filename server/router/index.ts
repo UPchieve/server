@@ -1,13 +1,19 @@
 import { Express } from 'express'
 import passport from 'passport'
 import config from '../config'
-import { authPassport } from '../utils/auth-utils'
 import logger from '../logger'
-import * as ContactFormRouter from './contact'
+import { authPassport } from '../utils/auth-utils'
 import SessionStore from './api/session-store'
+import * as ContactFormRouter from './contact'
 import * as AuthRouter from './auth'
 import * as ApiRouter from './api'
 import * as EligibilityRouter from './eligibility'
+import * as WhiteboardRouter from './whiteboard'
+import * as EduRouter from './edu'
+import * as MobileRouter from './mobile'
+import * as ReferenceRouter from './reference'
+import * as ReferralRouter from './referral'
+import * as TwimlRouter from './twiml'
 
 export default function(app: Express) {
   logger.info('initializing server routing')
@@ -20,17 +26,16 @@ export default function(app: Express) {
   app.use(passport.initialize())
   app.use(passport.session())
 
-  require('./whiteboard')(app)
-
+  WhiteboardRouter.routes(app)
   AuthRouter.routes(app)
   ApiRouter.routes(app, sessionStore)
-  require('./edu')(app)
+  EduRouter.routes(app)
   EligibilityRouter.routes(app)
-  require('./twiml')(app)
+  TwimlRouter.routes(app)
   ContactFormRouter.routes(app)
-  require('./mobile')(app)
-  require('./reference')(app)
-  require('./referral')(app)
+  MobileRouter.routes(app)
+  ReferenceRouter.routes(app)
+  ReferralRouter.routes(app)
 
   app.get('/healthz', function(req, res) {
     res.status(200).json({ version: config.version })

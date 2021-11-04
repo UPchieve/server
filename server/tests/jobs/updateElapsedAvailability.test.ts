@@ -1,16 +1,17 @@
 import mongoose from 'mongoose'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import updateElapsedAvailability from '../../worker/jobs/updateElapsedAvailability'
 import {
   getVolunteer,
   insertAvailabilitySnapshot,
   insertVolunteer,
-  resetDb
+  resetDb,
 } from '../db-utils'
 import { buildAvailability, buildVolunteer } from '../generate'
 import { log } from '../../worker/logger'
 import { Jobs } from '../../worker/jobs'
-import * as AvailabilityService from '../../services/AvailabilityService'
+import AvailabilityHistoryModel from '../../models/Availability/History'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 jest.setTimeout(1000 * 15)
@@ -20,7 +21,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -31,6 +32,13 @@ afterAll(async () => {
 beforeEach(async () => {
   await resetDb()
 })
+
+function getAvailabilityHistory(query: any, projection = {}) {
+  return AvailabilityHistoryModel.findOne(query)
+    .select(projection)
+    .lean()
+    .exec()
+}
 
 describe('updateElapsedAvailability', () => {
   beforeEach(() => {
@@ -52,7 +60,7 @@ describe('updateElapsedAvailability', () => {
     const hendrix = buildVolunteer({
       isOnboarded: true,
       isApproved: true,
-      elapsedAvailability: 10
+      elapsedAvailability: 10,
     })
     const berry = buildVolunteer()
     const day = moment()
@@ -63,8 +71,8 @@ describe('updateElapsedAvailability', () => {
     await insertAvailabilitySnapshot({
       volunteerId: hendrix._id,
       onCallAvailability: buildAvailability({
-        [day]: { '1p': true, '2p': true }
-      })
+        [day]: { '1p': true, '2p': true },
+      }),
     })
 
     await updateElapsedAvailability()
@@ -73,7 +81,8 @@ describe('updateElapsedAvailability', () => {
       { elapsedAvailability: 1 }
     )
 
-    const newAvailabilityHistory = await AvailabilityService.getAvailabilityHistory(
+    // TODO: refactor test to mock out db calls
+    const newAvailabilityHistory = await getAvailabilityHistory(
       { volunteerId: hendrix._id },
       { availability: 1 }
     )
@@ -107,9 +116,9 @@ describe('updateElapsedAvailability', () => {
       '8p': false,
       '9p': false,
       '10p': false,
-      '11p': false
+      '11p': false,
     }
-    expect(newAvailabilityHistory.availability).toMatchObject(
+    expect(newAvailabilityHistory!.availability).toMatchObject(
       expectedAvailabilityDay
     )
 

@@ -14,10 +14,13 @@ const blobServiceClient = new BlobServiceClient(
 )
 
 // a helper method used to read a Node.js readable stream into a Buffer
-async function streamToBuffer(readableStream): Promise<Buffer> {
+async function streamToBuffer(
+  readableStream: NodeJS.ReadableStream
+): Promise<Buffer> {
+  // TODO: is there a way to do this async?
   return new Promise((resolve, reject) => {
-    const chunks = []
-    readableStream.on('data', data => {
+    const chunks: any[] = []
+    readableStream.on('data', (data: any) => {
       chunks.push(data instanceof Buffer ? data : Buffer.from(data))
     })
     readableStream.on('end', () => {
@@ -27,31 +30,27 @@ async function streamToBuffer(readableStream): Promise<Buffer> {
   })
 }
 
-export const getBlob = async ({
-  containerName,
-  blobName
-}: {
-  containerName: string
+export async function getBlob(
+  containerName: string,
   blobName: string
-}): Promise<string> => {
+): Promise<string> {
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blobClient = containerClient.getBlobClient(blobName)
   const downloadBlockBlobResponse = await blobClient.download()
   const blobContent = (
-    await streamToBuffer(downloadBlockBlobResponse.readableStreamBody)
+    await streamToBuffer(
+      // readableStreamBody always available within Node
+      downloadBlockBlobResponse.readableStreamBody as NodeJS.ReadableStream
+    )
   ).toString()
   return blobContent
 }
 
-export const uploadBlob = async ({
-  containerName,
-  blobName,
-  content
-}: {
-  containerName: string
-  blobName: string
+export async function uploadBlob(
+  containerName: string,
+  blobName: string,
   content: string
-}): Promise<void> => {
+): Promise<void> {
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blockBlobClient = containerClient.getBlockBlobClient(blobName)
   await blockBlobClient.upload(content, content.length)

@@ -1,16 +1,14 @@
 import mongoose from 'mongoose'
-import moment from 'moment-timezone'
-import {
-  getVolunteers,
-  getHourSummaryStats
-} from '../../services/VolunteerService'
+import moment from 'moment'
+import 'moment-timezone'
+import { getHourSummaryStats } from '../../services/VolunteerService'
 import { insertVolunteer, resetDb } from '../db-utils'
 import {
   buildVolunteer,
   buildSession,
   buildAvailabilityHistory,
   buildUserAction,
-  buildAvailabilityDay
+  buildAvailabilityDay,
 } from '../generate'
 import SessionModel from '../../models/Session'
 import AvailabilityHistoryModel from '../../models/Availability/History'
@@ -22,7 +20,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -33,32 +31,6 @@ afterAll(async () => {
 beforeEach(async () => {
   await resetDb()
   jest.clearAllMocks()
-})
-
-describe('getVolunteers', () => {
-  test('Should get volunteers given a query', async () => {
-    const dateFilter = new Date('12/20/2020')
-    const query = {
-      createdAt: {
-        $gte: dateFilter
-      }
-    }
-    await Promise.all([
-      insertVolunteer({ createdAt: new Date('12/10/2020') }),
-      insertVolunteer({ createdAt: new Date('12/14/2020') }),
-      insertVolunteer({ createdAt: new Date('12/21/2020') }),
-      insertVolunteer({ createdAt: new Date('12/25/2020') })
-    ])
-
-    const volunteers = await getVolunteers(query)
-    expect(volunteers).toHaveLength(2)
-
-    for (const volunteer of volunteers) {
-      expect(volunteer.createdAt.getTime()).toBeGreaterThan(
-        dateFilter.getTime()
-      )
-    }
-  })
 })
 
 describe('getHourSummaryStats', () => {
@@ -74,39 +46,41 @@ describe('getHourSummaryStats', () => {
       .utc()
       .subtract(1, 'weeks')
       .startOf('week')
+      .toDate()
     const endOfLastWeek = moment(today)
       .utc()
       .subtract(1, 'weeks')
       .endOf('week')
+      .toDate()
 
     await SessionModel.insertMany([
       buildSession({
         createdAt: new Date('12/10/2020'),
         volunteer: volunteerId,
-        timeTutored: timeTutoredOneMin
+        timeTutored: timeTutoredOneMin,
       }),
       buildSession({
         createdAt: new Date('12/14/2020'),
         volunteer: volunteerId,
-        timeTutored: timeTutoredTwoMins
+        timeTutored: timeTutoredTwoMins,
       }),
       buildSession({
         createdAt: new Date('12/21/2020'),
         volunteer: volunteerId,
-        timeTutored: timeTutoredOneMin
+        timeTutored: timeTutoredOneMin,
       }),
       buildSession({
         createdAt: new Date('12/25/2020'),
         volunteer: volunteerId,
-        timeTutored: timeTutoredTwoMins
-      })
+        timeTutored: timeTutoredTwoMins,
+      }),
     ])
 
     await AvailabilityHistoryModel.insertMany([
       buildAvailabilityHistory({
         date: new Date('12/12/2020'),
         volunteerId,
-        availability: buildAvailabilityDay({ '4p': true, '5p': true })
+        availability: buildAvailabilityDay({ '4p': true, '5p': true }),
       }),
       buildAvailabilityHistory({
         date: new Date('12/13/2020'),
@@ -115,31 +89,31 @@ describe('getHourSummaryStats', () => {
           '10a': true,
           '11a': true,
           '12p': true,
-          '4p': true
-        })
+          '4p': true,
+        }),
       }),
       buildAvailabilityHistory({
         date: new Date('12/14/2020'),
         volunteerId,
         availability: buildAvailabilityDay({
-          '10a': true
-        })
+          '10a': true,
+        }),
       }),
       buildAvailabilityHistory({
         date: new Date('12/15/2020'),
         volunteerId,
         availability: buildAvailabilityDay({
           '10p': true,
-          '11p': true
-        })
+          '11p': true,
+        }),
       }),
       buildAvailabilityHistory({
         date: new Date('12/16/2020'),
         volunteerId,
         availability: buildAvailabilityDay({
-          '2p': true
-        })
-      })
+          '2p': true,
+        }),
+      }),
     ])
 
     await UserActionModel.insertMany([
@@ -147,26 +121,26 @@ describe('getHourSummaryStats', () => {
         createdAt: new Date('12/01/2020'),
         action,
         actionType,
-        user: volunteerId
+        user: volunteerId,
       }),
       buildUserAction({
         createdAt: new Date('12/14/2020'),
         action,
         actionType,
-        user: volunteerId
+        user: volunteerId,
       }),
       buildUserAction({
         createdAt: new Date('12/21/2020'),
         action,
         actionType,
-        user: volunteerId
+        user: volunteerId,
       }),
       buildUserAction({
         createdAt: new Date('12/25/2020'),
         action,
         actionType,
-        user: volunteerId
-      })
+        user: volunteerId,
+      }),
     ])
 
     const results = await getHourSummaryStats(
@@ -179,7 +153,7 @@ describe('getHourSummaryStats', () => {
       totalElapsedAvailability: 8,
       totalCoachingHours: 0.03,
       // Total volunteer hours calculation: [sum of coaching, elapsed avail/10, and quizzes]
-      totalVolunteerHours: 0.03 + 1 + 8 * 0.1
+      totalVolunteerHours: 0.03 + 1 + 8 * 0.1,
     }
 
     expect(results).toMatchObject(expectedStats)

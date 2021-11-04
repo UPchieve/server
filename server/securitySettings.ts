@@ -6,13 +6,13 @@ import config from './config'
 // script sources
 const googleUrls = [
   'https://www.googletagmanager.com',
-  'https://www.google-analytics.com'
+  'https://www.google-analytics.com',
 ]
 const cdnUrl = 'https://cdn.upchieve.org'
 const mathJaxScriptUrl = 'https://cdnjs.cloudflare.com'
 const newrelicUrls = [
   'https://js-agent.newrelic.com',
-  'https://bam.nr-data.net'
+  'https://bam.nr-data.net',
 ]
 
 // connect sources
@@ -24,20 +24,20 @@ const mathJaxFetchUrl = 'https://api.cdnjs.com'
 // img srcs
 const s3PhotoConnectUrls = [
   `${config.awsS3.photoIdBucket}.s3.us-east-2.amazonaws.com`,
-  `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`
+  `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`,
 ]
 
 const s3PhotoImageUrls = [
   `${config.awsS3.photoIdBucket}.s3.amazonaws.com`,
   `${config.awsS3.photoIdBucket}.s3.us-east-2.amazonaws.com`,
   `${config.awsS3.sessionPhotoBucket}.s3.amazonaws.com`,
-  `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`
+  `${config.awsS3.sessionPhotoBucket}.s3.us-east-2.amazonaws.com`,
 ]
 
 const adminEduUrls = [
   'https://code.jquery.com',
   'https://stackpath.bootstrapcdn.com',
-  'https://cdn.jsdelivr.net'
+  'https://cdn.jsdelivr.net',
 ]
 
 // default srcs
@@ -46,12 +46,8 @@ const googleDocsUrl = 'https://docs.google.com'
 const trainingMaterialsS3 =
   'https://upc-training-materials.s3.us-east-2.amazonaws.com'
 
-// the alternative to disabling eslint here
-// is to do '\'self\'' which looks...terrible
-// 'self' must come through in single-quotes
-// to the front end
 export const scriptSrc = [
-  "'self'", // eslint-disable-line quotes
+  "'self'",
   `https://${config.host}`,
   ...googleUrls,
   cdnUrl,
@@ -59,22 +55,22 @@ export const scriptSrc = [
   posthogUrl,
   ...newrelicUrls,
   ...adminEduUrls,
-  "'unsafe-eval'", // eslint-disable-line quotes
-  "'unsafe-inline'" // eslint-disable-line quotes
+  "'unsafe-eval'",
+  "'unsafe-inline'",
 ]
 
 export const imgSrc = [
-  "'self'", // eslint-disable-line quotes
+  "'self'",
   ...googleUrls,
   ...s3PhotoImageUrls,
   cdnUrl,
   'data:',
   'blob:',
-  `https://${config.host}`
+  `https://${config.host}`,
 ]
 
 export const connectSrc = [
-  "'self'", // eslint-disable-line quotes
+  "'self'",
   posthogUrl,
   unleashUrl,
   sentryUrl,
@@ -84,7 +80,7 @@ export const connectSrc = [
   ...googleUrls,
   config.vueAppUnleashUrl,
   `wss://${config.host}`,
-  `https://${config.host}`
+  `https://${config.host}`,
 ]
 
 if (config.NODE_ENV !== 'production') {
@@ -94,23 +90,23 @@ if (config.NODE_ENV !== 'production') {
 }
 
 export const defaultSrc = [
-  "'self'", // eslint-disable-line quotes
+  "'self'",
   `https://${config.host}`,
-  "'unsafe-inline'", // eslint-disable-line quotes
+  "'unsafe-inline'",
   vimeoUrl,
   googleDocsUrl,
-  trainingMaterialsS3
+  trainingMaterialsS3,
 ]
 
 // the rest are defaults
-export const baseUri = ["'self'"] // eslint-disable-line quotes
-export const blockAllMixedContent = []
-export const fontSrc = ["'self'", 'https:', 'data:'] // eslint-disable-line quotes
-export const frameAncestors = ["'self'", 'http://localhost'] // eslint-disable-line quotes
-export const objectSrc = ["'none'"] // eslint-disable-line quotes
-export const scriptSrcAttr = ["'none'"] // eslint-disable-line quotes
-export const styleSrc = ["'self'", 'https:', "'unsafe-inline'"] // eslint-disable-line quotes
-export let upgradeInsecureRequests
+export const baseUri = ["'self'"]
+export const blockAllMixedContent: string[] = []
+export const fontSrc = ["'self'", 'https:', 'data:']
+export const frameAncestors = ["'self'", 'http://localhost']
+export const objectSrc = ["'none'"]
+export const scriptSrcAttr = ["'none'"]
+export const styleSrc = ["'self'", 'https:', "'unsafe-inline'"]
+export let upgradeInsecureRequests: string[] | null
 if (config.NODE_ENV === 'production') {
   upgradeInsecureRequests = []
 } else {

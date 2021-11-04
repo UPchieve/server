@@ -2,7 +2,7 @@ export const FORMAT_INTEGRATED_MATH = {
   integratedMathOne: 'Integrated Math 1',
   integratedMathTwo: 'Integrated Math 2',
   integratedMathThree: 'Integrated Math 3',
-  integratedMathFour: 'Integrated Math 4'
+  integratedMathFour: 'Integrated Math 4',
 }
 
 export enum TRAINING {
@@ -10,7 +10,7 @@ export enum TRAINING {
   TUTORING_SKILLS = 'tutoringSkills',
   COLLEGE_COUNSELING = 'collegeCounseling',
   SAT_STRATEGIES = 'satStrategies',
-  COLLEGE_SKILLS = 'collegeSkills'
+  COLLEGE_SKILLS = 'collegeSkills',
 }
 
 export enum MATH_CERTS {
@@ -21,23 +21,23 @@ export enum MATH_CERTS {
   PRECALCULUS = 'precalculus',
   CALCULUS_AB = 'calculusAB',
   CALCULUS_BC = 'calculusBC',
-  STATISTICS = 'statistics'
+  STATISTICS = 'statistics',
 }
 
-export const MATH_SUBJECTS = {
-  PREALGREBA: 'prealgebra',
-  ALGEBRA_ONE: 'algebraOne',
-  ALGEBRA_TWO: 'algebraTwo',
-  GEOMETRY: 'geometry',
-  TRIGONOMETRY: 'trigonometry',
-  PRECALCULUS: 'precalculus',
-  CALCULUS_AB: 'calculusAB',
-  CALCULUS_BC: 'calculusBC',
-  STATISTICS: 'statistics',
-  INTEGRATED_MATH_ONE: 'integratedMathOne',
-  INTEGRATED_MATH_TWO: 'integratedMathTwo',
-  INTEGRATED_MATH_THREE: 'integratedMathThree',
-  INTEGRATED_MATH_FOUR: 'integratedMathFour'
+export enum MATH_SUBJECTS {
+  PREALGREBA = 'prealgebra',
+  ALGEBRA_ONE = 'algebraOne',
+  ALGEBRA_TWO = 'algebraTwo',
+  GEOMETRY = 'geometry',
+  TRIGONOMETRY = 'trigonometry',
+  PRECALCULUS = 'precalculus',
+  CALCULUS_AB = 'calculusAB',
+  CALCULUS_BC = 'calculusBC',
+  STATISTICS = 'statistics',
+  INTEGRATED_MATH_ONE = 'integratedMathOne',
+  INTEGRATED_MATH_TWO = 'integratedMathTwo',
+  INTEGRATED_MATH_THREE = 'integratedMathThree',
+  INTEGRATED_MATH_FOUR = 'integratedMathFour',
 }
 
 export enum SCIENCE_CERTS {
@@ -45,14 +45,14 @@ export enum SCIENCE_CERTS {
   CHEMISTRY = 'chemistry',
   PHYSICS_ONE = 'physicsOne',
   PHYSICS_TWO = 'physicsTwo',
-  ENVIRONMENTAL_SCIENCE = 'environmentalScience'
+  ENVIRONMENTAL_SCIENCE = 'environmentalScience',
 }
-export const SCIENCE_SUBJECTS = {
-  BIOLOGY: 'biology',
-  CHEMISTRY: 'chemistry',
-  PHYSICS_ONE: 'physicsOne',
-  PHYSICS_TWO: 'physicsTwo',
-  ENVIRONMENTAL_SCIENCE: 'environmentalScience'
+export enum SCIENCE_SUBJECTS {
+  BIOLOGY = 'biology',
+  CHEMISTRY = 'chemistry',
+  PHYSICS_ONE = 'physicsOne',
+  PHYSICS_TWO = 'physicsTwo',
+  ENVIRONMENTAL_SCIENCE = 'environmentalScience',
 }
 
 export enum COLLEGE_CERTS {
@@ -60,7 +60,7 @@ export enum COLLEGE_CERTS {
   FINANCIAL_AID = 'financialAid',
   SPORTS_RECRUITMENT_PLANNING = 'sportsRecruitmentPlanning',
   PLANNING = 'planning',
-  APPLICATIONS = 'applications'
+  APPLICATIONS = 'applications',
 }
 
 export enum COLLEGE_SUBJECTS {
@@ -68,25 +68,25 @@ export enum COLLEGE_SUBJECTS {
   FINANCIAL_AID = 'financialAid',
   SPORTS_RECRUITMENT_PLANNING = 'sportsRecruitmentPlanning',
   PLANNING = 'planning',
-  APPLICATIONS = 'applications'
+  APPLICATIONS = 'applications',
 }
 
 export enum SAT_CERTS {
   SAT_MATH = 'satMath',
-  SAT_READING = 'satReading'
+  SAT_READING = 'satReading',
 }
 
-export const SAT_SUBJECTS = {
-  SAT_MATH: 'satMath',
-  SAT_READING: 'satReading'
+export enum SAT_SUBJECTS {
+  SAT_MATH = 'satMath',
+  SAT_READING = 'satReading',
 }
 
 export enum READING_WRITING_CERTS {
-  HUMANITIES_ESSAYS = 'humanitiesEssays'
+  HUMANITIES_ESSAYS = 'humanitiesEssays',
 }
 
 export enum READING_WRITING_SUBJECTS {
-  HUMANITIES_ESSAYS = 'humanitiesEssays'
+  HUMANITIES_ESSAYS = 'humanitiesEssays',
 }
 
 export const SUBJECTS = {
@@ -94,7 +94,16 @@ export const SUBJECTS = {
   ...SCIENCE_SUBJECTS,
   ...COLLEGE_SUBJECTS,
   ...SAT_SUBJECTS,
-  ...READING_WRITING_SUBJECTS
+  ...READING_WRITING_SUBJECTS,
+}
+
+export const CERTS = {
+  ...MATH_CERTS,
+  ...SCIENCE_CERTS,
+  ...COLLEGE_CERTS,
+  ...SAT_CERTS,
+  ...READING_WRITING_CERTS,
+  ...TRAINING,
 }
 
 export const CERT_UNLOCKING = {
@@ -105,7 +114,7 @@ export const CERT_UNLOCKING = {
     MATH_SUBJECTS.TRIGONOMETRY,
     MATH_SUBJECTS.ALGEBRA_ONE,
     MATH_SUBJECTS.ALGEBRA_TWO,
-    MATH_SUBJECTS.PREALGREBA
+    MATH_SUBJECTS.PREALGREBA,
   ],
   [MATH_CERTS.CALCULUS_AB]: [
     MATH_SUBJECTS.CALCULUS_AB,
@@ -113,20 +122,20 @@ export const CERT_UNLOCKING = {
     MATH_SUBJECTS.TRIGONOMETRY,
     MATH_SUBJECTS.ALGEBRA_ONE,
     MATH_SUBJECTS.ALGEBRA_TWO,
-    MATH_SUBJECTS.PREALGREBA
+    MATH_SUBJECTS.PREALGREBA,
   ],
   [MATH_CERTS.PRECALCULUS]: [
     MATH_SUBJECTS.PRECALCULUS,
     MATH_SUBJECTS.TRIGONOMETRY,
     MATH_SUBJECTS.ALGEBRA_ONE,
     MATH_SUBJECTS.ALGEBRA_TWO,
-    MATH_SUBJECTS.PREALGREBA
+    MATH_SUBJECTS.PREALGREBA,
   ],
   [MATH_CERTS.TRIGONOMETRY]: [MATH_SUBJECTS.TRIGONOMETRY],
   [MATH_CERTS.ALGEBRA]: [
     MATH_SUBJECTS.ALGEBRA_ONE,
     MATH_SUBJECTS.ALGEBRA_TWO,
-    MATH_SUBJECTS.PREALGREBA
+    MATH_SUBJECTS.PREALGREBA,
   ],
   [MATH_CERTS.PREALGREBA]: [MATH_SUBJECTS.PREALGREBA],
   [MATH_CERTS.STATISTICS]: [MATH_SUBJECTS.STATISTICS],
@@ -136,7 +145,7 @@ export const CERT_UNLOCKING = {
   [SCIENCE_CERTS.PHYSICS_ONE]: [SCIENCE_SUBJECTS.PHYSICS_ONE],
   [SCIENCE_CERTS.PHYSICS_TWO]: [SCIENCE_SUBJECTS.PHYSICS_TWO],
   [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: [
-    SCIENCE_SUBJECTS.ENVIRONMENTAL_SCIENCE
+    SCIENCE_SUBJECTS.ENVIRONMENTAL_SCIENCE,
   ],
   [COLLEGE_CERTS.ESSAYS]: [COLLEGE_SUBJECTS.ESSAYS],
   // @note: move applications and planning to computed certs once College Counseling is added
@@ -144,14 +153,14 @@ export const CERT_UNLOCKING = {
   [COLLEGE_CERTS.PLANNING]: [COLLEGE_SUBJECTS.PLANNING],
   [COLLEGE_CERTS.FINANCIAL_AID]: [COLLEGE_SUBJECTS.FINANCIAL_AID],
   [COLLEGE_CERTS.SPORTS_RECRUITMENT_PLANNING]: [
-    COLLEGE_SUBJECTS.SPORTS_RECRUITMENT_PLANNING
+    COLLEGE_SUBJECTS.SPORTS_RECRUITMENT_PLANNING,
   ],
   [SAT_CERTS.SAT_MATH]: [SAT_CERTS.SAT_MATH],
   [SAT_CERTS.SAT_READING]: [SAT_CERTS.SAT_READING],
   [TRAINING.COLLEGE_COUNSELING]: [SUBJECTS.PLANNING, SUBJECTS.APPLICATIONS],
   [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: [
-    READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS
-  ]
+    READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS,
+  ],
 }
 
 export const COMPUTED_CERTS = {
@@ -159,19 +168,19 @@ export const COMPUTED_CERTS = {
     // @note: Algebra unlocks both Algebra 1 and Algebra 2, either or can be used to compute Integrated Math
     SUBJECTS.ALGEBRA_ONE,
     MATH_CERTS.GEOMETRY,
-    MATH_CERTS.STATISTICS
+    MATH_CERTS.STATISTICS,
   ],
   [SUBJECTS.INTEGRATED_MATH_TWO]: [
     SUBJECTS.ALGEBRA_ONE,
     MATH_CERTS.GEOMETRY,
     MATH_CERTS.STATISTICS,
-    MATH_CERTS.TRIGONOMETRY
+    MATH_CERTS.TRIGONOMETRY,
   ],
   [SUBJECTS.INTEGRATED_MATH_THREE]: [
     MATH_CERTS.PRECALCULUS,
-    MATH_CERTS.STATISTICS
+    MATH_CERTS.STATISTICS,
   ],
-  [SUBJECTS.INTEGRATED_MATH_FOUR]: [MATH_CERTS.PRECALCULUS]
+  [SUBJECTS.INTEGRATED_MATH_FOUR]: [MATH_CERTS.PRECALCULUS],
   // @note: temporarily hide these computed certs for when the college counseling course is added
   // [SUBJECTS.PLANNING]: [TRAINING.COLLEGE_COUNSELING],
   // [SUBJECTS.APPLICATIONS]: [TRAINING.COLLEGE_COUNSELING]
@@ -183,17 +192,38 @@ export enum SUBJECT_TYPES {
   COLLEGE = 'college',
   SAT = 'sat',
   TRAINING = 'training',
-  READING_WRITING = 'readingWriting'
+  READING_WRITING = 'readingWriting',
 }
 
-export const CATEGORY_TO_SUBCATEGORY_MAP = {
+export type ACTIVE_COLLEGE_CERTS = Exclude<
+  COLLEGE_CERTS,
+  'sportsRecruitmentPlanning' | 'financialAid'
+>
+
+export type ACTIVE_TRAINING_CERTS = Exclude<
+  TRAINING,
+  'tutoringSkills' | 'collegeCounseling' | 'satStrategies' | 'collegeSkills'
+>
+
+export type ACTIVE_QUIZ_CATEGORIES =
+  | MATH_CERTS
+  | SCIENCE_CERTS
+  | ACTIVE_COLLEGE_CERTS
+  | SAT_CERTS
+  | READING_WRITING_CERTS
+  | ACTIVE_TRAINING_CERTS
+
+export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
+  ACTIVE_QUIZ_CATEGORIES,
+  string[]
+> = {
   [MATH_CERTS.PREALGREBA]: [
     'numbers',
     'arithmetic properties',
     'exponents',
     'exponents and radicals',
     'polynomials',
-    'fractions'
+    'fractions',
   ],
   [MATH_CERTS.ALGEBRA]: [
     'linear equations',
@@ -201,7 +231,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'application of linear equations',
     'two variable equations',
     'rational expressions',
-    'complex numbers'
+    'complex numbers',
   ],
   [MATH_CERTS.GEOMETRY]: [
     'congruence and similarity',
@@ -209,7 +239,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'angles',
     'circles',
     'triangles',
-    'rectangles'
+    'rectangles',
   ],
   [MATH_CERTS.TRIGONOMETRY]: [
     'angles',
@@ -218,7 +248,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'quadrants',
     'radians',
     'unit circle',
-    'inequalities'
+    'inequalities',
   ],
   [MATH_CERTS.STATISTICS]: [
     'representing data numerically',
@@ -239,7 +269,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'relationships between variables',
     'confidence intervals',
     'interpreting pvalue',
-    'finding the test statistic'
+    'finding the test statistic',
   ],
   [MATH_CERTS.PRECALCULUS]: [
     'rectangular coordinates',
@@ -247,7 +277,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'functions',
     'rational exponents',
     'quadratic functions',
-    'logarithms and exponents'
+    'logarithms and exponents',
   ],
   [MATH_CERTS.CALCULUS_AB]: [
     'absolute extrema',
@@ -265,7 +295,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'optimization',
     'reimann sums',
     'related rates',
-    'relative extrema'
+    'relative extrema',
   ],
   [MATH_CERTS.CALCULUS_BC]: [
     'absolute extrema',
@@ -284,7 +314,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'parametric',
     'reimann sums',
     'relative extrema',
-    'taylor polynomials'
+    'taylor polynomials',
   ],
   [COLLEGE_CERTS.ESSAYS]: [
     'basic',
@@ -292,7 +322,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'answer',
     'dhistory',
     'optional',
-    'supplemental'
+    'supplemental',
   ],
   // @note: Once College Counseling is implemented Planning and Applications will be phased to subjects that are unlocked instead of certs
   [COLLEGE_CERTS.PLANNING]: ['exam', 'type', 'LOR', 'basic'],
@@ -303,7 +333,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'fees',
     'FinAid',
     'LOR',
-    'basic'
+    'basic',
   ],
   [SCIENCE_CERTS.BIOLOGY]: [
     'biochemistry',
@@ -316,7 +346,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'animal behavior and physiology',
     'ecology',
     'human physiology and anatomy',
-    'evolution and taxonomy'
+    'evolution and taxonomy',
   ],
   [SCIENCE_CERTS.CHEMISTRY]: [
     'chemical reactions',
@@ -334,11 +364,10 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'redox reactions and electrochemistry',
     'kinetics',
     'nuclear chemistry',
-    'kinematics'
+    'kinematics',
   ],
   [SCIENCE_CERTS.PHYSICS_ONE]: [
     'kinematics',
-    // eslint-disable-next-line quotes
     "newton's laws",
     'rotational mechanics',
     'work and energy',
@@ -348,7 +377,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'magnetism',
     'waves and sound',
     'refraction and reflection',
-    'gravity/gen relativity'
+    'gravity/gen relativity',
   ],
   [SCIENCE_CERTS.PHYSICS_TWO]: [
     'Fluids - density and pressure',
@@ -363,7 +392,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'Optics - refraction and reflection',
     'Quantum & Atomic Physics',
     'dynamics 2',
-    'Electric Circuits'
+    'Electric Circuits',
   ],
   [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: [
     'earth systems and resources',
@@ -377,7 +406,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'natural biogeochemical cycles',
     'pollution',
     'populations',
-    'the atmosphere'
+    'the atmosphere',
   ],
   [TRAINING.UPCHIEVE_101]: ['upchieve'],
   [SAT_CERTS.SAT_MATH]: [
@@ -402,7 +431,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'graphs',
     'shape_of_distributions',
     'right_triangle_problems',
-    'congruence_and_similarity'
+    'congruence_and_similarity',
   ],
   [SAT_CERTS.SAT_READING]: [
     'explict_v_implicit',
@@ -418,7 +447,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'analyzing_arguments',
     'connecting_texts',
     'history_passages',
-    'strategies'
+    'strategies',
   ],
   [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: [
     'types_of_essays',
@@ -435,8 +464,8 @@ export const CATEGORY_TO_SUBCATEGORY_MAP = {
     'nonnvarying_sentence_length',
     'wordiness',
     'grammatical_errors',
-    'common_requests'
-  ]
+    'common_requests',
+  ],
 }
 
 export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
@@ -452,5 +481,5 @@ export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
   [COLLEGE_SUBJECTS.ESSAYS]: 'College Essays',
   [SAT_SUBJECTS.SAT_MATH]: 'SAT Math',
   [SAT_SUBJECTS.SAT_READING]: 'SAT Reading',
-  [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays'
+  [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays',
 }

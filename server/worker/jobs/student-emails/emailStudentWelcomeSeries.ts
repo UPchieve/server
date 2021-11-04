@@ -1,46 +1,34 @@
-import { Types } from 'mongoose'
 import { Job } from 'bull'
-import logger from '../../../logger'
-import MailService from '../../../services/MailService'
-import { getStudent } from '../../../services/StudentService'
+import { log } from '../../logger'
+import * as MailService from '../../../services/MailService'
+import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { Jobs } from '../index'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
+import { asObjectId } from '../../../utils/type-utils'
 
 interface WelcomeEmail {
-  studentId: string | Types.ObjectId
+  studentId: string
 }
 
 export default async (job: Job<WelcomeEmail>): Promise<void> => {
   const {
     data: { studentId },
-    name: currentJob
+    name: currentJob,
   } = job
-  const student = await getStudent(
-    {
-      _id: studentId,
-      ...EMAIL_RECIPIENT
-    },
-    {
-      _id: 1,
-      email: 1,
-      firstname: 1
-    }
-  )
+  const student = await getStudentContactInfoById(asObjectId(studentId))
 
   if (student) {
     try {
-      const { firstname: firstName, email } = student
-      const mailData = { firstName, email }
+      const { firstname, email } = student
       if (currentJob === Jobs.EmailStudentUseCases)
-        await MailService.sendStudentUseCases(mailData)
+        await MailService.sendStudentUseCases(email, firstname)
       if (currentJob === Jobs.EmailMeetOurVolunteers)
-        await MailService.sendMeetOurVolunteers(mailData)
+        await MailService.sendMeetOurVolunteers(email, firstname)
       if (currentJob === Jobs.EmailIndependentLearning)
-        await MailService.sendIndependentLearning(mailData)
+        await MailService.sendIndependentLearning(email, firstname)
       if (currentJob === Jobs.EmailStudentGoalSetting)
-        await MailService.sendStudentGoalSetting(mailData)
+        await MailService.sendStudentGoalSetting(email, firstname)
 
-      logger.info(`Emailed ${currentJob} to student ${studentId}`)
+      log(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {
       throw new Error(
         `Failed to email ${currentJob} to student ${studentId}: ${error}`

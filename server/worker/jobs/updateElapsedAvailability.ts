@@ -1,30 +1,26 @@
-import moment from 'moment-timezone'
-import VolunteerModel from '../../models/Volunteer'
-import { log } from '../logger'
-import { AvailabilitySnapshot } from '../../models/Availability/Snapshot'
+import moment from 'moment'
+import 'moment-timezone'
 import {
-  createAvailabilityHistory,
-  getAvailability,
-  getElapsedAvailability
-} from '../../services/AvailabilityService'
+  getVolunteerIdsForElapsedAvailability,
+  updateVolunteerElapsedAvailabilityById,
+} from '../../models/Volunteer/queries'
+import { log } from '../logger'
+import { DAYS } from '../../models/Availability/types'
+import { getElapsedAvailability } from '../../services/AvailabilityService'
+import {
+  getSnapshotByVolunteerId,
+  createHistoryFromBaseHistory,
+} from '../../models/Availability/queries'
 import { Jobs } from '.'
 
 export default async (): Promise<void> => {
-  const volunteers = await VolunteerModel.find({
-    isOnboarded: true,
-    isApproved: true
-  })
-    .select({ _id: 1 })
-    .lean()
-    .exec()
+  const volunteerIds = await getVolunteerIdsForElapsedAvailability()
 
   let totalUpdated = 0
-  const errors = []
+  const errors: string[] = []
 
-  for (const volunteer of volunteers) {
-    const availability: AvailabilitySnapshot = await getAvailability({
-      volunteerId: volunteer._id
-    })
+  for (const volunteerId of volunteerIds) {
+    const availability = await getSnapshotByVolunteerId(volunteerId)
     if (!availability) return
 
     const endOfYesterday = moment()
@@ -36,34 +32,32 @@ export default async (): Promise<void> => {
       .utc()
       .subtract(1, 'days')
       .format('dddd')
-    const availabilityDay = availability.onCallAvailability[yesterday]
+    const availabilityDay = availability.onCallAvailability[yesterday as DAYS]
     const elapsedAvailability = getElapsedAvailability(availabilityDay)
 
     try {
-      await VolunteerModel.updateOne(
-        {
-          _id: volunteer._id
-        },
-        { $inc: { elapsedAvailability } }
+      await updateVolunteerElapsedAvailabilityById(
+        volunteerId,
+        elapsedAvailability
       )
     } catch (error) {
       errors.push(
-        `Volunteer ${volunteer._id} failed to update elapsed availability: ${error}`
+        `Volunteer ${volunteerId} failed to update elapsed availability: ${error}`
       )
       continue
     }
 
     const newAvailabilityHistory = {
       availability: availabilityDay,
-      volunteerId: volunteer._id,
+      volunteerId,
       timezone: availability.timezone,
-      date: endOfYesterday
+      date: endOfYesterday,
     }
     try {
-      await createAvailabilityHistory(newAvailabilityHistory)
+      await createHistoryFromBaseHistory(newAvailabilityHistory)
     } catch (error) {
       errors.push(
-        `Volunteer ${volunteer._id} updated availability but failed to create availability history: ${error}`
+        `Volunteer ${volunteerId} updated availability but failed to create availability history: ${error}`
       )
       continue
     }

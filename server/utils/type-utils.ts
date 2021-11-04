@@ -2,12 +2,11 @@ import { Types } from 'mongoose'
 import { InputError } from '../models/Errors'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
-// TODO: test primitive typechecks and factory function
 
 // Use via asOptional(asPrimitive)
 export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {
   return function(s: unknown, errMsg?: string): T | undefined {
-    if (s === undefined || s === null) return s
+    if (s === undefined || s === null) return undefined
     return as(s, errMsg)
   }
 }
@@ -20,12 +19,18 @@ export function asString(s: unknown, errMsg = ''): string {
 
 export function asNumber(s: unknown, errMsg?: string): number {
   if (typeof s === 'number') return s as number
-  throw new InputError(`${errMsg} :${s} is not a number`)
+  else {
+    const coerced = isNaN(parseInt(s as string))
+      ? parseFloat(s as string)
+      : parseInt(s as string)
+    if (!isNaN(coerced)) return coerced as number
+  }
+  throw new InputError(`${errMsg} : ${s} is not a number`)
 }
 
 export function asBoolean(s: unknown, errMsg?: string): boolean {
   if (typeof s === 'boolean') return s as boolean
-  throw new InputError(`${errMsg} :${s} is not a boolean`)
+  throw new InputError(`${errMsg} : ${s} is not a boolean`)
 }
 
 // Use via asArray(asPrimitive)
@@ -34,30 +39,39 @@ export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
     if (Array.isArray(s)) {
       const maybeT = s as T[]
       if (maybeT.every(item => as(item, errMsg))) return maybeT as T[]
-    } else
-      throw new InputError(`${errMsg} :${s} is not an array of the given type`)
+    }
+    throw new InputError(`${errMsg} : ${s} is not an array of the given type`)
   }
 }
 
 export function asDate(s: unknown, errMsg?: string): Date {
   if (s instanceof Date) return s as Date
-  throw new InputError(`${errMsg} :${s} is not a Date`)
+  throw new InputError(`${errMsg} : ${s} is not a Date`)
 }
 
 export function asFunction(s: unknown, errMsg?: string): Function {
   if (typeof s === 'function') return s as Function
-  throw new InputError(`${errMsg} :${s} is not a function`)
+  throw new InputError(`${errMsg} : ${s} is not a function`)
 }
 
+// Checks if arg is actual ObjectId OR coerces into objectId if possible
 export function asObjectId(s: unknown, errMsg?: string): Types.ObjectId {
   if (s instanceof Types.ObjectId) return s as Types.ObjectId
-  throw new InputError(`${errMsg} :${s} is not an ObjectId`)
+  else if (typeof s === 'string') {
+    try {
+      const x = Types.ObjectId(s as string)
+      return x
+    } catch (err) {
+      throw new InputError(`${errMsg} : ${s} is not an ObjectId`)
+    }
+  }
+  throw new InputError(`${errMsg} : ${s} is not an ObjectId`)
 }
 
 export function asStringObjectId(s: unknown, errMsg?: string): string {
   if (typeof s === 'string' && Types.ObjectId.isValid(s)) return s as string
   else
-    throw new InputError(`${errMsg} :${s} is not a string formatted ObjectId`)
+    throw new InputError(`${errMsg} : ${s} is not a string formatted ObjectId`)
 }
 
 export function asAny(s: unknown): any {
@@ -70,12 +84,12 @@ export function asAny(s: unknown): any {
  *
  * @todo: create better usage -> asEnum<USER_BAN_REASON>(USER_BAN_REASON.ADMIN)
  **/
-export function asEnum<T>(e: unknown) {
+export function asEnum<T>(e: any) {
   return function(s: unknown, errMsg?: string) {
     for (const value of Object.values(e)) {
       if (value === s) return s as T
     }
-    throw new InputError(`${errMsg} :${s} is not a type of the given enum`)
+    throw new InputError(`${errMsg} : ${s} is not a type of the given enum`)
   }
 }
 
@@ -132,6 +146,6 @@ export function asUnion<T>(fns: ((s: unknown, errMsg?: string) => T)[]) {
       }
       if (!isUnion) throw new Error(errors.join(', '))
     } else
-      throw new InputError(`${errMsg} :${fns} is not an array of validators`)
+      throw new InputError(`${errMsg} : ${fns} is not an array of validators`)
   }
 }

@@ -1,7 +1,7 @@
 import countAvailabilitySelected from '../../utils/count-availability-selected'
 import { buildAvailability } from '../generate'
 
-test('Should return total hours of availability selected', async () => {
+test('Should return total hours of availability selected', () => {
   expect(countAvailabilitySelected(buildAvailability())).toEqual(0)
   expect(
     countAvailabilitySelected(

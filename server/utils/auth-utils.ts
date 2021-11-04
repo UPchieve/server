@@ -3,12 +3,17 @@ import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
 import passportLocal from 'passport-local'
 import { Types } from 'mongoose'
+import { Request, Response, NextFunction } from 'express'
 
+import logger from '../logger'
 import config from '../config'
-import User from '../models/User'
+import {
+  getUserById,
+  getUserForPassport,
+  getUserIdByPhone,
+} from '../models/User/queries'
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
-import UserService from '../services/UserService'
 import { EVENTS, GRADES } from '../constants'
 
 import { LookupError } from '../models/Errors'
@@ -18,7 +23,7 @@ import {
   asBoolean,
   asFactory,
   asOptional,
-  asEnum
+  asEnum,
 } from './type-utils'
 
 // Custom errors
@@ -30,6 +35,10 @@ export interface CredentialData {
   email: string
   password: string
 }
+export const asCredentialData = asFactory<CredentialData>({
+  email: asString,
+  password: asString,
+})
 
 interface UserRegData {
   ip: string
@@ -40,42 +49,6 @@ interface UserRegData {
   firstName: string
   lastName: string
 }
-
-export interface StudentRegData extends UserRegData {
-  highSchoolId?: string
-  zipCode?: string
-}
-export interface OpenStudentRegData extends StudentRegData {
-  currentGrade?: GRADES
-}
-
-export interface PartnerStudentRegData extends StudentRegData {
-  studentPartnerOrg: string
-  partnerUserId?: string
-  partnerSite?: string
-  college?: string
-}
-
-export interface VolunteerRegData extends UserRegData {
-  phone: string
-}
-
-export interface PartnerVolunteerRegData extends VolunteerRegData {
-  volunteerPartnerOrg: string
-}
-
-export interface ResetConfirmData {
-  email: string
-  password: string
-  token: string
-}
-
-// Function signature interface type checks
-export const asCredentialData = asFactory<CredentialData>({
-  email: asString,
-  password: asString
-})
-
 const userRegDataValidators = {
   ip: asString,
   email: asString,
@@ -83,45 +56,70 @@ const userRegDataValidators = {
   terms: asBoolean,
   referredByCode: asOptional(asString),
   firstName: asString,
-  lastName: asString
+  lastName: asString,
 }
 
-export const asStudentRegData = asFactory<OpenStudentRegData>({
+export interface StudentRegData extends UserRegData {
+  highSchoolId?: string
+  zipCode?: string
+}
+
+export interface OpenStudentRegData extends StudentRegData {
+  currentGrade?: GRADES
+}
+export const asOpenStudentRegData = asFactory<OpenStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
-  currentGrade: asEnum(GRADES)
+  currentGrade: asEnum(GRADES),
 })
 
+export interface PartnerStudentRegData extends StudentRegData {
+  studentPartnerOrg: string
+  partnerUserId?: string
+  partnerSite?: string
+  college?: string
+}
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
-  studentPartnerOrg: asOptional(asString),
+  studentPartnerOrg: asString,
   partnerUserId: asOptional(asString),
   partnerSite: asOptional(asString),
-  college: asOptional(asString)
+  college: asOptional(asString),
 })
 
+export interface VolunteerRegData extends UserRegData {
+  phone: string
+}
 export const asVolunteerRegData = asFactory<VolunteerRegData>({
   ...userRegDataValidators,
-  phone: asString
+  phone: asString,
 })
 
+export interface PartnerVolunteerRegData extends VolunteerRegData {
+  volunteerPartnerOrg: string
+}
 export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
-  volunteerPartnerOrg: asString
+  volunteerPartnerOrg: asString,
 })
 
+export interface ResetConfirmData {
+  email: string
+  password: string
+  token: string
+}
 export const asResetConfirmData = asFactory<ResetConfirmData>({
   email: asString,
   password: asString,
-  token: asString
+  token: asString,
 })
 
 // Validation functions
-export function checkPassword(password: string): boolean | RegistrationError {
+export function checkPassword(password: string): boolean {
   if (password.length < 8) {
     throw new RegistrationError('Password must be 8 characters or longer')
   }
@@ -155,13 +153,11 @@ export function checkPassword(password: string): boolean | RegistrationError {
   return true
 }
 
-export async function checkPhone(
-  phone: string
-): Promise<boolean | RegistrationError> {
+export async function checkPhone(phone: string): Promise<boolean> {
   if (!isValidInternationalPhoneNumber(phone))
     throw new RegistrationError('Must supply a valid phone number')
 
-  const existingUser = await UserService.getUser({ phone }, { _id: 1 })
+  const existingUser = await getUserIdByPhone(phone)
   if (existingUser)
     throw new LookupError('The phone number you entered is already in use')
 
@@ -170,14 +166,14 @@ export async function checkPhone(
 
 export async function getReferredBy(
   referredByCode: string
-): Promise<Types.ObjectId> {
+): Promise<Types.ObjectId | undefined> {
   const referredBy = await checkReferral(referredByCode)
   if (referredBy) {
     captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
-      event: EVENTS.FRIEND_REFERRED
+      event: EVENTS.FRIEND_REFERRED,
     })
-    return Types.ObjectId(referredBy)
-  } else return undefined
+    return referredBy
+  }
 }
 
 export const hashPassword = async function(password: string): Promise<string> {
@@ -187,30 +183,35 @@ export const hashPassword = async function(password: string): Promise<string> {
 }
 
 export function verifyPassword(
-  candidatePassword,
-  userPassword
-): Promise<Error | boolean> {
+  candidatePassword: string,
+  userPassword: string
+): Promise<boolean> {
+  // TODO: is there an async bcrypt compare?
   return new Promise((resolve, reject) => {
-    bcrypt.compare(candidatePassword, userPassword, (error, isMatch) => {
-      if (error) {
-        return reject(error)
-      }
+    bcrypt.compare(
+      candidatePassword,
+      userPassword,
+      (error: Error | undefined, isMatch: boolean): any => {
+        if (error) {
+          return reject(error)
+        }
 
-      return resolve(isMatch)
-    })
+        return resolve(isMatch)
+      }
+    )
   })
 }
 
 // Passport functions
 const LocalStrategy = passportLocal.Strategy
 function setupPassport() {
-  passport.serializeUser(function(user, done) {
+  passport.serializeUser(function(user: Express.User, done: Function) {
     done(null, user._id)
   })
 
-  passport.deserializeUser(async function(id, done) {
+  passport.deserializeUser(async function(id: Types.ObjectId, done: Function) {
     try {
-      const user = await User.findById(id).lean()
+      const user = await getUserById(id)
       return done(null, user)
     } catch (error) {
       return done(error)
@@ -221,13 +222,11 @@ function setupPassport() {
     new LocalStrategy(
       {
         usernameField: 'email',
-        passwordField: 'password'
+        passwordField: 'password',
       },
-      async function(email, passwordGiven, done) {
+      async function(email: string, passwordGiven: string, done: Function) {
         try {
-          const user = await User.findOne({ email: email }, '+password')
-            .lean()
-            .exec()
+          const user = await getUserForPassport(email)
 
           if (!user) {
             return done(null, false)
@@ -238,7 +237,7 @@ function setupPassport() {
             user.password
           )
 
-          user.password = undefined
+          user.password = ''
 
           if (isValidPassword) {
             return done(null, user)
@@ -254,29 +253,37 @@ function setupPassport() {
 }
 
 // Login Required middleware
-function isAuthenticated(req, res, next) {
+function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next()
   }
   return res.status(401).json({ err: 'Not authenticated' })
 }
 
-function isAdmin(req, res, next) {
-  if (req.user.isAdmin) {
+function isAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.user && req.user.isAdmin) {
     return next()
   }
   return res.status(403).json({ err: 'Unauthorized' })
 }
 
-function isAuthenticatedRedirect(req, res, next) {
+function isAuthenticatedRedirect(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (req.isAuthenticated()) {
     return next()
   }
   return res.redirect('/')
 }
 
-function isAdminRedirect(req, res, next) {
-  if (req.user.isAdmin) {
+function isAdminRedirect(
+  req: Express.Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (req.user && req.user.isAdmin) {
     return next()
   }
   return res.redirect('/')
@@ -287,5 +294,5 @@ export const authPassport = {
   isAuthenticated,
   isAdmin,
   isAuthenticatedRedirect,
-  isAdminRedirect
+  isAdminRedirect,
 }
