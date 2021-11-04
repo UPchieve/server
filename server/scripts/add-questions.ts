@@ -36,7 +36,7 @@ async function main() {
 
     console.log(`Attempting to clean and add ${questions.length} questions`)
     const finalQuestions = []
-    // @todo: use better typing here (possibleAnswers from compass has _id)
+    // TODO: use better typing here (possibleAnswers from compass has _id)
     for (const q of questions) {
       try {
         if (q.hasOwnProperty('_id')) delete q._id
@@ -47,7 +47,9 @@ async function main() {
         finalQuestions.push(q)
       } catch (err) {
         console.log(
-          `Failed to add question: ${q.questionText}\n--${err.message}`
+          `Failed to add question: ${q.questionText}\n--${
+            (err as Error).message
+          }`
         )
       }
     }

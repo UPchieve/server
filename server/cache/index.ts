@@ -14,13 +14,26 @@ import config from '../config'
 
 const redisClient = new Redis(config.redisConnectionString)
 
+// TODO: we should just return undefiend on KeyNotFound
 export class KeyNotFoundError extends CustomError {
   constructor(attemptedKey: string) {
     super(`key ${attemptedKey} was not found in the cache`)
   }
 }
 
-export async function save(key, value: string) {
+export class AppendLengthZeroError extends CustomError {
+  constructor(attemptedKey: string) {
+    super(`length of doucment ${attemptedKey} after append was 0`)
+  }
+}
+
+export class KeyDeletionFailureError extends CustomError {
+  constructor(attemptedKey: string) {
+    super(`deletion of key ${attemptedKey} failed`)
+  }
+}
+
+export async function save(key: string, value: string): Promise<void> {
   await redisClient.set(key, value)
 }
 
@@ -30,12 +43,16 @@ export async function save(key, value: string) {
  * @param value
  * @param seconds defaults to 1 day
  */
-export async function saveWithExpiration(key, value: string, seconds = 86400) {
+export async function saveWithExpiration(
+  key: string,
+  value: string,
+  seconds = 86400
+): Promise<void> {
   // possible expiryMode values: https://redis.io/commands/set
   await redisClient.set(key, value, 'EX', seconds)
 }
 
-export async function getTimeToExpiration(key: string) {
+export async function getTimeToExpiration(key: string): Promise<number> {
   return redisClient.ttl(key)
 }
 
@@ -47,6 +64,12 @@ export async function get(key: string): Promise<string> {
   return value
 }
 
-export async function remove(key: string) {
-  await redisClient.del(key)
+export async function remove(key: string): Promise<void> {
+  const docsRemoved = await redisClient.del(key)
+  if (docsRemoved === 0) throw new KeyDeletionFailureError(key)
+}
+
+export async function append(key: string, addition: string): Promise<void> {
+  const docLength = await redisClient.append(key, addition)
+  if (docLength === 0) throw new AppendLengthZeroError(key)
 }

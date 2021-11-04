@@ -1,7 +1,15 @@
 import * as crypto from 'crypto'
 import { Types } from 'mongoose'
-import SchoolModel, { School } from '../models/School'
+import SchoolModel, { School } from '../models/School/index'
 import config from '../config'
+import {
+  asString,
+  asBoolean,
+  asFactory,
+  asNumber,
+  asOptional,
+  asObjectId,
+} from '../utils/type-utils'
 
 // helper to escape regex special characters
 function escapeRegex(str: string) {
@@ -13,20 +21,27 @@ function createUpchieveId() {
   return String(parsedHex).slice(0, 8)
 }
 
+// TODO: repo pattern - once we have stronger school type
 // search for schools by name or ID
-export const search = async (query): Promise<any> => {
+// TODO: duck type validation
+export async function search(query: any): Promise<any> {
   // @note: Atlas Search is unavailable for local development. This is a
   // fallback query to be able to search for schools in local development
   if (config.NODE_ENV === 'dev') {
     const regex = new RegExp(escapeRegex(query), 'i')
     const results = await SchoolModel.find({
-      $or: [{ nameStored: regex }, { SCH_NAME: regex }]
+      $or: [{ nameStored: regex }, { SCH_NAME: regex }],
     })
       .sort({ isApproved: -1 })
       .limit(100)
 
     return results
-      .sort((s1, s2) => s1.name.localeCompare(s2.name))
+      .sort((s1: School, s2: School) => {
+        if (s1.name && s2.name) {
+          return s1.name.localeCompare(s2.name)
+        }
+        return 0
+      })
       .map(school => {
         return {
           _id: school._id,
@@ -34,7 +49,7 @@ export const search = async (query): Promise<any> => {
           name: school.name,
           districtName: school.districtName,
           city: school.city,
-          state: school.state
+          state: school.state,
         }
       })
   } else {
@@ -48,19 +63,19 @@ export const search = async (query): Promise<any> => {
                 autocomplete: {
                   query,
                   path: 'SCH_NAME',
-                  tokenOrder: 'sequential'
-                }
+                  tokenOrder: 'sequential',
+                },
               },
               {
                 autocomplete: {
                   query,
                   path: 'nameStored',
-                  tokenOrder: 'sequential'
-                }
-              }
-            ]
-          }
-        }
+                  tokenOrder: 'sequential',
+                },
+              },
+            ],
+          },
+        },
       },
       {
         $project: {
@@ -71,82 +86,98 @@ export const search = async (query): Promise<any> => {
             $cond: {
               if: { $not: ['$nameStored'] },
               then: '$SCH_NAME',
-              else: '$nameStored'
-            }
+              else: '$nameStored',
+            },
           },
           districtName: {
             $cond: {
               if: { $not: ['$districtNameStored'] },
               then: '$LEA_NAME',
-              else: '$districtNameStored'
-            }
+              else: '$districtNameStored',
+            },
           },
           city: {
             $cond: {
               if: { $not: ['$cityNameStored'] },
               then: '$LCITY',
-              else: '$cityNameStored'
-            }
+              else: '$cityNameStored',
+            },
           },
           state: {
             $cond: {
               if: { $not: ['$stateStored'] },
               then: '$ST',
-              else: '$stateStored'
-            }
-          }
-        }
+              else: '$stateStored',
+            },
+          },
+        },
       },
       {
-        $limit: 100
-      }
+        $limit: 100,
+      },
     ])
   }
 }
 
-export const getSchool = async (schoolId): Promise<School> => {
+export async function getSchool(
+  schoolId: Types.ObjectId
+): Promise<School | undefined> {
   try {
     const [school] = await SchoolModel.aggregate([
-      { $match: { _id: Types.ObjectId(schoolId) } },
+      { $match: { _id: schoolId } },
       {
         $project: {
           name: {
             $cond: {
               if: { $not: ['$nameStored'] },
               then: '$SCH_NAME',
-              else: '$nameStored'
-            }
+              else: '$nameStored',
+            },
           },
           state: {
             $cond: {
               if: { $not: ['$stateStored'] },
               then: '$ST',
-              else: '$stateStored'
-            }
+              else: '$stateStored',
+            },
           },
           city: {
             $cond: {
               if: { $not: ['$cityNameStored'] },
               then: '$LCITY',
-              else: '$cityNameStored'
-            }
+              else: '$cityNameStored',
+            },
           },
           zipCode: '$MZIP',
           isApproved: 1,
           isPartner: 1,
-          approvalNotifyEmails: 1
-        }
-      }
+          approvalNotifyEmails: 1,
+        },
+      },
     ]).exec()
 
-    return school
+    if (school) return school
   } catch (error) {
-    throw new Error(error.message)
+    throw new Error((error as Error).message)
   }
 }
 
-export const getSchools = async ({ name, state, city, page }) => {
-  const pageNum = parseInt(page) || 1
+interface GetSchoolsPayload {
+  name: string
+  state: string
+  city: string
+  page?: number
+}
+const asGetSchoolsPayload = asFactory<GetSchoolsPayload>({
+  name: asString,
+  state: asString,
+  city: asString,
+  page: asOptional(asNumber),
+})
+// TODO: clean up return type
+export async function getSchools(data: unknown) {
+  const { name, state, city, page } = asGetSchoolsPayload(data)
+  const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
   const queries = []
@@ -155,8 +186,8 @@ export const getSchools = async ({ name, state, city, page }) => {
     const nameQuery = {
       $or: [
         { nameStored: { $regex: name, $options: 'i' } },
-        { SCH_NAME: { $regex: name, $options: 'i' } }
-      ]
+        { SCH_NAME: { $regex: name, $options: 'i' } },
+      ],
     }
     queries.push(nameQuery)
   }
@@ -164,8 +195,8 @@ export const getSchools = async ({ name, state, city, page }) => {
     const stateQuery = {
       $or: [
         { ST: { $regex: state, $options: 'i' } },
-        { stateStored: { $regex: state, $options: 'i' } }
-      ]
+        { stateStored: { $regex: state, $options: 'i' } },
+      ],
     }
     queries.push(stateQuery)
   }
@@ -174,8 +205,8 @@ export const getSchools = async ({ name, state, city, page }) => {
       $or: [
         { city: { $regex: city, $options: 'i' } },
         { MCITY: { $regex: city, $options: 'i' } },
-        { LCITY: { $regex: city, $options: 'i' } }
-      ]
+        { LCITY: { $regex: city, $options: 'i' } },
+      ],
     }
     queries.push(cityQuery)
   }
@@ -185,7 +216,7 @@ export const getSchools = async ({ name, state, city, page }) => {
   try {
     const schools = await SchoolModel.aggregate([
       {
-        $match: query
+        $match: query,
       },
       {
         $project: {
@@ -193,27 +224,27 @@ export const getSchools = async ({ name, state, city, page }) => {
             $cond: {
               if: { $not: ['$nameStored'] },
               then: '$SCH_NAME',
-              else: '$nameStored'
-            }
+              else: '$nameStored',
+            },
           },
           state: {
             $cond: {
               if: { $not: ['$stateStored'] },
               then: '$ST',
-              else: '$stateStored'
-            }
+              else: '$stateStored',
+            },
           },
           city: {
             $cond: {
               if: { $not: ['$cityNameStored'] },
               then: '$LCITY',
-              else: '$cityNameStored'
-            }
+              else: '$cityNameStored',
+            },
           },
           zipCode: '$MZIP',
-          isApproved: '$isApproved'
-        }
-      }
+          isApproved: '$isApproved',
+        },
+      },
     ])
       .skip(skip)
       .limit(PER_PAGE)
@@ -222,25 +253,35 @@ export const getSchools = async ({ name, state, city, page }) => {
     const isLastPage = schools.length < PER_PAGE
     return { schools, isLastPage }
   } catch (error) {
-    throw new Error(error.message)
+    throw new Error((error as Error).message)
   }
 }
 
-export const updateApproval = (schoolId, isApproved) => {
-  return SchoolModel.updateOne({ _id: schoolId }, { isApproved })
+export function updateApproval(schoolId: Types.ObjectId, isApproved: boolean) {
+  return SchoolModel.updateOne({ _id: schoolId }, { isApproved }).exec()
 }
 
-export const updateIsPartner = (schoolId, isPartner) => {
-  return SchoolModel.updateOne({ _id: schoolId }, { isPartner })
+export function updateIsPartner(schoolId: Types.ObjectId, isPartner: boolean) {
+  return SchoolModel.updateOne({ _id: schoolId }, { isPartner }).exec()
 }
 
-export const createSchool = async ({
-  name,
-  city,
-  state,
-  zipCode,
-  isApproved
-}) => {
+interface CreateSchoolPayload {
+  name: string
+  city: string
+  state: string
+  zipCode: string
+  isApproved: boolean
+}
+const asCreateSchoolPayload = asFactory<CreateSchoolPayload>({
+  name: asString,
+  city: asString,
+  state: asString,
+  zipCode: asString,
+  isApproved: asBoolean,
+})
+
+export async function createSchool(data: unknown) {
+  const { name, city, state, zipCode, isApproved } = asCreateSchoolPayload(data)
   let upchieveId = createUpchieveId()
   let existingSchool = await SchoolModel.findOne({ upchieveId })
     .lean()
@@ -261,28 +302,42 @@ export const createSchool = async ({
     stateStored: state,
     MZIP: zipCode,
     LZIP: zipCode,
-    upchieveId
+    upchieveId,
   }
   const school = new SchoolModel(schoolData)
 
-  return school.save()
+  await school.save()
+  return school.toObject()
 }
 
-export const adminUpdateSchool = async ({
-  schoolId,
-  name,
-  city,
-  state,
-  zipCode,
-  isApproved
-}) => {
+interface AdminUpdate {
+  schoolId: Types.ObjectId
+  name?: string
+  city?: string
+  state?: string
+  zipCode?: number
+  isApproved?: boolean
+}
+const asAdminUpdate = asFactory<AdminUpdate>({
+  schoolId: asObjectId,
+  name: asOptional(asString),
+  city: asOptional(asString),
+  state: asOptional(asString),
+  zipCode: asOptional(asNumber),
+  isApproved: asOptional(asBoolean),
+})
+
+export async function adminUpdateSchool(data: unknown) {
+  const { schoolId, name, city, state, zipCode, isApproved } = asAdminUpdate(
+    data
+  )
   const schoolData = {
     isApproved,
     nameStored: name,
     cityNameStored: city,
     stateStored: state,
     MZIP: zipCode,
-    LZIP: zipCode
+    LZIP: zipCode,
   }
 
   return SchoolModel.updateOne({ _id: schoolId }, schoolData)

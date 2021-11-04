@@ -1,16 +1,16 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import { log } from '../logger'
-import {
-  getVolunteers,
-  getHourSummaryStats
-} from '../../services/VolunteerService'
-import MailService from '../../services/MailService'
-import VolunteerModel from '../../models/Volunteer'
+import { getHourSummaryStats } from '../../services/VolunteerService'
+import * as MailService from '../../services/MailService'
 import { volunteerPartnerManifests } from '../../partnerManifests'
 import config from '../../config'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
-import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
+import {
+  getVolunteersForWeeklyHourSummary,
+  updateVolunteerHourSummaryIntroById,
+} from '../../models/Volunteer/queries'
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
@@ -24,42 +24,32 @@ export default async (): Promise<void> => {
     .subtract(1, 'weeks')
     .endOf('isoWeek')
 
-  const unsubscribedPartners = []
+  const unsubscribedPartners: string[] = []
   for (const partnerOrg in volunteerPartnerManifests) {
     if (!volunteerPartnerManifests[partnerOrg].receiveWeeklyHourSummaryEmail)
       unsubscribedPartners.push(partnerOrg)
   }
 
-  const volunteers = await getVolunteers(
-    {
-      ...EMAIL_RECIPIENT,
-      volunteerPartnerOrg: { $nin: unsubscribedPartners }
-    },
-    {
-      firstname: 1,
-      email: 1,
-      sentHourSummaryIntroEmail: 1,
-      volunteerPartnerOrg: 1,
-      certifications: 1
-    }
+  const volunteers = await getVolunteersForWeeklyHourSummary(
+    unsubscribedPartners
   )
 
   const dateQuery = { $gt: lastMonday.toDate(), $lte: lastSunday.toDate() }
 
   let totalEmailed = 0
-  const errors = []
+  const errors: string[] = []
   for (const volunteer of volunteers) {
     const {
       _id,
-      firstname: firstName,
+      firstname,
       email,
       sentHourSummaryIntroEmail,
-      volunteerPartnerOrg
+      volunteerPartnerOrg,
     } = volunteer
     try {
-      const customCheck = config.customVolunteerPartnerOrgs.some(org => {
-        return org === volunteerPartnerOrg
-      })
+      const customCheck = config.customVolunteerPartnerOrgs.some(
+        org => org === volunteerPartnerOrg
+      )
       let summaryStats
       if (customCheck)
         summaryStats = await telecomHourSummaryStats(volunteer, dateQuery)
@@ -69,7 +59,7 @@ export default async (): Promise<void> => {
           lastMonday.toDate(),
           lastSunday.toDate()
         )
-      /* 
+      /*
       The smallest this number can be is .01 hours =36 seconds (as per the rounding
       in VolunteerService.ts:68-70) So users with 36-54 seconds of time will have
       .01 hours coaching which gets rounded down to 0 hours/minutes at formatting
@@ -79,21 +69,20 @@ export default async (): Promise<void> => {
       */
       if (!summaryStats || summaryStats.totalVolunteerHours <= 0.01) continue
 
-      const data = {
-        firstName,
+      await MailService.sendHourSummaryEmail(
+        firstname,
         email,
         sentHourSummaryIntroEmail,
-        fromDate: lastMonday.format('dddd, MMM D'),
-        toDate: lastSunday.format('dddd, MMM D'),
-        customOrg: customCheck,
-        ...summaryStats
-      }
-      await MailService.sendHourSummaryEmail(data)
+        lastMonday.format('dddd, MMM D'),
+        lastSunday.format('dddd, MMM D'),
+        summaryStats.totalCoachingHours,
+        summaryStats.totalElapsedAvailability,
+        summaryStats.totalQuizzesPassed,
+        summaryStats.totalVolunteerHours,
+        customCheck
+      )
       if (!sentHourSummaryIntroEmail)
-        await VolunteerModel.updateOne(
-          { _id },
-          { sentHourSummaryIntroEmail: true }
-        )
+        await updateVolunteerHourSummaryIntroById(volunteer._id, true)
       totalEmailed++
     } catch (error) {
       errors.push(`${_id}: ${error}\n`)

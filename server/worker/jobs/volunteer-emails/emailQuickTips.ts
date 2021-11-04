@@ -1,48 +1,31 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
-import logger from '../../../logger'
-import MailService from '../../../services/MailService'
-import { getNotifications } from '../../../services/NotificationService'
-import { getVolunteer } from '../../../services/UserService'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
+import { log } from '../../logger'
+import * as MailService from '../../../services/MailService'
+import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
+import { getVolunteerForQuickTips } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
+import { asObjectId } from '../../../utils/type-utils'
 
 interface EmailQuickTipsJobData {
-  volunteerId: string | Types.ObjectId
+  volunteerId: string
 }
 
 export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
-  const {
-    data: { volunteerId },
-    name: currentJob
-  } = job
-  const volunteer = await getVolunteer(
-    {
-      _id: volunteerId,
-      isOnboarded: true,
-      ...EMAIL_RECIPIENT
-    },
-    {
-      _id: 1,
-      email: 1,
-      firstname: 1,
-      availability: 1
-    }
-  )
+  const { name: currentJob } = job
+  const volunteerId = asObjectId(job.data.volunteerId)
+  const volunteer = await getVolunteerForQuickTips(volunteerId)
 
   if (volunteer) {
-    const { _id, firstname: firstName, email, availability } = volunteer
-    const textNotifications = await getNotifications({ volunteer: _id })
+    const { _id, firstname, email, availability } = volunteer
+    const textNotifications = await getNotificationsByVolunteerId(_id)
 
     if (
       textNotifications.length === 0 &&
-      // @ts-expect-error
-      countAvailabilitySelected(availability.toObject())
+      countAvailabilitySelected(availability)
     ) {
       try {
-        const contactInfo = { firstName, email }
-        await MailService.sendVolunteerQuickTips(contactInfo)
-        logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
+        await MailService.sendVolunteerQuickTips(email, firstname)
+        log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(
           `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

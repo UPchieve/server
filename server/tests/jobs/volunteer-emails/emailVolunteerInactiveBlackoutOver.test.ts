@@ -1,28 +1,26 @@
 import { Types } from 'mongoose'
 import { mocked } from 'ts-jest/utils'
 
-import { Volunteer } from '../../../models/Volunteer'
 import { buildVolunteer } from '../../generate'
 import EmailVolunteerInactiveBlackoutOver, {
   processVolunteer,
-  ContactInfo
 } from '../../../worker/jobs/volunteer-emails/emailVolunteerInactiveBlackoutOver'
-import MailService from '../../../services/MailService'
-import * as AvailabilityService from '../../../services/AvailabilityService'
-import * as VolunteerService from '../../../services/VolunteerService'
+import * as MailService from '../../../services/MailService'
+import * as AvailabilityRepo from '../../../models/Availability/queries'
+import * as VolunteerRepo from '../../../models/Volunteer/queries'
 
 jest.mock('../../../services/MailService')
 const mockedMailService = mocked(MailService, true)
-jest.mock('../../../services/VolunteerService')
-const mockedVolunteerService = mocked(VolunteerService, true)
-jest.mock('../../../services/AvailabilityService')
-const mockedAvailabilityService = mocked(AvailabilityService, true)
+jest.mock('../../../models/Volunteer/queries')
+const mockedVolunteerRepo = mocked(VolunteerRepo, true)
+jest.mock('../../../models/Availability/queries')
+const mockedAvailabilityRepo = mocked(AvailabilityRepo, true)
 
 describe('Test process volunteer subroutine', () => {
-  const volunteer: ContactInfo = {
-    _id: Types.ObjectId().toString(),
+  const volunteer: VolunteerRepo.VolunteerContactInfo = {
+    _id: Types.ObjectId(),
     firstname: 'Test',
-    email: 'test@example.com'
+    email: 'test@example.com',
   }
 
   beforeEach(() => {
@@ -49,7 +47,7 @@ describe('Test process volunteer subroutine', () => {
   })
   test('Handles volunteer service error', async () => {
     const volunteerError = 'foo'
-    mockedVolunteerService.updateVolunteer.mockRejectedValueOnce(
+    mockedVolunteerRepo.updateVolunteerInactiveAvailability.mockRejectedValueOnce(
       new Error(volunteerError)
     )
 
@@ -62,7 +60,7 @@ describe('Test process volunteer subroutine', () => {
   })
   test('Handles availability service error', async () => {
     const availabilityError = 'foo'
-    mockedAvailabilityService.updateAvailabilitySnapshot.mockRejectedValueOnce(
+    mockedAvailabilityRepo.updateSnapshotOnCallByVolunteerId.mockRejectedValueOnce(
       new Error(availabilityError)
     )
 
@@ -76,7 +74,7 @@ describe('Test process volunteer subroutine', () => {
 })
 
 describe('Test email blackout over job', () => {
-  const volunteers = []
+  const volunteers: VolunteerRepo.VolunteerContactInfo[] = []
 
   beforeEach(() => {
     jest.resetAllMocks()
@@ -88,19 +86,23 @@ describe('Test email blackout over job', () => {
       volunteers.push({
         _id: temp._id,
         firstname: temp.firstname,
-        email: temp.email
-      } as Partial<Volunteer>)
+        email: temp.email,
+      } as VolunteerRepo.VolunteerContactInfo)
     }
   })
 
   test('Successfully runs', async () => {
-    mockedVolunteerService.getVolunteers.mockResolvedValueOnce(volunteers)
+    mockedVolunteerRepo.getVolunteersForBlackoutOver.mockResolvedValueOnce(
+      volunteers
+    )
 
     await expect(EmailVolunteerInactiveBlackoutOver()).resolves.not.toThrow()
   })
 
   test('Handles procesVolunteer errors', async () => {
-    mockedVolunteerService.getVolunteers.mockResolvedValueOnce(volunteers)
+    mockedVolunteerRepo.getVolunteersForBlackoutOver.mockResolvedValueOnce(
+      volunteers
+    )
 
     const mailError = 'foo'
     mockedMailService.sendVolunteerInactiveBlackoutOver.mockRejectedValueOnce(

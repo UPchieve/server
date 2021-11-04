@@ -3,7 +3,7 @@ import {
   resetDb,
   insertSessionWithVolunteer,
   insertSession,
-  getSession
+  getSession,
 } from '../db-utils'
 import endUnmatchedSession from '../../worker/jobs/endUnmatchedSession'
 import { log } from '../../worker/logger'
@@ -12,12 +12,14 @@ import { Jobs } from '../../worker/jobs'
 jest.mock('../../worker/logger')
 jest.setTimeout(15000)
 
+// TODO: refactor test to mock out DB calls
+
 // db connection
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -37,11 +39,11 @@ describe('End unmatched session', () => {
   test('Should not end session when session is fulfilled', async () => {
     const { session } = await insertSessionWithVolunteer()
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
 
     await endUnmatchedSession(job)
@@ -53,11 +55,11 @@ describe('End unmatched session', () => {
   test('Should throw error when ending a session fails', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
     const errorMessage = 'unable to end session'
     const mockEndSession = jest
@@ -75,11 +77,11 @@ describe('End unmatched session', () => {
   test('Should end session unmatched session', async () => {
     const { session } = await insertSession()
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       data: {
-        sessionId: session._id
-      }
+        sessionId: session._id,
+      },
     }
 
     await endUnmatchedSession(job)

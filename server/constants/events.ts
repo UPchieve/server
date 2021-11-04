@@ -8,15 +8,15 @@ export enum SESSION_EVENTS {
   REPORT_FLAGS_SET = 'report-flags-set',
   SESSION_REVIEW_REASONS_SET = 'session-review-reasons-set',
   FEEDBACK_REVIEW_REASONS_SET = 'feedback-review-reasons-set',
-  REPORT_REVIEW_REASONS_SET = 'report-review-reasons-set'
+  REPORT_REVIEW_REASONS_SET = 'report-review-reasons-set',
 }
 
 export enum FEEDBACK_EVENTS {
-  FEEDBACK_SAVED = 'feedback-saved'
+  FEEDBACK_SAVED = 'feedback-saved',
 }
 
 export enum USM_EVENTS {
   SESSION_PROCESSORS_READY = 'session-processors-ready',
   FEEDBACK_PROCESSORS_READY = 'feedback-processors-ready',
-  REPORT_PROCESSORS_READY = 'report-processors-ready'
+  REPORT_PROCESSORS_READY = 'report-processors-ready',
 }

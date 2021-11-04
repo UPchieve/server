@@ -1,26 +1,29 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import {
   resetDb,
   insertVolunteer,
   insertSessionMany,
   insertFeedback,
-  insertFeedbackMany
+  insertFeedbackMany,
 } from '../../db-utils'
 import emailPartnerVolunteerReferACoworker from '../../../worker/jobs/partner-volunteer-emails/emailReferACoworker'
-import logger from '../../../logger'
+import { log } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
-import { buildFeedback, buildSession } from '../../generate'
+import * as MailService from '../../../services/MailService'
+import { buildFeedback, buildSession, buildStudent } from '../../generate'
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 
 jest.mock('../../../services/MailService')
+
+const mockedMailService = mocked(MailService, true)
 
 // db connection
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -40,7 +43,7 @@ describe('Partner volunteer refer a coworker email', () => {
   test('Should send email to partner volunteer', async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const twentyMinutes = 1000 * 60 * 20
     const thirtyMinutes = 1000 * 60 * 30
@@ -49,35 +52,36 @@ describe('Partner volunteer refer a coworker email', () => {
       buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
     await insertFeedback({
       sessionId: sessions[2]._id,
       volunteerId: volunteer._id,
       volunteerFeedback: {
-        'session-enjoyable': 4
+        'session-enjoyable': 4,
       },
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
+      studentId: buildStudent()._id,
     })
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await emailPartnerVolunteerReferACoworker(job)
     expect(
       MailService.sendPartnerVolunteerReferACoworker
     ).toHaveBeenCalledTimes(1)
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(log).toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${volunteer._id}`
     )
   })
@@ -85,7 +89,7 @@ describe('Partner volunteer refer a coworker email', () => {
   test('Should not send email to partner volunteer who has left more than 2 low session ratings', async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const twentyMinutes = 1000 * 60 * 20
     const thirtyMinutes = 1000 * 60 * 30
@@ -94,7 +98,7 @@ describe('Partner volunteer refer a coworker email', () => {
       buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
     const feedback = [
@@ -102,44 +106,44 @@ describe('Partner volunteer refer a coworker email', () => {
         sessionId: sessions[1]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 1
+          'session-enjoyable': 1,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
+        versionNumber: FEEDBACK_VERSIONS.TWO,
       }),
       buildFeedback({
         sessionId: sessions[2]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 2
+          'session-enjoyable': 2,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
-      })
+        versionNumber: FEEDBACK_VERSIONS.TWO,
+      }),
     ]
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await emailPartnerVolunteerReferACoworker(job)
     expect(
       MailService.sendPartnerVolunteerReferACoworker
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   test(`Should not send email to partner volunteer who has sessions flags with ${USER_SESSION_METRICS.absentStudent}`, async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const twentyMinutes = 1000 * 60 * 20
     const thirtyMinutes = 1000 * 60 * 30
@@ -150,9 +154,9 @@ describe('Partner volunteer refer a coworker email', () => {
       buildSession({
         volunteer: volunteer._id,
         timeTutored: twentyMinutes,
-        flags: [USER_SESSION_METRICS.absentStudent]
+        flags: [USER_SESSION_METRICS.absentStudent],
       }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
     const feedback = [
@@ -160,44 +164,44 @@ describe('Partner volunteer refer a coworker email', () => {
         sessionId: sessions[1]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 1
+          'session-enjoyable': 1,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
+        versionNumber: FEEDBACK_VERSIONS.TWO,
       }),
       buildFeedback({
         sessionId: sessions[2]._id,
         volunteerId: volunteer._id,
         volunteerFeedback: {
-          'session-enjoyable': 2
+          'session-enjoyable': 2,
         },
-        versionNumber: FEEDBACK_VERSIONS.TWO
-      })
+        versionNumber: FEEDBACK_VERSIONS.TWO,
+      }),
     ]
     await insertFeedbackMany(feedback)
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await emailPartnerVolunteerReferACoworker(job)
     expect(
       MailService.sendPartnerVolunteerReferACoworker
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   test('Should not send email to partner volunteer who has 5 sessions with one of a duration less than 15 minutes', async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const tenMinutes = 1000 * 60 * 10
     const twentyMinutes = 1000 * 60 * 20
@@ -207,33 +211,33 @@ describe('Partner volunteer refer a coworker email', () => {
       buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: tenMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await emailPartnerVolunteerReferACoworker(job)
     expect(
       MailService.sendPartnerVolunteerReferACoworker
     ).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   test('Should throw error when sending email fails', async () => {
     const volunteer = await insertVolunteer({
       isOnboarded: true,
-      volunteerPartnerOrg: 'example'
+      volunteerPartnerOrg: 'example',
     })
     const twentyMinutes = 1000 * 60 * 20
     const thirtyMinutes = 1000 * 60 * 30
@@ -242,30 +246,33 @@ describe('Partner volunteer refer a coworker email', () => {
       buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
       buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes })
+      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
     ]
     await insertSessionMany(sessions)
     await insertFeedback({
       sessionId: sessions[2]._id,
       volunteerId: volunteer._id,
       volunteerFeedback: {
-        'session-enjoyable': 4
+        'session-enjoyable': 4,
       },
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
+      studentId: buildStudent()._id,
     })
     const errorMessage = 'Unable to send'
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendPartnerVolunteerReferACoworker = rejectionFn
+    mockedMailService.sendPartnerVolunteerReferACoworker.mockRejectedValueOnce(
+      errorMessage
+    )
+
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: Jobs.EmailPartnerVolunteerReferACoworker,
       data: {
         volunteerId: volunteer._id,
         firstName: volunteer.firstname,
         email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg
-      }
+        partnerOrg: volunteer.volunteerPartnerOrg,
+      },
     }
 
     await expect(emailPartnerVolunteerReferACoworker(job)).rejects.toEqual(

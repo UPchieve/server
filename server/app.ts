@@ -1,23 +1,22 @@
-import path from 'path'
-import fs from 'fs'
-import { promisify } from 'util'
 import * as Sentry from '@sentry/node'
 import bodyParser from 'body-parser'
+import timeout from 'connect-timeout'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express, { Request, Response, NextFunction } from 'express'
-import expressWs from 'express-ws'
+import express, { NextFunction, Request, Response } from 'express'
 import cacheControl from 'express-cache-controller'
-import timeout from 'connect-timeout'
 import expressPino from 'express-pino-logger'
+import expressWs from 'express-ws'
+import fs from 'fs'
+import helmet from 'helmet'
 import Mustache from 'mustache'
+import path from 'path'
 import swaggerUi from 'swagger-ui-express'
+import { promisify } from 'util'
 import YAML from 'yaml'
-import helmet from 'helmet' // eslint-disable-line import/default
+import config from './config'
 import logger from './logger'
 import router from './router'
-import config from './config'
-import { LoadedRequest } from './router/app'
 import {
   baseUri,
   blockAllMixedContent,
@@ -30,7 +29,7 @@ import {
   scriptSrc,
   scriptSrcAttr,
   styleSrc,
-  upgradeInsecureRequests
+  upgradeInsecureRequests,
 } from './securitySettings'
 
 const distDir = '../dist'
@@ -72,13 +71,13 @@ function renderIndexHtml() {
     version: config.version,
     sentryEnv: config.vueAppSentryEnv,
     sentryDsn: config.vueAppSentryDsn,
-    customVolunteerPartnerOrgs: config.customVolunteerPartnerOrgs
+    customVolunteerPartnerOrgs: config.customVolunteerPartnerOrgs,
   }
 
   return Mustache.render(template, frontendConfig)
 }
 
-function haltOnTimedout(req, res, next) {
+function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
 }
 
@@ -86,13 +85,20 @@ function haltOnTimedout(req, res, next) {
 Sentry.init({
   dsn: config.sentryDsn,
   environment: config.NODE_ENV,
-  release: `uc-server@${config.version}`
+  release: `uc-server@${config.version}`,
 })
 
 // Express App
 const app = express()
 
 const indexHtml = renderIndexHtml()
+
+/**
+ * @note: must typecast many handlers with express.RequestHandler
+ * due to @types/node >=15.9.x and @types/express <14.7.1
+ * see https://github.com/helmetjs/helmet/issues/325
+ * see https://github.com/expressjs/express/issues/4618
+ */
 
 app.use(
   helmet({
@@ -109,15 +115,15 @@ app.use(
         scriptSrc,
         scriptSrcAttr,
         styleSrc,
-        upgradeInsecureRequests
-      }
+        upgradeInsecureRequests,
+      },
     },
-    frameguard: false
-  })
+    frameguard: false,
+  }) as express.RequestHandler
 )
 
 const expressLogger = expressPino({ logger })
-app.use(expressLogger)
+app.use(expressLogger as express.RequestHandler)
 
 app.use(timeout('300000'))
 
@@ -128,9 +134,9 @@ app.use(timeout('300000'))
 app.set('trust proxy', true)
 
 // Setup middleware
-app.use(Sentry.Handlers.requestHandler()) // The Sentry request handler must be the first middleware on the app
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(Sentry.Handlers.requestHandler() as express.RequestHandler) // The Sentry request handler must be the first middleware on the app
+app.use(bodyParser.json() as express.RequestHandler)
+app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
 app.use(cookieParser(config.sessionSecret))
 app.use(express.static(path.join(__dirname, 'dist')))
 
@@ -147,31 +153,33 @@ app.use(
   cors({
     origin: originRegex,
     credentials: true,
-    exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined
+    exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined,
   })
 )
 // for now, send directive to never cache to prevent Zwibbler issues
 // until we figure out a caching strategy
 app.use(
   cacheControl({
-    noCache: true
+    noCache: true,
   })
 )
 app.use(haltOnTimedout)
 // see https://stackoverflow.com/questions/51023943/nodejs-getting-username-of-logged-in-user-within-route
-app.use((req: LoadedRequest, res, next) => {
+app.use((req, res, next) => {
   res.locals.user = req.user || null
   next()
 })
 
 // Make req.login async
-app.use((req: LoadedRequest, res, next): void => {
-  req.login = promisify(req.login)
+app.use((req, res, next): void => {
+  // Wrapper around promise to allow for no callback when using with await
+  req.asyncLogin = (arg1: Express.User, arg2?: any) =>
+    promisify(req.login.bind(req))(arg1)
   next()
 })
 
 // The error handler must be before any other error middleware and after all controllers
-app.use(Sentry.Handlers.errorHandler())
+app.use(Sentry.Handlers.errorHandler() as express.ErrorRequestHandler)
 
 // Swagger docs
 const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')

@@ -1,4 +1,4 @@
-const roundUpToNearestInterval = (num, interval): number => {
+const roundUpToNearestInterval = (num: number, interval: number): number => {
   return Math.ceil(num / interval) * interval
 }
 

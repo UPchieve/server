@@ -7,10 +7,62 @@ export const DAYS = [
   'Wednesday',
   'Thursday',
   'Friday',
-  'Saturday'
+  'Saturday',
 ]
 
-export const UTC_TO_HOUR_MAPPING = {
+export type HOURS_UTC =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13
+  | 14
+  | 15
+  | 16
+  | 17
+  | 18
+  | 19
+  | 20
+  | 21
+  | 22
+  | 23
+
+export type HOURS_FORMATTED =
+  | '12a'
+  | '1a'
+  | '2a'
+  | '3a'
+  | '4a'
+  | '5a'
+  | '6a'
+  | '7a'
+  | '8a'
+  | '9a'
+  | '10a'
+  | '11a'
+  | '12p'
+  | '1p'
+  | '2p'
+  | '3p'
+  | '4p'
+  | '5p'
+  | '6p'
+  | '7p'
+  | '8p'
+  | '9p'
+  | '10p'
+  | '11p'
+
+export const UTC_TO_HOUR_MAPPING: Record<HOURS_UTC, HOURS_FORMATTED> = {
   0: '12a',
   1: '1a',
   2: '2a',
@@ -34,7 +86,7 @@ export const UTC_TO_HOUR_MAPPING = {
   20: '8p',
   21: '9p',
   22: '10p',
-  23: '11p'
+  23: '11p',
 }
 
 export const HOUR_TO_UTC_MAPPING = {
@@ -61,7 +113,7 @@ export const HOUR_TO_UTC_MAPPING = {
   '8p': 20,
   '9p': 21,
   '10p': 22,
-  '11p': 23
+  '11p': 23,
 }
 
 export const ONE_DAY_ELAPSED_MILLISECONDS = 1000 * 60 * 60 * 24
@@ -69,7 +121,7 @@ export const ONE_DAY_ELAPSED_MILLISECONDS = 1000 * 60 * 60 * 24
 export enum DATE_RANGE_COMPARISON_FIELDS {
   CREATED_AT = '$createdAt',
   SENT_AT = '$sentAt',
-  PAST_SESSION_CREATED_AT = '$pastSession.createdAt'
+  PAST_SESSION_CREATED_AT = '$pastSession.createdAt',
 }
 
 export const BLACKOUT_PERIOD_START = moment()

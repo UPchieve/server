@@ -3,13 +3,12 @@ import { Types } from 'mongoose'
 import config from '../config'
 
 const client = new PostHog(config.posthogToken, {
-  host: 'https://app.posthog.com'
+  host: 'https://app.posthog.com',
 })
 
 export const captureEvent = (
-  userId: string | Types.ObjectId,
+  userId: Types.ObjectId,
   eventName: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   properties: {
     event: string
     sessionId?: string
@@ -19,17 +18,9 @@ export const captureEvent = (
     joinedFrom?: string
   }
 ): void => {
-  let distinctId = ''
-  if (Types.ObjectId.isValid(userId)) distinctId = userId.toString()
-  else distinctId = userId as string
-
   client.capture({
-    distinctId,
+    distinctId: userId.toString(),
     event: eventName,
-    properties
+    properties,
   })
-}
-
-module.exports = {
-  captureEvent
 }

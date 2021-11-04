@@ -1,33 +1,35 @@
 import mongoose from 'mongoose'
-import SessionModel, * as SessionRepo from '../../models/Session'
+import SessionModel, { Session } from '../../models/Session'
+import * as SessionRepo from '../../models/Session/queries'
 import {
   getSession,
   insertSession,
-  insertSessionWithVolunteer
+  insertSessionWithVolunteer,
 } from '../db-utils'
 import {
   DocCreationError,
   DocUpdateError,
-  LookupError
+  LookupError,
 } from '../../models/Errors'
 import {
   buildMessage,
   buildNotification,
   getObjectId,
-  getStringObjectId
+  getStringObjectId,
 } from '../generate'
 import {
   USER_SESSION_METRICS,
   SESSION_REPORT_REASON,
   SUBJECTS,
-  SUBJECT_TYPES
+  SUBJECT_TYPES,
 } from '../../constants'
-import VolunteerModel from '../../models/Volunteer'
-import StudentModel from '../../models/Student'
+import VolunteerModel, { Volunteer } from '../../models/Volunteer'
+import StudentModel, { Student } from '../../models/Student'
 
-const invalidId = '123'
-const getStartDate = () => new Date().getTime() - 1000 * 60 * 10
-const getEndDate = () => new Date().getTime()
+// TODO: create tests for the error cases where a Repo error was thrown
+
+const getStartDate = (): Date => new Date(new Date().getTime() - 1000 * 60 * 10)
+const getEndDate = (): Date => new Date(new Date())
 
 async function cleanup() {
   await SessionModel.deleteMany({})
@@ -39,7 +41,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -57,35 +59,22 @@ describe('createSession', () => {
       studentId: getObjectId(),
       type: SUBJECT_TYPES.MATH,
       subTopic: SUBJECTS.ALGEBRA_ONE,
-      isStudentBanned: false
+      isStudentBanned: false,
     }
 
     const result = await SessionRepo.createSession(newSession)
     const expected = {
       type: newSession.type,
       subTopic: newSession.subTopic,
-      student: newSession.studentId
+      student: newSession.studentId,
     }
     expect(result._id).toBeDefined()
     expect(result).toMatchObject(expected)
   })
-
-  test('Should throw error with invalid input', async () => {
-    const newSession = {
-      studentId: null,
-      type: 'bogus',
-      subTopic: SUBJECTS.ALGEBRA_ONE,
-      isStudentBanned: false
-    }
-
-    await expect(SessionRepo.createSession(newSession)).rejects.toBeInstanceOf(
-      DocCreationError
-    )
-  })
 })
 
-describe('addNotifications', () => {
-  let session
+describe('addSessionNotifications', () => {
+  let session: Session
 
   beforeAll(async () => {
     const insertedSession = await insertSession()
@@ -100,29 +89,18 @@ describe('addNotifications', () => {
     expect(session.notifications).toHaveLength(0)
     const notifications = [
       buildNotification({
-        volunteer: getObjectId()
+        volunteer: getObjectId(),
       }),
       buildNotification({
-        volunteer: getObjectId()
-      })
+        volunteer: getObjectId(),
+      }),
     ]
-    await SessionRepo.addNotifications(session._id, notifications)
+    await SessionRepo.addSessionNotifications(session._id, notifications)
     const updatedSession = await getSession(
       { _id: session._id },
       { notifications: 1 }
     )
     expect(updatedSession.notifications).toHaveLength(2)
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.addNotifications(
-        session._id,
-        buildNotification({
-          volunteer: getObjectId()
-        })
-      )
-    ).rejects.toBeInstanceOf(DocUpdateError)
   })
 })
 
@@ -131,7 +109,7 @@ describe('getUnfulfilledSessions', () => {
 })
 
 describe('getSessionById', () => {
-  let session
+  let session: Session
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -156,14 +134,10 @@ describe('getSessionById', () => {
       SessionRepo.getSessionById(getObjectId())
     ).rejects.toBeInstanceOf(LookupError)
   })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(SessionRepo.getSessionById(invalidId)).rejects.toThrow()
-  })
 })
 
-describe('updateFlags', () => {
-  let session
+describe('updateSessionFlagsById', () => {
+  let session: Session
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -177,9 +151,9 @@ describe('updateFlags', () => {
   test('Should update flags', async () => {
     const flags = [
       USER_SESSION_METRICS.absentStudent,
-      USER_SESSION_METRICS.commentFromVolunteer
+      USER_SESSION_METRICS.commentFromVolunteer,
     ]
-    await SessionRepo.updateFlags(session._id, flags)
+    await SessionRepo.updateSessionFlagsById(session._id, flags)
 
     const updatedSession = await getSession({ _id: session._id }, { flags: 1 })
     expect(updatedSession.flags).toHaveLength(2)
@@ -187,8 +161,8 @@ describe('updateFlags', () => {
   })
 })
 
-describe('updateReviewReasons', () => {
-  let session
+describe('updateSessionReviewReasonsById', () => {
+  let session: Session
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -202,9 +176,9 @@ describe('updateReviewReasons', () => {
   test('Should update reviewReasons', async () => {
     const reviewReasons = [
       USER_SESSION_METRICS.absentStudent,
-      USER_SESSION_METRICS.commentFromVolunteer
+      USER_SESSION_METRICS.commentFromVolunteer,
     ]
-    await SessionRepo.updateReviewReasons(session._id, reviewReasons)
+    await SessionRepo.updateSessionReviewReasonsById(session._id, reviewReasons)
 
     const updatedSession = await getSession(
       { _id: session._id },
@@ -215,8 +189,8 @@ describe('updateReviewReasons', () => {
   })
 })
 
-describe('updateFailedJoins', () => {
-  let session
+describe('updateSessionFailedJoinsById', () => {
+  let session: Session
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -229,25 +203,19 @@ describe('updateFailedJoins', () => {
 
   test('Should update failed joins', async () => {
     const userId = getObjectId()
-    await SessionRepo.updateFailedJoins(session._id, userId)
+    await SessionRepo.updateSessionFailedJoinsById(session._id, userId)
 
     const updatedSession = await getSession(
       { _id: session._id },
       { failedJoins: 1 }
     )
 
-    expect(updatedSession.failedJoins[0]).toEqual(userId)
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.updateFailedJoins(invalidId, getObjectId())
-    ).rejects.toBeInstanceOf(DocUpdateError)
+    expect(updatedSession!.failedJoins![0]).toEqual(userId)
   })
 })
 
-describe('updateReviewedStatus', () => {
-  let session
+describe('updateSessionReviewedStatusById', () => {
+  let session: Session
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -259,9 +227,9 @@ describe('updateReviewedStatus', () => {
   })
 
   test('Should update reviewed and toReview', async () => {
-    await SessionRepo.updateReviewedStatus(session._id, {
+    await SessionRepo.updateSessionReviewedStatusById(session._id, {
       toReview: false,
-      reviewed: true
+      reviewed: true,
     })
     const updatedSession = await getSession(
       { _id: session._id },
@@ -270,29 +238,19 @@ describe('updateReviewedStatus', () => {
     expect(updatedSession.reviewed).toBeTruthy()
     expect(updatedSession.toReview).toBeFalsy()
   })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.updateReviewedStatus(invalidId, {
-        toReview: false,
-        reviewed: false
-      })
-    ).rejects.toBeInstanceOf(DocUpdateError)
-  })
 })
 
-describe('getSessionToEnd', () => {
+describe('getSessionToEndById', () => {
   afterAll(async () => {
     await cleanup()
   })
 
   test('Should get an unmatched session that is ending', async () => {
     const { session, student } = await insertSession()
-    const result = await SessionRepo.getSessionToEnd(session._id.toString())
+    const result = await SessionRepo.getSessionToEndById(session._id)
     const expected = {
       _id: session._id,
       createdAt: session.createdAt,
-      endedAt: session.endedAt,
       isReported: session.isReported,
       messages: session.messages,
       type: session.type,
@@ -300,10 +258,8 @@ describe('getSessionToEnd', () => {
         _id: student._id,
         firstname: student.firstname,
         email: student.email,
-        pastSessions: student.pastSessions
+        pastSessions: student.pastSessions,
       },
-      volunteer: {},
-      volunteerJoinedAt: session.volunteerJoinedAt
     }
     expect(result._id).toBeDefined()
     expect(result).toMatchObject(expected)
@@ -311,11 +267,10 @@ describe('getSessionToEnd', () => {
 
   test('Should get a matched session that is ending', async () => {
     const { session, student, volunteer } = await insertSessionWithVolunteer()
-    const result = await SessionRepo.getSessionToEnd(session._id.toString())
+    const result = await SessionRepo.getSessionToEndById(session._id)
     const expected = {
       _id: session._id,
       createdAt: session.createdAt,
-      endedAt: session.endedAt,
       isReported: session.isReported,
       messages: session.messages,
       type: session.type,
@@ -323,16 +278,15 @@ describe('getSessionToEnd', () => {
         _id: student._id,
         firstname: student.firstname,
         email: student.email,
-        pastSessions: student.pastSessions
+        pastSessions: student.pastSessions,
       },
       volunteer: {
         _id: volunteer._id,
         firstname: volunteer.firstname,
         email: volunteer.email,
         pastSessions: volunteer.pastSessions,
-        volunteerPartnerOrg: volunteer.volunteerPartnerOrg
       },
-      volunteerJoinedAt: session.volunteerJoinedAt
+      volunteerJoinedAt: session.volunteerJoinedAt,
     }
     expect(result._id).toBeDefined()
     expect(result).toMatchObject(expected)
@@ -340,12 +294,8 @@ describe('getSessionToEnd', () => {
 
   test('Should throw error when no session is found', async () => {
     await expect(
-      SessionRepo.getSessionToEnd(getStringObjectId())
+      SessionRepo.getSessionToEndById(getObjectId())
     ).rejects.toBeInstanceOf(LookupError)
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(SessionRepo.getSessionToEnd(invalidId)).rejects.toThrow()
   })
 })
 
@@ -360,35 +310,25 @@ describe('getTotalTimeTutoredForDateRange', () => {
 
   test('Should get total time tutored for date range', async () => {
     const { volunteer } = await insertSessionWithVolunteer({
-      timeTutored: 10000
+      timeTutored: 10000,
     })
     await insertSession({
       volunteer: volunteer._id,
-      timeTutored: 5000
+      timeTutored: 5000,
     })
 
     const result = await SessionRepo.getTotalTimeTutoredForDateRange(
-      volunteer._id.toString(),
+      volunteer._id,
       getStartDate(),
       getEndDate()
     )
     const expected = [
       {
         _id: null,
-        timeTutored: 15000
-      }
+        timeTutored: 15000,
+      },
     ]
     expect(result).toEqual(expected)
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.getTotalTimeTutoredForDateRange(
-        invalidId,
-        getStartDate(),
-        getEndDate()
-      )
-    ).rejects.toThrow()
   })
 })
 
@@ -399,14 +339,14 @@ describe('getActiveSessionsWithVolunteers', () => {
 
   test('Should get all matched sessions that have not ended', async () => {
     const { session, volunteer } = await insertSessionWithVolunteer({
-      endedAt: undefined
+      endedAt: undefined,
     })
     const result = await SessionRepo.getActiveSessionsWithVolunteers()
     const expected = [
       {
         _id: session._id,
-        volunteer: volunteer._id
-      }
+        volunteer: volunteer._id,
+      },
     ]
     expect(result).toEqual(expected)
   })
@@ -414,8 +354,8 @@ describe('getActiveSessionsWithVolunteers', () => {
   test.todo('Should throw error')
 })
 
-describe('updateReportSession', () => {
-  let session
+describe('updateSessionReported', () => {
+  let session: Session
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -428,11 +368,11 @@ describe('updateReportSession', () => {
 
   const report = {
     reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
-    reportMessage: 'made a your mom joke'
+    reportMessage: 'made a your mom joke',
   }
 
   test('Should report a session', async () => {
-    await SessionRepo.updateReportSession(session._id.toString(), report)
+    await SessionRepo.updateSessionReported(session._id, report)
     const updatedSession = await getSession(
       { _id: session._id },
       { isReported: 1, reportReason: 1, reportMessage: 1 }
@@ -440,12 +380,6 @@ describe('updateReportSession', () => {
     expect(updatedSession.isReported).toBeTruthy()
     expect(updatedSession.reportReason).toBe(report.reportReason)
     expect(updatedSession.reportMessage).toBe(report.reportMessage)
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.updateReportSession(invalidId, report)
-    ).rejects.toThrow()
   })
 })
 
@@ -458,31 +392,22 @@ describe('updateSessionToEnd', () => {
     const { session, student } = await insertSession()
     const data = {
       endedAt: new Date(),
-      endedBy: student._id
+      endedBy: student._id,
     }
-    await SessionRepo.updateSessionToEnd(session._id.toString(), data)
+    await SessionRepo.updateSessionToEnd(session._id, data)
     const updatedSession = await getSession(
       { _id: session._id },
       {
         endedAt: 1,
-        endedBy: 1
+        endedBy: 1,
       }
     )
 
     const expected = {
       _id: session._id,
-      ...data
+      ...data,
     }
     expect(updatedSession).toEqual(expected)
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.updateSessionToEnd(invalidId, {
-        endedAt: new Date(),
-        endedBy: getObjectId()
-      })
-    ).rejects.toBeInstanceOf(DocUpdateError)
   })
 })
 
@@ -496,8 +421,8 @@ describe('getLongRunningSessions', () => {
   })
 
   test('Should get long running sessions', async () => {
-    const startDate = getStartDate()
-    const endDate = getEndDate()
+    const startDate = getStartDate().getTime()
+    const endDate = getEndDate().getTime()
 
     const results = await SessionRepo.getLongRunningSessions(
       getStartDate(),
@@ -510,15 +435,11 @@ describe('getLongRunningSessions', () => {
       expect(createdAt).toBeLessThan(endDate)
     }
   })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(SessionRepo.getLongRunningSessions('', '')).rejects.toThrow()
-  })
 })
 
-describe('addSessionPhotoKey', () => {
+describe('updateSessionPhotoKey', () => {
   const photoKey = '12345'
-  let session
+  let session: Session
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -530,27 +451,21 @@ describe('addSessionPhotoKey', () => {
   })
 
   test('Should add photo key to photos', async () => {
-    await SessionRepo.addSessionPhotoKey(session._id.toString(), photoKey)
+    await SessionRepo.updateSessionPhotoKey(session._id, photoKey)
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        photos: 1
+        photos: 1,
       }
     )
     expect(updatedSession.photos).toContain(photoKey)
   })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.addSessionPhotoKey(invalidId, photoKey)
-    ).rejects.toBeInstanceOf(DocUpdateError)
-  })
 })
 
-describe('getPublicSession', () => {
-  let session
-  let student
-  let volunteer
+describe('getPublicSessionById', () => {
+  let session: Session
+  let student: Student
+  let volunteer: Volunteer
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -564,29 +479,24 @@ describe('getPublicSession', () => {
   })
 
   test('Should get a public session', async () => {
-    const result = await SessionRepo.getPublicSession(session._id.toString())
-    const expected = [
-      {
-        _id: session._id,
-        createdAt: session.createdAt,
-        endedAt: session.endedAt,
-        type: session.type,
-        subTopic: session.subTopic,
-        student: {
-          _id: student._id,
-          firstName: student.firstname
-        },
-        volunteer: {
-          _id: volunteer._id,
-          firstName: volunteer.firstname
-        }
-      }
-    ]
-    expect(result).toEqual(expected)
-  })
+    const result = await SessionRepo.getPublicSessionById(session._id)
+    const expected = {
+      _id: session._id,
+      createdAt: session.createdAt,
+      endedAt: session.endedAt,
+      type: session.type,
+      subTopic: session.subTopic,
+      student: {
+        _id: student._id,
+        firstName: student.firstname,
+      },
+      volunteer: {
+        _id: volunteer._id,
+        firstName: volunteer.firstname,
+      },
+    }
 
-  test('Should throw error with invalid input', async () => {
-    await expect(SessionRepo.getPublicSession(invalidId)).rejects.toThrow()
+    expect(result).toEqual(expected)
   })
 })
 
@@ -602,12 +512,11 @@ describe('getSessionByIdWithStudentAndVolunteer', () => {
   test('Should get session by id with student and volunteer data a session', async () => {
     const { session, student, volunteer } = await insertSessionWithVolunteer()
     const result = await SessionRepo.getSessionByIdWithStudentAndVolunteer(
-      session._id.toString()
+      session._id
     )
     const expected = {
       _id: session._id,
       createdAt: session.createdAt,
-      endedAt: session.endedAt,
       type: session.type,
       subTopic: session.subTopic,
       student: {
@@ -615,87 +524,70 @@ describe('getSessionByIdWithStudentAndVolunteer', () => {
         isVolunteer: student.isVolunteer,
         firstname: student.firstname,
         pastSessions: student.pastSessions,
-        createdAt: student.createdAt
+        createdAt: student.createdAt,
       },
       volunteer: {
         _id: volunteer._id,
         isVolunteer: volunteer.isVolunteer,
         firstname: volunteer.firstname,
         pastSessions: volunteer.pastSessions,
-        createdAt: volunteer.createdAt
+        createdAt: volunteer.createdAt,
       },
       messages: session.messages,
       hasWhiteboardDoc: session.hasWhiteboardDoc,
-      whiteboardDoc: session.whiteboardDoc,
       quillDoc: session.quillDoc,
       volunteerJoinedAt: session.volunteerJoinedAt,
       failedJoins: session.failedJoins,
-      endedBy: session.endedBy,
       notifications: session.notifications,
       photos: session.photos,
       isReported: session.isReported,
-      reportReason: session.reportReason,
-      reportMessage: session.reportMessage,
       flags: session.flags,
       reviewed: session.reviewed,
       toReview: session.toReview,
       reviewReasons: session.reviewReasons,
-      timeTutored: session.timeTutored
+      timeTutored: session.timeTutored,
     }
 
-    expect(result).toEqual(expected)
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.getSessionByIdWithStudentAndVolunteer(invalidId)
-    ).rejects.toThrow()
+    expect(result).toMatchObject(expected)
   })
 })
 
-describe('getCurrentSession', () => {
+describe('getCurrentSessionById', () => {
   afterAll(async () => {
     await cleanup()
   })
 
   test('Should get the current session for the given userId', async () => {
     const { session, student, volunteer } = await insertSessionWithVolunteer({
-      endedAt: undefined
+      endedAt: undefined,
     })
-    const result = await SessionRepo.getCurrentSession(volunteer._id.toString())
+    const result = await SessionRepo.getCurrentSessionById(volunteer._id)
     const expected = {
       _id: session._id,
       student: {
-        _id: student._id.toString(),
+        _id: student._id,
         firstname: student.firstname,
-        isVolunteer: student.isVolunteer
+        isVolunteer: student.isVolunteer,
       },
       volunteer: {
-        _id: volunteer._id.toString(),
+        _id: volunteer._id,
         firstname: volunteer.firstname,
-        isVolunteer: volunteer.isVolunteer
+        isVolunteer: volunteer.isVolunteer,
       },
       subTopic: session.subTopic,
       type: session.type,
       messages: session.messages,
       createdAt: session.createdAt,
-      endedAt: session.endedAt && session.endedAt,
-      volunteerJoinedAt: session.volunteerJoinedAt
+      volunteerJoinedAt: session.volunteerJoinedAt,
     }
 
-    expect(result).toEqual(expected)
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.getSessionByIdWithStudentAndVolunteer(invalidId)
-    ).rejects.toThrow()
+    expect(result).toMatchObject(expected)
   })
 })
 
-describe('getStudentLatestSession', () => {
-  let session
-  let student
+describe('getLatestSessionByStudentId', () => {
+  let session: Session
+  let student: Student
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -708,50 +600,36 @@ describe('getStudentLatestSession', () => {
   })
 
   test('Should get the latest session for the given studentId', async () => {
-    const result = await SessionRepo.getStudentLatestSession(
-      student._id.toString()
-    )
+    const result = await SessionRepo.getLatestSessionByStudentId(student._id)
     const expected = {
-      _id: session._id.toString(),
-      createdAt: session.createdAt.toISOString()
+      _id: session._id,
+      createdAt: session.createdAt.toISOString(),
     }
 
     expect(result).toEqual(expected)
   })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.getStudentLatestSession(invalidId)
-    ).rejects.toThrow()
-  })
 })
 
-describe('addVolunteerToSession', () => {
+describe('updateSessionVolunteerById', () => {
   test('Should add volunteer the session', async () => {
     const { session } = await insertSession()
     const volunteer = getObjectId()
-    await SessionRepo.addVolunteerToSession(session._id.toString(), volunteer)
+    await SessionRepo.updateSessionVolunteerById(session._id, volunteer)
     const updatedSession = await getSession(
       { _id: session._id },
       {
         volunteer: 1,
-        volunteerJoinedAt: 1
+        volunteerJoinedAt: 1,
       }
     )
     expect(updatedSession.volunteerJoinedAt).toBeTruthy()
     expect(updatedSession.volunteer).toEqual(volunteer)
   })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.addVolunteerToSession(invalidId, getObjectId())
-    ).rejects.toBeInstanceOf(DocUpdateError)
-  })
 })
 
-describe('addMessage', () => {
-  let session
-  let student
+describe('addMessageToSessionById', () => {
+  let session: Session
+  let student: Student
 
   beforeAll(async () => {
     const insertedSession = await insertSessionWithVolunteer()
@@ -765,22 +643,16 @@ describe('addMessage', () => {
 
   test('Should add message to messages', async () => {
     const message = buildMessage({
-      user: student._id
+      user: student._id,
     })
-    await SessionRepo.addMessage(session._id.toString(), message)
+    await SessionRepo.addMessageToSessionById(session._id, message)
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        messages: 1
+        messages: 1,
       }
     )
     expect(updatedSession.messages).toHaveLength(1)
-  })
-
-  test('Should throw error with invalid input', async () => {
-    await expect(
-      SessionRepo.addMessage(invalidId, buildMessage())
-    ).rejects.toBeInstanceOf(DocUpdateError)
   })
 })
 
@@ -791,12 +663,12 @@ describe('getSessionsWithAvgWaitTimePerDayAndHour', () => {
   const firstSessionData = {
     createdAt: new Date('2021-01-07T10:00:00.000Z'),
     endedAt: new Date('2021-01-07T10:30:00.000Z'),
-    volunteerJoinedAt: new Date('2021-01-07T10:05:00.000Z')
+    volunteerJoinedAt: new Date('2021-01-07T10:05:00.000Z'),
   }
   // wait time of 15 minutes for unmatched session
   const secondSessionData = {
     createdAt: new Date('2021-01-07T10:15:00.000Z'),
-    endedAt: new Date('2021-01-07T10:30:00.000Z')
+    endedAt: new Date('2021-01-07T10:30:00.000Z'),
   }
 
   beforeAll(async () => {
@@ -820,110 +692,102 @@ describe('getSessionsWithAvgWaitTimePerDayAndHour', () => {
   })
 })
 
-describe('updateSessionMetrics', () => {
+describe('updateSessionTimeTutored', () => {
   test('Should update related session metrics to the session', async () => {
     const { session } = await insertSession()
     const timeTutored = 1000 * 60 * 20
-    await SessionRepo.updateSessionMetrics(session._id.toString(), {
-      timeTutored
-    })
+    await SessionRepo.updateSessionTimeTutored(session._id, timeTutored)
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        timeTutored: 1
+        timeTutored: 1,
       }
     )
     expect(updatedSession.timeTutored).toBe(timeTutored)
   })
 
   test('Should throw error when database update errors', async () => {
-    const mockedSessionUpdateOne = jest.spyOn(SessionRepo.default, 'updateOne')
+    const mockedSessionUpdateOne = jest.spyOn(SessionModel, 'updateOne')
     const testError = new Error('Test error')
     mockedSessionUpdateOne.mockRejectedValueOnce(testError)
 
-    let error: DocUpdateError
     const sessionId = getObjectId()
     const timeTutored = 1000 * 60 * 20
-    try {
-      await SessionRepo.updateSessionMetrics(sessionId.toString(), {
-        timeTutored
-      })
-    } catch (err) {
-      error = err
-    }
-
-    expect(error).toBeInstanceOf(DocUpdateError)
+    await expect(
+      async () =>
+        await SessionRepo.updateSessionTimeTutored(sessionId, timeTutored)
+    ).rejects.toThrow(DocUpdateError)
   })
 })
 
-describe('setQuillDoc', () => {
+describe('updateSessionQuillDoc', () => {
   test('Should set the quillDoc on the session document', async () => {
     const { session } = await insertSession()
     const quillDoc = { ops: [] }
 
-    await SessionRepo.setQuillDoc(
-      session._id.toString(),
+    await SessionRepo.updateSessionQuillDoc(
+      session._id,
       JSON.stringify(quillDoc)
     )
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        quillDoc: 1
+        quillDoc: 1,
       }
     )
-    expect(JSON.parse(updatedSession.quillDoc)).toEqual(quillDoc)
+    expect(JSON.parse(updatedSession.quillDoc!)).toEqual(quillDoc)
   })
 
   test('Should throw error when database update errors', async () => {
-    const mockedSessionUpdateOne = jest.spyOn(SessionRepo.default, 'updateOne')
+    const mockedSessionUpdateOne = jest.spyOn(SessionModel, 'updateOne')
     const testError = new Error('Test error')
     mockedSessionUpdateOne.mockRejectedValueOnce(testError)
 
-    let error: DocUpdateError
     const sessionId = getObjectId()
     const quillDoc = { ops: [] }
-    try {
-      await SessionRepo.setQuillDoc(sessionId, JSON.stringify(quillDoc))
-    } catch (err) {
-      error = err
-    }
 
-    expect(error).toBeInstanceOf(DocUpdateError)
+    await expect(
+      async () =>
+        await SessionRepo.updateSessionQuillDoc(
+          sessionId,
+          JSON.stringify(quillDoc)
+        )
+    ).rejects.toThrow(DocUpdateError)
   })
 })
 
-describe('setHasWhiteboardDoc', () => {
+describe('updateSessionHasWhiteboardDoc', () => {
   test('Should set hasWhiteboardDoc on the session document', async () => {
     const { session } = await insertSession()
     const hasWhiteboardDoc = true
 
-    await SessionRepo.setHasWhiteboardDoc(
-      session._id.toString(),
+    await SessionRepo.updateSessionHasWhiteboardDoc(
+      session._id,
       hasWhiteboardDoc
     )
     const updatedSession = await getSession(
       { _id: session._id },
       {
-        hasWhiteboardDoc: 1
+        hasWhiteboardDoc: 1,
       }
     )
     expect(updatedSession.hasWhiteboardDoc).toBeTruthy()
   })
 
   test('Should throw error when database update errors', async () => {
-    const mockedSessionUpdateOne = jest.spyOn(SessionRepo.default, 'updateOne')
+    const mockedSessionUpdateOne = jest.spyOn(SessionModel, 'updateOne')
     const testError = new Error('Test error')
     mockedSessionUpdateOne.mockRejectedValueOnce(testError)
 
-    let error: DocUpdateError
     const sessionId = getObjectId()
     const hasWhiteboardDoc = false
-    try {
-      await SessionRepo.setHasWhiteboardDoc(sessionId, hasWhiteboardDoc)
-    } catch (err) {
-      error = err
-    }
 
-    expect(error).toBeInstanceOf(DocUpdateError)
+    await expect(
+      async () =>
+        await SessionRepo.updateSessionHasWhiteboardDoc(
+          sessionId,
+          hasWhiteboardDoc
+        )
+    ).rejects.toThrow(DocUpdateError)
   })
 })

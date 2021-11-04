@@ -1,18 +1,19 @@
-import { Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { captureException } from '@sentry/node'
+import { Volunteer } from '../models/Volunteer'
+import { Student } from '../models/Student'
 import {
   AccountActionCreator,
-  QuizActionCreator
+  QuizActionCreator,
 } from '../controllers/UserActionCtrl'
-import { LoadedRequest } from '../router/app'
 
 export function addUserAction(
-  req: LoadedRequest,
+  req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ): void {
   if (Object.prototype.hasOwnProperty.call(req, 'user')) {
-    const { _id } = req.user
+    const { _id } = req.user as Volunteer | Student
     const { ip: ipAddress } = req
 
     if (req.url === '/api/calendar/save') {

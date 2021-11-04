@@ -3,8 +3,7 @@ import Redis from 'ioredis'
 import config from '../config'
 
 const queue = new Queue(config.workerQueueName, {
-  createClient: () => new Redis(config.redisConnectionString)
+  createClient: () => new Redis(config.redisConnectionString),
 })
 
-module.exports = queue
 export default queue

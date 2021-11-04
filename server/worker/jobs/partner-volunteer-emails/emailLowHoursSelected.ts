@@ -1,11 +1,10 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
-import logger from '../../../logger'
-import MailService from '../../../services/MailService'
-import { getNotifications } from '../../../services/NotificationService'
-import { getVolunteer } from '../../../services/UserService'
+import { log } from '../../logger'
+import * as MailService from '../../../services/MailService'
+import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
+import { getPartnerVolunteerForLowHours } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
+import { asObjectId } from '../../../utils/type-utils'
 
 /**
  *
@@ -18,43 +17,27 @@ import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
  */
 
 interface EmailLowHoursJobData {
-  volunteerId: string | Types.ObjectId
+  volunteerId: string
 }
 
 export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
   const {
     data: { volunteerId },
-    name: currentJob
+    name: currentJob,
   } = job
-  const volunteer = await getVolunteer(
-    {
-      _id: volunteerId,
-      isOnboarded: true,
-      'pastSessions.1': { $exists: false },
-      volunteerPartnerOrg: { $exists: true },
-      ...EMAIL_RECIPIENT
-    },
-    {
-      _id: 1,
-      email: 1,
-      firstname: 1,
-      availability: 1
-    }
+  const volunteer = await getPartnerVolunteerForLowHours(
+    asObjectId(volunteerId)
   )
 
   if (volunteer) {
-    const { _id, firstname: firstName, email, availability } = volunteer
-    const textNotifications = await getNotifications({ volunteer: _id })
-    const totalHoursSelected = countAvailabilitySelected(
-      // @ts-expect-error
-      availability.toObject()
-    )
+    const { _id, firstname, email, availability } = volunteer
+    const textNotifications = await getNotificationsByVolunteerId(_id)
+    const totalHoursSelected = countAvailabilitySelected(availability)
 
     if (textNotifications.length < 2 && totalHoursSelected < 5) {
       try {
-        const contactInfo = { firstName, email }
-        await MailService.sendPartnerVolunteerLowHoursSelected(contactInfo)
-        logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
+        await MailService.sendPartnerVolunteerLowHoursSelected(email, firstname)
+        log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(
           `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

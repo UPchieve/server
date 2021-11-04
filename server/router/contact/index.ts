@@ -1,48 +1,36 @@
 import { Express, Request, Response, Router } from 'express'
 import nr from 'newrelic'
-import {
-  ContactFormDataValidationError,
-  MailSendError,
-  saveContactFormSubmission
-} from '../../services/ContactFormService'
-import { DocCreationError, UserNotFoundError } from '../../models/Errors'
+import { saveContactFormSubmission } from '../../services/ContactFormService'
+import { RepoCreateError } from '../../models/Errors'
 import logger from '../../logger'
 
-function submissionHandler(req: Request, res: Response) {
+async function submissionHandler(req: Request, res: Response) {
   const requestData = req.body as unknown
 
-  logger.debug(requestData)
-  return nr.startSegment('router:contactFormSubmission:save', true, function() {
-    return saveContactFormSubmission(requestData)
-      .then(() => {
+  logger.debug(requestData as any)
+  await nr.startSegment(
+    'router:contactFormSubmission:save',
+    true,
+    async function() {
+      try {
+        await saveContactFormSubmission(requestData)
         res.status(200).json({
-          message: 'contact form submission has been sent'
+          message: 'contact form submission has been sent',
         })
-      })
-      .catch(
-        (
-          err:
-            | ContactFormDataValidationError
-            | UserNotFoundError
-            | DocCreationError
-            | MailSendError
-        ) => {
-          logger.error(err)
-          if (
-            err instanceof ContactFormDataValidationError ||
-            err instanceof UserNotFoundError
-          ) {
-            res.status(400).json({
-              error: err.message
-            })
-          } else {
-            res.status(500).json({
-              error: err.message
-            })
-          }
+      } catch (err) {
+        logger.error(err as Error)
+        if (err instanceof RepoCreateError) {
+          res.status(400).json({
+            error: (err as Error).message,
+          })
+        } else {
+          res.status(500).json({
+            error: (err as Error).message,
+          })
         }
-      )
-  })
+      }
+    }
+  )
 }
 
 export function routes(app: Express) {

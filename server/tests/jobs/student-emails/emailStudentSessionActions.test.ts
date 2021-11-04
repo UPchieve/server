@@ -1,32 +1,32 @@
 import { mocked } from 'ts-jest/utils'
 import emailStudentSessionActions from '../../../worker/jobs/student-emails/emailStudentSessionActions'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
-import UserService from '../../../services/UserService'
-import * as StudentService from '../../../services/StudentService'
+import * as MailService from '../../../services/MailService'
+import * as StudentRepo from '../../../models/Student/queries'
+import * as VolunteerRepo from '../../../models/Volunteer/queries'
 import { buildSession, buildStudent, buildVolunteer } from '../../generate'
 
 jest.mock('../../../services/MailService')
-jest.mock('../../../services/UserService')
-jest.mock('../../../services/StudentService')
+jest.mock('../../../models/Student/queries')
+jest.mock('../../../models/Volunteer/queries')
 
-const mockedUserService = mocked(UserService, true)
-const mockedStudentService = mocked(StudentService, true)
+const mockedVolunteerRepo = mocked(VolunteerRepo, true)
+const mockedStudentRepo = mocked(StudentRepo, true)
 
 describe('Student session action emails', () => {
-  const studentSessionActionJobs: { jobName: string; jobFn }[] = [
+  const studentSessionActionJobs: { jobName: string; jobFn: any }[] = [
     {
       jobName: Jobs.EmailStudentAbsentWarning,
-      jobFn: MailService.sendStudentAbsentWarning
+      jobFn: MailService.sendStudentAbsentWarning,
     },
     {
       jobName: Jobs.EmailStudentAbsentVolunteerApology,
-      jobFn: MailService.sendStudentAbsentVolunteerApology
+      jobFn: MailService.sendStudentAbsentVolunteerApology,
     },
     {
       jobName: Jobs.EmailStudentUnmatchedApology,
-      jobFn: MailService.sendStudentUnmatchedApology
-    }
+      jobFn: MailService.sendStudentUnmatchedApology,
+    },
   ]
 
   beforeEach(async () => {
@@ -39,27 +39,35 @@ describe('Student session action emails', () => {
     const session = buildSession()
 
     // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const job: any = {
       name: currentJob.jobName,
       data: {
         studentId: student._id,
         volunteerId: volunteer._id,
         sessionSubject: session.subTopic,
-        sessionDate: session.createdAt
-      }
+        sessionDate: session.createdAt,
+      },
     }
 
     test(`Should execute ${job.name} successfully`, async () => {
-      mockedStudentService.getStudent.mockImplementation(async () => student)
-      mockedUserService.getUser.mockImplementation(async () => volunteer)
+      mockedStudentRepo.getStudentContactInfoById.mockImplementation(
+        async () => student
+      )
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockImplementation(
+        async () => volunteer
+      )
       await emailStudentSessionActions(job)
       expect(currentJob.jobFn).toHaveBeenCalledTimes(1)
     })
 
     test(`Should not execute ${job.name} if there is no student`, async () => {
-      mockedStudentService.getStudent.mockImplementation(async () => null)
-      mockedUserService.getUser.mockImplementation(async () => volunteer)
+      mockedStudentRepo.getStudentContactInfoById.mockImplementation(
+        async () => undefined
+      )
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockImplementation(
+        async () => volunteer
+      )
       await emailStudentSessionActions(job)
       expect(currentJob.jobFn).toHaveBeenCalledTimes(0)
     })
@@ -68,8 +76,12 @@ describe('Student session action emails', () => {
       const errorMessage = 'Error sending email'
       const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
       currentJob.jobFn.mockImplementationOnce(rejectionFn)
-      mockedStudentService.getStudent.mockImplementation(async () => student)
-      mockedUserService.getUser.mockImplementation(async () => volunteer)
+      mockedStudentRepo.getStudentContactInfoById.mockImplementation(
+        async () => student
+      )
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockImplementation(
+        async () => volunteer
+      )
 
       await expect(emailStudentSessionActions(job)).rejects.toEqual(
         Error(

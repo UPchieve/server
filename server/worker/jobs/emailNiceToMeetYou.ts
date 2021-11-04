@@ -1,7 +1,6 @@
 import { log } from '../logger'
-import VolunteerModel from '../../models/Volunteer'
-import MailService from '../../services/MailService'
-import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
+import { getVolunteersContactInfo } from '../../models/Volunteer/queries'
+import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
 
 // Runs every day at 10am EST
@@ -12,20 +11,16 @@ export default async (): Promise<void> => {
   // set the date to midnight
   todaysDate.setHours(0, 0, 0, 0)
 
-  const volunteers = await VolunteerModel.find({
-    ...EMAIL_RECIPIENT,
+  const volunteers = await getVolunteersContactInfo({
     createdAt: {
       $gte: new Date(oneDayAgo),
-      $lte: new Date(todaysDate)
-    }
+      $lte: new Date(todaysDate),
+    },
   })
-    .select('firstname email')
-    .lean()
-    .exec()
 
   let totalEmailed = 0
 
-  const errors = []
+  const errors: string[] = []
   for (const volunteer of volunteers) {
     try {
       await MailService.sendNiceToMeetYou(volunteer)

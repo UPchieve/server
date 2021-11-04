@@ -1,62 +1,59 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import { USER_SESSION_METRICS } from '../../../constants'
-import logger from '../../../logger'
-import MailService from '../../../services/MailService'
-import { getSessionsWithPipeline } from '../../../services/SessionService'
+import { log } from '../../logger'
+import * as MailService from '../../../services/MailService'
+import { getSessionsWithPipeline } from '../../../models/Session/queries'
 import { emailRecipientPrefixed } from '../../../utils/aggregation-snippets'
+import { asObjectId } from '../../../utils/type-utils'
 
 interface EmailStudentFirstSessionJobData {
-  sessionId: string | Types.ObjectId
+  sessionId: string
 }
 
 export default async (
   job: Job<EmailStudentFirstSessionJobData>
 ): Promise<void> => {
-  const {
-    data: { sessionId },
-    name: currentJob
-  } = job
+  const { name: currentJob } = job
+  const sessionId = asObjectId(job.data.sessionId)
+  // TODO: repo pattern
   const [session] = await getSessionsWithPipeline([
     {
       $match: {
-        _id:
-          typeof sessionId === 'string' ? Types.ObjectId(sessionId) : sessionId,
+        _id: sessionId,
         flags: {
           $nin: [
             USER_SESSION_METRICS.absentStudent,
             USER_SESSION_METRICS.absentVolunteer,
             USER_SESSION_METRICS.lowCoachRatingFromStudent,
-            USER_SESSION_METRICS.lowSessionRatingFromStudent
-          ]
-        }
-      }
+            USER_SESSION_METRICS.lowSessionRatingFromStudent,
+          ],
+        },
+      },
     },
     {
       $lookup: {
         from: 'users',
         foreignField: '_id',
         localField: 'student',
-        as: 'student'
-      }
+        as: 'student',
+      },
     },
     {
-      $unwind: '$student'
+      $unwind: '$student',
     },
     {
-      $match: emailRecipientPrefixed('student')
+      $match: emailRecipientPrefixed('student'),
     },
     {
-      $project: { student: 1 }
-    }
+      $project: { student: 1 },
+    },
   ])
 
   if (session) {
-    const { _id: studentId, firstname: firstName, email } = session.student
+    const { _id: studentId, firstname, email } = session.student
     try {
-      const contactInfo = { firstName, email }
-      await MailService.sendStudentFirstSessionCongrats(contactInfo)
-      logger.info(`Sent ${currentJob} to student ${studentId}`)
+      await MailService.sendStudentFirstSessionCongrats(email, firstname)
+      log(`Sent ${currentJob} to student ${studentId}`)
     } catch (error) {
       throw new Error(
         `Failed to send ${currentJob} to student ${studentId}: ${error}`

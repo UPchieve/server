@@ -1,10 +1,13 @@
 import { FORMAT_SUBJECT_TO_DISPLAY_NAME } from '../constants'
 
-const formatMultiWordSubject = (subject): string => {
-  const formattedSubject = FORMAT_SUBJECT_TO_DISPLAY_NAME[subject]
+// TODO: should take proper subject type
+const formatMultiWordSubject = (subject: string): string => {
+  const formattedSubject =
+    FORMAT_SUBJECT_TO_DISPLAY_NAME[
+      subject as keyof typeof FORMAT_SUBJECT_TO_DISPLAY_NAME
+    ]
   if (formattedSubject) return formattedSubject
   return subject
 }
 
-module.exports = formatMultiWordSubject
 export default formatMultiWordSubject

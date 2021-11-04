@@ -1,7 +1,7 @@
 import {
   UpdateValueData,
   CounterMetricProcessor,
-  ProcessorData
+  ProcessorData,
 } from '../../../services/UserSessionMetricsService/types'
 import { METRIC_PROCESSORS } from '../../../services/UserSessionMetricsService/metrics'
 import { Counter } from '../../../models/UserSessionMetrics'
@@ -15,7 +15,7 @@ import {
   buildMessage,
   buildUSM,
   startSession,
-  joinSession
+  joinSession,
 } from '../../generate'
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import QueueService from '../../../services/QueueService'
@@ -23,7 +23,7 @@ import { Jobs } from '../../../worker/jobs'
 
 jest.mock('../../../models/UserSessionMetrics', () => ({
   ...jest.requireActual('../../../models/UserSessionMetrics'),
-  executeUpdatesByUserId: jest.fn().mockResolvedValue({})
+  executeUpdatesByUserId: jest.fn().mockResolvedValue({}),
 }))
 jest.mock('../../../services/QueueService')
 
@@ -36,7 +36,7 @@ function buildUpdateValueData(
 ): UpdateValueData {
   return {
     session,
-    feedback
+    feedback,
   }
 }
 
@@ -70,10 +70,11 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
   test('Low coach rating from student (tutoring)', () => {
     const session = startSession(student)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
+      studentTutoringFeedback: {
+        'coach-rating': 1,
+      },
     }) as FeedbackVersionTwo
-
-    feedback.studentTutoringFeedback['coach-rating'] = 1
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.LowCoachRatingFromStudent
@@ -83,10 +84,13 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
   test('Low session rating from student (tutoring)', () => {
     const session = startSession(student)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
+      studentTutoringFeedback: {
+        'session-goal': 1,
+      },
     }) as FeedbackVersionTwo
 
-    feedback.studentTutoringFeedback['session-goal'] = 1
+    feedback.studentTutoringFeedback!['session-goal'] = 1
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.LowSessionRatingFromStudent
@@ -96,10 +100,10 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
   test('Low coach rating from student (CC)', () => {
     const session = startSession(student)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    feedback.studentCounselingFeedback['coach-ratings']['coach-friendly'] = 1
+    feedback.studentCounselingFeedback!['coach-ratings']!['coach-friendly'] = 1
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.LowCoachRatingFromStudent
@@ -109,10 +113,10 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
   test('Low session rating from student (CC)', () => {
     const session = startSession(student)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    feedback.studentCounselingFeedback['rate-session'].rating = 1
+    feedback.studentCounselingFeedback!['rate-session']!.rating = 1
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.LowSessionRatingFromStudent
@@ -123,10 +127,10 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     const session = startSession(student)
     joinSession(session, volunteer)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    feedback.volunteerFeedback['session-enjoyable'] = 1
+    feedback.volunteerFeedback!['session-enjoyable'] = 1
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.LowSessionRatingFromCoach
@@ -146,10 +150,10 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     const session = startSession(student)
     joinSession(session, volunteer)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    feedback.volunteerFeedback['session-obstacles'] = [7]
+    feedback.volunteerFeedback!['session-obstacles'] = [7]
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.RudeOrInappropriate
@@ -160,10 +164,10 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     const session = startSession(student)
     joinSession(session, volunteer)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    feedback.volunteerFeedback['session-obstacles'] = [8]
+    feedback.volunteerFeedback!['session-obstacles'] = [8]
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.OnlyLookingForAnswers
@@ -173,10 +177,10 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
   test('Comment from student', () => {
     const session = startSession(student)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    feedback.studentTutoringFeedback['other-feedback'] = 'hello'
+    feedback.studentTutoringFeedback!['other-feedback'] = 'hello'
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.CommentFromStudent
@@ -187,10 +191,10 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     const session = startSession(student)
     joinSession(session, volunteer)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    feedback.volunteerFeedback['other-feedback'] = 'hello'
+    feedback.volunteerFeedback!['other-feedback'] = 'hello'
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.CommentFromVolunteer
@@ -208,10 +212,10 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
   test('Has had technical issues', () => {
     const session = startSession(student)
     const feedback = buildFeedback({
-      versionNumber: FEEDBACK_VERSIONS.TWO
+      versionNumber: FEEDBACK_VERSIONS.TWO,
     }) as FeedbackVersionTwo
 
-    feedback.volunteerFeedback['session-obstacles'] = [1]
+    feedback.volunteerFeedback!['session-obstacles'] = [1]
 
     const uvd = buildUpdateValueData(session, feedback)
     const processor = METRIC_PROCESSORS.HasHadTechnicalIssues
@@ -243,11 +247,11 @@ describe('Counter metrics have correct "updateQuery" functions', () => {
     const payload = {
       session,
       studentUSM: newUSM,
-      value: finalValue
+      value: finalValue,
     } as ProcessorData<Counter>
 
     expect(processor.computeStudentUpdateQuery(payload)).toEqual({
-      'counters.absentStudent': updateValue + initialValue
+      'counters.absentStudent': updateValue + initialValue,
     })
   })
 
@@ -259,11 +263,11 @@ describe('Counter metrics have correct "updateQuery" functions', () => {
       session,
       studentUSM: newUSM,
       volunteerUSM: otherUSM,
-      value: finalValue
+      value: finalValue,
     } as ProcessorData<Counter>
 
     expect(processor.computeVolunteerUpdateQuery(payload)).toEqual({
-      'counters.absentStudent': updateValue + initialValue
+      'counters.absentStudent': updateValue + initialValue,
     })
   })
 })
@@ -283,7 +287,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
         session,
         studentUSM,
         volunteerUSM,
-        value: 1
+        value: 1,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.AbsentStudent
@@ -294,7 +298,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
           sessionSubtopic: session.subTopic,
           sessionDate: session.createdAt,
           studentId: session.student,
-          volunteerId: session.volunteer
+          volunteerId: session.volunteer,
         }
       )
       expect(result).toHaveLength(1)
@@ -307,7 +311,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
         session,
         studentUSM,
         volunteerUSM,
-        value: 1
+        value: 1,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.AbsentStudent
@@ -318,7 +322,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
           sessionSubtopic: session.subTopic,
           sessionDate: session.createdAt,
           studentId: session.student,
-          volunteerId: session.volunteer
+          volunteerId: session.volunteer,
         }
       )
       expect(result).toHaveLength(1)
@@ -331,7 +335,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
         session,
         studentUSM,
         volunteerUSM,
-        value: 1
+        value: 1,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.AbsentStudent
@@ -349,7 +353,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
         session,
         studentUSM,
         volunteerUSM,
-        value: 1
+        value: 1,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.AbsentVolunteer
@@ -360,7 +364,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
           sessionSubtopic: session.subTopic,
           sessionDate: session.createdAt,
           studentId: session.student,
-          volunteerId: session.volunteer
+          volunteerId: session.volunteer,
         }
       )
       expect(result).toHaveLength(1)
@@ -373,7 +377,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
         session,
         studentUSM,
         volunteerUSM,
-        value: 1
+        value: 1,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.AbsentVolunteer
@@ -384,7 +388,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
           sessionSubtopic: session.subTopic,
           sessionDate: session.createdAt,
           studentId: session.student,
-          volunteerId: session.volunteer
+          volunteerId: session.volunteer,
         }
       )
       expect(result).toHaveLength(1)
@@ -397,7 +401,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
         session,
         studentUSM,
         volunteerUSM,
-        value: 1
+        value: 1,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.AbsentVolunteer
@@ -413,7 +417,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
       const payload = {
         session,
         studentUSM,
-        value: 1
+        value: 1,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.HasBeenUnmatched
@@ -424,7 +428,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
           sessionSubtopic: session.subTopic,
           sessionDate: session.createdAt,
           studentId: session.student,
-          volunteerId: session.volunteer
+          volunteerId: session.volunteer,
         }
       )
       expect(result).toHaveLength(1)
@@ -435,7 +439,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
       const payload = {
         session,
         studentUSM,
-        value: 1
+        value: 1,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.HasBeenUnmatched
@@ -453,7 +457,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
         session,
         studentUSM,
         volunteerUSM,
-        value: 1
+        value: 1,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.HasHadTechnicalIssues
@@ -462,7 +466,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
         Jobs.EmailTechIssueApology,
         {
           studentId: session.student,
-          volunteerId: session.volunteer
+          volunteerId: session.volunteer,
         }
       )
       expect(result).toHaveLength(1)
@@ -475,7 +479,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
         session,
         studentUSM,
         volunteerUSM,
-        value: 0
+        value: 0,
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.HasHadTechnicalIssues
@@ -493,7 +497,7 @@ describe('Metrics have correct "triggerActions" functions', () => {
     METRIC_PROCESSORS.RudeOrInappropriate,
     METRIC_PROCESSORS.OnlyLookingForAnswers,
     METRIC_PROCESSORS.CommentFromStudent,
-    METRIC_PROCESSORS.CommentFromVolunteer
+    METRIC_PROCESSORS.CommentFromVolunteer,
   ]
   for (const processor of processorsWithNoTriggerActions) {
     test(`Should return an empty list of actions for ${processor.constructor.name}`, () => {

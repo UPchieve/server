@@ -1,14 +1,19 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import emailNiceToMeetYou from '../../worker/jobs/emailNiceToMeetYou'
 import { Jobs } from '../../worker/jobs'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { log } from '../../worker/logger'
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 
 jest.setTimeout(1000 * 15)
+
+// TODO: refactor test to mock out DB calls
+
+const mockedMailService = mocked(MailService, true)
 
 const oneHour = 1000 * 60 * 60 * 1
 const oneDay = oneHour * 24 * 1
@@ -18,7 +23,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -38,15 +43,15 @@ describe('Email nice to meet you to volunteers', () => {
   test('Should only send emails to volunteers created a day ago', async () => {
     const volunteerOne = buildVolunteer()
     const volunteerTwo = buildVolunteer({
-      createdAt: new Date(Date.now() - oneDay)
+      createdAt: new Date(Date.now() - oneDay),
     })
     const volunteerThree = buildVolunteer({
-      createdAt: new Date(Date.now() - oneDay * 3)
+      createdAt: new Date(Date.now() - oneDay * 3),
     })
     await Promise.all([
       insertVolunteer(volunteerOne),
       insertVolunteer(volunteerTwo),
-      insertVolunteer(volunteerThree)
+      insertVolunteer(volunteerThree),
     ])
     await emailNiceToMeetYou()
 
@@ -62,16 +67,18 @@ describe('Email nice to meet you to volunteers', () => {
 
   test('Should throw error when sending email fails', async () => {
     const volunteer = buildVolunteer({
-      createdAt: new Date(Date.now() - oneDay)
+      createdAt: new Date(Date.now() - oneDay),
     })
     await insertVolunteer(volunteer)
 
     const errorMessage = 'Unable to send'
     const volunteerError = `volunteer ${volunteer._id}: ${errorMessage}`
-    MailService.sendNiceToMeetYou = jest.fn(() => Promise.reject(errorMessage))
+    mockedMailService.sendNiceToMeetYou.mockRejectedValueOnce(errorMessage)
 
     await expect(emailNiceToMeetYou()).rejects.toEqual(
-      Error(`Failed to send ${Jobs.EmailNiceToMeetYou} to: ${volunteerError}`)
+      new Error(
+        `Failed to send ${Jobs.EmailNiceToMeetYou} to: ${volunteerError}`
+      )
     )
 
     const expectedEmailsSent = 0

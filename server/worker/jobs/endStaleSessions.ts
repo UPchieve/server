@@ -5,13 +5,13 @@ import { Jobs } from '.'
 export default async (): Promise<void> => {
   const staleSessions = await SessionService.getStaleSessions()
   let totalEnded = 0
-  const errors = []
+  const errors: string[] = []
   for (const session of staleSessions) {
     try {
       await SessionService.endSession({
         sessionId: session._id,
         isAdmin: true,
-        endedBy: null
+        endedBy: null,
       })
       totalEnded += 1
     } catch (error) {

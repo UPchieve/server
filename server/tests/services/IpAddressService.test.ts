@@ -11,12 +11,11 @@ beforeEach(async () => {
 })
 
 describe('checkIpAddress', () => {
-  function mockIpWhoIsReturnValue(countryCode) {
+  function mockIpWhoIsReturnValue(countryCode: string) {
     return {
       data: {
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        country_code: countryCode
-      }
+        country_code: countryCode,
+      },
     }
   }
 

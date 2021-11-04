@@ -14,40 +14,41 @@ const messageSchema = new Schema(
   {
     user: {
       type: Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
     },
     contents: String,
     createdAt: {
       type: Date,
-      default: Date.now
-    }
+      default: Date.now,
+    },
   },
   {
     toJSON: {
-      virtuals: true
+      virtuals: true,
     },
 
     toObject: {
-      virtuals: true
-    }
+      virtuals: true,
+    },
   }
 )
 
-messageSchema.virtual('userId').get(function() {
-  return this.user._id || this.user
+messageSchema.virtual('userId').get(function(this: MessageDocument) {
+  return this.user instanceof Types.ObjectId
+    ? this.user
+    : (this.user as User)._id
 })
 
-messageSchema.virtual('name').get(function() {
+messageSchema.virtual('name').get(function(this: MessageDocument) {
   // only works if user is populated
-  return this.user.firstname
+  if ('firstname' in this.user) return this.user.firstname
 })
 
-messageSchema.virtual('isVolunteer').get(function() {
+messageSchema.virtual('isVolunteer').get(function(this: MessageDocument) {
   // only works if user is populated
-  return this.user.isVolunteer
+  if ('isVolunteer' in this.user) return this.user.isVolunteer
 })
 
 const MessageModel = model<MessageDocument>('Message', messageSchema)
 
-module.exports = MessageModel
 export default MessageModel

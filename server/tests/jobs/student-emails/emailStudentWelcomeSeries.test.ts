@@ -1,18 +1,21 @@
+import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { resetDb, insertStudent } from '../../db-utils'
 import emailStudentWelcomeSeries from '../../../worker/jobs/student-emails/emailStudentWelcomeSeries'
-import logger from '../../../logger'
+import { log as logger } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
-import MailService from '../../../services/MailService'
+import * as MailService from '../../../services/MailService'
 
 jest.mock('../../../services/MailService')
+
+const mockedMailService = mocked(MailService, true)
 
 // db connection
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -29,7 +32,7 @@ describe('Student welcome email series', () => {
     Jobs.EmailStudentUseCases,
     Jobs.EmailMeetOurVolunteers,
     Jobs.EmailIndependentLearning,
-    Jobs.EmailStudentGoalSetting
+    Jobs.EmailStudentGoalSetting,
   ]
 
   beforeEach(async () => {
@@ -40,16 +43,16 @@ describe('Student welcome email series', () => {
     const student = await insertStudent()
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const job: any = {
         name: currentJob,
         data: {
-          studentId: student._id
-        }
+          studentId: student._id,
+        },
       }
 
       await emailStudentWelcomeSeries(job)
-      expect(logger.info).toHaveBeenCalledWith(
+      expect(logger).toHaveBeenCalledWith(
         `Emailed ${currentJob} to student ${student._id}`
       )
     }
@@ -59,19 +62,21 @@ describe('Student welcome email series', () => {
     const student = await insertStudent()
     const errorMessage = 'Error sending email'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    MailService.sendStudentUseCases = rejectionFn
-    MailService.sendMeetOurVolunteers = rejectionFn
-    MailService.sendIndependentLearning = rejectionFn
-    MailService.sendStudentGoalSetting = rejectionFn
+    mockedMailService.sendStudentUseCases.mockImplementationOnce(rejectionFn)
+    mockedMailService.sendMeetOurVolunteers.mockImplementationOnce(rejectionFn)
+    mockedMailService.sendIndependentLearning.mockImplementationOnce(
+      rejectionFn
+    )
+    mockedMailService.sendStudentGoalSetting.mockImplementationOnce(rejectionFn)
 
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const job: any = {
         name: currentJob,
         data: {
-          studentId: student._id
-        }
+          studentId: student._id,
+        },
       }
 
       await expect(emailStudentWelcomeSeries(job)).rejects.toEqual(
@@ -86,17 +91,17 @@ describe('Student welcome email series', () => {
     const student = await insertStudent({ isBanned: true })
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const job: any = {
         name: currentJob,
         data: {
-          studentId: student._id
-        }
+          studentId: student._id,
+        },
       }
 
       await emailStudentWelcomeSeries(job)
-      expect(logger.info).not.toHaveBeenCalled()
-      expect(logger.error).not.toHaveBeenCalled()
+      expect(logger).not.toHaveBeenCalled()
+      expect(logger).not.toHaveBeenCalled()
     }
   })
 })

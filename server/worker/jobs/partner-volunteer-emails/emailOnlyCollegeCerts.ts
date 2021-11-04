@@ -1,15 +1,9 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
-import {
-  MATH_SUBJECTS,
-  SCIENCE_SUBJECTS,
-  SAT_SUBJECTS
-} from '../../../constants'
-import logger from '../../../logger'
-import MailService from '../../../services/MailService'
-import { getNotifications } from '../../../services/NotificationService'
-import { getVolunteer } from '../../../services/UserService'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
+import { log } from '../../logger'
+import * as MailService from '../../../services/MailService'
+import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
+import { getPartnerVolunteerForCollege } from '../../../models/Volunteer/queries'
+import { asObjectId } from '../../../utils/type-utils'
 
 /**
  *
@@ -21,7 +15,7 @@ import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
  */
 
 interface EmailOnlyCollegeCertsJobData {
-  volunteerId: string | Types.ObjectId
+  volunteerId: string
 }
 
 export default async (
@@ -29,38 +23,19 @@ export default async (
 ): Promise<void> => {
   const {
     data: { volunteerId },
-    name: currentJob
+    name: currentJob,
   } = job
-  const nonCollegeSubjects = [
-    ...Object.values(MATH_SUBJECTS),
-    ...Object.values(SCIENCE_SUBJECTS),
-    ...Object.values(SAT_SUBJECTS)
-  ]
-  const volunteer = await getVolunteer(
-    {
-      _id: volunteerId,
-      isOnboarded: true,
-      subjects: { $nin: nonCollegeSubjects },
-      volunteerPartnerOrg: { $exists: true },
-      ...EMAIL_RECIPIENT
-    },
-    {
-      _id: 1,
-      email: 1,
-      firstname: 1,
-      availability: 1
-    }
-  )
+
+  const volunteer = await getPartnerVolunteerForCollege(asObjectId(volunteerId))
 
   if (volunteer) {
-    const { _id, firstname: firstName, email } = volunteer
-    const textNotifications = await getNotifications({ volunteer: _id })
+    const { _id, firstname, email } = volunteer
+    const textNotifications = await getNotificationsByVolunteerId(_id)
 
     if (textNotifications.length < 2) {
       try {
-        const contactInfo = { firstName, email }
-        await MailService.sendPartnerVolunteerOnlyCollegeCerts(contactInfo)
-        logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
+        await MailService.sendPartnerVolunteerOnlyCollegeCerts(email, firstname)
+        log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(
           `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`
