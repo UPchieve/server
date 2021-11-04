@@ -58,6 +58,7 @@
     "email": "volunteer1@upchieve.org",
     "firstname": "Volunteer",
     "isAdmin": true,
+    "hoursTutored": 7,
     "isVolunteer": true,
     "isOnboarded": true,
     "isApproved": true,
