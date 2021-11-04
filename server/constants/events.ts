@@ -20,7 +20,3 @@ export enum USM_EVENTS {
   FEEDBACK_PROCESSORS_READY = 'feedback-processors-ready',
   REPORT_PROCESSORS_READY = 'report-processors-ready',
 }
-
-export enum STUDENT_EVENTS {
-  STUDENT_CREATED = 'student-created',
-}
