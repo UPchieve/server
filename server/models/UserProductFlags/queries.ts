@@ -74,10 +74,10 @@ export async function getPublicUPFByUserId(
   try {
     const upf = await UserProductFlagsModel.findOne(
       {
-        user: userId
+        user: userId,
       },
       {
-        gatesQualified: 1
+        gatesQualified: 1,
       }
     )
       .lean()
