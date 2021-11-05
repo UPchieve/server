@@ -7,22 +7,33 @@ import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { ISOString } from '../../../constants'
 import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
-import { asObjectId } from '../../../utils/type-utils'
+import { asFactory, asObjectId, asString } from '../../../utils/type-utils'
+import { Types } from 'mongoose'
 
-interface VolunteerSessionTriggers {
-  volunteerId: string
-  studentId: string
+interface VolunteerSessionActionsJobData {
+  volunteerId: Types.ObjectId
+  studentId: Types.ObjectId
   sessionSubtopic: string
   sessionDate: ISOString
 }
 
-export default async (job: Job<VolunteerSessionTriggers>): Promise<void> => {
+const asVolunteerActionsData = asFactory<VolunteerSessionActionsJobData>({
+  studentId: asObjectId,
+  volunteerId: asObjectId,
+  sessionSubtopic: asString,
+  sessionDate: asString,
+})
+
+export default async (
+  job: Job<VolunteerSessionActionsJobData>
+): Promise<void> => {
+  const { data, name: currentJob } = job
   const {
-    data: { sessionSubtopic, sessionDate },
-    name: currentJob,
-  } = job
-  const studentId = asObjectId(job.data.studentId)
-  const volunteerId = asObjectId(job.data.volunteerId)
+    studentId,
+    volunteerId,
+    sessionSubtopic,
+    sessionDate,
+  } = asVolunteerActionsData(data)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
   const student = await getStudentContactInfoById(studentId)
 

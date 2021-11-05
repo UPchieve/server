@@ -34,9 +34,7 @@ import * as MailService from './MailService'
 export function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
   if (user.isVolunteer && (user as Volunteer).isApproved) {
-    ;(user as Volunteer).hoursTutored = new Types.Decimal128(
-      Buffer.from((user as Volunteer).hoursTutored.toString())
-    )
+    ;(user as Volunteer).hoursTutored = Number((user as Volunteer).hoursTutored)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
 
