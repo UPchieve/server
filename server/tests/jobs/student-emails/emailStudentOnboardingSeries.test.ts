@@ -62,12 +62,16 @@ describe('Student onboarding email series', () => {
     const student = await insertStudent()
     const errorMessage = 'Error sending email'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    mockedMailService.sendStudentOnboardingHowItWorks.mockImplementationOnce(rejectionFn)
+    mockedMailService.sendStudentOnboardingHowItWorks.mockImplementationOnce(
+      rejectionFn
+    )
     mockedMailService.sendMeetOurVolunteers.mockImplementationOnce(rejectionFn)
     mockedMailService.sendStudentOnboardingMission.mockImplementationOnce(
       rejectionFn
     )
-    mockedMailService.sendStudentOnboardingSurvey.mockImplementationOnce(rejectionFn)
+    mockedMailService.sendStudentOnboardingSurvey.mockImplementationOnce(
+      rejectionFn
+    )
 
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
