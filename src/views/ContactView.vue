@@ -14,9 +14,10 @@
       </div>
 
       <div class="contact__description">
-        Fill out this form and we'll get back to you as soon as possible!
-        Alternatively, you can always email us directly at
-        <a href="mailto:support@upchieve.org">support@upchieve.org</a>.
+        Our <a href="https://upchieve.org/faqs" target="_blank" rel="noopener noreferrer">FAQ page</a> is the fastest way 
+        to find answers. Or you can fill out this form and we'll get back to 
+        you as soon as possible! Alternatively, you can always email us directly 
+        at <a href="mailto:support@upchieve.org">support@upchieve.org</a>.
       </div>
 
       <div class="contact__description" v-if="sendState === sendStates.SENT">
