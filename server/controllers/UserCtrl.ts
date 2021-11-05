@@ -10,6 +10,8 @@ import { createUPFByUserId } from '../models/UserProductFlags/queries'
 import { AccountActionCreator } from './UserActionCtrl'
 import { createSnapshotByVolunteerId } from '../models/Availability/queries'
 import { hashPassword } from '../utils/auth-utils'
+import { emitter } from '../services/EventsService'
+import { STUDENT_EVENTS } from '../constants'
 
 function generateReferralCode(userId: Types.ObjectId) {
   return base64url(Buffer.from(userId.toString(), 'hex'))
@@ -65,6 +67,8 @@ export async function createStudent(
   } catch (err) {
     captureException(err)
   }
+
+  emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, student._id)
 
   return student.toObject()
 }
