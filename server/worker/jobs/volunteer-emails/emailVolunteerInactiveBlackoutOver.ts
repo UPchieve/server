@@ -1,56 +1,48 @@
 import moment from 'moment'
 import { Jobs } from '../index'
-import { updateAvailabilitySnapshot } from '../../../services/AvailabilityService'
-import MailService from '../../../services/MailService'
-import {
-  getVolunteers,
-  updateVolunteer
-} from '../../../services/VolunteerService'
+import { updateSnapshotOnCallByVolunteerId } from '../../../models/Availability/queries'
+import * as MailService from '../../../services/MailService'
 import createNewAvailability from '../../../utils/create-new-availability'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
-
-export interface ContactInfo {
-  _id: string
-  firstname: string
-  email: string
-}
+import {
+  VolunteerContactInfo,
+  getVolunteersForBlackoutOver,
+  updateVolunteerInactiveAvailability,
+} from '../../../models/Volunteer/queries'
 
 export async function processVolunteer(
-  volunteer: ContactInfo
+  volunteer: VolunteerContactInfo
 ): Promise<string[]> {
-  const { email, firstname: firstName, _id } = volunteer
+  const { email, firstname, _id } = volunteer
 
   const errors: string[] = []
   try {
-    await MailService.sendVolunteerInactiveBlackoutOver({ email, firstName })
+    await MailService.sendVolunteerInactiveBlackoutOver(email, firstname)
   } catch (error) {
     errors.push(
-      `Failed to send blackout over email to volunteer ${_id}: ${error.message}`
+      `Failed to send blackout over email to volunteer ${_id}: ${
+        (error as Error).message
+      }`
     )
   }
 
   const clearedAvailability = createNewAvailability()
   try {
-    await updateVolunteer(
-      { _id },
-      {
-        availability: clearedAvailability,
-        sentInactiveNinetyDayEmail: true
-      }
-    )
+    await updateVolunteerInactiveAvailability(_id, clearedAvailability)
   } catch (error) {
     errors.push(
-      `Failed to update availability for volunteer ${_id}: ${error.message}`
+      `Failed to update availability for volunteer ${_id}: ${
+        (error as Error).message
+      }`
     )
   }
 
   try {
-    await updateAvailabilitySnapshot(_id, {
-      onCallAvailability: clearedAvailability
-    })
+    await updateSnapshotOnCallByVolunteerId(_id, clearedAvailability)
   } catch (error) {
     errors.push(
-      `Failed to update snapshot for volunteer ${_id}: ${error.message}`
+      `Failed to update snapshot for volunteer ${_id}: ${
+        (error as Error).message
+      }`
     )
   }
   return errors
@@ -63,20 +55,7 @@ export default async (): Promise<void> => {
     .startOf('day')
     .toDate()
 
-  const volunteers = ((await getVolunteers(
-    {
-      ...EMAIL_RECIPIENT,
-      sentInactiveNinetyDayEmail: false,
-      lastActivityAt: {
-        $lt: ninetyDaysAgoStartOfDay
-      }
-    },
-    {
-      _id: 1,
-      firstname: 1,
-      email: 1
-    }
-  )) as unknown) as ContactInfo[]
+  const volunteers = await getVolunteersForBlackoutOver(ninetyDaysAgoStartOfDay)
 
   if (volunteers.length) {
     const errors: string[] = []

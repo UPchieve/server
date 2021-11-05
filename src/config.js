@@ -24,9 +24,8 @@ if (configElement !== null) {
   config.customVolunteerPartnerOrgs =
     process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
 }
-const customVolunteerPartnerOrgList = config.customVolunteerPartnerOrgs.split(
-  ','
-)
-config.customVolunteerPartnerOrgs = customVolunteerPartnerOrgList
+
+const customVolunteerPartnerOrgs = config.customVolunteerPartnerOrgs.split(',')
+config.customVolunteerPartnerOrgs = customVolunteerPartnerOrgs
 
 export default config

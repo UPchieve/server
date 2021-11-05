@@ -1,12 +1,15 @@
-import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
-
+import { mocked } from 'ts-jest/utils'
 import { StudentDocument } from '../../models/Student'
 import { VolunteerDocument } from '../../models/Volunteer'
-import * as AuthService from '../../services/AuthService'
+import {
+  StudentPartnerManifest,
+  VolunteerPartnerManifest,
+} from '../../partnerManifests'
 import * as AuthRouter from '../../router/auth'
-import { mockApp, mockPassportMiddleware } from '../mock-app'
+import * as AuthService from '../../services/AuthService'
 import { buildStudent } from '../generate'
+import { mockApp, mockPassportMiddleware } from '../mock-app'
 
 jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService, true)
@@ -17,8 +20,8 @@ jest.mock('../../utils/auth-utils', () => ({
     setupPassport: jest.fn(),
     isAdmin: jest.fn((req, res, next) => {
       return next()
-    })
-  }
+    }),
+  },
 }))
 
 const US_IP_ADDRESS = '161.185.160.93'
@@ -70,18 +73,16 @@ describe('Test router logic', () => {
   const PARTNER_VOLUNTEER = '/partner/volunteer'
   test(`Route ${PARTNER_VOLUNTEER} valid payload`, async () => {
     const payload = { partnerId: 'test' }
-    mockedAuthService.lookupPartnerVolunteer.mockImplementationOnce(
-      async () => {
-        return payload.partnerId
-      }
-    )
+    mockedAuthService.lookupPartnerVolunteer.mockResolvedValueOnce({
+      name: payload.partnerId,
+    } as VolunteerPartnerManifest)
     const response = await sendGetQuery(PARTNER_VOLUNTEER, payload)
 
     const {
-      body: { volunteerPartner }
+      body: { volunteerPartner },
     } = response
     expect(AuthService.lookupPartnerVolunteer).toHaveBeenCalledTimes(1)
-    expect(volunteerPartner).toEqual(payload.partnerId)
+    expect(volunteerPartner.name).toEqual(payload.partnerId)
   })
 
   test(`Route ${PARTNER_VOLUNTEER} invalid payload`, async () => {
@@ -89,7 +90,7 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(PARTNER_VOLUNTEER, payload)
 
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(AuthService.lookupPartnerVolunteer).toHaveBeenCalledTimes(0)
     expect(err).toEqual('Missing volunteerPartnerId query string')
@@ -98,16 +99,16 @@ describe('Test router logic', () => {
   const PARTNER_STUDENT = '/partner/student'
   test(`Route ${PARTNER_STUDENT} valid payload`, async () => {
     const payload = { partnerId: 'test' }
-    mockedAuthService.lookupPartnerStudent.mockImplementationOnce(async () => {
-      return payload.partnerId
-    })
+    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce({
+      name: payload.partnerId,
+    } as StudentPartnerManifest)
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
 
     const {
-      body: { studentPartner }
+      body: { studentPartner },
     } = response
     expect(AuthService.lookupPartnerStudent).toHaveBeenCalledTimes(1)
-    expect(studentPartner).toEqual(payload.partnerId)
+    expect(studentPartner.name).toEqual(payload.partnerId)
   })
 
   test(`Route ${PARTNER_STUDENT} invalid payload`, async () => {
@@ -115,7 +116,7 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
 
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(AuthService.lookupPartnerStudent).toHaveBeenCalledTimes(0)
     expect(err).toEqual('Missing studentPartnerId query string')
@@ -124,15 +125,13 @@ describe('Test router logic', () => {
   const STUDENT_CODE = '/partner/student/code'
   test(`Route ${STUDENT_CODE} valid payload`, async () => {
     const payload = { partnerSignupCode: 'test' }
-    mockedAuthService.lookupPartnerStudentCode.mockImplementationOnce(
-      async () => {
-        return payload.partnerSignupCode
-      }
+    mockedAuthService.lookupPartnerStudentCode.mockResolvedValueOnce(
+      payload.partnerSignupCode
     )
     const response = await sendGetQuery(STUDENT_CODE, payload)
 
     const {
-      body: { studentPartnerKey }
+      body: { studentPartnerKey },
     } = response
     expect(AuthService.lookupPartnerStudentCode).toHaveBeenCalledTimes(1)
     expect(studentPartnerKey).toEqual(payload.partnerSignupCode)
@@ -143,7 +142,7 @@ describe('Test router logic', () => {
     const response = await sendGetQuery(STUDENT_CODE, payload)
 
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(AuthService.lookupPartnerStudentCode).toHaveBeenCalledTimes(0)
     expect(err).toEqual('Missing partnerSignupCode query string')
@@ -152,13 +151,10 @@ describe('Test router logic', () => {
   const SEND_RESET = '/reset/send'
   test(`Route ${SEND_RESET} valid payload`, async () => {
     const payload = { email: 'test@email.com' }
-    mockedAuthService.sendReset.mockImplementationOnce(async () => {
-      /* do nothing */
-    })
     const response = await sendPost(SEND_RESET, payload)
 
     const {
-      body: { msg }
+      body: { msg },
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(1)
     expect(mockDestroy).toHaveBeenCalledTimes(1)
@@ -174,11 +170,11 @@ describe('Test router logic', () => {
     const response = await sendPost(SEND_RESET, payload)
 
     const {
-      body: { err }
+      body: { err },
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(0)
     expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(0)
-    expect(err).toEqual('Missing email body string')
+    expect(err).toContain('is not a string')
   })
 })
 
@@ -189,11 +185,11 @@ describe('Test simple routes hit AuthService', () => {
 
   test('Route /register/checkcred', async () => {
     const payload = {}
-    mockedAuthService.checkCredential.mockImplementationOnce(async () => true)
+    mockedAuthService.checkCredential.mockResolvedValueOnce(true)
     const response = await sendPost('/register/checkcred', payload)
 
     const {
-      body: { checked }
+      body: { checked },
     } = response
     expect(AuthService.checkCredential).toHaveBeenCalledTimes(1)
     expect(checked).toBeTruthy()
@@ -202,13 +198,11 @@ describe('Test simple routes hit AuthService', () => {
   test('Route /register/student/open', async () => {
     const payload = {}
     const result = { _id: '123' } as StudentDocument
-    mockedAuthService.registerOpenStudent.mockImplementationOnce(
-      async () => result
-    )
+    mockedAuthService.registerOpenStudent.mockResolvedValueOnce(result)
     const response = await sendPost('/register/student/open', payload)
 
     const {
-      body: { user }
+      body: { user },
     } = response
     expect(AuthService.registerOpenStudent).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
@@ -218,13 +212,11 @@ describe('Test simple routes hit AuthService', () => {
   test('Route /register/student/partner', async () => {
     const payload = {}
     const result = { _id: '123' } as StudentDocument
-    mockedAuthService.registerPartnerStudent.mockImplementationOnce(
-      async () => result
-    )
+    mockedAuthService.registerPartnerStudent.mockResolvedValueOnce(result)
     const response = await sendPost('/register/student/partner', payload)
 
     const {
-      body: { user }
+      body: { user },
     } = response
     expect(AuthService.registerPartnerStudent).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
@@ -233,13 +225,11 @@ describe('Test simple routes hit AuthService', () => {
 
   test('Route /register/volunteer/open', async () => {
     const payload = { _id: '123' } as VolunteerDocument
-    mockedAuthService.registerVolunteer.mockImplementationOnce(
-      async () => payload
-    )
+    mockedAuthService.registerVolunteer.mockResolvedValueOnce(payload)
     const response = await sendPost('/register/volunteer/open', {})
 
     const {
-      body: { user }
+      body: { user },
     } = response
     expect(AuthService.registerVolunteer).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
@@ -248,13 +238,11 @@ describe('Test simple routes hit AuthService', () => {
 
   test('Route /register/volunteer/partner', async () => {
     const payload = { _id: '123' } as VolunteerDocument
-    mockedAuthService.registerPartnerVolunteer.mockImplementationOnce(
-      async () => payload
-    )
+    mockedAuthService.registerPartnerVolunteer.mockResolvedValueOnce(payload)
     const response = await sendPost('/register/volunteer/partner', {})
 
     const {
-      body: { user }
+      body: { user },
     } = response
     expect(AuthService.registerPartnerVolunteer).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
@@ -262,37 +250,30 @@ describe('Test simple routes hit AuthService', () => {
   })
 
   test('Route /partner/student-partners', async () => {
-    const payload = []
-    mockedAuthService.lookupStudentPartners.mockImplementationOnce(
-      async () => payload
-    )
+    const payload: any[] = []
+    mockedAuthService.lookupStudentPartners.mockResolvedValueOnce(payload)
     const response = await sendGet('/partner/student-partners', {})
 
     const {
-      body: { partnerOrgs }
+      body: { partnerOrgs },
     } = response
     expect(AuthService.lookupStudentPartners).toHaveBeenCalledTimes(1)
     expect(partnerOrgs).toEqual(payload)
   })
 
   test('Route /partner/volunteer-partners', async () => {
-    const payload = []
-    mockedAuthService.lookupVolunteerPartners.mockImplementationOnce(
-      async () => payload
-    )
+    const payload: any[] = []
+    mockedAuthService.lookupVolunteerPartners.mockResolvedValueOnce(payload)
     const response = await sendGet('/partner/volunteer-partners', {})
 
     const {
-      body: { partnerOrgs }
+      body: { partnerOrgs },
     } = response
     expect(AuthService.lookupVolunteerPartners).toHaveBeenCalledTimes(1)
     expect(partnerOrgs).toEqual(payload)
   })
 
   test('Route /reset/confirm', async () => {
-    mockedAuthService.confirmReset.mockImplementationOnce(async () => {
-      /* do nothing */
-    })
     const response = await sendPost('/reset/confirm', {})
 
     expect(response.status).toEqual(200)

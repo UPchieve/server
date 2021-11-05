@@ -1,4 +1,5 @@
-import Merkury from 'merkury'
+// TODO: remove merkury
+const Merkury = require('merkury')
 import { v4 as uuidv4 } from 'uuid'
 import config from '../config'
 
@@ -13,12 +14,12 @@ let redisConfig: RedisConfig = {
   host: config.redisHost,
   port: config.redisPort,
   password: config.redisPassword,
-  tls: {}
+  tls: {},
 }
 if (config.NODE_ENV === 'dev')
   redisConfig = {
     host: config.redisHost,
-    port: config.redisPort
+    port: config.redisPort,
   }
 
 export const emitter = new Merkury(uuidv4(), redisConfig, true)

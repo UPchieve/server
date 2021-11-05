@@ -2,19 +2,20 @@ import mongoose from 'mongoose'
 import { createVolunteer } from '../../controllers/UserCtrl'
 import { getVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
-import { getAvailability } from '../../services/AvailabilityService'
+import { getSnapshotByVolunteerId } from '../../models/Availability/queries'
 import { createContact } from '../../services/MailService'
 import { AccountActionCreator } from '../../controllers/UserActionCtrl'
-import { createByUserId } from '../../models/UserSessionMetrics'
+import { createUSMByUserId } from '../../models/UserSessionMetrics/queries'
 jest.mock('../../services/MailService')
 jest.mock('../../controllers/UserActionCtrl')
 jest.mock('../../models/UserSessionMetrics')
+jest.mock('../../models/UserSessionMetrics/queries')
 
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -31,15 +32,13 @@ describe('createVolunteer', () => {
   test('Should create a volunteer and availability', async () => {
     const newVolunteer = buildVolunteer()
     const createdAccountMockMethod = (AccountActionCreator.prototype.createdAccount = jest.fn())
-    await createVolunteer(newVolunteer)
+    await createVolunteer(newVolunteer, '0.0.0.0')
     const einstein = await getVolunteer({ _id: newVolunteer._id })
-    const newAvailability = await getAvailability({
-      volunteerId: einstein._id
-    })
+    const newAvailability = await getSnapshotByVolunteerId(einstein._id!)
 
     expect(einstein._id).toEqual(newVolunteer._id)
-    expect(newAvailability.volunteerId).toEqual(newVolunteer._id)
-    expect((createByUserId as jest.Mock).mock.calls.length).toBe(1)
+    expect(newAvailability!.volunteerId).toEqual(newVolunteer._id)
+    expect((createUSMByUserId as jest.Mock).mock.calls.length).toBe(1)
     expect((createContact as jest.Mock).mock.calls.length).toBe(1)
     expect((AccountActionCreator as jest.Mock).mock.calls.length).toBe(1)
     expect(createdAccountMockMethod).toHaveBeenCalledTimes(1)

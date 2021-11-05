@@ -3,7 +3,8 @@ import * as db from '../db'
 import SessionModel from '../models/Session'
 import { SUBJECT_TYPES } from '../constants'
 import util from 'util'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 const setImmediatePromise = util.promisify(setImmediate)
 
 const upgrade = async (): Promise<void> => {

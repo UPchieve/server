@@ -1,34 +1,35 @@
 import { mocked } from 'ts-jest/utils'
 import { Jobs } from '../../worker/jobs'
-import MailService from '../../services/MailService'
-import UserService from '../../services/UserService'
-import * as StudentService from '../../services/StudentService'
+import * as MailService from '../../services/MailService'
+import * as VolunteerRepo from '../../models/Volunteer/queries'
+import * as StudentRepo from '../../models/Student/queries'
 import { buildStudent, buildVolunteer } from '../generate'
 import emailTechIssueApology from '../../worker/jobs/emailTechIssueApology'
+import { Student } from '../../models/Student'
+import { Volunteer } from '../../models/Volunteer'
 
 jest.mock('../../services/MailService')
-jest.mock('../../services/UserService')
-jest.mock('../../services/StudentService')
+jest.mock('../../models/Volunteer/queries')
+jest.mock('../../models/Student/queries')
 
-const mockedUserService = mocked(UserService, true)
-const mockedStudentService = mocked(StudentService, true)
+const mockedVolunteerRepo = mocked(VolunteerRepo, true)
+const mockedStudentRepo = mocked(StudentRepo, true)
 const mockedMailService = mocked(MailService, true)
 
 describe('Tech issue apology email', () => {
-  let student
-  let volunteer
-  let job
+  let student: Student
+  let volunteer: Volunteer
+  let job: any
   beforeAll(async () => {
     student = buildStudent()
     volunteer = buildVolunteer()
-    // @todo: figure out how to properly type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // TODO: figure out how to properly type
     job = {
       name: Jobs.EmailTechIssueApology,
       data: {
         studentId: student._id,
-        volunteerId: volunteer._id
-      }
+        volunteerId: volunteer._id,
+      },
     }
   })
 
@@ -37,35 +38,40 @@ describe('Tech issue apology email', () => {
   })
 
   test('Should send tech issue apology successfully to both users', async () => {
-    mockedStudentService.getStudent.mockImplementation(async () => student)
-    mockedUserService.getUser.mockImplementation(async () => null)
+    mockedStudentRepo.getStudentContactInfoById.mockResolvedValueOnce(student)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      undefined
+    )
 
     await emailTechIssueApology(job)
-    const expected = {
-      firstName: student.firstname,
-      email: student.email
-    }
-    expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(expected)
+
+    expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(
+      student.email,
+      student.firstname
+    )
   })
 
   test('Should send tech issue apology successfully to volunteer', async () => {
-    mockedStudentService.getStudent.mockImplementation(async () => null)
-    mockedUserService.getUser.mockImplementation(async () => volunteer)
+    mockedStudentRepo.getStudentContactInfoById.mockResolvedValueOnce(undefined)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      volunteer
+    )
 
     await emailTechIssueApology(job)
-    const expected = {
-      firstName: volunteer.firstname,
-      email: volunteer.email
-    }
-    expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(expected)
+
+    expect(MailService.sendTechIssueApology).toHaveBeenCalledWith(
+      volunteer.email,
+      volunteer.firstname
+    )
   })
 
   test('Should throw error when email fails', async () => {
     const errorMessage = 'Error sending email'
-    const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    mockedMailService.sendTechIssueApology.mockImplementation(rejectionFn)
-    mockedStudentService.getStudent.mockImplementation(async () => student)
-    mockedUserService.getUser.mockImplementation(async () => volunteer)
+    mockedMailService.sendTechIssueApology.mockRejectedValue(errorMessage)
+    mockedStudentRepo.getStudentContactInfoById.mockResolvedValueOnce(student)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      volunteer
+    )
     await expect(emailTechIssueApology(job)).rejects.toEqual(
       Error(
         `Failed to send ${Jobs.EmailTechIssueApology} to: student ${student._id}: ${errorMessage},volunteer ${volunteer._id}: ${errorMessage}`

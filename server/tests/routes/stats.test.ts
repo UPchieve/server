@@ -64,7 +64,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Monday: {
       '12a': 200000,
@@ -90,7 +90,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Tuesday: {
       '12a': 0,
@@ -116,7 +116,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Wednesday: {
       '12a': 0,
@@ -142,7 +142,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Thursday: {
       '12a': 0,
@@ -168,7 +168,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Friday: {
       '12a': 0,
@@ -194,7 +194,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Saturday: {
       '12a': 0,
@@ -220,8 +220,8 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
-    }
+      '11p': 0,
+    },
   }
 
   test('Should send wait time heat map with valid GET request', async () => {
@@ -231,7 +231,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
     )
     const response = await sendGet(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, payload)
     const {
-      body: { heatMap }
+      body: { heatMap },
     } = response
     expect(SessionService.getWaitTimeHeatMap).toHaveBeenCalledTimes(1)
     expect(heatMap).toEqual(mockedHeatMap)
@@ -245,7 +245,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
     })
     const response = await sendGet(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, payload)
     const {
-      body: { heatMap }
+      body: { heatMap },
     } = response
     expect(SessionService.getWaitTimeHeatMap).toHaveBeenCalledTimes(1)
     expect(heatMap).toBeUndefined()

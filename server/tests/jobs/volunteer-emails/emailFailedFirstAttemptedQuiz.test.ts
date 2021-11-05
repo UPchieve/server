@@ -1,16 +1,16 @@
 import { mocked } from 'ts-jest/utils'
 import { Jobs } from '../../../worker/jobs'
-import * as VolunteerService from '../../../services/VolunteerService'
-import MailService from '../../../services/MailService'
+import * as VolunteerRepo from '../../../models/Volunteer/queries'
+import * as MailService from '../../../services/MailService'
 import emailFailedFirstAttemptedQuiz from '../../../worker/jobs/volunteer-emails/emailFailedFirstAttemptedQuiz'
-import logger from '../../../logger'
+import { log as logger } from '../../../worker/logger'
 import { buildVolunteer } from '../../generate'
 
 jest.mock('../../../services/MailService')
-jest.mock('../../../services/VolunteerService')
+jest.mock('../../../models/Volunteer/queries')
 
 const mockedMailService = mocked(MailService)
-const mockedVolunteerService = mocked(VolunteerService)
+const mockedVolunteerRepo = mocked(VolunteerRepo)
 
 describe('first attempted quiz failed email job', () => {
   beforeEach(async () => {
@@ -25,18 +25,18 @@ describe('first attempted quiz failed email job', () => {
       email: 'testy@mctesterson.com',
       category: 'Pre-algebra',
       firstName: 'Testy',
-      volunteerId: volunteer._id
-    }
+      volunteerId: volunteer._id,
+    },
   }
 
   test('should send email', async () => {
-    mockedVolunteerService.getVolunteers.mockImplementation(async () => [
-      volunteer
-    ])
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      volunteer as VolunteerRepo.VolunteerContactInfo
+    )
 
     await emailFailedFirstAttemptedQuiz(job)
 
-    expect(logger.info).toHaveBeenCalledWith(
+    expect(logger).toHaveBeenCalledWith(
       `Sent ${job.name} to volunteer ${volunteer._id}`
     )
     expect(MailService.sendFailedFirstAttemptedQuiz).toHaveBeenCalledTimes(1)
@@ -44,11 +44,11 @@ describe('first attempted quiz failed email job', () => {
 
   test('should throw error if email fails to send', async () => {
     const errorMessage = 'Unable to send'
-    mockedVolunteerService.getVolunteers.mockImplementation(async () => [
-      volunteer
-    ])
-    mockedMailService.sendFailedFirstAttemptedQuiz.mockImplementationOnce(() =>
-      Promise.reject(errorMessage)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      volunteer as VolunteerRepo.VolunteerContactInfo
+    )
+    mockedMailService.sendFailedFirstAttemptedQuiz.mockRejectedValueOnce(
+      errorMessage
     )
     await expect(emailFailedFirstAttemptedQuiz(job)).rejects.toEqual(
       Error(

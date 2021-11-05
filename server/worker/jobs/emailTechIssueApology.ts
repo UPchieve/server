@@ -1,40 +1,37 @@
 import { Job } from 'bull'
-import MailService from '../../services/MailService'
-import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
-import { getUser } from '../../services/UserService'
-import { getStudent } from '../../services/StudentService'
+import * as MailService from '../../services/MailService'
+import {
+  StudentContactInfo,
+  getStudentContactInfoById,
+} from '../../models/Student/queries'
 import { safeAsync } from '../../utils/safe-async'
 import { Jobs } from '.'
+import {
+  getVolunteerContactInfoById,
+  VolunteerContactInfo,
+} from '../../models/Volunteer/queries'
+import { asObjectId } from '../../utils/type-utils'
 
 interface TechIssueApology {
-  sessionId: string
+  sessionId: string // TODO: we don't need this?
   studentId: string
   volunteerId: string
 }
 
-async function sendEmailToUser(user) {
-  const { firstname: firstName, email } = user
-  const mailData = {
-    firstName,
-    email
-  }
+async function sendEmailToUser(
+  user: StudentContactInfo | VolunteerContactInfo
+): Promise<void> {
+  const { firstname, email } = user
 
-  await MailService.sendTechIssueApology(mailData)
+  await MailService.sendTechIssueApology(email, firstname)
 }
 
 export default async (job: Job<TechIssueApology>): Promise<void> => {
-  const {
-    data: { studentId, volunteerId }
-  } = job
-  const student = await getStudent(
-    { _id: studentId, ...EMAIL_RECIPIENT },
-    { firstname: 1, email: 1 }
-  )
-  const volunteer = await getUser(
-    { _id: volunteerId, ...EMAIL_RECIPIENT },
-    { firstname: 1, email: 1 }
-  )
-  const errors = []
+  const studentId = asObjectId(job.data.studentId)
+  const volunteerId = asObjectId(job.data.volunteerId)
+  const student = await getStudentContactInfoById(studentId)
+  const volunteer = await getVolunteerContactInfoById(volunteerId)
+  const errors: string[] = []
 
   if (student) {
     const emailResult = await safeAsync(sendEmailToUser(student))

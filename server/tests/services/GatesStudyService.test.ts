@@ -4,16 +4,16 @@ import * as GatesStudyService from '../../services/GatesStudyService'
 import * as gatesStudyUtils from '../../utils/gates-study-utils'
 import { isDateWithinRange } from '../../utils/is-date-within-range'
 
-import * as UserProductFlagsRepo from '../../models/UserProductFlags'
+import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
 
 import { getStringObjectId, buildGatesQualifiedData } from '../generate'
 
-jest.mock('../../models/UserProductFlags')
+jest.mock('../../models/UserProductFlags/queries')
 jest.mock('../../utils/gates-study-utils')
 jest.mock('../../utils/is-date-within-range')
 jest.mock('unleash-client', () => {
   return {
-    isEnabled: jest.fn()
+    isEnabled: jest.fn(),
   }
 })
 
@@ -26,7 +26,7 @@ beforeEach(() => {
   jest.resetAllMocks()
 })
 
-describe('processGatesQualifiedSession', () => {
+describe('processGatesQualifiedCheck', () => {
   test('Student completes a Gates-qualified session when the Gates feature flag is on', async () => {
     const isFeatureFlagOn = true
     const isWithinStudyPeriod = false
@@ -35,16 +35,18 @@ describe('processGatesQualifiedSession', () => {
 
     mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
     mockIsDateWithinRange.mockReturnValue(isWithinStudyPeriod)
-    mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
+    mockedGatesStudyUtils.isGatesQualifiedStudent.mockReturnValue(
       isGatesQualified
     )
     mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
       mockQualificationData
     )
 
-    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
+    await GatesStudyService.processGatesQualifiedCheck(getStringObjectId())
 
-    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(1)
+    expect(
+      mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById
+    ).toBeCalledTimes(1)
   })
 
   test('Student completes a non-Gates-qualified session within the Gates study period', async () => {
@@ -54,13 +56,15 @@ describe('processGatesQualifiedSession', () => {
 
     mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
     mockIsDateWithinRange.mockReturnValue(isWithinStudyPeriod)
-    mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
+    mockedGatesStudyUtils.isGatesQualifiedStudent.mockReturnValue(
       isGatesQualified
     )
 
-    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
+    await GatesStudyService.processGatesQualifiedCheck(getStringObjectId())
 
-    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(0)
+    expect(
+      mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById
+    ).toBeCalledTimes(0)
   })
 
   test('Student completes a Gates-qualified session within the study period and the Gates feature flag is off', async () => {
@@ -71,16 +75,18 @@ describe('processGatesQualifiedSession', () => {
 
     mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
     mockIsDateWithinRange.mockReturnValue(isWithinStudyPeriod)
-    mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
+    mockedGatesStudyUtils.isGatesQualifiedStudent.mockReturnValue(
       isGatesQualified
     )
     mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
       mockQualificationData
     )
 
-    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
+    await GatesStudyService.processGatesQualifiedCheck(getStringObjectId())
 
-    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(1)
+    expect(
+      mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById
+    ).toBeCalledTimes(1)
   })
 
   test('Student completes a Gates-qualified session outside of the study period and the Gates feature flag is off', async () => {
@@ -91,15 +97,17 @@ describe('processGatesQualifiedSession', () => {
 
     mockedUnleashClient.isEnabled.mockReturnValue(isFeatureFlagOn)
     mockIsDateWithinRange.mockReturnValue(isWithinStudyPeriod)
-    mockedGatesStudyUtils.isGatesQualifiedSession.mockReturnValue(
+    mockedGatesStudyUtils.isGatesQualifiedStudent.mockReturnValue(
       isGatesQualified
     )
     mockedGatesStudyUtils.prepareForGatesQualificationCheck.mockResolvedValueOnce(
       mockQualificationData
     )
 
-    await GatesStudyService.processGatesQualifiedSession(getStringObjectId())
+    await GatesStudyService.processGatesQualifiedCheck(getStringObjectId())
 
-    expect(mockUserProductFlagsRepo.updateGatesQualifiedFlag).toBeCalledTimes(0)
+    expect(
+      mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById
+    ).toBeCalledTimes(0)
   })
 })

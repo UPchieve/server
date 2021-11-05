@@ -16,25 +16,25 @@ export type AvailabilityHistoryDocument = AvailabilityHistory & Document
 const availabilityHistorySchema = new Schema({
   availability: {
     type: availabilityDaySchema,
-    default: () => ({})
+    default: () => ({}),
   },
   volunteerId: {
-    type: Types.ObjectId
+    type: Types.ObjectId,
   },
   date: {
-    type: Date
+    type: Date,
   },
   timezone: {
-    type: String
+    type: String,
   },
   modifiedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 })
 
 const AvailabilityHistoryModel = model<AvailabilityHistoryDocument>(
@@ -42,5 +42,4 @@ const AvailabilityHistoryModel = model<AvailabilityHistoryDocument>(
   availabilityHistorySchema
 )
 
-module.exports = AvailabilityHistoryModel
 export default AvailabilityHistoryModel

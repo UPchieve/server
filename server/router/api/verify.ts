@@ -1,9 +1,9 @@
 import { Router } from 'express'
-import { LoadedRequest } from '../app'
-
+import newrelic from 'newrelic'
 import * as VerificationService from '../../services/VerificationService'
 import logger from '../../logger'
 import { resError } from '../res-error'
+import { extractUser } from '../extract-user'
 
 export interface TwilioError extends Error {
   message: string
@@ -11,18 +11,19 @@ export interface TwilioError extends Error {
 }
 
 export function routeVerify(router: Router) {
-  router.route('/verify/send').post(async function(req: LoadedRequest, res) {
+  router.route('/verify/send').post(async function(req, res) {
+    const user = extractUser(req)
     const payload = {
-      userId: req.user._id.toString(),
-      firstName: req.user.firstname,
-      ...req.body
-    } as unknown
+      userId: user._id,
+      firstName: user.firstname,
+      ...req.body,
+    }
 
     try {
-      await VerificationService.initiateVerification(payload)
+      await VerificationService.initiateVerification(payload as unknown)
       res.sendStatus(200)
     } catch (err) {
-      const status = err.status
+      const status = (err as TwilioError).status
       let message: string
       if (status === 429) {
         message =
@@ -32,22 +33,28 @@ export function routeVerify(router: Router) {
         message =
           'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
       } else {
-        message = err.message
+        message = (err as TwilioError).message
       }
       // custom logging for NR alerts
       logger.error(
         { 'error.name': 'twilio verification', error: err },
-        err.message
+        (err as TwilioError).message
       )
       resError(res, new Error(message), status)
     }
   })
 
-  router.route('/verify/confirm').post(async function(req: LoadedRequest, res) {
+  router.route('/verify/confirm').post(async function(req, res) {
+    const user = extractUser(req)
     const payload = {
-      userId: req.user._id.toString(),
-      ...req.body
+      userId: user._id,
+      ...req.body,
     } as unknown
+
+    newrelic.addCustomAttribute(
+      'role',
+      user.isVolunteer ? 'volunteer' : 'student'
+    )
 
     try {
       const isVerified = await VerificationService.confirmVerification(payload)
@@ -56,7 +63,7 @@ export function routeVerify(router: Router) {
       // custom logging for NR alerts
       logger.error(
         { 'error.name': 'twilio verification', error: err },
-        err.message
+        (err as Error).message
       )
       resError(res, err)
     }

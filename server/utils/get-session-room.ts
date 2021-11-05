@@ -1,4 +1,6 @@
-const getSessionRoom = (sessionId): string => `sessions-${sessionId}`
+import { Types } from 'mongoose'
 
-module.exports = getSessionRoom
+const getSessionRoom = (sessionId: Types.ObjectId): string =>
+  `sessions-${sessionId}`
+
 export default getSessionRoom

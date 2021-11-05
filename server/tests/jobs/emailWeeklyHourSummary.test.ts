@@ -3,18 +3,21 @@ import { mocked } from 'ts-jest/utils'
 import emailWeeklyHourSummary from '../../worker/jobs/emailWeeklyHourSummary'
 import { getVolunteer, insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer } from '../generate'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { log } from '../../worker/logger'
 import * as VolunteerService from '../../services/VolunteerService'
 import { Jobs } from '../../worker/jobs'
 import * as reportUtils from '../../utils/reportUtils'
 import config from '../../config'
+
+// TODO: refactor test to mock out DB calls
+
 jest.mock('../../services/MailService')
 jest.mock('../../worker/logger')
 
 jest.mock('../../utils/reportUtils', () => ({
   ...jest.requireActual('../../utils/reportUtils'),
-  telecomHourSummaryStats: jest.fn()
+  telecomHourSummaryStats: jest.fn(),
 }))
 const mockedReportUtils = mocked(reportUtils, true)
 
@@ -25,7 +28,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -50,7 +53,7 @@ describe('emailWeeklyHourSummary', () => {
     await Promise.all([
       insertVolunteer(marvin),
       insertVolunteer(otis),
-      insertVolunteer(whitney)
+      insertVolunteer(whitney),
     ])
 
     const getHourSummaryStats = jest.spyOn(
@@ -62,19 +65,19 @@ describe('emailWeeklyHourSummary', () => {
         totalCoachingHours: 2,
         totalQuizzesPassed: 1,
         totalElapsedAvailability: 0,
-        totalVolunteerHours: 3
+        totalVolunteerHours: 3,
       }))
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 0.01,
         totalQuizzesPassed: 0,
         totalElapsedAvailability: 0,
-        totalVolunteerHours: 0.01
+        totalVolunteerHours: 0.01,
       }))
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 5,
         totalQuizzesPassed: 0,
         totalElapsedAvailability: 3,
-        totalVolunteerHours: 5.3
+        totalVolunteerHours: 5.3,
       }))
 
     await emailWeeklyHourSummary()
@@ -96,7 +99,7 @@ describe('emailWeeklyHourSummary', () => {
     await Promise.all([
       insertVolunteer(jackson),
       insertVolunteer(warwick),
-      insertVolunteer(prince)
+      insertVolunteer(prince),
     ])
 
     const getHourSummaryStats = jest.spyOn(
@@ -108,19 +111,19 @@ describe('emailWeeklyHourSummary', () => {
         totalCoachingHours: 1,
         totalQuizzesPassed: 1,
         totalElapsedAvailability: 1,
-        totalVolunteerHours: 2.1
+        totalVolunteerHours: 2.1,
       }))
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 2,
         totalQuizzesPassed: 1,
         totalElapsedAvailability: 0,
-        totalVolunteerHours: 3
+        totalVolunteerHours: 3,
       }))
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 5,
         totalQuizzesPassed: 0,
         totalElapsedAvailability: 3,
-        totalVolunteerHours: 5.3
+        totalVolunteerHours: 5.3,
       }))
 
     await emailWeeklyHourSummary()
@@ -147,7 +150,7 @@ describe('emailWeeklyHourSummary', () => {
     await expect(emailWeeklyHourSummary()).rejects.toEqual(
       Error(
         `Failed to ${Jobs.EmailWeeklyHourSummary} for volunteers:\n${[
-          jacksonError
+          jacksonError,
         ]}`
       )
     )
@@ -162,7 +165,7 @@ describe('emailWeeklyHourSummary', () => {
     const pablo = buildVolunteer({
       volunteerPartnerOrg: config.customVolunteerPartnerOrgs[0],
       isOnboarded: true,
-      isApproved: true
+      isApproved: true,
     })
     await insertVolunteer(pablo)
 
@@ -175,7 +178,7 @@ describe('emailWeeklyHourSummary', () => {
     await expect(emailWeeklyHourSummary()).rejects.toEqual(
       Error(
         `Failed to ${Jobs.EmailWeeklyHourSummary} for volunteers:\n${[
-          pabloError
+          pabloError,
         ]}`
       )
     )
@@ -191,10 +194,10 @@ describe('emailWeeklyHourSummary', () => {
       volunteerPartnerOrg: config.customVolunteerPartnerOrgs[0],
       isOnboarded: true,
       isApproved: true,
-      sentHourSummaryIntroEmail: true
+      sentHourSummaryIntroEmail: true,
     })
     const jackson = buildVolunteer({
-      sentHourSummaryIntroEmail: true
+      sentHourSummaryIntroEmail: true,
     })
     await insertVolunteer(raul)
     await insertVolunteer(jackson)
@@ -203,7 +206,7 @@ describe('emailWeeklyHourSummary', () => {
       totalVolunteerHours: 6,
       totalCoachingHours: 3,
       totalElapsedAvailability: 2,
-      totalQuizzesPassed: 1
+      totalQuizzesPassed: 1,
     }
     mockedReportUtils.telecomHourSummaryStats.mockImplementationOnce(
       async () => stats
@@ -216,7 +219,7 @@ describe('emailWeeklyHourSummary', () => {
       totalCoachingHours: 1,
       totalQuizzesPassed: 1,
       totalElapsedAvailability: 1,
-      totalVolunteerHours: 2.1
+      totalVolunteerHours: 2.1,
     }))
 
     await emailWeeklyHourSummary()

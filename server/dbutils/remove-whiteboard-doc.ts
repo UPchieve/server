@@ -2,7 +2,8 @@ import mongoose from 'mongoose'
 import * as db from '../db'
 import SessionModel from '../models/Session'
 import { SUBJECT_TYPES } from '../constants'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import util from 'util'
 const setImmediatePromise = util.promisify(setImmediate)
 

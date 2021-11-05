@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * From https://zwibbler.com/collaboration/script.ts
  * @author Steve Hanov
@@ -257,7 +258,6 @@ function readString(m: Uint8Array, at: number, length = m.length - at): string {
  * suitable for sending over a websocket. The message must have all of the fields
  * defined in the field descriptors above.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function encode(js: any): Uint8Array {
   const decoder = Descriptors[js['messageType']];
   if (!decoder) {
@@ -297,7 +297,6 @@ export function decode(m: Uint8Array): Message {
   const repeatToEndIndex = 0; // index of decoder field
   for (let i = 0; i < decoder.length; i++) {
     const field = decoder[i];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let value: any;
     if (field.type === REPEAT_TO_END) {
       repeatToEndField = field.name;

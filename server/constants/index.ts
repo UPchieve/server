@@ -8,5 +8,5 @@ export * from './types'
 export * from './feature-flags'
 
 export const enum REPORT_FILE_NAMES {
-  ANALYTICS_REPORT = 'analytics-report'
+  ANALYTICS_REPORT = 'analytics-report',
 }

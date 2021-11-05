@@ -1,10 +1,8 @@
-import express from 'express'
 import bodyParser from 'body-parser'
+import express from 'express'
 import { Server } from 'socket.io'
-
 import { Student } from '../models/Student'
 import { Volunteer } from '../models/Volunteer'
-import { LoadedRequest } from '../router/app'
 import socketServer from '../router/api/socket-server'
 
 export function defaultErrorHandler(
@@ -19,8 +17,8 @@ export function defaultErrorHandler(
 
 export function mockApp(): express.Express {
   const app = express()
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(bodyParser.json() as express.RequestHandler)
+  app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
   app.use(defaultErrorHandler)
 
   return app
@@ -28,21 +26,21 @@ export function mockApp(): express.Express {
 
 export function mockPassportMiddleware(
   getUser: () => Student | Volunteer,
-  login?: Function,
-  logout?: Function,
+  login?: (arg1: Express.User, arg2?: any) => Promise<unknown>,
+  logout?: () => void,
   destroy?: Function
 ) {
   return (
-    req: LoadedRequest,
+    req: express.Request,
     res: express.Response,
     next: express.NextFunction
   ): void => {
     req.user = getUser()
-    req.login = login || jest.fn()
+    req.asyncLogin = login || jest.fn()
     req.logout = logout || jest.fn()
     req.session = {
       // @ts-expect-error: mocking a partial express session
-      destroy: destroy || jest.fn()
+      destroy: destroy || jest.fn(),
     }
     next()
   }

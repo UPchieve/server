@@ -1,10 +1,15 @@
+const { defaults: tsjPreset } = require('ts-jest/presets')
+
 module.exports = {
-  preset: '@shelf/jest-mongodb',
-  setupFiles: ['./server/tests/global.ts'],
-  watchPathIgnorePatterns: ['globalConfig'],
+  preset: "@shelf/jest-mongodb",
+  setupFiles: [
+    "<rootDir>/server/tests/setup.ts",
+  ],
+  setupFilesAfterEnv: [
+    "<rootDir>/server/tests/force-gc.ts",
+  ],
+  watchPathIgnorePatterns: ["globalConfig"],
   roots: ["<rootDir>/server"],
-  transform: {
-    "^.+\\.ts?$": "<rootDir>/node_modules/ts-jest"
-  },
-  runner: "groups"
+  transform: tsjPreset.transform,
+  runner: "groups",
 }

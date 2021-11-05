@@ -6,22 +6,23 @@ import socket from 'socket.io'
 import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import logger from '../../logger'
-const {
+import {
   socketIoPubClient,
-  socketIoSubClient
-} = require('../../services/RedisService')
+  socketIoSubClient,
+} from '../../services/RedisService'
+import { Express } from 'express'
 
 // Create an HTTPS server if in production, otherwise use HTTP.
-const createServer = app => {
+const createServer = (app: Express) => {
   return http.createServer(app)
 }
 
-export default function(app) {
+export default function(app: Express) {
   const server = createServer(app)
 
   const port =
     process.env.NODE_ENV === 'test'
-      ? // @todo: utilize the superagent port
+      ? // TODO: utilize the superagent port
         4000 + Math.floor(Math.random() * 5000) + 1
       : config.socketsPort
 
@@ -35,7 +36,7 @@ export default function(app) {
     // in 3.0 they're increasing it again
     // (default interval is 25000)
     pingInterval: 25000,
-    pingTimeout: 30000
+    pingTimeout: 30000,
   })
   if (process.env.NODE_ENV === 'test') return io
 

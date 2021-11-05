@@ -7,13 +7,13 @@ function newLogger() {
   if (config.NODE_ENV === 'dev') {
     logger = pino({
       prettyPrint: {
-        colorize: true
+        colorize: true,
       },
-      level: 'debug'
+      level: 'debug',
     })
   } else {
     logger = pino({
-      level: config.logLevel
+      level: config.logLevel,
     })
   }
 

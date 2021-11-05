@@ -14,7 +14,7 @@ jest.mock('../../worker/logger')
 
 jest.mock('../../utils/reportUtils', () => ({
   ...jest.requireActual('../../utils/reportUtils'),
-  telecomHourSummaryStats: jest.fn()
+  telecomHourSummaryStats: jest.fn(),
 }))
 const mockedReportUtils = mocked(reportUtils, true)
 
@@ -23,7 +23,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -50,7 +50,7 @@ describe('Test updating total volunteer hours', () => {
     isTestUser: false,
     isFakeUser: false,
     isOnboarded: true,
-    isApproved: true
+    isApproved: true,
   }
 
   test('Should not update non-custom partner volunteers', async () => {
@@ -84,7 +84,7 @@ describe('Test updating total volunteer hours', () => {
       totalVolunteerHours: 6,
       totalCoachingHours: 3,
       totalElapsedAvailability: 2,
-      totalQuizzesPassed: 1
+      totalQuizzesPassed: 1,
     } as HourSummaryStats
     mockedReportUtils.telecomHourSummaryStats.mockImplementationOnce(
       async () => row
@@ -120,22 +120,20 @@ describe('Test updating total volunteer hours', () => {
     )
     const volunteerError = `${preVolunteer._id}: ${statsError}\n`
 
-    let err
     try {
       await UpdateTotalVolunteerHours()
     } catch (error) {
-      err = error
+      expect((error as Error).message).toBe(
+        `Failed to ${Jobs.UpdateTotalVolunteerHours} for volunteers:\n${[
+          volunteerError,
+        ]}`
+      )
     }
 
     const expected = 0
     expect(log).toHaveBeenCalledTimes(1)
     expect(log).toHaveBeenCalledWith(
       `Successfully ${Jobs.UpdateTotalVolunteerHours} for ${expected} volunteers`
-    )
-    expect(err.message).toBe(
-      `Failed to ${Jobs.UpdateTotalVolunteerHours} for volunteers:\n${[
-        volunteerError
-      ]}`
     )
   })
 })

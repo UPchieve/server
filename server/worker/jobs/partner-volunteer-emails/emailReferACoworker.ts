@@ -1,12 +1,11 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
-import logger from '../../../logger'
-import MailService from '../../../services/MailService'
-import { getSessionsWithPipeline } from '../../../services/SessionService'
-import { getVolunteers } from '../../../services/VolunteerService'
+import { log } from '../../logger'
+import * as MailService from '../../../services/MailService'
+import { getSessionsWithPipeline } from '../../../models/Session/queries'
+import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { volunteerPartnerManifests } from '../../../partnerManifests'
 import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../../constants'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
+import { asObjectId } from '../../../utils/type-utils'
 
 /**
  *
@@ -18,7 +17,7 @@ import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
  */
 
 interface EmailReferCoworkerJobData {
-  volunteerId: string | Types.ObjectId
+  volunteerId: string
   firstName: string
   email: string
   partnerOrg: string
@@ -26,48 +25,44 @@ interface EmailReferCoworkerJobData {
 
 export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
   const {
-    data: { volunteerId, firstName, email, partnerOrg },
-    name: currentJob
+    data: { firstName, email, partnerOrg },
+    name: currentJob,
   } = job
 
-  const [volunteer] = await getVolunteers({
-    ...EMAIL_RECIPIENT,
-    _id: volunteerId
-  })
+  const volunteerId = asObjectId(job.data.volunteerId)
+  const volunteer = await getVolunteerContactInfoById(volunteerId)
   // Do not send email if volunteer does not match email recipient spec
   if (!volunteer) return
 
   const fifteenMins = 1000 * 60 * 15
+  // TODO: repo pattern
   const sessions = await getSessionsWithPipeline([
     {
       $match: {
-        volunteer:
-          typeof volunteerId === 'string'
-            ? Types.ObjectId(volunteerId)
-            : volunteerId,
+        volunteer: volunteerId,
         timeTutored: { $gte: fifteenMins },
         flags: {
           $nin: [
             USER_SESSION_METRICS.absentStudent,
-            USER_SESSION_METRICS.absentVolunteer
-          ]
-        }
-      }
+            USER_SESSION_METRICS.absentVolunteer,
+          ],
+        },
+      },
     },
     {
       $lookup: {
         from: 'feedbacks',
         localField: 'volunteer',
         foreignField: 'volunteerId',
-        as: 'feedbacks'
-      }
+        as: 'feedbacks',
+      },
     },
     {
       $lookup: {
         from: 'feedbacks',
         let: {
           volunteerId: '$volunteer',
-          sessionId: '$_id'
+          sessionId: '$_id',
         },
         pipeline: [
           {
@@ -75,20 +70,20 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
               $expr: {
                 $and: [
                   { $eq: ['$sessionId', '$$sessionId'] },
-                  { $eq: ['$volunteerId', '$$volunteerId'] }
-                ]
-              }
-            }
-          }
+                  { $eq: ['$volunteerId', '$$volunteerId'] },
+                ],
+              },
+            },
+          },
         ],
-        as: 'feedback'
-      }
+        as: 'feedback',
+      },
     },
     {
       $unwind: {
         path: '$feedback',
-        preserveNullAndEmptyArrays: true
-      }
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $project: {
@@ -100,30 +95,30 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
                 case: {
                   $and: [
                     {
-                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.ONE]
+                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.ONE],
                     },
-                    '$feedback.responseData.session-rating.rating'
-                  ]
+                    '$feedback.responseData.session-rating.rating',
+                  ],
                 },
-                then: '$feedback.responseData.session-rating.rating'
+                then: '$feedback.responseData.session-rating.rating',
               },
               {
                 case: {
                   $and: [
                     {
-                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.TWO]
+                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.TWO],
                     },
-                    '$feedback.volunteerFeedback.session-enjoyable'
-                  ]
+                    '$feedback.volunteerFeedback.session-enjoyable',
+                  ],
                 },
-                then: '$feedback.volunteerFeedback.session-enjoyable'
-              }
+                then: '$feedback.volunteerFeedback.session-enjoyable',
+              },
             ],
-            default: null
-          }
-        }
-      }
-    }
+            default: null,
+          },
+        },
+      },
+    },
   ])
 
   if (sessions.length === 5) {
@@ -141,14 +136,13 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
     if (totalLowSessionRatings >= totalLowSessionRatingsLimit) return
 
     try {
-      const contactInfo = {
-        firstName,
+      await MailService.sendPartnerVolunteerReferACoworker(
         email,
+        firstName,
         partnerOrg,
-        partnerOrgDisplay: volunteerPartnerManifests[partnerOrg].name
-      }
-      await MailService.sendPartnerVolunteerReferACoworker(contactInfo)
-      logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
+        volunteerPartnerManifests[partnerOrg].name
+      )
+      log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
       throw new Error(
         `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

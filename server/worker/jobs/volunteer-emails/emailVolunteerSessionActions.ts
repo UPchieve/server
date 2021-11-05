@@ -1,64 +1,63 @@
 import { Job } from 'bull'
 import moment from 'moment'
-import logger from '../../../logger'
-import MailService from '../../../services/MailService'
+import { log } from '../../logger'
+import * as MailService from '../../../services/MailService'
 import { Jobs } from '../index'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
-import { getUser } from '../../../services/UserService'
-import { getStudent } from '../../../services/StudentService'
+import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
+import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { ISOString } from '../../../constants'
 import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
+import { asFactory, asObjectId, asString } from '../../../utils/type-utils'
+import { Types } from 'mongoose'
 
-interface VolunteerSessionTriggers {
-  volunteerId: string
-  studentId: string
+interface VolunteerSessionActionsJobData {
+  volunteerId: Types.ObjectId
+  studentId: Types.ObjectId
   sessionSubtopic: string
   sessionDate: ISOString
 }
 
-export default async (job: Job<VolunteerSessionTriggers>): Promise<void> => {
+const asVolunteerActionsData = asFactory<VolunteerSessionActionsJobData>({
+  studentId: asObjectId,
+  volunteerId: asObjectId,
+  sessionSubtopic: asString,
+  sessionDate: asString,
+})
+
+export default async (
+  job: Job<VolunteerSessionActionsJobData>
+): Promise<void> => {
+  const { data, name: currentJob } = job
   const {
-    data: { volunteerId, studentId, sessionSubtopic, sessionDate },
-    name: currentJob
-  } = job
+    studentId,
+    volunteerId,
+    sessionSubtopic,
+    sessionDate,
+  } = asVolunteerActionsData(data)
+  const volunteer = await getVolunteerContactInfoById(volunteerId)
+  const student = await getStudentContactInfoById(studentId)
 
-  const volunteer = await getUser(
-    {
-      _id: volunteerId,
-      ...EMAIL_RECIPIENT
-    },
-    {
-      _id: 1,
-      email: 1,
-      firstname: 1
-    }
-  )
-  const student = await getStudent(
-    {
-      _id: studentId,
-      ...EMAIL_RECIPIENT
-    },
-    {
-      firstname: 1
-    }
-  )
-
-  if (volunteer) {
+  if (student && volunteer) {
     try {
-      const { firstname: firstName, email } = volunteer
-      const mailData = {
-        firstName,
-        email,
-        studentFirstName: student.firstname,
-        sessionSubject: formatMultiWordSubject(sessionSubtopic),
-        sessionDate: moment(sessionDate).format('MMMM Do')
-      }
+      const { firstname, email } = volunteer
       if (currentJob === Jobs.EmailVolunteerAbsentWarning)
-        await MailService.sendVolunteerAbsentWarning(mailData)
+        await MailService.sendVolunteerAbsentWarning(
+          firstname,
+          email,
+          student.firstname,
+          formatMultiWordSubject(sessionSubtopic),
+          moment(sessionDate).format('MMMM Do')
+        )
       if (currentJob === Jobs.EmailVolunteerAbsentStudentApology)
-        await MailService.sendVolunteerAbsentStudentApology(mailData)
+        await MailService.sendVolunteerAbsentStudentApology(
+          firstname,
+          email,
+          student.firstname,
+          formatMultiWordSubject(sessionSubtopic),
+          moment(sessionDate).format('MMMM Do')
+        )
 
-      logger.info(`Emailed ${currentJob} to volunteer ${volunteerId}`)
+      log(`Emailed ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
       throw new Error(
         `Failed to email ${currentJob} to volunteer ${volunteerId}: ${error}`

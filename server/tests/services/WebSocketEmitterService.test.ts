@@ -15,7 +15,7 @@ function getMockedWebSocket() {
     onmessage: jest.fn(),
 
     close: jest.fn(),
-    send: jest.fn()
+    send: jest.fn(),
   }
   // @note: partial mock of WebSocket
   return (mockedWs as unknown) as UpgradedWebSocket
@@ -23,7 +23,7 @@ function getMockedWebSocket() {
 
 describe('WebSocketEmitterService public methods', () => {
   const channel = 'test-channel'
-  let roomId
+  let roomId: string
   beforeEach(() => {
     roomId = getUUID()
   })

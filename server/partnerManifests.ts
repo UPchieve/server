@@ -3,11 +3,26 @@ import path from 'path'
 import YAML from 'yaml'
 import config from './config'
 
-let volunteerManifestsYaml
-let studentManifestsYaml
+let volunteerManifestsYaml: string | undefined
+let studentManifestsYaml: string | undefined
 
-export let volunteerPartnerManifests
-export let studentPartnerManifests
+export interface StudentPartnerManifest {
+  name: string
+  highSchoolSignup?: boolean
+  collegeSignup?: boolean
+  schoolSignupRequired?: boolean
+  signupCode?: string
+  sites?: string[]
+}
+
+export interface VolunteerPartnerManifest {
+  name: string
+  requiredEmailDomains?: string[]
+  receiveWeeklyHourSummaryEmail?: boolean
+}
+
+export let volunteerPartnerManifests: { [k: string]: VolunteerPartnerManifest }
+export let studentPartnerManifests: { [k: string]: StudentPartnerManifest }
 
 if (
   process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFESTS === '' ||
@@ -36,5 +51,5 @@ if (
   studentPartnerManifests = YAML.parse(studentManifestsYaml)
 } else {
   studentManifestsYaml = process.env.SUBWAY_STUDENT_PARTNER_MANIFESTS
-  studentPartnerManifests = YAML.parse(studentManifestsYaml)
+  studentPartnerManifests = YAML.parse(studentManifestsYaml || '')
 }

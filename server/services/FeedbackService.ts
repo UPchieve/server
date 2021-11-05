@@ -1,32 +1,15 @@
 import FeedbackModel, {
   Feedback,
-  FeedbackDocument,
   ResponseData,
   StudentCounselingFeedback,
   StudentTutoringFeedback,
   VolunteerFeedback,
-  FeedbackVersionOne,
-  FeedbackVersionTwo
 } from '../models/Feedback'
 import { FEEDBACK_VERSIONS } from '../constants'
 import { FEEDBACK_EVENTS } from '../constants/events'
 import { emitter } from './EventsService'
 
-export const getFeedback = (
-  query
-): Promise<Feedback | FeedbackVersionOne | FeedbackVersionTwo> => {
-  return FeedbackModel.findOne(query)
-    .lean()
-    .exec()
-}
-
-export function getFeedbackForSession(sessionId: string): Promise<Feedback[]> {
-  return FeedbackModel.find({ sessionId })
-    .lean()
-    .exec()
-}
-
-export const saveFeedback = async (data: {
+export async function saveFeedback(data: {
   sessionId: string
   type: string
   subTopic: string
@@ -37,13 +20,14 @@ export const saveFeedback = async (data: {
   userType: string
   studentId: string
   volunteerId: string
-}): Promise<FeedbackDocument> => {
+}): Promise<Feedback> {
+  // TODO: repo pattern
   const feedback = new FeedbackModel({
     ...data,
-    versionNumber: FEEDBACK_VERSIONS.TWO
+    versionNumber: FEEDBACK_VERSIONS.TWO,
   })
 
   const doc = await feedback.save()
   emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, doc.sessionId, doc._id)
-  return doc
+  return doc.toObject()
 }

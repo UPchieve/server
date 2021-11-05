@@ -3,29 +3,31 @@ import emailReferences from '../../worker/jobs/emailReferences'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer, buildReference } from '../generate'
 import VolunteerModel, { Volunteer, Reference } from '../../models/Volunteer'
-import MailService from '../../services/MailService'
+import * as MailService from '../../services/MailService'
 import { REFERENCE_STATUS } from '../../constants'
 jest.mock('../../services/MailService')
 
 jest.setTimeout(15000)
 
+// TODO: refactor test to mock out DB calls
+
 const buildVolunteerWithReferences = (): Partial<Volunteer> => {
   return buildVolunteer({
     references: [
       buildReference({
-        status: REFERENCE_STATUS.UNSENT
+        status: REFERENCE_STATUS.UNSENT,
       }),
       buildReference({
-        status: REFERENCE_STATUS.UNSENT
-      })
-    ]
+        status: REFERENCE_STATUS.UNSENT,
+      }),
+    ],
   })
 }
 
 const getReferences = (): Aggregate<Reference[]> => {
   return VolunteerModel.aggregate([
     {
-      $unwind: '$references'
+      $unwind: '$references',
     },
     {
       $project: {
@@ -35,9 +37,9 @@ const getReferences = (): Aggregate<Reference[]> => {
         lastName: '$references.lastName',
         email: '$references.email',
         createdAt: '$references.createdAt',
-        sentAt: '$references.sentAt'
-      }
-    }
+        sentAt: '$references.sentAt',
+      },
+    },
   ])
 }
 
@@ -46,7 +48,7 @@ beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
   })
 })
 
@@ -66,7 +68,7 @@ describe('Email references', () => {
   test('Should send email references the reference form', async () => {
     await Promise.all([
       insertVolunteer(buildVolunteerWithReferences()),
-      insertVolunteer(buildVolunteerWithReferences())
+      insertVolunteer(buildVolunteerWithReferences()),
     ])
     await emailReferences()
 
@@ -87,10 +89,10 @@ describe('Email references', () => {
         buildVolunteer({
           references: [
             buildReference({ status: REFERENCE_STATUS.SENT }),
-            buildReference({ status: REFERENCE_STATUS.SUBMITTED })
-          ]
+            buildReference({ status: REFERENCE_STATUS.SUBMITTED }),
+          ],
         })
-      )
+      ),
     ])
     await emailReferences()
 

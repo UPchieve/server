@@ -1,35 +1,30 @@
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import { Jobs } from '..'
-import logger from '../../../logger'
+import { log } from '../../logger'
 import { Volunteer } from '../../../models/Volunteer'
-import { updateAvailabilitySnapshot } from '../../../services/AvailabilityService'
-import MailService from '../../../services/MailService'
+import { updateSnapshotOnCallByVolunteerId } from '../../../models/Availability/queries'
+import * as MailService from '../../../services/MailService'
 import {
-  getVolunteersWithPipeline,
-  updateVolunteer
-} from '../../../services/VolunteerService'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
+  updateVolunteerInactiveAvailability,
+  updateVolunteerSentInactiveEmail,
+  getInactiveVolunteers,
+} from '../../../models/Volunteer/queries'
 import createNewAvailability from '../../../utils/create-new-availability'
 import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../../../constants'
-
-interface InactiveVolunteersAggregation {
-  inactiveThirtyDays: Volunteer[]
-  inactiveSixtyDays: Volunteer[]
-  inactiveNinetyDays: Volunteer[]
-}
 
 enum InactiveGroup {
   inactiveThirtyDays = 'inactiveThirtyDays',
   inactiveSixtyDays = 'inactiveSixtyDays',
-  inactiveNinetyDays = 'inactiveNinetyDays'
+  inactiveNinetyDays = 'inactiveNinetyDays',
 }
 
-async function sendEmailToInactiveVolunteers({
-  volunteers,
-  currentJob,
-  mailHandler,
-  group
-}) {
+async function sendEmailToInactiveVolunteers(
+  volunteers: Volunteer[],
+  currentJob: Jobs,
+  mailHandler: Function,
+  group: InactiveGroup
+) {
   for (const volunteer of volunteers) {
     const { email, firstname: firstName, _id } = volunteer
     const errors = []
@@ -37,37 +32,21 @@ async function sendEmailToInactiveVolunteers({
       const contactInfo = { email, firstName }
       await mailHandler(contactInfo)
       if (group === InactiveGroup.inactiveThirtyDays)
-        await updateVolunteer({ _id }, { sentInactiveThirtyDayEmail: true })
+        await updateVolunteerSentInactiveEmail(_id, true, false)
       if (group === InactiveGroup.inactiveSixtyDays)
-        await updateVolunteer({ _id }, { sentInactiveSixtyDayEmail: true })
+        await updateVolunteerSentInactiveEmail(_id, true, true)
       if (group === InactiveGroup.inactiveNinetyDays) {
         const clearedAvailability = createNewAvailability()
-        await updateVolunteer(
-          { _id },
-          {
-            availability: clearedAvailability,
-            sentInactiveNinetyDayEmail: true
-          }
-        )
-        await updateAvailabilitySnapshot(_id, {
-          onCallAvailability: clearedAvailability
-        })
+        await updateVolunteerInactiveAvailability(_id, clearedAvailability)
+        await updateSnapshotOnCallByVolunteerId(_id, clearedAvailability)
       }
-      logger.info(`Sent ${currentJob} to volunteer ${_id}`)
+      log(`Sent ${currentJob} to volunteer ${_id}`)
     } catch (error) {
       errors.push(`${currentJob} to volunteer ${_id}: ${error}`)
     }
     if (errors.length) {
       throw errors
     }
-  }
-}
-
-function getLastActivityAtQuery(fromDate: Date, toDate: Date) {
-  return {
-    // best practice to clone date objects to avoid multiple ownership
-    $gte: new Date(fromDate),
-    $lt: new Date(toDate)
   }
 }
 
@@ -93,7 +72,7 @@ export default async (): Promise<void> => {
 
   const todaysDate = new Date().getTime()
   if (todaysDate >= blackoutPeriodStart && todaysDate <= blackoutPeriodEnd) {
-    logger.info(
+    log(
       `Skipping ${Jobs.EmailVolunteerInactive} because today's date, ${new Date(
         todaysDate
       ).toISOString()}, is within the blackout period: ${new Date(
@@ -109,121 +88,52 @@ export default async (): Promise<void> => {
   const sixtyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(60)
   const ninetyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(90)
   const ninetyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(90)
-  const thirtyDaysAgoQuery = {
-    sentInactiveThirtyDayEmail: false,
-    lastActivityAt: getLastActivityAtQuery(
-      thirtyDaysAgoStartOfDay,
-      thirtyDaysAgoEndOfDay
-    )
-  }
-  const sixtyDaysAgoQuery = {
-    sentInactiveSixtyDayEmail: false,
-    lastActivityAt: getLastActivityAtQuery(
-      sixtyDaysAgoStartOfDay,
-      sixtyDaysAgoEndOfDay
-    )
-  }
-  const ninetyDaysAgoQuery = {
-    sentInactiveNinetyDayEmail: false,
-    lastActivityAt: getLastActivityAtQuery(
-      ninetyDaysAgoStartOfDay,
-      ninetyDaysAgoEndOfDay
-    )
-  }
 
-  // TODO: can't be properly typed due to aggregation wrapper
-  const [volunteers]: unknown[] = await getVolunteersWithPipeline([
-    {
-      $match: {
-        $or: [thirtyDaysAgoQuery, sixtyDaysAgoQuery, ninetyDaysAgoQuery],
-        ...EMAIL_RECIPIENT
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        inactiveThirtyDays: {
-          $push: {
-            $cond: [
-              {
-                $and: [
-                  { $gt: ['$lastActivityAt', thirtyDaysAgoStartOfDay] },
-                  { $lt: ['$lastActivityAt', thirtyDaysAgoEndOfDay] }
-                ]
-              },
-              '$$ROOT',
-              '$$REMOVE'
-            ]
-          }
-        },
-        inactiveSixtyDays: {
-          $push: {
-            $cond: [
-              {
-                $and: [
-                  { $gt: ['$lastActivityAt', sixtyDaysAgoStartOfDay] },
-                  { $lt: ['$lastActivityAt', sixtyDaysAgoEndOfDay] }
-                ]
-              },
-              '$$ROOT',
-              '$$REMOVE'
-            ]
-          }
-        },
-        inactiveNinetyDays: {
-          $push: {
-            $cond: [
-              {
-                $and: [
-                  { $gt: ['$lastActivityAt', ninetyDaysAgoStartOfDay] },
-                  { $lt: ['$lastActivityAt', ninetyDaysAgoEndOfDay] }
-                ]
-              },
-              '$$ROOT',
-              '$$REMOVE'
-            ]
-          }
-        }
-      }
-    }
-  ])
+  const volunteers = await getInactiveVolunteers(
+    thirtyDaysAgoStartOfDay,
+    thirtyDaysAgoEndOfDay,
+    sixtyDaysAgoStartOfDay,
+    sixtyDaysAgoEndOfDay,
+    ninetyDaysAgoStartOfDay,
+    ninetyDaysAgoEndOfDay
+  )
 
   if (volunteers) {
     const {
       inactiveThirtyDays,
       inactiveSixtyDays,
-      inactiveNinetyDays
-    } = volunteers as InactiveVolunteersAggregation
+      inactiveNinetyDays,
+    } = volunteers
     const errors = []
     try {
-      await sendEmailToInactiveVolunteers({
-        volunteers: inactiveThirtyDays,
-        currentJob: Jobs.EmailVolunteerInactiveThirtyDays,
-        mailHandler: MailService.sendVolunteerInactiveThirtyDays,
-        group: InactiveGroup.inactiveThirtyDays
-      })
+      await sendEmailToInactiveVolunteers(
+        inactiveThirtyDays,
+        Jobs.EmailVolunteerInactiveThirtyDays,
+        MailService.sendVolunteerInactiveThirtyDays,
+        InactiveGroup.inactiveThirtyDays
+      )
     } catch (error) {
-      errors.push(...error)
+      if (Array.isArray(error)) errors.push(...error)
     }
     try {
-      await sendEmailToInactiveVolunteers({
-        volunteers: inactiveSixtyDays,
-        currentJob: Jobs.EmailVolunteerInactiveSixtyDays,
-        mailHandler: MailService.sendVolunteerInactiveSixtyDays,
-        group: InactiveGroup.inactiveSixtyDays
-      })
+      await sendEmailToInactiveVolunteers(
+        inactiveSixtyDays,
+        Jobs.EmailVolunteerInactiveSixtyDays,
+        MailService.sendVolunteerInactiveSixtyDays,
+        InactiveGroup.inactiveSixtyDays
+      )
     } catch (error) {
-      errors.push(...error)
+      if (Array.isArray(error)) errors.push(...error)
     }
     try {
-      await sendEmailToInactiveVolunteers({
-        volunteers: inactiveNinetyDays,
-        currentJob: Jobs.EmailVolunteerInactiveNinetyDays,
-        mailHandler: MailService.sendVolunteerInactiveNinetyDays,
-        group: InactiveGroup.inactiveNinetyDays
-      })
+      await sendEmailToInactiveVolunteers(
+        inactiveNinetyDays,
+        Jobs.EmailVolunteerInactiveNinetyDays,
+        MailService.sendVolunteerInactiveNinetyDays,
+        InactiveGroup.inactiveNinetyDays
+      )
     } catch (error) {
-      errors.push(...error)
+      if (Array.isArray(error)) errors.push(...error)
     }
     if (errors.length) {
       throw new Error(`Failed to send inactivity emails: ${errors}`)

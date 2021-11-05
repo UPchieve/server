@@ -17,8 +17,8 @@ const main = async (): Promise<void> => {
       settings: {
         // to prevent stalling long jobs
         stalledInterval: 1000 * 60 * 30,
-        lockDuration: 1000 * 60 * 30
-      }
+        lockDuration: 1000 * 60 * 30,
+      },
     })
     queue.on('error', error => {
       logger.error(`error in queue: ${error}`)
@@ -26,8 +26,9 @@ const main = async (): Promise<void> => {
     })
     addJobProcessors(queue)
   } catch (error) {
-    newrelic.noticeError(error)
-    if (error.code === 'ECONNREFUSED') {
+    newrelic.noticeError(error as Error)
+    // handle redis connection errors; for whatever reason Redis.ReplyError type is not in the declarations file
+    if ((error as any).code === 'ECONNREFUSED') {
       logger.error(
         `could not connect to redis server: ${config.redisConnectionString}`
       )

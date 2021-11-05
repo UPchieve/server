@@ -1,6 +1,6 @@
 import moment from 'moment'
 import * as SessionService from '../../services/SessionService'
-import logger from '../../logger'
+import { log } from '../logger'
 import { Jobs } from '.'
 
 export default async (): Promise<void> => {
@@ -15,7 +15,7 @@ export default async (): Promise<void> => {
     .endOf('isoWeek')
     .toDate()
 
-  logger.info(
+  log(
     `Executing ${Jobs.GenerateAndStoreWaitTimeHeatMap} for ${lastMonday} to ${lastSunday}.`
   )
   try {

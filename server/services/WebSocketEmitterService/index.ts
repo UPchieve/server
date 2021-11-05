@@ -7,7 +7,7 @@ import {
   UpgradedWebSocket,
   Packet,
   WebSocketEmitterOptions,
-  asWebSocketPacket
+  asWebSocketPacket,
 } from './types'
 
 export class WebSocketEmitter {
@@ -18,7 +18,7 @@ export class WebSocketEmitter {
 
   // @note: An encoder may take a data format and produce a representation that is suitable
   //        for transmitting over a WebSocket, e.g JSON into binary representations
-  private encoder: Function = null
+  private encoder: Function | null = null
 
   constructor(channel: string, options: WebSocketEmitterOptions = {}) {
     this.channel = channel
@@ -42,7 +42,7 @@ export class WebSocketEmitter {
         `Unsuitable WebSocket packet shape for room ${roomId}`
       )
     } catch (error) {
-      logger.error(error)
+      if (error instanceof Error) logger.error(error.message)
       return
     }
 
