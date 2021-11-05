@@ -23,9 +23,9 @@ export async function saveFeedback(data: {
   volunteerId: string
 }): Promise<Feedback> {
   if (
-    !_.isEmpty(data.studentTutoringFeedback) &&
-    !_.isEmpty(data.studentCounselingFeedback) &&
-    !_.isEmpty(data.volunteerFeedback)
+    _.isEmpty(data.studentTutoringFeedback) &&
+    _.isEmpty(data.studentCounselingFeedback) &&
+    _.isEmpty(data.volunteerFeedback)
   )
     throw new Error('Missing any type of feedback data to save')
   // TODO: repo pattern
