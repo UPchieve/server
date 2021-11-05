@@ -19,6 +19,7 @@ import { routeSurvey } from './survey'
 import { routes as routeStats } from './stats'
 import { routeTraining } from './training'
 import { routeUser } from './user'
+import { routeProductFlags } from './product-flags'
 
 export function routes(app: Express, sessionStore: MongoStore): void {
   const io: Server = socketServer(app)
@@ -38,6 +39,7 @@ export function routes(app: Express, sessionStore: MongoStore): void {
   routeReports(router)
   routeSurvey(router)
   routeStats(router)
+  routeProductFlags(router)
 
   app.use(addLastActivity)
   app.use(addUserAction)
