@@ -700,10 +700,10 @@ export async function getAnalyticsReportSummary(
     endDate
   )
   summary.uniqueStudentsHelped.total = uniqueStudentStats
-    ? uniqueStudentStats.totalWithinDateRange
+    ? uniqueStudentStats.total
     : 0
   summary.uniqueStudentsHelped.totalWithinDateRange = uniqueStudentStats
-    ? uniqueStudentStats.total
+    ? uniqueStudentStats.totalWithinDateRange
     : 0
 
   return summary
