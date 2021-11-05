@@ -195,11 +195,10 @@ export default {
       return endedBy ? endedBy.firstname : '?'
     },
     studentFeedback() {
-      return this.session.feedbacks.studentTutoringFeedback ? this.session.feedbacks.studentTutoringFeedback :
-        this.session.feedbacks.studentCounselingFeedback ? this.session.feedbacks.studentCounselingFeedback : {}
+      return (this.session.feedbacks.studentTutoringFeedback || this.session.feedbacks.studentCounselingFeedback) ? this.session.feedbacks : null
     },
     volunteerFeedback() {
-      return this.session.feedbacks.volunteerFeedback ? this.session.feedbacks.volunteerFeedback : {}
+      return this.session.feedbacks.volunteerFeedback ? this.session.feedbacks : null
     },
     devicePlatform() {
       if (
