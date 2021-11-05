@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import FeedbackModel, {
   Feedback,
   ResponseData,
@@ -21,6 +22,12 @@ export async function saveFeedback(data: {
   studentId: string
   volunteerId: string
 }): Promise<Feedback> {
+  if (
+    !_.isEmpty(data.studentTutoringFeedback) &&
+    !_.isEmpty(data.studentCounselingFeedback) &&
+    !_.isEmpty(data.volunteerFeedback)
+  )
+    throw new Error('Missing any type of feedback data to save')
   // TODO: repo pattern
   const feedback = new FeedbackModel({
     ...data,
