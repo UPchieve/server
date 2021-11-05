@@ -3,7 +3,7 @@
     <dashboard-banner />
     <div
       v-if="showGatesQualifiedBanner && isGatesQualified"
-      class="dashboard-notice dashboard-notice--warn"
+      class="dashboard-notice dashboard-notice--info"
     >
       Join our research study to earn $$ and be entered to win an iPad!
       <a
