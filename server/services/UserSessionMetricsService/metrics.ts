@@ -20,7 +20,7 @@ class AbsentStudent extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const volunteerWaitingMins = 10
     if (uvd.session.volunteerJoinedAt) {
-      const afterVolunteerJoined = new Date(
+      const volunteerWaitingDate = new Date(
         uvd.session.volunteerJoinedAt.getTime() +
           volunteerWaitingMins * ONE_MINUTE_ELAPSED_MILLISECONDS
       )
@@ -29,7 +29,7 @@ class AbsentStudent extends CounterMetricProcessor {
           (msg.user as Types.ObjectId).equals(
             uvd.session.student as Types.ObjectId
           ) &&
-          msg.createdAt > afterVolunteerJoined
+          msg.createdAt > volunteerWaitingDate
         )
           return 0
       }
@@ -82,7 +82,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const studentWaitingMins = 5
     if (uvd.session.volunteerJoinedAt) {
-      const afterVolunteerJoined = new Date(
+      const volunteerWaitingDate = new Date(
         uvd.session.volunteerJoinedAt.getTime() +
           studentWaitingMins * ONE_MINUTE_ELAPSED_MILLISECONDS
       )
@@ -91,7 +91,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
           (msg.user as Types.ObjectId).equals(
             uvd.session.volunteer as Types.ObjectId
           ) &&
-          msg.createdAt > afterVolunteerJoined
+          msg.createdAt > volunteerWaitingDate
         )
           return 0
       }
