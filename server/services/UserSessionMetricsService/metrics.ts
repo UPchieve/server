@@ -11,7 +11,7 @@ import {
   NO_FLAGS,
   NO_ACTIONS,
 } from './types'
-import { ONE_MINUTE_ELAPSED_MILLISECONDS } from '../../constants/time'
+import { ONE_MINUTE_ELAPSED_MILLISECONDS } from '../../constants'
 
 class AbsentStudent extends CounterMetricProcessor {
   public key = USER_SESSION_METRICS.absentStudent
@@ -20,7 +20,7 @@ class AbsentStudent extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const volunteerWaitingMins = 10
     if (uvd.session.volunteerJoinedAt) {
-      const volunteerHasJoined = new Date(
+      const afterVolunteerJoined = new Date(
         uvd.session.volunteerJoinedAt.getTime() +
           volunteerWaitingMins * ONE_MINUTE_ELAPSED_MILLISECONDS
       )
@@ -29,7 +29,7 @@ class AbsentStudent extends CounterMetricProcessor {
           (msg.user as Types.ObjectId).equals(
             uvd.session.student as Types.ObjectId
           ) &&
-          msg.createdAt > volunteerHasJoined
+          msg.createdAt > afterVolunteerJoined
         )
           return 0
       }
@@ -82,7 +82,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const studentWaitingMins = 5
     if (uvd.session.volunteerJoinedAt) {
-      const volunteerHasJoined = new Date(
+      const afterVolunteerJoined = new Date(
         uvd.session.volunteerJoinedAt.getTime() +
           studentWaitingMins * ONE_MINUTE_ELAPSED_MILLISECONDS
       )
@@ -91,7 +91,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
           (msg.user as Types.ObjectId).equals(
             uvd.session.volunteer as Types.ObjectId
           ) &&
-          msg.createdAt > volunteerHasJoined
+          msg.createdAt > afterVolunteerJoined
         )
           return 0
       }
