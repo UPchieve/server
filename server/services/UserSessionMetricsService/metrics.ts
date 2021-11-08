@@ -29,9 +29,8 @@ class AbsentStudent extends CounterMetricProcessor {
           (msg.user as Types.ObjectId).equals(
             uvd.session.student as Types.ObjectId
           ) &&
-          ((msg.createdAt > uvd.session.volunteerJoinedAt) ||
-          (msg.createdAt > volunteerWaitingDate))
-          
+          (msg.createdAt > uvd.session.volunteerJoinedAt ||
+            msg.createdAt > volunteerWaitingDate)
         )
           return 0
       }
@@ -93,8 +92,8 @@ class AbsentVolunteer extends CounterMetricProcessor {
           (msg.user as Types.ObjectId).equals(
             uvd.session.volunteer as Types.ObjectId
           ) &&
-          ((msg.createdAt > uvd.session.volunteerJoinedAt) ||
-          (msg.createdAt > volunteerWaitingDate))
+          (msg.createdAt > uvd.session.volunteerJoinedAt ||
+            msg.createdAt > volunteerWaitingDate)
         )
           return 0
       }
