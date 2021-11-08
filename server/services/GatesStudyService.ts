@@ -11,9 +11,9 @@ import * as gatesStudyUtils from '../utils/gates-study-utils'
 import { isDateWithinRange } from '../utils/is-date-within-range'
 import { asObjectId } from '../utils/type-utils'
 
-// registered as listener on session-ended
-export async function processGatesQualifiedSession(sessionId: string) {
-  const sessionObjectId = asObjectId(sessionId)
+// registered as listener on student-created
+export async function processGatesQualifiedCheck(userId: string) {
+  const userObjectId = asObjectId(userId)
   const todaysDate = moment()
     .utc()
     .toDate()
@@ -26,9 +26,9 @@ export async function processGatesQualifiedSession(sessionId: string) {
     )
   ) {
     const data = await gatesStudyUtils.prepareForGatesQualificationCheck(
-      sessionObjectId
+      userObjectId
     )
-    if (gatesStudyUtils.isGatesQualifiedSession(data))
+    if (gatesStudyUtils.isGatesQualifiedStudent(data))
       UserProductFlagsRepo.updateUPFGatesQualifiedFlagById(
         data.student._id,
         true

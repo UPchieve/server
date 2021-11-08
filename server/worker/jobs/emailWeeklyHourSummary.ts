@@ -47,8 +47,9 @@ export default async (): Promise<void> => {
       volunteerPartnerOrg,
     } = volunteer
     try {
-      const customCheck =
-        volunteerPartnerOrg === config.customVolunteerPartnerOrg
+      const customCheck = config.customVolunteerPartnerOrgs.some(
+        org => org === volunteerPartnerOrg
+      )
       let summaryStats
       if (customCheck)
         summaryStats = await telecomHourSummaryStats(volunteer, dateQuery)
@@ -58,7 +59,7 @@ export default async (): Promise<void> => {
           lastMonday.toDate(),
           lastSunday.toDate()
         )
-      /* 
+      /*
       The smallest this number can be is .01 hours =36 seconds (as per the rounding
       in VolunteerService.ts:68-70) So users with 36-54 seconds of time will have
       .01 hours coaching which gets rounded down to 0 hours/minutes at formatting

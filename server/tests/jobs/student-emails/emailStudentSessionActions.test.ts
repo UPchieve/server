@@ -43,10 +43,10 @@ describe('Student session action emails', () => {
     const job: any = {
       name: currentJob.jobName,
       data: {
-        studentId: student._id,
-        volunteerId: volunteer._id,
-        sessionSubject: session.subTopic,
-        sessionDate: session.createdAt,
+        studentId: student._id.toString(),
+        volunteerId: volunteer._id.toString(),
+        sessionSubtopic: session.subTopic,
+        sessionDate: session.createdAt.toISOString(),
       },
     }
 

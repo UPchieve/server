@@ -16,7 +16,7 @@ import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS, GRADES } from '../constants'
 
-import { LookupError } from '../models/Errors'
+import { InputError, LookupError } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
   asString,
@@ -25,6 +25,7 @@ import {
   asOptional,
   asEnum,
 } from './type-utils'
+import validator from 'validator'
 
 // Custom errors
 export class RegistrationError extends CustomError {}
@@ -162,6 +163,20 @@ export async function checkPhone(phone: string): Promise<boolean> {
     throw new LookupError('The phone number you entered is already in use')
 
   return true
+}
+
+export async function checkNames(first: string, last: string) {
+  // https://stackoverflow.com/questions/10570286/check-if-string-contains-url-anywhere-in-string-using-javascript
+  const internalUrlRegExp = new RegExp(
+    '([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?'
+  )
+  if (internalUrlRegExp.test(first) || internalUrlRegExp.test(last))
+    throw new InputError('Names can only contain letters, spaces and hyphens')
+}
+
+export async function checkEmail(email: string) {
+  if (!validator.isEmail(email))
+    throw new InputError('Email is not a valid email format')
 }
 
 export async function getReferredBy(

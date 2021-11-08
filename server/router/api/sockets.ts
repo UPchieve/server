@@ -190,6 +190,9 @@ export function routeSockets(
         () =>
           new Promise<void>(async (resolve, reject) => {
             const { user, sessionId, message } = data
+
+            newrelic.addCustomAttribute('sessionId', sessionId)
+
             // TODO: handle this differently?
             if (!sessionId) {
               return resolve()

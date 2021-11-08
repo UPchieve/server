@@ -66,6 +66,28 @@ export async function getUPFByUserId(
   }
 }
 
+export type PublicProductFlags = Pick<UserProductFlags, 'gatesQualified'>
+
+export async function getPublicUPFByUserId(
+  userId: Types.ObjectId
+): Promise<PublicProductFlags | undefined> {
+  try {
+    const upf = await UserProductFlagsModel.findOne(
+      {
+        user: userId,
+      },
+      {
+        gatesQualified: 1,
+      }
+    )
+      .lean()
+      .exec()
+    if (upf) return upf
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 // Update functions
 export async function updateUPFGatesQualifiedFlagById(
   userId: Types.ObjectId,

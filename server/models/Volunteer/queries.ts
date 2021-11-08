@@ -285,7 +285,9 @@ export async function getVolunteersForTotalHours(): Promise<
       {
         isTestUser: false,
         isFakeUser: false,
-        volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+        volunteerPartnerOrg: {
+          $in: config.customVolunteerPartnerOrgs,
+        },
         isOnboarded: true,
         isApproved: true,
       },
@@ -338,15 +340,15 @@ export type VolunteerForTelecomReport = Pick<
   'firstname' | 'lastname' | 'email'
 > &
   VolunteerForHourSummary
-export async function getVolunteersForTelecomReport(): Promise<
-  VolunteerForTelecomReport[]
-> {
+export async function getVolunteersForTelecomReport(
+  customVolunteerPartnerOrg: string
+): Promise<VolunteerForTelecomReport[]> {
   return await wrapRead(async () => {
     return await VolunteerModel.find(
       {
         isTestUser: false,
         isFakeUser: false,
-        volunteerPartnerOrg: config.customVolunteerPartnerOrg,
+        volunteerPartnerOrg: customVolunteerPartnerOrg,
         isOnboarded: true,
         isApproved: true,
       },

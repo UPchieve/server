@@ -226,6 +226,8 @@ export default {
             component: 'MobileAppNoticeBanner'
           })
         }
+
+        this.$store.dispatch('productFlags/getUserProductFlags')
       }
     },
     /**
