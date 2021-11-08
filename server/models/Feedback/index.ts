@@ -34,7 +34,7 @@ export interface StudentTutoringFeedback {
   'subject-understanding': number
   'coach-rating': number
   'coach-feedback': string
-  'other-feedback': string
+  'other-feedback'?: string
 }
 
 export interface StudentCounselingFeedback {
@@ -45,7 +45,7 @@ export interface StudentCounselingFeedback {
     'coach-friendly': number
     'coach-help-again': number
   }
-  'other-feedback': string
+  'other-feedback'?: string
 }
 
 export interface VolunteerFeedback {
@@ -53,7 +53,7 @@ export interface VolunteerFeedback {
   'session-improvements': string
   'student-understanding': number
   'session-obstacles': number[]
-  'other-feedback': string
+  'other-feedback'?: string
 }
 
 export interface Feedback {
