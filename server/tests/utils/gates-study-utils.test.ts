@@ -54,7 +54,6 @@ describe('isGatesQualifiedStudent', () => {
 describe('prepareForGatesQualificationCheck', () => {
   test('Should retrieve the data for the gates qualification check', async () => {
     const mockStudent = buildStudent()
-    const mockSession = buildSession({ student: mockStudent._id })
     const mockSchool = buildSchool()
 
     mockedStudentRepo.getStudentById.mockResolvedValueOnce(mockStudent)
