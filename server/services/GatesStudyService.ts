@@ -1,6 +1,5 @@
 import { isEnabled } from 'unleash-client'
 import moment from 'moment'
-import { Types } from 'mongoose'
 import {
   FEATURE_FLAGS,
   GATES_STUDY_PERIOD_START,

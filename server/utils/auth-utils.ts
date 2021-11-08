@@ -5,7 +5,6 @@ import passportLocal from 'passport-local'
 import { Types } from 'mongoose'
 import { Request, Response, NextFunction } from 'express'
 
-import logger from '../logger'
 import config from '../config'
 import {
   getUserById,
