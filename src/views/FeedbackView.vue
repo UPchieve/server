@@ -331,7 +331,7 @@ export default {
 
       for (const option of this.filteredQuestions) {
         const { id, answer } = option
-        if (answer) data[feedbackPath][id] = answer
+        if (answer && !Array.isArray(answer)) data[feedbackPath][id] = answer
         // sort answers with multiple selections
         if (answer && Array.isArray(answer) && answer.length > 0)
           data[feedbackPath][id] = answer.sort((a, b) => a - b)
