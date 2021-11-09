@@ -26,8 +26,8 @@ export interface VolunteerPartnerManifest {
 
 export interface SponsorOrgManifest {
   name: string
-  schools?: Types.ObjectId[]
-  partnerOrgs?: string[]
+  schools: Types.ObjectId[]
+  partnerOrgs: string[]
 }
 
 export let volunteerPartnerManifests: { [k: string]: VolunteerPartnerManifest }
