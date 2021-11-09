@@ -16,36 +16,37 @@ import {
   asOptional,
   asArray,
 } from '../utils/type-utils'
+import { InputError } from '../models/Errors'
 
 const asStudentTutoringFeedback = asFactory<StudentTutoringFeedback>({
-  'session-goal': asNumber,
-  'subject-understanding': asNumber,
-  'coach-rating': asNumber,
-  'coach-feedback': asString,
+  'session-goal': asOptional(asNumber),
+  'subject-understanding': asOptional(asNumber),
+  'coach-rating': asOptional(asNumber),
+  'coach-feedback': asOptional(asString),
   'other-feedback': asOptional(asString),
 })
 
 // TODO: nested objects can be annoying using asFactory
 const asRateSession = asFactory({
-  rating: asNumber,
+  rating: asOptional(asNumber),
 })
 const asCoachRating = asFactory({
-  'coach-knowedgable': asNumber,
-  'coach-friendly': asNumber,
-  'coach-help-again': asNumber,
+  'coach-knowedgable': asOptional(asNumber),
+  'coach-friendly': asOptional(asNumber),
+  'coach-help-again': asOptional(asNumber),
 })
 const asStudentCounselingFeedback = asFactory<StudentCounselingFeedback>({
-  'rate-session': asRateSession,
-  'session-goal': asString,
-  'coach-ratings': asCoachRating,
+  'rate-session': asOptional(asRateSession),
+  'session-goal': asOptional(asString),
+  'coach-ratings': asOptional(asCoachRating),
   'other-feedback': asOptional(asString),
 })
 
 const asVolunteerFeedback = asFactory<VolunteerFeedback>({
-  'session-enjoyable': asNumber,
-  'session-improvements': asString,
-  'student-understanding': asNumber,
-  'session-obstacles': asArray(asNumber),
+  'session-enjoyable': asOptional(asNumber),
+  'session-improvements': asOptional(asString),
+  'student-understanding': asOptional(asNumber),
+  'session-obstacles': asOptional(asArray(asNumber)),
   'other-feedback': asOptional(asString),
 })
 
@@ -73,6 +74,12 @@ export async function saveFeedback(data: unknown): Promise<Feedback> {
     studentId,
     volunteerId,
   } = asFeedbackPayload(data)
+  if (
+    _.isEmpty(studentTutoringFeedback) &&
+    _.isEmpty(studentCounselingFeedback) &&
+    _.isEmpty(volunteerFeedback)
+  )
+    throw new InputError('Must asnwer at least one question')
   const feedback = new FeedbackModel({
     sessionId,
     type: Case.camel(type),

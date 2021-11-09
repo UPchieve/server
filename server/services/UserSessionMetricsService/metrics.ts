@@ -137,7 +137,7 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
-        (feedback.studentTutoringFeedback['coach-rating'] || 0) <= 2
+        feedback.studentTutoringFeedback['coach-rating']! <= 2
       )
         return 1
       else if (
@@ -169,13 +169,13 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
-        (feedback.studentTutoringFeedback['session-goal'] || 0) <= 2
+        feedback.studentTutoringFeedback['session-goal']! <= 2
       )
         return 1
       else if (
         feedback.studentCounselingFeedback &&
         feedback.studentCounselingFeedback['rate-session'] &&
-        feedback.studentCounselingFeedback['rate-session'].rating <= 2
+        feedback.studentCounselingFeedback['rate-session'].rating! <= 2
       )
         return 1
     }
@@ -197,7 +197,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.volunteerFeedback &&
-        (feedback.volunteerFeedback['session-enjoyable'] || 0) <= 2
+        feedback.volunteerFeedback['session-enjoyable']! <= 2
       )
         return 1
     }
