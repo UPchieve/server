@@ -53,6 +53,7 @@ export const Config = Record({
     studentAbsentWarningTemplate: String,
     studentAbsentVolunteerApologyTemplate: String,
     studentUnmatchedApologyTemplate: String,
+    studentOnlyLookingForAnswersTemplate: String,
     volunteerQuickTipsTemplate: String,
     partnerVolunteerOnlyCollegeCertsTemplate: String,
     partnerVolunteerLowHoursSelectedTemplate: String,

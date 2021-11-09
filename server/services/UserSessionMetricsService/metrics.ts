@@ -278,7 +278,18 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = () => NO_ACTIONS
+  public triggerActions = (pd: ProcessorData<Counter>) => {
+    if (pd.value && this.computeFinalValue(pd.studentUSM, pd.value) === 1)
+      return [
+        QueueService.add(Jobs.EmailStudentOnlyLookingForAnswers, {
+          sessionSubtopic: pd.session.subTopic,
+          sessionDate: pd.session.createdAt,
+          studentId: pd.session.student,
+          volunteerId: pd.session.volunteer,
+        }),
+      ] as Promise<any>[]
+    else return NO_ACTIONS
+  }
 }
 
 class CommentFromStudent extends CounterMetricProcessor {
