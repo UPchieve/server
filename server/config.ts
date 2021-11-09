@@ -202,6 +202,10 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
     'localManifests/student.yaml',
 
+  sponsorOrgManifestPath:
+    process.env.SUBWAY_SPONSOR_ORG_MANIFEST_PATH ||
+    'localManifests/sponsor-orgs.yaml',
+
   assistmentsBaseURL:
     process.env.SUBWAY_ASSISTMENTS_BASE_URL || 'https://example.com',
 
