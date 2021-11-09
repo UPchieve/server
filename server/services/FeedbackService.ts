@@ -52,7 +52,7 @@ const asVolunteerFeedback = asFactory<VolunteerFeedback>({
 
 const asFeedbackPayload = asFactory({
   sessionId: asString,
-  type: asString,
+  topic: asString,
   subTopic: asString,
   studentTutoringFeedback: asOptional(asStudentTutoringFeedback),
   studentCounselingFeedback: asOptional(asStudentCounselingFeedback),
@@ -65,7 +65,7 @@ const asFeedbackPayload = asFactory({
 export async function saveFeedback(data: unknown): Promise<Feedback> {
   const {
     sessionId,
-    type,
+    topic,
     subTopic,
     studentTutoringFeedback,
     studentCounselingFeedback,
@@ -82,7 +82,7 @@ export async function saveFeedback(data: unknown): Promise<Feedback> {
     throw new InputError('Must asnwer at least one question')
   const feedback = new FeedbackModel({
     sessionId,
-    type: Case.camel(type),
+    type: Case.camel(topic),
     subTopic: Case.camel(subTopic),
     studentTutoringFeedback,
     studentCounselingFeedback,
