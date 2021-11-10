@@ -745,12 +745,6 @@ const analyticsReportSummaryHeaderMapping = {
   uniqueStudentsHelped: 'Unique students helped',
 }
 
-const borderRightMediumStyle: Partial<exceljs.Borders> = {
-  right: {
-    style: 'medium',
-  },
-}
-
 export function applyAnalyticsReportDataStyles(worksheet: exceljs.Worksheet) {
   /**
    * @note: When applying styles to a cell, column, or row, previous styles applied may be overridden,
@@ -760,22 +754,6 @@ export function applyAnalyticsReportDataStyles(worksheet: exceljs.Worksheet) {
    *        we must access using the direct property like `.border` or `.fill`.
    *
    */
-  worksheet.getColumn('certificationsReceived').border = borderRightMediumStyle
-  worksheet.getColumn(
-    'totalUniqueStudentsHelped'
-  ).border = borderRightMediumStyle
-  worksheet.getColumn('totalVolunteerHours').border = borderRightMediumStyle
-  worksheet.getColumn(
-    'dateRangeUniqueStudentsHelped'
-  ).border = borderRightMediumStyle
-  worksheet.getColumn('dateRangeVolunteerHours').border = borderRightMediumStyle
-  // Target the sectional header cells
-  worksheet.getCell('A1').border = borderRightMediumStyle
-  worksheet.getCell('H1').border = borderRightMediumStyle
-  worksheet.getCell('K1').border = borderRightMediumStyle
-  worksheet.getCell('O1').border = borderRightMediumStyle
-  worksheet.getCell('R1').border = borderRightMediumStyle
-
   const rowWithFormattedColumnHeaders = worksheet.getRow(2)
   rowWithFormattedColumnHeaders.height = 80
   rowWithFormattedColumnHeaders.alignment = {
@@ -787,7 +765,6 @@ export function applyAnalyticsReportDataStyles(worksheet: exceljs.Worksheet) {
 
   const overridenCellStyle: Partial<exceljs.Style> = {
     border: {
-      ...borderRightMediumStyle,
       bottom: { style: 'thin' },
     },
     alignment: { wrapText: true },
