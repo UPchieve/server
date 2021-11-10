@@ -745,12 +745,6 @@ const analyticsReportSummaryHeaderMapping = {
   uniqueStudentsHelped: 'Unique students helped',
 }
 
-const borderRightMediumStyle: Partial<exceljs.Borders> = {
-  right: {
-    style: 'medium',
-  },
-}
-
 export function applyAnalyticsReportDataStyles(worksheet: exceljs.Worksheet) {
   /**
    * @note: When applying styles to a cell, column, or row, previous styles applied may be overridden,
