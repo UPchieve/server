@@ -79,7 +79,7 @@ export async function saveFeedback(data: unknown): Promise<Feedback> {
     _.isEmpty(studentCounselingFeedback) &&
     _.isEmpty(volunteerFeedback)
   )
-    throw new InputError('Must asnwer at least one question')
+    throw new InputError('Must answer at least one question')
   const feedback = new FeedbackModel({
     sessionId,
     type: Case.camel(topic),
