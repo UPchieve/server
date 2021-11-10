@@ -35,6 +35,13 @@ describe('Student onboarding email series', () => {
     Jobs.EmailStudentOnboardingSurvey,
   ]
 
+  const oldStudentWelcomeSeriesJobs = [
+    Jobs.EmailStudentUseCases,
+    Jobs.EmailMeetOurVolunteers,
+    Jobs.EmailIndependentLearning,
+    Jobs.EmailStudentGoalSetting,
+  ]
+
   beforeEach(async () => {
     jest.resetAllMocks()
   })
@@ -42,6 +49,25 @@ describe('Student onboarding email series', () => {
   test('Should send all student onboarding series jobs', async () => {
     const student = await insertStudent()
     for (const currentJob of studentWelcomeSeriesJobs) {
+      // @todo: figure out how to properly type
+
+      const job: any = {
+        name: currentJob,
+        data: {
+          studentId: student._id,
+        },
+      }
+
+      await emailStudentOnboardingSeries(job)
+      expect(logger).toHaveBeenCalledWith(
+        `Emailed ${currentJob} to student ${student._id}`
+      )
+    }
+  })
+
+  test('Should send deprecated student onboarding series jobs', async () => {
+    const student = await insertStudent()
+    for (const currentJob of oldStudentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
 
       const job: any = {

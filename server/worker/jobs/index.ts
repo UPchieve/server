@@ -75,6 +75,11 @@ export enum Jobs {
   SendAssistmentsData = ' SendAssistmentsData',
   // TODO: add the tech issue apology job to the job processor once it is ready to be released
   EmailTechIssueApology = 'EmailTechIssueApology',
+
+  // TODO: remove the following deprecated job names
+  EmailStudentUseCases = 'EmailStudentUseCases',
+  EmailIndependentLearning = 'EmailIndependentLearning',
+  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
 }
 
 // register new job processors here
@@ -231,6 +236,20 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendAssistmentsData,
     processor: sendAssistmentsData,
+  },
+
+  // TODO: remove the following deprecated job names
+  {
+    name: Jobs.EmailStudentUseCases,
+    processor: emailStudentOnboardingSeries,
+  },
+  {
+    name: Jobs.EmailIndependentLearning,
+    processor: emailStudentOnboardingSeries,
+  },
+  {
+    name: Jobs.EmailStudentGoalSetting,
+    processor: emailStudentOnboardingSeries,
   },
 ]
 
