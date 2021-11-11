@@ -14,12 +14,14 @@ const newrelicUrls = [
   'https://js-agent.newrelic.com',
   'https://bam.nr-data.net',
 ]
+const gleapScriptUrl = 'https://widget.gleap.io'
 
 // connect sources
 const posthogUrl = 'https://p.upchieve.org'
 const unleashUrl = 'https://gitlab.com'
 const sentryUrl = 'https://*.ingest.sentry.io'
 const mathJaxFetchUrl = 'https://api.cdnjs.com'
+const gleapConnectUrls = ['https://uptime.gleap.io', 'https://api.gleap.io']
 
 // img srcs
 const s3PhotoConnectUrls = [
@@ -55,6 +57,7 @@ export const scriptSrc = [
   posthogUrl,
   ...newrelicUrls,
   ...adminEduUrls,
+  gleapScriptUrl,
   "'unsafe-eval'",
   "'unsafe-inline'",
 ]
@@ -78,6 +81,7 @@ export const connectSrc = [
   ...s3PhotoConnectUrls,
   ...newrelicUrls,
   ...googleUrls,
+  ...gleapConnectUrls,
   config.vueAppUnleashUrl,
   `wss://${config.host}`,
   `https://${config.host}`,
