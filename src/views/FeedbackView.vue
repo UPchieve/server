@@ -67,6 +67,7 @@
         >
           Submit
         </large-button>
+        <loader v-if="isSubmittingFeedback" :overlay="true" />
       </template>
     </div>
   </div>
@@ -82,11 +83,13 @@ import { formatSurveyAnswers } from '@/utils/survey'
 import FeedbackRadio from '@/components/FeedbackRadio'
 import FeedbackTextarea from '@/components/FeedbackTextarea'
 import FeedbackCheckbox from '@/components/FeedbackCheckbox'
+import Loader from '@/components/Loader'
 
 export default {
   name: 'FeedbackView',
   components: {
-    LargeButton
+    LargeButton,
+    Loader
   },
   data() {
     return {
@@ -310,6 +313,7 @@ export default {
   methods: {
     async submitFeedback() {
       if (this.isSubmittingFeedback) return
+      this.isSubmittingFeedback = true
       this.error = ''
       const data = {
         sessionId: this.session._id,
@@ -337,8 +341,9 @@ export default {
         await NetworkService.feedback(this, data)
         this.$router.push('/')
       } catch (error) {
-        this.isSubmittingFeedback = false
         this.error = 'There was an error sending your feedback'
+      } finally {
+        this.isSubmittingFeedback = false
       }
     }
   }

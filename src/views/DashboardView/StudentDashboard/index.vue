@@ -1,20 +1,36 @@
 <template>
   <div class="student-dashboard">
     <dashboard-banner />
-    <div
-      v-if="!downtimeMessage && noticeMessage"
-      class="dashboard-notice"
-      :class="isLowCoachHour && 'dashboard-notice--warn'"
-    >
-      {{ noticeMessage }}
-    </div>
+    <div class="dashboard-notices">
+      <div
+        v-if="showGatesQualifiedBanner && isGatesQualified"
+        class="dashboard-notice dashboard-notice--info"
+      >
+        Join our research study to earn $$ and be entered to win an iPad!
+        <a
+          href="https://docs.google.com/document/d/1XXIn7g3bnah18Q7NE2QvrrhZ3imGStpVPtfitiPaWCQ"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="gates__learn-more"
+          >Learn more<arrow-icon class="gates__arrow-icon"
+        /></a>
+      </div>
 
-    <div
-      v-if="downtimeMessage"
-      class="dashboard-notice"
-      :class="'dashboard-notice--info'"
-    >
-      {{ downtimeMessage }}
+      <div
+        v-else-if="!downtimeMessage && noticeMessage"
+        class="dashboard-notice"
+        :class="isLowCoachHour && 'dashboard-notice--warn'"
+      >
+        {{ noticeMessage }}
+      </div>
+
+      <div
+        v-if="downtimeMessage"
+        class="dashboard-notice"
+        :class="'dashboard-notice--downtime'"
+      >
+        {{ downtimeMessage }}
+      </div>
     </div>
 
     <subject-selection />
@@ -33,6 +49,7 @@ import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
 import { isEnabled } from 'unleash-client'
 import { FEATURE_FLAGS } from '@/consts'
+import ArrowIcon from '@/assets/arrow.svg'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -51,7 +68,8 @@ export default {
   components: {
     DashboardBanner,
     SubjectSelection,
-    FirstSessionCongratsModal
+    FirstSessionCongratsModal,
+    ArrowIcon
   },
   created() {
     if (this.user && this.user.isBanned) {
@@ -92,7 +110,10 @@ export default {
       user: state => state.user.user,
       isFirstDashboardVisit: state => state.user.isFirstDashboardVisit
     }),
-    ...mapGetters({ isSessionAlive: 'user/isSessionAlive' }),
+    ...mapGetters({
+      isSessionAlive: 'user/isSessionAlive',
+      isGatesQualified: 'productFlags/isGatesQualified'
+    }),
     isLowCoachHour() {
       return this.currentHour < 12
     },
@@ -108,6 +129,26 @@ export default {
         return 'Heads up: we have less coaches available than normal right now. Try making requests between 12pm-12am ET when possible!'
 
       return ''
+    },
+    isWithinGatesStudyPeriod() {
+      const gatesStudyPeriodStart = moment()
+        .utc()
+        .month('October')
+        .date(18)
+        .startOf('day')
+      const gatesStudyPeriodEnd = moment()
+        .utc()
+        .month('December')
+        .date(17)
+        .endOf('day')
+      return moment()
+        .utc()
+        .isBetween(gatesStudyPeriodStart, gatesStudyPeriodEnd)
+    },
+    showGatesQualifiedBanner() {
+      return (
+        isEnabled(FEATURE_FLAGS.GATES_STUDY) || this.isWithinGatesStudyPeriod
+      )
     },
     downtimeMessage() {
       if (isEnabled('downtime-banner-4-10')) {
@@ -163,10 +204,15 @@ export default {
   padding: 15px;
   background-color: $c-success-green;
   border-radius: 8px;
-  margin: 20px 0 -20px;
+  margin-top: 20px;
   font-weight: 500;
   font-size: 16px;
   color: #fff;
+
+  &:last-child {
+    // TODO: a cleaner way to handle spacing issues with class SubjectSelection
+    margin-bottom: -20px;
+  }
 
   &--warn {
     background-color: $c-warning-orange;
@@ -174,6 +220,24 @@ export default {
 
   &--info {
     background-color: $c-information-blue;
+  }
+
+  &--downtime {
+    background-color: $c-error-red;
+  }
+}
+
+.gates {
+  &__learn-more {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  &__arrow-icon {
+    fill: currentColor;
+    height: 16px;
+    width: 16px;
+    margin-left: 0.25em;
   }
 }
 </style>

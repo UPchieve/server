@@ -1,8 +1,9 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import appModule from './modules/app'
-import userModule from './modules/user'
 import config from '../config'
+import appModule from './modules/app'
+import productFlagsModule from './modules/product-flags'
+import userModule from './modules/user'
 
 Vue.use(Vuex)
 
@@ -14,7 +15,8 @@ if (config.devtools) {
 export const storeOptions = {
   modules: {
     app: appModule,
-    user: userModule
+    user: userModule,
+    productFlags: productFlagsModule
   }
 }
 

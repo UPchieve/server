@@ -41,13 +41,25 @@
           <div>{{ schoolApprovalStatus }}</div>
           <input
             type="checkbox"
-            id="toggle"
+            id="toggleSchoolApproval"
             class="checkbox"
             :checked="school.isApproved"
             @change="toggleSchoolApproval"
           />
-          <label for="toggle" class="switch"></label>
-          <p v-if="error" class="error">{{ error }}</p>
+          <label for="toggleSchoolApproval" class="switch"></label>
+          <p v-if="approvalError" class="error">{{ approvalError }}</p>
+          <div>{{ schoolPartnerStatus }}</div>
+          <input
+            type="checkbox"
+            id="toggleSchoolPartner"
+            class="checkbox"
+            :checked="school.isPartner"
+            @change="toggleSchoolIsPartner"
+          />
+          <label for="toggleSchoolPartner" class="switch"></label>
+          <p v-if="partnerStatusError" class="error">
+            {{ partnerStatusError }}
+          </p>
         </div>
       </div>
     </template>
@@ -74,7 +86,8 @@ export default {
   data() {
     return {
       school: {},
-      error: '',
+      approvalError: '',
+      partnerStatusError: '',
       isEditMode: false
     }
   },
@@ -86,6 +99,11 @@ export default {
   computed: {
     schoolApprovalStatus() {
       return this.school.isApproved ? 'Approved' : 'Not approved'
+    },
+    schoolPartnerStatus() {
+      return this.school.isPartner
+        ? 'Is a Partner School'
+        : 'Not a Partner School'
     }
   },
 
@@ -107,7 +125,26 @@ export default {
         await NetworkService.adminUpdateSchoolApproval(data)
         this.school.isApproved = checked
       } catch (error) {
-        this.error = "There was an error updating the school's approval status"
+        this.approvalError =
+          "There was an error updating the school's approval status"
+      }
+    },
+    async toggleSchoolIsPartner(event) {
+      const {
+        target: { checked }
+      } = event
+
+      const data = {
+        schoolId: this.school._id,
+        isPartner: checked
+      }
+
+      try {
+        await NetworkService.adminUpdateSchoolPartnerStatus(data)
+        this.school.isPartner = checked
+      } catch (error) {
+        this.partnerStatusError =
+          "There was an error updating the school's partner status"
       }
     },
 

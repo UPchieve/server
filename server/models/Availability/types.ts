@@ -1,5 +1,12 @@
 import { Schema } from 'mongoose'
 
+// https://www.petermorlion.com/iterating-a-typescript-enum/ don't @ me - Dave
+export function enumKeys<O extends object, K extends keyof O = keyof O>(
+  obj: O
+): K[] {
+  return Object.keys(obj).filter(k => Number.isNaN(+k)) as K[]
+}
+
 export enum DAYS {
   SUNDAY = 'Sunday',
   MONDAY = 'Monday',
@@ -7,7 +14,7 @@ export enum DAYS {
   WEDNESDAY = 'Wednesday',
   THURSDAY = 'Thursday',
   FRIDAY = 'Friday',
-  SATURDAY = 'Saturday'
+  SATURDAY = 'Saturday',
 }
 
 export enum HOURS {
@@ -34,7 +41,7 @@ export enum HOURS {
   '8PM' = '8p',
   '9PM' = '9p',
   '10PM' = '10p',
-  '11PM' = '11p'
+  '11PM' = '11p',
 }
 
 export type AvailabilityDay = {
@@ -71,7 +78,7 @@ export const availabilityDaySchema = new Schema(
     [HOURS['8PM']]: { type: Boolean, default: false },
     [HOURS['9PM']]: { type: Boolean, default: false },
     [HOURS['10PM']]: { type: Boolean, default: false },
-    [HOURS['11PM']]: { type: Boolean, default: false }
+    [HOURS['11PM']]: { type: Boolean, default: false },
   },
   { _id: false }
 )

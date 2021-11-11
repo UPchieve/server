@@ -1,12 +1,14 @@
 import { Types } from 'mongoose'
-import SessionModel, { getUnfulfilledSessions } from '../models/Session'
-import MessageModel, { MessageDocument } from '../models/Message'
+import socketio from 'socket.io'
+import logger from '../logger'
+import SessionModel, { SessionDocument } from '../models/Session'
+import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 
 class SocketService {
-  private io
+  private io: socketio.Server
 
-  constructor(io) {
+  constructor(io: socketio.Server) {
     this.io = io
   }
 
@@ -16,22 +18,20 @@ class SocketService {
    * @returns the session object
    */
   private async getSessionData(
-    sessionId: Types.ObjectId | string
-  ): Promise<MessageDocument> {
+    sessionId: Types.ObjectId
+  ): Promise<SessionDocument> {
     const populateOptions = [
       { path: 'student', select: 'firstname isVolunteer' },
-      { path: 'volunteer', select: 'firstname isVolunteer' }
+      { path: 'volunteer', select: 'firstname isVolunteer' },
     ]
 
-    // @todo: import from SessionService instead of directly from the model
+    // TODO: repo pattern
     const populatedSession = await SessionModel.findById(sessionId)
       .populate(populateOptions)
       .exec()
 
-    return MessageModel.populate(populatedSession, {
-      path: 'messages.user',
-      select: 'firstname isVolunteer'
-    })
+    if (populatedSession) return populatedSession
+    else throw new Error(`Session data for ${sessionId} not found`)
   }
 
   async updateSessionList(): Promise<void> {
@@ -39,19 +39,26 @@ class SocketService {
     this.io.in('volunteers').emit('sessions', sessions)
   }
 
-  async emitSessionChange(sessionId: Types.ObjectId | string): Promise<void> {
+  async emitSessionChange(sessionId: Types.ObjectId): Promise<void> {
     const session = await this.getSessionData(sessionId)
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
 
     await this.updateSessionList()
   }
 
-  bump(socket, data, err): void {
-    console.log('Could not join session')
-    console.log(err)
+  bump(
+    socket: socketio.Socket,
+    data: {
+      endedAt?: Date
+      volunteer?: Types.ObjectId
+      student: Types.ObjectId
+    },
+    err: Error
+  ): void {
+    logger.error('Could not join session')
+    logger.error(err)
     socket.emit('bump', data, err.toString())
   }
 }
 
-module.exports = SocketService
 export default SocketService

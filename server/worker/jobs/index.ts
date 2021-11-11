@@ -19,6 +19,7 @@ import emailQuickTips from './volunteer-emails/emailQuickTips'
 import emailPartnerVolunteerOnlyCollegeCerts from './partner-volunteer-emails/emailOnlyCollegeCerts'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
 import emailStudentWelcomeSeries from './student-emails/emailStudentWelcomeSeries'
+import emailStudentSessionActions from './student-emails/emailStudentSessionActions'
 import emailPartnerVolunteerReferACoworker from './partner-volunteer-emails/emailReferACoworker'
 import emailPartnerVolunteerTenSessionMilestone from './partner-volunteer-emails/emailTenSessionMilestone'
 import emailVolunteerGentleWarning from './volunteer-emails/emailGentleWarning'
@@ -27,6 +28,7 @@ import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVoluntee
 import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
 import emailFailedFirstAttemptedQuiz from './volunteer-emails/emailFailedFirstAttemptedQuiz'
 import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVolunteerInactiveBlackoutOver'
+import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
 import emailSessionReported from './student-emails/emailSessionReported'
 import sendAssistmentsData from './sendAssistmentsData'
 
@@ -50,6 +52,9 @@ export enum Jobs {
   EmailIndependentLearning = 'EmailIndependentLearning',
   EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
   EmailStudentGoalSetting = 'EmailStudentGoalSetting',
+  EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
+  EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
+  EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
   EmailSessionReported = 'EmailSessionReported',
   EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
   EmailPartnerVolunteerOnlyCollegeCerts = 'EmailVolunteerCollegeCertsOnly',
@@ -63,146 +68,170 @@ export enum Jobs {
   EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
   EmailVolunteerInactive = 'EmailVolunteerInactive',
   EmailVolunteerFirstSessionCongrats = 'EmailVolunteerFirstSessionCongrats',
+  EmailVolunteerAbsentWarning = 'EmailVolunteerAbsentWarning',
+  EmailVolunteerAbsentStudentApology = 'EmailVolunteerAbsentStudentApology',
   EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
   EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
-  SendAssistmentsData = ' SendAssistmentsData'
+  SendAssistmentsData = ' SendAssistmentsData',
+  // TODO: add the tech issue apology job to the job processor once it is ready to be released
+  EmailTechIssueApology = 'EmailTechIssueApology',
 }
 
 // register new job processors here
 interface JobProcessor {
   name: Jobs
-  processor: ProcessPromiseFunction<any> // eslint-disable-line @typescript-eslint/no-explicit-any
+  processor: ProcessPromiseFunction<any>
 }
 
 const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.NotifyTutors,
-    processor: notifyTutors
+    processor: notifyTutors,
   },
   {
     name: Jobs.UpdateElapsedAvailability,
-    processor: updateElapsedAvailability
+    processor: updateElapsedAvailability,
   },
   {
     name: Jobs.UpdateTotalVolunteerHours,
-    processor: updateTotalVolunteerHours
+    processor: updateTotalVolunteerHours,
   },
   {
     name: Jobs.EndStaleSessions,
-    processor: endStaleSessions
+    processor: endStaleSessions,
   },
   {
     name: Jobs.EndUnmatchedSession,
-    processor: endUnmatchedSession
+    processor: endUnmatchedSession,
   },
   {
     name: Jobs.GenerateAndStoreWaitTimeHeatMap,
-    processor: generateAndStoreWaitTimeHeatMap
+    processor: generateAndStoreWaitTimeHeatMap,
   },
   {
     name: Jobs.EmailReferences,
-    processor: emailReferences
+    processor: emailReferences,
   },
   {
     name: Jobs.EmailReadyToCoach,
-    processor: emailReadyToCoach
+    processor: emailReadyToCoach,
   },
   {
     name: Jobs.EmailReferenceFollowup,
-    processor: emailReferenceFollowup
+    processor: emailReferenceFollowup,
   },
   {
     name: Jobs.EmailWaitingOnReferences,
-    processor: emailWaitingOnReferences
+    processor: emailWaitingOnReferences,
   },
   {
     name: Jobs.EmailNiceToMeetYou,
-    processor: emailNiceToMeetYou
+    processor: emailNiceToMeetYou,
   },
   {
     name: Jobs.EmailWeeklyHourSummary,
-    processor: emailWeeklyHourSummary
+    processor: emailWeeklyHourSummary,
   },
   {
     name: Jobs.EmailOnboardingReminderOne,
-    processor: emailOnboardingReminder
+    processor: emailOnboardingReminder,
   },
   {
     name: Jobs.EmailOnboardingReminderTwo,
-    processor: emailOnboardingReminder
+    processor: emailOnboardingReminder,
   },
   {
     name: Jobs.EmailOnboardingReminderThree,
-    processor: emailOnboardingReminder
+    processor: emailOnboardingReminder,
   },
   {
     name: Jobs.EmailStudentUseCases,
-    processor: emailStudentWelcomeSeries
+    processor: emailStudentWelcomeSeries,
   },
   {
     name: Jobs.EmailMeetOurVolunteers,
-    processor: emailStudentWelcomeSeries
+    processor: emailStudentWelcomeSeries,
   },
   {
     name: Jobs.EmailIndependentLearning,
-    processor: emailStudentWelcomeSeries
+    processor: emailStudentWelcomeSeries,
   },
   {
     name: Jobs.EmailStudentGoalSetting,
-    processor: emailStudentWelcomeSeries
+    processor: emailStudentWelcomeSeries,
+  },
+  {
+    name: Jobs.EmailStudentAbsentWarning,
+    processor: emailStudentSessionActions,
+  },
+  {
+    name: Jobs.EmailStudentAbsentVolunteerApology,
+    processor: emailStudentSessionActions,
+  },
+  {
+    name: Jobs.EmailStudentUnmatchedApology,
+    processor: emailStudentSessionActions,
   },
   {
     name: Jobs.EmailVolunteerQuickTips,
-    processor: emailQuickTips
+    processor: emailQuickTips,
   },
   {
     name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
-    processor: emailPartnerVolunteerOnlyCollegeCerts
+    processor: emailPartnerVolunteerOnlyCollegeCerts,
   },
   {
     name: Jobs.EmailPartnerVolunteerLowHoursSelected,
-    processor: emailPartnerVolunteerLowHoursSelected
+    processor: emailPartnerVolunteerLowHoursSelected,
   },
   {
     name: Jobs.EmailPartnerVolunteerReferACoworker,
-    processor: emailPartnerVolunteerReferACoworker
+    processor: emailPartnerVolunteerReferACoworker,
   },
   {
     name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
-    processor: emailPartnerVolunteerTenSessionMilestone
+    processor: emailPartnerVolunteerTenSessionMilestone,
   },
   {
     name: Jobs.EmailVolunteerGentleWarning,
-    processor: emailVolunteerGentleWarning
+    processor: emailVolunteerGentleWarning,
   },
   {
     name: Jobs.EmailVolunteerInactive,
-    processor: emailVolunteerInactive
+    processor: emailVolunteerInactive,
   },
   {
     name: Jobs.EmailVolunteerFirstSessionCongrats,
-    processor: emailVolunteerFirstSessionCongrats
+    processor: emailVolunteerFirstSessionCongrats,
   },
   {
     name: Jobs.EmailVolunteerInactiveBlackoutOver,
-    processor: emailVolunteerInactiveBlackoutOver
+    processor: emailVolunteerInactiveBlackoutOver,
   },
   {
     name: Jobs.EmailStudentFirstSessionCongrats,
-    processor: emailStudentFirstSessionCongrats
+    processor: emailStudentFirstSessionCongrats,
+  },
+  {
+    name: Jobs.EmailVolunteerAbsentWarning,
+    processor: emailVolunteerSessionActions,
+  },
+  {
+    name: Jobs.EmailVolunteerAbsentStudentApology,
+    processor: emailVolunteerSessionActions,
   },
   {
     name: Jobs.EmailFailedFirstAttemptedQuiz,
-    processor: emailFailedFirstAttemptedQuiz
+    processor: emailFailedFirstAttemptedQuiz,
   },
   {
     name: Jobs.EmailSessionReported,
-    processor: emailSessionReported
+    processor: emailSessionReported,
   },
   {
     name: Jobs.SendAssistmentsData,
-    processor: sendAssistmentsData
-  }
+    processor: sendAssistmentsData,
+  },
 ]
 
 /**
@@ -228,7 +257,7 @@ export const addJobProcessors = (queue: Queue): void => {
               logger.info(`Completed job: ${job.name}`)
             } catch (error) {
               logger.error(`Error processing job: ${job.name}\n${error}`)
-              newrelic.noticeError(error)
+              newrelic.noticeError(error as Error)
             } finally {
               transaction.end()
             }
@@ -243,6 +272,6 @@ export const addJobProcessors = (queue: Queue): void => {
     )
   } catch (error) {
     logger.error(`error adding job processors: ${error}`)
-    newrelic.noticeError(error)
+    newrelic.noticeError(error as Error)
   }
 }

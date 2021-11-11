@@ -396,6 +396,11 @@ export default {
       .post(`${ELIGIBILITY_API_ROOT}/school/approval`, data)
       .then(this._successHandler, this._errorHandler)
   },
+  adminUpdateSchoolPartnerStatus(data) {
+    return Vue.http
+      .post(`${ELIGIBILITY_API_ROOT}/school/partner`, data)
+      .then(this._successHandler, this._errorHandler)
+  },
   adminGetSessionReport({
     joinedBefore,
     joinedAfter,
@@ -537,14 +542,15 @@ export default {
   },
   checkStudentEligibility(
     context,
-    { schoolUpchieveId, zipCode, email, referredByCode }
+    { schoolUpchieveId, zipCode, email, referredByCode, currentGrade }
   ) {
     return context.$http
       .post(`${ELIGIBILITY_API_ROOT}/check`, {
         schoolUpchieveId,
         zipCode,
         email,
-        referredByCode
+        referredByCode,
+        currentGrade
       })
       .then(this._successHandler, this._errorHandler)
   },
@@ -621,6 +627,11 @@ export default {
   getPresessionSurvey(sessionId) {
     return Vue.http
       .get(`${API_ROOT}/survey/presession/${sessionId}`)
+      .then(this._successHandler, this._errorHandler)
+  },
+  getUserProductFlags() {
+    return Vue.http
+      .get(`${API_ROOT}/product-flags`)
       .then(this._successHandler, this._errorHandler)
   }
 }

@@ -1,13 +1,10 @@
 import {
   didParticipantsChat,
   getMessagesAfterDate,
-  getReviewFlags,
-  getFeedbackFlags,
   calculateTimeTutored,
   isSessionParticipant,
   isSessionFulfilled,
-  hasReviewTriggerFlags,
-  isSubjectUsingDocumentEditor
+  isSubjectUsingDocumentEditor,
 } from '../../utils/session-utils'
 import { Student } from '../../models/Student'
 import { Volunteer } from '../../models/Volunteer'
@@ -17,11 +14,10 @@ import {
   buildVolunteer,
   buildSession,
   buildPastSessions,
-  generateSentence,
-  getObjectId
+  getObjectId,
 } from '../generate'
 import { Message } from '../../models/Message'
-import { SESSION_FLAGS, SUBJECTS } from '../../constants'
+import { SUBJECTS } from '../../constants'
 
 /**
  * @todo refactor
@@ -32,38 +28,38 @@ import { SESSION_FLAGS, SUBJECTS } from '../../constants'
  * the volunteerJoinedAt is greater than the createdAt of the messages. refactor to
  * allow an easier way to trigger or not trigger ABSENT_USER or LOW_MESSAGES flags
  */
-const loadMessages = ({
-  studentSentMessages,
-  volunteerSentMessages,
+const loadMessages = (
+  studentSentMessages: boolean,
+  volunteerSentMessages: boolean,
   messagesPerUser = 10,
   studentOverrides = {},
   volunteerOverrides = {}
-}): {
+): {
   messages: Message[]
-  student: Partial<Student>
-  volunteer: Partial<Volunteer>
+  student: Student
+  volunteer: Volunteer
 } => {
   const messages = []
   const student = buildStudent({
     pastSessions: buildPastSessions(),
-    ...studentOverrides
+    ...studentOverrides,
   })
   const volunteer = buildVolunteer({
     pastSessions: buildPastSessions(),
-    ...volunteerOverrides
+    ...volunteerOverrides,
   })
 
   for (let i = 0; i < messagesPerUser; i++) {
     if (studentSentMessages)
       messages.push(
         buildMessage({
-          user: student._id
+          user: student._id,
         })
       )
     if (volunteerSentMessages)
       messages.push(
         buildMessage({
-          user: volunteer._id
+          user: volunteer._id,
         })
       )
   }
@@ -80,7 +76,7 @@ describe('calculateTimeTutored', () => {
   const similarTestCases = [
     'Return 0ms if no volunteer has joined the session',
     'Return 0ms if no volunteerJoinedAt and no endedAt',
-    'Return 0ms if no messages were sent during the session'
+    'Return 0ms if no messages were sent during the session',
   ]
   for (const testCase of similarTestCases) {
     test(testCase, async () => {
@@ -104,8 +100,8 @@ describe('calculateTimeTutored', () => {
       volunteer: volunteer._id,
       messages: buildMessage({
         user: volunteer._id,
-        createdAt: new Date('2020-10-05T12:03:00.000Z')
-      })
+        createdAt: new Date('2020-10-05T12:03:00.000Z'),
+      }),
     })
 
     const result = calculateTimeTutored(session)
@@ -128,8 +124,8 @@ describe('calculateTimeTutored', () => {
       student: student._id,
       messages: buildMessage({
         user: student._id,
-        createdAt: new Date('2020-10-05T12:03:00.000Z')
-      })
+        createdAt: new Date('2020-10-05T12:03:00.000Z'),
+      }),
     })
 
     const result = calculateTimeTutored(session)
@@ -152,9 +148,9 @@ describe('calculateTimeTutored', () => {
       messages: [
         buildMessage({
           user: volunteer._id,
-          createdAt: lastMessageSentAt
-        })
-      ]
+          createdAt: lastMessageSentAt,
+        }),
+      ],
     })
 
     const result = calculateTimeTutored(session)
@@ -178,9 +174,9 @@ describe('calculateTimeTutored', () => {
       messages: [
         buildMessage({
           user: volunteer._id,
-          createdAt: lastMessageSentAt
-        })
-      ]
+          createdAt: lastMessageSentAt,
+        }),
+      ],
     })
 
     const result = calculateTimeTutored(session)
@@ -205,17 +201,17 @@ describe('calculateTimeTutored', () => {
       messages: [
         buildMessage({
           user: volunteer._id,
-          createdAt: new Date('2020-10-05T14:05:00.000Z')
+          createdAt: new Date('2020-10-05T14:05:00.000Z'),
         }),
         buildMessage({
           user: volunteer._id,
-          createdAt: new Date('2020-10-05T15:58:00.000Z')
+          createdAt: new Date('2020-10-05T15:58:00.000Z'),
         }),
         buildMessage({
           user: volunteer._id,
-          createdAt: lastMessageSentAt
-        })
-      ]
+          createdAt: lastMessageSentAt,
+        }),
+      ],
     })
 
     const result = calculateTimeTutored(session)
@@ -227,285 +223,31 @@ describe('calculateTimeTutored', () => {
 
 describe('didParticipantsChat', () => {
   test('Should return true when student and volunteer sent messages back and forth', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true
-    })
+    const { messages, student, volunteer } = loadMessages(true, true)
 
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeTruthy()
   })
 
   test('Should return false when only the student sent messages', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: false
-    })
+    const { messages, student, volunteer } = loadMessages(true, false)
 
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeFalsy()
   })
 
   test('Should return false when only the volunteer sent messages', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: true
-    })
+    const { messages, student, volunteer } = loadMessages(false, true)
 
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeFalsy()
   })
 
   test('Should return false when no messages were sent', async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: false,
-      messagesPerUser: 0
-    })
+    const { messages, student, volunteer } = loadMessages(false, false, 0)
+
     const result = didParticipantsChat(messages, student._id, volunteer._id)
     expect(result).toBeFalsy()
-  })
-})
-
-describe('getReviewFlags', () => {
-  test(`Should trigger ${SESSION_FLAGS.FIRST_TIME_STUDENT} flag for a student's first session`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      studentOverrides: {
-        pastSessions: []
-      }
-    })
-    const session = buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer: volunteer._id,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-    const result = getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.FIRST_TIME_STUDENT
-    expect(result).toContain(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.FIRST_TIME_VOLUNTEER} flag for a volunteer's first session`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      messagesPerUser: 13,
-      volunteerOverrides: {
-        pastSessions: []
-      }
-    })
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer: volunteer._id,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.FIRST_TIME_VOLUNTEER
-    expect(result).toContain(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.UNMATCHED} flag when a volunter does not join the session`, async () => {
-    const { messages, student } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: false,
-      messagesPerUser: 0
-    })
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.UNMATCHED]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.LOW_MESSAGES} flag`, async () => {
-    const student = buildStudent({ pastSessions: buildPastSessions() })
-    const volunteer = buildVolunteer({ pastSessions: buildPastSessions() })
-    const volunteerJoinedAt = new Date('2020-10-05T12:03:30.000Z')
-
-    const messages = [
-      { user: student._id, createdAt: new Date('2020-10-05T12:04:30.000Z') },
-      { user: volunteer._id, createdAt: new Date('2020-10-05T12:05:30.000Z') }
-    ]
-
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer,
-      messages,
-      volunteerJoinedAt
-    })
-
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.LOW_MESSAGES]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.ABSENT_USER} flag when only one user sends messages`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: false,
-      messagesPerUser: 10
-    })
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: new Date('2020-10-05T14:03:00.000Z'),
-      student: student._id,
-      volunteer,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.ABSENT_USER]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.ABSENT_USER} flag when no user sends messages`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: false,
-      volunteerSentMessages: false,
-      messagesPerUser: 0
-    })
-    const session = await buildSession({
-      createdAt: Date.now(),
-      endedAt: Date.now(),
-      student: student._id,
-      volunteer,
-      messages
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = [SESSION_FLAGS.ABSENT_USER]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should trigger ${SESSION_FLAGS.REPORTED} flag when a session was reported`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      messagesPerUser: 20
-    })
-    const session = await buildSession({
-      createdAt: new Date('2020-10-05T12:03:00.000Z'),
-      endedAt: Date.now(),
-      student: student._id,
-      volunteer,
-      messages,
-      isReported: true
-    })
-    const populatedSession = {
-      ...session,
-      student,
-      volunteer
-    }
-
-    const result = getReviewFlags(populatedSession)
-    const expected = SESSION_FLAGS.REPORTED
-    expect(result).toContain(expected)
-  })
-})
-
-describe('getFeedbackFlags', () => {
-  test(`Should add ${SESSION_FLAGS.STUDENT_RATING} flag when student leaves a feedback rating with <= 3`, () => {
-    const feedback = {
-      'coach-rating': 1,
-      'session-goal': 4
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.STUDENT_RATING]
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should not add ${SESSION_FLAGS.STUDENT_RATING} flag when student leaves feedback ratings > 3`, () => {
-    const feedback = {
-      'coach-rating': 4,
-      'session-goal': 4
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = []
-    expect(result).toEqual(expected)
-  })
-  test(`Should add ${SESSION_FLAGS.VOLUNTEER_RATING} flag when volunteer leaves a feedback rating with <= 3`, () => {
-    const feedback = {
-      'session-enjoyable': 3
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.VOLUNTEER_RATING]
-    expect(result).toEqual(expected)
-  })
-  test(`Should not add ${SESSION_FLAGS.VOLUNTEER_RATING} flag when student leaves feedback ratings > 3`, () => {
-    const feedback = {
-      'rate-session': {
-        rating: 5
-      }
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = []
-    expect(result).toEqual(expected)
-  })
-
-  test(`Should add ${SESSION_FLAGS.COMMENT} flag when user leaves a comment`, () => {
-    const comment = generateSentence()
-    const feedback = {
-      'other-feedback': comment
-    }
-    const result = getFeedbackFlags(feedback)
-    const expected = [SESSION_FLAGS.COMMENT]
-    expect(result).toEqual(expected)
-  })
-})
-
-describe('hasReviewTriggerFlags', () => {
-  test('Should return true if flags contains a flag that triggers a review', () => {
-    const flags = [SESSION_FLAGS.REPORTED, SESSION_FLAGS.FIRST_TIME_STUDENT]
-    const result = hasReviewTriggerFlags(flags)
-    expect(result).toBe(true)
-  })
-  test('Should return false if flags contains a flag that does not trigger a review', () => {
-    const flags = [SESSION_FLAGS.UNMATCHED, SESSION_FLAGS.LOW_MESSAGES]
-    const result = hasReviewTriggerFlags(flags)
-    expect(result).toBe(false)
   })
 })
 
@@ -517,24 +259,24 @@ describe('getMessagesAfterDate', () => {
     const messages = [
       buildMessage({
         user: student._id,
-        createdAt: new Date('2021-01-14T11:45:00.000Z')
+        createdAt: new Date('2021-01-14T11:45:00.000Z'),
       }),
       buildMessage({
         user: student._id,
-        createdAt: new Date('2021-01-14T11:55:00.000Z')
+        createdAt: new Date('2021-01-14T11:55:00.000Z'),
       }),
       buildMessage({
         user: student._id,
-        createdAt: new Date('2021-01-14T12:00:00.000Z')
+        createdAt: new Date('2021-01-14T12:00:00.000Z'),
       }),
       buildMessage({
         user: volunteer._id,
-        createdAt: new Date('2021-01-14T12:10:00.000Z')
+        createdAt: new Date('2021-01-14T12:10:00.000Z'),
       }),
       buildMessage({
         user: student._id,
-        createdAt: new Date('2021-01-14T12:15:00.000Z')
-      })
+        createdAt: new Date('2021-01-14T12:15:00.000Z'),
+      }),
     ]
 
     const results = getMessagesAfterDate(messages, volunteerJoinedAt)
@@ -543,7 +285,7 @@ describe('getMessagesAfterDate', () => {
 
   test('Should return an empty array if no messages were sent', async () => {
     const volunteerJoinedAt = new Date('2021-01-14T12:00:00.000Z')
-    const messages = []
+    const messages: Message[] = []
 
     const results = getMessagesAfterDate(messages, volunteerJoinedAt)
 
@@ -555,7 +297,7 @@ describe('isSessionParticipant', () => {
   test('Student as ObjectId should be session participant', async () => {
     const student = buildStudent()
     const session = buildSession({ student: student._id })
-    const result = isSessionParticipant(session, student)
+    const result = isSessionParticipant(session, student._id)
     expect(result).toBeTruthy()
   })
 
@@ -563,16 +305,16 @@ describe('isSessionParticipant', () => {
     const volunteer = buildVolunteer()
     const session = buildSession({
       student: buildStudent(),
-      volunteer: volunteer._id
+      volunteer: volunteer._id,
     })
-    const result = isSessionParticipant(session, volunteer)
+    const result = isSessionParticipant(session, volunteer._id)
     expect(result).toBeTruthy()
   })
 
   test('Populated student should be session participant', async () => {
     const student = buildStudent()
     const session = buildSession({ student })
-    const result = isSessionParticipant(session, student)
+    const result = isSessionParticipant(session, student._id)
     expect(result).toBeTruthy()
   })
 
@@ -580,7 +322,7 @@ describe('isSessionParticipant', () => {
     const student = buildStudent()
     const volunteer = buildVolunteer()
     const session = buildSession({ student, volunteer })
-    const result = isSessionParticipant(session, volunteer)
+    const result = isSessionParticipant(session, volunteer._id)
     expect(result).toBeTruthy()
   })
 
@@ -588,12 +330,12 @@ describe('isSessionParticipant', () => {
     const volunteer = buildVolunteer()
     const session = buildSession({
       student: buildStudent(),
-      volunteer: getObjectId()
+      volunteer: getObjectId(),
     })
     try {
-      isSessionParticipant(session, volunteer)
+      isSessionParticipant(session, volunteer._id)
     } catch (error) {
-      expect(error.message).toBe(
+      expect((error as Error).message).toBe(
         'Only session participants are allowed to send messages'
       )
     }
@@ -626,7 +368,7 @@ describe('isSubjectUsingDocumentEditor', () => {
       SUBJECTS.ESSAYS,
       SUBJECTS.PLANNING,
       SUBJECTS.APPLICATIONS,
-      SUBJECTS.HUMANITIES_ESSAYS
+      SUBJECTS.HUMANITIES_ESSAYS,
     ]
 
     for (const subject of subjects) {
@@ -640,7 +382,7 @@ describe('isSubjectUsingDocumentEditor', () => {
       SUBJECTS.CALCULUS_AB,
       SUBJECTS.SAT_MATH,
       SUBJECTS.PHYSICS_ONE,
-      SUBJECTS.BIOLOGY
+      SUBJECTS.BIOLOGY,
     ]
 
     for (const subject of subjects) {

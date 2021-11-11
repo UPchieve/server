@@ -1,31 +1,40 @@
-import expressWs from '@small-tech/express-ws'
 import { updateSchedule, clearSchedule } from '../../controllers/CalendarCtrl'
+import { resError } from '../res-error'
+import { InputError } from '../../models/Errors'
+import { Volunteer } from '../../models/Volunteer'
+import { Router } from 'express'
+import { asString } from '../../utils/type-utils'
+import { extractUser } from '../extract-user'
 
-export function routeCalendar(router: expressWs.Router): void {
-  router.post('/calendar/save', async function(req, res, next) {
+export function routeCalendar(router: Router): void {
+  router.post('/calendar/save', async function(req, res) {
     try {
+      const user = extractUser(req)
+      if (!req.body.hasOwnProperty('availability'))
+        throw new InputError('No availability object specified')
+      // TODO: use duck type validators
       await updateSchedule({
-        user: req.user,
-        availability: req.body.availability,
-        tz: req.body.tz,
-        ip: req.ip
+        ...req.body,
+        user: user as Volunteer,
+        ip: req.ip,
       })
       res.json({
-        msg: 'Schedule saved'
+        msg: 'Schedule saved',
       })
-    } catch (error) {
-      next(error)
+    } catch (err) {
+      resError(res, err)
     }
   })
 
-  router.post('/calendar/clear', async function(req, res, next) {
+  router.post('/calendar/clear', async function(req, res) {
     try {
-      await clearSchedule(req.user, req.body.tz)
+      const user = extractUser(req)
+      await clearSchedule(user as Volunteer, asString(req.body.tz))
       res.json({
-        msg: 'Schedule cleared'
+        msg: 'Schedule cleared',
       })
-    } catch (error) {
-      next(error)
+    } catch (err) {
+      resError(res, err)
     }
   })
 }

@@ -3,7 +3,8 @@ import * as db from '../../db'
 import { AvailabilitySnapshot } from '../../models/Availability/Snapshot'
 import VolunteerModel from '../../models/Volunteer'
 import { USER_ACTION } from '../../constants'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import 'moment-timezone'
 import {
   createAvailabilityHistory,
   getAvailability,

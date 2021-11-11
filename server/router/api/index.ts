@@ -1,43 +1,45 @@
 import { Express, Router } from 'express'
 import { MongoStore } from 'connect-mongo'
-import expressWs from '@small-tech/express-ws'
+import expressWs from 'express-ws'
 import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
 import { addLastActivity } from '../../middleware/add-last-activity'
 import { addUserAction } from '../../middleware/add-user-action'
 import socketServer from './socket-server'
-import volunteers from './volunteers'
+import { routeVolunteers } from './volunteers'
 import { routeVerify } from './verify'
-import { routes as routeSessions } from './session'
+import { routeSession } from './session'
 import { routeCalendar } from './calendar'
 import { routeFeedback } from './feedback'
-import sockets from './sockets'
-import moderate from './moderate'
-import pushToken from './push-token'
+import { routeSockets } from './sockets'
+import { routeModeration } from './moderate'
+import { routePushToken } from './push-token'
 import { routeReports } from './reports'
 import { routeSurvey } from './survey'
 import { routes as routeStats } from './stats'
-const training = require('./training')
-const user = require('./user')
+import { routeTraining } from './training'
+import { routeUser } from './user'
+import { routeProductFlags } from './product-flags'
 
 export function routes(app: Express, sessionStore: MongoStore): void {
   const io: Server = socketServer(app)
 
   const router: expressWs.Router = Router()
 
-  volunteers(router)
-  user(router)
+  routeVolunteers(router)
+  routeUser(router)
   routeVerify(router)
-  routeSessions(router as Router, io)
+  routeSession(router as Router, io)
   routeCalendar(router)
-  training(router)
+  routeTraining(router)
   routeFeedback(router)
-  sockets(io, sessionStore)
-  moderate(router)
-  pushToken(router)
+  routeSockets(io, sessionStore)
+  routeModeration(router)
+  routePushToken(router)
   routeReports(router)
   routeSurvey(router)
   routeStats(router)
+  routeProductFlags(router)
 
   app.use(addLastActivity)
   app.use(addUserAction)

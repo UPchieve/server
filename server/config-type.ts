@@ -14,7 +14,7 @@ export const Config = Record({
     port: Number,
     secure: Boolean,
     user: String,
-    password: String
+    password: String,
   }),
   sendgrid: Record({
     apiKey: String,
@@ -50,6 +50,9 @@ export const Config = Record({
     studentFirstSessionCongratsTemplate: String,
     studentReportedRudeTemplate: String,
     studentReportedSafetyTemplate: String,
+    studentAbsentWarningTemplate: String,
+    studentAbsentVolunteerApologyTemplate: String,
+    studentUnmatchedApologyTemplate: String,
     volunteerQuickTipsTemplate: String,
     partnerVolunteerOnlyCollegeCertsTemplate: String,
     partnerVolunteerLowHoursSelectedTemplate: String,
@@ -61,16 +64,19 @@ export const Config = Record({
     volunteerInactiveSixtyDaysTemplate: String,
     volunteerInactiveNinetyDaysTemplate: String,
     volunteerInactiveBlackoutOverTemplate: String,
+    volunteerAbsentWarningTemplate: String,
+    volunteerAbsentStudentApologyTemplate: String,
     failedFirstAttemptedQuizTemplate: String,
+    techIssueApologyTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
-      volunteerSummary: Number
+      volunteerSummary: Number,
     }),
     contactList: Record({
       students: String,
-      volunteers: String
-    })
+      volunteers: String,
+    }),
   }),
   logLevel: String,
   mail: Record({
@@ -82,7 +88,7 @@ export const Config = Record({
       volunteerManager: String,
       studentOutreachManager: String,
       corporatePartnershipsManager: String,
-      crisis: String
+      crisis: String,
     }),
     receivers: Record({
       contact: String,
@@ -92,29 +98,29 @@ export const Config = Record({
       students: String,
       volunteerManager: String,
       studentOutreachManager: String,
-      corporatePartnershipsManager: String
+      corporatePartnershipsManager: String,
     }),
     people: Record({
       volunteerManager: Record({
         firstName: String,
-        lastName: String
+        lastName: String,
       }),
       studentOutreachManager: Record({
         firstName: String,
-        lastName: String
+        lastName: String,
       }),
       corporatePartnershipsManager: Record({
         firstName: String,
-        lastName: String
-      })
-    })
+        lastName: String,
+      }),
+    }),
   }),
   client: Record({
-    host: String
+    host: String,
   }),
   socketsPort: Number,
   volunteerPartnerManifestPath: String,
-  customVolunteerPartnerOrg: String,
+  customVolunteerPartnerOrgs: Array(String),
   studentPartnerManifestPath: String,
 
   assistmentsBaseURL: String,
@@ -123,7 +129,7 @@ export const Config = Record({
 
   cacheKeys: Record({
     updateTotalVolunteerHoursLastRun: String,
-    waitTimeHeatMapAllSubjects: String
+    waitTimeHeatMapAllSubjects: String,
   }),
 
   // Sentry Data Source Name
@@ -145,7 +151,7 @@ export const Config = Record({
   redisPort: String,
   redisPassword: String,
   firebase: Record({
-    projectId: Number
+    projectId: String,
   }),
   bannedServiceProviders: Array(String),
   awsS3: Record({
@@ -153,7 +159,7 @@ export const Config = Record({
     secretAccessKey: String,
     region: String,
     photoIdBucket: String,
-    sessionPhotoBucket: String
+    sessionPhotoBucket: String,
   }),
   unleashId: String,
   unleashName: String,
@@ -185,5 +191,5 @@ export const Config = Record({
   whiteboardStorageAccountName: String,
   whiteboardStorageContainer: String,
   version: String,
-  fileWorkRootPath: String
+  fileWorkRootPath: String,
 })

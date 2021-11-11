@@ -14,12 +14,12 @@ jest.setTimeout(15000)
 /**
  * @group email
  */
-test('contact form email sends correctly', async () => {
+test.todo('contact form email sends correctly', async () => {
   try {
     await sendContactFormEmail({
       email: 'test@test.com',
       message: 'This is some test feedback.',
-      topic: 'General feedback'
+      topic: 'General feedback',
     })
   } catch (err) {
     expect(err).toBeUndefined()

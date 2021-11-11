@@ -16,47 +16,47 @@ const availabilityWeekSchema = new Schema(
   {
     [DAYS.SUNDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.MONDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.TUESDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.WEDNESDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.THURSDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.FRIDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
+      default: () => ({}),
     },
     [DAYS.SATURDAY]: {
       type: availabilityDaySchema,
-      default: () => ({})
-    }
+      default: () => ({}),
+    },
   },
   { _id: false }
 )
 
 const availabilitySnapshotSchema = new Schema({
   volunteerId: {
-    type: Types.ObjectId
+    type: Types.ObjectId,
   },
   onCallAvailability: {
     type: availabilityWeekSchema,
-    default: () => ({})
+    default: () => ({}),
   },
   modifiedAt: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
-  timezone: String
+  timezone: String,
 })
 
 const AvailabilitySnapshotModel = model<AvailabilitySnapshotDocument>(
@@ -64,5 +64,4 @@ const AvailabilitySnapshotModel = model<AvailabilitySnapshotDocument>(
   availabilitySnapshotSchema
 )
 
-module.exports = AvailabilitySnapshotModel
 export default AvailabilitySnapshotModel

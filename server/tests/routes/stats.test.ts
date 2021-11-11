@@ -1,37 +1,26 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
-import express from 'express'
-import bodyParser from 'body-parser'
-import { MongoStore } from 'connect-mongo'
 import * as SessionService from '../../services/SessionService'
-import * as ApiRoutes from '../../router/api'
-import SessionStore from '../../router/api/session-store'
-import { buildUser } from '../generate'
+import { buildStudent } from '../generate'
 import { KeyNotFoundError } from '../../cache'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { authPassport } from '../../utils/auth-utils'
+import { routes as routeStats } from '../../router/api/stats'
+
 jest.mock('../../services/SessionService')
 const mockedSessionService = mocked(SessionService, true)
-const mockedSessionStore = mocked(SessionStore, true)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api'
 
-const app = express()
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+const app = mockApp()
+const mockGetUser = () => buildStudent()
+app.use(mockPassportMiddleware(mockGetUser))
 
-const mockLogin = jest.fn()
-const mockUser = buildUser({ isVolunteer: true })
-function mockPassportMiddleware(req, res, next) {
-  req.login = mockLogin
-  next()
-}
-function mockUserMiddleware(req, res, next) {
-  req.user = mockUser
-  next()
-}
-app.use(mockPassportMiddleware)
-app.use(mockUserMiddleware)
-ApiRoutes.routes(app, (mockedSessionStore as unknown) as MongoStore)
+const router = mockRouter()
+routeStats(router)
+
+app.use('/api', authPassport.isAuthenticated, router)
 
 const agent = request.agent(app)
 
@@ -75,7 +64,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Monday: {
       '12a': 200000,
@@ -101,7 +90,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Tuesday: {
       '12a': 0,
@@ -127,7 +116,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Wednesday: {
       '12a': 0,
@@ -153,7 +142,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Thursday: {
       '12a': 0,
@@ -179,7 +168,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Friday: {
       '12a': 0,
@@ -205,7 +194,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
+      '11p': 0,
     },
     Saturday: {
       '12a': 0,
@@ -231,8 +220,8 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
       '8p': 0,
       '9p': 0,
       '10p': 0,
-      '11p': 0
-    }
+      '11p': 0,
+    },
   }
 
   test('Should send wait time heat map with valid GET request', async () => {
@@ -242,7 +231,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
     )
     const response = await sendGet(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, payload)
     const {
-      body: { heatMap }
+      body: { heatMap },
     } = response
     expect(SessionService.getWaitTimeHeatMap).toHaveBeenCalledTimes(1)
     expect(heatMap).toEqual(mockedHeatMap)
@@ -256,7 +245,7 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
     })
     const response = await sendGet(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, payload)
     const {
-      body: { heatMap }
+      body: { heatMap },
     } = response
     expect(SessionService.getWaitTimeHeatMap).toHaveBeenCalledTimes(1)
     expect(heatMap).toBeUndefined()

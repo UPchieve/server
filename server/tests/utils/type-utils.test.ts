@@ -8,9 +8,31 @@ import {
   asNumber,
   asString,
   asEnum,
-  asUnion
+  asUnion,
+  asStringObjectId,
 } from '../../utils/type-utils'
-import { getObjectId } from '../generate'
+import { getObjectId, getStringObjectId } from '../generate'
+
+describe('asNumber', () => {
+  test('Should pass if given a type Date', () => {
+    const id = 5 as unknown
+    expect(() => asNumber(id)).not.toThrow()
+  })
+
+  test('Should pass if given a string coercible to a number', () => {
+    expect(() => asNumber('5')).not.toThrow()
+    expect(() => asNumber('.50')).not.toThrow()
+    expect(() => asNumber('5.0')).not.toThrow()
+  })
+
+  test('Should throw error if not given a number', () => {
+    expect(() => asNumber({} as unknown)).toThrow()
+    expect(() => asNumber('hello' as unknown)).toThrow()
+    expect(() => asNumber(null as unknown)).toThrow()
+    expect(() => asNumber(undefined as unknown)).toThrow()
+    expect(() => asNumber([] as unknown)).toThrow()
+  })
+})
 
 describe('asArray', () => {
   test('Should pass if given correct array type', () => {
@@ -24,14 +46,18 @@ describe('asArray', () => {
   test('Should throw error if given wrong type', () => {
     expect(() => asArray(asBoolean)([1, 2, 3] as unknown)).toThrow()
     expect(() => asArray(asString)([1, 2, 3] as unknown)).toThrow()
-    expect(() => asArray(asNumber)(['1', '2', '3'] as unknown)).toThrow()
-    expect(() => asArray(asNumber)(['1', '2', '3'] as unknown)).toThrow()
+    expect(() => asArray(asNumber)(['hey', 'hello', 'hi'] as unknown)).toThrow()
   })
 })
 
 describe('asObjectId', () => {
   test('Should pass if given an ObjectId', () => {
     const id = getObjectId() as unknown
+    expect(() => asObjectId(id)).not.toThrow()
+  })
+
+  test('Should pass if given a string coercible to an ObjectId', () => {
+    const id = getStringObjectId() as unknown
     expect(() => asObjectId(id)).not.toThrow()
   })
 
@@ -42,6 +68,23 @@ describe('asObjectId', () => {
     expect(() => asObjectId(null as unknown)).toThrow()
     expect(() => asObjectId(undefined as unknown)).toThrow()
     expect(() => asObjectId([] as unknown)).toThrow()
+  })
+})
+
+describe('asStringObjectId', () => {
+  test('Should pass if given an string formatted ObjectId', () => {
+    const id = getStringObjectId() as unknown
+    expect(() => asStringObjectId(id)).not.toThrow()
+  })
+
+  test('Should throw error if not given a string formatted ObjectId', () => {
+    expect(() => asStringObjectId({} as unknown)).toThrow()
+    expect(() => asStringObjectId(1 as unknown)).toThrow()
+    expect(() => asStringObjectId('hello' as unknown)).toThrow()
+    expect(() => asStringObjectId(null as unknown)).toThrow()
+    expect(() => asStringObjectId(undefined as unknown)).toThrow()
+    expect(() => asStringObjectId([] as unknown)).toThrow()
+    expect(() => asStringObjectId(getObjectId() as unknown)).toThrow()
   })
 })
 

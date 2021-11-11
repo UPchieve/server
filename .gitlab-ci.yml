@@ -88,7 +88,7 @@ lint:
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
-    - npm run lint:prod
+    - npm run lint
   needs: []
   rules:
     - if: '$TEST_DISABLED'
