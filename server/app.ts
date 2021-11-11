@@ -71,7 +71,7 @@ function renderIndexHtml() {
     sentryEnv: config.vueAppSentryEnv,
     sentryDsn: config.vueAppSentryDsn,
     customVolunteerPartnerOrgs: config.customVolunteerPartnerOrgs,
-    gleapSdkKey: config.gleapSdkKey
+    gleapSdkKey: config.gleapSdkKey,
   }
 
   return Mustache.render(template, frontendConfig)
