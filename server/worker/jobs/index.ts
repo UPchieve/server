@@ -73,6 +73,7 @@ export enum Jobs {
   EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
   EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
   SendAssistmentsData = ' SendAssistmentsData',
+  EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
   // TODO: add the tech issue apology job to the job processor once it is ready to be released
   EmailTechIssueApology = 'EmailTechIssueApology',
 
@@ -175,6 +176,10 @@ const jobProcessors: JobProcessor[] = [
   },
   {
     name: Jobs.EmailStudentUnmatchedApology,
+    processor: emailStudentSessionActions,
+  },
+  {
+    name: Jobs.EmailStudentOnlyLookingForAnswers,
     processor: emailStudentSessionActions,
   },
   {

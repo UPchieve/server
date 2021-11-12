@@ -96,6 +96,7 @@ const config: Static<typeof Config> = {
     studentAbsentWarningTemplate: 'd-f27a47f3875a4dfd9f07446219ecacfc',
     studentAbsentVolunteerApologyTemplate: 'd-2e648990eaca4b5e986a5486d8fea338',
     studentUnmatchedApologyTemplate: 'd-73756dd129344032bc4ca5d1055e1b7b',
+    studentOnlyLookingForAnswersTemplate: 'd-d78c20e2cfbe41968e458a93a6d5c7ac',
     volunteerQuickTipsTemplate: 'd-b85620ef95b443878a6aeca1e99c94ef',
     partnerVolunteerOnlyCollegeCertsTemplate:
       'd-031f89e788c2481ea912e5840e7d92e1',
