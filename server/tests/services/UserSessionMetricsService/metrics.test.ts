@@ -495,13 +495,11 @@ describe('Metrics have correct "triggerActions" functions', () => {
     METRIC_PROCESSORS.LowSessionRatingFromCoach,
     METRIC_PROCESSORS.Reported,
     METRIC_PROCESSORS.RudeOrInappropriate,
-    METRIC_PROCESSORS.OnlyLookingForAnswers,
     METRIC_PROCESSORS.CommentFromStudent,
     METRIC_PROCESSORS.CommentFromVolunteer,
   ]
   for (const processor of processorsWithNoTriggerActions) {
     test(`Should return an empty list of actions for ${processor.constructor.name}`, () => {
-      const processor = METRIC_PROCESSORS.LowCoachRatingFromStudent
       const result = processor.triggerActions()
       expect(result).toHaveLength(0)
     })
