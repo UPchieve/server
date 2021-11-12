@@ -428,7 +428,8 @@ export const VERIFICATION_METHOD = {
 export const FEATURE_FLAGS = {
   REFER_FRIENDS: 'refer-friends',
   STUDENT_BANNED_STATE: 'student-banned-state',
-  DASHBOARD_REDESIGN: 'dashboard-redesign'
+  DASHBOARD_REDESIGN: 'dashboard-redesign',
+  GATES_STUDY: 'gates-study'
 }
 
 export const ANALYTICS_REPORT_ROW = {
