@@ -331,9 +331,9 @@ export default {
 
       for (const option of this.filteredQuestions) {
         const { id, answer } = option
-        if (answer) data[feedbackPath][id] = answer
+        if (answer && !Array.isArray(answer)) data[feedbackPath][id] = answer
         // sort answers with multiple selections
-        if (answer && Array.isArray(answer))
+        if (answer && Array.isArray(answer) && answer.length > 0)
           data[feedbackPath][id] = answer.sort((a, b) => a - b)
       }
 
@@ -341,7 +341,8 @@ export default {
         await NetworkService.feedback(this, data)
         this.$router.push('/')
       } catch (error) {
-        this.error = 'There was an error sending your feedback'
+        if (error.status === 422) this.error = error.body.err
+        else this.error = 'There was an error sending your feedback'
       } finally {
         this.isSubmittingFeedback = false
       }
