@@ -18,19 +18,26 @@ class AbsentStudent extends CounterMetricProcessor {
   public requiresFeedback = false
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
-    const volunteerWaitingMins = 10
+    const VOLUNTEER_WAITING_PERIOD_MIN = 10
     if (uvd.session.volunteerJoinedAt) {
-      const volunteerWaitingDate = new Date(
-        uvd.session.volunteerJoinedAt.getTime() +
-          volunteerWaitingMins * ONE_MINUTE_ELAPSED_MILLISECONDS
+      const volunteerMaxWait = moment(uvd.session.volunteerJoinedAt).add(
+        VOLUNTEER_WAITING_PERIOD_MIN,
+        'minutes'
       )
+      const absentMessageTime = volunteerMaxWait.isSameOrAfter(
+        uvd.session.volunteerJoinedAt
+      )
+        ? volunteerMaxWait
+        : uvd.session.volunteerJoinedAt
       for (const msg of uvd.session.messages) {
         if (
           (msg.user as Types.ObjectId).equals(
             uvd.session.student as Types.ObjectId
           ) &&
-          (msg.createdAt > uvd.session.volunteerJoinedAt ||
-            msg.createdAt > volunteerWaitingDate)
+          //if student sends message within 10 mins of volunteer joining or before volunteer joins, then not flag student
+          moment(msg.createdAt).isBefore(absentMessageTime) &&
+          //if volunteer waits for less than 10 minutes, then not flag student
+          moment(uvd.session.endedAt).isBefore(absentMessageTime)
         )
           return 0
       }
@@ -81,19 +88,22 @@ class AbsentVolunteer extends CounterMetricProcessor {
   public requiresFeedback = false
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
-    const studentWaitingMins = 5
+    const STUDENT_WAITING_PERIOD_MIN = 10
     if (uvd.session.volunteerJoinedAt) {
-      const volunteerWaitingDate = new Date(
-        uvd.session.volunteerJoinedAt.getTime() +
-          studentWaitingMins * ONE_MINUTE_ELAPSED_MILLISECONDS
+      const studentMaxWait = moment(uvd.session.volunteerJoinedAt).add(
+        STUDENT_WAITING_PERIOD_MIN,
+        'minutes'
       )
+      // const absentMessageTime = studentMaxWait.isSameOrAfter(uvd.session.volunteerJoinedAt) ? studentMaxWait : uvd.session.volunteerJoinedAt
       for (const msg of uvd.session.messages) {
         if (
           (msg.user as Types.ObjectId).equals(
             uvd.session.volunteer as Types.ObjectId
           ) &&
-          (msg.createdAt > uvd.session.volunteerJoinedAt ||
-            msg.createdAt > volunteerWaitingDate)
+          //if volunteer sends message within 5 mins of student joining, then not flag volunteer
+          moment(msg.createdAt).isBefore(studentMaxWait) &&
+          //if student waits for less than 5 minutes, then not flag volunteer
+          moment(uvd.session.endedAt).isBefore(studentMaxWait)
         )
           return 0
       }
