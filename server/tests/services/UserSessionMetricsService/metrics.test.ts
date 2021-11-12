@@ -16,6 +16,7 @@ import {
   buildUSM,
   startSession,
   joinSession,
+  buildSession,
 } from '../../generate'
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import QueueService from '../../../services/QueueService'
@@ -50,10 +51,6 @@ function sendMessage(session: Session, message: Message): void {
 // }
 
 describe('Metrics have correct "computeUpdateValue" functions', () => {
-  // test: absent student flag when student sends 0 msgs - done
-  // test: absent volunteer flag when volunteer sends 0 msgs - done
-  // test: no flag when volunteer doesn't wait for 10 mins before ending session
-  // test: no flag when student doesn't wait for 5 mins before ending session
   test('Not an absent student if student sends msg before volunteer joins', () => {
     const session = startSession(student)
     sendMessage(session, buildMessage({ user: student._id }))
@@ -64,9 +61,14 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     expect(processor.computeUpdateValue(uvd)).toEqual(0)
   })
 
-  test('Absent student if student sends 0 msgs after volunteer joins', () => {
-    const session = startSession(student)
-    joinSession(session, volunteer)
+  test('Absent student if student sends 0 msgs for 10 mins after volunteer joins', () => {
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: new Date('2021-11-12T01:00:00.000Z'),
+      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
+      endedAt: new Date('2021-11-12T01:12:00.000Z'),
+    })
     sendMessage(session, buildMessage({ user: volunteer._id }))
 
     const uvd = buildUpdateValueData(session)
@@ -74,46 +76,48 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
-  // to do
   test('Not an absent student if student sends 0 msgs and volunteer ends session before 10 mins', () => {
-    const session = startSession(student)
-    sendMessage(session, buildMessage({ user: student._id }))
-    joinSession(session, volunteer)
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: new Date('2021-11-12T01:00:00.000Z'),
+      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
+      endedAt: new Date('2021-11-12T01:11:00.000Z'),
+    })
+    sendMessage(session, buildMessage({ user: volunteer._id }))
 
     const uvd = buildUpdateValueData(session)
     const processor = METRIC_PROCESSORS.AbsentStudent
     expect(processor.computeUpdateValue(uvd)).toEqual(0)
   })
 
-  // test('Absent volunteer', () => {
-  //   const session = startSession(student)
-  //   sendMessage(session, buildMessage({ user: student._id }))
-  //   joinSession(session, volunteer)
-  //   sendMessage(session, buildMessage({ user: student._id }))
-
-  //   const uvd = buildUpdateValueData(session)
-  //   const processor = METRIC_PROCESSORS.AbsentVolunteer
-  //   expect(processor.computeUpdateValue(uvd)).toEqual(1)
-  // })
-
-  test('Absent volunteer if volunteer sends 0 msgs after joining', () => {
-    const session = startSession(student)
+  test('Absent volunteer if volunteer sends 0 msgs for 5 mins after joining', () => {
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: new Date('2021-11-12T01:00:00.000Z'),
+      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
+      endedAt: new Date('2021-11-12T01:07:00.000Z'),
+    })
     sendMessage(session, buildMessage({ user: student._id }))
-    joinSession(session, volunteer)
 
     const uvd = buildUpdateValueData(session)
     const processor = METRIC_PROCESSORS.AbsentVolunteer
     expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
-  // to do 
   test('Not an absent volunteer if volunteer sends 0 msgs and student ends session before 5 mins', () => {
-    const session = startSession(student)
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: new Date('2021-11-12T01:00:00.000Z'),
+      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
+      endedAt: new Date('2021-11-12T01:05:00.000Z'),
+    })
     sendMessage(session, buildMessage({ user: student._id }))
-    joinSession(session, volunteer)
 
     const uvd = buildUpdateValueData(session)
-    const processor = METRIC_PROCESSORS.AbsentStudent
+    const processor = METRIC_PROCESSORS.AbsentVolunteer
     expect(processor.computeUpdateValue(uvd)).toEqual(0)
   })
 

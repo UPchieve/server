@@ -118,8 +118,6 @@ export const HOUR_TO_UTC_MAPPING = {
 
 export const ONE_DAY_ELAPSED_MILLISECONDS = 1000 * 60 * 60 * 24
 
-export const ONE_MINUTE_ELAPSED_MILLISECONDS = 60 * 1000
-
 export enum DATE_RANGE_COMPARISON_FIELDS {
   CREATED_AT = '$createdAt',
   SENT_AT = '$sentAt',
