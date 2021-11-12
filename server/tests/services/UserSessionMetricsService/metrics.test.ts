@@ -7,12 +7,18 @@ import QueueService from '../../../services/QueueService'
 import { METRIC_PROCESSORS } from '../../../services/UserSessionMetricsService/metrics'
 import {
   CounterMetricProcessor,
-  ProcessorData, UpdateValueData
+  ProcessorData,
+  UpdateValueData,
 } from '../../../services/UserSessionMetricsService/types'
 import { Jobs } from '../../../worker/jobs'
 import {
   buildFeedback,
-  buildMessage, buildStudent, buildUSM, buildVolunteer, joinSession, startSession
+  buildMessage,
+  buildStudent,
+  buildUSM,
+  buildVolunteer,
+  joinSession,
+  startSession,
 } from '../../generate'
 
 jest.mock('../../../models/UserSessionMetrics', () => ({
