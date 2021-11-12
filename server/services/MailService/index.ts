@@ -1146,8 +1146,8 @@ export async function sendOnlyLookingForAnswersWarning(
   firstName: string,
   email: string
 ): Promise<void> {
-  const sender = config.mail.senders.studentOutreachManager
-  const from = config.mail.people.studentOutreachManager.firstName
+  const sender = config.mail.senders.volunteerManager
+  const from = config.mail.people.volunteerManager.firstName
   const template = config.sendgrid.studentOnlyLookingForAnswersTemplate
 
   const overrides = {
