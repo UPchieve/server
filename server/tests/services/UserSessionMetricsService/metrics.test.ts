@@ -1,25 +1,19 @@
-import {
-  UpdateValueData,
-  CounterMetricProcessor,
-  ProcessorData,
-} from '../../../services/UserSessionMetricsService/types'
-import { METRIC_PROCESSORS } from '../../../services/UserSessionMetricsService/metrics'
-import { Counter } from '../../../models/UserSessionMetrics'
-import { Session } from '../../../models/Session'
+import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import { FeedbackVersionTwo } from '../../../models/Feedback'
 import { Message } from '../../../models/Message'
-import {
-  buildVolunteer,
-  buildStudent,
-  buildFeedback,
-  buildMessage,
-  buildUSM,
-  startSession,
-  joinSession,
-} from '../../generate'
-import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
+import { Session } from '../../../models/Session'
+import { Counter } from '../../../models/UserSessionMetrics'
 import QueueService from '../../../services/QueueService'
+import { METRIC_PROCESSORS } from '../../../services/UserSessionMetricsService/metrics'
+import {
+  CounterMetricProcessor,
+  ProcessorData, UpdateValueData
+} from '../../../services/UserSessionMetricsService/types'
 import { Jobs } from '../../../worker/jobs'
+import {
+  buildFeedback,
+  buildMessage, buildStudent, buildUSM, buildVolunteer, joinSession, startSession
+} from '../../generate'
 
 jest.mock('../../../models/UserSessionMetrics', () => ({
   ...jest.requireActual('../../../models/UserSessionMetrics'),
@@ -483,6 +477,44 @@ describe('Metrics have correct "triggerActions" functions', () => {
       } as ProcessorData<Counter>
 
       const processor = METRIC_PROCESSORS.HasHadTechnicalIssues
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).not.toHaveBeenCalled()
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('OnlyLookingForAnswers', () => {
+    test('Queue an only looking for answers email when a student is marked as only looking for answers for the first time', () => {
+      const studentUSM = buildUSM(student._id, { onlyLookingForAnswers: 0 })
+      const payload = {
+        session,
+        studentUSM,
+        value: 1,
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.OnlyLookingForAnswers
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailStudentOnlyLookingForAnswers,
+        {
+          sessionSubtopic: session.subTopic,
+          sessionDate: session.createdAt,
+          studentId: session.student,
+          volunteerId: session.volunteer,
+        }
+      )
+      expect(result).toHaveLength(1)
+    })
+
+    test('Should not queue an only looking for answers email when a student has already been marked as only looking for answers', () => {
+      const studentUSM = buildUSM(student._id, { onlyLookingForAnswers: 1 })
+      const payload = {
+        session,
+        studentUSM,
+        value: 1,
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.OnlyLookingForAnswers
       const result = processor.triggerActions(payload)
       expect(QueueService.add).not.toHaveBeenCalled()
       expect(result).toHaveLength(0)
