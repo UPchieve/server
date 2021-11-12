@@ -21,7 +21,6 @@ import {
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import QueueService from '../../../services/QueueService'
 import { Jobs } from '../../../worker/jobs'
-import moment from 'moment'
 
 jest.mock('../../../models/UserSessionMetrics', () => ({
   ...jest.requireActual('../../../models/UserSessionMetrics'),
