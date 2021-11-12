@@ -122,6 +122,7 @@ export const Config = Record({
   volunteerPartnerManifestPath: String,
   customVolunteerPartnerOrgs: Array(String),
   studentPartnerManifestPath: String,
+  sponsorOrgManifestPath: String,
 
   assistmentsBaseURL: String,
   assistmentsToken: String,
