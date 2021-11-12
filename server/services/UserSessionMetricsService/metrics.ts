@@ -11,7 +11,8 @@ import {
   NO_FLAGS,
   NO_ACTIONS,
 } from './types'
-import { ONE_MINUTE_ELAPSED_MILLISECONDS } from '../../constants'
+// import { ONE_MINUTE_ELAPSED_MILLISECONDS } from '../../constants'
+import moment from 'moment'
 
 class AbsentStudent extends CounterMetricProcessor {
   public key = USER_SESSION_METRICS.absentStudent
