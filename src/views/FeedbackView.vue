@@ -341,7 +341,8 @@ export default {
         await NetworkService.feedback(this, data)
         this.$router.push('/')
       } catch (error) {
-        this.error = 'There was an error sending your feedback'
+        if (error.status === 422) this.error = error.body.err
+        else this.error = 'There was an error sending your feedback'
       } finally {
         this.isSubmittingFeedback = false
       }
