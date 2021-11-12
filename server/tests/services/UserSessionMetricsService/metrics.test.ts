@@ -51,7 +51,7 @@ function sendMessage(session: Session, message: Message): void {
 
 describe('Metrics have correct "computeUpdateValue" functions', () => {
   // test: absent student flag when student sends 0 msgs - done
-  // test: absent volunteer flag when volunteer sends 0 msgs
+  // test: absent volunteer flag when volunteer sends 0 msgs - done
   // test: no flag when volunteer doesn't wait for 10 mins before ending session
   // test: no flag when student doesn't wait for 5 mins before ending session
   test('Not an absent student if student sends msg before volunteer joins', () => {
@@ -74,6 +74,17 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
+  // to do
+  test('Not an absent student if student sends 0 msgs and volunteer ends session before 10 mins', () => {
+    const session = startSession(student)
+    sendMessage(session, buildMessage({ user: student._id }))
+    joinSession(session, volunteer)
+
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.AbsentStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(0)
+  })
+
   // test('Absent volunteer', () => {
   //   const session = startSession(student)
   //   sendMessage(session, buildMessage({ user: student._id }))
@@ -93,6 +104,17 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     const uvd = buildUpdateValueData(session)
     const processor = METRIC_PROCESSORS.AbsentVolunteer
     expect(processor.computeUpdateValue(uvd)).toEqual(1)
+  })
+
+  // to do 
+  test('Not an absent volunteer if volunteer sends 0 msgs and student ends session before 5 mins', () => {
+    const session = startSession(student)
+    sendMessage(session, buildMessage({ user: student._id }))
+    joinSession(session, volunteer)
+
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.AbsentStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(0)
   })
 
   test('Low coach rating from student (tutoring)', () => {
