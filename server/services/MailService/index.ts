@@ -1142,6 +1142,24 @@ export async function sendTechIssueApology(
   await sendEmail(email, sender, from, template, { firstName }, overrides)
 }
 
+export async function sendOnlyLookingForAnswersWarning(
+  firstName: string,
+  email: string
+): Promise<void> {
+  const sender = config.mail.senders.volunteerManager
+  const from = config.mail.people.volunteerManager.firstName
+  const template = config.sendgrid.studentOnlyLookingForAnswersTemplate
+
+  const overrides = {
+    reply_to: {
+      email: sender,
+    },
+    categories: ['student - only looking for answers'],
+  }
+
+  await sendEmail(email, sender, from, template, { firstName }, overrides)
+}
+
 export async function createContact(
   user: User | Student | Volunteer
 ): Promise<any> {
