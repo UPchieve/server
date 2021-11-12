@@ -134,11 +134,13 @@ describe('confirmVerification', () => {
 
     await confirmVerification(payload)
 
-    expect(MailService.sendStudentWelcomeEmail).toHaveBeenCalledWith(
+    expect(MailService.sendStudentOnboardingWelcomeEmail).toHaveBeenCalledWith(
       student.email,
       student.firstname
     )
-    expect(StudentService.queueWelcomeEmails).toHaveBeenCalledWith(student._id)
+    expect(StudentService.queueOnboardingEmails).toHaveBeenCalledWith(
+      student._id
+    )
   })
 
   test('Should send all volunteer emails when verified', async () => {

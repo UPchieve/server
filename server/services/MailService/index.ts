@@ -210,7 +210,7 @@ export async function sendPartnerVolunteerWelcomeEmail(
   )
 }
 
-export async function sendStudentWelcomeEmail(
+export async function sendStudentOnboardingWelcomeEmail(
   email: string,
   firstName: string
 ): Promise<void> {
@@ -218,19 +218,19 @@ export async function sendStudentWelcomeEmail(
     reply_to: {
       email: config.mail.receivers.students,
     },
-    categories: ['student welcome email'],
+    categories: ['Student Onboarding Email 1 - Welcome'],
   }
   await sendEmail(
     email,
     config.mail.senders.students,
     'UPchieve Student Success Team',
-    config.sendgrid.studentWelcomeTemplate,
+    config.sendgrid.studentOnboardingWelcomeTemplate,
     { firstName },
     overrides
   )
 }
 
-export async function sendStudentUseCases(
+export async function sendStudentOnboardingHowItWorks(
   email: string,
   firstName: string
 ): Promise<void> {
@@ -238,14 +238,14 @@ export async function sendStudentUseCases(
     reply_to: {
       email: config.mail.receivers.students,
     },
-    categories: ['student welcome email - student use cases'],
+    categories: ['Student Onboarding Email 2 - How It Works'],
   }
 
   await sendEmail(
     email,
     config.mail.senders.students,
     'UPchieve Student Success Team',
-    config.sendgrid.studentUseCasesTemplate,
+    config.sendgrid.studentOnboardingHowItWorksTemplate,
     { firstName },
     overrides
   )
@@ -259,20 +259,20 @@ export async function sendMeetOurVolunteers(
     reply_to: {
       email: config.mail.receivers.students,
     },
-    categories: ['student welcome email - meet our volunteers'],
+    categories: ['Student Onboarding Email 3 - Meet Our Volunteers'],
   }
 
   await sendEmail(
     email,
-    config.mail.senders.volunteerManager,
-    config.mail.people.volunteerManager.firstName,
+    config.mail.senders.students,
+    'UPchieve Student Success Team',
     config.sendgrid.meetOurVolunteersTemplate,
     { firstName },
     overrides
   )
 }
 
-export async function sendIndependentLearning(
+export async function sendStudentOnboardingMission(
   email: string,
   firstName: string
 ): Promise<void> {
@@ -280,20 +280,20 @@ export async function sendIndependentLearning(
     reply_to: {
       email: config.mail.receivers.students,
     },
-    categories: ['student welcome email - independent learning'],
+    categories: ['Student Onboarding Email 4 - Mission'],
   }
 
   await sendEmail(
     email,
     config.mail.senders.students,
     'UPchieve Student Success Team',
-    config.sendgrid.studentIndependentLearningTemplate,
+    config.sendgrid.studentOnboardingMissionTemplate,
     { firstName },
     overrides
   )
 }
 
-export async function sendStudentGoalSetting(
+export async function sendStudentOnboardingSurvey(
   email: string,
   firstName: string
 ): Promise<void> {
@@ -301,13 +301,13 @@ export async function sendStudentGoalSetting(
     reply_to: {
       email: config.mail.receivers.students,
     },
-    categories: ['student welcome email - goal setting'],
+    categories: ['Student Onboarding Email 5 - Survey'],
   }
   await sendEmail(
     email,
     config.mail.senders.students,
     'UPchieve Student Success Team',
-    config.sendgrid.studentGoalSettingTemplate,
+    config.sendgrid.studentOnboardingSurveyTemplate,
     { firstName },
     overrides
   )

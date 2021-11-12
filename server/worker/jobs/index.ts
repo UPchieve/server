@@ -18,7 +18,7 @@ import emailOnboardingReminder from './volunteer-emails/emailOnboardingReminder'
 import emailQuickTips from './volunteer-emails/emailQuickTips'
 import emailPartnerVolunteerOnlyCollegeCerts from './partner-volunteer-emails/emailOnlyCollegeCerts'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
-import emailStudentWelcomeSeries from './student-emails/emailStudentWelcomeSeries'
+import emailStudentOnboardingSeries from './student-emails/emailStudentOnboardingSeries'
 import emailStudentSessionActions from './student-emails/emailStudentSessionActions'
 import emailPartnerVolunteerReferACoworker from './partner-volunteer-emails/emailReferACoworker'
 import emailPartnerVolunteerTenSessionMilestone from './partner-volunteer-emails/emailTenSessionMilestone'
@@ -48,10 +48,10 @@ export enum Jobs {
   EmailOnboardingReminderOne = 'EmailOnboardingReminderOne',
   EmailOnboardingReminderTwo = 'EmailOnboardingReminderTwo',
   EmailOnboardingReminderThree = 'EmailOnboardingReminderThree',
-  EmailStudentUseCases = 'EmailStudentUseCases',
-  EmailIndependentLearning = 'EmailIndependentLearning',
+  EmailStudentOnboardingHowItWorks = 'EmailStudentOnboardingHowItWorks',
+  EmailStudentOnboardingMission = 'EmailStudentOnboardingMission',
   EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
-  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
+  EmailStudentOnboardingSurvey = 'EmailStudentOnboardingSurvey',
   EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
   EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
   EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
@@ -75,6 +75,11 @@ export enum Jobs {
   SendAssistmentsData = ' SendAssistmentsData',
   // TODO: add the tech issue apology job to the job processor once it is ready to be released
   EmailTechIssueApology = 'EmailTechIssueApology',
+
+  // TODO: remove the following deprecated job names
+  EmailStudentUseCases = 'EmailStudentUseCases',
+  EmailIndependentLearning = 'EmailIndependentLearning',
+  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
 }
 
 // register new job processors here
@@ -145,20 +150,20 @@ const jobProcessors: JobProcessor[] = [
     processor: emailOnboardingReminder,
   },
   {
-    name: Jobs.EmailStudentUseCases,
-    processor: emailStudentWelcomeSeries,
+    name: Jobs.EmailStudentOnboardingHowItWorks,
+    processor: emailStudentOnboardingSeries,
   },
   {
     name: Jobs.EmailMeetOurVolunteers,
-    processor: emailStudentWelcomeSeries,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.EmailIndependentLearning,
-    processor: emailStudentWelcomeSeries,
+    name: Jobs.EmailStudentOnboardingMission,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.EmailStudentGoalSetting,
-    processor: emailStudentWelcomeSeries,
+    name: Jobs.EmailStudentOnboardingSurvey,
+    processor: emailStudentOnboardingSeries,
   },
   {
     name: Jobs.EmailStudentAbsentWarning,
@@ -231,6 +236,20 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendAssistmentsData,
     processor: sendAssistmentsData,
+  },
+
+  // TODO: remove the following deprecated job names
+  {
+    name: Jobs.EmailStudentUseCases,
+    processor: emailStudentOnboardingSeries,
+  },
+  {
+    name: Jobs.EmailIndependentLearning,
+    processor: emailStudentOnboardingSeries,
+  },
+  {
+    name: Jobs.EmailStudentGoalSetting,
+    processor: emailStudentOnboardingSeries,
   },
 ]
 

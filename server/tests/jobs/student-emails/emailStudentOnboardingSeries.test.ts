@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import { resetDb, insertStudent } from '../../db-utils'
-import emailStudentWelcomeSeries from '../../../worker/jobs/student-emails/emailStudentWelcomeSeries'
+import emailStudentOnboardingSeries from '../../../worker/jobs/student-emails/emailStudentOnboardingSeries'
 import { log as logger } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import * as MailService from '../../../services/MailService'
@@ -27,8 +27,15 @@ beforeEach(async () => {
   await resetDb()
 })
 
-describe('Student welcome email series', () => {
+describe('Student onboarding email series', () => {
   const studentWelcomeSeriesJobs = [
+    Jobs.EmailStudentOnboardingHowItWorks,
+    Jobs.EmailMeetOurVolunteers,
+    Jobs.EmailStudentOnboardingMission,
+    Jobs.EmailStudentOnboardingSurvey,
+  ]
+
+  const oldStudentWelcomeSeriesJobs = [
     Jobs.EmailStudentUseCases,
     Jobs.EmailMeetOurVolunteers,
     Jobs.EmailIndependentLearning,
@@ -39,7 +46,7 @@ describe('Student welcome email series', () => {
     jest.resetAllMocks()
   })
 
-  test('Should send all student welcome series jobs', async () => {
+  test('Should send all student onboarding series jobs', async () => {
     const student = await insertStudent()
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
@@ -51,23 +58,46 @@ describe('Student welcome email series', () => {
         },
       }
 
-      await emailStudentWelcomeSeries(job)
+      await emailStudentOnboardingSeries(job)
       expect(logger).toHaveBeenCalledWith(
         `Emailed ${currentJob} to student ${student._id}`
       )
     }
   })
 
-  test('Should throw error when sending student welcome series email fails', async () => {
+  test('Should send deprecated student onboarding series jobs', async () => {
+    const student = await insertStudent()
+    for (const currentJob of oldStudentWelcomeSeriesJobs) {
+      // @todo: figure out how to properly type
+
+      const job: any = {
+        name: currentJob,
+        data: {
+          studentId: student._id,
+        },
+      }
+
+      await emailStudentOnboardingSeries(job)
+      expect(logger).toHaveBeenCalledWith(
+        `Emailed ${currentJob} to student ${student._id}`
+      )
+    }
+  })
+
+  test('Should throw error when sending student onboarding series email fails', async () => {
     const student = await insertStudent()
     const errorMessage = 'Error sending email'
     const rejectionFn = jest.fn(() => Promise.reject(errorMessage))
-    mockedMailService.sendStudentUseCases.mockImplementationOnce(rejectionFn)
-    mockedMailService.sendMeetOurVolunteers.mockImplementationOnce(rejectionFn)
-    mockedMailService.sendIndependentLearning.mockImplementationOnce(
+    mockedMailService.sendStudentOnboardingHowItWorks.mockImplementationOnce(
       rejectionFn
     )
-    mockedMailService.sendStudentGoalSetting.mockImplementationOnce(rejectionFn)
+    mockedMailService.sendMeetOurVolunteers.mockImplementationOnce(rejectionFn)
+    mockedMailService.sendStudentOnboardingMission.mockImplementationOnce(
+      rejectionFn
+    )
+    mockedMailService.sendStudentOnboardingSurvey.mockImplementationOnce(
+      rejectionFn
+    )
 
     for (const currentJob of studentWelcomeSeriesJobs) {
       // @todo: figure out how to properly type
@@ -79,7 +109,7 @@ describe('Student welcome email series', () => {
         },
       }
 
-      await expect(emailStudentWelcomeSeries(job)).rejects.toEqual(
+      await expect(emailStudentOnboardingSeries(job)).rejects.toEqual(
         Error(
           `Failed to email ${currentJob} to student ${student._id}: ${errorMessage}`
         )
@@ -99,7 +129,7 @@ describe('Student welcome email series', () => {
         },
       }
 
-      await emailStudentWelcomeSeries(job)
+      await emailStudentOnboardingSeries(job)
       expect(logger).not.toHaveBeenCalled()
       expect(logger).not.toHaveBeenCalled()
     }

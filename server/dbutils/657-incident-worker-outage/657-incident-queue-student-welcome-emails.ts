@@ -39,7 +39,7 @@ const main = async (): Promise<void> => {
     ])
 
     for (const student of students) {
-      StudentService.queueWelcomeEmails(student._id)
+      StudentService.queueOnboardingEmails(student._id)
     }
   } catch (error) {
     logger.error(error)
