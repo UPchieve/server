@@ -91,8 +91,11 @@ async function sendEmails(userId: Types.ObjectId): Promise<void> {
         )
       }
     } else {
-      await MailService.sendStudentWelcomeEmail(user.email, user.firstname)
-      await StudentService.queueWelcomeEmails(user._id)
+      await MailService.sendStudentOnboardingWelcomeEmail(
+        user.email,
+        user.firstname
+      )
+      await StudentService.queueOnboardingEmails(user._id)
     }
   }
 }

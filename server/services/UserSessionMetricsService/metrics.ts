@@ -162,7 +162,7 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
-        (feedback.studentTutoringFeedback['coach-rating'] || 0) <= 2
+        feedback.studentTutoringFeedback['coach-rating']! <= 2
       )
         return 1
       else if (
@@ -194,13 +194,13 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
-        (feedback.studentTutoringFeedback['session-goal'] || 0) <= 2
+        feedback.studentTutoringFeedback['session-goal']! <= 2
       )
         return 1
       else if (
         feedback.studentCounselingFeedback &&
         feedback.studentCounselingFeedback['rate-session'] &&
-        feedback.studentCounselingFeedback['rate-session'].rating <= 2
+        feedback.studentCounselingFeedback['rate-session'].rating! <= 2
       )
         return 1
     }
@@ -222,7 +222,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.volunteerFeedback &&
-        (feedback.volunteerFeedback['session-enjoyable'] || 0) <= 2
+        feedback.volunteerFeedback['session-enjoyable']! <= 2
       )
         return 1
     }
@@ -303,7 +303,18 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = () => NO_ACTIONS
+  public triggerActions = (pd: ProcessorData<Counter>) => {
+    if (pd.value && this.computeFinalValue(pd.studentUSM, pd.value) === 1)
+      return [
+        QueueService.add(Jobs.EmailStudentOnlyLookingForAnswers, {
+          sessionSubtopic: pd.session.subTopic,
+          sessionDate: pd.session.createdAt,
+          studentId: pd.session.student,
+          volunteerId: pd.session.volunteer,
+        }),
+      ] as Promise<any>[]
+    else return NO_ACTIONS
+  }
 }
 
 class CommentFromStudent extends CounterMetricProcessor {

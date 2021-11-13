@@ -30,30 +30,30 @@ export interface ResponseData {
 }
 
 export interface StudentTutoringFeedback {
-  'session-goal': number
-  'subject-understanding': number
-  'coach-rating': number
-  'coach-feedback': string
-  'other-feedback': string
+  'session-goal'?: number
+  'subject-understanding'?: number
+  'coach-rating'?: number
+  'coach-feedback'?: string
+  'other-feedback'?: string
 }
 
 export interface StudentCounselingFeedback {
-  'rate-session': { rating: number }
-  'session-goal': string
-  'coach-ratings': {
-    'coach-knowedgable': number
-    'coach-friendly': number
-    'coach-help-again': number
+  'rate-session'?: { rating?: number }
+  'session-goal'?: string
+  'coach-ratings'?: {
+    'coach-knowedgable'?: number
+    'coach-friendly'?: number
+    'coach-help-again'?: number
   }
-  'other-feedback': string
+  'other-feedback'?: string
 }
 
 export interface VolunteerFeedback {
-  'session-enjoyable': number
-  'session-improvements': string
-  'student-understanding': number
-  'session-obstacles': number[]
-  'other-feedback': string
+  'session-enjoyable'?: number
+  'session-improvements'?: string
+  'student-understanding'?: number
+  'session-obstacles'?: number[]
+  'other-feedback'?: string
 }
 
 export interface Feedback {

@@ -145,7 +145,6 @@
 
 <script>
 import moment from 'moment'
-import { find } from 'lodash'
 import NetworkService from '@/services/NetworkService'
 import UserPreview from '@/components/Admin/UserPreview'
 import ChatLog from '@/components/Admin/ChatLog'
@@ -196,10 +195,10 @@ export default {
       return endedBy ? endedBy.firstname : '?'
     },
     studentFeedback() {
-      return find(this.session.feedbacks, { userType: 'student' }, {})
+      return (this.session.feedbacks.studentTutoringFeedback || this.session.feedbacks.studentCounselingFeedback) ? this.session.feedbacks : null
     },
     volunteerFeedback() {
-      return find(this.session.feedbacks, { userType: 'volunteer' }, {})
+      return this.session.feedbacks.volunteerFeedback ? this.session.feedbacks : null
     },
     devicePlatform() {
       if (

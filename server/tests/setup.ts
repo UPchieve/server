@@ -24,6 +24,7 @@ jest.mock('../config', () => {
     },
     volunteerPartnerManifestPath: 'localManifests/volunteer.yaml',
     studentPartnerManifestPath: 'localManifests/student.yaml',
+    sponsorOrgManifestPath: 'localManifests/sponsor-orgs.yaml',
     smtp: {
       host: 'smtp.mailtrap.io',
       port: 2525,
@@ -83,6 +84,22 @@ jest.mock('../config', () => {
         signupCode: 'EX2',
         highSchoolSignup: true,
         schoolSignupRequired: false,
+      },
+    },
+    sponsorOrgManifests: {
+      sponsor: {
+        name: 'Sponsor',
+        schools: [
+          '618abe7ba0e5212595a7bf98',
+          '618abe7ba0e5212595a7bf99',
+          '618abe7ba0e5212595a7bf9a',
+        ],
+        partnerOrgs: null,
+      },
+      sponsor2: {
+        name: 'Sponsor 2',
+        schools: ['618abe7ba0e5212595a7bf9b', '618abe7ba0e5212595a7bf9c'],
+        partnerOrgs: ['example', 'example2'],
       },
     },
     bannedServiceProviders: ['Example'],
