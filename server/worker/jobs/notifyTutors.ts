@@ -82,7 +82,6 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
         volunteer._id,
         volunteer.phone as string
       )
-
       log(
         `Successfully sent follow up for session ${session._id} to volunteer ${volunteer._id}`
       )
