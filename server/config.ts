@@ -65,7 +65,7 @@ const config: Static<typeof Config> = {
     resetTemplate: 'd-5005d2beb2ad49a883a10364f3e14b81',
     openVolunteerWelcomeTemplate: 'd-0e4406696376446da0d580b9c7e9a95a',
     partnerVolunteerWelcomeTemplate: 'd-eac2fdfaa8d740c8965ba8011102986b',
-    studentWelcomeTemplate: 'd-dba390e0c99545d4b18135d869046f50',
+    studentOnboardingWelcomeTemplate: 'd-dba390e0c99545d4b18135d869046f50',
     reportedSessionAlertTemplate: 'd-fe338f96339445279c3fa6580fabc286',
     referenceFormTemplate: 'd-122f9c9953144e62b1f66411b8e85723',
     approvedNotOnboardedTemplate: 'd-2c7a974fc7084a9eaaa152f3498cc99d',
@@ -86,16 +86,17 @@ const config: Static<typeof Config> = {
     onboardingReminderOneTemplate: 'd-9af291b6d0e94f7ebf0133be2c7176e3',
     onboardingReminderTwoTemplate: 'd-23681dc2dc0647e0bd7a57a6f328e00b',
     onboardingReminderThreeTemplate: 'd-d7ff9f33620842508de0030c84da9425',
-    studentUseCasesTemplate: 'd-53b05a9788d044dab4c3e0f5e8a2250b',
+    studentOnboardingHowItWorksTemplate: 'd-53b05a9788d044dab4c3e0f5e8a2250b',
     meetOurVolunteersTemplate: 'd-799e0195f78d4732a5adc36216a488f7',
-    studentIndependentLearningTemplate: 'd-3167ea240a27471597d849cbae4b8437',
-    studentGoalSettingTemplate: 'd-c5671abc76884180b6912729190b7078',
+    studentOnboardingMissionTemplate: 'd-3167ea240a27471597d849cbae4b8437',
+    studentOnboardingSurveyTemplate: 'd-c5671abc76884180b6912729190b7078',
     studentFirstSessionCongratsTemplate: 'd-8c54307ace4a498f800185f0e540b8ea',
     studentReportedRudeTemplate: 'd-aa16bc7d750144f8b42d3db0bec051ca',
     studentReportedSafetyTemplate: 'd-c7caf6b302b94a08862652dcde06535f',
     studentAbsentWarningTemplate: 'd-f27a47f3875a4dfd9f07446219ecacfc',
     studentAbsentVolunteerApologyTemplate: 'd-2e648990eaca4b5e986a5486d8fea338',
     studentUnmatchedApologyTemplate: 'd-73756dd129344032bc4ca5d1055e1b7b',
+    studentOnlyLookingForAnswersTemplate: 'd-d78c20e2cfbe41968e458a93a6d5c7ac',
     volunteerQuickTipsTemplate: 'd-b85620ef95b443878a6aeca1e99c94ef',
     partnerVolunteerOnlyCollegeCertsTemplate:
       'd-031f89e788c2481ea912e5840e7d92e1',
@@ -201,6 +202,10 @@ const config: Static<typeof Config> = {
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
     'localManifests/student.yaml',
+
+  sponsorOrgManifestPath:
+    process.env.SUBWAY_SPONSOR_ORG_MANIFEST_PATH ||
+    'localManifests/sponsor-orgs.yaml',
 
   assistmentsBaseURL:
     process.env.SUBWAY_ASSISTMENTS_BASE_URL || 'https://example.com',

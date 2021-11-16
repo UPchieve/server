@@ -1,25 +1,26 @@
-import {
-  UpdateValueData,
-  CounterMetricProcessor,
-  ProcessorData,
-} from '../../../services/UserSessionMetricsService/types'
-import { METRIC_PROCESSORS } from '../../../services/UserSessionMetricsService/metrics'
-import { Counter } from '../../../models/UserSessionMetrics'
-import { Session } from '../../../models/Session'
+import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import { FeedbackVersionTwo } from '../../../models/Feedback'
 import { Message } from '../../../models/Message'
+import { Session } from '../../../models/Session'
+import { Counter } from '../../../models/UserSessionMetrics'
+import QueueService from '../../../services/QueueService'
+import { METRIC_PROCESSORS } from '../../../services/UserSessionMetricsService/metrics'
 import {
-  buildVolunteer,
-  buildStudent,
+  CounterMetricProcessor,
+  ProcessorData,
+  UpdateValueData,
+} from '../../../services/UserSessionMetricsService/types'
+import { Jobs } from '../../../worker/jobs'
+import {
   buildFeedback,
   buildMessage,
+  buildSession,
+  buildStudent,
   buildUSM,
-  startSession,
+  buildVolunteer,
   joinSession,
+  startSession,
 } from '../../generate'
-import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
-import QueueService from '../../../services/QueueService'
-import { Jobs } from '../../../worker/jobs'
 
 jest.mock('../../../models/UserSessionMetrics', () => ({
   ...jest.requireActual('../../../models/UserSessionMetrics'),
@@ -45,10 +46,24 @@ function sendMessage(session: Session, message: Message): void {
 }
 
 describe('Metrics have correct "computeUpdateValue" functions', () => {
-  test('Absent student', () => {
+  test('Not an absent student if student sends msg before volunteer joins', () => {
     const session = startSession(student)
     sendMessage(session, buildMessage({ user: student._id }))
     joinSession(session, volunteer)
+
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.AbsentStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(0)
+  })
+
+  test('Absent student if student sends 0 msgs for 10 mins after volunteer joins', () => {
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: new Date('2021-11-12T01:00:00.000Z'),
+      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
+      endedAt: new Date('2021-11-12T01:12:00.000Z'),
+    })
     sendMessage(session, buildMessage({ user: volunteer._id }))
 
     const uvd = buildUpdateValueData(session)
@@ -56,15 +71,49 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
     expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
-  test('Absent volunteer', () => {
-    const session = startSession(student)
-    sendMessage(session, buildMessage({ user: student._id }))
-    joinSession(session, volunteer)
+  test('Not an absent student if student sends 0 msgs and volunteer ends session before 10 mins', () => {
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: new Date('2021-11-12T01:00:00.000Z'),
+      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
+      endedAt: new Date('2021-11-12T01:11:00.000Z'),
+    })
+    sendMessage(session, buildMessage({ user: volunteer._id }))
+
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.AbsentStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(0)
+  })
+
+  test('Absent volunteer if volunteer sends 0 msgs for 5 mins after joining', () => {
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: new Date('2021-11-12T01:00:00.000Z'),
+      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
+      endedAt: new Date('2021-11-12T01:07:00.000Z'),
+    })
     sendMessage(session, buildMessage({ user: student._id }))
 
     const uvd = buildUpdateValueData(session)
     const processor = METRIC_PROCESSORS.AbsentVolunteer
     expect(processor.computeUpdateValue(uvd)).toEqual(1)
+  })
+
+  test('Not an absent volunteer if volunteer sends 0 msgs and student ends session before 5 mins', () => {
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: new Date('2021-11-12T01:00:00.000Z'),
+      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
+      endedAt: new Date('2021-11-12T01:05:00.000Z'),
+    })
+    sendMessage(session, buildMessage({ user: student._id }))
+
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.AbsentVolunteer
+    expect(processor.computeUpdateValue(uvd)).toEqual(0)
   })
 
   test('Low coach rating from student (tutoring)', () => {
@@ -489,19 +538,55 @@ describe('Metrics have correct "triggerActions" functions', () => {
     })
   })
 
+  describe('OnlyLookingForAnswers', () => {
+    test('Queue an only looking for answers email when a student is marked as only looking for answers for the first time', () => {
+      const studentUSM = buildUSM(student._id, { onlyLookingForAnswers: 0 })
+      const payload = {
+        session,
+        studentUSM,
+        value: 1,
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.OnlyLookingForAnswers
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailStudentOnlyLookingForAnswers,
+        {
+          sessionSubtopic: session.subTopic,
+          sessionDate: session.createdAt,
+          studentId: session.student,
+          volunteerId: session.volunteer,
+        }
+      )
+      expect(result).toHaveLength(1)
+    })
+
+    test('Should not queue an only looking for answers email when a student has already been marked as only looking for answers', () => {
+      const studentUSM = buildUSM(student._id, { onlyLookingForAnswers: 1 })
+      const payload = {
+        session,
+        studentUSM,
+        value: 1,
+      } as ProcessorData<Counter>
+
+      const processor = METRIC_PROCESSORS.OnlyLookingForAnswers
+      const result = processor.triggerActions(payload)
+      expect(QueueService.add).not.toHaveBeenCalled()
+      expect(result).toHaveLength(0)
+    })
+  })
+
   const processorsWithNoTriggerActions = [
     METRIC_PROCESSORS.LowCoachRatingFromStudent,
     METRIC_PROCESSORS.LowSessionRatingFromStudent,
     METRIC_PROCESSORS.LowSessionRatingFromCoach,
     METRIC_PROCESSORS.Reported,
     METRIC_PROCESSORS.RudeOrInappropriate,
-    METRIC_PROCESSORS.OnlyLookingForAnswers,
     METRIC_PROCESSORS.CommentFromStudent,
     METRIC_PROCESSORS.CommentFromVolunteer,
   ]
   for (const processor of processorsWithNoTriggerActions) {
     test(`Should return an empty list of actions for ${processor.constructor.name}`, () => {
-      const processor = METRIC_PROCESSORS.LowCoachRatingFromStudent
       const result = processor.triggerActions()
       expect(result).toHaveLength(0)
     })

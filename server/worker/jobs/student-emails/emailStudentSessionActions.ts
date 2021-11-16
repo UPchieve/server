@@ -63,6 +63,11 @@ export default async (
           formatMultiWordSubject(sessionSubtopic),
           moment(sessionDate).format('MMMM Do')
         )
+      if (currentJob === Jobs.EmailStudentOnlyLookingForAnswers)
+        await MailService.sendOnlyLookingForAnswersWarning(
+          studentFirstName,
+          email
+        )
 
       log(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {

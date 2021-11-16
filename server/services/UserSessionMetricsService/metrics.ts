@@ -11,19 +11,32 @@ import {
   NO_FLAGS,
   NO_ACTIONS,
 } from './types'
+import moment from 'moment'
 
 class AbsentStudent extends CounterMetricProcessor {
   public key = USER_SESSION_METRICS.absentStudent
   public requiresFeedback = false
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    const VOLUNTEER_WAITING_PERIOD_MIN = 10
     if (uvd.session.volunteerJoinedAt) {
+      const volunteerMaxWait = moment(uvd.session.volunteerJoinedAt).add(
+        VOLUNTEER_WAITING_PERIOD_MIN,
+        'minutes'
+      )
+
+      // if volunteer waits for less than 10 minutes, do not flag student bc student did not get a chance to respond within wait period
+      if (moment(uvd.session.endedAt).isBefore(volunteerMaxWait)) return 0
+
       for (const msg of uvd.session.messages) {
         if (
           (msg.user as Types.ObjectId).equals(
             uvd.session.student as Types.ObjectId
           ) &&
-          msg.createdAt > uvd.session.volunteerJoinedAt
+          // if student sends message within 10 mins of volunteer joining, then don't flag student
+          moment(msg.createdAt).isAfter(uvd.session.volunteerJoinedAt) &&
+          // Note: if student sends message at the last millisecond of the 10th minute, then don't flag student
+          moment(msg.createdAt).isSameOrBefore(volunteerMaxWait)
         )
           return 0
       }
@@ -74,13 +87,25 @@ class AbsentVolunteer extends CounterMetricProcessor {
   public requiresFeedback = false
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    const STUDENT_WAITING_PERIOD_MIN = 5
     if (uvd.session.volunteerJoinedAt) {
+      const studentMaxWait = moment(uvd.session.volunteerJoinedAt).add(
+        STUDENT_WAITING_PERIOD_MIN,
+        'minutes'
+      )
+
+      //if student waits for less than 5 minutes, then not flag volunteer
+      if (moment(uvd.session.endedAt).isBefore(studentMaxWait)) return 0
+
       for (const msg of uvd.session.messages) {
         if (
           (msg.user as Types.ObjectId).equals(
             uvd.session.volunteer as Types.ObjectId
           ) &&
-          msg.createdAt > uvd.session.volunteerJoinedAt
+          // if volunteer sends message within 5 mins of student joining, then don't flag volunteer
+          moment(msg.createdAt).isAfter(uvd.session.volunteerJoinedAt) &&
+          // Note: if volunteer sends message at the last millisecond of the 5th minute, then don't flag student
+          moment(msg.createdAt).isSameOrBefore(studentMaxWait)
         )
           return 0
       }
@@ -137,7 +162,7 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
-        (feedback.studentTutoringFeedback['coach-rating'] || 0) <= 2
+        feedback.studentTutoringFeedback['coach-rating']! <= 2
       )
         return 1
       else if (
@@ -169,13 +194,13 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.studentTutoringFeedback &&
-        (feedback.studentTutoringFeedback['session-goal'] || 0) <= 2
+        feedback.studentTutoringFeedback['session-goal']! <= 2
       )
         return 1
       else if (
         feedback.studentCounselingFeedback &&
         feedback.studentCounselingFeedback['rate-session'] &&
-        feedback.studentCounselingFeedback['rate-session'].rating <= 2
+        feedback.studentCounselingFeedback['rate-session'].rating! <= 2
       )
         return 1
     }
@@ -197,7 +222,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
       const feedback = uvd.feedback
       if (
         feedback.volunteerFeedback &&
-        (feedback.volunteerFeedback['session-enjoyable'] || 0) <= 2
+        feedback.volunteerFeedback['session-enjoyable']! <= 2
       )
         return 1
     }
@@ -278,7 +303,18 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
       : NO_FLAGS
   public computeFlag = (pd: ProcessorData<Counter>) =>
     pd.value ? [this.key] : NO_FLAGS
-  public triggerActions = () => NO_ACTIONS
+  public triggerActions = (pd: ProcessorData<Counter>) => {
+    if (pd.value && this.computeFinalValue(pd.studentUSM, pd.value) === 1)
+      return [
+        QueueService.add(Jobs.EmailStudentOnlyLookingForAnswers, {
+          sessionSubtopic: pd.session.subTopic,
+          sessionDate: pd.session.createdAt,
+          studentId: pd.session.student,
+          volunteerId: pd.session.volunteer,
+        }),
+      ] as Promise<any>[]
+    else return NO_ACTIONS
+  }
 }
 
 class CommentFromStudent extends CounterMetricProcessor {

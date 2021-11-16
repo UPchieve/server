@@ -1,5 +1,4 @@
 import expressWs from 'express-ws'
-import Case from 'case'
 import * as FeedbackService from '../../services/FeedbackService'
 import { getFeedbackBySessionIdUserType } from '../../models/Feedback/queries'
 import { InputError } from '../../models/Errors'
@@ -8,32 +7,8 @@ import { resError } from '../res-error'
 
 export function routeFeedback(router: expressWs.Router): void {
   router.post('/feedback', async (req, res) => {
-    // TODO: duck type validators
-    const {
-      sessionId,
-      topic,
-      subTopic,
-      responseData,
-      studentTutoringFeedback,
-      studentCounselingFeedback,
-      volunteerFeedback,
-      userType,
-      studentId,
-      volunteerId,
-    } = req.body
     try {
-      const feedback = await FeedbackService.saveFeedback({
-        sessionId,
-        type: Case.camel(topic),
-        subTopic: Case.camel(subTopic),
-        responseData,
-        studentTutoringFeedback,
-        studentCounselingFeedback,
-        volunteerFeedback,
-        userType,
-        studentId,
-        volunteerId,
-      })
+      const feedback = await FeedbackService.saveFeedback(req.body)
       res.json({
         feedback: feedback._id,
       })
