@@ -58,7 +58,7 @@ const notificationSchema = new Schema(
     },
     // Message ID returned by service, such as Twilio
     messageId: String,
-    sessionId: Types.ObjectId
+    sessionId: Types.ObjectId,
   },
   {
     toJSON: {
