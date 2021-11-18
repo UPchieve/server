@@ -31,6 +31,7 @@ import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVoluntee
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
 import emailSessionReported from './student-emails/emailSessionReported'
 import sendAssistmentsData from './sendAssistmentsData'
+import chatbot from './chatbot'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -76,6 +77,8 @@ export enum Jobs {
   EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
   // TODO: add the tech issue apology job to the job processor once it is ready to be released
   EmailTechIssueApology = 'EmailTechIssueApology',
+  // TODO: add the chatbot job to the job processor once it is ready to be released
+  Chatbot = 'Chatbot',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',

@@ -17,7 +17,7 @@ import {
   getObjectId,
 } from '../generate'
 import { Message } from '../../models/Message'
-import { SUBJECTS } from '../../constants'
+import { CHATBOT_EMAIL, SUBJECTS } from '../../constants'
 
 /**
  * @todo refactor
@@ -323,6 +323,14 @@ describe('isSessionParticipant', () => {
     const volunteer = buildVolunteer()
     const session = buildSession({ student, volunteer })
     const result = isSessionParticipant(session, volunteer._id)
+    expect(result).toBeTruthy()
+  })
+
+  test('Chatbot should be session participant', async () => {
+    const student = buildStudent()
+    const chatbot = buildVolunteer({ email: CHATBOT_EMAIL })
+    const session = buildSession({ student })
+    const result = isSessionParticipant(session, chatbot._id, chatbot._id)
     expect(result).toBeTruthy()
   })
 

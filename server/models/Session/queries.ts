@@ -1074,6 +1074,24 @@ export async function updateSessionVolunteerById(
   }
 }
 
+export type SessionMessages = Pick<Session, 'messages'>
+export async function getSessionMessagesById(
+  sessionId: Types.ObjectId
+): Promise<SessionMessages | undefined> {
+  try {
+    const result = await SessionModel.findOne(
+      { _id: sessionId },
+      { messages: 1 }
+    )
+      .select('messages')
+      .lean()
+      .exec()
+    if (result) return result as SessionMessages
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function addMessageToSessionById(
   sessionId: Types.ObjectId,
   message: Omit<Message, '_id'>

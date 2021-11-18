@@ -120,6 +120,7 @@ export const Config = Record({
     host: String,
   }),
   socketsPort: Number,
+  socketApiKey: String,
   volunteerPartnerManifestPath: String,
   customVolunteerPartnerOrgs: Array(String),
   studentPartnerManifestPath: String,

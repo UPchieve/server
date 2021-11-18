@@ -9,6 +9,7 @@ import config from '../config'
 import {
   EVENTS,
   HOURS_UTC,
+  SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SUBJECT_TYPES,
   USER_BAN_REASON,
@@ -588,6 +589,10 @@ export async function startSession(user: User, data: unknown) {
     { delay }
   )
 
+  // Begin chat bot messages immedeately
+  if (isEnabled('chatbot'))
+    await QueueService.add(Jobs.Chatbot, { sessionId: newSession._id })
+
   await new UserActionCtrl.SessionActionCreator(
     user._id,
     newSession._id.toString(),
@@ -749,11 +754,14 @@ export async function joinSession(user: User, data: unknown): Promise<void> {
 export async function saveMessage(
   user: any,
   createdAt: Date,
-  data: unknown
+  data: unknown,
+  chatbot?: Types.ObjectId
 ): Promise<void> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
-  if (!sessionUtils.isSessionParticipant(session, asObjectId(user._id)))
+  if (
+    !sessionUtils.isSessionParticipant(session, asObjectId(user._id), chatbot)
+  )
     throw new Error('Only session participants are allowed to send messages')
 
   const newMessage = {
@@ -800,4 +808,23 @@ export async function getWaitTimeHeatMap(
     throw new NotAllowedError('Only volunteers may view the heat map')
   const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
   return JSON.parse(heatMap)
+}
+
+export async function handleMessageActivity(
+  sessionId: Types.ObjectId
+): Promise<void> {
+  try {
+    const state = await cache.get(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
+    if (Boolean(state)) {
+      // TODO: notify more tutors here
+      await cache.remove(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
+    }
+  } catch (err) {
+    // if key missing do nothing - means chatbot is not active yet
+    if (err instanceof cache.KeyNotFoundError) return
+    // TODO: cancel chatbot jobs here
+    throw new Error(
+      `Could not process message acitvity state, cancelling chatbot`
+    )
+  }
 }
