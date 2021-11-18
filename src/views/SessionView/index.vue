@@ -21,12 +21,12 @@
         }"
       >
         <whiteboard
+          ref="whiteboard"
           v-if="auxiliaryType === 'WHITEBOARD'"
           :sessionId="sessionId"
           :isWhiteboardOpen="auxiliaryOpen"
           :toggleWhiteboard="toggleAuxiliary"
           :isSessionOver="isSessionOver"
-          :openFileDialog="openFileDialog"
         />
         <document-editor v-else />
       </div>
@@ -359,8 +359,8 @@ export default {
     tryClicked() {
       this.sessionReconnecting = true
     },
-    openFileDialog() {
-      document.querySelector('.upload-photo').click()
+    openFileDialog(event) {
+      this.$refs.whiteboard.openFileDialog(event)
     },
     setHasSeenNewMessage(value) {
       this.hasSeenNewMessage = value
