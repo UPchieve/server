@@ -303,7 +303,7 @@ export default {
         // autoscroll chat if at bottom
         this.scrollToBottom()
       } else if (
-        this.messages[this.messages.length - 1].userId !== this.user._id
+        this.messages[this.messages.length - 1].user !== this.user._id
       ) {
         const messageElements = this.getUserMessageElements()
 
@@ -362,9 +362,8 @@ export default {
         messagesBox.lastElementChild.offsetTop +
         messagesBox.lastElementChild.offsetHeight
     },
-    // TODO: fix
     messageAlignment(message){
-      return message.userId === this.user._id ? MESSAGE_ALIGNMENT.RIGHT : MESSAGE_ALIGNMENT.LEFT
+      return message.user === this.user._id ? MESSAGE_ALIGNMENT.RIGHT : MESSAGE_ALIGNMENT.LEFT
     },
     showAvatar(message){
       return this.messageAlignment(message) ===  MESSAGE_ALIGNMENT.LEFT
