@@ -1050,4 +1050,8 @@ export default {
     background-color: rgba(110, 140, 171, 0.87);
   }
 }
+
+#zwib-div:focus-visible, #zwib-div canvas:focus-visible {
+  border: 1px solid #000
+}
 </style>
