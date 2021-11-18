@@ -1,8 +1,9 @@
+import { logger } from '@sentry/utils'
 import Case from 'case'
 import { Types } from 'mongoose'
 import { Socket } from 'socket.io'
 import { CustomError } from 'ts-custom-error'
-import { SUBJECTS, SUBJECT_TYPES } from '../constants'
+import { SUBJECTS, SUBJECT_TYPES, CHATBOT_EMAIL } from '../constants'
 import { DAYS, HOURS } from '../models/Availability/types'
 import { InputError } from '../models/Errors'
 import { Message } from '../models/Message'
@@ -10,6 +11,7 @@ import { Session } from '../models/Session'
 import { SessionToEnd } from '../models/Session/queries'
 import { Student } from '../models/Student'
 import { User } from '../models/User'
+import { getUserIdByEmail } from '../models/User/queries'
 import { Volunteer } from '../models/Volunteer'
 import {
   asBoolean,
@@ -64,7 +66,8 @@ export function getMessagesAfterDate(
 
 export function isSessionParticipant(
   session: Session | SessionToEnd,
-  userId: Types.ObjectId | null
+  userId: Types.ObjectId | null,
+  chatbotId?: Types.ObjectId
 ): boolean {
   if (!userId) return false
 
@@ -79,7 +82,8 @@ export function isSessionParticipant(
 
   return (
     userId.equals(studentId as Types.ObjectId) ||
-    userId.equals(volunteerId as Types.ObjectId)
+    userId.equals(volunteerId as Types.ObjectId) ||
+    userId.equals(chatbotId ? chatbotId : '')
   )
 }
 
