@@ -303,6 +303,7 @@ export default {
         // autoscroll chat if at bottom
         this.scrollToBottom()
       } else if (
+        this.messages.length > 0 &&
         this.messages[this.messages.length - 1].user !== this.user._id
       ) {
         const messageElements = this.getUserMessageElements()
