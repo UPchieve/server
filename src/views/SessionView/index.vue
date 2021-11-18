@@ -454,6 +454,8 @@ export default {
 
 .auxiliary-container,
 .chat-container {
+  height: 100%;
+
   @include breakpoint-above('medium') {
     border-radius: 8px;
     overflow: hidden;
@@ -471,8 +473,6 @@ export default {
   overflow: hidden;
   position: relative;
 
-  // Why do we move this off the screen?
-  // TODO: check performance of display none vs absolute positioning
   &--hidden {
     position: absolute;
     width: 100%;
