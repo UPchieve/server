@@ -473,6 +473,8 @@ export default {
   overflow: hidden;
   position: relative;
 
+  // TODO: research performance implications of position: absolute
+  // vs alternatives and how they impact DOM reflow triggers
   &--hidden {
     position: absolute;
     width: 100%;
