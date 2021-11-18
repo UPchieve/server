@@ -453,6 +453,7 @@ export default {
 .messages-container {
   position: relative;
   overflow: hidden;
+  height: 100%;
 }
 
 .messages-overlay {
