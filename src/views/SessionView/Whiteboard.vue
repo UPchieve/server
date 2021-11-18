@@ -28,7 +28,9 @@
         class="toolbar-item toolbar-item--pick"
         title="Pick tool"
         v-bind:class="selectedTool === 'pick' ? 'selected-tool' : ''"
+        tabindex="0"
         @click="usePickTool"
+        @keydown.enter="usePickTool"
       >
         <SelectionIcon class="toolbar-item__svg" />
       </div>
@@ -36,14 +38,18 @@
         class="toolbar-item toolbar-item--brush"
         title="Brush tool"
         v-bind:class="selectedTool === 'brush' ? 'selected-tool' : ''"
+        tabindex="0"
         @click="useBrushTool"
+        @keydown.enter="useBrushTool"
       >
         <PenIcon class="toolbar-item__svg" />
       </div>
       <div
         class="toolbar-item toolbar-item--shapes"
         title="Shapes"
+        tabindex="0"
         @click="toggleShapes"
+        @keydown.enter="toggleShapes"
         :class="isShapeSelected ? 'selected-tool' : ''"
       >
         <ShapesIcon class="toolbar-item__svg toolbar-item__svg--shapes" />
@@ -51,21 +57,27 @@
           <div
             class="toolbar-item shapes-bar__toolbar-item"
             :class="selectedTool === 'line' ? 'selected-tool' : ''"
+            tabindex="0"
             @click="useLineTool"
+            @keydown.enter="useLineTool"
           >
             <line-icon class="shapes-bar__shape-icon" title="Line tool" />
           </div>
           <div
             class="toolbar-item shapes-bar__toolbar-item"
             :class="selectedTool === 'circle' ? 'selected-tool' : ''"
+            tabindex="0"
             @click="useCircleTool"
+            @keydown.enter="useCircleTool"
           >
             <circle-icon class="shapes-bar__shape-icon" title="Circle tool" />
           </div>
           <div
             class="toolbar-item shapes-bar__toolbar-item"
             :class="selectedTool === 'polygon' ? 'selected-tool' : ''"
+            tabindex="0"
             @click="useTriangleTool"
+            @keydown.enter="useTriangleTool"
           >
             <triangle-icon
               class="shapes-bar__shape-icon"
@@ -75,7 +87,9 @@
           <div
             class="toolbar-item shapes-bar__toolbar-item"
             :class="selectedTool === 'rectangle' ? 'selected-tool' : ''"
+            tabindex="0"
             @click="useRectangleTool"
+            @keydown.enter="useRectangleTool"
           >
             <rectangle-icon
               class="shapes-bar__shape-icon"
@@ -88,14 +102,18 @@
         class="toolbar-item toolbar-item--text"
         :class="selectedTool === 'text' ? 'selected-tool' : ''"
         title="Text"
+        tabindex="0"
         @click="useTextTool"
+        @keydown.enter="useTextTool"
       >
         <TextIcon class="toolbar-item__svg" />
       </div>
       <div
         class="toolbar-item toolbar-item--color-picker"
         title="Color picker"
+        tabindex="0"
         @click="toggleColorPicker"
+        @keydown.enter="toggleColorPicker"
       >
         <ColorPickerIcon
           class="toolbar-item__svg toolbar-item__svg--color-picker"
@@ -105,71 +123,101 @@
             class="color-button"
             title="Black"
             style="background-color: rgba(10, 10, 10, 1)"
+            tabindex="0"
             @click="setColor('rgba(10, 10, 10, 1)')"
+            @keydown.enter="setColor('rgba(10, 10, 10, 1)')"
           ></div>
           <div
             class="color-button"
             title="Navy"
             style="background-color: rgba(38, 51, 104, 1)"
+            tabindex="0"
             @click="setColor('rgba(38, 51, 104, 1)')"
+            @keydown.enter="setColor('rgba(38, 51, 104, 1)')"
           ></div>
           <div
             class="color-button"
             title="Red"
             style="background-color: rgba(244, 71, 71, 1)"
+            tabindex="0"
             @click="setColor('rgba(244, 71, 71, 1)')"
+            @keydown.enter="setColor('rgba(244, 71, 71, 1)')"
           ></div>
           <div
             class="color-button"
             title="Sand"
             style="background-color: rgba(249, 227, 183, 1)"
+            tabindex="0"
             @click="setColor('rgba(249, 227, 183, 1)')"
+            @keydown.enter="setColor('rgba(249, 227, 183, 1)')"
           ></div>
           <div
             class="color-button"
             title="Teal"
             style="background-color: rgba(123, 222, 201, 1)"
+            tabindex="0"
             @click="setColor('rgba(123, 222, 201, 1)')"
+            @keydown.enter="setColor('rgba(123, 222, 201, 1)')"
           ></div>
           <div
             class="color-button"
             title="Light Blue"
             style="background-color: rgba(119, 151, 216, 1)"
+            tabindex="0"
             @click="setColor('rgba(119, 151, 216, 1)')"
+            @keydown.enter="setColor('rgba(119, 151, 216, 1)')"
           ></div>
         </div>
       </div>
-      <div class="toolbar-item toolbar-item--undo" title="Undo" @click="undo">
+      <div
+        class="toolbar-item toolbar-item--undo"
+        title="Undo"
+        tabindex="0"
+        @click="undo"
+        @keydown.enter="undo"
+      >
         <UndoIcon class="toolbar-item__svg" />
       </div>
-      <div class="toolbar-item toolbar-item--redo" title="Redo" @click="redo">
+      <div
+        class="toolbar-item toolbar-item--redo"
+        title="Redo"
+        tabindex="0"
+        @click="redo"
+        @keydown.enter="redo"
+      >
         <RedoIcon class="toolbar-item__svg" />
       </div>
       <div
         v-if="showPhotoUpload"
         class="toolbar-item toolbar-item--photo"
         title="Upload photo"
+        tabindex="0"
         @click="openFileDialog"
+        @keydown.enter="openFileDialog"
       >
-        <input
-          type="file"
+        <FileDialog
+          ref="fileDialog"
           class="upload-photo"
           accept="image/*"
-          @change="uploadPhoto"
+          @file-selected="uploadPhoto"
         />
         <PhotoUploadIcon class="toolbar-item__svg--photo" />
       </div>
       <div
         class="toolbar-item toolbar-item--clear"
         title="Clear whiteboard"
+        tabindex="0"
         @click="clearWhiteboard"
+        @keydown.enter="clearWhiteboard"
       >
         <ClearIcon class="toolbar-item__svg" />
       </div>
       <div
         class="toolbar-item toolbar-item--reset"
         title="Reset whiteboard"
+        tabindex="0"
         @click="toggleResetWhiteboardModal"
+        @keydown.enter="toggleResetWhiteboardModal"
       >
         <ResetIcon class="toolbar-item__svg--reset" />
       </div>
@@ -194,6 +242,7 @@ import RedoIcon from '@/assets/whiteboard_icons/redo.svg'
 import DeleteSelectionIcon from '@/assets/whiteboard_icons/delete_selection.png'
 import RotateIcon from '@/assets/whiteboard_icons/rotate.png'
 import PhotoUploadIcon from '@/assets/whiteboard_icons/photo-upload.svg'
+import FileDialog from '@/components/FileDialog'
 import ShapesIcon from '@/assets/whiteboard_icons/shapes.svg'
 import TextIcon from '@/assets/whiteboard_icons/text.svg'
 import CircleIcon from '@/assets/whiteboard_icons/circle.svg'
@@ -216,6 +265,7 @@ export default {
     UndoIcon,
     RedoIcon,
     PhotoUploadIcon,
+    FileDialog,
     ShapesIcon,
     TextIcon,
     CircleIcon,
@@ -242,10 +292,6 @@ export default {
     },
     isSessionOver: {
       type: Boolean,
-      required: true
-    },
-    openFileDialog: {
-      type: Function,
       required: true
     }
   },
@@ -331,31 +377,45 @@ export default {
     handleWindowResize() {
       setTimeout(this.resizeViewRectangle, 100)
     },
-    usePickTool() {
+    maybeFocusZwibbler(event) {
+      // activate Zwibbler's keyboard cursor if a tool was selected
+      // using the keyboard
+      if (event.type === 'keydown') {
+        this.zwibblerCtx.focus(true, this)
+      }
+    },
+    usePickTool(event) {
       this.zwibblerCtx.usePickTool()
+      this.maybeFocusZwibbler(event)
     },
-    useBrushTool() {
+    useBrushTool(event) {
       this.zwibblerCtx.useBrushTool()
+      this.maybeFocusZwibbler(event)
     },
-    useLineTool() {
+    useLineTool(event) {
       this.zwibblerCtx.useLineTool(
         {},
         {
           singleLine: true
         }
       )
+      this.maybeFocusZwibbler(event)
     },
-    useCircleTool() {
+    useCircleTool(event) {
       this.zwibblerCtx.useCircleTool()
+      this.maybeFocusZwibbler(event)
     },
-    useTriangleTool() {
+    useTriangleTool(event) {
       this.zwibblerCtx.usePolygonTool(3, 0)
+      this.maybeFocusZwibbler(event)
     },
-    useRectangleTool() {
+    useRectangleTool(event) {
       this.zwibblerCtx.useRectangleTool()
+      this.maybeFocusZwibbler(event)
     },
-    useTextTool() {
+    useTextTool(event) {
       this.zwibblerCtx.useTextTool()
+      this.maybeFocusZwibbler(event)
     },
     toggleColorPicker() {
       this.showColorPicker = !this.showColorPicker
@@ -377,8 +437,11 @@ export default {
       this.showColorPicker = false
       this.showShapes = false
     },
-    async uploadPhoto(event) {
-      const { files } = event.target
+    openFileDialog(event) {
+      this.$refs.fileDialog.openFileDialog(event)
+    },
+    async uploadPhoto(uploadEvents) {
+      const { files } = uploadEvents.fileSelectionEvent.target
       const file = files[0]
       const tenMegabytes = 10 * 1000000
 
@@ -390,7 +453,7 @@ export default {
         return
       }
 
-      this.usePickTool()
+      this.usePickTool(uploadEvents.dialogOpeningEvent)
 
       const response = await NetworkService.getSessionPhotoUploadUrl(
         this.sessionId
@@ -986,5 +1049,9 @@ export default {
   &--connection {
     background-color: rgba(110, 140, 171, 0.87);
   }
+}
+
+#zwib-div:focus-visible, #zwib-div canvas:focus-visible {
+  border: 1px solid #000
 }
 </style>
