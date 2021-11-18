@@ -362,8 +362,9 @@ export default {
         messagesBox.lastElementChild.offsetTop +
         messagesBox.lastElementChild.offsetHeight
     },
+    // TODO: fix
     messageAlignment(message){
-      return message.user === this.user._id ? MESSAGE_ALIGNMENT.RIGHT : MESSAGE_ALIGNMENT.LEFT
+      return message.userId === this.user._id ? MESSAGE_ALIGNMENT.RIGHT : MESSAGE_ALIGNMENT.LEFT
     },
     showAvatar(message){
       return this.messageAlignment(message) ===  MESSAGE_ALIGNMENT.LEFT
@@ -574,7 +575,7 @@ span {
   width: 100%;
   border: none;
   border-top: 1px solid $c-border-grey;
-  padding: 16px;
+  padding: 1em;
   resize: none;
 
   &:focus {
@@ -583,9 +584,9 @@ span {
 
   @include breakpoint-below('medium') {
     height: 40px;
-    border: 1px solid #d6e0ef;
+    border: 1px solid $c-border-grey;
     border-radius: 20px;
-    padding: 10px 16px;
+    padding: 0.6em 1em;
     line-height: 18px;
   }
 }
