@@ -116,12 +116,6 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize)
-    if (this.mobileMode) {
-      const papercupsToggle = document.querySelector(
-        '.Papercups-toggleButtonContainer'
-      )
-      if (papercupsToggle) papercupsToggle.style.display = 'initial'
-    }
   },
   /*
    * @notes
@@ -204,13 +198,6 @@ export default {
     }
   },
   mounted() {
-    if (this.mobileMode) {
-      const papercupsToggle = document.querySelector(
-        '.Papercups-toggleButtonContainer'
-      )
-      if (papercupsToggle) papercupsToggle.style.display = 'none'
-    }
-
     const id = this.$route.params.sessionId
 
     let promise
