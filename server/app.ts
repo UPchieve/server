@@ -56,7 +56,6 @@ function renderIndexHtml() {
     socketAddress: config.socketAddress,
     mainWebsiteUrl: config.mainWebsiteUrl,
     posthogToken: config.posthogToken,
-    // papercupsId: config.papercupdsId,
     unleashUrl: config.vueAppUnleashUrl,
     unleashName: config.vueAppUnleashName,
     unleashId: config.vueAppUnleashId,
@@ -72,6 +71,7 @@ function renderIndexHtml() {
     sentryEnv: config.vueAppSentryEnv,
     sentryDsn: config.vueAppSentryDsn,
     customVolunteerPartnerOrgs: config.customVolunteerPartnerOrgs,
+    gleapSdkKey: config.gleapSdkKey,
   }
 
   return Mustache.render(template, frontendConfig)

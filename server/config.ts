@@ -51,6 +51,7 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_SESSION_COOKIE_MAX_AGE || '5184000000'
   ),
   saltRounds: 10,
+  gleapSdkKey: process.env.VUE_APP_GLEAP_SDK_KEY || 'bogus',
   smtp: {
     host: process.env.SUBWAY_SMTP_HOST || 'smtp.mailtrap.io',
     port: parseInt(process.env.SUBWAY_SMTP_PORT || '2525'),
@@ -319,7 +320,6 @@ const config: Static<typeof Config> = {
   newRelicBrowserLicenseKey:
     process.env.VUE_APP_NEW_RELIC_LICENSE_KEY || 'bogus',
   newRelicBrowserAppId: process.env.VUE_APP_NEW_RELIC_APP_ID || 'bogus',
-  papercupsId: process.env.VUE_APP_PAPERCUPS_ID || 'bogus',
   vueDevtools: nodeEnv === 'dev',
   /**
    *
