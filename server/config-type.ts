@@ -16,6 +16,7 @@ export const Config = Record({
     user: String,
     password: String,
   }),
+  gleapSdkKey: String,
   sendgrid: Record({
     apiKey: String,
     contactTemplate: String,
@@ -184,7 +185,6 @@ export const Config = Record({
   newRelicBrowserLicenseKey: String,
   newRelicBrowserAppId: String,
   newRelicApprovedOrigin: String,
-  papercupsId: String,
   vueDevtools: Boolean,
   whiteboardStorageAppId: String,
   whiteboardStorageTenantId: String,

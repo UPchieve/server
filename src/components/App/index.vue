@@ -100,6 +100,11 @@ export default {
       }
     }
   },
+  mounted() {
+    if (this.mobileMode) {
+      window.Gleap.hide()
+    }
+  },
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize)
 
@@ -219,7 +224,7 @@ export default {
       const nowLoggedIn = currentUserValue._id && !previousUserValue._id
       if (nowLoggedIn) {
         Sentry.setUser({ id: currentUserValue._id })
-        AnalyticsService.identify(currentUserValue._id)
+      AnalyticsService.identify(currentUserValue._id, currentUserValue.firstname, currentUserValue.email)
 
         if (this.mobileMode && !this.isMobileApp && !this.isVolunteer) {
           this.$store.dispatch('app/banner/show', {
