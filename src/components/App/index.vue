@@ -100,6 +100,11 @@ export default {
       }
     }
   },
+  mounted() {
+    if (this.mobileMode) {
+      window.Gleap.hide()
+    }
+  },
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize)
 
