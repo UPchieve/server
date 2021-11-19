@@ -4,7 +4,7 @@
     <h2 class="report-modal__subtitle">
       Reporting students will result in immediate action from UPchieve. If you
       have a concern that requires less immediate attention, please let us know
-      in the feedback form after your session is ocmplete. Not sure what to do?
+      in the feedback form after your session is complete. Not sure what to do?
       <a
         href="https://upc-training-materials.s3.us-east-2.amazonaws.com/reporting-guidelines.pdf"
         target="_blank"
