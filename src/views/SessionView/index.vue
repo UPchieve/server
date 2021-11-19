@@ -115,6 +115,7 @@ export default {
     window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy() {
+    window.Gleap.removeCustomData("sessionId")
     window.removeEventListener('resize', this.handleResize)
   },
   /*
@@ -248,6 +249,7 @@ export default {
 
         if (!this.$socket.connected) await this.$socket.connect()
         this.joinSession(sessionId)
+        window.Gleap.setCustomData("sessionId", sessionId)
         this.$store.dispatch('user/sessionConnected')
 
         if (
