@@ -194,7 +194,7 @@ export default {
         'app/updateWebPageVisibility',
         this.docHiddenProperty
       )
-    }
+    },
   },
   computed: {
     ...mapState({
@@ -211,7 +211,7 @@ export default {
       userAuthenticated: 'user/isAuthenticated',
       isVolunteer: 'user/isVolunteer',
       mobileMode: 'app/mobileMode'
-    })
+    }),
   },
   // https://github.com/BrianRosamilia/vue-crono
   cron: {
@@ -224,7 +224,7 @@ export default {
       const nowLoggedIn = currentUserValue._id && !previousUserValue._id
       if (nowLoggedIn) {
         Sentry.setUser({ id: currentUserValue._id })
-      AnalyticsService.identify(currentUserValue._id, currentUserValue.firstname, currentUserValue.email)
+      AnalyticsService.identify(currentUserValue._id, currentUserValue.firstname, currentUserValue.email, currentUserValue.type)
 
         if (this.mobileMode && !this.isMobileApp && !this.isVolunteer) {
           this.$store.dispatch('app/banner/show', {
