@@ -4,15 +4,6 @@
     <app-sidebar v-if="showSidebar" />
     <app-modal v-if="showModal" />
     <app-banner v-if="showBanner" />
-    <b-toast
-      toaster="b-toaster-bottom-right"
-      no-auto-hide
-      title="You can now report bugs!"
-      v-on:hide="setShowBugReportToastFlag"
-      v-if="showBugReportToast"
-    >
-      Click the "Report a bug" tab on the right to tell us about any technical issues on our platform!
-    </b-toast>
     <b-alert
       class="refresh-alert"
       dismissible
@@ -50,7 +41,7 @@ import AppHeader from './AppHeader'
 import AppSidebar from './AppSidebar'
 import AppModal from './AppModal'
 import AppBanner from './AppBanner'
-import { BAlert, BToast } from 'bootstrap-vue'
+import { BAlert } from 'bootstrap-vue'
 import PortalService from '@/services/PortalService'
 import getOperatingSystem from '@/utils/get-operating-system'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
@@ -66,7 +57,6 @@ export default {
     AppModal,
     AppBanner,
     BAlert,
-    BToast,
     LargeButton
   },
   mixins: [crono],
@@ -205,9 +195,6 @@ export default {
         this.docHiddenProperty
       )
     },
-    setShowBugReportToastFlag() {
-      localStorage.setItem('showBugReportToast', 'alreadyShown')
-    }
   },
   computed: {
     ...mapState({
@@ -225,10 +212,6 @@ export default {
       isVolunteer: 'user/isVolunteer',
       mobileMode: 'app/mobileMode'
     }),
-    showBugReportToast() {
-      console.log(!!localStorage.getItem('showBugReportToast'))
-      return !!localStorage.getItem('showBugReportToast')
-    }
   },
   // https://github.com/BrianRosamilia/vue-crono
   cron: {
