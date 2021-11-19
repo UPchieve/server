@@ -441,8 +441,6 @@ export default {
 
 .auxiliary-container,
 .chat-container {
-  height: 100%;
-
   @include breakpoint-above('medium') {
     border-radius: 8px;
     overflow: hidden;

@@ -406,11 +406,12 @@ export default {
 
 <style lang="scss" scoped>
 .chat {
-  height: 100%;
   position: relative;
   background-color: $upchieve-white;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .chat-warning {
@@ -420,7 +421,7 @@ export default {
   position: absolute;
   left: 0;
   top: 0;
-  padding: 12px;
+  padding: 0.75em;
   z-index: 1;
   transition: all 0.15s ease-in;
 
@@ -453,7 +454,8 @@ export default {
 .messages-container {
   position: relative;
   overflow: hidden;
-  height: 100%;
+  display: flex;
+  flex: 1;
 }
 
 .messages-overlay {
@@ -464,7 +466,7 @@ export default {
   background-color: $upchieve-white;
   overflow: auto;
   padding-bottom: 2em;
-  height: 100%;
+  flex: 1
 }
 
 .unread-message-indicator {
@@ -472,11 +474,10 @@ export default {
   border: 0;
   border-radius: 12px;
   padding: 0 0.8em;
-  height: 24px;
   color: $upchieve-white;
   position: absolute;
   bottom: 24px;
-  right: 24px;
+  margin-right: 1.5em;
   transition: 0.25s;
 }
 
@@ -490,17 +491,13 @@ export default {
   flex-shrink: 0;
 }
 
-span {
-  font-size: 16px;
-}
-
 .avatar {
   width: 32px;
   height: 32px;
   background-size: cover;
   margin-top: 5px;
   border-radius: 16px;
-  margin-right: 12px;
+  margin-right: 0.75em;
 }
 
 .name {
@@ -519,7 +516,6 @@ span {
   text-align: left;
   padding: 10px 14px;
   overflow-wrap: break-word;
-  font-size: 16px;
   background-color: $c-background-grey;
   border-radius: 20px;
   max-width: 80%;
@@ -546,11 +542,7 @@ span {
 }
 
 .chat-footer {
-  width: 100%;
-  height: 100px;
   position: relative;
-  background-color: $upchieve-white;
-  margin-top: auto;
 
   @include breakpoint-below('medium') {
     padding: 20px 140px 40px 20px;
