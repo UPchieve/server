@@ -2,12 +2,13 @@ import posthog from 'posthog-js'
 import { EVENTS } from '../consts'
 
 export default {
-  identify(userId, name, email) {
+  identify(userId, name, email, type) {
     posthog.identify(userId)
     window.Gleap.identify(userId, {
       name,
       email
     })
+    window.Gleap.setCustomData('userType', type)
   },
 
   updateUser(update) {
