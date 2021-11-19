@@ -29,7 +29,7 @@ async function emailReportedSession(
     _id: studentId,
     isDeactivated: false,
     isFakeUser: false,
-    isTestUser: false
+    isTestUser: false,
   })
 
   const errors: string[] = []
