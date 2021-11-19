@@ -455,6 +455,7 @@ export default {
   position: relative;
   overflow: hidden;
   display: flex;
+  flex-direction: column;
   flex: 1;
 }
 
@@ -466,7 +467,6 @@ export default {
   background-color: $upchieve-white;
   overflow: auto;
   padding-bottom: 2em;
-  flex: 1
 }
 
 .unread-message-indicator {
