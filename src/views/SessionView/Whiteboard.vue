@@ -380,7 +380,15 @@ export default {
     maybeFocusZwibbler(event) {
       // activate Zwibbler's keyboard cursor if a tool was selected
       // using the keyboard
-      if (event.type === 'keydown') {
+      /**
+       * 
+       * Check if the event is truthy before accessing its type.
+       * There are several tools that are programmatically called
+       * and are not triggered via an event. for example: the brush
+       * tool is set as the default tool once Zwibbler is connected
+       * 
+       **/ 
+      if (event && event.type === 'keydown') {
         this.zwibblerCtx.focus(true, this)
       }
     },
