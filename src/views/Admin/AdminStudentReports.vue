@@ -58,6 +58,20 @@
       </div>
       <div class="col">
         <div>
+          <label for="sponsor-org" class="col">
+            Sponsor org
+            <v-select
+              id="sponsor-org"
+              class="filter-panel__partner-select"
+              :options="sponsorOrgs"
+              label="displayName"
+              v-model="sponsorOrg"
+            />
+          </label>
+        </div>
+      </div>
+      <div class="col">
+        <div>
           <label for="high-school" class="col">
             High school
             <school-list
@@ -114,14 +128,26 @@ export default {
       studentPartnerSite: '',
       error: '',
       isGeneratingReport: false,
-      studentPartnerOrgs: []
+      studentPartnerOrgs: [],
+      sponsorOrgs: [],
+      sponsorOrg: ''
     }
   },
   async mounted() {
+    const [partnerOrgResponse, sponsorOrgResponse] = await Promise.all([
+      await NetworkService.adminGetStudentPartners(),
+      await NetworkService.adminGetSponsorOrgs()
+    ])
+
     const {
-      body: { partnerOrgs: studentPartnerOrgs }
-    } = await NetworkService.adminGetStudentPartners()
+     body: { partnerOrgs: studentPartnerOrgs }
+    } = partnerOrgResponse
+    const {
+      body: { sponsorOrgs }
+    } = sponsorOrgResponse
+
     this.studentPartnerOrgs = studentPartnerOrgs
+    this.sponsorOrgs = sponsorOrgs
   },
   methods: {
     async generateSessionReport() {
@@ -204,13 +230,14 @@ export default {
         sessionRangeFrom: this.formatDate(this.sessionRangeFrom),
         sessionRangeTo: this.formatDate(this.sessionRangeTo),
         highSchoolId: this.highSchool._id ? this.highSchool._id : '',
-        // partner org can be "null" from clearing the v-select, check for if exists and then get the partnerOrg
+        // partner org or the sponsor org can be "null" from clearing the v-select, check for if org exists and then get the org
         studentPartnerOrg: this.isValidStudentPartnerOrg
           ? this.studentPartnerOrg.key
           : '',
         studentPartnerSite: this.isValidPartnerSite
           ? this.studentPartnerSite
-          : ''
+          : '',
+        sponsorOrg: this.isValidSponsorOrg ? this.sponsorOrg.key : ''
       }
     },
     validSessionDateRanges(query) {
@@ -252,6 +279,8 @@ export default {
       if (this.highSchool.name) title = this.highSchool.name
       if (this.studentPartnerOrg && this.studentPartnerOrg.displayName)
         title = this.studentPartnerOrg.displayName
+      if (this.sponsorOrg && this.sponsorOrg.displayName)
+        title = this.sponsorOrg.displayName
       if (this.isValidPartnerSite) title = this.studentPartnerSite
 
       return title
@@ -270,6 +299,9 @@ export default {
     },
     isValidStudentPartnerOrg() {
       return this.studentPartnerOrg && this.studentPartnerOrg.key
+    },
+    isValidSponsorOrg() {
+      return this.sponsorOrg && this.sponsorOrg.key
     }
   }
 }
