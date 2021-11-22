@@ -8,7 +8,7 @@ import exceljs from 'exceljs'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomError } from 'ts-custom-error'
 import User from '../models/User'
-import { studentPartnerManifests } from '../partnerManifests'
+import { SponsorOrgManifest, studentPartnerManifests } from '../partnerManifests'
 import logger from '../logger'
 import {
   FEEDBACK_VERSIONS,
@@ -38,6 +38,7 @@ import {
   getVolunteersWithPipeline,
 } from '../models/Volunteer/queries'
 import { asFactory, asString } from '../utils/type-utils'
+import { asSponsorOrg } from '../utils/validators'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -127,16 +128,24 @@ export const sessionReport = async (
     highSchoolId,
     studentPartnerOrg,
     studentPartnerSite,
+    sponsorOrg
   } = validateStudentSessionReportQuery(data)
   const query: {
-    approvedHighschool?: Types.ObjectId
-    studentPartnerOrg?: string
+    approvedHighschool?: Types.ObjectId | { $in: Types.ObjectId[] }
+    studentPartnerOrg?: string | { $in: string[] }
     partnerSite?: string
   } = {}
 
   if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId)
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg
   if (studentPartnerSite) query.partnerSite = studentPartnerSite
+  let sponsor: SponsorOrgManifest
+  if (sponsorOrg) {
+    sponsor = asSponsorOrg(sponsorOrg)
+    if (sponsor.schools) query.approvedHighschool = { $in: sponsor.schools }
+    if (sponsor.partnerOrgs)
+      query.studentPartnerOrg = { $in: sponsor.partnerOrgs }
+  }
 
   const oneMinuteInMs = 1000 * 60
   const roundDecimalPlace = 1
@@ -307,6 +316,9 @@ export const sessionReport = async (
       'Partner site': session.student.partnerSite
         ? session.student.partnerSite
         : '-',
+      'Sponsor org': sponsor
+        ? sponsor.name
+        : '-',
       Volunteer: session.volunteer,
       'Volunteer join date': formatDate(session.volunteerJoinedAt),
       'Ended at': formatDate(session.endedAt),
@@ -327,11 +339,12 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
     highSchoolId,
     studentPartnerOrg,
     studentPartnerSite,
+    sponsorOrg,
   } = validateStudentUsageReportQuery(data)
   const query: {
     createdAt?: {}
-    approvedHighschool?: Types.ObjectId
-    studentPartnerOrg?: string
+    approvedHighschool?: Types.ObjectId | { $in: Types.ObjectId[] }
+    studentPartnerOrg?: string | { $in: string[] }
     partnerSite?: string
   } = {
     createdAt: {
@@ -342,6 +355,13 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId)
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg
   if (studentPartnerSite) query.partnerSite = studentPartnerSite
+  let sponsor: SponsorOrgManifest
+  if (sponsorOrg) {
+    sponsor = asSponsorOrg(sponsorOrg)
+    if (sponsor.schools) query.approvedHighschool = { $in: sponsor.schools }
+    if (sponsor.partnerOrgs)
+      query.studentPartnerOrg = { $in: sponsor.partnerOrgs }
+  }
 
   const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
   const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
@@ -561,6 +581,8 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
       if (student.approvedHighschool) dataFormat['HS/College'] = 'High school'
       else dataFormat['HS/College'] = 'College'
     }
+
+    if (sponsor) dataFormat['Sponsor Org'] = sponsor.name || '-'
 
     return dataFormat
   })
