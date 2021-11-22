@@ -76,6 +76,9 @@ interface UsageReport {
   'Average session rating': number
 }
 
+type approvedHighschoolQuery = Types.ObjectId | { $in: Types.ObjectId[] }
+type studentPartnerOrgQuery = string | { $in: string[] }
+
 const formatDate = (date: string): Date | string => {
   if (!date) return '--'
   return moment(date)
@@ -131,9 +134,10 @@ export const sessionReport = async (
     sponsorOrg
   } = validateStudentSessionReportQuery(data)
   const query: {
-    approvedHighschool?: Types.ObjectId | { $in: Types.ObjectId[] }
-    studentPartnerOrg?: string | { $in: string[] }
-    partnerSite?: string
+    approvedHighschool?: approvedHighschoolQuery
+    studentPartnerOrg?: studentPartnerOrgQuery
+    partnerSite?: string,
+    $or?: any[]
   } = {}
 
   if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId)
@@ -142,8 +146,12 @@ export const sessionReport = async (
   let sponsor: SponsorOrgManifest
   if (sponsorOrg) {
     sponsor = asSponsorOrg(sponsorOrg)
-    if (sponsor.schools) query.approvedHighschool = { $in: sponsor.schools }
-    if (sponsor.partnerOrgs)
+    if (sponsor.schools && sponsor.partnerOrgs) query.$or = [
+      { approvedHighschool: { $in: sponsor.schools } },
+      { studentPartnerOrg: { $in: sponsor.partnerOrgs } }
+    ]
+    else if (sponsor.schools) query.approvedHighschool = { $in: sponsor.schools }
+    else if (sponsor.partnerOrgs)
       query.studentPartnerOrg = { $in: sponsor.partnerOrgs }
   }
 
@@ -343,9 +351,10 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   } = validateStudentUsageReportQuery(data)
   const query: {
     createdAt?: {}
-    approvedHighschool?: Types.ObjectId | { $in: Types.ObjectId[] }
-    studentPartnerOrg?: string | { $in: string[] }
+    approvedHighschool?: approvedHighschoolQuery
+    studentPartnerOrg?: studentPartnerOrgQuery
     partnerSite?: string
+    $or?: any[]
   } = {
     createdAt: {
       $gte: dateStringToDateEST(joinedAfter),
@@ -358,8 +367,12 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   let sponsor: SponsorOrgManifest
   if (sponsorOrg) {
     sponsor = asSponsorOrg(sponsorOrg)
-    if (sponsor.schools) query.approvedHighschool = { $in: sponsor.schools }
-    if (sponsor.partnerOrgs)
+    if (sponsor.schools && sponsor.partnerOrgs) query.$or = [
+      { approvedHighschool: { $in: sponsor.schools } },
+      { studentPartnerOrg: { $in: sponsor.partnerOrgs } }
+    ]
+    else if (sponsor.schools) query.approvedHighschool = { $in: sponsor.schools }
+    else if (sponsor.partnerOrgs)
       query.studentPartnerOrg = { $in: sponsor.partnerOrgs }
   }
 
@@ -379,6 +392,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
         lastName: '$lastname',
         createdAt: 1,
         totalSessions: { $size: '$pastSessions' },
+        studentPartnerOrg: 1,
         partnerSite: 1,
         approvedHighschool: 1,
       },
@@ -505,6 +519,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
           },
         },
         partnerSite: { $first: '$partnerSite' },
+        studentPartnerOrg: { $first: '$studentPartnerOrg' },
         approvedHighschool: { $max: '$approvedHighschool' },
       },
     },
@@ -541,6 +556,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
         approvedHighschool: {
           $ifNull: ['$highschool.nameStored', '$highschool.SCH_NAME'],
         },
+        studentPartnerOrg: 1,
         _id: 0,
       },
     },
@@ -582,7 +598,11 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
       else dataFormat['HS/College'] = 'College'
     }
 
-    if (sponsor) dataFormat['Sponsor Org'] = sponsor.name || '-'
+    if (sponsor) { 
+      dataFormat['Sponsor Org'] = sponsor.name || '-' 
+      if (student.studentPartnerOrg) 
+        dataFormat['Partner org'] = studentPartnerManifests[student.studentPartnerOrg].name
+    }
 
     return dataFormat
   })
