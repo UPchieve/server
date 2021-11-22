@@ -8,7 +8,10 @@ import exceljs from 'exceljs'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomError } from 'ts-custom-error'
 import User from '../models/User'
-import { SponsorOrgManifest, studentPartnerManifests } from '../partnerManifests'
+import {
+  SponsorOrgManifest,
+  studentPartnerManifests,
+} from '../partnerManifests'
 import logger from '../logger'
 import {
   FEEDBACK_VERSIONS,
@@ -131,12 +134,12 @@ export const sessionReport = async (
     highSchoolId,
     studentPartnerOrg,
     studentPartnerSite,
-    sponsorOrg
+    sponsorOrg,
   } = validateStudentSessionReportQuery(data)
   const query: {
     approvedHighschool?: approvedHighschoolQuery
     studentPartnerOrg?: studentPartnerOrgQuery
-    partnerSite?: string,
+    partnerSite?: string
     $or?: any[]
   } = {}
 
@@ -146,11 +149,13 @@ export const sessionReport = async (
   let sponsor: SponsorOrgManifest
   if (sponsorOrg) {
     sponsor = asSponsorOrg(sponsorOrg)
-    if (sponsor.schools && sponsor.partnerOrgs) query.$or = [
-      { approvedHighschool: { $in: sponsor.schools } },
-      { studentPartnerOrg: { $in: sponsor.partnerOrgs } }
-    ]
-    else if (sponsor.schools) query.approvedHighschool = { $in: sponsor.schools }
+    if (sponsor.schools && sponsor.partnerOrgs)
+      query.$or = [
+        { approvedHighschool: { $in: sponsor.schools } },
+        { studentPartnerOrg: { $in: sponsor.partnerOrgs } },
+      ]
+    else if (sponsor.schools)
+      query.approvedHighschool = { $in: sponsor.schools }
     else if (sponsor.partnerOrgs)
       query.studentPartnerOrg = { $in: sponsor.partnerOrgs }
   }
@@ -324,9 +329,7 @@ export const sessionReport = async (
       'Partner site': session.student.partnerSite
         ? session.student.partnerSite
         : '-',
-      'Sponsor org': sponsor
-        ? sponsor.name
-        : '-',
+      'Sponsor org': sponsor ? sponsor.name : '-',
       Volunteer: session.volunteer,
       'Volunteer join date': formatDate(session.volunteerJoinedAt),
       'Ended at': formatDate(session.endedAt),
@@ -367,11 +370,13 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   let sponsor: SponsorOrgManifest
   if (sponsorOrg) {
     sponsor = asSponsorOrg(sponsorOrg)
-    if (sponsor.schools && sponsor.partnerOrgs) query.$or = [
-      { approvedHighschool: { $in: sponsor.schools } },
-      { studentPartnerOrg: { $in: sponsor.partnerOrgs } }
-    ]
-    else if (sponsor.schools) query.approvedHighschool = { $in: sponsor.schools }
+    if (sponsor.schools && sponsor.partnerOrgs)
+      query.$or = [
+        { approvedHighschool: { $in: sponsor.schools } },
+        { studentPartnerOrg: { $in: sponsor.partnerOrgs } },
+      ]
+    else if (sponsor.schools)
+      query.approvedHighschool = { $in: sponsor.schools }
     else if (sponsor.partnerOrgs)
       query.studentPartnerOrg = { $in: sponsor.partnerOrgs }
   }
@@ -598,10 +603,11 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
       else dataFormat['HS/College'] = 'College'
     }
 
-    if (sponsor) { 
-      dataFormat['Sponsor Org'] = sponsor.name || '-' 
-      if (student.studentPartnerOrg) 
-        dataFormat['Partner org'] = studentPartnerManifests[student.studentPartnerOrg].name
+    if (sponsor) {
+      dataFormat['Sponsor Org'] = sponsor.name || '-'
+      if (student.studentPartnerOrg)
+        dataFormat['Partner org'] =
+          studentPartnerManifests[student.studentPartnerOrg].name
     }
 
     return dataFormat
