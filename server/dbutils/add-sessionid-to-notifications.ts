@@ -8,7 +8,7 @@ import * as db from '../db';
 async function upgrade(): Promise<void> {
   try {
     await db.connect();
-    const sessions: any = await Session.find({ 'notifications.0': { $exists: true }}).lean().exec();
+    const sessions: any = await Session.find({'notifications.0': { $exists: true }}).lean().exec();
 
     for(const session of sessions){
       if(session.notifications.length>0){
