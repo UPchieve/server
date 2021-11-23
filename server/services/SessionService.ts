@@ -817,7 +817,7 @@ export async function handleMessageActivity(
   try {
     const state = await cache.get(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
     if (Boolean(state)) {
-      // TODO: queue chatbot job to send message 5 instantly andn otify more tutors
+      await QueueService.add(Jobs.Chatbot, { sessionId })
       await cache.remove(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
     }
   } catch (err) {
