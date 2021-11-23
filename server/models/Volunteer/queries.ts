@@ -383,6 +383,21 @@ export async function getVolunteersNotifiedSinceDate(
   }
 }
 
+export async function getVolunteersNotifiedBySessionId(
+  sessionId: Types.ObjectId
+): Promise<Volunteer[]> {
+  try {
+    const notifications = await NotificationModel.find({ sessionId: sessionId })
+      .select('volunteer')
+      .lean()
+      .exec()
+
+    return notifications.map(notif => notif.volunteer as Volunteer)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getVolunteerByReference(
   referenceId: Types.ObjectId
 ): Promise<Volunteer | undefined> {
