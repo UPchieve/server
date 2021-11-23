@@ -8,7 +8,7 @@
       "
     />
 
-    <div class="message-box">
+    <div>
       <transition name="chat-warning">
         <div
           class="chat-warning chat-warning--moderation"
@@ -466,7 +466,7 @@ export default {
 .messages {
   background-color: $upchieve-white;
   overflow: auto;
-  padding-bottom: 2em;
+  padding-bottom: 1.25em;
 }
 
 .unread-message-indicator {
@@ -476,9 +476,11 @@ export default {
   padding: 0 0.8em;
   color: $upchieve-white;
   position: absolute;
-  bottom: 24px;
-  margin-right: 1.5em;
+  bottom: 1.5em;
   transition: 0.25s;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.35);
 }
 
 .message {
@@ -495,7 +497,7 @@ export default {
   width: 32px;
   height: 32px;
   background-size: cover;
-  margin-top: 5px;
+  margin-top: 0.3125em;
   border-radius: 16px;
   margin-right: 0.75em;
 }
@@ -514,7 +516,7 @@ export default {
 
 .contents {
   text-align: left;
-  padding: 10px 14px;
+  padding: 0.625em 0.875em;
   overflow-wrap: break-word;
   background-color: $c-background-grey;
   border-radius: 20px;
@@ -553,14 +555,14 @@ export default {
 
 .typing-indicator {
   position: absolute;
-  top: -30px;
+  top: -2.3em;
   padding-left: 1em;
   font-size: 13px;
   font-weight: 300;
   transition: 0.25s;
 
   @include breakpoint-below('medium') {
-    top: -20px;
+    top: -1.5em;
   }
 }
 
