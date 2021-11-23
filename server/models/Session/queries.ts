@@ -1074,19 +1074,36 @@ export async function updateSessionVolunteerById(
   }
 }
 
-export type SessionMessages = Pick<Session, 'messages'>
+export type SessionForChatbot = Pick<
+  Session,
+  | '_id'
+  | 'messages'
+  | 'type'
+  | 'subTopic'
+  | 'volunteerJoinedAt'
+  | 'createdAt'
+  | 'student'
+>
 export async function getSessionMessagesById(
   sessionId: Types.ObjectId
-): Promise<SessionMessages | undefined> {
+): Promise<SessionForChatbot | undefined> {
   try {
     const result = await SessionModel.findOne(
       { _id: sessionId },
-      { messages: 1 }
+      {
+        _id: 1,
+        messages: 1,
+        type: 1,
+        subTopic: 1,
+        volunteerJoinedAt: 1,
+        createdAt: 1,
+        student: 1,
+      }
     )
       .select('messages')
       .lean()
       .exec()
-    if (result) return result as SessionMessages
+    if (result) return result as SessionForChatbot
   } catch (err) {
     throw new RepoReadError(err)
   }
