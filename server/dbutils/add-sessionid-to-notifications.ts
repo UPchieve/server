@@ -8,10 +8,9 @@ import * as db from '../db';
 async function upgrade(): Promise<void> {
   try {
     await db.connect();
-    const sessions: any = await Session.find({'notifications.0': { $exists: true }}).lean().exec();
+    const sessions = await Session.find({'notifications.0': { $exists: true }}).lean().exec();
 
     for(const session of sessions){
-      if(session.notifications.length>0){
         const result = await Notification.updateMany(
           { 
             _id: 
@@ -25,12 +24,11 @@ async function upgrade(): Promise<void> {
             },
             $project: {
                 _id: 1,
-                sessionId: 1
+                notifications: 1
               }
           },
         );
         console.log('Updated: ', result);
-      } 
     }
   } catch (error) {
       console.error(error);
@@ -43,17 +41,8 @@ async function upgrade(): Promise<void> {
 async function downgrade(): Promise<void> {
   try {
     await db.connect();
-    const sessions: any = await Session.find({}).lean().exec();
-
-    for(const session of sessions){
-      if(session.notifications.length>0){
         const result = await Notification.updateMany(
-          { 
-            _id: 
-            { 
-              $in: session.notifications 
-            }
-          },
+          {},
           { 
             $unset: {
               sessionId: ''
@@ -61,8 +50,6 @@ async function downgrade(): Promise<void> {
           }
         );
         console.log('Updated: ', result);
-      } 
-    }
   } catch (error) {
       console.error(error);
   }
