@@ -925,6 +925,7 @@ export interface StudentReportQuery extends SessionDateRanges {
   highSchoolId?: string
   studentPartnerOrg?: string
   studentPartnerSite?: string
+  sponsorOrg?: string
 }
 
 export interface StudentUsageReportQuery
@@ -937,6 +938,7 @@ const studentReportValidators = {
   highSchoolId: asOptional(asString),
   studentPartnerOrg: asOptional(asString),
   studentPartnerSite: asOptional(asString),
+  sponsorOrg: asOptional(asString),
 }
 
 export const asValidateStudentSessionReportQuery = asFactory<
