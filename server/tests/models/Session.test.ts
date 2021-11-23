@@ -795,7 +795,10 @@ describe('updateSessionHasWhiteboardDoc', () => {
 describe('getSessionMessagesById', () => {
   test('Should get only session messages', async () => {
     const { session } = await insertSession({
-      messages: [buildMessage(), buildMessage()],
+      messages: [
+        buildMessage({ user: getObjectId() }),
+        buildMessage({ user: getObjectId() }),
+      ],
     })
 
     const foundSession = await SessionRepo.getSessionMessagesById(session._id)

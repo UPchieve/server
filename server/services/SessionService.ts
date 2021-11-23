@@ -8,6 +8,7 @@ import * as cache from '../cache'
 import config from '../config'
 import {
   EVENTS,
+  FEATURE_FLAGS,
   HOURS_UTC,
   SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
@@ -591,7 +592,7 @@ export async function startSession(user: User, data: unknown) {
   )
 
   // Begin chat bot messages immedeately
-  if (isEnabled('chatbot'))
+  if (isEnabled(FEATURE_FLAGS.CHATBOT))
     await QueueService.add(Jobs.Chatbot, { sessionId: newSession._id })
 
   await new UserActionCtrl.SessionActionCreator(
@@ -845,7 +846,7 @@ export async function handleMessageActivity(
   try {
     const state = await cache.get(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
     if (Boolean(state)) {
-      // TODO: notify more tutors here
+      // TODO: queue chatbot job to send message 5 instantly andn otify more tutors
       await cache.remove(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
     }
   } catch (err) {
