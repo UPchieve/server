@@ -245,6 +245,10 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.SendAssistmentsData,
     processor: sendAssistmentsData,
   },
+  {
+    name: Jobs.Chatbot,
+    processor: chatbot
+  },
 
   // TODO: remove the following deprecated job names
   {
