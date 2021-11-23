@@ -547,7 +547,7 @@ export default {
   position: relative;
 
   @include breakpoint-below('medium') {
-    padding: 20px 140px 40px 20px;
+    padding: 1.25em 8.75em 2.5em 1.25em;
     display: flex;
     align-items: center;
   }
