@@ -520,7 +520,7 @@ paths:
         - cookieAuth: []
       responses:
         '200':
-          description: Returns object with a list of all student partners
+          description: Returns an array of all student partners
   /auth/partner/volunteer-partners:
     get:
       tags:
@@ -532,7 +532,19 @@ paths:
         - cookieAuth: []
       responses:
         '200':
-          description: Returns object with a list of all volunteer partners
+          description: Returns an array of all volunteer partners
+  /auth/partner/sponsor-orgs:
+    get:
+      tags:
+        - authorization
+      summary: Retrieves a list of sponsor orgs
+      description: |
+        - For admin only
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns an array of all sponsor orgs          
   /auth/register:
     post:
       tags:
