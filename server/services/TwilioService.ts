@@ -361,6 +361,7 @@ export async function notifyFailsafe(
       volunteer: volunteer,
       type: 'FAILSAFE',
       method: voice ? 'VOICE' : 'SMS',
+      sessionId: session._id,
     })
 
     try {
