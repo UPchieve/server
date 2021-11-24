@@ -27,6 +27,7 @@ export interface Notification {
   wasSuccessful: boolean
   messageId: string // twilio/messaging service id
   priorityGroup: string // volunteer priority group (i.e. notified last 24 hours, etc)
+  sessionId: Types.ObjectId
 }
 
 export type NotificationDocument = Notification & Document
@@ -57,6 +58,7 @@ const notificationSchema = new Schema(
     },
     // Message ID returned by service, such as Twilio
     messageId: String,
+    sessionId: Types.ObjectId,
   },
   {
     toJSON: {
