@@ -21,12 +21,12 @@
         }"
       >
         <whiteboard
+          ref="whiteboard"
           v-if="auxiliaryType === 'WHITEBOARD'"
           :sessionId="sessionId"
           :isWhiteboardOpen="auxiliaryOpen"
           :toggleWhiteboard="toggleAuxiliary"
           :isSessionOver="isSessionOver"
-          :openFileDialog="openFileDialog"
         />
         <document-editor v-else />
       </div>
@@ -115,6 +115,7 @@ export default {
     window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy() {
+    window.Gleap.removeCustomData("sessionId")
     window.removeEventListener('resize', this.handleResize)
   },
   /*
@@ -248,6 +249,7 @@ export default {
 
         if (!this.$socket.connected) await this.$socket.connect()
         this.joinSession(sessionId)
+        window.Gleap.setCustomData("sessionId", sessionId)
         this.$store.dispatch('user/sessionConnected')
 
         if (
@@ -359,8 +361,8 @@ export default {
     tryClicked() {
       this.sessionReconnecting = true
     },
-    openFileDialog() {
-      document.querySelector('.upload-photo').click()
+    openFileDialog(event) {
+      this.$refs.whiteboard.openFileDialog(event)
     },
     setHasSeenNewMessage(value) {
       this.hasSeenNewMessage = value

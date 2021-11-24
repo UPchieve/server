@@ -30,25 +30,29 @@
         </div>
       </div>
       <div class="button-container">
-        <div v-if="user.isVolunteer" class="report-btn" @click="reportSession">
+        <button
+          v-if="user.isVolunteer"
+          class="report-btn"
+          @click="reportSession"
+        >
           Report
-        </div>
+        </button>
 
-        <span
+        <button
           v-if="isSessionWaitingForVolunteer"
           @click="end"
           class="end-session-btn"
         >
           Cancel
-        </span>
-        <span
+        </button>
+        <button
           v-else-if="isSessionOver"
           @click="goToFeedbackPage"
           class="end-session-btn"
         >
           Finish
-        </span>
-        <span v-else @click="end" class="end-session-btn"> End session </span>
+        </button>
+        <button v-else @click="end" class="end-session-btn">End session</button>
       </div>
     </div>
     <trouble-matching-modal
@@ -420,6 +424,9 @@ h1 {
 }
 
 .report-btn {
+  display: block;
+  border: none;
+  background-color: inherit;
   font-weight: 500;
   cursor: pointer;
   color: #fff;
@@ -432,6 +439,8 @@ h1 {
 }
 
 .end-session-btn {
+  display: inline;
+  background-color: inherit;
   font-weight: 500;
   cursor: pointer;
   border: solid 1px #fff;

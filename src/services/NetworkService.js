@@ -408,7 +408,8 @@ export default {
     sessionRangeTo,
     highSchoolId,
     studentPartnerOrg,
-    studentPartnerSite
+    studentPartnerSite,
+    sponsorOrg
   }) {
     const queryParams = new URLSearchParams({
       joinedBefore,
@@ -417,7 +418,8 @@ export default {
       sessionRangeTo,
       highSchoolId,
       studentPartnerOrg,
-      studentPartnerSite
+      studentPartnerSite,
+      sponsorOrg
     }).toString()
     return Vue.http
       .get(`${API_ROOT}/reports/session-report?${queryParams}`, {
@@ -432,7 +434,8 @@ export default {
     sessionRangeTo,
     highSchoolId,
     studentPartnerOrg,
-    studentPartnerSite
+    studentPartnerSite,
+    sponsorOrg
   }) {
     const queryParams = new URLSearchParams({
       joinedBefore,
@@ -441,7 +444,8 @@ export default {
       sessionRangeTo,
       highSchoolId,
       studentPartnerOrg,
-      studentPartnerSite
+      studentPartnerSite,
+      sponsorOrg
     }).toString()
     return Vue.http
       .get(`${API_ROOT}/reports/usage-report?${queryParams}`, {
@@ -489,7 +493,11 @@ export default {
       .get(`${AUTH_ROOT}/partner/volunteer-partners`)
       .then(this._successHandler, this._errorHandler)
   },
-
+  adminGetSponsorOrgs() {
+    return Vue.http
+      .get(`${AUTH_ROOT}/partner/sponsor-orgs`)
+      .then(this._successHandler, this._errorHandler)
+  },
   adminGetZipCodes(zipCode) {
     return Vue.http
       .get(`${ELIGIBILITY_API_ROOT}/zip-codes/${zipCode}`)

@@ -43,6 +43,7 @@
           class="messages"
           ref="messages"
           @scroll="handleScroll"
+          tabindex="0"
         >
           <chat-bot
             v-if="!user.isVolunteer && isSessionWaitingForVolunteer"
