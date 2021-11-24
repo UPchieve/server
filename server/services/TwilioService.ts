@@ -7,6 +7,7 @@ import {
   VolunteerContactInfo,
   getVolunteersFailsafe,
   getVolunteersNotifiedSinceDate,
+  getVolunteersNotifiedBySessionId,
 } from '../models/Volunteer/queries'
 import { Session } from '../models/Session'
 import queue from './QueueService'
@@ -156,9 +157,9 @@ export function getSessionUrl(session: Session): string {
   )}/${Case.kebab(session.subTopic)}/${session._id}`
 }
 
-export async function getActiveSessionVolunteers(): Promise<Volunteer[]> {
+export async function getActiveSessionVolunteers(): Promise<Types.ObjectId[]> {
   const activeSessions = await SessionRepo.getActiveSessionsWithVolunteers()
-  return activeSessions.map(session => session.volunteer as Volunteer)
+  return activeSessions.map(session => session.volunteer as Types.ObjectId)
 }
 
 export function relativeDate(msAgo: number): Date {
@@ -205,6 +206,10 @@ export async function notifyVolunteer(
     relativeDate(3 * 24 * 60 * 60 * 1000)
   )
 
+  const notifiedForThisSessionId = await getVolunteersNotifiedBySessionId(
+    session._id
+  )
+
   // Prioritize volunteers who do not have high-level subjects to avoid
   // lack of volunteers when high-level subjects are requested
   const highLevelSubjects = ['calculusAB', 'chemistry', 'statistics']
@@ -231,7 +236,12 @@ export async function notifyVolunteer(
       filter: {
         volunteerPartnerOrg: { $exists: true },
         subjects: subjectsFilter,
-        _id: { $nin: activeSessionVolunteers.concat(notifiedLastThreeDays) },
+        _id: {
+          $nin: activeSessionVolunteers.concat(
+            notifiedLastThreeDays,
+            notifiedForThisSessionId
+          ),
+        },
       },
     },
     {
@@ -240,7 +250,12 @@ export async function notifyVolunteer(
       filter: {
         volunteerPartnerOrg: { $exists: false },
         subjects: subjectsFilter,
-        _id: { $nin: activeSessionVolunteers.concat(notifiedLastThreeDays) },
+        _id: {
+          $nin: activeSessionVolunteers.concat(
+            notifiedLastThreeDays,
+            notifiedForThisSessionId
+          ),
+        },
       },
     },
     {
@@ -250,7 +265,10 @@ export async function notifyVolunteer(
         volunteerPartnerOrg: { $exists: true },
         subjects: subjectsFilter,
         _id: {
-          $nin: activeSessionVolunteers.concat(notifiedLastTwentyFourHours),
+          $nin: activeSessionVolunteers.concat(
+            notifiedLastTwentyFourHours,
+            notifiedForThisSessionId
+          ),
         },
       },
     },
@@ -263,7 +281,10 @@ export async function notifyVolunteer(
         },
         subjects: subjectsFilter,
         _id: {
-          $nin: activeSessionVolunteers.concat(notifiedLastTwentyFourHours),
+          $nin: activeSessionVolunteers.concat(
+            notifiedLastTwentyFourHours,
+            notifiedForThisSessionId
+          ),
         },
       },
     },
@@ -272,7 +293,10 @@ export async function notifyVolunteer(
       filter: {
         subjects: subtopic,
         _id: {
-          $nin: activeSessionVolunteers.concat(notifiedLastTwentyFourHours),
+          $nin: activeSessionVolunteers.concat(
+            notifiedLastTwentyFourHours,
+            notifiedForThisSessionId
+          ),
         },
       },
     },
@@ -280,14 +304,24 @@ export async function notifyVolunteer(
       groupName: 'All volunteers - not notified in the last 60 mins',
       filter: {
         subjects: subtopic,
-        _id: { $nin: activeSessionVolunteers.concat(notifiedLastSixtyMins) },
+        _id: {
+          $nin: activeSessionVolunteers.concat(
+            notifiedLastSixtyMins,
+            notifiedForThisSessionId
+          ),
+        },
       },
     },
     {
       groupName: 'All volunteers - not notified in the last 15 mins',
       filter: {
         subjects: subtopic,
-        _id: { $nin: activeSessionVolunteers.concat(notifiedLastFifteenMins) },
+        _id: {
+          $nin: activeSessionVolunteers.concat(
+            notifiedLastFifteenMins,
+            notifiedForThisSessionId
+          ),
+        },
       },
     },
   ]
