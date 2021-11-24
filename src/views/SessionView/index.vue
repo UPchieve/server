@@ -444,14 +444,12 @@ export default {
 .auxiliary-container,
 .chat-container {
   @include breakpoint-above('medium') {
-    height: 100%;
     border-radius: 8px;
     overflow: hidden;
   }
 
   @include breakpoint-below('medium') {
     width: 100%;
-    height: 100%;
   }
 }
 
@@ -462,6 +460,8 @@ export default {
   overflow: hidden;
   position: relative;
 
+  // TODO: research performance implications of position: absolute
+  // vs alternatives and how they impact DOM reflow triggers
   &--hidden {
     position: absolute;
     width: 100%;
@@ -474,6 +474,8 @@ export default {
 .chat-container {
   padding: 0;
   max-width: 100%;
+  display: flex;
+  flex-direction: column;
 
   &--hidden {
     display: none;
@@ -483,6 +485,8 @@ export default {
     min-width: 300px;
     flex-basis: 300px;
     position: relative;
+    // offsets the session-header height
+    padding-top: 70px;
   }
 
   @include breakpoint-above('large') {
@@ -504,7 +508,7 @@ export default {
   transition: 0.4s;
 
   @include breakpoint-below('medium') {
-    bottom: 33px;
+    bottom: 40px;
   }
 
   &__photo-upload {

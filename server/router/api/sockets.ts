@@ -210,7 +210,7 @@ export function routeSockets(
                 contents: message,
                 createdAt: createdAt,
                 isVolunteer: user.isVolunteer,
-                userId: user._id,
+                user: user._id,
               }
 
               const socketRoom = getSessionRoom(data.sessionId)
