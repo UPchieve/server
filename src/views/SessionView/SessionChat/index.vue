@@ -8,14 +8,14 @@
       "
     />
 
-    <div class="message-box">
+    <div>
       <transition name="chat-warning">
         <div
           class="chat-warning chat-warning--moderation"
           v-show="moderationWarningIsShown"
         >
-          Messages cannot contain personal information, profanity, or links to
-          third party video services
+          <span>Messages cannot contain personal information, profanity, or links to
+          third party video services</span>
           <span class="chat-warning__close" @click="hideModerationWarning"
             >×</span
           >
@@ -36,10 +36,11 @@
           Failed to send message
         </p>
       </transition>
+    </div>
 
-      <div class="messages-container">
+     <div class="messages-container">
         <div
-          class="messages-inner-box messages"
+          class="messages"
           ref="messages"
           @scroll="handleScroll"
           tabindex="0"
@@ -52,10 +53,10 @@
           <template v-for="(message, index) in messages">
             <div
               :key="`message-${index}`"
-              :class="message.userId === user._id ? 'right' : 'left'"
+              :class="messageAlignment(message)"
               class="message"
             >
-              <div class="avatar" :style="message.avatarStyle" />
+              <div class="avatar" :style="message.avatarStyle" v-if="showAvatar(message)" />
               <div class="contents">
                 <span>{{ message.contents }}</span>
               </div>
@@ -77,7 +78,6 @@
           </button>
         </transition>
       </div>
-    </div>
 
     <audio
       class="audio__receive-message"
@@ -115,6 +115,11 @@ import ModerationService from '@/services/ModerationService'
 import StudentAvatarUrl from '@/assets/defaultavatar3.png'
 import VolunteerAvatarUrl from '@/assets/defaultavatar4.png'
 import sendWebNotification from '@/utils/send-web-notification'
+
+const MESSAGE_ALIGNMENT = {
+  LEFT: 'left',
+  RIGHT: 'right'
+}
 
 /**
  * @todo {1} Use more descriptive names that comply with the coding standards.
@@ -299,7 +304,8 @@ export default {
         // autoscroll chat if at bottom
         this.scrollToBottom()
       } else if (
-        this.messages[this.messages.length - 1].userId !== this.user._id
+        this.messages.length > 0 &&
+        this.messages[this.messages.length - 1].user !== this.user._id
       ) {
         const messageElements = this.getUserMessageElements()
 
@@ -357,6 +363,12 @@ export default {
       messagesBox.scrollTop =
         messagesBox.lastElementChild.offsetTop +
         messagesBox.lastElementChild.offsetHeight
+    },
+    messageAlignment(message){
+      return message.user === this.user._id ? MESSAGE_ALIGNMENT.RIGHT : MESSAGE_ALIGNMENT.LEFT
+    },
+    showAvatar(message){
+      return this.messageAlignment(message) ===  MESSAGE_ALIGNMENT.LEFT
     }
   },
   sockets: {
@@ -395,45 +407,35 @@ export default {
 
 <style lang="scss" scoped>
 .chat {
-  height: 100%;
   position: relative;
-  background-color: #fff;
+  background-color: $upchieve-white;
   display: flex;
   flex-direction: column;
-}
-
-.message-box {
-  height: 100%;
-  top: 0;
-  position: relative;
-  padding-bottom: 20px;
-
-  @include breakpoint-above('medium') {
-    margin-top: 70px;
-    padding-bottom: 0;
-  }
+  flex: 1;
+  overflow-y: auto;
 }
 
 .chat-warning {
   width: 100%;
-  background-color: $c-shadow-warn;
-  color: #fff;
-  font-weight: normal;
+  color: $upchieve-white;
   min-height: 40px;
   position: absolute;
   left: 0;
   top: 0;
-  padding: 12px;
+  padding: 0.75em;
   z-index: 1;
   transition: all 0.15s ease-in;
 
+  // transition element rulesets
   &-enter,
   &-leave-to {
     top: -64px;
   }
 
   &--moderation {
-    padding-right: 52px;
+    display: flex;
+    align-items: center;
+    background-color: $c-shadow-warn;
   }
 
   &--connection {
@@ -446,78 +448,59 @@ export default {
 
   &__close {
     font-size: 3.5rem;
-    width: 40px;
-    padding: 10px;
-    margin-right: 5px;
     cursor: pointer;
-    display: block;
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
   }
 }
 
 .messages-container {
   position: relative;
-  height: 100%;
   overflow: hidden;
-}
-
-.messages-inner-box {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .messages-overlay {
-  z-index: 9;
+  z-index: 1;
 }
 
 .messages {
-  background-color: white;
+  background-color: $upchieve-white;
   overflow: auto;
-  padding-bottom: 35px;
+  padding-bottom: 1.25em;
 }
 
 .unread-message-indicator {
   background-color: $c-information-blue;
   border: 0;
   border-radius: 12px;
-  padding: 0 12px 0 12px;
-  height: 24px;
-  text-align: center;
-  color: white;
+  padding: 0 0.8em;
+  color: $upchieve-white;
   position: absolute;
-  bottom: 24px;
-  right: 24px;
+  bottom: 1.5em;
   transition: 0.25s;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.35);
 }
 
 .message {
   position: relative;
-  padding: 24px;
+  padding: 1.5em;
   display: flex;
   justify-content: flex-start;
-  width: 100%;
 
   /* Safari needs this specified to lay out the message divs properly. */
   flex-shrink: 0;
-}
-
-span {
-  font-size: 16px;
 }
 
 .avatar {
   width: 32px;
   height: 32px;
   background-size: cover;
-  margin-top: 5px;
+  margin-top: 0.3125em;
   border-radius: 16px;
-  margin-right: 12px;
+  margin-right: 0.75em;
 }
 
 .name {
@@ -534,59 +517,38 @@ span {
 
 .contents {
   text-align: left;
-  position: relative;
-  padding: 10px 14px;
+  padding: 0.625em 0.875em;
   overflow-wrap: break-word;
-  font-size: 16px;
-  background-color: #f1f3f6;
+  background-color: $c-background-grey;
   border-radius: 20px;
   max-width: 80%;
 }
 
+// transition element rulesets
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
 }
 
 .left {
-  float: left;
-
   .time {
     margin-left: 44px;
   }
 }
 
 .right {
-  float: right;
-  display: flex;
   flex-direction: row-reverse;
 
   .contents {
     background-color: $c-background-blue;
-
-    span {
-      color: $c-soft-black;
-    }
   }
-
-  .avatar {
-    display: none;
-  }
-}
-
-.message-content {
-  width: 200px;
 }
 
 .chat-footer {
-  width: 100%;
-  height: 100px;
   position: relative;
-  background-color: #fff;
 
   @include breakpoint-below('medium') {
-    height: 66px;
-    padding: 0 140px 40px 20px;
+    padding: 1.25em 8.75em 2.5em 1.25em;
     display: flex;
     align-items: center;
   }
@@ -594,25 +556,22 @@ span {
 
 .typing-indicator {
   position: absolute;
-  bottom: 110px;
-  left: 25px;
-  padding: 0;
+  top: -2.3em;
+  padding-left: 1em;
   font-size: 13px;
   font-weight: 300;
   transition: 0.25s;
 
   @include breakpoint-below('medium') {
-    bottom: 75px;
-    left: 35px;
+    top: -1.5em;
   }
 }
 
 .message-textarea {
-  height: 100%;
   width: 100%;
   border: none;
   border-top: 1px solid $c-border-grey;
-  padding: 16px;
+  padding: 1em;
   resize: none;
 
   &:focus {
@@ -621,9 +580,9 @@ span {
 
   @include breakpoint-below('medium') {
     height: 40px;
-    border: 1px solid #d6e0ef;
+    border: 1px solid $c-border-grey;
     border-radius: 20px;
-    padding: 10px 16px;
+    padding: 0.6em 1em;
     line-height: 18px;
   }
 }

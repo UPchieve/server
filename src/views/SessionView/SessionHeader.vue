@@ -236,8 +236,8 @@ export default {
       let isAbsentStudent = true
       let isAbsentVolunteer = true
       for (const message of messages) {
-        if (message.userId === student._id) isAbsentStudent = false
-        if (message.userId === volunteer._id) isAbsentVolunteer = false
+        if (message.user === student._id) isAbsentStudent = false
+        if (message.user === volunteer._id) isAbsentVolunteer = false
         if (!isAbsentStudent && !isAbsentVolunteer) break
       }
       return isAbsentStudent || isAbsentVolunteer
