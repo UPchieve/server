@@ -157,9 +157,9 @@ export function getSessionUrl(session: Session): string {
   )}/${Case.kebab(session.subTopic)}/${session._id}`
 }
 
-export async function getActiveSessionVolunteers(): Promise<Volunteer[]> {
+export async function getActiveSessionVolunteers(): Promise<Types.ObjectId[]> {
   const activeSessions = await SessionRepo.getActiveSessionsWithVolunteers()
-  return activeSessions.map(session => session.volunteer as Volunteer)
+  return activeSessions.map(session => session.volunteer as Types.ObjectId)
 }
 
 export function relativeDate(msAgo: number): Date {
