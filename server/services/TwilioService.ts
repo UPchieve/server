@@ -318,6 +318,7 @@ export async function notifyVolunteer(
     type: 'REGULAR',
     method: 'SMS',
     priorityGroup,
+    sessionId: session._id,
   })
 
   await recordNotification(sidPromise, notification)
