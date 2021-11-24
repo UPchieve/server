@@ -1,66 +1,79 @@
-import mongoose from 'mongoose';
-import Notification from '../models/Notification';
-import Session from '../models/Session';
-import * as db from '../db';
+import mongoose from 'mongoose'
+import * as db from '../db'
+import Notification from '../models/Notification'
+import Session from '../models/Session'
 
 // Run:
-// npx ts-node dbutils/add-sessionid-to-notifications.ts
+// npx ts-node server/dbutils/add-sessionid-to-notifications.ts
 async function upgrade(): Promise<void> {
+  let exitCode = 0
   try {
-    await db.connect();
-    const sessions = await Session.find({'notifications.0': { $exists: true }}).lean().exec();
+    await db.connect()
+    const sessions = await Session.find(
+      {
+        'notifications.0': { $exists: true },
+      },
+      { notifications: 1 }
+    )
+      .lean()
+      .exec()
 
-    for(const session of sessions){
-        const result = await Notification.updateMany(
-          { 
-            _id: 
-            { 
-              $in: session.notifications 
-            }
+    let totalUpdated = 0
+
+    for (const session of sessions) {
+      const result = await Notification.updateMany(
+        {
+          _id: {
+            $in: session.notifications,
           },
-          { 
-            $set: {
-              sessionId: session._id 
-            },
-            $project: {
-                _id: 1,
-                notifications: 1
-              }
+        },
+        {
+          $set: {
+            sessionId: session._id,
           },
-        );
-        console.log('Updated: ', result);
+        }
+      )
+      totalUpdated += result.nModified
     }
-  } catch (error) {
-      console.error(error);
-  }
 
-  mongoose.disconnect();
+    console.log(
+      `Successfully added sessionId to ${totalUpdated} notification docs`
+    )
+  } catch (error) {
+    console.error(error)
+    exitCode = 1
+  } finally {
+    await mongoose.disconnect()
+    process.exit(exitCode)
+  }
 }
 
-// npx ts-node dbutils/add-sessionid-to-notifications.ts
 async function downgrade(): Promise<void> {
+  let exitCode = 0
   try {
-    await db.connect();
-        const result = await Notification.updateMany(
-          {},
-          { 
-            $unset: {
-              sessionId: ''
-            }
-          }
-        );
-        console.log('Updated: ', result);
+    await db.connect()
+    const result = await Notification.updateMany(
+      { sessionId: { $exists: true } },
+      {
+        $unset: {
+          sessionId: '',
+        },
+      }
+    )
+    console.log('Updated: ', result)
   } catch (error) {
-      console.error(error);
+    console.error(error)
+    exitCode = 1
+  } finally {
+    await mongoose.disconnect()
+    process.exit(exitCode)
   }
-
-  mongoose.disconnect();
 }
 
 // To downgrade the migration run:
-// DOWNGRADE=true npx ts-node dbutils/add-sessionid-to-notifications.ts
+// DOWNGRADE=true npx ts-node server/dbutils/add-sessionid-to-notifications.ts
 if (process.env.DOWNGRADE) {
-  downgrade();
+  downgrade()
 } else {
-  upgrade();
+  upgrade()
 }

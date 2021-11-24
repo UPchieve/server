@@ -14,9 +14,9 @@
       </div>
 
       <div class="contact__description">
-        Our <a href="https://upchieve.org/faqs" target="_blank" rel="noopener noreferrer">FAQ page</a> is the fastest way 
-        to find answers. Or you can fill out this form and we'll get back to 
-        you as soon as possible! Alternatively, you can always email us directly 
+        Our <a href="https://upchieve.org/faqs" target="_blank" rel="noopener noreferrer">FAQ page</a> is the fastest way
+        to find answers. Or you can fill out this form and we'll get back to
+        you as soon as possible! Alternatively, you can always email us directly
         at <a href="mailto:support@upchieve.org">support@upchieve.org</a>.
       </div>
 
@@ -159,6 +159,13 @@ export default {
         }
         if (this.isAuthenticated) {
           this.contactFormData.userId = this.$store.state.user.user._id
+        }
+
+        // send the same message to our bug ticket tracker
+        if (this.contactFormData.topic === this.contactTopics[2]) {
+          if (!this.isAuthenticated) window.Gleap.setCustomData('email', this.contactFormData.userEmail)
+          window.Gleap.sendSilentBugReport(this.contactFormData.message, window.Gleap.PRIORITY_LOW)
+          if (!this.isAuthenticated) window.Gleap.clearCustomData()
         }
 
         // there's not much a user can do at this point

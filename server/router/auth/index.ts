@@ -161,6 +161,18 @@ export function routes(app: Express) {
       }
     })
 
+  router
+    .route('/partner/sponsor-orgs')
+    .all(authPassport.isAdmin)
+    .get(async function(req, res) {
+      try {
+        const sponsorOrgs = await AuthService.lookupSponsorOrgs()
+        res.json({ sponsorOrgs })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
+
   router.route('/reset/send').post(async function(req, res) {
     try {
       const email = asString(req.body.email)
