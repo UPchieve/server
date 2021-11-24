@@ -178,6 +178,7 @@ export async function sendFollowupText(
     type: 'REGULAR',
     method: 'SMS',
     priorityGroup: 'follow-up',
+    sessionId,
   })
 
   await recordNotification(sidPromise, notification)
@@ -360,6 +361,7 @@ export async function notifyFailsafe(
       volunteer: volunteer,
       type: 'FAILSAFE',
       method: voice ? 'VOICE' : 'SMS',
+      sessionId: session._id,
     })
 
     try {
