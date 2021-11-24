@@ -178,6 +178,7 @@ export async function sendFollowupText(
     type: 'REGULAR',
     method: 'SMS',
     priorityGroup: 'follow-up',
+    sessionId,
   })
 
   await recordNotification(sidPromise, notification)
