@@ -46,7 +46,6 @@ async function upgrade(): Promise<void> {
     await mongoose.disconnect()
     process.exit(exitCode)
   }
-
 }
 
 async function downgrade(): Promise<void> {
