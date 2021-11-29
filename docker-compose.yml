@@ -4,13 +4,13 @@ services:
         ports:
             - "5432:5432"
         image: postgres:14
+        command: psql -d upchieve -f $HOME/schema/schema.sql
         environment:
-            - POSTGRES_DB=upchieve
             - POSTGRES_USER=admin
             - POSTGRES_PASSWORD=Password123
         volumes:
             - $HOME/upchieve/postgres-volume:/var/lib/postgresql/data
-            - $HOME/upchieve/subway/sql:$HOME/schema
+            - $HOME/upchieve/subway/db-schema/db/schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
     mongodb:
         ports:
             - "27017-27019:27017-27019"
