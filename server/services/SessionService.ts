@@ -201,7 +201,7 @@ export async function endSession({
   isAdmin = false,
 }: {
   sessionId: Types.ObjectId
-  endedBy: User | null
+  endedBy: Types.ObjectId | null
   isAdmin?: boolean
 }) {
   const session = await SessionRepo.getSessionToEndById(sessionId)
@@ -209,7 +209,7 @@ export async function endSession({
     throw new sessionUtils.EndSessionError('Session has already ended')
   if (
     !isAdmin &&
-    !sessionUtils.isSessionParticipant(session, endedBy ? endedBy._id : null)
+    !sessionUtils.isSessionParticipant(session, endedBy ? endedBy : null)
   )
     throw new sessionUtils.EndSessionError(
       'Only session participants can end a session'
@@ -219,7 +219,7 @@ export async function endSession({
     endedAt: new Date(),
     // NOTE: endedBy is sometimes null when the session is ended by a worker job
     //        due to the session being unmatched for an extended period of time
-    endedBy: endedBy && endedBy._id,
+    endedBy,
   })
   await addPastSession(session._id)
 
@@ -591,8 +591,8 @@ export async function startSession(user: User, data: unknown) {
   )
 
   // Begin chat bot messages immedeately
-  if (isEnabled(FEATURE_FLAGS.CHATBOT))
-    await QueueService.add(Jobs.Chatbot, { sessionId: newSession._id })
+  //if (isEnabled(FEATURE_FLAGS.CHATBOT))
+  await QueueService.add(Jobs.Chatbot, { sessionId: newSession._id })
 
   await new UserActionCtrl.SessionActionCreator(
     user._id,
@@ -613,7 +613,7 @@ export async function finishSession(
 
   await endSession({
     sessionId,
-    endedBy: user,
+    endedBy: user._id,
   })
   // TODO: figure out a better way to instantiate socketService
   await socketService.emitSessionChange(sessionId)
@@ -824,8 +824,6 @@ export async function handleMessageActivity(
     // if key missing do nothing - means chatbot is not active yet
     if (err instanceof cache.KeyNotFoundError) return
     // TODO: cancel chatbot jobs here
-    throw new Error(
-      `Could not process message acitvity state, cancelling chatbot`
-    )
+    logger.error(`Could not process message acitvity state, cancelling chatbot`)
   }
 }

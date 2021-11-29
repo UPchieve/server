@@ -1082,6 +1082,7 @@ export type SessionForChatbot = Pick<
   | 'subTopic'
   | 'volunteerJoinedAt'
   | 'createdAt'
+  | 'endedAt'
   | 'student'
 >
 export async function getSessionMessagesById(
@@ -1097,6 +1098,7 @@ export async function getSessionMessagesById(
         subTopic: 1,
         volunteerJoinedAt: 1,
         createdAt: 1,
+        endedAt: 1,
         student: 1,
       }
     )

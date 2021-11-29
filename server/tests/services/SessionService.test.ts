@@ -303,7 +303,7 @@ describe('endSession', () => {
     const mockedSession = mockedGetSessionToEnd()
     const input = {
       sessionId: mockedSession._id,
-      endedBy: buildStudent(),
+      endedBy: buildStudent()._id,
       isAdmin: false,
     }
     mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
