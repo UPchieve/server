@@ -1,4 +1,0 @@
-[submodule "db-schema"]
-	path = db-schema
-	url = https://gitlab.com/upchieve/db-schema.git
-	branch = main
