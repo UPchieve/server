@@ -15,7 +15,8 @@ async function sendMessage(
   chatbot: Types.ObjectId
 ): Promise<void> {
   socket.emit('message', {
-    user: chatbot,
+    // socket message handler expects a user-like object
+    user: { _id: chatbot, isVolunteer: true },
     sessionId,
     message: content,
   })
