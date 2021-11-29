@@ -272,7 +272,8 @@ export function routeSockets(
                 },
                 chatbot
               )
-              await SessionService.handleMessageActivity(sessionId)
+              if (chatbot && !chatbot.equals(user._id))
+                await SessionService.handleMessageActivity(sessionId)
 
               const messageData = {
                 contents: message,

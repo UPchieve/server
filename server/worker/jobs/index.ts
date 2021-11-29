@@ -2,6 +2,7 @@ import { ProcessPromiseFunction, Queue } from 'bull'
 import { map } from 'lodash'
 import newrelic from 'newrelic'
 import logger from '../../logger'
+import EventEmitter from 'events'
 import notifyTutors from './notifyTutors'
 import updateElapsedAvailability from './updateElapsedAvailability'
 import updateTotalVolunteerHours from './updateTotalVolunteerHours'
@@ -77,7 +78,6 @@ export enum Jobs {
   EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
   // TODO: add the tech issue apology job to the job processor once it is ready to be released
   EmailTechIssueApology = 'EmailTechIssueApology',
-  // TODO: add the chatbot job to the job processor once it is ready to be released
   Chatbot = 'Chatbot',
 
   // TODO: remove the following deprecated job names
@@ -247,7 +247,7 @@ const jobProcessors: JobProcessor[] = [
   },
   {
     name: Jobs.Chatbot,
-    processor: chatbot
+    processor: chatbot,
   },
 
   // TODO: remove the following deprecated job names
@@ -264,6 +264,10 @@ const jobProcessors: JobProcessor[] = [
     processor: emailStudentOnboardingSeries,
   },
 ]
+
+// Each bul processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615
+// TODO: determine concurrency at runtime
+EventEmitter.defaultMaxListeners = jobProcessors.length * 8
 
 /**
  * Job processors should throw an error when they fail perform an expected action.
