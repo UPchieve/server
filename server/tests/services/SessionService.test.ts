@@ -1451,7 +1451,7 @@ describe('getWaitTimeHeatMap', () => {
   })
 })
 
-describe.only('volunteersAvailableForSession', () => {
+describe('volunteersAvailableForSession', () => {
   const sessionId = getObjectId()
   const subject = SUBJECTS.PREALGREBA
   const notifiedAlready = [getObjectId()]
