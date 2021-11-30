@@ -4,13 +4,12 @@ services:
         ports:
             - "5432:5432"
         image: postgres:14
-        command: psql -d upchieve -f $HOME/schema/schema.sql
         environment:
+            - POSTGRES_DB=upchieve
             - POSTGRES_USER=admin
             - POSTGRES_PASSWORD=Password123
         volumes:
-            - $HOME/upchieve/postgres-volume:/var/lib/postgresql/data
-            - $HOME/upchieve/subway/db-schema/db/schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
+            - $HOME/upchieve/subway/sql/schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
     mongodb:
         ports:
             - "27017-27019:27017-27019"
@@ -29,9 +28,20 @@ services:
         image: dpage/pgadmin4
         depends_on:
             - postgres
+        entrypoint: >
+            /bin/sh -c "
+            mkdir -m 700 /var/lib/pgadmin/storage/admin_upchieve.org;
+            chown -R pgadmin:pgadmin /var/lib/pgadmin/storage/admin_upchieve.org;
+            cp -prv /pgpassfile /var/lib/pgadmin/storage/admin_upchieve.org/;
+            chmod 600 /var/lib/pgadmin/storage/admin_upchieve.org/pgpassfile;
+            /entrypoint.sh
+            "
         ports:
             - "80:80"
         environment:
             - PGADMIN_DEFAULT_EMAIL=admin@upchieve.org
             - PGADMIN_DEFAULT_PASSWORD=Password123
+        volumes:
+            - ./pgadmin/pgpassfile:/pgpassfile
+            - ./pgadmin/servers.json:/pgadmin4/servers.json
         restart: unless-stopped
