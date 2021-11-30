@@ -16,6 +16,7 @@ async function main() {
     const affectedStudents = []
     const affectedVolunteers = []
     
+    // there are 0 sessions with Absent Volunteer flag
     const studentSessions = await SessionModel.find({
       flags: USER_SESSION_METRICS.absentStudent,
     })
@@ -36,6 +37,7 @@ async function main() {
         )
         // update volunteer time tutored
         await updateTimeTutored(getIdFromModelReference(session.volunteer), timeTutored)
+        // TODO: update verizon volunteer time tutored
         // update USMs
         await UserSessionMetricsModel.updateOne({ user: getIdFromModelReference(session.student) },
           {
@@ -45,40 +47,6 @@ async function main() {
         await UserSessionMetricsModel.updateOne({ user: getIdFromModelReference(session.volunteer) },
           {
             $increment: { 'counters.absentStudent': -1 }
-          }
-        )
-      }
-    }
-
-    const volunteerSessions = await SessionModel.find({
-      flags: USER_SESSION_METRICS.absentVolunteer,
-    })
-    for (const session of volunteerSessions) {
-      const uv = METRIC_PROCESSORS.AbsentStudent.computeUpdateValue({ session })
-      // TODO: the below needs to be transactional
-      // sessions affected by bug have flag when correct code would not have flagged
-      if (!uv) {
-        affectedStudents.push(getIdFromModelReference(session.student))
-        affectedVolunteers.push(getIdFromModelReference(session.volunteer))
-        const timeTutored = calculateTimeTutored(session)
-        // update session flag and time tutored and review reason
-        await SessionModel.updateOne({ _id: session._id }, 
-          { 
-            $pull: { flags: USER_SESSION_METRICS.absentVolunteer, reviewReasons: USER_SESSION_METRICS.absentVolunteer },
-            timeTutored
-          }
-        )
-        // update volunteer time tutored
-        await updateTimeTutored(getIdFromModelReference(session.volunteer), timeTutored)
-        // update USMs
-        await UserSessionMetricsModel.updateOne({ user: getIdFromModelReference(session.student) },
-          {
-            $increment: { 'counters.absentVolunteer': -1 }
-          }
-        )
-        await UserSessionMetricsModel.updateOne({ user: getIdFromModelReference(session.volunteer) },
-          {
-            $increment: { 'counters.absentVolunteer': -1 }
           }
         )
       }
