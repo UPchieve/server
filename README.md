@@ -41,15 +41,15 @@ NOTE: Active development on this project has moved to https://gitlab.com/upchiev
 Local Development
 -----------------
 ## docker-compose
-Docker provides an alternative for local development. A docker-compose file exists, tied to Mongo. Here's how to work in docker-compose.
+Docker provides an alternative for local development. A docker-compose file exists, tied to Mongo, Redis, PostgreSQL, and PGAdmin. Here's how to work in docker-compose.
 
-1. Build the container using the command `$ pack build upchieve/subway:local --builder heroku/buildpacks:20`
-1. Navigate to this directory and run `mkdir mongo-volume` to create a directory for the MongoDB volume.
-1. Run `cp config.example.ts config.ts` to copy the default config as your own config.
-1. Run `docker-compose up` to launch the server.
-1. After any change: Run `docker-compose down --rmi all` to destroy images and containers. Then run `docker-compose up` to see your changes.
-
-Note: the default command ran when starting the server will populate/refresh all seed data, so any data changes to seed data will be overwritten.
+1. Run the following command
+```shell
+$ docker-compose up -d
+```
+2. Visit [`http://localhost:80`](http://localhost:80) to view the PGAdmin dashboard
+   - use `Password123` to access the database server
+3. TODO: run seed script
 
 ## Without docker-compose
 If not using docker-compose, follow these steps to start required components.
