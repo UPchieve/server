@@ -249,7 +249,7 @@ export default {
 
         if (!this.$socket.connected) await this.$socket.connect()
         this.joinSession(sessionId)
-        window.Gleap.setCustomData("sessionId", sessionId)
+        if (window.Gleap) window.Gleap.setCustomData("sessionId", sessionId)
         this.$store.dispatch('user/sessionConnected')
 
         if (
