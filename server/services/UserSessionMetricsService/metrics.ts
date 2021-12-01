@@ -26,17 +26,15 @@ class AbsentStudent extends CounterMetricProcessor {
       )
 
       // if volunteer waits for less than 10 minutes, do not flag student bc student did not get a chance to respond within wait period
-      if (moment(uvd.session.endedAt).isBefore(volunteerMaxWait)) return 0
+      if (moment(uvd.session.endedAt).isSameOrBefore(volunteerMaxWait)) return 0
 
       for (const msg of uvd.session.messages) {
         if (
           (msg.user as Types.ObjectId).equals(
             uvd.session.student as Types.ObjectId
           ) &&
-          // if student sends message within 10 mins of volunteer joining, then don't flag student
-          moment(msg.createdAt).isAfter(uvd.session.volunteerJoinedAt) &&
-          // Note: if student sends message at the last millisecond of the 10th minute, then don't flag student
-          moment(msg.createdAt).isSameOrBefore(volunteerMaxWait)
+          // if student sends message after volunteer joined, then don't flag student
+          moment(msg.createdAt).isAfter(uvd.session.volunteerJoinedAt)
         )
           return 0
       }
@@ -95,17 +93,14 @@ class AbsentVolunteer extends CounterMetricProcessor {
       )
 
       //if student waits for less than 5 minutes, then not flag volunteer
-      if (moment(uvd.session.endedAt).isBefore(studentMaxWait)) return 0
+      if (moment(uvd.session.endedAt).isSameOrBefore(studentMaxWait)) return 0
 
       for (const msg of uvd.session.messages) {
         if (
+          // if volunteer sends message, then don't flag volunteer
           (msg.user as Types.ObjectId).equals(
             uvd.session.volunteer as Types.ObjectId
-          ) &&
-          // if volunteer sends message within 5 mins of student joining, then don't flag volunteer
-          moment(msg.createdAt).isAfter(uvd.session.volunteerJoinedAt) &&
-          // Note: if volunteer sends message at the last millisecond of the 5th minute, then don't flag student
-          moment(msg.createdAt).isSameOrBefore(studentMaxWait)
+          )
         )
           return 0
       }

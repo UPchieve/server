@@ -1,3 +1,4 @@
+import moment from 'moment'
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import { FeedbackVersionTwo } from '../../../models/Feedback'
 import { Message } from '../../../models/Message'
@@ -46,55 +47,112 @@ function sendMessage(session: Session, message: Message): void {
 }
 
 describe('Metrics have correct "computeUpdateValue" functions', () => {
-  test('Not an absent student if student sends msg before volunteer joins', () => {
-    const session = startSession(student)
-    sendMessage(session, buildMessage({ user: student._id }))
-    joinSession(session, volunteer)
-
-    const uvd = buildUpdateValueData(session)
-    const processor = METRIC_PROCESSORS.AbsentStudent
-    expect(processor.computeUpdateValue(uvd)).toEqual(0)
-  })
-
-  test('Absent student if student sends 0 msgs for 10 mins after volunteer joins', () => {
+  test('Absent student if student sends 0 msgs after volunteer joins and volunteer waits 10 minutes to end session', () => {
+    const time = moment()
     const session = buildSession({
       student: student._id,
       volunteer: volunteer._id,
-      createdAt: new Date('2021-11-12T01:00:00.000Z'),
-      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
-      endedAt: new Date('2021-11-12T01:12:00.000Z'),
+      createdAt: moment(time).toDate(),
+      volunteerJoinedAt: moment(time)
+        .add(11, 'minutes')
+        .toDate(),
+      endedAt: moment(time)
+        .add(22, 'minutes')
+        .toDate(),
     })
-    sendMessage(session, buildMessage({ user: volunteer._id }))
+    sendMessage(
+      session,
+      buildMessage({
+        user: student._id,
+        createdAt: moment(time)
+          .add(1, 'minutes')
+          .toDate(),
+      })
+    )
 
     const uvd = buildUpdateValueData(session)
     const processor = METRIC_PROCESSORS.AbsentStudent
     expect(processor.computeUpdateValue(uvd)).toEqual(1)
   })
 
-  test('Not an absent student if student sends 0 msgs and volunteer ends session before 10 mins', () => {
+  test('Not an absent student if volunteer ends session before 10 mins', () => {
+    const time = moment()
     const session = buildSession({
       student: student._id,
       volunteer: volunteer._id,
-      createdAt: new Date('2021-11-12T01:00:00.000Z'),
-      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
-      endedAt: new Date('2021-11-12T01:11:00.000Z'),
+      createdAt: moment(time).toDate(),
+      volunteerJoinedAt: moment(time)
+        .add(11, 'minutes')
+        .toDate(),
+      endedAt: moment(time)
+        .add(12, 'minutes')
+        .toDate(),
     })
-    sendMessage(session, buildMessage({ user: volunteer._id }))
+    sendMessage(
+      session,
+      buildMessage({
+        user: student._id,
+        createdAt: moment(time)
+          .add(1, 'minutes')
+          .toDate(),
+      })
+    )
 
     const uvd = buildUpdateValueData(session)
     const processor = METRIC_PROCESSORS.AbsentStudent
     expect(processor.computeUpdateValue(uvd)).toEqual(0)
   })
 
-  test('Absent volunteer if volunteer sends 0 msgs for 5 mins after joining', () => {
+  test('Not an absent student if student sends any msgs after volunteer joins', () => {
+    const time = moment()
     const session = buildSession({
       student: student._id,
       volunteer: volunteer._id,
-      createdAt: new Date('2021-11-12T01:00:00.000Z'),
-      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
-      endedAt: new Date('2021-11-12T01:07:00.000Z'),
+      createdAt: moment(time).toDate(),
+      volunteerJoinedAt: moment(time)
+        .add(11, 'minutes')
+        .toDate(),
+      endedAt: moment(time)
+        .add(22, 'minutes')
+        .toDate(),
     })
-    sendMessage(session, buildMessage({ user: student._id }))
+    sendMessage(
+      session,
+      buildMessage({
+        user: student._id,
+        createdAt: moment(time)
+          .add(12, 'minutes')
+          .toDate(),
+      })
+    )
+
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.AbsentStudent
+    expect(processor.computeUpdateValue(uvd)).toEqual(0)
+  })
+
+  test('Absent volunteer if volunteer sends 0 msgs and student waits 5 minutes to end session', () => {
+    const time = moment()
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: moment(time).toDate(),
+      volunteerJoinedAt: moment(time)
+        .add(11, 'minutes')
+        .toDate(),
+      endedAt: moment(time)
+        .add(17, 'minutes')
+        .toDate(),
+    })
+    sendMessage(
+      session,
+      buildMessage({
+        user: student._id,
+        createdAt: moment(time)
+          .add(1, 'minutes')
+          .toDate(),
+      })
+    )
 
     const uvd = buildUpdateValueData(session)
     const processor = METRIC_PROCESSORS.AbsentVolunteer
@@ -102,14 +160,55 @@ describe('Metrics have correct "computeUpdateValue" functions', () => {
   })
 
   test('Not an absent volunteer if volunteer sends 0 msgs and student ends session before 5 mins', () => {
+    const time = moment()
     const session = buildSession({
       student: student._id,
       volunteer: volunteer._id,
-      createdAt: new Date('2021-11-12T01:00:00.000Z'),
-      volunteerJoinedAt: new Date('2021-11-12T01:02:00.000Z'),
-      endedAt: new Date('2021-11-12T01:05:00.000Z'),
+      createdAt: moment(time).toDate(),
+      volunteerJoinedAt: moment(time)
+        .add(11, 'minutes')
+        .toDate(),
+      endedAt: moment(time)
+        .add(12, 'minutes')
+        .toDate(),
     })
-    sendMessage(session, buildMessage({ user: student._id }))
+    sendMessage(
+      session,
+      buildMessage({
+        user: student._id,
+        createdAt: moment(time)
+          .add(1, 'minutes')
+          .toDate(),
+      })
+    )
+
+    const uvd = buildUpdateValueData(session)
+    const processor = METRIC_PROCESSORS.AbsentVolunteer
+    expect(processor.computeUpdateValue(uvd)).toEqual(0)
+  })
+
+  test('Not an absent volunteer if volunteer sends msgs', () => {
+    const time = moment()
+    const session = buildSession({
+      student: student._id,
+      volunteer: volunteer._id,
+      createdAt: moment(time).toDate(),
+      volunteerJoinedAt: moment(time)
+        .add(11, 'minutes')
+        .toDate(),
+      endedAt: moment(time)
+        .add(22, 'minutes')
+        .toDate(),
+    })
+    sendMessage(
+      session,
+      buildMessage({
+        user: volunteer._id,
+        createdAt: moment(time)
+          .add(12, 'minutes')
+          .toDate(),
+      })
+    )
 
     const uvd = buildUpdateValueData(session)
     const processor = METRIC_PROCESSORS.AbsentVolunteer
