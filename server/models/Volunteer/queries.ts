@@ -417,13 +417,16 @@ export async function getVolunteersOnDeck(
   subject: string,
   excludedVolunteerIds: Types.ObjectId[],
   availabilityPath: string
-): Promise<Volunteer[]> {
+): Promise<Pick<Volunteer, '_id'>[]> {
   try {
-    const volunteers = await VolunteerModel.find({
-      subjects: subject,
-      _id: { $nin: excludedVolunteerIds },
-      [availabilityPath]: true,
-    })
+    const volunteers = await VolunteerModel.find(
+      {
+        subjects: subject,
+        _id: { $nin: excludedVolunteerIds },
+        [availabilityPath]: true,
+      },
+      { _id: 1 }
+    )
       .lean()
       .exec()
     return volunteers
