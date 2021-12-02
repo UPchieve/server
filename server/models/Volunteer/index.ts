@@ -45,6 +45,8 @@ export interface CertificationInfo {
 export interface Certifications {
   [MATH_CERTS.PREALGREBA]: CertificationInfo
   [MATH_CERTS.ALGEBRA]: CertificationInfo
+  [MATH_CERTS.ALGEBRA_ONE]: CertificationInfo
+  [MATH_CERTS.ALGEBRA_TWO]: CertificationInfo
   [MATH_CERTS.GEOMETRY]: CertificationInfo
   [MATH_CERTS.TRIGONOMETRY]: CertificationInfo
   [MATH_CERTS.PRECALCULUS]: CertificationInfo
@@ -373,6 +375,28 @@ const volunteerSchema = new Schema(
         lastAttemptedAt: { type: Date },
       },
       [MATH_CERTS.ALGEBRA]: {
+        passed: {
+          type: Boolean,
+          default: false,
+        },
+        tries: {
+          type: Number,
+          default: 0,
+        },
+        lastAttemptedAt: { type: Date },
+      },
+      [MATH_CERTS.ALGEBRA_ONE]: {
+        passed: {
+          type: Boolean,
+          default: false,
+        },
+        tries: {
+          type: Number,
+          default: 0,
+        },
+        lastAttemptedAt: { type: Date },
+      },
+      [MATH_CERTS.ALGEBRA_TWO]: {
         passed: {
           type: Boolean,
           default: false,
