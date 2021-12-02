@@ -42,6 +42,7 @@ import * as PushTokenService from './PushTokenService'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
+import * as TwilioService from './TwilioService'
 import {
   beginFailsafeNotifications,
   beginRegularNotifications,
@@ -800,4 +801,34 @@ export async function getWaitTimeHeatMap(
     throw new NotAllowedError('Only volunteers may view the heat map')
   const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
   return JSON.parse(heatMap)
+}
+
+export async function volunteersAvailableForSession(
+  sessionId: Types.ObjectId,
+  subject: string
+): Promise<boolean> {
+  const availabilityPath = TwilioService.getCurrentAvailabilityPath()
+  const [
+    activeVolunteers,
+    notifiedForSession,
+    notifiedLastFifteenMins,
+  ] = await Promise.all([
+    TwilioService.getActiveSessionVolunteers(),
+    VolunteerRepo.getVolunteersNotifiedBySessionId(sessionId),
+    VolunteerRepo.getVolunteersNotifiedSinceDate(
+      TwilioService.relativeDate(15 * 60 * 1000)
+    ),
+  ])
+  const excludedVolunteers = [
+    ...activeVolunteers,
+    ...notifiedForSession,
+    ...notifiedLastFifteenMins,
+  ]
+  const volunteers = await VolunteerRepo.getVolunteersOnDeck(
+    subject,
+    excludedVolunteers,
+    availabilityPath
+  )
+
+  return volunteers.length > 0
 }
