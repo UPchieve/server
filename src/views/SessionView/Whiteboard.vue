@@ -633,7 +633,7 @@ export default {
         this.zwibblerCtx.setConfig('readOnly', false)
 
         // @todo access the connection in a less sketchy way
-        const zwibblerWsConnection = this.zwibblerCtx.HA.ma.Ec
+        const zwibblerWsConnection = this.zwibblerCtx.Ec.rc.rc
         const zwibblerOnMessage = zwibblerWsConnection.onmessage
         // Intercept Zwibbler's websocket message handler
         zwibblerWsConnection.onmessage = messageEvent => {
