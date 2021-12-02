@@ -1,0 +1,12 @@
+{
+  "db": {
+    "connectionString": "postgresql://subway@localhost:5432/upchieve"
+  },
+  "outDir": "./src",
+  "schemas": {
+    "upchieve": {
+      "include": "*",
+      "exclude": []
+    }
+  }
+}
