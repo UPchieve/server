@@ -11,20 +11,11 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "lib":[
-      "es2020", "dom"
+      "es2020"
     ]
   },
-  "exclude": [
-    "node_modules/",
-    "build/",
-    "src/",
-    "tests/",
-    "dist/",
-    "public/",
-    "./*.js",
-    "./*.json",
-    "bin/",
-    ".*/"
+  "include": [
+    "sql/seeds"
   ],
   "ts-node": {
     "files": true

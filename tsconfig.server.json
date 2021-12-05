@@ -11,7 +11,23 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "lib":[
-      "es2020"
+      "es2020", "dom"
     ]
+  },
+  "exclude": [
+    "server/dbutils",
+    "node_modules/",
+    "build/",
+    "src/",
+    "tests/",
+    "dist/",
+    "public/",
+    "./*.js",
+    "./*.json",
+    "bin/",
+    ".*/"
+  ],
+  "ts-node": {
+    "files": true
   }
 }
