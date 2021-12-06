@@ -9,8 +9,8 @@ services:
             - POSTGRES_USER=admin
             - POSTGRES_PASSWORD=Password123
         volumes:
-            - $HOME/upchieve/subway/database/schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
-            - $HOME/upchieve/subway/database/auth.sql:/docker-entrypoint-initdb.d/init_roles.sql
+            - ./database/schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
+            - ./database/auth.sql:/docker-entrypoint-initdb.d/init_roles.sql
     mongodb:
         ports:
             - "27017-27019:27017-27019"
@@ -18,13 +18,13 @@ services:
         environment:
             - MONGO_INITDB_DATABASE=upchieve
         volumes:
-            - $HOME/upchieve/mongo-volume:/data/db
+            - ../mongo-volume:/data/db
     redis:
         ports:
             - "6379:6379"
         image: redis:6.2.1
         volumes:
-            - $HOME/upchieve/redis-volume:/data
+            - ../redis-volume:/data
     pgadmin:
         image: dpage/pgadmin4
         depends_on:
