@@ -15,6 +15,7 @@ export default {
 <style lang="scss" scoped>
 
 .header {
+  @include header-child;
   color: $upchieve-white;
   display: flex;
   align-items: center;
