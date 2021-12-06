@@ -1,7 +1,7 @@
 <template>
   <div class="header">
     <div class="header-message"><span>Take the NEW Algebra 2 Quiz by March 1, 2022</span> to help us keep up with student demand!</div>
-    <router-link to="/training/calculusAB/quiz" tag="button" class="header-button">Get certified</router-link>
+    <router-link to="/training/algebraTwo/quiz" tag="button" class="header-button">Get certified</router-link>
   </div>
 </template>
 
