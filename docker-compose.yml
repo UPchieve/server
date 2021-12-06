@@ -9,7 +9,8 @@ services:
             - POSTGRES_USER=admin
             - POSTGRES_PASSWORD=Password123
         volumes:
-            - $HOME/upchieve/subway/sql/schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
+            - $HOME/upchieve/subway/database/schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
+            - $HOME/upchieve/subway/database/auth.sql:/docker-entrypoint-initdb.d/init_roles.sql
     mongodb:
         ports:
             - "27017-27019:27017-27019"
