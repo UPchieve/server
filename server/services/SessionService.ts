@@ -204,7 +204,7 @@ export async function endSession(
   identifiers?: sessionUtils.RequestIdentifier
 ) {
   const reqIdentifiers = identifiers
-    ? sessionUtils.asRequerstIdentifier(identifiers)
+    ? sessionUtils.asRequestIdentifiers(identifiers)
     : undefined
 
   const session = await SessionRepo.getSessionToEndById(sessionId)
