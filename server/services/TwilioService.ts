@@ -35,7 +35,7 @@ const twilioClient =
     : null
 
 // get the availability field to query for the current time
-function getCurrentAvailabilityPath(): string {
+export function getCurrentAvailabilityPath(): string {
   const date = getCurrentNewYorkTime()
   const day = date.isoWeekday() - 1
   let baseHour = date.hour()

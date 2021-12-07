@@ -170,6 +170,7 @@ import ArrowIcon from '@/assets/arrow.svg'
 import { isEnabled } from 'unleash-client'
 import NetworkService from '../../../services/NetworkService'
 import config from '../../../config'
+import { FEATURE_FLAGS } from '@/consts'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -177,6 +178,10 @@ const defaultHeaderData = {
 
 const rejoinHeaderData = {
   component: 'RejoinSessionHeader'
+}
+
+const algebraTwoLaunchHeaderData = {
+  component: 'AlgebraTwoLaunchHeader'
 }
 
 const upchieveTopics = allSubtopicNames()
@@ -206,8 +211,13 @@ export default {
     }
   },
   async created() {
+    const unlockAlgebraTwoCerts = ['algebraTwo', 'precalculus', 'calculusAB', 'calculusBC']
+    const hasUnlockedAlgebraTwo = unlockAlgebraTwoCerts.some(cert => this.user.certifications[cert].passed)
+
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
+    } else if(isEnabled(FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH) && !hasUnlockedAlgebraTwo) {
+      this.$store.dispatch('app/header/show', algebraTwoLaunchHeaderData)
     }
 
     if (this.isFirstDashboardVisit) {
@@ -257,7 +267,7 @@ export default {
     },
 
     downtimeMessage() {
-      if (isEnabled('downtime-banner-4-10')) {
+      if (isEnabled(FEATURE_FLAGS.DOWNTIME_BANNER)) {
         return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
       } else {
         return ''

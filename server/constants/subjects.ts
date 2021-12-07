@@ -14,6 +14,7 @@ export enum TRAINING {
 }
 
 export enum MATH_CERTS {
+  // TODO: fix typo
   PREALGREBA = 'prealgebra',
   // TODO: remove algebra once algebra 2 is launched as a cert
   ALGEBRA = 'algebra',
@@ -28,6 +29,7 @@ export enum MATH_CERTS {
 }
 
 export enum MATH_SUBJECTS {
+  // TODO: fix typo
   PREALGREBA = 'prealgebra',
   ALGEBRA_ONE = 'algebraOne',
   ALGEBRA_TWO = 'algebraTwo',

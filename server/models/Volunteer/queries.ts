@@ -413,6 +413,28 @@ export async function getVolunteerByReference(
   }
 }
 
+export async function getVolunteersOnDeck(
+  subject: string,
+  excludedVolunteerIds: Types.ObjectId[],
+  availabilityPath: string
+): Promise<Pick<Volunteer, '_id'>[]> {
+  try {
+    const volunteers = await VolunteerModel.find(
+      {
+        subjects: subject,
+        _id: { $nin: excludedVolunteerIds },
+        [availabilityPath]: true,
+      },
+      { _id: 1 }
+    )
+      .lean()
+      .exec()
+    return volunteers
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export interface ReferenceData {
   firstName: string
   lastName: string

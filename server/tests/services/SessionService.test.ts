@@ -57,7 +57,6 @@ import * as UserActionRepo from '../../models/UserAction/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as AwsService from '../../services/AwsService'
-import * as FeedbackService from '../../services/FeedbackService'
 import * as FeedbackRepo from '../../models/Feedback/queries'
 import SocketService from '../../services/SocketService'
 import * as PushTokenRepo from '../../models/PushToken/queries'
@@ -98,11 +97,9 @@ jest.mock('../../models/User/queries')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedAssistmentsDataRepo = mocked(AssistmentsDataRepo, true)
-const mockedFeedbackService = mocked(FeedbackService, true)
 const mockedFeedbackRepo = mocked(FeedbackRepo, true)
 const mockedAwsService = mocked(AwsService, true)
 const mockedPushTokenRepo = mocked(PushTokenRepo, true)
-const mockedPushTokenService = mocked(PushTokenService, true)
 const mockedCache = mocked(cache, true)
 const mockedQuillDocService = mocked(QuillDocService, true)
 const mockedWhiteboardService = mocked(WhiteboardService, true)
@@ -110,6 +107,7 @@ const mockedUSMRepo = mocked(USMRepo, true)
 const mockedVolunteerRepo = mocked(VolunteerRepo, true)
 const mockedUserActionRepo = mocked(UserActionRepo, true)
 const mockedUserRepo = mocked(UserRepo, true)
+const mockedTwilioService = mocked(TwilioService, true)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -1450,5 +1448,80 @@ describe('getWaitTimeHeatMap', () => {
     const result = await SessionService.getWaitTimeHeatMap(buildVolunteer())
     expect(JSON.parse(mockedHeatMap)).toEqual(result)
     expect(cache.get).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('volunteersAvailableForSession', () => {
+  const sessionId = getObjectId()
+  const subject = SUBJECTS.PREALGREBA
+  const notifiedAlready = [getObjectId()]
+  const notifiedLastFifteenMins = [getObjectId(), getObjectId()]
+  const volunteersInActiveSessions = [getObjectId()]
+  const availabilityPath = 'availability.Monday.12p'
+  const volunteersToExclude = [
+    ...volunteersInActiveSessions,
+    ...notifiedAlready,
+    ...notifiedLastFifteenMins,
+  ]
+
+  test('Should return true if there are more volunteers available to notify', async () => {
+    const volunteersOnDeck = [buildVolunteer(), buildVolunteer()]
+
+    mockedTwilioService.getCurrentAvailabilityPath.mockReturnValue(
+      availabilityPath
+    )
+    mockedTwilioService.getActiveSessionVolunteers.mockResolvedValueOnce(
+      volunteersInActiveSessions
+    )
+    mockedVolunteerRepo.getVolunteersNotifiedBySessionId.mockResolvedValueOnce(
+      notifiedAlready
+    )
+    mockedVolunteerRepo.getVolunteersNotifiedSinceDate.mockResolvedValueOnce(
+      notifiedLastFifteenMins
+    )
+    mockedVolunteerRepo.getVolunteersOnDeck.mockResolvedValueOnce(
+      volunteersOnDeck
+    )
+    const result = await SessionService.volunteersAvailableForSession(
+      sessionId,
+      subject
+    )
+    expect(result).toBeTruthy()
+    expect(mockedVolunteerRepo.getVolunteersOnDeck).toHaveBeenCalledWith(
+      subject,
+      volunteersToExclude,
+      availabilityPath
+    )
+  })
+
+  test('Should return false if there are no more volunteers available to notify', async () => {
+    const volunteersOnDeck: Volunteer[] = []
+
+    mockedTwilioService.getCurrentAvailabilityPath.mockReturnValue(
+      availabilityPath
+    )
+    mockedTwilioService.getActiveSessionVolunteers.mockResolvedValueOnce(
+      volunteersInActiveSessions
+    )
+    mockedVolunteerRepo.getVolunteersNotifiedBySessionId.mockResolvedValueOnce(
+      notifiedAlready
+    )
+    mockedVolunteerRepo.getVolunteersNotifiedSinceDate.mockResolvedValueOnce(
+      notifiedLastFifteenMins
+    )
+    mockedVolunteerRepo.getVolunteersOnDeck.mockResolvedValueOnce(
+      volunteersOnDeck
+    )
+
+    const result = await SessionService.volunteersAvailableForSession(
+      sessionId,
+      subject
+    )
+    expect(result).toBeFalsy()
+    expect(mockedVolunteerRepo.getVolunteersOnDeck).toHaveBeenCalledWith(
+      subject,
+      volunteersToExclude,
+      availabilityPath
+    )
   })
 })
