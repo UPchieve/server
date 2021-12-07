@@ -191,6 +191,7 @@ export async function sendFollowupText(
 export async function notifyVolunteer(
   session: Session
 ): Promise<Types.ObjectId | undefined> {
+  // typed as `any` because `subtopic` gets reassigned as a regex query object if `subtopic` is algebraTwo
   let subtopic: any = session.subTopic
   const activeSessionVolunteers = await getActiveSessionVolunteers()
   const notifiedLastFifteenMins = await getVolunteersNotifiedSinceDate(
