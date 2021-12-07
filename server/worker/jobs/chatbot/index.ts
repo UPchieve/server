@@ -45,7 +45,7 @@ export async function messageControlFlow(
   for (const msg of chatbotMessages) {
     const result = await safeAsync(msg.requirements(session, chatbot))
     if (result.result) {
-      messagesToSend.push(msg.content)
+      messagesToSend.push(msg.content(session))
       if (msg.action) actions.push(async () => await msg.action!(session))
       log(`Planning to send message ${msg.key} to session ${session._id}`)
     } else if (result.error) errors.push(result.error.message)
