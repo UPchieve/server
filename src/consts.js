@@ -429,7 +429,9 @@ export const FEATURE_FLAGS = {
   REFER_FRIENDS: 'refer-friends',
   STUDENT_BANNED_STATE: 'student-banned-state',
   DASHBOARD_REDESIGN: 'dashboard-redesign',
-  GATES_STUDY: 'gates-study'
+  GATES_STUDY: 'gates-study',
+  ALGEBRA_TWO_LAUNCH: 'algebra-two-launch',
+  DOWNTIME_BANNER: 'downtime-banner-4-10'
 }
 
 export const ANALYTICS_REPORT_ROW = {
