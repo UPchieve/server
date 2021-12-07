@@ -143,10 +143,10 @@ app.use(express.static(path.join(__dirname, 'dist')))
 let originRegex
 if (config.additionalAllowedOrigins !== '') {
   originRegex = new RegExp(
-    `(${config.host}|${config.additionalAllowedOrigins})`
+    `^(${config.host}|${config.additionalAllowedOrigins})$`
   )
 } else {
-  originRegex = new RegExp(`(${config.host})`)
+  originRegex = new RegExp(`^(${config.host})$`)
 }
 
 app.use(
