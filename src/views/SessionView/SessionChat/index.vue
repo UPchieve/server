@@ -365,7 +365,7 @@ export default {
         messagesBox.lastElementChild.offsetHeight
     },
     messageAlignment(message){
-      return message.user === this.user._id ? MESSAGE_ALIGNMENT.RIGHT : MESSAGE_ALIGNMENT.LEFT
+      return (message.user === this.user._id || message.user._id === this.user._id) ? MESSAGE_ALIGNMENT.RIGHT : MESSAGE_ALIGNMENT.LEFT
     },
     showAvatar(message){
       return this.messageAlignment(message) ===  MESSAGE_ALIGNMENT.LEFT
