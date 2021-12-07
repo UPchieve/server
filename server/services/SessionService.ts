@@ -830,6 +830,8 @@ export async function volunteersAvailableForSession(
   )
 
   return volunteers.length > 0
+}
+
 export async function handleMessageActivity(
   sessionId: Types.ObjectId
 ): Promise<void> {

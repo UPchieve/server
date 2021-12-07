@@ -1,3 +1,4 @@
+import { mocked } from 'ts-jest/utils'
 import { Types } from 'mongoose'
 import moment from 'moment'
 import { SUBJECTS, SUBJECT_TYPES } from '../../../constants'
@@ -22,11 +23,19 @@ import {
   buildSessionForChatbot,
   buildMessage,
 } from '../../generate'
+import * as SessionService from '../../../services/SessionService'
 
 jest.mock('socket.io-client')
+jest.mock('../../../services/SessionService')
+
+const mockedSessionService = mocked(SessionService, true)
 
 describe('Test chatbot message requirements checks', () => {
   const chatbot = getObjectId()
+
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
 
   test('No chatbot message sends to a matched session', async () => {
     const matchedSession = buildSessionForChatbot({
@@ -118,8 +127,7 @@ describe('Test chatbot message requirements checks', () => {
     await expect(m3c.requirements(chatbotSession, chatbot)).resolves.toBeFalsy()
   })
 
-  // TODO: test volunteer on deck (with mock)
-  test('m4 only sends for unmatched, unended sessions where m3a/b/c was the last chatbot message sent and it was sent at least 10 min ago', async () => {
+  test('m4 only sends for unmatched, unended sessions where m3a/b/c was the last chatbot message sent and it was sent at least 10 min ago and a volunteer is on deck', async () => {
     const newSession = buildSessionForChatbot()
     const chatbotGoodSession = buildSessionForChatbot()
     chatbotGoodSession.messages = [
@@ -144,6 +152,7 @@ describe('Test chatbot message requirements checks', () => {
       }),
     ]
 
+    mockedSessionService.volunteersAvailableForSession.mockResolvedValue(true)
     await expect(m4.requirements(newSession, chatbot)).resolves.toBeFalsy()
     await expect(
       m4.requirements(chatbotBadSession, chatbot)
@@ -154,6 +163,12 @@ describe('Test chatbot message requirements checks', () => {
     await expect(
       m4.requirements(chatbotGoodSession, chatbot)
     ).resolves.toBeTruthy()
+    mockedSessionService.volunteersAvailableForSession.mockResolvedValueOnce(
+      false
+    )
+    await expect(
+      m4.requirements(chatbotGoodSession, chatbot)
+    ).resolves.toBeFalsy()
   })
 
   test('m5 only sends for unmatched, unended sessions where m4 was the last chatbot message sent and the student has sent a message since that last chatbot message', async () => {
@@ -199,7 +214,6 @@ describe('Test chatbot message requirements checks', () => {
     ).resolves.toBeTruthy()
   })
 
-  // TODO: test volunteer on deck (with mock)
   test('m6 only sends for unmatched, unended sessions where m5 was the last chatbot message sent and it has been at least 10 min since that message', async () => {
     const newSession = buildSessionForChatbot()
     const chatbotGoodSession = buildSessionForChatbot()
@@ -225,6 +239,7 @@ describe('Test chatbot message requirements checks', () => {
       }),
     ]
 
+    mockedSessionService.volunteersAvailableForSession.mockResolvedValue(true)
     await expect(m6.requirements(newSession, chatbot)).resolves.toBeFalsy()
     await expect(
       m6.requirements(chatbotBadSession, chatbot)
@@ -235,6 +250,12 @@ describe('Test chatbot message requirements checks', () => {
     await expect(
       m6.requirements(chatbotGoodSession, chatbot)
     ).resolves.toBeTruthy()
+    mockedSessionService.volunteersAvailableForSession.mockResolvedValueOnce(
+      false
+    )
+    await expect(
+      m6.requirements(chatbotGoodSession, chatbot)
+    ).resolves.toBeFalsy()
   })
 
   test('m7 only sends for unmatched, unended sessions where m6 was the last chatbot message sent and the student has sent a message since that last chatbot message', async () => {

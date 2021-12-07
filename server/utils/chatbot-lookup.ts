@@ -11,7 +11,7 @@ export async function lookupChatbotFromCache(): Promise<
 > {
   try {
     return asObjectId(await cache.get(CHATBOT_CACHE_KEY))
-  } catch (err) { 
+  } catch (err) {
     if (err instanceof cache.KeyNotFoundError) {
       try {
         const chatbot = await UserRepo.getUserIdByEmail(CHATBOT_EMAIL)
