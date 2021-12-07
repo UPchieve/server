@@ -12,6 +12,7 @@ import { safeAsync } from '../../../utils/safe-async'
 import { MESSAGES, ChatbotMessage } from './messages'
 import { asObjectId } from '../../../utils/type-utils'
 import { setTimeout } from 'timers/promises'
+import { lookupChatbotFromCache } from '../../../utils/chatbot-lookup'
 
 export const MESSAGE_TYPING_DELAY = 3 * 1000
 
@@ -77,7 +78,7 @@ interface ChatbotPayload {
 
 async function chatbot(job: Job<ChatbotPayload>): Promise<void> {
   const sessionId = asObjectId(job.data.sessionId)
-  const chatbotId = await getUserIdByEmail(CHATBOT_EMAIL)
+  const chatbotId = await lookupChatbotFromCache()
   if (!chatbot) throw new Error('Chatbot user not found!')
   const session = await getSessionMessagesById(sessionId)
   if (!session) throw new Error(`Session ${sessionId} not found`)
