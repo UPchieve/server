@@ -189,6 +189,10 @@ const requestIdentifierValidators = {
   userAgent: asString,
 }
 
+export const asRequerstIdentifier = asFactory<RequestIdentifier>(
+  requestIdentifierValidators
+)
+
 export interface StartSessionData extends RequestIdentifier {
   sessionSubTopic: string
   sessionType: SUBJECT_TYPES
@@ -204,14 +208,6 @@ export const asStartSessionData = asFactory<StartSessionData>({
   problemId: asOptional(asString),
   assignmentId: asOptional(asString),
   studentId: asOptional(asString),
-})
-
-export interface FinishSessionData extends RequestIdentifier {
-  sessionId: Types.ObjectId
-}
-export const asFinishSessionData = asFactory<FinishSessionData>({
-  ...requestIdentifierValidators,
-  sessionId: asObjectId,
 })
 
 export interface SessionsToReviewData {

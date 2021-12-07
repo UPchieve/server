@@ -1102,7 +1102,7 @@ export async function getSessionMessagesById(
         student: 1,
       }
     )
-      .select('messages')
+      .populate('messages')
       .lean()
       .exec()
     if (result) return result as SessionForChatbot

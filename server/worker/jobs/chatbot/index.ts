@@ -8,12 +8,18 @@ import { log } from '../../logger'
 import { safeAsync } from '../../../utils/safe-async'
 import { MESSAGES } from './messages'
 import { asObjectId } from '../../../utils/type-utils'
+import { setTimeout } from 'timers/promises'
+
+const MESSAGE_TYPING_DELAY = 3 * 1000
 
 async function sendMessage(
   sessionId: Types.ObjectId,
   content: string,
   chatbot: Types.ObjectId
 ): Promise<void> {
+  socket.emit('typing', { sessionId })
+  await setTimeout(MESSAGE_TYPING_DELAY)
+  socket.emit('notTyping', { sessionId })
   socket.emit('message', {
     // socket message handler expects a user-like object
     user: { _id: chatbot, isVolunteer: true },
@@ -43,8 +49,11 @@ async function messageControlFlow(
 
   // TODO: should sending these be more transactional? Messages should still be sent in order
   for (const msg of messagesToSend) {
-    const result = await safeAsync(sendMessage(sessionId, msg, chatbot))
-    if (result.error) errors.push(result.error.message)
+    try {
+      await sendMessage(sessionId, msg, chatbot)
+    } catch (err) {
+      errors.push((err as Error).message)
+    }
   }
   // execute actions
   Promise.allSettled(actions).then(results =>

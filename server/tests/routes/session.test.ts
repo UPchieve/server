@@ -140,28 +140,28 @@ const SESSION_END_PATH = '/session/end'
 describe(SESSION_END_PATH, () => {
   test('Should send InputError when the sessionId is missing from the request body', async () => {
     const payload = {}
-    mockedSessionService.finishSession.mockImplementationOnce(
+    mockedSessionService.endSession.mockImplementationOnce(
       async () => undefined
     )
     const response = await sendPost(SESSION_END_PATH, payload)
     const {
       body: { err },
     } = response
-    expect(SessionService.finishSession).toHaveBeenCalledTimes(0)
+    expect(SessionService.endSession).toHaveBeenCalledTimes(0)
     expect(err).toBe('Missing sessionId body string')
   })
 
   test('Should send sessionId with valid request', async () => {
     const id = getStringObjectId()
     const payload = { sessionId: id }
-    mockedSessionService.finishSession.mockImplementationOnce(
+    mockedSessionService.endSession.mockImplementationOnce(
       async () => undefined
     )
     const response = await sendPost(SESSION_END_PATH, payload)
     const {
       body: { sessionId },
     } = response
-    expect(SessionService.finishSession).toHaveBeenCalledTimes(1)
+    expect(SessionService.endSession).toHaveBeenCalledTimes(1)
     expect(sessionId).toBe(id)
   })
 })
