@@ -1,24 +1,28 @@
 import { Types } from 'mongoose'
 import { Job } from 'bull'
 import { getUserIdByEmail } from '../../../models/User/queries'
-import { getSessionMessagesById } from '../../../models/Session/queries'
+import {
+  getSessionMessagesById,
+  SessionForChatbot,
+} from '../../../models/Session/queries'
 import socket from '../../sockets'
 import { CHATBOT_EMAIL } from '../../../constants'
 import { log } from '../../logger'
 import { safeAsync } from '../../../utils/safe-async'
-import { MESSAGES } from './messages'
+import { MESSAGES, ChatbotMessage } from './messages'
 import { asObjectId } from '../../../utils/type-utils'
 import { setTimeout } from 'timers/promises'
 
-const MESSAGE_TYPING_DELAY = 3 * 1000
+export const MESSAGE_TYPING_DELAY = 3 * 1000
 
 async function sendMessage(
   sessionId: Types.ObjectId,
   content: string,
-  chatbot: Types.ObjectId
+  chatbot: Types.ObjectId,
+  delay: number
 ): Promise<void> {
   socket.emit('typing', { sessionId })
-  await setTimeout(MESSAGE_TYPING_DELAY)
+  await setTimeout(delay)
   socket.emit('notTyping', { sessionId })
   socket.emit('message', {
     // socket message handler expects a user-like object
@@ -28,40 +32,38 @@ async function sendMessage(
   })
 }
 
-async function messageControlFlow(
-  sessionId: Types.ObjectId,
-  chatbot: Types.ObjectId
+// Param 'messageDelay' included so test can provide a shorter delay to improve their runtime
+export async function messageControlFlow(
+  session: SessionForChatbot,
+  chatbot: Types.ObjectId,
+  chatbotMessages: ChatbotMessage[],
+  messageDelay: number
 ): Promise<void> {
-  const session = await getSessionMessagesById(sessionId)
-  if (!session) throw new Error(`Session ${sessionId} not found`)
-
   const errors: string[] = []
   const messagesToSend: string[] = []
-  const actions: Promise<void>[] = []
-  for (const msg of MESSAGES) {
+  const actions: Function[] = []
+  for (const msg of chatbotMessages) {
     const result = await safeAsync(msg.requirements(session, chatbot))
     if (result.result) {
       messagesToSend.push(msg.content)
-      if (msg.action) actions.push(msg.action(session))
-      log(`Planning to send message ${msg.key} to session ${sessionId}`)
+      if (msg.action) actions.push(async () => await msg.action!(session))
+      log(`Planning to send message ${msg.key} to session ${session._id}`)
     } else if (result.error) errors.push(result.error.message)
   }
 
   // TODO: should sending these be more transactional? Messages should still be sent in order
   for (const msg of messagesToSend) {
-    try {
-      await sendMessage(sessionId, msg, chatbot)
-    } catch (err) {
-      errors.push((err as Error).message)
-    }
+    const result = await safeAsync(
+      sendMessage(session._id, msg, chatbot, messageDelay)
+    )
+    if (result.error) errors.push(result.error.message)
   }
   // execute actions
-  Promise.allSettled(actions).then(results =>
-    results.forEach(result => {
-      if (result.status === 'rejected' && result.reason)
-        errors.push(result.reason)
-    })
-  )
+  for (const action of actions) {
+    const result = await safeAsync(action())
+    if (result.error) errors.push(result.error.message)
+  }
+
   if (errors.length) {
     throw new Error(
       `Error while sending chatbot messages: ${errors.join('\n')}`
@@ -77,7 +79,9 @@ async function chatbot(job: Job<ChatbotPayload>): Promise<void> {
   const sessionId = asObjectId(job.data.sessionId)
   const chatbotId = await getUserIdByEmail(CHATBOT_EMAIL)
   if (!chatbot) throw new Error('Chatbot user not found!')
-  await messageControlFlow(sessionId, chatbotId!)
+  const session = await getSessionMessagesById(sessionId)
+  if (!session) throw new Error(`Session ${sessionId} not found`)
+  await messageControlFlow(session, chatbotId!, MESSAGES, MESSAGE_TYPING_DELAY)
 }
 
 export default chatbot

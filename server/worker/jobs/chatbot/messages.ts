@@ -10,8 +10,8 @@ import { Jobs } from '../index'
 import { isSubjectUsingDocumentEditor } from '../../../utils/session-utils'
 
 const ONE_MINUTE = 1 * 60 * 1000
-const WAIT_FOR_MATCH = 2 * ONE_MINUTE
-const WAIT_FOR_REPLY = 1 * ONE_MINUTE
+export const WAIT_FOR_MATCH = 10 * ONE_MINUTE
+export const WAIT_FOR_REPLY = 3 * ONE_MINUTE
 
 // TODO: actually implement this function (part of another ticket)
 async function volunteerOnDeck(sessionId: Types.ObjectId): Promise<boolean> {
@@ -31,7 +31,7 @@ export async function autoEndSession(sessionId: Types.ObjectId): Promise<void> {
   socket.emit('auto-end-session', { sessionId })
 }
 
-interface ChatbotMessage {
+export interface ChatbotMessage {
   key: string
   content: string
   requirements(
@@ -60,7 +60,7 @@ function lastChatbotMessage(
     .slice(-1)[0]
 }
 
-const m1 = {
+export const m1 = {
   key: 'M1',
   content: 'first message',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) =>
@@ -68,7 +68,7 @@ const m1 = {
     !session.endedAt &&
     !chatbotSentMessage(session, chatbot),
 }
-const m2 = {
+export const m2 = {
   key: 'M2',
   content: 'second message',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) =>
@@ -77,7 +77,7 @@ const m2 = {
     !chatbotSentMessage(session, chatbot),
 }
 
-const m3a = {
+export const m3a = {
   key: 'M3A',
   content: 'non-college document editor',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) =>
@@ -95,7 +95,7 @@ const m3a = {
   },
 }
 
-const m3b = {
+export const m3b = {
   key: 'M3B',
   content: 'whiteboard',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) =>
@@ -112,7 +112,7 @@ const m3b = {
   },
 }
 
-const m3c = {
+export const m3c = {
   key: 'M3C',
   content: 'college',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) =>
@@ -129,7 +129,7 @@ const m3c = {
   },
 }
 
-const m4 = {
+export const m4 = {
   key: 'M4',
   content: 'fourth message - prompt',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
@@ -140,7 +140,7 @@ const m4 = {
       !!lastChatbotMsg &&
       (await volunteerOnDeck(session._id)) &&
       moment().subtract(WAIT_FOR_MATCH - ONE_MINUTE, 'milliseconds') >=
-        moment(session.createdAt) &&
+        moment(lastChatbotMsg.createdAt) &&
       (lastChatbotMsg.contents === m3a.content ||
         lastChatbotMsg.contents === m3b.content ||
         lastChatbotMsg.contents === m3c.content)
@@ -156,7 +156,7 @@ const m4 = {
   },
 }
 
-const m5 = {
+export const m5 = {
   key: 'M5',
   content: 'fifth message - reply confirmed',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
@@ -185,7 +185,7 @@ const m5 = {
   },
 }
 
-const m6 = {
+export const m6 = {
   key: 'M6',
   content: 'sixth message - prompt',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
@@ -210,7 +210,7 @@ const m6 = {
   },
 }
 
-const m7 = {
+export const m7 = {
   key: 'M7',
   content: 'seventh message - reply confirmed',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
@@ -239,7 +239,7 @@ const m7 = {
   },
 }
 
-const m8 = {
+export const m8 = {
   key: 'M8',
   content: 'eigth message - no volunteers found',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
@@ -261,13 +261,13 @@ const m8 = {
   },
 }
 
-const m9 = {
+export const m9 = {
   key: 'M9',
   content: 'nineth message - no reply',
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
     // sort in reverse order so array.find returns the last instance
     const messages = session.messages.sort((x, y) =>
-      x.createdAt < y.createdAt ? 1 : 0
+      x.createdAt < y.createdAt ? -1 : 1
     )
     const lastPromptMsg = messages.find(
       msg => msg.contents === m4.content || msg.contents === m6.content
