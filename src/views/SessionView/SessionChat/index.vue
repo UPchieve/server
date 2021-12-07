@@ -3,7 +3,7 @@
     <vue-headful
       :title="
         typingIndicatorShown
-          ? `${sessionPartner.firstname} is typing...`
+          ? `${sessionPartner.firstname || 'Chatbot'} is typing...`
           : 'UPchieve'
       "
     />

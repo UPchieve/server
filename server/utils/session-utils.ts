@@ -189,7 +189,7 @@ const requestIdentifierValidators = {
   userAgent: asString,
 }
 
-export const asRequerstIdentifier = asFactory<RequestIdentifier>(
+export const asRequestIdentifiers = asFactory<RequestIdentifier>(
   requestIdentifierValidators
 )
 
