@@ -2,7 +2,7 @@ import { performance } from 'perf_hooks'
 
 import { ChatbotMessage } from '../../../worker/jobs/chatbot/messages'
 import { messageControlFlow } from '../../../worker/jobs/chatbot'
-import { getObjectId, buildSession } from '../../generate'
+import { getObjectId, buildSessionForChatbot } from '../../generate'
 import { log } from '../../../worker/logger'
 jest.mock('socket.io-client')
 jest.mock('../../../worker/logger')
@@ -16,14 +16,14 @@ const actionTwo = jest.fn()
 
 const messageOne: ChatbotMessage = {
   key: 'Message One',
-  content: 'lorem ipsum',
+  content: () => 'lorem ipsum',
   requirements: conditionOne,
   action: actionOne,
 }
 
 const messageTwo: ChatbotMessage = {
   key: 'Message Two',
-  content: 'dolor sit amet',
+  content: () => 'dolor sit amet',
   requirements: conditionTwo,
   action: actionTwo,
 }
@@ -31,7 +31,7 @@ const messageTwo: ChatbotMessage = {
 const fakeMessages = [messageOne, messageTwo]
 
 describe('Test message control flow', () => {
-  const session = buildSession()
+  const session = buildSessionForChatbot()
   const chatbot = getObjectId()
 
   beforeEach(() => {

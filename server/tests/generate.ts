@@ -37,6 +37,7 @@ import {
 import { User } from '../models/User'
 import { Student } from '../models/Student'
 import { Session } from '../models/Session'
+import { SessionForChatbot } from '../models/Session/queries'
 import { FeedbackVersionOne, FeedbackVersionTwo } from '../models/Feedback'
 import {
   OpenStudentRegData,
@@ -456,6 +457,13 @@ export const buildSession = (overrides = {}): Session => {
   }
 
   return session
+}
+
+export const buildSessionForChatbot = (overrides = {}): SessionForChatbot => {
+  return {
+    ...buildSession(overrides),
+    firstname: getFirstName(),
+  }
 }
 
 export const buildMessage = <T extends { user: Types.ObjectId }>(
