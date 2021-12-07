@@ -23,12 +23,10 @@ import { getIdFromModelReference } from '../../utils/model-reference'
 import logger from '../../logger'
 import * as cache from '../../cache'
 import {
-  CHATBOT_CACHE_KEY,
   CHATBOT_EMAIL,
   FEATURE_FLAGS,
   SESSION_ACTIVITY_KEY,
 } from '../../constants'
-import { asObjectId } from '../../utils/type-utils'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import { isEnabled } from 'unleash-client'
 
