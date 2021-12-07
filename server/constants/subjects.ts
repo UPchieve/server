@@ -14,6 +14,7 @@ export enum TRAINING {
 }
 
 export enum MATH_CERTS {
+  // TODO: fix typo
   PREALGREBA = 'prealgebra',
   ALGEBRA = 'algebra',
   GEOMETRY = 'geometry',
@@ -25,6 +26,7 @@ export enum MATH_CERTS {
 }
 
 export enum MATH_SUBJECTS {
+  // TODO: fix typo
   PREALGREBA = 'prealgebra',
   ALGEBRA_ONE = 'algebraOne',
   ALGEBRA_TWO = 'algebraTwo',

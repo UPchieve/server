@@ -151,7 +151,7 @@ export default {
       )
     },
     downtimeMessage() {
-      if (isEnabled('downtime-banner-4-10')) {
+      if (isEnabled(FEATURE_FLAGS.DOWNTIME_BANNER)) {
         return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
       } else {
         return ''
