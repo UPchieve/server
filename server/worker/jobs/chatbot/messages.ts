@@ -8,10 +8,13 @@ import { getIdFromModelReference } from '../../../utils/model-reference'
 import QueueService from '../../../services/QueueService'
 import { Jobs } from '../index'
 import { isSubjectUsingDocumentEditor } from '../../../utils/session-utils'
-import { endSession } from '../../../services/SessionService'
+
+const ONE_MINUTE = 1 * 60 * 1000
+const WAIT_FOR_MATCH = 2 * ONE_MINUTE
+const WAIT_FOR_REPLY = 1 * ONE_MINUTE
 
 // TODO: actually implement this function (part of another ticket)
-async function volutneerOnDeck(sessionId: Types.ObjectId): Promise<boolean> {
+async function volunteerOnDeck(sessionId: Types.ObjectId): Promise<boolean> {
   return true
 }
 
@@ -22,6 +25,10 @@ export async function updateActivityStatus(
   sessionId: Types.ObjectId
 ): Promise<void> {
   socket.emit('activity-prompt-sent', { sessionId })
+}
+
+export async function autoEndSession(sessionId: Types.ObjectId): Promise<void> {
+  socket.emit('auto-end-session', { sessionId })
 }
 
 interface ChatbotMessage {
@@ -83,7 +90,7 @@ const m3a = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session._id },
-      { delay: 2 * 60 * 1000 }
+      { delay: WAIT_FOR_MATCH }
     )
   },
 }
@@ -100,7 +107,7 @@ const m3b = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session._id },
-      { delay: 2 * 60 * 1000 }
+      { delay: WAIT_FOR_MATCH }
     )
   },
 }
@@ -117,7 +124,7 @@ const m3c = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session._id },
-      { delay: 2 * 60 * 1000 }
+      { delay: WAIT_FOR_MATCH }
     )
   },
 }
@@ -131,8 +138,9 @@ const m4 = {
       !session.volunteerJoinedAt &&
       !session.endedAt &&
       !!lastChatbotMsg &&
-      (await volutneerOnDeck(session._id)) &&
-      moment().subtract(1, 'minutes') > moment(session.createdAt) &&
+      (await volunteerOnDeck(session._id)) &&
+      moment().subtract(WAIT_FOR_MATCH - ONE_MINUTE, 'milliseconds') >=
+        moment(session.createdAt) &&
       (lastChatbotMsg.contents === m3a.content ||
         lastChatbotMsg.contents === m3b.content ||
         lastChatbotMsg.contents === m3c.content)
@@ -143,7 +151,7 @@ const m4 = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session._id },
-      { delay: 2 * 60 * 1000 }
+      { delay: WAIT_FOR_REPLY }
     )
   },
 }
@@ -157,8 +165,7 @@ const m5 = {
       !session.volunteerJoinedAt &&
       !session.endedAt &&
       !!lastChatbotMsg &&
-      (lastChatbotMsg.contents === m4.content ||
-        lastChatbotMsg.contents === m6.content) &&
+      lastChatbotMsg.contents === m4.content &&
       session.messages.some(
         msg =>
           msg.createdAt > lastChatbotMsg.createdAt &&
@@ -172,7 +179,7 @@ const m5 = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session._id },
-      { delay: 2 * 60 * 1000 }
+      { delay: WAIT_FOR_MATCH }
     )
     await textMoreVolunteers(session._id)
   },
@@ -187,8 +194,9 @@ const m6 = {
       !session.volunteerJoinedAt &&
       !session.endedAt &&
       !!lastChatbotMsg &&
-      (await volutneerOnDeck(session._id)) &&
-      moment().subtract(1, 'minutes') > moment(lastChatbotMsg.createdAt) &&
+      (await volunteerOnDeck(session._id)) &&
+      moment().subtract(WAIT_FOR_MATCH - ONE_MINUTE, 'milliseconds') >=
+        moment(lastChatbotMsg.createdAt) &&
       lastChatbotMsg.contents === m5.content
     )
   },
@@ -197,8 +205,37 @@ const m6 = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session._id },
-      { delay: 2 * 60 * 1000 }
+      { delay: WAIT_FOR_REPLY }
     )
+  },
+}
+
+const m7 = {
+  key: 'M7',
+  content: 'seventh message - reply confirmed',
+  requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
+    const lastChatbotMsg = lastChatbotMessage(session, chatbot)
+    return (
+      !session.volunteerJoinedAt &&
+      !session.endedAt &&
+      !!lastChatbotMsg &&
+      lastChatbotMsg.contents === m6.content &&
+      session.messages.some(
+        msg =>
+          msg.createdAt > lastChatbotMsg.createdAt &&
+          getIdFromModelReference(session.student).equals(
+            getIdFromModelReference(msg.user)
+          )
+      )
+    )
+  },
+  action: async (session: SessionForChatbot) => {
+    await QueueService.add(
+      Jobs.Chatbot,
+      { sessionId: session._id },
+      { delay: WAIT_FOR_MATCH }
+    )
+    await textMoreVolunteers(session._id)
   },
 }
 
@@ -214,17 +251,13 @@ const m8 = {
       !session.volunteerJoinedAt &&
       !session.endedAt &&
       !!lastChatbotMsg &&
-      moment().subtract(1, 'minutes') > moment(lastChatbotMsg.createdAt) &&
-      lastChatbotMsg.contents === m5.content &&
-      chatbotMessages.length === 7
+      moment().subtract(WAIT_FOR_MATCH - ONE_MINUTE, 'milliseconds') >=
+        moment(lastChatbotMsg.createdAt) &&
+      lastChatbotMsg.contents === m7.content
     )
   },
   action: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
-    await endSession({
-      sessionId: session._id,
-      isAdmin: true,
-      endedBy: chatbot,
-    })
+    await autoEndSession(session._id)
   },
 }
 
@@ -241,7 +274,8 @@ const m9 = {
     )
     return (
       !!lastPromptMsg &&
-      moment().subtract(1, 'minutes') > moment(lastPromptMsg.createdAt) &&
+      moment().subtract(WAIT_FOR_REPLY - ONE_MINUTE, 'milliseconds') >=
+        moment(lastPromptMsg.createdAt) &&
       !session.messages.some(
         msg =>
           msg.createdAt > lastPromptMsg.createdAt &&
@@ -252,11 +286,7 @@ const m9 = {
     )
   },
   action: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
-    await endSession({
-      sessionId: session._id,
-      isAdmin: true,
-      endedBy: chatbot,
-    })
+    await autoEndSession(session._id)
   },
 }
 
@@ -268,8 +298,8 @@ export const MESSAGES: ChatbotMessage[] = [
   m3c,
   m4,
   m5,
-  m6, // TODO: does m6 exist?
-  // TODO: is there an m7??
+  m6,
+  m7,
   m8,
   m9,
 ]
