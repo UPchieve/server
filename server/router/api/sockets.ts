@@ -22,7 +22,9 @@ import getSessionRoom from '../../utils/get-session-room'
 import { getIdFromModelReference } from '../../utils/model-reference'
 import logger from '../../logger'
 import * as cache from '../../cache'
-import { CHATBOT_EMAIL, SESSION_ACTIVITY_KEY } from '../../constants'
+import { CHATBOT_CACHE_KEY, CHATBOT_EMAIL, SESSION_ACTIVITY_KEY } from '../../constants'
+import { asObjectId } from '../../utils/type-utils'
+import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 
 // Custom API key handlers
 function validateApiKey(key: string) {
@@ -126,7 +128,7 @@ export function routeSockets(
       }
     }
 
-    if (!chatbot) chatbot = await UserRepo.getUserIdByEmail(CHATBOT_EMAIL)
+    chatbot = await lookupChatbotFromCache()
     if (!chatbot) logger.error(`Chatbot user not found`)
     else {
       // chatbot activity prompt handler
