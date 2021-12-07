@@ -1,12 +1,10 @@
 import { Types } from 'mongoose'
 import { Job } from 'bull'
-import { getUserIdByEmail } from '../../../models/User/queries'
 import {
   getSessionMessagesById,
   SessionForChatbot,
 } from '../../../models/Session/queries'
 import socket from '../../sockets'
-import { CHATBOT_EMAIL } from '../../../constants'
 import { log } from '../../logger'
 import { safeAsync } from '../../../utils/safe-async'
 import { MESSAGES, ChatbotMessage } from './messages'

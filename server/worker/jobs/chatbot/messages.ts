@@ -8,15 +8,11 @@ import { getIdFromModelReference } from '../../../utils/model-reference'
 import QueueService from '../../../services/QueueService'
 import { Jobs } from '../index'
 import { isSubjectUsingDocumentEditor } from '../../../utils/session-utils'
+import { volunteersAvailableForSession } from '../../../services/SessionService'
 
 const ONE_MINUTE = 1 * 60 * 1000
 export const WAIT_FOR_MATCH = 10 * ONE_MINUTE
 export const WAIT_FOR_REPLY = 3 * ONE_MINUTE
-
-// TODO: actually implement this function (part of another ticket)
-async function volunteerOnDeck(sessionId: Types.ObjectId): Promise<boolean> {
-  return true
-}
 
 // TODO: actually implement this function (part of another ticket)
 async function textMoreVolunteers(sessionId: Types.ObjectId): Promise<void> {}
@@ -147,7 +143,7 @@ export const m4 = {
       !session.volunteerJoinedAt &&
       !session.endedAt &&
       !!lastChatbotMsg &&
-      (await volunteerOnDeck(session._id)) &&
+      (await volunteersAvailableForSession(session._id, session.subTopic)) &&
       moment().subtract(WAIT_FOR_MATCH - ONE_MINUTE, 'milliseconds') >=
         moment(lastChatbotMsg.createdAt) &&
       (lastChatbotMsg.contents === m3a.content() ||
@@ -205,7 +201,7 @@ export const m6 = {
       !session.volunteerJoinedAt &&
       !session.endedAt &&
       !!lastChatbotMsg &&
-      (await volunteerOnDeck(session._id)) &&
+      (await volunteersAvailableForSession(session._id, session.subTopic)) &&
       moment().subtract(WAIT_FOR_MATCH - ONE_MINUTE, 'milliseconds') >=
         moment(lastChatbotMsg.createdAt) &&
       lastChatbotMsg.contents === m5.content()
