@@ -20,7 +20,7 @@ import formatMultiWordSubject from '../utils/format-multi-word-subject'
 import Case from 'case'
 import logger from '../logger'
 import { Types } from 'mongoose'
-import { VERIFICATION_METHOD } from '../constants'
+import { MATH_CERTS, VERIFICATION_METHOD } from '../constants'
 import { getIdFromModelReference } from '../utils/model-reference'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
@@ -191,7 +191,8 @@ export async function sendFollowupText(
 export async function notifyVolunteer(
   session: Session
 ): Promise<Types.ObjectId | undefined> {
-  let subtopic = session.subTopic
+  // typed as `any` because `subtopic` gets reassigned as a regex query object if `subtopic` is algebraTwo
+  let subtopic: any = session.subTopic
   const activeSessionVolunteers = await getActiveSessionVolunteers()
   const notifiedLastFifteenMins = await getVolunteersNotifiedSinceDate(
     relativeDate(15 * 60 * 1000)
@@ -214,7 +215,13 @@ export async function notifyVolunteer(
   // lack of volunteers when high-level subjects are requested
   const highLevelSubjects = ['calculusAB', 'chemistry', 'statistics']
   const isHighLevelSubject = highLevelSubjects.includes(subtopic)
-  const subjectsFilter: any = { $eq: subtopic }
+  let subjectsFilter: any = { $eq: subtopic }
+  // Temporarily notify tutors with algebraTwo-temporary as subject
+  // TODO: remove once algebraTwo-temporary is removed
+  if (subtopic === MATH_CERTS.ALGEBRA_TWO) {
+    subjectsFilter = { $regex: MATH_CERTS.ALGEBRA_TWO }
+    subtopic = { $regex: MATH_CERTS.ALGEBRA_TWO }
+  }
   // If the current subject is not a high level subject,
   // filter out volunteers who have high level subjects
   if (!isHighLevelSubject) subjectsFilter['$nin'] = highLevelSubjects

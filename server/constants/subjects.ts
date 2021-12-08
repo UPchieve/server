@@ -16,7 +16,10 @@ export enum TRAINING {
 export enum MATH_CERTS {
   // TODO: fix typo
   PREALGREBA = 'prealgebra',
+  // TODO: remove algebra once algebra 2 is launched as a cert
   ALGEBRA = 'algebra',
+  ALGEBRA_ONE = 'algebraOne',
+  ALGEBRA_TWO = 'algebraTwo',
   GEOMETRY = 'geometry',
   TRIGONOMETRY = 'trigonometry',
   PRECALCULUS = 'precalculus',
@@ -197,6 +200,8 @@ export enum SUBJECT_TYPES {
   READING_WRITING = 'readingWriting',
 }
 
+export type ACTIVE_MATH_CERTS = Exclude<MATH_CERTS, 'algebraOne' | 'algebraTwo'>
+
 export type ACTIVE_COLLEGE_CERTS = Exclude<
   COLLEGE_CERTS,
   'sportsRecruitmentPlanning' | 'financialAid'
@@ -208,7 +213,7 @@ export type ACTIVE_TRAINING_CERTS = Exclude<
 >
 
 export type ACTIVE_QUIZ_CATEGORIES =
-  | MATH_CERTS
+  | ACTIVE_MATH_CERTS
   | SCIENCE_CERTS
   | ACTIVE_COLLEGE_CERTS
   | SAT_CERTS
