@@ -13,7 +13,6 @@ import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import { Session } from '../../models/Session'
 import { User } from '../../models/User'
-import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
@@ -22,25 +21,14 @@ import getSessionRoom from '../../utils/get-session-room'
 import { getIdFromModelReference } from '../../utils/model-reference'
 import logger from '../../logger'
 import * as cache from '../../cache'
-import {
-  CHATBOT_EMAIL,
-  FEATURE_FLAGS,
-  SESSION_ACTIVITY_KEY,
-} from '../../constants'
+import { FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import { isEnabled } from 'unleash-client'
 
 // Custom API key handlers
-function validateApiKey(key: string) {
+async function handleChatBot(socket: Socket, key: string) {
   logger.debug(`Attempted key: ${key}`)
   if (key !== config.socketApiKey) throw new Error('User not authenticated')
-}
-
-async function handleChatBot(socket: Socket, key: string) {
-  validateApiKey(key)
-  const bot = await UserRepo.getUserByEmail(CHATBOT_EMAIL)
-  if (!bot) throw new Error('Chatbot user not found')
-  socket.join(bot._id.toString())
   logger.debug('Chatbot connected to socket!')
 }
 
