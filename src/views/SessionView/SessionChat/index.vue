@@ -522,6 +522,7 @@ export default {
   background-color: $c-background-grey;
   border-radius: 20px;
   max-width: 80%;
+  white-space: pre-line;
 }
 
 // transition element rulesets
