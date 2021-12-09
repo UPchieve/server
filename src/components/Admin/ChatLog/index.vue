@@ -5,6 +5,7 @@
       <div v-if="volunteer">🍎 {{ volunteer.firstname }}</div>
     </div>
     <div class="chat-log__messages-container">
+      <!-- TODO: use session chat component when it is created -->
       <chat-message
         v-for="message in messages"
         :message="message"
@@ -14,6 +15,8 @@
           'chat-log__message--right':
             volunteer && message.user === volunteer._id
         }"
+        :student="student"
+        :volunteer="volunteer"
       />
     </div>
   </div>
@@ -57,7 +60,7 @@ export default {
 
   &__message {
     align-self: flex-start;
-    margin: 5px 0;
+    margin: 1em 0;
 
     &--right {
       align-self: flex-end;
