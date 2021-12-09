@@ -3,7 +3,6 @@ import { getStudent } from '../../../models/Student/queries'
 import { USER_BAN_REASON } from '../../../constants'
 import * as MailService from '../../../services/MailService'
 import { safeAsync } from '../../../utils/safe-async'
-import { EMAIL_RECIPIENT } from '../../../utils/aggregation-snippets'
 import { asObjectId } from '../../../utils/type-utils'
 
 export interface EmailSessionReportedJobData {
@@ -24,10 +23,13 @@ async function emailReportedSession(
   const studentId = asObjectId(job.data.studentId)
   const sessionId = asObjectId(job.data.sessionId)
 
+  // a student should receive this email regardless of banned status
   // need full student to create sendGrid contact below
   const student = await getStudent({
-    ...EMAIL_RECIPIENT,
     _id: studentId,
+    isDeactivated: false,
+    isFakeUser: false,
+    isTestUser: false,
   })
 
   const errors: string[] = []

@@ -21,12 +21,12 @@
         }"
       >
         <whiteboard
+          ref="whiteboard"
           v-if="auxiliaryType === 'WHITEBOARD'"
           :sessionId="sessionId"
           :isWhiteboardOpen="auxiliaryOpen"
           :toggleWhiteboard="toggleAuxiliary"
           :isSessionOver="isSessionOver"
-          :openFileDialog="openFileDialog"
         />
         <document-editor v-else />
       </div>
@@ -115,13 +115,8 @@ export default {
     window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy() {
+    window.Gleap.removeCustomData("sessionId")
     window.removeEventListener('resize', this.handleResize)
-    if (this.mobileMode) {
-      const papercupsToggle = document.querySelector(
-        '.Papercups-toggleButtonContainer'
-      )
-      if (papercupsToggle) papercupsToggle.style.display = 'initial'
-    }
   },
   /*
    * @notes
@@ -204,13 +199,6 @@ export default {
     }
   },
   mounted() {
-    if (this.mobileMode) {
-      const papercupsToggle = document.querySelector(
-        '.Papercups-toggleButtonContainer'
-      )
-      if (papercupsToggle) papercupsToggle.style.display = 'none'
-    }
-
     const id = this.$route.params.sessionId
 
     let promise
@@ -261,6 +249,7 @@ export default {
 
         if (!this.$socket.connected) await this.$socket.connect()
         this.joinSession(sessionId)
+        if (window.Gleap) window.Gleap.setCustomData("sessionId", sessionId)
         this.$store.dispatch('user/sessionConnected')
 
         if (
@@ -372,8 +361,8 @@ export default {
     tryClicked() {
       this.sessionReconnecting = true
     },
-    openFileDialog() {
-      document.querySelector('.upload-photo').click()
+    openFileDialog(event) {
+      this.$refs.whiteboard.openFileDialog(event)
     },
     setHasSeenNewMessage(value) {
       this.hasSeenNewMessage = value
@@ -455,14 +444,12 @@ export default {
 .auxiliary-container,
 .chat-container {
   @include breakpoint-above('medium') {
-    height: 100%;
     border-radius: 8px;
     overflow: hidden;
   }
 
   @include breakpoint-below('medium') {
     width: 100%;
-    height: 100%;
   }
 }
 
@@ -473,6 +460,8 @@ export default {
   overflow: hidden;
   position: relative;
 
+  // TODO: research performance implications of position: absolute
+  // vs alternatives and how they impact DOM reflow triggers
   &--hidden {
     position: absolute;
     width: 100%;
@@ -485,6 +474,8 @@ export default {
 .chat-container {
   padding: 0;
   max-width: 100%;
+  display: flex;
+  flex-direction: column;
 
   &--hidden {
     display: none;
@@ -494,6 +485,8 @@ export default {
     min-width: 300px;
     flex-basis: 300px;
     position: relative;
+    // offsets the session-header height
+    padding-top: 70px;
   }
 
   @include breakpoint-above('large') {
@@ -515,7 +508,7 @@ export default {
   transition: 0.4s;
 
   @include breakpoint-below('medium') {
-    bottom: 33px;
+    bottom: 40px;
   }
 
   &__photo-upload {

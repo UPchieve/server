@@ -12,6 +12,7 @@ import SessionHeader from './SessionHeader'
 import RejoinSessionHeader from './RejoinSessionHeader'
 import WaitingPeriodHeader from './WaitingPeriodHeader'
 import BannedStudentHeader from './BannedStudentHeader'
+import AlgebraTwoLaunchHeader from './AlgebraTwoLaunchHeader'
 
 export default {
   name: 'app-header',
@@ -21,7 +22,8 @@ export default {
     SessionHeader,
     RejoinSessionHeader,
     WaitingPeriodHeader,
-    BannedStudentHeader
+    BannedStudentHeader,
+    AlgebraTwoLaunchHeader
   },
   computed: {
     ...mapState({

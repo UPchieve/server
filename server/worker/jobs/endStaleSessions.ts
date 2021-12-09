@@ -8,11 +8,13 @@ export default async (): Promise<void> => {
   const errors: string[] = []
   for (const session of staleSessions) {
     try {
-      await SessionService.endSession({
-        sessionId: session._id,
-        isAdmin: true,
-        endedBy: null,
-      })
+      await SessionService.endSession(
+        session._id,
+        null,
+        true,
+        undefined,
+        undefined
+      )
       totalEnded += 1
     } catch (error) {
       errors.push(`session ${session._id}: ${error}`)

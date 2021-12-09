@@ -7,6 +7,7 @@ import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
+import { asObjectId } from '../../utils/type-utils'
 
 // TODO: figure out a better way to expose SocketService
 export function routeSession(router: Router, io: Server) {
@@ -32,14 +33,15 @@ export function routeSession(router: Router, io: Server) {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
       const user = extractUser(req)
-      await SessionService.finishSession(
-        user,
+      await SessionService.endSession(
+        asObjectId(req.body.sessionId),
+        user._id,
+        false,
+        socketService,
         {
-          ...req.body,
-          userAgent: req.get('User-Agent'),
+          userAgent: req.get('User-Agent') || '',
           ip: req.ip,
-        } as unknown,
-        socketService
+        }
       )
       res.json({ sessionId: req.body.sessionId })
     } catch (error) {
