@@ -16,6 +16,7 @@ import {
 import { Message } from '../Message'
 import { Notification } from '../Notification'
 import { Student } from '../Student'
+import { getStudentContactInfoById } from '../Student/queries'
 import { Volunteer } from '../Volunteer'
 import SessionModel, { Session } from './index'
 
@@ -1084,7 +1085,8 @@ export type SessionForChatbot = Pick<
   | 'createdAt'
   | 'endedAt'
   | 'student'
->
+  | 'notifications'
+> & { firstname: string }
 export async function getSessionMessagesById(
   sessionId: Types.ObjectId
 ): Promise<SessionForChatbot | undefined> {
@@ -1100,12 +1102,23 @@ export async function getSessionMessagesById(
         createdAt: 1,
         endedAt: 1,
         student: 1,
+        notifications: 1
       }
     )
-      .select('messages')
+      .populate('messages')
       .lean()
       .exec()
-    if (result) return result as SessionForChatbot
+    // TODO: compress this to a single lookup
+    if (result) {
+      const student = await getStudentContactInfoById(
+        result.student as Types.ObjectId
+      )
+      if (student)
+        return {
+          ...result,
+          firstname: student.firstname,
+        } as SessionForChatbot
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }

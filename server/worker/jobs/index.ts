@@ -265,7 +265,7 @@ const jobProcessors: JobProcessor[] = [
   },
 ]
 
-// Each bul processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615
+// Each Bull processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615
 // TODO: determine concurrency at runtime
 EventEmitter.defaultMaxListeners = jobProcessors.length * 8
 

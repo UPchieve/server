@@ -13,7 +13,6 @@ import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import { Session } from '../../models/Session'
 import { User } from '../../models/User'
-import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
@@ -22,19 +21,14 @@ import getSessionRoom from '../../utils/get-session-room'
 import { getIdFromModelReference } from '../../utils/model-reference'
 import logger from '../../logger'
 import * as cache from '../../cache'
-import { CHATBOT_EMAIL, SESSION_ACTIVITY_KEY } from '../../constants'
+import { FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
+import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
+import { isEnabled } from 'unleash-client'
 
 // Custom API key handlers
-function validateApiKey(key: string) {
+async function handleChatBot(socket: Socket, key: string) {
   logger.debug(`Attempted key: ${key}`)
   if (key !== config.socketApiKey) throw new Error('User not authenticated')
-}
-
-async function handleChatBot(socket: Socket, key: string) {
-  validateApiKey(key)
-  const bot = await UserRepo.getUserByEmail(CHATBOT_EMAIL)
-  if (!bot) throw new Error('Chatbot user not found')
-  socket.join(bot._id.toString())
   logger.debug('Chatbot connected to socket!')
 }
 
@@ -126,32 +120,60 @@ export function routeSockets(
       }
     }
 
-    if (!chatbot) chatbot = await UserRepo.getUserIdByEmail(CHATBOT_EMAIL)
-    if (!chatbot) logger.error(`Chatbot user not found`)
+    if (isEnabled(FEATURE_FLAGS.CHATBOT)) {
+      chatbot = await lookupChatbotFromCache()
+      if (!chatbot) logger.error(`Chatbot user not found`)
+      else {
+        // chatbot activity prompt handler
+        socket.on('activity-prompt-sent', async function(data) {
+          newrelic.startWebTransaction(
+            '/socket-io/chatbot',
+            () =>
+              new Promise<void>(async (resolve, reject) => {
+                try {
+                  const { sessionId } = data
+                  if (!sessionId)
+                    throw new Error('SessionId not included in payload')
+                  logger.debug('Acitivty prompt sent for session ', sessionId)
+                  await cache.saveWithExpiration(
+                    `${SESSION_ACTIVITY_KEY}-${sessionId}`,
+                    'true',
+                    60 * 45
+                  )
+                  resolve()
+                } catch (err) {
+                  reject(err)
+                }
+              })
+          )
+        })
 
-    // chatbot handler
-    socket.on('activity-prompt-sent', async function(data) {
-      newrelic.startWebTransaction(
-        '/socket-io/chatbot',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const { sessionId } = data
-              if (!sessionId)
-                throw new Error('SessionId not included in payload')
-              logger.debug('Acitivty prompt sent for session ', sessionId)
-              await cache.saveWithExpiration(
-                `${SESSION_ACTIVITY_KEY}-${sessionId}`,
-                'true',
-                60 * 45
-              )
-              resolve()
-            } catch (err) {
-              reject(err)
-            }
-          })
-      )
-    })
+        // chatbot end session handler
+        socket.on('auto-end-session', async function(data) {
+          newrelic.startWebTransaction(
+            '/socket-io/chatbot',
+            () =>
+              new Promise<void>(async (resolve, reject) => {
+                try {
+                  const { sessionId } = data
+                  if (!sessionId)
+                    throw new Error('SessionId not included in payload')
+                  logger.debug('Chatbot ending session ', sessionId)
+                  SessionService.endSession(
+                    sessionId,
+                    null,
+                    true,
+                    socketService
+                  )
+                  resolve()
+                } catch (err) {
+                  reject(err)
+                }
+              })
+          )
+        })
+      }
+    }
 
     // Tutor session management
     socket.on('join', async function(data) {
@@ -279,7 +301,7 @@ export function routeSockets(
                 contents: message,
                 createdAt: createdAt,
                 isVolunteer: user.isVolunteer,
-                userId: user._id,
+                user: user._id,
               }
 
               const socketRoom = getSessionRoom(data.sessionId)
