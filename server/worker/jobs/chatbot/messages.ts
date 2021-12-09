@@ -20,9 +20,15 @@ async function textMoreVolunteers(session: SessionForChatbot): Promise<void> {
   //queue job only if at least 10 minutes have passed since last notification round
   //else delay by required time
   const now = Date.now()
-  if (now - lastNotificationRound(session) >= WAIT_FOR_REPLY) {
-    await QueueService.add(Jobs.NotifyTutors, { sessionId: session._id })
-  }
+  var delay = 0
+  if (now - lastNotificationRound(session) <= WAIT_FOR_REPLY)
+    delay = WAIT_FOR_REPLY - now - lastNotificationRound(session)
+
+  await QueueService.add(
+    Jobs.NotifyTutors,
+    { sessionId: session._id },
+    { delay: delay }
+  )
 }
 
 export async function updateActivityStatus(
