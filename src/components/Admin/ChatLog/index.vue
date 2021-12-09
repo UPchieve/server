@@ -1,8 +1,8 @@
 <template>
   <div class="chat-log">
     <div class="chat-log__header">
-      <div v-if="student">🎓 {{ student.firstname }}</div>
-      <div v-if="volunteer">🍎 {{ volunteer.firstname }}</div>
+      <div v-if="student"><student-icon class="chat-log__icon"/> {{ student.firstname }}</div>
+      <div v-if="volunteer"><volunteer-icon class="chat-log__icon"/> {{ volunteer.firstname }}</div>
     </div>
     <div class="chat-log__messages-container">
       <!-- TODO: use session chat component when it is created -->
@@ -24,11 +24,13 @@
 
 <script>
 import ChatMessage from './ChatMessage'
+import StudentIcon from '@/assets/student-icon.svg'
+import VolunteerIcon from '@/assets/volunteer-icon.svg'
 
 export default {
   name: 'ChatLog',
 
-  components: { ChatMessage },
+  components: { ChatMessage, StudentIcon, VolunteerIcon },
 
   props: {
     messages: Array[Object],
@@ -66,6 +68,11 @@ export default {
       align-self: flex-end;
       text-align: right;
     }
+  }
+
+  &__icon {
+    width: 30px;
+    height: 30px;
   }
 }
 </style>
