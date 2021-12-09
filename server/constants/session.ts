@@ -24,3 +24,5 @@ export const SESSION_REPORT_REASON = {
 export const SESSION_ACTIVITY_KEY = 'activity-prompt'
 
 export const CHATBOT_EMAIL = 'chatbot@upchieve.org'
+
+export const CHATBOT_CACHE_KEY = 'chatbot'

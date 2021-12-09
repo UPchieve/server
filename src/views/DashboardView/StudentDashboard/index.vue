@@ -126,7 +126,7 @@ export default {
         (this.currentHour >= 0 && this.currentHour < 3) ||
         (this.currentHour >= 9 && this.currentHour < 12)
       )
-        return 'Heads up: we have less coaches available than normal right now. Try making requests between 12pm-12am ET when possible!'
+        return 'Heads up: we have fewer coaches available than normal right now. Try making requests between 12pm-12am ET when possible!'
 
       return ''
     },
@@ -151,7 +151,7 @@ export default {
       )
     },
     downtimeMessage() {
-      if (isEnabled('downtime-banner-4-10')) {
+      if (isEnabled(FEATURE_FLAGS.DOWNTIME_BANNER)) {
         return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
       } else {
         return ''

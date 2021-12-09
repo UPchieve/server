@@ -25,16 +25,18 @@
         {{ partnerRating.name }}: <strong>{{ partnerRating.value }}/5</strong>
       </template>
     </div>
-    <div v-for="feedback in volunteerFeedback" :key="feedback.key">
-      <p v-if="feedback.value">
-        {{ feedback.key }}:
-        <span class="feedback-preview__value">{{ feedback.value }}</span>
-      </p>
-    </div>
+    <template v-if="!isStudentFeedback">
+      <div v-for="feedback in volunteerFeedback" :key="feedback.key">
+        <p v-if="feedback.value">
+          {{ feedback.key }}:
+          <span class="feedback-preview__value">{{ feedback.value }}</span>
+        </p>
+      </div>
+    </template>
     <div v-if="writtenFeedback" class="feedback-preview__written">
       {{ writtenFeedback }}
     </div>
-    <div v-if="coachFeedback" class="feedback-preview__written">
+    <div v-if="isStudentFeedback && coachFeedback" class="feedback-preview__written">
       Feedback on coach: {{ coachFeedback }}
     </div>
   </div>
@@ -47,7 +49,11 @@ export default {
   name: 'FeedbackPreview',
 
   props: {
-    feedback: Object
+    feedback: Object,
+    userType: {
+      type: String,
+      required: true
+    }
   },
 
   computed: {
@@ -64,19 +70,27 @@ export default {
       return ''
     },
 
+    isStudentFeedback(){
+      return this.userType === 'student'
+    },
+
     writtenFeedback() {
-      const otherFeedbackKeys = [
+      let otherFeedback = ''
+      const studentFeedbackKeys = [
         'studentTutoringFeedback.other-feedback',
         'studentCounselingFeedback.other-feedback',
+      ]
+      const volunteerFeedbackKeys = [
         'volunteerFeedback.other-feedback',
+      ]
+      const legacyFeedbackKeys = [
         'responseData.other-feedback'
       ]
-      for (const feedbackKey of otherFeedbackKeys) {
-        const otherFeedback = get(this.feedback, feedbackKey, null)
-        if (otherFeedback) return otherFeedback
-      }
-
-      return ''
+      if(this.isStudentFeedback)
+        otherFeedback = this.getOtherFeedback([...studentFeedbackKeys, ...legacyFeedbackKeys])
+      else otherFeedback = this.getOtherFeedback([...volunteerFeedbackKeys, ...legacyFeedbackKeys])
+      
+      return otherFeedback
     },
 
     coachFeedback() {
@@ -101,9 +115,8 @@ export default {
     },
 
     partnerRatings() {
-      const isStudent = get(this.feedback, 'userType') === 'student'
       let path = ''
-      if (isStudent) {
+      if (this.isStudentFeedback) {
         if (this.feedback.versionNumber === 1)
           path = 'responseData.coach-ratings'
         else if (this.feedback.versionNumber === 2)
@@ -111,7 +124,7 @@ export default {
       } else path = 'responseData.session-experience'
       let ratings = get(this.feedback, path, {})
 
-      if (isStudent && isEmpty(ratings)) {
+      if (this.isStudentFeedback && isEmpty(ratings)) {
         let updatedPath = 'responseData'
         if (
           this.feedback.versionNumber === 2 &&
@@ -185,6 +198,15 @@ export default {
       return options[
         this.feedback.volunteerFeedback['student-understanding'] - 1
       ]
+    }
+  },
+  methods: {
+    getOtherFeedback(otherFeedbackKeys){
+      for (const feedbackKey of otherFeedbackKeys) {
+        const otherFeedback = get(this.feedback, feedbackKey, null)
+        if (otherFeedback) return otherFeedback
+      }
+      return ''
     }
   }
 }

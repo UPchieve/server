@@ -21,6 +21,8 @@ import {
   volunteerPartnerManifests,
   StudentPartnerManifest,
   studentPartnerManifests,
+  SponsorOrgManifest,
+  sponsorOrgManifests,
 } from '../partnerManifests'
 
 import {
@@ -377,8 +379,8 @@ export async function lookupStudentPartners(): Promise<PartnerOrg[]> {
   const partnerOrgs = []
   for (const [key, value] of Object.entries(studentPartnerManifests) as [
     string,
-    any
-  ]) {
+    StudentPartnerManifest
+  ][]) {
     partnerOrgs.push({
       key,
       displayName: value.name ? value.name : key,
@@ -393,15 +395,29 @@ export async function lookupVolunteerPartners(): Promise<PartnerOrg[]> {
   const partnerOrgs = []
   for (const [key, value] of Object.entries(volunteerPartnerManifests) as [
     string,
-    any
-  ]) {
+    VolunteerPartnerManifest
+  ][]) {
     partnerOrgs.push({
       key,
       displayName: value.name ? value.name : key,
-      sites: value.sites ? value.sites : undefined,
     })
   }
   return partnerOrgs
+}
+
+// Handles /partner/sponsor-orgs route (admin only)
+export async function lookupSponsorOrgs(): Promise<PartnerOrg[]> {
+  const sponsorOrgs = []
+  for (const [key, value] of Object.entries(sponsorOrgManifests) as [
+    string,
+    SponsorOrgManifest
+  ][]) {
+    sponsorOrgs.push({
+      key,
+      displayName: value.name ? value.name : key,
+    })
+  }
+  return sponsorOrgs
 }
 
 // Password reset handlers

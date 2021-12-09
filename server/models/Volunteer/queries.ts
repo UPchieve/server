@@ -368,7 +368,7 @@ export async function getVolunteersForTelecomReport(
 
 export async function getVolunteersNotifiedSinceDate(
   sinceDate: Date
-): Promise<Volunteer[]> {
+): Promise<Types.ObjectId[]> {
   try {
     const notifications = await NotificationModel.find({
       sentAt: { $gt: sinceDate },
@@ -377,7 +377,22 @@ export async function getVolunteersNotifiedSinceDate(
       .lean()
       .exec()
 
-    return notifications.map(notif => notif.volunteer as Volunteer)
+    return notifications.map(notif => notif.volunteer as Types.ObjectId)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteersNotifiedBySessionId(
+  sessionId: Types.ObjectId
+): Promise<Types.ObjectId[]> {
+  try {
+    const notifications = await NotificationModel.find({ sessionId: sessionId })
+      .select('volunteer')
+      .lean()
+      .exec()
+
+    return notifications.map(notif => notif.volunteer as Types.ObjectId)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -393,6 +408,28 @@ export async function getVolunteerByReference(
       .lean()
       .exec()
     if (volunteer) return volunteer as Volunteer
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteersOnDeck(
+  subject: string,
+  excludedVolunteerIds: Types.ObjectId[],
+  availabilityPath: string
+): Promise<Pick<Volunteer, '_id'>[]> {
+  try {
+    const volunteers = await VolunteerModel.find(
+      {
+        subjects: subject,
+        _id: { $nin: excludedVolunteerIds },
+        [availabilityPath]: true,
+      },
+      { _id: 1 }
+    )
+      .lean()
+      .exec()
+    return volunteers
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -6,6 +6,7 @@ import * as db from '../db'
 import initializeUnleash from '../utils/initialize-unleash'
 import logger from '../logger'
 import { addJobProcessors } from './jobs'
+import { startSocket } from './sockets'
 
 const main = async (): Promise<void> => {
   try {
@@ -24,6 +25,7 @@ const main = async (): Promise<void> => {
       logger.error(`error in queue: ${error}`)
       newrelic.noticeError(error)
     })
+    startSocket()
     addJobProcessors(queue)
   } catch (error) {
     newrelic.noticeError(error as Error)
