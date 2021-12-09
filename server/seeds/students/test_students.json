@@ -3,7 +3,7 @@
     "email": "student1@upchieve.org",
     "firstname": "Student",
     "isAdmin": false,
-    "isTestUser": true,
+    "isTestUser": false,
     "isVolunteer": false,
     "lastname": "Upchieve",
     "password": "$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y",

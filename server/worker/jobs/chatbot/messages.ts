@@ -77,8 +77,8 @@ export const m2 = {
 
 export const m3a = {
   key: 'M3A',
-  content: () => `To save time, please respond to the questions below in the chat and copy and paste what you’re working on into the document editor.
-  ❓ What do you need help with today?
+  content: () => `To save time, please respond to the questions below in the chat and copy and paste what you’re working on into the document editor.\n
+  ❓ What do you need help with today?\n
   💡 What do you think you should do first?`,
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) =>
     !session.volunteerJoinedAt &&
@@ -97,8 +97,8 @@ export const m3a = {
 
 export const m3b = {
   key: 'M3B',
-  content: () => `To save time, please respond to the questions below in the chat and upload any photos or write out problems on the whiteboard.
-  ❓ What do you need help with today?
+  content: () => `To save time, please respond to the questions below in the chat and upload any photos or write out problems on the whiteboard.\n
+  ❓ What do you need help with today?\n
   💡 What do you think the first step is?`,
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) =>
     !session.volunteerJoinedAt &&
@@ -116,8 +116,8 @@ export const m3b = {
 
 export const m3c = {
   key: 'M3C',
-  content: () => `To save time, please respond to the questions below in the chat and if it makes sense, copy and paste what you’re working on into the document editor.
-  ❓ What do you hope to accomplish today?
+  content: () => `To save time, please respond to the questions below in the chat and if it makes sense, copy and paste what you’re working on into the document editor.\n
+  ❓ What do you hope to accomplish today?\n
   💡 Where do you think we should start?`,
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) =>
     !session.volunteerJoinedAt &&
