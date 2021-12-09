@@ -4,32 +4,52 @@ import * as db from 'zapatos/db'
 import pool from '../../../pg-pool'
 
 interface csvPostalCodeRecord {
-    zipcode: string
-    income: number
-    state: string
-    longitude: number
-    latitude: number
+  zipcode: string
+  income: number
+  state: string
+  longitude: number
+  latitude: number
 }
 
 export async function postalCodes() {
-    const zipFile = await fs.readFileSync(`${__dirname}/aggregated_data.csv`)
-    const zipRecords: csvPostalCodeRecord[] = await parse(zipFile, {delimiter: ',', columns: true})
-    const recordInsertions = zipRecords.map((record: csvPostalCodeRecord) => {
-            const typedRecord = record as csvPostalCodeRecord
-            const excludedTerritories = ['VI', 'GU', 'AE', 'AA', 'AP', 'AS', 'PR', 'PW', 'FM', 'MP', 'MH']
-            if (excludedTerritories.includes(record.state)) return Promise.resolve()
-            return db.insert('postal_codes', [
-                {code: typedRecord.zipcode,
-                    us_state_code: typedRecord.state,
-                    income: typedRecord.income,
-                    created_at: new Date(),
-                    updated_at: new Date(),
-                    location: db.sql`point(${db.param(typedRecord.latitude)},${db.param(typedRecord.longitude)})`
-                }
-            ]).run(pool)
-            .then(() => {
-                return
-            })
-        })
-    await Promise.all(recordInsertions)
+  const zipFile = await fs.readFileSync(`${__dirname}/aggregated_data.csv`)
+  const zipRecords: csvPostalCodeRecord[] = await parse(zipFile, {
+    delimiter: ',',
+    columns: true,
+  })
+  const recordInsertions = zipRecords.map((record: csvPostalCodeRecord) => {
+    const typedRecord = record as csvPostalCodeRecord
+    const excludedTerritories = [
+      'VI',
+      'GU',
+      'AE',
+      'AA',
+      'AP',
+      'AS',
+      'PR',
+      'PW',
+      'FM',
+      'MP',
+      'MH',
+    ]
+    if (excludedTerritories.includes(record.state)) return Promise.resolve()
+    return db
+      .insert('postal_codes', [
+        {
+          code: typedRecord.zipcode,
+          us_state_code: typedRecord.state,
+          income: typedRecord.income,
+          created_at: new Date(),
+          updated_at: new Date(),
+          location: db.sql`point(${db.param(typedRecord.latitude)},${db.param(
+            typedRecord.longitude
+          )})`,
+        },
+      ])
+      .run(pool)
+      .then(() => {
+        return
+      })
+  })
+  await Promise.all(recordInsertions)
 }

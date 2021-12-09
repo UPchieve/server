@@ -9,7 +9,7 @@ services:
             - POSTGRES_USER=admin
             - POSTGRES_PASSWORD=Password123
         volumes:
-            - ./database/schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
+            - ./database/schema.sql:/docker-entrypoint-initdb.d/init_db.sql
             - ./database/auth.sql:/docker-entrypoint-initdb.d/init_roles.sql
     mongodb:
         ports:

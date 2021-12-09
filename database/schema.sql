@@ -122,6 +122,50 @@ ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
 
 
 --
+-- Name: certification_subject_unlocks; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.certification_subject_unlocks (
+    subject_id integer NOT NULL,
+    certification_id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: certifications; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.certifications (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: certifications_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.certifications_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: certifications_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.certifications_id_seq OWNED BY upchieve.certifications.id;
+
+
+--
 -- Name: cities; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -152,54 +196,6 @@ CREATE SEQUENCE upchieve.cities_id_seq
 --
 
 ALTER SEQUENCE upchieve.cities_id_seq OWNED BY upchieve.cities.id;
-
-
---
--- Name: computed_subject_composition; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.computed_subject_composition (
-    subject_id integer NOT NULL,
-    computed_subject_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: computed_subjects; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.computed_subjects (
-    id integer NOT NULL,
-    name text NOT NULL,
-    display_name text NOT NULL,
-    display_order smallint NOT NULL,
-    topic_id integer NOT NULL,
-    tool_type_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: computed_subjects_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.computed_subjects_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: computed_subjects_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.computed_subjects_id_seq OWNED BY upchieve.computed_subjects.id;
 
 
 --
@@ -480,6 +476,18 @@ CREATE TABLE upchieve.pre_session_surveys (
 
 
 --
+-- Name: quiz_certification_grants; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.quiz_certification_grants (
+    quiz_id integer NOT NULL,
+    certification_id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: quiz_questions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -546,18 +554,6 @@ CREATE SEQUENCE upchieve.quiz_subcategories_id_seq
 --
 
 ALTER SEQUENCE upchieve.quiz_subcategories_id_seq OWNED BY upchieve.quiz_subcategories.id;
-
-
---
--- Name: quiz_subject_unlocks; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.quiz_subject_unlocks (
-    subject_id integer NOT NULL,
-    quiz_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
 
 
 --
@@ -1258,13 +1254,12 @@ CREATE TABLE upchieve.users (
 
 
 --
--- Name: users_computed_subjects; Type: TABLE; Schema: upchieve; Owner: -
+-- Name: users_certifications; Type: TABLE; Schema: upchieve; Owner: -
 --
 
-CREATE TABLE upchieve.users_computed_subjects (
+CREATE TABLE upchieve.users_certifications (
     user_id uuid NOT NULL,
-    computed_subject_id integer NOT NULL,
-    unlocked boolean DEFAULT false NOT NULL,
+    certification_id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -1304,19 +1299,6 @@ CREATE TABLE upchieve.users_quizzes (
 CREATE TABLE upchieve.users_roles (
     user_id uuid NOT NULL,
     role_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: users_subjects; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.users_subjects (
-    user_id uuid NOT NULL,
-    subject_id integer NOT NULL,
-    unlocked boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -1450,17 +1432,17 @@ ALTER TABLE ONLY upchieve.ban_reasons ALTER COLUMN id SET DEFAULT nextval('upchi
 
 
 --
+-- Name: certifications id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.certifications ALTER COLUMN id SET DEFAULT nextval('upchieve.certifications_id_seq'::regclass);
+
+
+--
 -- Name: cities id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.cities ALTER COLUMN id SET DEFAULT nextval('upchieve.cities_id_seq'::regclass);
-
-
---
--- Name: computed_subjects id; Type: DEFAULT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.computed_subjects ALTER COLUMN id SET DEFAULT nextval('upchieve.computed_subjects_id_seq'::regclass);
 
 
 --
@@ -1660,6 +1642,30 @@ ALTER TABLE ONLY upchieve.ban_reasons
 
 
 --
+-- Name: certification_subject_unlocks certification_subject_unlocks_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.certification_subject_unlocks
+    ADD CONSTRAINT certification_subject_unlocks_pkey PRIMARY KEY (subject_id, certification_id);
+
+
+--
+-- Name: certifications certifications_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.certifications
+    ADD CONSTRAINT certifications_name_key UNIQUE (name);
+
+
+--
+-- Name: certifications certifications_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.certifications
+    ADD CONSTRAINT certifications_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cities cities_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -1673,38 +1679,6 @@ ALTER TABLE ONLY upchieve.cities
 
 ALTER TABLE ONLY upchieve.cities
     ADD CONSTRAINT cities_pkey PRIMARY KEY (id);
-
-
---
--- Name: computed_subject_composition computed_subject_composition_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.computed_subject_composition
-    ADD CONSTRAINT computed_subject_composition_pkey PRIMARY KEY (subject_id, computed_subject_id);
-
-
---
--- Name: computed_subjects computed_subjects_display_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.computed_subjects
-    ADD CONSTRAINT computed_subjects_display_name_key UNIQUE (display_name);
-
-
---
--- Name: computed_subjects computed_subjects_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.computed_subjects
-    ADD CONSTRAINT computed_subjects_name_key UNIQUE (name);
-
-
---
--- Name: computed_subjects computed_subjects_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.computed_subjects
-    ADD CONSTRAINT computed_subjects_pkey PRIMARY KEY (id);
 
 
 --
@@ -1860,6 +1834,14 @@ ALTER TABLE ONLY upchieve.pre_session_surveys
 
 
 --
+-- Name: quiz_certification_grants quiz_certification_grants_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.quiz_certification_grants
+    ADD CONSTRAINT quiz_certification_grants_pkey PRIMARY KEY (certification_id, quiz_id);
+
+
+--
 -- Name: quiz_questions quiz_questions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -1873,14 +1855,6 @@ ALTER TABLE ONLY upchieve.quiz_questions
 
 ALTER TABLE ONLY upchieve.quiz_subcategories
     ADD CONSTRAINT quiz_subcategories_pkey PRIMARY KEY (id);
-
-
---
--- Name: quiz_subject_unlocks quiz_subject_unlocks_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.quiz_subject_unlocks
-    ADD CONSTRAINT quiz_subject_unlocks_pkey PRIMARY KEY (subject_id, quiz_id);
 
 
 --
@@ -2236,11 +2210,11 @@ ALTER TABLE ONLY upchieve.user_session_metrics
 
 
 --
--- Name: users_computed_subjects users_computed_subjects_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: users_certifications users_certifications_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.users_computed_subjects
-    ADD CONSTRAINT users_computed_subjects_pkey PRIMARY KEY (user_id, computed_subject_id);
+ALTER TABLE ONLY upchieve.users_certifications
+    ADD CONSTRAINT users_certifications_pkey PRIMARY KEY (user_id, certification_id);
 
 
 --
@@ -2289,14 +2263,6 @@ ALTER TABLE ONLY upchieve.users
 
 ALTER TABLE ONLY upchieve.users_roles
     ADD CONSTRAINT users_roles_pkey PRIMARY KEY (user_id, role_id);
-
-
---
--- Name: users_subjects users_subjects_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.users_subjects
-    ADD CONSTRAINT users_subjects_pkey PRIMARY KEY (user_id, subject_id);
 
 
 --
@@ -2419,43 +2385,27 @@ ALTER TABLE ONLY upchieve.availability_histories
 
 
 --
+-- Name: certification_subject_unlocks certification_subject_unlocks_certification_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.certification_subject_unlocks
+    ADD CONSTRAINT certification_subject_unlocks_certification_id_fkey FOREIGN KEY (certification_id) REFERENCES upchieve.certifications(id);
+
+
+--
+-- Name: certification_subject_unlocks certification_subject_unlocks_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.certification_subject_unlocks
+    ADD CONSTRAINT certification_subject_unlocks_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
 -- Name: cities cities_us_state_code_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.cities
     ADD CONSTRAINT cities_us_state_code_fkey FOREIGN KEY (us_state_code) REFERENCES upchieve.us_states(code);
-
-
---
--- Name: computed_subject_composition computed_subject_composition_computed_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.computed_subject_composition
-    ADD CONSTRAINT computed_subject_composition_computed_subject_id_fkey FOREIGN KEY (computed_subject_id) REFERENCES upchieve.computed_subjects(id);
-
-
---
--- Name: computed_subject_composition computed_subject_composition_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.computed_subject_composition
-    ADD CONSTRAINT computed_subject_composition_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
-
-
---
--- Name: computed_subjects computed_subjects_tool_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.computed_subjects
-    ADD CONSTRAINT computed_subjects_tool_type_id_fkey FOREIGN KEY (tool_type_id) REFERENCES upchieve.tool_types(id);
-
-
---
--- Name: computed_subjects computed_subjects_topic_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.computed_subjects
-    ADD CONSTRAINT computed_subjects_topic_id_fkey FOREIGN KEY (topic_id) REFERENCES upchieve.topics(id);
 
 
 --
@@ -2595,6 +2545,22 @@ ALTER TABLE ONLY upchieve.pre_session_surveys
 
 
 --
+-- Name: quiz_certification_grants quiz_certification_grants_certification_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.quiz_certification_grants
+    ADD CONSTRAINT quiz_certification_grants_certification_id_fkey FOREIGN KEY (certification_id) REFERENCES upchieve.certifications(id);
+
+
+--
+-- Name: quiz_certification_grants quiz_certification_grants_quiz_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.quiz_certification_grants
+    ADD CONSTRAINT quiz_certification_grants_quiz_id_fkey FOREIGN KEY (quiz_id) REFERENCES upchieve.quizzes(id);
+
+
+--
 -- Name: quiz_questions quiz_questions_quiz_subcategory_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2608,22 +2574,6 @@ ALTER TABLE ONLY upchieve.quiz_questions
 
 ALTER TABLE ONLY upchieve.quiz_subcategories
     ADD CONSTRAINT quiz_subcategories_quiz_id_fkey FOREIGN KEY (quiz_id) REFERENCES upchieve.quizzes(id);
-
-
---
--- Name: quiz_subject_unlocks quiz_subject_unlocks_quiz_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.quiz_subject_unlocks
-    ADD CONSTRAINT quiz_subject_unlocks_quiz_id_fkey FOREIGN KEY (quiz_id) REFERENCES upchieve.quizzes(id);
-
-
---
--- Name: quiz_subject_unlocks quiz_subject_unlocks_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.quiz_subject_unlocks
-    ADD CONSTRAINT quiz_subject_unlocks_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
 
 
 --
@@ -2923,19 +2873,19 @@ ALTER TABLE ONLY upchieve.users
 
 
 --
--- Name: users_computed_subjects users_computed_subjects_computed_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: users_certifications users_certifications_certification_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.users_computed_subjects
-    ADD CONSTRAINT users_computed_subjects_computed_subject_id_fkey FOREIGN KEY (computed_subject_id) REFERENCES upchieve.subjects(id);
+ALTER TABLE ONLY upchieve.users_certifications
+    ADD CONSTRAINT users_certifications_certification_id_fkey FOREIGN KEY (certification_id) REFERENCES upchieve.certifications(id);
 
 
 --
--- Name: users_computed_subjects users_computed_subjects_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: users_certifications users_certifications_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.users_computed_subjects
-    ADD CONSTRAINT users_computed_subjects_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+ALTER TABLE ONLY upchieve.users_certifications
+    ADD CONSTRAINT users_certifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -2976,22 +2926,6 @@ ALTER TABLE ONLY upchieve.users_quizzes
 
 ALTER TABLE ONLY upchieve.users
     ADD CONSTRAINT users_signup_source_id_fkey FOREIGN KEY (signup_source_id) REFERENCES upchieve.signup_sources(id);
-
-
---
--- Name: users_subjects users_subjects_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.users_subjects
-    ADD CONSTRAINT users_subjects_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
-
-
---
--- Name: users_subjects users_subjects_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.users_subjects
-    ADD CONSTRAINT users_subjects_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -3075,15 +3009,14 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20211109210900'),
     ('20211109210901'),
     ('20211109210902'),
-    ('20211109210903'),
-    ('20211109210904'),
     ('20211109210905'),
     ('20211109210906'),
     ('20211109210907'),
     ('20211109210908'),
+    ('20211109210909'),
     ('20211109210916'),
+    ('20211109210917'),
     ('20211109210918'),
-    ('20211109210920'),
     ('20211109211000'),
     ('20211109211001'),
     ('20211109211002'),
