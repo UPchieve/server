@@ -273,6 +273,18 @@ describe('Test simple routes hit AuthService', () => {
     expect(partnerOrgs).toEqual(payload)
   })
 
+  test('Route /partner/sponsor-orgs', async () => {
+    const payload: any[] = []
+    mockedAuthService.lookupSponsorOrgs.mockResolvedValueOnce(payload)
+    const response = await sendGet('/partner/sponsor-orgs', {})
+
+    const {
+      body: { sponsorOrgs },
+    } = response
+    expect(AuthService.lookupSponsorOrgs).toHaveBeenCalledTimes(1)
+    expect(sponsorOrgs).toEqual(payload)
+  })
+
   test('Route /reset/confirm', async () => {
     const response = await sendPost('/reset/confirm', {})
 

@@ -57,7 +57,6 @@ import * as UserActionRepo from '../../models/UserAction/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as AwsService from '../../services/AwsService'
-import * as FeedbackService from '../../services/FeedbackService'
 import * as FeedbackRepo from '../../models/Feedback/queries'
 import SocketService from '../../services/SocketService'
 import * as PushTokenRepo from '../../models/PushToken/queries'
@@ -98,11 +97,9 @@ jest.mock('../../models/User/queries')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedAssistmentsDataRepo = mocked(AssistmentsDataRepo, true)
-const mockedFeedbackService = mocked(FeedbackService, true)
 const mockedFeedbackRepo = mocked(FeedbackRepo, true)
 const mockedAwsService = mocked(AwsService, true)
 const mockedPushTokenRepo = mocked(PushTokenRepo, true)
-const mockedPushTokenService = mocked(PushTokenService, true)
 const mockedCache = mocked(cache, true)
 const mockedQuillDocService = mocked(QuillDocService, true)
 const mockedWhiteboardService = mocked(WhiteboardService, true)
@@ -110,6 +107,7 @@ const mockedUSMRepo = mocked(USMRepo, true)
 const mockedVolunteerRepo = mocked(VolunteerRepo, true)
 const mockedUserActionRepo = mocked(UserActionRepo, true)
 const mockedUserRepo = mocked(UserRepo, true)
+const mockedTwilioService = mocked(TwilioService, true)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -280,16 +278,11 @@ describe('reportSession', () => {
 describe('endSession', () => {
   test('Should throw session has already ended', async () => {
     const mockedSession = mockedGetSessionToEnd({ endedAt: new Date() })
-    const input = {
-      sessionId: mockedSession._id,
-      endedBy: null,
-      isAdmin: false,
-    }
     mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
       async () => mockedSession
     )
     try {
-      await SessionService.endSession(input)
+      await SessionService.endSession(mockedSession._id, null, false)
       fail('should throw error')
     } catch (error) {
       expect(error).toBeInstanceOf(EndSessionError)
@@ -301,18 +294,17 @@ describe('endSession', () => {
 
   test('Should throw only session participants can end a session', async () => {
     const mockedSession = mockedGetSessionToEnd()
-    const input = {
-      sessionId: mockedSession._id,
-      endedBy: buildStudent()._id,
-      isAdmin: false,
-    }
     mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
       async () => mockedSession
     )
     const spy = jest.spyOn(SessionUtils, 'isSessionParticipant')
     spy.mockImplementationOnce(() => false)
     try {
-      await SessionService.endSession(input)
+      await SessionService.endSession(
+        mockedSession._id,
+        buildStudent()._id,
+        false
+      )
       fail('should throw error')
     } catch (error) {
       expect(error).toBeInstanceOf(EndSessionError)
@@ -1061,42 +1053,6 @@ describe('startSession', () => {
   })
 })
 
-describe('finishSession', () => {
-  test.todo('endSession should be mocked')
-  mockedCache.get.mockImplementationOnce(async () => {
-    throw new cache.KeyNotFoundError('test')
-  })
-  test('Should finish a session', async () => {
-    const user = buildVolunteer()
-    const input = {
-      ip: getIpAddress(),
-      sessionId: getStringObjectId(),
-      userAgent: getUserAgent(),
-    }
-
-    const socketServer = mockSocketServer(mockApp())
-    const socketService = new SocketService(socketServer)
-    const session = buildSession({
-      volunteer: user,
-      endedBy: user._id,
-      student: buildStudent()._id,
-    })
-
-    // @todo: call a mocked version or spy of SessionService.endSession
-    const mockedSessionToEnd = mockedGetSessionToEnd({ ...session })
-    mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
-      async () => mockedSessionToEnd
-    )
-    mockedSessionRepo.getSessionById.mockImplementationOnce(async () => session)
-
-    await SessionService.finishSession(user, input, socketService)
-    expect(socketService.emitSessionChange).toHaveBeenCalledTimes(1)
-    expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
-
-    socketServer.close()
-  })
-})
-
 describe('checkSession', () => {
   test('Should get session', async () => {
     const mockValue = mockedGetSessionById()
@@ -1450,5 +1406,80 @@ describe('getWaitTimeHeatMap', () => {
     const result = await SessionService.getWaitTimeHeatMap(buildVolunteer())
     expect(JSON.parse(mockedHeatMap)).toEqual(result)
     expect(cache.get).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('volunteersAvailableForSession', () => {
+  const sessionId = getObjectId()
+  const subject = SUBJECTS.PREALGREBA
+  const notifiedAlready = [getObjectId()]
+  const notifiedLastFifteenMins = [getObjectId(), getObjectId()]
+  const volunteersInActiveSessions = [getObjectId()]
+  const availabilityPath = 'availability.Monday.12p'
+  const volunteersToExclude = [
+    ...volunteersInActiveSessions,
+    ...notifiedAlready,
+    ...notifiedLastFifteenMins,
+  ]
+
+  test('Should return true if there are more volunteers available to notify', async () => {
+    const volunteersOnDeck = [buildVolunteer(), buildVolunteer()]
+
+    mockedTwilioService.getCurrentAvailabilityPath.mockReturnValue(
+      availabilityPath
+    )
+    mockedTwilioService.getActiveSessionVolunteers.mockResolvedValueOnce(
+      volunteersInActiveSessions
+    )
+    mockedVolunteerRepo.getVolunteersNotifiedBySessionId.mockResolvedValueOnce(
+      notifiedAlready
+    )
+    mockedVolunteerRepo.getVolunteersNotifiedSinceDate.mockResolvedValueOnce(
+      notifiedLastFifteenMins
+    )
+    mockedVolunteerRepo.getVolunteersOnDeck.mockResolvedValueOnce(
+      volunteersOnDeck
+    )
+    const result = await SessionService.volunteersAvailableForSession(
+      sessionId,
+      subject
+    )
+    expect(result).toBeTruthy()
+    expect(mockedVolunteerRepo.getVolunteersOnDeck).toHaveBeenCalledWith(
+      subject,
+      volunteersToExclude,
+      availabilityPath
+    )
+  })
+
+  test('Should return false if there are no more volunteers available to notify', async () => {
+    const volunteersOnDeck: Volunteer[] = []
+
+    mockedTwilioService.getCurrentAvailabilityPath.mockReturnValue(
+      availabilityPath
+    )
+    mockedTwilioService.getActiveSessionVolunteers.mockResolvedValueOnce(
+      volunteersInActiveSessions
+    )
+    mockedVolunteerRepo.getVolunteersNotifiedBySessionId.mockResolvedValueOnce(
+      notifiedAlready
+    )
+    mockedVolunteerRepo.getVolunteersNotifiedSinceDate.mockResolvedValueOnce(
+      notifiedLastFifteenMins
+    )
+    mockedVolunteerRepo.getVolunteersOnDeck.mockResolvedValueOnce(
+      volunteersOnDeck
+    )
+
+    const result = await SessionService.volunteersAvailableForSession(
+      sessionId,
+      subject
+    )
+    expect(result).toBeFalsy()
+    expect(mockedVolunteerRepo.getVolunteersOnDeck).toHaveBeenCalledWith(
+      subject,
+      volunteersToExclude,
+      availabilityPath
+    )
   })
 })

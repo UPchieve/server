@@ -103,7 +103,7 @@
       <div class="session-detail__section-title">
         Student feedback
       </div>
-      <feedback-preview :feedback="studentFeedback" />
+      <feedback-preview :feedback="studentFeedback" :userType="'student'" />
     </div>
     <div
       v-if="volunteerFeedback"
@@ -112,7 +112,7 @@
       <div class="session-detail__section-title">
         Volunteer feedback
       </div>
-      <feedback-preview :feedback="volunteerFeedback" />
+      <feedback-preview :feedback="volunteerFeedback" :userType="'volunteer'"/>
     </div>
     <div v-if="session.photos.length > 0" class="session-detail__section">
       <div class="session-detail__section-title">Photos</div>
@@ -195,10 +195,10 @@ export default {
       return endedBy ? endedBy.firstname : '?'
     },
     studentFeedback() {
-      return (this.session.feedbacks.studentTutoringFeedback || this.session.feedbacks.studentCounselingFeedback) ? this.session.feedbacks : null
+      return this.session.feedbacks && (this.session.feedbacks.studentTutoringFeedback || this.session.feedbacks.studentCounselingFeedback) ? this.session.feedbacks : null
     },
     volunteerFeedback() {
-      return this.session.feedbacks.volunteerFeedback ? this.session.feedbacks : null
+      return this.session.feedbacks && this.session.feedbacks.volunteerFeedback ? this.session.feedbacks : null
     },
     devicePlatform() {
       if (

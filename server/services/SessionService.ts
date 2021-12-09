@@ -44,6 +44,7 @@ import * as PushTokenService from './PushTokenService'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
+import * as TwilioService from './TwilioService'
 import {
   beginFailsafeNotifications,
   beginRegularNotifications,
@@ -195,15 +196,17 @@ export async function addPastSession(sessionId: Types.ObjectId) {
     throw new Error(`errors saving past session:\n${errors.join('\n')}`)
 }
 
-export async function endSession({
-  sessionId,
-  endedBy = null,
-  isAdmin = false,
-}: {
-  sessionId: Types.ObjectId
-  endedBy: Types.ObjectId | null
-  isAdmin?: boolean
-}) {
+export async function endSession(
+  sessionId: Types.ObjectId,
+  endedBy: Types.ObjectId | null = null,
+  isAdmin: boolean = false,
+  socketService?: SocketService,
+  identifiers?: sessionUtils.RequestIdentifier
+) {
+  const reqIdentifiers = identifiers
+    ? sessionUtils.asRequestIdentifiers(identifiers)
+    : undefined
+
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.endedAt)
     throw new sessionUtils.EndSessionError('Session has already ended')
@@ -224,6 +227,15 @@ export async function endSession({
   await addPastSession(session._id)
 
   emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
+
+  if (socketService) await socketService.emitSessionChange(sessionId)
+  if (endedBy && reqIdentifiers)
+    await new UserActionCtrl.SessionActionCreator(
+      endedBy,
+      sessionId.toString(),
+      reqIdentifiers.userAgent,
+      reqIdentifiers.ip
+    ).endedSession()
 }
 
 // registered as listener
@@ -591,8 +603,8 @@ export async function startSession(user: User, data: unknown) {
   )
 
   // Begin chat bot messages immedeately
-  //if (isEnabled(FEATURE_FLAGS.CHATBOT))
-  await QueueService.add(Jobs.Chatbot, { sessionId: newSession._id })
+  if (isEnabled(FEATURE_FLAGS.CHATBOT))
+    await QueueService.add(Jobs.Chatbot, { sessionId: newSession._id })
 
   await new UserActionCtrl.SessionActionCreator(
     user._id,
@@ -602,27 +614,6 @@ export async function startSession(user: User, data: unknown) {
   ).requestedSession()
 
   return newSession._id
-}
-
-export async function finishSession(
-  user: User,
-  data: unknown,
-  socketService: SocketService
-) {
-  const { sessionId, userAgent, ip } = sessionUtils.asFinishSessionData(data)
-
-  await endSession({
-    sessionId,
-    endedBy: user._id,
-  })
-  // TODO: figure out a better way to instantiate socketService
-  await socketService.emitSessionChange(sessionId)
-  await new UserActionCtrl.SessionActionCreator(
-    user._id,
-    sessionId.toString(),
-    userAgent,
-    ip
-  ).endedSession()
 }
 
 export async function checkSession(data: unknown) {
@@ -809,6 +800,36 @@ export async function getWaitTimeHeatMap(
     throw new NotAllowedError('Only volunteers may view the heat map')
   const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
   return JSON.parse(heatMap)
+}
+
+export async function volunteersAvailableForSession(
+  sessionId: Types.ObjectId,
+  subject: string
+): Promise<boolean> {
+  const availabilityPath = TwilioService.getCurrentAvailabilityPath()
+  const [
+    activeVolunteers,
+    notifiedForSession,
+    notifiedLastFifteenMins,
+  ] = await Promise.all([
+    TwilioService.getActiveSessionVolunteers(),
+    VolunteerRepo.getVolunteersNotifiedBySessionId(sessionId),
+    VolunteerRepo.getVolunteersNotifiedSinceDate(
+      TwilioService.relativeDate(15 * 60 * 1000)
+    ),
+  ])
+  const excludedVolunteers = [
+    ...activeVolunteers,
+    ...notifiedForSession,
+    ...notifiedLastFifteenMins,
+  ]
+  const volunteers = await VolunteerRepo.getVolunteersOnDeck(
+    subject,
+    excludedVolunteers,
+    availabilityPath
+  )
+
+  return volunteers.length > 0
 }
 
 export async function handleMessageActivity(
