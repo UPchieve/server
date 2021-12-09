@@ -2,7 +2,7 @@
   <div class="session-header-wrapper">
     <div :class="{ inactive: !isSessionInProgress }" class="session-header">
       <div class="avatar-info-container">
-        <div :style="partnerAvatar" class="avatar" />
+        <component :is="partnerAvatar" class="avatar" />
         <div class="info">
           <template v-if="isSessionEnding">
             <loading-message message="Ending session" />
@@ -91,8 +91,9 @@ import { mapState, mapGetters } from 'vuex'
 
 import SessionService from '@/services/SessionService'
 import router from '@/router'
-import StudentAvatarUrl from '@/assets/defaultavatar3.png'
-import VolunteerAvatarUrl from '@/assets/defaultavatar4.png'
+import StudentIcon from '@/assets/student-icon.svg'
+import VolunteerIcon from '@/assets/volunteer-icon.svg'
+import ChatBotIcon from '@/assets/chat-bot-icon.svg'
 import LoadingMessage from '@/components/LoadingMessage'
 import TroubleMatchingModal from '@/views/SessionView/TroubleMatchingModal'
 import UnmatchedModal from '@/views/SessionView/UnmatchedModal'
@@ -156,15 +157,11 @@ export default {
     }),
 
     partnerAvatar() {
-      let picture = ''
-      if (this.user.isVolunteer === false) {
-        picture = VolunteerAvatarUrl
-      } else {
-        picture = StudentAvatarUrl
-      }
-      return {
-        backgroundImage: `url(${picture})`
-      }
+      if (this.isSessionWaitingForVolunteer) return ChatBotIcon
+      if (this.user.isVolunteer)
+        return StudentIcon
+      else 
+        return VolunteerIcon
     }
   },
   methods: {
@@ -403,8 +400,6 @@ h1 {
   width: 36px;
   height: 36px;
   border-radius: 18px;
-  background-image: url('~@/assets/defaultAvatar@2x.png');
-  background-size: cover;
   flex-shrink: 0;
 }
 
