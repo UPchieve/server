@@ -1103,10 +1103,8 @@ export async function getSessionMessagesById(
         student: 1,
       }
     )
-      .populate('messages')
       .lean()
       .exec()
-    // TODO: compress this to a single lookup
     if (result) {
       const student = await getStudentContactInfoById(
         result.student as Types.ObjectId
