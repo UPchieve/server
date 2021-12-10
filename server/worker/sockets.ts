@@ -3,13 +3,12 @@ import config from '../config'
 import logger from '../logger'
 
 // https://socket.io/docs/v2/client-initialization - "From a different domain" section
-const socket = io(config.socketAddress, {
+const socket = io(`http://${config.clusterServerAddress}:${config.socketsPort}`, {
   query: `key=${config.socketApiKey}`,
   autoConnect: false,
   reconnectionDelay: 3000,
   reconnection: true,
   transports: ['websocket'],
-  agent: false,
   upgrade: false,
 })
 
