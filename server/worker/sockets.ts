@@ -6,6 +6,11 @@ import logger from '../logger'
 const socket = io(config.socketAddress, {
   query: `key=${config.socketApiKey}`,
   autoConnect: false,
+  reconnectionDelay: 3000,
+  reconnection: true,
+  transports: ['websocket'],
+  agent: false,
+  upgrade: false,
 })
 
 socket.on('connect', () => {
