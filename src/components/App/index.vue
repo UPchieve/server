@@ -49,7 +49,6 @@ import AnalyticsService from '@/services/AnalyticsService'
 import config from '@/config'
 import LargeButton from '@/components/LargeButton'
 import Gleap from 'gleap'
-import 'gleap/build/index.min.css'
 
 export default {
   name: 'App',
