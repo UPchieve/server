@@ -21,7 +21,11 @@ const posthogUrl = 'https://p.upchieve.org'
 const unleashUrl = 'https://gitlab.com'
 const sentryUrl = 'https://*.ingest.sentry.io'
 const mathJaxFetchUrl = 'https://api.cdnjs.com'
-const gleapConnectUrls = ['https://uptime.gleap.io', 'https://api.gleap.io', gleapScriptUrl]
+const gleapConnectUrls = [
+  'https://uptime.gleap.io',
+  'https://api.gleap.io',
+  gleapScriptUrl,
+]
 
 // img srcs
 const s3PhotoConnectUrls = [
