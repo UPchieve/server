@@ -158,6 +158,7 @@ export default {
 
     partnerAvatar() {
       if (this.isSessionWaitingForVolunteer) return ChatBotIcon
+      // show the current user their partner's avatar
       if (this.user.isVolunteer)
         return StudentIcon
       else 
