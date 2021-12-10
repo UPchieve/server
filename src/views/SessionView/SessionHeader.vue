@@ -98,6 +98,8 @@ import TroubleMatchingModal from '@/views/SessionView/TroubleMatchingModal'
 import UnmatchedModal from '@/views/SessionView/UnmatchedModal'
 import sendWebNotification from '@/utils/send-web-notification'
 import Case from 'case'
+import { isEnabled } from 'unleash-client'
+import { FEATURE_FLAGS } from '@/consts'
 
 /**
  * @todo {1} Refactoring candidate: use a modal instead.
@@ -289,7 +291,8 @@ export default {
       router.push(url)
     },
     toggleTroubleMatchingModal() {
-      this.showTroubleMatchingModal = !this.showTroubleMatchingModal
+      if (isEnabled(FEATURE_FLAGS.CHATBOT)) this.showTroubleMatchingModal = false
+      else this.showTroubleMatchingModal = !this.showTroubleMatchingModal
     },
     toggleUnmatchedModal() {
       this.showUnmatchedModal = !this.showUnmatchedModal

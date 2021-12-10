@@ -271,8 +271,8 @@ export default {
     },
 
     isSessionWaitingForVolunteer: state => {
-      // Early exit if the session doesn't exist
-      if (!state.session.createdAt) {
+      // Early exit if the session doesn't exist or has ended
+      if (!state.session.createdAt || !!state.session.endedAt) {
         return false
       }
 

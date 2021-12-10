@@ -20,3 +20,9 @@ export const SESSION_REPORT_REASON = {
   STUDENT_RUDE: 'This student was extremely rude or inappropriate',
   STUDENT_SAFETY: 'I am worried for the immediate safety of this student',
 }
+
+export const SESSION_ACTIVITY_KEY = 'activity-prompt'
+
+export const CHATBOT_EMAIL = 'chatbot@upchieve.org'
+
+export const CHATBOT_CACHE_KEY = 'chatbot'

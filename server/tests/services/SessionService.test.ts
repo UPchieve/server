@@ -278,16 +278,11 @@ describe('reportSession', () => {
 describe('endSession', () => {
   test('Should throw session has already ended', async () => {
     const mockedSession = mockedGetSessionToEnd({ endedAt: new Date() })
-    const input = {
-      sessionId: mockedSession._id,
-      endedBy: null,
-      isAdmin: false,
-    }
     mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
       async () => mockedSession
     )
     try {
-      await SessionService.endSession(input)
+      await SessionService.endSession(mockedSession._id, null, false)
       fail('should throw error')
     } catch (error) {
       expect(error).toBeInstanceOf(EndSessionError)
@@ -299,18 +294,17 @@ describe('endSession', () => {
 
   test('Should throw only session participants can end a session', async () => {
     const mockedSession = mockedGetSessionToEnd()
-    const input = {
-      sessionId: mockedSession._id,
-      endedBy: buildStudent(),
-      isAdmin: false,
-    }
     mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
       async () => mockedSession
     )
     const spy = jest.spyOn(SessionUtils, 'isSessionParticipant')
     spy.mockImplementationOnce(() => false)
     try {
-      await SessionService.endSession(input)
+      await SessionService.endSession(
+        mockedSession._id,
+        buildStudent()._id,
+        false
+      )
       fail('should throw error')
     } catch (error) {
       expect(error).toBeInstanceOf(EndSessionError)
@@ -1056,42 +1050,6 @@ describe('startSession', () => {
     expect(TwilioService.beginFailsafeNotifications).toHaveBeenCalledWith(
       mockValue
     )
-  })
-})
-
-describe('finishSession', () => {
-  test.todo('endSession should be mocked')
-  mockedCache.get.mockImplementationOnce(async () => {
-    throw new cache.KeyNotFoundError('test')
-  })
-  test('Should finish a session', async () => {
-    const user = buildVolunteer()
-    const input = {
-      ip: getIpAddress(),
-      sessionId: getStringObjectId(),
-      userAgent: getUserAgent(),
-    }
-
-    const socketServer = mockSocketServer(mockApp())
-    const socketService = new SocketService(socketServer)
-    const session = buildSession({
-      volunteer: user,
-      endedBy: user._id,
-      student: buildStudent()._id,
-    })
-
-    // @todo: call a mocked version or spy of SessionService.endSession
-    const mockedSessionToEnd = mockedGetSessionToEnd({ ...session })
-    mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
-      async () => mockedSessionToEnd
-    )
-    mockedSessionRepo.getSessionById.mockImplementationOnce(async () => session)
-
-    await SessionService.finishSession(user, input, socketService)
-    expect(socketService.emitSessionChange).toHaveBeenCalledTimes(1)
-    expect(UserActionCtrl.SessionActionCreator).toHaveBeenCalledTimes(1)
-
-    socketServer.close()
   })
 })
 

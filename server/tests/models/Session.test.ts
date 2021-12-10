@@ -791,3 +791,18 @@ describe('updateSessionHasWhiteboardDoc', () => {
     ).rejects.toThrow(DocUpdateError)
   })
 })
+
+describe('getSessionMessagesById', () => {
+  test('Should get only session messages', async () => {
+    const { session } = await insertSession({
+      messages: [
+        buildMessage({ user: getObjectId() }),
+        buildMessage({ user: getObjectId() }),
+      ],
+    })
+
+    const foundSession = await SessionRepo.getSessionMessagesById(session._id)
+
+    expect(foundSession?.messages.length).toBe(2)
+  })
+})

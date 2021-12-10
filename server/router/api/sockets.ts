@@ -3,20 +3,52 @@
  */
 // TODO: types for passport
 const passportSocketIo = require('passport.socketio')
+import { Types } from 'mongoose'
 import Sentry from '@sentry/node'
 import connectMongo from 'connect-mongo'
 import cookieParser from 'cookie-parser'
 import newrelic from 'newrelic'
-import { Server } from 'socket.io'
+import { Server, Socket } from 'socket.io'
 import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import { Session } from '../../models/Session'
+import { User } from '../../models/User'
 import * as SessionRepo from '../../models/Session/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
 import { getIdFromModelReference } from '../../utils/model-reference'
+import logger from '../../logger'
+import * as cache from '../../cache'
+import { FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
+import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
+import { isEnabled } from 'unleash-client'
+
+// Custom API key handlers
+async function handleChatBot(socket: Socket, key: string) {
+  logger.debug(`Attempted key: ${key}`)
+  if (key !== config.socketApiKey) throw new Error('User not authenticated')
+  logger.debug('Chatbot connected to socket!')
+}
+
+async function handleUser(socket: Socket, user: User) {
+  // Join a user to their own room to handle the event where a user might have
+  // multiple socket connections open
+  socket.join(user._id.toString())
+  logger.debug('User connected to socket!')
+
+  const latestSession = await SessionService.currentSession(user._id)
+
+  // @note: students don't join the room by default until they are in the session view
+  // Join user to their latest session if it has not ended
+  if (latestSession && !latestSession.endedAt) {
+    socket.join(getSessionRoom(latestSession._id))
+    socket.emit('session-change', latestSession)
+  }
+
+  if (user && user.isVolunteer) socket.join('volunteers')
+}
 
 // TODO: upgrade socketio and adapter so we can async this whole file
 export function routeSockets(
@@ -47,6 +79,8 @@ export function routeSockets(
     })
   }
 
+  let chatbot: Types.ObjectId | undefined
+
   // Authentication for sockets
   io.use(
     passportSocketIo.authorize({
@@ -56,11 +90,11 @@ export function routeSockets(
       store: sessionStore,
       // only allow authenticated users to connect to the socket instance
       fail: (data: any, message: string, error: Error, accept: any) => {
+        logger.info(`Unauthenticated socket connection attempt: ${message}`)
         if (error) {
-          console.log(new Error(message))
+          logger.error(new Error(message))
           throw new Error(message)
         } else {
-          console.log(message)
           accept(null, false)
         }
       },
@@ -70,26 +104,76 @@ export function routeSockets(
   io.on('connection', async function(socket) {
     const {
       request: { user },
+      handshake: {
+        query: { key: socketApiKey },
+      },
     } = socket
-    if (!user) {
-      socket.emit('redirect')
-      throw new Error('User not authenticated')
+
+    if (user && user.logged_in) {
+      await handleUser(socket, user)
+    } else {
+      if (!socketApiKey) {
+        socket.emit('redirect')
+        throw new Error('User not authenticated')
+      } else {
+        await handleChatBot(socket, socketApiKey)
+      }
     }
 
-    // Join a user to their own room to handle the event where a user might have
-    // multiple socket connections open
-    socket.join(user._id.toString())
+    if (isEnabled(FEATURE_FLAGS.CHATBOT)) {
+      chatbot = await lookupChatbotFromCache()
+      if (!chatbot) logger.error(`Chatbot user not found`)
+      else {
+        // chatbot activity prompt handler
+        socket.on('activity-prompt-sent', async function(data) {
+          newrelic.startWebTransaction(
+            '/socket-io/chatbot',
+            () =>
+              new Promise<void>(async (resolve, reject) => {
+                try {
+                  const { sessionId } = data
+                  if (!sessionId)
+                    throw new Error('SessionId not included in payload')
+                  logger.debug('Acitivty prompt sent for session ', sessionId)
+                  await cache.saveWithExpiration(
+                    `${SESSION_ACTIVITY_KEY}-${sessionId}`,
+                    'true',
+                    60 * 45
+                  )
+                  resolve()
+                } catch (err) {
+                  reject(err)
+                }
+              })
+          )
+        })
 
-    const latestSession = await SessionService.currentSession(user)
-
-    // @note: students don't join the room by default until they are in the session view
-    // Join user to their latest session if it has not ended
-    if (latestSession && !latestSession.endedAt) {
-      socket.join(getSessionRoom(latestSession._id))
-      socket.emit('session-change', latestSession)
+        // chatbot end session handler
+        socket.on('auto-end-session', async function(data) {
+          newrelic.startWebTransaction(
+            '/socket-io/chatbot',
+            () =>
+              new Promise<void>(async (resolve, reject) => {
+                try {
+                  const { sessionId } = data
+                  if (!sessionId)
+                    throw new Error('SessionId not included in payload')
+                  logger.debug('Chatbot ending session ', sessionId)
+                  SessionService.endSession(
+                    sessionId,
+                    null,
+                    true,
+                    socketService
+                  )
+                  resolve()
+                } catch (err) {
+                  reject(err)
+                }
+              })
+          )
+        })
+      }
     }
-
-    if (user && user.isVolunteer) socket.join('volunteers')
 
     // Tutor session management
     socket.on('join', async function(data) {
@@ -201,10 +285,17 @@ export function routeSockets(
 
             try {
               // TODO: correctly type user from passport
-              await SessionService.saveMessage(user, createdAt, {
-                sessionId,
-                message,
-              })
+              await SessionService.saveMessage(
+                user,
+                createdAt,
+                {
+                  sessionId,
+                  message,
+                },
+                chatbot
+              )
+              if (chatbot && !chatbot.equals(user._id))
+                await SessionService.handleMessageActivity(sessionId)
 
               const messageData = {
                 contents: message,
@@ -268,7 +359,7 @@ export function routeSockets(
 
     socket.on('error', function(error) {
       newrelic.startWebTransaction('/socket-io/error', () => {
-        console.log('Socket error: ', error)
+        logger.error(`Socket error: ${error}`)
         Sentry.captureException(error)
       })
     })
