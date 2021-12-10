@@ -127,6 +127,8 @@ export const Config = Record({
   studentPartnerManifestPath: String,
   sponsorOrgManifestPath: String,
 
+  clusterServerAddress: String,
+
   assistmentsBaseURL: String,
   assistmentsToken: String,
   assistmentsAuthSchema: String,

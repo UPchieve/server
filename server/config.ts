@@ -210,6 +210,9 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_SPONSOR_ORG_MANIFEST_PATH ||
     'localManifests/sponsor-orgs.yaml',
 
+  clusterServerAddress:
+    process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',
+
   assistmentsBaseURL:
     process.env.SUBWAY_ASSISTMENTS_BASE_URL || 'https://example.com',
 
