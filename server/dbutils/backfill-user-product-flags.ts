@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import * as db from '../db'
 import UserModel, { User } from '../models/User'
-import { createByUserId } from '../models/UserProductFlags'
+import { createUPFByUserId } from '../models/UserProductFlags/queries'
 import { safeAsync } from '../utils/safe-async'
 import logger from '../logger'
 
@@ -31,7 +31,7 @@ async function main() {
     )
     const errors: Error[] = []
     for (const user of users) {
-      const { error } = await safeAsync(createByUserId(user._id))
+      const { error } = await safeAsync(createUPFByUserId(user._id))
       if (error) {
         logger.error(`Error creating a UserProductFlags doc for ${user._id}`)
         errors.push(error)

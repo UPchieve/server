@@ -8,7 +8,9 @@ import * as cache from '../cache'
 import config from '../config'
 import {
   EVENTS,
+  FEATURE_FLAGS,
   HOURS_UTC,
+  SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SUBJECT_TYPES,
   USER_BAN_REASON,
@@ -194,21 +196,23 @@ export async function addPastSession(sessionId: Types.ObjectId) {
     throw new Error(`errors saving past session:\n${errors.join('\n')}`)
 }
 
-export async function endSession({
-  sessionId,
-  endedBy = null,
-  isAdmin = false,
-}: {
-  sessionId: Types.ObjectId
-  endedBy: User | null
-  isAdmin?: boolean
-}) {
+export async function endSession(
+  sessionId: Types.ObjectId,
+  endedBy: Types.ObjectId | null = null,
+  isAdmin: boolean = false,
+  socketService?: SocketService,
+  identifiers?: sessionUtils.RequestIdentifier
+) {
+  const reqIdentifiers = identifiers
+    ? sessionUtils.asRequestIdentifiers(identifiers)
+    : undefined
+
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.endedAt)
     throw new sessionUtils.EndSessionError('Session has already ended')
   if (
     !isAdmin &&
-    !sessionUtils.isSessionParticipant(session, endedBy ? endedBy._id : null)
+    !sessionUtils.isSessionParticipant(session, endedBy ? endedBy : null)
   )
     throw new sessionUtils.EndSessionError(
       'Only session participants can end a session'
@@ -218,11 +222,20 @@ export async function endSession({
     endedAt: new Date(),
     // NOTE: endedBy is sometimes null when the session is ended by a worker job
     //        due to the session being unmatched for an extended period of time
-    endedBy: endedBy && endedBy._id,
+    endedBy,
   })
   await addPastSession(session._id)
 
   emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
+
+  if (socketService) await socketService.emitSessionChange(sessionId)
+  if (endedBy && reqIdentifiers)
+    await new UserActionCtrl.SessionActionCreator(
+      endedBy,
+      sessionId.toString(),
+      reqIdentifiers.userAgent,
+      reqIdentifiers.ip
+    ).endedSession()
 }
 
 // registered as listener
@@ -589,6 +602,10 @@ export async function startSession(user: User, data: unknown) {
     { delay }
   )
 
+  // Begin chat bot messages immedeately
+  if (isEnabled(FEATURE_FLAGS.CHATBOT))
+    await QueueService.add(Jobs.Chatbot, { sessionId: newSession._id })
+
   await new UserActionCtrl.SessionActionCreator(
     user._id,
     newSession._id.toString(),
@@ -597,27 +614,6 @@ export async function startSession(user: User, data: unknown) {
   ).requestedSession()
 
   return newSession._id
-}
-
-export async function finishSession(
-  user: User,
-  data: unknown,
-  socketService: SocketService
-) {
-  const { sessionId, userAgent, ip } = sessionUtils.asFinishSessionData(data)
-
-  await endSession({
-    sessionId,
-    endedBy: user,
-  })
-  // TODO: figure out a better way to instantiate socketService
-  await socketService.emitSessionChange(sessionId)
-  await new UserActionCtrl.SessionActionCreator(
-    user._id,
-    sessionId.toString(),
-    userAgent,
-    ip
-  ).endedSession()
 }
 
 export async function checkSession(data: unknown) {
@@ -750,11 +746,14 @@ export async function joinSession(user: User, data: unknown): Promise<void> {
 export async function saveMessage(
   user: any,
   createdAt: Date,
-  data: unknown
+  data: unknown,
+  chatbot?: Types.ObjectId
 ): Promise<void> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
-  if (!sessionUtils.isSessionParticipant(session, asObjectId(user._id)))
+  if (
+    !sessionUtils.isSessionParticipant(session, asObjectId(user._id), chatbot)
+  )
     throw new Error('Only session participants are allowed to send messages')
 
   const newMessage = {
@@ -831,4 +830,21 @@ export async function volunteersAvailableForSession(
   )
 
   return volunteers.length > 0
+}
+
+export async function handleMessageActivity(
+  sessionId: Types.ObjectId
+): Promise<void> {
+  try {
+    const state = await cache.get(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
+    if (Boolean(state)) {
+      await QueueService.add(Jobs.Chatbot, { sessionId })
+      await cache.remove(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
+    }
+  } catch (err) {
+    // if key missing do nothing - means chatbot is not active yet
+    if (err instanceof cache.KeyNotFoundError) return
+    // TODO: cancel chatbot jobs here
+    logger.error(`Could not process message acitvity state, cancelling chatbot`)
+  }
 }

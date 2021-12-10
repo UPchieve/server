@@ -194,6 +194,8 @@ const config: Static<typeof Config> = {
   },
   socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3001,
 
+  socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
+
   volunteerPartnerManifestPath:
     process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
     'localManifests/volunteer.yaml',
@@ -207,6 +209,9 @@ const config: Static<typeof Config> = {
   sponsorOrgManifestPath:
     process.env.SUBWAY_SPONSOR_ORG_MANIFEST_PATH ||
     'localManifests/sponsor-orgs.yaml',
+
+  clusterServerAddress:
+    process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',
 
   assistmentsBaseURL:
     process.env.SUBWAY_ASSISTMENTS_BASE_URL || 'https://example.com',

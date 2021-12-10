@@ -16,6 +16,7 @@ import {
 import { Message } from '../Message'
 import { Notification } from '../Notification'
 import { Student } from '../Student'
+import { getStudentContactInfoById } from '../Student/queries'
 import { Volunteer } from '../Volunteer'
 import SessionModel, { Session } from './index'
 
@@ -1071,6 +1072,51 @@ export async function updateSessionVolunteerById(
     if (!result.ok) throw new Error('Update query did not return "ok"')
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
+  }
+}
+
+export type SessionForChatbot = Pick<
+  Session,
+  | '_id'
+  | 'messages'
+  | 'type'
+  | 'subTopic'
+  | 'volunteerJoinedAt'
+  | 'createdAt'
+  | 'endedAt'
+  | 'student'
+> & { firstname: string }
+export async function getSessionMessagesById(
+  sessionId: Types.ObjectId
+): Promise<SessionForChatbot | undefined> {
+  try {
+    const result = await SessionModel.findOne(
+      { _id: sessionId },
+      {
+        _id: 1,
+        messages: 1,
+        type: 1,
+        subTopic: 1,
+        volunteerJoinedAt: 1,
+        createdAt: 1,
+        endedAt: 1,
+        student: 1,
+      }
+    )
+      .lean()
+      .exec()
+    if (result) {
+      const student = await getStudentContactInfoById(
+        result.student as Types.ObjectId
+      )
+      if (student)
+        return {
+          ...result,
+          firstname: student.firstname,
+        } as SessionForChatbot
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }
 

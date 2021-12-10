@@ -3,7 +3,7 @@
     <vue-headful
       :title="
         typingIndicatorShown
-          ? `${sessionPartner.firstname} is typing...`
+          ? `${sessionPartner.firstname || 'Chatbot'} is typing...`
           : 'UPchieve'
       "
     />
@@ -88,7 +88,7 @@
     <div class="chat-footer">
       <transition name="fade">
         <div class="typing-indicator" v-show="typingIndicatorShown">
-          {{ this.sessionPartner.firstname }} is typing...
+          {{ this.sessionPartner.firstname || 'Chatbot' }} is typing...
         </div>
       </transition>
 
@@ -522,6 +522,7 @@ export default {
   background-color: $c-background-grey;
   border-radius: 20px;
   max-width: 80%;
+  white-space: pre-line;
 }
 
 // transition element rulesets
