@@ -24,6 +24,7 @@ import {
   buildMessage,
 } from '../../generate'
 import * as SessionService from '../../../services/SessionService'
+import notifyTutors from '../../../worker/jobs/notifyTutors'
 
 jest.mock('socket.io-client')
 jest.mock('../../../services/SessionService')
@@ -212,6 +213,41 @@ describe('Test chatbot message requirements checks', () => {
     await expect(
       m5.requirements(chatbotGoodSession, chatbot)
     ).resolves.toBeTruthy()
+  })
+
+  //write test to make sure another round of notifications is kicked off if 10 minutes have passed
+  //basically if notifyTutors job has been queued
+  test('an additional round of notifications is kicked off when the last chatbot message sent is m5 and the student has sent a message since that last chatbot message, and it has been at least 10 min since last round of notifications sent', async () => {
+    const chatbotGoodSession = buildSessionForChatbot()
+    chatbotGoodSession.messages = [
+      buildMessage({
+        user: chatbot,
+        contents: m5.content(),
+        createdAt: moment()
+          .subtract(WAIT_FOR_REPLY)
+          .toDate(),
+      }),
+      buildMessage({
+        user: chatbotGoodSession.student as Types.ObjectId,
+        createdAt: new Date(),
+      }),
+    ]
+    await expect(
+      m5.requirements(chatbotGoodSession, chatbot)
+    ).resolves.toBeTruthy()
+
+    const job: any = {
+      data: {
+        sessionId: chatbotGoodSession._id,
+        notificationSchedule: [1000, 1000],
+      },
+      queue: {
+        add: jest.fn(),
+      },
+    }
+
+    await notifyTutors(job)
+    expect(job.queue.add).toHaveBeenCalledTimes(1)
   })
 
   test('m6 only sends for unmatched, unended sessions where m5 was the last chatbot message sent and it has been at least 10 min since that message', async () => {
