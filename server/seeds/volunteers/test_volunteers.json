@@ -9,6 +9,14 @@
         "passed": true,
         "tries": 1
       },
+      "algebraOne": {
+        "passed": true,
+        "tries": 1
+      },
+      "algebraTwo": {
+        "passed": true,
+        "tries": 1
+      },
       "applications": {
         "passed": true,
         "tries": 1
@@ -77,6 +85,14 @@
         "tries": 1
       },
       "algebra": {
+        "passed": true,
+        "tries": 1
+      },
+      "algebraOne": {
+        "passed": true,
+        "tries": 1
+      },
+      "algebraTwo": {
         "passed": true,
         "tries": 1
       },
