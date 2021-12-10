@@ -1,14 +1,15 @@
 import posthog from 'posthog-js'
 import { EVENTS } from '../consts'
+import Gleap from 'gleap'
 
 export default {
   identify(userId, name, email, type) {
     posthog.identify(userId)
-    window.Gleap.identify(userId, {
+    Gleap.identify(userId, {
       name,
       email
     })
-    window.Gleap.setCustomData('userType', type)
+    Gleap.setCustomData('userType', type)
   },
 
   updateUser(update) {
@@ -22,7 +23,8 @@ export default {
   // unset any of the user's distinctive ids
   reset() {
     posthog.reset()
-    window.Gleap.clearIdentity()
+    // TODO: does this clear identity stuff too?
+    Gleap.clearCustomData()
   },
 
   registerStudent(student) {

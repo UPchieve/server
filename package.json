@@ -75,6 +75,7 @@
     "express-session": "^1.14.2",
     "express-ws": "^5.0.2",
     "firebase-admin": "^8.10.0",
+    "gleap": "^6.4.3",
     "helmet": "^4.6.0",
     "ioredis": "^4.25.0",
     "jquery": "^3.5.0",
