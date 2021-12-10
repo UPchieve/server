@@ -1,6 +1,6 @@
 <template>
   <div class="chat-message">
-    <div :class="message.user === volunteer._id && 'chat-message--volunteer'">
+    <div :class="message.user === volunteerId && 'chat-message--volunteer'">
       <component class="chat-message__avatar" :is="avatar"/>
       <div class="chat-message__content">{{ message.contents }}</div>
     </div>
@@ -10,9 +10,7 @@
 
 <script>
 import moment from 'moment'
-import StudentIcon from '@/assets/student-icon.svg'
-import VolunteerIcon from '@/assets/volunteer-icon.svg'
-import ChatBotIcon from '@/assets/chat-bot-icon.svg'
+import getChatAvatar from '@/utils/get-chat-avatar'
 
 export default {
   name: 'ChatMessage',
@@ -20,7 +18,10 @@ export default {
   props: {
     message: Object,
     studentId: String,
-    volunteerId: String
+    volunteerId: {
+      type: String,
+      default: ''
+    }
   },
 
   computed: {
@@ -28,9 +29,7 @@ export default {
       return moment(this.message.createdAt).format('h:mm a')
     },
     avatar(){
-      if (this.message.user === this.studentId) return StudentIcon
-      else if (this.volunteer && this.message.user === this.volunteerId) return VolunteerIcon
-      else return ChatBotIcon
+      return getChatAvatar(this.message.user, this.studentId, this.volunteerId)
     }
   }
 }

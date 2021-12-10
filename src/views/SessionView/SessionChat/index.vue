@@ -112,12 +112,11 @@ import * as Sentry from '@sentry/browser'
 import ChatBot from './ChatBot'
 import LoadingMessage from '@/components/LoadingMessage'
 import ModerationService from '@/services/ModerationService'
-import StudentIcon from '@/assets/student-icon.svg'
-import VolunteerIcon from '@/assets/volunteer-icon.svg'
 import ChatBotIcon from '@/assets/chat-bot-icon.svg'
 import sendWebNotification from '@/utils/send-web-notification'
 import { isEnabled } from 'unleash-client'
 import { FEATURE_FLAGS } from '@/consts'
+import getChatAvatar from '@/utils/get-chat-avatar'
 
 const MESSAGE_ALIGNMENT = {
   LEFT: 'left',
@@ -365,9 +364,8 @@ export default {
       return this.messageAlignment(message) ===  MESSAGE_ALIGNMENT.LEFT
     },
     avatar(message){
-      if(message.user === this.currentSession.student._id) return StudentIcon
-      else if(this.currentSession.volunteer && message.user === this.currentSession.volunteer._id) return VolunteerIcon
-      else return ChatBotIcon
+      const volunteerId = this.currentSession.volunteer && this.currentSession.volunteer._id
+      return getChatAvatar(message.user, this.currentSession.student._id, volunteerId)
     },
     chatBotContents(message){
       const isStudentMessage = message.user === this.currentSession.student._id
