@@ -2,7 +2,7 @@
   <div class="session-header-wrapper">
     <div :class="{ inactive: !isSessionInProgress }" class="session-header">
       <div class="avatar-info-container">
-        <component :is="partnerAvatar" class="avatar" />
+        <component :is="partnerAvatar" class="avatar" v-if="isSessionAlive" />
         <div class="info">
           <template v-if="isSessionEnding">
             <loading-message message="Ending session" />
@@ -158,7 +158,6 @@ export default {
 
     partnerAvatar() {
       if (this.isSessionWaitingForVolunteer) return ChatBotIcon
-      if (!this.isSessionInProgress) return null
       // show the current user their partner's avatar
       if (this.user.isVolunteer)
         return StudentIcon
