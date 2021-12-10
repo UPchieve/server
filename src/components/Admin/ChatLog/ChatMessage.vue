@@ -19,8 +19,8 @@ export default {
 
   props: {
     message: Object,
-    student: Object,
-    volunteer: Object
+    studentId: String,
+    volunteerId: String
   },
 
   computed: {
@@ -28,8 +28,8 @@ export default {
       return moment(this.message.createdAt).format('h:mm a')
     },
     avatar(){
-      if (this.message.user === this.student._id) return StudentIcon
-      else if (this.volunteer && this.message.user === this.volunteer._id) return VolunteerIcon
+      if (this.message.user === this.studentId) return StudentIcon
+      else if (this.volunteer && this.message.user === this.volunteerId) return VolunteerIcon
       else return ChatBotIcon
     }
   }

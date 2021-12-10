@@ -15,8 +15,8 @@
           'chat-log__message--right':
             volunteer && message.user === volunteer._id
         }"
-        :student="student"
-        :volunteer="volunteer"
+        :studentId="student._id"
+        :volunteerId="volunteer && volunteer._id"
       />
     </div>
   </div>
