@@ -9,26 +9,16 @@ import QueueService from '../../../services/QueueService'
 import { Jobs } from '../index'
 import { isSubjectUsingDocumentEditor } from '../../../utils/session-utils'
 import { volunteersAvailableForSession } from '../../../services/SessionService'
+import config from '../../../config'
 
 const ONE_MINUTE = 1 * 60 * 1000
 export const WAIT_FOR_MATCH = 10 * ONE_MINUTE
 export const WAIT_FOR_REPLY = 3 * ONE_MINUTE
 
-// TODO: actually implement this function (part of another ticket)
-async function textMoreVolunteers(session: SessionForChatbot): Promise<void> {
-  // TODO: check how much time has passed since last notification round
-  //queue job only if at least 10 minutes have passed since last notification round
-  //else delay by required time
-  const now = Date.now()
-  var delay = 0
-  if (now - lastNotificationRound(session) <= WAIT_FOR_REPLY)
-    delay = WAIT_FOR_REPLY - now - lastNotificationRound(session)
-
-  await QueueService.add(
-    Jobs.NotifyTutors,
-    { sessionId: session._id },
-    { delay: delay }
-  )
+async function textMoreVolunteers(sessionId: Types.ObjectId): Promise<void> {
+  // ignore the initial delay on the notification schedule and notify tutors ASAP
+  const notificationSchedule = config.notificationSchedule.slice(1)
+  await QueueService.add(Jobs.NotifyTutors, { sessionId, notificationSchedule })
 }
 
 export async function updateActivityStatus(
@@ -68,14 +58,6 @@ function lastChatbotMessage(
     .filter(msg => getIdFromModelReference(msg.user).equals(chatbot))
     .sort((x, y) => (x.createdAt > y.createdAt ? 1 : 0))
     .slice(-1)[0]
-}
-
-// TODO: to be fixed
-function lastNotificationRound(session: SessionForChatbot) {
-  return Date.now()
-  // return session.notifications
-  // .slice()
-  // .sort((x,y) => (y.sentAt - x.sentAt))
 }
 
 export const m1 = {
@@ -209,7 +191,7 @@ export const m5 = {
       { sessionId: session._id },
       { delay: WAIT_FOR_MATCH }
     )
-    await textMoreVolunteers(session)
+    await textMoreVolunteers(session._id)
   },
 }
 
@@ -265,7 +247,7 @@ export const m7 = {
       { sessionId: session._id },
       { delay: WAIT_FOR_MATCH }
     )
-    await textMoreVolunteers(session)
+    await textMoreVolunteers(session._id)
   },
 }
 
