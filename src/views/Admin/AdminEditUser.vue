@@ -88,6 +88,18 @@
           </option>
         </select>
       </div>
+      <div class="row" v-if="!user.isVolunteer">
+        <label for="gates-study" class="uc-form-label">In Gates study</label>
+        <select name="gates-study" id="gates-study" v-model="inGatesStudy">
+          <option
+            v-for="option in options"
+            :value="option.value"
+            :key="option.text"
+          >
+            {{ option.text }}
+          </option>
+        </select>
+      </div>
       <p class="error" v-if="error">{{ error }}</p>
       <button class="uc-form-button" type="submit">
         Update
@@ -120,6 +132,7 @@ export default {
       isBanned: false,
       isDeactivated: false,
       isApproved: false,
+      inGatesStudy: false,
       options: [
         { text: 'False', value: false },
         { text: 'True', value: true }
@@ -151,6 +164,7 @@ export default {
     this.isBanned = this.user.isBanned
     this.isDeactivated = this.user.isDeactivated
     this.isApproved = this.user.isApproved
+    this.inGatesStudy = this.user.inGatesStudy
     this.partnerOrg = {}
 
     for (let org of this.listedPartnerOrgs) {
@@ -176,7 +190,8 @@ export default {
         isVerified: this.isVerified,
         isBanned: this.isBanned,
         isDeactivated: this.isDeactivated,
-        isApproved: this.isApproved
+        isApproved: this.isApproved,
+        inGatesStudy: this.inGatesStudy
       }
 
       if (
