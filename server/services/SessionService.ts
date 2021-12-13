@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import _ from 'lodash'
 import moment from 'moment'
-import { DocumentDefinition, Types } from 'mongoose'
+import { Types } from 'mongoose'
 import { User } from '@sentry/types'
 import Case from 'case'
 import { isEnabled } from 'unleash-client'
@@ -794,12 +794,15 @@ interface RecentSessionInfo {
  * @param limit count of session subTopics to return, starting with the last session
  * @returns list of most recent unique session subTopics with associated type
  */
-export async function getSessionsByStudentId(studentId: Types.ObjectId, limit: number): Promise<RecentSessionInfo[]> {
-  const sessions =  await SessionRepo.recentSubjectsByStudentId(studentId, limit)
-  return sessions.map(session => {
+export async function getSessionsByStudentId(
+  studentId: Types.ObjectId,
+  limit: number
+): Promise<RecentSessionInfo[]> {
+  const sessions = await SessionRepo.recentSubjectsByStudentId(studentId)
+  return sessions.slice(0, Math.min(sessions.length, limit)).map(session => {
     return {
       type: session.type,
-      subTopic: session.subTopic,
+      subTopic: session.subTopic
     }
   })
 }

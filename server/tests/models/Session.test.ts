@@ -28,20 +28,21 @@ import StudentModel from '../../models/Student'
 const invalidId = '123'
 const getStartDate = () => new Date().getTime() - 1000 * 60 * 10
 const getEndDate = () => new Date().getTime()
+const globalAny: any = global
+
+beforeAll(async () => {
+  await mongoose.connect(globalAny.__MONGO_URI__, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true
+  })
+})
 
 async function cleanup() {
   await SessionModel.deleteMany({})
   await StudentModel.deleteMany({})
   await VolunteerModel.deleteMany({})
 }
-
-beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true
-  })
-})
 
 afterAll(async () => {
   await mongoose.connection.close()
@@ -412,6 +413,49 @@ describe('getActiveSessionsWithVolunteers', () => {
   })
 
   test.todo('Should throw error')
+})
+
+describe('recentSubjectsByStudentId', () => {
+  let session
+
+  beforeAll(async () => {
+    const firstSession = await insertSessionWithVolunteer()
+    await insertSessionWithVolunteer({ student: firstSession.student })
+    await insertSessionWithVolunteer({
+      student: firstSession.student,
+      type: 'math',
+      subTopic: 'trigonometry'
+    })
+    const insertedSession = await insertSessionWithVolunteer({
+      student: firstSession.student,
+      type: 'science',
+      subTopic: 'physicsTwo'
+    })
+    session = insertedSession.session
+  })
+
+  test('Should return an empty result', async () => {
+    const sessionList = await SessionRepo.recentSubjectsByStudentId(
+      getObjectId()
+    )
+    expect(sessionList).toStrictEqual([])
+  })
+
+  test('Should return a result with 3 values', async () => {
+    const sessionList = await SessionRepo.recentSubjectsByStudentId(
+      session.student._id
+    )
+    expect(sessionList[0]).toEqual(
+      expect.objectContaining({ type: 'science', subTopic: 'physicsTwo' })
+    )
+    expect(sessionList[1]).toEqual(
+      expect.objectContaining({ type: 'math', subTopic: 'trigonometry' })
+    )
+    expect(sessionList[2]).toEqual(
+      expect.objectContaining({ type: 'math', subTopic: 'algebra' })
+    )
+    expect(sessionList.length).toBe(3)
+  })
 })
 
 describe('updateReportSession', () => {

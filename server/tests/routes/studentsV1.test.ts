@@ -6,15 +6,15 @@ import { MongoStore } from 'connect-mongo'
 import { ObjectId } from 'mongodb'
 import * as ApiRoutes from '../../router/api'
 import { buildUser } from '../generate'
-import * as StudentService from '../../services/StudentService'
+import * as SessionService from '../../services/SessionService'
 import SessionStore from '../../router/api/session-store'
 import { UserNotFoundError } from '../../models/Errors'
 import { MATH_SUBJECTS, SUBJECT_TYPES } from '../../constants/subjects'
 jest.mock('../../services/IpAddressService')
 
-jest.mock('../../services/StudentService')
+jest.mock('../../services/SessionService')
 
-const mockedStudentService = mocked(StudentService, true)
+const mockedSessionService = mocked(SessionService, true)
 const mockedSessionStore = mocked(SessionStore, true)
 
 const US_IP_ADDRESS = '161.185.160.93'
@@ -55,17 +55,26 @@ beforeEach(async () => {
 describe('/v1/students/1/recent-subjects', () => {
   test('Should return a list if this is a valid ID', async () => {
     const expectedTypes = [
-      { type: SUBJECT_TYPES.MATH, subTopic: MATH_SUBJECTS[Object.keys(MATH_SUBJECTS)[0]] },
-      { type: SUBJECT_TYPES.MATH, subTopic: MATH_SUBJECTS[Object.keys(MATH_SUBJECTS)[1]] },
-      { type: SUBJECT_TYPES.MATH, subTopic: MATH_SUBJECTS[Object.keys(MATH_SUBJECTS)[2]] }
+      {
+        type: SUBJECT_TYPES.MATH,
+        subTopic: MATH_SUBJECTS[Object.keys(MATH_SUBJECTS)[0]]
+      },
+      {
+        type: SUBJECT_TYPES.MATH,
+        subTopic: MATH_SUBJECTS[Object.keys(MATH_SUBJECTS)[1]]
+      },
+      {
+        type: SUBJECT_TYPES.MATH,
+        subTopic: MATH_SUBJECTS[Object.keys(MATH_SUBJECTS)[2]]
+      }
     ]
-    mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
+    mockedSessionService.getSessionsByStudentId.mockImplementationOnce(
       async () => expectedTypes
     )
 
     const response = await sendGet('/v1/students/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
+    expect(mockedSessionService.getSessionsByStudentId).toHaveBeenCalledWith(
       new ObjectId('612262eb168710905a2b1b89'),
       3
     )
@@ -76,13 +85,13 @@ describe('/v1/students/1/recent-subjects', () => {
   })
 
   test('Should return an empty list if there are none to return', async () => {
-    mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
+    mockedSessionService.getSessionsByStudentId.mockImplementationOnce(
       async () => []
     )
 
     const response = await sendGet('/v1/students/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
+    expect(mockedSessionService.getSessionsByStudentId).toHaveBeenCalledWith(
       new ObjectId('612262eb168710905a2b1b89'),
       3
     )
@@ -91,7 +100,7 @@ describe('/v1/students/1/recent-subjects', () => {
   })
 
   test('Should return a 400 if the student ID is valid, but no student was found', async () => {
-    mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
+    mockedSessionService.getSessionsByStudentId.mockImplementationOnce(
       async () => {
         throw new UserNotFoundError('id', '612262eb168710905a2b1b89')
       }
@@ -99,7 +108,7 @@ describe('/v1/students/1/recent-subjects', () => {
 
     const response = await sendGet('/v1/students/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
+    expect(mockedSessionService.getSessionsByStudentId).toHaveBeenCalledWith(
       new ObjectId('612262eb168710905a2b1b89'),
       3
     )
@@ -107,7 +116,7 @@ describe('/v1/students/1/recent-subjects', () => {
   })
 
   test('Should return a 500 if some unknown error is encountered', async () => {
-    mockedStudentService.getMostRecentSessionInfo.mockImplementationOnce(
+    mockedSessionService.getSessionsByStudentId.mockImplementationOnce(
       async () => {
         throw new Error('My internal server error')
       }
@@ -115,7 +124,7 @@ describe('/v1/students/1/recent-subjects', () => {
 
     const response = await sendGet('/v1/students/recent-subjects', {})
 
-    expect(StudentService.getMostRecentSessionInfo).toHaveBeenCalledWith(
+    expect(mockedSessionService.getSessionsByStudentId).toHaveBeenCalledWith(
       new ObjectId('612262eb168710905a2b1b89'),
       3
     )

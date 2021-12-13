@@ -151,7 +151,8 @@ export default {
   },
   async created() {
     let recentSubjectCards = []
-    if (isEnabled(FEATURE_FLAGS.DASHBOARD_REDESIGN)) {
+    //TODO: remove crutch.
+    if (isEnabled(FEATURE_FLAGS.DASHBOARD_REDESIGN)  || 1==1 ) {
       const recentSubjects = await UserService.getStudentRecentSubjects()
       recentSubjectCards = recentSubjects.map(subject => {
         return {
