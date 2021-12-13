@@ -48,6 +48,7 @@ import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
 import AnalyticsService from '@/services/AnalyticsService'
 import config from '@/config'
 import LargeButton from '@/components/LargeButton'
+import Gleap from 'gleap'
 
 export default {
   name: 'App',
@@ -102,7 +103,7 @@ export default {
   },
   mounted() {
     if (this.mobileMode) {
-      window.Gleap.hide()
+      Gleap.hide()
     }
   },
   beforeDestroy() {
