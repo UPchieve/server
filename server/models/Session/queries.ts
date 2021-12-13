@@ -5,13 +5,13 @@ import {
   FEEDBACK_VERSIONS,
   SUBJECT_TYPES,
   USER_ACTION,
-  USER_SESSION_METRICS
+  USER_SESSION_METRICS,
 } from '../../constants'
 import {
   DocCreationError,
   DocUpdateError,
   LookupError,
-  RepoReadError
+  RepoReadError,
 } from '../Errors'
 import { Message } from '../Message'
 import { Notification } from '../Notification'
@@ -1085,7 +1085,6 @@ export type SessionForChatbot = Pick<
   | 'createdAt'
   | 'endedAt'
   | 'student'
-  | 'notifications'
 > & { firstname: string }
 export async function getSessionMessagesById(
   sessionId: Types.ObjectId
@@ -1102,7 +1101,6 @@ export async function getSessionMessagesById(
         createdAt: 1,
         endedAt: 1,
         student: 1,
-        notifications: 1,
       }
     )
       .lean()
