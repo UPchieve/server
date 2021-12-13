@@ -1,7 +1,7 @@
 <template>
   <div class="SidebarInfo">
     <template v-if="authenticated">
-      <img class="SidebarInfo-avatar" :src="avatarUrl" alt="" />
+      <component class="SidebarInfo-avatar" :is="avatar" />
       <div class="SidebarInfo-name">{{ name }}</div>
       <div class="SidebarInfo-type">{{ type }}</div>
       <div class="SidebarInfo-status">
@@ -14,8 +14,8 @@
 
 <script>
 import { mapGetters, mapState } from 'vuex'
-import StudentAvatarUrl from '@/assets/defaultavatar3.png'
-import VolunteerAvatarUrl from '@/assets/defaultavatar4.png'
+import StudentIcon from '@/assets/student-icon.svg'
+import VolunteerIcon from '@/assets/volunteer-icon.svg'
 
 export default {
   props: {
@@ -23,10 +23,9 @@ export default {
     isVolunteer: Boolean,
     name: String
   },
-  data() {
-    return {
-      avatarUrl: this.isVolunteer ? VolunteerAvatarUrl : StudentAvatarUrl
-    }
+  components: {
+    StudentIcon,
+    VolunteerIcon
   },
   computed: {
     ...mapState({
@@ -71,6 +70,9 @@ export default {
       }
 
       return status
+    },
+    avatar(){
+      return this.isVolunteer ? VolunteerIcon : StudentIcon
     }
   }
 }
