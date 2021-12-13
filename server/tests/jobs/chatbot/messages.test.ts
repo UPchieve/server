@@ -24,10 +24,15 @@ import {
   buildMessage,
 } from '../../generate'
 import * as SessionService from '../../../services/SessionService'
-import notifyTutors from '../../../worker/jobs/notifyTutors'
+import QueueService from '../../../services/QueueService'
+import { Jobs } from '../../../worker/jobs'
+import socket from '../../../worker/sockets'
+import config from '../../../config'
 
 jest.mock('socket.io-client')
 jest.mock('../../../services/SessionService')
+jest.mock('../../../services/QueueService')
+jest.mock('../../../worker/sockets')
 
 const mockedSessionService = mocked(SessionService, true)
 
@@ -215,41 +220,6 @@ describe('Test chatbot message requirements checks', () => {
     ).resolves.toBeTruthy()
   })
 
-  //write test to make sure another round of notifications is kicked off if 10 minutes have passed
-  //basically if notifyTutors job has been queued
-  test('an additional round of notifications is kicked off when the last chatbot message sent is m5 and the student has sent a message since that last chatbot message, and it has been at least 10 min since last round of notifications sent', async () => {
-    const chatbotGoodSession = buildSessionForChatbot()
-    chatbotGoodSession.messages = [
-      buildMessage({
-        user: chatbot,
-        contents: m5.content(),
-        createdAt: moment()
-          .subtract(WAIT_FOR_REPLY)
-          .toDate(),
-      }),
-      buildMessage({
-        user: chatbotGoodSession.student as Types.ObjectId,
-        createdAt: new Date(),
-      }),
-    ]
-    await expect(
-      m5.requirements(chatbotGoodSession, chatbot)
-    ).resolves.toBeTruthy()
-
-    const job: any = {
-      data: {
-        sessionId: chatbotGoodSession._id,
-        notificationSchedule: [1000, 1000],
-      },
-      queue: {
-        add: jest.fn(),
-      },
-    }
-
-    await notifyTutors(job)
-    expect(job.queue.add).toHaveBeenCalledTimes(1)
-  })
-
   test('m6 only sends for unmatched, unended sessions where m5 was the last chatbot message sent and it has been at least 10 min since that message', async () => {
     const newSession = buildSessionForChatbot()
     const chatbotGoodSession = buildSessionForChatbot()
@@ -426,5 +396,111 @@ describe('Test chatbot message requirements checks', () => {
     await expect(
       m9.requirements(chatbotGoodSession, chatbot)
     ).resolves.toBeTruthy()
+  })
+})
+
+describe('Test chatbot message actions', () => {
+  const chatbot = getObjectId()
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  function assertWaitForMatch(sessionId: Types.ObjectId) {
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.Chatbot,
+      {
+        sessionId,
+      },
+      {
+        delay: WAIT_FOR_MATCH,
+      }
+    )
+  }
+  function assertWaitForReply(sessionId: Types.ObjectId) {
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.Chatbot,
+      {
+        sessionId,
+      },
+      {
+        delay: WAIT_FOR_REPLY,
+      }
+    )
+  }
+  // checks that textMoreVolunteers called QueueService
+  function assertTextMoreVolunteers(sessionId: Types.ObjectId) {
+    expect(QueueService.add).toHaveBeenCalledWith(Jobs.NotifyTutors, {
+      sessionId,
+      notificationSchedule: config.notificationSchedule.slice(1),
+    })
+  }
+
+  function assertUpdateActivityStatus(sessionId: Types.ObjectId) {
+    expect(socket.emit).toHaveBeenCalledWith('activity-prompt-sent', {
+      sessionId,
+    })
+  }
+
+  function assertAutoEndSession(sessionId: Types.ObjectId) {
+    expect(socket.emit).toHaveBeenCalledWith('auto-end-session', { sessionId })
+  }
+
+  test('m3a queues a chatbot to be processed after waiting for a match', async () => {
+    const session = buildSessionForChatbot()
+    await m3a.action(session)
+    assertWaitForMatch(session._id)
+  })
+
+  test('m3b queues a chatbot to be processed after waiting for a match', async () => {
+    const session = buildSessionForChatbot()
+    await m3b.action(session)
+    assertWaitForMatch(session._id)
+  })
+
+  test('m3c queues a chatbot to be processed after waiting for a match', async () => {
+    const session = buildSessionForChatbot()
+    await m3c.action(session)
+    assertWaitForMatch(session._id)
+  })
+
+  test('m4 updates activity status and queues a chatbot to be processed after waiting for a reply', async () => {
+    const session = buildSessionForChatbot()
+    await m4.action(session)
+    assertUpdateActivityStatus(session._id)
+    assertWaitForReply(session._id)
+  })
+
+  test('m5 queues a chatbot to be processed after waiting for a match and sends another round of notifications', async () => {
+    const session = buildSessionForChatbot()
+    await m5.action(session)
+    assertWaitForMatch(session._id)
+    assertTextMoreVolunteers(session._id)
+  })
+
+  test('m6 updates activity status and queues a chatbot to be processed after waiting for a reply', async () => {
+    const session = buildSessionForChatbot()
+    await m6.action(session)
+    assertUpdateActivityStatus(session._id)
+    assertWaitForReply(session._id)
+  })
+
+  test('m7 queues a chatbot to be processed after waiting for a match and sends another round of notifications', async () => {
+    const session = buildSessionForChatbot()
+    await m7.action(session)
+    assertWaitForMatch(session._id)
+    assertTextMoreVolunteers(session._id)
+  })
+
+  test('m8 ends the session', async () => {
+    const session = buildSessionForChatbot()
+    await m8.action(session, chatbot)
+    assertAutoEndSession(session._id)
+  })
+
+  test('m9 ends the session', async () => {
+    const session = buildSessionForChatbot()
+    await m9.action(session, chatbot)
+    assertAutoEndSession(session._id)
   })
 })
