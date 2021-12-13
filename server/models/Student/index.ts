@@ -40,8 +40,8 @@ const studentSchema = new Schema(
     },
     inGatesStudy: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   schemaOptions
 )

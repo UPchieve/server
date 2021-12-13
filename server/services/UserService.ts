@@ -193,7 +193,7 @@ export async function adminUpdateUser(data: unknown) {
     isBanned,
     isDeactivated,
     isApproved,
-    inGatesStudy
+    inGatesStudy,
   } = asAdminUpdate(data)
   const userBeforeUpdate = await getUserById(userId)
   if (!userBeforeUpdate) {
