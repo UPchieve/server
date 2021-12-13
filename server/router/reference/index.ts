@@ -1,9 +1,8 @@
 import { Express, Router } from 'express'
 import * as UserService from '../../services/UserService'
 import { getVolunteerByReference } from '../../models/Volunteer/queries'
-import { asEnum, asObjectId, asString } from '../../utils/type-utils'
+import { asObjectId } from '../../utils/type-utils'
 import { resError } from '../res-error'
-import { REFERENCE_STATUS } from '../../constants'
 
 export function routes(app: Express): void {
   const router = Router()
