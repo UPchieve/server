@@ -1,6 +1,5 @@
 import pool from '../../pg-pool'
 import * as db from 'zapatos/db'
-import { getIdByNameFailsafe } from '../utils'
 
 export async function certifications() {
   await db

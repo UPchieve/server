@@ -12,7 +12,7 @@ interface csvPostalCodeRecord {
 }
 
 export async function postalCodes() {
-  const zipFile = await fs.readFileSync(`${__dirname}/aggregated_data.csv`)
+  const zipFile = fs.readFileSync(`${__dirname}/aggregated_data.csv`)
   const zipRecords: csvPostalCodeRecord[] = await parse(zipFile, {
     delimiter: ',',
     columns: true,
