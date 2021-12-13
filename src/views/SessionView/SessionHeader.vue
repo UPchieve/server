@@ -2,7 +2,7 @@
   <div class="session-header-wrapper">
     <div :class="{ inactive: !isSessionInProgress }" class="session-header">
       <div class="avatar-info-container">
-        <component :is="partnerAvatar" class="avatar" v-if="isSessionAlive" />
+        <component :is="partnerAvatar" class="avatar" :class="!isSessionAlive && 'avatar--hidden'" />
         <div class="info">
           <template v-if="isSessionEnding">
             <loading-message message="Ending session" />
@@ -402,6 +402,10 @@ h1 {
   height: 36px;
   border-radius: 18px;
   flex-shrink: 0;
+
+  &--hidden {
+    visibility: hidden;
+  }
 }
 
 .info {
