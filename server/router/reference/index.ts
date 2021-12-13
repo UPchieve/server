@@ -1,8 +1,9 @@
 import { Express, Router } from 'express'
 import * as UserService from '../../services/UserService'
 import { getVolunteerByReference } from '../../models/Volunteer/queries'
-import { asObjectId } from '../../utils/type-utils'
+import { asEnum, asObjectId, asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
+import { REFERENCE_STATUS } from '../../constants'
 
 export function routes(app: Express): void {
   const router = Router()
@@ -17,7 +18,13 @@ export function routes(app: Express): void {
       const { references, _id: userId } = volunteer
       let referenceEmail: string | undefined
       for (const reference of references) {
-        if (reference._id.equals(referenceId)) referenceEmail = reference.email
+        // Some reference objects in database are broken/null so we must verify these fields exist
+        if (
+          reference._id &&
+          reference.email &&
+          reference._id.equals(referenceId)
+        )
+          referenceEmail = reference.email
       }
       if (!referenceEmail) return res.sendStatus(404)
       await UserService.saveReferenceForm(
