@@ -30,7 +30,7 @@ describe('sendFollowupText', () => {
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
     mockedVolunteerRepo.getVolunteerById.mockResolvedValueOnce(volunteer)
     mockedSessionUtils.isSessionFulfilled.mockReturnValueOnce(true)
-    
+
     // @todo: figure out how to properly type
     const job: any = {
       data: {
@@ -53,7 +53,7 @@ describe('sendFollowupText', () => {
     mockedSessionUtils.isSessionFulfilled.mockReturnValueOnce(false)
     const errMsg = 'test'
     mockedTwilioService.sendFollowupText.mockRejectedValueOnce(errMsg)
-    
+
     // @todo: figure out how to properly type
     const job: any = {
       data: {
@@ -76,7 +76,7 @@ describe('sendFollowupText', () => {
     mockedVolunteerRepo.getVolunteerById.mockResolvedValueOnce(volunteer)
     mockedSessionUtils.isSessionFulfilled.mockReturnValueOnce(false)
     mockedTwilioService.sendFollowupText.mockResolvedValueOnce()
-    
+
     // @todo: figure out how to properly type
     const job: any = {
       data: {

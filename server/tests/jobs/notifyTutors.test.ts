@@ -81,7 +81,7 @@ describe('Notify tutors', () => {
       data: {
         sessionId: session._id,
         notificationSchedule: [1000, 1000],
-      }
+      },
     }
     const volunteer = buildVolunteer()
 
@@ -100,10 +100,10 @@ describe('Notify tutors', () => {
       Jobs.SendFollowupText,
       {
         sessionId: session._id.toString(),
-        volunteerId: volunteer._id.toString()
+        volunteerId: volunteer._id.toString(),
       },
       {
-        delay: 1000 * 60 * 5
+        delay: 1000 * 60 * 5,
       }
     )
     expect(job.data.notificationSchedule.length).toBe(1)
