@@ -14,7 +14,12 @@ import { trainingCourses } from './scripts/academics/training-courses'
 import { topics } from './scripts/academics/topics'
 import { subjects } from './scripts/academics/subjects'
 import { toolTypes } from './scripts/academics/tool-types'
-import { quizSubcategories, quizzes } from './scripts/academics/quizzes'
+import { certifications } from './scripts/academics/certifications'
+import {
+  quizSubcategories,
+  quizzes,
+  quizCertificationGrants,
+} from './scripts/academics/quizzes'
 import { sessionFlags } from './scripts/sessions/session-flags'
 import { reportReasons } from './scripts/sessions/report-reasons'
 import { notificationTypes } from './scripts/notifications/notification-types'
@@ -46,6 +51,8 @@ async function seedData(): Promise<void> {
 
     await quizzes()
     await quizSubcategories()
+    await certifications()
+    await quizCertificationGrants()
     // await quizQuestions()
     await sessionFlags()
     await reportReasons()

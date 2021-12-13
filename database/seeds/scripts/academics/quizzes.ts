@@ -1,19 +1,6 @@
 import pool from '../../pg-pool'
 import * as db from 'zapatos/db'
-
-async function getQuizId(quizName: string) {
-  const quiz = await db
-    .selectExactlyOne('quizzes', { name: quizName })
-    .run(pool)
-  return quiz.id
-}
-
-async function getSubjectId(subjectName: string) {
-  const subject = await db
-    .selectExactlyOne('subjects', { name: subjectName })
-    .run(pool)
-  return subject.id
-}
+import { getIdByNameFailsafe } from '../utils'
 
 export async function quizzes() {
   await db
@@ -54,50 +41,352 @@ export async function quizzes() {
     .run(pool)
 }
 
-/*
-export async function quizSubjectUnlocks() {
-    await db.insert('quiz_subject_unlocks', [
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('prealgebra'), subject_id: await getSubjectId('prealgebra')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('statistics'), subject_id: await getSubjectId('statistics')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('geometry'), subject_id: await getSubjectId('geometry')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('biology'), subject_id: await getSubjectId('biology')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('chemistry'), subject_id: await getSubjectId('chemistry')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('physicsOne'), subject_id: await getSubjectId('physicsOne')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('physicsTwo'), subject_id: await getSubjectId('physicsTwo')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('environmentalScience'), subject_id: await getSubjectId('environmentalScience')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('essays'), subject_id: await getSubjectId('essays')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('applications'), subject_id: await getSubjectId('applications')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('planning'), subject_id: await getSubjectId('planning')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('satMath'), subject_id: await getSubjectId('satMath')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('satReading'), subject_id: await getSubjectId('satReading')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('collegeCounseling'), subject_id: await getSubjectId('planning')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('collegeCounseling'), subject_id: await getSubjectId('applications')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('humanitiesEssays'), subject_id: await getSubjectId('humanitiesEssays')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('algebra'), subject_id: await getSubjectId('algebraOne')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('algebra'), subject_id: await getSubjectId('algebraTwo')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('algebra'), subject_id: await getSubjectId('prealgebra')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('trigonometry'), subject_id: await getSubjectId('trigonometry')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('precalculus'), subject_id: await getSubjectId('algebraOne')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('precalculus'), subject_id: await getSubjectId('algebraTwo')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('precalculus'), subject_id: await getSubjectId('prealgebra')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('precalculus'), subject_id: await getSubjectId('trigonometry')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('precalculus'), subject_id: await getSubjectId('precalculus')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusAB'), subject_id: await getSubjectId('algebraOne')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusAB'), subject_id: await getSubjectId('algebraTwo')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusAB'), subject_id: await getSubjectId('prealgebra')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusAB'), subject_id: await getSubjectId('trigonometry')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusAB'), subject_id: await getSubjectId('precalculus')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusAB'), subject_id: await getSubjectId('calculusAB')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusBC'), subject_id: await getSubjectId('algebraOne')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusBC'), subject_id: await getSubjectId('algebraTwo')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusBC'), subject_id: await getSubjectId('prealgebra')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusBC'), subject_id: await getSubjectId('trigonometry')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusBC'), subject_id: await getSubjectId('precalculus')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusBC'), subject_id: await getSubjectId('calculusAB')},
-        { updated_at: new Date(), created_at: new Date(), quiz_id: await getQuizId('calculusBC'), subject_id: await getSubjectId('calculusBC')},
-    ]).run(pool)
+export async function quizCertificationGrants() {
+  await db
+    .insert('quiz_certification_grants', [
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'prealgebra'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'prealgebra'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'statistics'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'statistics'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'geometry'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'geometry'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'biology'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'biology'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'chemistry'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'chemistry'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'physicsOne'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'physicsOne'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'physicsTwo'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'physicsTwo'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'environmentalScience'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'environmentalScience'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'essays'),
+        certification_id: await getIdByNameFailsafe('certifications', 'essays'),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'applications'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'applications'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'planning'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'planning'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'satMath'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'satMath'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'satReading'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'satReading'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'collegeCounseling'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'planning'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'collegeCounseling'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'applications'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'humanitiesEssays'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'humanitiesEssays'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'algebraOne'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'algebraTwo'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'prealgebra'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'trigonometry'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'trigonometry'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'precalculus'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'algebraOne'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'precalculus'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'algebraTwo'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'precalculus'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'prealgebra'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'precalculus'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'trigonometry'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'precalculus'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'precalculus'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusAB'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'algebraOne'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusAB'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'algebraTwo'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusAB'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'prealgebra'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusAB'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'trigonometry'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusAB'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'precalculus'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusAB'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'calculusAB'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusBC'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'algebraOne'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusBC'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'algebraTwo'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusBC'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'prealgebra'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusBC'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'trigonometry'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusBC'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'precalculus'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusBC'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'calculusAB'
+        ),
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusBC'),
+        certification_id: await getIdByNameFailsafe(
+          'certifications',
+          'calculusBC'
+        ),
+      },
+    ])
+    .run(pool)
 }
-*/
+
 export async function quizSubcategories() {
   await db
     .insert('quiz_subcategories', [
@@ -105,175 +394,175 @@ export async function quizSubcategories() {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'numbers',
-        quiz_id: await getQuizId('prealgebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'prealgebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'arithmetic properties',
-        quiz_id: await getQuizId('prealgebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'prealgebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'exponents',
-        quiz_id: await getQuizId('prealgebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'prealgebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'exponents and radicals',
-        quiz_id: await getQuizId('prealgebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'prealgebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'polynomials',
-        quiz_id: await getQuizId('prealgebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'prealgebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'fractions',
-        quiz_id: await getQuizId('prealgebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'prealgebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'linear equations',
-        quiz_id: await getQuizId('algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'rational exponents and radicals',
-        quiz_id: await getQuizId('algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'application of linear equations',
-        quiz_id: await getQuizId('algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'two variable equations',
-        quiz_id: await getQuizId('algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'rational expressions',
-        quiz_id: await getQuizId('algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'complex numbers',
-        quiz_id: await getQuizId('algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'congruence and similarity',
-        quiz_id: await getQuizId('geometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'geometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'vertices',
-        quiz_id: await getQuizId('geometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'geometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'angles',
-        quiz_id: await getQuizId('geometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'geometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'circles',
-        quiz_id: await getQuizId('geometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'geometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'triangles',
-        quiz_id: await getQuizId('geometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'geometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'rectangles',
-        quiz_id: await getQuizId('geometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'geometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'angles',
-        quiz_id: await getQuizId('trigonometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'trigonometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'triangles',
-        quiz_id: await getQuizId('trigonometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'trigonometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'right triangles',
-        quiz_id: await getQuizId('trigonometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'trigonometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'quadrants',
-        quiz_id: await getQuizId('trigonometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'trigonometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'radians',
-        quiz_id: await getQuizId('trigonometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'trigonometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'unit circles',
-        quiz_id: await getQuizId('trigonometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'trigonometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'inequalities',
-        quiz_id: await getQuizId('trigonometry'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'trigonometry'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'representing data numerically',
-        quiz_id: await getQuizId('statistics'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'statistics'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'representing data graphically',
-        quiz_id: await getQuizId('statistics'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'statistics'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'two means',
-        quiz_id: await getQuizId('statistics'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'statistics'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'representing data graphically',
-        quiz_id: await getQuizId('statistics'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'statistics'),
       },
     ])
     .run(pool)

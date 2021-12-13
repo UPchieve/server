@@ -15,7 +15,8 @@
     ]
   },
   "include": [
-    "sql/seeds"
+    "database/seeds",
+    "database/zapatos"
   ],
   "ts-node": {
     "files": true
