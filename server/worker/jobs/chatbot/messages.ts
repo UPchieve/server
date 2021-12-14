@@ -9,13 +9,17 @@ import QueueService from '../../../services/QueueService'
 import { Jobs } from '../index'
 import { isSubjectUsingDocumentEditor } from '../../../utils/session-utils'
 import { volunteersAvailableForSession } from '../../../services/SessionService'
+import config from '../../../config'
 
 const ONE_MINUTE = 1 * 60 * 1000
 export const WAIT_FOR_MATCH = 10 * ONE_MINUTE
 export const WAIT_FOR_REPLY = 3 * ONE_MINUTE
 
-// TODO: actually implement this function (part of another ticket)
-async function textMoreVolunteers(sessionId: Types.ObjectId): Promise<void> {}
+async function textMoreVolunteers(sessionId: Types.ObjectId): Promise<void> {
+  // ignore the initial delay on the notification schedule and notify tutors ASAP
+  const notificationSchedule = config.notificationSchedule.slice(1)
+  await QueueService.add(Jobs.NotifyTutors, { sessionId, notificationSchedule })
+}
 
 export async function updateActivityStatus(
   sessionId: Types.ObjectId
@@ -262,10 +266,17 @@ export const m8 = {
       !!lastChatbotMsg &&
       moment().subtract(WAIT_FOR_MATCH - ONE_MINUTE, 'milliseconds') >=
         moment(lastChatbotMsg.createdAt) &&
-      lastChatbotMsg.contents === m7.content()
+      (lastChatbotMsg.contents === m7.content() ||
+        ([m3a.content(), m3b.content(), m3c.content()].some(
+          content => content === lastChatbotMsg.contents
+        ) &&
+          !(await volunteersAvailableForSession(
+            session._id,
+            session.subTopic
+          ))))
     )
   },
-  action: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
+  action: async (session: SessionForChatbot) => {
     await autoEndSession(session._id)
   },
 }
@@ -277,7 +288,7 @@ export const m9 = {
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
     // sort in reverse order so array.find returns the last instance
     const messages = session.messages.sort((x, y) =>
-      x.createdAt < y.createdAt ? -1 : 1
+      x.createdAt < y.createdAt ? 1 : -1
     )
     const lastPromptMsg = messages.find(
       msg => msg.contents === m4.content() || msg.contents === m6.content()
@@ -295,7 +306,7 @@ export const m9 = {
       )
     )
   },
-  action: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
+  action: async (session: SessionForChatbot) => {
     await autoEndSession(session._id)
   },
 }
