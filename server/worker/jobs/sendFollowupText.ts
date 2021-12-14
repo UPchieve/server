@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { Jobs } from '.'
 import { getSessionById } from '../../models/Session/queries'
 import { Volunteer } from '../../models/Volunteer'
-import { getVolunteerById } from '../../models/Volunteer/queries'
+import { getVolunteerContactInfoById } from '../../models/Volunteer/queries'
 import * as TwilioService from '../../services/TwilioService'
 import * as sessionUtils from '../../utils/session-utils'
 import { asObjectId } from '../../utils/type-utils'
@@ -23,7 +23,7 @@ export default async (job: Job<SendFollowupTextData>): Promise<void> => {
     return log(
       `Cancel ${Jobs.SendFollowupText} for ${sessionId} to ${volunteerId}: fulfilled`
     )
-  const volunteer = (await getVolunteerById(volunteerId)) as Volunteer
+  const volunteer = await getVolunteerContactInfoById(volunteerId)
   if (!volunteer) return
 
   try {

@@ -28,7 +28,9 @@ describe('sendFollowupText', () => {
     const session = buildSession()
     const volunteer = buildVolunteer()
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
-    mockedVolunteerRepo.getVolunteerById.mockResolvedValueOnce(volunteer)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      volunteer
+    )
     mockedSessionUtils.isSessionFulfilled.mockReturnValueOnce(true)
 
     // @todo: figure out how to properly type
@@ -49,7 +51,9 @@ describe('sendFollowupText', () => {
     const session = buildSession()
     const volunteer = buildVolunteer()
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
-    mockedVolunteerRepo.getVolunteerById.mockResolvedValueOnce(volunteer)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      volunteer
+    )
     mockedSessionUtils.isSessionFulfilled.mockReturnValueOnce(false)
     const errMsg = 'test'
     mockedTwilioService.sendFollowupText.mockRejectedValueOnce(errMsg)
@@ -73,7 +77,9 @@ describe('sendFollowupText', () => {
     const session = buildSession()
     const volunteer = buildVolunteer()
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
-    mockedVolunteerRepo.getVolunteerById.mockResolvedValueOnce(volunteer)
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      volunteer
+    )
     mockedSessionUtils.isSessionFulfilled.mockReturnValueOnce(false)
     mockedTwilioService.sendFollowupText.mockResolvedValueOnce()
 
