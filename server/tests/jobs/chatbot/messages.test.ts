@@ -560,13 +560,13 @@ describe('Test chatbot message actions', () => {
 
   test('m8 ends the session', async () => {
     const session = buildSessionForChatbot()
-    await m8.action(session, chatbot)
+    await m8.action(session)
     assertAutoEndSession(session._id)
   })
 
   test('m9 ends the session', async () => {
     const session = buildSessionForChatbot()
-    await m9.action(session, chatbot)
+    await m9.action(session)
     assertAutoEndSession(session._id)
   })
 })

@@ -276,7 +276,7 @@ export const m8 = {
           ))))
     )
   },
-  action: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
+  action: async (session: SessionForChatbot) => {
     await autoEndSession(session._id)
   },
 }
@@ -306,7 +306,7 @@ export const m9 = {
       )
     )
   },
-  action: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
+  action: async (session: SessionForChatbot) => {
     await autoEndSession(session._id)
   },
 }
