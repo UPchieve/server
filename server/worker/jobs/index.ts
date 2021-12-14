@@ -33,6 +33,7 @@ import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessi
 import emailSessionReported from './student-emails/emailSessionReported'
 import sendAssistmentsData from './sendAssistmentsData'
 import chatbot from './chatbot'
+import sendFollowupText from './sendFollowupText'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -76,6 +77,7 @@ export enum Jobs {
   EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
   SendAssistmentsData = ' SendAssistmentsData',
   EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
+  SendFollowupText = 'SendFollowupText',
   // TODO: add the tech issue apology job to the job processor once it is ready to be released
   EmailTechIssueApology = 'EmailTechIssueApology',
   Chatbot = 'Chatbot',
@@ -248,6 +250,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.Chatbot,
     processor: chatbot,
+  },
+  {
+    name: Jobs.SendFollowupText,
+    processor: sendFollowupText,
   },
 
   // TODO: remove the following deprecated job names
