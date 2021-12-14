@@ -266,7 +266,14 @@ export const m8 = {
       !!lastChatbotMsg &&
       moment().subtract(WAIT_FOR_MATCH - ONE_MINUTE, 'milliseconds') >=
         moment(lastChatbotMsg.createdAt) &&
-      lastChatbotMsg.contents === m7.content()
+      (lastChatbotMsg.contents === m7.content() ||
+        ([m3a.content(), m3b.content(), m3c.content()].some(
+          content => content === lastChatbotMsg.contents
+        ) &&
+          !(await volunteersAvailableForSession(
+            session._id,
+            session.subTopic
+          ))))
     )
   },
   action: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {

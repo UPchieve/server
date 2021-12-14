@@ -306,7 +306,7 @@ describe('Test chatbot message requirements checks', () => {
     ).resolves.toBeTruthy()
   })
 
-  test('m8 only sends for unmatched, unended sessions where m7 was the last chatbot message sent and it has been at least 10 min since that message', async () => {
+  test('m8 sends for unmatched, unended sessions where m7 was the last chatbot message sent and it has been at least 10 min since that message', async () => {
     const newSession = buildSessionForChatbot()
     const chatbotGoodSession = buildSessionForChatbot()
     chatbotGoodSession.messages = [
@@ -340,6 +340,73 @@ describe('Test chatbot message requirements checks', () => {
     ).resolves.toBeFalsy()
     await expect(
       m8.requirements(chatbotGoodSession, chatbot)
+    ).resolves.toBeTruthy()
+  })
+
+  test('m8 sends for unmatched, unended sessions where a m3 message was the last chatbot message sent and it has been at least 10 min since that message and there are no volunteers available', async () => {
+    const newSession = buildSessionForChatbot()
+    // m3a chatbot
+    const chatbotGoodSessionOne = buildSessionForChatbot()
+    chatbotGoodSessionOne.messages = [
+      buildMessage({
+        user: chatbot,
+        contents: m3a.content(),
+        createdAt: moment()
+          .subtract(WAIT_FOR_MATCH)
+          .toDate(),
+      }),
+    ]
+    // m3b chatbot
+    const chatbotGoodSessionTwo = buildSessionForChatbot()
+    chatbotGoodSessionTwo.messages = [
+      buildMessage({
+        user: chatbot,
+        contents: m3b.content(),
+        createdAt: moment()
+          .subtract(WAIT_FOR_MATCH)
+          .toDate(),
+      }),
+    ]
+    // m3c chatbot
+    const chatbotGoodSessionThree = buildSessionForChatbot()
+    chatbotGoodSessionThree.messages = [
+      buildMessage({
+        user: chatbot,
+        contents: m3c.content(),
+        createdAt: moment()
+          .subtract(WAIT_FOR_MATCH)
+          .toDate(),
+      }),
+    ]
+    const chatbotBadSession = buildSessionForChatbot()
+    chatbotBadSession.messages = [
+      buildMessage({ user: chatbot, contents: m2.content() }),
+    ]
+    const newChatbotSession = buildSessionForChatbot()
+    newChatbotSession.messages = [
+      buildMessage({
+        user: chatbot,
+        contents: m3b.content(),
+        createdAt: new Date(),
+      }),
+    ]
+    mockedSessionService.volunteersAvailableForSession.mockResolvedValue(false)
+
+    await expect(m8.requirements(newSession, chatbot)).resolves.toBeFalsy()
+    await expect(
+      m8.requirements(chatbotBadSession, chatbot)
+    ).resolves.toBeFalsy()
+    await expect(
+      m8.requirements(newChatbotSession, chatbot)
+    ).resolves.toBeFalsy()
+    await expect(
+      m8.requirements(chatbotGoodSessionOne, chatbot)
+    ).resolves.toBeTruthy()
+    await expect(
+      m8.requirements(chatbotGoodSessionTwo, chatbot)
+    ).resolves.toBeTruthy()
+    await expect(
+      m8.requirements(chatbotGoodSessionThree, chatbot)
     ).resolves.toBeTruthy()
   })
 
