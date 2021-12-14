@@ -32,7 +32,6 @@ import config from '../../../config'
 jest.mock('socket.io-client')
 jest.mock('../../../services/SessionService')
 jest.mock('../../../services/QueueService')
-jest.mock('../../../worker/sockets')
 
 const mockedSessionService = mocked(SessionService, true)
 
