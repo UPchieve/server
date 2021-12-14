@@ -89,6 +89,7 @@ import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
 import WebNotificationsModal from '@/components/WebNotificationsModal'
 import getNotificationPermission from '@/utils/get-notification-permission'
 import { EVENTS } from '@/consts'
+import Gleap from 'gleap'
 
 const activeHeaderData = {
   component: 'SessionHeader'
@@ -115,7 +116,7 @@ export default {
     window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy() {
-    window.Gleap.removeCustomData("sessionId")
+    Gleap.removeCustomData("sessionId")
     window.removeEventListener('resize', this.handleResize)
   },
   /*
@@ -249,7 +250,7 @@ export default {
 
         if (!this.$socket.connected) await this.$socket.connect()
         this.joinSession(sessionId)
-        if (window.Gleap) window.Gleap.setCustomData("sessionId", sessionId)
+        Gleap.setCustomData("sessionId", sessionId)
         this.$store.dispatch('user/sessionConnected')
 
         if (

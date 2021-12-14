@@ -46,18 +46,18 @@
           tabindex="0"
         >
           <chat-bot
-            v-if="!user.isVolunteer && isSessionWaitingForVolunteer"
+            v-if="showLegacyChatBot && !user.isVolunteer && isSessionWaitingForVolunteer"
             @new-bot-message="handleIncomingMessage"
           />
-
-          <template v-for="(message, index) in messages">
+          <template v-for="(message, index) in currentSession.messages">
             <div
               :key="`message-${index}`"
               :class="messageAlignment(message)"
               class="message"
             >
-              <div class="avatar" :style="message.avatarStyle" v-if="showAvatar(message)" />
-              <div class="contents">
+              <component class="avatar" :is="avatar(message)" v-if="message.user !== user._id"/>
+
+              <div class="contents" :class="chatBotContents(message)">
                 <span>{{ message.contents }}</span>
               </div>
               <div class="time">
@@ -112,9 +112,11 @@ import * as Sentry from '@sentry/browser'
 import ChatBot from './ChatBot'
 import LoadingMessage from '@/components/LoadingMessage'
 import ModerationService from '@/services/ModerationService'
-import StudentAvatarUrl from '@/assets/defaultavatar3.png'
-import VolunteerAvatarUrl from '@/assets/defaultavatar4.png'
+import ChatBotIcon from '@/assets/chat-bot-icon.svg'
 import sendWebNotification from '@/utils/send-web-notification'
+import { isEnabled } from 'unleash-client'
+import { FEATURE_FLAGS } from '@/consts'
+import getChatAvatar from '@/utils/get-chat-avatar'
 
 const MESSAGE_ALIGNMENT = {
   LEFT: 'left',
@@ -128,7 +130,7 @@ const MESSAGE_ALIGNMENT = {
  */
 export default {
   name: 'session-chat',
-  components: { ChatBot, LoadingMessage },
+  components: { ChatBot, LoadingMessage, ChatBotIcon },
   props: {
     setHasSeenNewMessage: { type: Function, required: true },
     shouldHideChatSection: { type: Boolean, required: true }
@@ -148,18 +150,6 @@ export default {
       user: state => state.user.user,
       currentSession: state => state.user.session,
       isWebPageHidden: state => state.app.isWebPageHidden,
-      messages: state =>
-        (state.user.session.messages || []).map(message => {
-          const {
-            user: { user }
-          } = state
-          // Display an avatar in the chat for the other user
-          const picture = user.isVolunteer
-            ? StudentAvatarUrl
-            : VolunteerAvatarUrl
-          message.avatarStyle = { backgroundImage: `url(${picture})` }
-          return message
-        }),
       isSessionConnectionAlive: state => state.user.isSessionConnectionAlive,
       unreadChatMessageIndices: state => state.user.unreadChatMessageIndices,
       chatScrolledToMessageIndex: state => state.user.chatScrolledToMessageIndex
@@ -185,6 +175,9 @@ export default {
       return `${this.numberOfUnreadChatMessages} unread message${
         this.numberOfUnreadChatMessages === 1 ? '' : 's'
       }`
+    },
+    showLegacyChatBot(){
+      return !isEnabled(FEATURE_FLAGS.CHATBOT)
     }
   },
   mounted() {
@@ -304,19 +297,19 @@ export default {
         // autoscroll chat if at bottom
         this.scrollToBottom()
       } else if (
-        this.messages.length > 0 &&
-        this.messages[this.messages.length - 1].user !== this.user._id
+        this.currentSession.messages.length > 0 &&
+        this.currentSession.messages[this.currentSession.messages.length - 1].user !== this.user._id
       ) {
         const messageElements = this.getUserMessageElements()
 
         if (
           !this.isMessageElementInView(
-            messageElements[this.messages.length - 1]
+            messageElements[this.currentSession.messages.length - 1]
           )
         ) {
           this.$store.dispatch(
             'user/markChatMessageAsUnread',
-            this.messages.length - 1
+            this.currentSession.messages.length - 1
           )
         }
       }
@@ -369,6 +362,17 @@ export default {
     },
     showAvatar(message){
       return this.messageAlignment(message) ===  MESSAGE_ALIGNMENT.LEFT
+    },
+    avatar(message){
+      const volunteerId = this.currentSession.volunteer && this.currentSession.volunteer._id
+      return getChatAvatar(message.user, this.currentSession.student._id, volunteerId)
+    },
+    chatBotContents(message){
+      const isStudentMessage = message.user === this.currentSession.student._id
+      const isVolunteerMessage = this.currentSession.volunteer ? message.user === this.currentSession.volunteer._id : false
+      if (!isStudentMessage && !isVolunteerMessage)
+        return 'contents--chat-bot'
+      return ''
     }
   },
   sockets: {
@@ -497,7 +501,6 @@ export default {
 .avatar {
   width: 32px;
   height: 32px;
-  background-size: cover;
   margin-top: 0.3125em;
   border-radius: 16px;
   margin-right: 0.75em;
@@ -523,6 +526,10 @@ export default {
   border-radius: 20px;
   max-width: 80%;
   white-space: pre-line;
+
+  &--chat-bot {
+    background-color: $upchieve-chat-bot-green;
+  }
 }
 
 // transition element rulesets

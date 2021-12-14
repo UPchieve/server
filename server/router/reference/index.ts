@@ -17,7 +17,13 @@ export function routes(app: Express): void {
       const { references, _id: userId } = volunteer
       let referenceEmail: string | undefined
       for (const reference of references) {
-        if (reference._id.equals(referenceId)) referenceEmail = reference.email
+        // Some reference objects in database are broken/null so we must verify these fields exist
+        if (
+          reference._id &&
+          reference.email &&
+          reference._id.equals(referenceId)
+        )
+          referenceEmail = reference.email
       }
       if (!referenceEmail) return res.sendStatus(404)
       await UserService.saveReferenceForm(

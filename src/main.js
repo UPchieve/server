@@ -16,6 +16,7 @@ import store from './store'
 import config from './config'
 import posthog from 'posthog-js'
 import { initialize } from 'unleash-client'
+import Gleap from 'gleap'
 
 if (config.posthogToken) {
   posthog.init(`${config.posthogToken}`, {
@@ -29,6 +30,10 @@ if (config.unleashId) {
     appName: config.unleashName,
     instanceId: config.unleashId
   })
+}
+
+if (config.gleapSdkKey) {
+  Gleap.initialize(config.gleapSdkKey)
 }
 
 // Prevent production tip on startup

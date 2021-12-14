@@ -1,7 +1,7 @@
 <template>
   <router-link :to="`/admin/users/${user._id}`" class="user-preview">
     <div class="user-preview__left">
-      <div class="user-preview__icon">{{ userIcon }}</div>
+      <component class="user-preview__icon" :is="userIcon" />
     </div>
     <div class="user-preview__middle">
       <div class="user-preview__title">
@@ -17,6 +17,8 @@
 
 <script>
 import moment from 'moment'
+import StudentIcon from '@/assets/student-icon.svg'
+import VolunteerIcon from '@/assets/volunteer-icon.svg'
 
 export default {
   props: {
@@ -24,7 +26,7 @@ export default {
   },
   computed: {
     userIcon() {
-      return this.user.isVolunteer ? '🍎' : '🎓'
+      return this.user.isVolunteer ? VolunteerIcon : StudentIcon 
     },
     userSince() {
       return moment(this.user.createdAt).fromNow()
@@ -62,10 +64,6 @@ export default {
   &__left {
     flex-shrink: 1;
     margin: 0 14px 0 5px;
-  }
-
-  &__icon {
-    font-size: 28px;
   }
 
   &__middle {
