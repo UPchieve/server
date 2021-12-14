@@ -288,7 +288,7 @@ export const m9 = {
   requirements: async (session: SessionForChatbot, chatbot: Types.ObjectId) => {
     // sort in reverse order so array.find returns the last instance
     const messages = session.messages.sort((x, y) =>
-      x.createdAt < y.createdAt ? -1 : 1
+      x.createdAt < y.createdAt ? 1 : -1
     )
     const lastPromptMsg = messages.find(
       msg => msg.contents === m4.content() || msg.contents === m6.content()
