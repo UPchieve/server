@@ -239,7 +239,7 @@ export async function adminUpdateUser(data: unknown) {
     if (partnerSite) update.partnerSite = partnerSite
     else update.$unset.partnerSite = ''
 
-    update.inGatesStudy = inGatesStudy
+    if (inGatesStudy !== undefined) update.inGatesStudy = inGatesStudy
   }
 
   if (isBanned) update.banReason = USER_BAN_REASON.ADMIN
