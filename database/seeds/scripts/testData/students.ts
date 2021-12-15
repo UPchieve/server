@@ -1,6 +1,6 @@
 import pool from '../../pg-pool'
 import * as db from 'zapatos/db'
-import { getDbUlid } from '../utils'
+import { getDbUlid, getIdByNameFailsafe } from '../utils'
 
 export async function students() {
   const student1 = getDbUlid()
@@ -63,6 +63,10 @@ export async function students() {
       },
       {
         user_id: student3,
+        student_partner_org_id: await getIdByNameFailsafe(
+          'student_partner_orgs',
+          'Placeholder 3'
+        ),
         created_at: new Date(),
         updated_at: new Date(),
       },

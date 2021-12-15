@@ -78,6 +78,10 @@ export async function volunteers() {
         college: 'Volunteer College',
         created_at: new Date(),
         updated_at: new Date(),
+        volunteer_partner_org_id: await getIdByNameFailsafe(
+          'volunteer_partner_orgs',
+          'Placeholder 1'
+        ),
       },
       {
         user_id: volunteer2,

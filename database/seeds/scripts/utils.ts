@@ -9,53 +9,76 @@ export function getDbUlid() {
   return Ulid.generate().toRaw()
 }
 
-type ExtractColumns<T extends schema.Table> = keyof schema.WhereableForTable<T>
-type WhereableByName<
-  Table extends schema.Table,
-  Columns extends ExtractColumns<Table>
-> = Columns extends 'name' ? Table : never
-type ExtractSelectable<
-  T extends schema.Table
-> = keyof schema.SelectableForTable<T>
-type SelectableById<
-  Table extends schema.Table,
-  Columns extends ExtractSelectable<Table>
-> = Columns extends 'id' ? Table : never
-type ExtractJSONSelectable<
-  T extends schema.Table
-> = keyof schema.JSONSelectableForTable<T>
-type JSONSelectableById<
-  Table extends schema.Table,
-  Columns extends ExtractJSONSelectable<Table>
-> = Columns extends 'id' ? Table : never
+type NumberOrString<T> = T extends string
+  ? string
+  : T extends number
+  ? number
+  : never
 
+type WhereableOptions<T> =
+  | T
+  | db.Parameter<T>
+  | db.SQLFragment
+  | db.ParentColumn
+  | db.SQLFragment<any, T | db.Parameter<T> | db.SQLFragment | db.ParentColumn>
+
+type WhereNameForTable<Table extends schema.Table> = schema.WhereableForTable<
+  Table
+> extends { name?: any }
+  ? schema.WhereableForTable<Table>['name']
+  : never
+type WhereableByName<Table extends schema.Table> = WhereableOptions<
+  string
+> extends WhereNameForTable<Table>
+  ? Table
+  : never
+
+type SelectRowForTable<
+  Table extends schema.Table
+> = schema.JSONSelectableForTable<Table> extends { id: any }
+  ? schema.JSONSelectableForTable<Table>
+  : never
+type SelectIdForTable<
+  Table extends schema.Table
+> = schema.JSONSelectableForTable<Table> extends { id: any }
+  ? schema.JSONSelectableForTable<Table>['id']
+  : never
+type SelectableById<Table extends schema.Table> = NumberOrString<
+  SelectIdForTable<Table>
+> extends never
+  ? never
+  : Table
+
+/*
+type test = 'student_profiles'  // pick a table
+type nameTest = WhereableByName<test> = table if row.name exists and is a string
+type selectTest = SelectableById<test> = table if row.id exists and is string or number
+*/
+
+/**
+ * Queries provided table for a single row with row.name equal to provided value
+ * If no row or multiple rows match it will throw a pg error
+ * If the provided table does not have a wherable name property or selectable
+ * id property you will recieve a type error 'string' is not assignable to 'never'
+ * @param table table name string
+ * @param name name to query for
+ * @returns id of row
+ */
 export async function getIdByName<Table extends schema.Table>(
-  table: JSONSelectableById<
-    SelectableById<
-      WhereableByName<Table, ExtractColumns<Table>>,
-      ExtractSelectable<Table>
-    >,
-    ExtractJSONSelectable<Table>
-  >,
+  table: SelectableById<WhereableByName<Table>>,
   name: string
-): Promise<number | undefined> {
+): Promise<NumberOrString<SelectIdForTable<Table>> | undefined> {
   if (table) {
     const where = { name } as schema.WhereableForTable<Table>
     const obj = await db.selectExactlyOne(table, where).run(pool)
-    return (obj as schema.JSONSelectableForTable<Table> & { id: number }).id
+    return (obj as SelectRowForTable<Table>).id
   }
 }
 
 export async function getIdByNameFailsafe<Table extends schema.Table>(
-  table: JSONSelectableById<
-    SelectableById<
-      WhereableByName<Table, ExtractColumns<Table>>,
-      ExtractSelectable<Table>
-    >,
-    ExtractJSONSelectable<Table>
-  >,
+  table: SelectableById<WhereableByName<Table>>,
   name: string
-): Promise<number> {
+): Promise<NumberOrString<SelectIdForTable<Table>>> {
   const value = await getIdByName(table, name)
   if (!value)
     throw new Error(`Table ${table} contains no row with name ${name}`)
