@@ -6,6 +6,7 @@ import config from '../../config'
 import { USER_BAN_REASON } from '../../constants'
 import { Session } from '../Session'
 import { IpAddress } from '../IpAddress'
+import { ObjectId } from '../pgUtils'
 
 export interface User {
   _id: Types.ObjectId
@@ -18,6 +19,7 @@ export interface User {
   verificationToken?: string
   passwordResetToken?: string
   firstname: string
+  firstName?: string
   lastname: string
   phone?: string
   college?: string
