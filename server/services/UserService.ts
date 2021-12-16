@@ -165,6 +165,7 @@ interface AdminUpdate {
   isBanned?: boolean
   isDeactivated?: boolean
   isApproved?: boolean
+  inGatesStudy?: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
   userId: asObjectId,
@@ -177,6 +178,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   isBanned: asOptional(asBoolean),
   isDeactivated: asOptional(asBoolean),
   isApproved: asOptional(asBoolean),
+  inGatesStudy: asOptional(asBoolean),
 })
 
 export async function adminUpdateUser(data: unknown) {
@@ -191,6 +193,7 @@ export async function adminUpdateUser(data: unknown) {
     isBanned,
     isDeactivated,
     isApproved,
+    inGatesStudy,
   } = asAdminUpdate(data)
   const userBeforeUpdate = await getUserById(userId)
   if (!userBeforeUpdate) {
@@ -235,6 +238,8 @@ export async function adminUpdateUser(data: unknown) {
 
     if (partnerSite) update.partnerSite = partnerSite
     else update.$unset.partnerSite = ''
+
+    if (inGatesStudy !== undefined) update.inGatesStudy = inGatesStudy
   }
 
   if (isBanned) update.banReason = USER_BAN_REASON.ADMIN
@@ -383,6 +388,7 @@ export async function adminGetUser(userId: Types.ObjectId, page: number = 1) {
         verified: 1,
         numPastSessions: { $size: '$pastSessions' },
         pastSessions: { $slice: ['$pastSessions', -10 * page, 10] },
+        inGatesStudy: 1,
       },
     },
     {
