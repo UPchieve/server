@@ -3,11 +3,10 @@ import Volunteer, { Certifications } from '../models/Volunteer'
 import Question from '../models/Question'
 import * as db from '../db';
 
-// https://stackoverflow.com/questions/16959099/how-to-remove-array-element-in-mongodb
-
 async function upgrade(): Promise<void> {
+  let exitCode = 0
   try{
-    await db.connect();
+    await db.connect()
 
     const deletedQuestions = await Question.deleteMany({ category: 'algebra'})
 
@@ -28,11 +27,14 @@ async function upgrade(): Promise<void> {
       }
     })  
     
-    console.log('Questions deleted', deletedQuestions);
-    console.log('Volunteers with algebra certification removed', removedCertification);
-    console.log('Volunteers with algebra subject removed', removedSubject);
+    console.log('Questions deleted', deletedQuestions)
+    console.log('Volunteers with algebra certification removed', removedCertification)
+    console.log('Volunteers with algebra subject removed', removedSubject)
   } catch (err) {
-    console.log(err);
+    console.log(err)
+    exitCode = 1
+  } finally {
+    process.exit(exitCode)
   }
 }
 
