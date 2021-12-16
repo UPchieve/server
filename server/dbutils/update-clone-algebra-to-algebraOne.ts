@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
 import * as db from '../db';
 import Question from '../models/Question'
 
 async function upgrade(): Promise<void> {
+  let exitCode = 0
   try {
-    await db.connect();
+    await db.connect()
     const result = await Question.find(
       { category: 'algebra' })
       .lean()
@@ -17,14 +17,15 @@ async function upgrade(): Promise<void> {
           category: 'algebraOne'
         }
         Question.create(algebraOneQuestion)
-        console.log('Updated: ', algebraOneQuestion);
+        console.log('Updated: ', algebraOneQuestion)
       }
          
   } catch (error) {
-    console.error(error);
+    console.error(error)
+    exitCode = 1
+  } finally {
+    process.exit(exitCode)
   }
-
-  mongoose.disconnect();
 }
 
 // Run:
