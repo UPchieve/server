@@ -9,19 +9,22 @@ async function upgrade(): Promise<void> {
   try{
     await db.connect();
 
-    // deleting all algebra questions from collection
-    // Model.deleteMany or Model.remove()?
-    const deletedQuestions = Question.deleteMany({ category: 'algebra'})
+    const deletedQuestions = await Question.deleteMany({ category: 'algebra'})
 
-    const removedCertification = Volunteer.updateMany({}, {
-      $pull: {
-        'certifications': { Certifications : 'algebra' }
-      }
-    })
+    // since update() is a deprecated method, using updateMany
+    const removedCertification = await Volunteer.updateMany({}, 
+      {
+        $unset: { 
+          "certifications.algebra": "" 
+        }
+      }, 
+      { 
+        multi: true
+      })
 
-    const removedSubject = Volunteer.updateMany({}, {
+    const removedSubject = await Volunteer.updateMany({}, {
       $pull: {
-        'subjects': { string: 'algebraTwo-temporary' }
+        subjects : 'algebraTwo-temporary'
       }
     })  
     
