@@ -6,13 +6,20 @@ async function upgrade(): Promise<void> {
   try {
     await db.connect();
     const result = await Question.find(
-      { isVolunteer: true, category: 'algebra' })
+      { category: 'algebra' })
       .lean()
       .exec()
 
-      Question.create(result)
-      
-      console.log('Updated: ', result);
+      for(const question in result){
+        const obj1 = { question }
+        const algebraOneQuestion = {
+          ...obj1,
+          category: 'algebraOne'
+        }
+        Question.create(algebraOneQuestion)
+        console.log('Updated: ', algebraOneQuestion);
+      }
+         
   } catch (error) {
     console.error(error);
   }
@@ -23,6 +30,3 @@ async function upgrade(): Promise<void> {
 // Run:
 // npx ts-node dbutils/update-clone-algebra-to-algebraOne.ts
 upgrade();
-
-// TODO: 
-// set the category value of the cloned documents = 'algebraOne'
