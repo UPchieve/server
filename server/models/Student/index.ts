@@ -10,6 +10,7 @@ export interface Student extends User {
   studentPartnerOrg: string
   partnerSite: string
   currentGrade?: GRADES // optional for backwards compatibility
+  inGatesStudy: boolean
 }
 
 export type StudentDocument = Student & Document
@@ -36,6 +37,10 @@ const studentSchema = new Schema(
     currentGrade: {
       type: String,
       enum: values(GRADES),
+    },
+    inGatesStudy: {
+      type: Boolean,
+      default: false,
     },
   },
   schemaOptions
