@@ -15,9 +15,6 @@ async function upgrade(): Promise<void> {
         $unset: { 
           'certifications.algebra' : ''
         }
-      }, 
-      { 
-        multi: true
       })
 
     const removedSubject = await Volunteer.updateMany({}, {
