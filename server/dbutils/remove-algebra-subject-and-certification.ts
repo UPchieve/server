@@ -1,5 +1,4 @@
-import mongoose from 'mongoose'
-import Volunteer, { Certifications } from '../models/Volunteer'
+import Volunteer from '../models/Volunteer'
 import Question from '../models/Question'
 import * as db from '../db';
 
@@ -14,7 +13,7 @@ async function upgrade(): Promise<void> {
     const removedCertification = await Volunteer.updateMany({}, 
       {
         $unset: { 
-          "certifications.algebra": "" 
+          'certifications.algebra' : ''
         }
       }, 
       { 
