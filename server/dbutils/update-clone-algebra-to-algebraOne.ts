@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import * as db from '../db';
 import Question from '../models/Question'
 
@@ -6,7 +7,7 @@ async function upgrade(): Promise<void> {
   try {
     await db.connect()
     const result = await Question.find(
-      { category: 'algebra' })
+      { category: 'algebra' }, { _id: 0 })
       .lean()
       .exec()
 
@@ -21,10 +22,11 @@ async function upgrade(): Promise<void> {
       }
          
   } catch (error) {
-    console.error(error)
+    console.error("Unhandled error: ", error)
     exitCode = 1
   } finally {
-    process.exit(exitCode)
+    mongoose.disconnect()
+    process.exit(exitCode) 
   }
 }
 
