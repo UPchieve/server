@@ -39,11 +39,14 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import AnalyticsService from '@/services/AnalyticsService'
 import isPhysics from '@/utils/is-physics'
 import { PHYSICS_MAPPING, EVENTS } from '@/consts'
 import { allSubtopics } from '@/utils/topics'
+// import { isEnabled } from 'unleash-client'
+// import { FEATURE_FLAGS } from '@/consts'
 
 export default {
   components: {},
@@ -76,7 +79,12 @@ export default {
     getCategoryMaterials() {
       switch (this.category) {
         case 'prealgebra':
+        // TODO: remove algebra case below in algebra 2 launch cleanup
         case 'algebra':
+        // TODO: copy algebra 1 review materials
+        case 'algebraOne':
+        // TODO: do we have algebra 2 review materials?
+        case 'algebraTwo':
         case 'geometry':
         case 'trigonometry':
         case 'statistics':
@@ -179,9 +187,14 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
+    }),
     categoryDisplayName() {
       const subtopics = allSubtopics()
-      if (this.category === 'algebra') return 'Algebra'
+      // TODO: remove condition below in algebra 2 launch cleanup
+      if (!this.isAlgebraTwoLaunchActive && this.category === 'algebra') 
+        return 'Algebra'
       if (this.category) return subtopics[this.category].displayName
 
       return ''
