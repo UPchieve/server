@@ -230,6 +230,8 @@ export default {
           }
         }
       }
+      // TODO: remove line below in algebra 2 launch cleanup
+      subtopicObj['Algebra 2 Temporary'] = 'MATH'
       return subtopicObj
     },
     subjects() {
@@ -241,6 +243,10 @@ export default {
         if (subtopics[key]) {
           displayObj[subtopics[key].displayName || subtopics[key]] = true
         }
+
+        // TODO: remove line below in algebra 2 launch cleanup
+        if (key === 'algebraTwo-temporary' && !user.subjects.includes('algebraTwo')) 
+          displayObj['Algebra 2 Temporary'] = true
 
         return displayObj
       }, {})
