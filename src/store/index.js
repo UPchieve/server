@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import config from '../config'
 import appModule from './modules/app'
+import featureFlagsModule from './modules/feature-flags'
 import productFlagsModule from './modules/product-flags'
 import userModule from './modules/user'
 
@@ -16,7 +17,8 @@ export const storeOptions = {
   modules: {
     app: appModule,
     user: userModule,
-    productFlags: productFlagsModule
+    productFlags: productFlagsModule,
+    featureFlags: featureFlagsModule
   }
 }
 
