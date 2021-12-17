@@ -11,6 +11,11 @@ export default {
       if (auth.authenticated) {
         return auth.user
       }
+
+      if (auth.err) {
+        throw auth.err
+      }
+
       return Promise.resolve({})
     })
   },
