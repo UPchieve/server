@@ -25,20 +25,7 @@ export default {
     },
   },
   mutations: {
-    setFeatureFlags: (state, flags) => {
-      state.flags = {
-        [FEATURE_FLAGS.REFER_FRIENDS]: flags[FEATURE_FLAGS.REFER_FRIENDS],
-        [FEATURE_FLAGS.STUDENT_BANNED_STATE]:
-          flags[FEATURE_FLAGS.STUDENT_BANNED_STATE],
-        [FEATURE_FLAGS.DASHBOARD_REDESIGN]:
-          flags[FEATURE_FLAGS.DASHBOARD_REDESIGN],
-        [FEATURE_FLAGS.GATES_STUDY]: flags[FEATURE_FLAGS.GATES_STUDY],
-        [FEATURE_FLAGS.DOWNTIME_BANNER]: flags[FEATURE_FLAGS.DOWNTIME_BANNER],
-        [FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH]:
-          flags[FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH],
-        [FEATURE_FLAGS.CHATBOT]: flags[FEATURE_FLAGS.CHATBOT],
-      }
-    },
+    setFeatureFlags: (state, flags) => (state.flags = flags)
   },
   actions: {
     async initInterceptor({ commit }) {
@@ -48,12 +35,24 @@ export default {
           // intercept unleash clents response and save flags to our store
           if (this.responseURL.match('unleash')) {
             const data = JSON.parse(this.response)
-            if (data.features && data.features.length)
+            if (data.features && data.features.length){
               const flags = data.features.reduce(
                 (obj, flag) => ((obj[flag.name] = flag.enabled), obj),
                 {}
               )
-            commit('setFeatureFlags', flags)
+              commit('setFeatureFlags', {
+                [FEATURE_FLAGS.REFER_FRIENDS]: flags[FEATURE_FLAGS.REFER_FRIENDS],
+                [FEATURE_FLAGS.STUDENT_BANNED_STATE]:
+                  flags[FEATURE_FLAGS.STUDENT_BANNED_STATE],
+                [FEATURE_FLAGS.DASHBOARD_REDESIGN]:
+                  flags[FEATURE_FLAGS.DASHBOARD_REDESIGN],
+                [FEATURE_FLAGS.GATES_STUDY]: flags[FEATURE_FLAGS.GATES_STUDY],
+                [FEATURE_FLAGS.DOWNTIME_BANNER]: flags[FEATURE_FLAGS.DOWNTIME_BANNER],
+                [FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH]:
+                  flags[FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH],
+                [FEATURE_FLAGS.CHATBOT]: flags[FEATURE_FLAGS.CHATBOT],
+              })
+            }
           }
         })
         origOpen.apply(this, arguments)
