@@ -75,6 +75,7 @@ export default {
     await this.$store.dispatch('app/checkEnvironment', this)
     PortalService.call('app.isLoaded')
 
+    this.$store.dispatch('featureFlags/initInterceptor')
     // set version on initial load
     this.$store.commit('app/setVersion', config.version)
 
