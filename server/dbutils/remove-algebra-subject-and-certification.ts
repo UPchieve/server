@@ -1,5 +1,6 @@
 import Volunteer from '../models/Volunteer'
 import Question from '../models/Question'
+import mongoose from 'mongoose';
 import * as db from '../db';
 
 async function upgrade(): Promise<void> {
@@ -9,7 +10,6 @@ async function upgrade(): Promise<void> {
 
     const deletedQuestions = await Question.deleteMany({ category: 'algebra'})
 
-    // since update() is a deprecated method, using updateMany
     const removedCertification = await Volunteer.updateMany({}, 
       {
         $unset: { 
@@ -27,9 +27,10 @@ async function upgrade(): Promise<void> {
     console.log('Volunteers with algebra certification removed', removedCertification)
     console.log('Volunteers with algebra subject removed', removedSubject)
   } catch (err) {
-    console.log(err)
+    console.log('Unhandled error: ', err)
     exitCode = 1
   } finally {
+    mongoose.disconnect()
     process.exit(exitCode)
   }
 }
