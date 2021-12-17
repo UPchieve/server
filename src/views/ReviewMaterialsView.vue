@@ -77,13 +77,11 @@ export default {
   },
   methods: {
     getCategoryMaterials() {
+      // TODO: remove `algebra` case below in algebra 2 launch cleanup
       switch (this.category) {
         case 'prealgebra':
-        // TODO: remove algebra case below in algebra 2 launch cleanup
         case 'algebra':
-        // TODO: copy algebra 1 review materials
         case 'algebraOne':
-        // TODO: do we have algebra 2 review materials?
         case 'algebraTwo':
         case 'geometry':
         case 'trigonometry':
