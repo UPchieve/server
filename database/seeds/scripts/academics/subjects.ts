@@ -1,5 +1,6 @@
 import pool from '../../pg-pool'
 import * as db from 'zapatos/db'
+import { getIdByNameFailsafe } from '../utils'
 
 async function getTopicId(topicName: string): Promise<number> {
   const topic = await db
@@ -221,24 +222,95 @@ export async function subjects() {
         tool_type_id: await getToolTypeId('documenteditor'),
         display_order: 1,
       },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        name: 'integratedMathOne',
+        display_name: 'Integrated Math One',
+        topic_id: await getTopicId('math'),
+        tool_type_id: await getToolTypeId('whiteboard'),
+        display_order: 9,
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        name: 'integratedMathTwo',
+        display_name: 'Integrated Math Two',
+        topic_id: await getTopicId('math'),
+        tool_type_id: await getToolTypeId('whiteboard'),
+        display_order: 9,
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        name: 'integratedMathThree',
+        display_name: 'Integrated Math Three',
+        topic_id: await getTopicId('math'),
+        tool_type_id: await getToolTypeId('whiteboard'),
+        display_order: 9,
+      },
+      {
+        updated_at: new Date(),
+        created_at: new Date(),
+        name: 'integratedMathFour',
+        display_name: 'Integrated Math Four',
+        topic_id: await getTopicId('math'),
+        tool_type_id: await getToolTypeId('whiteboard'),
+        display_order: 9,
+      },
     ])
     .run(pool)
 }
 
-/*
-export async function computedSubjectComposition() {
-    await db.insert('computed_subject_composition', [
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathOne'), subject_id: await getSubjectId('algebraOne')},
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathOne'), subject_id: await getSubjectId('geometry')},
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathOne'), subject_id: await getSubjectId('statistics')},
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathTwo'), subject_id: await getSubjectId('algebraOne')},
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathTwo'), subject_id: await getSubjectId('geometry')},
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathTwo'), subject_id: await getSubjectId('statistics')},
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathTwo'), subject_id: await getSubjectId('trigonometry')},
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathThree'), subject_id: await getSubjectId('precalculus')},
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathThree'), subject_id: await getSubjectId('statistics')},
-        { updated_at: new Date(), created_at: new Date(), computed_subject_id: await getComputedSubjectId('integratedMathFour'), subject_id: await getSubjectId('precalculus')},
 
+export async function certificationSubjectUnlocks() {
+    await db.insert('certification_subject_unlocks', [
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathOne'), certification_id: await getIdByNameFailsafe('certifications', 'algebraOne')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathOne'), certification_id: await getIdByNameFailsafe('certifications', 'geometry')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathOne'), certification_id: await getIdByNameFailsafe('certifications', 'statistics')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathTwo'), certification_id: await getIdByNameFailsafe('certifications', 'algebraOne')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathTwo'), certification_id: await getIdByNameFailsafe('certifications', 'geometry')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathTwo'), certification_id: await getIdByNameFailsafe('certifications', 'statistics')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathTwo'), certification_id: await getIdByNameFailsafe('certifications', 'trigonometry')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathThree'), certification_id: await getIdByNameFailsafe('certifications', 'precalculus')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathThree'), certification_id: await getIdByNameFailsafe('certifications', 'statistics')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathFour'), certification_id: await getIdByNameFailsafe('certifications', 'precalculus')},
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'prealgebra'), certification_id: await getIdByNameFailsafe('certifications', 'prealgebra') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'statistics'), certification_id: await getIdByNameFailsafe('certifications', 'statistics') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'geometry'), certification_id: await getIdByNameFailsafe('certifications', 'geometry') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'biology'), certification_id: await getIdByNameFailsafe('certifications', 'biology') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'chemistry'), certification_id: await getIdByNameFailsafe('certifications', 'chemistry') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'physicsOne'), certification_id: await getIdByNameFailsafe('certifications', 'physicsOne') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'physicsTwo'), certification_id: await getIdByNameFailsafe('certifications', 'physicsTwo') },
+        {
+          updated_at: new Date(),
+          created_at: new Date(),
+          subject_id: await getIdByNameFailsafe('subjects', 'environmentalScience'),
+          certification_id: await getIdByNameFailsafe('certifications', 'environmentalScience')
+        },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'essays'), certification_id: await getIdByNameFailsafe('certifications', 'essays') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'applications'), certification_id: await getIdByNameFailsafe('certifications', 'applications') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'planning'), certification_id: await getIdByNameFailsafe('certifications', 'planning') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'satMath'), certification_id: await getIdByNameFailsafe('certifications', 'satMath') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'satReading'), certification_id: await getIdByNameFailsafe('certifications', 'satReading') },
+        // {
+        //   updated_at: new Date(),
+        //   created_at: new Date(),
+        //   subject_id: await getIdByNameFailsafe('subjects', 'collegeCounseling'),
+        //   certification_id: await getIdByNameFailsafe('certifications', 'collegeCounseling')
+        // },
+        {
+          updated_at: new Date(),
+          created_at: new Date(),
+          subject_id: await getIdByNameFailsafe('subjects', 'humanitiesEssays'),
+          certification_id: await getIdByNameFailsafe('certifications', 'humanitiesEssays')
+        },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'algebraOne'), certification_id: await getIdByNameFailsafe('certifications', 'algebraOne') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'algebraTwo'), certification_id: await getIdByNameFailsafe('certifications', 'algebraTwo') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'trigonometry'), certification_id: await getIdByNameFailsafe('certifications', 'trigonometry') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'precalculus'), certification_id: await getIdByNameFailsafe('certifications', 'precalculus') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'calculusAB'), certification_id: await getIdByNameFailsafe('certifications', 'calculusAB') },
+        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'calculusBC'), certification_id: await getIdByNameFailsafe('certifications', 'calculusBC') },
     ]).run(pool)
 }
-*/
+
