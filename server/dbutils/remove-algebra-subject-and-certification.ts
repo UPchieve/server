@@ -10,22 +10,18 @@ async function upgrade(): Promise<void> {
 
     const deletedQuestions = await Question.deleteMany({ category: 'algebra'})
 
-    const removedCertification = await Volunteer.updateMany({}, 
+    const result = await Volunteer.updateMany({}, 
       {
         $unset: { 
           'certifications.algebra' : ''
+        }, 
+        $pull: {
+          subjects : 'algebraTwo-temporary'
         }
-      })
-
-    const removedSubject = await Volunteer.updateMany({}, {
-      $pull: {
-        subjects : 'algebraTwo-temporary'
-      }
-    })  
+      }) 
     
     console.log('Questions deleted', deletedQuestions)
-    console.log('Volunteers with algebra certification removed', removedCertification)
-    console.log('Volunteers with algebra subject removed', removedSubject)
+    console.log('Volunteers with algebra certification and algebraTwo-temporary subject removed', result)
   } catch (err) {
     console.log('Unhandled error: ', err)
     exitCode = 1
