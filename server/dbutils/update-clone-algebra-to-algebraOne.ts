@@ -17,7 +17,7 @@ async function upgrade(): Promise<void> {
           ...obj1,
           category: 'algebraOne'
         }
-        Question.create(algebraOneQuestion)
+        await Question.create(algebraOneQuestion)
         console.log('Updated: ', algebraOneQuestion)
       }
          
