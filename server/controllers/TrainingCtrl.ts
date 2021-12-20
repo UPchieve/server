@@ -293,16 +293,18 @@ export async function getQuizScore(
       })
     }
     /**
-     * 
+     *
      * algebra certs no longer unlock algebraOne and algebraTwo.
      * When a user takes an algebra quiz, add algebraTwo-temporary
      * instead of algebraTwo to their subjects. This allows for backwards
      * compatibility when the algebra 2 launch feature flag is off
-     * 
+     *
      */
     // TODO: remove this condition in algebra 2 launch cleanup
-    if (cert === MATH_CERTS.ALGEBRA) { 
-      unlockedSubjects = unlockedSubjects.filter(subject => subject !== MATH_CERTS.ALGEBRA_TWO)
+    if (cert === MATH_CERTS.ALGEBRA) {
+      unlockedSubjects = unlockedSubjects.filter(
+        subject => subject !== MATH_CERTS.ALGEBRA_TWO
+      )
       unlockedSubjects.push(SUBJECTS.ALGEBRA_TWO_TEMP)
     }
     userUpdates.$addToSet = { subjects: unlockedSubjects }
