@@ -477,7 +477,7 @@ describe('getUnlockedSubjects', () => {
       expect(result).toEqual(expected)
     })
 
-    test('Should unlock Integrated Math 1 when taking Algebra and is certified in Geometry and Statistics', async () => {
+    test('Should unlock Integrated Math 1 when taking Algebra 1 and is certified in Geometry and Statistics', async () => {
       const cert = MATH_CERTS.ALGEBRA_ONE
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
@@ -486,7 +486,6 @@ describe('getUnlockedSubjects', () => {
       })
       const expected = [
         MATH_SUBJECTS.ALGEBRA_ONE,
-        MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.STATISTICS,
@@ -497,7 +496,7 @@ describe('getUnlockedSubjects', () => {
       expect(result).toEqual(expected)
     })
 
-    test('Should unlock Integrated Math 2 when taking Trigonometry and is certified in Algebra, Geometry, and Statistics', async () => {
+    test('Should unlock Integrated Math 2 when taking Trigonometry and is certified in Algebra 1, Geometry, and Statistics', async () => {
       const cert = MATH_CERTS.TRIGONOMETRY
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
@@ -508,7 +507,6 @@ describe('getUnlockedSubjects', () => {
       const expected = [
         MATH_SUBJECTS.TRIGONOMETRY,
         MATH_SUBJECTS.ALGEBRA_ONE,
-        MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.STATISTICS,
@@ -689,7 +687,6 @@ describe('getUnlockedSubjects', () => {
       })
       const expected = [
         MATH_SUBJECTS.ALGEBRA_ONE,
-        MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.STATISTICS,
@@ -700,7 +697,7 @@ describe('getUnlockedSubjects', () => {
       expect(result).toEqual(expected)
     })
 
-    test('Should unlock Integrated Math 2 when taking Trigonometry and is certified in Algebra, Geometry, and Statistics', async () => {
+    test('Should unlock Integrated Math 2 when taking Trigonometry and is certified in Algebra 1, Geometry, and Statistics', async () => {
       const cert = TRAINING.TUTORING_SKILLS
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
@@ -710,7 +707,6 @@ describe('getUnlockedSubjects', () => {
       })
       const expected = [
         MATH_SUBJECTS.ALGEBRA_ONE,
-        MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.TRIGONOMETRY,
