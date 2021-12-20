@@ -365,7 +365,7 @@ describe('getQuizScore', () => {
 
   test('Grace period volunteer (an existing volunteer) should have the same subjects when completing required training', async () => {
     const certifications = buildCertifications({
-      [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
+      [MATH_CERTS.ALGEBRA_TWO]: { passed: true, tries: 1 },
     })
     const subjects = [
       SUBJECTS.PREALGREBA,
@@ -478,7 +478,7 @@ describe('getUnlockedSubjects', () => {
     })
 
     test('Should unlock Integrated Math 1 when taking Algebra and is certified in Geometry and Statistics', async () => {
-      const cert = MATH_CERTS.ALGEBRA
+      const cert = MATH_CERTS.ALGEBRA_ONE
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
@@ -502,7 +502,7 @@ describe('getUnlockedSubjects', () => {
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
-        [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
+        [MATH_CERTS.ALGEBRA_ONE]: { passed: true, tries: 1 },
         [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
       const expected = [
@@ -683,7 +683,7 @@ describe('getUnlockedSubjects', () => {
     test('Should unlock Integrated Math 1 when taking Algebra and is certified in Geometry and Statistics', async () => {
       const cert = TRAINING.TUTORING_SKILLS
       const certifications = buildCertificationsWithUpchieve101({
-        [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
+        [MATH_CERTS.ALGEBRA_ONE]: { passed: true, tries: 1 },
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
       })
@@ -705,7 +705,7 @@ describe('getUnlockedSubjects', () => {
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
-        [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
+        [MATH_CERTS.ALGEBRA_ONE]: { passed: true, tries: 1 },
         [MATH_CERTS.TRIGONOMETRY]: { passed: true, tries: 1 },
       })
       const expected = [
