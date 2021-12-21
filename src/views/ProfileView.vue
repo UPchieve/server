@@ -244,6 +244,12 @@ export default {
           displayObj[subtopics[key].displayName || subtopics[key]] = true
         }
 
+        /**
+         * 
+         * show algebraTwo-temporary in profile view only if they have 
+         * it in their subjects and do not have algebraTwo
+         * 
+         */
         // TODO: remove line below in algebra 2 launch cleanup
         if (key === 'algebraTwo-temporary' && !user.subjects.includes('algebraTwo')) 
           displayObj['Algebra 2 Temporary'] = true
