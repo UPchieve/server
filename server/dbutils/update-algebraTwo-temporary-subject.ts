@@ -9,8 +9,8 @@ async function upgrade(): Promise<void> {
       // all volunteers who do not have at least one precalculus, calculus ab and calculus bc in their subjects and have algebraTwo
       // should only be able to take temporary algebra 2 requests till 3/1/22
       subjects: {
-          $nin: [ SUBJECTS.PRECALCULUS, SUBJECTS.CALCULUS_AB, SUBJECTS.CALCULUS_BC ],
-          $in: [ SUBJECTS.ALGEBRA_TWO]
+          $in: [ SUBJECTS.ALGEBRA_TWO],
+          $nin: [ SUBJECTS.PRECALCULUS, SUBJECTS.CALCULUS_AB, SUBJECTS.CALCULUS_BC ],  
         }
       },
       {
@@ -24,14 +24,14 @@ async function upgrade(): Promise<void> {
       }
     )
 
-    // const certifiedVolunteers = await VolunteerModel.updateMany({
-    //   certifications.MATH_CERTS.ALGEBRA.passed: true
-    // },
-    // {
-    //   $set: {
-    //     certifications.MATH_CERTS.ALGEBRAONE: certifications.MATH_CERTS.ALGEBRA
-    //   }
-    // })
+    const certifiedVolunteers = await VolunteerModel.updateMany({
+      'certifications.MATH_CERTS.ALGEBRA.passed': true
+    },
+    {
+      $set: {
+        'certifications.MATH_CERTS.ALGEBRA_ONE': { ...certifications.MATH_CERTS.ALGEBRA }
+      }
+    })
 
   } catch(error){
     console.error("Unhandled error: ", error)
