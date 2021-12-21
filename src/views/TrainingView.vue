@@ -67,8 +67,6 @@ import AccordionItem from '@/components/AccordionItem'
 import TrainingDropDown from '@/components/TrainingDropDown'
 import SubjectCertsDropDown from '@/components/SubjectCertsDropDown'
 import AdditionalSubjectsDropDown from '@/components/AdditionalSubjectsDropDown'
-// import { isEnabled } from 'unleash-client'
-// import { FEATURE_FLAGS } from '@/consts'
 
 export default {
   name: 'Training',

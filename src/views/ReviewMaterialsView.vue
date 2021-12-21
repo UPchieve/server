@@ -45,8 +45,6 @@ import AnalyticsService from '@/services/AnalyticsService'
 import isPhysics from '@/utils/is-physics'
 import { PHYSICS_MAPPING, EVENTS } from '@/consts'
 import { allSubtopics } from '@/utils/topics'
-// import { isEnabled } from 'unleash-client'
-// import { FEATURE_FLAGS } from '@/consts'
 
 export default {
   components: {},
