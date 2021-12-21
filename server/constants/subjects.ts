@@ -33,7 +33,7 @@ export enum MATH_SUBJECTS {
   PREALGREBA = 'prealgebra',
   ALGEBRA_ONE = 'algebraOne',
   ALGEBRA_TWO = 'algebraTwo',
-  // TODO: remove `algebra` in the algebra 2 launch cleanup
+  // TODO: remove `ALGEBRA_TWO_TEMP` in the algebra 2 launch cleanup
   ALGEBRA_TWO_TEMP = 'algebraTwo-temporary',
   GEOMETRY = 'geometry',
   TRIGONOMETRY = 'trigonometry',
