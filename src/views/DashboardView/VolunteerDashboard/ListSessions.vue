@@ -155,8 +155,8 @@ export default {
         if (
           Object.keys(allSubtopics()).some(
             s => s === subTopic && this.user.subjects.includes(s)
-            // TODO: more testing on this
-            // TODO: remove check for algebraTwo in algebra 2 launch cleanup
+            // Allow users with `algebraTwo-temporary` to pick up `algebraTwo` sessions
+            // TODO: remove check for `algebraTwo` in algebra 2 launch cleanup
           ) || (subTopic === 'algebraTwo' && this.user.subjects.includes('algebraTwo-temporary'))
         ) {
           results.push(session)
