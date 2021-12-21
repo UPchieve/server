@@ -1,24 +1,24 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import * as db from '../db';
-import Question from '../models/Question'
+import QuestionModel from '../models/Question'
 
 async function upgrade(): Promise<void> {
   let exitCode = 0
   try {
     await db.connect()
-    const result = await Question.find(
+    const result = await QuestionModel.find(
       { category: 'algebra' }, { _id: 0 })
       .lean()
       .exec()
 
-      for(const question in result){
-        const obj1 = { question }
-        const algebraOneQuestion = {
-          ...obj1,
+      for(const question of result){
+        const obj = { 
+          ...question,
           category: 'algebraOne'
-        }
-        await Question.create(algebraOneQuestion)
-        console.log('Updated: ', algebraOneQuestion)
+          }
+    
+        await QuestionModel.create(obj)
+        console.log('Updated: ', obj)
       }
          
   } catch (error) {
