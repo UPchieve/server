@@ -1,4 +1,4 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import * as db from '../db';
 import QuestionModel from '../models/Question'
 
@@ -31,5 +31,5 @@ async function upgrade(): Promise<void> {
 }
 
 // Run:
-// npx ts-node dbutils/update-clone-algebra-to-algebraOne.ts
+// npx ts-node server/dbutils/update-clone-algebra-to-algebraOne.ts
 upgrade();
