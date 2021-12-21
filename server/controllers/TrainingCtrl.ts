@@ -17,6 +17,7 @@ import {
   COLLEGE_CERTS,
   EVENTS,
   SUBJECTS,
+  FEATURE_FLAGS,
 } from '../constants'
 import { getSubjectType } from '../utils/getSubjectType'
 import { createContact } from '../services/MailService'
@@ -29,6 +30,7 @@ import {
   queueOnboardingEventEmails,
   queuePartnerOnboardingEventEmails,
 } from '../services/VolunteerService'
+import { isEnabled } from 'unleash-client'
 
 // TODO: repo pattern - whole file
 
@@ -301,7 +303,10 @@ export async function getQuizScore(
      *
      */
     // TODO: remove this condition in algebra 2 launch cleanup
-    if (cert === MATH_CERTS.ALGEBRA) {
+    if (
+      cert === MATH_CERTS.ALGEBRA &&
+      !isEnabled(FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH)
+    ) {
       unlockedSubjects = unlockedSubjects.filter(
         subject => subject !== MATH_CERTS.ALGEBRA_TWO
       )
