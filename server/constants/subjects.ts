@@ -185,7 +185,6 @@ export const COMPUTED_CERTS = {
     MATH_CERTS.GEOMETRY,
     MATH_CERTS.STATISTICS,
   ],
-  // TODO: check if this should be a computed off alg 1 or alg 2
   [SUBJECTS.INTEGRATED_MATH_TWO]: [
     SUBJECTS.ALGEBRA_ONE,
     MATH_CERTS.GEOMETRY,
