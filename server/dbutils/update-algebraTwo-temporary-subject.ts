@@ -18,7 +18,7 @@ async function upgrade(): Promise<void> {
         $pull: {
           subjects: SUBJECTS.ALGEBRA_TWO,
         },
-        $push: {
+        $addToSet: {
           subjects: SUBJECTS.ALGEBRA_TWO_TEMP,
         },
       }
