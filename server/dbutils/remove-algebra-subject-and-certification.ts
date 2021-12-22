@@ -119,7 +119,7 @@ async function downgrade(): Promise<void> {
 }
 
 // To downgrade the migration run:
-// DOWNGRADE=true npx ts-node dbutils/remove-algebra-subject-and-certification.ts
+// DOWNGRADE=true npx ts-node server/dbutils/remove-algebra-subject-and-certification.ts
 if (process.env.DOWNGRADE) {
   downgrade()
 } else {
