@@ -112,7 +112,14 @@ export default {
     },
 
     fetchUser: ({ commit }) => {
-      return UserService.getUser().then(user => commit('updateUser', user))
+      return UserService.getUser().then(user => {
+        commit('updateUser', user)
+      }).catch((err) => {
+        // erase the user only if not authenticated
+        if (err.status === 401) {
+          commit('setUser', {})
+        }
+      })
     },
 
     clearUser: ({ commit }) => {
