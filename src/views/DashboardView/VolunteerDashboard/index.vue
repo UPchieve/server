@@ -216,7 +216,7 @@ export default {
 
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
-    } else if(isEnabled(FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH) && !hasUnlockedAlgebraTwo) {
+    } else if(this.isAlgebraTwoLaunchActive && !hasUnlockedAlgebraTwo) {
       this.$store.dispatch('app/header/show', algebraTwoLaunchHeaderData)
     }
 
@@ -247,7 +247,8 @@ export default {
       isSessionAlive: 'user/isSessionAlive',
       sessionPath: 'user/sessionPath',
       hasCertification: 'user/hasCertification',
-      hasSelectedAvailability: 'user/hasSelectedAvailability'
+      hasSelectedAvailability: 'user/hasSelectedAvailability',
+      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
     }),
 
     isCustomVolunteerPartner() {
