@@ -1,9 +1,6 @@
-import VolunteerModel, {
-  Certifications,
-  CertificationInfo,
-} from '../models/Volunteer'
+import VolunteerModel from '../models/Volunteer'
 import QuestionModel from '../models/Question'
-import { MATH_CERTS } from '../constants'
+import { MATH_CERTS, SUBJECTS } from '../constants'
 import mongoose from 'mongoose'
 import * as db from '../db'
 
@@ -16,22 +13,22 @@ async function upgrade(): Promise<void> {
       category: MATH_CERTS.ALGEBRA,
     })
 
-    const result = await VolunteerModel.updateMany(
+    const modifiedVolunteers = await VolunteerModel.updateMany(
       {},
       {
         $unset: {
           'certifications.algebra': '',
         },
         $pull: {
-          subjects: 'algebraTwo-temporary',
+          subjects: SUBJECTS.ALGEBRA_TWO_TEMP,
         },
       }
     )
 
-    console.log('Questions deleted', deletedQuestions)
+    console.log(`Questions deleted: ${deletedQuestions}`)
     console.log(
-      'Volunteers with algebra certification and algebraTwo-temporary subject removed',
-      result
+      `Volunteers with algebra certification and algebraTwo-temporary subject removed
+      ${modifiedVolunteers}`
     )
   } catch (err) {
     console.log('Unhandled error: ', err)
@@ -47,6 +44,7 @@ async function downgrade(): Promise<void> {
   try {
     await db.connect()
 
+    // adding back algebra questions by cloning algebraOne questions
     const addQuestions = await QuestionModel.find(
       { category: MATH_CERTS.ALGEBRA_ONE },
       { _id: 0 }
@@ -61,11 +59,17 @@ async function downgrade(): Promise<void> {
       await QuestionModel.create(doc)
     }
 
-    const volunteers = await VolunteerModel.find({}, { certifications: 1 })
+    console.log(`Questions added: ${addQuestions}`)
+
+    const modifiedCertificationVolunteers = await VolunteerModel.find(
+      {},
+      { certifications: 1 }
+    )
       .lean()
       .exec()
 
-    for (const volunteer of volunteers) {
+    let certifiedVolunteersUpdated = 0
+    for (const volunteer of modifiedCertificationVolunteers) {
       await VolunteerModel.updateOne(
         {
           _id: volunteer._id,
@@ -74,17 +78,36 @@ async function downgrade(): Promise<void> {
           'certifications.algebra': volunteer.certifications.algebraOne,
         }
       )
+      certifiedVolunteersUpdated += 1
     }
 
-    // $push: {
-    //   subjects : 'algebraTwo-temporary'
-    // }
-    const result = await VolunteerModel.find()
-
-    console.log('Questions added', addQuestions)
     console.log(
-      'Volunteers with algebra certification changed from algebraOne to algebra',
-      volunteers
+      `Algebra certification changed from algebraOne to algebra for 
+      ${certifiedVolunteersUpdated}/${modifiedCertificationVolunteers} volunteers`
+    )
+
+    const modifiedSubjectVolunteers = await VolunteerModel.updateMany(
+      {
+        // all volunteers who do not have at least one precalculus, calculus ab and calculus bc in their subjects and have algebraTwo
+        // should be able to take temporary algebra 2 requests till 3/1/22
+        subjects: {
+          $in: [SUBJECTS.ALGEBRA_TWO],
+          $nin: [SUBJECTS.PRECALCULUS],
+        },
+      },
+      {
+        $pull: {
+          subjects: SUBJECTS.ALGEBRA_TWO,
+        },
+        $push: {
+          subjects: SUBJECTS.ALGEBRA_TWO_TEMP,
+        },
+      }
+    )
+
+    console.log(
+      `Volunteers with algebra certification changed from algebraOne to algebra: 
+      ${modifiedSubjectVolunteers}`
     )
   } catch (err) {
     console.log('Unhandled error: ', err)
