@@ -16,6 +16,8 @@ import {
   SUBJECT_TYPES,
   COLLEGE_CERTS,
   EVENTS,
+  SUBJECTS,
+  FEATURE_FLAGS,
 } from '../constants'
 import { getSubjectType } from '../utils/getSubjectType'
 import { createContact } from '../services/MailService'
@@ -28,13 +30,17 @@ import {
   queueOnboardingEventEmails,
   queuePartnerOnboardingEventEmails,
 } from '../services/VolunteerService'
+import { isEnabled } from 'unleash-client'
 
 // TODO: repo pattern - whole file
 
 // change depending on how many of each subcategory are wanted
 const numQuestions = {
   [MATH_CERTS.PREALGREBA]: 2,
+  // TODO: remove `algebra` in the algebra 2 launch cleanup
   [MATH_CERTS.ALGEBRA]: 2,
+  [MATH_CERTS.ALGEBRA_ONE]: 2,
+  [MATH_CERTS.ALGEBRA_TWO]: 1,
   [MATH_CERTS.GEOMETRY]: 2,
   [MATH_CERTS.TRIGONOMETRY]: 2,
   [MATH_CERTS.STATISTICS]: 1,
@@ -270,7 +276,7 @@ export async function getQuizScore(
   }
 
   if (passed) {
-    const unlockedSubjects = getUnlockedSubjects(cert, user.certifications)
+    let unlockedSubjects = getUnlockedSubjects(cert, user.certifications)
 
     // set custom field passedUpchieve101 in SendGrid
     if (cert === TRAINING.UPCHIEVE_101) createContact(user)
@@ -288,7 +294,24 @@ export async function getQuizScore(
         subject,
       })
     }
-
+    /**
+     *
+     * algebra certs no longer unlock algebraOne and algebraTwo.
+     * When a user takes an algebra quiz, add algebraTwo-temporary
+     * instead of algebraTwo to their subjects. This allows for backwards
+     * compatibility when the algebra 2 launch feature flag is off
+     *
+     */
+    // TODO: remove this condition in algebra 2 launch cleanup
+    if (
+      cert === MATH_CERTS.ALGEBRA &&
+      !isEnabled(FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH)
+    ) {
+      unlockedSubjects = unlockedSubjects.filter(
+        subject => subject !== MATH_CERTS.ALGEBRA_TWO
+      )
+      unlockedSubjects.push(SUBJECTS.ALGEBRA_TWO_TEMP)
+    }
     userUpdates.$addToSet = { subjects: unlockedSubjects }
 
     if (

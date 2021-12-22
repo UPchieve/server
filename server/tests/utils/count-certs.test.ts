@@ -4,7 +4,7 @@ import { buildCertifications } from '../generate'
 
 test('Should count the total certs that a user has', () => {
   const certificationOverride = {
-    [MATH_CERTS.ALGEBRA]: { passed: true, tries: 0 },
+    [MATH_CERTS.ALGEBRA_ONE]: { passed: true, tries: 0 },
     [MATH_CERTS.GEOMETRY]: { passed: true, tries: 0 },
     [MATH_CERTS.CALCULUS_BC]: { passed: true, tries: 0 },
     [SCIENCE_CERTS.BIOLOGY]: { passed: true, tries: 0 },

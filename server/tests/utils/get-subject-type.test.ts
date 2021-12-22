@@ -11,7 +11,7 @@ import { getSubjectType } from '../../utils/getSubjectType'
 
 describe('Get subject type', () => {
   test('Math', () => {
-    expect(getSubjectType(MATH_CERTS.ALGEBRA)).toEqual(SUBJECT_TYPES.MATH)
+    expect(getSubjectType(MATH_CERTS.ALGEBRA_ONE)).toEqual(SUBJECT_TYPES.MATH)
   })
   test('Science', () => {
     expect(getSubjectType(SCIENCE_CERTS.BIOLOGY)).toEqual(SUBJECT_TYPES.SCIENCE)

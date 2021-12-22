@@ -16,7 +16,7 @@ export enum TRAINING {
 export enum MATH_CERTS {
   // TODO: fix typo
   PREALGREBA = 'prealgebra',
-  // TODO: remove algebra once algebra 2 is launched as a cert
+  // TODO: remove `algebra` in the algebra 2 launch cleanup
   ALGEBRA = 'algebra',
   ALGEBRA_ONE = 'algebraOne',
   ALGEBRA_TWO = 'algebraTwo',
@@ -33,6 +33,8 @@ export enum MATH_SUBJECTS {
   PREALGREBA = 'prealgebra',
   ALGEBRA_ONE = 'algebraOne',
   ALGEBRA_TWO = 'algebraTwo',
+  // TODO: remove `ALGEBRA_TWO_TEMP` in the algebra 2 launch cleanup
+  ALGEBRA_TWO_TEMP = 'algebraTwo-temporary',
   GEOMETRY = 'geometry',
   TRIGONOMETRY = 'trigonometry',
   PRECALCULUS = 'precalculus',
@@ -142,6 +144,15 @@ export const CERT_UNLOCKING = {
     MATH_SUBJECTS.ALGEBRA_TWO,
     MATH_SUBJECTS.PREALGREBA,
   ],
+  [MATH_CERTS.ALGEBRA_ONE]: [
+    MATH_SUBJECTS.ALGEBRA_ONE,
+    MATH_SUBJECTS.PREALGREBA,
+  ],
+  [MATH_CERTS.ALGEBRA_TWO]: [
+    MATH_SUBJECTS.ALGEBRA_TWO,
+    MATH_SUBJECTS.ALGEBRA_ONE,
+    MATH_SUBJECTS.PREALGREBA,
+  ],
   [MATH_CERTS.PREALGREBA]: [MATH_SUBJECTS.PREALGREBA],
   [MATH_CERTS.STATISTICS]: [MATH_SUBJECTS.STATISTICS],
   [MATH_CERTS.GEOMETRY]: [MATH_SUBJECTS.GEOMETRY],
@@ -170,7 +181,6 @@ export const CERT_UNLOCKING = {
 
 export const COMPUTED_CERTS = {
   [SUBJECTS.INTEGRATED_MATH_ONE]: [
-    // @note: Algebra unlocks both Algebra 1 and Algebra 2, either or can be used to compute Integrated Math
     SUBJECTS.ALGEBRA_ONE,
     MATH_CERTS.GEOMETRY,
     MATH_CERTS.STATISTICS,
@@ -200,8 +210,6 @@ export enum SUBJECT_TYPES {
   READING_WRITING = 'readingWriting',
 }
 
-export type ACTIVE_MATH_CERTS = Exclude<MATH_CERTS, 'algebraOne' | 'algebraTwo'>
-
 export type ACTIVE_COLLEGE_CERTS = Exclude<
   COLLEGE_CERTS,
   'sportsRecruitmentPlanning' | 'financialAid'
@@ -213,7 +221,7 @@ export type ACTIVE_TRAINING_CERTS = Exclude<
 >
 
 export type ACTIVE_QUIZ_CATEGORIES =
-  | ACTIVE_MATH_CERTS
+  | MATH_CERTS
   | SCIENCE_CERTS
   | ACTIVE_COLLEGE_CERTS
   | SAT_CERTS
@@ -239,6 +247,34 @@ export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
     'two variable equations',
     'rational expressions',
     'complex numbers',
+  ],
+  [MATH_CERTS.ALGEBRA_ONE]: [
+    'linear equations',
+    'rational exponents and radicals',
+    'application of linear equations',
+    'two variable equations',
+    'rational expressions',
+    'complex numbers',
+  ],
+  [MATH_CERTS.ALGEBRA_TWO]: [
+    'functions_domain_range',
+    'higher_degree_polynomials',
+    'square_root_equations',
+    'roots_of_polynomials',
+    'multiply_polynomials_binomial',
+    'rational_radical_absolute',
+    'logarithms_properties',
+    'rational_expressions',
+    'systems_of_linear_equations',
+    'arithmetic_and_geometric_sequences',
+    'functions_domain',
+    'solving_linear_equations',
+    'function_transformations_shifts',
+    'graphing_quadratic_functions',
+    'exponential_functions_growth',
+    'rounding_and_scientific_notation',
+    'square root_equations_quadratic',
+    'advanced_factoring_techniques',
   ],
   [MATH_CERTS.GEOMETRY]: [
     'congruence and similarity',

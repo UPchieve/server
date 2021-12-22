@@ -365,7 +365,7 @@ describe('getQuizScore', () => {
 
   test('Grace period volunteer (an existing volunteer) should have the same subjects when completing required training', async () => {
     const certifications = buildCertifications({
-      [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
+      [MATH_CERTS.ALGEBRA_TWO]: { passed: true, tries: 1 },
     })
     const subjects = [
       SUBJECTS.PREALGREBA,
@@ -477,8 +477,8 @@ describe('getUnlockedSubjects', () => {
       expect(result).toEqual(expected)
     })
 
-    test('Should unlock Integrated Math 1 when taking Algebra and is certified in Geometry and Statistics', async () => {
-      const cert = MATH_CERTS.ALGEBRA
+    test('Should unlock Integrated Math 1 when taking Algebra 1 and is certified in Geometry and Statistics', async () => {
+      const cert = MATH_CERTS.ALGEBRA_ONE
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
@@ -486,7 +486,6 @@ describe('getUnlockedSubjects', () => {
       })
       const expected = [
         MATH_SUBJECTS.ALGEBRA_ONE,
-        MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.STATISTICS,
@@ -497,18 +496,17 @@ describe('getUnlockedSubjects', () => {
       expect(result).toEqual(expected)
     })
 
-    test('Should unlock Integrated Math 2 when taking Trigonometry and is certified in Algebra, Geometry, and Statistics', async () => {
+    test('Should unlock Integrated Math 2 when taking Trigonometry and is certified in Algebra 1, Geometry, and Statistics', async () => {
       const cert = MATH_CERTS.TRIGONOMETRY
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
-        [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
+        [MATH_CERTS.ALGEBRA_ONE]: { passed: true, tries: 1 },
         [TRAINING.TUTORING_SKILLS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.TRIGONOMETRY,
         MATH_SUBJECTS.ALGEBRA_ONE,
-        MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.STATISTICS,
@@ -683,13 +681,12 @@ describe('getUnlockedSubjects', () => {
     test('Should unlock Integrated Math 1 when taking Algebra and is certified in Geometry and Statistics', async () => {
       const cert = TRAINING.TUTORING_SKILLS
       const certifications = buildCertificationsWithUpchieve101({
-        [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
+        [MATH_CERTS.ALGEBRA_ONE]: { passed: true, tries: 1 },
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.ALGEBRA_ONE,
-        MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.STATISTICS,
@@ -700,17 +697,16 @@ describe('getUnlockedSubjects', () => {
       expect(result).toEqual(expected)
     })
 
-    test('Should unlock Integrated Math 2 when taking Trigonometry and is certified in Algebra, Geometry, and Statistics', async () => {
+    test('Should unlock Integrated Math 2 when taking Trigonometry and is certified in Algebra 1, Geometry, and Statistics', async () => {
       const cert = TRAINING.TUTORING_SKILLS
       const certifications = buildCertificationsWithUpchieve101({
         [MATH_CERTS.STATISTICS]: { passed: true, tries: 1 },
         [MATH_CERTS.GEOMETRY]: { passed: true, tries: 1 },
-        [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 },
+        [MATH_CERTS.ALGEBRA_ONE]: { passed: true, tries: 1 },
         [MATH_CERTS.TRIGONOMETRY]: { passed: true, tries: 1 },
       })
       const expected = [
         MATH_SUBJECTS.ALGEBRA_ONE,
-        MATH_SUBJECTS.ALGEBRA_TWO,
         MATH_SUBJECTS.PREALGREBA,
         MATH_SUBJECTS.GEOMETRY,
         MATH_SUBJECTS.TRIGONOMETRY,
