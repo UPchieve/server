@@ -29,7 +29,7 @@ export default {
 
   display: grid;
   align-content: center;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr minmax(200px, 1fr) minmax(100px, 1fr);
   position: relative;
   background-color: $c-banned-grey;
 }
