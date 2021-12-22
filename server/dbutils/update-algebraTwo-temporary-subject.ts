@@ -24,10 +24,14 @@ async function upgrade(): Promise<void> {
       }
     )
 
+    // @todo: print result.modifiedCount
+    console.log(`Updated algebraTwo for: ${result} volunteers`)
+
     const certifiedVolunteers = await VolunteerModel.find({
       'certifications.algebra.passed': true,
     })
 
+    let totalUpdated = 0
     for (const volunteer of certifiedVolunteers) {
       await VolunteerModel.updateOne(
         {
@@ -37,7 +41,12 @@ async function upgrade(): Promise<void> {
           'certifications.algebraOne': volunteer.certifications.algebra,
         }
       )
+      totalUpdated += 1
     }
+
+    console.log(
+      `Updated algebraOne cert data with algebra cert data for ${totalUpdated}/${certifiedVolunteers.length} volunteers`
+    )
   } catch (error) {
     console.error('Unhandled error: ', error)
     exitCode = 1
