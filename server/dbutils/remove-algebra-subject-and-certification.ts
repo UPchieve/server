@@ -88,18 +88,17 @@ async function downgrade(): Promise<void> {
 
     const modifiedSubjectVolunteers = await VolunteerModel.updateMany(
       {
-        // all volunteers who do not have at least one precalculus, calculus ab and calculus bc in their subjects and have algebraTwo
+        // all volunteers certified in algebraOne and not certified in algebraTwo,
+        // and who do not have at least one precalculus, calculus ab and calculus bc in their subjects and have algebraTwo
         // should be able to take temporary algebra 2 requests till 3/1/22
+        'certifications.algebraOne.passed': true,
+        'certifications.algebraTwo.passed': false,
         subjects: {
-          $in: [SUBJECTS.ALGEBRA_TWO],
           $nin: [SUBJECTS.PRECALCULUS],
         },
       },
       {
-        $pull: {
-          subjects: SUBJECTS.ALGEBRA_TWO,
-        },
-        $push: {
+        $addToSet: {
           subjects: SUBJECTS.ALGEBRA_TWO_TEMP,
         },
       }
