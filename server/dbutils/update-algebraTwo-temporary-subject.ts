@@ -1,26 +1,25 @@
 import mongoose from 'mongoose'
 import { SUBJECTS } from '../constants'
 import VolunteerModel from '../models/Volunteer'
+import * as db from '../db';
 
 async function upgrade(): Promise<void> {
   let exitCode = 0
   try {
+    await db.connect();
     const result = await VolunteerModel.updateMany(
-      {
+      { 
         // all volunteers who do not have at least one precalculus, calculus ab and calculus bc in their subjects and have algebraTwo
         // should only be able to take temporary algebra 2 requests till 3/1/22
         subjects: {
           $in: [SUBJECTS.ALGEBRA_TWO],
           $nin: [SUBJECTS.PRECALCULUS],
-        },
-      },
+        } 
+    },
       {
-        $pull: {
-          subjects: SUBJECTS.ALGEBRA_TWO,
-        },
-        $addToSet: {
-          subjects: SUBJECTS.ALGEBRA_TWO_TEMP,
-        },
+        $set: {
+          'subjects.$': SUBJECTS.ALGEBRA_TWO_TEMP
+        }
       }
     )
 
@@ -59,6 +58,7 @@ async function upgrade(): Promise<void> {
 async function downgrade(): Promise<void> {
   let exitCode = 0
   try {
+    await db.connect()
     const result = await VolunteerModel.updateMany(
       {
         // volunteers whose highest passed math quiz is algebra should be able to take algebraTwo requests
@@ -68,12 +68,9 @@ async function downgrade(): Promise<void> {
         },
       },
       {
-        $pull: {
-          subjects: SUBJECTS.ALGEBRA_TWO_TEMP,
-        },
-        $addToSet: {
-          subjects: SUBJECTS.ALGEBRA_TWO,
-        },
+        $set: {
+          'subjects.$': SUBJECTS.ALGEBRA_TWO
+        }
       }
     )
 
