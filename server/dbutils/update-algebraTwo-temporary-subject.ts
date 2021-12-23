@@ -25,7 +25,7 @@ async function upgrade(): Promise<void> {
     )
 
     // @todo: print result.modifiedCount
-    console.log(`Updated algebraTwo for: ${result} volunteers`)
+    console.log(`Updated algebraTwo for: ${result.nModified} volunteers`)
 
     const certifiedVolunteers = await VolunteerModel.find({
       'certifications.algebra.passed': true,
@@ -56,4 +56,41 @@ async function upgrade(): Promise<void> {
   }
 }
 
-upgrade()
+async function downgrade(): Promise<void> {
+  let exitCode = 0
+  try {
+    const result = await VolunteerModel.updateMany(
+      {
+        // volunteers whose highest passed math quiz is algebra should be able to take algebraTwo requests
+        // i.e. volunteers who do not have at least one precalculus, calculus ab and calculus bc in their subjects and have algebraTwo-temporary
+        subjects: {
+          $in: [SUBJECTS.ALGEBRA_TWO_TEMP, SUBJECTS.PRECALCULUS],
+        },
+      },
+      {
+        $pull: {
+          subjects: SUBJECTS.ALGEBRA_TWO_TEMP,
+        },
+        $addToSet: {
+          subjects: SUBJECTS.ALGEBRA_TWO,
+        },
+      }
+    )
+
+    console.log(`Updated algebraTwo for: ${result.nModified} volunteers`)
+  } catch (error) {
+    console.error('Unhandled error: ', error)
+    exitCode = 1
+  } finally {
+    mongoose.disconnect()
+    process.exit(exitCode)
+  }
+}
+
+// To downgrade the migration run:
+// DOWNGRADE=true npx ts-node server/dbutils/update-algebraTwo-temporary-subject.ts
+if (process.env.DOWNGRADE) {
+  downgrade()
+} else {
+  upgrade()
+}
