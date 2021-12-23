@@ -101,6 +101,7 @@
 import UserService from '@/services/UserService'
 
 import { allSubtopicNames } from '@/utils/topics'
+import { mapGetters } from 'vuex'
 
 export default {
   data() {
@@ -126,13 +127,20 @@ export default {
     this.getAvailability(this.selected)
   },
 
+  computed: {
+    ...mapGetters({
+      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
+    }),
+  },
+
   methods: {
     /* Retrieves a 2d array with column and row headers. Each cell represents
         the number of volunteers available at that day and hour block who are certified
         in the "certifiedSubject". */
     getAvailability(certifiedSubject) {
       let cert = certifiedSubject
-      if (certifiedSubject.match(/^algebra/i)) cert = 'algebra'
+      // TODO: remove condition below in algebra 2 launch cleanup
+      if (!this.isAlgebraTwoLaunchActive && certifiedSubject.match(/^algebra/i)) cert = 'algebra'
       UserService.getVolunteersAvailability(this, cert)
         .then(availability => {
           this.availabilityTable = availability

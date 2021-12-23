@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import AccordionItem from '@/components/AccordionItem'
 import TrainingDropDown from '@/components/TrainingDropDown'
 import SubjectCertsDropDown from '@/components/SubjectCertsDropDown'
@@ -78,15 +78,65 @@ export default {
   },
   data() {
     return {
-      subjectTypes: [
+      currentSubjectType: 'math',
+    }
+  },
+
+  computed: {
+    ...mapState({
+      user: state => state.user.user
+    }),
+    ...mapGetters({
+      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
+    }),
+    currentSubject() {
+      return this[this.currentSubjectType]
+    },
+    // get the amount of required training material a user must complete
+    requiredTrainingMessage() {
+      let amount = 0
+      for (let subject of this.currentSubject.training) {
+        if (!this.user.certifications[subject.key].passed) amount++
+      }
+
+      if (!amount) return ''
+      if (amount === 1) return `${amount} course required`
+      return `${amount} courses required`
+    },
+    additionalSubjectsColHeaders() {
+      if (this.currentSubjectType === 'college')
+        return ['Subject', 'Required Training', '']
+      else return ['Subject', 'Required Certifications', '']
+    },
+    additionalSubjectsAccordionHeader() {
+      if (this.currentSubjectType === 'math')
+        return {
+          header: 'Integrated Math',
+          subheader: 'Click here to learn more about Integrated Math'
+        }
+      else
+        return {
+          header: 'Additional Subjects',
+          subheader:
+            'Tutor for these subjects automatically by completing the required training courses'
+        }
+    },
+    subjectTypes() {
+      return [
         { displayName: 'Math', key: 'math' },
         { displayName: 'Science', key: 'science' },
         { displayName: 'Reading and Writing', key: 'readingWriting' },
         { displayName: 'College Counseling', key: 'college' },
         { displayName: 'Standardized Testing', key: 'sat' }
-      ],
-      currentSubjectType: 'math',
-      math: {
+      ]
+    },
+    math() {
+      return this.isAlgebraTwoLaunchActive ? 
+        this.algebraTwoLaunchMath : 
+        this.legacyMath
+    },
+    legacyMath() {
+      return {
         training: [
           { displayName: 'UPchieve 101', key: 'upchieve101' }
           // { displayName: "Tutoring Skills", key: "tutoringSkills" }
@@ -201,8 +251,136 @@ export default {
             key: 'integratedMathFour'
           }
         ]
-      },
-      science: {
+      }
+    },
+    algebraTwoLaunchMath(){
+      return {
+        training: [
+          { displayName: 'UPchieve 101', key: 'upchieve101' }
+          // { displayName: "Tutoring Skills", key: "tutoringSkills" }
+        ],
+        certifications: [
+          {
+            displayName: 'Pre-algebra',
+            subjectsIncluded: [
+              { displayName: 'Pre-algebra', key: 'prealgebra' }
+            ],
+            key: 'prealgebra'
+          },
+          {
+            displayName: 'Algebra 1',
+            subjectsIncluded: [
+              { displayName: 'Pre-algebra', key: 'prealgebra' },
+              { displayName: 'Algebra 1', key: 'algebraOne' },
+            ],
+            key: 'algebraOne'
+          },
+          {
+            displayName: 'Algebra 2',
+            subjectsIncluded: [
+              { displayName: 'Pre-algebra', key: 'prealgebra' },
+              { displayName: 'Algebra 1', key: 'algebraOne' },
+              { displayName: 'Algebra 2', key: 'algebraTwo' }
+            ],
+            key: 'algebraTwo'
+          },
+          {
+            displayName: 'Geometry',
+            subjectsIncluded: [{ displayName: 'Geometry', key: 'geometry' }],
+            key: 'geometry'
+          },
+          {
+            displayName: 'Trigonometry',
+            subjectsIncluded: [
+              { displayName: 'Trigonometry', key: 'trigonometry' }
+            ],
+            key: 'trigonometry'
+          },
+          {
+            displayName: 'Statistics',
+            subjectsIncluded: [
+              { displayName: 'Statistics', key: 'statistics' }
+            ],
+            key: 'statistics'
+          },
+          {
+            displayName: 'Precalculus',
+            subjectsIncluded: [
+              { displayName: 'Pre-algebra', key: 'prealgebra' },
+              { displayName: 'Algebra 1', key: 'algebraOne' },
+              { displayName: 'Algebra 2', key: 'algebraTwo' },
+              { displayName: 'Trigonometry', key: 'trigonometry' },
+              { displayName: 'Precalculus', key: 'precalculus' }
+            ],
+            key: 'precalculus'
+          },
+          {
+            displayName: 'Calculus AB',
+            subjectsIncluded: [
+              { displayName: 'Pre-algebra', key: 'prealgebra' },
+              { displayName: 'Algebra 1', key: 'algebraOne' },
+              { displayName: 'Algebra 2', key: 'algebraTwo' },
+              { displayName: 'Trigonometry', key: 'trigonometry' },
+              { displayName: 'Precalculus', key: 'precalculus' },
+              { displayName: 'Calculus AB', key: 'calculusAB' }
+            ],
+            key: 'calculusAB'
+          },
+          {
+            displayName: 'Calculus BC',
+            subjectsIncluded: [
+              { displayName: 'Pre-algebra', key: 'prealgebra' },
+              { displayName: 'Algebra 1', key: 'algebraOne' },
+              { displayName: 'Algebra 2', key: 'algebraTwo' },
+              { displayName: 'Trigonometry', key: 'trigonometry' },
+              { displayName: 'Precalculus', key: 'precalculus' },
+              { displayName: 'Calculus AB', key: 'calculusAB' },
+              { displayName: 'Calculus BC', key: 'calculusBC' }
+            ],
+            key: 'calculusBC'
+          }
+        ],
+        additionalSubjects: [
+          {
+            displayName: 'Integrated Math 1',
+            subjectsIncluded: [
+              { displayName: 'Algebra 1', key: 'algebraOne' },
+              { displayName: 'Geometry', key: 'geometry' },
+              { displayName: 'Statistics', key: 'statistics' }
+            ],
+            key: 'integratedMathOne'
+          },
+          {
+            displayName: 'Integrated Math 2',
+            subjectsIncluded: [
+              { displayName: 'Algebra 1', key: 'algebraOne' },
+              { displayName: 'Geometry', key: 'geometry' },
+              { displayName: 'Trigonometry', key: 'trigonometry' },
+              { displayName: 'Statistics', key: 'statistics' }
+            ],
+            key: 'integratedMathTwo'
+          },
+          {
+            displayName: 'Integrated Math 3',
+            subjectsIncluded: [
+              { displayName: 'Precalculus', key: 'precalculus' },
+              { displayName: 'Statistics', key: 'statistics' }
+            ],
+            key: 'integratedMathThree'
+          },
+          {
+            displayName: 'Integrated Math 4',
+            subjectsIncluded: [
+              { displayName: 'Precalculus', key: 'precalculus' }
+            ],
+
+            key: 'integratedMathFour'
+          }
+        ]
+      }
+    },
+    science() {
+       return { 
         training: [
           { displayName: 'UPchieve 101', key: 'upchieve101' }
           // { displayName: "Tutoring Skills", key: "tutoringSkills" }
@@ -240,8 +418,10 @@ export default {
           }
         ],
         additionalSubjects: []
-      },
-      readingWriting: {
+       }
+    },
+    readingWriting() {
+      return {
         training: [
           { displayName: 'UPchieve 101', key: 'upchieve101' }
           // { displayName: "Tutoring Skills", key: "tutoringSkills" }
@@ -259,8 +439,10 @@ export default {
           }
         ],
         additionalSubjects: []
-      },
-      college: {
+      }
+    },
+    college() {
+      return  { 
         training: [
           { displayName: 'UPchieve 101', key: 'upchieve101' }
           // { displayName: "College Counseling", key: "collegeCounseling" }
@@ -304,8 +486,10 @@ export default {
           //   key: "applications"
           // }
         ]
-      },
-      sat: {
+      }
+    },
+    sat() {
+      return { 
         training: [
           { displayName: 'UPchieve 101', key: 'upchieve101' }
           // Hide until SAT Strategies is completed
@@ -329,45 +513,6 @@ export default {
       }
     }
   },
-
-  computed: {
-    ...mapState({
-      user: state => state.user.user
-    }),
-    currentSubject() {
-      return this[this.currentSubjectType]
-    },
-    // get the amount of required training material a user must complete
-    requiredTrainingMessage() {
-      let amount = 0
-      for (let subject of this.currentSubject.training) {
-        if (!this.user.certifications[subject.key].passed) amount++
-      }
-
-      if (!amount) return ''
-      if (amount === 1) return `${amount} course required`
-      return `${amount} courses required`
-    },
-    additionalSubjectsColHeaders() {
-      if (this.currentSubjectType === 'college')
-        return ['Subject', 'Required Training', '']
-      else return ['Subject', 'Required Certifications', '']
-    },
-    additionalSubjectsAccordionHeader() {
-      if (this.currentSubjectType === 'math')
-        return {
-          header: 'Integrated Math',
-          subheader: 'Click here to learn more about Integrated Math'
-        }
-      else
-        return {
-          header: 'Additional Subjects',
-          subheader:
-            'Tutor for these subjects automatically by completing the required training courses'
-        }
-    }
-  },
-
   methods: {
     showSubjectTraining(subject) {
       this.currentSubjectType = subject

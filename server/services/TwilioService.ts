@@ -217,7 +217,7 @@ export async function notifyVolunteer(
   const isHighLevelSubject = highLevelSubjects.includes(subtopic)
   let subjectsFilter: any = { $eq: subtopic }
   // Temporarily notify tutors with algebraTwo-temporary as subject
-  // TODO: remove once algebraTwo-temporary is removed
+  // TODO: remove regex check for algebraTwo in algebra 2 launch cleanup
   if (subtopic === MATH_CERTS.ALGEBRA_TWO) {
     subjectsFilter = { $regex: MATH_CERTS.ALGEBRA_TWO }
     subtopic = { $regex: MATH_CERTS.ALGEBRA_TWO }
@@ -348,7 +348,7 @@ export async function notifyVolunteer(
 
   // Format multi-word subtopics from a key name to a display name
   // ex: physicsOne -> Physics 1
-  subtopic = formatMultiWordSubject(subtopic)
+  subtopic = formatMultiWordSubject(session.subTopic)
 
   const sessionUrl = getSessionUrl(session)
   const messageText = `Hi ${volunteer.firstname}, a student needs help in ${subtopic} on UPchieve! ${sessionUrl}`
