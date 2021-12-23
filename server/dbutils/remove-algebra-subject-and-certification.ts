@@ -25,10 +25,10 @@ async function upgrade(): Promise<void> {
       }
     )
 
-    console.log(`Questions deleted: ${deletedQuestions}`)
+    console.log(`Questions deleted: ${deletedQuestions.deletedCount}`)
     console.log(
       `Volunteers with algebra certification and algebraTwo-temporary subject removed
-      ${modifiedVolunteers}`
+      ${modifiedVolunteers.nModified}`
     )
   } catch (err) {
     console.log('Unhandled error: ', err)
@@ -49,6 +49,8 @@ async function downgrade(): Promise<void> {
       { category: MATH_CERTS.ALGEBRA_ONE },
       { _id: 0 }
     )
+    .lean()
+    .exec()
 
     for (const question of addQuestions) {
       const doc = {
@@ -106,7 +108,7 @@ async function downgrade(): Promise<void> {
 
     console.log(
       `Volunteers with algebra certification changed from algebraOne to algebra: 
-      ${modifiedSubjectVolunteers}`
+      ${modifiedSubjectVolunteers.nModified}`
     )
   } catch (err) {
     console.log('Unhandled error: ', err)
