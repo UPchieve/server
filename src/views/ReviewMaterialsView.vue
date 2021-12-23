@@ -39,6 +39,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import AnalyticsService from '@/services/AnalyticsService'
 import isPhysics from '@/utils/is-physics'
@@ -74,9 +75,12 @@ export default {
   },
   methods: {
     getCategoryMaterials() {
+      // TODO: remove `algebra` case below in algebra 2 launch cleanup
       switch (this.category) {
         case 'prealgebra':
         case 'algebra':
+        case 'algebraOne':
+        case 'algebraTwo':
         case 'geometry':
         case 'trigonometry':
         case 'statistics':
@@ -179,9 +183,14 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
+    }),
     categoryDisplayName() {
       const subtopics = allSubtopics()
-      if (this.category === 'algebra') return 'Algebra'
+      // TODO: remove condition below in algebra 2 launch cleanup
+      if (!this.isAlgebraTwoLaunchActive && this.category === 'algebra') 
+        return 'Algebra'
       if (this.category) return subtopics[this.category].displayName
 
       return ''

@@ -203,21 +203,32 @@ export default {
 
   watch: {
     isSessionAlive(isAlive) {
-      if (!isAlive) {
+      // show Algebra 2 launch header after a session has ended
+      // TODO: remove algebra 2 header dispatch in the algebra 2 launch cleanup
+      if (!isAlive && this.isEligibleToSeeAlgebraTwoHeader) {
+        this.$store.dispatch('app/header/show', algebraTwoLaunchHeaderData)
+      } else if (!isAlive) {
         this.$store.dispatch('app/header/show', defaultHeaderData)
       } else {
         this.$store.dispatch('app/header/show', rejoinHeaderData)
       }
+    },
+    // allows for reactive feature flags by listening for the feature flag store changes
+    // TODO: remove watcher below in algebra 2 launch cleanup
+    isAlgebraTwoLaunchActive(isActive) {
+      if (!this.isSessionAlive && this.isEligibleToSeeAlgebraTwoHeader)
+        this.$store.dispatch('app/header/show', algebraTwoLaunchHeaderData)
+      else if (!this.sessionIsAlive && !isActive){
+        this.$store.dispatch('app/header/show', defaultHeaderData)
+      }
     }
   },
   async created() {
-    const unlockAlgebraTwoCerts = ['algebraTwo', 'precalculus', 'calculusAB', 'calculusBC']
-    const hasUnlockedAlgebraTwo = unlockAlgebraTwoCerts.some(cert => this.user.certifications[cert].passed)
-
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
-    } else if(isEnabled(FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH) && !hasUnlockedAlgebraTwo) {
-      this.$store.dispatch('app/header/show', algebraTwoLaunchHeaderData)
+    } else if (this.isEligibleToSeeAlgebraTwoHeader) {
+        // TODO: remove algebra 2 header dispatch in the algebra 2 launch cleanup
+        this.$store.dispatch('app/header/show', algebraTwoLaunchHeaderData)
     }
 
     if (this.isFirstDashboardVisit) {
@@ -247,7 +258,8 @@ export default {
       isSessionAlive: 'user/isSessionAlive',
       sessionPath: 'user/sessionPath',
       hasCertification: 'user/hasCertification',
-      hasSelectedAvailability: 'user/hasSelectedAvailability'
+      hasSelectedAvailability: 'user/hasSelectedAvailability',
+      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
     }),
 
     isCustomVolunteerPartner() {
@@ -503,6 +515,47 @@ export default {
         }
       ]
       return onboaringActions.sort((a, b) => a.priority - b.priority)
+    },
+
+    /**
+     * 
+     * The volunteer must not have a cert that unlocks Algebra 2
+     * and must be certified in one of the eligible subjects
+     * in order to see the Algebra 2 launch header
+     * 
+     */
+    // TODO: remove algebra 2 header in algebra 2 launch cleanup
+    isEligibleToSeeAlgebraTwoHeader() {
+      const unlockAlgebraTwoCerts = [
+        'algebraTwo',
+        'precalculus',
+        'calculusAB',
+        'calculusBC',
+      ]
+      const hasUnlockedAlgebraTwo = unlockAlgebraTwoCerts.some(
+        cert => this.user.certifications[cert].passed
+      )
+
+      const eligibleSubjects = [
+        'prealgebra',
+        'algebra',
+        'algebraOne',
+        'geometry',
+        'trigonometry',
+        'statistics',
+        'chemistry',
+        'physicsOne',
+        'physicsTwo',
+      ]
+      const hasCompletedEligibleSubject = eligibleSubjects.some(
+        cert => this.user.certifications[cert].passed
+      )
+
+      return (
+        this.isAlgebraTwoLaunchActive &&
+        !hasUnlockedAlgebraTwo &&
+        hasCompletedEligibleSubject
+      )
     }
   },
   methods: {
