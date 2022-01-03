@@ -32,7 +32,8 @@ export async function quizzes() {
         created_at: new Date(),
         name: 'humanitiesEssays',
       },
-      { updated_at: new Date(), created_at: new Date(), name: 'algebra' },
+      { updated_at: new Date(), created_at: new Date(), name: 'algebraOne' },
+      { updated_at: new Date(), created_at: new Date(), name: 'algebraTwo' },
       { updated_at: new Date(), created_at: new Date(), name: 'trigonometry' },
       { updated_at: new Date(), created_at: new Date(), name: 'precalculus' },
       { updated_at: new Date(), created_at: new Date(), name: 'calculusAB' },
@@ -188,7 +189,7 @@ export async function quizCertificationGrants() {
       {
         updated_at: new Date(),
         created_at: new Date(),
-        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebraTwo'),
         certification_id: await getIdByNameFailsafe(
           'certifications',
           'algebraOne'
@@ -197,7 +198,7 @@ export async function quizCertificationGrants() {
       {
         updated_at: new Date(),
         created_at: new Date(),
-        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebraTwo'),
         certification_id: await getIdByNameFailsafe(
           'certifications',
           'algebraTwo'
@@ -206,7 +207,7 @@ export async function quizCertificationGrants() {
       {
         updated_at: new Date(),
         created_at: new Date(),
-        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebraTwo'),
         certification_id: await getIdByNameFailsafe(
           'certifications',
           'prealgebra'
@@ -430,37 +431,37 @@ export async function quizSubcategories() {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'linear equations',
-        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebraTwo'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'rational exponents and radicals',
-        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebraTwo'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'application of linear equations',
-        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebraTwo'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'two variable equations',
-        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebraTwo'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'rational expressions',
-        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebraTwo'),
       },
       {
         updated_at: new Date(),
         created_at: new Date(),
         name: 'complex numbers',
-        quiz_id: await getIdByNameFailsafe('quizzes', 'algebra'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'algebraTwo'),
       },
       {
         updated_at: new Date(),

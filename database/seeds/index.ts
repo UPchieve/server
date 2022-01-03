@@ -12,7 +12,7 @@ import { volunteerPartnerOrgsTest } from './scripts/partners/volunteer-partner-o
 import { requiredEmailDomainsTest } from './scripts/partners/required-email-domains-test'
 import { trainingCourses } from './scripts/academics/training-courses'
 import { topics } from './scripts/academics/topics'
-import { subjects } from './scripts/academics/subjects'
+import { subjects, certificationSubjectUnlocks } from './scripts/academics/subjects'
 import { toolTypes } from './scripts/academics/tool-types'
 import { certifications } from './scripts/academics/certifications'
 import {
@@ -25,6 +25,9 @@ import { reportReasons } from './scripts/sessions/report-reasons'
 import { notificationTypes } from './scripts/notifications/notification-types'
 import { notificationMethods } from './scripts/notifications/notification-methods'
 import { notificationPriorityGroups } from './scripts/notifications/priority-groups'
+import { volunteers } from './scripts/testData/volunteers'
+import { students } from './scripts/testData/students'
+import { schools } from './scripts/testData/schools'
 
 async function seedData(): Promise<void> {
   let exitCode = 0
@@ -53,12 +56,16 @@ async function seedData(): Promise<void> {
     await quizSubcategories()
     await certifications()
     await quizCertificationGrants()
-    // await quizQuestions()
+    await certificationSubjectUnlocks()
     await sessionFlags()
     await reportReasons()
     await notificationTypes()
     await notificationMethods()
     await notificationPriorityGroups()
+
+    await schools()
+    await volunteers()
+    await students()
     console.log('All data is seeded!')
   } catch (err) {
     exitCode = 1

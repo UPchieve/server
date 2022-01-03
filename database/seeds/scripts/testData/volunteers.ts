@@ -55,7 +55,7 @@ export async function volunteers() {
         id: volunteer4,
         created_at: new Date(),
         updated_at: new Date(),
-        email: 'volunteer3@upchieve.org',
+        email: 'volunteer4@upchieve.org',
         password:
           '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
         first_name: 'Volunteer',
@@ -142,15 +142,15 @@ export async function volunteers() {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        user_id: volunteer1,
-        certification_id: await getIdByNameFailsafe(
-          'certifications',
-          'application'
-        ),
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+      // {
+      //   user_id: volunteer1,
+      //   certification_id: await getIdByNameFailsafe(
+      //     'certifications',
+      //     'application'
+      //   ),
+      //   created_at: new Date(),
+      //   updated_at: new Date(),
+      // },
       {
         user_id: volunteer1,
         certification_id: await getIdByNameFailsafe(
@@ -164,7 +164,7 @@ export async function volunteers() {
         user_id: volunteer1,
         certification_id: await getIdByNameFailsafe(
           'certifications',
-          'calculus'
+          'calculusAB'
         ),
         created_at: new Date(),
         updated_at: new Date(),
@@ -202,15 +202,15 @@ export async function volunteers() {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        user_id: volunteer1,
-        certification_id: await getIdByNameFailsafe(
-          'certifications',
-          'planning'
-        ),
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+      // {
+      //   user_id: volunteer1,
+      //   certification_id: await getIdByNameFailsafe(
+      //     'certifications',
+      //     'planning'
+      //   ),
+      //   created_at: new Date(),
+      //   updated_at: new Date(),
+      // },
       {
         user_id: volunteer1,
         certification_id: await getIdByNameFailsafe(
@@ -265,15 +265,15 @@ export async function volunteers() {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        user_id: volunteer2,
-        certification_id: await getIdByNameFailsafe(
-          'certifications',
-          'application'
-        ),
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+      // {
+      //   user_id: volunteer2,
+      //   certification_id: await getIdByNameFailsafe(
+      //     'certifications',
+      //     'application'
+      //   ),
+      //   created_at: new Date(),
+      //   updated_at: new Date(),
+      // },
       {
         user_id: volunteer2,
         certification_id: await getIdByNameFailsafe(
@@ -287,7 +287,7 @@ export async function volunteers() {
         user_id: volunteer2,
         certification_id: await getIdByNameFailsafe(
           'certifications',
-          'calculus'
+          'calculusAB'
         ),
         created_at: new Date(),
         updated_at: new Date(),
@@ -325,15 +325,15 @@ export async function volunteers() {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        user_id: volunteer2,
-        certification_id: await getIdByNameFailsafe(
-          'certifications',
-          'planning'
-        ),
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+      // {
+      //   user_id: volunteer2,
+      //   certification_id: await getIdByNameFailsafe(
+      //     'certifications',
+      //     'planning'
+      //   ),
+      //   created_at: new Date(),
+      //   updated_at: new Date(),
+      // },
       {
         user_id: volunteer2,
         certification_id: await getIdByNameFailsafe(
@@ -381,14 +381,14 @@ export async function volunteers() {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        user_id: volunteer1,
-        quiz_id: await getIdByNameFailsafe('quizzes', 'application'),
-        attempts: 1,
-        passed: true,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+      // {
+      //   user_id: volunteer1,
+      //   quiz_id: await getIdByNameFailsafe('quizzes', 'application'),
+      //   attempts: 1,
+      //   passed: true,
+      //   created_at: new Date(),
+      //   updated_at: new Date(),
+      // },
       {
         user_id: volunteer1,
         quiz_id: await getIdByNameFailsafe('quizzes', 'biology'),
@@ -399,7 +399,7 @@ export async function volunteers() {
       },
       {
         user_id: volunteer1,
-        quiz_id: await getIdByNameFailsafe('quizzes', 'calculus'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusAB'),
         attempts: 1,
         passed: true,
         created_at: new Date(),
@@ -437,14 +437,14 @@ export async function volunteers() {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        user_id: volunteer1,
-        quiz_id: await getIdByNameFailsafe('quizzes', 'planning'),
-        attempts: 1,
-        passed: true,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+      // {
+      //   user_id: volunteer1,
+      //   quiz_id: await getIdByNameFailsafe('quizzes', 'planning'),
+      //   attempts: 1,
+      //   passed: true,
+      //   created_at: new Date(),
+      //   updated_at: new Date(),
+      // },
       {
         user_id: volunteer1,
         quiz_id: await getIdByNameFailsafe('quizzes', 'precalculus'),
@@ -493,14 +493,14 @@ export async function volunteers() {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        user_id: volunteer2,
-        quiz_id: await getIdByNameFailsafe('quizzes', 'application'),
-        attempts: 1,
-        passed: true,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+      // {
+      //   user_id: volunteer2,
+      //   quiz_id: await getIdByNameFailsafe('quizzes', 'application'),
+      //   attempts: 1,
+      //   passed: true,
+      //   created_at: new Date(),
+      //   updated_at: new Date(),
+      // },
       {
         user_id: volunteer2,
         quiz_id: await getIdByNameFailsafe('quizzes', 'biology'),
@@ -511,7 +511,7 @@ export async function volunteers() {
       },
       {
         user_id: volunteer2,
-        quiz_id: await getIdByNameFailsafe('quizzes', 'calculus'),
+        quiz_id: await getIdByNameFailsafe('quizzes', 'calculusAB'),
         attempts: 1,
         passed: true,
         created_at: new Date(),
@@ -549,14 +549,14 @@ export async function volunteers() {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        user_id: volunteer2,
-        quiz_id: await getIdByNameFailsafe('quizzes', 'planning'),
-        attempts: 1,
-        passed: true,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+      // {
+      //   user_id: volunteer2,
+      //   quiz_id: await getIdByNameFailsafe('quizzes', 'planning'),
+      //   attempts: 1,
+      //   passed: true,
+      //   created_at: new Date(),
+      //   updated_at: new Date(),
+      // },
       {
         user_id: volunteer2,
         quiz_id: await getIdByNameFailsafe('quizzes', 'precalculus'),
