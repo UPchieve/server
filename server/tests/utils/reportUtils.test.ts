@@ -51,6 +51,20 @@ function buildAnalyticVolunteer(
           totalWithinDateRange: 0,
         },
       ],
+      uniqueCLCStudentsHelped: [
+        {
+          _id: null,
+          total: 0,
+          totalWithinDateRange: 0,
+        },
+      ],
+      sessionCLCStats: [
+        {
+          _id: null,
+          total: 0,
+          totalWithinDateRange: 0,
+        },
+      ],
     },
     textNotifications: { _id: null, total: 0, totalWithinDateRange: 0 },
     hourSummaryTotal: {
@@ -248,6 +262,20 @@ describe('getAnalyticsReportSummary', () => {
               totalWithinDateRange: 2,
             },
           ],
+          uniqueCLCStudentsHelped: [
+            {
+              _id: null,
+              total: 0,
+              totalWithinDateRange: 0,
+            },
+          ],
+          sessionCLCStats: [
+            {
+              _id: null,
+              total: 3,
+              totalWithinDateRange: 1,
+            },
+          ],
         },
         textNotifications: { _id: null, total: 10, totalWithinDateRange: 5 },
         hourSummaryTotal: {
@@ -282,6 +310,20 @@ describe('getAnalyticsReportSummary', () => {
               _id: null,
               total: 12,
               totalWithinDateRange: 4,
+            },
+          ],
+          uniqueCLCStudentsHelped: [
+            {
+              _id: null,
+              total: 0,
+              totalWithinDateRange: 0,
+            },
+          ],
+          sessionCLCStats: [
+            {
+              _id: null,
+              total: 5,
+              totalWithinDateRange: 2,
             },
           ],
         },
@@ -346,7 +388,7 @@ describe('getAnalyticsReportSummary', () => {
       uniqueStudentsHelped: {
         total: 0,
         totalWithinDateRange: 0,
-      },
+      }
     }
 
     expect(summary).toEqual(expected)
