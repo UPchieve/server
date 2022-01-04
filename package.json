@@ -34,6 +34,7 @@
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "zapatos": "zapatos",
+    "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "telepresence:intercept": "./bin/telepresence_intercept.sh",
     "telepresence:leave": "./bin/telepresence_leave.sh",
     "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts"
@@ -41,6 +42,8 @@
   "dependencies": {
     "@azure/identity": "^1.2.3",
     "@azure/storage-blob": "^12.4.1",
+    "@pgtyped/cli": "^0.13.0",
+    "@pgtyped/query": "^0.13.0",
     "@sendgrid/mail": "^6.4.0",
     "@sentry/browser": "^5.30.0",
     "@sentry/integrations": "^5.30.0",

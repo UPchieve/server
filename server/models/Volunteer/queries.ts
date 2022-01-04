@@ -793,3 +793,22 @@ export async function updateTimeTutored(
     throw new RepoUpdateError(err)
   }
 }
+
+// pg wrappers
+import client from '../../pg'
+import * as pgQueries from './pg.queries'
+import { Ulid, Subject } from '../pgUtils'
+
+export async function getSubjectsForVolunteer(
+  userId: Ulid
+): Promise<Subject[]> {
+  try {
+    const result = await pgQueries.getSubjectsForVolunteer.run(
+      { userId },
+      client
+    )
+    return result.map(r => r.subject)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
