@@ -388,7 +388,7 @@ describe('getAnalyticsReportSummary', () => {
       uniqueStudentsHelped: {
         total: 0,
         totalWithinDateRange: 0,
-      }
+      },
     }
 
     expect(summary).toEqual(expected)
