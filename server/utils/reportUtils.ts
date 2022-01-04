@@ -442,6 +442,8 @@ export interface PartnerVolunteerAnalytics {
   sessionAnalytics: {
     uniqueStudentsHelped: [GroupStats]
     sessionStats: [GroupStats]
+    uniqueCLCStudentsHelped: [GroupStats]
+    sessionCLCStats: [GroupStats]
   }
   textNotifications: GroupStats
   isDeactivated: boolean
@@ -460,15 +462,21 @@ export interface AnalyticsReportRow {
   certificationsReceived: number // int
   totalTextsReceived: number // int
   totalSessionsCompleted: number
+  totalCLCSessionsCompleted: number
   totalUniqueStudentsHelped: number
+  totalUniqueCLCStudentsHelped: number
   totalTutoringHours: number // Number(number.toFixed(2))
+  totalCLCStudentsTutoringHours: number
   totalTrainingHours: number
   totalElapsedAvailabilityHours: number
   totalVolunteerHours: number
   dateRangeTextsReceived: number
   dateRangeSessionsCompleted: number
+  dateRangeCLCSessionsCompleted: number
   dateRangeUniqueStudentsHelped: number
+  dateRangeUniqueCLCStudentsHelped: number
   dateRangeTutoringHours: number
+  dateRangeCLCStudentsTutoringHours: number
   dateRangeTrainingHours: number
   dateRangeElapsedAvailabilityHours: number
   dateRangeVolunteerHours: number
@@ -479,9 +487,11 @@ export function getAnalyticsReportRow(
   volunteer: PartnerVolunteerAnalytics
 ): AnalyticsReportRow {
   const { sessionAnalytics } = volunteer
-  const { uniqueStudentsHelped, sessionStats } = sessionAnalytics
+  const { uniqueStudentsHelped, sessionStats, uniqueCLCStudentsHelped, sessionCLCStats } = sessionAnalytics
   const [uniqueStudentsHelpedStats] = uniqueStudentsHelped
+  const [uniqueCLCStudentsHelpedStats] = uniqueCLCStudentsHelped
   const [sessionGroupStats] = sessionStats
+  const [sessionCLCGroupStats] = sessionCLCStats
   const row = {} as AnalyticsReportRow
 
   // Volunteer profile
@@ -511,8 +521,12 @@ export function getAnalyticsReportRow(
     ? volunteer.textNotifications.total
     : 0
   row.totalSessionsCompleted = sessionGroupStats ? sessionGroupStats.total : 0
+  row.totalCLCSessionsCompleted = sessionCLCGroupStats ? sessionCLCGroupStats.total : 0
   row.totalUniqueStudentsHelped = uniqueStudentsHelpedStats
     ? uniqueStudentsHelpedStats.total
+    : 0
+  row.totalUniqueCLCStudentsHelped = uniqueCLCStudentsHelpedStats
+    ? uniqueCLCStudentsHelpedStats.total
     : 0
   row.totalTutoringHours = volunteer.hourSummaryTotal.totalCoachingHours
   row.totalTrainingHours = volunteer.hourSummaryTotal.totalQuizzesPassed
@@ -528,8 +542,14 @@ export function getAnalyticsReportRow(
   row.dateRangeSessionsCompleted = sessionGroupStats
     ? sessionGroupStats.totalWithinDateRange
     : 0
+  row.dateRangeCLCSessionsCompleted = sessionCLCGroupStats
+    ? sessionCLCGroupStats.totalWithinDateRange
+    : 0
   row.dateRangeUniqueStudentsHelped = uniqueStudentsHelpedStats
     ? uniqueStudentsHelpedStats.totalWithinDateRange
+    : 0
+  row.dateRangeUniqueCLCStudentsHelped = uniqueCLCStudentsHelpedStats
+    ? uniqueCLCStudentsHelpedStats.totalWithinDateRange
     : 0
   row.dateRangeTutoringHours = volunteer.hourSummaryDateRange.totalCoachingHours
   row.dateRangeTrainingHours = volunteer.hourSummaryDateRange.totalQuizzesPassed
@@ -719,15 +739,21 @@ const analyticsReportDataHeaderMapping = {
   certificationsReceived: 'Certifications received',
   totalTextsReceived: 'Total texts received',
   totalSessionsCompleted: 'Total sessions completed',
+  totalCLCSessionsCompleted: 'Total sessions with CLC students',
   totalUniqueStudentsHelped: 'Total unique students helped',
+  totalUniqueCLCStudentsHelped: 'Total unique CLC students helped',
   totalTutoringHours: 'Total tutoring hours',
+  totalCLCStudentsTutoringHours: 'Total tutoring hours with CLC students',
   totalTrainingHours: 'Total training hours',
   totalElapsedAvailabilityHours: 'Total elapsed availability hours',
   totalVolunteerHours: 'Total hours',
   dateRangeTextsReceived: 'Texts received within date range',
   dateRangeSessionsCompleted: 'Sessions completed within date range',
+  dateRangeCLCSessionsCompleted: 'Sessions completed with CLC students within date range',
   dateRangeUniqueStudentsHelped: 'Unique students helped within date range',
+  dateRangeUniqueCLCStudentsHelped: 'Unique CLC students helped within date range',
   dateRangeTutoringHours: 'Tutoring hours within date range',
+  dateRangeCLCStudentsTutoringHours: 'Tutoring hours with CLC students within date range',
   dateRangeTrainingHours: 'Training hours within date range',
   dateRangeElapsedAvailabilityHours:
     'Elapsed availability hours within date range',
