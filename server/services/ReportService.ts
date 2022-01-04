@@ -754,22 +754,22 @@ export async function generatePartnerAnalyticsReport(
                   },
                 },
               ],
-              //group by att and verizon partner students helped 
+              //group by att and verizon partner students helped
               uniqueCLCstudentsHelped: [
                 {
                   $group: {
                     _id: {
                       '$student.studentPartnerOrg': {
-                        $in: [ 'verizon', 'att']
-                      }
-                    }, 
+                        $in: ['verizon', 'att'],
+                      },
+                    },
                     frequency: { $sum: 1 },
                     frequencyWithinDateRange: getSumOperatorForDateRange(
                       start,
                       end
                     ),
-                  }
-                }, 
+                  },
+                },
                 {
                   $group: {
                     _id: 'null', //group by att and verizon partner students
@@ -783,16 +783,16 @@ export async function generatePartnerAnalyticsReport(
                         ],
                       },
                     },
-                  }
-                }
+                  },
+                },
               ],
               sessionsCLCStats: [
                 {
                   $group: {
                     _id: {
                       '$student.studentPartnerOrg': {
-                        $in: [ 'verizon', 'att']
-                      }
+                        $in: ['verizon', 'att'],
+                      },
                     },
                     total: { $sum: 1 },
                     totalWithinDateRange: getSumOperatorForDateRange(
