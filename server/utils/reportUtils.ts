@@ -487,7 +487,12 @@ export function getAnalyticsReportRow(
   volunteer: PartnerVolunteerAnalytics
 ): AnalyticsReportRow {
   const { sessionAnalytics } = volunteer
-  const { uniqueStudentsHelped, sessionStats, uniqueCLCStudentsHelped, sessionCLCStats } = sessionAnalytics
+  const {
+    uniqueStudentsHelped,
+    sessionStats,
+    uniqueCLCStudentsHelped,
+    sessionCLCStats,
+  } = sessionAnalytics
   const [uniqueStudentsHelpedStats] = uniqueStudentsHelped
   const [uniqueCLCStudentsHelpedStats] = uniqueCLCStudentsHelped
   const [sessionGroupStats] = sessionStats
@@ -521,7 +526,9 @@ export function getAnalyticsReportRow(
     ? volunteer.textNotifications.total
     : 0
   row.totalSessionsCompleted = sessionGroupStats ? sessionGroupStats.total : 0
-  row.totalCLCSessionsCompleted = sessionCLCGroupStats ? sessionCLCGroupStats.total : 0
+  row.totalCLCSessionsCompleted = sessionCLCGroupStats
+    ? sessionCLCGroupStats.total
+    : 0
   row.totalUniqueStudentsHelped = uniqueStudentsHelpedStats
     ? uniqueStudentsHelpedStats.total
     : 0
@@ -749,11 +756,14 @@ const analyticsReportDataHeaderMapping = {
   totalVolunteerHours: 'Total hours',
   dateRangeTextsReceived: 'Texts received within date range',
   dateRangeSessionsCompleted: 'Sessions completed within date range',
-  dateRangeCLCSessionsCompleted: 'Sessions completed with CLC students within date range',
+  dateRangeCLCSessionsCompleted:
+    'Sessions completed with CLC students within date range',
   dateRangeUniqueStudentsHelped: 'Unique students helped within date range',
-  dateRangeUniqueCLCStudentsHelped: 'Unique CLC students helped within date range',
+  dateRangeUniqueCLCStudentsHelped:
+    'Unique CLC students helped within date range',
   dateRangeTutoringHours: 'Tutoring hours within date range',
-  dateRangeCLCStudentsTutoringHours: 'Tutoring hours with CLC students within date range',
+  dateRangeCLCStudentsTutoringHours:
+    'Tutoring hours with CLC students within date range',
   dateRangeTrainingHours: 'Training hours within date range',
   dateRangeElapsedAvailabilityHours:
     'Elapsed availability hours within date range',
