@@ -15,7 +15,7 @@
     "dev:init:sql": "ts-node -P tsconfig.database.json database/seeds/index.ts",
     "dev:reset:sql": "./bin/reset_db.sh",
     "html-validate": "html-validate --ext html,vue src",
-    "lint:backend": "prettier --write \"server/**/*.ts\"",
+    "lint:backend": "prettier --write \"server/**/*.ts\" > /dev/null",
     "lint:backend:dry": "prettier --check \"server/**/*.ts\"",
     "lint:frontend": "eslint ./src -c .eslintrc-vue.js --ignore-path .eslintignore-vue --fix --ext .js,.vue",
     "lint:frontend:dry": "eslint ./src -c .eslintrc-vue.js --ignore-path .eslintignore-vue --no-fix --max-warnings 0 --ext .js,.vue",
