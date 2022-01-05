@@ -754,54 +754,81 @@ export async function generatePartnerAnalyticsReport(
                   },
                 },
               ],
-              //group by att and verizon partner students helped
-              uniqueCLCstudentsHelped: [
+            },
+          },
+          {
+            $lookup: {
+              from: 'student',
+              // localField: 'student',
+              // foreignField: '_id',
+              let: {
+                studentId: '$student',
+              },
+              pipeline: [
                 {
-                  $group: {
-                    _id: {
-                      '$student.studentPartnerOrg': {
-                        $in: ['verizon', 'att'],
-                      },
+                  $match: {
+                    // execute lookup only for att and verizon reports
+                    volunteerPartnerOrg: {
+                      $in: ['att', 'verizon'],
                     },
-                    frequency: { $sum: 1 },
-                    frequencyWithinDateRange: getSumOperatorForDateRange(
-                      start,
-                      end
-                    ),
+                    $expr: {
+                      $and: [
+                        { $eq: ['$_id', '$$studentId'] },
+                        // mapping to count same organization (att/verizon) students
+                        {
+                          $eq: ['$studentPartnerOrg', '$$volunteerPartnerOrg'],
+                        },
+                      ],
+                    },
                   },
                 },
                 {
-                  $group: {
-                    _id: 'null', //group by att and verizon partner students
-                    total: { $sum: 1 },
-                    totalWithinDateRange: {
-                      $sum: {
-                        $cond: [
-                          { $gte: ['$frequencyWithinDateRange', 1] },
-                          1,
-                          0,
-                        ],
+                  $facet: {
+                    // group att and verizon partner students helped by their ids
+                    uniqueCLCstudentsHelped: [
+                      {
+                        $group: {
+                          _id: '$_id',
+                          frequency: { $sum: 1 },
+                          frequencyWithinDateRange: getSumOperatorForDateRange(
+                            start,
+                            end
+                          ),
+                        },
                       },
-                    },
+                      {
+                        $group: {
+                          _id: 'null',
+                          total: { $sum: 1 },
+                          totalWithinDateRange: {
+                            $sum: {
+                              $cond: [
+                                { $gte: ['$frequencyWithinDateRange', 1] },
+                                1,
+                                0,
+                              ],
+                            },
+                          },
+                        },
+                      },
+                    ],
+                    // sessions completed with att or verizon students
+                    sessionsCLCStats: [
+                      {
+                        $group: {
+                          _id: null,
+                          total: { $sum: 1 },
+                          totalWithinDateRange: getSumOperatorForDateRange(
+                            start,
+                            end
+                          ),
+                        },
+                      },
+                    ],
                   },
                 },
               ],
-              sessionsCLCStats: [
-                {
-                  $group: {
-                    _id: {
-                      '$student.studentPartnerOrg': {
-                        $in: ['verizon', 'att'],
-                      },
-                    },
-                    total: { $sum: 1 },
-                    totalWithinDateRange: getSumOperatorForDateRange(
-                      start,
-                      end
-                    ),
-                  },
-                },
-              ],
+              as: 'sessionAnalytics',
             },
           },
         ],
