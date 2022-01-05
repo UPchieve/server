@@ -328,6 +328,7 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_WHITEBOARD_STORAGE_CONTAINER || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
+  ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
 }
 
 module.exports = config

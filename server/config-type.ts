@@ -197,4 +197,5 @@ export const Config = Record({
   whiteboardStorageContainer: String,
   version: String,
   fileWorkRootPath: String,
+  ipWhoIsApiKey: String,
 })

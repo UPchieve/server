@@ -12,17 +12,19 @@ import { NotAllowedError } from '../models/Errors'
 import { asString } from '../utils/type-utils'
 import net from 'net'
 import { cleanIpString } from '../utils/clean-ip-string'
+import config from '../config'
 
 export async function getIpWhoIs(rawIpString: string) {
   const ipString = cleanIpString(rawIpString)
+  const ipWhoIs =
+    config.NODE_ENV === 'dev'
+      ? `http://free.ipwhois.io/json/${ipString}`
+      : `http://ipwhois.pro/json/${ipString}?key=${config.ipWhoIsApiKey}`
 
   try {
-    const { data } = await axios.get(
-      `http://free.ipwhois.io/json/${ipString}`,
-      {
-        timeout: 1500,
-      }
-    )
+    const { data } = await axios.get(ipWhoIs, {
+      timeout: 1500,
+    })
     return data
   } catch (err) {
     Sentry.captureException(err)
