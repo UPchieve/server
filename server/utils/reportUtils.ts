@@ -621,6 +621,96 @@ export async function getUniqueStudentStats(
   ])) as unknown) as GroupStats[]
 }
 
+export async function getUniqueCLCStudentStats(
+  partnerOrg: string,
+  startDate: Date,
+  endDate: Date
+) {
+  return ((await getVolunteersWithPipeline([
+    {
+      $match: {
+        volunteerPartnerOrg: partnerOrg,
+      },
+    },
+    {
+      $lookup: {
+        from: 'sessions',
+        // foreignField: '_id',
+        // localField: 'pastSessions',
+        let: {
+          volunteerPastSessions: '$pastSessions',
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$_id', '$$volunteerPastSessions'],
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'student',
+              let: {
+                studentId: '$student',
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ['$_id', '$$studentId'] },
+                        { $eq: ['$studentPartnerOrg', partnerOrg] },
+                      ],
+                    },
+                  },
+                },
+              ],
+              as: 'specificStudent',
+            },
+          },
+          {
+            $unwind: {
+              path: '$specificStudent',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+        as: 'pastSession',
+      },
+    },
+    {
+      $unwind: {
+        path: '$pastSession',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $group: {
+        // group by filtered out session ids
+        _id: '$specificStudent._id',
+        frequency: { $sum: 1 },
+        frequencyWithinDateRange: getSumOperatorForDateRange(
+          startDate,
+          endDate,
+          DATE_RANGE_COMPARISON_FIELDS.PAST_SESSION_CREATED_AT
+        ),
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: 1 },
+        totalWithinDateRange: {
+          $sum: {
+            $cond: [{ $gte: ['$frequencyWithinDateRange', 1] }, 1, 0],
+          },
+        },
+      },
+    },
+  ])) as unknown) as GroupStats[]
+}
+
 export interface AnalyticsReportSummaryData {
   total: number
   totalWithinDateRange: number
@@ -635,6 +725,7 @@ export interface AnalyticsReportSummary {
   pickupRate: AnalyticsReportSummaryData
   volunteerHours: AnalyticsReportSummaryData
   uniqueStudentsHelped: AnalyticsReportSummaryData
+  uniqueCLCStudentsHelped: AnalyticsReportSummaryData
 }
 
 function dividend(numerator: number, denominator: number): number {
@@ -662,6 +753,7 @@ export async function getAnalyticsReportSummary(
     pickupRate: { ...defaultData },
     volunteerHours: { ...defaultData },
     uniqueStudentsHelped: { ...defaultData },
+    uniqueCLCStudentsHelped: { ...defaultData },
   } as AnalyticsReportSummary
 
   for (const row of report) {
@@ -726,12 +818,29 @@ export async function getAnalyticsReportSummary(
     startDate,
     endDate
   )
+
+  const [uniqueCLCStudentsStats] = await getUniqueCLCStudentStats(
+    partnerOrg,
+    startDate,
+    endDate
+  )
+
   summary.uniqueStudentsHelped.total = uniqueStudentStats
     ? uniqueStudentStats.total
     : 0
   summary.uniqueStudentsHelped.totalWithinDateRange = uniqueStudentStats
     ? uniqueStudentStats.totalWithinDateRange
     : 0
+
+  // only hydrate column for att and verizon reports
+  if (partnerOrg === 'att' || partnerOrg === 'verizon') {
+    summary.uniqueCLCStudentsHelped.total = uniqueCLCStudentsStats
+      ? uniqueCLCStudentsStats.total
+      : 0
+    summary.uniqueCLCStudentsHelped.totalWithinDateRange = uniqueCLCStudentsStats
+      ? uniqueCLCStudentsStats.totalWithinDateRange
+      : 0
+  }
 
   return summary
 }
@@ -779,6 +888,7 @@ const analyticsReportSummaryHeaderMapping = {
   pickupRate: 'Pick-up rate',
   volunteerHours: 'Volunteer hours completed',
   uniqueStudentsHelped: 'Unique students helped',
+  uniqueCLCStudentsHelped: 'Unique own organization students helped',
 }
 
 export function applyAnalyticsReportDataStyles(worksheet: exceljs.Worksheet) {

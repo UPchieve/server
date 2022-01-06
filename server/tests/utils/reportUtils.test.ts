@@ -389,6 +389,10 @@ describe('getAnalyticsReportSummary', () => {
         total: 0,
         totalWithinDateRange: 0,
       },
+      uniqueCLCStudentsHelped: {
+        total: 0,
+        totalWithinDateRange: 0
+      }
     }
 
     expect(summary).toEqual(expected)

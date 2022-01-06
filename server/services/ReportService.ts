@@ -714,6 +714,38 @@ export async function generatePartnerAnalyticsReport(
             },
           },
           {
+            $lookup: {
+              from: 'student',
+              let: {
+                studentId: '$student',
+              },
+              pipeline: [
+                {
+                  $match: {
+                    // execute lookup only for att and verizon reports
+                    volunteerPartnerOrg: {
+                      $in: ['att', 'verizon'],
+                    },
+                    $expr: {
+                      $and: [
+                        { $eq: ['$_id', '$$studentId'] },
+                        // mapping to count same organization (att/verizon) students
+                        {
+                          $eq: ['$studentPartnerOrg', '$$volunteerPartnerOrg'],
+                        },
+                      ],
+                    },
+                  },
+                },
+              ],
+              as: 'speficicStudent',
+            },
+          },
+          {
+            $unwind: '$speficicStudent',
+            preserveNullAndEmptyArrays: true,
+          },
+          {
             $facet: {
               uniqueStudentsHelped: [
                 {
@@ -754,81 +786,47 @@ export async function generatePartnerAnalyticsReport(
                   },
                 },
               ],
-            },
-          },
-          {
-            $lookup: {
-              from: 'student',
-              // localField: 'student',
-              // foreignField: '_id',
-              let: {
-                studentId: '$student',
-              },
-              pipeline: [
+              // group att and verizon partner students helped by their ids
+              uniqueCLCstudentsHelped: [
                 {
-                  $match: {
-                    // execute lookup only for att and verizon reports
-                    volunteerPartnerOrg: {
-                      $in: ['att', 'verizon'],
-                    },
-                    $expr: {
-                      $and: [
-                        { $eq: ['$_id', '$$studentId'] },
-                        // mapping to count same organization (att/verizon) students
-                        {
-                          $eq: ['$studentPartnerOrg', '$$volunteerPartnerOrg'],
-                        },
-                      ],
-                    },
+                  $group: {
+                    _id: '$specificStudent._id',
+                    frequency: { $sum: 1 },
+                    frequencyWithinDateRange: getSumOperatorForDateRange(
+                      start,
+                      end
+                    ),
                   },
                 },
                 {
-                  $facet: {
-                    // group att and verizon partner students helped by their ids
-                    uniqueCLCstudentsHelped: [
-                      {
-                        $group: {
-                          _id: '$_id',
-                          frequency: { $sum: 1 },
-                          frequencyWithinDateRange: getSumOperatorForDateRange(
-                            start,
-                            end
-                          ),
-                        },
+                  $group: {
+                    _id: 'null',
+                    total: { $sum: 1 },
+                    totalWithinDateRange: {
+                      $sum: {
+                        $cond: [
+                          { $gte: ['$frequencyWithinDateRange', 1] },
+                          1,
+                          0,
+                        ],
                       },
-                      {
-                        $group: {
-                          _id: 'null',
-                          total: { $sum: 1 },
-                          totalWithinDateRange: {
-                            $sum: {
-                              $cond: [
-                                { $gte: ['$frequencyWithinDateRange', 1] },
-                                1,
-                                0,
-                              ],
-                            },
-                          },
-                        },
-                      },
-                    ],
-                    // sessions completed with att or verizon students
-                    sessionsCLCStats: [
-                      {
-                        $group: {
-                          _id: null,
-                          total: { $sum: 1 },
-                          totalWithinDateRange: getSumOperatorForDateRange(
-                            start,
-                            end
-                          ),
-                        },
-                      },
-                    ],
+                    },
                   },
                 },
               ],
-              as: 'sessionAnalytics',
+              // @todo sessions completed with att or verizon students
+              sessionsCLCStats: [
+                {
+                  $group: {
+                    _id: 'null',
+                    total: { $sum: 1 },
+                    totalWithinDateRange: getSumOperatorForDateRange(
+                      start,
+                      end
+                    ),
+                  },
+                },
+              ],
             },
           },
         ],
@@ -841,6 +839,7 @@ export async function generatePartnerAnalyticsReport(
         preserveNullAndEmptyArrays: true,
       },
     },
+
     // Get the total amount of text messages that were sent to a volunteer
     // and the total amount sent within startDate - endDate
     {
