@@ -23,7 +23,7 @@ import formatMultiWordSubject from '../utils/format-multi-word-subject'
 import Case from 'case'
 import logger from '../logger'
 import { Types } from 'mongoose'
-import { MATH_CERTS, VERIFICATION_METHOD } from '../constants'
+import { MATH_CERTS, VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import { getIdFromModelReference } from '../utils/model-reference'
 import {
   sponsorOrgManifests,
@@ -245,7 +245,11 @@ export async function notifyVolunteer(
 
   // Prioritize volunteers who do not have high-level subjects to avoid
   // lack of volunteers when high-level subjects are requested
-  const highLevelSubjects = ['calculusAB', 'chemistry', 'statistics']
+  const highLevelSubjects = [
+    SUBJECTS.CALCULUS_AB,
+    SUBJECTS.CHEMISTRY,
+    SUBJECTS.STATISTICS,
+  ]
   const isHighLevelSubject = highLevelSubjects.includes(subtopic)
   let subjectsFilter: any = { $eq: subtopic }
   // Temporarily notify tutors with algebraTwo-temporary as subject
