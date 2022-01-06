@@ -7,23 +7,26 @@ import { MATH_SUBJECTS, SAT_SUBJECTS } from '../../constants'
 import {
   buildAvailability,
   buildSession,
+  buildStudent,
   buildVolunteer,
   getObjectId,
 } from '../generate'
 import {
   insertNotification,
-  insertSession,
   insertSessionWithVolunteer,
   insertVolunteer,
   resetDb,
 } from '../db-utils'
 import { Session } from '../../models/Session'
 import * as SessionRepo from '../../models/Session/queries'
+import * as StudentRepo from '../../models/Student/queries'
 import * as GetTimes from '../../utils/get-times'
 jest.mock('../../models/Session/queries')
+jest.mock('../../models/Student/queries')
 jest.mock('../../utils/get-times')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
+const mockedStudentRepo = mocked(StudentRepo, true)
 const mockedTimeUtils = mocked(GetTimes, true)
 
 const MOCK_MOMENT = moment.tz('2020-01-01T00:00:00', 'America/New_York') // Midnight EST
@@ -33,12 +36,14 @@ const NON_MATCHING_AVAILABILITY = buildAvailability({
 })
 
 mockedTimeUtils.getCurrentNewYorkTime.mockReturnValue(MOCK_MOMENT)
+mockedStudentRepo.getStudentById.mockResolvedValue(buildStudent())
 
 const SESSION = buildSession({
   _id: getObjectId(),
   type: 'college',
   subTopic: SAT_SUBJECTS.SAT_READING,
   addNotifications: jest.fn(),
+  student: getObjectId(),
 })
 
 jest.mock('twilio', () =>
