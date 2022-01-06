@@ -54,6 +54,19 @@ jest.mock('twilio', () =>
   }))
 )
 
+jest.mock('../../partnerManifests', () => ({
+  sponsorOrgManifests: {
+    vils: {
+      name: 'Sponsor 3',
+      schools: [
+        // cannot use the asObjectId type-util since this mock is hoisted above the util import
+        mongoose.Types.ObjectId('618abe7ba0e5212595a7bf98'),
+      ],
+      partnerOrgs: null,
+    },
+  },
+}))
+
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
     useNewUrlParser: true,
