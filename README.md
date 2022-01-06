@@ -48,12 +48,10 @@ Docker provides an alternative for local development. A docker-compose file exis
 $ docker-compose up -d
 ```
 2. Visit [`http://localhost:80`](http://localhost:80) to view the PGAdmin dashboard
-   - use `Password123` to access the database server
-3. Seed the db by running
-```shell
-npx ts-node sql/seeds/src/index.ts
-```
+    - use username `admin` and password `Password123` to access the database server
+3. Seed the mongo and postgres db by running `npm run dev:init`
 4. Confirm the seeds worked by making a query in PGAdmin
+    - connect other DB admin tools to `localhost:5432` with the admin or subway users
 
 ## Without docker-compose
 If not using docker-compose, follow these steps to start required components.

@@ -18,13 +18,13 @@ services:
         environment:
             - MONGO_INITDB_DATABASE=upchieve
         volumes:
-            - ../mongo-volume:/data/db
+            - ./mongo-volume:/data/db
     redis:
         ports:
             - "6379:6379"
         image: redis:6.2.1
         volumes:
-            - ../redis-volume:/data
+            - ./redis-volume:/data
     pgadmin:
         image: dpage/pgadmin4
         depends_on:
