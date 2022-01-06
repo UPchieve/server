@@ -1,13 +1,16 @@
 import twilio from 'twilio'
 import { getCurrentNewYorkTime } from '../utils/get-times'
 import config from '../config'
-import VolunteerModel, { Volunteer } from '../models/Volunteer'
-import { getTestStudentExistsById } from '../models/Student/queries'
+import {
+  getStudentById,
+  getTestStudentExistsById,
+} from '../models/Student/queries'
 import {
   VolunteerContactInfo,
   getVolunteersFailsafe,
   getVolunteersNotifiedSinceDate,
   getVolunteersNotifiedBySessionId,
+  getNextVolunteerToNotify,
 } from '../models/Volunteer/queries'
 import { Session } from '../models/Session'
 import queue from './QueueService'
@@ -22,6 +25,11 @@ import logger from '../logger'
 import { Types } from 'mongoose'
 import { MATH_CERTS, VERIFICATION_METHOD } from '../constants'
 import { getIdFromModelReference } from '../utils/model-reference'
+import {
+  sponsorOrgManifests,
+  studentPartnerManifests,
+} from '../partnerManifests'
+import { asObjectId } from '../utils/type-utils'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -83,14 +91,7 @@ export async function getNextVolunteer(
     ...priorityFilter,
   }
 
-  // TODO: repo pattern
-  const [volunteer] = (await VolunteerModel.aggregate([
-    { $match: filter },
-    { $project: { phone: 1, firstname: 1 } },
-    { $sample: { size: 1 } },
-  ])) as VolunteerContactInfo[]
-
-  return volunteer
+  return getNextVolunteerToNotify(filter)
 }
 
 export async function sendTextMessage(
@@ -191,6 +192,37 @@ export async function sendFollowupText(
 export async function notifyVolunteer(
   session: Session
 ): Promise<Types.ObjectId | undefined> {
+  const student = await getStudentById(asObjectId(session.student))
+  if (!student) return
+
+  let partner: {
+    volunteerOrg?: string
+    volunteerOrgDisplay?: string
+    studentOrgDisplay?: string
+  } = {}
+  let isPriorityPartnerMatching = false
+  if (student.studentPartnerOrg === 'att-connected-learning') {
+    partner = {
+      volunteerOrg: 'att',
+      volunteerOrgDisplay: 'AT&T',
+      studentOrgDisplay:
+        studentPartnerManifests[student.studentPartnerOrg].name,
+    }
+    isPriorityPartnerMatching = true
+  }
+  if (
+    sponsorOrgManifests.vils.schools.some(school =>
+      school.equals(asObjectId(student.approvedHighschool))
+    )
+  ) {
+    partner = {
+      volunteerOrg: 'verizon',
+      volunteerOrgDisplay: 'Verizon',
+      studentOrgDisplay: sponsorOrgManifests.vils.name,
+    }
+    isPriorityPartnerMatching = true
+  }
+
   // typed as `any` because `subtopic` gets reassigned as a regex query object if `subtopic` is algebraTwo
   let subtopic: any = session.subTopic
   const activeSessionVolunteers = await getActiveSessionVolunteers()
@@ -238,10 +270,13 @@ export async function notifyVolunteer(
 
   const volunteerPriority = [
     {
-      groupName:
-        'Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"',
+      groupName: `${
+        isPriorityPartnerMatching ? partner.volunteerOrgDisplay : 'Partner'
+      } volunteers - not notified in the last 3 days AND they don’t have "high level subjects"`,
       filter: {
-        volunteerPartnerOrg: { $exists: true },
+        volunteerPartnerOrg: isPriorityPartnerMatching
+          ? partner.volunteerOrg
+          : { $exists: true },
         subjects: subjectsFilter,
         _id: {
           $nin: activeSessionVolunteers.concat(
@@ -266,10 +301,13 @@ export async function notifyVolunteer(
       },
     },
     {
-      groupName:
-        'Partner volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"',
+      groupName: `${
+        isPriorityPartnerMatching ? partner.volunteerOrgDisplay : 'Partner'
+      } volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"`,
       filter: {
-        volunteerPartnerOrg: { $exists: true },
+        volunteerPartnerOrg: isPriorityPartnerMatching
+          ? partner.volunteerOrg
+          : { $exists: true },
         subjects: subjectsFilter,
         _id: {
           $nin: activeSessionVolunteers.concat(
@@ -349,9 +387,17 @@ export async function notifyVolunteer(
   // Format multi-word subtopics from a key name to a display name
   // ex: physicsOne -> Physics 1
   subtopic = formatMultiWordSubject(session.subTopic)
-
   const sessionUrl = getSessionUrl(session)
-  const messageText = `Hi ${volunteer.firstname}, a student needs help in ${subtopic} on UPchieve! ${sessionUrl}`
+  const targetStudent =
+    isPriorityPartnerMatching &&
+    volunteer.volunteerPartnerOrg === partner.volunteerOrg
+      ? // Check if the student partner org display starts with `a` or `A` unicode character
+        partner.studentOrgDisplay!.charCodeAt(0) === 65 ||
+        partner.studentOrgDisplay!.charCodeAt(0) === 65 + 32
+        ? `an ${partner.studentOrgDisplay} student`
+        : `a ${partner.studentOrgDisplay} student`
+      : 'a student'
+  let messageText = `Hi ${volunteer.firstname}, ${targetStudent} needs help in ${subtopic} on UPchieve! ${sessionUrl}`
   const sidPromise = sendTextMessage(volunteer.phone as string, messageText)
 
   // TODO: repo pattern
