@@ -101,6 +101,15 @@ jest.mock('../config', () => {
         schools: ['618abe7ba0e5212595a7bf9b', '618abe7ba0e5212595a7bf9c'],
         partnerOrgs: ['example', 'example2'],
       },
+      vils: {
+        name: 'Sponsor 3',
+        schools: [
+          '618abe7ba0e5212595a7bf98',
+          '618abe7ba0e5212595a7bf99',
+          '618abe7ba0e5212595a7bf9a',
+        ],
+        partnerOrgs: null,
+      },
     },
     bannedServiceProviders: ['Example'],
     notificationSchedule: [
