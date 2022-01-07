@@ -218,9 +218,9 @@ export function buildNotificationContent(
   )} needs help in ${subtopic} on UPchieve! ${sessionUrl}`
 }
 
-export async function getAssociatedPartner(
+export function getAssociatedPartner(
   student: Student
-): Promise<AssociatedPartnerManifest | null> {
+): AssociatedPartnerManifest | null {
   // Determine if the student's partner org is one of the orgs that
   // should have priority matching with its partner volunteer org counterpart
   if (
@@ -262,7 +262,7 @@ export async function notifyVolunteer(
 ): Promise<Types.ObjectId | undefined> {
   const student = await getStudentById(getIdFromModelReference(session.student))
   if (!student) return
-  const associatedPartner = await getAssociatedPartner(student)
+  const associatedPartner = getAssociatedPartner(student)
 
   // typed as `any` because `subtopic` gets reassigned as a regex query object if `subtopic` is algebraTwo
   let subtopic: any = session.subTopic

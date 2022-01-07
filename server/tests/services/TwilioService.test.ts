@@ -347,15 +347,15 @@ describe('buildNotificationContent', () => {
 })
 
 describe('getAssociatedPartner', () => {
-  test('Student does not have a matching priority partner org', async () => {
+  test('Student does not have a matching priority partner org', () => {
     const student = buildStudent({ studentPartnerOrg: '' })
-    const result = await TwilioService.getAssociatedPartner(student)
+    const result = TwilioService.getAssociatedPartner(student)
     expect(result).toBeNull()
   })
 
   test('Student partner org should be associate with another partner org for priority matching', async () => {
     const student = buildStudent({ studentPartnerOrg: 'example' })
-    const result = await TwilioService.getAssociatedPartner(student)
+    const result = TwilioService.getAssociatedPartner(student)
     const associatedPartner =
       associatedPartnerManifests[student.studentPartnerOrg]
     expect(result).toEqual(associatedPartner)
@@ -367,7 +367,7 @@ describe('getAssociatedPartner', () => {
       studentPartnerOrg: '',
       approvedHighschool: schoolId,
     })
-    const result = await TwilioService.getAssociatedPartner(student)
+    const result = TwilioService.getAssociatedPartner(student)
     const associatedPartner = associatedPartnerManifests.sponsor
     expect(result).toEqual(associatedPartner)
   })
@@ -376,7 +376,7 @@ describe('getAssociatedPartner', () => {
     const student = buildStudent({
       studentPartnerOrg: sponsorOrgManifests.sponsor2.partnerOrgs[1],
     })
-    const result = await TwilioService.getAssociatedPartner(student)
+    const result = TwilioService.getAssociatedPartner(student)
     const associatedPartner = associatedPartnerManifests.sponsor2
     expect(result).toEqual(associatedPartner)
   })
