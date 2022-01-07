@@ -39,6 +39,14 @@ const customVolunteerPartnerOrgList =
   process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
 const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
 
+const priorityMatchingPartnerOrgList =
+  process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus'
+const priorityMatchingPartnerOrgs = priorityMatchingPartnerOrgList.split(',')
+
+const priorityMatchingSponsorOrgList =
+  process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus'
+const priorityMatchingSponsorOrgs = priorityMatchingSponsorOrgList.split(',')
+
 const config: Static<typeof Config> = {
   NODE_ENV: nodeEnv,
   SSL_CERT_PATH: '',
@@ -201,6 +209,8 @@ const config: Static<typeof Config> = {
     'localManifests/volunteer.yaml',
 
   customVolunteerPartnerOrgs: customVolunteerPartnerOrgs,
+  priorityMatchingPartnerOrgs,
+  priorityMatchingSponsorOrgs,
 
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
@@ -209,6 +219,10 @@ const config: Static<typeof Config> = {
   sponsorOrgManifestPath:
     process.env.SUBWAY_SPONSOR_ORG_MANIFEST_PATH ||
     'localManifests/sponsor-orgs.yaml',
+
+  associatedPartnerManifestPath:
+    process.env.SUBWAY_ASSOCIATED_PATNER_MANIFESTS ||
+    'localManifests/associated-partners.yaml',
 
   clusterServerAddress:
     process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',

@@ -11,6 +11,14 @@ const customVolunteerPartnerOrgList =
   process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'example'
 const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
 
+const priorityMatchingPartnerOrgList =
+  process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'example'
+const priorityMatchingPartnerOrgs = priorityMatchingPartnerOrgList.split(',')
+
+const priorityMatchingSponsorOrgList =
+  process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'sponsor,sponsor2'
+const priorityMatchingSponsorOrgs = priorityMatchingSponsorOrgList.split(',')
+
 jest.mock('../config', () => {
   return {
     NODE_ENV: 'dev',
@@ -25,6 +33,7 @@ jest.mock('../config', () => {
     volunteerPartnerManifestPath: 'localManifests/volunteer.yaml',
     studentPartnerManifestPath: 'localManifests/student.yaml',
     sponsorOrgManifestPath: 'localManifests/sponsor-orgs.yaml',
+    associatedPartnerManifestPath: 'localManifests/associated-partners.yaml',
     smtp: {
       host: 'smtp.mailtrap.io',
       port: 2525,
@@ -59,6 +68,8 @@ jest.mock('../config', () => {
     },
 
     customVolunteerPartnerOrgs: customVolunteerPartnerOrgs,
+    priorityMatchingPartnerOrgs,
+    priorityMatchingSponsorOrgs,
 
     assistmentsBaseURL: 'https://example.com',
 
