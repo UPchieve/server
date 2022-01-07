@@ -29,7 +29,12 @@ import {
   sponsorOrgManifests,
   studentPartnerManifests,
 } from '../partnerManifests'
-import { asObjectId } from '../utils/type-utils'
+
+export interface AssociatedPartnerOrg {
+  volunteerOrg?: string
+  volunteerOrgDisplay?: string
+  studentOrgDisplay?: string
+}
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -189,17 +194,43 @@ export async function sendFollowupText(
   ])
 }
 
+export function buildTargetStudentContent(
+  volunteer: VolunteerContactInfo,
+  isPriorityPartnerMatching: boolean,
+  partner: AssociatedPartnerOrg
+) {
+  return isPriorityPartnerMatching &&
+    volunteer.volunteerPartnerOrg === partner.volunteerOrg
+    ? // Check if the student partner org display starts with `a` or `A` unicode character
+      partner.studentOrgDisplay!.charCodeAt(0) === 65 ||
+      partner.studentOrgDisplay!.charCodeAt(0) === 65 + 32
+      ? `an ${partner.studentOrgDisplay} student`
+      : `a ${partner.studentOrgDisplay} student`
+    : 'a student'
+}
+
+export function buildNotificationContent(
+  session: Session,
+  volunteer: VolunteerContactInfo,
+  isPriorityPartnerMatching: boolean,
+  partner: AssociatedPartnerOrg
+) {
+  const subtopic = formatMultiWordSubject(session.subTopic)
+  const sessionUrl = getSessionUrl(session)
+  return `Hi ${volunteer.firstname}, ${buildTargetStudentContent(
+    volunteer,
+    isPriorityPartnerMatching,
+    partner
+  )} needs help in ${subtopic} on UPchieve! ${sessionUrl}`
+}
+
 export async function notifyVolunteer(
   session: Session
 ): Promise<Types.ObjectId | undefined> {
-  const student = await getStudentById(asObjectId(session.student))
+  const student = await getStudentById(getIdFromModelReference(session.student))
   if (!student) return
 
-  let partner: {
-    volunteerOrg?: string
-    volunteerOrgDisplay?: string
-    studentOrgDisplay?: string
-  } = {}
+  let partner: AssociatedPartnerOrg = {}
   let isPriorityPartnerMatching = false
   if (student.studentPartnerOrg === 'att-connected-learning') {
     partner = {
@@ -212,7 +243,7 @@ export async function notifyVolunteer(
   }
   if (
     sponsorOrgManifests.vils.schools.some(school =>
-      school.equals(asObjectId(student.approvedHighschool))
+      school.equals(getIdFromModelReference(student.approvedHighschool))
     )
   ) {
     partner = {
@@ -388,20 +419,12 @@ export async function notifyVolunteer(
 
   if (!volunteer) return
 
-  // Format multi-word subtopics from a key name to a display name
-  // ex: physicsOne -> Physics 1
-  subtopic = formatMultiWordSubject(session.subTopic)
-  const sessionUrl = getSessionUrl(session)
-  const targetStudent =
-    isPriorityPartnerMatching &&
-    volunteer.volunteerPartnerOrg === partner.volunteerOrg
-      ? // Check if the student partner org display starts with `a` or `A` unicode character
-        partner.studentOrgDisplay!.charCodeAt(0) === 65 ||
-        partner.studentOrgDisplay!.charCodeAt(0) === 65 + 32
-        ? `an ${partner.studentOrgDisplay} student`
-        : `a ${partner.studentOrgDisplay} student`
-      : 'a student'
-  let messageText = `Hi ${volunteer.firstname}, ${targetStudent} needs help in ${subtopic} on UPchieve! ${sessionUrl}`
+  const messageText = buildNotificationContent(
+    session,
+    volunteer,
+    isPriorityPartnerMatching,
+    partner
+  )
   const sidPromise = sendTextMessage(volunteer.phone as string, messageText)
 
   // TODO: repo pattern
