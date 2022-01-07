@@ -197,8 +197,7 @@ export function buildTargetStudentContent(
 ) {
   return associatedPartner &&
     volunteer.volunteerPartnerOrg === associatedPartner.volunteerOrg
-    ? // Check if the student partner org display starts with `a` or `A` unicode character
-      startsWithVowel(associatedPartner.studentOrgDisplay)
+    ? startsWithVowel(associatedPartner.studentOrgDisplay)
       ? `an ${associatedPartner.studentOrgDisplay} student`
       : `a ${associatedPartner.studentOrgDisplay} student`
     : 'a student'
