@@ -215,6 +215,8 @@ export function buildNotificationContent(
   isPriorityPartnerMatching: boolean,
   partner: AssociatedPartnerOrg
 ) {
+  // Format multi-word subtopics from a key name to a display name
+  // ex: physicsOne -> Physics 1
   const subtopic = formatMultiWordSubject(session.subTopic)
   const sessionUrl = getSessionUrl(session)
   return `Hi ${volunteer.firstname}, ${buildTargetStudentContent(
