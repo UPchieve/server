@@ -26,15 +26,12 @@ import { Types } from 'mongoose'
 import { MATH_CERTS, VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import { getIdFromModelReference } from '../utils/model-reference'
 import {
+  AssociatedPartnerManifest,
+  associatedPartnerManifests,
   sponsorOrgManifests,
-  studentPartnerManifests,
 } from '../partnerManifests'
-
-export interface AssociatedPartnerOrg {
-  volunteerOrg?: string
-  volunteerOrgDisplay?: string
-  studentOrgDisplay?: string
-}
+import { Student } from '../models/Student'
+import startsWithVowel from '../utils/starts-with-vowel'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -196,24 +193,21 @@ export async function sendFollowupText(
 
 export function buildTargetStudentContent(
   volunteer: VolunteerContactInfo,
-  isPriorityPartnerMatching: boolean,
-  partner: AssociatedPartnerOrg
+  associatedPartner: AssociatedPartnerManifest | null
 ) {
-  return isPriorityPartnerMatching &&
-    volunteer.volunteerPartnerOrg === partner.volunteerOrg
+  return associatedPartner &&
+    volunteer.volunteerPartnerOrg === associatedPartner.volunteerOrg
     ? // Check if the student partner org display starts with `a` or `A` unicode character
-      partner.studentOrgDisplay!.charCodeAt(0) === 65 ||
-      partner.studentOrgDisplay!.charCodeAt(0) === 65 + 32
-      ? `an ${partner.studentOrgDisplay} student`
-      : `a ${partner.studentOrgDisplay} student`
+      startsWithVowel(associatedPartner.studentOrgDisplay)
+      ? `an ${associatedPartner.studentOrgDisplay} student`
+      : `a ${associatedPartner.studentOrgDisplay} student`
     : 'a student'
 }
 
 export function buildNotificationContent(
   session: Session,
   volunteer: VolunteerContactInfo,
-  isPriorityPartnerMatching: boolean,
-  partner: AssociatedPartnerOrg
+  associatedPartner: AssociatedPartnerManifest | null
 ) {
   // Format multi-word subtopics from a key name to a display name
   // ex: physicsOne -> Physics 1
@@ -221,9 +215,47 @@ export function buildNotificationContent(
   const sessionUrl = getSessionUrl(session)
   return `Hi ${volunteer.firstname}, ${buildTargetStudentContent(
     volunteer,
-    isPriorityPartnerMatching,
-    partner
+    associatedPartner
   )} needs help in ${subtopic} on UPchieve! ${sessionUrl}`
+}
+
+export async function getAssociatedPartner(
+  student: Student
+): Promise<AssociatedPartnerManifest | null> {
+  // Determine if the student's partner org is one of the orgs that
+  // should have priority matching with its partner volunteer org counterpart
+  if (
+    config.priorityMatchingPartnerOrgs.some(
+      org => student.studentPartnerOrg === org
+    )
+  )
+    return associatedPartnerManifests[student.studentPartnerOrg]
+
+  for (const sponsorOrg of config.priorityMatchingSponsorOrgs) {
+    // Determine if the student's school belongs to a sponsor org that
+    // should have priority matching with its partner volunteer org counterpart
+    if (
+      sponsorOrgManifests[sponsorOrg] &&
+      Array.isArray(sponsorOrgManifests[sponsorOrg].schools) &&
+      sponsorOrgManifests[sponsorOrg].schools.some(school =>
+        school.equals(getIdFromModelReference(student.approvedHighschool))
+      )
+    )
+      return associatedPartnerManifests[sponsorOrg]
+
+    // Determine if the student's partner org belongs to a sponsor org that
+    // should have priority matching with its partner volunteer org counterpart
+    if (
+      sponsorOrgManifests[sponsorOrg] &&
+      Array.isArray(sponsorOrgManifests[sponsorOrg].partnerOrgs) &&
+      sponsorOrgManifests[sponsorOrg].partnerOrgs.includes(
+        student.studentPartnerOrg
+      )
+    )
+      return associatedPartnerManifests[sponsorOrg]
+  }
+
+  return null
 }
 
 export async function notifyVolunteer(
@@ -231,30 +263,7 @@ export async function notifyVolunteer(
 ): Promise<Types.ObjectId | undefined> {
   const student = await getStudentById(getIdFromModelReference(session.student))
   if (!student) return
-
-  let partner: AssociatedPartnerOrg = {}
-  let isPriorityPartnerMatching = false
-  if (student.studentPartnerOrg === 'att-connected-learning') {
-    partner = {
-      volunteerOrg: 'att',
-      volunteerOrgDisplay: 'AT&T',
-      studentOrgDisplay:
-        studentPartnerManifests[student.studentPartnerOrg].name,
-    }
-    isPriorityPartnerMatching = true
-  }
-  if (
-    sponsorOrgManifests.vils.schools.some(school =>
-      school.equals(getIdFromModelReference(student.approvedHighschool))
-    )
-  ) {
-    partner = {
-      volunteerOrg: 'verizon',
-      volunteerOrgDisplay: 'Verizon',
-      studentOrgDisplay: sponsorOrgManifests.vils.name,
-    }
-    isPriorityPartnerMatching = true
-  }
+  const associatedPartner = await getAssociatedPartner(student)
 
   // typed as `any` because `subtopic` gets reassigned as a regex query object if `subtopic` is algebraTwo
   let subtopic: any = session.subTopic
@@ -308,11 +317,11 @@ export async function notifyVolunteer(
   const volunteerPriority = [
     {
       groupName: `${
-        isPriorityPartnerMatching ? partner.volunteerOrgDisplay : 'Partner'
+        associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
       } volunteers - not notified in the last 3 days AND they don’t have "high level subjects"`,
       filter: {
-        volunteerPartnerOrg: isPriorityPartnerMatching
-          ? partner.volunteerOrg
+        volunteerPartnerOrg: associatedPartner
+          ? associatedPartner.volunteerOrg
           : { $exists: true },
         subjects: subjectsFilter,
         _id: {
@@ -339,11 +348,11 @@ export async function notifyVolunteer(
     },
     {
       groupName: `${
-        isPriorityPartnerMatching ? partner.volunteerOrgDisplay : 'Partner'
+        associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
       } volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"`,
       filter: {
-        volunteerPartnerOrg: isPriorityPartnerMatching
-          ? partner.volunteerOrg
+        volunteerPartnerOrg: associatedPartner
+          ? associatedPartner.volunteerOrg
           : { $exists: true },
         subjects: subjectsFilter,
         _id: {
@@ -424,8 +433,7 @@ export async function notifyVolunteer(
   const messageText = buildNotificationContent(
     session,
     volunteer,
-    isPriorityPartnerMatching,
-    partner
+    associatedPartner
   )
   const sidPromise = sendTextMessage(volunteer.phone as string, messageText)
 

@@ -12,6 +12,12 @@ import {
   getObjectId,
 } from '../generate'
 import {
+  associatedPartnerManifests,
+  sponsorOrgManifests,
+} from '../../partnerManifests'
+import formatMultiWordSubject from '../../utils/format-multi-word-subject'
+import { asObjectId } from '../../utils/type-utils'
+import {
   insertNotification,
   insertSessionWithVolunteer,
   insertVolunteer,
@@ -24,19 +30,25 @@ import * as GetTimes from '../../utils/get-times'
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/Student/queries')
 jest.mock('../../utils/get-times')
+jest.mock('../../utils/format-multi-word-subject')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedStudentRepo = mocked(StudentRepo, true)
 const mockedTimeUtils = mocked(GetTimes, true)
+const mockedformatMultiWordSubject = mocked(formatMultiWordSubject, true)
 
 const MOCK_MOMENT = moment.tz('2020-01-01T00:00:00', 'America/New_York') // Midnight EST
 const MATCHING_AVAILABILITY = buildAvailability({ Wednesday: { '12a': true } })
 const NON_MATCHING_AVAILABILITY = buildAvailability({
   Friday: { '12a': true },
 })
+const MOCK_SAT_READING_DISPLAY = 'SAT Reading'
 
 mockedTimeUtils.getCurrentNewYorkTime.mockReturnValue(MOCK_MOMENT)
-mockedStudentRepo.getStudentById.mockResolvedValue(buildStudent())
+mockedStudentRepo.getStudentById.mockResolvedValue(
+  buildStudent({ studentPartnerOrg: '' })
+)
+mockedformatMultiWordSubject.mockReturnValue(MOCK_SAT_READING_DISPLAY)
 
 const SESSION = buildSession({
   _id: getObjectId(),
@@ -53,19 +65,6 @@ jest.mock('twilio', () =>
     },
   }))
 )
-
-jest.mock('../../partnerManifests', () => ({
-  sponsorOrgManifests: {
-    vils: {
-      name: 'Sponsor 3',
-      schools: [
-        // cannot use the asObjectId type-util since this mock is hoisted above the util import
-        mongoose.Types.ObjectId('618abe7ba0e5212595a7bf98'),
-      ],
-      partnerOrgs: null,
-    },
-  },
-}))
 
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__, {
@@ -239,4 +238,146 @@ test('Prioritizes non-high-level SME volunteers for non-high-level subjects', as
   const notifiedVolunteerId = await TwilioService.notifyVolunteer(SESSION)
 
   expect(notifiedVolunteerId!).toEqual(hemingway._id)
+})
+
+describe('buildTargetStudentContent', () => {
+  test('Should display message to a general student when there is no associated partner', () => {
+    const associatedPartner = null
+    const result = TwilioService.buildTargetStudentContent(
+      buildVolunteer(),
+      associatedPartner
+    )
+    const expected = `a student`
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Should format message to handle a student org that starts with a vowel', () => {
+    const volunteerPartnerOrg = 'a'
+    const volunteer = buildVolunteer({
+      volunteerPartnerOrg,
+    })
+    const associatedPartner = {
+      volunteerOrg: volunteerPartnerOrg,
+      volunteerOrgDisplay: 'A',
+      studentOrgDisplay: 'A Group',
+    }
+    const result = TwilioService.buildTargetStudentContent(
+      volunteer,
+      associatedPartner
+    )
+    const expected = `an ${associatedPartner.studentOrgDisplay} student`
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Should format message to handle when the student org is a consonant', () => {
+    const volunteerPartnerOrg = 'b'
+    const volunteer = buildVolunteer({
+      volunteerPartnerOrg,
+    })
+    const associatedPartner = {
+      volunteerOrg: volunteerPartnerOrg,
+      volunteerOrgDisplay: 'B',
+      studentOrgDisplay: 'B Group',
+    }
+    const result = TwilioService.buildTargetStudentContent(
+      volunteer,
+      associatedPartner
+    )
+    const expected = `a ${associatedPartner.studentOrgDisplay} student`
+
+    expect(result).toEqual(expected)
+  })
+})
+
+describe('buildNotificationContent', () => {
+  test('Properly formatted message to a non-priority partner org volunteer', () => {
+    const associatedPartner = null
+    const volunteer = buildVolunteer()
+    const result = TwilioService.buildNotificationContent(
+      SESSION,
+      volunteer,
+      associatedPartner
+    )
+    const expected = `Hi ${volunteer.firstname}, a student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://localhost/session/${SESSION.type}/sat-reading/${SESSION._id}`
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Properly formatted message to a priority partner org volunteer when a student partner org starting with a vowel', () => {
+    const volunteerPartnerOrg = 'a'
+    const volunteer = buildVolunteer({
+      volunteerPartnerOrg,
+    })
+    const associatedPartner = {
+      volunteerOrg: volunteerPartnerOrg,
+      volunteerOrgDisplay: 'A',
+      studentOrgDisplay: 'A Group',
+    }
+    const result = TwilioService.buildNotificationContent(
+      SESSION,
+      volunteer,
+      associatedPartner
+    )
+    const expected = `Hi ${volunteer.firstname}, an ${associatedPartner.studentOrgDisplay} student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://localhost/session/${SESSION.type}/sat-reading/${SESSION._id}`
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Properly formatted message to a priority partner org volunteer when a student partner org is a consonant', () => {
+    const volunteerPartnerOrg = 'b'
+    const volunteer = buildVolunteer({
+      volunteerPartnerOrg,
+    })
+    const associatedPartner = {
+      volunteerOrg: volunteerPartnerOrg,
+      volunteerOrgDisplay: 'B',
+      studentOrgDisplay: 'B Group',
+    }
+    const result = TwilioService.buildNotificationContent(
+      SESSION,
+      volunteer,
+      associatedPartner
+    )
+    const expected = `Hi ${volunteer.firstname}, a ${associatedPartner.studentOrgDisplay} student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://localhost/session/${SESSION.type}/sat-reading/${SESSION._id}`
+
+    expect(result).toEqual(expected)
+  })
+})
+
+describe('getAssociatedPartner', () => {
+  test('Student does not have a matching priority partner org', async () => {
+    const student = buildStudent({ studentPartnerOrg: '' })
+    const result = await TwilioService.getAssociatedPartner(student)
+    expect(result).toBeNull()
+  })
+
+  test('Student partner org should be associate with another partner org for priority matching', async () => {
+    const student = buildStudent({ studentPartnerOrg: 'example' })
+    const result = await TwilioService.getAssociatedPartner(student)
+    const associatedPartner =
+      associatedPartnerManifests[student.studentPartnerOrg]
+    expect(result).toEqual(associatedPartner)
+  })
+
+  test('Student school should be associated with a sponsor org for priority matching', async () => {
+    const schoolId = asObjectId(sponsorOrgManifests.sponsor.schools[0])
+    const student = buildStudent({
+      studentPartnerOrg: '',
+      approvedHighschool: schoolId,
+    })
+    const result = await TwilioService.getAssociatedPartner(student)
+    const associatedPartner = associatedPartnerManifests.sponsor
+    expect(result).toEqual(associatedPartner)
+  })
+
+  test('Student partner org should be associated with a sponsor org for priority matching', async () => {
+    const student = buildStudent({
+      studentPartnerOrg: sponsorOrgManifests.sponsor2.partnerOrgs[1],
+    })
+    const result = await TwilioService.getAssociatedPartner(student)
+    const associatedPartner = associatedPartnerManifests.sponsor2
+    expect(result).toEqual(associatedPartner)
+  })
 })
