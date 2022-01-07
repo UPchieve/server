@@ -682,7 +682,6 @@ export async function getUniqueCLCStudentStats(
     {
       $unwind: {
         path: '$pastSession',
-        preserveNullAndEmptyArrays: true,
       },
     },
     {
@@ -725,7 +724,7 @@ export interface AnalyticsReportSummary {
   pickupRate: AnalyticsReportSummaryData
   volunteerHours: AnalyticsReportSummaryData
   uniqueStudentsHelped: AnalyticsReportSummaryData
-  uniqueCLCStudentsHelped: AnalyticsReportSummaryData
+  uniqueCLCStudentsHelped?: AnalyticsReportSummaryData
 }
 
 function dividend(numerator: number, denominator: number): number {
@@ -833,14 +832,17 @@ export async function getAnalyticsReportSummary(
     : 0
 
   // only hydrate column for att and verizon reports
-  if (partnerOrg === 'att' || partnerOrg === 'verizon') {
+  if (
+    summary.uniqueCLCStudentsHelped &&
+    (partnerOrg === 'att' || partnerOrg === 'verizon')
+  ) {
     summary.uniqueCLCStudentsHelped.total = uniqueCLCStudentsStats
       ? uniqueCLCStudentsStats.total
       : 0
     summary.uniqueCLCStudentsHelped.totalWithinDateRange = uniqueCLCStudentsStats
       ? uniqueCLCStudentsStats.totalWithinDateRange
       : 0
-  }
+  } else delete summary['uniqueCLCStudentsHelped']
 
   return summary
 }
