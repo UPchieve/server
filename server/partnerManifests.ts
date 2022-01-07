@@ -103,8 +103,8 @@ for (const org in sponsorOrgManifests) {
 }
 
 if (
-  process.env.SUBWAY_ASSOCIATED_PATNER_MANIFESTS === '' ||
-  process.env.SUBWAY_ASSOCIATED_PATNER_MANIFESTS === undefined
+  process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS === '' ||
+  process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS === undefined
 ) {
   const associatedPartnerManifestsPath = path.join(
     __dirname,
@@ -117,6 +117,6 @@ if (
   associatedPartnerManifests = YAML.parse(associatedPartnerManifestsYaml)
 } else {
   associatedPartnerManifestsYaml =
-    process.env.SUBWAY_ASSOCIATED_PATNER_MANIFESTS
+    process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS
   associatedPartnerManifests = YAML.parse(associatedPartnerManifestsYaml || '')
 }

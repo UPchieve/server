@@ -221,7 +221,7 @@ const config: Static<typeof Config> = {
     'localManifests/sponsor-orgs.yaml',
 
   associatedPartnerManifestPath:
-    process.env.SUBWAY_ASSOCIATED_PATNER_MANIFESTS ||
+    process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS ||
     'localManifests/associated-partners.yaml',
 
   clusterServerAddress:
