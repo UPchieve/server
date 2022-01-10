@@ -1,25 +1,3 @@
-// TODO: remove merkury
-const Merkury = require('merkury')
-import { v4 as uuidv4 } from 'uuid'
-import config from '../config'
+import EventEmitter from 'events'
 
-interface RedisConfig {
-  host: string
-  port: string
-  password?: string
-  tls?: {}
-}
-
-let redisConfig: RedisConfig = {
-  host: config.redisHost,
-  port: config.redisPort,
-  password: config.redisPassword,
-  tls: {},
-}
-if (config.NODE_ENV === 'dev')
-  redisConfig = {
-    host: config.redisHost,
-    port: config.redisPort,
-  }
-
-export const emitter = new Merkury(uuidv4(), redisConfig, true)
+export const emitter = new EventEmitter()
