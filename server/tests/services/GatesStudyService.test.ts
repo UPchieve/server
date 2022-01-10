@@ -6,7 +6,7 @@ import { isDateWithinRange } from '../../utils/is-date-within-range'
 
 import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
 
-import { getStringObjectId, buildGatesQualifiedData } from '../generate'
+import { getObjectId, buildGatesQualifiedData } from '../generate'
 
 jest.mock('../../models/UserProductFlags/queries')
 jest.mock('../../utils/gates-study-utils')
@@ -42,7 +42,7 @@ describe('processGatesQualifiedCheck', () => {
       mockQualificationData
     )
 
-    await GatesStudyService.processGatesQualifiedCheck(getStringObjectId())
+    await GatesStudyService.processGatesQualifiedCheck(getObjectId())
 
     expect(
       mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById
@@ -60,7 +60,7 @@ describe('processGatesQualifiedCheck', () => {
       isGatesQualified
     )
 
-    await GatesStudyService.processGatesQualifiedCheck(getStringObjectId())
+    await GatesStudyService.processGatesQualifiedCheck(getObjectId())
 
     expect(
       mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById
@@ -82,7 +82,7 @@ describe('processGatesQualifiedCheck', () => {
       mockQualificationData
     )
 
-    await GatesStudyService.processGatesQualifiedCheck(getStringObjectId())
+    await GatesStudyService.processGatesQualifiedCheck(getObjectId())
 
     expect(
       mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById
@@ -104,7 +104,7 @@ describe('processGatesQualifiedCheck', () => {
       mockQualificationData
     )
 
-    await GatesStudyService.processGatesQualifiedCheck(getStringObjectId())
+    await GatesStudyService.processGatesQualifiedCheck(getObjectId())
 
     expect(
       mockUserProductFlagsRepo.updateUPFGatesQualifiedFlagById
