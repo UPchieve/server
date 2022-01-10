@@ -196,7 +196,7 @@ export function buildTargetStudentContent(
   associatedPartner: AssociatedPartnerManifest | null
 ) {
   return associatedPartner &&
-    volunteer.volunteerPartnerOrg === associatedPartner.volunteerOrg
+    volunteer.volunteerPartnerOrg === associatedPartner.volunteerPartnerOrg
     ? startsWithVowel(associatedPartner.studentOrgDisplay)
       ? `an ${associatedPartner.studentOrgDisplay} student`
       : `a ${associatedPartner.studentOrgDisplay} student`
@@ -320,7 +320,7 @@ export async function notifyVolunteer(
       } volunteers - not notified in the last 3 days AND they don’t have "high level subjects"`,
       filter: {
         volunteerPartnerOrg: associatedPartner
-          ? associatedPartner.volunteerOrg
+          ? associatedPartner.volunteerPartnerOrg
           : { $exists: true },
         subjects: subjectsFilter,
         _id: {
@@ -351,7 +351,7 @@ export async function notifyVolunteer(
       } volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"`,
       filter: {
         volunteerPartnerOrg: associatedPartner
-          ? associatedPartner.volunteerOrg
+          ? associatedPartner.volunteerPartnerOrg
           : { $exists: true },
         subjects: subjectsFilter,
         _id: {

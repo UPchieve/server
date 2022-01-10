@@ -32,7 +32,7 @@ export interface SponsorOrgManifest {
 }
 
 export interface AssociatedPartnerManifest {
-  volunteerOrg: string
+  volunteerPartnerOrg: string
   volunteerOrgDisplay: string
   studentPartnerOrg?: string
   studentSponsorOrg?: string
