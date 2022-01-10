@@ -78,10 +78,7 @@ export async function prepareFeedbackProcessors(
     feedback,
     studentUSM,
     volunteerUSM,
-  } = await getValuesToPrepareMetrics(
-    sessionId,
-    feedbackId
-  )
+  } = await getValuesToPrepareMetrics(sessionId, feedbackId)
   const payload = await prepareMetrics(
     FEEDBACK_METRICS_PROCESSORS,
     session,

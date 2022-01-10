@@ -23,9 +23,7 @@ export async function processGatesQualifiedCheck(userId: Types.ObjectId) {
       GATES_STUDY_PERIOD_END
     )
   ) {
-    const data = await gatesStudyUtils.prepareForGatesQualificationCheck(
-      userId
-    )
+    const data = await gatesStudyUtils.prepareForGatesQualificationCheck(userId)
     if (gatesStudyUtils.isGatesQualifiedStudent(data))
       UserProductFlagsRepo.updateUPFGatesQualifiedFlagById(
         data.student._id,
