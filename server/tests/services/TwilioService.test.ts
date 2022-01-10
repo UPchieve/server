@@ -258,7 +258,7 @@ describe('buildTargetStudentContent', () => {
       volunteerPartnerOrg,
     })
     const associatedPartner = {
-      volunteerOrg: volunteerPartnerOrg,
+      volunteerPartnerOrg,
       volunteerOrgDisplay: 'A',
       studentOrgDisplay: 'A Group',
     }
@@ -277,7 +277,7 @@ describe('buildTargetStudentContent', () => {
       volunteerPartnerOrg,
     })
     const associatedPartner = {
-      volunteerOrg: volunteerPartnerOrg,
+      volunteerPartnerOrg,
       volunteerOrgDisplay: 'B',
       studentOrgDisplay: 'B Group',
     }
@@ -311,7 +311,7 @@ describe('buildNotificationContent', () => {
       volunteerPartnerOrg,
     })
     const associatedPartner = {
-      volunteerOrg: volunteerPartnerOrg,
+      volunteerPartnerOrg,
       volunteerOrgDisplay: 'A',
       studentOrgDisplay: 'A Group',
     }
@@ -331,7 +331,7 @@ describe('buildNotificationContent', () => {
       volunteerPartnerOrg,
     })
     const associatedPartner = {
-      volunteerOrg: volunteerPartnerOrg,
+      volunteerPartnerOrg,
       volunteerOrgDisplay: 'B',
       studentOrgDisplay: 'B Group',
     }
