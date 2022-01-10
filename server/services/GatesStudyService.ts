@@ -34,3 +34,5 @@ export async function processGatesQualifiedCheck(userId: string) {
       )
   }
 }
+
+export async function processPartnerSchoolGatesQualified(userId: string) {}

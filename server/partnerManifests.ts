@@ -8,6 +8,7 @@ import { asObjectId } from './utils/type-utils'
 let volunteerManifestsYaml: string | undefined
 let studentManifestsYaml: string | undefined
 let sponsorOrgManifestsYaml: string | undefined
+let gatesPartnerSchoolsYaml: string | undefined
 
 export interface StudentPartnerManifest {
   name: string
@@ -30,9 +31,15 @@ export interface SponsorOrgManifest {
   partnerOrgs: string[]
 }
 
+export interface GatesPartnerSchool {
+  name: string
+  schoolId: Types.ObjectId
+}
+
 export let volunteerPartnerManifests: { [k: string]: VolunteerPartnerManifest }
 export let studentPartnerManifests: { [k: string]: StudentPartnerManifest }
 export let sponsorOrgManifests: { [k: string]: SponsorOrgManifest }
+export let gatesPartnerSchools: { [k: string]: GatesPartnerSchool }
 
 if (
   process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFESTS === '' ||
@@ -78,6 +85,21 @@ if (
   sponsorOrgManifestsYaml = process.env.SUBWAY_SPONSOR_ORG_MANIFESTS
   sponsorOrgManifests = YAML.parse(sponsorOrgManifestsYaml || '')
 }
+
+// if (
+//   process.env.SUBWAY_GATES_PARTNER_SCHOOLS === '' ||
+//   process.env.SUBWAY_GATES_PARTNER_SCHOOLS === undefined
+// ) {
+//   const gatesPartnerSchoolsPath = path.join(
+//     __dirname,
+//     config.gatesPartnerSchoolPath
+//   )
+//   gatesPartnerSchoolsYaml = fs.readFileSync(gatesPartnerSchoolsPath, 'utf8')
+//   gatesPartnerSchools = YAML.parse(gatesPartnerSchoolsYaml)
+// } else {
+//   gatesPartnerSchoolsYaml = process.env.SUBWAY_GATES_PARTNER_SCHOOLS
+//   gatesPartnerSchools = YAML.parse(gatesPartnerSchoolsYaml || '')
+// }
 
 // re-assign schools on the sponsor org manifest to be a list of object ids
 for (const org in sponsorOrgManifests) {

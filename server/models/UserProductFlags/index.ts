@@ -25,6 +25,10 @@ const UserProductFlagsSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  partnerSchoolGatesQualified: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const UserProductFlagsCollection = 'UserProductFlags'

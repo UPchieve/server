@@ -8,4 +8,9 @@ export function listeners() {
     GatesStudyService.processGatesQualifiedCheck,
     'processGatesQualifiedCheck'
   )
+  register(
+    STUDENT_EVENTS.STUDENT_CREATED,
+    GatesStudyService.processPartnerSchoolGatesQualified,
+    'processPartnerSchoolGatesQualified'
+  )
 }
