@@ -50,14 +50,14 @@ for (const metric of Object.values(METRIC_PROCESSORS)) {
 
 // registered as listener on session-ended
 export async function prepareSessionProcessors(
-  sessionId: string
+  sessionId: Types.ObjectId
 ): Promise<void> {
   const {
     session,
     feedback,
     studentUSM,
     volunteerUSM,
-  } = await getValuesToPrepareMetrics(asObjectId(sessionId))
+  } = await getValuesToPrepareMetrics(sessionId)
   const payload = await prepareMetrics(
     SESSION_METRICS_PROCESSORS,
     session,
@@ -70,8 +70,8 @@ export async function prepareSessionProcessors(
 
 // registered as listener on feedback-saved
 export async function prepareFeedbackProcessors(
-  sessionId: string,
-  feedbackId: string
+  sessionId: Types.ObjectId,
+  feedbackId: Types.ObjectId
 ): Promise<void> {
   const {
     session,
@@ -79,8 +79,8 @@ export async function prepareFeedbackProcessors(
     studentUSM,
     volunteerUSM,
   } = await getValuesToPrepareMetrics(
-    asObjectId(sessionId),
-    asObjectId(feedbackId)
+    sessionId,
+    feedbackId
   )
   const payload = await prepareMetrics(
     FEEDBACK_METRICS_PROCESSORS,
@@ -94,7 +94,7 @@ export async function prepareFeedbackProcessors(
 
 // registered as listener on session-reported
 export async function prepareReportProcessors(
-  sessionId: string
+  sessionId: Types.ObjectId
 ): Promise<void> {
   const {
     session,
