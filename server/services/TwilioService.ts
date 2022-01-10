@@ -219,16 +219,13 @@ export function buildNotificationContent(
 }
 
 export function getAssociatedPartner(
-  student: Student
+  partnerOrg: string,
+  highSchool: Types.ObjectId
 ): AssociatedPartnerManifest | null {
   // Determine if the student's partner org is one of the orgs that
   // should have priority matching with its partner volunteer org counterpart
-  if (
-    config.priorityMatchingPartnerOrgs.some(
-      org => student.studentPartnerOrg === org
-    )
-  )
-    return associatedPartnerManifests[student.studentPartnerOrg]
+  if (config.priorityMatchingPartnerOrgs.some(org => partnerOrg === org))
+    return associatedPartnerManifests[partnerOrg]
 
   for (const sponsorOrg of config.priorityMatchingSponsorOrgs) {
     // Determine if the student's school belongs to a sponsor org that
@@ -237,7 +234,7 @@ export function getAssociatedPartner(
       sponsorOrgManifests[sponsorOrg] &&
       Array.isArray(sponsorOrgManifests[sponsorOrg].schools) &&
       sponsorOrgManifests[sponsorOrg].schools.some(school =>
-        school.equals(getIdFromModelReference(student.approvedHighschool))
+        school.equals(highSchool)
       )
     )
       return associatedPartnerManifests[sponsorOrg]
@@ -247,9 +244,7 @@ export function getAssociatedPartner(
     if (
       sponsorOrgManifests[sponsorOrg] &&
       Array.isArray(sponsorOrgManifests[sponsorOrg].partnerOrgs) &&
-      sponsorOrgManifests[sponsorOrg].partnerOrgs.includes(
-        student.studentPartnerOrg
-      )
+      sponsorOrgManifests[sponsorOrg].partnerOrgs.includes(partnerOrg)
     )
       return associatedPartnerManifests[sponsorOrg]
   }
@@ -262,7 +257,10 @@ export async function notifyVolunteer(
 ): Promise<Types.ObjectId | undefined> {
   const student = await getStudentById(getIdFromModelReference(session.student))
   if (!student) return
-  const associatedPartner = getAssociatedPartner(student)
+  const associatedPartner = getAssociatedPartner(
+    student.studentPartnerOrg,
+    getIdFromModelReference(student.approvedHighschool)
+  )
 
   // typed as `any` because `subtopic` gets reassigned as a regex query object if `subtopic` is algebraTwo
   let subtopic: any = session.subTopic
