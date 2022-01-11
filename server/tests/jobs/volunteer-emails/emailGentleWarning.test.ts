@@ -55,7 +55,10 @@ describe('Volunteer gentle warning email', () => {
     const aristotle = buildVolunteer(EMAIL_RECIPIENT)
     const kant = buildVolunteer(EMAIL_RECIPIENT)
     const sartre = buildVolunteer({
-      pastSessions: [new mongoose.Types.ObjectId(), new mongoose.Types.ObjectId()],
+      pastSessions: [
+        new mongoose.Types.ObjectId(),
+        new mongoose.Types.ObjectId(),
+      ],
       EMAIL_RECIPIENT,
     })
     const platoNotifications = createNotifications(5, plato._id)
@@ -103,7 +106,10 @@ describe('Volunteer gentle warning email', () => {
     const plato = buildVolunteer(EMAIL_RECIPIENT)
     const kant = buildVolunteer(EMAIL_RECIPIENT)
     const sartre = buildVolunteer({
-      pastSessions: [new mongoose.Types.ObjectId(), new mongoose.Types.ObjectId()],
+      pastSessions: [
+        new mongoose.Types.ObjectId(),
+        new mongoose.Types.ObjectId(),
+      ],
       EMAIL_RECIPIENT,
     })
     const platoNotifications = createNotifications(5, plato._id)

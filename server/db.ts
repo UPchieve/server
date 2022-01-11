@@ -6,7 +6,7 @@ import mongoose from 'mongoose'
 export async function connect() {
   const connectAction = async () =>
     mongoose.connect(config.database, {
-      maxPoolSize: 5
+      maxPoolSize: 5,
     })
   return backOff(connectAction, {
     jitter: 'full',

@@ -101,7 +101,7 @@ export async function updateUPFGatesQualifiedFlagById(
       }
     )
     if (!result.acknowledged)
-    throw new RepoUpdateError('Update query was not acknowledged')
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

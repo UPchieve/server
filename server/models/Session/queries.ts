@@ -110,7 +110,11 @@ export async function updateSessionFlagsById(
   try {
     const result = await SessionModel.updateOne(query, update).exec()
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -128,7 +132,11 @@ export async function updateSessionReviewReasonsById(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -143,7 +151,11 @@ export async function updateSessionFailedJoinsById(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -161,7 +173,11 @@ export async function updateSessionReviewedStatusById(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-    throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -401,7 +417,11 @@ export async function updateSessionReported(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -418,7 +438,11 @@ export async function updateSessionTimeTutored(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -435,7 +459,11 @@ export async function updateSessionQuillDoc(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -452,7 +480,11 @@ export async function updateSessionHasWhiteboardDoc(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -475,7 +507,11 @@ export async function updateSessionToEnd(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -509,7 +545,11 @@ export async function updateSessionPhotoKey(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -1080,7 +1120,11 @@ export async function updateSessionVolunteerById(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }
@@ -1140,7 +1184,11 @@ export async function addMessageToSessionById(
   try {
     const result = await SessionModel.updateOne(query, update)
     if (!result.acknowledged)
-      throw new DocUpdateError(new Error('Update query was not acknowledged'), query, update)
+      throw new DocUpdateError(
+        new Error('Update query was not acknowledged'),
+        query,
+        update
+      )
   } catch (error) {
     throw new DocUpdateError(error as Error, query, update)
   }

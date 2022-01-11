@@ -131,7 +131,7 @@ export async function updateUserPasswordById(
       { $unset: { passwordResetToken: '' }, password }
     ).exec()
     if (!result.acknowledged)
-    throw new RepoUpdateError('Update query was not acknowledged')
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -177,7 +177,7 @@ export async function updateUserVerifiedInfoById(
   try {
     const result = await UserModel.updateOne({ _id: userId }, update).exec()
     if (!result.acknowledged)
-    throw new RepoUpdateError('Update query was not acknowledged')
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -194,7 +194,7 @@ export async function addUserPastSessionById(
       { $addToSet: { pastSessions: sessionId } }
     )
     if (!result.acknowledged)
-    throw new RepoUpdateError('Update query was not acknowledged')
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -211,7 +211,7 @@ export async function updateUserLastActivityById(
       { lastActivityAt }
     )
     if (!result.acknowledged)
-    throw new RepoUpdateError('Update query was not acknowledged')
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -228,7 +228,7 @@ export async function banUserById(
       { $set: { isBanned: true, banReason } }
     ).exec()
     if (!result.acknowledged)
-    throw new RepoUpdateError('Update query was not acknowledged')
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
