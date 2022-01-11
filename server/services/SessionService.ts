@@ -239,10 +239,9 @@ export async function endSession(
 }
 
 // registered as listener
-export async function processAssistmentsSession(sessionId: string) {
-  const sessionObjectId = asObjectId(sessionId)
-  const session = await SessionRepo.getSessionById(sessionObjectId)
-  if (session?.volunteer && (await isSessionAssistments(sessionObjectId))) {
+export async function processAssistmentsSession(sessionId: Types.ObjectId) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  if (session?.volunteer && (await isSessionAssistments(sessionId))) {
     logger.info(`Ending an assistments session: ${sessionId}`)
     await QueueService.add(Jobs.SendAssistmentsData, { sessionId })
   }
