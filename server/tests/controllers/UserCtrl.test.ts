@@ -12,11 +12,7 @@ jest.mock('../../models/UserSessionMetrics')
 jest.mock('../../models/UserSessionMetrics/queries')
 
 beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  })
+  await mongoose.connect(global.__MONGO_URI__)
 })
 
 afterAll(async () => {

@@ -113,8 +113,8 @@ export async function updateUserResetTokenById(
       { _id: userId },
       { passwordResetToken: token }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -130,8 +130,8 @@ export async function updateUserPasswordById(
       { _id: userId },
       { $unset: { passwordResetToken: '' }, password }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -147,8 +147,8 @@ export async function updateUserIpById(
       { _id: userId },
       { $addToSet: { ipAddresses: ipId } }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -176,8 +176,8 @@ export async function updateUserVerifiedInfoById(
   }
   try {
     const result = await UserModel.updateOne({ _id: userId }, update).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -193,8 +193,8 @@ export async function addUserPastSessionById(
       { _id: userId },
       { $addToSet: { pastSessions: sessionId } }
     )
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -210,8 +210,8 @@ export async function updateUserLastActivityById(
       { _id: userId },
       { lastActivityAt }
     )
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -227,8 +227,8 @@ export async function banUserById(
       { _id: userId },
       { $set: { isBanned: true, banReason } }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

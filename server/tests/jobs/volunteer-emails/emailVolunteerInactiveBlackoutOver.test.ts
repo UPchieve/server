@@ -18,7 +18,7 @@ const mockedAvailabilityRepo = mocked(AvailabilityRepo, true)
 
 describe('Test process volunteer subroutine', () => {
   const volunteer: VolunteerRepo.VolunteerContactInfo = {
-    _id: Types.ObjectId(),
+    _id: new Types.ObjectId(),
     firstname: 'Test',
     email: 'test@example.com',
   }

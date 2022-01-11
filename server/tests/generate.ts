@@ -54,7 +54,7 @@ export const getEmail = faker.internet.email
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
 export const generateSentence = faker.lorem.sentence
-export const getObjectId = Types.ObjectId
+export const getObjectId = () => new Types.ObjectId()
 export const getStringObjectId = () => getObjectId().toString()
 export const getUUID = faker.datatype.uuid
 export const getId = faker.random.uuid
@@ -168,12 +168,12 @@ export const buildAvailabilitySnapshot = (
 ): AvailabilitySnapshot => {
   const currentDate = new Date()
   return {
-    _id: Types.ObjectId(),
+    _id: new Types.ObjectId(),
     onCallAvailability: buildAvailability(),
     modifiedAt: currentDate,
     createdAt: currentDate,
     timezone: 'America/New_York',
-    volunteerId: Types.ObjectId(),
+    volunteerId: new Types.ObjectId(),
     ...overrides,
   }
 }
@@ -183,13 +183,13 @@ export const buildAvailabilityHistory = (
 ): AvailabilityHistory => {
   const currentDate = new Date()
   return {
-    _id: Types.ObjectId(),
+    _id: new Types.ObjectId(),
     availability: buildAvailability()[getDayOfWeek() as DAYS],
     date: currentDate,
     modifiedAt: currentDate,
     createdAt: currentDate,
     timezone: 'America/New_York',
-    volunteerId: Types.ObjectId(),
+    volunteerId: new Types.ObjectId(),
     ...overrides,
   }
 }
@@ -433,7 +433,7 @@ export const buildBackgroundInfo = (overrides = {}): Partial<Volunteer> => {
 }
 
 export const buildSession = (overrides = {}): Session => {
-  const _id = Types.ObjectId()
+  const _id = new Types.ObjectId()
   const session = {
     _id,
     student: getObjectId(),
@@ -469,7 +469,7 @@ export const buildSessionForChatbot = (overrides = {}): SessionForChatbot => {
 export const buildMessage = <T extends { user: Types.ObjectId }>(
   overrides: T
 ): Message => {
-  const _id = Types.ObjectId()
+  const _id = new Types.ObjectId()
   const message = {
     _id,
     contents: faker.lorem.sentence(),
@@ -495,7 +495,7 @@ export const buildPastSessions = (): Types.ObjectId[] => {
  *
  **/
 export const buildNotification = (overrides = {}): Notification => {
-  const _id = Types.ObjectId()
+  const _id = new Types.ObjectId()
 
   const notification = {
     _id,
@@ -566,7 +566,7 @@ export const buildFeedback = (
   }
 ): FeedbackVersionOne | FeedbackVersionTwo => {
   const feedback = {
-    _id: Types.ObjectId(),
+    _id: new Types.ObjectId(),
     createdAt: new Date(),
     sessionId: getObjectId(),
     userType: '',
@@ -720,7 +720,7 @@ export function buildUSM(
   counterOverrides: any = {} // TODO: type this better
 ): UserSessionMetrics {
   return {
-    _id: Types.ObjectId(),
+    _id: new Types.ObjectId(),
     user: userId,
     counters: {
       absentStudent: 0,

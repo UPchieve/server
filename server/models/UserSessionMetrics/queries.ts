@@ -92,8 +92,8 @@ export async function executeUSMUpdatesByUserId(
       { user: userId },
       update
     )
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     throw new RepoUpdateError(
       `Failed to execute merged update ${update} for user ${userId}: ${
