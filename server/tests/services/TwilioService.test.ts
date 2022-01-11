@@ -24,6 +24,7 @@ import {
   resetDb,
 } from '../db-utils'
 import { Session } from '../../models/Session'
+import config from '../../config'
 import * as SessionRepo from '../../models/Session/queries'
 import * as StudentRepo from '../../models/Student/queries'
 import * as GetTimes from '../../utils/get-times'
@@ -87,7 +88,7 @@ test('Properly builds a session URL', () => {
   const sessionUrl = TwilioService.getSessionUrl(SESSION)
 
   expect(sessionUrl).toEqual(
-    `http://localhost/session/college/sat-reading/${SESSION._id}`
+    `http://${config.client.host}/session/college/sat-reading/${SESSION._id}`
   )
 })
 
@@ -242,7 +243,7 @@ test('Prioritizes non-high-level SME volunteers for non-high-level subjects', as
 
 describe('buildTargetStudentContent', () => {
   test('Should display message to a general student when there is no associated partner', () => {
-    const associatedPartner = null
+    const associatedPartner = undefined
     const result = TwilioService.buildTargetStudentContent(
       buildVolunteer(),
       associatedPartner
@@ -293,14 +294,14 @@ describe('buildTargetStudentContent', () => {
 
 describe('buildNotificationContent', () => {
   test('Properly formatted message to a non-priority partner org volunteer', () => {
-    const associatedPartner = null
+    const associatedPartner = undefined
     const volunteer = buildVolunteer()
     const result = TwilioService.buildNotificationContent(
       SESSION,
       volunteer,
       associatedPartner
     )
-    const expected = `Hi ${volunteer.firstname}, a student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://localhost/session/${SESSION.type}/sat-reading/${SESSION._id}`
+    const expected = `Hi ${volunteer.firstname}, a student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://${config.client.host}/session/${SESSION.type}/sat-reading/${SESSION._id}`
 
     expect(result).toEqual(expected)
   })
@@ -320,7 +321,7 @@ describe('buildNotificationContent', () => {
       volunteer,
       associatedPartner
     )
-    const expected = `Hi ${volunteer.firstname}, an ${associatedPartner.studentOrgDisplay} student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://localhost/session/${SESSION.type}/sat-reading/${SESSION._id}`
+    const expected = `Hi ${volunteer.firstname}, an ${associatedPartner.studentOrgDisplay} student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://${config.client.host}/session/${SESSION.type}/sat-reading/${SESSION._id}`
 
     expect(result).toEqual(expected)
   })
@@ -340,7 +341,7 @@ describe('buildNotificationContent', () => {
       volunteer,
       associatedPartner
     )
-    const expected = `Hi ${volunteer.firstname}, a ${associatedPartner.studentOrgDisplay} student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://localhost/session/${SESSION.type}/sat-reading/${SESSION._id}`
+    const expected = `Hi ${volunteer.firstname}, a ${associatedPartner.studentOrgDisplay} student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://${config.client.host}/session/${SESSION.type}/sat-reading/${SESSION._id}`
 
     expect(result).toEqual(expected)
   })
@@ -349,7 +350,7 @@ describe('buildNotificationContent', () => {
 describe('getAssociatedPartner', () => {
   test('Student does not have a matching priority partner org', () => {
     const result = TwilioService.getAssociatedPartner('', getObjectId())
-    expect(result).toBeNull()
+    expect(result).toBeUndefined()
   })
 
   test('Student partner org should be associate with another partner org for priority matching', async () => {

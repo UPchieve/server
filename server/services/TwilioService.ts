@@ -193,7 +193,7 @@ export async function sendFollowupText(
 
 export function buildTargetStudentContent(
   volunteer: VolunteerContactInfo,
-  associatedPartner: AssociatedPartnerManifest | null
+  associatedPartner: AssociatedPartnerManifest | undefined
 ) {
   return associatedPartner &&
     volunteer.volunteerPartnerOrg === associatedPartner.volunteerPartnerOrg
@@ -206,7 +206,7 @@ export function buildTargetStudentContent(
 export function buildNotificationContent(
   session: Session,
   volunteer: VolunteerContactInfo,
-  associatedPartner: AssociatedPartnerManifest | null
+  associatedPartner: AssociatedPartnerManifest | undefined
 ) {
   // Format multi-word subtopics from a key name to a display name
   // ex: physicsOne -> Physics 1
@@ -221,7 +221,7 @@ export function buildNotificationContent(
 export function getAssociatedPartner(
   partnerOrg: string,
   highSchool: Types.ObjectId
-): AssociatedPartnerManifest | null {
+): AssociatedPartnerManifest | undefined {
   // Determine if the student's partner org is one of the orgs that
   // should have priority matching with its partner volunteer org counterpart
   if (config.priorityMatchingPartnerOrgs.some(org => partnerOrg === org))
@@ -249,7 +249,7 @@ export function getAssociatedPartner(
       return associatedPartnerManifests[sponsorOrg]
   }
 
-  return null
+  return undefined
 }
 
 export async function notifyVolunteer(
