@@ -1,7 +1,6 @@
 import { Document, model, Model, Schema, Query, Types } from 'mongoose'
 import validator from 'validator'
 import { UserDocument } from '../User'
-import { AssistmentsData } from '../AssistmentsData'
 
 export interface School {
   _id: Types.ObjectId
