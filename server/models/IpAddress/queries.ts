@@ -41,8 +41,8 @@ export async function updateIpUserById(
         $addToSet: { users: userId },
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -55,8 +55,8 @@ export async function unbanIpsByUser(userId: Types.ObjectId): Promise<void> {
       { users: userId },
       { status: IP_ADDRESS_STATUS.OK }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

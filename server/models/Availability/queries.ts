@@ -72,8 +72,8 @@ export async function updateSnapshotOnCallByVolunteerId(
       { volunteerId },
       { onCallAvailability: availability }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -94,8 +94,8 @@ export async function updateSnapshotFullByVolunteerId(
         modifiedAt,
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     throw new RepoUpdateError(err)
   }
