@@ -6,10 +6,7 @@ import mongoose from 'mongoose'
 export async function connect() {
   const connectAction = async () =>
     mongoose.connect(config.database, {
-      poolSize: 5,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
+      maxPoolSize: 5,
     })
   return backOff(connectAction, {
     jitter: 'full',
@@ -28,7 +25,7 @@ mongoose.connection.on('connecting', () => {
   logger.info('connecting to database')
 })
 mongoose.connection.on('disconnected', () => {
-  logger.error('lost database connection to every member of mongo cluster')
+  logger.error('lost database connection to the primary db')
 })
 mongoose.connection.on('reconnected', () => {
   logger.info('re-established database connection to at least one server')

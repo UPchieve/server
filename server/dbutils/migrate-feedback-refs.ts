@@ -15,9 +15,9 @@ async function upgrade(): Promise<void> {
     for (const feedback of allFeedback) {
       const { studentId, volunteerId, sessionId, _id } = feedback;
       const update: any = {};
-      if (studentId) update.studentId = ObjectId(studentId);
-      if (volunteerId) update.volunteerId = ObjectId(volunteerId);
-      if (sessionId) update.sessionId = ObjectId(sessionId);
+      if (studentId) update.studentId = new ObjectId(studentId);
+      if (volunteerId) update.volunteerId = new ObjectId(volunteerId);
+      if (sessionId) update.sessionId = new ObjectId(sessionId);
 
       pendingUpdates.push(Feedback.updateOne({ _id }, update));
     }

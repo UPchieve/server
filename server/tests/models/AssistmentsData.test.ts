@@ -20,11 +20,7 @@ async function resetAD(): Promise<void> {
 }
 
 beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  })
+  await mongoose.connect(global.__MONGO_URI__)
 })
 
 afterAll(async () => {
@@ -77,7 +73,7 @@ describe('Test create AssistmentData objects', () => {
   })
 
   test('Create errors with invalid session', async () => {
-    const invalidSessionId = mongoose.Types.ObjectId() // unused Id
+    const invalidSessionId = new mongoose.Types.ObjectId() // unused Id
 
     let error: RepoCreateError
     try {
