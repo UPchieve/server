@@ -462,21 +462,21 @@ export interface AnalyticsReportRow {
   certificationsReceived: number // int
   totalTextsReceived: number // int
   totalSessionsCompleted: number
-  totalCLCSessionsCompleted: number
+  totalCLCSessionsCompleted?: number
   totalUniqueStudentsHelped: number
-  totalUniqueCLCStudentsHelped: number
+  totalUniqueCLCStudentsHelped?: number
   totalTutoringHours: number // Number(number.toFixed(2))
-  totalCLCStudentsTutoringHours: number
+  totalCLCStudentsTutoringHours?: number
   totalTrainingHours: number
   totalElapsedAvailabilityHours: number
   totalVolunteerHours: number
   dateRangeTextsReceived: number
   dateRangeSessionsCompleted: number
-  dateRangeCLCSessionsCompleted: number
+  dateRangeCLCSessionsCompleted?: number
   dateRangeUniqueStudentsHelped: number
-  dateRangeUniqueCLCStudentsHelped: number
+  dateRangeUniqueCLCStudentsHelped?: number
   dateRangeTutoringHours: number
-  dateRangeCLCStudentsTutoringHours: number
+  dateRangeCLCStudentsTutoringHours?: number
   dateRangeTrainingHours: number
   dateRangeElapsedAvailabilityHours: number
   dateRangeVolunteerHours: number

@@ -659,6 +659,14 @@ export async function generatePartnerAnalyticsReport(
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
 
+  let specificStudentPartnerOrg
+  if (partnerOrg === 'att') {
+    specificStudentPartnerOrg = 'att-connected-learning'
+  }
+  if (partnerOrg === 'verizon') {
+    specificStudentPartnerOrg = 'vils'
+  }
+
   // get volunteers for analytics
   const volunteers = ((await getVolunteersWithPipeline([
     {
@@ -713,36 +721,41 @@ export async function generatePartnerAnalyticsReport(
               },
             },
           },
+          // lookup to outer join att/verizon students
           {
             $lookup: {
-              from: 'student',
+              from: 'users',
               let: {
                 studentId: '$student',
               },
               pipeline: [
                 {
                   $match: {
-                    // execute lookup only for att and verizon reports
-                    volunteerPartnerOrg: {
-                      $in: ['att', 'verizon'],
-                    },
+                    isVolunteer: false,
                     $expr: {
                       $and: [
                         { $eq: ['$_id', '$$studentId'] },
                         // mapping to count same organization (att/verizon) students
                         {
-                          $eq: ['$studentPartnerOrg', '$$volunteerPartnerOrg'],
+                          $eq: [
+                            '$studentPartnerOrg',
+                            specificStudentPartnerOrg,
+                          ],
                         },
+                        // @todo: check matching for schools under a sponsor org
+                        // {
+                        //   $in: [ '$approvedHighschool', partnerOrg.schools]
+                        // }
                       ],
                     },
                   },
                 },
               ],
-              as: 'speficicStudent',
+              as: 'specificPartnerStudent',
             },
           },
           {
-            $unwind: '$speficicStudent',
+            $unwind: '$specificPartnerStudent',
             preserveNullAndEmptyArrays: true,
           },
           {
@@ -790,7 +803,7 @@ export async function generatePartnerAnalyticsReport(
               uniqueCLCstudentsHelped: [
                 {
                   $group: {
-                    _id: '$specificStudent._id',
+                    _id: '$specificPartnerStudent._id',
                     frequency: { $sum: 1 },
                     frequencyWithinDateRange: getSumOperatorForDateRange(
                       start,
@@ -814,11 +827,12 @@ export async function generatePartnerAnalyticsReport(
                   },
                 },
               ],
-              // @todo sessions completed with att or verizon students
+              // @todo check if this generates only sessions completed with att or verizon students
+              // might be a better idea to create a new query for this
               sessionsCLCStats: [
                 {
                   $group: {
-                    _id: 'null',
+                    _id: '$specificPartnerStudent._id',
                     total: { $sum: 1 },
                     totalWithinDateRange: getSumOperatorForDateRange(
                       start,
@@ -910,7 +924,16 @@ export async function generatePartnerAnalyticsReport(
       hourSummaryDateRange,
     }
     const row = getAnalyticsReportRow(volunteerWithAnalytics)
-    report.push(row)
+    if (partnerOrg !== 'att' && partnerOrg !== 'verizon') {
+      delete row.totalCLCSessionsCompleted
+      delete row.totalUniqueCLCStudentsHelped
+      delete row.totalCLCStudentsTutoringHours
+      delete row.dateRangeCLCSessionsCompleted
+      delete row.dateRangeCLCStudentsTutoringHours
+      delete row.dateRangeUniqueCLCStudentsHelped
+    } else {
+      report.push(row)
+    }
   }
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
