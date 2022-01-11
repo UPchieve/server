@@ -2,7 +2,7 @@
 example:
   volunteerPartnerOrg: example
   volunteerPartnerOrgDisplay: Volunteer - Example 1
-  studentParterOrg: example
+  studentPartnerOrg: example
   studentSponsorOrg: null
   studentOrgDisplay: Student - Example 1
 
@@ -10,13 +10,13 @@ example:
 sponsor:
   volunteerPartnerOrg: example
   volunteerPartnerOrgDisplay: Volunteer - Sponsor Org Example
-  studentParterOrg: null
+  studentPartnerOrg: null
   studentSponsorOrg: sponsor
   studentOrgDisplay: Student - Sponsor Org Example
 
 sponsor2:
   volunteerPartnerOrg: example
   volunteerPartnerOrgDisplay: Volunteer - Sponsor Org 2 Example
-  studentParterOrg: null
+  studentPartnerOrg: null
   studentSponsorOrg: sponsor2
   studentOrgDisplay: Student - Sponsor Org 2 Example
