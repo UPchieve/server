@@ -8,7 +8,7 @@ async function upgrade(): Promise<void> {
   let exitCode = 0
   try {
     await db.connect()
-   
+
     const result = await SchoolModel.updateMany(
       { isPartner: {
         $exists: false
@@ -22,7 +22,7 @@ async function upgrade(): Promise<void> {
   } finally {
     mongoose.disconnect()
     process.exit(exitCode)
-  } 
+  }
 }
 
 async function downgrade(): Promise<void> {
@@ -47,7 +47,7 @@ async function downgrade(): Promise<void> {
   } finally {
     mongoose.disconnect()
     process.exit(exitCode)
-  } 
+  }
 }
 
 // Run:

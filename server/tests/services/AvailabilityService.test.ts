@@ -15,11 +15,7 @@ import AvailabilityHistoryModel from '../../models/Availability/History'
 jest.setTimeout(15000) // db queries can run slow on local dev environments
 
 beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  })
+  await mongoose.connect(global.__MONGO_URI__)
 })
 
 afterAll(async () => {
