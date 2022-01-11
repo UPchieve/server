@@ -8,7 +8,7 @@ const User = require('../models/User')
 const main = async () => {
   await db.connect(mongoose)
 
-  const studentPartners = [
+    const studentPartners = [
     {
       referred: 'Big Brothers Big Sisters of NYC',
       studentPartnerOrg: 'bbbs-nyc'
