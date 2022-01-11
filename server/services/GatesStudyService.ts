@@ -8,11 +8,10 @@ import {
 import * as UserProductFlagsRepo from '../models/UserProductFlags/queries'
 import * as gatesStudyUtils from '../utils/gates-study-utils'
 import { isDateWithinRange } from '../utils/is-date-within-range'
-import { asObjectId } from '../utils/type-utils'
+import { Types } from 'mongoose'
 
 // registered as listener on student-created
-export async function processGatesQualifiedCheck(userId: string) {
-  const userObjectId = asObjectId(userId)
+export async function processGatesQualifiedCheck(userId: Types.ObjectId) {
   const todaysDate = moment()
     .utc()
     .toDate()
@@ -24,9 +23,7 @@ export async function processGatesQualifiedCheck(userId: string) {
       GATES_STUDY_PERIOD_END
     )
   ) {
-    const data = await gatesStudyUtils.prepareForGatesQualificationCheck(
-      userObjectId
-    )
+    const data = await gatesStudyUtils.prepareForGatesQualificationCheck(userId)
     if (gatesStudyUtils.isGatesQualifiedStudent(data))
       UserProductFlagsRepo.updateUPFGatesQualifiedFlagById(
         data.student._id,

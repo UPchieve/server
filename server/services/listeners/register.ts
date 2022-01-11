@@ -7,7 +7,7 @@ function eventObservabilityWrapper(
   event: string,
   handler: (...args: any[]) => Promise<void>,
   name: string
-): Function {
+): (...args: any[]) => void {
   return (...args: any[]) => {
     nr.startBackgroundTransaction(`event:${event}`, async () => {
       const transaction = nr.getTransaction()
