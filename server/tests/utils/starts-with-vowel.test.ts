@@ -16,3 +16,10 @@ test('Should return true for vowels', () => {
 test('Should return false for consonants', () => {
   expect(startsWithVowel('test')).toBeFalsy()
 })
+
+test('Should return false for non alphabet characters', () => {
+  expect(startsWithVowel('1234')).toBeFalsy()
+  expect(startsWithVowel('!')).toBeFalsy()
+  expect(startsWithVowel('@')).toBeFalsy()
+  expect(startsWithVowel('{')).toBeFalsy()
+})
