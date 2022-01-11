@@ -71,6 +71,7 @@ function renderIndexHtml() {
     sentryEnv: config.vueAppSentryEnv,
     sentryDsn: config.vueAppSentryDsn,
     customVolunteerPartnerOrgs: config.customVolunteerPartnerOrgs,
+    gatesPartnerSchools: config.gatesPartnerSchools,
     gleapSdkKey: config.gleapSdkKey,
   }
 

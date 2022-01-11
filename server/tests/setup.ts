@@ -11,6 +11,10 @@ const customVolunteerPartnerOrgList =
   process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'example'
 const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
 
+const gatesPartnerSchoolsList =
+  process.env.SUBWAY_GATES_PARTNER_SCHOOLS || 'school'
+const gatesPartnerSchools = gatesPartnerSchoolsList.split(',')
+
 jest.mock('../config', () => {
   return {
     NODE_ENV: 'dev',
@@ -59,6 +63,7 @@ jest.mock('../config', () => {
     },
 
     customVolunteerPartnerOrgs: customVolunteerPartnerOrgs,
+    gatesPartnerSchools: gatesPartnerSchools,
 
     assistmentsBaseURL: 'https://example.com',
 

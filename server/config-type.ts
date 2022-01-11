@@ -126,7 +126,7 @@ export const Config = Record({
   customVolunteerPartnerOrgs: Array(String),
   studentPartnerManifestPath: String,
   sponsorOrgManifestPath: String,
-  gatesPartnerSchoolPath: String,
+  gatesPartnerSchools: Array(String),
 
   clusterServerAddress: String,
 

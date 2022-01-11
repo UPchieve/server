@@ -39,6 +39,10 @@ const customVolunteerPartnerOrgList =
   process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
 const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
 
+const gatesPartnerSchoolsList =
+  process.env.SUBWAY_GATES_PARTNER_SCHOOLS || 'bogus'
+const gatesPartnerSchools = gatesPartnerSchoolsList.split(',')
+
 const config: Static<typeof Config> = {
   NODE_ENV: nodeEnv,
   SSL_CERT_PATH: '',
@@ -202,6 +206,8 @@ const config: Static<typeof Config> = {
 
   customVolunteerPartnerOrgs: customVolunteerPartnerOrgs,
 
+  gatesPartnerSchools: gatesPartnerSchools,
+
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
     'localManifests/student.yaml',
@@ -209,10 +215,6 @@ const config: Static<typeof Config> = {
   sponsorOrgManifestPath:
     process.env.SUBWAY_SPONSOR_ORG_MANIFEST_PATH ||
     'localManifests/sponsor-orgs.yaml',
-
-  gatesPartnerSchoolPath:
-    process.env.SUBWAY_GATES_PARTNER_SCHOOLS ||
-    'localManifests/gates-partner-schools.yaml',
 
   clusterServerAddress:
     process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',
