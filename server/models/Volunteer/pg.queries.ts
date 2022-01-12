@@ -58,7 +58,9 @@ export const getSubjectsForVolunteer = new PreparedQuery<IGetSubjectsForVoluntee
 
 /** 'GetNextOpenVolunteerToNotify' parameters type */
 export interface IGetNextOpenVolunteerToNotifyParams {
-  startDate: Date;
+  day: number;
+  hour: number;
+  lastNotified: Date;
   subject: string;
 }
 
@@ -75,7 +77,7 @@ export interface IGetNextOpenVolunteerToNotifyQuery {
   result: IGetNextOpenVolunteerToNotifyResult;
 }
 
-const getNextOpenVolunteerToNotifyIR: any = {"name":"getNextOpenVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2670,"b":2677,"line":76,"col":37}]}},{"name":"startDate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2852,"b":2861,"line":84,"col":33}]}}],"usedParamSet":{"subject":true,"startDate":true},"statement":{"body":"SELECT\n    email,\n    first_name,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                users.id AS user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN users ON users.id = users_certifications.user_id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    users.id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND subjects_unlocked.subject = :subject!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:startDate!))\nLIMIT 1","loc":{"a":914,"b":2871,"line":34,"col":0}}};
+const getNextOpenVolunteerToNotifyIR: any = {"name":"getNextOpenVolunteerToNotify","params":[{"name":"day","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2731,"b":2734,"line":77,"col":37}]}},{"name":"hour","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2779,"b":2783,"line":78,"col":43},{"a":2825,"b":2829,"line":79,"col":40}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2872,"b":2879,"line":80,"col":37}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3054,"b":3066,"line":88,"col":33}]}}],"usedParamSet":{"day":true,"hour":true,"subject":true,"lastNotified":true},"statement":{"body":"SELECT\n    email,\n    first_name,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                users.id AS user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN users ON users.id = users_certifications.user_id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    users.id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND availabilities.weekday_id = :day!\n    AND availabilities.available_start >= :hour!\n    AND availabilities.available_end < :hour! + 1\n    AND subjects_unlocked.subject = :subject!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":914,"b":3076,"line":34,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -87,6 +89,7 @@ const getNextOpenVolunteerToNotifyIR: any = {"name":"getNextOpenVolunteerToNotif
  * FROM
  *     users
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     JOIN availabilities ON users.id = availabilities.user_id
  *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  *     JOIN (
  *         SELECT
@@ -122,6 +125,9 @@ const getNextOpenVolunteerToNotifyIR: any = {"name":"getNextOpenVolunteerToNotif
  *     test_user IS FALSE
  *     AND banned IS FALSE
  *     AND deactivated IS FALSE
+ *     AND availabilities.weekday_id = :day!
+ *     AND availabilities.available_start >= :hour!
+ *     AND availabilities.available_end < :hour! + 1
  *     AND subjects_unlocked.subject = :subject!
  *     AND NOT EXISTS (
  *         SELECT
@@ -130,7 +136,7 @@ const getNextOpenVolunteerToNotifyIR: any = {"name":"getNextOpenVolunteerToNotif
  *             notifications
  *         WHERE
  *             user_id = users.id
- *             AND sent_at >= DATE(:startDate!))
+ *             AND sent_at >= DATE(:lastNotified!))
  * LIMIT 1
  * ```
  */
@@ -139,7 +145,9 @@ export const getNextOpenVolunteerToNotify = new PreparedQuery<IGetNextOpenVolunt
 
 /** 'GetNextAnyPartnerVolunteerToNotify' parameters type */
 export interface IGetNextAnyPartnerVolunteerToNotifyParams {
-  startDate: Date;
+  day: number;
+  hour: number;
+  lastNotified: Date;
   subject: string;
 }
 
@@ -156,7 +164,7 @@ export interface IGetNextAnyPartnerVolunteerToNotifyQuery {
   result: IGetNextAnyPartnerVolunteerToNotifyResult;
 }
 
-const getNextAnyPartnerVolunteerToNotifyIR: any = {"name":"getNextAnyPartnerVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4674,"b":4681,"line":131,"col":37}]}},{"name":"startDate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4856,"b":4865,"line":139,"col":33}]}}],"usedParamSet":{"subject":true,"startDate":true},"statement":{"body":"SELECT\n    email,\n    first_name,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                users.id AS user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN users ON users.id = users_certifications.user_id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    users.id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND subjects_unlocked.subject = :subject!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:startDate!))\nLIMIT 1","loc":{"a":2923,"b":4875,"line":89,"col":0}}};
+const getNextAnyPartnerVolunteerToNotifyIR: any = {"name":"getNextAnyPartnerVolunteerToNotify","params":[{"name":"day","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4940,"b":4943,"line":136,"col":37}]}},{"name":"hour","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4988,"b":4992,"line":137,"col":43},{"a":5034,"b":5038,"line":138,"col":40}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5081,"b":5088,"line":139,"col":37}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5263,"b":5275,"line":147,"col":33}]}}],"usedParamSet":{"day":true,"hour":true,"subject":true,"lastNotified":true},"statement":{"body":"SELECT\n    email,\n    first_name,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN availabilities ON users.id = availabilities.user_id\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                users.id AS user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN users ON users.id = users_certifications.user_id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    users.id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND availabilities.weekday_id = :day!\n    AND availabilities.available_start >= :hour!\n    AND availabilities.available_end < :hour! + 1\n    AND subjects_unlocked.subject = :subject!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":3128,"b":5285,"line":93,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -167,6 +175,7 @@ const getNextAnyPartnerVolunteerToNotifyIR: any = {"name":"getNextAnyPartnerVolu
  *     volunteer_partner_orgs.name AS volunteer_partner_org
  * FROM
  *     users
+ *     JOIN availabilities ON users.id = availabilities.user_id
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
  *     JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  *     JOIN (
@@ -203,6 +212,9 @@ const getNextAnyPartnerVolunteerToNotifyIR: any = {"name":"getNextAnyPartnerVolu
  *     test_user IS FALSE
  *     AND banned IS FALSE
  *     AND deactivated IS FALSE
+ *     AND availabilities.weekday_id = :day!
+ *     AND availabilities.available_start >= :hour!
+ *     AND availabilities.available_end < :hour! + 1
  *     AND subjects_unlocked.subject = :subject!
  *     AND NOT EXISTS (
  *         SELECT
@@ -211,7 +223,7 @@ const getNextAnyPartnerVolunteerToNotifyIR: any = {"name":"getNextAnyPartnerVolu
  *             notifications
  *         WHERE
  *             user_id = users.id
- *             AND sent_at >= DATE(:startDate!))
+ *             AND sent_at >= DATE(:lastNotified!))
  * LIMIT 1
  * ```
  */
@@ -220,7 +232,9 @@ export const getNextAnyPartnerVolunteerToNotify = new PreparedQuery<IGetNextAnyP
 
 /** 'GetNextSpecificPartnerVolunteerToNotify' parameters type */
 export interface IGetNextSpecificPartnerVolunteerToNotifyParams {
-  startDate: Date;
+  day: number;
+  hour: number;
+  lastNotified: Date;
   subject: string;
   volunteerPartnerOrg: string;
 }
@@ -238,7 +252,7 @@ export interface IGetNextSpecificPartnerVolunteerToNotifyQuery {
   result: IGetNextSpecificPartnerVolunteerToNotifyResult;
 }
 
-const getNextSpecificPartnerVolunteerToNotifyIR: any = {"name":"getNextSpecificPartnerVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":6683,"b":6690,"line":186,"col":37}]}},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":6731,"b":6750,"line":187,"col":39}]}},{"name":"startDate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":6925,"b":6934,"line":195,"col":33}]}}],"usedParamSet":{"subject":true,"volunteerPartnerOrg":true,"startDate":true},"statement":{"body":"SELECT\n    email,\n    first_name,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                users.id AS user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN users ON users.id = users_certifications.user_id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    users.id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND subjects_unlocked.subject = :subject!\n    AND volunteer_partner_orgs.name = :volunteerPartnerOrg!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:startDate!))\nLIMIT 1","loc":{"a":4932,"b":6944,"line":144,"col":0}}};
+const getNextSpecificPartnerVolunteerToNotifyIR: any = {"name":"getNextSpecificPartnerVolunteerToNotify","params":[{"name":"day","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7154,"b":7157,"line":195,"col":37}]}},{"name":"hour","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7202,"b":7206,"line":196,"col":43},{"a":7248,"b":7252,"line":197,"col":40}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7295,"b":7302,"line":198,"col":37}]}},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7343,"b":7362,"line":199,"col":39}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7537,"b":7549,"line":207,"col":33}]}}],"usedParamSet":{"day":true,"hour":true,"subject":true,"volunteerPartnerOrg":true,"lastNotified":true},"statement":{"body":"SELECT\n    email,\n    first_name,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                users.id AS user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN users ON users.id = users_certifications.user_id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    users.id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND availabilities.weekday_id = :day!\n    AND availabilities.available_start >= :hour!\n    AND availabilities.available_end < :hour! + 1\n    AND subjects_unlocked.subject = :subject!\n    AND volunteer_partner_orgs.name = :volunteerPartnerOrg!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":5342,"b":7559,"line":152,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -250,6 +264,7 @@ const getNextSpecificPartnerVolunteerToNotifyIR: any = {"name":"getNextSpecificP
  * FROM
  *     users
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     JOIN availabilities ON users.id = availabilities.user_id
  *     JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  *     JOIN (
  *         SELECT
@@ -285,6 +300,9 @@ const getNextSpecificPartnerVolunteerToNotifyIR: any = {"name":"getNextSpecificP
  *     test_user IS FALSE
  *     AND banned IS FALSE
  *     AND deactivated IS FALSE
+ *     AND availabilities.weekday_id = :day!
+ *     AND availabilities.available_start >= :hour!
+ *     AND availabilities.available_end < :hour! + 1
  *     AND subjects_unlocked.subject = :subject!
  *     AND volunteer_partner_orgs.name = :volunteerPartnerOrg!
  *     AND NOT EXISTS (
@@ -294,7 +312,7 @@ const getNextSpecificPartnerVolunteerToNotifyIR: any = {"name":"getNextSpecificP
  *             notifications
  *         WHERE
  *             user_id = users.id
- *             AND sent_at >= DATE(:startDate!))
+ *             AND sent_at >= DATE(:lastNotified!))
  * LIMIT 1
  * ```
  */

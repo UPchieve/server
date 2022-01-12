@@ -38,6 +38,7 @@ SELECT
 FROM
     users
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN availabilities ON users.id = availabilities.user_id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     JOIN (
         SELECT
@@ -73,6 +74,9 @@ WHERE
     test_user IS FALSE
     AND banned IS FALSE
     AND deactivated IS FALSE
+    AND availabilities.weekday_id = :day!
+    AND availabilities.available_start >= :hour!
+    AND availabilities.available_end < :hour! + 1
     AND subjects_unlocked.subject = :subject!
     AND NOT EXISTS (
         SELECT
@@ -81,7 +85,7 @@ WHERE
             notifications
         WHERE
             user_id = users.id
-            AND sent_at >= DATE(:startDate!))
+            AND sent_at >= DATE(:lastNotified!))
 LIMIT 1;
 
 
@@ -92,6 +96,7 @@ SELECT
     volunteer_partner_orgs.name AS volunteer_partner_org
 FROM
     users
+    JOIN availabilities ON users.id = availabilities.user_id
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     JOIN (
@@ -128,6 +133,9 @@ WHERE
     test_user IS FALSE
     AND banned IS FALSE
     AND deactivated IS FALSE
+    AND availabilities.weekday_id = :day!
+    AND availabilities.available_start >= :hour!
+    AND availabilities.available_end < :hour! + 1
     AND subjects_unlocked.subject = :subject!
     AND NOT EXISTS (
         SELECT
@@ -136,7 +144,7 @@ WHERE
             notifications
         WHERE
             user_id = users.id
-            AND sent_at >= DATE(:startDate!))
+            AND sent_at >= DATE(:lastNotified!))
 LIMIT 1;
 
 
@@ -148,6 +156,7 @@ SELECT
 FROM
     users
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN availabilities ON users.id = availabilities.user_id
     JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     JOIN (
         SELECT
@@ -183,6 +192,9 @@ WHERE
     test_user IS FALSE
     AND banned IS FALSE
     AND deactivated IS FALSE
+    AND availabilities.weekday_id = :day!
+    AND availabilities.available_start >= :hour!
+    AND availabilities.available_end < :hour! + 1
     AND subjects_unlocked.subject = :subject!
     AND volunteer_partner_orgs.name = :volunteerPartnerOrg!
     AND NOT EXISTS (
@@ -192,6 +204,6 @@ WHERE
             notifications
         WHERE
             user_id = users.id
-            AND sent_at >= DATE(:startDate!))
+            AND sent_at >= DATE(:lastNotified!))
 LIMIT 1;
 

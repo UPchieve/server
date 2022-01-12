@@ -821,11 +821,13 @@ type IVolunteerContactInfo = {
 
 export async function getNextVolunteerToNotify(
   subject: string,
-  startDate: Date
+  day: number,
+  hour: number,
+  lastNotified: Date
 ): Promise<IVolunteerContactInfo | undefined> {
   try {
     const result = await pgQueries.getNextOpenVolunteerToNotify.run(
-      { subject, startDate },
+      { subject, day, hour, lastNotified },
       client
     )
     if (result.length)
@@ -839,11 +841,13 @@ export async function getNextVolunteerToNotify(
 
 export async function getNextAnyPartnerVolunteerToNotify(
   subject: string,
-  startDate: Date
+  day: number,
+  hour: number,
+  lastNotified: Date
 ): Promise<IVolunteerContactInfo | undefined> {
   try {
     const result = await pgQueries.getNextAnyPartnerVolunteerToNotify.run(
-      { subject, startDate },
+      { subject, day, hour, lastNotified },
       client
     )
     if (result.length) return makeRequired(result[0])
@@ -854,12 +858,14 @@ export async function getNextAnyPartnerVolunteerToNotify(
 
 export async function getNextSpecificPartnerVolunteerToNotify(
   subject: string,
-  startDate: Date,
+  day: number,
+  hour: number,
+  lastNotified: Date,
   volunteerPartnerOrg: string
 ): Promise<IVolunteerContactInfo | undefined> {
   try {
     const result = await pgQueries.getNextSpecificPartnerVolunteerToNotify.run(
-      { subject, startDate, volunteerPartnerOrg },
+      { subject, day, hour, lastNotified, volunteerPartnerOrg },
       client
     )
     if (result.length) return makeRequired(result[0])
