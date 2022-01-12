@@ -15,7 +15,6 @@ import {
   associatedPartnerManifests,
   sponsorOrgManifests,
 } from '../../partnerManifests'
-import formatMultiWordSubject from '../../utils/format-multi-word-subject'
 import { asObjectId } from '../../utils/type-utils'
 import {
   insertNotification,
@@ -31,25 +30,22 @@ import * as GetTimes from '../../utils/get-times'
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/Student/queries')
 jest.mock('../../utils/get-times')
-jest.mock('../../utils/format-multi-word-subject')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedStudentRepo = mocked(StudentRepo, true)
 const mockedTimeUtils = mocked(GetTimes, true)
-const mockedformatMultiWordSubject = mocked(formatMultiWordSubject, true)
 
 const MOCK_MOMENT = moment.tz('2020-01-01T00:00:00', 'America/New_York') // Midnight EST
 const MATCHING_AVAILABILITY = buildAvailability({ Wednesday: { '12a': true } })
 const NON_MATCHING_AVAILABILITY = buildAvailability({
   Friday: { '12a': true },
 })
-const MOCK_SAT_READING_DISPLAY = 'SAT Reading'
+const SAT_READING_DISPLAY = 'SAT Reading'
 
 mockedTimeUtils.getCurrentNewYorkTime.mockReturnValue(MOCK_MOMENT)
 mockedStudentRepo.getStudentById.mockResolvedValue(
   buildStudent({ studentPartnerOrg: '' })
 )
-mockedformatMultiWordSubject.mockReturnValue(MOCK_SAT_READING_DISPLAY)
 
 const SESSION = buildSession({
   _id: getObjectId(),
@@ -297,7 +293,7 @@ describe('buildNotificationContent', () => {
       volunteer,
       associatedPartner
     )
-    const expected = `Hi ${volunteer.firstname}, a student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://${config.client.host}/session/${SESSION.type}/sat-reading/${SESSION._id}`
+    const expected = `Hi ${volunteer.firstname}, a student needs help in ${SAT_READING_DISPLAY} on UPchieve! http://${config.client.host}/session/${SESSION.type}/sat-reading/${SESSION._id}`
 
     expect(result).toEqual(expected)
   })
@@ -317,7 +313,7 @@ describe('buildNotificationContent', () => {
       volunteer,
       associatedPartner
     )
-    const expected = `Hi ${volunteer.firstname}, an ${associatedPartner.studentOrgDisplay} student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://${config.client.host}/session/${SESSION.type}/sat-reading/${SESSION._id}`
+    const expected = `Hi ${volunteer.firstname}, an ${associatedPartner.studentOrgDisplay} student needs help in ${SAT_READING_DISPLAY} on UPchieve! http://${config.client.host}/session/${SESSION.type}/sat-reading/${SESSION._id}`
 
     expect(result).toEqual(expected)
   })
@@ -337,7 +333,7 @@ describe('buildNotificationContent', () => {
       volunteer,
       associatedPartner
     )
-    const expected = `Hi ${volunteer.firstname}, a ${associatedPartner.studentOrgDisplay} student needs help in ${MOCK_SAT_READING_DISPLAY} on UPchieve! http://${config.client.host}/session/${SESSION.type}/sat-reading/${SESSION._id}`
+    const expected = `Hi ${volunteer.firstname}, a ${associatedPartner.studentOrgDisplay} student needs help in ${SAT_READING_DISPLAY} on UPchieve! http://${config.client.host}/session/${SESSION.type}/sat-reading/${SESSION._id}`
 
     expect(result).toEqual(expected)
   })
