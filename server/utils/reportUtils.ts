@@ -600,7 +600,7 @@ export async function getUniqueStudentStats(
       $group: {
         _id: '$pastSession.student',
         frequency: { $sum: 1 },
-        frequencyWitinDateRange: getSumOperatorForDateRange(
+        frequencyWithinDateRange: getSumOperatorForDateRange(
           startDate,
           endDate,
           DATE_RANGE_COMPARISON_FIELDS.PAST_SESSION_CREATED_AT
@@ -613,7 +613,7 @@ export async function getUniqueStudentStats(
         total: { $sum: 1 },
         totalWithinDateRange: {
           $sum: {
-            $cond: [{ $gte: ['$frequencyWitinDateRange', 1] }, 1, 0],
+            $cond: [{ $gte: ['$frequencyWithinDateRange', 1] }, 1, 0],
           },
         },
       },

@@ -42,6 +42,7 @@ import {
 } from '../models/Volunteer/queries'
 import { asFactory, asString } from '../utils/type-utils'
 import { asSponsorOrg } from '../utils/validators'
+import { sponsorOrgManifests } from '../partnerManifests'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -660,11 +661,13 @@ export async function generatePartnerAnalyticsReport(
   if (start >= end) throw new Error('Invalid date range')
 
   let specificStudentPartnerOrg
+  let associatedPartnerSchools
   if (partnerOrg === 'att') {
     specificStudentPartnerOrg = 'att-connected-learning'
   }
   if (partnerOrg === 'verizon') {
     specificStudentPartnerOrg = 'vils'
+    associatedPartnerSchools = sponsorOrgManifests.vils.schools
   }
 
   // get volunteers for analytics
@@ -725,47 +728,22 @@ export async function generatePartnerAnalyticsReport(
           {
             $lookup: {
               from: 'users',
-              let: {
-                studentId: '$student',
-              },
-              pipeline: [
-                {
-                  $match: {
-                    isVolunteer: false,
-                    $expr: {
-                      $and: [
-                        { $eq: ['$_id', '$$studentId'] },
-                        // mapping to count same organization (att/verizon) students
-                        {
-                          $eq: [
-                            '$studentPartnerOrg',
-                            specificStudentPartnerOrg,
-                          ],
-                        },
-                        // @todo: check matching for schools under a sponsor org
-                        // {
-                        //   $in: [ '$approvedHighschool', partnerOrg.schools]
-                        // }
-                      ],
-                    },
-                  },
-                },
-              ],
-              as: 'specificPartnerStudent',
+              localField: 'student',
+              foreignField: '_id',
+              as: 'student',
             },
           },
           {
-            $unwind: '$specificPartnerStudent',
-            preserveNullAndEmptyArrays: true,
+            unwind: '$student',
           },
           {
             $facet: {
               uniqueStudentsHelped: [
                 {
                   $group: {
-                    _id: '$student',
+                    _id: '$student._id',
                     frequency: { $sum: 1 },
-                    frequencyWitinDateRange: getSumOperatorForDateRange(
+                    frequencyWithinDateRange: getSumOperatorForDateRange(
                       start,
                       end
                     ),
@@ -778,7 +756,7 @@ export async function generatePartnerAnalyticsReport(
                     totalWithinDateRange: {
                       $sum: {
                         $cond: [
-                          { $gte: ['$frequencyWitinDateRange', 1] },
+                          { $gte: ['$frequencyWithinDateRange', 1] },
                           1,
                           0,
                         ],
@@ -802,8 +780,28 @@ export async function generatePartnerAnalyticsReport(
               // group att and verizon partner students helped by their ids
               uniqueCLCstudentsHelped: [
                 {
+                  $match: {
+                    $expr: {
+                      $or: [
+                        {
+                          $eq: [
+                            '$student.studentPartnerOrg',
+                            specificStudentPartnerOrg,
+                          ],
+                        },
+                        {
+                          $in: [
+                            '$student.approvedHighschool',
+                            associatedPartnerSchools,
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                },
+                {
                   $group: {
-                    _id: '$specificPartnerStudent._id',
+                    _id: '$student._id',
                     frequency: { $sum: 1 },
                     frequencyWithinDateRange: getSumOperatorForDateRange(
                       start,
@@ -829,10 +827,10 @@ export async function generatePartnerAnalyticsReport(
               ],
               // @todo check if this generates only sessions completed with att or verizon students
               // might be a better idea to create a new query for this
-              sessionsCLCStats: [
+              sessionCLCStats: [
                 {
                   $group: {
-                    _id: '$specificPartnerStudent._id',
+                    _id: '$student._id',
                     total: { $sum: 1 },
                     totalWithinDateRange: getSumOperatorForDateRange(
                       start,
