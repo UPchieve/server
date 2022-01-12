@@ -1,11 +1,11 @@
 import 'newrelic'
-import app, { io } from './app'
+import { connect } from './db'
+import initializeUnleash from './utils/initialize-unleash'
 import rawConfig from './config'
 import { Config } from './config-type'
-import { connect } from './db'
+import app, { io } from './app'
 import logger from './logger'
 import { registerListeners } from './services/listeners'
-import initializeUnleash from './utils/initialize-unleash'
 import { setTimeout } from 'timers/promises'
 import { Mongoose } from 'mongoose'
 
@@ -35,7 +35,7 @@ async function main() {
   })
 
   process.on('SIGTERM', () => {
-    logger.info('SIGTERM signal received.')
+    logger.info('SIGTERM signal received')
     server.close(err => {
       if (err) {
         logger.error(err as Error)
