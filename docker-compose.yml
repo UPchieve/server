@@ -12,6 +12,7 @@ services:
         volumes:
             - ./database/schema.sql:/docker-entrypoint-initdb.d/init_db.sql
             - ./database/auth.sql:/docker-entrypoint-initdb.d/init_roles.sql
+            - ./database/pgulid.sql:/docker-entrypoint-initdb.d/init_ulid.sql
     mongodb:
         hostname: mongodb
         ports:
