@@ -10,11 +10,7 @@ const message = 'This is some great feedback for you!'
 const topic = 'General feedback'
 
 beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  })
+  await mongoose.connect(global.__MONGO_URI__)
   user = await insertVolunteer()
 })
 

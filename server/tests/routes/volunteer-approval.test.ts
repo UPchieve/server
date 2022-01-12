@@ -42,11 +42,7 @@ jest.mock('aws-sdk', () => {
 })
 
 beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  })
+  await mongoose.connect(global.__MONGO_URI__)
 })
 
 afterAll(async () => {

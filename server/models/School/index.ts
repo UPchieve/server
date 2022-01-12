@@ -1,4 +1,4 @@
-import { Document, model, Model, Schema, DocumentQuery, Types } from 'mongoose'
+import { Document, model, Model, Schema, Query, Types } from 'mongoose'
 import validator from 'validator'
 import { UserDocument } from '../User'
 
@@ -233,43 +233,43 @@ schoolSchema.index({ nameStored: 'text', SCH_NAME: 'text' })
 // virtual properties that can reference either stored information or NCES variables
 schoolSchema
   .virtual('name')
-  .get(function(this: SchoolDocument) {
+  .get(function(this: School) {
     return this.nameStored || this.SCH_NAME
   })
-  .set(function(this: SchoolDocument, value: string) {
+  .set(function(this: School, value: string) {
     this.nameStored = value
   })
 
 schoolSchema
   .virtual('districtName')
-  .get(function(this: SchoolDocument) {
+  .get(function(this: School) {
     return this.districtNameStored || this.LEA_NAME
   })
-  .set(function(this: SchoolDocument, value: string) {
+  .set(function(this: School, value: string) {
     this.districtNameStored = value
   })
 
 schoolSchema
   .virtual('city')
-  .get(function(this: SchoolDocument) {
+  .get(function(this: School) {
     return this.cityNameStored || this.LCITY
   })
-  .set(function(this: SchoolDocument, value: string) {
+  .set(function(this: School, value: string) {
     this.cityNameStored = value
   })
 
 schoolSchema
   .virtual('state')
-  .get(function(this: SchoolDocument) {
+  .get(function(this: School) {
     return this.stateStored || this.ST
   })
-  .set(function(this: SchoolDocument, value: string) {
+  .set(function(this: School, value: string) {
     this.stateStored = value
   })
 
 // Virtual property giving a searchable name including the school's city
 // name first
-schoolSchema.virtual('searchableName').get(function(this: SchoolDocument) {
+schoolSchema.virtual('searchableName').get(function(this: School) {
   return `${this.city} ${this.name}`
 })
 
@@ -282,17 +282,18 @@ schoolSchema.virtual('studentUsers', {
 
 schoolSchema.statics.findByUpchieveId = function(
   id: string,
-  cb?: (err: Error, school: SchoolDocument) => void
-): DocumentQuery<School, SchoolDocument> {
+  cb?: (err: Error, school: School) => void
+): Query<School, School> {
   return this.findOne({ upchieveId: id }, cb)
 }
 
-export interface SchoolStaticModel extends Model<SchoolDocument> {
+export interface SchoolStaticModel extends Model<School> {
   findByUpchieveId(
     id: string,
-    cb?: (err: Error, school: SchoolDocument) => void
-  ): DocumentQuery<School, SchoolDocument>
+    cb?: (err: Error, school: School) => void
+  ): Query<School, School>
 }
+
 const SchoolModel = model<SchoolDocument, SchoolStaticModel>(
   'School',
   schoolSchema

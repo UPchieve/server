@@ -100,8 +100,8 @@ export async function updateUPFGatesQualifiedFlagById(
         gatesQualified: status,
       }
     )
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

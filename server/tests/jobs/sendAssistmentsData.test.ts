@@ -42,8 +42,8 @@ function generateTestMessages(
 }
 
 function generateTestSession(): Session {
-  const student = Types.ObjectId()
-  const volunteer = Types.ObjectId()
+  const student = new Types.ObjectId()
+  const volunteer = new Types.ObjectId()
   const messages = generateTestMessages(student, volunteer)
   const session = buildSession({
     student,
@@ -58,7 +58,7 @@ function generateTestSession(): Session {
 
 function generateAssistmentsData(session: Session): AssistmentsData {
   return {
-    _id: Types.ObjectId(),
+    _id: new Types.ObjectId(),
     problemId: 12345,
     assignmentId: 'assignment',
     studentId: 'student',

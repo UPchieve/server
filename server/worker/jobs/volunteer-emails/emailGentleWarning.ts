@@ -31,7 +31,9 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
     {
       $match: {
         _id:
-          typeof sessionId === 'string' ? Types.ObjectId(sessionId) : sessionId,
+          typeof sessionId === 'string'
+            ? new Types.ObjectId(sessionId)
+            : sessionId,
       },
     },
     {

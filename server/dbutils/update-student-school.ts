@@ -22,19 +22,19 @@ const main = async (): Promise<void> => {
     //        one of the write operations does not succeed
     const studentUpdateResults = await StudentModel.updateMany(
       {
-        approvedHighschool: ObjectId(schoolIdToQuery)
+        approvedHighschool: new ObjectId(schoolIdToQuery)
       },
       {
-        approvedHighschool: ObjectId(schoolIdToUpdateTo)
+        approvedHighschool: new ObjectId(schoolIdToUpdateTo)
       }
     )
 
     const ineligibleStudentUpdateResults = await IneligibleStudentModel.updateMany(
       {
-        school: ObjectId(schoolIdToQuery)
+        school: new ObjectId(schoolIdToQuery)
       },
       {
-        school: ObjectId(schoolIdToUpdateTo)
+        school: new ObjectId(schoolIdToUpdateTo)
       }
     )
 

@@ -262,8 +262,8 @@ export async function updateVolunteerHourSummaryIntroById(
         sentHourSummaryIntroEmail,
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -462,8 +462,8 @@ export async function addVolunteerReferenceById(
       { _id: volunteerId },
       { $push: { references: reference } }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -580,8 +580,8 @@ export async function updateVolunteerReferenceStatusById(
         },
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -597,8 +597,8 @@ export async function deleteVolunteerReferenceById(
       { _id: volunteerId },
       { $pull: { references: { email: referenceEmail } } }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -617,8 +617,8 @@ export async function updateVolunteersReadyToCoachByIds(
         sentReadyToCoachEmail: true,
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -638,8 +638,8 @@ export async function updateVolunteerElapsedAvailabilityById(
         $inc: { elapsedAvailability },
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -659,8 +659,8 @@ export async function updateVolunteerTotalHoursById(
         $inc: { totalVolunteerHours: update },
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -687,8 +687,8 @@ export async function updateVolunteerTrainingById(
         },
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -704,8 +704,8 @@ export async function updateVolunteerPhotoIdById(
       { _id: volunteerId },
       { $set: { photoIdS3Key, photoIdStatus: PHOTO_ID_STATUS.SUBMITTED } }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -725,8 +725,8 @@ export async function updateVolunteerSentInactiveEmail(
         sentInactiveSixtyDayEmail,
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -745,8 +745,8 @@ export async function updateVolunteerInactiveAvailability(
         sentInactiveNinetyDayEmail: true,
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -768,8 +768,8 @@ export async function updateVolunteerProfileById(
         phone,
       }
     ).exec()
-    if (!result.ok)
-      throw new RepoUpdateError('Update query did not return "ok"')
+    if (!result.acknowledged)
+      throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
