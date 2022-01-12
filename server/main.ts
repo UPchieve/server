@@ -44,7 +44,6 @@ async function main() {
       logger.info('api server closed')
 
       // close the socket server
-      // TODO: check if closing the socket server also disconnect the connected sockets
       io.close(async () => {
         logger.info('socket server closed')
 
