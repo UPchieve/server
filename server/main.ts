@@ -1,11 +1,11 @@
 import 'newrelic'
-import { connect } from './db'
-import initializeUnleash from './utils/initialize-unleash'
+import app, { io } from './app'
 import rawConfig from './config'
 import { Config } from './config-type'
-import app from './app'
+import { connect } from './db'
 import logger from './logger'
 import { registerListeners } from './services/listeners'
+import initializeUnleash from './utils/initialize-unleash'
 
 async function main() {
   try {
@@ -27,8 +27,21 @@ async function main() {
   registerListeners()
 
   const port = process.env.PORT || 3000
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info('api server listening on port ' + port)
+  })
+
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received.')
+    server.close(() => {
+      console.log('Http server closed.')
+
+      // TODO: close mongoose connection
+
+      // close the socket server
+      // TODO: check if closing the socket server also disconnect the connected sockets
+      io.close()
+    })
   })
 }
 
