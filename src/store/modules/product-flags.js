@@ -15,6 +15,7 @@ export default {
     }
   },
   getters: {
-    isGatesQualified: state => state.flags.gatesQualified
+    isGatesQualified: state => state.flags.gatesQualified,
+    isPartnerSchoolGatesQualified: state => state.flags.partnerSchoolGatesQualified
   }
 }
