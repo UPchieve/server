@@ -3,9 +3,10 @@
     <dashboard-banner />
     <div class="dashboard-notices">
       <div
-        v-if="showGatesQualifiedBanner && isGatesQualified"
+        v-if="showGatesQualifiedBanner"
         class="dashboard-notice dashboard-notice--info"
       >
+        <span v-if="isGatesQualified">
         Join our research study to earn $$ and be entered to win an iPad!
         <a
           href="https://docs.google.com/document/d/1XXIn7g3bnah18Q7NE2QvrrhZ3imGStpVPtfitiPaWCQ"
@@ -14,6 +15,17 @@
           class="gates__learn-more"
           >Learn more<arrow-icon class="gates__arrow-icon"
         /></a>
+        </span>
+
+        <span v-else-if="isPartnerSchoolGatesQualified">
+        Sign up for 
+        <a
+          href="https://docs.google.com/document/d/1qtIOFwpsR-pBNDROYPy4qql6LCH4pHjQujDv1tQh09U"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="gates__learn-more"
+          >our research study</a> and earn $50!
+        </span>
       </div>
 
       <div
@@ -47,8 +59,6 @@ import DashboardBanner from '../DashboardBanner'
 import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '@/consts'
 import ArrowIcon from '@/assets/arrow.svg'
 
 const defaultHeaderData = {
@@ -90,7 +100,7 @@ export default {
     }
 
     if (
-      isEnabled(FEATURE_FLAGS.REFER_FRIENDS) &&
+      this.isReferFriendsActive &&
       this.hasSeenFirstSessionCongratsModal
     )
       this.toggleFirstSessionCongratsModal()
@@ -112,7 +122,11 @@ export default {
     }),
     ...mapGetters({
       isSessionAlive: 'user/isSessionAlive',
-      isGatesQualified: 'productFlags/isGatesQualified'
+      isGatesQualified: 'productFlags/isGatesQualified',
+      isPartnerSchoolGatesQualified: 'productFlags/isPartnerSchoolGatesQualified',
+      isGatesStudyActive: 'featureFlags/isGatesStudyActive',
+      isReferFriendsActive: 'featureFlags/isReferFriendsActive',
+      isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
     }),
     isLowCoachHour() {
       return this.currentHour < 12
@@ -135,23 +149,26 @@ export default {
         .utc()
         .month('October')
         .date(18)
+        .year(2021)
         .startOf('day')
       const gatesStudyPeriodEnd = moment()
         .utc()
-        .month('December')
-        .date(17)
+        .month('January')
+        .date(28)
+        .year(2022)
         .endOf('day')
       return moment()
         .utc()
         .isBetween(gatesStudyPeriodStart, gatesStudyPeriodEnd)
     },
     showGatesQualifiedBanner() {
+      const isGatesQualified = this.isGatesQualified || this.isPartnerSchoolGatesQualified
       return (
-        isEnabled(FEATURE_FLAGS.GATES_STUDY) || this.isWithinGatesStudyPeriod
+        (this.isGatesStudyActive || this.isWithinGatesStudyPeriod) && isGatesQualified
       )
     },
     downtimeMessage() {
-      if (isEnabled(FEATURE_FLAGS.DOWNTIME_BANNER)) {
+      if (this.isDowntimeBannerActive) {
         return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
       } else {
         return ''
@@ -175,7 +192,7 @@ export default {
       if (!isAlive) {
         this.$store.dispatch('app/header/show', defaultHeaderData)
         if (
-          isEnabled(FEATURE_FLAGS.REFER_FRIENDS) &&
+          this.isReferFriendsActive &&
           prevIsAlive &&
           this.hasSeenFirstSessionCongratsModal
         )
