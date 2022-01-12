@@ -6,6 +6,8 @@ import { connect } from './db'
 import logger from './logger'
 import { registerListeners } from './services/listeners'
 import initializeUnleash from './utils/initialize-unleash'
+import { setTimeout } from 'timers/promises'
+import { Mongoose } from 'mongoose'
 
 async function main() {
   try {
@@ -16,8 +18,9 @@ async function main() {
 
   initializeUnleash()
 
+  let dbConn: Mongoose
   try {
-    await connect()
+    dbConn = await connect()
   } catch (err) {
     throw new Error(
       `db connection failed after backoff attempts, exiting: ${err}`
@@ -32,15 +35,24 @@ async function main() {
   })
 
   process.on('SIGTERM', () => {
-    console.log('SIGTERM signal received.')
-    server.close(() => {
-      console.log('Http server closed.')
-
-      // TODO: close mongoose connection
+    logger.info('SIGTERM signal received.')
+    server.close(err => {
+      if (err) {
+        logger.error(err as Error)
+        process.exit(1)
+      }
+      logger.info('api server closed')
 
       // close the socket server
       // TODO: check if closing the socket server also disconnect the connected sockets
-      io.close()
+      io.close(async () => {
+        logger.info('socket server closed')
+
+        // allow time for events to finish processing and making db calls before exiting
+        await setTimeout(1000 * 5)
+        await dbConn.disconnect()
+        process.exit(0)
+      })
     })
   })
 }
