@@ -1,63 +1,42 @@
-/* @name getUserIdByEmail */
+/* @name getQuizzesPassedForDateRangeById */
 SELECT
-  id
+    count(*)::int AS total
 FROM
-  users
+    user_actions
 WHERE
-  email = :email!
-LIMIT
-  1;
-/* @name getUserContactInfoById */
+    action_type = 'QUIZ'
+    AND action = 'PASSED QUIZ'
+    AND user_id = :userId!
+    AND created_at >= DATE(:start!)
+    AND created_at < DATE(:end!);
+
+
+/* @name getSessionRequestedUserAgentFromSessionId */
 SELECT
-  id,
-  first_name,
-  email
+    id,
+    device,
+    browser,
+    browser_version,
+    operating_system,
+    operating_system_version
 FROM
-  users
+    user_actions
 WHERE
-  id = :id!
-LIMIT
-  1;
-/* @name getUserContactInfoByReferralCode */
+    action_type = 'SESSION'
+    AND action = 'REQUESTED SESSION'
+    AND session_id = :sessionId!;
+
+
+/* @name userHasTakenQuiz */
 SELECT
-  id,
-  first_name,
-  email
-FROM
-  users
-WHERE
-  referral_code = :referralCode!
-LIMIT
-  1;
-/* @name getUserContactInfoByResetToken */
-SELECT
-  id,
-  first_name,
-  email
-FROM
-  users
-WHERE
-  password_reset_token = :resetToken!
-LIMIT
-  1;
-/* @name countUsersReferredByOtherId */
-SELECT
-  count(*):: int as total
-FROM
-  users
-WHERE
-  referred_by = :userId!;
-/* @name updateUserResetTokenById */
-UPDATE
-  users
-SET
-  password_reset_token = :token!
-WHERE
-  id IN (
-    SELECT
-      id
-    FROM
-      users
-    WHERE
-      id = :userId!
-  ) RETURNING id;
+    EXISTS (
+        SELECT
+            1
+        FROM
+            user_actions
+        WHERE
+            action_type = 'QUIZ'
+            AND (action = 'PASSED QUIZ'
+                OR action = 'FAILED QUIZ')
+            AND user_id = :userId!);
+

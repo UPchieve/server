@@ -1,335 +1,122 @@
 /** Types generated for queries found in "server/models/UserAction/user_action.sql" */
-import { PreparedQuery } from '@pgtyped/query'
+import { PreparedQuery } from '@pgtyped/query';
 
-/** 'GetUserIdByEmail' parameters type */
-export interface IGetUserIdByEmailParams {
-  email: string
+/** 'GetQuizzesPassedForDateRangeById' parameters type */
+export interface IGetQuizzesPassedForDateRangeByIdParams {
+  end: Date;
+  start: Date;
+  userId: string;
 }
 
-/** 'GetUserIdByEmail' return type */
-export interface IGetUserIdByEmailResult {
-  id: string
+/** 'GetQuizzesPassedForDateRangeById' return type */
+export interface IGetQuizzesPassedForDateRangeByIdResult {
+  total: number | null;
 }
 
-/** 'GetUserIdByEmail' query type */
-export interface IGetUserIdByEmailQuery {
-  params: IGetUserIdByEmailParams
-  result: IGetUserIdByEmailResult
+/** 'GetQuizzesPassedForDateRangeById' query type */
+export interface IGetQuizzesPassedForDateRangeByIdQuery {
+  params: IGetQuizzesPassedForDateRangeByIdParams;
+  result: IGetQuizzesPassedForDateRangeByIdResult;
 }
 
-const getUserIdByEmailIR: any = {
-  name: 'getUserIdByEmail',
-  params: [
-    {
-      name: 'email',
-      required: true,
-      transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 71, b: 76, line: 7, col: 11 }] },
-    },
-  ],
-  usedParamSet: { email: true },
-  statement: {
-    body: 'SELECT\n  id\nFROM\n  users\nWHERE\n  email = :email!\nLIMIT\n  1',
-    loc: { a: 29, b: 86, line: 2, col: 0 },
-  },
-}
+const getQuizzesPassedForDateRangeByIdIR: any = {"name":"getQuizzesPassedForDateRangeById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":182,"b":188,"line":9,"col":19}]}},{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":218,"b":223,"line":10,"col":28}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":253,"b":256,"line":11,"col":27}]}}],"usedParamSet":{"userId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    count(*)::int AS total\nFROM\n    user_actions\nWHERE\n    action_type = 'QUIZ'\n    AND action = 'PASSED QUIZ'\n    AND user_id = :userId!\n    AND created_at >= DATE(:start!)\n    AND created_at < DATE(:end!)","loc":{"a":45,"b":257,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   id
+ *     count(*)::int AS total
  * FROM
- *   users
+ *     user_actions
  * WHERE
- *   email = :email!
- * LIMIT
- *   1
+ *     action_type = 'QUIZ'
+ *     AND action = 'PASSED QUIZ'
+ *     AND user_id = :userId!
+ *     AND created_at >= DATE(:start!)
+ *     AND created_at < DATE(:end!)
  * ```
  */
-export const getUserIdByEmail = new PreparedQuery<
-  IGetUserIdByEmailParams,
-  IGetUserIdByEmailResult
->(getUserIdByEmailIR)
+export const getQuizzesPassedForDateRangeById = new PreparedQuery<IGetQuizzesPassedForDateRangeByIdParams,IGetQuizzesPassedForDateRangeByIdResult>(getQuizzesPassedForDateRangeByIdIR);
 
-/** 'GetUserContactInfoById' parameters type */
-export interface IGetUserContactInfoByIdParams {
-  id: string
+
+/** 'GetSessionRequestedUserAgentFromSessionId' parameters type */
+export interface IGetSessionRequestedUserAgentFromSessionIdParams {
+  sessionId: string;
 }
 
-/** 'GetUserContactInfoById' return type */
-export interface IGetUserContactInfoByIdResult {
-  email: string
-  firstName: string
-  id: string
+/** 'GetSessionRequestedUserAgentFromSessionId' return type */
+export interface IGetSessionRequestedUserAgentFromSessionIdResult {
+  browser: string | null;
+  browserVersion: string | null;
+  device: string | null;
+  id: string;
+  operatingSystem: string | null;
+  operatingSystemVersion: string | null;
 }
 
-/** 'GetUserContactInfoById' query type */
-export interface IGetUserContactInfoByIdQuery {
-  params: IGetUserContactInfoByIdParams
-  result: IGetUserContactInfoByIdResult
+/** 'GetSessionRequestedUserAgentFromSessionId' query type */
+export interface IGetSessionRequestedUserAgentFromSessionIdQuery {
+  params: IGetSessionRequestedUserAgentFromSessionIdParams;
+  result: IGetSessionRequestedUserAgentFromSessionIdResult;
 }
 
-const getUserContactInfoByIdIR: any = {
-  name: 'getUserContactInfoById',
-  params: [
-    {
-      name: 'id',
-      required: true,
-      transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 186, b: 188, line: 18, col: 8 }] },
-    },
-  ],
-  usedParamSet: { id: true },
-  statement: {
-    body:
-      'SELECT\n  id,\n  first_name,\n  email\nFROM\n  users\nWHERE\n  id = :id!\nLIMIT\n  1',
-    loc: { a: 124, b: 198, line: 11, col: 0 },
-  },
-}
+const getSessionRequestedUserAgentFromSessionIdIR: any = {"name":"getSessionRequestedUserAgentFromSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":543,"b":552,"line":27,"col":22}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    id,\n    device,\n    browser,\n    browser_version,\n    operating_system,\n    operating_system_version\nFROM\n    user_actions\nWHERE\n    action_type = 'SESSION'\n    AND action = 'REQUESTED SESSION'\n    AND session_id = :sessionId!","loc":{"a":316,"b":552,"line":15,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   id,
- *   first_name,
- *   email
+ *     id,
+ *     device,
+ *     browser,
+ *     browser_version,
+ *     operating_system,
+ *     operating_system_version
  * FROM
- *   users
+ *     user_actions
  * WHERE
- *   id = :id!
- * LIMIT
- *   1
+ *     action_type = 'SESSION'
+ *     AND action = 'REQUESTED SESSION'
+ *     AND session_id = :sessionId!
  * ```
  */
-export const getUserContactInfoById = new PreparedQuery<
-  IGetUserContactInfoByIdParams,
-  IGetUserContactInfoByIdResult
->(getUserContactInfoByIdIR)
+export const getSessionRequestedUserAgentFromSessionId = new PreparedQuery<IGetSessionRequestedUserAgentFromSessionIdParams,IGetSessionRequestedUserAgentFromSessionIdResult>(getSessionRequestedUserAgentFromSessionIdIR);
 
-/** 'GetUserContactInfoByReferralCode' parameters type */
-export interface IGetUserContactInfoByReferralCodeParams {
-  referralCode: string
+
+/** 'UserHasTakenQuiz' parameters type */
+export interface IUserHasTakenQuizParams {
+  userId: string;
 }
 
-/** 'GetUserContactInfoByReferralCode' return type */
-export interface IGetUserContactInfoByReferralCodeResult {
-  email: string
-  firstName: string
-  id: string
+/** 'UserHasTakenQuiz' return type */
+export interface IUserHasTakenQuizResult {
+  exists: boolean | null;
 }
 
-/** 'GetUserContactInfoByReferralCode' query type */
-export interface IGetUserContactInfoByReferralCodeQuery {
-  params: IGetUserContactInfoByReferralCodeParams
-  result: IGetUserContactInfoByReferralCodeResult
+/** 'UserHasTakenQuiz' query type */
+export interface IUserHasTakenQuizQuery {
+  params: IUserHasTakenQuizParams;
+  result: IUserHasTakenQuizResult;
 }
 
-const getUserContactInfoByReferralCodeIR: any = {
-  name: 'getUserContactInfoByReferralCode',
-  params: [
-    {
-      name: 'referralCode',
-      required: true,
-      transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 319, b: 331, line: 29, col: 19 }] },
-    },
-  ],
-  usedParamSet: { referralCode: true },
-  statement: {
-    body:
-      'SELECT\n  id,\n  first_name,\n  email\nFROM\n  users\nWHERE\n  referral_code = :referralCode!\nLIMIT\n  1',
-    loc: { a: 246, b: 341, line: 22, col: 0 },
-  },
-}
+const userHasTakenQuizIR: any = {"name":"userHasTakenQuiz","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":830,"b":836,"line":41,"col":27}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            action_type = 'QUIZ'\n            AND (action = 'PASSED QUIZ'\n                OR action = 'FAILED QUIZ')\n            AND user_id = :userId!)","loc":{"a":586,"b":837,"line":31,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   id,
- *   first_name,
- *   email
- * FROM
- *   users
- * WHERE
- *   referral_code = :referralCode!
- * LIMIT
- *   1
+ *     EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             user_actions
+ *         WHERE
+ *             action_type = 'QUIZ'
+ *             AND (action = 'PASSED QUIZ'
+ *                 OR action = 'FAILED QUIZ')
+ *             AND user_id = :userId!)
  * ```
  */
-export const getUserContactInfoByReferralCode = new PreparedQuery<
-  IGetUserContactInfoByReferralCodeParams,
-  IGetUserContactInfoByReferralCodeResult
->(getUserContactInfoByReferralCodeIR)
+export const userHasTakenQuiz = new PreparedQuery<IUserHasTakenQuizParams,IUserHasTakenQuizResult>(userHasTakenQuizIR);
 
-/** 'GetUserContactInfoByResetToken' parameters type */
-export interface IGetUserContactInfoByResetTokenParams {
-  resetToken: string
-}
 
-/** 'GetUserContactInfoByResetToken' return type */
-export interface IGetUserContactInfoByResetTokenResult {
-  email: string
-  firstName: string
-  id: string
-}
-
-/** 'GetUserContactInfoByResetToken' query type */
-export interface IGetUserContactInfoByResetTokenQuery {
-  params: IGetUserContactInfoByResetTokenParams
-  result: IGetUserContactInfoByResetTokenResult
-}
-
-const getUserContactInfoByResetTokenIR: any = {
-  name: 'getUserContactInfoByResetToken',
-  params: [
-    {
-      name: 'resetToken',
-      required: true,
-      transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 467, b: 477, line: 40, col: 26 }] },
-    },
-  ],
-  usedParamSet: { resetToken: true },
-  statement: {
-    body:
-      'SELECT\n  id,\n  first_name,\n  email\nFROM\n  users\nWHERE\n  password_reset_token = :resetToken!\nLIMIT\n  1',
-    loc: { a: 387, b: 487, line: 33, col: 0 },
-  },
-}
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *   id,
- *   first_name,
- *   email
- * FROM
- *   users
- * WHERE
- *   password_reset_token = :resetToken!
- * LIMIT
- *   1
- * ```
- */
-export const getUserContactInfoByResetToken = new PreparedQuery<
-  IGetUserContactInfoByResetTokenParams,
-  IGetUserContactInfoByResetTokenResult
->(getUserContactInfoByResetTokenIR)
-
-/** 'CountUsersReferredByOtherId' parameters type */
-export interface ICountUsersReferredByOtherIdParams {
-  userId: string
-}
-
-/** 'CountUsersReferredByOtherId' return type */
-export interface ICountUsersReferredByOtherIdResult {
-  total: number | null
-}
-
-/** 'CountUsersReferredByOtherId' query type */
-export interface ICountUsersReferredByOtherIdQuery {
-  params: ICountUsersReferredByOtherIdParams
-  result: ICountUsersReferredByOtherIdResult
-}
-
-const countUsersReferredByOtherIdIR: any = {
-  name: 'countUsersReferredByOtherId',
-  params: [
-    {
-      name: 'userId',
-      required: true,
-      transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 599, b: 605, line: 49, col: 17 }] },
-    },
-  ],
-  usedParamSet: { userId: true },
-  statement: {
-    body:
-      'SELECT\n  count(*):: int as total\nFROM\n  users\nWHERE\n  referred_by = :userId!',
-    loc: { a: 530, b: 605, line: 44, col: 0 },
-  },
-}
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *   count(*):: int as total
- * FROM
- *   users
- * WHERE
- *   referred_by = :userId!
- * ```
- */
-export const countUsersReferredByOtherId = new PreparedQuery<
-  ICountUsersReferredByOtherIdParams,
-  ICountUsersReferredByOtherIdResult
->(countUsersReferredByOtherIdIR)
-
-/** 'UpdateUserResetTokenById' parameters type */
-export interface IUpdateUserResetTokenByIdParams {
-  token: string
-  userId: string
-}
-
-/** 'UpdateUserResetTokenById' return type */
-export interface IUpdateUserResetTokenByIdResult {
-  id: string
-}
-
-/** 'UpdateUserResetTokenById' query type */
-export interface IUpdateUserResetTokenByIdQuery {
-  params: IUpdateUserResetTokenByIdParams
-  result: IUpdateUserResetTokenByIdResult
-}
-
-const updateUserResetTokenByIdIR: any = {
-  name: 'updateUserResetTokenById',
-  params: [
-    {
-      name: 'token',
-      required: true,
-      transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 690, b: 695, line: 54, col: 26 }] },
-    },
-    {
-      name: 'userId',
-      required: true,
-      transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 776, b: 782, line: 62, col: 12 }] },
-    },
-  ],
-  usedParamSet: { token: true, userId: true },
-  statement: {
-    body:
-      'UPDATE\n  users\nSET\n  password_reset_token = :token!\nWHERE\n  id IN (\n    SELECT\n      id\n    FROM\n      users\n    WHERE\n      id = :userId!\n  ) RETURNING id',
-    loc: { a: 645, b: 799, line: 51, col: 0 },
-  },
-}
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *   users
- * SET
- *   password_reset_token = :token!
- * WHERE
- *   id IN (
- *     SELECT
- *       id
- *     FROM
- *       users
- *     WHERE
- *       id = :userId!
- *   ) RETURNING id
- * ```
- */
-export const updateUserResetTokenById = new PreparedQuery<
-  IUpdateUserResetTokenByIdParams,
-  IUpdateUserResetTokenByIdResult
->(updateUserResetTokenByIdIR)

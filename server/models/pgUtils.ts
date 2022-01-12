@@ -38,10 +38,34 @@ export function makeRequired<T>(obj: T): OptionalToRequired<T> {
   return obj as OptionalToRequired<T>
 }
 
+type LValue = string | number | symbol
+type Remove<T extends LValue, U extends LValue> = ({ [P in T]: P } &
+  { [P in U]: never } & { [x: string]: never })[T]
+type ReplaceProperty<T, U> = { [P in Remove<keyof T, keyof U>]: T[P] } & U
+
+export function makeSomeRequired<T, U>(
+  obj: T,
+  optionals: U
+): ReplaceProperty<OptionalToRequired<T>, U> {
+  const temp: any = {}
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null || value === undefined) {
+      if (key in optionals) temp[key] = undefined
+      else
+        throw new UnexpectedNullError(
+          `Key ${key} was unexpectedly null or undefined`
+        )
+    }
+    temp[key] = value
+  }
+  return temp as ReplaceProperty<OptionalToRequired<T>, U>
+}
+
 export function getDbUlid() {
   return ULID.generate().toRaw()
 }
 //     type Mgid = Types.ObjectId  // mongoId
+export type Uuid = string // UUID
 export type Ulid = string // ULID
 export type Pgid = number // int4
 export type ObjectId = Types.ObjectId | Ulid | Pgid

@@ -797,7 +797,7 @@ export async function updateTimeTutored(
 // pg wrappers
 import client from '../../pg'
 import * as pgQueries from './pg.queries'
-import { Ulid, Subject } from '../pgUtils'
+import { Ulid, Subject, makeRequired, makeSomeRequired } from '../pgUtils'
 
 export async function getSubjectsForVolunteer(
   userId: Ulid
@@ -808,6 +808,61 @@ export async function getSubjectsForVolunteer(
       client
     )
     return result.map(r => r.subject)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+type IVolunteerContactInfo = {
+  firstName: string
+  email: string
+  volunteerPartnerOrg?: string
+}
+
+export async function getNextVolunteerToNotify(
+  subject: string,
+  startDate: Date
+): Promise<IVolunteerContactInfo | undefined> {
+  try {
+    const result = await pgQueries.getNextOpenVolunteerToNotify.run(
+      { subject, startDate },
+      client
+    )
+    if (result.length)
+      return makeSomeRequired(result[0], { volunteerPartnerOrg: 'test' } as {
+        volunteerPartnerOrg?: string
+      })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getNextAnyPartnerVolunteerToNotify(
+  subject: string,
+  startDate: Date
+): Promise<IVolunteerContactInfo | undefined> {
+  try {
+    const result = await pgQueries.getNextAnyPartnerVolunteerToNotify.run(
+      { subject, startDate },
+      client
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getNextSpecificPartnerVolunteerToNotify(
+  subject: string,
+  startDate: Date,
+  volunteerPartnerOrg: string
+): Promise<IVolunteerContactInfo | undefined> {
+  try {
+    const result = await pgQueries.getNextSpecificPartnerVolunteerToNotify.run(
+      { subject, startDate, volunteerPartnerOrg },
+      client
+    )
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }

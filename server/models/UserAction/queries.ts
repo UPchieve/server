@@ -125,7 +125,7 @@ export async function IgetSessionRequestedUserAgentFromSessionId(
 export async function IuserHasTakeQuiz(userId: Ulid): Promise<boolean> {
   try {
     const result = await pgQueries.userHasTakenQuiz.run({ userId }, client)
-    if (result.length) return makeRequired(result[0]).total > 0
+    if (result.length) return makeRequired(result[0]).exists
     return false
   } catch (err) {
     throw new RepoReadError(err)

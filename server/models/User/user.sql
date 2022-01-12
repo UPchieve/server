@@ -1,63 +1,71 @@
 /* @name getUserIdByEmail */
 SELECT
-  id
+    id
 FROM
-  users
+    users
 WHERE
-  email = :email!
-LIMIT
-  1;
+    email = :email!
+LIMIT 1;
+
+
 /* @name getUserContactInfoById */
 SELECT
-  id,
-  first_name,
-  email
+    id,
+    first_name,
+    email
 FROM
-  users
+    users
 WHERE
-  id = :id!
-LIMIT
-  1;
+    id = :id!
+LIMIT 1;
+
+
 /* @name getUserContactInfoByReferralCode */
 SELECT
-  id,
-  first_name,
-  email
+    id,
+    first_name,
+    email
 FROM
-  users
+    users
 WHERE
-  referral_code = :referralCode!
-LIMIT
-  1;
+    referral_code = :referralCode!
+LIMIT 1;
+
+
 /* @name getUserContactInfoByResetToken */
 SELECT
-  id,
-  first_name,
-  email
+    id,
+    first_name,
+    email
 FROM
-  users
+    users
 WHERE
-  password_reset_token = :resetToken!
-LIMIT
-  1;
+    password_reset_token = :resetToken!
+LIMIT 1;
+
+
 /* @name countUsersReferredByOtherId */
 SELECT
-  count(*):: int as total
+    count(*)::int AS total
 FROM
-  users
+    users
 WHERE
-  referred_by = :userId!;
+    referred_by = :userId!;
+
+
 /* @name updateUserResetTokenById */
 UPDATE
-  users
+    users
 SET
-  password_reset_token = :token!
+    password_reset_token = :token!
 WHERE
-  id IN (
-    SELECT
-      id
-    FROM
-      users
-    WHERE
-      id = :userId!
-  ) RETURNING id;
+    id IN (
+        SELECT
+            id
+        FROM
+            users
+        WHERE
+            id = :userId!)
+RETURNING
+    id;
+
