@@ -3,7 +3,7 @@ import express from 'express'
 import { Server } from 'socket.io'
 import { Student } from '../models/Student'
 import { Volunteer } from '../models/Volunteer'
-import socketServer from '../router/api/socket-server'
+import socketServer from '../socket-server'
 
 export function defaultErrorHandler(
   err: Error & { httpStatus: number },
