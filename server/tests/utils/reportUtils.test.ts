@@ -65,6 +65,13 @@ function buildAnalyticVolunteer(
           totalWithinDateRange: 0,
         },
       ],
+      timeTutoredPartnerStats: [
+        {
+          _id: null,
+          total: 0,
+          totalWithinDateRange: 0,
+        },
+      ],
     },
     textNotifications: { _id: null, total: 0, totalWithinDateRange: 0 },
     hourSummaryTotal: {
@@ -272,6 +279,13 @@ describe('getAnalyticsReportSummary', () => {
           sessionCLCStats: [
             {
               _id: null,
+              total: 2,
+              totalWithinDateRange: 2,
+            },
+          ],
+          timeTutoredPartnerStats: [
+            {
+              _id: null,
               total: 3,
               totalWithinDateRange: 1,
             },
@@ -324,6 +338,13 @@ describe('getAnalyticsReportSummary', () => {
               _id: null,
               total: 5,
               totalWithinDateRange: 2,
+            },
+          ],
+          timeTutoredPartnerStats: [
+            {
+              _id: null,
+              total: 20,
+              totalWithinDateRange: 5,
             },
           ],
         },

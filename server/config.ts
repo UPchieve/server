@@ -39,6 +39,12 @@ const customVolunteerPartnerOrgList =
   process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
 const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
 
+const customAnalyticsReportPartnerOrgList =
+  process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'att,verizon'
+const customAnalyticsReportPartnerOrgs = customAnalyticsReportPartnerOrgList.split(
+  ','
+)
+
 const config: Static<typeof Config> = {
   NODE_ENV: nodeEnv,
   SSL_CERT_PATH: '',
@@ -201,6 +207,7 @@ const config: Static<typeof Config> = {
     'localManifests/volunteer.yaml',
 
   customVolunteerPartnerOrgs: customVolunteerPartnerOrgs,
+  customAnalyticsReportPartnerOrgs: customAnalyticsReportPartnerOrgs,
 
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||

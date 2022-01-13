@@ -124,6 +124,7 @@ export const Config = Record({
   socketApiKey: String,
   volunteerPartnerManifestPath: String,
   customVolunteerPartnerOrgs: Array(String),
+  customAnalyticsReportPartnerOrgs: Array(String),
   studentPartnerManifestPath: String,
   sponsorOrgManifestPath: String,
 

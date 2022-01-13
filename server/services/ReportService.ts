@@ -670,6 +670,21 @@ export async function generatePartnerAnalyticsReport(
     associatedPartnerSchools = sponsorOrgManifests.vils.schools
   }
 
+  const getSpecificPartnerStudents = {
+    $match: {
+      $expr: {
+        $or: [
+          {
+            $eq: ['$student.studentPartnerOrg', specificStudentPartnerOrg],
+          },
+          {
+            $in: ['$student.approvedHighschool', associatedPartnerSchools],
+          },
+        ],
+      },
+    },
+  }
+
   // get volunteers for analytics
   const volunteers = ((await getVolunteersWithPipeline([
     {
@@ -724,7 +739,6 @@ export async function generatePartnerAnalyticsReport(
               },
             },
           },
-          // lookup to outer join att/verizon students
           {
             $lookup: {
               from: 'users',
@@ -779,26 +793,7 @@ export async function generatePartnerAnalyticsReport(
               ],
               // group att and verizon partner students helped by their ids
               uniqueCLCstudentsHelped: [
-                {
-                  $match: {
-                    $expr: {
-                      $or: [
-                        {
-                          $eq: [
-                            '$student.studentPartnerOrg',
-                            specificStudentPartnerOrg,
-                          ],
-                        },
-                        {
-                          $in: [
-                            '$student.approvedHighschool',
-                            associatedPartnerSchools,
-                          ],
-                        },
-                      ],
-                    },
-                  },
-                },
+                getSpecificPartnerStudents,
                 {
                   $group: {
                     _id: '$student._id',
@@ -828,10 +823,24 @@ export async function generatePartnerAnalyticsReport(
               // @todo check if this generates only sessions completed with att or verizon students
               // might be a better idea to create a new query for this
               sessionCLCStats: [
+                getSpecificPartnerStudents,
                 {
                   $group: {
-                    _id: '$student._id',
+                    _id: null,
                     total: { $sum: 1 },
+                    totalWithinDateRange: getSumOperatorForDateRange(
+                      start,
+                      end
+                    ),
+                  },
+                },
+              ],
+              timeTutoredPartnerStats: [
+                getSpecificPartnerStudents,
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: '$timeTutored' },
                     totalWithinDateRange: getSumOperatorForDateRange(
                       start,
                       end
@@ -922,16 +931,16 @@ export async function generatePartnerAnalyticsReport(
       hourSummaryDateRange,
     }
     const row = getAnalyticsReportRow(volunteerWithAnalytics)
-    if (partnerOrg !== 'att' && partnerOrg !== 'verizon') {
-      delete row.totalCLCSessionsCompleted
-      delete row.totalUniqueCLCStudentsHelped
-      delete row.totalCLCStudentsTutoringHours
-      delete row.dateRangeCLCSessionsCompleted
-      delete row.dateRangeCLCStudentsTutoringHours
-      delete row.dateRangeUniqueCLCStudentsHelped
-    } else {
-      report.push(row)
-    }
+    // if (partnerOrg !== 'att' && partnerOrg !== 'verizon') {
+    //   delete row.totalCLCSessionsCompleted
+    //   delete row.totalUniqueCLCStudentsHelped
+    //   delete row.totalCLCStudentsTutoringHours
+    //   delete row.dateRangeCLCSessionsCompleted
+    //   delete row.dateRangeCLCStudentsTutoringHours
+    //   delete row.dateRangeUniqueCLCStudentsHelped
+    // } else {
+    report.push(row)
+    // }
   }
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
@@ -943,7 +952,8 @@ export async function generatePartnerAnalyticsReport(
 export async function writeAnalyticsReport(
   data: FullReport,
   startDate: string,
-  endDate: string
+  endDate: string,
+  specificPartnerOrg: string
 ) {
   const reportFilePath = getReportFilePath(REPORT_FILE_NAMES.ANALYTICS_REPORT)
   await fsPromises.mkdir(path.parse(reportFilePath).dir, { recursive: true })
@@ -966,13 +976,15 @@ export async function writeAnalyticsReport(
     data.summary,
     summarySheet,
     formattedStartDate,
-    formattedEndDate
+    formattedEndDate,
+    specificPartnerOrg
   )
   processAnalyticsReportDataSheet(
     data.report,
     dataSheet,
     formattedStartDate,
-    formattedEndDate
+    formattedEndDate,
+    specificPartnerOrg
   )
   summarySheet.commit()
   dataSheet.commit()
@@ -994,7 +1006,12 @@ export async function getAnalyticsReport(data: unknown) {
       throw new ReportNoDataFoundError(
         'No analytics report data for the requested partner'
       )
-    return await writeAnalyticsReport(analyticsReport, startDate, endDate)
+    return await writeAnalyticsReport(
+      analyticsReport,
+      startDate,
+      endDate,
+      partnerOrg
+    )
   } catch (error) {
     logger.error(error as Error)
     if (error instanceof ReportNoDataFoundError || error instanceof InputError)
