@@ -1,6 +1,7 @@
 version: "3.2"
 services:
     postgres:
+        hostname: postgres
         ports:
             - "5432:5432"
         image: postgres:14
@@ -12,6 +13,7 @@ services:
             - ./database/schema.sql:/docker-entrypoint-initdb.d/init_db.sql
             - ./database/auth.sql:/docker-entrypoint-initdb.d/init_roles.sql
     mongodb:
+        hostname: mongodb
         ports:
             - "27017-27019:27017-27019"
         image: mongo:4.4.5
@@ -20,6 +22,7 @@ services:
         volumes:
             - ./mongo-volume:/data/db
     redis:
+        hostname: redis
         ports:
             - "6379:6379"
         image: redis:6.2.1

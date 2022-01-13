@@ -7,10 +7,10 @@
     "lint": "npm run lint:backend:dry && npm run lint:frontend:dry",
     "build:backend": "./bin/build_backend.sh",
     "build:frontend": "vue-cli-service build",
-    "dev": "npm run build:frontend && npm run dev:backend",
-    "dev:backend": "ts-node-dev -P tsconfig.server.json --watch server,src server/main",
+    "dev": "npm run build:frontend && npm run dev:backend & npm run dev:frontend",
+    "dev:backend": "ts-node-dev -P tsconfig.server.json --watch server,dist server/main",
     "dev:frontend": "vue-cli-service build --mode=production --watch",
-    "dev:worker": "ts-node-dev -P tsconfig.server.json server/worker",
+    "dev:worker": "ts-node-dev -P tsconfig.server.json server/worker --watch server server/worker",
     "dev:init": "npm run dev:init:mongo && npm run dev:init:sql",
     "dev:init:mongo": "ts-node -P tsconfig.server.json server/init.ts",
     "dev:init:sql": "ts-node -P tsconfig.database.json database/seeds/index.ts",
@@ -35,7 +35,8 @@
     "build-storybook": "build-storybook",
     "zapatos": "zapatos",
     "telepresence:intercept": "./bin/telepresence_intercept.sh",
-    "telepresence:leave": "./bin/telepresence_leave.sh"
+    "telepresence:leave": "./bin/telepresence_leave.sh",
+    "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts"
   },
   "dependencies": {
     "@azure/identity": "^1.2.3",
