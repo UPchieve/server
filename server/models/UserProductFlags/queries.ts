@@ -78,7 +78,6 @@ export async function getPublicUPFByUserId(
       },
       {
         gatesQualified: 1,
-        partnerSchoolGatesQualified: 1,
       }
     )
       .lean()
