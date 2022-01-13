@@ -33,7 +33,6 @@ import DashboardBanner from '../DashboardBanner'
 import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
-import ArrowIcon from '@/assets/arrow.svg'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -53,7 +52,6 @@ export default {
     DashboardBanner,
     SubjectSelection,
     FirstSessionCongratsModal,
-    ArrowIcon
   },
   created() {
     if (this.user && this.user.isBanned) {
@@ -189,20 +187,6 @@ export default {
 
   &--downtime {
     background-color: $c-error-red;
-  }
-}
-
-.gates {
-  &__learn-more {
-    color: #fff;
-    text-decoration: underline;
-  }
-
-  &__arrow-icon {
-    fill: currentColor;
-    height: 16px;
-    width: 16px;
-    margin-left: 0.25em;
   }
 }
 </style>
