@@ -3,33 +3,7 @@
     <dashboard-banner />
     <div class="dashboard-notices">
       <div
-        v-if="showGatesQualifiedBanner"
-        class="dashboard-notice dashboard-notice--info"
-      >
-        <span v-if="isGatesQualified">
-        Join our research study to earn $$ and be entered to win an iPad!
-        <a
-          href="https://docs.google.com/document/d/1XXIn7g3bnah18Q7NE2QvrrhZ3imGStpVPtfitiPaWCQ"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="gates__learn-more"
-          >Learn more<arrow-icon class="gates__arrow-icon"
-        /></a>
-        </span>
-
-        <span v-else-if="isPartnerSchoolGatesQualified">
-        Sign up for 
-        <a
-          href="https://docs.google.com/document/d/1qtIOFwpsR-pBNDROYPy4qql6LCH4pHjQujDv1tQh09U"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="gates__learn-more"
-          >our research study</a> and earn $50!
-        </span>
-      </div>
-
-      <div
-        v-else-if="!downtimeMessage && noticeMessage"
+        v-if="!downtimeMessage && noticeMessage"
         class="dashboard-notice"
         :class="isLowCoachHour && 'dashboard-notice--warn'"
       >
@@ -122,9 +96,6 @@ export default {
     }),
     ...mapGetters({
       isSessionAlive: 'user/isSessionAlive',
-      isGatesQualified: 'productFlags/isGatesQualified',
-      isPartnerSchoolGatesQualified: 'productFlags/isPartnerSchoolGatesQualified',
-      isGatesStudyActive: 'featureFlags/isGatesStudyActive',
       isReferFriendsActive: 'featureFlags/isReferFriendsActive',
       isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
     }),
@@ -143,29 +114,6 @@ export default {
         return 'Heads up: we have fewer coaches available than normal right now. Try making requests between 12pm-12am ET when possible!'
 
       return ''
-    },
-    isWithinGatesStudyPeriod() {
-      const gatesStudyPeriodStart = moment()
-        .utc()
-        .month('October')
-        .date(18)
-        .year(2021)
-        .startOf('day')
-      const gatesStudyPeriodEnd = moment()
-        .utc()
-        .month('January')
-        .date(28)
-        .year(2022)
-        .endOf('day')
-      return moment()
-        .utc()
-        .isBetween(gatesStudyPeriodStart, gatesStudyPeriodEnd)
-    },
-    showGatesQualifiedBanner() {
-      const isGatesQualified = this.isGatesQualified || this.isPartnerSchoolGatesQualified
-      return (
-        (this.isGatesStudyActive || this.isWithinGatesStudyPeriod) && isGatesQualified
-      )
     },
     downtimeMessage() {
       if (this.isDowntimeBannerActive) {
