@@ -28,7 +28,7 @@ import { HourSummaryStats } from '../services/VolunteerService'
 import {
   studentPartnerManifests,
   volunteerPartnerManifests,
-  sponsorOrgManifests
+  sponsorOrgManifests,
 } from '../partnerManifests'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
@@ -991,7 +991,11 @@ export function processAnalyticsReportDataSheet(
     worksheet.addRow(data[i], 'i')
   }
 
-  if (config.customAnalyticsReportPartnerOrgs.includes(volunteerPartnerManifests[specificPartnerOrg].name)) {
+  if (
+    config.customAnalyticsReportPartnerOrgs.includes(
+      volunteerPartnerManifests[specificPartnerOrg].name
+    )
+  ) {
     // Create sectional headers in the first row for att/verizon reports
     worksheet.getCell('A1').value = 'Volunteer Information'
     worksheet.getCell('H1').value = 'Cumulative Impact'
@@ -1084,7 +1088,9 @@ export function processAnalyticsReportSummarySheet(
 
     // not add unique partner students helped to non-att/verizon reports
     if (
-      !config.customAnalyticsReportPartnerOrgs.includes(volunteerPartnerManifests[specificPartnerOrg].name) &&
+      !config.customAnalyticsReportPartnerOrgs.includes(
+        volunteerPartnerManifests[specificPartnerOrg].name
+      ) &&
       key === 'uniquePartnerStudentsHelped'
     )
       continue
