@@ -16,7 +16,6 @@
   },
   "include": [
     "database/seeds",
-    "database/zapatos"
   ],
   "ts-node": {
     "files": true

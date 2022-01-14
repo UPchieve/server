@@ -13,16 +13,17 @@
     "dev:worker": "ts-node-dev -P tsconfig.server.json server/worker --watch server server/worker",
     "dev:init": "npm run dev:init:mongo && npm run dev:init:sql",
     "dev:init:mongo": "ts-node -P tsconfig.server.json server/init.ts",
-    "dev:init:sql": "ts-node -P tsconfig.database.json database/seeds/index.ts",
+    "dev:init:sql": "ts-node -P database/tsconfig.json database/seeds/index.ts",
     "dev:reset:sql": "./bin/reset_db.sh",
     "html-validate": "html-validate --ext html,vue src",
     "lint:backend": "prettier --write \"server/**/*.ts\" > /dev/null",
     "lint:backend:dry": "prettier --check \"server/**/*.ts\"",
     "lint:frontend": "eslint ./src -c .eslintrc-vue.js --ignore-path .eslintignore-vue --fix --ext .js,.vue",
     "lint:frontend:dry": "eslint ./src -c .eslintrc-vue.js --ignore-path .eslintignore-vue --no-fix --max-warnings 0 --ext .js,.vue",
-    "lint:database": "prettier --write \"database/seeds/**/*.ts\"",
+    "lint:database": "prettier --write \"database/seeds/**/*.ts\" > /dev/null",
     "lint:database:dry": "prettier --check \"database/seeds/**/*.ts\"",
     "lint:sql": "./bin/lint_sql.sh",
+    "lint:sql:manual": "pg-formatter --keyword-case=\"uppercase\" --inplace --placeholder=\":\\w+!\"",
     "lint:write": "npm run lint:backend && npm run lint:frontend",
     "start": "node build/main",
     "test": "npm run test:backend && npm run test:frontend",
@@ -36,6 +37,7 @@
     "build-storybook": "build-storybook",
     "zapatos": "zapatos",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
+    "pgtyped:seeds": "pgtyped --config database/pgtyped.config.json --watch",
     "telepresence:intercept": "./bin/telepresence_intercept.sh",
     "telepresence:leave": "./bin/telepresence_leave.sh",
     "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts"
@@ -149,8 +151,7 @@
     "vue-svg-loader": "^0.16.0",
     "vue-template-compiler": "^2.6.10",
     "vuex": "^3.0.1",
-    "yaml": "^1.10.0",
-    "zapatos": "^5.0.0"
+    "yaml": "^1.10.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",

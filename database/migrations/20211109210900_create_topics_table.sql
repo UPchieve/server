@@ -1,15 +1,15 @@
 -- migrate:up
-create table if not exists upchieve.topics (
-    id serial primary key,
-    name text not null unique,
+CREATE TABLE IF NOT EXISTS upchieve.topics (
+    id serial PRIMARY KEY,
+    name text NOT NULL UNIQUE,
     icon_link text,
     color text,
-    dashboard_order smallint not null unique,
-    display_name text not null,
-    created_at timestamp not null,
-    updated_at timestamp not null
+    dashboard_order smallint NOT NULL UNIQUE,
+    display_name text NOT NULL,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.topics cascade;
+DROP TABLE IF EXISTS upchieve.topics CASCADE;
 

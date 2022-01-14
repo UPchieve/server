@@ -1,18 +1,18 @@
 -- migrate:up
-create table if not exists upchieve.notifications (
-    id uuid primary key,
-    user_id uuid not null references upchieve.users (id),
+CREATE TABLE IF NOT EXISTS upchieve.notifications (
+    id uuid PRIMARY KEY,
+    user_id uuid NOT NULL REFERENCES upchieve.users (id),
     sent_at timestamp,
-    type_id int not null references upchieve.notification_types (id),
-    method_id int not null references upchieve.notification_methods (id),
-    priority_group_id int not null references upchieve.notification_priority_groups (id),
+    type_id int NOT NULL REFERENCES upchieve.notification_types (id),
+    method_id int NOT NULL REFERENCES upchieve.notification_methods (id),
+    priority_group_id int NOT NULL REFERENCES upchieve.notification_priority_groups (id),
     successful boolean,
-    session_id uuid references upchieve.sessions (id),
+    session_id uuid REFERENCES upchieve.sessions (id),
     message_carrier_id text,
-    created_at timestamp not null,
-    updated_at timestamp not null
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.notifications cascade;
+DROP TABLE IF EXISTS upchieve.notifications CASCADE;
 

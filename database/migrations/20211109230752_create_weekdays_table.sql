@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.weekdays (
-    id serial primary key,
-    day text not null unique,
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.weekdays (
+    id serial PRIMARY KEY,
+    day text NOT NULL UNIQUE,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.weekdays cascade;
+DROP TABLE IF EXISTS upchieve.weekdays CASCADE;
 

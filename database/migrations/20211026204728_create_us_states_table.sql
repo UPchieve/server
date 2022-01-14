@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.us_states (
-    code varchar(2) primary key not null unique,
-    name text not null unique,
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.us_states (
+    code varchar(2) PRIMARY KEY NOT NULL UNIQUE,
+    name text NOT NULL UNIQUE,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.us_states cascade;
+DROP TABLE IF EXISTS upchieve.us_states CASCADE;
 

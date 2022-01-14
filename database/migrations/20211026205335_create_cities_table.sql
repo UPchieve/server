@@ -1,12 +1,12 @@
 -- migrate:up
-create table if not exists upchieve.cities (
-    id serial primary key,
-    name text not null unique,
-    us_state_code varchar(2) references upchieve.us_states (code),
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.cities (
+    id serial PRIMARY KEY,
+    name text NOT NULL UNIQUE,
+    us_state_code varchar(2) REFERENCES upchieve.us_states (code),
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.cities cascade;
+DROP TABLE IF EXISTS upchieve.cities CASCADE;
 

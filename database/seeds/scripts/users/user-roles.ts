@@ -1,12 +1,15 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function userRoles() {
-  await db
-    .insert('user_roles', [
-      { updated_at: new Date(), created_at: new Date(), name: 'student' },
-      { updated_at: new Date(), created_at: new Date(), name: 'volunteer' },
-      { updated_at: new Date(), created_at: new Date(), name: 'admin' },
-    ])
-    .run(pool)
+export async function userRoles(): Promise<NameToId> {
+  const roles = [{ name: 'student' }, { name: 'volunteer' }, { name: 'admin' }]
+  const temp: NameToId = {}
+  for (const role of roles) {
+    temp[role.name] = await wrapInsert(
+      'user_roles',
+      pgQueries.insertUserRole.run,
+      { ...role }
+    )
+  }
+  return temp
 }

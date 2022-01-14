@@ -1,13 +1,13 @@
 -- migrate:up
-create table if not exists upchieve.postal_codes (
-    code text primary key not null unique,
-    us_state_code varchar(2) references upchieve.us_states (code),
+CREATE TABLE IF NOT EXISTS upchieve.postal_codes (
+    code text PRIMARY KEY NOT NULL UNIQUE,
+    us_state_code varchar(2) REFERENCES upchieve.us_states (code),
     income int,
     location point,
-    created_at timestamp not null,
-    updated_at timestamp not null
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.postal_codes cascade;
+DROP TABLE IF EXISTS upchieve.postal_codes CASCADE;
 

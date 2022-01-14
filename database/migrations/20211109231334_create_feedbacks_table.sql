@@ -1,20 +1,20 @@
 -- migrate:up
-create table if not exists upchieve.feedbacks (
-    id uuid primary key,
-    topic_id int references upchieve.topics (id),
-    subject_id int references upchieve.subjects (id),
-    user_role_id int references upchieve.user_roles (id),
-    session_id uuid references upchieve.sessions (id),
+CREATE TABLE IF NOT EXISTS upchieve.feedbacks (
+    id uuid PRIMARY KEY,
+    topic_id int REFERENCES upchieve.topics (id),
+    subject_id int REFERENCES upchieve.subjects (id),
+    user_role_id int REFERENCES upchieve.user_roles (id),
+    session_id uuid REFERENCES upchieve.sessions (id),
     student_tutoring_feedback json,
     student_counseling_feedback json,
     volunteer_feedback json,
     comment text,
-    user_id uuid references upchieve.users (id),
+    user_id uuid REFERENCES upchieve.users (id),
     legacy_feedbacks json,
-    created_at timestamp not null,
-    updated_at timestamp not null
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.feedbacks cascade;
+DROP TABLE IF EXISTS upchieve.feedbacks CASCADE;
 

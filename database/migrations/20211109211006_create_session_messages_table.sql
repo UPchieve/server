@@ -1,13 +1,13 @@
 -- migrate:up
-create table if not exists upchieve.session_messages (
-    id uuid primary key,
-    sender_id uuid references upchieve.users (id),
+CREATE TABLE IF NOT EXISTS upchieve.session_messages (
+    id uuid PRIMARY KEY,
+    sender_id uuid REFERENCES upchieve.users (id),
     contents text,
-    session_id uuid not null references upchieve.sessions (id),
-    created_at timestamp not null,
-    updated_at timestamp not null
+    session_id uuid NOT NULL REFERENCES upchieve.sessions (id),
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.session_messages cascade;
+DROP TABLE IF EXISTS upchieve.session_messages CASCADE;
 
