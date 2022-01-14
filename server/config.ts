@@ -196,9 +196,15 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
     'localManifests/volunteer.yaml',
 
-  customVolunteerPartnerOrgs: (process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus').split(','),
-  priorityMatchingPartnerOrgs: (process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus').split(','),
-  priorityMatchingSponsorOrgs: (process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus').split(','),
+  customVolunteerPartnerOrgs: (
+    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
+  ).split(','),
+  priorityMatchingPartnerOrgs: (
+    process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus'
+  ).split(','),
+  priorityMatchingSponsorOrgs: (
+    process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus'
+  ).split(','),
 
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
