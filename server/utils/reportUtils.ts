@@ -28,6 +28,7 @@ import { HourSummaryStats } from '../services/VolunteerService'
 import {
   studentPartnerManifests,
   volunteerPartnerManifests,
+  sponsorOrgManifests
 } from '../partnerManifests'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
@@ -393,6 +394,31 @@ export function getSumOperatorForDateRange(
   }
 }
 
+export function getSumOperatorForTimeTutoredDateRange(
+  startDate: Date,
+  endDate: Date,
+  fieldToCompareDateRange: DATE_RANGE_COMPARISON_FIELDS = DATE_RANGE_COMPARISON_FIELDS.CREATED_AT
+) {
+  return {
+    $sum: {
+      $cond: [
+        {
+          $and: [
+            {
+              $gte: [fieldToCompareDateRange, startDate],
+            },
+            {
+              $lte: [fieldToCompareDateRange, endDate],
+            },
+          ],
+        },
+        '$timeTutored',
+        0,
+      ],
+    },
+  }
+}
+
 interface GetOnboardingStatusOptions {
   isOnboarded: boolean
   isDeactivated: boolean
@@ -443,8 +469,8 @@ export interface PartnerVolunteerAnalytics {
   sessionAnalytics: {
     uniqueStudentsHelped: [GroupStats]
     sessionStats: [GroupStats]
-    uniqueCLCStudentsHelped: [GroupStats]
-    sessionCLCStats: [GroupStats]
+    uniquePartnerStudentsHelped: [GroupStats]
+    sessionPartnerStats: [GroupStats]
     timeTutoredPartnerStats: [GroupStats]
   }
   textNotifications: GroupStats
@@ -464,21 +490,21 @@ export interface AnalyticsReportRow {
   certificationsReceived: number // int
   totalTextsReceived: number // int
   totalSessionsCompleted: number
-  totalCLCSessionsCompleted?: number
+  totalPartnerSessionsCompleted: number
   totalUniqueStudentsHelped: number
-  totalUniqueCLCStudentsHelped?: number
+  totalUniquePartnerStudentsHelped: number
   totalTutoringHours: number // Number(number.toFixed(2))
-  totalCLCStudentsTutoringHours?: number
+  totalPartnerStudentsTutoringHours: number
   totalTrainingHours: number
   totalElapsedAvailabilityHours: number
   totalVolunteerHours: number
   dateRangeTextsReceived: number
   dateRangeSessionsCompleted: number
-  dateRangeCLCSessionsCompleted?: number
+  dateRangePartnerSessionsCompleted: number
   dateRangeUniqueStudentsHelped: number
-  dateRangeUniqueCLCStudentsHelped?: number
+  dateRangeUniquePartnerStudentsHelped: number
   dateRangeTutoringHours: number
-  dateRangeCLCStudentsTutoringHours?: number
+  dateRangePartnerStudentsTutoringHours: number
   dateRangeTrainingHours: number
   dateRangeElapsedAvailabilityHours: number
   dateRangeVolunteerHours: number
@@ -492,14 +518,14 @@ export function getAnalyticsReportRow(
   const {
     uniqueStudentsHelped,
     sessionStats,
-    uniqueCLCStudentsHelped,
-    sessionCLCStats,
+    uniquePartnerStudentsHelped,
+    sessionPartnerStats,
     timeTutoredPartnerStats,
   } = sessionAnalytics
   const [uniqueStudentsHelpedStats] = uniqueStudentsHelped
-  const [uniqueCLCStudentsHelpedStats] = uniqueCLCStudentsHelped
+  const [uniquePartnerStudentsHelpedStats] = uniquePartnerStudentsHelped
   const [sessionGroupStats] = sessionStats
-  const [sessionCLCGroupStats] = sessionCLCStats
+  const [sessionPartnerGroupStats] = sessionPartnerStats
   const [timeTutoredPartnerGroupStats] = timeTutoredPartnerStats
   const row = {} as AnalyticsReportRow
 
@@ -530,17 +556,17 @@ export function getAnalyticsReportRow(
     ? volunteer.textNotifications.total
     : 0
   row.totalSessionsCompleted = sessionGroupStats ? sessionGroupStats.total : 0
-  row.totalCLCSessionsCompleted = sessionCLCGroupStats
-    ? sessionCLCGroupStats.total
+  row.totalPartnerSessionsCompleted = sessionPartnerGroupStats
+    ? sessionPartnerGroupStats.total
     : 0
   row.totalUniqueStudentsHelped = uniqueStudentsHelpedStats
     ? uniqueStudentsHelpedStats.total
     : 0
-  row.totalUniqueCLCStudentsHelped = uniqueCLCStudentsHelpedStats
-    ? uniqueCLCStudentsHelpedStats.total
+  row.totalUniquePartnerStudentsHelped = uniquePartnerStudentsHelpedStats
+    ? uniquePartnerStudentsHelpedStats.total
     : 0
   row.totalTutoringHours = volunteer.hourSummaryTotal.totalCoachingHours
-  row.totalCLCStudentsTutoringHours = timeTutoredPartnerGroupStats
+  row.totalPartnerStudentsTutoringHours = timeTutoredPartnerGroupStats
     ? timeTutoredPartnerGroupStats.total
     : 0
   row.totalTrainingHours = volunteer.hourSummaryTotal.totalQuizzesPassed
@@ -556,17 +582,17 @@ export function getAnalyticsReportRow(
   row.dateRangeSessionsCompleted = sessionGroupStats
     ? sessionGroupStats.totalWithinDateRange
     : 0
-  row.dateRangeCLCSessionsCompleted = sessionCLCGroupStats
-    ? sessionCLCGroupStats.totalWithinDateRange
+  row.dateRangePartnerSessionsCompleted = sessionPartnerGroupStats
+    ? sessionPartnerGroupStats.totalWithinDateRange
     : 0
   row.dateRangeUniqueStudentsHelped = uniqueStudentsHelpedStats
     ? uniqueStudentsHelpedStats.totalWithinDateRange
     : 0
-  row.dateRangeUniqueCLCStudentsHelped = uniqueCLCStudentsHelpedStats
-    ? uniqueCLCStudentsHelpedStats.totalWithinDateRange
+  row.dateRangeUniquePartnerStudentsHelped = uniquePartnerStudentsHelpedStats
+    ? uniquePartnerStudentsHelpedStats.totalWithinDateRange
     : 0
   row.dateRangeTutoringHours = volunteer.hourSummaryDateRange.totalCoachingHours
-  row.dateRangeCLCStudentsTutoringHours = timeTutoredPartnerGroupStats
+  row.dateRangePartnerStudentsTutoringHours = timeTutoredPartnerGroupStats
     ? timeTutoredPartnerGroupStats.totalWithinDateRange
     : 0
   row.dateRangeTrainingHours = volunteer.hourSummaryDateRange.totalQuizzesPassed
@@ -631,11 +657,19 @@ export async function getUniqueStudentStats(
   ])) as unknown) as GroupStats[]
 }
 
-export async function getUniqueCLCStudentStats(
+export async function getUniquePartnerStudentStats(
   partnerOrg: string,
   startDate: Date,
   endDate: Date
 ) {
+  let specificStudentPartnerOrg
+  let associatedPartnerSchools: Types.ObjectId[] = []
+  if (partnerOrg === 'att') {
+    specificStudentPartnerOrg = 'att-connected-learning'
+  }
+  if (partnerOrg === 'verizon') {
+    associatedPartnerSchools = sponsorOrgManifests.vils.schools
+  }
   return ((await getVolunteersWithPipeline([
     {
       $match: {
@@ -645,45 +679,37 @@ export async function getUniqueCLCStudentStats(
     {
       $lookup: {
         from: 'sessions',
-        let: {
-          volunteerPastSessions: '$pastSessions',
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ['$_id', '$$volunteerPastSessions'],
-              },
-            },
-          },
-          {
-            $lookup: {
-              from: 'users',
-              localField: 'student',
-              foreignField: '_id',
-              as: 'student',
-            },
-          },
-          {
-            unwind: '$student',
-          },
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$_id', '$$studentId'] },
-                  { $eq: ['$studentPartnerOrg', partnerOrg] },
-                ],
-              },
-            },
-          },
-        ],
+        foreignField: '_id',
+        localField: 'pastSessions',
         as: 'pastSession',
       },
     },
     {
-      $unwind: {
-        path: '$pastSession',
+      $unwind: '$pastSession',
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'student',
+        foreignField: '_id',
+        as: 'student',
+      },
+    },
+    {
+      unwind: '$student',
+    },
+    {
+      $match: {
+        $expr: {
+          $or: [
+            {
+              $eq: ['$student.studentPartnerOrg', specificStudentPartnerOrg],
+            },
+            {
+              $in: ['$student.approvedHighschool', associatedPartnerSchools],
+            },
+          ],
+        },
       },
     },
     {
@@ -726,7 +752,7 @@ export interface AnalyticsReportSummary {
   pickupRate: AnalyticsReportSummaryData
   volunteerHours: AnalyticsReportSummaryData
   uniqueStudentsHelped: AnalyticsReportSummaryData
-  uniqueCLCStudentsHelped?: AnalyticsReportSummaryData
+  uniquePartnerStudentsHelped: AnalyticsReportSummaryData
 }
 
 function dividend(numerator: number, denominator: number): number {
@@ -754,7 +780,7 @@ export async function getAnalyticsReportSummary(
     pickupRate: { ...defaultData },
     volunteerHours: { ...defaultData },
     uniqueStudentsHelped: { ...defaultData },
-    uniqueCLCStudentsHelped: { ...defaultData },
+    uniquePartnerStudentsHelped: { ...defaultData },
   } as AnalyticsReportSummary
 
   for (const row of report) {
@@ -820,7 +846,7 @@ export async function getAnalyticsReportSummary(
     endDate
   )
 
-  const [uniqueCLCStudentStats] = await getUniqueCLCStudentStats(
+  const [uniquePartnerStudentStats] = await getUniquePartnerStudentStats(
     partnerOrg,
     startDate,
     endDate
@@ -833,19 +859,12 @@ export async function getAnalyticsReportSummary(
     ? uniqueStudentStats.totalWithinDateRange
     : 0
 
-  // only hydrate column for att and verizon reports
-  if (
-    summary.uniqueCLCStudentsHelped &&
-    (partnerOrg === 'att' || partnerOrg === 'verizon')
-  ) {
-    summary.uniqueCLCStudentsHelped.total = uniqueCLCStudentStats
-      ? uniqueCLCStudentStats.total
-      : 0
-    summary.uniqueCLCStudentsHelped.totalWithinDateRange = uniqueCLCStudentStats
-      ? uniqueCLCStudentStats.totalWithinDateRange
-      : 0
-  } else delete summary['uniqueCLCStudentsHelped']
-
+  summary.uniquePartnerStudentsHelped.total = uniquePartnerStudentStats
+    ? uniquePartnerStudentStats.total
+    : 0
+  summary.uniquePartnerStudentsHelped.totalWithinDateRange = uniquePartnerStudentStats
+    ? uniquePartnerStudentStats.totalWithinDateRange
+    : 0
   return summary
 }
 
@@ -859,24 +878,25 @@ const analyticsReportDataHeaderMapping = {
   certificationsReceived: 'Certifications received',
   totalTextsReceived: 'Total texts received',
   totalSessionsCompleted: 'Total sessions completed',
-  totalCLCSessionsCompleted: 'Total sessions with CLC students',
+  totalPartnerSessionsCompleted: 'Total sessions with partner students',
   totalUniqueStudentsHelped: 'Total unique students helped',
-  totalUniqueCLCStudentsHelped: 'Total unique CLC students helped',
+  totalUniquePartnerStudentsHelped: 'Total unique partner students helped',
   totalTutoringHours: 'Total tutoring hours',
-  totalCLCStudentsTutoringHours: 'Total tutoring hours with CLC students',
+  totalPartnerStudentsTutoringHours:
+    'Total tutoring hours with partner students',
   totalTrainingHours: 'Total training hours',
   totalElapsedAvailabilityHours: 'Total elapsed availability hours',
   totalVolunteerHours: 'Total hours',
   dateRangeTextsReceived: 'Texts received within date range',
   dateRangeSessionsCompleted: 'Sessions completed within date range',
-  dateRangeCLCSessionsCompleted:
-    'Sessions completed with CLC students within date range',
+  dateRangePartnerSessionsCompleted:
+    'Sessions completed with partner students within date range',
   dateRangeUniqueStudentsHelped: 'Unique students helped within date range',
-  dateRangeUniqueCLCStudentsHelped:
-    'Unique CLC students helped within date range',
+  dateRangeUniquePartnerStudentsHelped:
+    'Unique partner students helped within date range',
   dateRangeTutoringHours: 'Tutoring hours within date range',
-  dateRangeCLCStudentsTutoringHours:
-    'Tutoring hours with CLC students within date range',
+  dateRangePartnerStudentsTutoringHours:
+    'Tutoring hours with partner students within date range',
   dateRangeTrainingHours: 'Training hours within date range',
   dateRangeElapsedAvailabilityHours:
     'Elapsed availability hours within date range',
@@ -892,7 +912,7 @@ const analyticsReportSummaryHeaderMapping = {
   pickupRate: 'Pick-up rate',
   volunteerHours: 'Volunteer hours completed',
   uniqueStudentsHelped: 'Unique students helped',
-  uniqueCLCStudentsHelped: 'Unique partner students helped',
+  uniquePartnerStudentsHelped: 'Unique partner students helped',
 }
 
 export function applyAnalyticsReportDataStyles(worksheet: exceljs.Worksheet) {
@@ -971,13 +991,13 @@ export function processAnalyticsReportDataSheet(
     worksheet.addRow(data[i], 'i')
   }
 
-  if (config.customAnalyticsReportPartnerOrgs.includes(specificPartnerOrg)) {
+  if (config.customAnalyticsReportPartnerOrgs.includes(volunteerPartnerManifests[specificPartnerOrg].name)) {
     // Create sectional headers in the first row for att/verizon reports
     worksheet.getCell('A1').value = 'Volunteer Information'
     worksheet.getCell('H1').value = 'Cumulative Impact'
-    worksheet.getCell('K1').value = 'Cumulative Volunteer Hours'
-    worksheet.getCell('O1').value = `Impact from ${startDate} - ${endDate}`
-    worksheet.getCell('R1').value = `Hours between ${startDate} - ${endDate}`
+    worksheet.getCell('M1').value = 'Cumulative Volunteer Hours'
+    worksheet.getCell('R1').value = `Impact from ${startDate} - ${endDate}`
+    worksheet.getCell('W1').value = `Hours between ${startDate} - ${endDate}`
     worksheet.getCell(
       'J2'
     ).value = `Total sessions with ${specificPartnerOrg} students`
@@ -1064,8 +1084,8 @@ export function processAnalyticsReportSummarySheet(
 
     // not add unique partner students helped to non-att/verizon reports
     if (
-      !config.customAnalyticsReportPartnerOrgs.includes(specificPartnerOrg) &&
-      key === 'Unique partner students helped'
+      !config.customAnalyticsReportPartnerOrgs.includes(volunteerPartnerManifests[specificPartnerOrg].name) &&
+      key === 'uniquePartnerStudentsHelped'
     )
       continue
     else if (key === 'Unique partner students helped') {

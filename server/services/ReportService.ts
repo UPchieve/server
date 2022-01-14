@@ -23,6 +23,7 @@ import {
   generateTelecomReport,
   getAnalyticsReportRow,
   getSumOperatorForDateRange,
+  getSumOperatorForTimeTutoredDateRange,
   AnalyticsReportRow,
   AnalyticsReportSummary,
   PartnerVolunteerAnalytics,
@@ -661,12 +662,11 @@ export async function generatePartnerAnalyticsReport(
   if (start >= end) throw new Error('Invalid date range')
 
   let specificStudentPartnerOrg
-  let associatedPartnerSchools
+  let associatedPartnerSchools: Types.ObjectId[] = []
   if (partnerOrg === 'att') {
     specificStudentPartnerOrg = 'att-connected-learning'
   }
   if (partnerOrg === 'verizon') {
-    specificStudentPartnerOrg = 'vils'
     associatedPartnerSchools = sponsorOrgManifests.vils.schools
   }
 
@@ -792,7 +792,7 @@ export async function generatePartnerAnalyticsReport(
                 },
               ],
               // group att and verizon partner students helped by their ids
-              uniqueCLCstudentsHelped: [
+              uniquePartnerStudentsHelped: [
                 getSpecificPartnerStudents,
                 {
                   $group: {
@@ -806,7 +806,7 @@ export async function generatePartnerAnalyticsReport(
                 },
                 {
                   $group: {
-                    _id: 'null',
+                    _id: null,
                     total: { $sum: 1 },
                     totalWithinDateRange: {
                       $sum: {
@@ -821,8 +821,7 @@ export async function generatePartnerAnalyticsReport(
                 },
               ],
               // @todo check if this generates only sessions completed with att or verizon students
-              // might be a better idea to create a new query for this
-              sessionCLCStats: [
+              sessionPartnerStats: [
                 getSpecificPartnerStudents,
                 {
                   $group: {
@@ -841,7 +840,7 @@ export async function generatePartnerAnalyticsReport(
                   $group: {
                     _id: null,
                     total: { $sum: '$timeTutored' },
-                    totalWithinDateRange: getSumOperatorForDateRange(
+                    totalWithinDateRange: getSumOperatorForTimeTutoredDateRange(
                       start,
                       end
                     ),
@@ -931,16 +930,7 @@ export async function generatePartnerAnalyticsReport(
       hourSummaryDateRange,
     }
     const row = getAnalyticsReportRow(volunteerWithAnalytics)
-    // if (partnerOrg !== 'att' && partnerOrg !== 'verizon') {
-    //   delete row.totalCLCSessionsCompleted
-    //   delete row.totalUniqueCLCStudentsHelped
-    //   delete row.totalCLCStudentsTutoringHours
-    //   delete row.dateRangeCLCSessionsCompleted
-    //   delete row.dateRangeCLCStudentsTutoringHours
-    //   delete row.dateRangeUniqueCLCStudentsHelped
-    // } else {
     report.push(row)
-    // }
   }
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary

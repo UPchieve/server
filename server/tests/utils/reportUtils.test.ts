@@ -51,14 +51,14 @@ function buildAnalyticVolunteer(
           totalWithinDateRange: 0,
         },
       ],
-      uniqueCLCStudentsHelped: [
+      uniquePartnerStudentsHelped: [
         {
           _id: null,
           total: 0,
           totalWithinDateRange: 0,
         },
       ],
-      sessionCLCStats: [
+      sessionPartnerStats: [
         {
           _id: null,
           total: 0,
@@ -269,14 +269,14 @@ describe('getAnalyticsReportSummary', () => {
               totalWithinDateRange: 2,
             },
           ],
-          uniqueCLCStudentsHelped: [
+          uniquePartnerStudentsHelped: [
             {
               _id: null,
               total: 0,
               totalWithinDateRange: 0,
             },
           ],
-          sessionCLCStats: [
+          sessionPartnerStats: [
             {
               _id: null,
               total: 2,
@@ -326,14 +326,14 @@ describe('getAnalyticsReportSummary', () => {
               totalWithinDateRange: 4,
             },
           ],
-          uniqueCLCStudentsHelped: [
+          uniquePartnerStudentsHelped: [
             {
               _id: null,
               total: 0,
               totalWithinDateRange: 0,
             },
           ],
-          sessionCLCStats: [
+          sessionPartnerStats: [
             {
               _id: null,
               total: 5,
@@ -410,7 +410,7 @@ describe('getAnalyticsReportSummary', () => {
         total: 0,
         totalWithinDateRange: 0,
       },
-      uniqueCLCStudentsHelped: {
+      uniquePartnerStudentsHelped: {
         total: 0,
         totalWithinDateRange: 0,
       },
