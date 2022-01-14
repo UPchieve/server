@@ -47,8 +47,8 @@ async function main() {
     )
   })
 
-  process.on('SIGTERM', async () => {
-    logger.info('SIGTERM signal received')
+  async function gracefulShutdown(signal: string) {
+    logger.info(`${signal} signal received`)
     // immediately stop accepting new connections to the server
     server.close(async err => {
       if (err) {
@@ -79,7 +79,11 @@ async function main() {
     await setTimeout(5000, () => {
       connections.forEach(conn => conn.destroy())
     })
-  })
+  }
+
+  process.on('SIGTERM', gracefulShutdown)
+  process.on('SIGINT', gracefulShutdown)
+  process.on('SIGQUIT', gracefulShutdown)
 }
 
 try {
