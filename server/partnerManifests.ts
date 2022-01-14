@@ -8,6 +8,7 @@ import { asObjectId } from './utils/type-utils'
 let volunteerManifestsYaml: string | undefined
 let studentManifestsYaml: string | undefined
 let sponsorOrgManifestsYaml: string | undefined
+let associatedPartnerManifestsYaml: string | undefined
 
 export interface StudentPartnerManifest {
   name: string
@@ -30,9 +31,20 @@ export interface SponsorOrgManifest {
   partnerOrgs: string[]
 }
 
+export interface AssociatedPartnerManifest {
+  volunteerPartnerOrg: string
+  volunteerOrgDisplay: string
+  studentPartnerOrg?: string
+  studentSponsorOrg?: string
+  studentOrgDisplay: string
+}
+
 export let volunteerPartnerManifests: { [k: string]: VolunteerPartnerManifest }
 export let studentPartnerManifests: { [k: string]: StudentPartnerManifest }
 export let sponsorOrgManifests: { [k: string]: SponsorOrgManifest }
+export let associatedPartnerManifests: {
+  [k: string]: AssociatedPartnerManifest
+}
 
 if (
   process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFESTS === '' ||
@@ -88,4 +100,23 @@ for (const org in sponsorOrgManifests) {
     }
     sponsorOrgManifests[org].schools = schoolObjectIds
   }
+}
+
+if (
+  process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS === '' ||
+  process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS === undefined
+) {
+  const associatedPartnerManifestsPath = path.join(
+    __dirname,
+    config.associatedPartnerManifestPath
+  )
+  associatedPartnerManifestsYaml = fs.readFileSync(
+    associatedPartnerManifestsPath,
+    'utf8'
+  )
+  associatedPartnerManifests = YAML.parse(associatedPartnerManifestsYaml)
+} else {
+  associatedPartnerManifestsYaml =
+    process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS
+  associatedPartnerManifests = YAML.parse(associatedPartnerManifestsYaml || '')
 }

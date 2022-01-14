@@ -103,6 +103,19 @@ export async function getVolunteersContactInfo(
       .exec()
   })
 }
+// TODO: proper type for filter
+export async function getNextVolunteerToNotify(
+  filter: any
+): Promise<VolunteerContactInfo | undefined> {
+  return await wrapRead(async () => {
+    const [volunteer] = (await VolunteerModel.aggregate([
+      { $match: filter },
+      { $project: CONTACT_INFO_PROJECTION },
+      { $sample: { size: 1 } },
+    ])) as VolunteerContactInfo[]
+    if (volunteer) return volunteer as VolunteerContactInfo
+  })
+}
 
 export async function getVolunteersForBlackoutOver(
   startDate: Date
