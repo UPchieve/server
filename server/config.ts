@@ -35,18 +35,6 @@ if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
   nodeEnv = 'dev'
 }
 
-const customVolunteerPartnerOrgList =
-  process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
-const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
-
-const priorityMatchingPartnerOrgList =
-  process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus'
-const priorityMatchingPartnerOrgs = priorityMatchingPartnerOrgList.split(',')
-
-const priorityMatchingSponsorOrgList =
-  process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus'
-const priorityMatchingSponsorOrgs = priorityMatchingSponsorOrgList.split(',')
-
 const config: Static<typeof Config> = {
   NODE_ENV: nodeEnv,
   SSL_CERT_PATH: '',
@@ -208,9 +196,9 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
     'localManifests/volunteer.yaml',
 
-  customVolunteerPartnerOrgs: customVolunteerPartnerOrgs,
-  priorityMatchingPartnerOrgs,
-  priorityMatchingSponsorOrgs,
+  customVolunteerPartnerOrgs: (process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus').split(','),
+  priorityMatchingPartnerOrgs: (process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus').split(','),
+  priorityMatchingSponsorOrgs: (process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus').split(','),
 
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
