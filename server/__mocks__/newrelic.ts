@@ -12,10 +12,14 @@ export default {
   startWebTransaction: (url: string, handler: () => void) => {
     handler()
   },
-  startSegment: async (name: string, record: boolean, handler: () => Promise<void>) => {
+  startSegment: async (
+    name: string,
+    record: boolean,
+    handler: () => Promise<void>
+  ) => {
     await handler()
   },
   addCustomAttribute: (key: string, value: unknown) => {
     return
-  }
+  },
 }
