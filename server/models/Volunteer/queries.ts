@@ -819,7 +819,7 @@ type IVolunteerContactInfo = {
   volunteerPartnerOrg?: string
 }
 
-export async function getNextVolunteerToNotify(
+export async function IgetNextVolunteerToNotify(
   subject: string,
   day: number,
   hour: number,
