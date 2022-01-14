@@ -35,16 +35,6 @@ if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
   nodeEnv = 'dev'
 }
 
-const customVolunteerPartnerOrgList =
-  process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
-const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
-
-const customAnalyticsReportPartnerOrgList =
-  process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'att,verizon'
-const customAnalyticsReportPartnerOrgs = customAnalyticsReportPartnerOrgList.split(
-  ','
-)
-
 const config: Static<typeof Config> = {
   NODE_ENV: nodeEnv,
   SSL_CERT_PATH: '',
@@ -206,8 +196,18 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
     'localManifests/volunteer.yaml',
 
-  customVolunteerPartnerOrgs: customVolunteerPartnerOrgs,
-  customAnalyticsReportPartnerOrgs: customAnalyticsReportPartnerOrgs,
+  customVolunteerPartnerOrgs: (
+    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
+  ).split(','),
+  priorityMatchingPartnerOrgs: (
+    process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus'
+  ).split(','),
+  priorityMatchingSponsorOrgs: (
+    process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus'
+  ).split(','),
+  customAnalyticsReportPartnerOrgs: (
+    process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'bogus'
+  ).split(','),
 
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
@@ -216,6 +216,10 @@ const config: Static<typeof Config> = {
   sponsorOrgManifestPath:
     process.env.SUBWAY_SPONSOR_ORG_MANIFEST_PATH ||
     'localManifests/sponsor-orgs.yaml',
+
+  associatedPartnerManifestPath:
+    process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS ||
+    'localManifests/associated-partners.yaml',
 
   clusterServerAddress:
     process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',
@@ -335,6 +339,7 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_WHITEBOARD_STORAGE_CONTAINER || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
+  ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
 }
 
 module.exports = config

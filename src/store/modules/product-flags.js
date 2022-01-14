@@ -14,7 +14,4 @@ export default {
       commit('setUserProductFlags', response.body.flags)
     }
   },
-  getters: {
-    isGatesQualified: state => state.flags.gatesQualified
-  }
 }

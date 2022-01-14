@@ -21,11 +21,7 @@ ContactFormRouter.routes(app)
 const agent = request.agent(app)
 
 beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  })
+  await mongoose.connect(global.__MONGO_URI__)
 })
 
 afterAll(async () => {
@@ -61,7 +57,7 @@ test('contact form returns 200 with valid request with userId', async () => {
       })
     }
   )
-  const id = mongoose.Types.ObjectId().toString()
+  const id = new mongoose.Types.ObjectId().toString()
   const res = await agent
     .post('/api-public/contact/send')
     .set('Accept', 'application/json')
@@ -77,7 +73,7 @@ test('contact form returns 200 with valid request with userId', async () => {
 })
 
 test('contact form returns 500 with invalid userId', async () => {
-  const id = mongoose.Types.ObjectId().toString()
+  const id = new mongoose.Types.ObjectId().toString()
   mockedContactFormService.saveContactFormSubmission.mockRejectedValueOnce(
     new UserNotFoundError('userId', id)
   )
@@ -96,7 +92,7 @@ test('contact form returns 500 with invalid userId', async () => {
 })
 
 test('contact form returns 500 with invalid data', async () => {
-  const id = mongoose.Types.ObjectId().toString()
+  const id = new mongoose.Types.ObjectId().toString()
   mockedContactFormService.saveContactFormSubmission.mockRejectedValueOnce(
     new InputError('your data was bad')
   )
@@ -114,7 +110,7 @@ test('contact form returns 500 with invalid data', async () => {
 })
 
 test('contact form returns 500 with invalid data', async () => {
-  const id = mongoose.Types.ObjectId().toString()
+  const id = new mongoose.Types.ObjectId().toString()
   mockedContactFormService.saveContactFormSubmission.mockImplementationOnce(
     () => {
       return new Promise((resolve, reject) => {
@@ -137,7 +133,7 @@ test('contact form returns 500 with invalid data', async () => {
 })
 
 test('contact form returns 500 with doc creation error', async () => {
-  const id = mongoose.Types.ObjectId().toString()
+  const id = new mongoose.Types.ObjectId().toString()
   mockedContactFormService.saveContactFormSubmission.mockImplementationOnce(
     () => {
       return new Promise((resolve, reject) => {

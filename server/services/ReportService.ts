@@ -145,7 +145,7 @@ export const sessionReport = async (
     $or?: any[]
   } = {}
 
-  if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId)
+  if (highSchoolId) query.approvedHighschool = new ObjectId(highSchoolId)
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg
   if (studentPartnerSite) query.partnerSite = studentPartnerSite
   let sponsor: SponsorOrgManifest
@@ -366,7 +366,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
       $lte: dateStringToDateEST(joinedBefore),
     },
   }
-  if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId)
+  if (highSchoolId) query.approvedHighschool = new ObjectId(highSchoolId)
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg
   if (studentPartnerSite) query.partnerSite = studentPartnerSite
   let sponsor: SponsorOrgManifest

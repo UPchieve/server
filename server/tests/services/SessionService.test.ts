@@ -346,7 +346,7 @@ describe('processAssistmentsSession', () => {
       student: getObjectId(),
       volunteer: getObjectId(),
     })
-    const sessionId = mockValue._id.toString()
+    const sessionId = mockValue._id
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
     )
@@ -371,7 +371,7 @@ describe('processAssistmentsSession', () => {
       student: getObjectId(),
       volunteer: null,
     })
-    const sessionId = mockValue._id.toString()
+    const sessionId = mockValue._id
     mockedSessionRepo.getSessionById.mockImplementationOnce(
       async () => mockValue
     )
@@ -394,7 +394,7 @@ describe('processAssistmentsSession', () => {
       student: getObjectId(),
       volunteer: null,
     })
-    const sessionId = mockValue._id.toString()
+    const sessionId = mockValue._id
     mockedSessionRepo.getSessionById.mockImplementationOnce(async () =>
       buildSession()
     )

@@ -59,7 +59,7 @@ export function asObjectId(s: unknown, errMsg?: string): Types.ObjectId {
   if (s instanceof Types.ObjectId) return s as Types.ObjectId
   else if (typeof s === 'string') {
     try {
-      const x = Types.ObjectId(s as string)
+      const x = new Types.ObjectId(s as string)
       return x
     } catch (err) {
       throw new InputError(`${errMsg} : ${s} is not an ObjectId`)

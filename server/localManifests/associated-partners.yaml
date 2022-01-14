@@ -1,0 +1,22 @@
+# student partner org associated to a partner volunteer org
+example:
+  volunteerPartnerOrg: example
+  volunteerPartnerOrgDisplay: Volunteer - Example 1
+  studentPartnerOrg: example
+  studentSponsorOrg: null
+  studentOrgDisplay: Student - Example 1
+
+# student sponsor org associated to a partner volunteer org
+sponsor:
+  volunteerPartnerOrg: example
+  volunteerPartnerOrgDisplay: Volunteer - Sponsor Org Example
+  studentPartnerOrg: null
+  studentSponsorOrg: sponsor
+  studentOrgDisplay: Student - Sponsor Org Example
+
+sponsor2:
+  volunteerPartnerOrg: example
+  volunteerPartnerOrgDisplay: Volunteer - Sponsor Org 2 Example
+  studentPartnerOrg: null
+  studentSponsorOrg: sponsor2
+  studentOrgDisplay: Student - Sponsor Org 2 Example

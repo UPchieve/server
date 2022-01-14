@@ -16,11 +16,7 @@ let student: User
 let volunteer: User
 
 beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  })
+  await mongoose.connect(global.__MONGO_URI__)
   student = await insertStudent()
   volunteer = await insertVolunteer()
 })
@@ -79,7 +75,7 @@ describe('Test create UserProductFlag model documents', () => {
   })
 
   test('Create errors with non-existent user', async () => {
-    const user = mongoose.Types.ObjectId()
+    const user = new mongoose.Types.ObjectId()
 
     let error: RepoCreateError
     try {

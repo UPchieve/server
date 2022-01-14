@@ -124,9 +124,12 @@ export const Config = Record({
   socketApiKey: String,
   volunteerPartnerManifestPath: String,
   customVolunteerPartnerOrgs: Array(String),
+  priorityMatchingPartnerOrgs: Array(String),
+  priorityMatchingSponsorOrgs: Array(String),
   customAnalyticsReportPartnerOrgs: Array(String),
   studentPartnerManifestPath: String,
   sponsorOrgManifestPath: String,
+  associatedPartnerManifestPath: String,
 
   clusterServerAddress: String,
 
@@ -198,4 +201,5 @@ export const Config = Record({
   whiteboardStorageContainer: String,
   version: String,
   fileWorkRootPath: String,
+  ipWhoIsApiKey: String,
 })

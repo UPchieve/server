@@ -79,7 +79,7 @@ describe('initiate verification', () => {
     mockedUserRepo.getUserById.mockResolvedValueOnce(student)
 
     const payload = {
-      userId: Types.ObjectId().toString(),
+      userId: new Types.ObjectId().toString(),
       sendTo: student.email,
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       firstName: student.firstname,
