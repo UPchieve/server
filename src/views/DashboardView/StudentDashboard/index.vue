@@ -3,21 +3,7 @@
     <dashboard-banner />
     <div class="dashboard-notices">
       <div
-        v-if="showGatesQualifiedBanner && isGatesQualified"
-        class="dashboard-notice dashboard-notice--info"
-      >
-        Join our research study to earn $$ and be entered to win an iPad!
-        <a
-          href="https://docs.google.com/document/d/1XXIn7g3bnah18Q7NE2QvrrhZ3imGStpVPtfitiPaWCQ"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="gates__learn-more"
-          >Learn more<arrow-icon class="gates__arrow-icon"
-        /></a>
-      </div>
-
-      <div
-        v-else-if="!downtimeMessage && noticeMessage"
+        v-if="!downtimeMessage && noticeMessage"
         class="dashboard-notice"
         :class="isLowCoachHour && 'dashboard-notice--warn'"
       >
@@ -47,9 +33,6 @@ import DashboardBanner from '../DashboardBanner'
 import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '@/consts'
-import ArrowIcon from '@/assets/arrow.svg'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -69,7 +52,6 @@ export default {
     DashboardBanner,
     SubjectSelection,
     FirstSessionCongratsModal,
-    ArrowIcon
   },
   created() {
     if (this.user && this.user.isBanned) {
@@ -90,7 +72,7 @@ export default {
     }
 
     if (
-      isEnabled(FEATURE_FLAGS.REFER_FRIENDS) &&
+      this.isReferFriendsActive &&
       this.hasSeenFirstSessionCongratsModal
     )
       this.toggleFirstSessionCongratsModal()
@@ -112,7 +94,8 @@ export default {
     }),
     ...mapGetters({
       isSessionAlive: 'user/isSessionAlive',
-      isGatesQualified: 'productFlags/isGatesQualified'
+      isReferFriendsActive: 'featureFlags/isReferFriendsActive',
+      isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
     }),
     isLowCoachHour() {
       return this.currentHour < 12
@@ -130,28 +113,8 @@ export default {
 
       return ''
     },
-    isWithinGatesStudyPeriod() {
-      const gatesStudyPeriodStart = moment()
-        .utc()
-        .month('October')
-        .date(18)
-        .startOf('day')
-      const gatesStudyPeriodEnd = moment()
-        .utc()
-        .month('December')
-        .date(17)
-        .endOf('day')
-      return moment()
-        .utc()
-        .isBetween(gatesStudyPeriodStart, gatesStudyPeriodEnd)
-    },
-    showGatesQualifiedBanner() {
-      return (
-        isEnabled(FEATURE_FLAGS.GATES_STUDY) || this.isWithinGatesStudyPeriod
-      )
-    },
     downtimeMessage() {
-      if (isEnabled(FEATURE_FLAGS.DOWNTIME_BANNER)) {
+      if (this.isDowntimeBannerActive) {
         return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
       } else {
         return ''
@@ -175,7 +138,7 @@ export default {
       if (!isAlive) {
         this.$store.dispatch('app/header/show', defaultHeaderData)
         if (
-          isEnabled(FEATURE_FLAGS.REFER_FRIENDS) &&
+          this.isReferFriendsActive &&
           prevIsAlive &&
           this.hasSeenFirstSessionCongratsModal
         )
@@ -224,20 +187,6 @@ export default {
 
   &--downtime {
     background-color: $c-error-red;
-  }
-}
-
-.gates {
-  &__learn-more {
-    color: #fff;
-    text-decoration: underline;
-  }
-
-  &__arrow-icon {
-    fill: currentColor;
-    height: 16px;
-    width: 16px;
-    margin-left: 0.25em;
   }
 }
 </style>
