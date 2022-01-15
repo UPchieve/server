@@ -5,7 +5,6 @@ import * as UserActionRepo from '../../models/UserAction/queries'
 import * as SessionRepo from '../../models/Session/queries'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as AvailabilityRepo from '../../models/Availability/queries'
-import * as VolunteerService from '../../services/VolunteerService'
 import { buildVolunteer, getObjectId, buildUserAction } from '../generate'
 import { InputError } from '../../models/Errors'
 jest.mock('../../services/SessionService')
@@ -14,7 +13,6 @@ jest.mock('../../models/Session/queries')
 jest.mock('../../models/Volunteer/queries')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
-const mockedVolunteerService = mocked(VolunteerService, true)
 const mockedVolunteerRepo = mocked(VolunteerRepo, true)
 
 function buildAnalyticVolunteer(
@@ -272,8 +270,8 @@ describe('getAnalyticsReportSummary', () => {
           uniquePartnerStudentsHelped: [
             {
               _id: null,
-              total: 0,
-              totalWithinDateRange: 0,
+              total: 1,
+              totalWithinDateRange: 1,
             },
           ],
           sessionPartnerStats: [
@@ -286,8 +284,8 @@ describe('getAnalyticsReportSummary', () => {
           timeTutoredPartnerStats: [
             {
               _id: null,
-              total: 3,
-              totalWithinDateRange: 1,
+              total: 1000 * 60 * 10,
+              totalWithinDateRange: 1000 * 60 * 10,
             },
           ],
         },
@@ -329,8 +327,8 @@ describe('getAnalyticsReportSummary', () => {
           uniquePartnerStudentsHelped: [
             {
               _id: null,
-              total: 0,
-              totalWithinDateRange: 0,
+              total: 5,
+              totalWithinDateRange: 2,
             },
           ],
           sessionPartnerStats: [
@@ -343,8 +341,8 @@ describe('getAnalyticsReportSummary', () => {
           timeTutoredPartnerStats: [
             {
               _id: null,
-              total: 20,
-              totalWithinDateRange: 5,
+              total: 1000 * 60 * 20,
+              totalWithinDateRange: 1000 * 60 * 10,
             },
           ],
         },
@@ -367,9 +365,7 @@ describe('getAnalyticsReportSummary', () => {
     const startDate = new Date('2021-01-01T00:00:00.000+00:00')
     const endDate = new Date('2021-03-01T00:00:00.000+00:00')
 
-    mockedVolunteerRepo.getVolunteersWithPipeline.mockResolvedValueOnce(
-      [] as any[]
-    )
+    mockedVolunteerRepo.getVolunteersWithPipeline.mockResolvedValue([] as any[])
 
     const summary = await reportUtils.getAnalyticsReportSummary(
       'example',
