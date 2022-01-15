@@ -490,21 +490,21 @@ export interface AnalyticsReportRow {
   certificationsReceived: number // int
   totalTextsReceived: number // int
   totalSessionsCompleted: number
-  totalPartnerSessionsCompleted: number
+  totalPartnerSessionsCompleted?: number
   totalUniqueStudentsHelped: number
-  totalUniquePartnerStudentsHelped: number
+  totalUniquePartnerStudentsHelped?: number
   totalTutoringHours: number // Number(number.toFixed(2))
-  totalPartnerStudentsTutoringHours: number
+  totalPartnerStudentsTutoringHours?: number
   totalTrainingHours: number
   totalElapsedAvailabilityHours: number
   totalVolunteerHours: number
   dateRangeTextsReceived: number
   dateRangeSessionsCompleted: number
-  dateRangePartnerSessionsCompleted: number
+  dateRangePartnerSessionsCompleted?: number
   dateRangeUniqueStudentsHelped: number
-  dateRangeUniquePartnerStudentsHelped: number
+  dateRangeUniquePartnerStudentsHelped?: number
   dateRangeTutoringHours: number
-  dateRangePartnerStudentsTutoringHours: number
+  dateRangePartnerStudentsTutoringHours?: number
   dateRangeTrainingHours: number
   dateRangeElapsedAvailabilityHours: number
   dateRangeVolunteerHours: number
@@ -567,7 +567,7 @@ export function getAnalyticsReportRow(
     : 0
   row.totalTutoringHours = volunteer.hourSummaryTotal.totalCoachingHours
   row.totalPartnerStudentsTutoringHours = timeTutoredPartnerGroupStats
-    ? timeTutoredPartnerGroupStats.total
+    ? Number(Number(timeTutoredPartnerGroupStats.total / 3600000).toFixed(2))
     : 0
   row.totalTrainingHours = volunteer.hourSummaryTotal.totalQuizzesPassed
   row.totalElapsedAvailabilityHours = Number(
@@ -593,7 +593,11 @@ export function getAnalyticsReportRow(
     : 0
   row.dateRangeTutoringHours = volunteer.hourSummaryDateRange.totalCoachingHours
   row.dateRangePartnerStudentsTutoringHours = timeTutoredPartnerGroupStats
-    ? timeTutoredPartnerGroupStats.totalWithinDateRange
+    ? Number(
+        Number(
+          timeTutoredPartnerGroupStats.totalWithinDateRange / 3600000
+        ).toFixed(2)
+      )
     : 0
   row.dateRangeTrainingHours = volunteer.hourSummaryDateRange.totalQuizzesPassed
 
@@ -690,13 +694,13 @@ export async function getUniquePartnerStudentStats(
     {
       $lookup: {
         from: 'users',
-        localField: 'student',
+        localField: 'pastSession.student',
         foreignField: '_id',
         as: 'student',
       },
     },
     {
-      unwind: '$student',
+      $unwind: '$student',
     },
     {
       $match: {
@@ -714,7 +718,6 @@ export async function getUniquePartnerStudentStats(
     },
     {
       $group: {
-        // group by filtered out session ids
         _id: '$student._id',
         frequency: { $sum: 1 },
         frequencyWithinDateRange: getSumOperatorForDateRange(
@@ -970,7 +973,7 @@ export function processAnalyticsReportDataSheet(
   worksheet: exceljs.Worksheet,
   startDate: string,
   endDate: string,
-  specificPartnerOrg: string
+  partnerOrg: string
 ) {
   const columnsWithHeaderKeys = []
   const formattedColumnHeaders = []
@@ -987,39 +990,56 @@ export function processAnalyticsReportDataSheet(
   // Add the headers to the second row
   worksheet.getRow(2).values = formattedColumnHeaders
 
+  const isCustomAnalyticsReport = config.customAnalyticsReportPartnerOrgs.includes(
+    partnerOrg
+  )
+
   for (let i = 0; i < data.length; i += 1) {
+    if (!isCustomAnalyticsReport) {
+      delete data[i].totalUniquePartnerStudentsHelped
+      delete data[i].dateRangeUniquePartnerStudentsHelped
+      delete data[i].totalPartnerSessionsCompleted
+      delete data[i].dateRangePartnerSessionsCompleted
+      delete data[i].totalPartnerStudentsTutoringHours
+      delete data[i].dateRangePartnerStudentsTutoringHours
+    }
     worksheet.addRow(data[i], 'i')
   }
 
-  if (
-    config.customAnalyticsReportPartnerOrgs.includes(
-      volunteerPartnerManifests[specificPartnerOrg].name
-    )
-  ) {
+  const sectionalHeaders = {
+    volunteerInformation: 'Volunteer Information',
+    totalImpact: 'Cumulative Impact',
+    totalVolunteerHours: 'Cumulative Volunteer Hours',
+    dateRangeImpact: `Impact from ${startDate} - ${endDate}`,
+    dateRangeHours: `Hours between ${startDate} - ${endDate}`,
+  }
+
+  if (isCustomAnalyticsReport) {
+    const partnerName = volunteerPartnerManifests[partnerOrg].name
     // Create sectional headers in the first row for att/verizon reports
-    worksheet.getCell('A1').value = 'Volunteer Information'
-    worksheet.getCell('H1').value = 'Cumulative Impact'
-    worksheet.getCell('M1').value = 'Cumulative Volunteer Hours'
-    worksheet.getCell('R1').value = `Impact from ${startDate} - ${endDate}`
-    worksheet.getCell('W1').value = `Hours between ${startDate} - ${endDate}`
+    worksheet.getCell('A1').value = sectionalHeaders.volunteerInformation
+    worksheet.getCell('H1').value = sectionalHeaders.totalImpact
+    worksheet.getCell('M1').value = sectionalHeaders.totalVolunteerHours
+    worksheet.getCell('R1').value = sectionalHeaders.dateRangeImpact
+    worksheet.getCell('W1').value = sectionalHeaders.dateRangeHours
     worksheet.getCell(
       'J2'
-    ).value = `Total sessions with ${specificPartnerOrg} students`
+    ).value = `Total sessions with ${partnerName} students`
     worksheet.getCell(
       'L2'
-    ).value = `Total unique ${specificPartnerOrg} students helped`
+    ).value = `Total unique ${partnerName} students helped`
     worksheet.getCell(
       'N2'
-    ).value = `Total tutoring hours with ${specificPartnerOrg} students`
+    ).value = `Total tutoring hours with ${partnerName} students`
     worksheet.getCell(
       'T2'
-    ).value = `Sessions completed with ${specificPartnerOrg} students within date range`
+    ).value = `Sessions completed with ${partnerName} students within date range`
     worksheet.getCell(
       'V2'
-    ).value = `Unique ${specificPartnerOrg} students impacted within date range`
+    ).value = `Unique ${partnerName} students impacted within date range`
     worksheet.getCell(
       'X2'
-    ).value = `Tutoring hours with ${specificPartnerOrg} within date range`
+    ).value = `Tutoring hours with ${partnerName} within date range`
     worksheet.mergeCells('A1:G1')
     worksheet.mergeCells('H1:L1')
     worksheet.mergeCells('M1:Q1')
@@ -1027,11 +1047,11 @@ export function processAnalyticsReportDataSheet(
     worksheet.mergeCells('W1:AA1')
   } else {
     // Create sectional headers in the first row for other partner eports
-    worksheet.getCell('A1').value = 'Volunteer Information'
-    worksheet.getCell('H1').value = 'Cumulative Impact'
-    worksheet.getCell('K1').value = 'Cumulative Volunteer Hours'
-    worksheet.getCell('O1').value = `Impact from ${startDate} - ${endDate}`
-    worksheet.getCell('R1').value = `Hours between ${startDate} - ${endDate}`
+    worksheet.getCell('A1').value = sectionalHeaders.volunteerInformation
+    worksheet.getCell('H1').value = sectionalHeaders.totalImpact
+    worksheet.getCell('K1').value = sectionalHeaders.totalVolunteerHours
+    worksheet.getCell('O1').value = sectionalHeaders.dateRangeImpact
+    worksheet.getCell('R1').value = sectionalHeaders.dateRangeHours
     worksheet.mergeCells('A1:G1')
     worksheet.mergeCells('H1:J1')
     worksheet.mergeCells('K1:N1')
@@ -1047,7 +1067,7 @@ export function processAnalyticsReportSummarySheet(
   worksheet: exceljs.Worksheet,
   startDate: string,
   endDate: string,
-  specificPartnerOrg: string
+  partnerOrg: string
 ) {
   const summaryColumnMapping = {
     description: '',
@@ -1069,7 +1089,7 @@ export function processAnalyticsReportSummarySheet(
   worksheet.columns = summaryCols
 
   for (const [key, data] of Object.entries(summary) as [
-    string,
+    keyof typeof analyticsReportSummaryHeaderMapping,
     AnalyticsReportSummaryData
   ][]) {
     let description =
@@ -1086,16 +1106,15 @@ export function processAnalyticsReportSummarySheet(
       totalWithinDateRange = data.totalWithinDateRange
     }
 
-    // not add unique partner students helped to non-att/verizon reports
+    // do not add unique partner students helped row to non-att/verizon reports
     if (
-      !config.customAnalyticsReportPartnerOrgs.includes(
-        volunteerPartnerManifests[specificPartnerOrg].name
-      ) &&
+      !config.customAnalyticsReportPartnerOrgs.includes(partnerOrg) &&
       key === 'uniquePartnerStudentsHelped'
     )
       continue
-    else if (key === 'Unique partner students helped') {
-      description = `Unique ${specificPartnerOrg} students helped`
+    else if (key === 'uniquePartnerStudentsHelped') {
+      const partnerName = volunteerPartnerManifests[partnerOrg].name
+      description = `Unique ${partnerName} students helped`
     }
     worksheet.addRow({ description, total, totalWithinDateRange }, 'i')
   }
