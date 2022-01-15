@@ -11,6 +11,7 @@ import User from '../models/User'
 import {
   SponsorOrgManifest,
   studentPartnerManifests,
+  sponsorOrgManifests,
 } from '../partnerManifests'
 import logger from '../logger'
 import {
@@ -43,7 +44,6 @@ import {
 } from '../models/Volunteer/queries'
 import { asFactory, asString } from '../utils/type-utils'
 import { asSponsorOrg } from '../utils/validators'
-import { sponsorOrgManifests } from '../partnerManifests'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -748,7 +748,7 @@ export async function generatePartnerAnalyticsReport(
             },
           },
           {
-            unwind: '$student',
+            $unwind: '$student',
           },
           {
             $facet: {
@@ -820,7 +820,6 @@ export async function generatePartnerAnalyticsReport(
                   },
                 },
               ],
-              // @todo check if this generates only sessions completed with att or verizon students
               sessionPartnerStats: [
                 getSpecificPartnerStudents,
                 {
@@ -859,7 +858,6 @@ export async function generatePartnerAnalyticsReport(
         preserveNullAndEmptyArrays: true,
       },
     },
-
     // Get the total amount of text messages that were sent to a volunteer
     // and the total amount sent within startDate - endDate
     {
@@ -943,7 +941,7 @@ export async function writeAnalyticsReport(
   data: FullReport,
   startDate: string,
   endDate: string,
-  specificPartnerOrg: string
+  partnerOrg: string
 ) {
   const reportFilePath = getReportFilePath(REPORT_FILE_NAMES.ANALYTICS_REPORT)
   await fsPromises.mkdir(path.parse(reportFilePath).dir, { recursive: true })
@@ -967,14 +965,14 @@ export async function writeAnalyticsReport(
     summarySheet,
     formattedStartDate,
     formattedEndDate,
-    specificPartnerOrg
+    partnerOrg
   )
   processAnalyticsReportDataSheet(
     data.report,
     dataSheet,
     formattedStartDate,
     formattedEndDate,
-    specificPartnerOrg
+    partnerOrg
   )
   summarySheet.commit()
   dataSheet.commit()
