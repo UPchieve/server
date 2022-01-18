@@ -36,6 +36,7 @@ import roundUpToNearestInterval from './round-up-to-nearest-interval'
 import { countCertsByType } from './count-certs-by-type'
 import { asFactory, asOptional, asString } from './type-utils'
 import config from '../config'
+import getAssociatedPartnerOrgByKey from './get-associated-partner-by-key'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query
@@ -666,14 +667,11 @@ export async function getUniquePartnerStudentStats(
   startDate: Date,
   endDate: Date
 ) {
-  let specificStudentPartnerOrg
-  let associatedPartnerSchools: Types.ObjectId[] = []
-  if (partnerOrg === 'att') {
-    specificStudentPartnerOrg = 'att-connected-learning'
-  }
-  if (partnerOrg === 'verizon') {
-    associatedPartnerSchools = sponsorOrgManifests.vils.schools
-  }
+  const {
+    associatedStudentPartnerOrgs,
+    associatedPartnerSchools,
+  } = getAssociatedPartnersAndSchools(partnerOrg)
+
   return ((await getVolunteersWithPipeline([
     {
       $match: {
@@ -707,7 +705,7 @@ export async function getUniquePartnerStudentStats(
         $expr: {
           $or: [
             {
-              $eq: ['$student.studentPartnerOrg', specificStudentPartnerOrg],
+              $in: ['$student.studentPartnerOrg', associatedStudentPartnerOrgs],
             },
             {
               $in: ['$student.approvedHighschool', associatedPartnerSchools],
@@ -1258,4 +1256,30 @@ export function validateStudentUsageReportQuery(data: unknown) {
   validateStudentReportQuery(validatedData)
   validateJoinedDateRanges(validatedData)
   return validatedData
+}
+
+interface AssociatedPartnersAndSchools {
+  associatedStudentPartnerOrgs: string[]
+  associatedPartnerSchools: Types.ObjectId[]
+}
+
+export function getAssociatedPartnersAndSchools(
+  partnerOrg: string
+): AssociatedPartnersAndSchools {
+  const associatedStudentPartnerOrgs: string[] = []
+  const associatedPartnerSchools: Types.ObjectId[] = []
+  const associatedPartner = getAssociatedPartnerOrgByKey(
+    'volunteerPartnerOrg',
+    partnerOrg
+  )
+
+  if (associatedPartner?.studentPartnerOrg)
+    associatedStudentPartnerOrgs.push(associatedPartner.studentPartnerOrg)
+  else if (associatedPartner?.studentSponsorOrg) {
+    const sponsorOrg = sponsorOrgManifests[associatedPartner.studentSponsorOrg]
+    if (sponsorOrg.schools) associatedPartnerSchools.push(...sponsorOrg.schools)
+    if (sponsorOrg.partnerOrgs)
+      associatedStudentPartnerOrgs.push(...sponsorOrg.partnerOrgs)
+  }
+  return { associatedStudentPartnerOrgs, associatedPartnerSchools }
 }

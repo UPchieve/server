@@ -7,6 +7,7 @@ import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as AvailabilityRepo from '../../models/Availability/queries'
 import { buildVolunteer, getObjectId, buildUserAction } from '../generate'
 import { InputError } from '../../models/Errors'
+import { asObjectId } from '../../utils/type-utils'
 jest.mock('../../services/SessionService')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../models/Session/queries')
@@ -550,5 +551,54 @@ describe('validateStudentReportQuery', () => {
     }
     expect(t).toThrow(InputError)
     expect(t).toThrow('Invalid high school id')
+  })
+})
+
+describe('getAssociatedPartnersAndSchools', () => {
+  test('Should get student partner org when associated partner only has a student partner org listed', () => {
+    const result = reportUtils.getAssociatedPartnersAndSchools('example')
+    const expected = {
+      associatedPartnerSchools: [],
+      associatedStudentPartnerOrgs: ['example'],
+    }
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Should get student partner orgs when associated partner has a sponsor org with only partner schools', () => {
+    const result = reportUtils.getAssociatedPartnersAndSchools('example2')
+    const expected = {
+      associatedPartnerSchools: [
+        asObjectId('618abe7ba0e5212595a7bf98'),
+        asObjectId('618abe7ba0e5212595a7bf99'),
+        asObjectId('618abe7ba0e5212595a7bf9a'),
+      ],
+      associatedStudentPartnerOrgs: [],
+    }
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Should get both student partner orgs and partner schools when associated partner has a sponsor org with schools and partner orgs', () => {
+    const result = reportUtils.getAssociatedPartnersAndSchools('example3')
+    const expected = {
+      associatedPartnerSchools: [
+        asObjectId('618abe7ba0e5212595a7bf9b'),
+        asObjectId('618abe7ba0e5212595a7bf9c'),
+      ],
+      associatedStudentPartnerOrgs: ['example', 'example2'],
+    }
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Should return empty lists of partner orgs and partner schools if there is no matching associated partner', () => {
+    const result = reportUtils.getAssociatedPartnersAndSchools('bogus')
+    const expected = {
+      associatedPartnerSchools: [],
+      associatedStudentPartnerOrgs: [],
+    }
+
+    expect(result).toEqual(expected)
   })
 })
