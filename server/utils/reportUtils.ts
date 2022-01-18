@@ -975,7 +975,19 @@ export function processAnalyticsReportDataSheet(
 ) {
   const columnsWithHeaderKeys = []
   const formattedColumnHeaders = []
+  const isCustomAnalyticsReport = config.customAnalyticsReportPartnerOrgs.includes(
+    partnerOrg
+  )
   for (const [key, value] of Object.entries(analyticsReportDataHeaderMapping)) {
+    if (!isCustomAnalyticsReport && (
+      value === analyticsReportDataHeaderMapping.totalUniquePartnerStudentsHelped ||
+      value === analyticsReportDataHeaderMapping.dateRangeUniquePartnerStudentsHelped ||
+      value === analyticsReportDataHeaderMapping.totalPartnerSessionsCompleted ||
+      value === analyticsReportDataHeaderMapping.dateRangePartnerSessionsCompleted ||
+      value === analyticsReportDataHeaderMapping.totalPartnerStudentsTutoringHours ||
+      value === analyticsReportDataHeaderMapping.dateRangePartnerStudentsTutoringHours
+    )) continue
+
     const col = {
       key,
       width: 15,
@@ -988,19 +1000,7 @@ export function processAnalyticsReportDataSheet(
   // Add the headers to the second row
   worksheet.getRow(2).values = formattedColumnHeaders
 
-  const isCustomAnalyticsReport = config.customAnalyticsReportPartnerOrgs.includes(
-    partnerOrg
-  )
-
   for (let i = 0; i < data.length; i += 1) {
-    if (!isCustomAnalyticsReport) {
-      delete data[i].totalUniquePartnerStudentsHelped
-      delete data[i].dateRangeUniquePartnerStudentsHelped
-      delete data[i].totalPartnerSessionsCompleted
-      delete data[i].dateRangePartnerSessionsCompleted
-      delete data[i].totalPartnerStudentsTutoringHours
-      delete data[i].dateRangePartnerStudentsTutoringHours
-    }
     worksheet.addRow(data[i], 'i')
   }
 
