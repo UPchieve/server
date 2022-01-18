@@ -979,14 +979,22 @@ export function processAnalyticsReportDataSheet(
     partnerOrg
   )
   for (const [key, value] of Object.entries(analyticsReportDataHeaderMapping)) {
-    if (!isCustomAnalyticsReport && (
-      value === analyticsReportDataHeaderMapping.totalUniquePartnerStudentsHelped ||
-      value === analyticsReportDataHeaderMapping.dateRangeUniquePartnerStudentsHelped ||
-      value === analyticsReportDataHeaderMapping.totalPartnerSessionsCompleted ||
-      value === analyticsReportDataHeaderMapping.dateRangePartnerSessionsCompleted ||
-      value === analyticsReportDataHeaderMapping.totalPartnerStudentsTutoringHours ||
-      value === analyticsReportDataHeaderMapping.dateRangePartnerStudentsTutoringHours
-    )) continue
+    if (
+      !isCustomAnalyticsReport &&
+      (value ===
+        analyticsReportDataHeaderMapping.totalUniquePartnerStudentsHelped ||
+        value ===
+          analyticsReportDataHeaderMapping.dateRangeUniquePartnerStudentsHelped ||
+        value ===
+          analyticsReportDataHeaderMapping.totalPartnerSessionsCompleted ||
+        value ===
+          analyticsReportDataHeaderMapping.dateRangePartnerSessionsCompleted ||
+        value ===
+          analyticsReportDataHeaderMapping.totalPartnerStudentsTutoringHours ||
+        value ===
+          analyticsReportDataHeaderMapping.dateRangePartnerStudentsTutoringHours)
+    )
+      continue
 
     const col = {
       key,
