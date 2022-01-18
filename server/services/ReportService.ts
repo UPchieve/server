@@ -11,7 +11,6 @@ import User from '../models/User'
 import {
   SponsorOrgManifest,
   studentPartnerManifests,
-  sponsorOrgManifests,
 } from '../partnerManifests'
 import logger from '../logger'
 import {
@@ -34,6 +33,7 @@ import {
   validateVolunteerReportQuery,
   validateStudentSessionReportQuery,
   validateStudentUsageReportQuery,
+  getAssociatedPartnersAndSchools,
 } from '../utils/reportUtils'
 import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
@@ -661,21 +661,17 @@ export async function generatePartnerAnalyticsReport(
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
 
-  let specificStudentPartnerOrg
-  let associatedPartnerSchools: Types.ObjectId[] = []
-  if (partnerOrg === 'att') {
-    specificStudentPartnerOrg = 'att-connected-learning'
-  }
-  if (partnerOrg === 'verizon') {
-    associatedPartnerSchools = sponsorOrgManifests.vils.schools
-  }
+  const {
+    associatedStudentPartnerOrgs,
+    associatedPartnerSchools,
+  } = getAssociatedPartnersAndSchools(partnerOrg)
 
   const getSpecificPartnerStudents = {
     $match: {
       $expr: {
         $or: [
           {
-            $eq: ['$student.studentPartnerOrg', specificStudentPartnerOrg],
+            $in: ['$student.studentPartnerOrg', associatedStudentPartnerOrgs],
           },
           {
             $in: ['$student.approvedHighschool', associatedPartnerSchools],
@@ -791,7 +787,6 @@ export async function generatePartnerAnalyticsReport(
                   },
                 },
               ],
-              // group att and verizon partner students helped by their ids
               uniquePartnerStudentsHelped: [
                 getSpecificPartnerStudents,
                 {
