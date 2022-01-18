@@ -220,7 +220,7 @@ export function buildNotificationContent(
 
 export function getAssociatedPartner(
   partnerOrg: string,
-  highSchool: Types.ObjectId
+  highSchool: Types.ObjectId | undefined
 ): AssociatedPartnerManifest | undefined {
   // Determine if the student's partner org is one of the orgs that
   // should have priority matching with its partner volunteer org counterpart
@@ -231,6 +231,7 @@ export function getAssociatedPartner(
     // Determine if the student's school belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
     if (
+      highSchool &&
       sponsorOrgManifests[sponsorOrg] &&
       Array.isArray(sponsorOrgManifests[sponsorOrg].schools) &&
       sponsorOrgManifests[sponsorOrg].schools.some(school =>
@@ -259,7 +260,8 @@ export async function notifyVolunteer(
   if (!student) return
   const associatedPartner = getAssociatedPartner(
     student.studentPartnerOrg,
-    getIdFromModelReference(student.approvedHighschool)
+    student.approvedHighschool &&
+      getIdFromModelReference(student.approvedHighschool)
   )
 
   // typed as `any` because `subtopic` gets reassigned as a regex query object if `subtopic` is algebraTwo
