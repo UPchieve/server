@@ -226,7 +226,9 @@ export async function endSession(
   })
   await addPastSession(session._id)
 
-  emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
+  setTimeout(() => {
+    emitter.emit(SESSION_EVENTS.SESSION_ENDED, session._id)
+  }, 1000 * 15);
 
   if (socketService) await socketService.emitSessionChange(sessionId)
   if (endedBy && reqIdentifiers)

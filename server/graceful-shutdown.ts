@@ -28,7 +28,7 @@ function gracefulShutdown(
       logger.info('socket server closed')
 
       // allow time for events to finish processing and making db calls before exiting
-      await setTimeout(5000)
+      await setTimeout(1000 * 25)
       await dbConn.disconnect()
       process.exit(0)
     })
@@ -41,6 +41,7 @@ function gracefulShutdown(
      * In order to close the server, we have to terminate those remaining connections ourselves.
      *
      */
+    // await setTimeout(500)
     getConnections().forEach(conn => conn.end())
     // destroy any running connections that may have not been ended
     await setTimeout(5000, () => {
