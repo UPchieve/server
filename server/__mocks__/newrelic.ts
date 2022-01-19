@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * NewRelic automocking does not prevent the real agent from being started so
  * we must implement our own manual mock.
@@ -10,14 +8,18 @@
  * that is actually tested.
  */
 
-module.exports = {
-  startWebTransaction: (url, handler) => {
+export default {
+  startWebTransaction: (url: string, handler: () => void) => {
     handler()
   },
-  startSegment: async (name, record, handler) => {
+  startSegment: async (
+    name: string,
+    record: boolean,
+    handler: () => Promise<void>
+  ) => {
     await handler()
   },
-  addCustomAttribute: (key, value) => {
+  addCustomAttribute: (key: string, value: unknown) => {
     return
-  }
+  },
 }
