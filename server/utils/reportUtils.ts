@@ -667,11 +667,6 @@ export async function getUniquePartnerStudentStats(
   startDate: Date,
   endDate: Date
 ) {
-  const {
-    associatedStudentPartnerOrgs,
-    associatedPartnerSchools,
-  } = getAssociatedPartnersAndSchools(partnerOrg)
-
   return ((await getVolunteersWithPipeline([
     {
       $match: {
@@ -700,20 +695,7 @@ export async function getUniquePartnerStudentStats(
     {
       $unwind: '$student',
     },
-    {
-      $match: {
-        $expr: {
-          $or: [
-            {
-              $in: ['$student.studentPartnerOrg', associatedStudentPartnerOrgs],
-            },
-            {
-              $in: ['$student.approvedHighschool', associatedPartnerSchools],
-            },
-          ],
-        },
-      },
-    },
+    getPartnerStudentsFilter(partnerOrg),
     {
       $group: {
         _id: '$student._id',
@@ -1290,4 +1272,26 @@ export function getAssociatedPartnersAndSchools(
       associatedStudentPartnerOrgs.push(...sponsorOrg.partnerOrgs)
   }
   return { associatedStudentPartnerOrgs, associatedPartnerSchools }
+}
+
+export function getPartnerStudentsFilter(partnerOrg: string) {
+  const {
+    associatedStudentPartnerOrgs,
+    associatedPartnerSchools,
+  } = getAssociatedPartnersAndSchools(partnerOrg)
+
+  return {
+    $match: {
+      $expr: {
+        $or: [
+          {
+            $in: ['$student.studentPartnerOrg', associatedStudentPartnerOrgs],
+          },
+          {
+            $in: ['$student.approvedHighschool', associatedPartnerSchools],
+          },
+        ],
+      },
+    },
+  }
 }

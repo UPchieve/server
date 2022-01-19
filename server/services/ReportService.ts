@@ -33,7 +33,7 @@ import {
   validateVolunteerReportQuery,
   validateStudentSessionReportQuery,
   validateStudentUsageReportQuery,
-  getAssociatedPartnersAndSchools,
+  getPartnerStudentsFilter,
 } from '../utils/reportUtils'
 import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
@@ -661,25 +661,7 @@ export async function generatePartnerAnalyticsReport(
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
 
-  const {
-    associatedStudentPartnerOrgs,
-    associatedPartnerSchools,
-  } = getAssociatedPartnersAndSchools(partnerOrg)
-
-  const getSpecificPartnerStudents = {
-    $match: {
-      $expr: {
-        $or: [
-          {
-            $in: ['$student.studentPartnerOrg', associatedStudentPartnerOrgs],
-          },
-          {
-            $in: ['$student.approvedHighschool', associatedPartnerSchools],
-          },
-        ],
-      },
-    },
-  }
+  const partnerStudentsFilter = getPartnerStudentsFilter(partnerOrg)
 
   // get volunteers for analytics
   const volunteers = ((await getVolunteersWithPipeline([
@@ -788,7 +770,7 @@ export async function generatePartnerAnalyticsReport(
                 },
               ],
               uniquePartnerStudentsHelped: [
-                getSpecificPartnerStudents,
+                partnerStudentsFilter,
                 {
                   $group: {
                     _id: '$student._id',
@@ -816,7 +798,7 @@ export async function generatePartnerAnalyticsReport(
                 },
               ],
               sessionPartnerStats: [
-                getSpecificPartnerStudents,
+                partnerStudentsFilter,
                 {
                   $group: {
                     _id: null,
@@ -829,7 +811,7 @@ export async function generatePartnerAnalyticsReport(
                 },
               ],
               timeTutoredPartnerStats: [
-                getSpecificPartnerStudents,
+                partnerStudentsFilter,
                 {
                   $group: {
                     _id: null,
