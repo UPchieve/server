@@ -8,14 +8,14 @@ example:
 
 # student sponsor org associated to a partner volunteer org
 sponsor:
-  volunteerPartnerOrg: example
+  volunteerPartnerOrg: example2
   volunteerPartnerOrgDisplay: Volunteer - Sponsor Org Example
   studentPartnerOrg: null
   studentSponsorOrg: sponsor
   studentOrgDisplay: Student - Sponsor Org Example
 
 sponsor2:
-  volunteerPartnerOrg: example
+  volunteerPartnerOrg: example3
   volunteerPartnerOrgDisplay: Volunteer - Sponsor Org 2 Example
   studentPartnerOrg: null
   studentSponsorOrg: sponsor2

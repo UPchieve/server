@@ -28,12 +28,15 @@ import { HourSummaryStats } from '../services/VolunteerService'
 import {
   studentPartnerManifests,
   volunteerPartnerManifests,
+  sponsorOrgManifests,
 } from '../partnerManifests'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
 import roundUpToNearestInterval from './round-up-to-nearest-interval'
 import { countCertsByType } from './count-certs-by-type'
 import { asFactory, asOptional, asString } from './type-utils'
+import config from '../config'
+import getAssociatedPartnerOrgByKey from './get-associated-partner-by-key'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query
@@ -392,6 +395,31 @@ export function getSumOperatorForDateRange(
   }
 }
 
+export function getSumOperatorForTimeTutoredDateRange(
+  startDate: Date,
+  endDate: Date,
+  fieldToCompareDateRange: DATE_RANGE_COMPARISON_FIELDS = DATE_RANGE_COMPARISON_FIELDS.CREATED_AT
+) {
+  return {
+    $sum: {
+      $cond: [
+        {
+          $and: [
+            {
+              $gte: [fieldToCompareDateRange, startDate],
+            },
+            {
+              $lte: [fieldToCompareDateRange, endDate],
+            },
+          ],
+        },
+        '$timeTutored',
+        0,
+      ],
+    },
+  }
+}
+
 interface GetOnboardingStatusOptions {
   isOnboarded: boolean
   isDeactivated: boolean
@@ -442,6 +470,9 @@ export interface PartnerVolunteerAnalytics {
   sessionAnalytics: {
     uniqueStudentsHelped: [GroupStats]
     sessionStats: [GroupStats]
+    uniquePartnerStudentsHelped: [GroupStats]
+    sessionPartnerStats: [GroupStats]
+    timeTutoredPartnerStats: [GroupStats]
   }
   textNotifications: GroupStats
   isDeactivated: boolean
@@ -460,15 +491,21 @@ export interface AnalyticsReportRow {
   certificationsReceived: number // int
   totalTextsReceived: number // int
   totalSessionsCompleted: number
+  totalPartnerSessionsCompleted?: number
   totalUniqueStudentsHelped: number
+  totalUniquePartnerStudentsHelped?: number
   totalTutoringHours: number // Number(number.toFixed(2))
+  totalPartnerStudentsTutoringHours?: number
   totalTrainingHours: number
   totalElapsedAvailabilityHours: number
   totalVolunteerHours: number
   dateRangeTextsReceived: number
   dateRangeSessionsCompleted: number
+  dateRangePartnerSessionsCompleted?: number
   dateRangeUniqueStudentsHelped: number
+  dateRangeUniquePartnerStudentsHelped?: number
   dateRangeTutoringHours: number
+  dateRangePartnerStudentsTutoringHours?: number
   dateRangeTrainingHours: number
   dateRangeElapsedAvailabilityHours: number
   dateRangeVolunteerHours: number
@@ -479,9 +516,18 @@ export function getAnalyticsReportRow(
   volunteer: PartnerVolunteerAnalytics
 ): AnalyticsReportRow {
   const { sessionAnalytics } = volunteer
-  const { uniqueStudentsHelped, sessionStats } = sessionAnalytics
+  const {
+    uniqueStudentsHelped,
+    sessionStats,
+    uniquePartnerStudentsHelped,
+    sessionPartnerStats,
+    timeTutoredPartnerStats,
+  } = sessionAnalytics
   const [uniqueStudentsHelpedStats] = uniqueStudentsHelped
+  const [uniquePartnerStudentsHelpedStats] = uniquePartnerStudentsHelped
   const [sessionGroupStats] = sessionStats
+  const [sessionPartnerGroupStats] = sessionPartnerStats
+  const [timeTutoredPartnerGroupStats] = timeTutoredPartnerStats
   const row = {} as AnalyticsReportRow
 
   // Volunteer profile
@@ -511,10 +557,19 @@ export function getAnalyticsReportRow(
     ? volunteer.textNotifications.total
     : 0
   row.totalSessionsCompleted = sessionGroupStats ? sessionGroupStats.total : 0
+  row.totalPartnerSessionsCompleted = sessionPartnerGroupStats
+    ? sessionPartnerGroupStats.total
+    : 0
   row.totalUniqueStudentsHelped = uniqueStudentsHelpedStats
     ? uniqueStudentsHelpedStats.total
     : 0
+  row.totalUniquePartnerStudentsHelped = uniquePartnerStudentsHelpedStats
+    ? uniquePartnerStudentsHelpedStats.total
+    : 0
   row.totalTutoringHours = volunteer.hourSummaryTotal.totalCoachingHours
+  row.totalPartnerStudentsTutoringHours = timeTutoredPartnerGroupStats
+    ? Number(Number(timeTutoredPartnerGroupStats.total / 3600000).toFixed(2))
+    : 0
   row.totalTrainingHours = volunteer.hourSummaryTotal.totalQuizzesPassed
   row.totalElapsedAvailabilityHours = Number(
     (volunteer.hourSummaryTotal.totalElapsedAvailability * 0.1).toFixed(1)
@@ -528,10 +583,23 @@ export function getAnalyticsReportRow(
   row.dateRangeSessionsCompleted = sessionGroupStats
     ? sessionGroupStats.totalWithinDateRange
     : 0
+  row.dateRangePartnerSessionsCompleted = sessionPartnerGroupStats
+    ? sessionPartnerGroupStats.totalWithinDateRange
+    : 0
   row.dateRangeUniqueStudentsHelped = uniqueStudentsHelpedStats
     ? uniqueStudentsHelpedStats.totalWithinDateRange
     : 0
+  row.dateRangeUniquePartnerStudentsHelped = uniquePartnerStudentsHelpedStats
+    ? uniquePartnerStudentsHelpedStats.totalWithinDateRange
+    : 0
   row.dateRangeTutoringHours = volunteer.hourSummaryDateRange.totalCoachingHours
+  row.dateRangePartnerStudentsTutoringHours = timeTutoredPartnerGroupStats
+    ? Number(
+        Number(
+          timeTutoredPartnerGroupStats.totalWithinDateRange / 3600000
+        ).toFixed(2)
+      )
+    : 0
   row.dateRangeTrainingHours = volunteer.hourSummaryDateRange.totalQuizzesPassed
 
   row.dateRangeElapsedAvailabilityHours = Number(
@@ -573,7 +641,7 @@ export async function getUniqueStudentStats(
       $group: {
         _id: '$pastSession.student',
         frequency: { $sum: 1 },
-        frequencyWitinDateRange: getSumOperatorForDateRange(
+        frequencyWithinDateRange: getSumOperatorForDateRange(
           startDate,
           endDate,
           DATE_RANGE_COMPARISON_FIELDS.PAST_SESSION_CREATED_AT
@@ -586,7 +654,66 @@ export async function getUniqueStudentStats(
         total: { $sum: 1 },
         totalWithinDateRange: {
           $sum: {
-            $cond: [{ $gte: ['$frequencyWitinDateRange', 1] }, 1, 0],
+            $cond: [{ $gte: ['$frequencyWithinDateRange', 1] }, 1, 0],
+          },
+        },
+      },
+    },
+  ])) as unknown) as GroupStats[]
+}
+
+export async function getUniquePartnerStudentStats(
+  partnerOrg: string,
+  startDate: Date,
+  endDate: Date
+) {
+  return ((await getVolunteersWithPipeline([
+    {
+      $match: {
+        volunteerPartnerOrg: partnerOrg,
+      },
+    },
+    {
+      $lookup: {
+        from: 'sessions',
+        foreignField: '_id',
+        localField: 'pastSessions',
+        as: 'pastSession',
+      },
+    },
+    {
+      $unwind: '$pastSession',
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'pastSession.student',
+        foreignField: '_id',
+        as: 'student',
+      },
+    },
+    {
+      $unwind: '$student',
+    },
+    getPartnerStudentsFilter(partnerOrg),
+    {
+      $group: {
+        _id: '$student._id',
+        frequency: { $sum: 1 },
+        frequencyWithinDateRange: getSumOperatorForDateRange(
+          startDate,
+          endDate,
+          DATE_RANGE_COMPARISON_FIELDS.PAST_SESSION_CREATED_AT
+        ),
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: 1 },
+        totalWithinDateRange: {
+          $sum: {
+            $cond: [{ $gte: ['$frequencyWithinDateRange', 1] }, 1, 0],
           },
         },
       },
@@ -608,6 +735,7 @@ export interface AnalyticsReportSummary {
   pickupRate: AnalyticsReportSummaryData
   volunteerHours: AnalyticsReportSummaryData
   uniqueStudentsHelped: AnalyticsReportSummaryData
+  uniquePartnerStudentsHelped: AnalyticsReportSummaryData
 }
 
 function dividend(numerator: number, denominator: number): number {
@@ -635,6 +763,7 @@ export async function getAnalyticsReportSummary(
     pickupRate: { ...defaultData },
     volunteerHours: { ...defaultData },
     uniqueStudentsHelped: { ...defaultData },
+    uniquePartnerStudentsHelped: { ...defaultData },
   } as AnalyticsReportSummary
 
   for (const row of report) {
@@ -699,6 +828,13 @@ export async function getAnalyticsReportSummary(
     startDate,
     endDate
   )
+
+  const [uniquePartnerStudentStats] = await getUniquePartnerStudentStats(
+    partnerOrg,
+    startDate,
+    endDate
+  )
+
   summary.uniqueStudentsHelped.total = uniqueStudentStats
     ? uniqueStudentStats.total
     : 0
@@ -706,6 +842,12 @@ export async function getAnalyticsReportSummary(
     ? uniqueStudentStats.totalWithinDateRange
     : 0
 
+  summary.uniquePartnerStudentsHelped.total = uniquePartnerStudentStats
+    ? uniquePartnerStudentStats.total
+    : 0
+  summary.uniquePartnerStudentsHelped.totalWithinDateRange = uniquePartnerStudentStats
+    ? uniquePartnerStudentStats.totalWithinDateRange
+    : 0
   return summary
 }
 
@@ -719,15 +861,25 @@ const analyticsReportDataHeaderMapping = {
   certificationsReceived: 'Certifications received',
   totalTextsReceived: 'Total texts received',
   totalSessionsCompleted: 'Total sessions completed',
+  totalPartnerSessionsCompleted: 'Total sessions with partner students',
   totalUniqueStudentsHelped: 'Total unique students helped',
+  totalUniquePartnerStudentsHelped: 'Total unique partner students helped',
   totalTutoringHours: 'Total tutoring hours',
+  totalPartnerStudentsTutoringHours:
+    'Total tutoring hours with partner students',
   totalTrainingHours: 'Total training hours',
   totalElapsedAvailabilityHours: 'Total elapsed availability hours',
   totalVolunteerHours: 'Total hours',
   dateRangeTextsReceived: 'Texts received within date range',
   dateRangeSessionsCompleted: 'Sessions completed within date range',
+  dateRangePartnerSessionsCompleted:
+    'Sessions completed with partner students within date range',
   dateRangeUniqueStudentsHelped: 'Unique students helped within date range',
+  dateRangeUniquePartnerStudentsHelped:
+    'Unique partner students helped within date range',
   dateRangeTutoringHours: 'Tutoring hours within date range',
+  dateRangePartnerStudentsTutoringHours:
+    'Tutoring hours with partner students within date range',
   dateRangeTrainingHours: 'Training hours within date range',
   dateRangeElapsedAvailabilityHours:
     'Elapsed availability hours within date range',
@@ -743,6 +895,7 @@ const analyticsReportSummaryHeaderMapping = {
   pickupRate: 'Pick-up rate',
   volunteerHours: 'Volunteer hours completed',
   uniqueStudentsHelped: 'Unique students helped',
+  uniquePartnerStudentsHelped: 'Unique partner students helped',
 }
 
 export function applyAnalyticsReportDataStyles(worksheet: exceljs.Worksheet) {
@@ -799,11 +952,32 @@ export function processAnalyticsReportDataSheet(
   data: AnalyticsReportRow[],
   worksheet: exceljs.Worksheet,
   startDate: string,
-  endDate: string
+  endDate: string,
+  partnerOrg: string
 ) {
   const columnsWithHeaderKeys = []
   const formattedColumnHeaders = []
+  const isCustomAnalyticsReport = config.customAnalyticsReportPartnerOrgs.includes(
+    partnerOrg
+  )
   for (const [key, value] of Object.entries(analyticsReportDataHeaderMapping)) {
+    if (
+      !isCustomAnalyticsReport &&
+      (value ===
+        analyticsReportDataHeaderMapping.totalUniquePartnerStudentsHelped ||
+        value ===
+          analyticsReportDataHeaderMapping.dateRangeUniquePartnerStudentsHelped ||
+        value ===
+          analyticsReportDataHeaderMapping.totalPartnerSessionsCompleted ||
+        value ===
+          analyticsReportDataHeaderMapping.dateRangePartnerSessionsCompleted ||
+        value ===
+          analyticsReportDataHeaderMapping.totalPartnerStudentsTutoringHours ||
+        value ===
+          analyticsReportDataHeaderMapping.dateRangePartnerStudentsTutoringHours)
+    )
+      continue
+
     const col = {
       key,
       width: 15,
@@ -820,17 +994,58 @@ export function processAnalyticsReportDataSheet(
     worksheet.addRow(data[i], 'i')
   }
 
-  // Create sectional headers in the first row
-  worksheet.getCell('A1').value = 'Volunteer Information'
-  worksheet.getCell('H1').value = 'Cumulative Impact'
-  worksheet.getCell('K1').value = 'Cumulative Volunteer Hours'
-  worksheet.getCell('O1').value = `Impact from ${startDate} - ${endDate}`
-  worksheet.getCell('R1').value = `Hours between ${startDate} - ${endDate}`
-  worksheet.mergeCells('A1:G1')
-  worksheet.mergeCells('H1:J1')
-  worksheet.mergeCells('K1:N1')
-  worksheet.mergeCells('O1:Q1')
-  worksheet.mergeCells('R1:U1')
+  const sectionalHeaders = {
+    volunteerInformation: 'Volunteer Information',
+    totalImpact: 'Cumulative Impact',
+    totalVolunteerHours: 'Cumulative Volunteer Hours',
+    dateRangeImpact: `Impact from ${startDate} - ${endDate}`,
+    dateRangeHours: `Hours between ${startDate} - ${endDate}`,
+  }
+
+  if (isCustomAnalyticsReport) {
+    const partnerName = volunteerPartnerManifests[partnerOrg].name
+    // Create sectional headers in the first row for att/verizon reports
+    worksheet.getCell('A1').value = sectionalHeaders.volunteerInformation
+    worksheet.getCell('H1').value = sectionalHeaders.totalImpact
+    worksheet.getCell('M1').value = sectionalHeaders.totalVolunteerHours
+    worksheet.getCell('R1').value = sectionalHeaders.dateRangeImpact
+    worksheet.getCell('W1').value = sectionalHeaders.dateRangeHours
+    worksheet.getCell(
+      'J2'
+    ).value = `Total sessions with ${partnerName} students`
+    worksheet.getCell(
+      'L2'
+    ).value = `Total unique ${partnerName} students helped`
+    worksheet.getCell(
+      'N2'
+    ).value = `Total tutoring hours with ${partnerName} students`
+    worksheet.getCell(
+      'T2'
+    ).value = `Sessions completed with ${partnerName} students within date range`
+    worksheet.getCell(
+      'V2'
+    ).value = `Unique ${partnerName} students impacted within date range`
+    worksheet.getCell(
+      'X2'
+    ).value = `Tutoring hours with ${partnerName} within date range`
+    worksheet.mergeCells('A1:G1')
+    worksheet.mergeCells('H1:L1')
+    worksheet.mergeCells('M1:Q1')
+    worksheet.mergeCells('R1:V1')
+    worksheet.mergeCells('W1:AA1')
+  } else {
+    // Create sectional headers in the first row for other partner eports
+    worksheet.getCell('A1').value = sectionalHeaders.volunteerInformation
+    worksheet.getCell('H1').value = sectionalHeaders.totalImpact
+    worksheet.getCell('K1').value = sectionalHeaders.totalVolunteerHours
+    worksheet.getCell('O1').value = sectionalHeaders.dateRangeImpact
+    worksheet.getCell('R1').value = sectionalHeaders.dateRangeHours
+    worksheet.mergeCells('A1:G1')
+    worksheet.mergeCells('H1:J1')
+    worksheet.mergeCells('K1:N1')
+    worksheet.mergeCells('O1:Q1')
+    worksheet.mergeCells('R1:U1')
+  }
 
   applyAnalyticsReportDataStyles(worksheet)
 }
@@ -839,7 +1054,8 @@ export function processAnalyticsReportSummarySheet(
   summary: AnalyticsReportSummary,
   worksheet: exceljs.Worksheet,
   startDate: string,
-  endDate: string
+  endDate: string,
+  partnerOrg: string
 ) {
   const summaryColumnMapping = {
     description: '',
@@ -861,10 +1077,10 @@ export function processAnalyticsReportSummarySheet(
   worksheet.columns = summaryCols
 
   for (const [key, data] of Object.entries(summary) as [
-    string,
+    keyof typeof analyticsReportSummaryHeaderMapping,
     AnalyticsReportSummaryData
   ][]) {
-    const description =
+    let description =
       analyticsReportSummaryHeaderMapping[
         key as keyof typeof analyticsReportSummaryHeaderMapping
       ]
@@ -876,6 +1092,17 @@ export function processAnalyticsReportSummarySheet(
     } else {
       total = data.total
       totalWithinDateRange = data.totalWithinDateRange
+    }
+
+    // do not add unique partner students helped row to non-att/verizon reports
+    if (
+      !config.customAnalyticsReportPartnerOrgs.includes(partnerOrg) &&
+      key === 'uniquePartnerStudentsHelped'
+    )
+      continue
+    else if (key === 'uniquePartnerStudentsHelped') {
+      const partnerName = volunteerPartnerManifests[partnerOrg].name
+      description = `Unique ${partnerName} students helped`
     }
     worksheet.addRow({ description, total, totalWithinDateRange }, 'i')
   }
@@ -1019,4 +1246,52 @@ export function validateStudentUsageReportQuery(data: unknown) {
   validateStudentReportQuery(validatedData)
   validateJoinedDateRanges(validatedData)
   return validatedData
+}
+
+interface AssociatedPartnersAndSchools {
+  associatedStudentPartnerOrgs: string[]
+  associatedPartnerSchools: Types.ObjectId[]
+}
+
+export function getAssociatedPartnersAndSchools(
+  partnerOrg: string
+): AssociatedPartnersAndSchools {
+  const associatedStudentPartnerOrgs: string[] = []
+  const associatedPartnerSchools: Types.ObjectId[] = []
+  const associatedPartner = getAssociatedPartnerOrgByKey(
+    'volunteerPartnerOrg',
+    partnerOrg
+  )
+
+  if (associatedPartner?.studentPartnerOrg)
+    associatedStudentPartnerOrgs.push(associatedPartner.studentPartnerOrg)
+  else if (associatedPartner?.studentSponsorOrg) {
+    const sponsorOrg = sponsorOrgManifests[associatedPartner.studentSponsorOrg]
+    if (sponsorOrg.schools) associatedPartnerSchools.push(...sponsorOrg.schools)
+    if (sponsorOrg.partnerOrgs)
+      associatedStudentPartnerOrgs.push(...sponsorOrg.partnerOrgs)
+  }
+  return { associatedStudentPartnerOrgs, associatedPartnerSchools }
+}
+
+export function getPartnerStudentsFilter(partnerOrg: string) {
+  const {
+    associatedStudentPartnerOrgs,
+    associatedPartnerSchools,
+  } = getAssociatedPartnersAndSchools(partnerOrg)
+
+  return {
+    $match: {
+      $expr: {
+        $or: [
+          {
+            $in: ['$student.studentPartnerOrg', associatedStudentPartnerOrgs],
+          },
+          {
+            $in: ['$student.approvedHighschool', associatedPartnerSchools],
+          },
+        ],
+      },
+    },
+  }
 }
