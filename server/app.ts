@@ -17,6 +17,7 @@ import YAML from 'yaml'
 import config from './config'
 import logger from './logger'
 import router from './router'
+import csurf from 'csurf'
 import {
   baseUri,
   blockAllMixedContent,
@@ -139,6 +140,9 @@ app.use(bodyParser.json() as express.RequestHandler)
 app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
 app.use(cookieParser(config.sessionSecret))
 app.use(express.static(path.join(__dirname, 'dist')))
+
+//csrf middleware
+app.use('/api/csrftoken', csurf)
 
 let originRegex
 if (config.additionalAllowedOrigins !== '') {

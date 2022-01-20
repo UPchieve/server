@@ -573,6 +573,23 @@ paths:
                     type: string
                   lastName:
                     type: string
+  /api/csrftoken:
+    get:
+      tags:
+        - authorization
+      summary: Generates csrf token
+      description: |
+        - Generates csrf token per cookie 
+      security:
+        - cookieAuth: []
+      responses:
+        '204':
+          description: CSRF token is valid
+        '403':
+          description: 
+            - CSRF token is invalid 
+            - CSRF attack detected
+
   /api/calendar/save:
     post:
       tags:
