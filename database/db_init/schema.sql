@@ -16,6 +16,113 @@ SET row_security = off;
 CREATE SCHEMA upchieve;
 
 
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: generate_ulid(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.generate_ulid() RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  -- Crockford's Base32
+  encoding   BYTEA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
+  output     TEXT = '';
+
+  unix_time  BIGINT;
+  ulid       BYTEA;
+BEGIN
+  -- 6 timestamp bytes
+  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
+  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
+
+  -- 10 entropy bytes
+  ulid = timestamp || public.gen_random_bytes(10);
+
+  -- Encode the timestamp
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 0) & 224) >> 5));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 0) & 31)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 1) & 248) >> 3));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 1) & 7) << 2) | ((GET_BYTE(ulid, 2) & 192) >> 6)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 2) & 62) >> 1));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 2) & 1) << 4) | ((GET_BYTE(ulid, 3) & 240) >> 4)));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 3) & 15) << 1) | ((GET_BYTE(ulid, 4) & 128) >> 7)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 4) & 124) >> 2));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 4) & 3) << 3) | ((GET_BYTE(ulid, 5) & 224) >> 5)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 5) & 31)));
+
+  -- Encode the entropy
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 6) & 248) >> 3));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 6) & 7) << 2) | ((GET_BYTE(ulid, 7) & 192) >> 6)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 7) & 62) >> 1));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 7) & 1) << 4) | ((GET_BYTE(ulid, 8) & 240) >> 4)));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 8) & 15) << 1) | ((GET_BYTE(ulid, 9) & 128) >> 7)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 9) & 124) >> 2));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 9) & 3) << 3) | ((GET_BYTE(ulid, 10) & 224) >> 5)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 10) & 31)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 11) & 248) >> 3));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 11) & 7) << 2) | ((GET_BYTE(ulid, 12) & 192) >> 6)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 12) & 62) >> 1));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 12) & 1) << 4) | ((GET_BYTE(ulid, 13) & 240) >> 4)));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 13) & 15) << 1) | ((GET_BYTE(ulid, 14) & 128) >> 7)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 14) & 124) >> 2));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 14) & 3) << 3) | ((GET_BYTE(ulid, 15) & 224) >> 5)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 15) & 31)));
+
+  RETURN output;
+END
+$$;
+
+
+--
+-- Name: generate_ulid_uuid(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.generate_ulid_uuid() RETURNS uuid
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
+
+  unix_time  BIGINT;
+  ulid       BYTEA;
+BEGIN
+  -- 6 timestamp bytes
+  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
+  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
+
+  -- 10 entropy bytes
+  ulid = timestamp || public.gen_random_bytes(10);
+
+  RETURN CAST( substring(CAST (ulid AS text) from 3) AS uuid);
+END
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -50,9 +157,10 @@ CREATE TABLE upchieve.assistments_data (
     assignment_id uuid NOT NULL,
     student_id uuid NOT NULL,
     session_id uuid NOT NULL,
-    sent boolean,
+    sent boolean DEFAULT false,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    sent_at timestamp without time zone
 );
 
 
@@ -1249,7 +1357,8 @@ CREATE TABLE upchieve.users (
     time_tutored bigint,
     signup_source_id integer,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    phone text
 );
 
 
@@ -2154,6 +2263,14 @@ ALTER TABLE ONLY upchieve.training_courses
 
 
 --
+-- Name: users_ip_addresses unique_user_id_ip_address_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_ip_addresses
+    ADD CONSTRAINT unique_user_id_ip_address_id UNIQUE (user_id, ip_address_id);
+
+
+--
 -- Name: us_states us_states_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3037,4 +3154,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20211109230807'),
     ('20211109231334'),
     ('20211109231346'),
-    ('20211109231356');
+    ('20211109231356'),
+    ('20220120223933'),
+    ('20220120224349'),
+    ('20220120224635');

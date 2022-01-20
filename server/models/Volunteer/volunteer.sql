@@ -74,9 +74,9 @@ WHERE
     test_user IS FALSE
     AND banned IS FALSE
     AND deactivated IS FALSE
-    AND availabilities.weekday_id = :day!
-    AND availabilities.available_start >= :hour!
-    AND availabilities.available_end < :hour! + 1
+    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
+    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
+    AND extract(hour FROM (now() at time zone availabilities.timezone)) + 1 < availabilities.available_end
     AND subjects_unlocked.subject = :subject!
     AND NOT EXISTS (
         SELECT
@@ -133,9 +133,9 @@ WHERE
     test_user IS FALSE
     AND banned IS FALSE
     AND deactivated IS FALSE
-    AND availabilities.weekday_id = :day!
-    AND availabilities.available_start >= :hour!
-    AND availabilities.available_end < :hour! + 1
+    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
+    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
+    AND extract(hour FROM (now() at time zone availabilities.timezone)) + 1 < availabilities.available_end
     AND subjects_unlocked.subject = :subject!
     AND NOT EXISTS (
         SELECT
@@ -192,9 +192,9 @@ WHERE
     test_user IS FALSE
     AND banned IS FALSE
     AND deactivated IS FALSE
-    AND availabilities.weekday_id = :day!
-    AND availabilities.available_start >= :hour!
-    AND availabilities.available_end < :hour! + 1
+    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
+    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
+    AND extract(hour FROM (now() at time zone availabilities.timezone)) + 1 < availabilities.available_end
     AND subjects_unlocked.subject = :subject!
     AND volunteer_partner_orgs.name = :volunteerPartnerOrg!
     AND NOT EXISTS (
