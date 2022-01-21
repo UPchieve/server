@@ -17,7 +17,6 @@ import YAML from 'yaml'
 import config from './config'
 import logger from './logger'
 import router from './router'
-import csurf from 'csurf'
 import {
   baseUri,
   blockAllMixedContent,
@@ -32,6 +31,7 @@ import {
   styleSrc,
   upgradeInsecureRequests,
 } from './securitySettings'
+const csrf = require('csurf')
 
 const distDir = '../dist'
 
@@ -141,9 +141,6 @@ app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
 app.use(cookieParser(config.sessionSecret))
 app.use(express.static(path.join(__dirname, 'dist')))
 
-//csrf middleware
-app.use('/api/csrftoken', csurf)
-
 let originRegex
 if (config.additionalAllowedOrigins !== '') {
   originRegex = new RegExp(
@@ -189,6 +186,12 @@ app.use(Sentry.Handlers.errorHandler() as express.ErrorRequestHandler)
 const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')
 const swaggerYaml = YAML.parse(swaggerDoc)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
+
+// Setting up csrf middleware
+app.use(csrf({ cookie: true }))
+app.get('csrftoken', function(req, res) {
+  res.json({ csrfToken: req.csrfToken() })
+})
 
 // initialize Express WebSockets
 expressWs(app)
