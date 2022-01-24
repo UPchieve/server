@@ -172,9 +172,9 @@ CREATE TABLE upchieve.availabilities (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
     weekday_id integer NOT NULL,
-    available_start smallint,
-    available_end smallint,
-    timezone text,
+    available_start smallint NOT NULL,
+    available_end smallint NOT NULL,
+    timezone text NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -314,13 +314,13 @@ CREATE TABLE upchieve.feedbacks (
     id uuid NOT NULL,
     topic_id integer,
     subject_id integer,
-    user_role_id integer,
-    session_id uuid,
+    user_role_id integer NOT NULL,
+    session_id uuid NOT NULL,
     student_tutoring_feedback json,
     student_counseling_feedback json,
     volunteer_feedback json,
     comment text,
-    user_id uuid,
+    user_id uuid NOT NULL,
     legacy_feedbacks json,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -516,7 +516,7 @@ CREATE TABLE upchieve.notifications (
     method_id integer NOT NULL,
     priority_group_id integer NOT NULL,
     successful boolean,
-    session_id uuid,
+    session_id uuid NOT NULL,
     message_carrier_id text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -577,7 +577,7 @@ CREATE TABLE upchieve.pre_session_surveys (
     id uuid NOT NULL,
     response_data json,
     session_id uuid NOT NULL,
-    user_id uuid,
+    user_id uuid NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -706,7 +706,7 @@ CREATE TABLE upchieve."references" (
     first_name text NOT NULL,
     last_name text NOT NULL,
     email text NOT NULL,
-    status_id integer,
+    status_id integer NOT NULL,
     sent_at timestamp without time zone,
     affiliation text,
     relationship_length text,
@@ -908,8 +908,8 @@ ALTER SEQUENCE upchieve.session_flags_id_seq OWNED BY upchieve.session_flags.id;
 
 CREATE TABLE upchieve.session_messages (
     id uuid NOT NULL,
-    sender_id uuid,
-    contents text,
+    sender_id uuid NOT NULL,
+    contents text NOT NULL,
     session_id uuid NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -938,7 +938,7 @@ CREATE TABLE upchieve.session_reports (
 
 CREATE TABLE upchieve.sessions (
     id uuid NOT NULL,
-    student_id uuid,
+    student_id uuid NOT NULL,
     volunteer_id uuid,
     subject_id integer NOT NULL,
     has_whiteboard_doc boolean DEFAULT false NOT NULL,
@@ -946,10 +946,10 @@ CREATE TABLE upchieve.sessions (
     volunteer_joined_at timestamp without time zone,
     ended_at timestamp without time zone,
     ended_by_role_id integer,
-    reviewed boolean,
-    to_review boolean,
+    reviewed boolean DEFAULT false NOT NULL,
+    to_review boolean DEFAULT false NOT NULL,
     student_banned boolean,
-    time_tutored bigint,
+    time_tutored bigint DEFAULT 0 NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -1063,7 +1063,7 @@ CREATE TABLE upchieve.student_profiles (
     school_id uuid,
     postal_code character varying(2),
     grade_level_id integer,
-    student_partner_org_user_id uuid,
+    student_partner_org_user_id text,
     student_partner_org_id uuid,
     student_partner_org_site_id uuid,
     created_at timestamp without time zone NOT NULL,
@@ -1225,7 +1225,7 @@ CREATE TABLE upchieve.us_states (
 
 CREATE TABLE upchieve.user_actions (
     id bigint NOT NULL,
-    user_id uuid,
+    user_id uuid NOT NULL,
     session_id uuid,
     action_type text,
     action text,
@@ -2470,6 +2470,22 @@ ALTER TABLE ONLY upchieve.admin_profiles
 
 
 --
+-- Name: assistments_data assistments_data_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assistments_data
+    ADD CONSTRAINT assistments_data_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: assistments_data assistments_data_student_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assistments_data
+    ADD CONSTRAINT assistments_data_student_id_fkey FOREIGN KEY (student_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: availabilities availabilities_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3038,6 +3054,14 @@ ALTER TABLE ONLY upchieve.users_quizzes
 
 
 --
+-- Name: users_roles users_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_roles
+    ADD CONSTRAINT users_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: users users_signup_source_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3157,4 +3181,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20211109231356'),
     ('20220120223933'),
     ('20220120224349'),
-    ('20220120224635');
+    ('20220120224635'),
+    ('20220124171208'),
+    ('20220124172750');
