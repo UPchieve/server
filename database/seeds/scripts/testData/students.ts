@@ -1,75 +1,64 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
-import { getDbUlid, getIdByNameFailsafe } from '../utils'
+import { wrapInsert, NameToId, getDbUlid } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function students() {
+export async function students(spoIds: NameToId) {
   const student1 = getDbUlid()
   const student2 = getDbUlid()
   const student3 = getDbUlid()
 
-  await db
-    .insert('users', [
-      {
-        id: student1,
-        created_at: new Date(),
-        updated_at: new Date(),
-        email: 'student1@upchieve.org',
-        password:
-          '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
-        first_name: 'Student',
-        last_name: 'UPchieve',
-        referral_code: 'A',
-        verified: true,
-      },
-      {
-        id: student2,
-        created_at: new Date(),
-        updated_at: new Date(),
-        email: 'student2@upchieve.org',
-        password:
-          '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
-        first_name: 'Student',
-        last_name: 'UPchieve',
-        referral_code: 'F',
-        verified: true,
-      },
-      {
-        id: student3,
-        created_at: new Date(),
-        updated_at: new Date(),
-        email: 'student3@upchieve.org',
-        password:
-          '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
-        first_name: 'Student',
-        last_name: 'UPchieve',
-        referral_code: 'G',
-        verified: true,
-        test_user: true,
-      },
-    ])
-    .run(pool)
+  const users = [
+    {
+      id: student1,
+      email: 'student1@upchieve.org',
+      password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
+      firstName: 'Student',
+      lastName: 'UPchieve',
+      referralCode: 'A',
+      verified: true,
+    },
+    {
+      id: student2,
+      email: 'student2@upchieve.org',
+      password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
+      firstName: 'Student',
+      lastName: 'UPchieve',
+      referralCode: 'F',
+      verified: true,
+    },
+    {
+      id: student3,
+      email: 'student3@upchieve.org',
+      password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
+      firstName: 'Student',
+      lastName: 'UPchieve',
+      referralCode: 'G',
+      verified: true,
+      test_user: true,
+    },
+  ]
 
-  await db
-    .insert('student_profiles', [
-      {
-        user_id: student1,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        user_id: student2,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        user_id: student3,
-        student_partner_org_id: await getIdByNameFailsafe(
-          'student_partner_orgs',
-          'Placeholder 3'
-        ),
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-    ])
-    .run(pool)
+  const profiles = [
+    {
+      userId: student1,
+      studentPartnerOrgId: undefined,
+    },
+    {
+      userId: student2,
+      studentPartnerOrgId: undefined,
+    },
+    {
+      userId: student3,
+      studentPartnerOrgId: spoIds['Placeholder 3'] as string,
+    },
+  ]
+
+  for (const user of users) {
+    await wrapInsert('users', pgQueries.insertStudentUser.run, { ...user })
+  }
+
+  for (const profile of profiles) {
+    await wrapInsert('student_profiles', pgQueries.insertStudentProfile.run, {
+      ...profile,
+    })
+  }
 }

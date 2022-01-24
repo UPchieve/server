@@ -1,15 +1,13 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function toolTypes() {
-  await db
-    .insert('tool_types', [
-      { updated_at: new Date(), created_at: new Date(), name: 'whiteboard' },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'documenteditor',
-      },
-    ])
-    .run(pool)
+export async function toolTypes(): Promise<NameToId> {
+  const tools = ['whiteboard', 'documenteditor']
+  const temp: NameToId = {}
+  for (const tool of tools) {
+    temp[tool] = await wrapInsert('tool_types', pgQueries.insertToolType.run, {
+      name: tool,
+    })
+  }
+  return temp
 }

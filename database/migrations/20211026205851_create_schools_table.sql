@@ -1,20 +1,20 @@
 -- migrate:up
-create table if not exists upchieve.schools (
-    id uuid primary key,
-    name text not null,
-    approved boolean not null default false,
-    partner boolean not null default false,
-    city_id int references upchieve.cities (id),
-    us_state_code varchar(2) references upchieve.us_states (code),
-    created_at timestamp not null,
-    updated_at timestamp not null,
-    name_search tsvector generated always as (to_tsvector('english', name)) stored
+CREATE TABLE IF NOT EXISTS upchieve.schools (
+    id uuid PRIMARY KEY,
+    name text NOT NULL,
+    approved boolean NOT NULL DEFAULT FALSE,
+    partner boolean NOT NULL DEFAULT FALSE,
+    city_id int REFERENCES upchieve.cities (id),
+    us_state_code varchar(2) REFERENCES upchieve.us_states (code),
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL,
+    name_search tsvector GENERATED always AS (to_tsvector('english', name)) stored
 );
 
-create index if not exists name_search_idx on upchieve.schools using gin (name_search);
+CREATE INDEX IF NOT EXISTS name_search_idx ON upchieve.schools USING gin (name_search);
 
 -- migrate:down
-drop index if exists upchieve.name_search_idx;
+DROP INDEX IF EXISTS upchieve.name_search_idx;
 
-drop table if exists upchieve.schools cascade;
+DROP TABLE IF EXISTS upchieve.schools CASCADE;
 

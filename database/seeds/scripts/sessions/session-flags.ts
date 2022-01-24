@@ -1,60 +1,47 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function sessionFlags() {
-  await db
-    .insert('session_flags', [
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Absent student',
-      },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Absent volunteer',
-      },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Low session rating from coach',
-      },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Low session rating from student',
-      },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Low coach rating from student',
-      },
-      { created_at: new Date(), updated_at: new Date(), name: 'Reported' },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Only looking for answers',
-      },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Rude or inappropriate',
-      },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Comment from student',
-      },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Has been unmatched',
-      },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        name: 'Has had technical issues',
-      },
-    ])
-    .run(pool)
+export async function sessionFlags(): Promise<NameToId> {
+  const flags = [
+    {
+      name: 'Absent student',
+    },
+    {
+      name: 'Absent volunteer',
+    },
+    {
+      name: 'Low session rating from coach',
+    },
+    {
+      name: 'Low session rating from student',
+    },
+    {
+      name: 'Low coach rating from student',
+    },
+    { name: 'Reported' },
+    {
+      name: 'Only looking for answers',
+    },
+    {
+      name: 'Rude or inappropriate',
+    },
+    {
+      name: 'Comment from student',
+    },
+    {
+      name: 'Has been unmatched',
+    },
+    {
+      name: 'Has had technical issues',
+    },
+  ]
+  const temp: NameToId = {}
+  for (const flag of flags) {
+    temp[flag.name] = await wrapInsert(
+      'session_flags',
+      pgQueries.insertSessionFlag.run,
+      { ...flag }
+    )
+  }
+  return temp
 }

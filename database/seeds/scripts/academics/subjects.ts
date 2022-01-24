@@ -1,316 +1,326 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
-import { getIdByNameFailsafe } from '../utils'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-async function getTopicId(topicName: string): Promise<number> {
-  const topic = await db
-    .selectExactlyOne('topics', { name: topicName })
-    .run(pool)
-  return topic.id
+export async function subjects(
+  topicIds: NameToId,
+  toolIds: NameToId
+): Promise<NameToId> {
+  const subjects = [
+    {
+      name: 'prealgebra',
+      displayName: 'Prealgebra',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 1,
+    },
+    {
+      name: 'algebraOne',
+      displayName: 'Algebra 1',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 2,
+    },
+    {
+      name: 'algebraTwo',
+      displayName: 'Algebra 2',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 3,
+    },
+    {
+      name: 'geometry',
+      displayName: 'Geometry',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 4,
+    },
+    {
+      name: 'trigonometry',
+      displayName: 'Trigonometry',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 5,
+    },
+    {
+      name: 'precalculus',
+      displayName: 'Precalculus',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 6,
+    },
+    {
+      name: 'calculusAB',
+      displayName: 'Calculus AB',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 7,
+    },
+    {
+      name: 'calculusBC',
+      displayName: 'Calculus BC',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 8,
+    },
+    {
+      name: 'statistics',
+      displayName: 'Statistics',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 9,
+    },
+    {
+      name: 'biology',
+      displayName: 'Biology',
+      topicId: topicIds['science'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 1,
+    },
+    {
+      name: 'chemistry',
+      displayName: 'Chemistry',
+      topicId: topicIds['science'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 2,
+    },
+    {
+      name: 'physicsOne',
+      displayName: 'Physics 1',
+      topicId: topicIds['science'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 3,
+    },
+    {
+      name: 'physicsTwo',
+      displayName: 'Physics 2',
+      topicId: topicIds['science'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 4,
+    },
+    {
+      name: 'environmentalScience',
+      displayName: 'Environmental Science',
+      topicId: topicIds['science'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 5,
+    },
+    {
+      name: 'satMath',
+      displayName: 'SAT Math',
+      topicId: topicIds['sat'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 1,
+    },
+    {
+      name: 'satReading',
+      displayName: 'SAT Reading',
+      topicId: topicIds['sat'] as number,
+      toolTypeId: toolIds['documenteditor'] as number,
+      displayOrder: 2,
+    },
+    {
+      name: 'essays',
+      displayName: 'College Essays',
+      topicId: topicIds['college'] as number,
+      toolTypeId: toolIds['documenteditor'] as number,
+      displayOrder: 2,
+    },
+    {
+      name: 'planning',
+      displayName: 'Planning',
+      topicId: topicIds['college'] as number,
+      toolTypeId: toolIds['documenteditor'] as number,
+      displayOrder: 1,
+    },
+    {
+      name: 'applications',
+      displayName: 'Applications',
+      topicId: topicIds['college'] as number,
+      toolTypeId: toolIds['documenteditor'] as number,
+      displayOrder: 3,
+    },
+    {
+      name: 'humanitiesEssays',
+      displayName: 'Humanities Essays',
+      topicId: topicIds['readingWriting'] as number,
+      toolTypeId: toolIds['documenteditor'] as number,
+      displayOrder: 1,
+    },
+    {
+      name: 'integratedMathOne',
+      displayName: 'Integrated Math One',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 9,
+    },
+    {
+      name: 'integratedMathTwo',
+      displayName: 'Integrated Math Two',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 9,
+    },
+    {
+      name: 'integratedMathThree',
+      displayName: 'Integrated Math Three',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 9,
+    },
+    {
+      name: 'integratedMathFour',
+      displayName: 'Integrated Math Four',
+      topicId: topicIds['math'] as number,
+      toolTypeId: toolIds['whiteboard'] as number,
+      displayOrder: 9,
+    },
+  ]
+  const temp: NameToId = {}
+  for (const sub of subjects) {
+    temp[sub.name] = await wrapInsert('subjects', pgQueries.insertSubject.run, {
+      ...sub,
+    })
+  }
+  return temp
 }
 
-async function getSubjectId(subjectName: string): Promise<number> {
-  const subject = await db
-    .selectExactlyOne('subjects', { name: subjectName })
-    .run(pool)
-  return subject.id
+export async function certificationSubjectUnlocks(
+  subIds: NameToId,
+  certIds: NameToId
+) {
+  const certificationSubjectUnlocks = [
+    {
+      subjectId: subIds['integratedMathOne'] as number,
+      certificationId: certIds['algebraOne'] as number,
+    },
+    {
+      subjectId: subIds['integratedMathOne'] as number,
+      certificationId: certIds['geometry'] as number,
+    },
+    {
+      subjectId: subIds['integratedMathOne'] as number,
+      certificationId: certIds['statistics'] as number,
+    },
+    {
+      subjectId: subIds['integratedMathTwo'] as number,
+      certificationId: certIds['algebraOne'] as number,
+    },
+    {
+      subjectId: subIds['integratedMathTwo'] as number,
+      certificationId: certIds['geometry'] as number,
+    },
+    {
+      subjectId: subIds['integratedMathTwo'] as number,
+      certificationId: certIds['statistics'] as number,
+    },
+    {
+      subjectId: subIds['integratedMathTwo'] as number,
+      certificationId: certIds['trigonometry'] as number,
+    },
+    {
+      subjectId: subIds['integratedMathThree'] as number,
+      certificationId: certIds['precalculus'] as number,
+    },
+    {
+      subjectId: subIds['integratedMathThree'] as number,
+      certificationId: certIds['statistics'] as number,
+    },
+    {
+      subjectId: subIds['integratedMathFour'] as number,
+      certificationId: certIds['precalculus'] as number,
+    },
+    {
+      subjectId: subIds['prealgebra'] as number,
+      certificationId: certIds['prealgebra'] as number,
+    },
+    {
+      subjectId: subIds['statistics'] as number,
+      certificationId: certIds['statistics'] as number,
+    },
+    {
+      subjectId: subIds['geometry'] as number,
+      certificationId: certIds['geometry'] as number,
+    },
+    {
+      subjectId: subIds['biology'] as number,
+      certificationId: certIds['biology'] as number,
+    },
+    {
+      subjectId: subIds['chemistry'] as number,
+      certificationId: certIds['chemistry'] as number,
+    },
+    {
+      subjectId: subIds['physicsOne'] as number,
+      certificationId: certIds['physicsOne'] as number,
+    },
+    {
+      subjectId: subIds['physicsTwo'] as number,
+      certificationId: certIds['physicsTwo'] as number,
+    },
+    {
+      subjectId: subIds['environmentalScience'] as number,
+      certificationId: certIds['environmentalScience'] as number,
+    },
+    {
+      subjectId: subIds['essays'] as number,
+      certificationId: certIds['essays'] as number,
+    },
+    {
+      subjectId: subIds['applications'] as number,
+      certificationId: certIds['applications'] as number,
+    },
+    {
+      subjectId: subIds['planning'] as number,
+      certificationId: certIds['planning'] as number,
+    },
+    {
+      subjectId: subIds['satMath'] as number,
+      certificationId: certIds['satMath'] as number,
+    },
+    {
+      subjectId: subIds['satReading'] as number,
+      certificationId: certIds['satReading'] as number,
+    },
+    // {
+    //   updated_at: new Date(),
+    //   created_at: new Date(),
+    //   subjectId: subIds['collegeCounseling'),
+    //   certificationId: certIds['collegeCounseling')
+    // },
+    {
+      subjectId: subIds['humanitiesEssays'] as number,
+      certificationId: certIds['humanitiesEssays'] as number,
+    },
+    {
+      subjectId: subIds['algebraOne'] as number,
+      certificationId: certIds['algebraOne'] as number,
+    },
+    {
+      subjectId: subIds['algebraTwo'] as number,
+      certificationId: certIds['algebraTwo'] as number,
+    },
+    {
+      subjectId: subIds['trigonometry'] as number,
+      certificationId: certIds['trigonometry'] as number,
+    },
+    {
+      subjectId: subIds['precalculus'] as number,
+      certificationId: certIds['precalculus'] as number,
+    },
+    {
+      subjectId: subIds['calculusAB'] as number,
+      certificationId: certIds['calculusAB'] as number,
+    },
+    {
+      subjectId: subIds['calculusBC'] as number,
+      certificationId: certIds['calculusBC'] as number,
+    },
+  ]
+  for (const x of certificationSubjectUnlocks) {
+    await wrapInsert(
+      'certification_subject_unlocks',
+      pgQueries.insertCertificationSubjectUnlocks.run,
+      { ...x }
+    )
+  }
 }
-
-async function getToolTypeId(toolTypeName: string): Promise<number> {
-  const toolType = await db
-    .selectExactlyOne('tool_types', { name: toolTypeName })
-    .run(pool)
-  return toolType.id
-}
-
-async function getCompositeSubjectIds(
-  subjectNames: string[]
-): Promise<number[]> {
-  const ids: number[] = []
-  const lookups = subjectNames.map(name => {
-    return db
-      .selectExactlyOne('subjects', { name: name })
-      .run(pool)
-      .then(subject => {
-        ids.push(subject.id)
-      })
-  })
-  await Promise.all(lookups)
-  return ids
-}
-
-export async function subjects() {
-  await db
-    .insert('subjects', [
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'prealgebra',
-        display_name: 'Prealgebra',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 1,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'algebraOne',
-        display_name: 'Algebra 1',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 2,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'algebraTwo',
-        display_name: 'Algebra 2',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 3,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'geometry',
-        display_name: 'Geometry',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 4,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'trigonometry',
-        display_name: 'Trigonometry',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 5,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'precalculus',
-        display_name: 'Precalculus',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 6,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'calculusAB',
-        display_name: 'Calculus AB',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 7,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'calculusBC',
-        display_name: 'Calculus BC',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 8,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'statistics',
-        display_name: 'Statistics',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 9,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'biology',
-        display_name: 'Biology',
-        topic_id: await getTopicId('science'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 1,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'chemistry',
-        display_name: 'Chemistry',
-        topic_id: await getTopicId('science'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 2,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'physicsOne',
-        display_name: 'Physics 1',
-        topic_id: await getTopicId('science'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 3,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'physicsTwo',
-        display_name: 'Physics 2',
-        topic_id: await getTopicId('science'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 4,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'environmentalScience',
-        display_name: 'Environmental Science',
-        topic_id: await getTopicId('science'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 5,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'satMath',
-        display_name: 'SAT Math',
-        topic_id: await getTopicId('sat'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 1,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'satReading',
-        display_name: 'SAT Reading',
-        topic_id: await getTopicId('sat'),
-        tool_type_id: await getToolTypeId('documenteditor'),
-        display_order: 2,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'essays',
-        display_name: 'College Essays',
-        topic_id: await getTopicId('college'),
-        tool_type_id: await getToolTypeId('documenteditor'),
-        display_order: 2,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'planning',
-        display_name: 'Planning',
-        topic_id: await getTopicId('college'),
-        tool_type_id: await getToolTypeId('documenteditor'),
-        display_order: 1,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'applications',
-        display_name: 'Applications',
-        topic_id: await getTopicId('college'),
-        tool_type_id: await getToolTypeId('documenteditor'),
-        display_order: 3,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'humanitiesEssays',
-        display_name: 'Humanities Essays',
-        topic_id: await getTopicId('readingWriting'),
-        tool_type_id: await getToolTypeId('documenteditor'),
-        display_order: 1,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'integratedMathOne',
-        display_name: 'Integrated Math One',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 9,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'integratedMathTwo',
-        display_name: 'Integrated Math Two',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 9,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'integratedMathThree',
-        display_name: 'Integrated Math Three',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 9,
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'integratedMathFour',
-        display_name: 'Integrated Math Four',
-        topic_id: await getTopicId('math'),
-        tool_type_id: await getToolTypeId('whiteboard'),
-        display_order: 9,
-      },
-    ])
-    .run(pool)
-}
-
-
-export async function certificationSubjectUnlocks() {
-    await db.insert('certification_subject_unlocks', [
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathOne'), certification_id: await getIdByNameFailsafe('certifications', 'algebraOne')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathOne'), certification_id: await getIdByNameFailsafe('certifications', 'geometry')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathOne'), certification_id: await getIdByNameFailsafe('certifications', 'statistics')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathTwo'), certification_id: await getIdByNameFailsafe('certifications', 'algebraOne')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathTwo'), certification_id: await getIdByNameFailsafe('certifications', 'geometry')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathTwo'), certification_id: await getIdByNameFailsafe('certifications', 'statistics')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathTwo'), certification_id: await getIdByNameFailsafe('certifications', 'trigonometry')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathThree'), certification_id: await getIdByNameFailsafe('certifications', 'precalculus')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathThree'), certification_id: await getIdByNameFailsafe('certifications', 'statistics')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'integratedMathFour'), certification_id: await getIdByNameFailsafe('certifications', 'precalculus')},
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'prealgebra'), certification_id: await getIdByNameFailsafe('certifications', 'prealgebra') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'statistics'), certification_id: await getIdByNameFailsafe('certifications', 'statistics') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'geometry'), certification_id: await getIdByNameFailsafe('certifications', 'geometry') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'biology'), certification_id: await getIdByNameFailsafe('certifications', 'biology') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'chemistry'), certification_id: await getIdByNameFailsafe('certifications', 'chemistry') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'physicsOne'), certification_id: await getIdByNameFailsafe('certifications', 'physicsOne') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'physicsTwo'), certification_id: await getIdByNameFailsafe('certifications', 'physicsTwo') },
-        {
-          updated_at: new Date(),
-          created_at: new Date(),
-          subject_id: await getIdByNameFailsafe('subjects', 'environmentalScience'),
-          certification_id: await getIdByNameFailsafe('certifications', 'environmentalScience')
-        },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'essays'), certification_id: await getIdByNameFailsafe('certifications', 'essays') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'applications'), certification_id: await getIdByNameFailsafe('certifications', 'applications') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'planning'), certification_id: await getIdByNameFailsafe('certifications', 'planning') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'satMath'), certification_id: await getIdByNameFailsafe('certifications', 'satMath') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'satReading'), certification_id: await getIdByNameFailsafe('certifications', 'satReading') },
-        // {
-        //   updated_at: new Date(),
-        //   created_at: new Date(),
-        //   subject_id: await getIdByNameFailsafe('subjects', 'collegeCounseling'),
-        //   certification_id: await getIdByNameFailsafe('certifications', 'collegeCounseling')
-        // },
-        {
-          updated_at: new Date(),
-          created_at: new Date(),
-          subject_id: await getIdByNameFailsafe('subjects', 'humanitiesEssays'),
-          certification_id: await getIdByNameFailsafe('certifications', 'humanitiesEssays')
-        },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'algebraOne'), certification_id: await getIdByNameFailsafe('certifications', 'algebraOne') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'algebraTwo'), certification_id: await getIdByNameFailsafe('certifications', 'algebraTwo') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'trigonometry'), certification_id: await getIdByNameFailsafe('certifications', 'trigonometry') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'precalculus'), certification_id: await getIdByNameFailsafe('certifications', 'precalculus') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'calculusAB'), certification_id: await getIdByNameFailsafe('certifications', 'calculusAB') },
-        { updated_at: new Date(), created_at: new Date(), subject_id: await getIdByNameFailsafe('subjects', 'calculusBC'), certification_id: await getIdByNameFailsafe('certifications', 'calculusBC') },
-    ]).run(pool)
-}
-

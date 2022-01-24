@@ -1,12 +1,19 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function photoIdStatuses() {
-  await db
-    .insert('photo_id_statuses', [
-      { updated_at: new Date(), created_at: new Date(), name: 'approved' },
-      { updated_at: new Date(), created_at: new Date(), name: 'submitted' },
-      { updated_at: new Date(), created_at: new Date(), name: 'rejected' },
-    ])
-    .run(pool)
+export async function photoIdStatuses(): Promise<NameToId> {
+  const statuses = [
+    { name: 'approved' },
+    { name: 'submitted' },
+    { name: 'rejected' },
+  ]
+  const temp: NameToId = {}
+  for (const status of statuses) {
+    temp[status.name] = await wrapInsert(
+      'photo_id_statuses',
+      pgQueries.insertPhotoIdStatus.run,
+      { ...status }
+    )
+  }
+  return temp
 }

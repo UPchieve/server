@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.grade_levels (
-    id serial primary key,
-    name text not null unique,
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.grade_levels (
+    id serial PRIMARY KEY,
+    name text NOT NULL UNIQUE,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.grade_levels cascade;
+DROP TABLE IF EXISTS upchieve.grade_levels CASCADE;
 

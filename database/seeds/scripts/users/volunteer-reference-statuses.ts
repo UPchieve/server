@@ -1,14 +1,21 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function volunteerReferenceStatuses() {
-  await db
-    .insert('volunteer_reference_statuses', [
-      { updated_at: new Date(), created_at: new Date(), name: 'sent' },
-      { updated_at: new Date(), created_at: new Date(), name: 'submitted' },
-      { updated_at: new Date(), created_at: new Date(), name: 'approved' },
-      { updated_at: new Date(), created_at: new Date(), name: 'rejected' },
-      { updated_at: new Date(), created_at: new Date(), name: 'removed' },
-    ])
-    .run(pool)
+export async function volunteerReferenceStatuses(): Promise<NameToId> {
+  const statuses = [
+    { name: 'sent' },
+    { name: 'submitted' },
+    { name: 'approved' },
+    { name: 'rejected' },
+    { name: 'removed' },
+  ]
+  const temp: NameToId = {}
+  for (const status of statuses) {
+    temp[status.name] = await wrapInsert(
+      'volunteer_reference_statuses',
+      pgQueries.insertVolunteerReferenceStatus.run,
+      { ...status }
+    )
+  }
+  return temp
 }

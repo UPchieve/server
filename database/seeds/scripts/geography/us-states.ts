@@ -1,315 +1,220 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function usStates() {
-  await db
-    .insert('us_states', [
-      {
-        code: 'AL',
-        name: 'Alabama',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'AK',
-        name: 'Alaska',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'AR',
-        name: 'Arkansas',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'AZ',
-        name: 'Arizona',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'CA',
-        name: 'California',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'CO',
-        name: 'Colorado',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'CT',
-        name: 'Connecticut',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'DE',
-        name: 'Delaware',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'DC',
-        name: 'District of Columbia',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'FL',
-        name: 'Florida',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'GA',
-        name: 'Georgia',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'HI',
-        name: 'Hawaii',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'ID',
-        name: 'Idaho',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'IL',
-        name: 'Illinois',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'IN',
-        name: 'Indiana',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'IA',
-        name: 'Iowa',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'KS',
-        name: 'Kansas',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'KY',
-        name: 'Kentucky',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'LA',
-        name: 'Louisiana',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'ME',
-        name: 'Maine',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'MD',
-        name: 'Maryland',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'MA',
-        name: 'Massachusetts',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'MI',
-        name: 'Michigan',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'MN',
-        name: 'Minnesota',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'MS',
-        name: 'Mississippi',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'MO',
-        name: 'Missouri',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'MT',
-        name: 'Montana',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'NE',
-        name: 'Nebraska',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'NV',
-        name: 'Nevada',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'NH',
-        name: 'New Hampshire',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'NJ',
-        name: 'New Jersey',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'NM',
-        name: 'New Mexico',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'NY',
-        name: 'New York',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'NC',
-        name: 'North Carolina',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'ND',
-        name: 'North Dakota',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'OH',
-        name: 'Ohio',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'OK',
-        name: 'Oklahoma',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'OR',
-        name: 'Oregon',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'PA',
-        name: 'Pennsylvania',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'RI',
-        name: 'Rhode Island',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'SC',
-        name: 'South Carolina',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'SD',
-        name: 'South Dakota',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'TN',
-        name: 'Tennessee',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'TX',
-        name: 'Texas',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'UT',
-        name: 'Utah',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'VT',
-        name: 'Vermont',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'VA',
-        name: 'Virginia',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'WA',
-        name: 'Washington',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'WV',
-        name: 'West Virginia',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'WI',
-        name: 'Wisconsin',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        code: 'WY',
-        name: 'Wyoming',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-    ])
-    .run(pool)
+export async function usStates(): Promise<NameToId> {
+  const usStates = [
+    {
+      code: 'AL',
+      name: 'Alabama',
+    },
+    {
+      code: 'AK',
+      name: 'Alaska',
+    },
+    {
+      code: 'AR',
+      name: 'Arkansas',
+    },
+    {
+      code: 'AZ',
+      name: 'Arizona',
+    },
+    {
+      code: 'CA',
+      name: 'California',
+    },
+    {
+      code: 'CO',
+      name: 'Colorado',
+    },
+    {
+      code: 'CT',
+      name: 'Connecticut',
+    },
+    {
+      code: 'DE',
+      name: 'Delaware',
+    },
+    {
+      code: 'DC',
+      name: 'District of Columbia',
+    },
+    {
+      code: 'FL',
+      name: 'Florida',
+    },
+    {
+      code: 'GA',
+      name: 'Georgia',
+    },
+    {
+      code: 'HI',
+      name: 'Hawaii',
+    },
+    {
+      code: 'ID',
+      name: 'Idaho',
+    },
+    {
+      code: 'IL',
+      name: 'Illinois',
+    },
+    {
+      code: 'IN',
+      name: 'Indiana',
+    },
+    {
+      code: 'IA',
+      name: 'Iowa',
+    },
+    {
+      code: 'KS',
+      name: 'Kansas',
+    },
+    {
+      code: 'KY',
+      name: 'Kentucky',
+    },
+    {
+      code: 'LA',
+      name: 'Louisiana',
+    },
+    {
+      code: 'ME',
+      name: 'Maine',
+    },
+    {
+      code: 'MD',
+      name: 'Maryland',
+    },
+    {
+      code: 'MA',
+      name: 'Massachusetts',
+    },
+    {
+      code: 'MI',
+      name: 'Michigan',
+    },
+    {
+      code: 'MN',
+      name: 'Minnesota',
+    },
+    {
+      code: 'MS',
+      name: 'Mississippi',
+    },
+    {
+      code: 'MO',
+      name: 'Missouri',
+    },
+    {
+      code: 'MT',
+      name: 'Montana',
+    },
+    {
+      code: 'NE',
+      name: 'Nebraska',
+    },
+    {
+      code: 'NV',
+      name: 'Nevada',
+    },
+    {
+      code: 'NH',
+      name: 'New Hampshire',
+    },
+    {
+      code: 'NJ',
+      name: 'New Jersey',
+    },
+    {
+      code: 'NM',
+      name: 'New Mexico',
+    },
+    {
+      code: 'NY',
+      name: 'New York',
+    },
+    {
+      code: 'NC',
+      name: 'North Carolina',
+    },
+    {
+      code: 'ND',
+      name: 'North Dakota',
+    },
+    {
+      code: 'OH',
+      name: 'Ohio',
+    },
+    {
+      code: 'OK',
+      name: 'Oklahoma',
+    },
+    {
+      code: 'OR',
+      name: 'Oregon',
+    },
+    {
+      code: 'PA',
+      name: 'Pennsylvania',
+    },
+    {
+      code: 'RI',
+      name: 'Rhode Island',
+    },
+    {
+      code: 'SC',
+      name: 'South Carolina',
+    },
+    {
+      code: 'SD',
+      name: 'South Dakota',
+    },
+    {
+      code: 'TN',
+      name: 'Tennessee',
+    },
+    {
+      code: 'TX',
+      name: 'Texas',
+    },
+    {
+      code: 'UT',
+      name: 'Utah',
+    },
+    {
+      code: 'VT',
+      name: 'Vermont',
+    },
+    {
+      code: 'VA',
+      name: 'Virginia',
+    },
+    {
+      code: 'WA',
+      name: 'Washington',
+    },
+    {
+      code: 'WV',
+      name: 'West Virginia',
+    },
+    {
+      code: 'WI',
+      name: 'Wisconsin',
+    },
+    {
+      code: 'WY',
+      name: 'Wyoming',
+    },
+  ]
+  const temp: NameToId = {}
+  for (const state of usStates) {
+    temp[state.name] = await wrapInsert(
+      'us_states',
+      pgQueries.insertUsState.run,
+      { ...state }
+    )
+  }
+  return temp
 }

@@ -1,12 +1,12 @@
 -- migrate:up
-create table if not exists upchieve.required_email_domains (
-    id uuid primary key,
-    domain text not null unique,
-    volunteer_partner_org_id uuid not null references upchieve.volunteer_partner_orgs (id),
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.required_email_domains (
+    id uuid PRIMARY KEY,
+    domain text NOT NULL UNIQUE,
+    volunteer_partner_org_id uuid NOT NULL REFERENCES upchieve.volunteer_partner_orgs (id),
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.required_email_domains cascade;
+DROP TABLE IF EXISTS upchieve.required_email_domains CASCADE;
 

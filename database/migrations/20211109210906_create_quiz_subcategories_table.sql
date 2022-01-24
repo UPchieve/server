@@ -1,12 +1,12 @@
 -- migrate:up
-create table if not exists upchieve.quiz_subcategories (
-    id serial primary key,
-    name text not null,
-    quiz_id int not null references upchieve.quizzes (id),
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.quiz_subcategories (
+    id serial PRIMARY KEY,
+    name text NOT NULL,
+    quiz_id int NOT NULL REFERENCES upchieve.quizzes (id),
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.quiz_subcategories cascade;
+DROP TABLE IF EXISTS upchieve.quiz_subcategories CASCADE;
 

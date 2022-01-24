@@ -12,7 +12,10 @@ import { volunteerPartnerOrgsTest } from './scripts/partners/volunteer-partner-o
 import { requiredEmailDomainsTest } from './scripts/partners/required-email-domains-test'
 import { trainingCourses } from './scripts/academics/training-courses'
 import { topics } from './scripts/academics/topics'
-import { subjects, certificationSubjectUnlocks } from './scripts/academics/subjects'
+import {
+  subjects,
+  certificationSubjectUnlocks,
+} from './scripts/academics/subjects'
 import { toolTypes } from './scripts/academics/tool-types'
 import { certifications } from './scripts/academics/certifications'
 import {
@@ -24,49 +27,60 @@ import { sessionFlags } from './scripts/sessions/session-flags'
 import { reportReasons } from './scripts/sessions/report-reasons'
 import { notificationTypes } from './scripts/notifications/notification-types'
 import { notificationMethods } from './scripts/notifications/notification-methods'
-import { notificationPriorityGroups } from './scripts/notifications/priority-groups'
+import { priorityGroups } from './scripts/notifications/priority-groups'
 import { volunteers } from './scripts/testData/volunteers'
 import { students } from './scripts/testData/students'
 import { schools } from './scripts/testData/schools'
 
+import { startClient } from './pgClient'
+import { ExpectedErrors } from './scripts/utils'
+
 async function seedData(): Promise<void> {
   let exitCode = 0
   try {
+    await startClient()
+
     await usStates()
     await postalCodes()
+
     await userRoles()
     await banReasons()
     await signupSources()
     await gradeLevels()
 
-    await studentPartnerOrgsTest()
-    await studentPartnerOrgSitesTest()
-    await volunteerPartnerOrgsTest()
-    await requiredEmailDomainsTest()
+    const spoIds = await studentPartnerOrgsTest()
+    await studentPartnerOrgSitesTest(spoIds)
+    const vpoIds = await volunteerPartnerOrgsTest()
+    await requiredEmailDomainsTest(vpoIds)
 
     await photoIdStatuses()
     await trainingCourses()
     await volunteerReferenceStatuses()
 
-    await topics()
-    await toolTypes()
-    await subjects()
+    const topicIds = await topics()
+    const toolIds = await toolTypes()
+    const subjectIds = await subjects(topicIds, toolIds)
+    const quizIds = await quizzes()
+    await quizSubcategories(quizIds)
+    const certIds = await certifications()
+    await quizCertificationGrants(quizIds, certIds)
+    await certificationSubjectUnlocks(subjectIds, quizIds)
 
-    await quizzes()
-    await quizSubcategories()
-    await certifications()
-    await quizCertificationGrants()
-    await certificationSubjectUnlocks()
     await sessionFlags()
     await reportReasons()
+
     await notificationTypes()
     await notificationMethods()
-    await notificationPriorityGroups()
+    await priorityGroups()
 
     await schools()
-    await volunteers()
-    await students()
+    await volunteers(vpoIds, certIds, quizIds)
+    await students(spoIds)
     console.log('All data is seeded!')
+    if (ExpectedErrors.length)
+      console.log(
+        `Tried to re-seed ${ExpectedErrors.length} objects already in database`
+      )
   } catch (err) {
     exitCode = 1
     console.log(err as Error)

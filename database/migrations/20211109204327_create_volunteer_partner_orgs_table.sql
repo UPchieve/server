@@ -1,13 +1,13 @@
 -- migrate:up
-create table if not exists upchieve.volunteer_partner_orgs (
-    id uuid primary key,
-    key text not null unique,
-    name text not null unique,
-    receive_weekly_hour_summary_email boolean not null default false,
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.volunteer_partner_orgs (
+    id uuid PRIMARY KEY,
+    key text NOT NULL UNIQUE,
+    name text NOT NULL UNIQUE,
+    receive_weekly_hour_summary_email boolean NOT NULL DEFAULT FALSE,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.volunteer_partner_orgs cascade;
+DROP TABLE IF EXISTS upchieve.volunteer_partner_orgs CASCADE;
 

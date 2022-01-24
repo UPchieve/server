@@ -1,12 +1,12 @@
 -- migrate:up
-create table if not exists upchieve.ip_addresses (
-    id bigserial primary key,
-    ip inet not null unique,
+CREATE TABLE IF NOT EXISTS upchieve.ip_addresses (
+    id bigserial PRIMARY KEY,
+    ip inet NOT NULL UNIQUE,
     status text,
-    created_at timestamp not null,
-    updated_at timestamp not null
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.ip_addresses cascade;
+DROP TABLE IF EXISTS upchieve.ip_addresses CASCADE;
 

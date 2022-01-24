@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.photo_id_statuses (
-    id serial primary key,
-    name text not null unique,
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.photo_id_statuses (
+    id serial PRIMARY KEY,
+    name text NOT NULL UNIQUE,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.photo_id_statuses cascade;
+DROP TABLE IF EXISTS upchieve.photo_id_statuses CASCADE;
 

@@ -1,24 +1,28 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
-import { getDbUlid } from '../utils'
+import { wrapInsert, NameToId, getDbUlid } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function schools() {
-  await db
-    .insert('schools', [
-      {
-        id: getDbUlid(),
-        name: 'test data',
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        id: getDbUlid(),
-        name: 'Legacy Signup High School',
-        created_at: new Date(),
-        updated_at: new Date(),
-        approved: true,
-        partner: true,
-      },
-    ])
-    .run(pool)
+export async function schools(): Promise<NameToId> {
+  const schools = [
+    {
+      id: getDbUlid(),
+      name: 'test data',
+      approved: false,
+      partner: false,
+    },
+    {
+      id: getDbUlid(),
+      name: 'Legacy Signup High School',
+      approved: true,
+      partner: true,
+    },
+  ]
+  const temp: NameToId = {}
+  for (const school of schools) {
+    temp[school.name] = await wrapInsert(
+      'schools',
+      pgQueries.insertSchool.run,
+      { ...school }
+    )
+  }
+  return temp
 }

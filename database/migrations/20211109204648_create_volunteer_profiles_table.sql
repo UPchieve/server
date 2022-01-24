@@ -1,12 +1,12 @@
 -- migrate:up
-create table if not exists upchieve.volunteer_profiles (
-    user_id uuid primary key references upchieve.users (id),
-    volunteer_partner_org_id uuid references upchieve.volunteer_partner_orgs (id),
-    timezone text not null,
-    approved boolean not null default false,
-    onboarded boolean not null default false,
+CREATE TABLE IF NOT EXISTS upchieve.volunteer_profiles (
+    user_id uuid PRIMARY KEY REFERENCES upchieve.users (id),
+    volunteer_partner_org_id uuid REFERENCES upchieve.volunteer_partner_orgs (id),
+    timezone text NOT NULL,
+    approved boolean NOT NULL DEFAULT FALSE,
+    onboarded boolean NOT NULL DEFAULT FALSE,
     photo_id_s3_key text,
-    photo_id_status int references upchieve.photo_id_statuses (id),
+    photo_id_status int REFERENCES upchieve.photo_id_statuses (id),
     linkedin_url text,
     college text,
     company text,
@@ -15,10 +15,10 @@ create table if not exists upchieve.volunteer_profiles (
     city text,
     state text,
     country text,
-    created_at timestamp not null,
-    updated_at timestamp not null
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.volunteer_profiles cascade;
+DROP TABLE IF EXISTS upchieve.volunteer_profiles CASCADE;
 
