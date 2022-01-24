@@ -1027,7 +1027,7 @@ export function processAnalyticsReportDataSheet(
     ).value = `Unique ${partnerName} students impacted within date range`
     worksheet.getCell(
       'X2'
-    ).value = `Tutoring hours with ${partnerName} within date range`
+    ).value = `Tutoring hours with ${partnerName} students within date range`
     worksheet.mergeCells('A1:G1')
     worksheet.mergeCells('H1:L1')
     worksheet.mergeCells('M1:Q1')
