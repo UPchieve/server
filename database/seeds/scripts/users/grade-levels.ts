@@ -1,15 +1,22 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function gradeLevels() {
-  await db
-    .insert('grade_levels', [
-      { updated_at: new Date(), created_at: new Date(), name: '8' },
-      { updated_at: new Date(), created_at: new Date(), name: '9' },
-      { updated_at: new Date(), created_at: new Date(), name: '10' },
-      { updated_at: new Date(), created_at: new Date(), name: '11' },
-      { updated_at: new Date(), created_at: new Date(), name: '12' },
-      { updated_at: new Date(), created_at: new Date(), name: 'college' },
-    ])
-    .run(pool)
+export async function gradeLevels(): Promise<NameToId> {
+  const grades = [
+    { name: '8' },
+    { name: '9' },
+    { name: '10' },
+    { name: '11' },
+    { name: '12' },
+    { name: 'college' },
+  ]
+  const temp: NameToId = {}
+  for (const grade of grades) {
+    temp[grade.name] = await wrapInsert(
+      'grade_levels',
+      pgQueries.insertGradeLevel.run,
+      { ...grade }
+    )
+  }
+  return temp
 }

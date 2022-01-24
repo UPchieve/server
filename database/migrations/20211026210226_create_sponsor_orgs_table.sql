@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.sponsor_orgs (
-    id uuid primary key,
-    name text not null,
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.sponsor_orgs (
+    id uuid PRIMARY KEY,
+    name text NOT NULL,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.sponsor_orgs;
+DROP TABLE IF EXISTS upchieve.sponsor_orgs;
 

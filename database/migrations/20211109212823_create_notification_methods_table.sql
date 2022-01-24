@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.notification_methods (
-    id serial primary key,
-    method text not null unique,
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.notification_methods (
+    id serial PRIMARY KEY,
+    method text NOT NULL UNIQUE,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.notification_methods cascade;
+DROP TABLE IF EXISTS upchieve.notification_methods CASCADE;
 

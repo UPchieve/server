@@ -1,27 +1,28 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function signupSources() {
-  await db
-    .insert('signup_sources', [
-      { updated_at: new Date(), created_at: new Date(), name: 'Web search' },
-      { updated_at: new Date(), created_at: new Date(), name: 'Social media' },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'Friend / Classmate',
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'School / Teacher',
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'Parent / Relative',
-      },
-      { updated_at: new Date(), created_at: new Date(), name: 'Other' },
-    ])
-    .run(pool)
+export async function signupSources(): Promise<NameToId> {
+  const sources = [
+    { name: 'Web search' },
+    { name: 'Social media' },
+    {
+      name: 'Friend / Classmate',
+    },
+    {
+      name: 'School / Teacher',
+    },
+    {
+      name: 'Parent / Relative',
+    },
+    { name: 'Other' },
+  ]
+  const temp: NameToId = {}
+  for (const source of sources) {
+    temp[source.name] = await wrapInsert(
+      'signup_sources',
+      pgQueries.insertSignupSource.run,
+      { ...source }
+    )
+  }
+  return temp
 }

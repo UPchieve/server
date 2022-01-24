@@ -1,12 +1,12 @@
 -- migrate:up
-create table if not exists upchieve.student_partner_org_sites (
-    id uuid primary key,
-    name text not null unique,
-    student_partner_org_id uuid not null references upchieve.student_partner_orgs (id),
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.student_partner_org_sites (
+    id uuid PRIMARY KEY,
+    name text NOT NULL UNIQUE,
+    student_partner_org_id uuid NOT NULL REFERENCES upchieve.student_partner_orgs (id),
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.student_partner_org_sites cascade;
+DROP TABLE IF EXISTS upchieve.student_partner_org_sites CASCADE;
 

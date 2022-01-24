@@ -1,17 +1,17 @@
 -- migrate:up
-create table if not exists upchieve.student_profiles (
-    user_id uuid primary key references upchieve.users (id),
+CREATE TABLE IF NOT EXISTS upchieve.student_profiles (
+    user_id uuid PRIMARY KEY REFERENCES upchieve.users (id),
     college text,
-    school_id uuid references upchieve.schools (id),
-    postal_code varchar(2) references upchieve.postal_codes (code),
-    grade_level_id int references upchieve.grade_levels (id),
+    school_id uuid REFERENCES upchieve.schools (id),
+    postal_code varchar(2) REFERENCES upchieve.postal_codes (code),
+    grade_level_id int REFERENCES upchieve.grade_levels (id),
     student_partner_org_user_id uuid,
-    student_partner_org_id uuid references upchieve.student_partner_orgs (id),
-    student_partner_org_site_id uuid references upchieve.student_partner_org_sites (id),
-    created_at timestamp not null,
-    updated_at timestamp not null
+    student_partner_org_id uuid REFERENCES upchieve.student_partner_orgs (id),
+    student_partner_org_site_id uuid REFERENCES upchieve.student_partner_org_sites (id),
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.student_profiles cascade;
+DROP TABLE IF EXISTS upchieve.student_profiles CASCADE;
 

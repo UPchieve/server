@@ -1,26 +1,23 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
-import { getDbUlid } from '../utils'
+import { wrapInsert, NameToId, getDbUlid } from '../utils'
+import * as pgQueries from './pg.queries'
 
-async function getVolunteerPartnerOrgId(partnerOrgName: string) {
-  const partnerOrg = await db
-    .selectExactlyOne('volunteer_partner_orgs', { name: partnerOrgName })
-    .run(pool)
-  return partnerOrg.id
-}
-
-export async function requiredEmailDomainsTest() {
-  await db
-    .insert('required_email_domains', [
-      {
-        id: getDbUlid(),
-        updated_at: new Date(),
-        created_at: new Date(),
-        domain: 'placeholder1.com',
-        volunteer_partner_org_id: await getVolunteerPartnerOrgId(
-          'Placeholder 1'
-        ),
-      },
-    ])
-    .run(pool)
+export async function requiredEmailDomainsTest(
+  vpoIds: NameToId
+): Promise<NameToId> {
+  const domains = [
+    {
+      id: getDbUlid(),
+      domain: 'placeholder1.com',
+      volunteerPartnerOrgId: vpoIds['Placeholder 1'] as string,
+    },
+  ]
+  const temp: NameToId = {}
+  for (const domain of domains) {
+    temp[domain.domain] = await wrapInsert(
+      'required_email_domains',
+      pgQueries.insertRequiredEmailDomain.run,
+      { ...domain }
+    )
+  }
+  return temp
 }

@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.tool_types (
-    id serial primary key,
-    name text not null unique,
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.tool_types (
+    id serial PRIMARY KEY,
+    name text NOT NULL UNIQUE,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.tool_types cascade;
+DROP TABLE IF EXISTS upchieve.tool_types CASCADE;
 

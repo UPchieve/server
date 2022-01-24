@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.user_actions (
-    id bigserial primary key,
-    user_id uuid references upchieve.users (id),
-    session_id uuid references upchieve.sessions (id),
+CREATE TABLE IF NOT EXISTS upchieve.user_actions (
+    id bigserial PRIMARY KEY,
+    user_id uuid REFERENCES upchieve.users (id),
+    session_id uuid REFERENCES upchieve.sessions (id),
     action_type text,
     action text,
-    ip_address_id bigint references upchieve.ip_addresses (id),
+    ip_address_id bigint REFERENCES upchieve.ip_addresses (id),
     device text,
     browser text,
     browser_version text,
@@ -13,10 +13,10 @@ create table if not exists upchieve.user_actions (
     operating_system_version text,
     quiz_subcategory text,
     quiz_category text,
-    created_at timestamp not null,
-    updated_at timestamp not null
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.user_actions cascade;
+DROP TABLE IF EXISTS upchieve.user_actions CASCADE;
 

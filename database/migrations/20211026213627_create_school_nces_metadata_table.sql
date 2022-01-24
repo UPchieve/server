@@ -1,8 +1,8 @@
 -- migrate:up
-create table if not exists upchieve.school_nces_metadata (
-    school_id uuid primary key references upchieve.schools (id),
-    created_at timestamp not null,
-    updated_at timestamp not null,
+CREATE TABLE IF NOT EXISTS upchieve.school_nces_metadata (
+    school_id uuid PRIMARY KEY REFERENCES upchieve.schools (id),
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL,
     school_year text,
     fipst int,
     statename text,
@@ -70,5 +70,5 @@ create table if not exists upchieve.school_nces_metadata (
 );
 
 -- migrate:down
-drop table if exists upchieve.school_nces_metadata cascade;
+DROP TABLE IF EXISTS upchieve.school_nces_metadata CASCADE;
 

@@ -16,6 +16,113 @@ SET row_security = off;
 CREATE SCHEMA upchieve;
 
 
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: generate_ulid(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.generate_ulid() RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  -- Crockford's Base32
+  encoding   BYTEA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
+  output     TEXT = '';
+
+  unix_time  BIGINT;
+  ulid       BYTEA;
+BEGIN
+  -- 6 timestamp bytes
+  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
+  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
+
+  -- 10 entropy bytes
+  ulid = timestamp || public.gen_random_bytes(10);
+
+  -- Encode the timestamp
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 0) & 224) >> 5));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 0) & 31)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 1) & 248) >> 3));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 1) & 7) << 2) | ((GET_BYTE(ulid, 2) & 192) >> 6)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 2) & 62) >> 1));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 2) & 1) << 4) | ((GET_BYTE(ulid, 3) & 240) >> 4)));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 3) & 15) << 1) | ((GET_BYTE(ulid, 4) & 128) >> 7)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 4) & 124) >> 2));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 4) & 3) << 3) | ((GET_BYTE(ulid, 5) & 224) >> 5)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 5) & 31)));
+
+  -- Encode the entropy
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 6) & 248) >> 3));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 6) & 7) << 2) | ((GET_BYTE(ulid, 7) & 192) >> 6)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 7) & 62) >> 1));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 7) & 1) << 4) | ((GET_BYTE(ulid, 8) & 240) >> 4)));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 8) & 15) << 1) | ((GET_BYTE(ulid, 9) & 128) >> 7)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 9) & 124) >> 2));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 9) & 3) << 3) | ((GET_BYTE(ulid, 10) & 224) >> 5)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 10) & 31)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 11) & 248) >> 3));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 11) & 7) << 2) | ((GET_BYTE(ulid, 12) & 192) >> 6)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 12) & 62) >> 1));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 12) & 1) << 4) | ((GET_BYTE(ulid, 13) & 240) >> 4)));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 13) & 15) << 1) | ((GET_BYTE(ulid, 14) & 128) >> 7)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 14) & 124) >> 2));
+  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 14) & 3) << 3) | ((GET_BYTE(ulid, 15) & 224) >> 5)));
+  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 15) & 31)));
+
+  RETURN output;
+END
+$$;
+
+
+--
+-- Name: generate_ulid_uuid(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.generate_ulid_uuid() RETURNS uuid
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
+
+  unix_time  BIGINT;
+  ulid       BYTEA;
+BEGIN
+  -- 6 timestamp bytes
+  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
+  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
+
+  -- 10 entropy bytes
+  ulid = timestamp || public.gen_random_bytes(10);
+
+  RETURN CAST( substring(CAST (ulid AS text) from 3) AS uuid);
+END
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -50,9 +157,10 @@ CREATE TABLE upchieve.assistments_data (
     assignment_id uuid NOT NULL,
     student_id uuid NOT NULL,
     session_id uuid NOT NULL,
-    sent boolean,
+    sent boolean DEFAULT false,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    sent_at timestamp without time zone
 );
 
 
@@ -64,9 +172,9 @@ CREATE TABLE upchieve.availabilities (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
     weekday_id integer NOT NULL,
-    available_start smallint,
-    available_end smallint,
-    timezone text,
+    available_start smallint NOT NULL,
+    available_end smallint NOT NULL,
+    timezone text NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -206,13 +314,13 @@ CREATE TABLE upchieve.feedbacks (
     id uuid NOT NULL,
     topic_id integer,
     subject_id integer,
-    user_role_id integer,
-    session_id uuid,
+    user_role_id integer NOT NULL,
+    session_id uuid NOT NULL,
     student_tutoring_feedback json,
     student_counseling_feedback json,
     volunteer_feedback json,
     comment text,
-    user_id uuid,
+    user_id uuid NOT NULL,
     legacy_feedbacks json,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -408,7 +516,7 @@ CREATE TABLE upchieve.notifications (
     method_id integer NOT NULL,
     priority_group_id integer NOT NULL,
     successful boolean,
-    session_id uuid,
+    session_id uuid NOT NULL,
     message_carrier_id text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -469,7 +577,7 @@ CREATE TABLE upchieve.pre_session_surveys (
     id uuid NOT NULL,
     response_data json,
     session_id uuid NOT NULL,
-    user_id uuid,
+    user_id uuid NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -598,7 +706,7 @@ CREATE TABLE upchieve."references" (
     first_name text NOT NULL,
     last_name text NOT NULL,
     email text NOT NULL,
-    status_id integer,
+    status_id integer NOT NULL,
     sent_at timestamp without time zone,
     affiliation text,
     relationship_length text,
@@ -800,8 +908,8 @@ ALTER SEQUENCE upchieve.session_flags_id_seq OWNED BY upchieve.session_flags.id;
 
 CREATE TABLE upchieve.session_messages (
     id uuid NOT NULL,
-    sender_id uuid,
-    contents text,
+    sender_id uuid NOT NULL,
+    contents text NOT NULL,
     session_id uuid NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -830,7 +938,7 @@ CREATE TABLE upchieve.session_reports (
 
 CREATE TABLE upchieve.sessions (
     id uuid NOT NULL,
-    student_id uuid,
+    student_id uuid NOT NULL,
     volunteer_id uuid,
     subject_id integer NOT NULL,
     has_whiteboard_doc boolean DEFAULT false NOT NULL,
@@ -838,10 +946,10 @@ CREATE TABLE upchieve.sessions (
     volunteer_joined_at timestamp without time zone,
     ended_at timestamp without time zone,
     ended_by_role_id integer,
-    reviewed boolean,
-    to_review boolean,
+    reviewed boolean DEFAULT false NOT NULL,
+    to_review boolean DEFAULT false NOT NULL,
     student_banned boolean,
-    time_tutored bigint,
+    time_tutored bigint DEFAULT 0 NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -955,7 +1063,7 @@ CREATE TABLE upchieve.student_profiles (
     school_id uuid,
     postal_code character varying(2),
     grade_level_id integer,
-    student_partner_org_user_id uuid,
+    student_partner_org_user_id text,
     student_partner_org_id uuid,
     student_partner_org_site_id uuid,
     created_at timestamp without time zone NOT NULL,
@@ -1117,7 +1225,7 @@ CREATE TABLE upchieve.us_states (
 
 CREATE TABLE upchieve.user_actions (
     id bigint NOT NULL,
-    user_id uuid,
+    user_id uuid NOT NULL,
     session_id uuid,
     action_type text,
     action text,
@@ -1249,7 +1357,8 @@ CREATE TABLE upchieve.users (
     time_tutored bigint,
     signup_source_id integer,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    phone text
 );
 
 
@@ -2154,6 +2263,14 @@ ALTER TABLE ONLY upchieve.training_courses
 
 
 --
+-- Name: users_ip_addresses unique_user_id_ip_address_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_ip_addresses
+    ADD CONSTRAINT unique_user_id_ip_address_id UNIQUE (user_id, ip_address_id);
+
+
+--
 -- Name: us_states us_states_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2350,6 +2467,22 @@ CREATE INDEX name_search_idx ON upchieve.schools USING gin (name_search);
 
 ALTER TABLE ONLY upchieve.admin_profiles
     ADD CONSTRAINT admin_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: assistments_data assistments_data_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assistments_data
+    ADD CONSTRAINT assistments_data_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: assistments_data assistments_data_student_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assistments_data
+    ADD CONSTRAINT assistments_data_student_id_fkey FOREIGN KEY (student_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -2921,6 +3054,14 @@ ALTER TABLE ONLY upchieve.users_quizzes
 
 
 --
+-- Name: users_roles users_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_roles
+    ADD CONSTRAINT users_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: users users_signup_source_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3037,4 +3178,9 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20211109230807'),
     ('20211109231334'),
     ('20211109231346'),
-    ('20211109231356');
+    ('20211109231356'),
+    ('20220120223933'),
+    ('20220120224349'),
+    ('20220120224635'),
+    ('20220124171208'),
+    ('20220124172750');

@@ -1,15 +1,15 @@
 -- migrate:up
-create table if not exists upchieve.session_reports (
-    id uuid primary key,
-    report_reason_id int not null references upchieve.report_reasons (id),
+CREATE TABLE IF NOT EXISTS upchieve.session_reports (
+    id uuid PRIMARY KEY,
+    report_reason_id int NOT NULL REFERENCES upchieve.report_reasons (id),
     report_message text,
-    reporting_user_id uuid not null references upchieve.users (id),
-    session_id uuid not null references upchieve.sessions (id),
-    reported_user_id uuid not null references upchieve.users (id),
-    created_at timestamp not null,
-    updated_at timestamp not null
+    reporting_user_id uuid NOT NULL REFERENCES upchieve.users (id),
+    session_id uuid NOT NULL REFERENCES upchieve.sessions (id),
+    reported_user_id uuid NOT NULL REFERENCES upchieve.users (id),
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.session_reports cascade;
+DROP TABLE IF EXISTS upchieve.session_reports CASCADE;
 

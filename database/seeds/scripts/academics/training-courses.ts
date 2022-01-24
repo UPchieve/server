@@ -1,10 +1,15 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function trainingCourses() {
-  await db
-    .insert('training_courses', [
-      { updated_at: new Date(), created_at: new Date(), name: 'UPchieve 101' },
-    ])
-    .run(pool)
+export async function trainingCourses(): Promise<NameToId> {
+  const courses = ['UPchieve 101']
+  const temp: NameToId = {}
+  for (const course of courses) {
+    temp[course] = await wrapInsert(
+      'training_courses',
+      pgQueries.insertTrainingCourse.run,
+      { name: course }
+    )
+  }
+  return temp
 }

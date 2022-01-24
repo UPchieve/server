@@ -1,19 +1,22 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function reportReasons() {
-  await db
-    .insert('report_reasons', [
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        reason: 'This student was extremely rude or inappropriate',
-      },
-      {
-        created_at: new Date(),
-        updated_at: new Date(),
-        reason: 'I am worried for the immediate safety of this student',
-      },
-    ])
-    .run(pool)
+export async function reportReasons(): Promise<NameToId> {
+  const reasons = [
+    {
+      reason: 'This student was extremely rude or inappropriate',
+    },
+    {
+      reason: 'I am worried for the immediate safety of this student',
+    },
+  ]
+  const temp: NameToId = {}
+  for (const reason of reasons) {
+    temp[reason.reason] = await wrapInsert(
+      'report_reasons',
+      pgQueries.insertReportReason.run,
+      { ...reason }
+    )
+  }
+  return temp
 }

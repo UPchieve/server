@@ -1,6 +1,6 @@
 -- migrate:up
-create schema if not exists upchieve;
+CREATE SCHEMA IF NOT EXISTS upchieve;
 
 -- migrate:down
-drop schema if exists upchieve;
+DROP SCHEMA IF EXISTS upchieve;
 

@@ -1,7 +1,7 @@
 import fs from 'fs'
 import parse from 'csv-parse/lib/sync'
-import * as db from 'zapatos/db'
-import pool from '../../../pg-pool'
+import * as pgQueries from '../pg.queries'
+import { wrapInsert } from '../../utils'
 
 interface csvPostalCodeRecord {
   zipcode: string
@@ -33,23 +33,13 @@ export async function postalCodes() {
       'MH',
     ]
     if (excludedTerritories.includes(record.state)) return Promise.resolve()
-    return db
-      .insert('postal_codes', [
-        {
-          code: typedRecord.zipcode,
-          us_state_code: typedRecord.state,
-          income: typedRecord.income,
-          created_at: new Date(),
-          updated_at: new Date(),
-          location: db.sql`point(${db.param(typedRecord.latitude)},${db.param(
-            typedRecord.longitude
-          )})`,
-        },
-      ])
-      .run(pool)
-      .then(() => {
-        return
-      })
+    return wrapInsert('postal_codes', pgQueries.insertZipCode.run, {
+      code: typedRecord.zipcode,
+      usStateCode: typedRecord.state,
+      income: typedRecord.income,
+      lattitude: typedRecord.latitude,
+      longitude: typedRecord.longitude,
+    })
   })
   await Promise.all(recordInsertions)
 }

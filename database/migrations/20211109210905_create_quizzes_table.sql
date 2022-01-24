@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.quizzes (
-    id serial primary key,
-    name text not null unique,
-    created_at timestamp not null,
-    updated_at timestamp not null
+CREATE TABLE IF NOT EXISTS upchieve.quizzes (
+    id serial PRIMARY KEY,
+    name text NOT NULL UNIQUE,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.quizzes cascade;
+DROP TABLE IF EXISTS upchieve.quizzes CASCADE;
 

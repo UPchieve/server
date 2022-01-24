@@ -1,11 +1,11 @@
 -- migrate:up
-create table if not exists upchieve.references (
-    id uuid primary key,
-    user_id uuid not null references upchieve.users (id),
-    first_name text not null,
-    last_name text not null,
-    email text not null,
-    status_id int references upchieve.volunteer_reference_statuses (id),
+CREATE TABLE IF NOT EXISTS upchieve.references (
+    id uuid PRIMARY KEY,
+    user_id uuid NOT NULL REFERENCES upchieve.users (id),
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    email text NOT NULL,
+    status_id int REFERENCES upchieve.volunteer_reference_statuses (id),
     sent_at timestamp,
     affiliation text,
     relationship_length text,
@@ -15,10 +15,10 @@ create table if not exists upchieve.references (
     communicates_effectively smallint,
     rejection_reason text,
     additional_info text,
-    created_at timestamp not null,
-    updated_at timestamp not null
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL
 );
 
 -- migrate:down
-drop table if exists upchieve.references cascade;
+DROP TABLE IF EXISTS upchieve.references CASCADE;
 

@@ -1,11 +1,15 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function notificationTypes() {
-  await db
-    .insert('notification_types', [
-      { created_at: new Date(), updated_at: new Date(), type: 'initial' },
-      { created_at: new Date(), updated_at: new Date(), type: 'followup' },
-    ])
-    .run(pool)
+export async function notificationTypes(): Promise<NameToId> {
+  const types = [{ type: 'initial' }, { type: 'followup' }]
+  const temp: NameToId = {}
+  for (const type of types) {
+    temp[type.type] = await wrapInsert(
+      'notification_types',
+      pgQueries.insertNotificationType.run,
+      { ...type }
+    )
+  }
+  return temp
 }

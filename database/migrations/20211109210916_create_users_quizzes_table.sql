@@ -1,14 +1,14 @@
 -- migrate:up
-create table if not exists upchieve.users_quizzes (
-    user_id uuid not null references upchieve.users (id),
-    quiz_id int not null references upchieve.quizzes (id),
-    attempts int not null default 0,
-    passed boolean not null default false,
-    created_at timestamp not null,
-    updated_at timestamp not null,
-    primary key (user_id, quiz_id)
+CREATE TABLE IF NOT EXISTS upchieve.users_quizzes (
+    user_id uuid NOT NULL REFERENCES upchieve.users (id),
+    quiz_id int NOT NULL REFERENCES upchieve.quizzes (id),
+    attempts int NOT NULL DEFAULT 0,
+    passed boolean NOT NULL DEFAULT FALSE,
+    created_at timestamp NOT NULL,
+    updated_at timestamp NOT NULL,
+    PRIMARY KEY (user_id, quiz_id)
 );
 
 -- migrate:down
-drop table if exists upchieve.users_quizzes cascade;
+DROP TABLE IF EXISTS upchieve.users_quizzes CASCADE;
 

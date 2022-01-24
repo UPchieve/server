@@ -1,21 +1,26 @@
-import pool from '../../pg-pool'
-import * as db from 'zapatos/db'
+import { wrapInsert, NameToId } from '../utils'
+import * as pgQueries from './pg.queries'
 
-export async function banReasons() {
-  await db
-    .insert('ban_reasons', [
-      { updated_at: new Date(), created_at: new Date(), name: 'non us signup' },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'session reported',
-      },
-      {
-        updated_at: new Date(),
-        created_at: new Date(),
-        name: 'used banned ip',
-      },
-      { updated_at: new Date(), created_at: new Date(), name: 'admin' },
-    ])
-    .run(pool)
+export async function banReasons(): Promise<NameToId> {
+  const reasons = [
+    {
+      name: 'non us signup',
+    },
+    {
+      name: 'session reported',
+    },
+    {
+      name: 'used banned ip',
+    },
+    { name: 'admin' },
+  ]
+  const temp: NameToId = {}
+  for (const reason of reasons) {
+    temp[reason.name] = await wrapInsert(
+      'ban_reasons',
+      pgQueries.insertBanReason.run,
+      { ...reason }
+    )
+  }
+  return temp
 }
