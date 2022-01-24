@@ -35,7 +35,6 @@
     "worker": "node build/worker",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
-    "zapatos": "zapatos",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/pgtyped.config.json --watch",
     "telepresence:intercept": "./bin/telepresence_intercept.sh",

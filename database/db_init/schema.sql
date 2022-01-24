@@ -188,10 +188,10 @@ CREATE TABLE upchieve.availability_histories (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
     weekday_id integer NOT NULL,
-    available_start smallint,
-    available_end smallint,
-    timezone text,
-    recorded_at timestamp without time zone,
+    available_start smallint NOT NULL,
+    available_end smallint NOT NULL,
+    timezone text NOT NULL,
+    recorded_at timestamp without time zone NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );

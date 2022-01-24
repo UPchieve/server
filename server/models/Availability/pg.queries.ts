@@ -8,10 +8,10 @@ export interface IGetAvailabilityForVolunteerParams {
 
 /** 'GetAvailabilityForVolunteer' return type */
 export interface IGetAvailabilityForVolunteerResult {
-  availableEnd: number | null;
-  availableStart: number | null;
+  availableEnd: number;
+  availableStart: number;
   id: string;
-  timezone: string | null;
+  timezone: string;
   weekday: string;
 }
 
@@ -51,11 +51,11 @@ export interface IGetAvailabilityHistoryForDatesByVolunteerIdParams {
 
 /** 'GetAvailabilityHistoryForDatesByVolunteerId' return type */
 export interface IGetAvailabilityHistoryForDatesByVolunteerIdResult {
-  availableEnd: number | null;
-  availableStart: number | null;
+  availableEnd: number;
+  availableStart: number;
   id: string;
-  recordedAt: Date | null;
-  timezone: string | null;
+  recordedAt: Date;
+  timezone: string;
   weekday: string;
 }
 
