@@ -6,6 +6,10 @@ function sessionIdToKey(id: Types.ObjectId): string {
   return `quill-${id.toString()}`
 }
 
+function getSessionDeltasKey(id: Types.ObjectId): string {
+  return `${sessionIdToKey(id)}-deltas`
+}
+
 export async function createDoc(sessionId: Types.ObjectId): Promise<Delta> {
   const newDoc = new Delta()
   await cache.save(sessionIdToKey(sessionId), JSON.stringify(newDoc))
@@ -17,7 +21,20 @@ export async function getDoc(
 ): Promise<Delta | undefined> {
   try {
     const docString = await cache.get(sessionIdToKey(sessionId))
-    return new Delta(JSON.parse(docString))
+    const deltasKey = getSessionDeltasKey(sessionId)
+    let doc = JSON.parse(docString)
+    let pendingDelta: string = await cache.lpop(deltasKey)
+    const isUpdateNeeded = pendingDelta ? true : false
+    // TODO: refactor
+    while (pendingDelta) {
+      const delta = JSON.parse(pendingDelta)
+      doc = new Delta(doc).compose(delta)
+      pendingDelta = await cache.lpop(deltasKey)
+    }
+
+    if (isUpdateNeeded)
+      await cache.save(sessionIdToKey(sessionId), JSON.stringify(doc))
+    return doc
   } catch (err) {
     if (!(err instanceof cache.KeyNotFoundError)) throw err
   }
@@ -27,14 +44,7 @@ export async function appendToDoc(
   sessionId: Types.ObjectId,
   delta: Delta
 ): Promise<void> {
-  const redisKey = sessionIdToKey(sessionId)
-  try {
-    const docString = await cache.get(redisKey)
-    const updatedDoc = new Delta(JSON.parse(docString)).compose(delta)
-    await cache.save(redisKey, JSON.stringify(updatedDoc))
-  } catch (err) {
-    if (!(err instanceof cache.KeyNotFoundError)) throw err
-  }
+  await cache.rpush(getSessionDeltasKey(sessionId), JSON.stringify(delta))
 }
 
 export async function deleteDoc(sessionId: Types.ObjectId): Promise<void> {
