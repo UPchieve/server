@@ -189,7 +189,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 
 // Setting up csrf middleware
 app.use(csrf({ cookie: true }))
-app.get('csrftoken', function(req, res) {
+app.get('/api/csrftoken', function(req, res) {
   res.json({ csrfToken: req.csrfToken() })
 })
 

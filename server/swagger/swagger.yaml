@@ -583,8 +583,10 @@ paths:
       security:
         - cookieAuth: []
       responses:
-        '204':
-          description: CSRF token is valid
+        '200':
+          description: 
+          - CSRF token is valid
+          - Returns token as a json key named 'csrftoken'
         '403':
           description: 
             - CSRF token is invalid 
