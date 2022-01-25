@@ -74,7 +74,7 @@ const routes = [
             next('/login')
           }
         })
-        .catch(() => {})
+        .catch(() => { })
     }
   },
   {
@@ -233,7 +233,7 @@ const routes = [
             next()
           }
         })
-        .catch(() => {})
+        .catch(() => { })
     }
   },
   {
@@ -418,7 +418,7 @@ router.beforeEach((to, from, next) => {
           next()
         }
       })
-      .catch(() => {})
+      .catch(() => { })
   } else if (to.matched.some(route => route.meta.protected)) {
     getUser()
       .then(() => {
@@ -441,7 +441,7 @@ router.beforeEach((to, from, next) => {
           next()
         }
       })
-      .catch(() => {})
+      .catch(() => { })
   } else if (to.matched.some(route => route.meta.loggedOutOnly)) {
     getUser()
       .then(() => {
@@ -451,13 +451,13 @@ router.beforeEach((to, from, next) => {
           next()
         }
       })
-      .catch(() => {})
+      .catch(() => { })
   } else if (to.matched.some(route => route.meta.authOptional)) {
     getUser()
       .then(() => {
         next()
       })
-      .catch(() => {})
+      .catch(() => { })
   } else {
     next()
   }
@@ -499,7 +499,18 @@ Vue.http.interceptors.push((request, next) => {
       request.url.indexOf('/api/session/current') !== -1
 
     if (is401 && !(isGetUserAttempt || isGetSessionAttempt)) {
-      router.push('/login?401=true').catch(() => {})
+      router.push('/login?401=true').catch(() => { })
     }
   })
 })
+
+// using the doubt submit cookie pattern to match csrf token stored in cookie with the token stored as request parameter
+Vue.http.interceptors.push((request, next) => {
+  const csrftoken = localStorage.getItem('csrftoken')
+
+  if (csrftoken) {
+    request.headers.set('csrftoken', csrftoken);
+  }
+  request.method = 'POST';
+  next()
+});
