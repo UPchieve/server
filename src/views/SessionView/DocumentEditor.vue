@@ -1,6 +1,14 @@
 <template>
   <div class="document-editor">
-    <div id="quill-container"></div>
+    <div id="quill-container">
+    </div>
+    <transition name="document-loading">
+      <loading-message
+        message="Loading the document editor"
+        class="document-loading document-loading--connection"
+        v-show="isLoading"
+      />
+    </transition>
   </div>
 </template>
 
@@ -8,13 +16,20 @@
 import { mapState } from 'vuex'
 import Quill from 'quill'
 import QuillCursors from 'quill-cursors'
+import LoadingMessage from '@/components/LoadingMessage'
 
 Quill.register('modules/cursors', QuillCursors)
 
 export default {
+  components: {
+    LoadingMessage
+  },
   data() {
     return {
-      quillEditor: null
+      quillEditor: null,
+      // set default loading state
+      isLoading: true,
+      pendingDeltas: []
     }
   },
   computed: {
@@ -49,6 +64,8 @@ export default {
         ]
       }
     })
+    // do not allow user to make edits until the quill doc contents are set
+    this.quillEditor.disable()
 
     this.quillEditor.on('text-change', this.quillTextChange)
     this.quillEditor.on('selection-change', this.quillSelectionChange)
@@ -78,15 +95,28 @@ export default {
           range
         })
       }
+    },
+    updateContents(delta){
+      this.quillEditor.updateContents(delta)
+    },
+    emptyPendingDeltas(){
+      for(const delta of this.pendingDeltas){
+        this.updateContents(delta)
+      }
+      this.pendingDeltas = []
     }
   },
   sockets: {
     quillState({ delta }) {
       this.quillEditor.setContents(delta)
+      this.emptyPendingDeltas()
+      this.isLoading = false
+      this.quillEditor.enable()
     },
 
     partnerQuillDelta({ delta }) {
-      this.quillEditor.updateContents(delta)
+      if (this.isLoading) this.pendingDeltas.push(delta)
+      else this.updateContents(delta)
     },
 
     quillPartnerSelection({ range }) {
@@ -102,6 +132,7 @@ export default {
   text-align: left;
   display: flex;
   flex-direction: column;
+  position: relative;
 
   .ql-container.ql-snow {
     overflow: scroll;
@@ -115,6 +146,26 @@ export default {
 
   .ql-cursor-flag {
     display: none;
+  }
+}
+
+.document-loading {
+  width: 100%;
+  background-color: $c-shadow-warn;
+  color: #fff;
+  font-weight: normal;
+  min-height: 40px;
+  // !important is used to override the position specified in the LoadingMessage component
+  position: absolute !important;
+  left: 0;
+  top: 40px;
+  padding: 12px;
+  z-index: 1000;
+  transition: all 0.15s ease-in;
+  text-align: center;
+
+  &--connection {
+    background-color: rgba(110, 140, 171, 0.87);
   }
 }
 </style>
