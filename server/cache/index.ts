@@ -73,3 +73,12 @@ export async function append(key: string, addition: string): Promise<void> {
   const docLength = await redisClient.append(key, addition)
   if (docLength === 0) throw new AppendLengthZeroError(key)
 }
+
+// TODO: do these throw errors?
+export async function rpush(key: string, addition: string): Promise<void> {
+  await redisClient.rpush(key, [addition])
+}
+
+export async function lpop(key: string): Promise<string> {
+  return await redisClient.lpop(key)
+}
