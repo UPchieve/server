@@ -21,11 +21,22 @@ export async function getDoc(
 ): Promise<Delta | undefined> {
   try {
     const docString = await cache.get(sessionIdToKey(sessionId))
+    return processDoc(sessionId, docString)
+  } catch (err) {
+    if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
+}
+
+export async function processDoc(
+  sessionId: Types.ObjectId,
+  docString: string
+): Promise<Delta | undefined> {
+  try {
     const deltasKey = getSessionDeltasKey(sessionId)
-    let doc = JSON.parse(docString)
+    let doc: Delta = JSON.parse(docString)
     let pendingDelta: string = await cache.lpop(deltasKey)
     const isUpdateNeeded = pendingDelta ? true : false
-    // TODO: refactor
+
     while (pendingDelta) {
       const delta = JSON.parse(pendingDelta)
       doc = new Delta(doc).compose(delta)
