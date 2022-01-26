@@ -585,12 +585,7 @@ paths:
       responses:
         '200':
           description: 
-          - CSRF token is valid
-          - Returns token as a json key named 'csrftoken'
-        '403':
-          description: 
-            - CSRF token is invalid 
-            - CSRF attack detected
+          - Returns a json with `csrfToken`
 
   /api/calendar/save:
     post:
@@ -1292,7 +1287,7 @@ paths:
             $ref: '#/components/schemas/SessionId'
       responses:
         '200':
-          description: Returns a object with assigned image url and upload url
+          description: Returns an object with assigned image url and upload url
   /api/session/{sessionId}/report:
     post:
       tags:
