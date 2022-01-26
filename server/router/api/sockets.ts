@@ -340,7 +340,7 @@ export function routeSockets(
         '/socket-io/transmitQuillDelta',
         () =>
           new Promise<void>(async (resolve, reject) => {
-            QuillDocService.appendToDoc(sessionId, delta)
+            await QuillDocService.appendToDoc(sessionId, delta)
             socket.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
               delta,
             })
