@@ -4,12 +4,9 @@
 import * as http from 'http'
 import socket from 'socket.io'
 import redisAdapter from 'socket.io-redis'
-import config from '../../config'
-import logger from '../../logger'
-import {
-  socketIoPubClient,
-  socketIoSubClient,
-} from '../../services/RedisService'
+import config from './config'
+import logger from './logger'
+import { socketIoPubClient, socketIoSubClient } from './services/RedisService'
 import { Express } from 'express'
 
 // Create an HTTPS server if in production, otherwise use HTTP.

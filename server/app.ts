@@ -17,6 +17,7 @@ import YAML from 'yaml'
 import config from './config'
 import logger from './logger'
 import router from './router'
+import socketServer from './socket-server'
 import {
   baseUri,
   blockAllMixedContent,
@@ -189,8 +190,12 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 // initialize Express WebSockets
 expressWs(app)
 
+// Start socket server
+export const io = socketServer(app)
+
 // Load server router
-router(app)
+router(app, io)
+
 app.use(haltOnTimedout)
 
 function defaultErrorHandler(
