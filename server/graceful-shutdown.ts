@@ -41,6 +41,8 @@ function gracefulShutdown(
      * In order to close the server, we have to terminate those remaining connections ourselves.
      *
      */
+    // allow for existing connections to finish up their responses before forcibly closing them
+    await setTimeout(500)
     getConnections().forEach(conn => conn.end())
     // destroy any running connections that may have not been ended
     await setTimeout(5000, () => {
