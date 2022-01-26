@@ -81,6 +81,10 @@ export default {
 
     this.setVisibilityListener()
 
+    // get csrf token and store in memory for the life of the app
+    const csrfToken = await NetworkService.getCsrfToken(this)
+    this.$store.commit('/app/setCsrfToken', csrfToken)
+
     if (this.isMobileApp) {
       document.addEventListener('click', this.handleExternalURLs, false)
 

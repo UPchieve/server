@@ -504,13 +504,12 @@ Vue.http.interceptors.push((request, next) => {
   })
 })
 
-// using the doubt submit cookie pattern to match csrf token stored in cookie with the token stored as request parameter
+// using the doubt submit cookie pattern to send csrf token stored in cookie as a request parameter
 Vue.http.interceptors.push((request, next) => {
-  const csrftoken = localStorage.getItem('csrftoken')
+  const csrftoken = store.getters['csrfToken']
 
   if (csrftoken) {
-    request.headers.set('csrftoken', csrftoken);
+    request.headers.set('X-CSRF-TOKEN', csrftoken);
   }
-  request.method = 'POST';
   next()
 });
