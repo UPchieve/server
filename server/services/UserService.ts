@@ -47,7 +47,7 @@ export async function addPhotoId(
   ip: string
 ): Promise<string> {
   const photoIdS3Key = crypto.randomBytes(32).toString('hex')
-  new UserActionCtrl.AccountActionCreator(userId, ip).addedPhotoId()
+  await new UserActionCtrl.AccountActionCreator(userId, ip).addedPhotoId()
   await updateVolunteerPhotoIdById(userId, photoIdS3Key)
   return photoIdS3Key
 }
@@ -81,7 +81,7 @@ export async function addReference(data: unknown) {
     email: referenceEmail,
   }
   await addVolunteerReferenceById(userId, referenceData)
-  new UserActionCtrl.AccountActionCreator(userId, ip, {
+  await new UserActionCtrl.AccountActionCreator(userId, ip, {
     referenceEmail,
   }).addedReference()
 }
@@ -105,7 +105,7 @@ export async function saveReferenceForm(
     additionalInfo,
   } = asReferenceFormData(referenceFormData)
 
-  new UserActionCtrl.AccountActionCreator(userId, ip, {
+  await new UserActionCtrl.AccountActionCreator(userId, ip, {
     referenceEmail,
   }).submittedReferenceForm()
 
