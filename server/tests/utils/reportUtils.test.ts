@@ -5,16 +5,15 @@ import * as UserActionRepo from '../../models/UserAction/queries'
 import * as SessionRepo from '../../models/Session/queries'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as AvailabilityRepo from '../../models/Availability/queries'
-import * as VolunteerService from '../../services/VolunteerService'
 import { buildVolunteer, getObjectId, buildUserAction } from '../generate'
 import { InputError } from '../../models/Errors'
+import { asObjectId } from '../../utils/type-utils'
 jest.mock('../../services/SessionService')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/Volunteer/queries')
 
 const mockedSessionRepo = mocked(SessionRepo, true)
-const mockedVolunteerService = mocked(VolunteerService, true)
 const mockedVolunteerRepo = mocked(VolunteerRepo, true)
 
 function buildAnalyticVolunteer(
@@ -45,6 +44,27 @@ function buildAnalyticVolunteer(
         },
       ],
       sessionStats: [
+        {
+          _id: null,
+          total: 0,
+          totalWithinDateRange: 0,
+        },
+      ],
+      uniquePartnerStudentsHelped: [
+        {
+          _id: null,
+          total: 0,
+          totalWithinDateRange: 0,
+        },
+      ],
+      sessionPartnerStats: [
+        {
+          _id: null,
+          total: 0,
+          totalWithinDateRange: 0,
+        },
+      ],
+      timeTutoredPartnerStats: [
         {
           _id: null,
           total: 0,
@@ -248,6 +268,27 @@ describe('getAnalyticsReportSummary', () => {
               totalWithinDateRange: 2,
             },
           ],
+          uniquePartnerStudentsHelped: [
+            {
+              _id: null,
+              total: 1,
+              totalWithinDateRange: 1,
+            },
+          ],
+          sessionPartnerStats: [
+            {
+              _id: null,
+              total: 2,
+              totalWithinDateRange: 2,
+            },
+          ],
+          timeTutoredPartnerStats: [
+            {
+              _id: null,
+              total: 1000 * 60 * 10,
+              totalWithinDateRange: 1000 * 60 * 10,
+            },
+          ],
         },
         textNotifications: { _id: null, total: 10, totalWithinDateRange: 5 },
         hourSummaryTotal: {
@@ -284,6 +325,27 @@ describe('getAnalyticsReportSummary', () => {
               totalWithinDateRange: 4,
             },
           ],
+          uniquePartnerStudentsHelped: [
+            {
+              _id: null,
+              total: 5,
+              totalWithinDateRange: 2,
+            },
+          ],
+          sessionPartnerStats: [
+            {
+              _id: null,
+              total: 5,
+              totalWithinDateRange: 2,
+            },
+          ],
+          timeTutoredPartnerStats: [
+            {
+              _id: null,
+              total: 1000 * 60 * 20,
+              totalWithinDateRange: 1000 * 60 * 10,
+            },
+          ],
         },
         textNotifications: { _id: null, total: 100, totalWithinDateRange: 30 },
         hourSummaryTotal: {
@@ -304,9 +366,7 @@ describe('getAnalyticsReportSummary', () => {
     const startDate = new Date('2021-01-01T00:00:00.000+00:00')
     const endDate = new Date('2021-03-01T00:00:00.000+00:00')
 
-    mockedVolunteerRepo.getVolunteersWithPipeline.mockResolvedValueOnce(
-      [] as any[]
-    )
+    mockedVolunteerRepo.getVolunteersWithPipeline.mockResolvedValue([] as any[])
 
     const summary = await reportUtils.getAnalyticsReportSummary(
       'example',
@@ -344,6 +404,10 @@ describe('getAnalyticsReportSummary', () => {
         totalWithinDateRange: 15,
       },
       uniqueStudentsHelped: {
+        total: 0,
+        totalWithinDateRange: 0,
+      },
+      uniquePartnerStudentsHelped: {
         total: 0,
         totalWithinDateRange: 0,
       },
@@ -487,5 +551,54 @@ describe('validateStudentReportQuery', () => {
     }
     expect(t).toThrow(InputError)
     expect(t).toThrow('Invalid high school id')
+  })
+})
+
+describe('getAssociatedPartnersAndSchools', () => {
+  test('Should get student partner org when associated partner only has a student partner org listed', () => {
+    const result = reportUtils.getAssociatedPartnersAndSchools('example')
+    const expected = {
+      associatedPartnerSchools: [],
+      associatedStudentPartnerOrgs: ['example'],
+    }
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Should get student partner orgs when associated partner has a sponsor org with only partner schools', () => {
+    const result = reportUtils.getAssociatedPartnersAndSchools('example2')
+    const expected = {
+      associatedPartnerSchools: [
+        asObjectId('618abe7ba0e5212595a7bf98'),
+        asObjectId('618abe7ba0e5212595a7bf99'),
+        asObjectId('618abe7ba0e5212595a7bf9a'),
+      ],
+      associatedStudentPartnerOrgs: [],
+    }
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Should get both student partner orgs and partner schools when associated partner has a sponsor org with schools and partner orgs', () => {
+    const result = reportUtils.getAssociatedPartnersAndSchools('example3')
+    const expected = {
+      associatedPartnerSchools: [
+        asObjectId('618abe7ba0e5212595a7bf9b'),
+        asObjectId('618abe7ba0e5212595a7bf9c'),
+      ],
+      associatedStudentPartnerOrgs: ['example', 'example2'],
+    }
+
+    expect(result).toEqual(expected)
+  })
+
+  test('Should return empty lists of partner orgs and partner schools if there is no matching associated partner', () => {
+    const result = reportUtils.getAssociatedPartnersAndSchools('bogus')
+    const expected = {
+      associatedPartnerSchools: [],
+      associatedStudentPartnerOrgs: [],
+    }
+
+    expect(result).toEqual(expected)
   })
 })

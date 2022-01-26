@@ -23,6 +23,7 @@ import {
   generateTelecomReport,
   getAnalyticsReportRow,
   getSumOperatorForDateRange,
+  getSumOperatorForTimeTutoredDateRange,
   AnalyticsReportRow,
   AnalyticsReportSummary,
   PartnerVolunteerAnalytics,
@@ -32,6 +33,7 @@ import {
   validateVolunteerReportQuery,
   validateStudentSessionReportQuery,
   validateStudentUsageReportQuery,
+  getPartnerStudentsFilter,
 } from '../utils/reportUtils'
 import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
@@ -659,6 +661,8 @@ export async function generatePartnerAnalyticsReport(
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
 
+  const partnerStudentsFilter = getPartnerStudentsFilter(partnerOrg)
+
   // get volunteers for analytics
   const volunteers = ((await getVolunteersWithPipeline([
     {
@@ -714,13 +718,24 @@ export async function generatePartnerAnalyticsReport(
             },
           },
           {
+            $lookup: {
+              from: 'users',
+              localField: 'student',
+              foreignField: '_id',
+              as: 'student',
+            },
+          },
+          {
+            $unwind: '$student',
+          },
+          {
             $facet: {
               uniqueStudentsHelped: [
                 {
                   $group: {
-                    _id: '$student',
+                    _id: '$student._id',
                     frequency: { $sum: 1 },
-                    frequencyWitinDateRange: getSumOperatorForDateRange(
+                    frequencyWithinDateRange: getSumOperatorForDateRange(
                       start,
                       end
                     ),
@@ -733,7 +748,7 @@ export async function generatePartnerAnalyticsReport(
                     totalWithinDateRange: {
                       $sum: {
                         $cond: [
-                          { $gte: ['$frequencyWitinDateRange', 1] },
+                          { $gte: ['$frequencyWithinDateRange', 1] },
                           1,
                           0,
                         ],
@@ -748,6 +763,60 @@ export async function generatePartnerAnalyticsReport(
                     _id: null,
                     total: { $sum: 1 },
                     totalWithinDateRange: getSumOperatorForDateRange(
+                      start,
+                      end
+                    ),
+                  },
+                },
+              ],
+              uniquePartnerStudentsHelped: [
+                partnerStudentsFilter,
+                {
+                  $group: {
+                    _id: '$student._id',
+                    frequency: { $sum: 1 },
+                    frequencyWithinDateRange: getSumOperatorForDateRange(
+                      start,
+                      end
+                    ),
+                  },
+                },
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: 1 },
+                    totalWithinDateRange: {
+                      $sum: {
+                        $cond: [
+                          { $gte: ['$frequencyWithinDateRange', 1] },
+                          1,
+                          0,
+                        ],
+                      },
+                    },
+                  },
+                },
+              ],
+              sessionPartnerStats: [
+                partnerStudentsFilter,
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: 1 },
+                    totalWithinDateRange: getSumOperatorForDateRange(
+                      start,
+                      end
+                    ),
+                  },
+                },
+              ],
+              timeTutoredPartnerStats: [
+                partnerStudentsFilter,
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: '$timeTutored' },
+                    totalWithinDateRange: getSumOperatorForTimeTutoredDateRange(
                       start,
                       end
                     ),
@@ -848,7 +917,8 @@ export async function generatePartnerAnalyticsReport(
 export async function writeAnalyticsReport(
   data: FullReport,
   startDate: string,
-  endDate: string
+  endDate: string,
+  partnerOrg: string
 ) {
   const reportFilePath = getReportFilePath(REPORT_FILE_NAMES.ANALYTICS_REPORT)
   await fsPromises.mkdir(path.parse(reportFilePath).dir, { recursive: true })
@@ -871,13 +941,15 @@ export async function writeAnalyticsReport(
     data.summary,
     summarySheet,
     formattedStartDate,
-    formattedEndDate
+    formattedEndDate,
+    partnerOrg
   )
   processAnalyticsReportDataSheet(
     data.report,
     dataSheet,
     formattedStartDate,
-    formattedEndDate
+    formattedEndDate,
+    partnerOrg
   )
   summarySheet.commit()
   dataSheet.commit()
@@ -899,7 +971,12 @@ export async function getAnalyticsReport(data: unknown) {
       throw new ReportNoDataFoundError(
         'No analytics report data for the requested partner'
       )
-    return await writeAnalyticsReport(analyticsReport, startDate, endDate)
+    return await writeAnalyticsReport(
+      analyticsReport,
+      startDate,
+      endDate,
+      partnerOrg
+    )
   } catch (error) {
     logger.error(error as Error)
     if (error instanceof ReportNoDataFoundError || error instanceof InputError)

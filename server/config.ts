@@ -205,6 +205,9 @@ const config: Static<typeof Config> = {
   priorityMatchingSponsorOrgs: (
     process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus'
   ).split(','),
+  customAnalyticsReportPartnerOrgs: (
+    process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'bogus'
+  ).split(','),
 
   studentPartnerManifestPath:
     process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
