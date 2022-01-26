@@ -34,8 +34,12 @@ async function main() {
   const server = app.listen(port, () => {
     logger.info('api server listening on port ' + port)
   })
-  serverSetup(server)
-  registerGracefulShutdownListeners(server, dbConn, io)
+
+  // avoid conflict with development tools that allow for restarts when a file changes
+  if (rawConfig.NODE_ENV !== 'dev') {
+    serverSetup(server)
+    registerGracefulShutdownListeners(server, dbConn, io)
+  }
 }
 
 try {
