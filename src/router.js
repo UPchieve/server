@@ -506,9 +506,9 @@ Vue.http.interceptors.push((request, next) => {
 
 // using the doubt submit cookie pattern to send csrf token stored in cookie as a request parameter
 Vue.http.interceptors.push((request, next) => {
-  const csrftoken = store.getters['csrfToken']
+  const csrfToken = store.getters['csrfToken']
 
-  if (csrftoken) {
+  if (csrfToken) {
     request.headers.set('X-CSRF-TOKEN', csrftoken);
   }
   next()
