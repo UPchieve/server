@@ -16,14 +16,10 @@ NOTE: Active development on this project has moved to https://gitlab.com/upchiev
 - [UPchieve Web App](#upchieve-web-app)
   - [GITLAB](#gitlab)
   - [Local Development](#local-development)
-  - [docker-compose](#docker-compose)
-  - [Without docker-compose](#without-docker-compose)
-    - [Dependencies](#dependencies)
-      - [Local Node](#local-node)
-      - [Mongo 4.4.8](#mongo-448)
-      - [Redis 6.2.3](#redis-623)
-    - [Setup](#setup)
-      - [Running dev](#running-dev)
+    - [Local Dependencies](#local-dependencies)
+    - [App Dependencies](#app-dependencies)
+    - [Prepare to run the server](#prepare-to-run-the-server)
+    - [Run the app](#run-the-app)
   - [Test Users](#test-users)
   - [Structure](#structure)
   - [Server](#server)
@@ -40,105 +36,62 @@ NOTE: Active development on this project has moved to https://gitlab.com/upchiev
 
 Local Development
 -----------------
-## docker-compose
-Docker provides an alternative for local development. A docker-compose file exists, tied to Mongo. Here's how to work in docker-compose.
+### Local Dependencies
 
-1. Build the container using the command `$ pack build upchieve/subway:local --builder heroku/buildpacks:20`
-1. Navigate to this directory and run `mkdir mongo-volume` to create a directory for the MongoDB volume.
-1. Run `cp config.example.ts config.ts` to copy the default config as your own config.
-1. Run `docker-compose up` to launch the server.
-1. After any change: Run `docker-compose down --rmi all` to destroy images and containers. Then run `docker-compose up` to see your changes.
-
-Note: the default command ran when starting the server will populate/refresh all seed data, so any data changes to seed data will be overwritten.
-
-## Without docker-compose
-If not using docker-compose, follow these steps to start required components.
-
-### Dependencies
-
-The recommended tool for runtime version management is [`nvm`][nvm] and [`Docker`][Docker]. To use `nvm` on Windows, first install the appropriate Linux shell distribution using [`WSL`][wsl] (Windows Subsystem for Linux).
-
-#### Local Node
-
-We currently run on Node v16.8.0, you can switch to this using
+The recommended tool for runtime version management is [`nvm`][nvm]. To use `nvm` on Windows, first install the appropriate Linux shell distribution using [`WSL`][wsl] (Windows Subsystem for Linux). We currently run on Node v16.8.0, you can switch to this using
 
 ```shell
 $ nvm install v16.8.0 && nvm use v16.8.0
 ```
 
-After switching npm versions using nvm, you will need to rerun `$ npm install`.
-
-#### Mongo 4.4.8
-
-Using a Volume (else data is not saved), pull and run docker image `mongo:4.4.8-bionic`. You can use any empty directory to which you have write access for your volume.
-What to expect: this command will be simultaneously running the mongo database on your local machine as the app builds for production.
-
-```shell-script
-docker run -i --rm --name mongoContainer -p 27017-27019:27017-27019 -v <Absolute Path to directory on your drive>:/data/db mongo:4.4.8-bionic
-```
-
-Alternatively...
-
-Run it as a background process:
-
-```shell-script
-docker run -i -d --rm --name mongoContainer -p 27017-27019:27017-27019 -v <Absolute Path to directory on your drive>:/data/db mongo:4.2.3-bionic
-```
-
-Verify which docker containers are running:
-```shell-script
-docker container ls
-```
-
-After you're done with development for the day, don't forget to stop the container running in the background:
-```shell-script
-docker stop mongoContainer
-```
-
-#### Redis 6.2.3
-
-If you want, in a new terminal, pull and run docker image `redis:6.2.3`. You can use any empty directory to which you have write access for your volume. What to expect: this command will be simultaneously running on your local machine as the app builds for production.
-
-```shell-script
-docker run -i --rm --name redis -p 6379:6379 -v <Absolute Path to directory on your drive>:/data -t redis:6.2.3
-```
+After switching npm versions using nvm, you will need to run `$ npm install`. Next install [`Docker`][Docker] and start according to their instructions for your operating system.
 
 [wsl]: https://docs.microsoft.com/en-us/windows/wsl/install-win10
 [nvm]: https://github.com/nvm-sh/nvm
 [Docker]: https://www.docker.com/products/docker-desktop
 
-### Setup
+### App Dependencies
+On Linux systems you may need to install [`docker-compose` manually](https://docs.docker.com/compose/install/); on Windows and MacOS it ships with base docker. A docker-compose yaml specifies how to spin up Mongo, Redis, PostgreSQL, and PGAdmin containers to support the server.
+ 
+1. Run the following command to start the containers
+```shell
+$ docker-compose up -d
+```
+2. Seed the mongo and postgres database by running `npm run dev:init`
+3. Confirm the seeds worked by making a query in a DB admin tool
+    - connect via `localhost:5432` with the admin or subway users OR
+    - use PGAdmin at [`http://localhost:80`](http://localhost:80) with username `admin` and password `Password123`
+4. Run the follow command to stop and remove the containers when finished
+```shell
+$ docker-compose down
+```
+
+### Prepare to run the server
 The below steps are tested on a Macintosh.
 
-1. Confirm that Mongo and Redis container dependencies above are running alongside.
-1. Custom properties are currently required for the server to connect data sources on a desktop computer, so run or add to your profile the below commands:
+1. Confirm the database container dependencies above are running with `docker ps`
+2. Custom properties are currently required for the server to connect data sources on a desktop computer, so run or add to your profile the below commands:
 ```
 export SUBWAY_REDIS_HOST=localhost
 export SUBWAY_DB_HOST=localhost
 ```
-1. Run `npm install` to install the required dependencies.
-1. Run `npx ts-node server/init` to seed the database with users, quiz questions, schools, and zip codes.
-1. If you want to test Twilio voice calling functionality, set the `host` property to `[your public IP address]:3000` (minus the brackets), and configure your router/firewall to allow connections to port 3000 from the Internet. Twilio will need to connect to your system to obtain TwiML instructions.
-1. (optional) Run `npm run worker:dev` to start the redis database and dev worker. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `ts-node ./scripts/add-cron-jobs.ts` to add all repeatable jobs to the job queue.
+3. (optional) If you want to test Twilio voice calling functionality, set the `host` property to `[your public IP address]:3000` (minus the brackets), and configure your router/firewall to allow connections to port 3000 from the Internet. Twilio will need to connect to your system to obtain TwiML instructions.
+4. (optional) Run `npm run worker:dev` to start the worker process. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `npm run add-cron-jobs` to add all repeatable jobs to the job queue.
 
-[bcrypt]: https://www.npmjs.com/package/bcrypt
+### Run the app
 
-
-#### Running dev
-
-Once you have the dependencies running and installed, you should run first
+Once you have the dependencies running and installed, run the following commands to build the frontend and start the server in development mode.
 
 ```
 $ npm run dev:frontend
 ```
 
-This will kick off a build of the frontend assets and watch the frontend files to rebuild. Once the first build is done, you can run
+This will kick off a build of the frontend assets and watch the frontend files to rebuild. Once the first build is done, you can run the following in a separate shell instance.
 
 ```
 $ npm run dev:backend
 ```
-
-to start the dev server and a watch process. Then you can visit `http://localhost:3000` and you're good to go!
+to start the dev server and a watch for changes to the frontend build and server code. Then you can visit `http://localhost:3000` and you're good to go!
 
 Even though the frontend is doing a production build, Vue dev tools should still be available as long as your NODE_ENV is `dev` which is the default.
 
