@@ -509,7 +509,7 @@ Vue.http.interceptors.push((request, next) => {
   const csrfToken = store.getters['csrfToken']
 
   if (csrfToken) {
-    request.headers.set('X-CSRF-TOKEN', csrftoken);
+    request.headers.set('X-CSRF-TOKEN', csrfToken);
   }
   next()
 });
