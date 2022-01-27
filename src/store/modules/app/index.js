@@ -71,6 +71,6 @@ export default {
   },
   getters: {
     mobileMode: state => state.windowWidth <= MAX_MOBILE_MODE_WIDTH,
-    csrfToken: state => { return state.csrfToken } 
+    csrfToken: state => state.csrfToken
   }
 }
