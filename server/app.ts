@@ -187,6 +187,12 @@ const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')
 const swaggerYaml = YAML.parse(swaggerDoc)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 
+// Setting up csrf middleware
+app.use(csrf({ cookie: true }))
+app.get('/api/csrftoken', function(req, res) {
+  res.json({ csrfToken: req.csrfToken() })
+})
+
 // initialize Express WebSockets
 expressWs(app)
 
@@ -211,12 +217,6 @@ app.use(
   defaultErrorHandler,
   haltOnTimedout
 )
-
-// Setting up csrf middleware
-app.use(csrf({ cookie: true }))
-app.get('/api/csrftoken', function(req, res) {
-  res.json({ csrfToken: req.csrfToken() })
-})
 
 app.use(haltOnTimedout)
 
