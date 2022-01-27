@@ -584,8 +584,15 @@ paths:
         - cookieAuth: []
       responses:
         '200':
-          description: 
-          - Returns a json with `csrfToken`
+          description: Returns a json with `csrfToken`
+          content: 
+            applicaton/json: 
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/CSRFToken'
+              example:
+                csrfToken: "FbmhS8I9-A4qxdtGylFSAfwM71GQBXOnUCOM"
 
   /api/calendar/save:
     post:
@@ -2575,6 +2582,13 @@ components:
     CourseKey:
       type: string
       example: 'upchieve101'
+    CSRFToken:
+      type: object
+      required:
+        - csrfToken
+      properties:
+        csrfToken:
+          type: string
     Email:
       type: string
       example: "student1@upchieve.org"
