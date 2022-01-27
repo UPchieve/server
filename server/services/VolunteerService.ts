@@ -232,7 +232,7 @@ export async function updatePendingVolunteerStatus(
     photoIdStatus === PHOTO_ID_STATUS.REJECTED &&
     volunteerBeforeUpdate.photoIdStatus !== PHOTO_ID_STATUS.REJECTED
   ) {
-    new UserActionCtrl.AccountActionCreator(volunteerId).rejectedPhotoId()
+    await new UserActionCtrl.AccountActionCreator(volunteerId).rejectedPhotoId()
     AnalyticsService.captureEvent(volunteerId, EVENTS.PHOTO_ID_REJECTED, {
       event: EVENTS.PHOTO_ID_REJECTED,
     })
@@ -241,7 +241,7 @@ export async function updatePendingVolunteerStatus(
 
   const isNewlyApproved = isApproved && !volunteerBeforeUpdate.isApproved
   if (isNewlyApproved)
-    new UserActionCtrl.AccountActionCreator(volunteerId).accountApproved()
+    await new UserActionCtrl.AccountActionCreator(volunteerId).accountApproved()
   AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_APPROVED, {
     event: EVENTS.ACCOUNT_APPROVED,
   })
@@ -254,7 +254,7 @@ export async function updatePendingVolunteerStatus(
       referencesStatus[i] === REFERENCE_STATUS.REJECTED &&
       reference.status !== REFERENCE_STATUS.REJECTED
     ) {
-      new UserActionCtrl.AccountActionCreator(volunteerId, '', {
+      await new UserActionCtrl.AccountActionCreator(volunteerId, '', {
         referenceEmail: reference.email,
       }).rejectedReference()
       AnalyticsService.captureEvent(volunteerId, EVENTS.REFERENCE_REJECTED, {
@@ -276,7 +276,7 @@ export async function addBackgroundInfo(
   const volunteerPartnerOrg = volunteer.volunteerPartnerOrg
   if (volunteerPartnerOrg) {
     update.isApproved = true
-    new UserActionCtrl.AccountActionCreator(volunteerId).accountApproved()
+    await new UserActionCtrl.AccountActionCreator(volunteerId).accountApproved()
     // TODO: if not onboarded, send a partner-specific version of the "approved but not onboarded" email
   }
 
@@ -293,7 +293,7 @@ export async function addBackgroundInfo(
       delete update[tField]
   }
 
-  new UserActionCtrl.AccountActionCreator(
+  await new UserActionCtrl.AccountActionCreator(
     volunteerId,
     ip
   ).completedBackgroundInfo()
