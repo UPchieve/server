@@ -84,7 +84,7 @@ export default {
 
     // get csrf token and store in memory for the life of the app
     const csrfToken = await NetworkService.getCsrfToken(this)
-    this.$store.commit('/app/setCsrfToken', csrfToken)
+    this.$store.commit('app/setCsrfToken', csrfToken)
 
     if (this.isMobileApp) {
       document.addEventListener('click', this.handleExternalURLs, false)
