@@ -284,7 +284,7 @@ export async function getQuizScore(
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
       if (!user.subjects.includes(subject))
-        new QuizActionCreator(
+        await new QuizActionCreator(
           user._id,
           subject as keyof Certifications,
           ip
@@ -322,7 +322,7 @@ export async function getQuizScore(
       userUpdates.isOnboarded = true
       queueOnboardingEventEmails(user._id)
       if (user.volunteerPartnerOrg) queuePartnerOnboardingEventEmails(user._id)
-      new AccountActionCreator(user._id, ip).accountOnboarded()
+      await new AccountActionCreator(user._id, ip).accountOnboarded()
       captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
         event: EVENTS.ACCOUNT_ONBOARDED,
       })

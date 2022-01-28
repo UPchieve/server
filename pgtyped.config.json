@@ -1,0 +1,20 @@
+{
+  "transforms": [
+    {
+      "mode": "sql",
+      "include": "**/*.sql",
+      "emitTemplate": "{{dir}}/pg.queries.ts"
+    }
+  ],
+  "srcDir": "./server/models/",
+  "failOnError": false,
+  "camelCaseColumnNames": true,
+  "db": {
+    "host": "localhost",
+    "port": 5432,
+    "ssl": false,
+    "user": "subway",
+    "dbName": "upchieve",
+    "password": "Password123"
+  }
+}

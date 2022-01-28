@@ -1,24 +1,52 @@
 version: "3.2"
 services:
-    server:
-        build: .
+    postgres:
+        hostname: postgres
         ports:
-            - "3000-3001:3000-3001"
-        expose:
-            - "3000-3001"
-        depends_on:
-            - mongodb
-            - cache
+            - "5432:5432"
+        image: postgres:14
         environment:
-          SUBWAY_DB_HOST: mongodb
-          SUBWAY_REDIS_HOST: cache
+            - POSTGRES_DB=upchieve
+            - POSTGRES_USER=admin
+            - POSTGRES_PASSWORD=Password123
+        volumes:
+            - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/init_db.sql
+            - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/init_roles.sql
+          # - ./database/db_init/pgulid.sql:/docker-entrypoint-initdb.d/init_ulid.sql
     mongodb:
+        hostname: mongodb
         ports:
-          - "27017"
-        image: mongo:4.4.5-bionic
+            - "27017-27019:27017-27019"
+        image: mongo:4.4.5
         environment:
             - MONGO_INITDB_DATABASE=upchieve
         volumes:
             - ./mongo-volume:/data/db
-    cache:
+    redis:
+        hostname: redis
+        ports:
+            - "6379:6379"
         image: redis:6.2.1
+        volumes:
+            - ./redis-volume:/data
+    pgadmin:
+        image: dpage/pgadmin4
+        depends_on:
+            - postgres
+        entrypoint: >
+            /bin/sh -c "
+            mkdir -m 700 /var/lib/pgadmin/storage/admin_upchieve.org;
+            chown -R pgadmin:pgadmin /var/lib/pgadmin/storage/admin_upchieve.org;
+            cp -prv /pgpassfile /var/lib/pgadmin/storage/admin_upchieve.org/;
+            chmod 600 /var/lib/pgadmin/storage/admin_upchieve.org/pgpassfile;
+            /entrypoint.sh
+            "
+        ports:
+            - "80:80"
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=admin@upchieve.org
+            - PGADMIN_DEFAULT_PASSWORD=Password123
+        volumes:
+            - ./pgadmin/pgpassfile:/pgpassfile
+            - ./pgadmin/servers.json:/pgadmin4/servers.json
+        restart: unless-stopped

@@ -17,6 +17,7 @@ import YAML from 'yaml'
 import config from './config'
 import logger from './logger'
 import router from './router'
+import socketServer from './socket-server'
 import {
   baseUri,
   blockAllMixedContent,
@@ -193,20 +194,23 @@ app.get('/api/csrftoken', function(req, res) {
   res.json({ csrfToken: req.csrfToken() })
 })
 
-// handle csurf errors here
+// CSRF error handler
 app.use(function(err: any, req: Request, res: Response, next: NextFunction) {
   if (err.code !== 'EBADCSRFTOKEN') return next(err)
-  else {
-    logger.debug(`Invalid CSRF Token: ${err}`)
-    res.status(403)
-  }
+
+  logger.error(`CSRF Token Error: ${err}`)
+  res.sendStatus(403)
 })
 
 // initialize Express WebSockets
 expressWs(app)
 
+// Start socket server
+export const io = socketServer(app)
+
 // Load server router
-router(app)
+router(app, io)
+
 app.use(haltOnTimedout)
 
 function defaultErrorHandler(
