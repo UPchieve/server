@@ -101,17 +101,29 @@ Vue.filter('formatTime', value => {
   }
 })
 
-// const csrfToken = NetworkService.getCsrfToken()
-// (new Vue).store.commit('app/setCsrfToken', csrfToken)
+function initVue() {
+  // Create Vue instance
+  const app = new Vue({
+    router,
+    store,
+    render: h => h(App)
+  }).$mount('#app')
 
-// Create Vue instance
-const app = new Vue({
-  router,
-  store,
-  render: h => h(App)
-}).$mount('#app')
-
-// allow e2e tests to see Vuex store
-if (window.Cypress) {
-  window.app = app
+  // allow e2e tests to see Vuex store
+  if (window.Cypress) {
+    window.app = app
+  }
 }
+
+async function main(){
+  try {
+    // apply the csrf token to the store before initializing Vue
+    const response = await NetworkService.getCsrfToken()
+    store.commit('app/setCsrfToken', response.data.csrfToken)
+    initVue();
+  } catch (error) {
+    initVue();
+  }
+}
+
+main()
