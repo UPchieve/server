@@ -17,6 +17,7 @@ import config from './config'
 import posthog from 'posthog-js'
 import { initialize } from 'unleash-client'
 import Gleap from 'gleap'
+import NetworkService from './services/NetworkService'
 
 if (config.posthogToken) {
   posthog.init(`${config.posthogToken}`, {
@@ -99,6 +100,9 @@ Vue.filter('formatTime', value => {
     return moment(value).format('h:mm a')
   }
 })
+
+// const csrfToken = NetworkService.getCsrfToken()
+// (new Vue).store.commit('app/setCsrfToken', csrfToken)
 
 // Create Vue instance
 const app = new Vue({

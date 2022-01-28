@@ -83,7 +83,7 @@ export default {
     this.setVisibilityListener()
 
     // get csrf token and store in memory for the life of the app
-    const csrfToken = await NetworkService.getCsrfToken(this)
+    const csrfToken = await NetworkService.getCsrfToken()
     this.$store.commit('app/setCsrfToken', csrfToken)
 
     if (this.isMobileApp) {
