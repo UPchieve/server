@@ -193,15 +193,13 @@ app.get('/api/csrftoken', function(req, res) {
   res.json({ csrfToken: req.csrfToken() })
 })
 
-// error handler
+// handle csurf errors here
 app.use(function(err: any, req: Request, res: Response, next: NextFunction) {
-  if (err.code !== 'EBADCSRFTOKEN') {
-    console.log('CSRF Token Error: ' + err)
-    return next(err)
+  if (err.code !== 'EBADCSRFTOKEN') return next(err)
+  else {
+    logger.debug(`Invalid CSRF Token: ${err}`)
+    res.status(403)
   }
-
-  // handle CSRF token errors here
-  res.status(403)
 })
 
 // initialize Express WebSockets
