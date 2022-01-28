@@ -1,14 +1,14 @@
 import { FEATURE_FLAGS } from '@/consts'
-import parseUnleashFeatureFlags from '@/utils/parse-unleash-feature-flags'
+import config from "@/config";
+import {UnleashClient} from "unleash-proxy-client";
+import * as Sentry from '@sentry/browser'
 
-function handleUnleashOnLoad(event, { commit, state }) {
-  const { responseURL, response } = event.target
-  // intercept the unleash client's response and save flags to our store
-  if (responseURL.match('unleash')) {
-    const data = JSON.parse(response)
-    commit('setFeatureFlags', parseUnleashFeatureFlags(data, state.flags))
-  }
-}
+export const unleash = new UnleashClient({
+  url: `${config.serverRoot}/unleash-proxy`,
+  appName: config.unleashName,
+  environment: config.unleashName,
+  refreshInterval: 30
+})
 
 /**
  *
@@ -35,28 +35,21 @@ export default {
     },
   },
   mutations: {
-    setFeatureFlags: (state, flags) =>
-      (state.flags = {
-        [FEATURE_FLAGS.REFER_FRIENDS]: flags[FEATURE_FLAGS.REFER_FRIENDS],
-        [FEATURE_FLAGS.STUDENT_BANNED_STATE]:
-          flags[FEATURE_FLAGS.STUDENT_BANNED_STATE],
-        [FEATURE_FLAGS.DASHBOARD_REDESIGN]:
-          flags[FEATURE_FLAGS.DASHBOARD_REDESIGN],
-        [FEATURE_FLAGS.GATES_STUDY]: flags[FEATURE_FLAGS.GATES_STUDY],
-        [FEATURE_FLAGS.DOWNTIME_BANNER]: flags[FEATURE_FLAGS.DOWNTIME_BANNER],
-        [FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH]:
-          flags[FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH],
-        [FEATURE_FLAGS.CHATBOT]: flags[FEATURE_FLAGS.CHATBOT],
-      }),
+    setFeatureFlags: (state) => {
+      Object.keys(FEATURE_FLAGS).forEach(key => {
+        state.flags[key] = unleash.isEnabled(FEATURE_FLAGS[key])
+      })
+    }
   },
   actions: {
-    async initInterceptor({ commit, state }) {
-      const origOpen = XMLHttpRequest.prototype.open
-      XMLHttpRequest.prototype.open = function() {
-        this.addEventListener('load', event =>
-          handleUnleashOnLoad(event, { commit, state })
-        )
-        origOpen.apply(this, arguments)
+    async initUnleash({ commit, state }) {
+      unleash.on('update', () => {
+        commit('setFeatureFlags')
+      })
+      try {
+        await unleash.start()
+      } catch (err) {
+        Sentry.captureException(err)
       }
     },
   },
