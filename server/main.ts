@@ -1,11 +1,11 @@
 import 'newrelic'
 import { connect } from './db'
-import initializeUnleash from './utils/initialize-unleash'
 import rawConfig from './config'
 import { Config } from './config-type'
 import app from './app'
 import logger from './logger'
 import { registerListeners } from './services/listeners'
+import { unleashProxy, initializeUnleash } from './services/FeatureFlagService'
 
 async function main() {
   try {
@@ -15,6 +15,9 @@ async function main() {
   }
 
   initializeUnleash()
+  unleashProxy.listen(rawConfig.featureFlagPort, () => {
+    logger.info('feature flag proxy listening on port ' + rawConfig.featureFlagPort)
+  })
 
   try {
     await connect()
