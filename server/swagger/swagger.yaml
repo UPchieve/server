@@ -593,6 +593,10 @@ paths:
                   $ref: '#/components/schemas/CSRFToken'
               example:
                 csrfToken: "FbmhS8I9-A4qxdtGylFSAfwM71GQBXOnUCOM"
+        '403':
+          description: 
+            - Request is unauthorized for non-upchieve users
+            - CSRF token does not match
 
   /api/calendar/save:
     post:
