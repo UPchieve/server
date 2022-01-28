@@ -81,7 +81,6 @@ export default {
 
     this.setVisibilityListener()
 
-
     if (this.isMobileApp) {
       document.addEventListener('click', this.handleExternalURLs, false)
 
