@@ -46,7 +46,6 @@ import PortalService from '@/services/PortalService'
 import getOperatingSystem from '@/utils/get-operating-system'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
 import AnalyticsService from '@/services/AnalyticsService'
-import NetworkService from '@/services/NetworkService'
 import config from '@/config'
 import LargeButton from '@/components/LargeButton'
 import Gleap from 'gleap'
@@ -82,9 +81,6 @@ export default {
 
     this.setVisibilityListener()
 
-    // get csrf token and store in memory for the life of the app
-    const csrfToken = await NetworkService.getCsrfToken()
-    this.$store.commit('app/setCsrfToken', csrfToken)
 
     if (this.isMobileApp) {
       document.addEventListener('click', this.handleExternalURLs, false)
