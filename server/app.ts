@@ -196,7 +196,7 @@ app.get('/api/csrftoken', function(req, res) {
 // error handler
 app.use(function(err: any, req: Request, res: Response, next: NextFunction) {
   if (err.code !== 'EBADCSRFTOKEN') {
-    console.log("CSRF Token Error: " + err)
+    console.log('CSRF Token Error: ' + err)
     return next(err)
   }
 
