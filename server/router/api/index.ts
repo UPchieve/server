@@ -5,7 +5,6 @@ import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
 import { addLastActivity } from '../../middleware/add-last-activity'
 import { addUserAction } from '../../middleware/add-user-action'
-import socketServer from './socket-server'
 import { routeVolunteers } from './volunteers'
 import { routeVerify } from './verify'
 import { routeSession } from './session'
@@ -21,9 +20,11 @@ import { routeTraining } from './training'
 import { routeUser } from './user'
 import { routeProductFlags } from './product-flags'
 
-export function routes(app: Express, sessionStore: MongoStore): void {
-  const io: Server = socketServer(app)
-
+export function routes(
+  app: Express,
+  sessionStore: MongoStore,
+  io: Server
+): void {
   const router: expressWs.Router = Router()
 
   routeVolunteers(router)

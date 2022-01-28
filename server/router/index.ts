@@ -14,8 +14,9 @@ import * as MobileRouter from './mobile'
 import * as ReferenceRouter from './reference'
 import * as ReferralRouter from './referral'
 import * as TwimlRouter from './twiml'
+import { Server } from 'socket.io'
 
-export default function(app: Express) {
+export default function(app: Express, io: Server) {
   logger.info('initializing server routing')
 
   // initialize session store
@@ -28,7 +29,7 @@ export default function(app: Express) {
 
   WhiteboardRouter.routes(app)
   AuthRouter.routes(app)
-  ApiRouter.routes(app, sessionStore)
+  ApiRouter.routes(app, sessionStore, io)
   EduRouter.routes(app)
   EligibilityRouter.routes(app)
   TwimlRouter.routes(app)
