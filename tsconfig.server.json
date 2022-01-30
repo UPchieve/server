@@ -15,6 +15,7 @@
     ]
   },
   "exclude": [
+    "database",
     "server/dbutils",
     "node_modules/",
     "build/",

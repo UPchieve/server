@@ -75,7 +75,9 @@ export default {
     await this.$store.dispatch('app/checkEnvironment', this)
     PortalService.call('app.isLoaded')
 
-    this.$store.dispatch('featureFlags/initInterceptor')
+    // start up the unleash feature flag service
+    await this.$store.dispatch('featureFlags/initUnleash')
+
     // set version on initial load
     this.$store.commit('app/setVersion', config.version)
 

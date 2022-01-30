@@ -69,8 +69,14 @@ const getWrapper = (options = {}) => {
     ...options
   };
 
+  const getters = {
+    isReferFriendsActive: () => false
+  }
+  const store = new Vuex.Store({getters})
+
   return shallowMount(SidebarLinks, {
     localVue,
+    store,
     mocks: { $route: { path: options.path } },
     propsData: {
       authenticated: options.authenticated,
