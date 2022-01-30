@@ -19,6 +19,7 @@
 </template>
 
 <script>
+import Case from 'case'
 import { topics } from '@/utils/topics'
 
 export default {
@@ -72,7 +73,7 @@ export default {
       this.leftBtn = { text: 'Review answers', route: '' }
       this.rightBtn = {
         text: 'Keep studying',
-        route: `/training/review/${this.category}`
+        route: `/training/review/${Case.kebab(this.category)}`
       }
     }
 

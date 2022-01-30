@@ -68,6 +68,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import Case from 'case'
 
 import LoadingMessage from '@/components/LoadingMessage'
 import TrainingService from '@/services/TrainingService'
@@ -84,7 +85,7 @@ import AnalyticsService from '@/services/AnalyticsService'
 export default {
   data() {
     const subtopics = allSubtopics()
-    let { category } = this.$route.params
+    let category = Case.camel(this.$route.params.category)
     let quizName
 
     // format physics from lowercase 'physicsone' -> 'physicsOne'
