@@ -1,14 +1,34 @@
 import { FEATURE_FLAGS } from '@/consts'
-import config from "@/config";
-import {UnleashClient} from "unleash-proxy-client";
+import config from '@/config'
+import { UnleashClient } from 'unleash-proxy-client'
 import * as Sentry from '@sentry/browser'
 
-export const unleash = new UnleashClient({
-  url: `${config.serverRoot}/unleash-proxy`,
-  appName: config.unleashName,
-  environment: config.unleashName,
-  refreshInterval: 30
-})
+/**
+ * featureFlagRoot is just localhost:3002 locally, but
+ * in k8s environments, Ambassador translates /unleash-proxy path
+ * to port 3002
+ */
+function createClient() {
+  return new Promise((resolve, reject) => {
+    let unleash
+    try {
+      unleash = new UnleashClient({
+        url: `${config.featureFlagRoot}`,
+        appName: config.unleashName,
+        environment: config.unleashName,
+        refreshInterval: 30,
+        clientKey: config.featureFlagClientKey,
+        bootstrap: [],
+        bootstrapOverride: false
+      })
+      resolve(unleash)
+    } catch (err) {
+      reject(`error creating unleash client: ${err}`)
+    }
+  })
+}
+
+let unleash
 
 /**
  *
@@ -17,8 +37,6 @@ export const unleash = new UnleashClient({
  *
  * Feature flags that have a default state of `true` and do not need to be toggled
  * again can likely be removed once cleanup of the related feature flag code has taken place.
- *
- * TODO: run an unleash proxy instead
  *
  */
 export default {
@@ -37,16 +55,18 @@ export default {
   mutations: {
     setFeatureFlags: (state) => {
       Object.keys(FEATURE_FLAGS).forEach(key => {
-        state.flags[key] = unleash.isEnabled(FEATURE_FLAGS[key])
+        console.log(key)
+        state.flags[FEATURE_FLAGS[key]] = unleash.isEnabled(FEATURE_FLAGS[key])
       })
     }
   },
   actions: {
-    async initUnleash({ commit, state }) {
-      unleash.on('update', () => {
-        commit('setFeatureFlags')
-      })
+    async initUnleash({ commit }) {
       try {
+        unleash = await createClient()
+        unleash.on('update', () => {
+          commit('setFeatureFlags')
+        })
         await unleash.start()
       } catch (err) {
         Sentry.captureException(err)
