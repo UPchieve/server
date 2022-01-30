@@ -55,7 +55,6 @@ export default {
   mutations: {
     setFeatureFlags: (state) => {
       Object.keys(FEATURE_FLAGS).forEach(key => {
-        console.log(key)
         state.flags[FEATURE_FLAGS[key]] = unleash.isEnabled(FEATURE_FLAGS[key])
       })
     }
