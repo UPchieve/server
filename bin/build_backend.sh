@@ -32,7 +32,7 @@ else
   exit 1
 fi
 
-if [[ $(cp -rn server/views build) -eq 0 ]]
+if [[ $(cp -rn server/views build/) -eq 0 ]]
 then
   echo "Copied view template files"
 else
