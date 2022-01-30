@@ -8,7 +8,7 @@ else
   exit 1
 fi
 
-if [[ $(cp -r server/localManifests build/localManifests) -eq 0 ]]
+if [[ $(cp -r server/localManifests build/server/localManifests) -eq 0 ]]
 then
   echo "Copied local manifest files"
 else
@@ -16,7 +16,7 @@ else
   exit 1
 fi
 
-if [[ $(cp -r server/swagger build/swagger) -eq 0 ]]
+if [[ $(cp -r server/swagger build/server/swagger) -eq 0 ]]
 then
   echo "Copied swagger files"
 else
@@ -24,7 +24,7 @@ else
   exit 1
 fi
 
-if [[ $(mkdir build/services/MailService/views && cp server/services/MailService/views/* build/services/MailService/views) -eq 0 ]]
+if [[ $(mkdir build/server/services/MailService/views && cp server/services/MailService/views/* build/server/services/MailService/views) -eq 0 ]]
 then
   echo "Copied mail template files"
 else
@@ -32,7 +32,7 @@ else
   exit 1
 fi
 
-if [[ $(cp -rn server/views build) -eq 0 ]]
+if [[ $(cp -rn server/views build/server) -eq 0 ]]
 then
   echo "Copied view template files"
 else
