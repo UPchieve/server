@@ -55,7 +55,7 @@ export function routeTraining(router: Router): void {
         ip
       )
       if (passed) {
-        quizActionCreator
+        await quizActionCreator
           .passedQuiz()
           .catch(error => Sentry.captureException(error))
       } else {
@@ -71,7 +71,7 @@ export function routeTraining(router: Router): void {
             user.firstname,
             user._id
           )
-        quizActionCreator
+        await quizActionCreator
           .failedQuiz()
           .catch(error => Sentry.captureException(error))
       }

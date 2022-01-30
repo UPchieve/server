@@ -1,0 +1,867 @@
+Project main_schema {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # Upchieve Main Schema
+    Individual table related discussions are available in slack threads here below:
+    1. <a href="https://upchieve.slack.com/archives/C02AN19A9QB/p1630171490002300?thread_ts=1630078639.000300&cid=C02AN19A9QB" target="_blank">Schools</a>
+    2. <a href="https://upchieve.slack.com/archives/C02AN19A9QB/p1630599803007300?thread_ts=1629899694.008400&cid=C02AN19A9QB" target="_blank">Certifications</a>
+    3. <a href="https://upchieve.slack.com/archives/C02AN19A9QB/p1631119049000100?thread_ts=1629900473.015400&cid=C02AN19A9QB" target="_blank">Availability</a>
+    4. <a href="https://upchieve.slack.com/archives/C02AN19A9QB/p1630085022005200?thread_ts=1630084853.004100&cid=C02AN19A9QB" target="_blank">AuthSessions</a>
+    5. <a href="https://upchieve.slack.com/archives/C02AN19A9QB/p1630513038001800?thread_ts=1630085664.009100&cid=C02AN19A9QB" target="_blank">Feedback</a>
+    6. <a href="https://upchieve.slack.com/archives/C02AN19A9QB/p1630321509000700?thread_ts=1630321487.000600&cid=C02AN19A9QB" target="_blank">Zipcodes-Postal_Codes</a>
+    7. <a href="https://upchieve.slack.com/archives/C02AN19A9QB/p1630321529001000" target="_blank">UserActions</a>
+    8. <a href="https://upchieve.slack.com/archives/C02AN19A9QB/p1630321579001500?thread_ts=1630321542.001200&cid=C02AN19A9QB" target="_blank">Users</a>
+      - <a href="https://upchieve.slack.com/archives/C02AN19A9QB/p1630600323008100?thread_ts=1630598078.006600&cid=C02AN19A9QB" target="_blank">volunteerPartnerOrg</a>
+
+    Mappings details here:
+      - <a href="google.com" target="_blank">GoogleSheet** to be updated **</a>
+
+    dbdiagram <a href="https://dbdiagram.io/d/613b5302825b5b0146fc5ac8" target="_blank">link</a>
+
+    Export the following to use dbmate
+      DBMATE_SCHEMA_FILE="./database/schema.sql"
+      DATABASE_URL="postgres://subway:Password123@localhost:5432/upchieve?sslmode=disable"
+      DBMATE_MIGRATIONS_DIR="./database/migrations"
+  '''
+}
+
+// location data
+
+Table us_states {
+  code text [pk, not null, unique]
+  name text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table cities {
+  id int [pk, increment]
+  name text [not null, unique]
+  us_state_code varchar(2) [ref: > us_states.code]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table postal_codes as PC {
+  code text [pk, not null, unique]
+  us_state_code varchar(2) [not null, ref: > us_states.code]
+  income int
+  location point
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  note: 'zipcodes'
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+// /location data
+
+
+// schools
+
+Table schools {
+  id uuid [pk]
+  name text [not null]
+  approved boolean [not null, default: false]
+  partner boolean [not null, default: false]
+  city_id int [ref: > cities.id]
+  us_state_code int [ref: > us_states.code]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  // https://blog.crunchydata.com/blog/postgres-full-text-search-a-search-engine-in-a-database
+  // dynamic full text search on school name is a critical feature for student sign up flow
+  name_search tsvector [note: "generated always as (to_tsvector(english, name)) stored"]
+
+  indexes {
+    // name_search [type: gin] remove this line in dbml because it doesnt support gin for now
+  }
+}
+
+Table sponsor_orgs {
+  id uuid [pk]
+  name text [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table schools_sponsor_orgs {
+  school_id uuid [ref: > schools.id, not null, unique]
+  sponsor_org_id uuid [ref: > sponsor_orgs.id, not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  indexes {
+    (school_id, sponsor_org_id) [pk]
+  }
+}
+
+Table school_nces_metadata {
+  school_id uuid [pk, ref: > schools.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  SCHOOL_YEAR text [note: 'do we use any of this National Ed data?']
+  FIPST int
+  STATENAME text
+  ST text
+  SCH_NAME text
+  LEA_NAME text
+  STATE_AGENCY_NO int
+  UNION text
+  ST_LEAID text
+  LEAID text
+  ST_SCHID text
+  NCESSCH int
+  SCHID int
+  MSTREET1 text
+  MSTREET2 text
+  MSTREET3 text
+  MCITY text
+  MSTATE text
+  MZIP text
+  MZIP4 text
+  LSTREET1 text
+  LSTREET2 text
+  LSTREET3 text
+  LCITY text
+  LSTATE text
+  LZIP text
+  LZIP4 text
+  PHONE text
+  WEBSITE text
+  SY_STATUS int
+  SY_STATUS_TEXT text
+  UPDATED_STATUS int
+  UPDATED_STATUS_TEXT text
+  EFFECTIVE_DATE text
+  SCH_TYPE int
+  SCH_TYPE_TEXT text
+  RECON_STATUS text
+  OUT_OF_STATE_FLAG text
+  CHARTER_TEXT text
+  CHARTAUTH1 text
+  CHARTAUTHN1 text
+  CHARTAUTH2 text
+  CHARTAUTHN2 text
+  NOGRADES text
+  G_PK_OFFERED text
+  G_KG_OFFERED text
+  G_1_OFFERED text
+  G_2_OFFERED text
+  G_3_OFFERED text
+  G_4_OFFERED text
+  G_5_OFFERED text
+  G_6_OFFERED text
+  G_7_OFFERED text
+  G_8_OFFERED text
+  G_9_OFFERED text
+  G_10_OFFERED text
+  G_11_OFFERED text
+  G_12_OFFERED text
+  G_13_OFFERED text
+  G_UG_OFFERED text
+  G_AE_OFFERED text
+  GSLO text
+  GSHI int
+  LEVEL text
+  IGOFFERED text
+
+  Note: 'Contains meta data fields from schools collection'
+
+  indexes {
+    school_id
+  }
+}
+
+// /schools
+
+
+// users
+
+// supporting
+
+Table user_roles {
+  id int [pk, increment]
+  type text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table, student/volunteer'
+}
+
+Table ban_reasons {
+  id int [pk, increment]
+  reason text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table signup_sources {
+  id int [pk, increment]
+  source text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve will provide values for this'
+}
+
+Table users {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  user_role_id int [ref: > user_roles.id]
+  verified boolean [not null, default: false]
+  email_verified boolean [not null, default: false]
+  phone_verified boolean [not null, default: false]
+  email text [not null, unique]
+  phone text [unique]
+  password text [not null]
+  password_reset_token text
+  first_name text [not null]
+  last_name text [not null]
+  deactivated boolean [not null, default: false]
+  last_activity_at timestamp
+  referral_code text [not null]
+  referred_by uuid
+  test_user boolean [not null, default: false]
+  banned boolean [not null, default: false]
+  ban_reason_id int [ref: > ban_reasons.id]
+  time_tutored int [note: 'in milliseconds, upchieve team will backfill this for students']
+  signup_source_id int [ref: > signup_sources.id]
+}
+
+table users_roles {
+  user_id uuid [not null]
+  role_id uuid [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  indexes {
+    (user_id, role_id) [pk]
+  }
+}
+
+// students
+
+// supporting
+
+Table grade_levels {
+  id int [pk, increment]
+  name text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table student_partner_orgs as SPO {
+  id uuid [pk]
+  key text [not null, unique]
+  name text [not null, unique]
+  signup_code text
+  high_school_signup boolean [not null, default: false]
+  college_signup boolean [not null, default: false]
+  school_signup_required boolean [not null, default: false]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table student_partner_org_sites as SPOS {
+  id uuid [pk]
+  student_partner_org_id uuid [ref: > SPO.id, not null]
+  name text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table student_partner_orgs_sponsor_orgs {
+  student_partner_org_id uuid [not null, ref: > student_partner_orgs.id]
+  sponsor_org_id uuid [not null, ref: > sponsor_orgs.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  
+  indexes {
+    (student_partner_org_id, sponsor_org_id) [pk]
+  }
+}
+
+Table student_profiles as S {
+  user_id uuid [pk, ref: > users.id]
+  college text
+  school_id uuid [ref: > schools.id, not null]
+  postal_code varchar(2) [ref: > postal_codes.code]
+  grade_level_id int [ref: > grade_levels.id]
+  student_partner_org_user_id text [note: 'this will only be on some students, retain as text']
+  student_partner_org_id uuid [ref: > SPO.id, not null]
+  student_partner_org_site_id uuid [ref: > SPOS.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// /students
+
+
+// volunteers
+
+// supporting
+
+Table photo_id_statuses {
+  id int [pk, increment]
+  name text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table volunteer_partner_orgs as VPO {
+  id uuid [pk]
+  key text [not null, unique]
+  name text [not null, unique]
+  receive_weekly_hour_summary_email boolean [not null, default: false]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  note:'Need to match from users.volunteerPartnerOrg in mongo'
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table required_email_domains as RED {
+  id uuid [pk]
+  domain text [not null]
+  volunteer_partner_org_id uuid [ref: > VPO.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table volunteer_profiles as V {
+  user_id uuid [pk, ref: > users.id]
+  volunteer_partner_org_id uuid [ref: > VPO.id]
+  timezone text [not null]
+  approved boolean [not null, default: false]
+  onboarded boolean [not null, default: false]
+  photo_id_s3_key text
+  photo_id_status int [ref: > photo_id_statuses.id]
+  linkedin_url text
+  college text
+  company text
+  languages text[]
+  experience json
+  city text
+  state text
+  country text
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// /volunteers
+
+
+// admins
+
+Table admin_profiles as A {
+  user_id uuid [pk, ref: > users.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table user_product_flags {
+  user_id uuid [pk, ref: > users.id]
+  sent_ready_to_coach_email boolean [not null, default: false]
+  sent_hour_summary_intro_email boolean [not null, default: false]
+  sent_inactive_thirty_day_email boolean [not null, default: false]
+  sent_inactive_sixty_day_email boolean [not null, default: false]
+  sent_inactive_ninety_day_email boolean [not null, default: false]
+  gates_qualified boolean [not null, default: false]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// /users
+
+
+// users derived - users_trainingCourses
+
+Table training_courses {
+  id int [pk, increment]
+  name text [note: 'ex: Upchieve 101', not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table users_training_courses {
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  user_id uuid [ref: > users.id, not null]
+  training_course_id int [ref: > training_courses.id, not null]
+  complete boolean [not null, default: false]
+  progress int [not null, default: 0]
+  completed_materials text[]
+  note: 'Derived from Users.trainingCourses'
+  note: 'pre-populate for each volunteer to make queries about who has done what more easily'
+
+  indexes {
+    (user_id, training_course_id) [pk]
+  }
+}
+
+// users derived - users_references
+
+Table volunteer_reference_statuses {
+  id int [pk, increment]
+  name text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: 'upchieve team will provide the rows for this table'
+  Note: 'one of the values should be "removed"'
+}
+
+Table references {
+  id uuid [pk]
+  user_id uuid [ref: > users.id, not null]
+  first_name text [not null]
+  last_name text [not null]
+  email text [not null]
+  status_id int [ref: > volunteer_reference_statuses.id]
+  sent_at timestamp
+  affiliation text
+  relationship_length text
+  patient int
+  positive_role_model int
+  agreeable_and_approachable int
+  communicates_effectively int
+  rejection_reason text
+  additional_info text
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  note: 'users derived - users_references'
+}
+
+// / users derived - users_references
+
+// topics, certifications and quizzes
+
+Table topics {
+  id int [pk, increment]
+  name text [not null, unique, note: 'enum SUBJECT_TYPES from mongo. ex: math, science, college etc.']
+  icon_link text
+  color text
+  display_name text [not null, unique]
+  dashboard_order smallint [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table tool_types {
+  id int [pk, increment]
+  name text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'lookup table, currently would just be whiteboard or doceditor'
+}
+
+Table subjects {
+  id int [pk, increment]
+  name text [not null, unique, note: 'const *_SUBJECTS from mongo. ex: prealgebra, biology, essays etc.']
+  display_name text [not null, unique]
+  topic_id int [ref: > topics.id, not null]
+  tool_type_id int [ref: > tool_types.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table computed_subjects {
+  id int [pk, increment]
+  name text [not null, unique, note: 'const CERT_UNLOCKING from mongo. ex: prealgebra, biology, essays etc.']
+  display_name text [not null, unique]
+  display_order smallint [not null]
+  topic_id int [not null, ref: > topics.id]
+  tool_type_id int [not null, ref: > tool_types.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table computed_subjects_composition {
+    computed_subject_id [not null, ref: > computed_subjects.id]
+    subject_id [not null, ref: > subjects.id]
+    created_at timestamp [not null]
+    updated_at timestamp [not null]
+
+    indexes {
+        (computed_subject_id, subject_id) [pk]
+    }
+}
+
+Table quizzes {
+  id int [pk, increment]
+  name text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table quiz_subcategories {
+  id int [pk, increment]
+  name text [not null, unique, note: 'const CATEGORY_TO_SUBCATEGORY_MAP from mongo. ex: MATH_CERTS.CALCULUS_BC etc.']
+  quiz_id int [ref: > quizzes.id, note: 'TODO instead of linking to CERTS (MATH_CERTS.GEOMETRY), let us link to subject']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table quiz_questions {
+  id int [pk, increment]
+  question_text text [not null]
+  possible_answers jsonb
+  correct_answer text [not null]
+  quiz_subcategory_id int [ref: > quiz_subcategories.id, not null]
+  image_source text
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table quiz_subject_unlocks {
+  subject_id [not null, ref: > subjects.id]
+  quiz_id [not null, ref: > quizzes.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  indexes {
+      (quiz_id, subject_id) [pk]
+  }
+}
+
+Table users_quizzes {
+  user_id uuid [ref: > users.id, not null]
+  quiz_id int [ref: > quizzes.id, not null]
+  attempts int [not null, default: 0]
+  passed boolean [not null, default: false]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  indexes {
+    (user_id, quiz_id) [pk]
+  }
+}
+
+Table users_subjects {
+  user_id uuid [ref: > users.id]
+  subject_id int [ref: > subjects.id]
+  unlocked boolean [not null, default: false]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'if someone passes calculus, how do we handle creating records for the unlocked subjects below it?'
+  Note: 'this is a place to put a combination of certifications and subjects objects currently on the volunteer document'
+  Note: 'do we want to prepopulate this to be able to find users who dont have subjects?'
+
+  indexes {
+    (user_id, subject_id) [pk]
+  }
+}
+
+Table users_computed_subjects {
+  user_id uuid [ref: > users.id]
+  computed_subject_id int [ref: > subjects.id]
+  unlocked boolean not null default false
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: 'created from looking for all the subjects in "composite_subjects_ids" for a user being "passed:true" in users_subject_metadata'
+
+  indexes {
+    (user_id, computed_subject_id) [pk]
+  }
+}
+
+// /topics, certifications and quizzes
+
+
+// sessions
+
+Table sessions {
+  id uuid [pk]
+  student_id uuid [ref: > users.id, not null]
+  volunteer_id uuid [ref: > users.id]
+  subject_id int [ref: > subjects.id, not null]
+  has_whiteboard_doc boolean [not null, default: false]
+  quill_doc text
+  volunteer_joined_at timestamp
+  ended_at timestamp
+  ended_by_role_id int [ref: > user_roles.id]
+  reviewed boolean
+  to_review boolean
+  student_banned boolean
+  time_tutored int [note: 'in milliseconds']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table user_session_metrics {
+  user_id uuid [pk, ref: > users.id]
+  absent_student int [not null, default: 0]
+  absent_volunteer int [not null, default: 0]
+  low_session_rating_from_coach int [not null, default: 0]
+  low_session_rating_from_student int [not null, default: 0]
+  low_coach_rating_from_student int [not null, default: 0]
+  reported int [not null, default: 0]
+  only_looking_for_answers int [not null, default: 0]
+  rude_or_inappropriate int [not null, default: 0]
+  comment_from_student int [not null, default: 0]
+  comment_from_volunteer int [not null, default: 0]
+  has_been_unmatched int [not null, default: 0]
+  has_had_technical_issues int [not null, default: 0]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table session_flags {
+  id int [pk, increment]
+  name text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+  Note: 'this is currently UserSessionMetrics object in the code'
+}
+
+Table sessions_session_flags {
+  session_id uuid [ref: > sessions.id, not null]
+  session_flag_id int [ref: > session_flags.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  indexes {
+    (session_id, review_reason_id) [pk]
+  }
+
+  Note: 'this currently maps to reviewReasons '
+}
+
+Table report_reasons {
+  id int [pk, increment]
+  reason text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table session_reports {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  report_reason_id int [ref: > report_reasons.id]
+  report_message text
+  reporting_user_id uuid [ref: > users.id]
+  session_id uuid [ref: > sessions.id]
+  reported_user_id uuid [ref: > users.id]
+}
+
+Table session_messages {
+  id uuid [pk]
+  sender_id uuid [ref: > users.id]
+  contents text [not null]
+  session_id uuid [ref: > sessions.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// /sessions
+
+
+// notifications
+
+Table notification_types {
+  id int [pk, increment]
+  type text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: 'values for now would be "initial" or "followup"'
+}
+
+Table notification_methods {
+  id int [pk, increment]
+  method text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table notification_priority_groups {
+  id int [pk]
+  name text [not null, unique]
+  priority smallint [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'upchieve team will provide the rows for this table'
+}
+
+Table notifications {
+  id uuid [pk]
+  user_id uuid [ref: > users.id, not null]
+  sent_at timestamp
+  notification_type_id int [ref: > notification_types.id, not null]
+  notification_method_id int [ref: > notification_methods.id, not null]
+  successful boolean
+  session_id uuid [ref: > sessions.id, not null]
+  message_carrier_id text
+  priority_group_id int [ref: > notification_priority_groups.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// /notifications
+
+
+// ipaddress
+
+Table ip_addresses {
+  id bigint [pk, increment]
+  ip inet [not null, unique]
+  status text
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table users_ip_addresses {
+  id uuid [pk, increment]
+  user_id uuid [ref: > users.id, not null]
+  ip_address_id int [ref: > ip_addresses.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// /ipaddress
+
+
+// useractions
+
+// This is a legacy table that we need to retain but not spend too much time on the lookup
+Table user_actions {
+  id bigint [pk, increment]
+  user_id uuid [ref: > users.id]
+  session_id uuid [ref: > sessions.id]
+  action_type text
+  action text
+  ip_address_id int [ref: > ip_addresses.id]
+  device text
+  browser text
+  browser_version text
+  operating_system text
+  operating_system_version text
+  quiz_subcategory text
+  quiz_category text
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+// /useractions
+
+
+// ineligiblestudents
+
+Table ineligible_students {
+  id uuid [pk]
+  email text [not null, unique]
+  postal_code varchar(2) [ref: > postal_codes.code]
+  ip_address_id int [ref: > ip_addresses.id]
+  school_id uuid [ref: > schools.id]
+  grade_level_id int [ref: > grade_levels.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// /ineligiblestudents
+
+// availabilities
+
+Table weekdays {
+  id int [pk, increment]
+  day text [not null, unique]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table availabilities {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  weekday_id int [ref: > weekdays.id, note: '0 to 6. Sunday start of the week']
+  available_start int [note: 'Start hour in integer (0 - 23)']
+  available_end int [note: 'End hour in integer (0 - 23)']
+  timezone text [note: 'America/New_York, also do we need this if we have it on the volunteer?']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  note: 'we should make this when the user first selects availability'
+  note: 'on updates in a transaction we remove the tuples for that user and re-add them'
+  indexes {
+    (weekday, timezone, available_start, available_end)
+  }
+}
+
+Table availability_histories {
+  id uuid [pk]
+  user_id uuid [ref: > V.id]
+  weekday_id int [ref: > weekdays.id, note: '0 to 6. Sunday start of the week']
+  available_start int [note: ' Start hour in integer (0 - 23)']
+  available_end int [note: ' End hour in integer (0 - 23)']
+  timezone text [note: ' America/New_York, do we need this here if we have it on the volunteer?']
+  recorded_at timestamp [note: 'should be same across rows that we record in the same transaction']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  note: 'TODO'
+}
+
+// /availabilities
+
+
+// feedbacks
+
+Table feedbacks {
+  id uuid [pk]
+  topic_id int [ref: > topics.id, note: 'column "type" in mongo']
+  subject_id int [ref: > subjects.id, note: 'column "subTopic" in mongo']
+  user_role_id int [ref: > user_roles.id, note: 'column "userType" in mongo']
+  session_id uuid [ref: > sessions.id]
+  student_tutoring_feedback json
+  student_counseling_feedback json
+  volunteer_feedback json
+  comment text [note: 'aly will help us map all comments from every version into this column']
+  user_id uuid [ref: > users.id, note:'studentId or volunteerId in mongo']
+  legacy_feedbacks json [note: 'other legacy fields from mongo like "responseData" and others']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// /feedbacks
+
+// surveys
+
+Table pre_session_surveys {
+  id uuid [pk]
+  response_data json
+  session_id uuid [ref: > sessions.id]
+  user_id uuid [ref: > users.id]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// Partner data
+
+Table assistments_data {
+  id uuid [pk]
+  problem_id int [not null]
+  assignment_id uuid [not null]
+  student_id uuid [not null]
+  session_id uuid [ref: > sessions.id]
+  sent boolean
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}

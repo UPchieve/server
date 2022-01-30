@@ -10,9 +10,8 @@ import * as Sentry from '@sentry/browser'
  */
 function createClient() {
   return new Promise((resolve, reject) => {
-    let unleash
     try {
-      unleash = new UnleashClient({
+      const unleash = new UnleashClient({
         url: `${config.featureFlagRoot}`,
         appName: config.unleashName,
         environment: config.unleashName,
@@ -28,6 +27,13 @@ function createClient() {
   })
 }
 
+/**
+ * We hit a race condition in the initUnleash store
+ * action below. So we create a global variable here.
+ * Then initUnleash calls createClient with await,
+ * to make sure that the unleash client exists before
+ * we call unleash.on or unleash.start
+ */
 let unleash
 
 /**

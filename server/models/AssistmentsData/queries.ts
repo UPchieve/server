@@ -103,3 +103,70 @@ export async function updateAssistmentsDataSentAtById(
     throw new RepoUpdateError(err)
   }
 }
+
+// pg wrappers
+import client from '../../pg'
+import * as pgQueries from './pg.queries'
+import { makeRequired, Ulid, Uuid, getDbUlid } from '../pgUtils'
+
+type IAssistmentsData = {
+  id: Ulid
+  problemId: number
+  assignmentId: Uuid // UUID
+  studentId: Uuid // UUID
+  sessionId: Ulid
+  sent: boolean
+}
+
+export async function IgetAssistmentsDataBySession(
+  sessionId: Ulid
+): Promise<IAssistmentsData | undefined> {
+  try {
+    const result = await pgQueries.getAssistmentsDataBySession.run(
+      { sessionId },
+      client
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function updateAssistmentsDataSentById(
+  assistmentsDataId: Ulid
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateAssistmentsDataSentById.run(
+      { assistmentsDataId },
+      client
+    )
+    if (result.length && result[0].id) return
+    throw new RepoUpdateError('Update query did not return id')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function IcreateAssistmentsDataBySessionId(
+  problemId: number,
+  assignmentId: Ulid,
+  studentId: Ulid,
+  sessionId: Ulid
+): Promise<IAssistmentsData> {
+  try {
+    const result = await pgQueries.createAssistmentsDataBySessionId.run(
+      {
+        id: getDbUlid(),
+        problemId,
+        assignmentId,
+        studentId,
+        sessionId,
+      },
+      client
+    )
+    if (result.length) return makeRequired(result[0])
+    throw new RepoCreateError('Insert did not return new row')
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
