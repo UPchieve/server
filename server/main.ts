@@ -1,6 +1,5 @@
 import 'newrelic'
 import { connect } from './db'
-import initializeUnleash from './utils/initialize-unleash'
 import rawConfig from './config'
 import { Config } from './config-type'
 import app, { io } from './app'
@@ -9,6 +8,7 @@ import { registerListeners } from './services/listeners'
 import { Mongoose } from 'mongoose'
 import { serverSetup } from './server-setup'
 import { registerGracefulShutdownListeners } from './graceful-shutdown'
+import { unleashProxy, initializeUnleash } from './services/FeatureFlagService'
 
 async function main() {
   try {
@@ -18,6 +18,11 @@ async function main() {
   }
 
   initializeUnleash()
+  unleashProxy.listen(rawConfig.featureFlagPort, () => {
+    logger.info(
+      'feature flag proxy listening on port ' + rawConfig.featureFlagPort
+    )
+  })
 
   let dbConn: Mongoose
   try {
@@ -30,7 +35,7 @@ async function main() {
 
   registerListeners()
 
-  const port = process.env.PORT || 3000
+  const port = rawConfig.apiPort
   const server = app.listen(port, () => {
     logger.info('api server listening on port ' + port)
   })

@@ -15,21 +15,12 @@ import router from './router'
 import store from './store'
 import config from './config'
 import posthog from 'posthog-js'
-import { initialize } from 'unleash-client'
 import Gleap from 'gleap'
 import NetworkService from './services/NetworkService'
 
 if (config.posthogToken) {
   posthog.init(`${config.posthogToken}`, {
     api_host: 'https://p.upchieve.org'
-  })
-}
-
-if (config.unleashId) {
-  initialize({
-    url: config.unleashUrl,
-    appName: config.unleashName,
-    instanceId: config.unleashId
   })
 }
 

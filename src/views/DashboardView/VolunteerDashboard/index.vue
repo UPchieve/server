@@ -167,10 +167,8 @@ import TrainingIcon from '@/assets/training_icon.svg'
 import { allSubtopicNames } from '@/utils/topics'
 import WebNotificationsButton from '@/components/WebNotificationsButton.vue'
 import ArrowIcon from '@/assets/arrow.svg'
-import { isEnabled } from 'unleash-client'
 import NetworkService from '../../../services/NetworkService'
 import config from '../../../config'
-import { FEATURE_FLAGS } from '@/consts'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -259,7 +257,8 @@ export default {
       sessionPath: 'user/sessionPath',
       hasCertification: 'user/hasCertification',
       hasSelectedAvailability: 'user/hasSelectedAvailability',
-      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
+      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive',
+      isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive'
     }),
 
     isCustomVolunteerPartner() {
@@ -279,7 +278,7 @@ export default {
     },
 
     downtimeMessage() {
-      if (isEnabled(FEATURE_FLAGS.DOWNTIME_BANNER)) {
+      if (this.isDowntimeBannerActive) {
         return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
       } else {
         return ''
@@ -518,11 +517,11 @@ export default {
     },
 
     /**
-     * 
+     *
      * The volunteer must not have a cert that unlocks Algebra 2
      * and must be certified in one of the eligible subjects
      * in order to see the Algebra 2 launch header
-     * 
+     *
      */
     // TODO: remove algebra 2 header in algebra 2 launch cleanup
     isEligibleToSeeAlgebraTwoHeader() {
