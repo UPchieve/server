@@ -16,7 +16,9 @@ async function main() {
 
   initializeUnleash()
   unleashProxy.listen(rawConfig.featureFlagPort, () => {
-    logger.info('feature flag proxy listening on port ' + rawConfig.featureFlagPort)
+    logger.info(
+      'feature flag proxy listening on port ' + rawConfig.featureFlagPort
+    )
   })
 
   try {
@@ -29,7 +31,7 @@ async function main() {
 
   registerListeners()
 
-  const port = process.env.PORT || 3000
+  const port = rawConfig.apiPort
   app.listen(port, () => {
     logger.info('api server listening on port ' + port)
   })
