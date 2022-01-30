@@ -6,7 +6,8 @@ import config from '../config'
  * This creates a proxy server that the frontend can hit.
  * We were hitting rate limit issues from all of our users' browsers
  * hitting our Gitlab Unleash service, so we now cache flags on our server
- * and serve up the requests from there.
+ * and serve up the requests from there. The token is only for the paid
+ * Unleash service, which we don't use, but it's a required parameter.
  */
 export const unleashProxy = createApp({
   unleashUrl: config.unleashUrl,
