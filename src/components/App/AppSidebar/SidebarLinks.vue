@@ -24,7 +24,7 @@
       </sidebar-link>
 
       <sidebar-link
-        v-if="!isVolunteer && showReferFriends"
+        v-if="!isVolunteer && isReferFriendsActive"
         to="/refer-friends"
         text="Refer friends"
       >
@@ -52,8 +52,7 @@ import WordBubblesIcon from '@/assets/sidebar_icons/word-bubbles.svg'
 import EnvelopeIcon from '@/assets/sidebar_icons/envelope.svg'
 import ExclamationIcon from '@/assets/sidebar_icons/exclamation.svg'
 import PortraitIcon from '@/assets/sidebar_icons/portrait.svg'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '@/consts'
+import {mapGetters} from "vuex";
 
 export default {
   components: {
@@ -74,9 +73,9 @@ export default {
     mobileMode: Boolean
   },
   computed: {
-    showReferFriends() {
-      return isEnabled(FEATURE_FLAGS.REFER_FRIENDS)
-    }
+    ...mapGetters({
+      isReferFriendsActive: 'featureFlags/isReferFriendsActive'
+    })
   }
 }
 </script>

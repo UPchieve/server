@@ -188,7 +188,9 @@ const config: Static<typeof Config> = {
   client: {
     host: process.env.SUBWAY_CLIENT_HOST || 'localhost:8080',
   },
+  apiPort: Number(process.env.SUBWAY_API_PORT) || 3000,
   socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3001,
+  featureFlagPort: Number(process.env.SUBWAY_FEATURE_FLAG_PORT) || 3002,
 
   socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
 
@@ -307,9 +309,12 @@ const config: Static<typeof Config> = {
     process.env.VUE_APP_ZWIBBLER_URL || '/static/js/zwibbler-demo.js',
   websocketRoot: process.env.VUE_APP_WEBSOCKET_ROOT || 'ws://localhost:3000',
   serverRoot: process.env.VUE_APP_SERVER_ROOT || 'http://localhost:3000',
+  featureFlagRoot:
+    process.env.VUE_APP_FEATURE_FLAG_ROOT || 'http://localhost:3002/proxy',
   socketAddress: process.env.VUE_APP_SOCKET_ADDRESS || 'http://localhost:3001',
   mainWebsiteUrl:
     process.env.VUE_APP_MAIN_WEBSITE_URL || 'http://localhost:8080',
+  featureFlagClientKey: process.env.FEATURE_FLAG_CLIENT_KEY || 'development',
   newRelicBrowserAccountId: process.env.VUE_APP_NEW_RELIC_ACCOUNT_ID || 'bogus',
   newRelicBrowserTrustKey: process.env.VUE_APP_NEW_RELIC_TRUST_KEY || 'bogus',
   newRelicBrowserAgentId: process.env.VUE_APP_NEW_RELIC_AGENT_ID || 'bogus',

@@ -114,8 +114,6 @@ import LoadingMessage from '@/components/LoadingMessage'
 import ModerationService from '@/services/ModerationService'
 import ChatBotIcon from '@/assets/chat-bot-icon.svg'
 import sendWebNotification from '@/utils/send-web-notification'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '@/consts'
 import getChatAvatar from '@/utils/get-chat-avatar'
 
 const MESSAGE_ALIGNMENT = {
@@ -158,7 +156,8 @@ export default {
       sessionPartner: 'user/sessionPartner',
       isSessionWaitingForVolunteer: 'user/isSessionWaitingForVolunteer',
       isSessionAlive: 'user/isSessionAlive',
-      numberOfUnreadChatMessages: 'user/numberOfUnreadChatMessages'
+      numberOfUnreadChatMessages: 'user/numberOfUnreadChatMessages',
+      isChatbotActive: 'featureFlags/isChatbotActive'
     }),
     isSessionConnectionFailure: function() {
       const isConnectionFailure =
@@ -177,7 +176,7 @@ export default {
       }`
     },
     showLegacyChatBot(){
-      return !isEnabled(FEATURE_FLAGS.CHATBOT)
+      return !this.isChatbotActive
     }
   },
   mounted() {

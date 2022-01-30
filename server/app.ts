@@ -54,8 +54,10 @@ function renderIndexHtml() {
     zwibblerUrl: config.zwibblerUrl,
     websocketRoot: config.websocketRoot,
     serverRoot: config.serverRoot,
+    featureFlagRoot: config.featureFlagRoot,
     socketAddress: config.socketAddress,
     mainWebsiteUrl: config.mainWebsiteUrl,
+    featureFlagClientKey: config.featureFlagClientKey,
     posthogToken: config.posthogToken,
     unleashUrl: config.vueAppUnleashUrl,
     unleashName: config.vueAppUnleashName,
@@ -75,7 +77,11 @@ function renderIndexHtml() {
     gleapSdkKey: config.gleapSdkKey,
   }
 
-  return Mustache.render(template, frontendConfig)
+  const rendered = Mustache.render(template, frontendConfig)
+  console.log(rendered)
+  return rendered
+
+  // return Mustache.render(template, frontendConfig)
 }
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
@@ -139,7 +145,6 @@ app.use(Sentry.Handlers.requestHandler() as express.RequestHandler) // The Sentr
 app.use(bodyParser.json() as express.RequestHandler)
 app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
 app.use(cookieParser(config.sessionSecret))
-app.use(express.static(path.join(__dirname, 'dist')))
 
 let originRegex
 if (config.additionalAllowedOrigins !== '') {
