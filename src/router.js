@@ -501,3 +501,11 @@ Vue.http.interceptors.push((request, next) => {
     }
   })
 })
+
+// using the double submit cookie pattern to send csrf token stored in cookie as a request parameter
+Vue.http.interceptors.push((request) => {
+  const csrfToken = store.getters['app/csrfToken']
+  if (csrfToken) {
+    request.headers.set('X-CSRF-TOKEN', csrfToken);
+  }   
+});

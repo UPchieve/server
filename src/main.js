@@ -16,6 +16,8 @@ import store from './store'
 import config from './config'
 import posthog from 'posthog-js'
 import Gleap from 'gleap'
+import NetworkService from './services/NetworkService'
+import { backOff } from 'exponential-backoff'
 
 if (config.posthogToken) {
   posthog.init(`${config.posthogToken}`, {
@@ -91,14 +93,29 @@ Vue.filter('formatTime', value => {
   }
 })
 
-// Create Vue instance
-const app = new Vue({
-  router,
-  store,
-  render: h => h(App)
-}).$mount('#app')
+function initVue() {
+  // Create Vue instance
+  const app = new Vue({
+    router,
+    store,
+    render: h => h(App)
+  }).$mount('#app')
 
-// allow e2e tests to see Vuex store
-if (window.Cypress) {
-  window.app = app
+  // allow e2e tests to see Vuex store
+  if (window.Cypress) {
+    window.app = app
+  }
 }
+
+async function main(){
+  try {
+    // apply the csrf token to the store before initializing Vue
+    const response = await backOff(() => NetworkService.getCsrfToken())
+    store.commit('app/setCsrfToken', response.data.csrfToken)
+    initVue();
+  } catch (err) {
+    Sentry.captureException(err)
+  }
+}
+
+main()

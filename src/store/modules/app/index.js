@@ -19,7 +19,8 @@ export default {
     isMobileApp: false,
     isWebPageHidden: false,
     version: '',
-    currentServerVersion: ''
+    currentServerVersion: '',
+    csrfToken: ''
   },
   mutations: {
     setWindowWidth: (state, width = 0) =>
@@ -30,7 +31,8 @@ export default {
     setVersion: (state, version) => (state.version = version),
     setCurrentServerVersion: (state, version) =>
       (state.currentServerVersion = version),
-    isWebPageHidden: (state, isVisible) => (state.isWebPageHidden = isVisible)
+    isWebPageHidden: (state, isVisible) => (state.isWebPageHidden = isVisible),
+    setCsrfToken: (state, csrfToken) => (state.csrfToken = csrfToken)
   },
   actions: {
     showNavigation: ({ dispatch }) => {
@@ -68,6 +70,7 @@ export default {
     }
   },
   getters: {
-    mobileMode: state => state.windowWidth <= MAX_MOBILE_MODE_WIDTH
+    mobileMode: state => state.windowWidth <= MAX_MOBILE_MODE_WIDTH,
+    csrfToken: state => state.csrfToken
   }
 }
