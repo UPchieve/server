@@ -20,7 +20,8 @@ describe("`app` store module", () => {
       isMobileApp: false,
       isWebPageHidden: false,
       version: "",
-      currentServerVersion: ""
+      currentServerVersion: "",
+      csrfToken: ""
     });
   });
 

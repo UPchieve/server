@@ -66,6 +66,11 @@ export default {
   },
 
   // Server route defintions
+  getCsrfToken() {
+    return Vue.http
+      .get(`${API_ROOT}/csrftoken`)
+      .then(this._successHandler, this._errorHandler)
+  },
   login(context, data) {
     return context.$http
       .post(`${AUTH_ROOT}/login`, data)
