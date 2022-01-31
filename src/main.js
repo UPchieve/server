@@ -17,6 +17,7 @@ import config from './config'
 import posthog from 'posthog-js'
 import Gleap from 'gleap'
 import NetworkService from './services/NetworkService'
+import { backOff } from 'exponential-backoff'
 
 if (config.posthogToken) {
   posthog.init(`${config.posthogToken}`, {
@@ -109,11 +110,11 @@ function initVue() {
 async function main(){
   try {
     // apply the csrf token to the store before initializing Vue
-    const response = await NetworkService.getCsrfToken()
+    const response = await backOff(() => NetworkService.getCsrfToken())
     store.commit('app/setCsrfToken', response.data.csrfToken)
     initVue();
-  } catch (error) {
-    initVue();
+  } catch (err) {
+    Sentry.captureException(err)
   }
 }
 
