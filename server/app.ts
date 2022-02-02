@@ -17,6 +17,7 @@ import YAML from 'yaml'
 import config from './config'
 import logger from './logger'
 import router from './router'
+import socketServer from './socket-server'
 import {
   baseUri,
   blockAllMixedContent,
@@ -31,6 +32,7 @@ import {
   styleSrc,
   upgradeInsecureRequests,
 } from './securitySettings'
+const csrf = require('csurf')
 
 const distDir = '../dist'
 
@@ -53,8 +55,10 @@ function renderIndexHtml() {
     zwibblerUrl: config.zwibblerUrl,
     websocketRoot: config.websocketRoot,
     serverRoot: config.serverRoot,
+    featureFlagRoot: config.featureFlagRoot,
     socketAddress: config.socketAddress,
     mainWebsiteUrl: config.mainWebsiteUrl,
+    featureFlagClientKey: config.featureFlagClientKey,
     posthogToken: config.posthogToken,
     unleashUrl: config.vueAppUnleashUrl,
     unleashName: config.vueAppUnleashName,
@@ -74,7 +78,11 @@ function renderIndexHtml() {
     gleapSdkKey: config.gleapSdkKey,
   }
 
-  return Mustache.render(template, frontendConfig)
+  const rendered = Mustache.render(template, frontendConfig)
+  console.log(rendered)
+  return rendered
+
+  // return Mustache.render(template, frontendConfig)
 }
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
@@ -138,7 +146,6 @@ app.use(Sentry.Handlers.requestHandler() as express.RequestHandler) // The Sentr
 app.use(bodyParser.json() as express.RequestHandler)
 app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
 app.use(cookieParser(config.sessionSecret))
-app.use(express.static(path.join(__dirname, 'dist')))
 
 let originRegex
 if (config.additionalAllowedOrigins !== '') {
@@ -186,11 +193,29 @@ const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')
 const swaggerYaml = YAML.parse(swaggerDoc)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 
+// Setting up csrf middleware
+app.use(csrf({ cookie: true }))
+app.get('/api/csrftoken', function(req, res) {
+  res.json({ csrfToken: req.csrfToken() })
+})
+
+// CSRF error handler
+app.use(function(err: any, req: Request, res: Response, next: NextFunction) {
+  if (err.code !== 'EBADCSRFTOKEN') return next(err)
+
+  logger.error(`CSRF Token Error: ${err}`)
+  res.sendStatus(403)
+})
+
 // initialize Express WebSockets
 expressWs(app)
 
+// Start socket server
+export const io = socketServer(app)
+
 // Load server router
-router(app)
+router(app, io)
+
 app.use(haltOnTimedout)
 
 function defaultErrorHandler(

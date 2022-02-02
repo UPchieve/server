@@ -31,6 +31,8 @@ jest.mock('../../models/Session/queries')
 jest.mock('../../models/Student/queries')
 jest.mock('../../utils/get-times')
 
+jest.setTimeout(10 * 1000)
+
 const mockedSessionRepo = mocked(SessionRepo, true)
 const mockedStudentRepo = mocked(StudentRepo, true)
 const mockedTimeUtils = mocked(GetTimes, true)

@@ -573,6 +573,31 @@ paths:
                     type: string
                   lastName:
                     type: string
+  /api/csrftoken:
+    get:
+      tags:
+        - authorization
+      summary: Generates csrf token
+      description: |
+        - Generates csrf token per cookie 
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns a json with `csrfToken`
+          content: 
+            applicaton/json: 
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/CSRFToken'
+              example:
+                csrfToken: "FbmhS8I9-A4qxdtGylFSAfwM71GQBXOnUCOM"
+        '403':
+          description: 
+            - Request is unauthorized for non-upchieve users
+            - CSRF token does not match
+
   /api/calendar/save:
     post:
       tags:
@@ -1273,7 +1298,7 @@ paths:
             $ref: '#/components/schemas/SessionId'
       responses:
         '200':
-          description: Returns a object with assigned image url and upload url
+          description: Returns an object with assigned image url and upload url
   /api/session/{sessionId}/report:
     post:
       tags:
@@ -2561,6 +2586,13 @@ components:
     CourseKey:
       type: string
       example: 'upchieve101'
+    CSRFToken:
+      type: object
+      required:
+        - csrfToken
+      properties:
+        csrfToken:
+          type: string
     Email:
       type: string
       example: "student1@upchieve.org"

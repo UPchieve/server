@@ -99,8 +99,6 @@ import TroubleMatchingModal from '@/views/SessionView/TroubleMatchingModal'
 import UnmatchedModal from '@/views/SessionView/UnmatchedModal'
 import sendWebNotification from '@/utils/send-web-notification'
 import Case from 'case'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '@/consts'
 
 /**
  * @todo {1} Refactoring candidate: use a modal instead.
@@ -153,7 +151,8 @@ export default {
       isSessionAlive: 'user/isSessionAlive',
       isSessionWaitingForVolunteer: 'user/isSessionWaitingForVolunteer',
       isSessionInProgress: 'user/isSessionInProgress',
-      isSessionOver: 'user/isSessionOver'
+      isSessionOver: 'user/isSessionOver',
+      isChatbotActive: 'featureFlags/isChatbotActive'
     }),
 
     partnerAvatar() {
@@ -161,7 +160,7 @@ export default {
       // show the current user their partner's avatar
       if (this.user.isVolunteer)
         return StudentIcon
-      else 
+      else
         return VolunteerIcon
     }
   },
@@ -289,7 +288,7 @@ export default {
       router.push(url)
     },
     toggleTroubleMatchingModal() {
-      if (isEnabled(FEATURE_FLAGS.CHATBOT)) this.showTroubleMatchingModal = false
+      if (this.isChatbotActive) this.showTroubleMatchingModal = false
       else this.showTroubleMatchingModal = !this.showTroubleMatchingModal
     },
     toggleUnmatchedModal() {

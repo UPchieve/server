@@ -11,6 +11,8 @@ if (configElement !== null) {
   config.serverRoot = process.env.VUE_APP_SERVER_ROOT
   config.socketAddress = process.env.VUE_APP_WEBSOCKET_ADDRESS
   config.websocketRoot = process.env.VUE_APP_MAIN_WEBSOCKET_ROOT
+  config.featureFlagRoot = process.env.VUE_APP_FEATURE_FLAG_ROOT
+  config.featureFlagClientKey = process.env.FEATURE_FLAG_CLIENT_KEY
   config.zwibblerUrl = process.env.VUE_APP_ZWIBBLER_URL
   config.posthogToken = process.env.VUE_APP_POSTHOG_TOKEN
   config.unleashUrl = process.env.VUE_APP_UNLEASH_URL

@@ -1,9 +1,7 @@
 import Case from 'case'
-import { isEnabled } from 'unleash-client'
 import Vue from 'vue'
 import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
-import { FEATURE_FLAGS } from './consts'
 import store from './store'
 import { topics } from './utils/topics'
 import AdminView from './views/Admin'
@@ -202,7 +200,7 @@ const routes = [
     component: ReferFriendsView,
     meta: { protected: true },
     beforeEnter: (to, from, next) => {
-      if (isEnabled(FEATURE_FLAGS.REFER_FRIENDS)) next()
+      if (store.getters['featureFlags/isReferFriendsActive']) next()
       else next('/dashboard')
     }
   },
@@ -503,3 +501,11 @@ Vue.http.interceptors.push((request, next) => {
     }
   })
 })
+
+// using the double submit cookie pattern to send csrf token stored in cookie as a request parameter
+Vue.http.interceptors.push((request) => {
+  const csrfToken = store.getters['app/csrfToken']
+  if (csrfToken) {
+    request.headers.set('X-CSRF-TOKEN', csrfToken);
+  }   
+});

@@ -30,8 +30,6 @@ import { mapGetters } from 'vuex'
 import * as sessionUtils from '@/utils/session'
 import HyperlinkButton from '@/components/HyperlinkButton'
 import LargeButton from '@/components/LargeButton'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '@/consts'
 
 export default {
   name: 'rejoin-session-header',
@@ -41,7 +39,8 @@ export default {
       mobileMode: 'app/mobileMode',
       avatarUrl: 'user/avatarUrl',
       name: 'user/firstName',
-      sessionPath: 'user/sessionPath'
+      sessionPath: 'user/sessionPath',
+      isDashboardRedesignActive: 'featureFlags/isDashboardRedesignActive'
     }),
     message() {
       return `You have a chat in session${this.mobileMode ? '' : '.'}`
@@ -52,7 +51,7 @@ export default {
         buttonClass: ''
       }
 
-      if (isEnabled(FEATURE_FLAGS.DASHBOARD_REDESIGN)) {
+      if (this.isDashboardRedesignActive) {
         status.class += '--redesign'
         status.buttonClass += 'RejoinSessionHeader-buttons--redesign'
       }

@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-if [[ $(npx tsc) -eq 0 ]]
+if [[ $(npx tsc --p tsconfig.server.json) -eq 0 ]]
 then
   echo "Completed typescript compilation"
 else
@@ -32,7 +32,7 @@ else
   exit 1
 fi
 
-if [[ $(cp -rn server/views build) -eq 0 ]]
+if [[ $(cp -rn server/views build/) -eq 0 ]]
 then
   echo "Copied view template files"
 else

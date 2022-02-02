@@ -115,7 +115,7 @@ export function routes(app: Express): void {
     res.end(twiml.toString())
 
     if (isYesMessage && session._id) {
-      new UserActionCtrl.SessionActionCreator(
+      await new UserActionCtrl.SessionActionCreator(
         userId,
         session._id
       ).repliedYesToSession()

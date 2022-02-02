@@ -35,7 +35,7 @@ export function routeUser(router: Router): void {
         MailService.createContact(updatedUser)
 
         if (isDeactivated)
-          new UserActionCtrl.AccountActionCreator(user._id, ip)
+          await new UserActionCtrl.AccountActionCreator(user._id, ip)
             .accountDeactivated()
             .catch(error => Sentry.captureException(error))
       }

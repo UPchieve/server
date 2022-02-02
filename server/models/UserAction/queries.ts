@@ -3,7 +3,7 @@ import { RepoReadError } from '../Errors'
 import UserActionModel, { UserAction, UserActionAgent } from '../UserAction'
 import { USER_ACTION } from '../../constants'
 
-// TODO: this should not be used - make a custom getter is pipeline is needed
+// TODO: this should not be used - make a custom getter if pipeline is needed
 export async function getActionsWithPipeline(
   pipeline: any
 ): Promise<UserAction[]> {
@@ -81,6 +81,52 @@ export async function userHasTakenQuiz(
       },
     ]).exec()
     return docs.length !== 0
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+// pg wrappers
+import client from '../../pg'
+import * as pgQueries from './pg.queries'
+import { Ulid, makeRequired } from '../pgUtils'
+
+export async function getQuizzesPassedForDateRangeById(
+  userId: Ulid,
+  start: Date,
+  end: Date
+): Promise<number> {
+  try {
+    const result = await pgQueries.getQuizzesPassedForDateRangeById.run(
+      { userId, start, end },
+      client
+    )
+    if (result.length) return makeRequired(result[0]).total
+    return 0
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function IgetSessionRequestedUserAgentFromSessionId(
+  sessionId: Ulid
+): Promise<UserActionAgent | undefined> {
+  try {
+    const result = await pgQueries.getSessionRequestedUserAgentFromSessionId.run(
+      { sessionId },
+      client
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function IuserHasTakeQuiz(userId: Ulid): Promise<boolean> {
+  try {
+    const result = await pgQueries.userHasTakenQuiz.run({ userId }, client)
+    if (result.length) return makeRequired(result[0]).exists
+    return false
   } catch (err) {
     throw new RepoReadError(err)
   }
