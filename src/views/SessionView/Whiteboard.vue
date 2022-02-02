@@ -318,7 +318,6 @@ export default {
   computed: {
     ...mapState({
       isMobileApp: state => state.app.isMobileApp,
-      isSessionConnectionAlive: state => state.user.isSessionConnectionAlive
     }),
     ...mapGetters({
       mobileMode: 'app/mobileMode',
@@ -659,16 +658,10 @@ export default {
       })
 
       this.zwibblerCtx.on('connect-error', () => {
-        this.zwibblerCtx.stopSharing()
         this.isConnected = false
         this.hadConnectionIssue = true
         window.clearInterval(this.pingPongInterval)
         this.zwibblerCtx.setConfig('readOnly', true)
-        Sentry.captureException(new Error('Zwibbler connection error'), {
-          tags: {
-            sessionId: this.sessionId
-          }
-        })
       })
 
       // disallow dragging and pasting to the whiteboard
@@ -741,15 +734,6 @@ export default {
     isSessionOver(isSessionOver, oldIsSessionOver) {
       if (isSessionOver && !oldIsSessionOver)
         this.zwibblerCtx.setConfig('readOnly', true)
-    },
-    isSessionConnectionAlive(newValue, oldValue) {
-      if (!this.hadConnectionIssue) return // On initial connection, early exit
-      if (this.isConnected) return // Already connected, so early exit
-      if (newValue && !oldValue) {
-        // Socket.io just reconnected, so try reconnecting Zwibbler (but first clear the document)
-        this.zwibblerCtx.newDocument()
-        this.zwibblerCtx.joinSharedSession(this.sessionId, false)
-      }
     },
     shouldResetWhiteboard(currentValue) {
       if (currentValue) this.resetWhiteboard()
