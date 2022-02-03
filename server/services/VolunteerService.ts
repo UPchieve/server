@@ -240,11 +240,12 @@ export async function updatePendingVolunteerStatus(
   }
 
   const isNewlyApproved = isApproved && !volunteerBeforeUpdate.isApproved
-  if (isNewlyApproved)
+  if (isNewlyApproved) {
     await new UserActionCtrl.AccountActionCreator(volunteerId).accountApproved()
-  AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_APPROVED, {
-    event: EVENTS.ACCOUNT_APPROVED,
-  })
+    AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_APPROVED, {
+      event: EVENTS.ACCOUNT_APPROVED,
+    })
+  }
   if (isNewlyApproved && !volunteerBeforeUpdate.isOnboarded)
     MailService.sendApprovedNotOnboardedEmail(volunteerBeforeUpdate)
 
