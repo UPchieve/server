@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
 import moment from 'moment'
 import 'moment-timezone'
-import { getHourSummaryStats } from '../../services/VolunteerService'
-import { insertVolunteer, resetDb } from '../db-utils'
+import * as VolunteerService from '../../services/VolunteerService'
+import { resetDb } from '../db-utils'
 import {
   buildVolunteer,
   buildSession,
@@ -13,7 +13,7 @@ import {
 import SessionModel from '../../models/Session'
 import AvailabilityHistoryModel from '../../models/Availability/History'
 import UserActionModel from '../../models/UserAction'
-import { USER_ACTION } from '../../constants'
+import { STATUS, PHOTO_ID_STATUS, USER_ACTION } from '../../constants'
 jest.setTimeout(1000 * 15)
 
 beforeAll(async () => {
@@ -139,7 +139,7 @@ describe('getHourSummaryStats', () => {
       }),
     ])
 
-    const results = await getHourSummaryStats(
+    const results = await VolunteerService.getHourSummaryStats(
       volunteerId,
       startOfLastWeek,
       endOfLastWeek
@@ -153,5 +153,72 @@ describe('getHourSummaryStats', () => {
     }
 
     expect(results).toMatchObject(expectedStats)
+  })
+})
+
+describe('getPendingVolunteerApprovalStatus', () => {
+  test('Should not approve a volunteer if the volunteer only has one reference', () => {
+    const photoIdStatus = PHOTO_ID_STATUS.APPROVED
+    const referenceStatus = [STATUS.APPROVED]
+    const completedBackgroundInfo = true
+    const result = VolunteerService.getPendingVolunteerApprovalStatus(
+      photoIdStatus,
+      referenceStatus,
+      completedBackgroundInfo
+    )
+
+    expect(result).toBeFalsy()
+  })
+
+  test(`Should not approve a volunteer if a reference status is not ${STATUS.APPROVED}`, () => {
+    const photoIdStatus = PHOTO_ID_STATUS.APPROVED
+    const referenceStatus = [STATUS.APPROVED, STATUS.SUBMITTED]
+    const completedBackgroundInfo = true
+    const result = VolunteerService.getPendingVolunteerApprovalStatus(
+      photoIdStatus,
+      referenceStatus,
+      completedBackgroundInfo
+    )
+
+    expect(result).toBeFalsy()
+  })
+
+  test(`Should not approve a volunteer if the photo ID status is not ${STATUS.APPROVED}`, () => {
+    const photoIdStatus = STATUS.REJECTED
+    const referenceStatus = [STATUS.APPROVED, STATUS.APPROVED]
+    const completedBackgroundInfo = true
+    const result = VolunteerService.getPendingVolunteerApprovalStatus(
+      photoIdStatus,
+      referenceStatus,
+      completedBackgroundInfo
+    )
+
+    expect(result).toBeFalsy()
+  })
+
+  test('Should not approve a volunteer if their background info form is not complete', () => {
+    const photoIdStatus = STATUS.APPROVED
+    const referenceStatus = [STATUS.APPROVED, STATUS.APPROVED]
+    const completedBackgroundInfo = false
+    const result = VolunteerService.getPendingVolunteerApprovalStatus(
+      photoIdStatus,
+      referenceStatus,
+      completedBackgroundInfo
+    )
+
+    expect(result).toBeFalsy()
+  })
+
+  test(`Should approve a volunteer if all requirements are ${STATUS.APPROVED}`, () => {
+    const photoIdStatus = STATUS.APPROVED
+    const referenceStatus = [STATUS.APPROVED, STATUS.APPROVED]
+    const completedBackgroundInfo = false
+    const result = VolunteerService.getPendingVolunteerApprovalStatus(
+      photoIdStatus,
+      referenceStatus,
+      completedBackgroundInfo
+    )
+
+    expect(result).toBeFalsy()
   })
 })
