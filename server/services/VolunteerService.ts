@@ -198,6 +198,35 @@ export async function getVolunteersToReview(
   }
 }
 
+export function getPendingVolunteerApprovalStatus(
+  photoIdStatus: string,
+  referencesStatus: string[],
+  hasCompletedBackgroundInfo: boolean
+) {
+  const referencesLimit = 2
+  let isApproved = true
+
+  for (let i = 0; i < referencesLimit; i++) {
+    const referenceStatus = referencesStatus[i]
+    if (referenceStatus !== STATUS.APPROVED) {
+      isApproved = false
+      break
+    }
+  }
+
+  if (photoIdStatus !== STATUS.APPROVED || !hasCompletedBackgroundInfo)
+    isApproved = false
+
+  return isApproved
+}
+
+interface PendingVolunteerUpdate {
+  isApproved: boolean
+  photoIdStatus?: string
+  'references.0.status'?: string
+  'references.1.status'?: string
+}
+
 export async function updatePendingVolunteerStatus(
   volunteerId: Types.ObjectId,
   photoIdStatus: string,
@@ -210,21 +239,24 @@ export async function updatePendingVolunteerStatus(
     volunteerBeforeUpdate.occupation &&
     volunteerBeforeUpdate.occupation.length > 0 &&
     volunteerBeforeUpdate.country
-
-  const statuses = [...referencesStatus, photoIdStatus]
+      ? true
+      : false
   // A volunteer must have the following list items approved before being considered an approved volunteer
   //  1. two references
   //  2. photo id
-  const isApproved =
-    statuses.every(status => status === STATUS.APPROVED) &&
-    !!hasCompletedBackgroundInfo
-  const [referenceOneStatus, referenceTwoStatus] = referencesStatus
-  const update = {
-    isApproved,
+  const isApproved = getPendingVolunteerApprovalStatus(
     photoIdStatus,
-    'references.0.status': referenceOneStatus,
-    'references.1.status': referenceTwoStatus,
+    referencesStatus,
+    hasCompletedBackgroundInfo
+  )
+
+  const [referenceOneStatus, referenceTwoStatus] = referencesStatus
+  const update: PendingVolunteerUpdate = {
+    isApproved,
   }
+  if (photoIdStatus) update.photoIdStatus = photoIdStatus
+  if (referenceOneStatus) update['references.0.status'] = referenceOneStatus
+  if (referenceTwoStatus) update['references.1.status'] = referenceTwoStatus
   // TODO: repo pattern
   await VolunteerModel.updateOne({ _id: volunteerId }, update)
 
