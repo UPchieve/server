@@ -203,21 +203,12 @@ export function getPendingVolunteerApprovalStatus(
   referencesStatus: string[],
   hasCompletedBackgroundInfo: boolean
 ) {
-  const referencesLimit = 2
-  let isApproved = true
-
-  for (let i = 0; i < referencesLimit; i++) {
-    const referenceStatus = referencesStatus[i]
-    if (referenceStatus !== STATUS.APPROVED) {
-      isApproved = false
-      break
-    }
-  }
-
-  if (photoIdStatus !== STATUS.APPROVED || !hasCompletedBackgroundInfo)
-    isApproved = false
-
-  return isApproved
+  return (
+    referencesStatus[0] === STATUS.APPROVED &&
+    referencesStatus[1] === STATUS.APPROVED &&
+    photoIdStatus === STATUS.APPROVED &&
+    hasCompletedBackgroundInfo
+  )
 }
 
 interface PendingVolunteerUpdate {
