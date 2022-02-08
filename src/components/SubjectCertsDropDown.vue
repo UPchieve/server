@@ -44,7 +44,7 @@
 
       <div class="action-btns" :key="`action-btns-${index}`">
         <router-link
-          :to="`/training/review/${cert.key}`"
+          :to="certReviewLink(cert.key)"
           class="action-btns__review-link"
         >
           <span class="action-btns__review-link--text">Review</span>
@@ -56,7 +56,7 @@
           :showArrow="false"
           :routeTo="
             !isComplete(cert.key) || hasUnlockedSubject(cert.key)
-              ? `/training/${cert.key}/quiz`
+              ? certQuizLink(cert.key)
               : null
           "
           class="action-btns__quiz-btn"
@@ -76,6 +76,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import Case from 'case'
 import CheckMark from '@/components/CheckMark'
 import LargeButton from '@/components/LargeButton'
 import ArrowIcon from '@/assets/arrow.svg'
@@ -120,6 +121,12 @@ export default {
     hasUnlockedSubject(cert) {
       if (cert === 'algebra') return this.user.subjects.includes('algebraOne')
       return this.user.subjects.includes(cert)
+    },
+    certReviewLink(cert) {
+      return `/training/review/${Case.kebab(cert)}`
+    },
+    certQuizLink(cert) {
+      return `/training/${Case.kebab(cert)}/quiz`
     },
     progressStatus(cert) {
       if (this.isComplete(cert)) return 'Completed'

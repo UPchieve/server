@@ -40,6 +40,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import Case from 'case'
 import NetworkService from '@/services/NetworkService'
 import AnalyticsService from '@/services/AnalyticsService'
 import isPhysics from '@/utils/is-physics'
@@ -58,7 +59,7 @@ export default {
   },
   mounted() {
     const { params } = this.$route
-    const { category } = params
+    const category = Case.camel(params.category)
     this.category = category
     AnalyticsService.captureEvent(EVENTS.REVIEW_MATERIALS_VIEWED, {
       event: EVENTS.REVIEW_MATERIALS_VIEWED,
