@@ -14,6 +14,7 @@
 </template>
 
 <script>
+import Case from 'case'
 import CheckMark from '@/components/CheckMark'
 import RightCaret from '@/assets/right-caret.svg'
 
@@ -51,7 +52,7 @@ export default {
   methods: {
     onClick() {
       if (this.isDisabled || this.isCompleted) return
-      else this.$router.push(`/training/${this.quizKey}/quiz`)
+      else this.$router.push(`/training/${Case.kebab(this.quizKey)}/quiz`)
     }
   }
 }
