@@ -134,15 +134,17 @@ export default {
      * `incomingDeltas` to avoid appending duplicate deltas to the client Quill doc
      * 
      */
-    lastDeltaStored({ delta }){
-      if (delta){
-        const queueCutoff = this.incomingDeltas.findIndex((pendingDelta) => pendingDelta.id = delta.id)
+    lastDeltaStored({ delta }) {
+      if (delta) {
+        const queueCutoff = this.incomingDeltas.findIndex(
+          pendingDelta => pendingDelta.id === delta.id
+        )
         this.incomingDeltas = this.incomingDeltas.slice(queueCutoff + 1)
       }
     },
 
     // TODO: needs better UX. What should happen if 10 attempts are reached?
-    retryLoadingDoc(){
+    retryLoadingDoc() {
       const maxRetries = 10
       if (this.retries > maxRetries) return 
       
