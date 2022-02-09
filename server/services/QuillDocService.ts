@@ -27,7 +27,7 @@ export async function getDoc(
   }
 }
 
-export interface DocState {
+export interface QuillCacheState {
   doc: Delta
   lastDeltaStored: Delta | undefined
 }
@@ -39,9 +39,9 @@ export interface DocState {
  * the queue
  *
  */
-export async function lockAndGetDocState(
+export async function lockAndGetDocCacheState(
   sessionId: Types.ObjectId
-): Promise<DocState | undefined> {
+): Promise<QuillCacheState | undefined> {
   try {
     const sessionCacheKey = sessionIdToKey(sessionId)
     const lock = await cache.lock(sessionCacheKey, 5000)
@@ -66,7 +66,7 @@ export async function lockAndGetDocState(
 export async function processDoc(
   sessionId: Types.ObjectId,
   docString: string
-): Promise<DocState> {
+): Promise<QuillCacheState> {
   const deltasCacheKey = getSessionDeltasKey(sessionId)
   let pendingDelta: string = await cache.lpop(deltasCacheKey)
   const isUpdateNeeded = pendingDelta ? true : false

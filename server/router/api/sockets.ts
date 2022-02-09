@@ -323,14 +323,14 @@ export function routeSockets(
         () =>
           new Promise<void>(async (resolve, reject) => {
             try {
-              const docState = await QuillDocService.lockAndGetDocState(
+              const quillState = await QuillDocService.lockAndGetDocCacheState(
                 sessionId
               )
-              let doc = docState && docState.doc
+              let doc = quillState && quillState.doc
 
-              if (docState?.lastDeltaStored)
+              if (quillState?.lastDeltaStored)
                 socket.emit('lastDeltaStored', {
-                  delta: docState.lastDeltaStored,
+                  delta: quillState.lastDeltaStored,
                 })
               else if (!doc) doc = await QuillDocService.createDoc(sessionId)
 
