@@ -323,9 +323,11 @@ export function routeSockets(
         () =>
           new Promise<void>(async (resolve, reject) => {
             try {
-              const docState = await QuillDocService.getDoc(sessionId)
+              const docState = await QuillDocService.lockAndGetDocState(
+                sessionId
+              )
               let doc = docState && docState.doc
-              
+
               if (docState?.lastDeltaStored)
                 socket.emit('lastDeltaStored', {
                   delta: docState.lastDeltaStored,
@@ -350,13 +352,13 @@ export function routeSockets(
         () =>
           new Promise<void>(async (resolve, reject) => {
             /**
-             * 
+             *
              * Add a unique ID to each delta. This allows for the client to determine
              * which deltas are which when it is queueing incoming deltas.
-             * 
-             * The IDs are ignored when a delta is instantiated with `new Delta(delta)` 
+             *
+             * The IDs are ignored when a delta is instantiated with `new Delta(delta)`
              * or when a quill doc is composed
-             * 
+             *
              */
             delta.id = uuidv4()
             await QuillDocService.appendToDoc(sessionId, delta)

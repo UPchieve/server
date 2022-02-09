@@ -16,20 +16,36 @@ export async function createDoc(sessionId: Types.ObjectId): Promise<Delta> {
   return newDoc
 }
 
+export async function getDoc(
+  sessionId: Types.ObjectId
+): Promise<Delta | undefined> {
+  try {
+    const docString = await cache.get(sessionIdToKey(sessionId))
+    return new Delta(JSON.parse(docString))
+  } catch (err) {
+    if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
+}
+
 export interface DocState {
   doc: Delta
   lastDeltaStored: Delta | undefined
 }
 
-export async function getDoc(
+/**
+ *
+ * Locks the doc resource in the cache and retrieves the
+ * updated doc and the last delta that was popped from
+ * the queue
+ *
+ */
+export async function lockAndGetDocState(
   sessionId: Types.ObjectId
 ): Promise<DocState | undefined> {
   try {
-    const lock = await cache.redisLock.lock(
-      `lock:${sessionIdToKey(sessionId)}`,
-      5000
-    )
-    const docString = await cache.get(sessionIdToKey(sessionId))
+    const sessionCacheKey = sessionIdToKey(sessionId)
+    const lock = await cache.lock(sessionCacheKey, 5000)
+    const docString = await cache.get(sessionCacheKey)
     const result = await processDoc(sessionId, docString)
     await lock.unlock()
     return result
@@ -51,8 +67,8 @@ export async function processDoc(
   sessionId: Types.ObjectId,
   docString: string
 ): Promise<DocState> {
-  const deltasKey = getSessionDeltasKey(sessionId)
-  let pendingDelta: string = await cache.lpop(deltasKey)
+  const deltasCacheKey = getSessionDeltasKey(sessionId)
+  let pendingDelta: string = await cache.lpop(deltasCacheKey)
   const isUpdateNeeded = pendingDelta ? true : false
   let doc: Delta = new Delta(JSON.parse(docString))
   let lastDeltaStored: Delta | undefined
@@ -61,7 +77,7 @@ export async function processDoc(
     const delta = new Delta(JSON.parse(pendingDelta))
     doc = doc.compose(delta)
     const prevDelta = pendingDelta
-    pendingDelta = await cache.lpop(deltasKey)
+    pendingDelta = await cache.lpop(deltasCacheKey)
     if (prevDelta && !pendingDelta) lastDeltaStored = JSON.parse(prevDelta)
   }
 
