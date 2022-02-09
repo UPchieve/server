@@ -11,8 +11,11 @@
 import Redis from 'ioredis'
 import { CustomError } from 'ts-custom-error'
 import config from '../config'
+import redlock from 'redlock'
 
 const redisClient = new Redis(config.redisConnectionString)
+
+export const redisLock = new redlock([redisClient])
 
 // TODO: we should just return undefiend on KeyNotFound
 export class KeyNotFoundError extends CustomError {
