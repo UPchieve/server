@@ -319,9 +319,14 @@ export async function processFirstSessionCongratsEmail(
 }
 
 export async function storeAndDeleteQuillDoc(sessionId: Types.ObjectId) {
-  const quillDoc = await QuillDocService.getDoc(sessionId)
-  await SessionRepo.updateSessionQuillDoc(sessionId, JSON.stringify(quillDoc))
-  await QuillDocService.deleteDoc(sessionId)
+  const quillState = await QuillDocService.lockAndGetDocCacheState(sessionId)
+  if (quillState) {
+    await SessionRepo.updateSessionQuillDoc(
+      sessionId,
+      JSON.stringify(quillState.doc)
+    )
+    await QuillDocService.deleteDoc(sessionId)
+  }
 }
 
 export async function storeAndDeleteWhiteboardDoc(sessionId: Types.ObjectId) {
@@ -520,7 +525,6 @@ export async function adminSessionView(data: unknown) {
   )
   const feedback = await getFeedbackV2BySessionId(session._id)
   const bucket: keyof typeof config.awsS3 = 'sessionPhotoBucket'
-  let s3Keys
   const sessionPhotos = await AwsService.getObjects(bucket, session.photos)
 
   return {

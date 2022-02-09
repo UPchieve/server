@@ -573,15 +573,19 @@ describe('processFirstSessionCongratsEmail', () => {
 describe('storeAndDeleteQuillDoc', () => {
   test('Should store and delete the quill doc', async () => {
     const sessionId = getObjectId()
-    const quillDoc = { ops: [] }
-    mockedQuillDocService.getDoc.mockImplementationOnce(
-      async () => new Delta(quillDoc)
+    const delta = { ops: [] }
+    const quillState = {
+      doc: new Delta(delta),
+      lastDeltaStored: undefined,
+    }
+    mockedQuillDocService.lockAndGetDocCacheState.mockImplementationOnce(
+      async () => quillState
     )
     await SessionService.storeAndDeleteQuillDoc(sessionId)
-    expect(QuillDocService.getDoc).toHaveBeenCalledTimes(1)
+    expect(QuillDocService.lockAndGetDocCacheState).toHaveBeenCalledTimes(1)
     expect(SessionRepo.updateSessionQuillDoc).toHaveBeenCalledWith(
       sessionId,
-      JSON.stringify(quillDoc)
+      JSON.stringify(quillState.doc)
     )
     expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
   })
@@ -619,18 +623,22 @@ describe('processSessionEditors', () => {
       subTopic: SUBJECTS.ESSAYS,
     })
     const sessionId = mockedSession._id
-    const docString = { ops: [] }
+    const delta = { ops: [] }
+    const quillState = {
+      doc: new Delta(delta),
+      lastDeltaStored: undefined,
+    }
     mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
       async () => mockedSession
     )
-    mockedQuillDocService.getDoc.mockImplementationOnce(
-      async () => new Delta(docString)
+    mockedQuillDocService.lockAndGetDocCacheState.mockImplementationOnce(
+      async () => quillState
     )
     await SessionService.storeAndDeleteQuillDoc(sessionId)
-    expect(QuillDocService.getDoc).toHaveBeenCalledTimes(1)
+    expect(QuillDocService.lockAndGetDocCacheState).toHaveBeenCalledTimes(1)
     expect(SessionRepo.updateSessionQuillDoc).toHaveBeenCalledWith(
       sessionId,
-      JSON.stringify(docString)
+      JSON.stringify(quillState.doc)
     )
     expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
     expect(WhiteboardService.getDoc).toHaveBeenCalledTimes(0)
