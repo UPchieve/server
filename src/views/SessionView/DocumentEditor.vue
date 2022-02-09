@@ -29,7 +29,8 @@ export default {
       quillEditor: null,
       // set default loading state
       isLoading: true,
-      pendingDeltas: []
+      incomingDeltas: [],
+      retries: 0
     }
   },
   computed: {
@@ -99,28 +100,56 @@ export default {
     updateContents(delta){
       this.quillEditor.updateContents(delta)
     },
-    emptyPendingDeltas(){
-      for(const delta of this.pendingDeltas){
+    emptyIncomingDeltas(){
+      for (const delta of this.incomingDeltas){
         this.updateContents(delta)
       }
-      this.pendingDeltas = []
     }
   },
   sockets: {
     quillState({ delta }) {
       this.quillEditor.setContents(delta)
-      this.emptyPendingDeltas()
+      this.emptyIncomingDeltas()
       this.isLoading = false
       this.quillEditor.enable()
     },
 
     partnerQuillDelta({ delta }) {
-      if (this.isLoading) this.pendingDeltas.push(delta)
+      if (this.isLoading) this.incomingDeltas.push(delta)
       else this.updateContents(delta)
     },
 
     quillPartnerSelection({ range }) {
       this.quillEditor.getModule('cursors').moveCursor('partnerCursor', range)
+    },
+
+    /**
+     * 
+     * This event lets us know the last delta that was composed to the Quill 
+     * document in our server cache
+     * 
+     * If the last delta stored is found in our `incomingDeltas` queue,
+     * that means the requested quill state from our server contains 
+     * the last delta stored and the ones before it. Remove those from 
+     * `incomingDeltas` to avoid appending duplicate deltas to the client Quill doc
+     * 
+     */
+    lastDeltaStored({ delta }){
+      if (delta){
+        const queueCutoff = this.incomingDeltas.findIndex((pendingDelta) => pendingDelta.id = delta.id)
+        this.incomingDeltas = this.incomingDeltas.slice(queueCutoff + 1)
+      }
+    },
+
+    // TODO: needs better UX. What should happen if 10 attempts are reached?
+    retryLoadingDoc(){
+      const maxRetries = 10
+      if (this.retries > maxRetries) return 
+      
+      this.retries++
+      this.$socket.emit('requestQuillState', {
+        sessionId: this.currentSession._id
+      })
     }
   }
 }
