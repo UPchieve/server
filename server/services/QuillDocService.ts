@@ -96,6 +96,7 @@ export async function appendToDoc(
 export async function deleteDoc(sessionId: Types.ObjectId): Promise<void> {
   try {
     await cache.remove(sessionIdToKey(sessionId))
+    await cache.remove(getSessionDeltasKey(sessionId))
   } catch (err) {
     if (!(err instanceof cache.KeyDeletionFailureError)) throw err
   }
