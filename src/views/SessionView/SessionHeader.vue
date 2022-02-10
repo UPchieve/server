@@ -404,6 +404,10 @@ h1 {
 
   &--hidden {
     visibility: hidden;
+
+    @include breakpoint-below('large') {
+      display: none;
+    }
   }
 }
 
@@ -413,6 +417,10 @@ h1 {
   font-weight: 600;
   font-size: 16px;
   max-width: 600px;
+
+  @include breakpoint-below('large') {
+    line-height: 1;
+  }
 }
 
 .volunteer-name {
