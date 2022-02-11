@@ -92,14 +92,14 @@ export default {
         let selectionPosition = this.quillEditor.getSelection()
 
         // // New line character, have cursor follow its position
-        // if (
-        //   delta.ops[0].insert === '\n' ||
-        //   (delta.ops[1] && delta.ops[1].insert === '\n')
-        // )
-        //   selectionPosition = {
-        //     index: selectionPosition.index + 1,
-        //     length: selectionPosition.length,
-        //   }
+        if (
+          delta.ops[0].insert === '\n' ||
+          (delta.ops[1] && delta.ops[1].insert === '\n')
+        )
+          selectionPosition = {
+            index: selectionPosition.index + 1,
+            length: selectionPosition.length,
+          }
 
         // // First insert onto the doc
         // if (typeof delta.ops[0].insert === 'string')
