@@ -362,7 +362,7 @@ export function routeSockets(
              */
             delta.id = uuidv4()
             await QuillDocService.appendToDoc(sessionId, delta)
-            socket.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
+            io.in(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
               delta,
             })
             return resolve()
