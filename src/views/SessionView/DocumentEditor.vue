@@ -30,7 +30,12 @@ export default {
       // set default loading state
       isLoading: true,
       incomingDeltas: [],
-      retries: 0
+      retries: 0,
+      selectionPosition: {
+        index: 0,
+        length: 0
+      },
+      authorId: null
     }
   },
   computed: {
@@ -82,6 +87,44 @@ export default {
   methods: {
     quillTextChange(delta, oldDelta, source) {
       if (source === 'user') {
+
+        // Should I set a null position to 0??
+        let selectionPosition = this.quillEditor.getSelection()
+
+        // // New line character, have cursor follow its position
+        // if (
+        //   delta.ops[0].insert === '\n' ||
+        //   (delta.ops[1] && delta.ops[1].insert === '\n')
+        // )
+        //   selectionPosition = {
+        //     index: selectionPosition.index + 1,
+        //     length: selectionPosition.length,
+        //   }
+
+        // // First insert onto the doc
+        // if (typeof delta.ops[0].insert === 'string')
+        //   this.quillEditor.deleteText(0, 1)
+        // // ???
+        // else if (
+        //   typeof delta.ops[0].retain === 'number' &&
+        //   typeof delta.ops[1].delete === 'number'
+        // )
+        //   this.quillEditor.deleteText(
+        //     delta.ops[0].retain + delta.ops[1].delete,
+        //     1
+        //   )
+        // // if just retaining a character position
+        // else if (typeof delta.ops[0].retain === 'number')
+        //   this.quillEditor.deleteText(delta.ops[0].retain, 1)
+        // // if deleting new line characters
+        // else if (typeof delta.ops[0].delete === 'number')
+        //   this.quillEditor.deleteText(delta.ops[0].delete, 1)
+
+        this.selectionPosition = Object.assign({}, selectionPosition)
+
+        this.authorId = this.$socket.id
+        delta.authorId = this.authorId
+        this.quillEditor.setContents(oldDelta)
         this.$socket.emit('transmitQuillDelta', {
           sessionId: this.currentSession._id,
           delta
@@ -116,7 +159,12 @@ export default {
 
     partnerQuillDelta({ delta }) {
       if (this.isLoading) this.incomingDeltas.push(delta)
-      else this.updateContents(delta)
+      else {
+        this.updateContents(delta)
+
+        if (this.authorId === delta.authorId)
+          this.quillEditor.setSelection(this.selectionPosition)
+      }
     },
 
     quillPartnerSelection({ range }) {
