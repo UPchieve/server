@@ -31,8 +31,12 @@ export default {
     const userProperties = {
       userType: 'student'
     }
-    if (student.studentPartnerOrg)
-      userProperties.partner = student.studentPartnerOrg
+    const school = student.approvedHighSchool
+    if(school.isPartner)
+      userProperties.schoolPartner =  school.nameStored ? school.nameStored : school.SCH_NAME
+    else
+      userProperties.nonProfitPartner = student.studentPartnerOrg
+      
     this.updateUser(userProperties)
     this.captureEvent(EVENTS.ACCOUNT_CREATED, {
       event: EVENTS.ACCOUNT_CREATED
