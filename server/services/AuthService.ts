@@ -46,9 +46,10 @@ import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import { sessionStoreCollectionName } from '../router/api/session-store'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
-import AnalyticsService from '../../src/services/AnalyticsService'
+import * as AnalyticsService from './AnalyticsService'
 import { getIpWhoIs } from './IpAddressService'
 import * as MailService from './MailService'
+import { USER_ACTION } from '../constants'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -207,15 +208,15 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
   }
 
   // borrowed from TwilioService.getAssociatedPartner
-  if (
-    school &&
-    sponsorOrgManifests[studentPartnerOrg] &&
-    Array.isArray(sponsorOrgManifests[studentPartnerOrg].schools) &&
-    sponsorOrgManifests[studentPartnerOrg].schools.some(school =>
-      school.equals(school)
-    )
-  )
-    AnalyticsService.registerStudent(studentData)
+  // if (
+  //   school &&
+  //   sponsorOrgManifests[studentPartnerOrg] &&
+  //   Array.isArray(sponsorOrgManifests[studentPartnerOrg].schools) &&
+  //   sponsorOrgManifests[studentPartnerOrg].schools.some(school =>
+  //     school.equals(school)
+  //   )
+  // )
+ // AnalyticsService.captureEvent(, USER_ACTION.ACCOUNT.UPDATED_PROFILE, studentData)
 
   const student = await UserCtrl.createStudent(studentData, ip)
   return student

@@ -1,6 +1,7 @@
 import PostHog from 'posthog-node'
 import { Types } from 'mongoose'
 import config from '../config'
+import { StreamName } from 'aws-sdk/clients/cognitosync'
 
 const client = new PostHog(config.posthogToken, {
   host: 'https://app.posthog.com',
@@ -21,6 +22,12 @@ export const captureEvent = (
   client.capture({
     distinctId: userId.toString(),
     event: eventName,
-    properties,
+    properties
+    // : {
+    // $set: {
+    //  schoolPartner: '',
+    //  nonProfitPartner: ''
+    // }
+    // }
   })
 }
