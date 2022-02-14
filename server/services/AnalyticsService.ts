@@ -1,7 +1,6 @@
 import PostHog from 'posthog-node'
 import { Types } from 'mongoose'
 import config from '../config'
-import { StreamName } from 'aws-sdk/clients/cognitosync'
 
 const client = new PostHog(config.posthogToken, {
   host: 'https://app.posthog.com',

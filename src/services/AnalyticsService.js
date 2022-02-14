@@ -27,22 +27,6 @@ export default {
     Gleap.clearCustomData()
   },
 
-  registerStudent(student) {
-    const userProperties = {
-      userType: 'student'
-    }
-    const school = student.approvedHighSchool
-    if(school.isPartner)
-      userProperties.schoolPartner =  school.nameStored ? school.nameStored : school.SCH_NAME
-    else
-      userProperties.nonProfitPartner = student.studentPartnerOrg
-      
-    this.updateUser(userProperties)
-    this.captureEvent(EVENTS.ACCOUNT_CREATED, {
-      event: EVENTS.ACCOUNT_CREATED
-    })
-  },
-
   registerVolunteer(volunteer) {
     const userProperties = {
       userType: 'volunteer'

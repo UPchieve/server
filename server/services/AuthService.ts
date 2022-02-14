@@ -50,6 +50,7 @@ import * as AnalyticsService from './AnalyticsService'
 import { getIpWhoIs } from './IpAddressService'
 import * as MailService from './MailService'
 import { USER_ACTION } from '../constants'
+import posthog from 'posthog-js'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -90,6 +91,10 @@ export async function checkCredential(data: unknown): Promise<boolean> {
   }
 
   return true
+}
+
+function updateUser(update: any) {
+  posthog.people.set(update)
 }
 
 // Handles /register/student/open route
@@ -148,6 +153,15 @@ export async function registerOpenStudent(data: unknown): Promise<Student> {
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
+  const userProperties = {
+    userType: 'student',
+  }
+
+  updateUser(userProperties)
+  AnalyticsService.captureEvent(student._id, USER_ACTION.ACCOUNT.CREATED, {
+    event: USER_ACTION.ACCOUNT.CREATED,
+  })
+
   return student
 }
 
@@ -207,8 +221,11 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
     password,
   }
 
-  // borrowed from TwilioService.getAssociatedPartner
+  const student = await UserCtrl.createStudent(studentData, ip)
+
+  // if student is partner student and school partner student
   if (
+    student.studentPartnerOrg &&
     school &&
     sponsorOrgManifests[studentPartnerOrg] &&
     Array.isArray(sponsorOrgManifests[studentPartnerOrg].schools) &&
@@ -217,14 +234,36 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
     )
   ) {
     const highSchool = school.nameStored ? school.nameStored : school.SCH_NAME
-   
-    AnalyticsService.captureEvent(userId, USER_ACTION.ACCOUNT.UPDATED_PROFILE, {
-      event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-      schoolPartner: highSchool,
-    })
+
+    AnalyticsService.captureEvent(
+      student._id,
+      USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+      {
+        event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+        schoolPartner: highSchool,
+      }
+    )
+  }
+  // if student is partner student but non profit partner student
+  else if (student.studentPartnerOrg)
+    AnalyticsService.captureEvent(
+      student._id,
+      USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+      {
+        event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+        nonProfitPartner: studentPartnerOrg,
+      }
+    )
+
+  const userProperties = {
+    userType: 'student',
   }
 
-  const student = await UserCtrl.createStudent(studentData, ip)
+  updateUser(userProperties)
+  AnalyticsService.captureEvent(student._id, USER_ACTION.ACCOUNT.CREATED, {
+    event: USER_ACTION.ACCOUNT.CREATED,
+  })
+
   return student
 }
 
