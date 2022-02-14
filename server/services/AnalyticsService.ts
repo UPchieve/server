@@ -17,17 +17,13 @@ export const captureEvent = (
     referenceEmail?: string
     banReason?: string
     joinedFrom?: string
+    schoolPartner?: string
+    nonProfitPartner?: string
   }
 ): void => {
   client.capture({
     distinctId: userId.toString(),
     event: eventName,
-    properties
-    // : {
-    // $set: {
-    //  schoolPartner: '',
-    //  nonProfitPartner: ''
-    // }
-    // }
+    properties,
   })
 }

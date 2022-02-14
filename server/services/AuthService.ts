@@ -208,15 +208,21 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
   }
 
   // borrowed from TwilioService.getAssociatedPartner
-  // if (
-  //   school &&
-  //   sponsorOrgManifests[studentPartnerOrg] &&
-  //   Array.isArray(sponsorOrgManifests[studentPartnerOrg].schools) &&
-  //   sponsorOrgManifests[studentPartnerOrg].schools.some(school =>
-  //     school.equals(school)
-  //   )
-  // )
- // AnalyticsService.captureEvent(, USER_ACTION.ACCOUNT.UPDATED_PROFILE, studentData)
+  if (
+    school &&
+    sponsorOrgManifests[studentPartnerOrg] &&
+    Array.isArray(sponsorOrgManifests[studentPartnerOrg].schools) &&
+    sponsorOrgManifests[studentPartnerOrg].schools.some(school =>
+      school.equals(school)
+    )
+  ) {
+    const highSchool = school.nameStored ? school.nameStored : school.SCH_NAME
+   
+    AnalyticsService.captureEvent(userId, USER_ACTION.ACCOUNT.UPDATED_PROFILE, {
+      event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+      schoolPartner: highSchool,
+    })
+  }
 
   const student = await UserCtrl.createStudent(studentData, ip)
   return student
