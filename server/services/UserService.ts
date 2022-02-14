@@ -1,7 +1,12 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
 import { Types } from 'mongoose'
-import { EVENTS, REFERENCE_STATUS, USER_BAN_REASON } from '../constants'
+import {
+  EVENTS,
+  REFERENCE_STATUS,
+  USER_ACTION,
+  USER_BAN_REASON,
+} from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import { UserNotFoundError } from '../models/Errors'
 import { unbanIpsByUser } from '../models/IpAddress/queries'
@@ -16,6 +21,7 @@ import {
   updateVolunteerReferenceStatusById,
 } from '../models/Volunteer/queries'
 import {
+  sponsorOrgManifests,
   studentPartnerManifests,
   volunteerPartnerManifests,
 } from '../partnerManifests'
@@ -30,6 +36,9 @@ import {
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
+import { getStudentById } from '../models/Student/queries'
+import { getSchool } from './SchoolService'
+import { School } from '../models/School'
 
 export function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
@@ -254,6 +263,49 @@ export async function adminUpdateUser(data: unknown) {
   // TODO: shouldn't this totally fuck up the objects????
   const updatedUser = Object.assign(userBeforeUpdate, update)
   MailService.createContact(updatedUser)
+
+  // tracking organic/partner students for posthog
+  const student = await getStudentById(userId)
+  if (student) {
+    let school: School | undefined
+    if (
+      student.approvedHighschool &&
+      student.approvedHighschool instanceof Types.ObjectId
+    ) {
+      school = await getSchool(student.approvedHighschool)
+    } else school = student.approvedHighschool
+
+    // if student is partner student and school partner student
+    if (
+      student.studentPartnerOrg &&
+      school &&
+      sponsorOrgManifests[student.studentPartnerOrg] &&
+      Array.isArray(sponsorOrgManifests[student.studentPartnerOrg].schools) &&
+      sponsorOrgManifests[student.studentPartnerOrg].schools.some(school =>
+        school.equals(school)
+      )
+    ) {
+      const schoolName = school.nameStored ? school.nameStored : school.SCH_NAME
+      AnalyticsService.captureEvent(
+        userId,
+        USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+        {
+          event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+          schoolPartner: schoolName,
+        }
+      )
+    }
+    // if student is partner student but non profit partner student
+    else if (student.studentPartnerOrg)
+      AnalyticsService.captureEvent(
+        userId,
+        USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+        {
+          event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+          nonProfitPartner: student.studentPartnerOrg,
+        }
+      )
+  }
 
   if (isVolunteer) {
     // TODO: repo pattern
