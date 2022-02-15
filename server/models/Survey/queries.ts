@@ -9,13 +9,24 @@ export async function savePresessionSurvey(
   responseData: object
 ): Promise<Survey> {
   try {
-    const survey = await SurveyModel.create({
-      session: sessionId,
-      user: userId,
-      surveyType: SURVEY_TYPES.STUDENT_PRESESSION,
-      responseData: responseData,
-    })
-    return survey.toObject() as Survey
+    const survey = await SurveyModel.findOneAndUpdate(
+      {
+        session: sessionId,
+        user: userId,
+        surveyType: SURVEY_TYPES.STUDENT_PRESESSION,
+      },
+      {
+        session: sessionId,
+        user: userId,
+        surveyType: SURVEY_TYPES.STUDENT_PRESESSION,
+        responseData: responseData,
+      },
+      { new: true, upsert: true }
+    )
+      .lean()
+      .exec()
+    if (!survey) throw new RepoCreateError('Error upserting presession survey')
+    return survey as Survey
   } catch (err) {
     throw new RepoCreateError(err)
   }
