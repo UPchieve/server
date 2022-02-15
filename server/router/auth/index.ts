@@ -39,60 +39,7 @@ export function routes(app: Express) {
     // Delegate auth logic to passport middleware
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
-    async function(req, res) {
-      // tracking organic/partner students for posthog
-      const user = extractUser(req)
-
-      if (!user.isVolunteer) {
-        const student = await getStudentById(user._id)
-
-        if (student) {
-          let school: School | undefined
-          if (
-            student.approvedHighschool &&
-            student.approvedHighschool instanceof Types.ObjectId
-          ) {
-            school = await getSchool(student.approvedHighschool)
-          } else school = student.approvedHighschool
-
-          // if student is partner student and school partner student
-          if (
-            student.studentPartnerOrg &&
-            school &&
-            sponsorOrgManifests[student.studentPartnerOrg] &&
-            Array.isArray(
-              sponsorOrgManifests[student.studentPartnerOrg].schools
-            ) &&
-            sponsorOrgManifests[
-              student.studentPartnerOrg
-            ].schools.some(school => school.equals(school))
-          ) {
-            const highSchool = school.nameStored
-              ? school.nameStored
-              : school.SCH_NAME
-
-            AnalyticsService.captureEvent(
-              user._id,
-              USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-              {
-                event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-                schoolPartner: highSchool,
-              }
-            )
-          }
-          // if student is partner student but non profit partner student
-          else if (student.studentPartnerOrg) {
-            AnalyticsService.captureEvent(
-              user._id,
-              USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-              {
-                event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-                nonProfitPartner: student.studentPartnerOrg,
-              }
-            )
-          }
-        }
-      }
+    function(req, res) {
       res.json({ user: req.user })
     }
   )
