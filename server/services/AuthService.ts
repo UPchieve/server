@@ -50,7 +50,6 @@ import * as AnalyticsService from './AnalyticsService'
 import { getIpWhoIs } from './IpAddressService'
 import * as MailService from './MailService'
 import { USER_ACTION } from '../constants'
-import posthog from 'posthog-js'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -91,10 +90,6 @@ export async function checkCredential(data: unknown): Promise<boolean> {
   }
 
   return true
-}
-
-function updateUser(update: any) {
-  posthog.people.set(update)
 }
 
 // Handles /register/student/open route
@@ -153,13 +148,10 @@ export async function registerOpenStudent(data: unknown): Promise<Student> {
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
-  const userProperties = {
-    userType: 'student',
-  }
 
-  updateUser(userProperties)
   AnalyticsService.captureEvent(student._id, USER_ACTION.ACCOUNT.CREATED, {
     event: USER_ACTION.ACCOUNT.CREATED,
+    userType: 'student',
   })
 
   return student
@@ -255,13 +247,9 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
       }
     )
 
-  const userProperties = {
-    userType: 'student',
-  }
-
-  updateUser(userProperties)
   AnalyticsService.captureEvent(student._id, USER_ACTION.ACCOUNT.CREATED, {
     event: USER_ACTION.ACCOUNT.CREATED,
+    userType: 'student',
   })
 
   return student

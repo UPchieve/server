@@ -18,6 +18,7 @@ export const captureEvent = (
     joinedFrom?: string
     schoolPartner?: string
     nonProfitPartner?: string
+    userType?: string
   }
 ): void => {
   client.capture({
