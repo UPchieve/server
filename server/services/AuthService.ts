@@ -46,10 +46,8 @@ import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import { sessionStoreCollectionName } from '../router/api/session-store'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
-import * as AnalyticsService from './AnalyticsService'
 import { getIpWhoIs } from './IpAddressService'
 import * as MailService from './MailService'
-import { USER_ACTION } from '../constants'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -148,12 +146,6 @@ export async function registerOpenStudent(data: unknown): Promise<Student> {
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
-
-  AnalyticsService.captureEvent(student._id, USER_ACTION.ACCOUNT.CREATED, {
-    event: USER_ACTION.ACCOUNT.CREATED,
-    userType: 'student',
-  })
-
   return student
 }
 
@@ -214,44 +206,6 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
-
-  // if student is partner student and school partner student
-  if (
-    student.studentPartnerOrg &&
-    school &&
-    sponsorOrgManifests[studentPartnerOrg] &&
-    Array.isArray(sponsorOrgManifests[studentPartnerOrg].schools) &&
-    sponsorOrgManifests[studentPartnerOrg].schools.some(school =>
-      school.equals(school)
-    )
-  ) {
-    const highSchool = school.nameStored ? school.nameStored : school.SCH_NAME
-
-    AnalyticsService.captureEvent(
-      student._id,
-      USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-      {
-        event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-        schoolPartner: highSchool,
-      }
-    )
-  }
-  // if student is partner student but non profit partner student
-  else if (student.studentPartnerOrg)
-    AnalyticsService.captureEvent(
-      student._id,
-      USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-      {
-        event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-        nonProfitPartner: studentPartnerOrg,
-      }
-    )
-
-  AnalyticsService.captureEvent(student._id, USER_ACTION.ACCOUNT.CREATED, {
-    event: USER_ACTION.ACCOUNT.CREATED,
-    userType: 'student',
-  })
-
   return student
 }
 

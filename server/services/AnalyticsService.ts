@@ -1,6 +1,7 @@
 import PostHog from 'posthog-node'
 import { Types } from 'mongoose'
 import config from '../config'
+import { UserBindingContext } from 'twilio/lib/rest/chat/v2/service/user/userBinding'
 
 const client = new PostHog(config.posthogToken, {
   host: 'https://app.posthog.com',
@@ -27,3 +28,16 @@ export const captureEvent = (
     properties,
   })
 }
+
+// export function identify(
+//   userId: Types.ObjectId,
+//   eventName: string,
+//   properties: {
+//   } ) {
+//   client.identify({
+//     distinctId: userId.toString(),
+//     event: eventName,
+//     properties
+
+//   })
+//}

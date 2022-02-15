@@ -1,6 +1,11 @@
 import { Types } from 'mongoose'
+import { EVENTS } from '../constants'
+import { School } from '../models/School'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
+import { getSchool } from './SchoolService'
+import * as AnalyticsService from './AnalyticsService'
+import { getStudentById } from '../models/Student/queries'
 
 export const queueOnboardingEmails = async (
   studentId: Types.ObjectId
@@ -29,4 +34,51 @@ export const queueOnboardingEmails = async (
     // process job 14 days after the student account is created
     { delay: 1000 * 60 * 60 * 24 * 14 }
   )
+}
+
+// registered as listener on student-created
+export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
+  const student = await getStudentById(studentId)
+  let school: School | undefined
+
+  if (student) {
+    if (
+      student.approvedHighschool &&
+      student.approvedHighschool instanceof Types.ObjectId
+    ) {
+      school = await getSchool(student.approvedHighschool)
+    } else school = student.approvedHighschool
+
+    // if student is partner student and school partner student
+    if (student.studentPartnerOrg && school && school.isPartner) {
+      const highSchool = school.nameStored ? school.nameStored : school.SCH_NAME
+
+      AnalyticsService.captureEvent(
+        student._id,
+        EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
+        {
+          event: EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
+          schoolPartner: highSchool,
+        }
+      )
+    }
+    // if student is partner student but non profit partner student
+    else if (student.studentPartnerOrg)
+      AnalyticsService.captureEvent(
+        student._id,
+        EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
+        {
+          event: EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
+          nonProfitPartner: student.studentPartnerOrg,
+        }
+      )
+
+    AnalyticsService.captureEvent(
+      student._id,
+      EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
+      {
+        event: EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
+      }
+    )
+  }
 }

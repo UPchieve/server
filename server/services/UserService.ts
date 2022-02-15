@@ -276,15 +276,7 @@ export async function adminUpdateUser(data: unknown) {
     } else school = student.approvedHighschool
 
     // if student is partner student and school partner student
-    if (
-      student.studentPartnerOrg &&
-      school &&
-      sponsorOrgManifests[student.studentPartnerOrg] &&
-      Array.isArray(sponsorOrgManifests[student.studentPartnerOrg].schools) &&
-      sponsorOrgManifests[student.studentPartnerOrg].schools.some(school =>
-        school.equals(school)
-      )
-    ) {
+    if (student.studentPartnerOrg && school && school.isPartner) {
       const schoolName = school.nameStored ? school.nameStored : school.SCH_NAME
       AnalyticsService.captureEvent(
         userId,
