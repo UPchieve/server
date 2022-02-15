@@ -34,6 +34,7 @@ import { schools } from './scripts/testData/schools'
 
 import { startClient } from './pgClient'
 import { ExpectedErrors } from './scripts/utils'
+import { weekdays } from './scripts/geography/weekdays'
 
 async function seedData(): Promise<void> {
   let exitCode = 0
@@ -42,6 +43,7 @@ async function seedData(): Promise<void> {
 
     await usStates()
     await postalCodes()
+    const weekdayIds = await weekdays()
 
     await userRoles()
     await banReasons()
@@ -74,8 +76,8 @@ async function seedData(): Promise<void> {
     await priorityGroups()
 
     await schools()
-    await volunteers(vpoIds, certIds, quizIds)
-    await students(spoIds)
+    //await volunteers(vpoIds, certIds, quizIds, weekdayIds)
+    //await students(spoIds)
     console.log('All data is seeded!')
     if (ExpectedErrors.length)
       console.log(

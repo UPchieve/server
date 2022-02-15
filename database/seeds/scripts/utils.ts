@@ -5,6 +5,8 @@ export function getDbUlid() {
   return Ulid.generate().toRaw() // as UUID
 }
 
+export const ASSISTMENTS_STUDENT_ID = getDbUlid()
+
 export type NameToId = {
   [k: string]: number | string
 }

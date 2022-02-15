@@ -8,7 +8,7 @@ export interface IInsertCertificationParams {
 
 /** 'InsertCertification' return type */
 export interface IInsertCertificationResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertCertification' query type */
@@ -17,12 +17,22 @@ export interface IInsertCertificationQuery {
   result: IInsertCertificationResult;
 }
 
-const insertCertificationIR: any = {"name":"insertCertification","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":99,"b":103,"line":2,"col":67}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO certifications (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":32,"b":160,"line":2,"col":0}}};
+const insertCertificationIR: any = {"name":"insertCertification","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":124,"b":128,"line":4,"col":17},{"a":289,"b":293,"line":12,"col":52}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO certifications (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM certifications WHERE name=:name!","loc":{"a":32,"b":293,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO certifications (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO certifications (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM certifications WHERE name=:name!
  * ```
  */
 export const insertCertification = new PreparedQuery<IInsertCertificationParams,IInsertCertificationResult>(insertCertificationIR);
@@ -35,7 +45,7 @@ export interface IInsertQuizParams {
 
 /** 'InsertQuiz' return type */
 export interface IInsertQuizResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertQuiz' query type */
@@ -44,12 +54,22 @@ export interface IInsertQuizQuery {
   result: IInsertQuizResult;
 }
 
-const insertQuizIR: any = {"name":"insertQuiz","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":247,"b":251,"line":5,"col":60}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO quizzes (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":187,"b":308,"line":5,"col":0}}};
+const insertQuizIR: any = {"name":"insertQuiz","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":406,"b":410,"line":18,"col":17},{"a":564,"b":568,"line":26,"col":45}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO quizzes (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM quizzes WHERE name=:name!","loc":{"a":321,"b":568,"line":16,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO quizzes (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO quizzes (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM quizzes WHERE name=:name!
  * ```
  */
 export const insertQuiz = new PreparedQuery<IInsertQuizParams,IInsertQuizResult>(insertQuizIR);
@@ -63,7 +83,7 @@ export interface IInsertCertificationGrantParams {
 
 /** 'InsertCertificationGrant' return type */
 export interface IInsertCertificationGrantResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertCertificationGrant' query type */
@@ -72,12 +92,22 @@ export interface IInsertCertificationGrantQuery {
   result: IInsertCertificationGrantResult;
 }
 
-const insertCertificationGrantIR: any = {"name":"insertCertificationGrant","params":[{"name":"quizId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":448,"b":454,"line":8,"col":99}]}},{"name":"certificationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":458,"b":473,"line":8,"col":109}]}}],"usedParamSet":{"quizId":true,"certificationId":true},"statement":{"body":"INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at) VALUES (:quizId!, :certificationId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING quiz_id AS ok","loc":{"a":349,"b":535,"line":8,"col":0}}};
+const insertCertificationGrantIR: any = {"name":"insertCertificationGrant","params":[{"name":"quizId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":734,"b":740,"line":32,"col":17},{"a":944,"b":950,"line":40,"col":71}]}},{"name":"certificationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":744,"b":759,"line":32,"col":27},{"a":974,"b":989,"line":40,"col":101}]}}],"usedParamSet":{"quizId":true,"certificationId":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at)\n        VALUES (:quizId!, :certificationId!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        quiz_id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT quiz_id AS ok FROM quiz_certification_grants WHERE quiz_id=:quizId! AND certification_id=:certificationId!","loc":{"a":610,"b":989,"line":30,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at) VALUES (:quizId!, :certificationId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING quiz_id AS ok
+ * WITH ins AS(
+ *     INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at)
+ *         VALUES (:quizId!, :certificationId!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         quiz_id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT quiz_id AS ok FROM quiz_certification_grants WHERE quiz_id=:quizId! AND certification_id=:certificationId!
  * ```
  */
 export const insertCertificationGrant = new PreparedQuery<IInsertCertificationGrantParams,IInsertCertificationGrantResult>(insertCertificationGrantIR);
@@ -91,7 +121,7 @@ export interface IInsertQuizSubcategoryParams {
 
 /** 'InsertQuizSubcategory' return type */
 export interface IInsertQuizSubcategoryResult {
-  ok: string;
+  ok: string | null;
 }
 
 /** 'InsertQuizSubcategory' query type */
@@ -100,12 +130,22 @@ export interface IInsertQuizSubcategoryQuery {
   result: IInsertQuizSubcategoryResult;
 }
 
-const insertQuizSubcategoryIR: any = {"name":"insertQuizSubcategory","params":[{"name":"quizId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":653,"b":659,"line":11,"col":80}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":663,"b":667,"line":11,"col":90}]}}],"usedParamSet":{"quizId":true,"name":true},"statement":{"body":"INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at) VALUES (:quizId!, :name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING name AS ok","loc":{"a":573,"b":726,"line":11,"col":0}}};
+const insertQuizSubcategoryIR: any = {"name":"insertQuizSubcategory","params":[{"name":"quizId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1133,"b":1139,"line":46,"col":17},{"a":1319,"b":1325,"line":54,"col":61}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1143,"b":1147,"line":46,"col":27},{"a":1337,"b":1341,"line":54,"col":79}]}}],"usedParamSet":{"quizId":true,"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at)\n        VALUES (:quizId!, :name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        name AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT name AS ok FROM quiz_subcategories WHERE quiz_id=:quizId! AND name=:name!","loc":{"a":1028,"b":1341,"line":44,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at) VALUES (:quizId!, :name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING name AS ok
+ * WITH ins AS(
+ *     INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at)
+ *         VALUES (:quizId!, :name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         name AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT name AS ok FROM quiz_subcategories WHERE quiz_id=:quizId! AND name=:name!
  * ```
  */
 export const insertQuizSubcategory = new PreparedQuery<IInsertQuizSubcategoryParams,IInsertQuizSubcategoryResult>(insertQuizSubcategoryIR);
@@ -122,7 +162,7 @@ export interface IInsertSubjectParams {
 
 /** 'InsertSubject' return type */
 export interface IInsertSubjectResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertSubject' query type */
@@ -131,12 +171,22 @@ export interface IInsertSubjectQuery {
   result: IInsertSubjectResult;
 }
 
-const insertSubjectIR: any = {"name":"insertSubject","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":870,"b":874,"line":14,"col":114}]}},{"name":"displayName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":878,"b":889,"line":14,"col":122}]}},{"name":"displayOrder","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":893,"b":905,"line":14,"col":137}]}},{"name":"toolTypeId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":909,"b":919,"line":14,"col":153}]}},{"name":"topicId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":923,"b":930,"line":14,"col":167}]}}],"usedParamSet":{"name":true,"displayName":true,"displayOrder":true,"toolTypeId":true,"topicId":true},"statement":{"body":"INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at) VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":756,"b":987,"line":14,"col":0}}};
+const insertSubjectIR: any = {"name":"insertSubject","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1511,"b":1515,"line":60,"col":17},{"a":1726,"b":1730,"line":68,"col":46}]}},{"name":"displayName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1519,"b":1530,"line":60,"col":25}]}},{"name":"displayOrder","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1534,"b":1546,"line":60,"col":40}]}},{"name":"toolTypeId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1550,"b":1560,"line":60,"col":56}]}},{"name":"topicId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1564,"b":1571,"line":60,"col":70}]}}],"usedParamSet":{"name":true,"displayName":true,"displayOrder":true,"toolTypeId":true,"topicId":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at)\n        VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM subjects WHERE name=:name!","loc":{"a":1372,"b":1730,"line":58,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at) VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at)
+ *         VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM subjects WHERE name=:name!
  * ```
  */
 export const insertSubject = new PreparedQuery<IInsertSubjectParams,IInsertSubjectResult>(insertSubjectIR);
@@ -150,7 +200,7 @@ export interface IInsertCertificationSubjectUnlocksParams {
 
 /** 'InsertCertificationSubjectUnlocks' return type */
 export interface IInsertCertificationSubjectUnlocksResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertCertificationSubjectUnlocks' query type */
@@ -159,12 +209,22 @@ export interface IInsertCertificationSubjectUnlocksQuery {
   result: IInsertCertificationSubjectUnlocksResult;
 }
 
-const insertCertificationSubjectUnlocksIR: any = {"name":"insertCertificationSubjectUnlocks","params":[{"name":"certificationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1143,"b":1158,"line":17,"col":106}]}},{"name":"subjectId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1162,"b":1171,"line":17,"col":125}]}}],"usedParamSet":{"certificationId":true,"subjectId":true},"statement":{"body":"INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at) VALUES (:certificationId!, :subjectId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING subject_id AS ok","loc":{"a":1037,"b":1236,"line":17,"col":0}}};
+const insertCertificationSubjectUnlocksIR: any = {"name":"insertCertificationSubjectUnlocks","params":[{"name":"certificationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1912,"b":1927,"line":74,"col":17},{"a":2144,"b":2159,"line":82,"col":87}]}},{"name":"subjectId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1931,"b":1940,"line":74,"col":36},{"a":2177,"b":2186,"line":82,"col":120}]}}],"usedParamSet":{"certificationId":true,"subjectId":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at)\n        VALUES (:certificationId!, :subjectId!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        subject_id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT subject_id AS ok FROM certification_subject_unlocks WHERE certification_id=:certificationId! AND subject_id=:subjectId!","loc":{"a":1781,"b":2186,"line":72,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at) VALUES (:certificationId!, :subjectId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING subject_id AS ok
+ * WITH ins AS(
+ *     INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at)
+ *         VALUES (:certificationId!, :subjectId!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         subject_id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT subject_id AS ok FROM certification_subject_unlocks WHERE certification_id=:certificationId! AND subject_id=:subjectId!
  * ```
  */
 export const insertCertificationSubjectUnlocks = new PreparedQuery<IInsertCertificationSubjectUnlocksParams,IInsertCertificationSubjectUnlocksResult>(insertCertificationSubjectUnlocksIR);
@@ -177,7 +237,7 @@ export interface IInsertToolTypeParams {
 
 /** 'InsertToolType' return type */
 export interface IInsertToolTypeResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertToolType' query type */
@@ -186,12 +246,22 @@ export interface IInsertToolTypeQuery {
   result: IInsertToolTypeResult;
 }
 
-const insertToolTypeIR: any = {"name":"insertToolType","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1330,"b":1334,"line":20,"col":63}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO tool_types (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":1267,"b":1391,"line":20,"col":0}}};
+const insertToolTypeIR: any = {"name":"insertToolType","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2306,"b":2310,"line":88,"col":17},{"a":2467,"b":2471,"line":96,"col":48}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO tool_types (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM tool_types WHERE name=:name!","loc":{"a":2218,"b":2471,"line":86,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO tool_types (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO tool_types (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM tool_types WHERE name=:name!
  * ```
  */
 export const insertToolType = new PreparedQuery<IInsertToolTypeParams,IInsertToolTypeResult>(insertToolTypeIR);
@@ -206,7 +276,7 @@ export interface IInsertTopicParams {
 
 /** 'InsertTopic' return type */
 export interface IInsertTopicResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertTopic' query type */
@@ -215,12 +285,22 @@ export interface IInsertTopicQuery {
   result: IInsertTopicResult;
 }
 
-const insertTopicIR: any = {"name":"insertTopic","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1509,"b":1513,"line":23,"col":90}]}},{"name":"displayName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1517,"b":1528,"line":23,"col":98}]}},{"name":"dashboardOrder","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1532,"b":1546,"line":23,"col":113}]}}],"usedParamSet":{"name":true,"displayName":true,"dashboardOrder":true},"statement":{"body":"INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at) VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":1419,"b":1603,"line":23,"col":0}}};
+const insertTopicIR: any = {"name":"insertTopic","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2615,"b":2619,"line":102,"col":17},{"a":2805,"b":2809,"line":110,"col":44}]}},{"name":"displayName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2623,"b":2634,"line":102,"col":25}]}},{"name":"dashboardOrder","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2638,"b":2652,"line":102,"col":40}]}}],"usedParamSet":{"name":true,"displayName":true,"dashboardOrder":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at)\n        VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM topics WHERE name=:name!","loc":{"a":2500,"b":2809,"line":100,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at) VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at)
+ *         VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM topics WHERE name=:name!
  * ```
  */
 export const insertTopic = new PreparedQuery<IInsertTopicParams,IInsertTopicResult>(insertTopicIR);
@@ -233,7 +313,7 @@ export interface IInsertTrainingCourseParams {
 
 /** 'InsertTrainingCourse' return type */
 export interface IInsertTrainingCourseResult {
-  ok: string;
+  ok: string | null;
 }
 
 /** 'InsertTrainingCourse' query type */
@@ -242,12 +322,22 @@ export interface IInsertTrainingCourseQuery {
   result: IInsertTrainingCourseResult;
 }
 
-const insertTrainingCourseIR: any = {"name":"insertTrainingCourse","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1709,"b":1713,"line":26,"col":69}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO training_courses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING name AS ok","loc":{"a":1640,"b":1772,"line":26,"col":0}}};
+const insertTrainingCourseIR: any = {"name":"insertTrainingCourse","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2941,"b":2945,"line":116,"col":17},{"a":3112,"b":3116,"line":124,"col":56}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO training_courses (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        name AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT name AS ok FROM training_courses WHERE name=:name!","loc":{"a":2847,"b":3116,"line":114,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO training_courses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING name AS ok
+ * WITH ins AS(
+ *     INSERT INTO training_courses (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         name AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT name AS ok FROM training_courses WHERE name=:name!
  * ```
  */
 export const insertTrainingCourse = new PreparedQuery<IInsertTrainingCourseParams,IInsertTrainingCourseResult>(insertTrainingCourseIR);

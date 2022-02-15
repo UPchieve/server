@@ -8,7 +8,7 @@ export interface IInsertBanReasonParams {
 
 /** 'InsertBanReason' return type */
 export interface IInsertBanReasonResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertBanReason' query type */
@@ -17,12 +17,22 @@ export interface IInsertBanReasonQuery {
   result: IInsertBanReasonResult;
 }
 
-const insertBanReasonIR: any = {"name":"insertBanReason","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":92,"b":96,"line":2,"col":64}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO ban_reasons (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":28,"b":153,"line":2,"col":0}}};
+const insertBanReasonIR: any = {"name":"insertBanReason","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":117,"b":121,"line":4,"col":17},{"a":279,"b":283,"line":12,"col":49}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO ban_reasons (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM ban_reasons WHERE name=:name!","loc":{"a":28,"b":283,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO ban_reasons (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO ban_reasons (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM ban_reasons WHERE name=:name!
  * ```
  */
 export const insertBanReason = new PreparedQuery<IInsertBanReasonParams,IInsertBanReasonResult>(insertBanReasonIR);
@@ -35,7 +45,7 @@ export interface IInsertGradeLevelParams {
 
 /** 'InsertGradeLevel' return type */
 export interface IInsertGradeLevelResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertGradeLevel' query type */
@@ -44,12 +54,22 @@ export interface IInsertGradeLevelQuery {
   result: IInsertGradeLevelResult;
 }
 
-const insertGradeLevelIR: any = {"name":"insertGradeLevel","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":251,"b":255,"line":5,"col":65}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO grade_levels (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":186,"b":312,"line":5,"col":0}}};
+const insertGradeLevelIR: any = {"name":"insertGradeLevel","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":407,"b":411,"line":18,"col":17},{"a":570,"b":574,"line":26,"col":50}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO grade_levels (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM grade_levels WHERE name=:name!","loc":{"a":317,"b":574,"line":16,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO grade_levels (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO grade_levels (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM grade_levels WHERE name=:name!
  * ```
  */
 export const insertGradeLevel = new PreparedQuery<IInsertGradeLevelParams,IInsertGradeLevelResult>(insertGradeLevelIR);
@@ -62,7 +82,7 @@ export interface IInsertPhotoIdStatusParams {
 
 /** 'InsertPhotoIdStatus' return type */
 export interface IInsertPhotoIdStatusResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertPhotoIdStatus' query type */
@@ -71,12 +91,22 @@ export interface IInsertPhotoIdStatusQuery {
   result: IInsertPhotoIdStatusResult;
 }
 
-const insertPhotoIdStatusIR: any = {"name":"insertPhotoIdStatus","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":418,"b":422,"line":8,"col":70}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO photo_id_statuses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":348,"b":479,"line":8,"col":0}}};
+const insertPhotoIdStatusIR: any = {"name":"insertPhotoIdStatus","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":706,"b":710,"line":32,"col":17},{"a":874,"b":878,"line":40,"col":55}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO photo_id_statuses (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM photo_id_statuses WHERE name=:name!","loc":{"a":611,"b":878,"line":30,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO photo_id_statuses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO photo_id_statuses (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM photo_id_statuses WHERE name=:name!
  * ```
  */
 export const insertPhotoIdStatus = new PreparedQuery<IInsertPhotoIdStatusParams,IInsertPhotoIdStatusResult>(insertPhotoIdStatusIR);
@@ -89,7 +119,7 @@ export interface IInsertSignupSourceParams {
 
 /** 'InsertSignupSource' return type */
 export interface IInsertSignupSourceResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertSignupSource' query type */
@@ -98,12 +128,22 @@ export interface IInsertSignupSourceQuery {
   result: IInsertSignupSourceResult;
 }
 
-const insertSignupSourceIR: any = {"name":"insertSignupSource","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":581,"b":585,"line":11,"col":67}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO signup_sources (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":514,"b":642,"line":11,"col":0}}};
+const insertSignupSourceIR: any = {"name":"insertSignupSource","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1006,"b":1010,"line":46,"col":17},{"a":1171,"b":1175,"line":54,"col":52}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO signup_sources (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM signup_sources WHERE name=:name!","loc":{"a":914,"b":1175,"line":44,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO signup_sources (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO signup_sources (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM signup_sources WHERE name=:name!
  * ```
  */
 export const insertSignupSource = new PreparedQuery<IInsertSignupSourceParams,IInsertSignupSourceResult>(insertSignupSourceIR);
@@ -116,7 +156,7 @@ export interface IInsertUserRoleParams {
 
 /** 'InsertUserRole' return type */
 export interface IInsertUserRoleResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertUserRole' query type */
@@ -125,12 +165,22 @@ export interface IInsertUserRoleQuery {
   result: IInsertUserRoleResult;
 }
 
-const insertUserRoleIR: any = {"name":"insertUserRole","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":736,"b":740,"line":14,"col":63}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO user_roles (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":673,"b":797,"line":14,"col":0}}};
+const insertUserRoleIR: any = {"name":"insertUserRole","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1295,"b":1299,"line":60,"col":17},{"a":1456,"b":1460,"line":68,"col":48}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO user_roles (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM user_roles WHERE name=:name!","loc":{"a":1207,"b":1460,"line":58,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO user_roles (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO user_roles (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM user_roles WHERE name=:name!
  * ```
  */
 export const insertUserRole = new PreparedQuery<IInsertUserRoleParams,IInsertUserRoleResult>(insertUserRoleIR);
@@ -143,7 +193,7 @@ export interface IInsertVolunteerReferenceStatusParams {
 
 /** 'InsertVolunteerReferenceStatus' return type */
 export interface IInsertVolunteerReferenceStatusResult {
-  ok: number;
+  ok: number | null;
 }
 
 /** 'InsertVolunteerReferenceStatus' query type */
@@ -152,12 +202,22 @@ export interface IInsertVolunteerReferenceStatusQuery {
   result: IInsertVolunteerReferenceStatusResult;
 }
 
-const insertVolunteerReferenceStatusIR: any = {"name":"insertVolunteerReferenceStatus","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":925,"b":929,"line":17,"col":81}]}}],"usedParamSet":{"name":true},"statement":{"body":"INSERT INTO volunteer_reference_statuses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":844,"b":986,"line":17,"col":0}}};
+const insertVolunteerReferenceStatusIR: any = {"name":"insertVolunteerReferenceStatus","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1614,"b":1618,"line":74,"col":17},{"a":1793,"b":1797,"line":82,"col":66}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO volunteer_reference_statuses (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM volunteer_reference_statuses WHERE name=:name!","loc":{"a":1508,"b":1797,"line":72,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO volunteer_reference_statuses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * WITH ins AS(
+ *     INSERT INTO volunteer_reference_statuses (name, created_at, updated_at)
+ *         VALUES (:name!, NOW(), NOW())
+ *     ON CONFLICT
+ *         DO NOTHING
+ *     RETURNING
+ *         id AS ok
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM volunteer_reference_statuses WHERE name=:name!
  * ```
  */
 export const insertVolunteerReferenceStatus = new PreparedQuery<IInsertVolunteerReferenceStatusParams,IInsertVolunteerReferenceStatusResult>(insertVolunteerReferenceStatusIR);

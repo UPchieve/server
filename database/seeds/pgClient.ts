@@ -1,8 +1,8 @@
 import { Client } from 'pg'
 
 // TODO: safer connection string, exponential backoff, reconnect strategy
-
 const client = new Client({
+  port: 5432,
   host: 'localhost',
   user: 'subway',
   password: 'Password123',

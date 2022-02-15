@@ -15,7 +15,7 @@
     ]
   },
   "include": [
-    "database/seeds",
+    "seeds",
   ],
   "ts-node": {
     "files": true

@@ -24,6 +24,13 @@ export async function studentPartnerOrgsTest(): Promise<NameToId> {
       highSchoolSignup: false,
       schoolSignupRequired: false,
     },
+    {
+      id: getDbUlid(),
+      key: 'assistments',
+      name: 'Assistments',
+      highSchoolSignup: false,
+      schoolSignupRequired: false,
+    },
   ]
   const temp: NameToId = {}
   for (const org of orgs) {
