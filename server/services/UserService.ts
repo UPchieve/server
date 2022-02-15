@@ -1,12 +1,7 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
 import { Types } from 'mongoose'
-import {
-  EVENTS,
-  REFERENCE_STATUS,
-  USER_ACTION,
-  USER_BAN_REASON,
-} from '../constants'
+import { EVENTS, REFERENCE_STATUS, USER_BAN_REASON } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import { UserNotFoundError } from '../models/Errors'
 import { unbanIpsByUser } from '../models/IpAddress/queries'
@@ -266,23 +261,23 @@ export async function adminUpdateUser(data: unknown) {
 
   // tracking organic/partner students for posthog
   const student = await getStudentById(userId)
-  if (student) {
+  if (student && student.studentPartnerOrg !== update.studentPartnerOrg) {
     let school: School | undefined
     if (
-      student.approvedHighschool &&
-      student.approvedHighschool instanceof Types.ObjectId
+      update.approvedHighschool &&
+      update.approvedHighschool instanceof Types.ObjectId
     ) {
-      school = await getSchool(student.approvedHighschool)
-    } else school = student.approvedHighschool
+      school = await getSchool(update.approvedHighschool)
+    } else school = update.approvedHighschool
 
     // if student is partner student and school partner student
     if (student.studentPartnerOrg && school && school.isPartner) {
       const schoolName = school.nameStored ? school.nameStored : school.SCH_NAME
       AnalyticsService.captureEvent(
         userId,
-        USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+        EVENTS.STUDENT_PARTNER_STATUS_UPDATED_POSTHOG,
         {
-          event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+          event: EVENTS.STUDENT_PARTNER_STATUS_UPDATED_POSTHOG,
           schoolPartner: schoolName,
         }
       )
@@ -291,10 +286,10 @@ export async function adminUpdateUser(data: unknown) {
     else if (student.studentPartnerOrg)
       AnalyticsService.captureEvent(
         userId,
-        USER_ACTION.ACCOUNT.UPDATED_PROFILE,
+        EVENTS.STUDENT_PARTNER_STATUS_UPDATED_POSTHOG,
         {
-          event: USER_ACTION.ACCOUNT.UPDATED_PROFILE,
-          nonProfitPartner: student.studentPartnerOrg,
+          event: EVENTS.STUDENT_PARTNER_STATUS_UPDATED_POSTHOG,
+          nonProfitPartner: update.studentPartnerOrg,
         }
       )
   }
