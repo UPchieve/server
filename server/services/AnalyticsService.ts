@@ -1,7 +1,6 @@
 import PostHog from 'posthog-node'
 import { Types } from 'mongoose'
 import config from '../config'
-import { UserBindingContext } from 'twilio/lib/rest/chat/v2/service/user/userBinding'
 
 const client = new PostHog(config.posthogToken, {
   host: 'https://app.posthog.com',
