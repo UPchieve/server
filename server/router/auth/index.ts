@@ -8,13 +8,6 @@ import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
 import { asString } from '../../utils/type-utils'
-import { getStudentById } from '../../models/Student/queries'
-import { sponsorOrgManifests } from '../../partnerManifests'
-import * as AnalyticsService from '../../services/AnalyticsService'
-import { extractUser } from '../extract-user'
-import { USER_ACTION } from '../../constants'
-import { School } from '../../models/School'
-import { getSchool } from '../../services/SchoolService'
 
 export function routes(app: Express) {
   const router = Router()

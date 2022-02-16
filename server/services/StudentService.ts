@@ -6,6 +6,7 @@ import QueueService from './QueueService'
 import { getSchool } from './SchoolService'
 import * as AnalyticsService from './AnalyticsService'
 import { getStudentById } from '../models/Student/queries'
+import { getIdFromModelReference } from '../utils/model-reference'
 
 export const queueOnboardingEmails = async (
   studentId: Types.ObjectId
@@ -38,6 +39,9 @@ export const queueOnboardingEmails = async (
 
 // registered as listener on student-created
 export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
+  var userProperties: any = {
+    userType: 'student',
+  }
   const student = await getStudentById(studentId)
   let school: School | undefined
 
@@ -46,29 +50,32 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
       student.approvedHighschool &&
       student.approvedHighschool instanceof Types.ObjectId
     ) {
-      school = await getSchool(student.approvedHighschool)
+      school = await getSchool(
+        getIdFromModelReference(student.approvedHighschool)
+      )
     } else school = student.approvedHighschool
 
-    // if student is partner student and school partner student
-    if (student.studentPartnerOrg && school && school.isPartner) {
-      const highSchool = school.nameStored ? school.nameStored : school.SCH_NAME
+    let schoolName
+    if (school)
+      schoolName = school.nameStored ? school.nameStored : school.SCH_NAME
 
-      AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
-        event: EVENTS.ACCOUNT_CREATED,
-        schoolPartner: highSchool,
-        partner: student.studentPartnerOrg,
-      })
+    // if student is school partner student
+    if (school && school.isPartner) {
+      // if student also belongs to a partner org
+      if (student.studentPartnerOrg) {
+        userProperties.schoolPartner = schoolName
+        userProperties.partner = student.studentPartnerOrg
+      }
+      // if student is only school partner student but does not belong to a partner org
+      else userProperties.schoolPartner = schoolName
     }
-    // if student is partner student but non profit partner student
+    // if student is partner student but not a school partner student
     else if (student.studentPartnerOrg)
-      AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
-        event: EVENTS.ACCOUNT_CREATED,
-        nonProfitPartner: student.studentPartnerOrg,
-        partner: student.studentPartnerOrg,
-      })
-    else
-      AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
-        event: EVENTS.ACCOUNT_CREATED,
-      })
+      userProperties.partner = student.studentPartnerOrg
+
+    AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
+      event: EVENTS.ACCOUNT_CREATED,
+    })
+    AnalyticsService.identify(student._id, userProperties)
   }
 }

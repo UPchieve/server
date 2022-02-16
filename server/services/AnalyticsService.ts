@@ -32,7 +32,7 @@ export function identify(
   userId: Types.ObjectId,
   properties: {
     schoolPartner?: string
-    nonProfitPartner?: string
+    partner?: string
   }
 ) {
   client.identify({

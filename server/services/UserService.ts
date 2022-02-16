@@ -259,28 +259,13 @@ export async function adminUpdateUser(data: unknown) {
   MailService.createContact(updatedUser)
 
   // tracking organic/partner students for posthog if there is a change in partner status
-  const student = await getStudentById(userId)
-  if (student && student.studentPartnerOrg !== update.studentPartnerOrg) {
-    let school: School | undefined
-    if (
-      update.approvedHighschool &&
-      update.approvedHighschool instanceof Types.ObjectId
-    ) {
-      school = await getSchool(update.approvedHighschool)
-    } else school = update.approvedHighschool
-
-    // if update student is partner student and school partner student
-    if (update.studentPartnerOrg && school && school.isPartner) {
-      const schoolName = school.nameStored ? school.nameStored : school.SCH_NAME
-      AnalyticsService.identify(userId, {
-        schoolPartner: schoolName,
-      })
+  if (!isVolunteer) {
+    if (userBeforeUpdate.studentPartnerOrg !== partnerOrg) {
+      if (partnerOrg)
+        AnalyticsService.identify(userId, {
+          partner: partnerOrg,
+        })
     }
-    // if update student is partner student but non profit partner student
-    else if (update.studentPartnerOrg)
-      AnalyticsService.identify(userId, {
-        nonProfitPartner: update.studentPartnerOrg,
-      })
   }
 
   if (isVolunteer) {
