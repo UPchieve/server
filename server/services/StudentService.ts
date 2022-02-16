@@ -56,6 +56,7 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
       AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
         event: EVENTS.ACCOUNT_CREATED,
         schoolPartner: highSchool,
+        partner: student.studentPartnerOrg
       })
     }
     // if student is partner student but non profit partner student
@@ -63,6 +64,7 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
       AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
         event: EVENTS.ACCOUNT_CREATED,
         nonProfitPartner: student.studentPartnerOrg,
+        partner: student.studentPartnerOrg
       })
     else
       AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
