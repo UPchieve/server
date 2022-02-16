@@ -19,7 +19,6 @@ export const captureEvent = (
     joinedFrom?: string
     schoolPartner?: string
     nonProfitPartner?: string
-    userType?: string
   }
 ): void => {
   client.capture({
@@ -29,15 +28,15 @@ export const captureEvent = (
   })
 }
 
-// export function identify(
-//   userId: Types.ObjectId,
-//   eventName: string,
-//   properties: {
-//   } ) {
-//   client.identify({
-//     distinctId: userId.toString(),
-//     event: eventName,
-//     properties
-
-//   })
-//}
+export function identify(
+  userId: Types.ObjectId,
+  properties: {
+    schoolPartner?: string
+    nonProfitPartner?: string
+  }
+) {
+  client.identify({
+    distinctId: userId.toString(),
+    properties,
+  })
+}

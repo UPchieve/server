@@ -16,7 +16,6 @@ import {
   updateVolunteerReferenceStatusById,
 } from '../models/Volunteer/queries'
 import {
-  sponsorOrgManifests,
   studentPartnerManifests,
   volunteerPartnerManifests,
 } from '../partnerManifests'
@@ -259,7 +258,7 @@ export async function adminUpdateUser(data: unknown) {
   const updatedUser = Object.assign(userBeforeUpdate, update)
   MailService.createContact(updatedUser)
 
-  // tracking organic/partner students for posthog
+  // tracking organic/partner students for posthog if there is a change in partner status
   const student = await getStudentById(userId)
   if (student && student.studentPartnerOrg !== update.studentPartnerOrg) {
     let school: School | undefined
@@ -270,28 +269,18 @@ export async function adminUpdateUser(data: unknown) {
       school = await getSchool(update.approvedHighschool)
     } else school = update.approvedHighschool
 
-    // if student is partner student and school partner student
-    if (student.studentPartnerOrg && school && school.isPartner) {
+    // if update student is partner student and school partner student
+    if (update.studentPartnerOrg && school && school.isPartner) {
       const schoolName = school.nameStored ? school.nameStored : school.SCH_NAME
-      AnalyticsService.captureEvent(
-        userId,
-        EVENTS.STUDENT_PARTNER_STATUS_UPDATED_POSTHOG,
-        {
-          event: EVENTS.STUDENT_PARTNER_STATUS_UPDATED_POSTHOG,
-          schoolPartner: schoolName,
-        }
-      )
+      AnalyticsService.identify(userId, {
+        schoolPartner: schoolName,
+      })
     }
-    // if student is partner student but non profit partner student
-    else if (student.studentPartnerOrg)
-      AnalyticsService.captureEvent(
-        userId,
-        EVENTS.STUDENT_PARTNER_STATUS_UPDATED_POSTHOG,
-        {
-          event: EVENTS.STUDENT_PARTNER_STATUS_UPDATED_POSTHOG,
-          nonProfitPartner: update.studentPartnerOrg,
-        }
-      )
+    // if update student is partner student but non profit partner student
+    else if (update.studentPartnerOrg)
+      AnalyticsService.identify(userId, {
+        nonProfitPartner: update.studentPartnerOrg,
+      })
   }
 
   if (isVolunteer) {

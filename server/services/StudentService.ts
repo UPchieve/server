@@ -53,32 +53,20 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
     if (student.studentPartnerOrg && school && school.isPartner) {
       const highSchool = school.nameStored ? school.nameStored : school.SCH_NAME
 
-      AnalyticsService.captureEvent(
-        student._id,
-        EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
-        {
-          event: EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
-          schoolPartner: highSchool,
-        }
-      )
+      AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
+        event: EVENTS.ACCOUNT_CREATED,
+        schoolPartner: highSchool,
+      })
     }
     // if student is partner student but non profit partner student
     else if (student.studentPartnerOrg)
-      AnalyticsService.captureEvent(
-        student._id,
-        EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
-        {
-          event: EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
-          nonProfitPartner: student.studentPartnerOrg,
-        }
-      )
-
-    AnalyticsService.captureEvent(
-      student._id,
-      EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
-      {
-        event: EVENTS.STUDENT_PARTNER_STATUS_ADDED_POSTHOG,
-      }
-    )
+      AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
+        event: EVENTS.ACCOUNT_CREATED,
+        nonProfitPartner: student.studentPartnerOrg,
+      })
+    else
+      AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
+        event: EVENTS.ACCOUNT_CREATED,
+      })
   }
 }
