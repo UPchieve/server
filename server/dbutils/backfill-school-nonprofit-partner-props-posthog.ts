@@ -43,13 +43,6 @@ async function backfillStudentPartners(): Promise<void> {
   try {
     await db.connect()
 
-    // const students = await StudentModel.find({
-    //   studentPartnerOrg: {
-    //     $exists: true,
-    //   },
-    //   lastActivityAt: { $gte: new Date('2021-01-01T00:00:00.000+00:00') }
-    // }).lean().exec()
-
     const students = await StudentModel.aggregate([
       {
         $lookup: {
@@ -75,6 +68,7 @@ async function backfillStudentPartners(): Promise<void> {
               },
             },
           ],
+          lastActivityAt: { $gte: new Date('2021-01-01T00:00:00.000+00:00') },
         },
       },
     ])
