@@ -30,10 +30,6 @@ import {
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
-import { getStudentById } from '../models/Student/queries'
-import { getSchool } from './SchoolService'
-import { School } from '../models/School'
-import { getIdFromModelReference } from '../utils/model-reference'
 
 export function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
