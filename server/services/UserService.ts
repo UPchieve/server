@@ -33,6 +33,7 @@ import * as MailService from './MailService'
 import { getStudentById } from '../models/Student/queries'
 import { getSchool } from './SchoolService'
 import { School } from '../models/School'
+import { getIdFromModelReference } from '../utils/model-reference'
 
 export function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
@@ -259,13 +260,17 @@ export async function adminUpdateUser(data: unknown) {
   MailService.createContact(updatedUser)
 
   // tracking organic/partner students for posthog if there is a change in partner status
-  if (!isVolunteer) {
-    if (userBeforeUpdate.studentPartnerOrg !== partnerOrg) {
-      if (partnerOrg)
-        AnalyticsService.identify(userId, {
-          partner: partnerOrg,
-        })
-    }
+  const studentBeforeUpdate = await getStudentById(
+    getIdFromModelReference(userId)
+  )
+  if (
+    studentBeforeUpdate &&
+    studentBeforeUpdate.studentPartnerOrg !== partnerOrg
+  ) {
+    if (partnerOrg)
+      AnalyticsService.identify(userId, {
+        partner: partnerOrg,
+      })
   }
 
   if (isVolunteer) {
