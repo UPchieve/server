@@ -199,7 +199,7 @@ export async function adminUpdateUser(data: unknown) {
     isApproved,
     inGatesStudy,
   } = asAdminUpdate(data)
-  const userBeforeUpdate = await getUserById(userId)
+  const userBeforeUpdate: any = await getUserById(userId)
   if (!userBeforeUpdate) {
     throw new UserNotFoundError('_id', userId.toString())
   }
@@ -260,17 +260,13 @@ export async function adminUpdateUser(data: unknown) {
   MailService.createContact(updatedUser)
 
   // tracking organic/partner students for posthog if there is a change in partner status
-  const studentBeforeUpdate = await getStudentById(
-    getIdFromModelReference(userId)
-  )
-  if (
-    studentBeforeUpdate &&
-    studentBeforeUpdate.studentPartnerOrg !== partnerOrg
-  ) {
-    if (partnerOrg)
-      AnalyticsService.identify(userId, {
-        partner: partnerOrg,
-      })
+  if (!isVolunteer) {
+    if (userBeforeUpdate.studentPartnerOrg !== partnerOrg) {
+      if (partnerOrg)
+        AnalyticsService.identify(userId, {
+          partner: partnerOrg,
+        })
+    }
   }
 
   if (isVolunteer) {
