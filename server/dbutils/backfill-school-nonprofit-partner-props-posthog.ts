@@ -14,7 +14,9 @@ async function addPartnerTrackingToStudents(students: Student[]) {
       student.approvedHighschool &&
       student.approvedHighschool instanceof Types.ObjectId
     ) {
-      school = await getSchool(getIdFromModelReference(student.approvedHighschool))
+      school = await getSchool(
+        getIdFromModelReference(student.approvedHighschool)
+      )
     } else school = student.approvedHighschool
 
     let schoolName
@@ -32,8 +34,8 @@ async function addPartnerTrackingToStudents(students: Student[]) {
       else userProperties.schoolPartner = schoolName
     }
     // if student is partner org student but not a school partner student, no need to do anything since partner prop already exists
-    
-      AnalyticsService.identify(student._id, userProperties)
+
+    AnalyticsService.identify(student._id, userProperties)
   }
 }
 
@@ -41,12 +43,41 @@ async function backfillStudentPartners(): Promise<void> {
   try {
     await db.connect()
 
-    const students = await StudentModel.find({
-      studentPartnerOrg: {
-        $exists: true,
+    // const students = await StudentModel.find({
+    //   studentPartnerOrg: {
+    //     $exists: true,
+    //   },
+    //   lastActivityAt: { $gte: new Date('2021-01-01T00:00:00.000+00:00') }
+    // }).lean().exec()
+
+    const students = await StudentModel.aggregate([
+      {
+        $lookup: {
+          from: 'schools',
+          localField: 'approvedHighschool',
+          foreignField: '_id',
+          as: 'highschool',
+        },
       },
-      lastActivityAt: { $gte: new Date('2021-01-01T00:00:00.000+00:00') },
-    }).lean().exec()
+      {
+        $unwind: {
+          path: '$highschool',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: {
+          $or: [
+            { 'highschool.isPartner': true },
+            {
+              studentPartnerOrg: {
+                $exists: true,
+              },
+            },
+          ],
+        },
+      },
+    ])
 
     addPartnerTrackingToStudents(students)
   } catch (error) {
