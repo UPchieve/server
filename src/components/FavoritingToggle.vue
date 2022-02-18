@@ -27,8 +27,8 @@ body {
 
 .heart {
   position: relative;
-  background-color: grey;
-//  border: 1px solid #000000;
+//  background-color: grey;
+  border: 1px solid #000000;
   height: 16px;
   width: 16px;
   display: flex;
@@ -36,39 +36,74 @@ body {
   text-align: center;
   border-radius: 0 0 0 1px;
   transform: rotate(-45deg);
+  border-top-color: transparent;
+  border-right-color: transparent;
+  z-index: 1;
 }
 
-.heart:active {
- // visibility: initial;
-  background-color: #F44747;
-   width: 14px;
-   height: 14px;
-}
+// .heart:active {
+//  // visibility: initial;
+//   background-color: #F44747;
+//    width: 14px;
+//    height: 14px;
+// }
 
 .heart:hover {
-  background-color: #F41717
-}
-.heart::before {
-  position: absolute;
- //border: 1px solid #000000;
-  content: "";
-  width: 100%;
-  height: 120%;
-  top: -55%;
-  left: 0;
-  background: inherit;
-  border-radius: 50%;
+  background-color: #F41717;
+  border: transparent;
 }
 
-.heart::after {
+.heart:before {
   position: absolute;
- // border: 1px solid #000000;
+  border: 1px solid #000000;
   content: "";
-  top: 0;
-  right: -55%;
-  width: 120%;
-  height: 100%;
+  width: 16px;
+  height: 16px;
+  top: -50%;
+  left: -1px;
   background: inherit;
   border-radius: 50%;
+  transform: rotate(-50deg);
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+  z-index: 0;
+
+  // &:active {
+  //   background-color: #F44747;
+  //   width: 14px;
+  //   height: 14px;
+  // }
+}
+
+  .heart:hover:before {
+  border-color: #F41717 ;
+ // left: 0;
+  }
+
+.heart:after {
+  position: absolute;
+  border: 1px solid #000000;
+  content: "";
+  top: -1px;
+  right: -50%;
+  width: 16px;
+  height: 16px;
+  background: inherit;
+  border-radius: 50%;
+  transform: rotate(-130deg);
+  border-top-color: transparent;
+  border-right-color: transparent;
+  z-index: 0;
+
+  // &:active {
+  //    background-color: #F44747;
+  //   width: 14px;
+  //   height: 14px;
+  // }
+}
+
+.heart:hover:after {
+  border-color: #F41717;
+  //top: 0;
 }
 </style>
