@@ -61,16 +61,10 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
 
     // if student is school partner student
     if (school && school.isPartner) {
-      // if student also belongs to a partner org
-      if (student.studentPartnerOrg) {
-        userProperties.schoolPartner = schoolName
-        userProperties.partner = student.studentPartnerOrg
-      }
-      // if student is only school partner student but does not belong to a partner org
-      else userProperties.schoolPartner = schoolName
+      userProperties.schoolPartner = schoolName
     }
     // if student is partner student but not a school partner student
-    else if (student.studentPartnerOrg)
+    if (student.studentPartnerOrg)
       userProperties.partner = student.studentPartnerOrg
 
     AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
