@@ -39,7 +39,7 @@ export const queueOnboardingEmails = async (
 
 // registered as listener on student-created
 export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
-  var userProperties: any = {
+  const userProperties: any = {
     userType: 'student',
   }
   const student = await getStudentById(studentId)

@@ -16,9 +16,6 @@ export const captureEvent = (
     referenceEmail?: string
     banReason?: string
     joinedFrom?: string
-    schoolPartner?: string
-    nonProfitPartner?: string
-    partner?: string
   }
 ): void => {
   client.capture({
