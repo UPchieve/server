@@ -39,30 +39,21 @@ export const queueOnboardingEmails = async (
 
 // registered as listener on student-created
 export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
-  const userProperties: any = {
+  const userProperties: AnalyticsService.IdentifyProperties = {
     userType: 'student',
   }
   const student = await getStudentById(studentId)
-  let school: School | undefined
 
   if (student) {
-    if (
-      student.approvedHighschool &&
-      student.approvedHighschool instanceof Types.ObjectId
-    ) {
+    let school: School | undefined
+    if (student.approvedHighschool)
       school = await getSchool(
         getIdFromModelReference(student.approvedHighschool)
       )
-    } else school = student.approvedHighschool
-
-    let schoolName
-    if (school)
-      schoolName = school.nameStored ? school.nameStored : school.SCH_NAME
 
     // if student is school partner student
-    if (school && school.isPartner) {
-      userProperties.schoolPartner = schoolName
-    }
+    if (school && school.isPartner) userProperties.schoolPartner = school.name
+
     // if student is partner student but not a school partner student
     if (student.studentPartnerOrg)
       userProperties.partner = student.studentPartnerOrg
