@@ -7,7 +7,7 @@ import * as AnalyticsService from '../services/AnalyticsService'
 import { getIdFromModelReference } from '../utils/model-reference'
 
 async function addPartnerTrackingToStudents(students: Student[]) {
-  var userProperties: AnalyticsService.IdentifyProperties = {}
+  const userProperties: AnalyticsService.IdentifyProperties = {}
   for (const student of students) {
     let school: School | undefined
     if (student.approvedHighschool) {
@@ -21,11 +21,16 @@ async function addPartnerTrackingToStudents(students: Student[]) {
       userProperties.schoolPartner = school.name
     }
 
+    if(student.studentPartnerOrg){
+      userProperties.partner = student.studentPartnerOrg
+    }
+
     AnalyticsService.identify(student._id, userProperties)
   }
 }
 
 async function backfillStudentPartners(): Promise<void> {
+  let exitCode = 0
   try {
     await db.connect()
 
@@ -62,9 +67,11 @@ async function backfillStudentPartners(): Promise<void> {
     addPartnerTrackingToStudents(students)
   } catch (error) {
     console.log('error', error)
+    exitCode = 1
+  } finally {
+    await mongoose.disconnect()
+    process.exit(exitCode)
   }
-
-  mongoose.disconnect()
 }
 
 // To run:
