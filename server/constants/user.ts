@@ -42,6 +42,7 @@ export const USER_ACTION = {
 // new format to move to from USER_ACTIONS
 // user events in a [noun][verb] format
 export const EVENTS = {
+  ACCOUNT_CREATED: 'ACCOUNT_CREATED',
   ACCOUNT_APPROVED: 'ACCOUNT_APPROVED',
   ACCOUNT_ONBOARDED: 'ACCOUNT_ONBOARDED',
   ACCOUNT_BANNED: 'ACCOUNT_BANNED',

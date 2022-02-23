@@ -28,9 +28,6 @@ import { reportReasons } from './scripts/sessions/report-reasons'
 import { notificationTypes } from './scripts/notifications/notification-types'
 import { notificationMethods } from './scripts/notifications/notification-methods'
 import { priorityGroups } from './scripts/notifications/priority-groups'
-import { volunteers } from './scripts/testData/volunteers'
-import { students } from './scripts/testData/students'
-import { schools } from './scripts/testData/schools'
 
 import { startClient } from './pgClient'
 import { ExpectedErrors } from './scripts/utils'
@@ -73,9 +70,13 @@ async function seedData(): Promise<void> {
     await notificationMethods()
     await priorityGroups()
 
-    await schools()
-    await volunteers(vpoIds, certIds, quizIds)
-    await students(spoIds)
+    // Test data
+    // import { volunteers } from './scripts/testData/volunteers'
+    // import { students } from './scripts/testData/students'
+    // import { schools } from './scripts/testData/schools'
+    // await schools()
+    // await volunteers(vpoIds, certIds, quizIds)
+    // await students(spoIds)
     console.log('All data is seeded!')
     if (ExpectedErrors.length)
       console.log(

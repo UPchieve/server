@@ -240,6 +240,13 @@ export async function adminUpdateUser(data: unknown) {
     else update.$unset.partnerSite = ''
 
     if (inGatesStudy !== undefined) update.inGatesStudy = inGatesStudy
+
+    // tracking organic/partner students for posthog if there is a change in partner status
+    if ((userBeforeUpdate as Student).studentPartnerOrg !== partnerOrg) {
+      AnalyticsService.identify(userId, {
+        partner: partnerOrg,
+      })
+    }
   }
 
   if (isBanned) update.banReason = USER_BAN_REASON.ADMIN

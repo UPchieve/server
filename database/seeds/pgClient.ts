@@ -1,4 +1,4 @@
-import { Client } from 'server/pg'
+import { Client } from 'pg'
 
 // TODO: safer connection string, exponential backoff, reconnect strategy
 

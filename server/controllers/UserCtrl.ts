@@ -18,7 +18,7 @@ function generateReferralCode(userId: Types.ObjectId) {
 }
 
 export async function checkReferral(
-  referredByCode: string
+  referredByCode: string | undefined
 ): Promise<Types.ObjectId | undefined> {
   if (referredByCode) {
     try {
