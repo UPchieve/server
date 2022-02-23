@@ -50,6 +50,7 @@ import {
   beginRegularNotifications,
 } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
+import { LockError } from 'redlock'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -318,8 +319,23 @@ export async function processFirstSessionCongratsEmail(
   }
 }
 
-export async function storeAndDeleteQuillDoc(sessionId: Types.ObjectId) {
-  const quillState = await QuillDocService.lockAndGetDocCacheState(sessionId)
+export async function storeAndDeleteQuillDoc(
+  sessionId: Types.ObjectId,
+  retries: number = 0
+): Promise<void> {
+  let quillState: QuillDocService.QuillCacheState | undefined
+  try {
+    quillState = await QuillDocService.lockAndGetDocCacheState(sessionId)
+  } catch (error) {
+    if (error instanceof LockError && retries < 10)
+      return storeAndDeleteQuillDoc(sessionId, retries + 1)
+    else
+      logger.error(
+        `Failed to update and get document in the cache for session ${sessionId} - ${error}`
+      )
+    return
+  }
+
   if (quillState) {
     await SessionRepo.updateSessionQuillDoc(
       sessionId,

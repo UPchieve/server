@@ -5,7 +5,6 @@ import { Session } from '../../models/Session'
 import { Student } from '../../models/Student'
 import { Volunteer } from '../../models/Volunteer'
 import {
-  buildMessage,
   buildStudent,
   buildVolunteer,
   getObjectId,
@@ -58,7 +57,6 @@ import * as QuillDocService from '../../services/QuillDocService'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as AwsService from '../../services/AwsService'
 import * as FeedbackRepo from '../../models/Feedback/queries'
-import SocketService from '../../services/SocketService'
 import * as PushTokenRepo from '../../models/PushToken/queries'
 import * as PushTokenService from '../../services/PushTokenService'
 import * as SessionUtils from '../../utils/session-utils'
@@ -70,7 +68,8 @@ import { SESSION_EVENTS } from '../../constants/events'
 import { emitter } from '../../services/EventsService'
 import * as USMRepo from '../../models/UserSessionMetrics/queries'
 import * as UserRepo from '../../models/User/queries'
-import { mockApp, mockSocketServer } from '../mock-app'
+import { LockError } from 'redlock'
+import logger from '../../logger'
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/AssistmentsData/queries')
 jest.mock('../../services/MailService')
@@ -588,6 +587,22 @@ describe('storeAndDeleteQuillDoc', () => {
       JSON.stringify(quillState.doc)
     )
     expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
+  })
+
+  test('Should retry getting and updating the document on lock error', async () => {
+    const sessionId = getObjectId()
+    const errorMessage = 'locked'
+    const expectedError = `LockError: ${errorMessage}`
+    mockedQuillDocService.lockAndGetDocCacheState.mockRejectedValue(
+      new LockError(errorMessage)
+    )
+    await SessionService.storeAndDeleteQuillDoc(sessionId)
+    expect(QuillDocService.lockAndGetDocCacheState).toHaveBeenCalledTimes(11)
+    expect(logger.error).toHaveBeenCalledWith(
+      `Failed to update and get document in the cache for session ${sessionId} - ${expectedError}`
+    )
+    expect(SessionRepo.updateSessionQuillDoc).toHaveBeenCalledTimes(0)
+    expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(0)
   })
 })
 
