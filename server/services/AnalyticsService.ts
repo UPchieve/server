@@ -24,19 +24,3 @@ export const captureEvent = (
     properties,
   })
 }
-
-export type IdentifyProperties = {
-  schoolPartner?: string
-  partner?: string
-  userType?: string
-}
-
-export function identify(
-  userId: Types.ObjectId,
-  properties: IdentifyProperties
-) {
-  client.identify({
-    distinctId: userId.toString(),
-    properties,
-  })
-}
