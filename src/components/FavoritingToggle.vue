@@ -1,5 +1,6 @@
 <template>
   <div class="heart">
+
   </div>
 </template>
 
@@ -33,8 +34,8 @@ body {
   border-radius: 0 0 0 1px;
   transform: rotate(-45deg);
   border: 1px solid #000000;
- border-top-color: transparent;
-   border-right-color: transparent;
+  border-top-color: transparent;
+  border-right-color: transparent;
  }
 
 .heart:hover {
@@ -42,7 +43,9 @@ body {
   border-bottom-color: #F41717;
 }
 .heart:active {
-  background-color: #F41717; //linear-gradient(45deg, #F41717 50%, white 0%);
+  background: linear-gradient(45deg, #F41717 50%, white 0%); //#F41717; 
+  border-top-color: white;
+  border-right-color: white;
   height: 18px;
   width: 18px;
 }
@@ -53,12 +56,12 @@ body {
   content: "";
   width: 18.6px;
   height: 18.6px;
-  top: -50%;
+  top: -48%;
   //left: -1px;
   left: -1px;
-  background: inherit;
+  background-color: transparent;
   border-radius: 50%;
-  transform: rotate(-40deg);
+  transform: rotate(-41deg);
   border-bottom-color: transparent;
   border-left-color: transparent;
 }
@@ -72,7 +75,6 @@ body {
   }
 
   .heart:active:before {
- // border-color: inherit;
   background-color: #F44747;
   height: 16px;
   width: 16px;
@@ -85,12 +87,12 @@ body {
   content: "";
   //top: -1px;
   top: 0.5px;
-  right: -50%;
+  right: -48%;
   width: 18.6px;
   height: 18.6px;
-  background: inherit;
+  background: transparent;
   border-radius: 50%;
-  transform: rotate(-140deg);
+  transform: rotate(-139deg);
   border-top-color: transparent;
   border-right-color: transparent;
 }
@@ -104,10 +106,8 @@ body {
 }
 
 .heart:active:after {
-  border-color: inherit;
+  border-color: #F44747;
   background-color: #F44747;
-  border-top-color: inherit;
-  border-right-color: inherit;
   height: 16px;
   width: 16px;
   top: 1px;
