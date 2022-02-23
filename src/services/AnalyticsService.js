@@ -27,18 +27,6 @@ export default {
     Gleap.clearCustomData()
   },
 
-  registerStudent(student) {
-    const userProperties = {
-      userType: 'student'
-    }
-    if (student.studentPartnerOrg)
-      userProperties.partner = student.studentPartnerOrg
-    this.updateUser(userProperties)
-    this.captureEvent(EVENTS.ACCOUNT_CREATED, {
-      event: EVENTS.ACCOUNT_CREATED
-    })
-  },
-
   registerVolunteer(volunteer) {
     const userProperties = {
       userType: 'volunteer'

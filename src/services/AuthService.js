@@ -60,7 +60,6 @@ export default {
         if (!data) {
           throw new Error('No user returned from auth service')
         }
-        AnalyticsService.registerStudent(data.user)
       })
       .catch(res => {
         throw errorFromHttpResponse(res)
@@ -74,7 +73,6 @@ export default {
         if (!data) {
           throw new Error('No user returned from auth service')
         }
-        AnalyticsService.registerStudent(data.user)
       })
       .catch(res => {
         throw errorFromHttpResponse(res)
