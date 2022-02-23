@@ -326,7 +326,7 @@ export function routeSockets(
               const quillState = await QuillDocService.lockAndGetDocCacheState(
                 sessionId
               )
-              let doc = quillState && quillState.doc
+              let doc = quillState?.doc
 
               if (quillState?.lastDeltaStored)
                 socket.emit('lastDeltaStored', {
