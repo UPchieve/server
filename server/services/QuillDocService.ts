@@ -27,7 +27,7 @@ export async function getDoc(
   }
 }
 
-export interface QuillCacheState {
+export type QuillCacheState = {
   doc: Delta
   lastDeltaStored: Delta | undefined
 }
@@ -69,7 +69,7 @@ export async function processDoc(
 ): Promise<QuillCacheState> {
   const deltasCacheKey = getSessionDeltasKey(sessionId)
   let pendingDelta: string = await cache.lpop(deltasCacheKey)
-  const isUpdateNeeded = pendingDelta ? true : false
+  const isUpdateNeeded = !!pendingDelta
   let doc: Delta = new Delta(JSON.parse(docString))
   let lastDeltaStored: Delta | undefined
 
