@@ -250,3 +250,6 @@ globalConfig.json
 
 # env file generated for telepresence
 telepresence.env
+
+# custom jest preset build
+preset

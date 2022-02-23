@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt'
-import { Types } from 'mongoose'
 import UserModel from '../models/User'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
 import StudentModel, { Student } from '../models/Student'
@@ -29,6 +28,17 @@ import {
   buildFeedback,
 } from './generate'
 import { FEEDBACK_VERSIONS } from '../constants'
+import { Client } from 'pg'
+
+// TODO: safer connection string, exponential backoff, reconnect strategy
+export const client = new Client({
+  host: global.__TESTCONTAINERS_POSTGRES_HOST__,
+  port: global.__TESTCONTAINERS_POSTGRES_PORT_5432__,
+  user: 'subway',
+  password: 'Password123',
+  database: 'upchieve',
+  ssl: false
+})
 
 const hashPassword = async function(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(config.saltRounds)
