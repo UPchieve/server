@@ -21,6 +21,9 @@ export async function reportReasons(): Promise<NameToId> {
     {
       reason: 'LEGACY: Student was misusing platform',
     },
+    {
+      reason: 'LEGACY: Other'
+    }
   ]
   const temp: NameToId = {}
   for (const reason of reasons) {
