@@ -122,3 +122,65 @@ export async function isTestUser(userId: Ulid): Promise<boolean> {
     throw new RepoReadError(err)
   }
 }
+
+export async function getTotalFavoriteVolunteers(
+  userId: Ulid
+): Promise<number> {
+  try {
+    const result = await pgQueries.getTotalFavoriteVolunteers.run(
+      { userId },
+      client
+    )
+    if (result.length) return makeRequired(result[0]).total
+    return 0
+  } catch (err) {
+    if (err instanceof RepoReadError) throw err
+    throw new RepoReadError(err)
+  }
+}
+
+export async function isFavoriteVolunteer(
+  studentId: Ulid,
+  volunteerId: Ulid
+): Promise<boolean> {
+  try {
+    const result = await pgQueries.isFavoriteVolunteer.run(
+      { studentId, volunteerId },
+      client
+    )
+    if (result.length) return true
+    return false
+  } catch (err) {
+    if (err instanceof RepoReadError) throw err
+    throw new RepoReadError(err)
+  }
+}
+
+type FavoriteVolunteer = {
+  volunteerId: Ulid
+  firstName: string
+  numSessions: number
+}
+
+type FavoriteVolunteersResponse = {
+  favoriteVolunteers: FavoriteVolunteer[]
+  isLastPage: boolean
+}
+
+export async function getFavoriteVolunteers(
+  userId: Ulid,
+  page: number
+): Promise<FavoriteVolunteersResponse> {
+  try {
+    const limit = 10
+    const offset = limit * (page - 1)
+    const result = (await pgQueries.getFavoriteVolunteers.run(
+      { userId, limit: String(limit), offset: String(offset) },
+      client
+    )) as FavoriteVolunteer[]
+    return { favoriteVolunteers: result, isLastPage: result.length < limit }
+  } catch (err) {
+    if (err instanceof RepoReadError) throw err
+    throw new RepoReadError(err)
+  }
+}
