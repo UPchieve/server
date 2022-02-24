@@ -9,6 +9,13 @@
         v-show="isLoading"
       />
     </transition>
+    <transition name="document-loading">
+      <loading-message
+        message="Attempting to connect the document editor"
+        class="document-loading document-loading--connection"
+        v-show="isConnecting"
+      />
+    </transition>
   </div>
 </template>
 
@@ -30,12 +37,14 @@ export default {
       // set default loading state
       isLoading: true,
       incomingDeltas: [],
-      retries: 0
+      retries: 0,
+      isConnecting: false
     }
   },
   computed: {
     ...mapState({
-      currentSession: state => state.user.session
+      currentSession: state => state.user.session,
+      isSessionConnectionAlive: state => state.user.isSessionConnectionAlive,
     })
   },
   mounted() {
@@ -153,6 +162,18 @@ export default {
         sessionId: this.currentSession._id
       })
     }
+  },
+  watch: {
+    isSessionConnectionAlive(newValue, oldValue) {
+      if (newValue && !oldValue) {
+        // socket.io just reconnected, allow edits to the document editor
+        this.quillEditor.enable()
+        this.isConnecting = false
+      } else {
+        this.quillEditor.disable()
+        this.isConnecting = true
+      }
+    },
   }
 }
 </script>
