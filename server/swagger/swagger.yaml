@@ -1361,6 +1361,54 @@ paths:
       responses:
         '200':
           description: Session has timed out
+  /api/students/favorite-volunteers/{:volunteerId}:
+    get:
+      tags:
+        - students
+      summary: Checks if the student has the volunteer favorited
+      description: |
+        - Students only
+        - Checks if the student has the volunteer favorited
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: volunteerId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/UserId'
+      responses:
+        '200':
+          description: Boolean returned to indicate if the student has the volunteer favorited or not
+  /api/students/favorite-volunteers:
+    get:
+      tags:
+        - students
+      summary: Gets students favorite volunteers
+      description: |
+        - Students only
+        - Gets students favorite volunteers
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          required: true
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Returns an object with a list volunteers that are favorited by the student and if there are more rows in the database
+  /api/students/remaining-favorite-volunteers:
+    get:
+      summary: Number of remaining volunteers to favorite
+      description: |
+        - Students only
+        - Retrieves number of remaining volunteers a student is allowed to favorite
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Responds with number of remaining volunteers a student is allowed to favorite
   /api/survey/presession/{:sessionId}:
     get:
       tags:
