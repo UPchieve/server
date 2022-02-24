@@ -41,7 +41,7 @@ export default {
 
 <style lang="scss" scoped>
 .refresh_doc {
-  @include flex-container(column);
+  @include flex-container(column, normal, center);
 
   &__title {
     @include font-category('display-small');
@@ -55,7 +55,6 @@ export default {
 
   &__buttons {
     margin-top: 1em;
-    @include flex-container(row, flex-end);
   }
 
   &__refresh-btn {
