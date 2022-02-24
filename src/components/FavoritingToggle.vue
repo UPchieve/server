@@ -5,43 +5,46 @@
 </template>
 
 <script>
-import FavoritedSVG from '@/assets/favorited.svg'
-import UnfavoritedSVG from '@/assets/unfavorited.svg'
+import HeartSVG from '@/assets/heart.svg'
 
 export default {
   name: 'favoriting-toggle',
-  components: { FavoritedSVG, UnfavoritedSVG },
+  components: { HeartSVG },
   props: {
     svg: {
       type: Object,
-      required: true,
-      default: UnfavoritedSVG
+      required: true
     },
     isFavorited: {
       type: Boolean,
       default: false
+    },
+    toggleType: {
+      type: String,
+      default: 'heart'
     }
+  },
+  async mounted() {
+    if(this.toggleType === 'heart')
+      this.svg = HeartSVG
   },
   methods: {
     changeFavoritedStatus() {
       this.isFavorited = !this.isFavorited
-     // this.favoritedStatus()
      // NetworkService.saveFavoritedStatus(this.isFavorited)
     }
   },
   computed: {
     favoritedStatus() {
       const status = {
-        class: 'UnfavoritedToggle',
-    }   
+        class: 'HeartToggle',
+      }   
 
     if(this.isFavorited){
-      status.class = 'FavoritedToggle',
-      this.svg = FavoritedSVG
+      status.class += '-favorited'
     }
     else {
-      status.class = 'UnfavoritedToggle',
-      this.svg = UnfavoritedSVG
+      status.class += '-unfavorited'
     }
     return status
   }   
@@ -50,36 +53,40 @@ export default {
 </script>
 
 <style lang="scss">
-.FavoritedToggle {
-  fill: #F44747;
+.HeartToggle {  
   height: 18.6px;
   width: 20px;
 
-  &:hover {
-    fill: #F41717;
+  &-favorited {
+    fill: #F44747;
+    transition: height 0.3s, width 0.3s;
   }
 
-  &:active {
+  &-favorited path {
+    stroke: #F44747;
+  } 
+
+  &-favorited:active {
     height: 16px;
     width: 18px;
-  }
-}
-
-.UnfavoritedToggle {
-  height: 18.6px;
-  width: 20px;
-
- &:hover {
-   fill: white;
-    stroke: #F41717
+  }  
+  
+  &-favorited:hover path{
+      stroke:#F41717;
+      fill: #F41717;        
   }
 
-  &:active {
-    fill: none;
+  &-unfavorited {
+    transition: height 0.3s, width 0.3s;
+  }
+
+  &-unfavorited:hover path{
+    stroke:#F41717;
+  }
+
+  &-unfavorited:active {
     height: 16px;
     width: 18px;
-  }
-
+  } 
 }
-
 </style>
