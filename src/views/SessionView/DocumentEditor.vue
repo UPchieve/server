@@ -16,6 +16,7 @@
         v-show="isConnecting"
       />
     </transition>
+    <refresh-document-editor-modal v-if="showRefreshModal" />
   </div>
 </template>
 
@@ -24,12 +25,14 @@ import { mapState } from 'vuex'
 import Quill from 'quill'
 import QuillCursors from 'quill-cursors'
 import LoadingMessage from '@/components/LoadingMessage'
+import RefreshDocumentEditorModal from '@/views/SessionView/RefreshDocumentEditorModal'
 
 Quill.register('modules/cursors', QuillCursors)
 
 export default {
   components: {
-    LoadingMessage
+    LoadingMessage,
+    RefreshDocumentEditorModal
   },
   data() {
     return {
@@ -38,6 +41,7 @@ export default {
       isLoading: true,
       incomingDeltas: [],
       retries: 0,
+      showRefreshModal: false,
       isConnecting: false
     }
   },
@@ -152,15 +156,16 @@ export default {
       }
     },
 
-    // TODO: needs better UX. What should happen if 10 attempts are reached?
     retryLoadingDoc() {
       const maxRetries = 10
-      if (this.retries > maxRetries) return 
-      
-      this.retries++
-      this.$socket.emit('requestQuillState', {
-        sessionId: this.currentSession._id
-      })
+      if (this.retries > maxRetries) {
+          this.showRefreshModal = true
+      } else {
+        this.retries++
+        this.$socket.emit('requestQuillState', {
+          sessionId: this.currentSession._id
+        })
+      }
     }
   },
   watch: {
