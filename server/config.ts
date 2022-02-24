@@ -346,7 +346,7 @@ const config: Static<typeof Config> = {
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
   favoriteVolunteerLimit:
-    Number(process.env.SUBWAY_FAVORITE_VOLUNTEER_LIMIT) || 25,
+    Number(process.env.SUBWAY_FAVORITE_VOLUNTEER_LIMIT) || 20,
 }
 
 module.exports = config
