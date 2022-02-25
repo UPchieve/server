@@ -123,18 +123,37 @@ export async function isTestUser(userId: Ulid): Promise<boolean> {
   }
 }
 
+function mockGetTotalFavoriteVolunteers() {
+  return [{ total: 4 }]
+}
+
+function mockIsFavoriteVolunteer() {
+  return [{ mock: 1 }]
+}
+
+function mockGetFavoriteVolunteers() {
+  const volunteers: FavoriteVolunteer[] = []
+  for (let i = 0; i < 5; i++) {
+    volunteers.push({
+      volunteerId: getDbUlid(),
+      firstName: `Mock ${i}`,
+      numSessions: i * 2,
+    })
+  }
+  return volunteers
+}
+
 export async function getTotalFavoriteVolunteers(
   userId: Ulid
 ): Promise<number> {
   try {
-    // TODO: use postgres query once postgres migration is complete
-    /**
+    /** TODO: use postgres query once postgres migration is complete
     const result = await pgQueries.getTotalFavoriteVolunteers.run(
       { userId },
       client
     )
     */
-    const result = [{ total: 4 }]
+    const result = mockGetTotalFavoriteVolunteers()
     if (result.length) return makeRequired(result[0]).total
     return 0
   } catch (err) {
@@ -148,14 +167,13 @@ export async function isFavoriteVolunteer(
   volunteerId: Ulid
 ): Promise<boolean> {
   try {
-    // TODO: use postgres query once postgres migration is complete
-    /**
+    /** TODO: use postgres query once postgres migration is complete
     const result = await pgQueries.isFavoriteVolunteer.run(
       { studentId, volunteerId },
       client
     )
     */
-    const result = [{ mock: 1 }]
+    const result = mockIsFavoriteVolunteer()
     if (result.length) return true
     return false
   } catch (err) {
@@ -182,24 +200,15 @@ export async function getFavoriteVolunteers(
   try {
     const limit = 10
     const offset = limit * (page - 1)
-    // TODO: use postgres query once postgres migration is complete
-    /**
+    /** TODO: use postgres query once postgres migration is complete
     const result = (await pgQueries.getFavoriteVolunteers.run(
       { userId, limit: String(limit), offset: String(offset) },
       client
     )) as FavoriteVolunteer[]
     */
-    const result: FavoriteVolunteer[] = []
-    for (let i = 0; i < 5; i++) {
-      result.push({
-        volunteerId: getDbUlid(),
-        firstName: `Mock ${i}`,
-        numSessions: i * 2,
-      })
-    }
+    const result = mockGetFavoriteVolunteers()
     return { favoriteVolunteers: result, isLastPage: result.length < limit }
   } catch (err) {
-    if (err instanceof RepoReadError) throw err
     throw new RepoReadError(err)
   }
 }
