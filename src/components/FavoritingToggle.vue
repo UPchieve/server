@@ -2,9 +2,13 @@
   <div>
     <component :class="favoritedStatus.class" v-bind:is="svg" v-on:click="toggleFavoritedStatus"/>
     <volunteer-favoriting-modal
-    v-if="showVolunteerFavoritingModal"
-    :closeModal= "toggleVolunteerFavoritingModal"
-    :setIsFavorited="setIsFavorited"
+      v-if="showVolunteerFavoritingModal"
+      :closeModal= "toggleVolunteerFavoritingModal"
+      :setIsFavorited="setIsFavorited"
+    />
+    <favorited-list-full-modal
+      v-if="showFavoritedListFullModal"
+      :closeModal= "toggleFavoritedListFullModal"
     />
   </div>
 </template>
@@ -12,10 +16,11 @@
 <script>
 import HeartSVG from '@/assets/heart.svg'
 import VolunteerFavoritingModal from '@/views/VolunteerFavoritingModal'
+import FavoritedListFullModal from '@/views/FavoritedListFullModal'
 
 export default {
   name: 'favoriting-toggle',
-  components: { HeartSVG, VolunteerFavoritingModal },
+  components: { HeartSVG, VolunteerFavoritingModal, FavoritedListFullModal },
   async mounted() {
     if(this.toggleType === 'heart')
       this.svg = HeartSVG
@@ -40,7 +45,8 @@ export default {
   },
   data() {
     return {
-      showVolunteerFavoritingModal: false
+      showVolunteerFavoritingModal: false,
+      showFavoritedListFullModal: false
     }
   },
   methods: {
@@ -53,10 +59,19 @@ export default {
         this.toggleVolunteerFavoritingModal
         return
       }
+      // else
+      // hit get endpoint to check how many remaining volunteers student can favorite
+      // if less than < max num 
+      // do the following 
       this.setIsFavorited(true)
+      // else ...
+      // this.toggleFavoritedListFullModal
     },
     toggleVolunteerFavoritingModal() {
       this.showVolunteerFavoritingModal = !this.showVolunteerFavoritingModal
+    },
+    toggleFavoritedListFullModal() {
+      this.showFavoritedListFullModal = !this.showFavoritedListFullModal
     }
   },
   computed: {

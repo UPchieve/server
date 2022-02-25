@@ -6,8 +6,6 @@
         Do you want to unfavorite this coach?  
       </h1>
     </header>
-
-    <separator />
        
     <footer>
       <div class="VolunteerFavoritingModal-buttons">
@@ -22,13 +20,12 @@
 <script>
 import Modal from '@/components/Modal'
 import LargeButton from '@/components/LargeButton'
-import Separator from '@/components/Separator'
 
 // @todo: add volunteer name, 'Do you want to unfavorite Coach ${volunteer.name}'
 
 export default {
   name: 'volunteer-favoriting-modal',
-  components: {Modal, LargeButton,Separator},
+  components: {Modal, LargeButton},
   props: {
     closeModal: { type: Function, required: true },
     setIsFavorited: { type: Function, required: true},
@@ -51,7 +48,7 @@ export default {
   }
 
   &-buttons {
-    margin-top: 43px;
+    margin-top: 28px;
     @include flex-container(row, space-evenly);
   }
 
