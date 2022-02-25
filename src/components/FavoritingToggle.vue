@@ -1,7 +1,6 @@
 <template>
   <div>
     <component :class="favoritedStatus.class" v-bind:is="svg" v-on:click="changeFavoritedStatus"/>
-
   </div>
 </template>
 
