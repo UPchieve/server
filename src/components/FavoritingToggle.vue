@@ -1,15 +1,25 @@
 <template>
   <div>
-    <component :class="favoritedStatus.class" v-bind:is="svg" v-on:click="changeFavoritedStatus"/>
+    <component :class="favoritedStatus.class" v-bind:is="svg" v-on:click="toggleFavoritedStatus"/>
+    <volunteer-favoriting-modal
+    v-if="showVolunteerFavoritingModal"
+    :closeModal= "toggleVolunteerFavoritingModal"
+    :setIsFavorited="setIsFavorited"
+    />
   </div>
 </template>
 
 <script>
 import HeartSVG from '@/assets/heart.svg'
+import VolunteerFavoritingModal from '@/views/VolunteerFavoritingModel'
 
 export default {
   name: 'favoriting-toggle',
-  components: { HeartSVG },
+  components: { HeartSVG, VolunteerFavoritingModal },
+  async mounted() {
+    if(this.toggleType === 'heart')
+      this.svg = HeartSVG
+  },
   props: {
     svg: {
       type: Object,
@@ -28,14 +38,25 @@ export default {
       required: true 
       },
   },
-  async mounted() {
-    if(this.toggleType === 'heart')
-      this.svg = HeartSVG
+  data() {
+    return {
+      showVolunteerFavoritingModal: false
+    }
   },
   methods: {
-    changeFavoritedStatus() {
-      this.isFavorited = !this.isFavorited
+    setIsFavorited(value) {
+      this.isFavorited = value
      // NetworkService.saveFavoritedStatus(this.isFavorited)
+    },
+    toggleFavoritedStatus(){
+      if(this.isFavorited){
+        this.toggleVolunteerFavoritingModal
+        return
+      }
+      this.setIsFavorited(true)
+    },
+    toggleVolunteerFavoritingModal() {
+      this.showVolunteerFavoritingModal = !this.showVolunteerFavoritingModal
     }
   },
   computed: {

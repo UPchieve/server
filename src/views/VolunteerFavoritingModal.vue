@@ -31,11 +31,11 @@ export default {
   components: {Modal, LargeButton,Separator},
   props: {
     closeModal: { type: Function, required: true },
-    setAsUnfavorited: { type: Function, required: true},
+    setIsFavorited: { type: Function, required: true},
   },
   methods: {
     unfavorite() {
-      this.setAsUnfavorited(true)
+      this.setIsFavorited(false)
       this.closeModal()
     }
   }
