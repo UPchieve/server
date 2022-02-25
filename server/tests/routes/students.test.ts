@@ -64,7 +64,6 @@ describe(REMAINING_FAVORITE_ROUTE, () => {
   })
 })
 
-
 function IS_FAVORITE_VOLUNTEER_PATH(volunteerId: string) {
   return `/students/favorite-volunteers/${volunteerId}`
 }
@@ -83,7 +82,6 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     expect(response.status).toBe(200)
   })
 })
-
 
 const FAVORITE_VOLUNTEERS_PATH = '/students/favorite-volunteers'
 describe(FAVORITE_VOLUNTEERS_PATH, () => {
@@ -106,9 +104,7 @@ describe(FAVORITE_VOLUNTEERS_PATH, () => {
       ],
       isLastPage: true,
     }
-    mockedStudentRepo.getFavoriteVolunteers.mockResolvedValueOnce(
-      expected
-    )
+    mockedStudentRepo.getFavoriteVolunteers.mockResolvedValueOnce(expected)
     const response = await sendGetQuery(FAVORITE_VOLUNTEERS_PATH, payload)
     const {
       body: { favoriteVolunteers, isLastPage },
@@ -126,4 +122,3 @@ describe(FAVORITE_VOLUNTEERS_PATH, () => {
     expect(response.status).toBe(422)
   })
 })
-
