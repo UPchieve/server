@@ -24,6 +24,8 @@ import * as cache from '../../cache'
 import { FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import { isEnabled } from 'unleash-client'
+import { v4 as uuidv4 } from 'uuid'
+import { LockError } from 'redlock'
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -321,15 +323,24 @@ export function routeSockets(
         () =>
           new Promise<void>(async (resolve, reject) => {
             try {
-              let docState = await QuillDocService.getDoc(sessionId)
-              if (!docState)
-                docState = await QuillDocService.createDoc(sessionId)
+              const quillState = await QuillDocService.lockAndGetDocCacheState(
+                sessionId
+              )
+              let doc = quillState?.doc
+
+              if (quillState?.lastDeltaStored)
+                socket.emit('lastDeltaStored', {
+                  delta: quillState.lastDeltaStored,
+                })
+              else if (!doc) doc = await QuillDocService.createDoc(sessionId)
+
               socket.emit('quillState', {
-                delta: docState,
+                delta: doc,
               })
               resolve()
             } catch (error) {
-              reject(error)
+              if (error instanceof LockError) socket.emit('retryLoadingDoc')
+              else reject(error)
             }
           })
       )
@@ -340,7 +351,17 @@ export function routeSockets(
         '/socket-io/transmitQuillDelta',
         () =>
           new Promise<void>(async (resolve, reject) => {
-            QuillDocService.appendToDoc(sessionId, delta)
+            /**
+             *
+             * Add a unique ID to each delta. This allows for the client to determine
+             * which deltas are which when it is queueing incoming deltas.
+             *
+             * The IDs are ignored when a delta is instantiated with `new Delta(delta)`
+             * or when a quill doc is composed
+             *
+             */
+            delta.id = uuidv4()
+            await QuillDocService.appendToDoc(sessionId, delta)
             socket.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
               delta,
             })
