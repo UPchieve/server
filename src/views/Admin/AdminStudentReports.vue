@@ -170,7 +170,7 @@ export default {
         if (sessions.length === 0) this.error = 'No sessions meet the criteria'
         else
           exportToCsv(
-            `${this.fileTitle}_Session_Report_${this.todaysDate}`,
+            `${this.fileTitle}_Session_Report_${this.todaysDate}.csv`,
             sessions
           )
 
@@ -201,7 +201,7 @@ export default {
         if (students.length === 0) this.error = 'No students meet the criteria'
         else
           exportToCsv(
-            `${this.fileTitle}_Usage_Report_${this.todaysDate}`,
+            `${this.fileTitle}_Usage_Report_${this.todaysDate}.csv`,
             students
           )
 
