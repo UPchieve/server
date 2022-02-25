@@ -11,8 +11,11 @@
 import Redis from 'ioredis'
 import { CustomError } from 'ts-custom-error'
 import config from '../config'
+import redlock, { Lock } from 'redlock'
 
 const redisClient = new Redis(config.redisConnectionString)
+
+const redisLock = new redlock([redisClient])
 
 // TODO: we should just return undefiend on KeyNotFound
 export class KeyNotFoundError extends CustomError {
@@ -72,4 +75,16 @@ export async function remove(key: string): Promise<void> {
 export async function append(key: string, addition: string): Promise<void> {
   const docLength = await redisClient.append(key, addition)
   if (docLength === 0) throw new AppendLengthZeroError(key)
+}
+
+export async function rpush(key: string, addition: string): Promise<number> {
+  return await redisClient.rpush(key, [addition])
+}
+
+export async function lpop(key: string): Promise<string> {
+  return await redisClient.lpop(key)
+}
+
+export async function lock(key: string, lockDuration: number): Promise<Lock> {
+  return await redisLock.lock(`lock:${key}`, lockDuration)
 }
