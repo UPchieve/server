@@ -1,5 +1,5 @@
 <template>
-  <modal :closeModal="() => false" :backText="''">
+  <modal :closeModal="closeModal">
     <div class="FavoritedListFullModal">
       <header>
         <h1 class="FavoritedListFullModal-title">
