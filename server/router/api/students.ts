@@ -44,8 +44,8 @@ export function routeStudents(router: Router): void {
 
   router.get('/students/favorite-volunteers', async function(req, res) {
     try {
-      const page = asNumber(req.query.page)
       const user = extractUser(req)
+      const page = asNumber(req.query.page)
       const result = await StudentRepo.getFavoriteVolunteers(
         String(user._id),
         page
