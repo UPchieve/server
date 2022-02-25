@@ -1,6 +1,7 @@
 <template>
   <div>
     <component :class="favoritedStatus.class" v-bind:is="svg" v-on:click="changeFavoritedStatus"/>
+
   </div>
 </template>
 
@@ -22,7 +23,11 @@ export default {
     toggleType: {
       type: String,
       default: 'heart'
-    }
+    },
+    closeModal: { 
+      type: Function, 
+      required: true 
+      },
   },
   async mounted() {
     if(this.toggleType === 'heart')
