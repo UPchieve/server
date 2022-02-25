@@ -56,7 +56,7 @@ export default {
   }
 
   &-unfavoriteButton {
-    background-color: #1855D1;
+    background-color: $c-information-blue;
     color: white;
   }
 }

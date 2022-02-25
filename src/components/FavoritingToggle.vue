@@ -11,7 +11,7 @@
 
 <script>
 import HeartSVG from '@/assets/heart.svg'
-import VolunteerFavoritingModal from '@/views/VolunteerFavoritingModel'
+import VolunteerFavoritingModal from '@/views/VolunteerFavoritingModal'
 
 export default {
   name: 'favoriting-toggle',
@@ -83,12 +83,12 @@ export default {
   width: 20px;
 
   &-favorited {
-    fill: #F44747;
+    fill: $c-shadow-warn;
     transition: height 0.3s, width 0.3s;
   }
 
   &-favorited path {
-    stroke: #F44747;
+    stroke: $c-shadow-warn;
   } 
 
   &-favorited:active {
@@ -97,8 +97,8 @@ export default {
   }  
   
   &-favorited:hover path{
-      stroke:#F41717;
-      fill: #F41717;        
+      stroke: $c-active;
+      fill: $c-active;        
   }
 
   &-unfavorited {
@@ -106,7 +106,7 @@ export default {
   }
 
   &-unfavorited:hover path{
-    stroke:#F41717;
+    stroke: $c-active;
   }
 
   &-unfavorited:active {
