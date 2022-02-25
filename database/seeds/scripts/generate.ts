@@ -2,10 +2,10 @@ import faker from 'faker'
 import { ACTIVE_QUIZ_CATEGORIES } from '../../../server/constants'
 import {
   IInsertIntoUserQuizzesParams,
-  IInsertStudentProfileQuery,
+  IInsertStudentProfileParams,
   IInsertStudentUserParams,
   IInsertUserCertificationParams,
-  IInsertVolunteerProfileQuery,
+  IInsertVolunteerProfileParams,
   IInsertVolunteerUserParams,
   IInsertSessionParams,
 } from './testData/pg.queries'
@@ -39,7 +39,7 @@ export function buildStudent(
 
 export function buildStudentProfile(
   userId: string,
-  overrides: Partial<IInsertStudentProfileQuery> = {}
+  overrides: Partial<IInsertStudentProfileParams> = {}
 ) {
   return {
     userId: userId,
@@ -68,7 +68,7 @@ export function buildVolunteer(
 
 export function buildVolunteerProfile(
   userId: string,
-  overrides: Partial<IInsertVolunteerProfileQuery> = {}
+  overrides: Partial<IInsertVolunteerProfileParams> = {}
 ) {
   return {
     id: userId,
