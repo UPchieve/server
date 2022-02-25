@@ -129,7 +129,7 @@ export interface IGetTotalFavoriteVolunteersQuery {
   result: IGetTotalFavoriteVolunteersResult;
 }
 
-const getTotalFavoriteVolunteersIR: any = {"name":"getTotalFavoriteVolunteers","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":940,"b":946,"line":45,"col":18}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    COUNT(*)::int AS total\nFROM\n    student_favorite_volunteers\nWHERE\n    student_id = :userId!\nGROUP BY\n    student_id","loc":{"a":845,"b":970,"line":40,"col":0}}};
+const getTotalFavoriteVolunteersIR: any = {"name":"getTotalFavoriteVolunteers","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":940,"b":946,"line":45,"col":18}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    COUNT(*)::int AS total\nFROM\n    student_favorite_volunteers\nWHERE\n    student_id = :userId!","loc":{"a":845,"b":946,"line":40,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -140,8 +140,6 @@ const getTotalFavoriteVolunteersIR: any = {"name":"getTotalFavoriteVolunteers","
  *     student_favorite_volunteers
  * WHERE
  *     student_id = :userId!
- * GROUP BY
- *     student_id
  * ```
  */
 export const getTotalFavoriteVolunteers = new PreparedQuery<IGetTotalFavoriteVolunteersParams,IGetTotalFavoriteVolunteersResult>(getTotalFavoriteVolunteersIR);
@@ -164,7 +162,7 @@ export interface IIsFavoriteVolunteerQuery {
   result: IIsFavoriteVolunteerResult;
 }
 
-const isFavoriteVolunteerIR: any = {"name":"isFavoriteVolunteer","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1092,"b":1101,"line":56,"col":18}]}},{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1127,"b":1138,"line":57,"col":24}]}}],"usedParamSet":{"studentId":true,"volunteerId":true},"statement":{"body":"SELECT\n    volunteer_id\nFROM\n    student_favorite_volunteers\nWHERE\n    student_id = :studentId!\n    AND volunteer_id = :volunteerId!","loc":{"a":1007,"b":1138,"line":51,"col":0}}};
+const isFavoriteVolunteerIR: any = {"name":"isFavoriteVolunteer","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1068,"b":1077,"line":54,"col":18}]}},{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1103,"b":1114,"line":55,"col":24}]}}],"usedParamSet":{"studentId":true,"volunteerId":true},"statement":{"body":"SELECT\n    volunteer_id\nFROM\n    student_favorite_volunteers\nWHERE\n    student_id = :studentId!\n    AND volunteer_id = :volunteerId!","loc":{"a":983,"b":1114,"line":49,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -201,24 +199,30 @@ export interface IGetFavoriteVolunteersQuery {
   result: IGetFavoriteVolunteersResult;
 }
 
-const getFavoriteVolunteersIR: any = {"name":"getFavoriteVolunteers","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1720,"b":1726,"line":71,"col":48}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1788,"b":1793,"line":73,"col":7}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1803,"b":1809,"line":73,"col":22}]}}],"usedParamSet":{"userId":true,"limit":true,"offset":true},"statement":{"body":"SELECT \n    student_favorite_volunteers.volunteer_id as volunteer_id,\n    first_name,\n    COALESCE((SELECT count(*)\n           FROM sessions \n           WHERE student_favorite_volunteers.volunteer_id = sessions.volunteer_id\n           AND student_favorite_volunteers.student_id = sessions.student_id\n           GROUP BY sessions.volunteer_id, sessions.student_id), 0)::int AS num_sessions\n  FROM student_favorite_volunteers\nLEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id\nWHERE student_favorite_volunteers.student_id = :userId!\nORDER BY student_favorite_volunteers.created_at DESC\nLIMIT :limit! offset :offset!","loc":{"a":1177,"b":1809,"line":61,"col":0}}};
+const getFavoriteVolunteersIR: any = {"name":"getFavoriteVolunteers","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1668,"b":1674,"line":74,"col":46}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1740,"b":1745,"line":77,"col":7}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1755,"b":1761,"line":77,"col":22}]}}],"usedParamSet":{"userId":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    student_favorite_volunteers.volunteer_id AS volunteer_id,\n    first_name,\n    (\n        SELECT\n            count(*)\n        FROM\n            sessions\n        WHERE\n            student_favorite_volunteers.volunteer_id = sessions.volunteer_id\n            AND student_favorite_volunteers.student_id = sessions.student_id)::int AS num_sessions\nFROM\n    student_favorite_volunteers\n    LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id\nWHERE\n    student_favorite_volunteers.student_id = :userId!\nORDER BY\n    student_favorite_volunteers.created_at DESC\nLIMIT :limit! OFFSET :offset!","loc":{"a":1153,"b":1761,"line":59,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT 
- *     student_favorite_volunteers.volunteer_id as volunteer_id,
+ * SELECT
+ *     student_favorite_volunteers.volunteer_id AS volunteer_id,
  *     first_name,
- *     COALESCE((SELECT count(*)
- *            FROM sessions 
- *            WHERE student_favorite_volunteers.volunteer_id = sessions.volunteer_id
- *            AND student_favorite_volunteers.student_id = sessions.student_id
- *            GROUP BY sessions.volunteer_id, sessions.student_id), 0)::int AS num_sessions
- *   FROM student_favorite_volunteers
- * LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
- * WHERE student_favorite_volunteers.student_id = :userId!
- * ORDER BY student_favorite_volunteers.created_at DESC
- * LIMIT :limit! offset :offset!
+ *     (
+ *         SELECT
+ *             count(*)
+ *         FROM
+ *             sessions
+ *         WHERE
+ *             student_favorite_volunteers.volunteer_id = sessions.volunteer_id
+ *             AND student_favorite_volunteers.student_id = sessions.student_id)::int AS num_sessions
+ * FROM
+ *     student_favorite_volunteers
+ *     LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
+ * WHERE
+ *     student_favorite_volunteers.student_id = :userId!
+ * ORDER BY
+ *     student_favorite_volunteers.created_at DESC
+ * LIMIT :limit! OFFSET :offset!
  * ```
  */
 export const getFavoriteVolunteers = new PreparedQuery<IGetFavoriteVolunteersParams,IGetFavoriteVolunteersResult>(getFavoriteVolunteersIR);

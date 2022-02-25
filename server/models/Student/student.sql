@@ -42,9 +42,7 @@ SELECT
 FROM
     student_favorite_volunteers
 WHERE
-    student_id = :userId!
-GROUP BY
-    student_id;
+    student_id = :userId!;
 
 
 /* @name isFavoriteVolunteer */
@@ -58,16 +56,23 @@ WHERE
 
 
 /* @name getFavoriteVolunteers */
-SELECT 
-    student_favorite_volunteers.volunteer_id as volunteer_id,
-    first_name,
-    COALESCE((SELECT count(*)
-           FROM sessions 
-           WHERE student_favorite_volunteers.volunteer_id = sessions.volunteer_id
-           AND student_favorite_volunteers.student_id = sessions.student_id
-           GROUP BY sessions.volunteer_id, sessions.student_id), 0)::int AS num_sessions
-  FROM student_favorite_volunteers
-LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
-WHERE student_favorite_volunteers.student_id = :userId!
-ORDER BY student_favorite_volunteers.created_at DESC
-LIMIT :limit! offset :offset!;
+SELECT
+    student_favorite_volunteers.volunteer_id AS volunteer_id,
+    users.first_name as first_name,
+    (
+        SELECT
+            count(*)
+        FROM
+            sessions
+        WHERE
+            student_favorite_volunteers.volunteer_id = sessions.volunteer_id
+            AND student_favorite_volunteers.student_id = sessions.student_id)::int AS num_sessions
+FROM
+    student_favorite_volunteers
+    LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
+WHERE
+    student_favorite_volunteers.student_id = :userId!
+ORDER BY
+    student_favorite_volunteers.created_at DESC
+LIMIT :limit! OFFSET :offset!;
+
