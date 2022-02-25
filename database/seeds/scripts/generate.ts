@@ -110,13 +110,14 @@ export function buildQuizzes(
 export function buildSession(
   studentId: string,
   volunteerId: string,
+  subjectId: number,
   overrides: Partial<IInsertSessionParams> = {}
 ) {
   return {
     id: getDbUlid(),
     studentId,
     volunteerId,
-    subjectId: 1,
+    subjectId,
     ...overrides,
   }
 }

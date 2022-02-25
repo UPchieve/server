@@ -43,7 +43,7 @@ export async function studentFavoriteVolunteers(certIds: NameToId, quizIds: Name
       await wrapInsert(
         'sessions',
         pgQueries.insertSession.run,
-        buildSession(student.id, volunteer.id)
+        buildSession(student.id, volunteer.id, certIds[subjects[0]] as number)
       )
     }
 
