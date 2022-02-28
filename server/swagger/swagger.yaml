@@ -1818,6 +1818,22 @@ paths:
       responses:
         '200':
           description: Returns and object of users and page marker
+  /api/students/favorite-volunteer/{:volunteerId}:
+    post:
+      tags: 
+        - students
+      summary: Update the volunteer's favorited status
+      description: 
+        - Students only
+        - 
+      security:
+        - cookieAuth: []
+      responses: 
+        '200': 
+          description: 
+            - Successfully updated the volunteer's favorited status
+            - Returns a boolean indicating if the volunteer is now favorited or not
+
   /api/verificationtoken:
     get:
       tags:
