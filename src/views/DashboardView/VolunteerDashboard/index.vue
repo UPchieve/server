@@ -237,7 +237,6 @@ export default {
       sessionPath: 'user/sessionPath',
       hasCertification: 'user/hasCertification',
       hasSelectedAvailability: 'user/hasSelectedAvailability',
-      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive',
       isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive'
     }),
 
