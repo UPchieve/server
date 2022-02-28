@@ -10,9 +10,12 @@ import {
 import { NameToId, wrapInsert } from '../utils'
 import * as pgQueries from './pg.queries'
 
-export async function studentFavoriteVolunteers(certIds: NameToId, quizIds: NameToId) {
+export async function studentFavoriteVolunteers(
+  certIds: NameToId,
+  quizIds: NameToId
+) {
   const student = buildStudent({ email: 'favoritevolunteers@upchieve.org' })
-  const studentProfile = buildStudentProfile(student.id)
+  const studentProfile = buildStudentProfile({ userId: student.id })
 
   const volunteers = []
   const subjects = [CERTS.ALGEBRA_ONE]
@@ -39,11 +42,15 @@ export async function studentFavoriteVolunteers(certIds: NameToId, quizIds: Name
     )
 
     // generate a random number of times a student has had a session with a volunteer
-    for(let i = 0; i < Math.floor(Math.random() * 10); i++){
+    for (let i = 0; i < Math.floor(Math.random() * 10); i++) {
       await wrapInsert(
         'sessions',
         pgQueries.insertSession.run,
-        buildSession(student.id, volunteer.id, certIds[subjects[0]] as number)
+        buildSession({
+          studentId: student.id,
+          volunteerId: volunteer.id,
+          subjectId: certIds[subjects[0]] as number,
+        })
       )
     }
 
@@ -51,13 +58,13 @@ export async function studentFavoriteVolunteers(certIds: NameToId, quizIds: Name
       await wrapInsert(
         'user_certifications',
         pgQueries.insertUserCertification.run,
-        buildCerts(volunteer.id, certIds, subject)
+        buildCerts({ volunteerId: volunteer.id, certIds, cert: subject })
       )
 
       await wrapInsert(
         'user_quizzes',
         pgQueries.insertIntoUserQuizzes.run,
-        buildQuizzes(volunteer.id, quizIds, subject)
+        buildQuizzes({ volunteerId: volunteer.id, quizIds, quiz: subject })
       )
     }
   }

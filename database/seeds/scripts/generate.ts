@@ -24,100 +24,124 @@ export function buildUserIds(total: number) {
 
 export function buildStudent(
   overrides: Partial<IInsertStudentUserParams> = {}
-) {
-  return {
-    id: getDbUlid(),
-    email: getEmail(),
-    password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
-    firstName: getFirstName(),
-    lastName: 'UPchieve',
-    referralCode: getDbUlid(),
-    verified: true,
-    ...overrides,
-  }
+): IInsertStudentUserParams {
+  return Object.assign(
+    {
+      id: getDbUlid(),
+      email: getEmail(),
+      password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
+      firstName: getFirstName(),
+      lastName: 'UPchieve',
+      referralCode: getDbUlid(),
+      verified: true,
+    },
+    overrides
+  )
 }
 
+type StudentProfileOverrides = {
+  userId: string
+} & Partial<IInsertStudentProfileParams>
+
 export function buildStudentProfile(
-  userId: string,
-  overrides: Partial<IInsertStudentProfileParams> = {}
-) {
-  return {
-    userId: userId,
-    studentPartnerOrgId: undefined,
-    ...overrides,
-  }
+  overrides: StudentProfileOverrides
+): IInsertStudentProfileParams {
+  return Object.assign(
+    {
+      userId: overrides.userId,
+      studentPartnerOrgId: undefined,
+    },
+    overrides
+  )
 }
 
 export function buildVolunteer(
   overrides: Partial<IInsertVolunteerUserParams> = {}
-) {
-  return {
-    id: getDbUlid(),
-    email: getEmail(),
-    password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
-    firstName: getFirstName(),
-    lastName: 'UPchieve',
-    referralCode: getDbUlid(),
-    verified: true,
-    // phone: '+12125551212',
-    testUser: false,
-    timeTutored: (7 * 60 * 60 * 1000).toString(),
-    ...overrides,
-  }
+): IInsertVolunteerUserParams {
+  return Object.assign(
+    {
+      id: getDbUlid(),
+      email: getEmail(),
+      password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
+      firstName: getFirstName(),
+      lastName: 'UPchieve',
+      referralCode: getDbUlid(),
+      verified: true,
+      // phone: '+12125551212',
+      testUser: false,
+      timeTutored: (7 * 60 * 60 * 1000).toString(),
+    },
+    overrides
+  )
 }
+
+type VolunteerProfileOverrides = {
+  userId: string
+} & Partial<IInsertVolunteerProfileParams>
 
 export function buildVolunteerProfile(
-  userId: string,
-  overrides: Partial<IInsertVolunteerProfileParams> = {}
-) {
-  return {
-    id: userId,
-    timezone: 'America/New_York',
-    approved: true,
-    onboarded: true,
-    college: 'Volunteer College',
-    volunteerPartnerOrgId: undefined,
-    ...overrides,
-  }
+  overrides: VolunteerProfileOverrides
+): IInsertVolunteerProfileParams {
+  return Object.assign(
+    {
+      id: overrides.userId,
+      timezone: 'America/New_York',
+      approved: true,
+      onboarded: true,
+      college: 'Volunteer College',
+      volunteerPartnerOrgId: undefined,
+    },
+    overrides
+  )
 }
+
+type CertOverrides = {
+  volunteerId: string
+  certIds: NameToId
+  cert: ACTIVE_QUIZ_CATEGORIES
+} & Partial<IInsertUserCertificationParams>
 
 export function buildCerts(
-  volunteerId: string,
-  certIds: NameToId,
-  cert: ACTIVE_QUIZ_CATEGORIES
+  overrides: CertOverrides
 ): IInsertUserCertificationParams {
-  return {
-    userId: volunteerId,
-    certificationId: certIds[cert] as number,
-  }
+  return Object.assign(
+    {
+      userId: overrides.volunteerId,
+      certificationId: overrides.certIds[overrides.cert] as number,
+    },
+    overrides
+  )
 }
+
+type QuizOverrides = {
+  volunteerId: string
+  quizIds: NameToId
+  quiz: ACTIVE_QUIZ_CATEGORIES
+} & Partial<IInsertIntoUserQuizzesParams>
 
 export function buildQuizzes(
-  volunteerId: string,
-  quizIds: NameToId,
-  quiz: ACTIVE_QUIZ_CATEGORIES
+  overrides: QuizOverrides
 ): IInsertIntoUserQuizzesParams {
-  return {
-    userId: volunteerId,
-    quizId: quizIds[quiz] as number,
-    // TODO: fix type
-    // @ts-expect-error
-    attempts: 1,
-    passed: true,
-  }
+  return Object.assign(
+    {
+      userId: overrides.volunteerId,
+      quizId: overrides.quizIds[overrides.quiz] as number,
+      attempts: 1,
+      passed: true,
+    },
+    overrides
+  )
 }
 
-export function buildSession(
-  studentId: string,
-  volunteerId: string,
-  subjectId: number,
-  overrides: Partial<IInsertSessionParams> = {}
-) {
-  return {
-    id: getDbUlid(),
-    studentId,
-    volunteerId,
-    subjectId,
-    ...overrides,
-  }
+type SessionOverrides = {
+  studentId: string
+  volunteerId: string
+  subjectId: number
+} & Partial<IInsertSessionParams>
+
+export function buildSession(overrides: SessionOverrides) {
+  return Object.assign(
+    { id: getDbUlid() },
+    overrides
+  )
 }
