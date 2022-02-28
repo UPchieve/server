@@ -1209,6 +1209,10 @@ exports[`Storyshots Example/Button Small 1`] = `
 exports[`Storyshots Example/FavoritingToggle Vanilla 1`] = `
 <div>
   <!---->
+   
+  <!---->
+   
+  <!---->
 </div>
 `;
 
