@@ -35,3 +35,13 @@ FROM
 WHERE
     id = :userId!;
 
+/* @name updateVolunteerFavoritedStatus */
+UPDATE 
+    student_favorite_volunteers
+SET 
+    isFavorite = :isFavorite!
+WHERE 
+    student_id = :studentId!
+    AND volunteer_id = :volunteerId!;
+    
+

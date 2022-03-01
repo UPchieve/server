@@ -1825,14 +1825,14 @@ paths:
       summary: Update the volunteer's favorited status
       description: 
         - Students only
-        - 
+        - Update the volunteer's favorited status
       security:
         - cookieAuth: []
       responses: 
         '200': 
           description: 
             - Successfully updated the volunteer's favorited status
-            - Returns a boolean indicating if the volunteer is now favorited or not
+            - Returns a boolean indicating if the volunteer is now favorited or not for this student
 
   /api/verificationtoken:
     get:
