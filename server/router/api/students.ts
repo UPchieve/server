@@ -56,19 +56,35 @@ export function routeStudents(router: Router): void {
     }
   })
 
-  router.post('/students/favorite-volunteer/:volunteerId', async function (req,res) {
+  router.post('/students/favorite-volunteer/:volunteerId', async function(
+    req,
+    res
+  ) {
     try {
       const volunteerId = asString(req.params.volunteerId)
       const user = extractUser(req)
-      const { update } = req.body
+      const userId = asString(user._id)
+      const { isFavorite } = req.body
 
-      const isFavorite = await StudentRepo.updateVolunteerFavoritedStatus(asString(user._id), volunteerId, update)
-      res.json({
-        isFavorite
+      let result
+      if (isFavorite) {
+        const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
+          userId
+        )
+        if (totalFavoriteVolunteers >= config.favoriteVolunteerLimit)
+          return res
+            .sendStatus(400)
+            .json({ message: 'Favorited volunteer limit reached.' })
+        else
+          result = await StudentRepo.addFavoriteVolunteer(userId, volunteerId)
+      } else
+        result = await StudentRepo.deleteFavoriteVolunteer(userId, volunteerId)
+
+      res.status(200).json({
+        isFavorite,
       })
     } catch (error) {
-      resError(res,error)
+      resError(res, error)
     }
   })
 }
-

@@ -34,15 +34,6 @@ FROM
     users
 WHERE
     id = :userId!;
-
-/* @name updateVolunteerFavoritedStatus */
-UPDATE 
-    student_favorite_volunteers
-SET 
-    isFavorite = :isFavorite!
-WHERE 
-    student_id = :studentId!
-    AND volunteer_id = :volunteerId!;
     
 
 /* @name getTotalFavoriteVolunteers */
@@ -85,3 +76,15 @@ ORDER BY
     student_favorite_volunteers.created_at DESC
 LIMIT :limit! OFFSET :offset!;
 
+/* @name deleteFavoriteVolunteer */
+DELETE FROM 
+    student_favorite_volunteers 
+WHERE 
+    student_id = :studentId!
+    AND volunteer_id = :volunteerId!;
+
+/* @name addFavoriteVolunteer */
+INSERT INTO 
+    student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) 
+VALUES 
+    (:studentId!, :volunteerId!, NOW(), NOW())

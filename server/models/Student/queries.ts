@@ -122,7 +122,7 @@ export async function isTestUser(userId: Ulid): Promise<boolean> {
     throw new RepoReadError(err)
   }
 }
-  
+
 function mockGetTotalFavoriteVolunteers() {
   return [{ total: 4 }]
 }
@@ -213,46 +213,56 @@ export async function getFavoriteVolunteers(
   }
 }
 
-// type FavoriteVolunteer = {
-//   volunteerId: Ulid
-//   studentId: Ulid
-// }
-
-function mockUpdateVolunteerFavoritedStatus() {
-  return [{ mock: 1 }]
+function mockDeleteFavoriteVolunteer() {
+  const favoriteVolunteer: FavoriteVolunteer = {
+    volunteerId: getDbUlid(),
+    firstName: 'Mock delete',
+    numSessions: 2,
+  }
+  return favoriteVolunteer
 }
 
 function mockAddFavoriteVolunteer() {
+  const favoriteVolunteer: FavoriteVolunteer = {
+    volunteerId: getDbUlid(),
+    firstName: 'Mock add',
+    numSessions: 2,
+  }
+  return favoriteVolunteer
 }
 
-export async function updateVolunteerFavoritedStatus(studentId: Ulid, volunteerId: Ulid, isFavorite: boolean): Promise<boolean> {
+export async function deleteFavoriteVolunteer(
+  studentId: Ulid,
+  volunteerId: Ulid
+): Promise<FavoriteVolunteer | undefined> {
   try {
     /** TODO: use postgres query once sql migration is complete
-     * const student = await pgQueries.updateVolunteerFavoritedStatus.run({ studentId, volunteerId }, client)
+     * const student = await pgQueries.deleteFavoriteVolunteer.run({ studentId, volunteerId }, client)
       
     if(student)
       return true
     return false
      */
-    const result = mockUpdateVolunteerFavoritedStatus()
-    if(result.length)
-      return true
-    return false
-  }  catch (err) {
+    const result = mockDeleteFavoriteVolunteer()
+    if (result) return result
+  } catch (err) {
     if (err instanceof RepoReadError) throw err
     throw new RepoReadError(err)
   }
+}
 
-export async function addFavoriteVolunteer(studentId: Ulid, volunteerId: Ulid): Promise<Student | undefined> {
+export async function addFavoriteVolunteer(
+  studentId: Ulid,
+  volunteerId: Ulid
+): Promise<FavoriteVolunteer | undefined> {
   try {
-    // const student = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client)
-    // if(student)
-    //   return true
-    // return false
-
+    /** TODO: use postgres query once sql migration is complete 
+    const favoriteVolunteer = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client)
+    if(favoriteVolunteer)
+      return favoriteVolunteer
+     */
     const result = mockAddFavoriteVolunteer()
-    return undefined
-
+    if (result) return result
   } catch (err) {
     if (err instanceof RepoReadError) throw err
     throw new RepoReadError(err)

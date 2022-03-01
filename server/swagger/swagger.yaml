@@ -1870,10 +1870,10 @@ paths:
     post:
       tags: 
         - students
-      summary: Update the volunteer's favorited status
+      summary: Unfavorites the student's favorited volunteer
       description: 
         - Students only
-        - Update the volunteer's favorited status
+        - Deletes the student's favorited volunteer
       security:
         - cookieAuth: []
       responses: 
