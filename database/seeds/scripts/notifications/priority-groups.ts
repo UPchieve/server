@@ -5,22 +5,22 @@ export async function priorityGroups(): Promise<NameToId> {
   const groups = [
     {
       name:
-        'Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"',
+        'Partner volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       priority: 1,
     },
     {
       name:
-        'Regular volunteers - not notified in the last 3 days AND they don’t have "high level subjects"',
+        'Regular volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       priority: 2,
     },
     {
       name:
-        'Partner volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"',
+        'Partner volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
       priority: 3,
     },
     {
       name:
-        'Regular volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"',
+        'Regular volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
       priority: 4,
     },
     {
@@ -35,6 +35,30 @@ export async function priorityGroups(): Promise<NameToId> {
       name: 'All volunteers - not notified in the last 15 mins',
       priority: 7,
     },
+    {
+      name: 'LEGACY: Regular volunteers - not notified in last 7 days',
+      priority: -1
+    },
+    {
+      name: 'LEGACY: Partner volunteers - not notified in the last 7 days',
+      priority: -1
+    },
+    {
+      name: 'LEGACY: Partner volunteers - not notified in the last 3 days',
+      priority: -1
+    },
+    {
+      name: 'LEGACY: All volunteers - not notified in the last 15 mins who don\'t have "high level subjects"',
+      priority: -1
+    },
+    {
+      name: 'LEGACY: Mizuho and Atlassian volunteers - Not notified in last 3 days',
+      priority: -1
+    },
+    {
+      name: 'LEGACY: follow-up',
+      priority: -1
+    }
   ]
   const temp: NameToId = {}
   for (const group of groups) {
