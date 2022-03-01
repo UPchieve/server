@@ -19,6 +19,7 @@ import { routes as routeStats } from './stats'
 import { routeTraining } from './training'
 import { routeUser } from './user'
 import { routeProductFlags } from './product-flags'
+import { routeStudents } from './students'
 
 export function routes(
   app: Express,
@@ -41,6 +42,7 @@ export function routes(
   routeSurvey(router)
   routeStats(router)
   routeProductFlags(router)
+  routeStudents(router)
 
   app.use(addLastActivity)
   app.use(addUserAction)

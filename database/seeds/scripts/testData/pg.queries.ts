@@ -242,3 +242,61 @@ const insertAdminProfileIR: any = {"name":"insertAdminProfile","params":[{"name"
 export const insertAdminProfile = new PreparedQuery<IInsertAdminProfileParams,IInsertAdminProfileResult>(insertAdminProfileIR);
 
 
+/** 'InsertSession' parameters type */
+export interface IInsertSessionParams {
+  id: string;
+  studentId: string;
+  subjectId: number;
+  volunteerId: string;
+}
+
+/** 'InsertSession' return type */
+export interface IInsertSessionResult {
+  ok: string;
+}
+
+/** 'InsertSession' query type */
+export interface IInsertSessionQuery {
+  params: IInsertSessionParams;
+  result: IInsertSessionResult;
+}
+
+const insertSessionIR: any = {"name":"insertSession","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2085,"b":2087,"line":26,"col":97}]}},{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2091,"b":2100,"line":26,"col":103}]}},{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2104,"b":2115,"line":26,"col":116}]}},{"name":"subjectId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2119,"b":2128,"line":26,"col":131}]}}],"usedParamSet":{"id":true,"studentId":true,"volunteerId":true,"subjectId":true},"statement":{"body":"INSERT INTO sessions (id, student_id, volunteer_id, subject_id, created_at, updated_at) VALUES (:id!, :studentId!, :volunteerId!, :subjectId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":1988,"b":2185,"line":26,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO sessions (id, student_id, volunteer_id, subject_id, created_at, updated_at) VALUES (:id!, :studentId!, :volunteerId!, :subjectId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * ```
+ */
+export const insertSession = new PreparedQuery<IInsertSessionParams,IInsertSessionResult>(insertSessionIR);
+
+
+/** 'InsertStudentFavoriteVolunteers' parameters type */
+export interface IInsertStudentFavoriteVolunteersParams {
+  studentId: string;
+  volunteerId: string;
+}
+
+/** 'InsertStudentFavoriteVolunteers' return type */
+export interface IInsertStudentFavoriteVolunteersResult {
+  ok: string;
+}
+
+/** 'InsertStudentFavoriteVolunteers' query type */
+export interface IInsertStudentFavoriteVolunteersQuery {
+  params: IInsertStudentFavoriteVolunteersParams;
+  result: IInsertStudentFavoriteVolunteersResult;
+}
+
+const insertStudentFavoriteVolunteersIR: any = {"name":"insertStudentFavoriteVolunteers","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2333,"b":2342,"line":29,"col":100}]}},{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2346,"b":2357,"line":29,"col":113}]}}],"usedParamSet":{"studentId":true,"volunteerId":true},"statement":{"body":"INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) VALUES (:studentId!, :volunteerId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_id AS ok","loc":{"a":2233,"b":2422,"line":29,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) VALUES (:studentId!, :volunteerId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_id AS ok
+ * ```
+ */
+export const insertStudentFavoriteVolunteers = new PreparedQuery<IInsertStudentFavoriteVolunteersParams,IInsertStudentFavoriteVolunteersResult>(insertStudentFavoriteVolunteersIR);
+
+

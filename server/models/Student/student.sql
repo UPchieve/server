@@ -45,3 +45,43 @@ WHERE
     AND volunteer_id = :volunteerId!;
     
 
+/* @name getTotalFavoriteVolunteers */
+SELECT
+    COUNT(*)::int AS total
+FROM
+    student_favorite_volunteers
+WHERE
+    student_id = :userId!;
+
+
+/* @name isFavoriteVolunteer */
+SELECT
+    volunteer_id
+FROM
+    student_favorite_volunteers
+WHERE
+    student_id = :studentId!
+    AND volunteer_id = :volunteerId!;
+
+
+/* @name getFavoriteVolunteers */
+SELECT
+    student_favorite_volunteers.volunteer_id AS volunteer_id,
+    users.first_name as first_name,
+    (
+        SELECT
+            count(*)
+        FROM
+            sessions
+        WHERE
+            student_favorite_volunteers.volunteer_id = sessions.volunteer_id
+            AND student_favorite_volunteers.student_id = sessions.student_id)::int AS num_sessions
+FROM
+    student_favorite_volunteers
+    LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
+WHERE
+    student_favorite_volunteers.student_id = :userId!
+ORDER BY
+    student_favorite_volunteers.created_at DESC
+LIMIT :limit! OFFSET :offset!;
+
