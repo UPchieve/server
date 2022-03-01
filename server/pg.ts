@@ -1,12 +1,14 @@
 import { Pool } from 'pg'
+import config from './config'
 
 // TODO: safer connection string, exponential backoff, reconnect strategy
 
 const client = new Pool({
-  host: 'localhost',
-  user: 'subway',
-  password: 'Password123',
-  database: 'upchieve',
+  host: config.postgresHost,
+  port: config.postgresPort,
+  user: config.postgresUser,
+  password: config.postgresPassword,
+  database: config.postgresDatabase,
 })
 
 export async function startClient(): Promise<void> {
