@@ -1,27 +1,45 @@
+
+import { StartedTestContainer } from 'testcontainers/dist/test-container'
+import { GenericContainer, Wait } from 'testcontainers'
+
 import config from '../config'
-import {
-  StartedTestContainer,
-} from 'testcontainers/dist/test-container'
-import {
-  GenericContainer,
-  Wait,
-} from 'testcontainers'
 
-// TODO: safer connection string, exponential backoff, reconnect strategy
-jest.setTimeout(10 * 1000)
+const PORT = 5432
+let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
 
-let startedContainer: StartedTestContainer
+export async function setup() {
+  const container = new GenericContainer('subway-postgres')
+    .withHealthCheck({
+      test: `pg_isready -h localhost -p ${PORT} -U ${config.postgresUser} -d ${config.postgresDatabase}`,
+      interval: 1000,
+      timeout: 3000,
+      retries: 5,
+      startPeriod: 1000
+    })
+    .withExposedPorts(PORT)
+    .withWaitStrategy(Wait.forHealthCheck())
 
-const PORT = 6543
-export const container = new GenericContainer('subway-postgres')
-  .withExposedPorts(PORT)
-  .withWaitStrategy(Wait.forLogMessage('init process complete'))
+  __PG_CONTAINER__ = await container.start()
 
-beforeAll(async () => {
-  startedContainer = await container.start()
-  config.postgresHost = startedContainer.getHost()
-})
+  const globalEnv = {
+    __PG_HOST__: __PG_CONTAINER__.getHost(),
+    __PG_PORT__: __PG_CONTAINER__.getMappedPort(PORT)
+  }
 
-afterAll(async () => {
-  await startedContainer.stop()
-})
+  setGlobalsFromEnv(global, globalEnv)
+}
+
+export async function teardown() {
+  await __PG_CONTAINER__?.stop({ 
+    timeout: 5 * 1000 
+  })
+}
+
+export function setGlobalsFromEnv(globals: any, env: any) {
+  const envKeys = Object.keys(env)
+
+  envKeys.forEach(key => {
+    // @ts-ignore
+    globals[key] = env[key]
+  })
+}

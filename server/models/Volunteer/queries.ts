@@ -795,9 +795,11 @@ export async function updateTimeTutored(
 }
 
 // pg wrappers
-import client from '../../pg'
+import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid, Subject, makeRequired, makeSomeRequired } from '../pgUtils'
+
+const client = getClient()
 
 export async function getSubjectsForVolunteer(
   userId: Ulid

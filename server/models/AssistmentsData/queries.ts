@@ -105,9 +105,20 @@ export async function updateAssistmentsDataSentAtById(
 }
 
 // pg wrappers
-import client from '../../pg'
+import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { makeRequired, Ulid, Uuid, getDbUlid } from '../pgUtils'
+
+export async function testQuery() {
+  const client = getClient()
+  try {
+    await client.query(`delete from report_reasons where id = 1;`)
+    return await client.query(`select * from report_reasons;`)
+  } catch (err) {
+    console.log('Error in run query:', err)
+    return { rows: [] }
+  }
+}
 
 type IAssistmentsData = {
   id: Ulid
@@ -124,7 +135,7 @@ export async function IgetAssistmentsDataBySession(
   try {
     const result = await pgQueries.getAssistmentsDataBySession.run(
       { sessionId },
-      client
+      getClient()
     )
     if (result.length) return makeRequired(result[0])
   } catch (err) {
@@ -138,7 +149,7 @@ export async function updateAssistmentsDataSentById(
   try {
     const result = await pgQueries.updateAssistmentsDataSentById.run(
       { assistmentsDataId },
-      client
+      getClient()
     )
     if (result.length && result[0].id) return
     throw new RepoUpdateError('Update query did not return id')
@@ -162,7 +173,7 @@ export async function IcreateAssistmentsDataBySessionId(
         studentId,
         sessionId,
       },
-      client
+      getClient()
     )
     if (result.length) return makeRequired(result[0])
     throw new RepoCreateError('Insert did not return new row')

@@ -249,9 +249,11 @@ export async function deleteUserByEmail(userEmail: string): Promise<void> {
 }
 
 // pg wrappers
-import client from '../../pg'
+import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid } from '../pgUtils'
+
+const client = getClient()
 
 export async function IgetUserIdByEmail(
   email: string

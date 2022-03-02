@@ -70,9 +70,11 @@ export async function getTestStudentExistsById(
 }
 
 // pg wrappers
-import client from '../../pg'
+import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeRequired } from '../pgUtils'
+
+const client = getClient()
 
 type GatesStudent = {
   id: Ulid
