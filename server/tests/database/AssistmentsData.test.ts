@@ -3,7 +3,8 @@
  */
 
 import { setup, teardown } from '../postgres-test-hook'
-import { testQuery } from '../../models/AssistmentsData/queries'
+import { IgetAssistmentsDataBySession } from '../../models/AssistmentsData/queries'
+import { Ulid } from 'id128'
 
 /**
  * All database tests must mark @group database and use the setup/teadown hooks
@@ -20,6 +21,6 @@ afterAll(async () => {
 })
 
 test('Make a connection', async () => {
-  const result = await testQuery()
-  expect(result.rows.length).toEqual(5)
+  const result = await IgetAssistmentsDataBySession(Ulid.generate().toRaw())
+  expect(result).not.toBeDefined()
 })

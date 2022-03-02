@@ -109,17 +109,6 @@ import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { makeRequired, Ulid, Uuid, getDbUlid } from '../pgUtils'
 
-export async function testQuery() {
-  const client = getClient()
-  try {
-    await client.query(`delete from report_reasons where id = 1;`)
-    return await client.query(`select * from report_reasons;`)
-  } catch (err) {
-    console.log('Error in run query:', err)
-    return { rows: [] }
-  }
-}
-
 type IAssistmentsData = {
   id: Ulid
   problemId: number
