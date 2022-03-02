@@ -192,6 +192,14 @@ export class AccountActionCreator {
   rejectedReference(): Promise<UserActionDocument> {
     return this.createAccountAction(USER_ACTION.ACCOUNT.REJECTED_REFERENCE)
   }
+
+  volunteerFavorited(): Promise<UserActionDocument> {
+    return this.createAccountAction(USER_ACTION.ACCOUNT.VOLUNTEER_FAVORITED)
+  }
+
+  volunteerUnfavorited(): Promise<UserActionDocument> {
+    return this.createAccountAction(USER_ACTION.ACCOUNT.VOLUNTEER_UNFAVORITED)
+  }
 }
 
 export class AdminActionCreator {

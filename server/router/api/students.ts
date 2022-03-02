@@ -4,6 +4,7 @@ import * as StudentRepo from '../../models/Student/queries'
 import { asNumber, asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
+import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 
 export function routeStudents(router: Router): void {
   router.get('/students/remaining-favorite-volunteers', async function(
@@ -75,10 +76,18 @@ export function routeStudents(router: Router): void {
           return res
             .sendStatus(400)
             .json({ message: 'Favorited volunteer limit reached.' })
-        else
+        else {
           result = await StudentRepo.addFavoriteVolunteer(userId, volunteerId)
-      } else
+          await new UserActionCtrl.AccountActionCreator(user._id, '', {
+            volunteerId: volunteerId,
+          }).volunteerFavorited()
+        }
+      } else {
         result = await StudentRepo.deleteFavoriteVolunteer(userId, volunteerId)
+        await new UserActionCtrl.AccountActionCreator(user._id, '', {
+          volunteerId: volunteerId,
+        }).volunteerUnfavorited()
+      }
 
       res.status(200).json({
         isFavorite,
