@@ -646,5 +646,10 @@ export default {
     return Vue.http
       .get(`${API_ROOT}/product-flags`)
       .then(this._successHandler, this._errorHandler)
-  }
+  },
+  updateFavoritedVolunteerStatus(){
+    return Vue.http
+    .post(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`)
+    .then(this._successHandler, this._errorHandler)
+  },
 }

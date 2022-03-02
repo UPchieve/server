@@ -2,8 +2,8 @@
   <div>
     <component :class="favoritedStatus.class" v-bind:is="svg" v-on:click="toggleFavoritedStatus"/>
     <volunteer-favoriting-modal
-      v-if="showVolunteerFavoritingModal"
-      :closeModal= "toggleVolunteerFavoritingModal"
+      v-if="showVolunteerUnfavoritingModal"
+      :closeModal= "toggleVolunteerUnfavoritingModal"
       :setIsFavorited="setIsFavorited"
     />
     <favorited-list-full-modal
@@ -15,12 +15,12 @@
 
 <script>
 import HeartSVG from '@/assets/heart.svg'
-import VolunteerFavoritingModal from '@/views/VolunteerFavoritingModal'
+import VolunteerUnfavoritingModal from '@/views/VolunteerUnfavoritingModal'
 import FavoritedListFullModal from '@/views/FavoritedListFullModal'
 
 export default {
   name: 'favoriting-toggle',
-  components: { HeartSVG, VolunteerFavoritingModal, FavoritedListFullModal },
+  components: { HeartSVG, VolunteerUnfavoritingModal, FavoritedListFullModal },
   async mounted() {
     if(this.toggleType === 'heart')
       this.svg = HeartSVG
@@ -45,33 +45,43 @@ export default {
   },
   data() {
     return {
-      showVolunteerFavoritingModal: false,
-      showFavoritedListFullModal: false
+      showVolunteerUnfavoritingModal: false,
+      showFavoritedListFullModal: false,
+      mockFavoriteVolunteerLimit: 20
     }
   },
   methods: {
     setIsFavorited(value) {
       this.isFavorited = value
-     // NetworkService.saveFavoritedStatus(this.isFavorited)
+      this.mockUpdateVolunteerFavoritedStatus(value)
+      //NetworkService.updateVolunteerFavoritedStatus()
     },
     toggleFavoritedStatus(){
       if(this.isFavorited){
-        this.toggleVolunteerFavoritingModal
+        this.toggleVolunteerUnfavoritingModal
         return
       }
-      // else
+       else
       // hit get endpoint to check how many remaining volunteers student can favorite
       // if less than < max num 
       // do the following 
-      this.setIsFavorited(true)
-      // else ...
-      // this.toggleFavoritedListFullModal
+      if(this.mockGetRemainingVolunteers>0)
+        this.setIsFavorited(true)
+      else
+       this.toggleFavoritedListFullModal
     },
-    toggleVolunteerFavoritingModal() {
-      this.showVolunteerFavoritingModal = !this.showVolunteerFavoritingModal
+    toggleVolunteerUnfavoritingModal() {
+      this.showVolunteerUnfavoritingModal = !this.showVolunteerUnfavoritingModal
     },
     toggleFavoritedListFullModal() {
       this.showFavoritedListFullModal = !this.showFavoritedListFullModal
+    },
+    mockUpdateVolunteerFavoritedStatus(value){
+      return value
+    },
+    mockGetRemainingVolunteers(){
+      const favorited = 15
+     return this.mockFavoriteVolunteerLimit - favorited
     }
   },
   computed: {

@@ -1,16 +1,16 @@
 <template>
   <modal :closeModal="closeModal">
-    <div class="VolunteerFavoritingModal">
+    <div class="VolunteerUnfavoritingModal">
     <header>
-      <h1 class="VolunteerFavoritingModal-title">
+      <h1 class="VolunteerUnfavoritingModal-title">
         Do you want to unfavorite this coach?  
       </h1>
     </header>
        
     <footer>
-      <div class="VolunteerFavoritingModal-buttons">
+      <div class="VolunteerUnfavoritingModal-buttons">
         <large-button @click.native="closeModal">Cancel</large-button>
-        <large-button primary class="VolunteerFavoritingModal-unfavoriteButton" @click.native="unfavorite">Unfavorite</large-button>
+        <large-button primary class="VolunteerUnfavoritingModal-unfavoriteButton" @click.native="unfavorite">Unfavorite</large-button>
       </div>
     </footer>
     </div>
@@ -24,7 +24,7 @@ import LargeButton from '@/components/LargeButton'
 // @todo: add volunteer name, 'Do you want to unfavorite Coach ${volunteer.name}'
 
 export default {
-  name: 'volunteer-favoriting-modal',
+  name: 'volunteer-unfavoriting-modal',
   components: {Modal, LargeButton},
   props: {
     closeModal: { type: Function, required: true },
@@ -40,7 +40,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 
-.VolunteerFavoritingModal {
+.VolunteerUnfavoritingModal {
   @include flex-container(column);
 
   &-title {
