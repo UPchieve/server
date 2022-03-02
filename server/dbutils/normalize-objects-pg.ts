@@ -181,11 +181,13 @@ async function main() {
       const flags = []
       if (student) flags.push(USER_SESSION_METRICS.absentStudent)
       if (volunteer) flags.push(USER_SESSION_METRICS.absentVolunteer)
-      const update = {
-        $addToSet: { flags: { flags } }
+      if (flags.length) {
+        const update = {
+          $addToSet: { flags: flags }
+        }
+        const result = await SessionModel.updateOne({ _id: session._id }, update).exec()
+        if (!result.acknowledged) console.error('Did not add new absent flags for session: ', session._id.toString())
       }
-      const result = await SessionModel.updateOne({ _id: session._id }, update).exec()
-      if (!result.acknowledged) console.error('Did not add new absent flags for session: ', session._id.toString())
     }
     const deleteOldAbsent = await SessionModel.updateMany({
       flags: { $in: [ 'ABSENT_USER' ] }
@@ -248,11 +250,13 @@ async function main() {
         )
           flags.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
       }
-      const update = {
-        $addToSet: { flags: flags }
+      if (flags.length) {
+        const update = {
+          $addToSet: { flags: flags }
+        }
+        const result = await SessionModel.updateOne({ _id: session._id }, update).exec()
+        if (!result) console.error('Did not update student rating flag for session: ', session._id.toString())
       }
-      const result = await SessionModel.updateOne({ _id: session._id }, update).exec()
-      if (!result) console.error('Did not update student rating flag for session: ', session._id.toString())
     }
     const deleteOldRating = await SessionModel.updateMany({
         flags: { $in: [ 'STUDENT_RATING' ] }
