@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
 import StudentModel, { Student } from './index'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
-import { RepoReadError } from '../Errors'
+import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
 
 async function wrapRead<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -234,37 +234,39 @@ function mockAddFavoriteVolunteer() {
 export async function deleteFavoriteVolunteer(
   studentId: Ulid,
   volunteerId: Ulid
-): Promise<FavoriteVolunteer | undefined> {
+) {
   try {
     /** TODO: use postgres query once sql migration is complete
      * const student = await pgQueries.deleteFavoriteVolunteer.run({ studentId, volunteerId }, client)
       
     if(student)
-      return true
-    return false
+      return student
      */
     const result = mockDeleteFavoriteVolunteer()
-    if (result) return result
+    if (result) return
+    throw new RepoDeleteError(
+      'Delete query did not return deleted favorited volunteer'
+    )
   } catch (err) {
-    if (err instanceof RepoReadError) throw err
-    throw new RepoReadError(err)
+    if (err instanceof RepoDeleteError) throw err
+    throw new RepoUpdateError(err)
   }
 }
 
-export async function addFavoriteVolunteer(
-  studentId: Ulid,
-  volunteerId: Ulid
-): Promise<FavoriteVolunteer | undefined> {
+export async function addFavoriteVolunteer(studentId: Ulid, volunteerId: Ulid) {
   try {
     /** TODO: use postgres query once sql migration is complete 
     const favoriteVolunteer = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client)
     if(favoriteVolunteer)
-      return favoriteVolunteer
+      return
      */
     const result = mockAddFavoriteVolunteer()
-    if (result) return result
+    if (result) return
+    throw new RepoUpdateError(
+      'Update query did not return added favorite volunteer'
+    )
   } catch (err) {
-    if (err instanceof RepoReadError) throw err
-    throw new RepoReadError(err)
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
   }
 }

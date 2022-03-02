@@ -1380,6 +1380,40 @@ paths:
       responses:
         '200':
           description: Boolean returned to indicate if the student has the volunteer favorited or not
+    post:
+      tags: 
+        - students
+      summary: Updates the volunteer's favorited status
+      description: 
+        - Students only
+        - Deletes the student's favorited volunteer if unfavorited
+        - Adds the student's favorited volunteer if favorited
+      security:
+        - cookieAuth: []
+      parameters: 
+      - name: volunteerId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/UserId'
+      responses: 
+        '200': 
+          description: 
+            - Successfully updated the volunteer's favorited status
+            - Returns a boolean indicating if the volunteer is now favorited or not for this student
+          content: 
+            applicaton/json: 
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/IsFavorite'
+              example:
+                isFavorite: true
+        '400': 
+          description: 
+            - Favorite volunteer limit reached
+            - Student cannot favorite any more volunteers
+
   /api/students/favorite-volunteers:
     get:
       tags:
@@ -1866,22 +1900,6 @@ paths:
       responses:
         '200':
           description: Returns and object of users and page marker
-  /api/students/favorite-volunteer/{:volunteerId}:
-    post:
-      tags: 
-        - students
-      summary: Unfavorites the student's favorited volunteer
-      description: 
-        - Students only
-        - Deletes the student's favorited volunteer
-      security:
-        - cookieAuth: []
-      responses: 
-        '200': 
-          description: 
-            - Successfully updated the volunteer's favorited status
-            - Returns a boolean indicating if the volunteer is now favorited or not for this student
-
   /api/verificationtoken:
     get:
       tags:
@@ -2696,6 +2714,9 @@ components:
     IsVolunteer:
       type: boolean
       example: false
+    IsFavorite: 
+      type: boolean
+      example: true
     Password:
       type: string
       example: "Password123"

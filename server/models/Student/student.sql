@@ -81,10 +81,12 @@ DELETE FROM
     student_favorite_volunteers 
 WHERE 
     student_id = :studentId!
-    AND volunteer_id = :volunteerId!;
+    AND volunteer_id = :volunteerId!
+RETURNING student_id, volunteer_id;
 
 /* @name addFavoriteVolunteer */
 INSERT INTO 
     student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) 
 VALUES 
     (:studentId!, :volunteerId!, NOW(), NOW())
+RETURNING student_id, volunteer_id;
