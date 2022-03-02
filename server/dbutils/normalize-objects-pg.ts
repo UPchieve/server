@@ -5,6 +5,7 @@ import moment from 'moment'
 import NotificationModel from '../models/Notification'
 import SurveyModel from '../models/Survey'
 import SessionModel, { Session } from '../models/Session'
+import { USER_SESSION_METRICS, SESSION_REPORT_REASON } from '../constants'
 
 type WhichAbsent = {
   student: boolean,
@@ -50,7 +51,7 @@ async function main() {
         priorityGroup: 'All volunteers - Not notified in last 15 mins'
       },
       {
-        priorityGroup: 'All volunteers - not notified in last 15 mins'
+        priorityGroup: 'All volunteers - not notified in the last 15 mins'
       }
     ).exec()
     if (!all15.acknowledged) console.error('Did not update priority group: All volunteers - Not notified in last 15 mins')
@@ -59,7 +60,7 @@ async function main() {
         priorityGroup: 'Partner volunteers - Not notified in last 3 days'
       },
       {
-        priorityGroup: 'Partner volunteers - not notified in last 3 days'
+        priorityGroup: 'Partner volunteers - not notified in the last 3 days'
       }
     ).exec()
     if (!partner3.acknowledged) console.error('Did not update priority group: Partner volunteers - Not notified in last 3 days')
@@ -68,7 +69,7 @@ async function main() {
         priorityGroup: 'Regular volunteers - Not notified in last 7 days'
       },
       {
-        priorityGroup: 'Regular volunteers - not notified in last 7 days'
+        priorityGroup: 'Regular volunteers - not notified in the last 7 days'
       }
     ).exec()
     if (!regular7.acknowledged) console.error('Did not update priority group: Regular volunteers - Not notified in last 7 days')
@@ -120,7 +121,7 @@ async function main() {
         flags: { $in: [ 'VOLUNTEER_RATING' ] }
       },
       {
-        $addToSet: { flags: [ 'Low session rating from coach' ] }
+        $addToSet: { flags: [ USER_SESSION_METRICS.lowSessionRatingFromCoach ] }
       }
     ).exec()
     if (!volunteerRating.acknowledged) console.error('Did not add new volunteer rating flag')
@@ -139,7 +140,7 @@ async function main() {
         flags: { $in: [ 'UNMATCHED' ] }
       },
       {
-        $addToSet: { flags: [ 'Has been unmatched' ] }
+        $addToSet: { flags: [ USER_SESSION_METRICS.hasBeenUnmatched ] }
       }
     ).exec()
     if (!unmatched.acknowledged) console.error('Did add new unmatched flag')
@@ -158,7 +159,7 @@ async function main() {
         flags: { $in: [ 'REPORTED' ] }
       },
       {
-        $addToSet: { flags: [ 'Reported' ] }
+        $addToSet: { flags: [ USER_SESSION_METRICS.reported ] }
       }
     ).exec()
     if (!reported.acknowledged) console.error('Did not add new reported flag')
@@ -178,8 +179,8 @@ async function main() {
     for (const session of absentSessions) {
       const { student, volunteer } = whichAbsent(session)
       const flags = []
-      if (student) flags.push('Absent student')
-      if (volunteer) flags.push('Absent volunteer')
+      if (student) flags.push(USER_SESSION_METRICS.absentStudent)
+      if (volunteer) flags.push(USER_SESSION_METRICS.absentVolunteer)
       const update = {
         $addToSet: { flags: { flags } }
       }
@@ -224,7 +225,7 @@ async function main() {
           feedback.studentTutoringFeedback &&
           feedback.studentTutoringFeedback['coach-rating']! <= 2
         )
-          flags.push('Low coach rating from student')
+          flags.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
         else if (
           feedback.studentCounselingFeedback &&
           feedback.studentCounselingFeedback['coach-ratings']
@@ -232,20 +233,20 @@ async function main() {
           for (const value of Object.values(
             feedback.studentCounselingFeedback['coach-ratings']
           )) {
-            if ((value as number) <= 2) flags.push('Low coach rating from student')
+            if ((value as number) <= 2) flags.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
           }
         }
         if (
           feedback.studentTutoringFeedback &&
           feedback.studentTutoringFeedback['session-goal']! <= 2
         )
-          flags.push('Low session rating from student')
+          flags.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
         else if (
           feedback.studentCounselingFeedback &&
           feedback.studentCounselingFeedback['rate-session'] &&
           feedback.studentCounselingFeedback['rate-session'].rating! <= 2
         )
-          flags.push('Low session rating from student')
+          flags.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
       }
       const update = {
         $addToSet: { flags: flags }
@@ -276,7 +277,7 @@ async function main() {
         reportReason: { $in: [ 'Student was rude', 'Student was misusing platform' ] }
       },
       {
-        reportReason: 'This student was extremely rude or inappropriate'
+        reportReason: SESSION_REPORT_REASON.STUDENT_RUDE
       }
     )
     if (!reportRude.acknowledged) console.error('Did not add new Rude to report reasons')
