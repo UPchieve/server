@@ -67,29 +67,28 @@ export function routeStudents(router: Router): void {
       const userId = asString(user._id)
       const { isFavorite } = req.body
 
+      let result
       if (isFavorite) {
         const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
           userId
         )
         if (config.favoriteVolunteerLimit - totalFavoriteVolunteers == 0)
-          return res
-            .sendStatus(400)
-            .json({ message: 'Favorited volunteer limit reached.' })
+          return res.json({ message: 'Favorited volunteer limit reached.' })
         else {
-          await StudentRepo.addFavoriteVolunteer(userId, volunteerId)
+          result = await StudentRepo.addFavoriteVolunteer(userId, volunteerId)
           await new UserActionCtrl.AccountActionCreator(user._id, '', {
             volunteerId: volunteerId,
           }).volunteerFavorited()
         }
       } else {
-        await StudentRepo.deleteFavoriteVolunteer(userId, volunteerId)
+        result = await StudentRepo.deleteFavoriteVolunteer(userId, volunteerId)
         await new UserActionCtrl.AccountActionCreator(user._id, '', {
           volunteerId: volunteerId,
         }).volunteerUnfavorited()
       }
 
-      res.status(200).json({
-        isFavorite,
+      res.sendStatus(200).json({
+        isFavorite: result,
       })
     } catch (error) {
       resError(res, error)

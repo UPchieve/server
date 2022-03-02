@@ -193,6 +193,11 @@ type FavoriteVolunteersResponse = {
   isLastPage: boolean
 }
 
+type updateFavoriteVolunteer = {
+  studentId: Ulid
+  volunteerId: Ulid
+}
+
 export async function getFavoriteVolunteers(
   userId: Ulid,
   page: number
@@ -214,27 +219,25 @@ export async function getFavoriteVolunteers(
 }
 
 function mockDeleteFavoriteVolunteer() {
-  const favoriteVolunteer: FavoriteVolunteer = {
+  const updateFavoriteVolunteer: updateFavoriteVolunteer = {
     volunteerId: getDbUlid(),
-    firstName: 'Mock delete',
-    numSessions: 2,
+    studentId: getDbUlid(),
   }
-  return favoriteVolunteer
+  return updateFavoriteVolunteer
 }
 
 function mockAddFavoriteVolunteer() {
-  const favoriteVolunteer: FavoriteVolunteer = {
+  const updateFavoriteVolunteer: updateFavoriteVolunteer = {
     volunteerId: getDbUlid(),
-    firstName: 'Mock add',
-    numSessions: 2,
+    studentId: getDbUlid(),
   }
-  return favoriteVolunteer
+  return updateFavoriteVolunteer
 }
 
 export async function deleteFavoriteVolunteer(
   studentId: Ulid,
   volunteerId: Ulid
-) {
+): Promise<boolean> {
   try {
     /** TODO: use postgres query once sql migration is complete
      * const student = await pgQueries.deleteFavoriteVolunteer.run({ studentId, volunteerId }, client)
@@ -243,7 +246,7 @@ export async function deleteFavoriteVolunteer(
       return student
      */
     const result = mockDeleteFavoriteVolunteer()
-    if (result) return
+    if (result) return false
     throw new RepoDeleteError(
       'Delete query did not return deleted favorited volunteer'
     )
@@ -253,7 +256,10 @@ export async function deleteFavoriteVolunteer(
   }
 }
 
-export async function addFavoriteVolunteer(studentId: Ulid, volunteerId: Ulid) {
+export async function addFavoriteVolunteer(
+  studentId: Ulid,
+  volunteerId: Ulid
+): Promise<boolean> {
   try {
     /** TODO: use postgres query once sql migration is complete 
     const favoriteVolunteer = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client)
@@ -261,7 +267,7 @@ export async function addFavoriteVolunteer(studentId: Ulid, volunteerId: Ulid) {
       return
      */
     const result = mockAddFavoriteVolunteer()
-    if (result) return
+    if (result) return true
     throw new RepoUpdateError(
       'Update query did not return added favorite volunteer'
     )

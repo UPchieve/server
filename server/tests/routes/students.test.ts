@@ -39,6 +39,12 @@ async function sendGet(route: string, payload: any): Promise<Test> {
     .send(payload)
 }
 
+async function sendPost(route: string, payload: any): Promise<Test> {
+  return agent
+    .post(API_ROUTE + route)
+    .set('Accept', 'application/json')
+    .send(payload)
+}
 // db connection
 beforeAll(async () => {
   await mongoose.connect(global.__MONGO_URI__)
@@ -80,6 +86,36 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     } = response
     expect(isFavorite).toEqual(expectedIsFavorite)
     expect(response.status).toBe(200)
+  })
+
+  test('Students should be able to favorite volunteer', async () => {
+    const volunteerId = getDbUlid()
+    const expectedIsFavorite = true
+    mockedStudentRepo.addFavoriteVolunteer.mockResolvedValueOnce(
+      expectedIsFavorite
+    )
+    const response = await sendPost(IS_FAVORITE_VOLUNTEER_PATH(volunteerId), {})
+
+    const {
+      body: { isFavorite },
+    } = response
+    expect(isFavorite).toEqual(expectedIsFavorite)
+    expect(response.status).toBe(200)
+  })
+
+  test('Students should be able to unfavorite volunteer', async () => {
+    const volunteerId = getDbUlid()
+    const expectedIsFavorite = false
+    mockedStudentRepo.deleteFavoriteVolunteer.mockResolvedValueOnce(
+      expectedIsFavorite
+    )
+    const response = await sendPost(IS_FAVORITE_VOLUNTEER_PATH(volunteerId), {})
+
+    const {
+      body: { isFavorite },
+    } = response
+    expect(response.status).toBe(200) // error code returned = 422
+    expect(isFavorite).toEqual(expectedIsFavorite)
   })
 })
 
