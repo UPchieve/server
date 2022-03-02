@@ -183,7 +183,7 @@ async function main() {
       if (volunteer) flags.push(USER_SESSION_METRICS.absentVolunteer)
       if (flags.length) {
         const update = {
-          $addToSet: { flags: { flags } }
+          $addToSet: { flags: flags }
         }
         const result = await SessionModel.updateOne({ _id: session._id }, update).exec()
         if (!result.acknowledged) console.error('Did not add new absent flags for session: ', session._id.toString())
