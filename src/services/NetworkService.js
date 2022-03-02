@@ -647,7 +647,7 @@ export default {
       .get(`${API_ROOT}/product-flags`)
       .then(this._successHandler, this._errorHandler)
   },
-  updateFavoritedVolunteerStatus(){
+  updateFavoritedVolunteerStatus(volunteerId){
     return Vue.http
     .post(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`)
     .then(this._successHandler, this._errorHandler)
