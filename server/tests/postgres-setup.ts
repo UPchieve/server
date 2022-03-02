@@ -1,4 +1,3 @@
-
 import { StartedTestContainer } from 'testcontainers/dist/test-container'
 import { GenericContainer, Wait } from 'testcontainers'
 
@@ -14,7 +13,7 @@ export async function setup() {
       interval: 1000,
       timeout: 3000,
       retries: 5,
-      startPeriod: 1000
+      startPeriod: 1000,
     })
     .withExposedPorts(PORT)
     .withWaitStrategy(Wait.forHealthCheck())
@@ -23,15 +22,15 @@ export async function setup() {
 
   const globalEnv = {
     __PG_HOST__: __PG_CONTAINER__.getHost(),
-    __PG_PORT__: __PG_CONTAINER__.getMappedPort(PORT)
+    __PG_PORT__: __PG_CONTAINER__.getMappedPort(PORT),
   }
 
   setGlobalsFromEnv(global, globalEnv)
 }
 
 export async function teardown() {
-  await __PG_CONTAINER__?.stop({ 
-    timeout: 5 * 1000 
+  await __PG_CONTAINER__?.stop({
+    timeout: 5 * 1000,
   })
 }
 

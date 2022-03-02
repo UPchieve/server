@@ -11,7 +11,7 @@ import { testQuery } from '../../models/AssistmentsData/queries'
  * replace the app global pg pool client with one pointed to the test db, and
  * close the client and container on test completion.
  */
-jest.setTimeout(20 * 1000)  // use large timeout to accomodate containers + query network/run time
+jest.setTimeout(20 * 1000) // use large timeout to accomodate containers + query network/run time
 beforeAll(async () => {
   await setup()
 })

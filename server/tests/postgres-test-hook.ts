@@ -21,14 +21,14 @@ export async function setup() {
     database: config.postgresDatabase,
     allowExitOnIdle: true,
     connectionTimeoutMillis: 3 * 1000,
-    ssl: false
+    ssl: false,
   })
 
   mockedClient.getClient.mockReturnValue(client)
   closureClient = client
 }
 
-export async function teardown(){
+export async function teardown() {
   await closureClient?.end()
   await pgEnv.teardown()
 }
