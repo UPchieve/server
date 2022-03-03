@@ -1,35 +1,27 @@
 <template>
   <div>
-    <component :class="favoritedStatus.class" v-bind:is="svg" v-on:click="toggleFavoritedStatus"/>
-    <volunteer-favoriting-modal
+    <heart-icon v-if="toggleType === 'heart'" :class="favoritedStatus.class" v-on:click="toggleFavoritedStatus"/>
+    <volunteer-unfavoriting-modal
       v-if="showVolunteerUnfavoritingModal"
-      :closeModal= "toggleVolunteerUnfavoritingModal"
+      :closeModal="toggleVolunteerUnfavoritingModal"
       :setIsFavorited="setIsFavorited"
     />
     <favorited-list-full-modal
       v-if="showFavoritedListFullModal"
-      :closeModal= "toggleFavoritedListFullModal"
+      :closeModal="toggleFavoritedListFullModal"
     />
   </div>
 </template>
 
 <script>
-import HeartSVG from '@/assets/heart.svg'
+import HeartIcon from '@/assets/heart.svg'
 import VolunteerUnfavoritingModal from '@/views/VolunteerUnfavoritingModal'
 import FavoritedListFullModal from '@/views/FavoritedListFullModal'
 
 export default {
   name: 'favoriting-toggle',
-  components: { HeartSVG, VolunteerUnfavoritingModal, FavoritedListFullModal },
-  async mounted() {
-    if(this.toggleType === 'heart')
-      this.svg = HeartSVG
-  },
+  components: { HeartIcon, VolunteerUnfavoritingModal, FavoritedListFullModal },
   props: {
-    svg: {
-      type: Object,
-      required: true
-    },
     isFavorited: {
       type: Boolean,
       default: false
@@ -38,10 +30,6 @@ export default {
       type: String,
       default: 'heart'
     },
-    closeModal: { 
-      type: Function, 
-      required: true 
-      },
   },
   data() {
     return {
@@ -57,18 +45,18 @@ export default {
       //NetworkService.updateVolunteerFavoritedStatus()
     },
     toggleFavoritedStatus(){
-      if(this.isFavorited){
-        this.toggleVolunteerUnfavoritingModal
-        return
-      }
+       if(this.isFavorited){
+         this.toggleVolunteerUnfavoritingModal
+         return
+       }
+      //  else
+      // // hit get endpoint to check how many remaining volunteers student can favorite
+      // // if less than < max num 
+      // // do the following 
+       if(this.mockGetRemainingVolunteers>0)
+         this.setIsFavorited(true)
        else
-      // hit get endpoint to check how many remaining volunteers student can favorite
-      // if less than < max num 
-      // do the following 
-      if(this.mockGetRemainingVolunteers>0)
-        this.setIsFavorited(true)
-      else
-       this.toggleFavoritedListFullModal
+        this.toggleFavoritedListFullModal()
     },
     toggleVolunteerUnfavoritingModal() {
       this.showVolunteerUnfavoritingModal = !this.showVolunteerUnfavoritingModal
@@ -80,14 +68,14 @@ export default {
       return value
     },
     mockGetRemainingVolunteers(){
-      const favorited = 15
-     return this.mockFavoriteVolunteerLimit - favorited
+      const remaining = 5
+      return remaining
     }
   },
   computed: {
     favoritedStatus() {
       const status = {
-        class: 'HeartToggle',
+        class: 'heart-icon',
       }   
 
     if(this.isFavorited){
@@ -103,40 +91,35 @@ export default {
 </script>
 
 <style lang="scss">
-.HeartToggle {  
-  height: 18.6px;
-  width: 20px;
-
+.heart-icon {  
   &-favorited {
     fill: $c-shadow-warn;
-    transition: height 0.3s, width 0.3s;
-  }
+    transition: all 0.3s ease-in-out;
 
-  &-favorited path {
+    & path {
     stroke: $c-shadow-warn;
-  } 
+    } 
 
-  &-favorited:active {
-    height: 16px;
-    width: 18px;
-  }  
+    &:active {
+    transform: scale(0.9);
+    }  
   
-  &-favorited:hover path{
-      stroke: $c-active;
-      fill: $c-active;        
+    &:hover path{
+      stroke: $c-active-heart;
+      fill: $c-active-heart;        
+    }
   }
 
   &-unfavorited {
-    transition: height 0.3s, width 0.3s;
-  }
+    transition: all 0.3s ease-in-out;
 
-  &-unfavorited:hover path{
-    stroke: $c-active;
-  }
+    &:hover path{
+      stroke: $c-active-heart;
+    }
 
-  &-unfavorited:active {
-    height: 16px;
-    width: 18px;
+    &:active {
+      transform: scale(0.9);
+    }
   } 
 }
 </style>
