@@ -1,5 +1,4 @@
 import { mocked } from 'ts-jest/utils'
-import mongoose from 'mongoose'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { buildStudent } from '../generate'
@@ -38,15 +37,6 @@ async function sendGet(route: string, payload: any): Promise<Test> {
     .set('Accept', 'application/json')
     .send(payload)
 }
-
-// db connection
-beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__)
-})
-
-afterAll(async () => {
-  await mongoose.connection.close()
-})
 
 const REMAINING_FAVORITE_ROUTE = '/students/remaining-favorite-volunteers'
 describe(REMAINING_FAVORITE_ROUTE, () => {
@@ -114,7 +104,7 @@ describe(FAVORITE_VOLUNTEERS_PATH, () => {
     expect(response.status).toBe(200)
   })
 
-  test('Students should throw when page is not a number', async () => {
+  test('Route should throw when page is not a number', async () => {
     const payload = {
       page: 'test',
     }
