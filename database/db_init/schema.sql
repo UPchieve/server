@@ -1037,6 +1037,18 @@ CREATE TABLE upchieve.sponsor_orgs (
 
 
 --
+-- Name: student_favorite_volunteers; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.student_favorite_volunteers (
+    student_id uuid NOT NULL,
+    volunteer_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: student_partner_org_sites; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3001,6 +3013,22 @@ ALTER TABLE ONLY upchieve.sessions
 
 
 --
+-- Name: student_favorite_volunteers student_favorite_volunteers_student_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_favorite_volunteers
+    ADD CONSTRAINT student_favorite_volunteers_student_id_fkey FOREIGN KEY (student_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: student_favorite_volunteers student_favorite_volunteers_volunteer_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_favorite_volunteers
+    ADD CONSTRAINT student_favorite_volunteers_volunteer_id_fkey FOREIGN KEY (volunteer_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: student_partner_org_sites student_partner_org_sites_student_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3318,4 +3346,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220217153639'),
     ('20220217154443'),
     ('20220217155144'),
-    ('20220217160257');
+    ('20220217160257'),
+    ('20220223184006');
