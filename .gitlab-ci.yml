@@ -1,6 +1,8 @@
 #include:
 #  - template: Auto-DevOps.gitlab-ci.yml
 
+image: "docker:20.10.6"
+
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
@@ -68,14 +70,16 @@ testbackend:
     - upchieve
   variables:
     NODE_OPTIONS: --max_old_space_size=2048
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
   services:
-    - name: mongo:4.2.2
-      alias: mongodb
+    - docker:20.10.6-dind
     - redis:latest
   before_script:
     - npm ci --cache .npm --prefer-offline
-    - docker build -t subway-postgres .
+    - docker info
   script:
+    - docker build -t subway-postgres .
     - npm run test:backend
   needs: []
   rules:
