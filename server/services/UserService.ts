@@ -340,7 +340,10 @@ export async function getUsers(data: unknown) {
     },
   ]
 
-  const aggregateQuery: any[] = [{ $match: query }]
+  const aggregateQuery: any[] = [
+    { $match: query },
+    { $project: { password: 0 } },
+  ]
   if (highSchool) aggregateQuery.push(...highSchoolQuery)
 
   try {
