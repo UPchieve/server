@@ -1,5 +1,4 @@
 import { mocked } from 'ts-jest/utils'
-import mongoose from 'mongoose'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { buildStudent } from '../generate'
@@ -150,7 +149,7 @@ describe(FAVORITE_VOLUNTEERS_PATH, () => {
     expect(response.status).toBe(200)
   })
 
-  test('Students should throw when page is not a number', async () => {
+  test('Route should throw when page is not a number', async () => {
     const payload = {
       page: 'test',
     }
