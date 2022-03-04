@@ -1,8 +1,6 @@
 #include:
 #  - template: Auto-DevOps.gitlab-ci.yml
 
-image: "docker:20.10.6"
-
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
@@ -71,16 +69,26 @@ testbackend:
   variables:
     NODE_OPTIONS: --max_old_space_size=2048
     DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_VERIFY: 0
+    DOCKER_CERT_PATH: ""
     DOCKER_TLS_CERTDIR: ""
   services:
-    - docker:20.10.6-dind
     - redis:latest
   before_script:
     - npm ci --cache .npm --prefer-offline
+    - apt-get update && apt-get --assume-yes install \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release && \
+        curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+        apt-get update && \
+        apt-get install --assume-yes docker-ce docker-ce-cli containerd.io
     - docker info
   script:
     - docker build -t subway-postgres .
-    - npm run test:backend
+    - npm run test:backend:database
   needs: []
   rules:
     - if: '$TEST_DISABLED'
