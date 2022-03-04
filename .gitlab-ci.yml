@@ -82,7 +82,7 @@ testbackend:
     - docker info
   script:
     - docker build -t subway-postgres .
-    - npm run test:backend:database
+    - npm run test:database
   needs: []
   rules:
     - if: '$TEST_DISABLED'
