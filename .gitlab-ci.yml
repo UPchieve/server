@@ -77,15 +77,8 @@ testbackend:
     - docker:20.10.6-dind
   before_script:
     - npm ci --cache .npm --prefer-offline
-    - apt-get update && apt-get --assume-yes install \
-        ca-certificates \
-        curl \
-        gnupg \
-        lsb-release && \
-        curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-        apt-get update && \
-        apt-get install --assume-yes docker-ce docker-ce-cli containerd.io
+    - curl -fsSL https://get.docker.com -o get-docker.sh
+    - DRY_RUN=1 sh ./get-docker.sh
     - docker info
   script:
     - docker build -t subway-postgres .
