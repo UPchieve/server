@@ -2,8 +2,8 @@
  * @group database
  */
 
-import { getClient } from '../../pg'
 import { setup, teardown } from '../postgres-test-hook'
+import { IgetNextVolunteerToNotify } from '../../models/Volunteer/queries'
 
 jest.setTimeout(20 * 1000)
 beforeAll(async () => {
@@ -14,7 +14,6 @@ afterAll(async () => {
 })
 
 test('Make a connection', async () => {
-  const client = getClient()
-  const result = await client.query(`select * from report_reasons`)
-  expect(result.rows.length).toEqual(5)
+  const result = await IgetNextVolunteerToNotify('algebraOne', new Date())
+  expect(result).toBeUndefined()
 })

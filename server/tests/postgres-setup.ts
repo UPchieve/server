@@ -8,6 +8,7 @@ let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
 
 export async function setup() {
   const container = new GenericContainer('subway-postgres')
+    .withNetworkMode("host")
     .withHealthCheck({
       test: `pg_isready -h localhost -p ${PORT} -U ${config.postgresUser} -d ${config.postgresDatabase}`,
       interval: 1000,

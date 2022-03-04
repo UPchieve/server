@@ -2,8 +2,9 @@
  * @group database
  */
 
-import { getClient } from '../../pg'
 import { setup, teardown } from '../postgres-test-hook'
+import { IgetStudentContactInfoById } from '../../models/Student/queries'
+import { Ulid } from 'id128'
 
 jest.setTimeout(20 * 1000)
 beforeAll(async () => {
@@ -14,7 +15,6 @@ afterAll(async () => {
 })
 
 test('Make a connection', async () => {
-  const client = getClient()
-  const result = await client.query(`select * from report_reasons`)
-  expect(result.rows.length).toEqual(5)
+  const result = await IgetStudentContactInfoById(Ulid.generate().toRaw())
+  expect(result).toBeUndefined()
 })

@@ -799,15 +799,13 @@ import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid, Subject, makeRequired, makeSomeRequired } from '../pgUtils'
 
-const client = getClient()
-
 export async function getSubjectsForVolunteer(
   userId: Ulid
 ): Promise<Subject[]> {
   try {
     const result = await pgQueries.getSubjectsForVolunteer.run(
       { userId },
-      client
+      getClient()
     )
     return result.map(r => r.subject)
   } catch (err) {
@@ -828,7 +826,7 @@ export async function IgetNextVolunteerToNotify(
   try {
     const result = await pgQueries.getNextOpenVolunteerToNotify.run(
       { subject, lastNotified },
-      client
+      getClient()
     )
     if (result.length)
       return makeSomeRequired(result[0], { volunteerPartnerOrg: 'test' } as {
@@ -846,7 +844,7 @@ export async function getNextAnyPartnerVolunteerToNotify(
   try {
     const result = await pgQueries.getNextAnyPartnerVolunteerToNotify.run(
       { subject, lastNotified },
-      client
+      getClient()
     )
     if (result.length) return makeRequired(result[0])
   } catch (err) {
@@ -862,7 +860,7 @@ export async function getNextSpecificPartnerVolunteerToNotify(
   try {
     const result = await pgQueries.getNextSpecificPartnerVolunteerToNotify.run(
       { subject, lastNotified, volunteerPartnerOrg },
-      client
+      getClient()
     )
     if (result.length) return makeRequired(result[0])
   } catch (err) {

@@ -74,11 +74,11 @@ testbackend:
     DOCKER_TLS_CERTDIR: "/certs"
   services:
     - redis:latest
-    - docker:dind
+    - docker:20.10.6-dind
   before_script:
     - npm ci --cache .npm --prefer-offline
     - curl -fsSL https://get.docker.com -o get-docker.sh
-    - sh ./get-docker.sh
+    - VERSION=20.10.6 sh ./get-docker.sh
     - docker info
   script:
     - docker build -t subway-postgres .

@@ -250,6 +250,3 @@ globalConfig.json
 
 # env file generated for telepresence
 telepresence.env
-
-
-certs

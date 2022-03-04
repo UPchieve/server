@@ -74,8 +74,6 @@ import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeRequired } from '../pgUtils'
 
-const client = getClient()
-
 type GatesStudent = {
   id: Ulid
   studentPartnerOrg: string
@@ -87,7 +85,7 @@ export async function getGatesStudentById(
   userId: Ulid
 ): Promise<GatesStudent | undefined> {
   try {
-    const result = await pgQueries.getGatesStudentById.run({ userId }, client)
+    const result = await pgQueries.getGatesStudentById.run({ userId }, getClient())
     if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
@@ -106,7 +104,7 @@ export async function IgetStudentContactInfoById(
   try {
     const result = await pgQueries.getStudentContactInfoById.run(
       { userId },
-      client
+      getClient()
     )
     if (result.length) return makeRequired(result[0])
   } catch (err) {
@@ -116,7 +114,7 @@ export async function IgetStudentContactInfoById(
 
 export async function isTestUser(userId: Ulid): Promise<boolean> {
   try {
-    const result = await pgQueries.isTestUser.run({ userId }, client)
+    const result = await pgQueries.isTestUser.run({ userId }, getClient())
     if (result.length) return makeRequired(result[0]).testUser
     return false
   } catch (err) {
