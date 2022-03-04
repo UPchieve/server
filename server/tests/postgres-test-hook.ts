@@ -4,10 +4,10 @@ import * as PgClient from '../pg'
 import config from '../config'
 import * as pgEnv from './postgres-setup'
 
-jest.setTimeout(20 * 1000)
-
 jest.mock('../pg')
 const mockedClient = mocked(PgClient, true)
+
+export const ONE_MINUTE = 60 * 1000
 
 let closureClient: Pool
 

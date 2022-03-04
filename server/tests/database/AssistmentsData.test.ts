@@ -2,7 +2,7 @@
  * @group database
  */
 
-import { setup, teardown } from '../postgres-test-hook'
+import { setup, teardown, ONE_MINUTE } from '../postgres-test-hook'
 import { IgetAssistmentsDataBySession } from '../../models/AssistmentsData/queries'
 import { Ulid } from 'id128'
 
@@ -12,13 +12,13 @@ import { Ulid } from 'id128'
  * replace the app global pg pool client with one pointed to the test db, and
  * close the client and container on test completion.
  */
-jest.setTimeout(20 * 1000) // use large timeout to accomodate containers + query network/run time
+jest.setTimeout(2 * ONE_MINUTE) // use large timeout to accomodate containers + query network/run time
 beforeAll(async () => {
   await setup()
-}, 10 * 1000)
+}, ONE_MINUTE)
 afterAll(async () => {
   await teardown()
-})
+}, ONE_MINUTE)
 
 test('Make a connection', async () => {
   const result = await IgetAssistmentsDataBySession(Ulid.generate().toRaw())
