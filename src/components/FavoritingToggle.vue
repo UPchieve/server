@@ -4,6 +4,7 @@
     <volunteer-unfavoriting-modal
       v-if="showVolunteerUnfavoritingModal"
       :closeModal="toggleVolunteerUnfavoritingModal"
+      :volunteerName="volunteerName"
       :setIsFavorited="setIsFavorited"
     />
     <favorited-list-full-modal
@@ -22,25 +23,29 @@ export default {
   name: 'favoriting-toggle',
   components: { HeartIcon, VolunteerUnfavoritingModal, FavoritedListFullModal },
   props: {
-    isFavorited: {
-      type: Boolean,
-      default: false
-    },
     toggleType: {
       type: String,
       default: 'heart'
     },
+    // both props below passed down by parent component
+    isFavorited: {
+      type: Boolean,
+      default: false
+    },
+    volunteerName: {
+      type: String,
+      default: ''
+    }
   },
   data() {
     return {
       showVolunteerUnfavoritingModal: false,
       showFavoritedListFullModal: false,
-      mockFavoriteVolunteerLimit: 20
+      mockFavoriteVolunteerLimit: 20,
     }
   },
   methods: {
     setIsFavorited(value) {
-      this.isFavorited = value
       this.mockUpdateVolunteerFavoritedStatus(value)
       //NetworkService.updateVolunteerFavoritedStatus()
     },
@@ -85,7 +90,7 @@ export default {
       status.class += '-unfavorited'
     }
     return status
-  }   
+  },   
 }
 }
 </script>

@@ -1,16 +1,16 @@
 <template>
   <modal :closeModal="closeModal">
-    <div class="VolunteerUnfavoritingModal">
+    <div class="volunteer-unfavoriting-modal">
     <header>
-      <h1 class="VolunteerUnfavoritingModal-title">
-        Do you want to unfavorite this coach?  
+      <h1 class="volunteer-unfavoriting-modal-title">
+        Do you want to unfavorite Coach {{ volunteerName }}?  
       </h1>
     </header>
        
     <footer>
-      <div class="VolunteerUnfavoritingModal-buttons">
+      <div class="volunteer-unfavoriting-modal-buttons">
         <large-button @click.native="closeModal">Cancel</large-button>
-        <large-button primary class="VolunteerUnfavoritingModal-unfavoriteButton" @click.native="unfavorite">Unfavorite</large-button>
+        <large-button primary class="volunteer-unfavoriting-modal-unfavoriteButton" @click.native="unfavorite">Unfavorite</large-button>
       </div>
     </footer>
     </div>
@@ -20,8 +20,7 @@
 <script>
 import Modal from '@/components/Modal'
 import LargeButton from '@/components/LargeButton'
-
-// @todo: add volunteer name, 'Do you want to unfavorite Coach ${volunteer.name}'
+import { mapState } from 'vuex'
 
 export default {
   name: 'volunteer-unfavoriting-modal',
@@ -29,6 +28,17 @@ export default {
   props: {
     closeModal: { type: Function, required: true },
     setIsFavorited: { type: Function, required: true},
+    volunteerName: {type: String, required: true}
+  },
+  computed: {
+  ...mapState({
+      user: state => state.user.user
+    })
+  },
+  data() {
+    return {
+         showFavoritedListFullModal: false,
+    }
   },
   methods: {
     unfavorite() {
@@ -40,7 +50,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 
-.VolunteerUnfavoritingModal {
+.volunteer-unfavoriting-modal {
   @include flex-container(column);
 
   &-title {
