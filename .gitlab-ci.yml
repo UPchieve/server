@@ -78,7 +78,7 @@ testbackend:
   before_script:
     - npm ci --cache .npm --prefer-offline
     - curl -fsSL https://get.docker.com -o get-docker.sh
-    - ./get-docker.sh
+    - sh ./get-docker.sh
     - docker info
   script:
     - docker build -t subway-postgres .
