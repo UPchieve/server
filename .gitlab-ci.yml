@@ -72,7 +72,7 @@ testbackend:
     DOCKER_TLS_VERIFY: 1
     DOCKER_CERT_PATH: "/certs/client"
     DOCKER_TLS_CERTDIR: "/certs"
-    CI_CONTAINER: true
+    CI_CONTAINER: "true"
   services:
     - redis:latest
     - docker:20.10.6-dind
