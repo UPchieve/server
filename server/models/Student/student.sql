@@ -34,7 +34,7 @@ FROM
     users
 WHERE
     id = :userId!;
-    
+
 
 /* @name getTotalFavoriteVolunteers */
 SELECT
@@ -58,7 +58,7 @@ WHERE
 /* @name getFavoriteVolunteers */
 SELECT
     student_favorite_volunteers.volunteer_id AS volunteer_id,
-    users.first_name as first_name,
+    users.first_name AS first_name,
     (
         SELECT
             count(*)
@@ -76,17 +76,35 @@ ORDER BY
     student_favorite_volunteers.created_at DESC
 LIMIT :limit! OFFSET :offset!;
 
+
 /* @name deleteFavoriteVolunteer */
-DELETE FROM 
-    student_favorite_volunteers 
-WHERE 
-    student_id = :studentId!
+DELETE FROM student_favorite_volunteers
+WHERE student_id = :studentId!
     AND volunteer_id = :volunteerId!
-RETURNING student_id, volunteer_id;
+RETURNING
+    student_id,
+    volunteer_id;
+
 
 /* @name addFavoriteVolunteer */
-INSERT INTO 
-    student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) 
-VALUES 
-    (:studentId!, :volunteerId!, NOW(), NOW())
-RETURNING student_id, volunteer_id;
+WITH ins AS (
+INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at)
+        VALUES (:studentId!, :volunteerId!, NOW(), NOW())
+    ON CONFLICT
+        DO NOTHING
+    RETURNING
+        student_id, volunteer_id)
+    SELECT
+        *
+    FROM
+        ins
+    UNION
+    SELECT
+        student_id,
+        volunteer_id
+    FROM
+        student_favorite_volunteers
+    WHERE
+        student_id = :studentId!
+            AND volunteer_id = :volunteerId!;
+

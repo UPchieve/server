@@ -193,7 +193,7 @@ type FavoriteVolunteersResponse = {
   isLastPage: boolean
 }
 
-type updateFavoriteVolunteer = {
+export type UpdateFavoriteVolunteer = {
   studentId: Ulid
   volunteerId: Ulid
 }
@@ -219,7 +219,7 @@ export async function getFavoriteVolunteers(
 }
 
 function mockDeleteFavoriteVolunteer() {
-  const updateFavoriteVolunteer: updateFavoriteVolunteer = {
+  const updateFavoriteVolunteer: UpdateFavoriteVolunteer = {
     volunteerId: getDbUlid(),
     studentId: getDbUlid(),
   }
@@ -227,7 +227,7 @@ function mockDeleteFavoriteVolunteer() {
 }
 
 function mockAddFavoriteVolunteer() {
-  const updateFavoriteVolunteer: updateFavoriteVolunteer = {
+  const updateFavoriteVolunteer: UpdateFavoriteVolunteer = {
     volunteerId: getDbUlid(),
     studentId: getDbUlid(),
   }
@@ -240,7 +240,7 @@ export async function deleteFavoriteVolunteer(
 ): Promise<boolean> {
   try {
     /** TODO: use postgres query once sql migration is complete
-     * const student = await pgQueries.deleteFavoriteVolunteer.run({ studentId, volunteerId }, client)
+     * const student = await pgQueries.deleteFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
       
     if(student)
       return student
@@ -252,7 +252,7 @@ export async function deleteFavoriteVolunteer(
     )
   } catch (err) {
     if (err instanceof RepoDeleteError) throw err
-    throw new RepoUpdateError(err)
+    throw new RepoDeleteError(err)
   }
 }
 
@@ -262,7 +262,7 @@ export async function addFavoriteVolunteer(
 ): Promise<boolean> {
   try {
     /** TODO: use postgres query once sql migration is complete 
-    const favoriteVolunteer = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client)
+    const favoriteVolunteer = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
     if(favoriteVolunteer)
       return
      */

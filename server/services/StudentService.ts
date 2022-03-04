@@ -7,6 +7,10 @@ import { getSchool } from './SchoolService'
 import * as AnalyticsService from './AnalyticsService'
 import { getStudentById } from '../models/Student/queries'
 import { getIdFromModelReference } from '../utils/model-reference'
+import * as StudentRepo from '../models/Student/queries'
+import * as UserActionCtrl from '../controllers/UserActionCtrl'
+import config from '../config'
+import { asString } from '../utils/type-utils'
 
 export const queueOnboardingEmails = async (
   studentId: Types.ObjectId
@@ -63,4 +67,36 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
     })
     AnalyticsService.identify(student._id, userProperties)
   }
+}
+
+export async function checkAndUpdateVolunteerFavoriting(
+  isFavorite: boolean,
+  userId: Types.ObjectId,
+  volunteerId: string
+) {
+  let result
+  if (isFavorite) {
+    const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
+      asString(userId)
+    )
+    if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
+      result = await StudentRepo.addFavoriteVolunteer(
+        asString(userId),
+        volunteerId
+      )
+      await new UserActionCtrl.AccountActionCreator(userId, '', {
+        volunteerId: volunteerId,
+      }).volunteerFavorited()
+    }
+  } else {
+    result = await StudentRepo.deleteFavoriteVolunteer(
+      asString(userId),
+      volunteerId
+    )
+    await new UserActionCtrl.AccountActionCreator(userId, '', {
+      volunteerId: volunteerId,
+    }).volunteerUnfavorited()
+  }
+
+  return result
 }

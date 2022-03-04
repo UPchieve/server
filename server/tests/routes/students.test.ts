@@ -44,14 +44,6 @@ async function sendPost(route: string, payload: any): Promise<Test> {
     .set('Accept', 'application/json')
     .send(payload)
 }
-// db connection
-beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__)
-})
-
-afterAll(async () => {
-  await mongoose.connection.close()
-})
 
 const REMAINING_FAVORITE_ROUTE = '/students/remaining-favorite-volunteers'
 describe(REMAINING_FAVORITE_ROUTE, () => {

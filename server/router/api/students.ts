@@ -1,10 +1,10 @@
 import { Router } from 'express'
 import config from '../../config'
 import * as StudentRepo from '../../models/Student/queries'
-import { asNumber, asString } from '../../utils/type-utils'
+import { asBoolean, asNumber, asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
-import * as UserActionCtrl from '../../controllers/UserActionCtrl'
+import * as StudentService from '../../services/StudentService'
 
 export function routeStudents(router: Router): void {
   router.get('/students/remaining-favorite-volunteers', async function(
@@ -64,32 +64,18 @@ export function routeStudents(router: Router): void {
     try {
       const volunteerId = asString(req.params.volunteerId)
       const user = extractUser(req)
-      const userId = asString(user._id)
-      const { isFavorite } = req.body
+      const isFavorite = asBoolean(req.body.isFavorite)
+      const result = await StudentService.checkAndUpdateVolunteerFavoriting(
+        isFavorite,
+        user._id,
+        volunteerId
+      )
 
-      let result
-      if (isFavorite) {
-        const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
-          userId
-        )
-        if (config.favoriteVolunteerLimit - totalFavoriteVolunteers == 0)
-          return res.json({ message: 'Favorited volunteer limit reached.' })
-        else {
-          result = await StudentRepo.addFavoriteVolunteer(userId, volunteerId)
-          await new UserActionCtrl.AccountActionCreator(user._id, '', {
-            volunteerId: volunteerId,
-          }).volunteerFavorited()
-        }
-      } else {
-        result = await StudentRepo.deleteFavoriteVolunteer(userId, volunteerId)
-        await new UserActionCtrl.AccountActionCreator(user._id, '', {
-          volunteerId: volunteerId,
-        }).volunteerUnfavorited()
-      }
-
-      res.sendStatus(200).json({
-        isFavorite: result,
-      })
+      if (result)
+        res
+          .status(200)
+          .json({ isFavorite: result })
+      else res.json({ message: 'Favorited volunteer limit reached.' }) // TODO: determine exact return type
     } catch (error) {
       resError(res, error)
     }
