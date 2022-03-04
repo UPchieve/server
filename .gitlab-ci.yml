@@ -69,9 +69,9 @@ testbackend:
   variables:
     NODE_OPTIONS: --max_old_space_size=2048
     DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_VERIFY: 0
-    DOCKER_CERT_PATH: ""
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "/certs/client"
+    DOCKER_TLS_CERTDIR: "/certs"
   services:
     - redis:latest
     - docker:20.10.6-dind
