@@ -82,10 +82,14 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   test('Students should be able to favorite volunteer', async () => {
     const volunteerId = getDbUlid()
     const expectedIsFavorite = true
+    const payload = { isFavorite: expectedIsFavorite }
     mockedStudentRepo.addFavoriteVolunteer.mockResolvedValueOnce(
       expectedIsFavorite
     )
-    const response = await sendPost(IS_FAVORITE_VOLUNTEER_PATH(volunteerId), {})
+    const response = await sendPost(
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
+      payload
+    )
 
     const {
       body: { isFavorite },
@@ -97,11 +101,15 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   test('Students should be able to unfavorite volunteer', async () => {
     const volunteerId = getDbUlid()
     const expectedIsFavorite = false
+    const payload = { isFavorite: expectedIsFavorite }
     mockedStudentRepo.deleteFavoriteVolunteer.mockResolvedValueOnce(
       expectedIsFavorite
     )
-    const response = await sendPost(IS_FAVORITE_VOLUNTEER_PATH(volunteerId), {})
 
+    const response = await sendPost(
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
+      payload
+    )
     const {
       body: { isFavorite },
     } = response

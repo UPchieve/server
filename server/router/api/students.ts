@@ -71,10 +71,7 @@ export function routeStudents(router: Router): void {
         volunteerId
       )
 
-      if (result)
-        res
-          .status(200)
-          .json({ isFavorite: result })
+      if (result) res.status(200).json({ isFavorite: result })
       else res.json({ message: 'Favorited volunteer limit reached.' }) // TODO: determine exact return type
     } catch (error) {
       resError(res, error)
