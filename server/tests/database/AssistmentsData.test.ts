@@ -15,7 +15,7 @@ import { Ulid } from 'id128'
 jest.setTimeout(20 * 1000) // use large timeout to accomodate containers + query network/run time
 beforeAll(async () => {
   await setup()
-})
+}, 10 * 1000)
 afterAll(async () => {
   await teardown()
 })

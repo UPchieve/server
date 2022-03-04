@@ -9,7 +9,7 @@ import createNewAvailability from '../../utils/create-new-availability'
 jest.setTimeout(20 * 1000)
 beforeAll(async () => {
   await setup()
-})
+}, 10 * 1000)
 afterAll(async () => {
   await teardown()
 })
