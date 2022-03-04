@@ -6,10 +6,10 @@ import { setup, teardown } from '../postgres-test-hook'
 import { getAvaiabilityForVolunteer } from '../../models/Availability/queries'
 import createNewAvailability from '../../utils/create-new-availability'
 
-jest.setTimeout(20 * 1000)
+jest.setTimeout(30 * 1000)
 beforeAll(async () => {
   await setup()
-}, 10 * 1000)
+}, 20 * 1000)
 afterAll(async () => {
   await teardown()
 })
