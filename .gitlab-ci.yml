@@ -74,6 +74,7 @@ testbackend:
     DOCKER_TLS_CERTDIR: ""
   services:
     - redis:latest
+    - docker:20.10.6-dind
   before_script:
     - npm ci --cache .npm --prefer-offline
     - apt-get update && apt-get --assume-yes install \
