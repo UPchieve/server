@@ -68,7 +68,7 @@ testbackend:
     - upchieve
   variables:
     NODE_OPTIONS: --max_old_space_size=2048
-    # DOCKER_HOST: tcp://docker:2375
+    DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_VERIFY: 1
     DOCKER_CERT_PATH: "/certs/client"
     DOCKER_TLS_CERTDIR: "/certs"
