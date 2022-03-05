@@ -14,6 +14,7 @@ const healthCheck = {
 let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
 
 export async function setup() {
+  console.log('Starting setup')
   const base = new GenericContainer('subway-postgres')
     .withHealthCheck(healthCheck)
     .withExposedPorts(PORT)
