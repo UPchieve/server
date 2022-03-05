@@ -23,7 +23,7 @@ export async function setup() {
     connectionTimeoutMillis: 3 * 1000,
     ssl: false,
   })
-
+  console.log('Setup client:', client)
   mockedClient.getClient.mockReturnValue(client)
   closureClient = client
 }
