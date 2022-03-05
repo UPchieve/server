@@ -32,3 +32,13 @@ export async function teardown() {
   await closureClient?.end()
   await pgEnv.teardown()
 }
+
+export function metaSetup() {
+  jest.setTimeout(5 * ONE_MINUTE) // use large timeout to accomodate containers + query network/run time
+  beforeAll(async () => {
+    await setup()
+  }, 2.5 * ONE_MINUTE)
+  afterAll(async () => {
+    await teardown()
+  }, 2.5 * ONE_MINUTE)
+}
