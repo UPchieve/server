@@ -15,18 +15,20 @@ let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
 
 export async function setup() {
   console.log('Starting setup')
-  const base = new GenericContainer('subway-postgres')
+  const container = new GenericContainer('subway-postgres')
     .withHealthCheck(healthCheck)
     .withExposedPorts(PORT)
     .withWaitStrategy(Wait.forHealthCheck())
-  const container = Boolean(process.env.CI_CONTAINER)
-    ? base.withNetworkMode('host')
-    : base
+  // const container = Boolean(process.env.CI_CONTAINER)
+  //  ? base.withNetworkMode('host')
+  //  : base
 
   __PG_CONTAINER__ = await container.start()
+  console.log('Launched container')
 
+  const host = Boolean(process.env.CI_CONTAINER) ? 'docker' : __PG_CONTAINER__.getHost()
   const globalEnv = {
-    __PG_HOST__: __PG_CONTAINER__.getHost(),
+    __PG_HOST__: host,
     __PG_PORT__: __PG_CONTAINER__.getMappedPort(PORT),
   }
 
