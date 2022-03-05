@@ -275,7 +275,10 @@ export async function IgetUserContactInfoById(
   id: Ulid
 ): Promise<UserContactInfo | undefined> {
   try {
-    const result = await pgQueries.getUserContactInfoById.run({ id }, getClient())
+    const result = await pgQueries.getUserContactInfoById.run(
+      { id },
+      getClient()
+    )
     if (result.length) return result[0]
   } catch (err) {
     throw new RepoReadError(err)

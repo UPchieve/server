@@ -85,7 +85,10 @@ export async function getGatesStudentById(
   userId: Ulid
 ): Promise<GatesStudent | undefined> {
   try {
-    const result = await pgQueries.getGatesStudentById.run({ userId }, getClient())
+    const result = await pgQueries.getGatesStudentById.run(
+      { userId },
+      getClient()
+    )
     if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)

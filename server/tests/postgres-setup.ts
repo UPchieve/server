@@ -18,7 +18,9 @@ export async function setup() {
     .withHealthCheck(healthCheck)
     .withExposedPorts(PORT)
     .withWaitStrategy(Wait.forHealthCheck())
-  const container = Boolean(process.env.CI_CONTAINER) ? base.withNetworkMode('host') : base
+  const container = Boolean(process.env.CI_CONTAINER)
+    ? base.withNetworkMode('host')
+    : base
 
   __PG_CONTAINER__ = await container.start()
 
