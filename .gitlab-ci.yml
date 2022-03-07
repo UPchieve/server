@@ -73,7 +73,7 @@ testbackend:
     DOCKER_CERT_PATH: "/certs/client"
     DOCKER_TLS_CERTDIR: "/certs"
     TESTCONTAINERS_HOST_OVERRIDE: docker
-    DEBUG: testcontainers*
+    #DEBUG: testcontainers*
     CI_CONTAINER: "true"
   services:
     - redis:latest
