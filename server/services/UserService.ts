@@ -181,6 +181,45 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   inGatesStudy: asOptional(asBoolean),
 })
 
+interface DeletionRequest {
+  userId: Types.ObjectId,
+  email: string
+}
+
+const asDeletionRequest = asFactory<DeletionRequest>({
+  userId: asObjectId,
+  email: asString
+})
+
+export async function flagForDeletion(data: unknown) {
+  const {
+    userId,
+    email
+  } = asDeletionRequest(data)
+
+  const userBeforeUpdate = await getUserById(userId)
+  if (!userBeforeUpdate) {
+    throw new UserNotFoundError('_id', userId.toString())
+  }
+
+  const { isVolunteer } = userBeforeUpdate
+
+  // if a user is requesting deletion, we should remove them from automatic emails
+  const contact = await MailService.searchContact(userBeforeUpdate.email)
+  if (contact) await MailService.deleteContact(contact.id)
+
+  const update: any = {
+    email: `${email}deactivated`,
+  }
+
+  if (isVolunteer) {
+    // TODO: repo pattern
+    return VolunteerModel.updateOne({ _id: userId }, update)
+  } else {
+    return StudentModel.updateOne({ _id: userId }, update)
+  }
+}
+
 export async function adminUpdateUser(data: unknown) {
   const {
     userId,
