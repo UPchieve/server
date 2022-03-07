@@ -541,6 +541,8 @@ export async function sendVerification(
       to: sendTo,
       channel: verificationMethod,
       channelConfiguration: {
+        from: config.mail.senders.noreply,
+        from_name: 'UPchieve',
         substitutions: {
           firstName,
         },
