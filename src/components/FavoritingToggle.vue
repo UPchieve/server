@@ -19,7 +19,6 @@ import HeartIcon from '@/assets/heart.svg'
 import VolunteerUnfavoritingModal from '@/views/VolunteerUnfavoritingModal'
 import FavoritedListFullModal from '@/views/FavoritedListFullModal'
 import NetworkService from '@/services/NetworkService'
-import { mapState } from 'vuex'
 
 export default {
   name: 'favoriting-toggle',
@@ -39,6 +38,11 @@ export default {
     },
     volunteerId: {
       type: String,
+      required: true,
+      default: '',
+    },
+    sessionId: {
+      type: String,
       default: ''
     }
   },
@@ -54,7 +58,7 @@ export default {
   },
   methods: {
     async setIsFavorite(value) {
-      const response = await NetworkService.mockUpdateVolunteerFavoritedStatus(this.volunteerId, { favorited: value })
+      const response = await NetworkService.mockUpdateVolunteerFavoritedStatus(this.volunteerId, { favorited: value, sessionId: this.sessionId })
       this.isFavorite = response.body.isFavorite
     },
     async toggleFavoritedStatus(){
@@ -77,10 +81,6 @@ export default {
     toggleFavoritedListFullModal() {
       this.showFavoritedListFullModal = !this.showFavoritedListFullModal
     },
-    mockGetRemainingVolunteers(){
-      const remaining = 5
-      return remaining
-    }
   },
   computed: {
     favoritedStatus() {
