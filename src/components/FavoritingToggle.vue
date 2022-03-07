@@ -54,7 +54,7 @@ export default {
   },
   methods: {
     async setIsFavorite(value) {
-      const response = await NetworkService.mockUpdateVolunteerFavoritedStatus(this.volunteerId, {studentId: this.user._id, favorited: value})
+      const response = await NetworkService.mockUpdateVolunteerFavoritedStatus(this.volunteerId, { favorited: value })
       this.isFavorite = response.body.isFavorite
     },
     async toggleFavoritedStatus(){
@@ -83,9 +83,6 @@ export default {
     }
   },
   computed: {
-    ...mapState({
-      user: state => state.user.user
-    }),
     favoritedStatus() {
       const status = {
         class: 'heart-icon',
