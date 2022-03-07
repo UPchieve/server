@@ -15,7 +15,7 @@ let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
 
 export async function setup() {
   console.log('Starting setup')
-  const container = (await GenericContainer.fromDockerfile('/subway')
+  const container = (await GenericContainer.fromDockerfile('.')
     .build())
     .withHealthCheck(healthCheck)
     .withExposedPorts(PORT)
