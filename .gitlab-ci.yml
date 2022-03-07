@@ -72,17 +72,19 @@ testbackend:
     DOCKER_TLS_VERIFY: 1
     DOCKER_CERT_PATH: "/certs/client"
     DOCKER_TLS_CERTDIR: "/certs"
+    TESTCONTAINERS_HOST_OVERRIDE: docker
+    DEBUG: testcontainers*
     CI_CONTAINER: "true"
   services:
-    - redis:latest
+#    - redis:latest
     - docker:20.10.6-dind
   before_script:
     - npm ci --cache .npm --prefer-offline
     - curl -fsSL https://get.docker.com -o get-docker.sh
     - VERSION=20.10.6 sh ./get-docker.sh
   script:
-    - docker build -t subway-postgres .
-    - npm run test:database
+#    - docker build -t subway-postgres .
+    - npx ts-node server/scripts/test.ts
   needs: []
   rules:
     - if: '$TEST_DISABLED'
