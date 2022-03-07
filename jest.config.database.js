@@ -8,8 +8,8 @@ module.exports = {
   setupFilesAfterEnv: [
     "<rootDir>/server/tests/force-gc.ts",
   ],
+  watchPathIgnorePatterns: ["globalConfig"],
   roots: ["<rootDir>/server"],
   transform: tsjPreset.transform,
-  testRunner: "jest-circus/runner",
   runner: "groups"
 }
