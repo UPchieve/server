@@ -5,7 +5,7 @@
       v-if="showVolunteerUnfavoritingModal"
       :closeModal="toggleVolunteerUnfavoritingModal"
       :volunteerName="volunteerName"
-      :setIsFavorited="setIsFavorited"
+      @unfavorite="setIsFavorite"
     />
     <favorited-list-full-modal
       v-if="showFavoritedListFullModal"
@@ -18,6 +18,8 @@
 import HeartIcon from '@/assets/heart.svg'
 import VolunteerUnfavoritingModal from '@/views/VolunteerUnfavoritingModal'
 import FavoritedListFullModal from '@/views/FavoritedListFullModal'
+import NetworkService from '@/services/NetworkService'
+import { mapState } from 'vuex'
 
 export default {
   name: 'favoriting-toggle',
@@ -27,40 +29,46 @@ export default {
       type: String,
       default: 'heart'
     },
-    // both props below passed down by parent component
-    isFavorited: {
+    initialIsFavorite: {
       type: Boolean,
       default: false
     },
     volunteerName: {
       type: String,
       default: ''
+    },
+    volunteerId: {
+      type: String,
+      default: ''
     }
+  },
+  created() {
+    this.isFavorite = this.initialIsFavorite
   },
   data() {
     return {
       showVolunteerUnfavoritingModal: false,
       showFavoritedListFullModal: false,
-      mockFavoriteVolunteerLimit: 20,
+      isFavorite: false
     }
   },
   methods: {
-    setIsFavorited(value) {
-      this.mockUpdateVolunteerFavoritedStatus(value)
-      //NetworkService.updateVolunteerFavoritedStatus()
+    async setIsFavorite(value) {
+      const response = await NetworkService.mockUpdateVolunteerFavoritedStatus(this.volunteerId, {studentId: this.user._id, favorited: value})
+      this.isFavorite = response.body.isFavorite
     },
-    toggleFavoritedStatus(){
-       if(this.isFavorited){
-         this.toggleVolunteerUnfavoritingModal
-         return
-       }
-      //  else
-      // // hit get endpoint to check how many remaining volunteers student can favorite
-      // // if less than < max num 
-      // // do the following 
-       if(this.mockGetRemainingVolunteers>0)
-         this.setIsFavorited(true)
-       else
+    async toggleFavoritedStatus(){
+      if(this.isFavorite) {
+        this.toggleVolunteerUnfavoritingModal()
+        return
+      }
+     
+      const { 
+        body: { remaining }
+      } = await NetworkService.mockGetRemainingVolunteers()
+      if(remaining>0)
+        this.setIsFavorite(true)
+      else
         this.toggleFavoritedListFullModal()
     },
     toggleVolunteerUnfavoritingModal() {
@@ -69,21 +77,21 @@ export default {
     toggleFavoritedListFullModal() {
       this.showFavoritedListFullModal = !this.showFavoritedListFullModal
     },
-    mockUpdateVolunteerFavoritedStatus(value){
-      return value
-    },
     mockGetRemainingVolunteers(){
       const remaining = 5
       return remaining
     }
   },
   computed: {
+    ...mapState({
+      user: state => state.user.user
+    }),
     favoritedStatus() {
       const status = {
         class: 'heart-icon',
       }   
 
-    if(this.isFavorited){
+    if(this.isFavorite){
       status.class += '-favorited'
     }
     else {

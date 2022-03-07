@@ -27,7 +27,6 @@ export default {
   components: {Modal, LargeButton},
   props: {
     closeModal: { type: Function, required: true },
-    setIsFavorited: { type: Function, required: true},
     volunteerName: {type: String, required: true}
   },
   computed: {
@@ -42,7 +41,7 @@ export default {
   },
   methods: {
     unfavorite() {
-      this.setIsFavorited(false)
+      this.$emit('unfavorite', false)
       this.closeModal()
     }
   }

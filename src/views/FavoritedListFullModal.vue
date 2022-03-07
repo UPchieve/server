@@ -1,20 +1,20 @@
 <template>
   <modal :closeModal="closeModal">
-    <div class="FavoritedListFullModal">
+    <div class="favorited-list-full-modal">
       <header>
-        <h1 class="FavoritedListFullModal-title">
+        <h1 class="favorited-list-full-modal-title">
           Your Favorite Coach list is full
         </h1>
       </header>
 
-      <h2 class="FavoritedListFullModal-subtitle">
+      <h2 class="favorited-list-full-modal-subtitle">
         You must unfavorite a coach from your "Favorite Coach" list in order to favorite a new volunteer.
       </h2>
 
       <footer>
-        <div class="FavoritedListFullModal-buttons">
+        <div class="favorited-list-full-modal-buttons">
           <large-button @click.native="closeModal">Okay</large-button>
-          <large-button primary class="FavoritedListFullModal-redirectButton"
+          <large-button primary class="favorited-list-full-modal-redirectButton" :routeTo="routeTo"
             >Go to my list</large-button
           >
         </div>
@@ -33,12 +33,18 @@ export default {
   props: {
     closeModal: { type: Function, required: true },
   },
+  data() {
+    return {
+      // update to coach list route
+      routeTo: ''
+    }
+  }
 }
 </script>
 
 <style lang="scss" scoped>
 
-.FavoritedListFullModal {
+.favorited-list-full-modal {
   @include flex-container(column);
   &-title{
     @include font-category('display-small');  

@@ -647,9 +647,20 @@ export default {
       .get(`${API_ROOT}/product-flags`)
       .then(this._successHandler, this._errorHandler)
   },
-  updateFavoritedVolunteerStatus(volunteerId){
+  updateFavoritedVolunteerStatus(volunteerId, data){
     return Vue.http
-    .post(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`)
+    .post(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`, data)
     .then(this._successHandler, this._errorHandler)
   },
+  mockUpdateVolunteerFavoritedStatus(volunteerId, data) {
+    return Promise.resolve({ body: { isFavorite: data.favorited } })
+  },
+  getRemainingVolunteers() {
+    return Vue.http
+    .get(`${API_ROOT}/students/remaining-favorite-volunteers`)
+    .then(this._successHandler, this._errorHandler)
+  },
+  mockGetRemainingVolunteers() {
+    return Promise.resolve({ body: { remaining: 5 } })
+  }
 }
