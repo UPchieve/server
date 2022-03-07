@@ -83,6 +83,10 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     const volunteerId = getDbUlid()
     const expectedIsFavorite = true
     const payload = { isFavorite: expectedIsFavorite }
+    const totalFavorited = 5
+    mockedStudentRepo.getTotalFavoriteVolunteers.mockResolvedValueOnce(
+      totalFavorited
+    )
     mockedStudentRepo.addFavoriteVolunteer.mockResolvedValueOnce(
       expectedIsFavorite
     )
@@ -113,8 +117,26 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     const {
       body: { isFavorite },
     } = response
-    expect(response.status).toBe(200) // error code returned = 422
+
     expect(isFavorite).toEqual(expectedIsFavorite)
+    expect(response.status).toBe(200) // error code returned = 422
+  })
+
+  test('Students should be not be able to favorite more than max volunteers', async () => {
+    const volunteerId = getDbUlid()
+    const expectedIsFavorite = false
+    const payload = { isFavorite: expectedIsFavorite }
+    const totalFavorited = config.favoriteVolunteerLimit
+    mockedStudentRepo.getTotalFavoriteVolunteers.mockResolvedValueOnce(
+      totalFavorited
+    )
+
+    const response = await sendPost(
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
+      payload
+    )
+
+    expect(response.status).toBe(422)
   })
 })
 

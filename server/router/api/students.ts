@@ -71,8 +71,13 @@ export function routeStudents(router: Router): void {
         volunteerId
       )
 
-      if (result) res.status(200).json({ isFavorite: result })
-      else res.json({ message: 'Favorited volunteer limit reached.' }) // TODO: determine exact return type
+      if (typeof result !== 'undefined') res.json({ isFavorite: result })
+      // TODO: determine error message return type
+      else
+        res.status(422).json({
+          success: false,
+          message: 'Favorited volunteer limit reached.',
+        })
     } catch (error) {
       resError(res, error)
     }
