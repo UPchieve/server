@@ -243,7 +243,7 @@
     "prettier-standard": "^9.1.1",
     "storybook-addon-pseudo-states": "^1.0.0",
     "supertest": "^4.0.2",
-    "testcontainers": "^8.2.0",
+    "testcontainers": "^8.0.0",
     "ts-jest": "^26.4.0",
     "ts-node": "^8.9.0",
     "ts-node-dev": "^1.1.6",

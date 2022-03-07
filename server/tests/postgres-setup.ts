@@ -1,32 +1,46 @@
 import { StartedTestContainer } from 'testcontainers/dist/test-container'
 import { GenericContainer, Wait } from 'testcontainers'
-
 import config from '../config'
 
+const isCI = Boolean(process.env.CI_CONTAINER)
+
 const PORT = 5432
-const healthCheck = {
-  test: `pg_isready -h localhost -p ${PORT} -U ${config.postgresUser} -d ${config.postgresDatabase}`,
-  interval: 1000,
-  timeout: 3000,
-  retries: 5,
-  startPeriod: 1000,
-}
 let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
+const healthCheck = {
+  test: `pg_isready -U subway -d upchieve`,
+  interval: 1000, // ping every second
+  timeout: 1000, // timeout per ping
+  retries: 10, // try 10 times (10 seconds)
+  startPeriod: 5000, // wait 5 seconds before counting against retries
+}
 
 export async function setup() {
-  const isCI = Boolean(process.env.CI_CONTAINER)
-  console.log('Starting setup')
-  const container = new GenericContainer('subway-postgres')
+  const container = new GenericContainer('postgres:14-alpine')
     .withHealthCheck(healthCheck)
     .withExposedPorts(PORT)
+    .withStartupTimeout(10 * 60 * 1000)
     .withWaitStrategy(Wait.forHealthCheck())
+    .withEnv('POSTGRES_PASSWORD', 'Password123')
+    .withEnv('POSTGRES_DB', 'upchieve')
+    .withEnv('POSTGRES_USER', 'admin')
+    .withCopyFileToContainer(
+      '/subway/database/db_init/schema.sql',
+      '/docker-entrypoint-initdb.d/init_db.sql'
+    )
+    .withCopyFileToContainer(
+      '/subway/database/db_init/auth.sql',
+      '/docker-entrypoint-initdb.d/init_roles.sql'
+    )
+    .withCopyFileToContainer(
+      '/subway/database/db_init/test_seeds.sql',
+      '/docker-entrypoint-initdb.d/seeds.sql'
+    )
 
   __PG_CONTAINER__ = await container.start()
-  console.log('Launched container')
 
+  // In CI the container running docker will live at host docker via docker links
   const host = isCI ? 'docker' : __PG_CONTAINER__.getHost()
 
-  console.log(`host:port at ${host}:${__PG_CONTAINER__.getMappedPort(PORT)}`)
   const globalEnv = {
     __PG_HOST__: host,
     __PG_PORT__: __PG_CONTAINER__.getMappedPort(PORT),
