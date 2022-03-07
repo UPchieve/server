@@ -2506,14 +2506,6 @@ ALTER TABLE ONLY upchieve.assistments_data
 
 
 --
--- Name: assistments_data assistments_data_student_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.assistments_data
-    ADD CONSTRAINT assistments_data_student_id_fkey FOREIGN KEY (student_id) REFERENCES upchieve.users(id);
-
-
---
 -- Name: availabilities availabilities_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3241,4 +3233,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220217155144'),
     ('20220217160257'),
     ('20220223184006'),
-    ('20220307143240');
+    ('20220307143240'),
+    ('20220307152621');
