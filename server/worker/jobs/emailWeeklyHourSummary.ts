@@ -90,7 +90,7 @@ export default async (): Promise<void> => {
     }
   }
 
-  newrelic.recordMetric(`job:${Jobs.EmailWeeklyHourSummary}`, totalEmailed)
+  newrelic.recordMetric(`Job/${Jobs.EmailWeeklyHourSummary}`, totalEmailed)
   log(
     `Successfully ${Jobs.EmailWeeklyHourSummary} for ${totalEmailed} volunteers`
   )
