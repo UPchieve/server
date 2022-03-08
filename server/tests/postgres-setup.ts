@@ -38,6 +38,7 @@ export async function setup() {
   __PG_CONTAINER__ = await container.start()
 
   // In CI the container running docker will live at host docker via docker links
+  console.log(`Container: ${__PG_CONTAINER__.getId()} with mapped port ${__PG_CONTAINER__.getMappedPort(PORT)}`)
   const host = isCI ? 'docker' : __PG_CONTAINER__.getHost()
 
   const globalEnv = {
