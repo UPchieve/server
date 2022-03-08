@@ -40,9 +40,12 @@ export async function setup() {
     //.withBindMount(`${root}/database/db_init`, '/docker-entrypoint-initdb.d')
 
   __PG_CONTAINER__ = await container.start()
-  fs.readdirSync('/').forEach(file => {
-    console.log(file);
-  });
+
+  const files: string[] = []
+  fs.readdirSync('/builds/subway').forEach(file => {
+    files.push(file);
+  })
+  console.log('Test container contents:', files)
   console.log('Postgres init folder:', (await __PG_CONTAINER__.exec(['ls', '-al', '/docker-entrypoint-initdb.d'])).output)
   console.log('Postgres root folder:', (await __PG_CONTAINER__.exec(['ls', '-al', '/'])).output)
 
