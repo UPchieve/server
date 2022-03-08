@@ -73,28 +73,28 @@ export async function checkAndUpdateVolunteerFavoriting(
   userId: Types.ObjectId,
   volunteerId: string
 ) {
-    let result
-    if (isFavorite) {
-      const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
-        userId.toString()
-      )
-      if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
-        result = await StudentRepo.addFavoriteVolunteer(
-          userId.toString(),
-          volunteerId
-        )
-        await new UserActionCtrl.AccountActionCreator(userId, '', {
-          volunteerId: volunteerId,
-        }).volunteerFavorited()
-      }
-    } else {
-      result = await StudentRepo.deleteFavoriteVolunteer(
+  let result
+  if (isFavorite) {
+    const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
+      userId.toString()
+    )
+    if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
+      result = await StudentRepo.addFavoriteVolunteer(
         userId.toString(),
         volunteerId
       )
       await new UserActionCtrl.AccountActionCreator(userId, '', {
         volunteerId: volunteerId,
-      }).volunteerUnfavorited()
+      }).volunteerFavorited()
     }
-    return result
+  } else {
+    result = await StudentRepo.deleteFavoriteVolunteer(
+      userId.toString(),
+      volunteerId
+    )
+    await new UserActionCtrl.AccountActionCreator(userId, '', {
+      volunteerId: volunteerId,
+    }).volunteerUnfavorited()
+  }
+  return result
 }
