@@ -4,6 +4,7 @@ import * as StudentRepo from '../../models/Student/queries'
 import { asNumber, asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
+import * as StudentService from '../../services/StudentService'
 
 export function routeStudents(router: Router): void {
   router.get('/students/remaining-favorite-volunteers', async function(
@@ -46,7 +47,7 @@ export function routeStudents(router: Router): void {
     try {
       const user = extractUser(req)
       const page = asNumber(req.query.page)
-      const result = await StudentRepo.getFavoriteVolunteers(
+      const result = await StudentService.getFavoriteVolunteersPaginated(
         String(user._id),
         page
       )

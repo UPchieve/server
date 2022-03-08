@@ -195,11 +195,10 @@ type FavoriteVolunteersResponse = {
 
 export async function getFavoriteVolunteers(
   userId: Ulid,
-  page: number
+  limit: number,
+  offset: number
 ): Promise<FavoriteVolunteersResponse> {
   try {
-    const limit = 10
-    const offset = limit * (page - 1)
     /** TODO: use postgres query once postgres migration is complete
     const result = (await pgQueries.getFavoriteVolunteers.run(
       { userId, limit: String(limit), offset: String(offset) },

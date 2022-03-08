@@ -4,11 +4,14 @@ import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { buildStudent } from '../generate'
 import { routeStudents } from '../../router/api/students'
 import * as StudentRepo from '../../models/Student/queries'
+import * as StudentService from '../../services/StudentService'
 import config from '../../config'
 import { getDbUlid } from '../../models/pgUtils'
 
 jest.mock('../../models/Student/queries')
+jest.mock('../../services/StudentService')
 const mockedStudentRepo = mocked(StudentRepo, true)
+const mockedStudentService = mocked(StudentService, true)
 
 // mock app - passport should attach any user we need
 const app = mockApp()
@@ -94,7 +97,9 @@ describe(FAVORITE_VOLUNTEERS_PATH, () => {
       ],
       isLastPage: true,
     }
-    mockedStudentRepo.getFavoriteVolunteers.mockResolvedValueOnce(expected)
+    mockedStudentService.getFavoriteVolunteersPaginated.mockResolvedValueOnce(
+      expected
+    )
     const response = await sendGetQuery(FAVORITE_VOLUNTEERS_PATH, payload)
     const {
       body: { favoriteVolunteers, isLastPage },
