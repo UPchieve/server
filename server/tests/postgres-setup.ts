@@ -37,7 +37,7 @@ export async function setup() {
     )
 
   __PG_CONTAINER__ = await container.start()
-
+  console.log((await __PG_CONTAINER__.exec(['sh', '-c', 'ls', '-al', '/docker-entrypoint-initdb.d'])).output)
   // In CI the container running docker will live at host docker via docker links
   const host = isCI ? 'docker' : __PG_CONTAINER__.getHost()
 
