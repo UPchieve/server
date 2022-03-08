@@ -83,19 +83,21 @@ export async function checkAndUpdateVolunteerFavoriting(
         volunteerId: volunteerId,
         sessionId: sessionId,
       }).volunteerFavorited()
-      return await StudentRepo.addFavoriteVolunteer(
+      const result = await StudentRepo.addFavoriteVolunteer(
         userId.toString(),
         volunteerId
       )
+      return { result, isFavorite: true }
     }
   } else {
     await new UserActionCtrl.AccountActionCreator(userId, '', {
       volunteerId: volunteerId,
       sessionId: sessionId,
     }).volunteerUnfavorited()
-    return await StudentRepo.deleteFavoriteVolunteer(
+    const result = await StudentRepo.deleteFavoriteVolunteer(
       userId.toString(),
       volunteerId
     )
+    return { result, isFavorite: false }
   }
 }

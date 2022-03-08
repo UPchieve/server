@@ -235,16 +235,16 @@ function mockAddFavoriteVolunteer(): UpdateFavoriteVolunteer {
 export async function deleteFavoriteVolunteer(
   studentId: Ulid,
   volunteerId: Ulid
-): Promise<boolean> {
+): Promise<UpdateFavoriteVolunteer> {
   try {
     /** TODO: use postgres query once sql migration is complete
      * const result = await pgQueries.deleteFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
       
-    if(result.length)
-      return false
+    if(result.rows[0])
+      return makeRequired(result.rows[0])
      */
     const result = mockDeleteFavoriteVolunteer()
-    if (result) return false
+    if (result) return result
     throw new RepoDeleteError(
       'Delete query did not return deleted favorited volunteer'
     )
@@ -256,15 +256,15 @@ export async function deleteFavoriteVolunteer(
 export async function addFavoriteVolunteer(
   studentId: Ulid,
   volunteerId: Ulid
-): Promise<boolean> {
+): Promise<UpdateFavoriteVolunteer> {
   try {
     /** TODO: use postgres query once sql migration is complete 
     const result = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
-    if(result.length)
-      return true
+    if(result.rows[0])
+      return makeRequired(result.rows[0])
      */
     const result = mockAddFavoriteVolunteer()
-    if (result) return true
+    if (result) return result
     throw new RepoUpdateError(
       'Update query did not return added favorite volunteer'
     )

@@ -78,13 +78,12 @@ export function routeStudents(router: Router): void {
         sessionId
       )
 
-      if (result) res.json({ isFavorite: result })
-      // TODO: determine error message return type
-      else
-        res.status(422).json({
-          success: false,
-          message: 'Favorited volunteer limit reached.',
-        })
+      if (result) res.json({ isFavorite: result.isFavorite })
+
+      res.status(422).json({
+        success: false,
+        message: 'Favorited volunteer limit reached.',
+      })
     } catch (error) {
       resError(res, error)
     }

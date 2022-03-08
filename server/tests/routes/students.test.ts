@@ -4,6 +4,7 @@ import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { buildStudent } from '../generate'
 import { routeStudents } from '../../router/api/students'
 import * as StudentRepo from '../../models/Student/queries'
+import { AccountActionCreator } from '../../controllers/UserActionCtrl'
 import config from '../../config'
 import { getDbUlid } from '../../models/pgUtils'
 
@@ -73,6 +74,7 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     mockedStudentRepo.isFavoriteVolunteer.mockResolvedValueOnce(
       expectedIsFavorite
     )
+
     const response = await sendGet(IS_FAVORITE_VOLUNTEER_PATH(volunteerId), {})
     const {
       body: { isFavorite },
@@ -84,14 +86,17 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   test('Students should be able to favorite volunteer', async () => {
     const volunteerId = getDbUlid()
     const expectedIsFavorite = true
+    const expected = {
+      volunteerId: volunteerId,
+      studentId: getDbUlid(),
+    }
     const payload = { isFavorite: expectedIsFavorite }
     const totalFavorited = 5
     mockedStudentRepo.getTotalFavoriteVolunteers.mockResolvedValueOnce(
       totalFavorited
     )
-    mockedStudentRepo.addFavoriteVolunteer.mockResolvedValueOnce(
-      expectedIsFavorite
-    )
+    mockedStudentRepo.addFavoriteVolunteer.mockResolvedValueOnce(expected)
+    const volunteerFavoritedMockMethod = (AccountActionCreator.prototype.volunteerFavorited = jest.fn())
     const response = await sendPost(
       IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
       payload
@@ -102,15 +107,19 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     } = response
     expect(isFavorite).toEqual(expectedIsFavorite)
     expect(response.status).toBe(200)
+    expect(volunteerFavoritedMockMethod).toHaveBeenCalledTimes(1)
   })
 
   test('Students should be able to unfavorite volunteer', async () => {
     const volunteerId = getDbUlid()
     const expectedIsFavorite = false
+    const expected = {
+      volunteerId: volunteerId,
+      studentId: getDbUlid(),
+    }
     const payload = { isFavorite: expectedIsFavorite }
-    mockedStudentRepo.deleteFavoriteVolunteer.mockResolvedValueOnce(
-      expectedIsFavorite
-    )
+    mockedStudentRepo.deleteFavoriteVolunteer.mockResolvedValueOnce(expected)
+    const volunteerUnfavoritedMockMethod = (AccountActionCreator.prototype.volunteerUnfavorited = jest.fn())
 
     const response = await sendPost(
       IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
@@ -122,22 +131,21 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
 
     expect(isFavorite).toEqual(expectedIsFavorite)
     expect(response.status).toBe(200) // error code returned = 422
+    expect(volunteerUnfavoritedMockMethod).toHaveBeenCalledTimes(1)
   })
 
   test('Students should be not be able to favorite more than max volunteers', async () => {
     const volunteerId = getDbUlid()
-    const expectedIsFavorite = false
+    const expectedIsFavorite = true
     const payload = { isFavorite: expectedIsFavorite }
     const totalFavorited = config.favoriteVolunteerLimit
     mockedStudentRepo.getTotalFavoriteVolunteers.mockResolvedValueOnce(
       totalFavorited
     )
-
     const response = await sendPost(
       IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
       payload
     )
-
     expect(response.status).toBe(422)
   })
 })
