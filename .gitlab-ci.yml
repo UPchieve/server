@@ -74,7 +74,6 @@ testbackend:
     DOCKER_TLS_CERTDIR: "/certs"
     TESTCONTAINERS_HOST_OVERRIDE: docker
     CI_CONTAINER: "true"
-    DEBUG: testcontainers*
   services:
     - redis:latest
     - docker:20.10.6-dind

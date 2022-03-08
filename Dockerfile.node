@@ -1,2 +1,0 @@
-FROM node:16.8.0-bullseye AS node
-RUN curl -fsSL https://get.docker.com -o get-docker.sh && sh ./get-docker.sh
