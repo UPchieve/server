@@ -23,7 +23,6 @@ export async function setup() {
     .withEnv('POSTGRES_PASSWORD', 'Password123')
     .withEnv('POSTGRES_DB', 'upchieve')
     .withEnv('POSTGRES_USER', 'admin')
-    /*
     .withCopyFileToContainer(
       `${root}/database/db_init/schema.sql`,
       '/docker-entrypoint-initdb.d/init_db.sql'
@@ -36,8 +35,8 @@ export async function setup() {
       `${root}/database/db_init/test_seeds.sql`,
       '/docker-entrypoint-initdb.d/seeds.sql'
     )
-    */
-    .withBindMount(`${root}/database/db_init`, '/docker-entrypoint-initdb.d')
+    
+    //.withBindMount(`${root}/database/db_init`, '/docker-entrypoint-initdb.d')
 
   __PG_CONTAINER__ = await container.start()
   console.log((await __PG_CONTAINER__.exec(['ls', '-al', '/docker-entrypoint-initdb.d'])).output)

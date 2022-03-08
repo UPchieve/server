@@ -121,12 +121,10 @@ type IAssistmentsData = {
 export async function IgetAssistmentsDataBySession(
   sessionId: Ulid
 ): Promise<IAssistmentsData | undefined> {
-  const client = getClient()
-  console.log('Assistments client', client)
   try {
     const result = await pgQueries.getAssistmentsDataBySession.run(
       { sessionId },
-      client
+      getClient()
     )
     if (result.length) return makeRequired(result[0])
   } catch (err) {
