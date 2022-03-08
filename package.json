@@ -25,7 +25,7 @@
     "lint:write": "npm run lint:backend && npm run lint:frontend",
     "start": "node build/main",
     "test": "npm run test:backend && npm run test:frontend",
-    "test:backend": "jest -c jest.config.server.js --silent --group=-email --max_old_space_size=1536 --maxWorkers=3",
+    "test:backend": "jest -c jest.config.server.js --silent --group=-email --group=-database --max_old_space_size=1536 --maxWorkers=3",
     "test:backend:debug": "jest -c jest.config.server.js --logHeapUsage --detectOpenHandles --group=-email",
     "test:backend:full": "jest -c jest.config.server.js --detectOpenHandles --silent",
     "test:backend:watch": "jest -c jest.config.server.js --watch --runInBand --detectOpenHandles",
