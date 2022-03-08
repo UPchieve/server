@@ -27,7 +27,7 @@ export interface UserAction extends UserActionAgent {
   ipAddress?: string
   referenceEmail?: string
   banReason?: string
-  volunteerId: string
+  volunteerId?: string
 }
 
 export type UserActionDocument = UserAction & Document

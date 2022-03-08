@@ -81,7 +81,7 @@ export async function checkAndUpdateVolunteerFavoriting(
     if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
       await new UserActionCtrl.AccountActionCreator(userId, '', {
         volunteerId: volunteerId,
-        sessionId: sessionId,
+        session: sessionId,
       }).volunteerFavorited()
       const result = await StudentRepo.addFavoriteVolunteer(
         userId.toString(),
@@ -92,7 +92,7 @@ export async function checkAndUpdateVolunteerFavoriting(
   } else {
     await new UserActionCtrl.AccountActionCreator(userId, '', {
       volunteerId: volunteerId,
-      sessionId: sessionId,
+      session: sessionId,
     }).volunteerUnfavorited()
     const result = await StudentRepo.deleteFavoriteVolunteer(
       userId.toString(),
@@ -100,6 +100,8 @@ export async function checkAndUpdateVolunteerFavoriting(
     )
     return { result, isFavorite: false }
   }
+}
+
 export async function getFavoriteVolunteersPaginated(
   userId: Ulid,
   page: number

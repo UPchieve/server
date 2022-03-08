@@ -4,8 +4,8 @@ import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { buildStudent } from '../generate'
 import { routeStudents } from '../../router/api/students'
 import * as StudentRepo from '../../models/Student/queries'
-import { AccountActionCreator } from '../../controllers/UserActionCtrl'
 import * as StudentService from '../../services/StudentService'
+import { AccountActionCreator } from '../../controllers/UserActionCtrl'
 import config from '../../config'
 import { getDbUlid } from '../../models/pgUtils'
 
@@ -104,7 +104,6 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
       IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
       payload
     )
-
     const {
       body: { isFavorite },
     } = response
