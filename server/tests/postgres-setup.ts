@@ -3,7 +3,6 @@ import { GenericContainer, Wait } from 'testcontainers'
 
 const isCI = Boolean(process.env.CI_CONTAINER)
 const root = isCI ? '/builds/upchieve/subway' : `../../${__dirname}`
-
 const PORT = 5432
 let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
 const healthCheck = {
