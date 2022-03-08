@@ -9,8 +9,7 @@ let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
 const healthCheck = {
   test: `pg_isready -h ${host} -U subway -d upchieve`,
   interval: 1000, // ping every second
-  timeout: 1000, // timeout per ping
-  retries: 10, // try 10 times (10 seconds)
+  retries: 20, // try 10 times (10 seconds)
   startPeriod: 5000, // wait 5 seconds before counting against retries
 }
 
