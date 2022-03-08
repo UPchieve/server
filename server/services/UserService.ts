@@ -30,6 +30,7 @@ import {
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
+import logger from '../logger'
 
 export function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
@@ -181,42 +182,24 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   inGatesStudy: asOptional(asBoolean),
 })
 
-interface DeletionRequest {
-  userId: Types.ObjectId,
-  email: string
-}
-
-const asDeletionRequest = asFactory<DeletionRequest>({
-  userId: asObjectId,
-  email: asString
-})
-
-export async function flagForDeletion(data: unknown) {
-  const {
-    userId,
-    email
-  } = asDeletionRequest(data)
-
-  const userBeforeUpdate = await getUserById(userId)
-  if (!userBeforeUpdate) {
-    throw new UserNotFoundError('_id', userId.toString())
+export async function flagForDeletion(user: User) {
+  try {
+    // if a user is requesting deletion, we should remove them from automatic emails
+    const contact = await MailService.searchContact(user.email)
+    if (contact) await MailService.deleteContact(contact.id)
+  } catch (err) {
+    logger.error(`Error searching for or deleting contact in user deletion process: ${err}`)
   }
-
-  const { isVolunteer } = userBeforeUpdate
-
-  // if a user is requesting deletion, we should remove them from automatic emails
-  const contact = await MailService.searchContact(userBeforeUpdate.email)
-  if (contact) await MailService.deleteContact(contact.id)
 
   const update: any = {
-    email: `${email}deactivated`,
+    email: `${user.email}deactivated`,
   }
 
-  if (isVolunteer) {
+  if (user.isVolunteer) {
     // TODO: repo pattern
-    return VolunteerModel.updateOne({ _id: userId }, update)
+    return VolunteerModel.updateOne({ _id: user._id }, update)
   } else {
-    return StudentModel.updateOne({ _id: userId }, update)
+    return StudentModel.updateOne({ _id: user._id }, update)
   }
 }
 
