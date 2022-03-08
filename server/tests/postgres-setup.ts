@@ -2,11 +2,12 @@ import { StartedTestContainer } from 'testcontainers/dist/test-container'
 import { GenericContainer, Wait } from 'testcontainers'
 
 const isCI = Boolean(process.env.CI_CONTAINER)
-const root = isCI ? '/builds/upchieve/subway' : `../../${__dirname}`
+const root = isCI ? '/builds/upchieve/subway' : '.'
+const host = isCI ? 'docker' : 'localhost'
 const PORT = 5432
 let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
 const healthCheck = {
-  test: `pg_isready -U subway -d upchieve`,
+  test: `pg_isready -h ${host} -U subway -d upchieve`,
   interval: 1000, // ping every second
   timeout: 1000, // timeout per ping
   retries: 10, // try 10 times (10 seconds)
@@ -14,11 +15,9 @@ const healthCheck = {
 }
 
 export async function setup() {
-  const start = Date.now()
   const container = new GenericContainer('postgres:14-alpine')
     .withHealthCheck(healthCheck)
     .withExposedPorts(PORT)
-    .withStartupTimeout(10 * 60 * 1000)
     .withWaitStrategy(Wait.forHealthCheck())
     .withEnv('POSTGRES_PASSWORD', 'Password123')
     .withEnv('POSTGRES_DB', 'upchieve')
@@ -38,24 +37,17 @@ export async function setup() {
 
   __PG_CONTAINER__ = await container.start()
 
-  // In CI the container running docker will live at host docker via docker links
-  console.log(`Container: ${__PG_CONTAINER__.getId()} with mapped port ${__PG_CONTAINER__.getMappedPort(PORT)}`)
-  const host = isCI ? 'docker' : __PG_CONTAINER__.getHost()
-
   const globalEnv = {
     __PG_HOST__: host,
     __PG_PORT__: __PG_CONTAINER__.getMappedPort(PORT),
   }
 
   setGlobalsFromEnv(global, globalEnv)
-  const end = Date.now()
-  console.log(`Setup took ${end - start}ms`)
 }
 
 export async function teardown() {
-  console.log('Killing container:', __PG_CONTAINER__?.getId())
   await __PG_CONTAINER__?.stop({
-    timeout: 5 * 1000,
+    timeout: 30 * 1000,
   })
 }
 

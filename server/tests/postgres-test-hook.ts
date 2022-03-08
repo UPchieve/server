@@ -20,7 +20,8 @@ export async function setup() {
     password: config.postgresPassword,
     database: config.postgresDatabase,
     allowExitOnIdle: true,
-    connectionTimeoutMillis: 5 * 1000,
+    connectionTimeoutMillis: 0,
+    idleTimeoutMillis: 0,
     ssl: false,
   })
   mockedClient.getClient.mockReturnValue(client)
