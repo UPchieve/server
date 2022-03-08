@@ -188,7 +188,9 @@ export async function flagForDeletion(user: User) {
     const contact = await MailService.searchContact(user.email)
     if (contact) await MailService.deleteContact(contact.id)
   } catch (err) {
-    logger.error(`Error searching for or deleting contact in user deletion process: ${err}`)
+    logger.error(
+      `Error searching for or deleting contact in user deletion process: ${err}`
+    )
   }
 
   const update: any = {
