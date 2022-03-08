@@ -35,12 +35,8 @@ export async function setup() {
       `${root}/database/db_init/test_seeds.sql`,
       '/docker-entrypoint-initdb.d/seeds.sql'
     )
-    
-    //.withBindMount(`${root}/database/db_init`, '/docker-entrypoint-initdb.d')
 
   __PG_CONTAINER__ = await container.start()
-
-  console.log('Postgres init folder:', (await __PG_CONTAINER__.exec(['ls', '-al', '/docker-entrypoint-initdb.d'])).output)
 
   // In CI the container running docker will live at host docker via docker links
   const host = isCI ? 'docker' : __PG_CONTAINER__.getHost()
