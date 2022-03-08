@@ -10,7 +10,6 @@ import { getIdFromModelReference } from '../utils/model-reference'
 import * as StudentRepo from '../models/Student/queries'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import config from '../config'
-import { asString } from '../utils/type-utils'
 
 export const queueOnboardingEmails = async (
   studentId: Types.ObjectId
@@ -74,29 +73,28 @@ export async function checkAndUpdateVolunteerFavoriting(
   userId: Types.ObjectId,
   volunteerId: string
 ) {
-  let result
-  if (isFavorite) {
-    const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
-      asString(userId)
-    )
-    if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
-      result = await StudentRepo.addFavoriteVolunteer(
-        asString(userId),
+    let result
+    if (isFavorite) {
+      const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
+        userId.toString()
+      )
+      if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
+        result = await StudentRepo.addFavoriteVolunteer(
+          userId.toString(),
+          volunteerId
+        )
+        await new UserActionCtrl.AccountActionCreator(userId, '', {
+          volunteerId: volunteerId,
+        }).volunteerFavorited()
+      }
+    } else {
+      result = await StudentRepo.deleteFavoriteVolunteer(
+        userId.toString(),
         volunteerId
       )
       await new UserActionCtrl.AccountActionCreator(userId, '', {
         volunteerId: volunteerId,
-      }).volunteerFavorited()
+      }).volunteerUnfavorited()
     }
-  } else {
-    result = await StudentRepo.deleteFavoriteVolunteer(
-      asString(userId),
-      volunteerId
-    )
-    await new UserActionCtrl.AccountActionCreator(userId, '', {
-      volunteerId: volunteerId,
-    }).volunteerUnfavorited()
-  }
-
-  return result
+    return result
 }
