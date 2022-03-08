@@ -14,6 +14,7 @@ const healthCheck = {
 }
 
 export async function setup() {
+  const start = Date.now()
   const container = new GenericContainer('postgres:14-alpine')
     .withHealthCheck(healthCheck)
     .withExposedPorts(PORT)
@@ -47,9 +48,12 @@ export async function setup() {
   }
 
   setGlobalsFromEnv(global, globalEnv)
+  const end = Date.now()
+  console.log(`Setup took ${end - start}ms`)
 }
 
 export async function teardown() {
+  console.log('Killing container:', __PG_CONTAINER__?.getId())
   await __PG_CONTAINER__?.stop({
     timeout: 5 * 1000,
   })
