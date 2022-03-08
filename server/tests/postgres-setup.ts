@@ -3,7 +3,7 @@ import { GenericContainer, Wait } from 'testcontainers'
 import fs from 'fs'
 
 const isCI = Boolean(process.env.CI_CONTAINER)
-const root = isCI ? '/builds' : `../../${__dirname}`
+const root = isCI ? '/builds/upchieve' : `../../${__dirname}`
 
 const PORT = 5432
 let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
@@ -42,7 +42,11 @@ export async function setup() {
   __PG_CONTAINER__ = await container.start()
 
   const files: string[] = []
-  fs.readdirSync('/builds').forEach(file => {
+  fs.readdirSync('/builds/upchieve').forEach(file => {
+    files.push(file);
+  })
+  files.push('SEPARATOR')
+  fs.readdirSync('/builds/upchieve/subway').forEach(file => {
     files.push(file);
   })
   console.log('Test container contents:', files)
