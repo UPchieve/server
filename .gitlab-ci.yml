@@ -83,7 +83,7 @@ testbackend:
     - curl -fsSL https://get.docker.com -o get-docker.sh
     - VERSION=20.10.6 sh ./get-docker.sh
   script:
-    - npm run test:database
+    - npm run test:database assistments
   needs: []
   rules:
     - if: '$TEST_DISABLED'
