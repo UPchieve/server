@@ -20,10 +20,9 @@ export async function setup() {
     password: config.postgresPassword,
     database: config.postgresDatabase,
     allowExitOnIdle: true,
-    connectionTimeoutMillis: 3 * 1000,
+    connectionTimeoutMillis: 5 * 1000,
     ssl: false,
   })
-  console.log('Testing pw:', config.postgresPassword)
   mockedClient.getClient.mockReturnValue(client)
   closureClient = client
 }

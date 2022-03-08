@@ -1,6 +1,5 @@
 import { StartedTestContainer } from 'testcontainers/dist/test-container'
 import { GenericContainer, Wait } from 'testcontainers'
-import config from '../config'
 
 const isCI = Boolean(process.env.CI_CONTAINER)
 

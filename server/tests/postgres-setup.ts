@@ -1,8 +1,8 @@
 import { StartedTestContainer } from 'testcontainers/dist/test-container'
 import { GenericContainer, Wait } from 'testcontainers'
-import config from '../config'
 
 const isCI = Boolean(process.env.CI_CONTAINER)
+const root = isCI ? '' : `../../${__dirname}`
 
 const PORT = 5432
 let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
@@ -24,15 +24,15 @@ export async function setup() {
     .withEnv('POSTGRES_DB', 'upchieve')
     .withEnv('POSTGRES_USER', 'admin')
     .withCopyFileToContainer(
-      '/subway/database/db_init/schema.sql',
+      `${root}/database/db_init/schema.sql`,
       '/docker-entrypoint-initdb.d/init_db.sql'
     )
     .withCopyFileToContainer(
-      '/subway/database/db_init/auth.sql',
+      `${root}/database/db_init/auth.sql`,
       '/docker-entrypoint-initdb.d/init_roles.sql'
     )
     .withCopyFileToContainer(
-      '/subway/database/db_init/test_seeds.sql',
+      `${root}/database/db_init/test_seeds.sql`,
       '/docker-entrypoint-initdb.d/seeds.sql'
     )
 
