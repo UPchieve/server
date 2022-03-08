@@ -1,6 +1,5 @@
 import { StartedTestContainer } from 'testcontainers/dist/test-container'
 import { GenericContainer, Wait } from 'testcontainers'
-import { v4 } from 'uuid'
 import { check } from 'tcp-port-used'
 
 async function genPort(): Promise<number> {
@@ -19,7 +18,6 @@ export async function setup() {
   const pathToSubway = isCI ? '/builds/upchieve/subway' : '.'
   const HOST = isCI ? 'docker' : 'localhost'
   const PORT = isCI ? await genPort() : 5432
-  const NAME = v4()
 
   const healthCheck = {
     test: `pg_isready -h localhost -U subway -d upchieve -p ${PORT}`,
@@ -29,7 +27,6 @@ export async function setup() {
   }
 
   let container = new GenericContainer('postgres:14-alpine')
-    .withName(NAME)
     .withHealthCheck(healthCheck)
     .withExposedPorts(PORT)
     .withWaitStrategy(Wait.forHealthCheck())
