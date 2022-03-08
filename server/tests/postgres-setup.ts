@@ -1,9 +1,8 @@
 import { StartedTestContainer } from 'testcontainers/dist/test-container'
 import { GenericContainer, Wait } from 'testcontainers'
-import fs from 'fs'
 
 const isCI = Boolean(process.env.CI_CONTAINER)
-const root = isCI ? '/builds/upchieve' : `../../${__dirname}`
+const root = isCI ? '/builds/upchieve/subway' : `../../${__dirname}`
 
 const PORT = 5432
 let __PG_CONTAINER__: StartedTestContainer | undefined = undefined
@@ -41,17 +40,7 @@ export async function setup() {
 
   __PG_CONTAINER__ = await container.start()
 
-  const files: string[] = []
-  fs.readdirSync('/builds/upchieve').forEach(file => {
-    files.push(file);
-  })
-  files.push('SEPARATOR')
-  fs.readdirSync('/builds/upchieve/subway').forEach(file => {
-    files.push(file);
-  })
-  console.log('Test container contents:', files)
   console.log('Postgres init folder:', (await __PG_CONTAINER__.exec(['ls', '-al', '/docker-entrypoint-initdb.d'])).output)
-  console.log('Postgres root folder:', (await __PG_CONTAINER__.exec(['ls', '-al', '/'])).output)
 
   // In CI the container running docker will live at host docker via docker links
   const host = isCI ? 'docker' : __PG_CONTAINER__.getHost()
