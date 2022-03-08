@@ -218,20 +218,18 @@ export async function getFavoriteVolunteers(
   }
 }
 
-function mockDeleteFavoriteVolunteer() {
-  const updateFavoriteVolunteer: UpdateFavoriteVolunteer = {
+function mockDeleteFavoriteVolunteer(): UpdateFavoriteVolunteer {
+  return {
     volunteerId: getDbUlid(),
     studentId: getDbUlid(),
   }
-  return updateFavoriteVolunteer
 }
 
-function mockAddFavoriteVolunteer() {
-  const updateFavoriteVolunteer: UpdateFavoriteVolunteer = {
+function mockAddFavoriteVolunteer(): UpdateFavoriteVolunteer {
+  return {
     volunteerId: getDbUlid(),
     studentId: getDbUlid(),
   }
-  return updateFavoriteVolunteer
 }
 
 export async function deleteFavoriteVolunteer(
@@ -242,7 +240,7 @@ export async function deleteFavoriteVolunteer(
     /** TODO: use postgres query once sql migration is complete
      * const result = await pgQueries.deleteFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
       
-    if(result)
+    if(result.length)
       return false
      */
     const result = mockDeleteFavoriteVolunteer()
@@ -262,7 +260,7 @@ export async function addFavoriteVolunteer(
   try {
     /** TODO: use postgres query once sql migration is complete 
     const result = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
-    if(result)
+    if(result.length)
       return true
      */
     const result = mockAddFavoriteVolunteer()

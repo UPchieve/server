@@ -10,6 +10,8 @@ import { getDbUlid } from '../../models/pgUtils'
 jest.mock('../../models/Student/queries')
 const mockedStudentRepo = mocked(StudentRepo, true)
 
+jest.setTimeout(30000)
+
 // mock app - passport should attach any user we need
 const app = mockApp()
 const mockGetUser = () => buildStudent()

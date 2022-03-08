@@ -27,6 +27,7 @@ export interface UserAction extends UserActionAgent {
   ipAddress?: string
   referenceEmail?: string
   banReason?: string
+  volunteerId: string
 }
 
 export type UserActionDocument = UserAction & Document
@@ -98,6 +99,7 @@ const userActionSchema = new Schema({
   ipAddress: String,
   referenceEmail: String,
   banReason: String,
+  volunteerId: String,
 })
 
 const UserActionModel = model<UserActionDocument>(

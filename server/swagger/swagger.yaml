@@ -1396,6 +1396,18 @@ paths:
           in: path
           schema:
             $ref: '#/components/schemas/UserId'
+      - name: isFavorite
+          required: true
+          in: query
+          type: boolean
+          schema: 
+            $ref: '#/components/schemas/IsFavorite'
+      - name: sessionId
+          required: false
+          in: query
+          type: boolean
+          schema:
+            $ref: '#/components/schemas/SessionId'
       responses: 
         '200': 
           description: 
