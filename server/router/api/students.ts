@@ -52,7 +52,7 @@ export function routeStudents(router: Router): void {
     try {
       const user = extractUser(req)
       const page = asNumber(req.query.page)
-      const result = await StudentRepo.getFavoriteVolunteers(
+      const result = await StudentService.getFavoriteVolunteersPaginated(
         String(user._id),
         page
       )
