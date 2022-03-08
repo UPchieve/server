@@ -52,7 +52,7 @@ export default {
 
   &-subtitle{
     @include font-category('body');
-    margin-top: 79px;
+    margin-top: 2.82em;
     font-size: 18px;
   }
 

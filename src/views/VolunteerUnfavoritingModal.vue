@@ -20,7 +20,6 @@
 <script>
 import Modal from '@/components/Modal'
 import LargeButton from '@/components/LargeButton'
-import { mapState } from 'vuex'
 
 export default {
   name: 'volunteer-unfavoriting-modal',
@@ -28,11 +27,6 @@ export default {
   props: {
     closeModal: { type: Function, required: true },
     volunteerName: {type: String, required: true}
-  },
-  computed: {
-  ...mapState({
-      user: state => state.user.user
-    })
   },
   data() {
     return {
@@ -42,7 +36,6 @@ export default {
   methods: {
     unfavorite() {
       this.$emit('unfavorite', false)
-      this.closeModal()
     }
   }
 }
@@ -57,7 +50,7 @@ export default {
   }
 
   &-buttons {
-    margin-top: 28px;
+    margin-top: 1em;
     @include flex-container(row, space-evenly);
   }
 

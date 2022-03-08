@@ -5,7 +5,7 @@
       v-if="showVolunteerUnfavoritingModal"
       :closeModal="toggleVolunteerUnfavoritingModal"
       :volunteerName="volunteerName"
-      @unfavorite="setIsFavorite"
+      @unfavorite="unfavorite"
     />
     <favorited-list-full-modal
       v-if="showFavoritedListFullModal"
@@ -57,6 +57,10 @@ export default {
     }
   },
   methods: {
+    async unfavorite(value) {
+      await this.setIsFavorite(value)
+      this.showVolunteerUnfavoritingModal = false
+    },
     async setIsFavorite(value) {
       const response = await NetworkService.mockUpdateVolunteerFavoritedStatus(this.volunteerId, { favorited: value, sessionId: this.sessionId })
       this.isFavorite = response.body.isFavorite
@@ -66,11 +70,10 @@ export default {
         this.toggleVolunteerUnfavoritingModal()
         return
       }
-     
       const { 
         body: { remaining }
       } = await NetworkService.mockGetRemainingVolunteers()
-      if(remaining>0)
+      if (remaining > 0)
         this.setIsFavorite(true)
       else
         this.toggleFavoritedListFullModal()
