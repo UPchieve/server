@@ -83,7 +83,6 @@ testbackend:
     - curl -fsSL https://get.docker.com -o get-docker.sh
     - VERSION=20.10.6 sh ./get-docker.sh
   script:
-    - docker volume ls
     - npm run test:database assistments
   needs: []
   rules:
