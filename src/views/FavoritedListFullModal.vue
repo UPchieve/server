@@ -8,7 +8,7 @@
       </header>
 
       <h2 class="favorited-list-full-modal-subtitle">
-        You must unfavorite a coach from your "Favorite Coach" list in order to favorite a new volunteer.
+        You must unfavorite a coach from your "Favorite Coach" list in order to favorite a new coach.
       </h2>
 
       <footer>
