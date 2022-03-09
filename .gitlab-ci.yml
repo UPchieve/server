@@ -69,13 +69,39 @@ testbackend:
   variables:
     NODE_OPTIONS: --max_old_space_size=2048
   services:
-    - name: mongo:4.2.2
-      alias: mongodb
     - redis:latest
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
     - npm run test:backend
+  needs: []
+  rules:
+    - if: '$TEST_DISABLED'
+      when: never
+    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+
+
+testdatabase:
+  stage: test
+  image: node:16.8.0-bullseye
+  tags:
+    - upchieve
+  variables:
+    NODE_OPTIONS: --max_old_space_size=2048
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "/certs/client"
+    DOCKER_TLS_CERTDIR: "/certs"
+    TESTCONTAINERS_HOST_OVERRIDE: docker
+    CI_CONTAINER: "true"
+  services:
+    - docker:20.10.6-dind
+  before_script:
+    - npm ci --cache .npm --prefer-offline
+    - curl -fsSL https://get.docker.com -o get-docker.sh
+    - VERSION=20.10.6 sh ./get-docker.sh
+  script:
+    - npm run test:database
   needs: []
   rules:
     - if: '$TEST_DISABLED'

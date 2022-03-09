@@ -117,7 +117,7 @@ export async function createHistoryFromBaseHistory(
 }
 
 // pg wrappers
-import client from '../../pg'
+import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid } from '../pgUtils'
 
@@ -180,7 +180,7 @@ export async function getAvaiabilityForVolunteer(
   try {
     const result = await pgQueries.getAvailabilityForVolunteer.run(
       { userId },
-      client
+      getClient()
     )
     return buildAvailabilityModel(result)
   } catch (err) {
@@ -202,7 +202,7 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
   try {
     const result = await pgQueries.getAvailabilityHistoryForDatesByVolunteerId.run(
       { userId, start, end },
-      client
+      getClient()
     )
     const rowsByDate = _.groupBy(result, 'recordedAt')
 
