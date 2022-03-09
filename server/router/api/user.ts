@@ -178,7 +178,6 @@ export function routeUser(router: Router): void {
 
       res.json({ user })
     } catch (err) {
-      console.log(err)
       resError(res, err)
     }
   })
