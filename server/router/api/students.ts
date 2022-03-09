@@ -72,7 +72,7 @@ export function routeStudents(router: Router): void {
         volunteerId,
         sessionId
       )
-
+      // console.log('students.ts', result) // undefined
       if (result) res.json({ isFavorite: result.isFavorite })
 
       res.status(422).json({

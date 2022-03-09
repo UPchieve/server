@@ -70,32 +70,32 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
 
 export async function checkAndUpdateVolunteerFavoriting(
   isFavorite: boolean,
-  userId: Types.ObjectId,
+  studentId: Types.ObjectId,
   volunteerId: string,
   sessionId?: Types.ObjectId
 ) {
   if (isFavorite) {
     const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
-      userId.toString()
+      studentId.toString()
     )
     if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
-      await new UserActionCtrl.AccountActionCreator(userId, '', {
+      await new UserActionCtrl.AccountActionCreator(studentId, '', {
         volunteerId: volunteerId,
         session: sessionId,
       }).volunteerFavorited()
       const result = await StudentRepo.addFavoriteVolunteer(
-        userId.toString(),
+        studentId.toString(),
         volunteerId
       )
       return { result, isFavorite: true }
     }
   } else {
-    await new UserActionCtrl.AccountActionCreator(userId, '', {
+    await new UserActionCtrl.AccountActionCreator(studentId, '', {
       volunteerId: volunteerId,
       session: sessionId,
     }).volunteerUnfavorited()
     const result = await StudentRepo.deleteFavoriteVolunteer(
-      userId.toString(),
+      studentId.toString(),
       volunteerId
     )
     return { result, isFavorite: false }
