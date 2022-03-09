@@ -46,6 +46,16 @@ export function routeUser(router: Router): void {
     }
   })
 
+  router.delete('/user', async (req, res) => {
+    try {
+      const user = extractUser(req)
+      await UserService.flagForDeletion(user)
+      res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   // Admin route to update a user
   router.put('/user/:userId', authPassport.isAdmin, async (req, res) => {
     const { userId } = req.params
