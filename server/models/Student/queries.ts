@@ -2,6 +2,7 @@ import { Types } from 'mongoose'
 import StudentModel, { Student } from './index'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
+import { getObjectId } from '../../tests/generate'
 
 async function wrapRead<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -194,8 +195,8 @@ type FavoriteVolunteersResponse = {
 }
 
 export type UpdateFavoriteVolunteer = {
-  studentId: Ulid
-  volunteerId: Ulid
+  studentId: Types.ObjectId
+  volunteerId: Types.ObjectId
 }
 
 export async function getFavoriteVolunteers(
@@ -219,27 +220,27 @@ export async function getFavoriteVolunteers(
 
 function mockDeleteFavoriteVolunteer(): UpdateFavoriteVolunteer {
   return {
-    volunteerId: getDbUlid(),
-    studentId: getDbUlid(),
+    volunteerId: getObjectId(),
+    studentId: getObjectId(),
   }
 }
 
 function mockAddFavoriteVolunteer(): UpdateFavoriteVolunteer {
   return {
-    volunteerId: getDbUlid(),
-    studentId: getDbUlid(),
+    volunteerId: getObjectId(),
+    studentId: getObjectId(),
   }
 }
 
 export async function deleteFavoriteVolunteer(
-  studentId: Ulid,
-  volunteerId: Ulid
+  studentId: Types.ObjectId,
+  volunteerId: Types.ObjectId
 ): Promise<UpdateFavoriteVolunteer> {
   try {
     /** TODO: use postgres query once sql migration is complete
      * const result = await pgQueries.deleteFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
       
-    if(result.rows[0])
+    if(result.length)
       return makeRequired(result.rows[0])
      */
     const result = mockDeleteFavoriteVolunteer()
@@ -253,13 +254,13 @@ export async function deleteFavoriteVolunteer(
 }
 
 export async function addFavoriteVolunteer(
-  studentId: Ulid,
-  volunteerId: Ulid
+  studentId: Types.ObjectId,
+  volunteerId: Types.ObjectId
 ): Promise<UpdateFavoriteVolunteer> {
   try {
     /** TODO: use postgres query once sql migration is complete 
     const result = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
-    if(result.rows[0])
+    if(result.length)
       return makeRequired(result.rows[0])
      */
     const result = mockAddFavoriteVolunteer()

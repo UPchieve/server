@@ -1405,7 +1405,6 @@ paths:
         - name: sessionId
           required: false
           in: query
-          type: boolean
           schema:
             $ref: '#/components/schemas/SessionId'
       responses: 

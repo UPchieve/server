@@ -71,7 +71,7 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
 export async function checkAndUpdateVolunteerFavoriting(
   isFavorite: boolean,
   studentId: Types.ObjectId,
-  volunteerId: string,
+  volunteerId: Types.ObjectId,
   sessionId?: Types.ObjectId
 ) {
   if (isFavorite) {
@@ -84,7 +84,7 @@ export async function checkAndUpdateVolunteerFavoriting(
         session: sessionId,
       }).volunteerFavorited()
       const result = await StudentRepo.addFavoriteVolunteer(
-        studentId.toString(),
+        studentId,
         volunteerId
       )
       return { result, isFavorite: true }
@@ -95,7 +95,7 @@ export async function checkAndUpdateVolunteerFavoriting(
       session: sessionId,
     }).volunteerUnfavorited()
     const result = await StudentRepo.deleteFavoriteVolunteer(
-      studentId.toString(),
+      studentId,
       volunteerId
     )
     return { result, isFavorite: false }

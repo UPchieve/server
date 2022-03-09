@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { buildStudent } from '../generate'
+import { buildStudent, getObjectId } from '../generate'
 import { routeStudents } from '../../router/api/students'
 import * as StudentRepo from '../../models/Student/queries'
 import * as StudentService from '../../services/StudentService'
@@ -84,10 +84,10 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   })
 
   test('Students should be able to favorite volunteer', async () => {
-    const volunteerId = getDbUlid()
+    const volunteerId = getObjectId()
     const expectedIsFavorite = true
     const result = {
-      studentId: getDbUlid(),
+      studentId: getObjectId(),
       volunteerId: volunteerId,
     }
     const payload = { isFavorite: expectedIsFavorite }
@@ -95,7 +95,30 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
       { result, isFavorite: true }
     )
     const response = await sendPost(
-      IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
+      payload
+    )
+    const {
+      body: { isFavorite },
+    } = response
+
+    expect(isFavorite).toEqual(expectedIsFavorite)
+    expect(response.status).toBe(200)
+  })
+
+  test('Students should be able to favorite volunteer with sessionId in the payload', async () => {
+    const volunteerId = getObjectId()
+    const expectedIsFavorite = true
+    const result = {
+      studentId: getObjectId(),
+      volunteerId: volunteerId,
+    }
+    const payload = { isFavorite: expectedIsFavorite, sessionId: getObjectId() }
+    mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
+      { result, isFavorite: true }
+    )
+    const response = await sendPost(
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
       payload
     )
     const {
@@ -107,18 +130,18 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   })
 
   test('Students should be able to unfavorite volunteer', async () => {
-    const volunteerId = getDbUlid()
+    const volunteerId = getObjectId()
     const expectedIsFavorite = false
     const result = {
       volunteerId: volunteerId,
-      studentId: getDbUlid(),
+      studentId: getObjectId(),
     }
     const payload = { isFavorite: expectedIsFavorite }
     mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
       { result, isFavorite: false }
     )
     const response = await sendPost(
-      IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
       payload
     )
     const {
@@ -130,14 +153,14 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   })
 
   test('Students should be not be able to favorite more than max volunteers', async () => {
-    const volunteerId = getDbUlid()
+    const volunteerId = getObjectId()
     const expectedIsFavorite = true
     const payload = { isFavorite: expectedIsFavorite }
     mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
       undefined
     )
     const response = await sendPost(
-      IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
       payload
     )
 
