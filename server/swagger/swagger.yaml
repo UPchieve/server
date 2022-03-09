@@ -1391,18 +1391,18 @@ paths:
       security:
         - cookieAuth: []
       parameters: 
-      - name: volunteerId
+        - name: volunteerId
           required: true
           in: path
           schema:
             $ref: '#/components/schemas/UserId'
-      - name: isFavorite
+        - name: isFavorite
           required: true
           in: query
           type: boolean
           schema: 
             $ref: '#/components/schemas/IsFavorite'
-      - name: sessionId
+        - name: sessionId
           required: false
           in: query
           type: boolean
