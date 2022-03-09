@@ -132,7 +132,7 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     } = response
 
     expect(isFavorite).toEqual(expectedIsFavorite)
-    expect(response.status).toBe(200) // error code returned = 422
+    expect(response.status).toBe(200)
     expect(volunteerUnfavoritedMockMethod).toHaveBeenCalledTimes(1)
   })
 
