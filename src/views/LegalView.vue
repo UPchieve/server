@@ -28,7 +28,7 @@
       <h2 id="terms">Terms of Service</h2>
 
       <p>
-        <em>Date of Last Revision: May 12, 2018</em>
+        <em>Date of Last Revision: March 9, 2022</em>
       </p>
 
       <p>
