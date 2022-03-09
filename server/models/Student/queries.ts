@@ -218,18 +218,12 @@ export async function getFavoriteVolunteers(
   }
 }
 
-function mockDeleteFavoriteVolunteer(): UpdateFavoriteVolunteer {
-  return {
-    volunteerId: getObjectId(),
-    studentId: getObjectId(),
-  }
+function mockDeleteFavoriteVolunteer(): UpdateFavoriteVolunteer[] {
+  return [{ volunteerId: getObjectId(), studentId: getObjectId() }]
 }
 
-function mockAddFavoriteVolunteer(): UpdateFavoriteVolunteer {
-  return {
-    volunteerId: getObjectId(),
-    studentId: getObjectId(),
-  }
+function mockAddFavoriteVolunteer(): UpdateFavoriteVolunteer[] {
+  return [{ volunteerId: getObjectId(), studentId: getObjectId() }]
 }
 
 export async function deleteFavoriteVolunteer(
@@ -244,7 +238,7 @@ export async function deleteFavoriteVolunteer(
       return makeRequired(result.rows[0])
      */
     const result = mockDeleteFavoriteVolunteer()
-    if (result) return result
+    if (result.length) return makeRequired(result[0])
     throw new RepoDeleteError(
       'Delete query did not return deleted favorited volunteer'
     )
@@ -264,7 +258,7 @@ export async function addFavoriteVolunteer(
       return makeRequired(result.rows[0])
      */
     const result = mockAddFavoriteVolunteer()
-    if (result) return result
+    if (result.length) return makeRequired(result[0])
     throw new RepoUpdateError(
       'Update query did not return added favorite volunteer'
     )
