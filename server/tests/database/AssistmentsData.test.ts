@@ -2,9 +2,25 @@
  * @group database
  */
 
-import { metaSetup } from '../postgres-test-hook'
-import { IgetAssistmentsDataBySession } from '../../models/AssistmentsData/queries'
-import { Ulid } from 'id128'
+import { buildTestClient, metaSetup } from '../postgres-test-hook'
+import {
+  getAssistmentsDataBySession,
+  updateAssistmentsDataSentById,
+  createAssistmentsDataBySessionId,
+} from '../../models/AssistmentsData/pgqueries'
+import { Ulid } from '../../models/pgUtils'
+import { Pool } from 'pg'
+import {
+  buildSession,
+  insertSingleRow,
+  buildUser,
+  buildStudent,
+  buildAssistmentsData,
+  dropTables,
+  executeQuery,
+} from '../pg-generate'
+import { PgAssistmentsData } from '../../models/AssistmentsData'
+import { PgStudent } from '../../models/Student'
 
 /**
  * All database tests must mark @group database and use the setup/teadown hooks
@@ -14,7 +30,80 @@ import { Ulid } from 'id128'
  */
 metaSetup()
 
-test('Make a connection', async () => {
-  const result = await IgetAssistmentsDataBySession(Ulid.generate().toRaw())
-  expect(result).not.toBeDefined()
+describe('Assistments data queries', () => {
+  let client: Pool
+  let student: PgStudent
+  let sessionId: Ulid
+  let ad: PgAssistmentsData
+  beforeAll(async () => {
+    client = buildTestClient()
+    const user = await insertSingleRow('users', buildUser(), client)
+    student = await insertSingleRow(
+      'student_profiles',
+      buildStudent({ userId: user.id }),
+      client
+    )
+  })
+  afterAll(async () => {
+    await client.end()
+  })
+  beforeEach(async () => {
+    await dropTables(['assistments_data', 'sessions'], client)
+    const session = await insertSingleRow(
+      'sessions',
+      await buildSession({ studentId: student.userId }, client),
+      client
+    )
+    sessionId = session.id
+    ad = await insertSingleRow(
+      'assistments_data',
+      buildAssistmentsData({ sessionId }),
+      client
+    )
+  })
+  test('getAssistmentsDataBySession gets AD for a session', async () => {
+    const result = await getAssistmentsDataBySession(sessionId)
+    expect(result).toEqual(ad)
+  })
+  test('updateAssistmentsDataSentById updates sent status', async () => {
+    await updateAssistmentsDataSentById(ad.id)
+    const result = await executeQuery(
+      `SELECT sent, sent_at FROM assistments_data WHERE session_id = $1`,
+      [sessionId],
+      client
+    )
+    expect(result.rows[0].sent).toBeTruthy()
+    expect(result.rows[0].sentAt).toBeDefined()
+  })
+  test('createAssistmentsDataBySessionId creates new AD when none exist', async () => {
+    const newSession = await insertSingleRow(
+      'sessions',
+      await buildSession({ studentId: student.userId }, client),
+      client
+    )
+    const expectedAd = buildAssistmentsData({ sessionId: newSession.id })
+    const newAd = await createAssistmentsDataBySessionId(
+      expectedAd.problemId,
+      expectedAd.assignmentId,
+      expectedAd.studentId,
+      expectedAd.sessionId
+    )
+    expect(newAd.sessionId).toEqual(newSession.id)
+    const result = await executeQuery(
+      `SELECT * FROM assistments_data WHERE session_id = $1`,
+      [newSession.id],
+      client
+    )
+    expect(result.rows[0].sessionId).toEqual(expectedAd.sessionId)
+  })
+  test('createAssistmentsDataBySessionId creates new AD when none exist', async () => {
+    await expect(() =>
+      createAssistmentsDataBySessionId(
+        ad.problemId,
+        ad.assignmentId,
+        ad.studentId,
+        sessionId
+      )
+    ).rejects.toThrowError('Insert did not return new row')
+  })
 })

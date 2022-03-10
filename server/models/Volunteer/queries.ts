@@ -829,9 +829,7 @@ export async function IgetNextVolunteerToNotify(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], { volunteerPartnerOrg: 'test' } as {
-        volunteerPartnerOrg?: string
-      })
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }

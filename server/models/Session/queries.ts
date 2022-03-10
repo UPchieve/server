@@ -18,7 +18,7 @@ import { Notification } from '../Notification'
 import { Student } from '../Student'
 import { getStudentContactInfoById } from '../Student/queries'
 import { Volunteer } from '../Volunteer'
-import SessionModel, { Session } from './index'
+import SessionModel, { Session } from './types'
 
 export async function addSessionNotifications(
   sessionId: Types.ObjectId,

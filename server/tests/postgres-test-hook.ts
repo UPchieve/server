@@ -11,6 +11,21 @@ export const ONE_MINUTE = 60 * 1000
 
 let closureClient: Pool
 
+export function buildTestClient() {
+  const client = new Pool({
+    host: global.__PG_HOST__,
+    port: global.__PG_PORT__,
+    user: config.postgresUser,
+    password: config.postgresPassword,
+    database: config.postgresDatabase,
+    allowExitOnIdle: true,
+    connectionTimeoutMillis: 0,
+    idleTimeoutMillis: 0,
+    ssl: false,
+  })
+  return client
+}
+
 export async function setup() {
   await pgEnv.setup()
   const client = new Pool({

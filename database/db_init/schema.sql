@@ -324,7 +324,7 @@ CREATE TABLE upchieve.feedbacks (
     legacy_feedbacks json,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -373,7 +373,7 @@ CREATE TABLE upchieve.ineligible_students (
     grade_level_id integer,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -387,7 +387,7 @@ CREATE TABLE upchieve.ip_addresses (
     status text,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -539,7 +539,7 @@ CREATE TABLE upchieve.notifications (
     message_carrier_id text,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -600,7 +600,7 @@ CREATE TABLE upchieve.pre_session_surveys (
     user_id uuid NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -629,7 +629,7 @@ CREATE TABLE upchieve.quiz_questions (
     image_source text,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -877,7 +877,7 @@ CREATE TABLE upchieve.schools (
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     name_search tsvector GENERATED ALWAYS AS (to_tsvector('english'::regconfig, name)) STORED,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -936,7 +936,7 @@ CREATE TABLE upchieve.session_messages (
     session_id uuid NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -976,7 +976,7 @@ CREATE TABLE upchieve.sessions (
     time_tutored bigint DEFAULT 0 NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -1276,7 +1276,7 @@ CREATE TABLE upchieve.user_actions (
     quiz_category text,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -1397,7 +1397,7 @@ CREATE TABLE upchieve.users (
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     phone text,
-    mongo_id character varying(24) NOT NULL
+    mongo_id character varying(24)
 );
 
 
@@ -2613,14 +2613,6 @@ ALTER TABLE ONLY upchieve.assistments_data
 
 
 --
--- Name: assistments_data assistments_data_student_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.assistments_data
-    ADD CONSTRAINT assistments_data_student_id_fkey FOREIGN KEY (student_id) REFERENCES upchieve.users(id);
-
-
---
 -- Name: availabilities availabilities_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3347,4 +3339,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220217154443'),
     ('20220217155144'),
     ('20220217160257'),
-    ('20220223184006');
+    ('20220223184006'),
+    ('20220310003451'),
+    ('20220310005137');

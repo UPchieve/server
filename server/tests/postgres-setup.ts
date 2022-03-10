@@ -7,6 +7,7 @@ async function genPort(): Promise<number> {
   while (iter < 100) {
     const port = Math.floor(Math.random() * (65535 - 1024 + 1) + 1024) // tcp ports range 1024-65535
     if (await check(port, 'localhost')) return port
+    iter += 1
   }
   throw new Error('Could not generate valid port')
 }
