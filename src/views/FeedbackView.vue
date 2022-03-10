@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import LargeButton from '@/components/LargeButton'
 import { topics } from '@/utils/topics'
@@ -97,6 +97,8 @@ export default {
       presessionSurvey: {},
       isSubmittingFeedback: false,
       completedFeedback: false,
+      isFavoriteCoach: false,
+      isFavoriteCoachLimitReached: false,
       studentQuestions: [
         {
           id: 'session-goal',
@@ -135,6 +137,31 @@ export default {
           answer: null
         },
         {
+          id: 'coach-favoriting',
+          dynamicQuestion: () =>
+            `Would you like to favorite your Coach, ${this.sessionPartnerFirstName}?`,
+          subtext:
+            'Favoriting a coach will increase your chances of being paired with them in the future. You can also favorite or unfavorite coaches from the Session History page.',
+          component: FeedbackRadio,
+          options: [
+            'Yes, I’d love to work with them again!',
+            'No thanks, not right now.',
+          ],
+          direction: 'column',
+          answer: null,
+          show: () => {
+            if (
+              this.isFavoriteCoach ||
+              this.isFavoriteCoachLimitReached ||
+              !this.isCoachFavoritingActive
+            )
+              return false
+
+            const question = this.questions.find((q) => q.id === 'coach-rating')
+            return question.answer && question.answer >= 4
+          },
+        },
+        {
           id: 'coach-feedback',
           question: 'What could your coach have done better?',
           subtext: 'This feedback will be anonymous! You can be honest. :)',
@@ -150,7 +177,7 @@ export default {
           question:
             '(Optional) Do you have any other feedback you’d like to share with UPchieve?',
           subtext:
-            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, but if you need to connect with UPchieve staff about a question or concern please email us directly.',
+            'This can be about the website, about your coach, about the services/features UPchieve provides, about any technical issues you encountered, etc. We read every single comment, every day!',
           component: FeedbackTextarea,
           answer: null
         }
@@ -224,6 +251,9 @@ export default {
   computed: {
     ...mapState({
       user: state => state.user.user
+    }),
+    ...mapGetters({
+      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
     }),
     sessionPartnerFirstName() {
       return this.user.isVolunteer
@@ -309,6 +339,19 @@ export default {
       this.completedFeedback = true
       return
     }
+
+    if (!this.user.isVolunteer && this.isCoachFavoritingActive) {
+      const response = await NetworkService.checkIsFavoriteVolunteer(
+        this.session.volunteer._id
+      )
+      this.isFavoriteCoach = response.body.isFavorite
+
+      if (!this.isFavoriteCoach) {
+        const response =
+          await NetworkService.getRemainingFavoriteVolunteers()
+        this.isFavoriteCoachLimitReached = response.body.remaining === 0
+      }
+    }
   },
   methods: {
     async submitFeedback() {
@@ -331,12 +374,19 @@ export default {
 
       for (const option of this.filteredQuestions) {
         const { id, answer } = option
+        // the answer to the coach-favoriting question is not included in the feedback submission
+        if (id === 'coach-favoriting') continue
+
         if (answer && !Array.isArray(answer)) data[feedbackPath][id] = answer
         // sort answers with multiple selections
         if (answer && Array.isArray(answer) && answer.length > 0)
           data[feedbackPath][id] = answer.sort((a, b) => a - b)
       }
 
+      // TODO: how do we want to handle errors?
+      if (!this.isVolunteer && this.isCoachFavoritingActive)
+        await this.submitFavoriteCoach()
+      this.isSubmittingFeedback = false
       try {
         await NetworkService.feedback(this, data)
         this.$router.push('/')
@@ -345,6 +395,21 @@ export default {
         else this.error = 'There was an error sending your feedback'
       } finally {
         this.isSubmittingFeedback = false
+      }
+    },
+    async submitFavoriteCoach() {
+      if (!this.isVolunteer) {
+        const coachFavoritingQuestion = this.filteredQuestions.find(
+          (q) => q.id === 'coach-favoriting'
+        )
+        // `1` is the first answer option when asking the student if they would like
+        // to favorite the coach. That means the student wants to favorite them
+        if (coachFavoritingQuestion.answer === 1) {
+          await NetworkService.updateFavoriteVolunteerStatus(
+            this.session.volunteer._id,
+            { isFavorite: true, sessionId: this.session._id }
+          )
+        }
       }
     }
   }
