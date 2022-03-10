@@ -21,8 +21,6 @@ import {
 } from '../pg-generate'
 import { PgAssistmentsData } from '../../models/AssistmentsData'
 import { PgStudent } from '../../models/Student'
-import { PgSession } from '../../models/Session'
-import { RepoCreateError } from '../../models/Errors'
 
 /**
  * All database tests must mark @group database and use the setup/teadown hooks
@@ -35,7 +33,7 @@ metaSetup()
 describe('Assistments data queries', () => {
   let client: Pool
   let student: PgStudent
-  let session: PgSession
+  let sessionId: Ulid
   let ad: PgAssistmentsData
   beforeAll(async () => {
     client = buildTestClient()
@@ -51,26 +49,27 @@ describe('Assistments data queries', () => {
   })
   beforeEach(async () => {
     await dropTables(['assistments_data', 'sessions'], client)
-    session = await insertSingleRow(
+    const session = await insertSingleRow(
       'sessions',
       await buildSession({ studentId: student.userId }, client),
       client
     )
+    sessionId = session.id
     ad = await insertSingleRow(
       'assistments_data',
-      buildAssistmentsData({ sessionId: session.id }),
+      buildAssistmentsData({ sessionId }),
       client
     )
   })
   test('getAssistmentsDataBySession gets AD for a session', async () => {
-    const result = await getAssistmentsDataBySession(session.id)
+    const result = await getAssistmentsDataBySession(sessionId)
     expect(result).toEqual(ad)
   })
   test('updateAssistmentsDataSentById updates sent status', async () => {
     await updateAssistmentsDataSentById(ad.id)
     const result = await executeQuery(
       `SELECT sent, sent_at FROM assistments_data WHERE session_id = $1`,
-      [session.id],
+      [sessionId],
       client
     )
     expect(result.rows[0].sent).toBeTruthy()
@@ -104,8 +103,8 @@ describe('Assistments data queries', () => {
         ad.problemId,
         ad.assignmentId,
         ad.studentId,
-        session.id
+        sessionId
       )
-    ).rejects.toBeInstanceOf(RepoCreateError)
+    ).rejects.toThrowError('Insert did not return new row')
   })
 })
