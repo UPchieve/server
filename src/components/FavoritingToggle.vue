@@ -59,14 +59,13 @@ export default {
     },
     async setIsFavorite(value) {
       try {
-          const response = await NetworkService.mockUpdateVolunteerFavoriteStatus(this.volunteerId, { favorited: value, sessionId: this.sessionId })
+          const response = await NetworkService.mockUpdateFavoriteVolunteerStatus(this.volunteerId, { isFavorite: value })
           this.isFavorite = response.body.isFavorite
-          // if (!this.isFavorite) {
-          //   throw new Error('Favorite volunteer limit reached.')
-          // }
       } catch (error) {
+        if(error.status === 422)
+          this.error = error.message
         this.showFavoritedListFullModal = true
-      }  
+      } 
     },
     async toggleFavoritedStatus(){
       if(this.isFavorite) {

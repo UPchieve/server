@@ -3,14 +3,13 @@
     <div class="unfavoriting-modal">
     <header>
       <h1 class="unfavoriting-modal-title">
-        Do you want to unfavorite Coach {{ volunteerName }}?  
+        Do you want to unfavorite <p class="unfavoriting-modal-coach">Coach {{ volunteerName }}?<p>
       </h1>
-    </header>
-       
+    </header>   
     <footer>
       <div class="unfavoriting-modal-buttons">
-        <large-button @click.native="closeModal">Cancel</large-button>
-        <large-button primary class="unfavoriting-modal-unfavorite-button" @click.native="unfavorite">Unfavorite</large-button>
+        <large-button @click.native="closeModal" :showArrow="false" class="unfavoriting-modal-cancel-button">Cancel</large-button>
+        <large-button :showArrow="false" primary class="unfavoriting-modal-unfavorite-button" @click.native="unfavorite">Unfavorite</large-button>
       </div>
     </footer>
     </div>
@@ -26,7 +25,7 @@ export default {
   components: {Modal, LargeButton},
   props: {
     closeModal: { type: Function, required: true },
-    volunteerName: {type: String, required: true}
+    volunteerName: {type: String, required: true, default: 'Test'}
   },
   methods: {
     unfavorite() {
@@ -35,24 +34,49 @@ export default {
   }
 }
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss">
+.upc-modal-form {
+  @include flex-container(column,center);
+  height: 190px;
+  width: 393px;
+  border-radius: 16px;
+
+  &:hover {
+    box-shadow: 0px 2px 5px 3px rgba(0, 0, 0, 0.15);
+  }
+}
+</style>
+
+<style lang="scss" scoped>
 .unfavoriting-modal {
   @include flex-container(column);
 
   &-title {
-    @include font-category('display-small');
+    @include font-category('heading');
+  }
+
+  &-coach {
+    font-weight: $font-weight-medium;
   }
 
   &-buttons {
-    margin-top: 1em;
+    margin-top: 0.5em;
     @include flex-container(row, space-evenly);
   }
 
   &-unfavorite-button {
     background-color: $c-information-blue;
+    border-radius: 200px;
+    padding: 14px 24px;
     color: white;
+    border: 1px solid transparent;
+  }
+
+  &-cancel-button {
+    border-radius: 200px;
+    border: 1px solid #8B939F;
+    padding: 14px 24px;
   }
 }
-
 </style>
