@@ -22,6 +22,11 @@ const priorityMatchingSponsorOrgs = priorityMatchingSponsorOrgList.split(',')
 jest.mock('../config', () => {
   return {
     NODE_ENV: 'dev',
+    postgresHost: 'localhost', // will not be used in testing
+    postgresPort: 5432, // will not be used in testing
+    postgresUser: 'subway',
+    postgresPassword: 'Password123',
+    postgresDatabase: 'upchieve',
     sessionSecret: 'secret',
     awsS3: {
       accessKeyId: 'ACCESSKEY123',
@@ -145,3 +150,5 @@ jest.mock('unleash-client', () => {
 
 // initialize global mongoURI for use with @shelf/jest-mongodb
 var __MONGO_URI__: string
+var __PG_HOST__: string
+var __PG_PORT__: number

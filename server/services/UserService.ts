@@ -30,6 +30,7 @@ import {
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
+import logger from '../logger'
 
 export function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
@@ -180,6 +181,29 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
 })
+
+export async function flagForDeletion(user: User) {
+  try {
+    // if a user is requesting deletion, we should remove them from automatic emails
+    const contact = await MailService.searchContact(user.email)
+    if (contact) await MailService.deleteContact(contact.id)
+  } catch (err) {
+    logger.error(
+      `Error searching for or deleting contact in user deletion process: ${err}`
+    )
+  }
+
+  const update: any = {
+    email: `${user.email}deactivated`,
+  }
+
+  if (user.isVolunteer) {
+    // TODO: repo pattern
+    return VolunteerModel.updateOne({ _id: user._id }, update)
+  } else {
+    return StudentModel.updateOne({ _id: user._id }, update)
+  }
+}
 
 export async function adminUpdateUser(data: unknown) {
   const {

@@ -544,7 +544,7 @@ paths:
         - cookieAuth: []
       responses:
         '200':
-          description: Returns an array of all sponsor orgs          
+          description: Returns an array of all sponsor orgs
   /auth/register:
     post:
       tags:
@@ -579,14 +579,14 @@ paths:
         - authorization
       summary: Generates csrf token
       description: |
-        - Generates csrf token per cookie 
+        - Generates csrf token per cookie
       security:
         - cookieAuth: []
       responses:
         '200':
           description: Returns a json with `csrfToken`
-          content: 
-            applicaton/json: 
+          content:
+            applicaton/json:
               schema:
                 type: object
                 items:
@@ -594,7 +594,7 @@ paths:
               example:
                 csrfToken: "FbmhS8I9-A4qxdtGylFSAfwM71GQBXOnUCOM"
         '403':
-          description: 
+          description: |
             - Request is unauthorized for non-upchieve users
             - CSRF token does not match
 
@@ -1592,27 +1592,16 @@ paths:
     delete:
       tags:
         - user
-      summary:  Deletes user
+      summary: Flags a user account for deletion
       description: |
-        - Removes a user
-        - This is a utility route used by Cypress to clean up after e2e tests
-        - Not available in production
+        Appends 'deactivated' to a user's email so they can no
+        longer log in. Staff can search for emails with that append
+        to go through a manual deletion process.
       security:
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
+        - cookieAuth: [ ]
       responses:
         '200':
-          description: Responds with object of how many users are deleted
-        '405':
-          description: Responds with message endpoint is not allowed to use in production
+          description: Account deletion request was successful
   /api/user/{userId}:
     get:
       tags:
@@ -2240,7 +2229,7 @@ paths:
                   type: boolean
       responses:
         '200':
-          description: OK        
+          description: OK
   /api-public/eligibility/ineligible-students:
     get:
       tags:
