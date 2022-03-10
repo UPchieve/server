@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { Ulid as ULID } from 'id128'
 import { v4 as UUID } from 'uuid'
 import { CustomError } from 'ts-custom-error'
-import { SetOptional, SetRequired } from 'type-fest'
+import { SetOptional } from 'type-fest'
 
 /**
  * pgTyped DOES NOT actually modify the incoming data to use camelCase keys even
@@ -22,6 +22,10 @@ function camelCaseKeys(obj: any): any {
   }
   return temp
 }
+
+type Required<T> = T extends null ? never : T extends undefined ? never : T
+type SetRequired<BaseType, Keys extends keyof BaseType> = BaseType &
+  { [K in Keys]: Required<BaseType[K]> }
 
 class UnexpectedNullError extends CustomError {}
 export function makeRequired<T>(obj: T): SetRequired<T, keyof T> {
