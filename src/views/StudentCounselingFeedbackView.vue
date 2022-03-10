@@ -170,6 +170,9 @@
           </div>
         </td>
       </tr>
+      <tr v-if="error">
+        <p class="feedback__error">{{ error }}</p>
+      </tr>
       <tr class="submit-button-row">
         <td class="submit-button-cell">
           <button
@@ -296,6 +299,7 @@ export default {
       isFavoriteCoachLimitReached: false,
       isFavoritingCoach: false,
       session: {},
+      error: '',
     }
   },
   computed: {
@@ -382,28 +386,34 @@ export default {
           delete studentCounselingFeedback[key]
       }
 
-      // TODO: error handling
-      if (this.isCoachFavoritingActive)
-        await this.submitFavoriteCoach()
-
-      NetworkService.feedback(this, {
-        sessionId: this.sessionId,
-        topic: this.topic,
-        subTopic: this.subTopic,
-        studentCounselingFeedback,
-        userType: this.userType,
-        studentId: this.studentId,
-        volunteerId: this.volunteerId
-      })
-      this.isSubmittingFeedback = false
-      this.$router.push('/')
-    },
-    async submitFavoriteCoach() {
-      if (this.isFavoritingCoach) {
-        await NetworkService.updateFavoriteVolunteerStatus(
-          this.session.volunteer._id,
-          { isFavorite: true, sessionId: this.session._id }
+      try {
+        const requests = []
+        requests.push(
+          NetworkService.feedback(this, {
+            sessionId: this.sessionId,
+            topic: this.topic,
+            subTopic: this.subTopic,
+            studentCounselingFeedback,
+            userType: this.userType,
+            studentId: this.studentId,
+            volunteerId: this.volunteerId,
+          })
         )
+        if (this.isFavoritingCoach && this.isCoachFavoritingActive)
+          requests.push(
+            NetworkService.updateFavoriteVolunteerStatus(
+              this.session.volunteer._id,
+              { isFavorite: true, sessionId: this.sessionId }
+            )
+          )
+        await Promise.all(requests)
+        this.$router.push('/')
+      } catch (error) {
+        if (error.body && !error.body.success) this.error = error.body.message
+        else if (error.status === 422) this.error = error.body.err
+        else this.error = 'There was an error sending your feedback'
+      } finally {
+        this.isSubmittingFeedback = false
       }
     },
     handleCoachRatingChange(event, questionKey, subquestionKey) {
@@ -665,8 +675,14 @@ label {
   color: #fff;
 }
 
-.feedback-submitted {
-  margin: 4em 0;
+.feedback {
+  &-submitted {
+    margin: 4em 0;
+  }
+
+  &__error {
+    color: $c-error-red;
+  }
 }
 
 @media screen and (max-width: 700px) {

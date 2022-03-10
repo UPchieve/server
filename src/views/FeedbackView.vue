@@ -302,6 +302,17 @@ export default {
     },
     filteredQuestions() {
       return this.questions.filter(item => !item.show || item.show())
+    },
+    isFavoritingCoach() {
+      if (!this.isVolunteer) {
+        const coachFavoritingQuestion = this.filteredQuestions.find(
+          (q) => q.id === 'coach-favoriting'
+        )
+        // `1` is the first answer option when asking the student if they would like
+        // to favorite the coach. That means the student wants to favorite them
+        return coachFavoritingQuestion && coachFavoritingQuestion.answer === 1
+      }
+      return false
     }
   },
   async beforeMount() {
@@ -383,35 +394,31 @@ export default {
           data[feedbackPath][id] = answer.sort((a, b) => a - b)
       }
 
-      // TODO: how do we want to handle errors?
-      if (!this.isVolunteer && this.isCoachFavoritingActive)
-        await this.submitFavoriteCoach()
       this.isSubmittingFeedback = false
       try {
-        await NetworkService.feedback(this, data)
+        const requests = []
+        requests.push(NetworkService.feedback(this, data))
+        if (
+          !this.isVolunteer &&
+          this.isFavoritingCoach &&
+          this.isCoachFavoritingActive
+        )
+          requests.push(
+            NetworkService.updateFavoriteVolunteerStatus(
+              this.session.volunteer._id,
+              { isFavorite: true, sessionId: this.session._id }
+            )
+          )
+        await Promise.all(requests)
         this.$router.push('/')
       } catch (error) {
-        if (error.status === 422) this.error = error.body.err
+        if (!error.body.success) this.error = error.body.message
+        else if (error.status === 422) this.error = error.body.err
         else this.error = 'There was an error sending your feedback'
       } finally {
         this.isSubmittingFeedback = false
       }
     },
-    async submitFavoriteCoach() {
-      if (!this.isVolunteer) {
-        const coachFavoritingQuestion = this.filteredQuestions.find(
-          (q) => q.id === 'coach-favoriting'
-        )
-        // `1` is the first answer option when asking the student if they would like
-        // to favorite the coach. That means the student wants to favorite them
-        if (coachFavoritingQuestion.answer === 1) {
-          await NetworkService.updateFavoriteVolunteerStatus(
-            this.session.volunteer._id,
-            { isFavorite: true, sessionId: this.session._id }
-          )
-        }
-      }
-    }
   }
 }
 </script>
