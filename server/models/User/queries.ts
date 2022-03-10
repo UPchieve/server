@@ -249,7 +249,7 @@ export async function deleteUserByEmail(userEmail: string): Promise<void> {
 }
 
 // pg wrappers
-import client from '../../pg'
+import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid } from '../pgUtils'
 
@@ -257,7 +257,7 @@ export async function IgetUserIdByEmail(
   email: string
 ): Promise<Ulid | undefined> {
   try {
-    const result = await pgQueries.getUserIdByEmail.run({ email }, client)
+    const result = await pgQueries.getUserIdByEmail.run({ email }, getClient())
     if (result.length) return result[0].id
   } catch (err) {
     throw new RepoReadError(err)
@@ -275,7 +275,10 @@ export async function IgetUserContactInfoById(
   id: Ulid
 ): Promise<UserContactInfo | undefined> {
   try {
-    const result = await pgQueries.getUserContactInfoById.run({ id }, client)
+    const result = await pgQueries.getUserContactInfoById.run(
+      { id },
+      getClient()
+    )
     if (result.length) return result[0]
   } catch (err) {
     throw new RepoReadError(err)
@@ -288,7 +291,7 @@ export async function IgetUserContactInfoByReferralCode(
   try {
     const result = await pgQueries.getUserContactInfoByReferralCode.run(
       { referralCode },
-      client
+      getClient()
     )
     if (result.length) return result[0]
   } catch (err) {
@@ -302,7 +305,7 @@ export async function IgetUserContactInfoByResetToken(
   try {
     const result = await pgQueries.getUserContactInfoByResetToken.run(
       { resetToken },
-      client
+      getClient()
     )
     if (result.length) return result[0]
   } catch (err) {
@@ -316,7 +319,7 @@ export async function countUsersReferredByOtherId(
   try {
     const result = await pgQueries.countUsersReferredByOtherId.run(
       { userId },
-      client
+      getClient()
     )
     if (result.length && result[0].total) return result[0].total
     return 0
@@ -332,7 +335,7 @@ export async function IupdateUserResetTokenById(
   try {
     const result = await pgQueries.updateUserResetTokenById.run(
       { token, userId },
-      client
+      getClient()
     )
     if (result.length && result[0].id) return
     throw new RepoUpdateError('Update query did not return updated id')
