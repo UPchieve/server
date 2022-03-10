@@ -1,16 +1,16 @@
 <template>
   <modal :closeModal="closeModal">
-    <div class="volunteer-unfavoriting-modal">
+    <div class="unfavoriting-modal">
     <header>
-      <h1 class="volunteer-unfavoriting-modal-title">
+      <h1 class="unfavoriting-modal-title">
         Do you want to unfavorite Coach {{ volunteerName }}?  
       </h1>
     </header>
        
     <footer>
-      <div class="volunteer-unfavoriting-modal-buttons">
+      <div class="unfavoriting-modal-buttons">
         <large-button @click.native="closeModal">Cancel</large-button>
-        <large-button primary class="volunteer-unfavoriting-modal-unfavoriteButton" @click.native="unfavorite">Unfavorite</large-button>
+        <large-button primary class="unfavoriting-modal-unfavorite-button" @click.native="unfavorite">Unfavorite</large-button>
       </div>
     </footer>
     </div>
@@ -28,11 +28,6 @@ export default {
     closeModal: { type: Function, required: true },
     volunteerName: {type: String, required: true}
   },
-  data() {
-    return {
-         showFavoritedListFullModal: false,
-    }
-  },
   methods: {
     unfavorite() {
       this.$emit('unfavorite', false)
@@ -42,7 +37,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 
-.volunteer-unfavoriting-modal {
+.unfavoriting-modal {
   @include flex-container(column);
 
   &-title {
@@ -54,7 +49,7 @@ export default {
     @include flex-container(row, space-evenly);
   }
 
-  &-unfavoriteButton {
+  &-unfavorite-button {
     background-color: $c-information-blue;
     color: white;
   }

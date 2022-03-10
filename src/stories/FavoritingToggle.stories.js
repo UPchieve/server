@@ -13,6 +13,3 @@ const Template = (args, { argTypes }) => ({
 })
 
 export const Vanilla = Template.bind({})
-// Vanilla.args = {
-//   isFavorite: false
-// }

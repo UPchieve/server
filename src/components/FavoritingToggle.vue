@@ -1,6 +1,6 @@
 <template>
   <div>
-    <heart-icon v-if="toggleType === 'heart'" :class="favoritedStatus.class" v-on:click="toggleFavoritedStatus"/>
+    <heart-icon :class="favoritedStatus.class" v-on:click="toggleFavoritedStatus"/>
     <volunteer-unfavoriting-modal
       v-if="showVolunteerUnfavoritingModal"
       :closeModal="toggleVolunteerUnfavoritingModal"
@@ -24,10 +24,6 @@ export default {
   name: 'favoriting-toggle',
   components: { HeartIcon, VolunteerUnfavoritingModal, FavoritedListFullModal },
   props: {
-    toggleType: {
-      type: String,
-      default: 'heart'
-    },
     initialIsFavorite: {
       type: Boolean,
       default: false
@@ -62,8 +58,15 @@ export default {
       this.showVolunteerUnfavoritingModal = false
     },
     async setIsFavorite(value) {
-      const response = await NetworkService.mockUpdateVolunteerFavoritedStatus(this.volunteerId, { favorited: value, sessionId: this.sessionId })
-      this.isFavorite = response.body.isFavorite
+      try {
+          const response = await NetworkService.mockUpdateVolunteerFavoriteStatus(this.volunteerId, { favorited: value, sessionId: this.sessionId })
+          this.isFavorite = response.body.isFavorite
+          // if (!this.isFavorite) {
+          //   throw new Error('Favorite volunteer limit reached.')
+          // }
+      } catch (error) {
+        this.showFavoritedListFullModal = true
+      }  
     },
     async toggleFavoritedStatus(){
       if(this.isFavorite) {
@@ -72,7 +75,7 @@ export default {
       }
       const { 
         body: { remaining }
-      } = await NetworkService.mockGetRemainingVolunteers()
+      } = await NetworkService.mockGetRemainingFavoriteVolunteers()
       if (remaining > 0)
         this.setIsFavorite(true)
       else
