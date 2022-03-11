@@ -85,10 +85,13 @@
                   v-bind:key="index"
                 >
                   <input
-                    v-model="
-                      userResponse[question.alias][
-                        question.options_alias[subquestion_index]
-                      ]
+                    @change="
+                      (event) =>
+                        handleCoachRatingChange(
+                          event,
+                          question.alias,
+                          question.options_alias[subquestion_index]
+                        )
                     "
                     type="radio"
                     :name="
@@ -142,10 +145,33 @@
               v-model="userResponse[question.alias]"
             />
           </div>
+          <div
+            v-else-if="
+              question.alias === 'coach-favoriting' && showFavoriteQuestion
+            "
+          >
+            <div class="question-title">
+              Would you like to favorite your Coach{{
+                `, ${session.volunteer.firstName}`
+              }}?
+            </div>
+            <p class="question-secondary-title">
+              {{ question.secondary_title }}
+            </p>
+            <feedback-radio
+              :id="question.qid"
+              :options="question.options"
+              @change="handleFavoriteCoachChange"
+              v-model="favoriteCoachAnswer"
+            />
+          </div>
           <div v-else>
             <!-- something else -->
           </div>
         </td>
+      </tr>
+      <tr v-if="error">
+        <p class="feedback__error">{{ error }}</p>
       </tr>
       <tr class="submit-button-row">
         <td class="submit-button-cell">
@@ -165,15 +191,17 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import Case from 'case'
 import Loader from '@/components/Loader'
+import FeedbackRadio from '@/components/FeedbackRadio'
 
 export default {
   name: 'StudentCounselingFeedbackView',
   components: {
-    Loader
+    Loader,
+    FeedbackRadio,
   },
   data() {
     return {
@@ -242,6 +270,16 @@ export default {
         },
         {
           qid: '4',
+          alias: 'coach-favoriting',
+          secondary_title:
+            'Favoriting a coach will increase your chances of being paired with them in the future. You can also favorite or unfavorite coaches from the Session History page.',
+          options: [
+            'Yes, I’d love to work with them again!',
+            'No thanks, not right now.',
+          ],
+        },
+        {
+          qid: '5',
           qtype: 'text',
           alias: 'other-feedback',
           title:
@@ -255,13 +293,30 @@ export default {
       questions: [],
       userResponse: {},
       isSubmittingFeedback: false,
-      completedFeedback: false
+      completedFeedback: false,
+      favoriteCoachAnswer: null,
+      isFavoriteCoach: false,
+      isFavoriteCoachLimitReached: false,
+      isFavoritingCoach: false,
+      session: {},
+      error: '',
     }
   },
   computed: {
     ...mapState({
       user: state => state.user.user
-    })
+    }),
+    ...mapGetters({
+      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
+    }),
+    showFavoriteQuestion() {
+      return (
+        this.userResponse['coach-ratings']['coach-help-again'] >= 4 &&
+        !this.isFavoriteCoach &&
+        !this.isFavoriteCoachLimitReached &&
+        this.isCoachFavoritingActive
+      )
+    },
   },
   async beforeMount() {
     this.sessionId = this.$route.params.sessionId
@@ -270,12 +325,21 @@ export default {
     this.userType = this.$route.params.userType
     this.studentId = this.$route.params.studentId
     this.volunteerId = this.$route.params.volunteerId
+    const [feedbackResponse, sessionResponse] = await Promise.all([
+      NetworkService.getFeedback({
+        sessionId: this.sessionId,
+        userType: this.userType,
+      }),
+      NetworkService.getSession(this.sessionId),
+    ])
     const {
-      body: { feedback }
-    } = await NetworkService.getFeedback({
-      sessionId: this.sessionId,
-      userType: this.userType
-    })
+      body: { feedback },
+    } = feedbackResponse
+    const {
+      body: { session },
+    } = sessionResponse
+
+    this.session = session
 
     if (feedback) {
       this.completedFeedback = true
@@ -292,9 +356,22 @@ export default {
         )
           this.userResponse[question.alias] = {}
       })
+
+    if (!this.user.isVolunteer && this.isCoachFavoritingActive) {
+      const response = await NetworkService.checkIsFavoriteVolunteer(
+        this.session.volunteer._id
+      )
+      this.isFavoriteCoach = response.body.isFavorite
+
+      if (!this.isFavoriteCoach) {
+        const response =
+          await NetworkService.getRemainingFavoriteVolunteers()
+        this.isFavoriteCoachLimitReached = response.body.remaining === 0
+      }
+    }
   },
   methods: {
-    submitFeedback() {
+    async submitFeedback() {
       if (this.isSubmittingFeedback) return
       this.isSubmittingFeedback = true
       const studentCounselingFeedback = this.userResponse
@@ -309,19 +386,56 @@ export default {
           delete studentCounselingFeedback[key]
       }
 
-      NetworkService.feedback(this, {
-        sessionId: this.sessionId,
-        topic: this.topic,
-        subTopic: this.subTopic,
-        studentCounselingFeedback,
-        userType: this.userType,
-        studentId: this.studentId,
-        volunteerId: this.volunteerId
-      })
-      this.isSubmittingFeedback = false
-      this.$router.push('/')
-    }
-  }
+      try {
+        const requests = []
+        requests.push(
+          NetworkService.feedback(this, {
+            sessionId: this.sessionId,
+            topic: this.topic,
+            subTopic: this.subTopic,
+            studentCounselingFeedback,
+            userType: this.userType,
+            studentId: this.studentId,
+            volunteerId: this.volunteerId,
+          })
+        )
+        if (this.isFavoritingCoach && this.isCoachFavoritingActive)
+          requests.push(
+            NetworkService.updateFavoriteVolunteerStatus(
+              this.session.volunteer._id,
+              { isFavorite: true, sessionId: this.sessionId }
+            )
+          )
+        await Promise.all(requests)
+        this.$router.push('/')
+      } catch (error) {
+        if (error.body.success === false) this.error = error.body.message
+        else if (error.status === 422) this.error = error.body.err
+        else this.error = 'There was an error sending your feedback'
+      } finally {
+        this.isSubmittingFeedback = false
+      }
+    },
+    handleCoachRatingChange(event, questionKey, subquestionKey) {
+      const value = Number(event.target.value)
+      // Vue cannot detect property addition or deletion on objects. A new object
+      // must be created for Vue to recognize changes on said object
+      const coachRatingAnswers = {
+        [questionKey]: Object.assign({}, this.userResponse[questionKey], {
+          [subquestionKey]: value,
+        }),
+      }
+      this.userResponse = Object.assign(
+        {},
+        this.userResponse,
+        coachRatingAnswers
+      )
+    },
+    handleFavoriteCoachChange(value) {
+      this.isFavoritingCoach = value === 1
+      this.favoriteCoachAnswer = value
+    },
+  },
 }
 </script>
 
@@ -563,8 +677,14 @@ label {
   color: #fff;
 }
 
-.feedback-submitted {
-  margin: 4em 0;
+.feedback {
+  &-submitted {
+    margin: 4em 0;
+  }
+
+  &__error {
+    color: $c-error-red;
+  }
 }
 
 @media screen and (max-width: 700px) {
