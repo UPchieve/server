@@ -22,4 +22,7 @@ export default {
   addCustomAttribute: (key: string, value: unknown) => {
     return
   },
+  recordMetric: (name: string, value: unknown) => {
+    return
+  },
 }

@@ -11,6 +11,7 @@ import {
   getVolunteersForWeeklyHourSummary,
   updateVolunteerHourSummaryIntroById,
 } from '../../models/Volunteer/queries'
+import newrelic from 'newrelic'
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
@@ -89,6 +90,7 @@ export default async (): Promise<void> => {
     }
   }
 
+  newrelic.recordMetric(`Job/${Jobs.EmailWeeklyHourSummary}`, totalEmailed)
   log(
     `Successfully ${Jobs.EmailWeeklyHourSummary} for ${totalEmailed} volunteers`
   )

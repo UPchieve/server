@@ -32,6 +32,14 @@ beforeEach(async () => {
   await resetDb()
 })
 
+test('Flags a user for deletion', async () => {
+  const volunteer = buildVolunteer()
+  await insertVolunteer(volunteer)
+  await UserService.flagForDeletion(volunteer)
+  const userList = await UserService.getUsers(volunteer)
+  expect(userList.users[0].email.includes('deactivated')).toBe(true)
+})
+
 test('Successfully adds photoIdS3Key and photoIdStatus', async () => {
   const volunteer = buildVolunteer()
   await insertVolunteer(volunteer)

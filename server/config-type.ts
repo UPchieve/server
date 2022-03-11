@@ -162,6 +162,11 @@ export const Config = Record({
   redisHost: String,
   redisPort: String,
   redisPassword: String,
+  postgresHost: String,
+  postgresPort: Number,
+  postgresUser: String,
+  postgresPassword: String,
+  postgresDatabase: String,
   firebase: Record({
     projectId: String,
   }),
