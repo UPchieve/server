@@ -58,14 +58,15 @@ export default {
       this.showVolunteerUnfavoritingModal = false
     },
     async setIsFavorite(value) {
-      try {
-          const response = await NetworkService.mockUpdateFavoriteVolunteerStatus(this.volunteerId, { isFavorite: value })
-          this.isFavorite = response.body.isFavorite
+     try {
+        const response = await NetworkService.updateFavoriteVolunteerStatus(this.volunteerId, { isFavorite: value })
+        this.isFavorite = response.body.isFavorite
       } catch (error) {
-        if(error.status === 422)
-          this.error = error.message
-        this.showFavoritedListFullModal = true
-      } 
+        if (error.body.success === false)
+          this.showFavoritedListFullModal = true
+        else  
+         this.$emit('error-favoriting', error.body.err)
+     } 
     },
     async toggleFavoritedStatus(){
       if(this.isFavorite) {

@@ -1,5 +1,5 @@
 <template>
-  <modal :closeModal="closeModal">
+  <modal :closeModal="closeModal" class="unfavoriting-modal-wrapper">
     <div class="unfavoriting-modal">
     <header>
       <h1 class="unfavoriting-modal-title">
@@ -36,11 +36,12 @@ export default {
 </script>
 
 <style lang="scss">
-.upc-modal-form {
+.unfavoriting-modal-wrapper .upc-modal-form {
   @include flex-container(column,center);
   height: 190px;
   width: 393px;
   border-radius: 16px;
+  min-height: 190px;
 
   &:hover {
     box-shadow: 0px 2px 5px 3px rgba(0, 0, 0, 0.15);
@@ -62,7 +63,7 @@ export default {
 
   &-buttons {
     margin-top: 0.5em;
-    @include flex-container(row, space-evenly);
+    @include flex-container(row, center);
   }
 
   &-unfavorite-button {
@@ -71,12 +72,17 @@ export default {
     padding: 14px 24px;
     color: white;
     border: 1px solid transparent;
+
+    &:hover {
+      background-color: #103A90;
+    }
   }
 
   &-cancel-button {
     border-radius: 200px;
     border: 1px solid #8B939F;
     padding: 14px 24px;
+    margin-right: 1em;
   }
 }
 </style>
