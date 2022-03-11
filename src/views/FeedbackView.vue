@@ -394,7 +394,6 @@ export default {
           data[feedbackPath][id] = answer.sort((a, b) => a - b)
       }
 
-      this.isSubmittingFeedback = false
       try {
         const requests = []
         requests.push(NetworkService.feedback(this, data))
