@@ -409,7 +409,7 @@ export default {
         await Promise.all(requests)
         this.$router.push('/')
       } catch (error) {
-        if (error.body && !error.body.success) this.error = error.body.message
+        if (error.body.success === false) this.error = error.body.message
         else if (error.status === 422) this.error = error.body.err
         else this.error = 'There was an error sending your feedback'
       } finally {
