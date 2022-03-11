@@ -418,6 +418,8 @@ export default {
     },
     handleCoachRatingChange(event, questionKey, subquestionKey) {
       const value = Number(event.target.value)
+      // Vue cannot detect property addition or deletion on objects. A new object
+      // must be created for Vue to recognize changes on said object
       const coachRatingAnswers = {
         [questionKey]: Object.assign({}, this.userResponse[questionKey], {
           [subquestionKey]: value,
