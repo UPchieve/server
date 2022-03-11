@@ -23,38 +23,51 @@ export class DocUpdateError extends CustomError {
 
 export class RepoCreateError extends CustomError {
   constructor(arg: unknown) {
-    const msg =
-      typeof arg === 'string'
-        ? arg
-        : `Database create error: ${(arg as Error).message}`
-    super(msg)
+    if (arg instanceof RepoCreateError) return arg
+    else {
+      const msg =
+        typeof arg === 'string'
+          ? arg
+          : `Database create error: ${(arg as Error).message}`
+      super(msg)
+    }
   }
 }
 export class RepoReadError extends CustomError {
   constructor(arg: unknown) {
-    const msg =
-      typeof arg === 'string'
-        ? arg
-        : `Database read error: ${(arg as Error).message}`
-    super(msg)
+    if (arg instanceof RepoReadError) return arg
+    else {
+      const msg =
+        typeof arg === 'string'
+          ? arg
+          : `Database read error: ${(arg as Error).message}`
+      super(msg)
+    }
   }
 }
+
 export class RepoUpdateError extends CustomError {
   constructor(arg: unknown) {
-    const msg =
-      typeof arg === 'string'
-        ? arg
-        : `Database update error: ${(arg as Error).message}`
-    super(msg)
+    if (arg instanceof RepoUpdateError) return arg
+    else {
+      const msg =
+        typeof arg === 'string'
+          ? arg
+          : `Database update error: ${(arg as Error).message}`
+      super(msg)
+    }
   }
 }
 export class RepoDeleteError extends CustomError {
   constructor(arg: unknown) {
-    const msg =
-      typeof arg === 'string'
-        ? arg
-        : `Database delete error: ${(arg as Error).message}`
-    super(msg)
+    if (arg instanceof RepoDeleteError) return arg
+    else {
+      const msg =
+        typeof arg === 'string'
+          ? arg
+          : `Database delete error: ${(arg as Error).message}`
+      super(msg)
+    }
   }
 }
 

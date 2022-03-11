@@ -1,5 +1,6 @@
 import { wrapInsert, NameToId } from '../utils'
 import * as pgQueries from './pg.queries'
+import client from '../../pgClient'
 
 export async function quizzes(): Promise<NameToId> {
   const quizzes = [
@@ -31,6 +32,17 @@ export async function quizzes(): Promise<NameToId> {
       name: quiz,
     })
   }
+  return temp
+}
+
+export async function getQuizIds(): Promise<NameToId> {
+  const temp: NameToId = {}
+  const quizzes = await pgQueries.getQuizzes.run(undefined, client)
+
+  for (const quiz of quizzes) {
+    temp[quiz.name] = quiz.id
+  }
+
   return temp
 }
 

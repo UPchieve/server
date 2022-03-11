@@ -5,8 +5,9 @@ import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import { getSchool } from './SchoolService'
 import * as AnalyticsService from './AnalyticsService'
-import { getStudentById } from '../models/Student/queries'
+import * as StudentRepo from '../models/Student/queries'
 import { getIdFromModelReference } from '../utils/model-reference'
+import { Ulid } from '../models/pgUtils'
 
 export const queueOnboardingEmails = async (
   studentId: Types.ObjectId
@@ -42,7 +43,7 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
   const userProperties: AnalyticsService.IdentifyProperties = {
     userType: 'student',
   }
-  const student = await getStudentById(studentId)
+  const student = await StudentRepo.getStudentById(studentId)
 
   if (student) {
     let school: School | undefined
@@ -63,4 +64,13 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
     })
     AnalyticsService.identify(student._id, userProperties)
   }
+}
+
+export async function getFavoriteVolunteersPaginated(
+  userId: Ulid,
+  page: number
+) {
+  const limit = 10
+  const offset = limit * (page - 1)
+  return await StudentRepo.getFavoriteVolunteers(userId, limit, offset)
 }

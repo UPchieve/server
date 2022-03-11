@@ -253,3 +253,63 @@ const insertTrainingCourseIR: any = {"name":"insertTrainingCourse","params":[{"n
 export const insertTrainingCourse = new PreparedQuery<IInsertTrainingCourseParams,IInsertTrainingCourseResult>(insertTrainingCourseIR);
 
 
+/** 'GetCertifications' parameters type */
+export type IGetCertificationsParams = void;
+
+/** 'GetCertifications' return type */
+export interface IGetCertificationsResult {
+  id: number;
+  name: string;
+}
+
+/** 'GetCertifications' query type */
+export interface IGetCertificationsQuery {
+  params: IGetCertificationsParams;
+  result: IGetCertificationsResult;
+}
+
+const getCertificationsIR: any = {"name":"getCertifications","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name\nFROM\n    certifications","loc":{"a":1806,"b":1852,"line":29,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     name
+ * FROM
+ *     certifications
+ * ```
+ */
+export const getCertifications = new PreparedQuery<IGetCertificationsParams,IGetCertificationsResult>(getCertificationsIR);
+
+
+/** 'GetQuizzes' parameters type */
+export type IGetQuizzesParams = void;
+
+/** 'GetQuizzes' return type */
+export interface IGetQuizzesResult {
+  id: number;
+  name: string;
+}
+
+/** 'GetQuizzes' query type */
+export interface IGetQuizzesQuery {
+  params: IGetQuizzesParams;
+  result: IGetQuizzesResult;
+}
+
+const getQuizzesIR: any = {"name":"getQuizzes","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name\nFROM\n    quizzes","loc":{"a":1879,"b":1918,"line":36,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     name
+ * FROM
+ *     quizzes
+ * ```
+ */
+export const getQuizzes = new PreparedQuery<IGetQuizzesParams,IGetQuizzesResult>(getQuizzesIR);
+
+
