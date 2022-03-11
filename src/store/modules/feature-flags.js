@@ -56,6 +56,7 @@ export default {
       [FEATURE_FLAGS.DOWNTIME_BANNER]: false,
       [FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH]: false,
       [FEATURE_FLAGS.CHATBOT]: false,
+      [FEATURE_FLAGS.COACH_FAVORITING]: false,
     },
   },
   mutations: {
@@ -89,5 +90,6 @@ export default {
     isAlgebraTwoLaunchActive: state =>
       state.flags[FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH],
     isChatbotActive: state => state.flags[FEATURE_FLAGS.CHATBOT],
+    isCoachFavoritingActive: state => state.flags[FEATURE_FLAGS.COACH_FAVORITING],
   },
 }

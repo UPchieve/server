@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
 import StudentModel, { Student } from './index'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
-import { RepoReadError } from '../Errors'
+import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
 
 async function wrapRead<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -196,6 +196,11 @@ type FavoriteVolunteersResponse = {
   isLastPage: boolean
 }
 
+export type UpdateFavoriteVolunteer = {
+  studentId: Types.ObjectId
+  volunteerId: Types.ObjectId
+}
+
 export async function getFavoriteVolunteers(
   userId: Ulid,
   limit: number,
@@ -212,5 +217,58 @@ export async function getFavoriteVolunteers(
     return { favoriteVolunteers: result, isLastPage: result.length < limit }
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+function mockDeleteFavoriteVolunteer(): UpdateFavoriteVolunteer[] {
+  return [
+    { volunteerId: new Types.ObjectId(), studentId: new Types.ObjectId() },
+  ]
+}
+
+function mockAddFavoriteVolunteer(): UpdateFavoriteVolunteer[] {
+  return [
+    { volunteerId: new Types.ObjectId(), studentId: new Types.ObjectId() },
+  ]
+}
+
+export async function deleteFavoriteVolunteer(
+  studentId: Types.ObjectId,
+  volunteerId: Types.ObjectId
+): Promise<UpdateFavoriteVolunteer> {
+  try {
+    /** TODO: use postgres query once sql migration is complete
+     * const result = await pgQueries.deleteFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
+      
+    if(result.length)
+      return makeRequired(result.rows[0])
+     */
+    const result = mockDeleteFavoriteVolunteer()
+    if (result.length) return makeRequired(result[0])
+    throw new RepoDeleteError(
+      'Delete query did not return deleted favorited volunteer'
+    )
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}
+
+export async function addFavoriteVolunteer(
+  studentId: Types.ObjectId,
+  volunteerId: Types.ObjectId
+): Promise<UpdateFavoriteVolunteer> {
+  try {
+    /** TODO: use postgres query once sql migration is complete 
+    const result = await pgQueries.addFavoriteVolunteer.run({ studentId, volunteerId }, client) as UpdateFavoriteVolunteer
+    if(result.length)
+      return makeRequired(result.rows[0])
+     */
+    const result = mockAddFavoriteVolunteer()
+    if (result.length) return makeRequired(result[0])
+    throw new RepoUpdateError(
+      'Update query did not return added favorite volunteer'
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }

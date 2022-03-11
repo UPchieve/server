@@ -78,3 +78,35 @@ ORDER BY
     student_favorite_volunteers.created_at DESC
 LIMIT :limit! OFFSET :offset!;
 
+
+/* @name deleteFavoriteVolunteer */
+DELETE FROM student_favorite_volunteers
+WHERE student_id = :studentId!
+    AND volunteer_id = :volunteerId!
+RETURNING
+    student_id,
+    volunteer_id;
+
+
+/* @name addFavoriteVolunteer */
+WITH ins AS (
+INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at)
+        VALUES (:studentId!, :volunteerId!, NOW(), NOW())
+    ON CONFLICT
+        DO NOTHING
+    RETURNING
+        student_id, volunteer_id)
+    SELECT
+        *
+    FROM
+        ins
+    UNION
+    SELECT
+        student_id,
+        volunteer_id
+    FROM
+        student_favorite_volunteers
+    WHERE
+        student_id = :studentId!
+            AND volunteer_id = :volunteerId!;
+

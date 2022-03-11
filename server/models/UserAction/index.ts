@@ -27,6 +27,7 @@ export interface UserAction extends UserActionAgent {
   ipAddress?: string
   referenceEmail?: string
   banReason?: string
+  volunteerId?: string
 }
 
 export type UserActionDocument = UserAction & Document
@@ -84,6 +85,8 @@ const userActionSchema = new Schema({
       USER_ACTION.ACCOUNT.REJECTED_REFERENCE,
       USER_ACTION.ACCOUNT.BANNED,
       USER_ACTION.ACCOUNT.DEACTIVATED,
+      USER_ACTION.ACCOUNT.VOLUNTEER_FAVORITED,
+      USER_ACTION.ACCOUNT.VOLUNTEER_UNFAVORITED,
     ],
   },
   quizCategory: String,
@@ -96,6 +99,7 @@ const userActionSchema = new Schema({
   ipAddress: String,
   referenceEmail: String,
   banReason: String,
+  volunteerId: String,
 })
 
 const UserActionModel = model<UserActionDocument>(
