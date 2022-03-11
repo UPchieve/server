@@ -75,7 +75,7 @@ export default {
       }
       const { 
         body: { remaining }
-      } = await NetworkService.mockGetRemainingFavoriteVolunteers()
+      } = await NetworkService.getRemainingFavoriteVolunteers()
       if (remaining > 0)
         this.setIsFavorite(true)
       else

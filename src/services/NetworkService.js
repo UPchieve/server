@@ -652,16 +652,9 @@ export default {
     .post(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`, data)
     .then(this._successHandler, this._errorHandler)
   },
-  // TODO: remove mock functions before merge
-  mockUpdateFavoriteVolunteerStatus(volunteerId, data) {
-    return Promise.resolve({ body: { isFavorite: data.isFavorite } })
-  },
   getRemainingFavoriteVolunteers() {
     return Vue.http
     .get(`${API_ROOT}/students/remaining-favorite-volunteers`)
     .then(this._successHandler, this._errorHandler)
   },
-  mockGetRemainingFavoriteVolunteers() {
-    return Promise.resolve({ body: { remaining: 5 } })
-  }
 }
