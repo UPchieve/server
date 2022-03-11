@@ -78,10 +78,11 @@ async function seedData(): Promise<void> {
     // import { volunteers } from './scripts/testData/volunteers'
     // import { students } from './scripts/testData/students'
     // import { schools } from './scripts/testData/schools'
+    // import { studentFavoriteVolunteers } from './scripts/testData/student-favorite-volunteers'
     // await schools()
     // await volunteers(vpoIds, certIds, quizIds)
     // await students(spoIds)
-    await studentFavoriteVolunteers(certIds, quizIds)
+    // await studentFavoriteVolunteers(certIds, quizIds)
     console.log('All data is seeded!')
     if (ExpectedErrors.length)
       console.log(
