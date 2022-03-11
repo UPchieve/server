@@ -72,33 +72,29 @@ export async function checkAndUpdateVolunteerFavoriting(
   isFavorite: boolean,
   studentId: Types.ObjectId,
   volunteerId: Types.ObjectId,
-  sessionId?: Types.ObjectId
+  sessionId?: Types.ObjectId,
+  ip?: string
 ) {
   if (isFavorite) {
     const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
       studentId.toString()
     )
     if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
-      await new UserActionCtrl.AccountActionCreator(studentId, '', {
+      await new UserActionCtrl.AccountActionCreator(studentId, ip, {
         volunteerId: volunteerId,
         session: sessionId,
       }).volunteerFavorited()
-      const result = await StudentRepo.addFavoriteVolunteer(
-        studentId,
-        volunteerId
-      )
-      return { result, isFavorite: true }
+      await StudentRepo.addFavoriteVolunteer(studentId, volunteerId)
+      return { isFavorite: true }
     }
+    throw new Error('Favorite volunteer limit reached.')
   } else {
-    await new UserActionCtrl.AccountActionCreator(studentId, '', {
+    await new UserActionCtrl.AccountActionCreator(studentId, ip, {
       volunteerId: volunteerId,
       session: sessionId,
     }).volunteerUnfavorited()
-    const result = await StudentRepo.deleteFavoriteVolunteer(
-      studentId,
-      volunteerId
-    )
-    return { result, isFavorite: false }
+    await StudentRepo.deleteFavoriteVolunteer(studentId, volunteerId)
+    return { isFavorite: false }
   }
 }
 

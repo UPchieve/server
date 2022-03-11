@@ -67,34 +67,10 @@ describe('getFavoriteVolunteersPaginated', () => {
 })
 
 describe('checkAndUpdateVolunteerFavoriting', () => {
-  test('Should return the volunteer added to the student_favorite_volunteer table', async () => {
+  test('Should return true when volunteer is added to student_favorite_volunteers table', async () => {
     const volunteerId = getObjectId()
     const studentId = getObjectId()
     const totalFavorited = 5
-    const expected = {
-      volunteerId: volunteerId,
-      studentId: studentId,
-    }
-    const expectedIsFavorite = true
-    mockedStudentRepo.getTotalFavoriteVolunteers.mockResolvedValueOnce(
-      totalFavorited
-    )
-    mockedStudentRepo.addFavoriteVolunteer.mockResolvedValueOnce(expected)
-
-    const returned = await StudentService.checkAndUpdateVolunteerFavoriting(
-      expectedIsFavorite,
-      studentId,
-      volunteerId
-    )
-
-    expect(returned?.result).toEqual(expected)
-    expect(returned?.isFavorite).toEqual(expectedIsFavorite)
-  })
-
-  test('Should return undefined when favorite volunteer limit has been reached', async () => {
-    const volunteerId = getObjectId()
-    const studentId = getObjectId()
-    const totalFavorited = config.favoriteVolunteerLimit
     const expected = {
       volunteerId: volunteerId,
       studentId: studentId,
@@ -111,10 +87,36 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
       volunteerId
     )
 
-    expect(result).toEqual(undefined)
+    expect(result.isFavorite).toEqual(expectedIsFavorite)
   })
 
-  test('Should return the volunteer deleted from the student_favorite_volunteer table', async () => {
+  test('Should throw error when favorite volunteer limit has been reached', async () => {
+    const volunteerId = getObjectId()
+    const studentId = getObjectId()
+    const totalFavorited = config.favoriteVolunteerLimit
+    const expected = {
+      volunteerId: volunteerId,
+      studentId: studentId,
+    }
+    const expectedIsFavorite = true
+    mockedStudentRepo.getTotalFavoriteVolunteers.mockResolvedValueOnce(
+      totalFavorited
+    )
+    mockedStudentRepo.addFavoriteVolunteer.mockResolvedValueOnce(expected)
+
+    try {
+      await StudentService.checkAndUpdateVolunteerFavoriting(
+        expectedIsFavorite,
+        studentId,
+        volunteerId
+      )
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
+      expect((error as Error).message).toBe('Favorite volunteer limit reached.')
+    }
+  })
+
+  test('Should return the false when volunteer is deleted from student_favorite_volunteers table', async () => {
     const volunteerId = getObjectId()
     const studentId = getObjectId()
     const expected = {
@@ -124,17 +126,16 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
     const expectedIsFavorite = false
     mockedStudentRepo.deleteFavoriteVolunteer.mockResolvedValueOnce(expected)
 
-    const returned = await StudentService.checkAndUpdateVolunteerFavoriting(
+    const result = await StudentService.checkAndUpdateVolunteerFavoriting(
       expectedIsFavorite,
       studentId,
       volunteerId
     )
 
-    expect(returned?.result).toEqual(expected)
-    expect(returned?.isFavorite).toEqual(expectedIsFavorite)
+    expect(result.isFavorite).toEqual(expectedIsFavorite)
   })
 
-  test('Should return the volunteer added to the student_favorite_volunteer table with optional sessionId in the payload', async () => {
+  test('Should return true when volunteer is added to student_favorite_volunteers table with sessionId in the payload', async () => {
     const volunteerId = getObjectId()
     const studentId = getObjectId()
     const sessionId = getObjectId()
@@ -149,14 +150,13 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
     )
     mockedStudentRepo.addFavoriteVolunteer.mockResolvedValueOnce(expected)
 
-    const returned = await StudentService.checkAndUpdateVolunteerFavoriting(
+    const result = await StudentService.checkAndUpdateVolunteerFavoriting(
       expectedIsFavorite,
       studentId,
       volunteerId,
       sessionId
     )
 
-    expect(returned?.result).toEqual(expected)
-    expect(returned?.isFavorite).toEqual(expectedIsFavorite)
+    expect(result.isFavorite).toEqual(expectedIsFavorite)
   })
 })

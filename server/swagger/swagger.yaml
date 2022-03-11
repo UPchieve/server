@@ -1398,13 +1398,13 @@ paths:
             $ref: '#/components/schemas/UserId'
         - name: isFavorite
           required: true
-          in: query
+          in: body
           type: boolean
           schema: 
             $ref: '#/components/schemas/IsFavorite'
         - name: sessionId
           required: false
-          in: query
+          in: body
           schema:
             $ref: '#/components/schemas/SessionId'
       responses: 

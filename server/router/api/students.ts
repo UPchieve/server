@@ -76,22 +76,18 @@ export function routeStudents(router: Router): void {
 
       const result = await StudentService.checkAndUpdateVolunteerFavoriting(
         isFavorite,
-        asObjectId(user._id),
+        user._id,
         volunteerId,
-        sessionId
+        sessionId,
+        asString(req.ip)
       )
 
-      if (result) {
-        res.json({ isFavorite: result.isFavorite })
-        return
-      }
-
+      res.json({ isFavorite: result.isFavorite })
+    } catch (error) {
       res.status(422).json({
         success: false,
-        message: 'Favorited volunteer limit reached.',
+        message: (error as Error).message,
       })
-    } catch (error) {
-      resError(res, error)
     }
   })
 }
