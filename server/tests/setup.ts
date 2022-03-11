@@ -139,6 +139,7 @@ jest.mock('../config', () => {
     client: { host: 'localhost' },
     accountSid: 'AC12345',
     authToken: '1234567890',
+    favoriteVolunteerLimit: 20,
   }
 })
 

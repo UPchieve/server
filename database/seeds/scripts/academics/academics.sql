@@ -25,3 +25,16 @@ INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at)
 /* @name insertTrainingCourse */
 INSERT INTO training_courses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING name AS ok;
 
+/* @name getCertifications */
+SELECT
+    id,
+    name
+FROM
+    certifications;
+
+/* @name getQuizzes */
+SELECT
+    id,
+    name
+FROM
+    quizzes;

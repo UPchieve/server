@@ -211,4 +211,5 @@ export const Config = Record({
   version: String,
   fileWorkRootPath: String,
   ipWhoIsApiKey: String,
+  favoriteVolunteerLimit: Number,
 })

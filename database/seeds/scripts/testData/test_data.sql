@@ -21,3 +21,9 @@ INSERT INTO users_quizzes (user_id, quiz_id, created_at, updated_at) VALUES (:us
 
 /* @name insertAdminProfile */
 INSERT INTO admin_profiles (user_id, created_at, updated_at) VALUES (:userId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok;
+
+/* @name insertSession */
+INSERT INTO sessions (id, student_id, volunteer_id, subject_id, created_at, updated_at) VALUES (:id!, :studentId!, :volunteerId!, :subjectId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok;
+
+/* @name insertStudentFavoriteVolunteers */
+INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) VALUES (:studentId!, :volunteerId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_id AS ok;
