@@ -29,7 +29,6 @@ import { reportReasons } from './scripts/sessions/report-reasons'
 import { notificationTypes } from './scripts/notifications/notification-types'
 import { notificationMethods } from './scripts/notifications/notification-methods'
 import { priorityGroups } from './scripts/notifications/priority-groups'
-import { studentFavoriteVolunteers } from './scripts/testData/student-favorite-volunteers'
 
 import { startClient } from './pgClient'
 import { ExpectedErrors } from './scripts/utils'
