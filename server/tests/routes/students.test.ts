@@ -7,6 +7,7 @@ import * as StudentRepo from '../../models/Student/queries'
 import * as StudentService from '../../services/StudentService'
 import config from '../../config'
 import { getDbUlid } from '../../models/pgUtils'
+import { FavoriteLimitReachedError } from '../../services/Errors'
 
 jest.mock('../../models/Student/queries')
 jest.mock('../../services/StudentService')
@@ -145,7 +146,7 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     const payload = { isFavorite: expectedIsFavorite }
     mockedStudentService.checkAndUpdateVolunteerFavoriting.mockImplementationOnce(
       async () => {
-        throw new Error('Favorite volunteer limit reached.')
+        throw new FavoriteLimitReachedError('Favorite volunteer limit reached.')
       }
     )
     const response = await sendPost(

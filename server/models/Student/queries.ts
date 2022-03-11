@@ -2,7 +2,6 @@ import { Types } from 'mongoose'
 import StudentModel, { Student } from './index'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
-import { getObjectId } from '../../tests/generate'
 
 async function wrapRead<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -222,11 +221,15 @@ export async function getFavoriteVolunteers(
 }
 
 function mockDeleteFavoriteVolunteer(): UpdateFavoriteVolunteer[] {
-  return [{ volunteerId: getObjectId(), studentId: getObjectId() }]
+  return [
+    { volunteerId: new Types.ObjectId(), studentId: new Types.ObjectId() },
+  ]
 }
 
 function mockAddFavoriteVolunteer(): UpdateFavoriteVolunteer[] {
-  return [{ volunteerId: getObjectId(), studentId: getObjectId() }]
+  return [
+    { volunteerId: new Types.ObjectId(), studentId: new Types.ObjectId() },
+  ]
 }
 
 export async function deleteFavoriteVolunteer(

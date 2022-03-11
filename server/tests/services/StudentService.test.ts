@@ -4,27 +4,20 @@ import * as StudentRepo from '../../models/Student/queries'
 import { getDbUlid } from '../../models/pgUtils'
 import * as StudentService from '../../services/StudentService'
 import config from '../../config'
-import { Types } from 'mongoose'
+import { FavoriteLimitReachedError } from '../../services/Errors'
+import * as UserActionCtrl from '../../controllers/UserActionCtrl'
+import { UserActionDocument } from '../../models/UserAction'
 
 jest.mock('../../models/Student/queries')
-jest.mock('../../controllers/UserActionCtrl', () => {
-  return {
-    AccountActionCreator: class AccountActionCreator {
-      constructor(
-        private userId: Types.ObjectId,
-        private ipAddress = '',
-        private options = {}
-      ) {}
 
-      volunteerFavorited() {
-        return jest.fn()
-      }
-      volunteerUnfavorited() {
-        return jest.fn()
-      }
-    },
-  }
-})
+// TODO: figure out how to use jest.mock() on UserActionCtrl
+const mockVolunteerFavorited = jest
+  .spyOn(UserActionCtrl.AccountActionCreator.prototype, 'volunteerFavorited')
+  .mockResolvedValue({} as UserActionDocument)
+
+const mockVolunteerUnfavorited = jest
+  .spyOn(UserActionCtrl.AccountActionCreator.prototype, 'volunteerUnfavorited')
+  .mockResolvedValue({} as UserActionDocument)
 
 const mockedStudentRepo = mocked(StudentRepo, true)
 
@@ -88,6 +81,7 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
     )
 
     expect(result.isFavorite).toEqual(expectedIsFavorite)
+    expect(mockVolunteerFavorited).toHaveBeenCalledTimes(1)
   })
 
   test('Should throw error when favorite volunteer limit has been reached', async () => {
@@ -111,8 +105,11 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
         volunteerId
       )
     } catch (error) {
-      expect(error).toBeInstanceOf(Error)
-      expect((error as Error).message).toBe('Favorite volunteer limit reached.')
+      expect(error).toBeInstanceOf(FavoriteLimitReachedError)
+      expect((error! as FavoriteLimitReachedError).message).toBe(
+        'Favorite volunteer limit reached.'
+      )
+      expect(mockVolunteerFavorited).toHaveBeenCalledTimes(0)
     }
   })
 
@@ -133,6 +130,7 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
     )
 
     expect(result.isFavorite).toEqual(expectedIsFavorite)
+    expect(mockVolunteerUnfavorited).toHaveBeenCalledTimes(1)
   })
 
   test('Should return true when volunteer is added to student_favorite_volunteers table with sessionId in the payload', async () => {
@@ -158,5 +156,6 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
     )
 
     expect(result.isFavorite).toEqual(expectedIsFavorite)
+    expect(mockVolunteerFavorited).toHaveBeenCalledTimes(1)
   })
 })

@@ -10,6 +10,7 @@ import {
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as StudentService from '../../services/StudentService'
+import { FavoriteLimitReachedError } from '../../services/Errors'
 
 export function routeStudents(router: Router): void {
   router.get('/students/remaining-favorite-volunteers', async function(
@@ -84,10 +85,12 @@ export function routeStudents(router: Router): void {
 
       res.json({ isFavorite: result.isFavorite })
     } catch (error) {
-      res.status(422).json({
-        success: false,
-        message: (error as Error).message,
-      })
+      if (error instanceof FavoriteLimitReachedError) {
+        res.status(422).json({
+          success: false,
+          message: error.message,
+        })
+      } else resError(res, error)
     }
   })
 }

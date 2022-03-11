@@ -10,6 +10,7 @@ import { getIdFromModelReference } from '../utils/model-reference'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import config from '../config'
 import { Ulid } from '../models/pgUtils'
+import { FavoriteLimitReachedError } from './Errors'
 
 export const queueOnboardingEmails = async (
   studentId: Types.ObjectId
@@ -87,7 +88,7 @@ export async function checkAndUpdateVolunteerFavoriting(
       await StudentRepo.addFavoriteVolunteer(studentId, volunteerId)
       return { isFavorite: true }
     }
-    throw new Error('Favorite volunteer limit reached.')
+    throw new FavoriteLimitReachedError('Favorite volunteer limit reached.')
   } else {
     await new UserActionCtrl.AccountActionCreator(studentId, ip, {
       volunteerId: volunteerId,
