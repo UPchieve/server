@@ -1,12 +1,13 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { buildStudent } from '../generate'
+import { buildStudent, getObjectId } from '../generate'
 import { routeStudents } from '../../router/api/students'
 import * as StudentRepo from '../../models/Student/queries'
 import * as StudentService from '../../services/StudentService'
 import config from '../../config'
 import { getDbUlid } from '../../models/pgUtils'
+import { FavoriteLimitReachedError } from '../../services/Errors'
 
 jest.mock('../../models/Student/queries')
 jest.mock('../../services/StudentService')
@@ -37,6 +38,13 @@ async function sendGetQuery(route: string, payload: any): Promise<Test> {
 async function sendGet(route: string, payload: any): Promise<Test> {
   return agent
     .get(API_ROUTE + route)
+    .set('Accept', 'application/json')
+    .send(payload)
+}
+
+async function sendPost(route: string, payload: any): Promise<Test> {
+  return agent
+    .post(API_ROUTE + route)
     .set('Accept', 'application/json')
     .send(payload)
 }
@@ -73,6 +81,81 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     } = response
     expect(isFavorite).toEqual(expectedIsFavorite)
     expect(response.status).toBe(200)
+  })
+
+  test('Students should be able to favorite volunteer', async () => {
+    const volunteerId = getObjectId()
+    const expectedIsFavorite = true
+    const payload = { isFavorite: expectedIsFavorite }
+    mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
+      { isFavorite: true }
+    )
+    const response = await sendPost(
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
+      payload
+    )
+    const {
+      body: { isFavorite },
+    } = response
+
+    expect(isFavorite).toEqual(expectedIsFavorite)
+    expect(response.status).toBe(200)
+  })
+
+  test('Students should be able to favorite volunteer with sessionId in the payload', async () => {
+    const volunteerId = getObjectId()
+    const expectedIsFavorite = true
+    const payload = { isFavorite: expectedIsFavorite, sessionId: getObjectId() }
+    mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
+      { isFavorite: true }
+    )
+    const response = await sendPost(
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
+      payload
+    )
+    const {
+      body: { isFavorite },
+    } = response
+
+    expect(isFavorite).toEqual(expectedIsFavorite)
+    expect(response.status).toBe(200)
+  })
+
+  test('Students should be able to unfavorite volunteer', async () => {
+    const volunteerId = getObjectId()
+    const expectedIsFavorite = false
+    const payload = { isFavorite: expectedIsFavorite }
+    mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
+      { isFavorite: false }
+    )
+    const response = await sendPost(
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
+      payload
+    )
+    const {
+      body: { isFavorite },
+    } = response
+
+    expect(isFavorite).toEqual(expectedIsFavorite)
+    expect(response.status).toBe(200)
+  })
+
+  test('Students should be not be able to favorite more than max volunteers', async () => {
+    const volunteerId = getObjectId()
+    const expectedIsFavorite = true
+    const payload = { isFavorite: expectedIsFavorite }
+    mockedStudentService.checkAndUpdateVolunteerFavoriting.mockImplementationOnce(
+      async () => {
+        throw new FavoriteLimitReachedError('Favorite volunteer limit reached.')
+      }
+    )
+    const response = await sendPost(
+      IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
+      payload
+    )
+
+    expect(response.status).toBe(422)
+    expect(response.body.message).toBe('Favorite volunteer limit reached.')
   })
 })
 

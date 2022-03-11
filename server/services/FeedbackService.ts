@@ -1,11 +1,12 @@
 import _ from 'lodash'
 import Case from 'case'
-import FeedbackModel, {
+import {
   Feedback,
   StudentCounselingFeedback,
   StudentTutoringFeedback,
   VolunteerFeedback,
 } from '../models/Feedback'
+import * as FeedbackRepo from '../models/Feedback/queries'
 import { FEEDBACK_VERSIONS } from '../constants'
 import { FEEDBACK_EVENTS } from '../constants/events'
 import { emitter } from './EventsService'
@@ -15,6 +16,7 @@ import {
   asFactory,
   asOptional,
   asArray,
+  asObjectId,
 } from '../utils/type-utils'
 import { InputError } from '../models/Errors'
 
@@ -51,15 +53,15 @@ const asVolunteerFeedback = asFactory<VolunteerFeedback>({
 })
 
 const asFeedbackPayload = asFactory({
-  sessionId: asString,
+  sessionId: asObjectId,
   topic: asString,
   subTopic: asString,
   studentTutoringFeedback: asOptional(asStudentTutoringFeedback),
   studentCounselingFeedback: asOptional(asStudentCounselingFeedback),
   volunteerFeedback: asOptional(asVolunteerFeedback),
   userType: asString,
-  studentId: asString,
-  volunteerId: asString,
+  studentId: asObjectId,
+  volunteerId: asObjectId,
 })
 
 export async function saveFeedback(data: unknown): Promise<Feedback> {
@@ -80,7 +82,8 @@ export async function saveFeedback(data: unknown): Promise<Feedback> {
     _.isEmpty(volunteerFeedback)
   )
     throw new InputError('Must answer at least one question')
-  const feedback = new FeedbackModel({
+
+  const doc = await FeedbackRepo.saveFeedback(sessionId, userType, {
     sessionId,
     type: Case.camel(topic),
     subTopic: Case.camel(subTopic),
@@ -92,8 +95,6 @@ export async function saveFeedback(data: unknown): Promise<Feedback> {
     volunteerId,
     versionNumber: FEEDBACK_VERSIONS.TWO,
   })
-
-  const doc = await feedback.save()
   emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, doc.sessionId, doc._id)
-  return doc.toObject()
+  return doc
 }

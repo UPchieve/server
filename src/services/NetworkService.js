@@ -654,7 +654,12 @@ export default {
   },
   getRemainingFavoriteVolunteers() {
     return Vue.http
-    .get(`${API_ROOT}/students/remaining-favorite-volunteers`)
-    .then(this._successHandler, this._errorHandler)
+      .get(`${API_ROOT}/students/remaining-favorite-volunteers`)
+      .then(this._successHandler, this._errorHandler)
+  },
+  checkIsFavoriteVolunteer(volunteerId) {
+    return Vue.http
+      .get(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`)
+      .then(this._successHandler, this._errorHandler)
   },
 }
