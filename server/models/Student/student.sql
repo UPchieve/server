@@ -59,17 +59,19 @@ WHERE
 SELECT
     student_favorite_volunteers.volunteer_id AS volunteer_id,
     users.first_name AS first_name,
-    (
-        SELECT
-            count(*)
-        FROM
-            sessions
-        WHERE
-            student_favorite_volunteers.volunteer_id = sessions.volunteer_id
-            AND student_favorite_volunteers.student_id = sessions.student_id)::int AS num_sessions
+    COALESCE(sessions.total, 0)::int AS num_sessions
 FROM
     student_favorite_volunteers
     LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
+    LEFT JOIN (
+        SELECT
+            count(*) AS total,
+            sessions.volunteer_id
+        FROM
+            sessions
+        GROUP BY
+            sessions.student_id,
+            sessions.volunteer_id) AS sessions ON sessions.volunteer_id = student_favorite_volunteers.volunteer_id
 WHERE
     student_favorite_volunteers.student_id = :userId!
 ORDER BY

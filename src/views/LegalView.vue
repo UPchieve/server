@@ -28,7 +28,7 @@
       <h2 id="terms">Terms of Service</h2>
 
       <p>
-        <em>Date of Last Revision: May 12, 2018</em>
+        <em>Date of Last Revision: March 9, 2022</em>
       </p>
 
       <p>
@@ -171,7 +171,7 @@
             UPchieve of the change immediately by logging on to the Website and
             updating your profile to reflect the correct email address or by
             sending written notice of your updated e-mail address to
-            <a href="mailo:support@upchieve.org">support@upchieve.org</a>.
+            <a href="mailto:support@upchieve.org">support@upchieve.org</a>.
           </p>
 
           <p>
@@ -456,13 +456,25 @@
               <strong>Birthdate</strong>
             </li>
             <li>
-              <strong>Gender</strong>
+              <strong>School name (only for students)</strong>
             </li>
             <li>
-              <strong>Race / ethnicity</strong>
+              <strong>Zip code (only for students)</strong>
             </li>
             <li>
-              <strong>School name</strong>
+              <strong>ID (only for volunteers)</strong>
+            </li>
+            <li>
+              <strong>Work status (only for volunteers)</strong>
+            </li>
+            <li>
+              <strong>LinkedIn Profile (only for volunteers, optional)</strong>
+            </li>
+            <li>
+              <strong>Cookies, see below for detail</strong>
+            </li>
+            <li>
+              <strong>Account Data, including past chat logs, feedback, actions on site, etc</strong>
             </li>
           </ul>
         </accordion-item>
@@ -488,6 +500,13 @@
               limited to: which Services you use, at what time you use the
               Services, and how long your interactions with other Users last.
             </li>
+            <li>
+              <strong>
+                Information we collect automatically.
+              </strong>
+              When you use our Site, we also collect information and analytics about
+              how you interact with our Site through technologies like cookies.
+            </li>
           </ul>
 
           <p>
@@ -499,17 +518,25 @@
           </p>
         </accordion-item>
 
-        <accordion-item label="You Control Your Personal Information">
+        <accordion-item label="Opting Out of Communiations">
           <p>
-            You can visit the Profile section of our Website at any time to see
-            some of personal information we have collected about you. Most of
-            this information can be updated by you on the Website, but you may
-            email us at
-            <a href="mailto:support@upchieve.org">support@upchieve.org</a> at
-            any time to request that we update or remove your information.
-            UPchieve will retain the information of Users for as long as your
-            account remains active or until we receive a data deletion request
-            from you.
+            With your consent, from time to time we will communicate with you
+            concerning our Services, including requests for future support.
+            To opt-out of receiving these communications, you may click on the
+            “unsubscribe” link in any email communications.
+          </p>
+        </accordion-item>
+
+        <accordion-item label="Update, Correct, or Delete Your Personal Information">
+          <p>
+            You can visit the Profile section of our Site at any time to see some
+            of the personal information we have collected about you. You can update
+            most of this information on the Site, but you may also email us at
+            <a href="mailto:support@upchieve.org">support@upchieve.org</a> at any time
+            to request that we update or remove your information.
+            UPchieve will retain the information about you for as long as your
+            account remains active. iOS app users may request full deletion of their account,
+            which makes it inaccessible while we manually process removal of the data.
           </p>
 
           <p>
@@ -554,7 +581,10 @@
               Service. Furthermore, we strongly encourage all Users to follow
               internet safety practices and use caution even when interacting
               with other Users. For more information on best internet safety
-              practices specifically for teens, check out WebMD's article.
+              practices specifically for teens, check out
+              <a href="https://teens.webmd.com/features/teen-internet-safety-tips"
+                 target="_blank"
+                 rel="noopener noreferrer">WebMD's article</a>.
             </li>
 
             <li>
@@ -602,15 +632,89 @@
         </accordion-item>
 
         <accordion-item label="Cookies">
+          <ul>
+            <li>
+              <strong>
+                What a cookie is:
+              </strong>
+              <p>
+                A Cookie is a small file that can be placed on your device
+                that allows us to recognize and remember you. It is sent
+                to your browser and stored on your computer’s hard drive.
+                When you visit our sites, we may collect information from
+                you automatically through cookies or similar technology,
+                such as a tag, pixel, or other web beacon.
+              </p>
+            </li>
+            <li>
+              <strong>How we use cookies:</strong>
+              <p>
+                We use Cookies in a range of ways to improve your experience on our site,
+                including by keeping you logged in, and providing us with an understanding
+                of how you use and interact with our Site. Ultimately, this allows us to provide
+                the Service that you receive on our Site and app.
+              </p>
+              <p>
+                Other organizations also collect user information on our Site through Cookies,
+                tags and pixels. Tags and pixels, also known as web beacons, are similar to
+                Cookies but are collected through embedded images. Using Cookies and other
+                technologies allows other organizations to help us to analyze how our site is being used,
+                and measure the number of visitors to the site.
+              </p>
+              <p>
+                We use third-party services, including Google Analytics and Posthog to gather general
+                information about how visitors use our Site for website optimization and analytics.
+                To find out more about Google Analytics' privacy policies, please visit the following link:
+                http://www.google.com/policies/privacy/partners/.
+                For further details about Posthog, please see https://www.posthog.com.
+                We use a service called Gleap to handle user error reports. We use a service called NewRelic
+                to track errors and performance of our applications. Both use cookies on our site.
+                For all of the above services, the only people with access to data are our staff members.
+                While the data is sent to a third party to process, they are not allowed to
+                view any of the data coming from our system.
+              </p>
+            </li>
+            <li>
+              <strong>To opt-out of cookies:</strong>
+              <p>
+                You may choose opt-out from the use of Cookies on your computer by selecting the
+                appropriate settings in your browser. Be aware that opting-out may affect your
+                ability to use all the features of the Site. Because a Cookie is stored on your computer,
+                it is always possible for you to view, modify or delete it.
+              </p>
+              <p>
+                It is also possible to stop your browser from accepting Cookies altogether by
+                changing your browser’s Cookie settings. You can usually find these settings
+                in the “Options” or “Preferences” menu of your browser. The following links may be helpful,
+                or you can use the “Help” option in your browser.
+              </p>
+              <ul>
+                <li>
+                  <a href="https://support.microsoft.com/en-gb/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09"
+                     target="_blank">Cookie Settings in Edge</a>
+                </li>
+                <li>
+                  <a href="https://support.mozilla.org/en-US/kb/cookies-information-websites-store-on-your-computer?redirectslug=Cookies&redirectlocale=en-US"
+                     target="_blank">Cookie Settings in Firefox</a>
+                </li>
+                <li>
+                  <a href="https://support.google.com/chrome/answer/95647?hl=en&ref_topic=14666"
+                     target="_blank">Cookie Settings in Chrome</a>
+                </li>
+                <li>
+                  <a href="https://support.apple.com/guide/safari/manage-cookies-sfri11471/mac"
+                     target="_blank">Cookie Settings in Safari</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </accordion-item>
+
+        <accordion-item label="External Links">
           <p>
-            Cookies are files that your web browser puts on your computer when
-            you visit a web site. We use cookies to tell us how often you visit
-            our Website, and what pages you go to on our Website. Sometimes we
-            use files from other companies (called third-party cookies) to help
-            us see where people go on our Website or to improve our Services and
-            the performance of our advertising. Unless you give us permission,
-            the cookies we use do not store any personally identifiable
-            information.
+            Our Site may include links to external websites. UPchieve is not responsible for the
+            privacy practices of these websites and we encourage you to review and understand
+            their privacy practices and policies prior to providing any personal information to them.
           </p>
         </accordion-item>
 
@@ -622,6 +726,14 @@
             notice to you of such changes. Your continued use of the Website
             after the posting of changes constitutes your binding acceptance of
             such changes.
+          </p>
+        </accordion-item>
+
+        <accordion-item label="Contact Us">
+          <p>
+            If you have any questions about this Privacy Policy, please contact us at
+            <a href="mailto:support@upchieve.org">support@upchieve.org</a>.
+            Alternatively, please submit your question or request via the “Contact” feature on our Site.
           </p>
         </accordion-item>
       </div>

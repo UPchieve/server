@@ -74,7 +74,6 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
     mockedStudentRepo.isFavoriteVolunteer.mockResolvedValueOnce(
       expectedIsFavorite
     )
-
     const response = await sendGet(IS_FAVORITE_VOLUNTEER_PATH(volunteerId), {})
     const {
       body: { isFavorite },
