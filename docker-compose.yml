@@ -14,6 +14,12 @@ services:
             - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/init_roles.sql
             # - ./database/db_init/pgulid.sql:/docker-entrypoint-initdb.d/init_ulid.sql
             - ./database/db_init/seeds.sql:/docker-entrypoint-initdb.d/seeds.sql
+        healthcheck:
+            test: ["pg_isready", "-h", "postgres"]
+            interval: 1m30s
+            timeout: 30s
+            retries: 5
+            start_period: 30s
     mongodb:
         hostname: mongodb
         ports:

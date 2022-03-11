@@ -17,11 +17,12 @@ import {
   certificationSubjectUnlocks,
 } from './scripts/academics/subjects'
 import { toolTypes } from './scripts/academics/tool-types'
-import { certifications } from './scripts/academics/certifications'
+import { certifications, getCertIds } from './scripts/academics/certifications'
 import {
   quizSubcategories,
   quizzes,
   quizCertificationGrants,
+  getQuizIds,
 } from './scripts/academics/quizzes'
 import { sessionFlags } from './scripts/sessions/session-flags'
 import { reportReasons } from './scripts/sessions/report-reasons'
@@ -57,9 +58,11 @@ async function seedData(): Promise<void> {
     const topicIds = await topics()
     const toolIds = await toolTypes()
     const subjectIds = await subjects(topicIds, toolIds)
-    const quizIds = await quizzes()
+    await quizzes()
+    const quizIds = await getQuizIds()
     await quizSubcategories(quizIds)
-    const certIds = await certifications()
+    await certifications()
+    const certIds = await getCertIds()
     await quizCertificationGrants(quizIds, certIds)
     await certificationSubjectUnlocks(subjectIds, quizIds)
 
@@ -74,9 +77,11 @@ async function seedData(): Promise<void> {
     // import { volunteers } from './scripts/testData/volunteers'
     // import { students } from './scripts/testData/students'
     // import { schools } from './scripts/testData/schools'
+    // import { studentFavoriteVolunteers } from './scripts/testData/student-favorite-volunteers'
     // await schools()
     // await volunteers(vpoIds, certIds, quizIds)
     // await students(spoIds)
+    // await studentFavoriteVolunteers(certIds, quizIds)
     console.log('All data is seeded!')
     if (ExpectedErrors.length)
       console.log(

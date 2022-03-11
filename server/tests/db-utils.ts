@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt'
-import { Types } from 'mongoose'
 import UserModel from '../models/User'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
 import StudentModel, { Student } from '../models/Student'

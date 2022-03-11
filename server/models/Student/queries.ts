@@ -70,9 +70,9 @@ export async function getTestStudentExistsById(
 }
 
 // pg wrappers
-import client from '../../pg'
+import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeRequired } from '../pgUtils'
+import { Ulid, makeRequired, getDbUlid } from '../pgUtils'
 
 type GatesStudent = {
   id: Ulid
@@ -85,7 +85,10 @@ export async function getGatesStudentById(
   userId: Ulid
 ): Promise<GatesStudent | undefined> {
   try {
-    const result = await pgQueries.getGatesStudentById.run({ userId }, client)
+    const result = await pgQueries.getGatesStudentById.run(
+      { userId },
+      getClient()
+    )
     if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
@@ -104,7 +107,7 @@ export async function IgetStudentContactInfoById(
   try {
     const result = await pgQueries.getStudentContactInfoById.run(
       { userId },
-      client
+      getClient()
     )
     if (result.length) return makeRequired(result[0])
   } catch (err) {
@@ -114,11 +117,100 @@ export async function IgetStudentContactInfoById(
 
 export async function isTestUser(userId: Ulid): Promise<boolean> {
   try {
-    const result = await pgQueries.isTestUser.run({ userId }, client)
+    const result = await pgQueries.isTestUser.run({ userId }, getClient())
     if (result.length) return makeRequired(result[0]).testUser
     return false
   } catch (err) {
     if (err instanceof RepoReadError) throw err
+    throw new RepoReadError(err)
+  }
+}
+
+function mockGetTotalFavoriteVolunteers() {
+  return [{ total: 4 }]
+}
+
+function mockIsFavoriteVolunteer() {
+  return [{ mock: 1 }]
+}
+
+function mockGetFavoriteVolunteers() {
+  const volunteers: FavoriteVolunteer[] = []
+  for (let i = 0; i < 5; i++) {
+    volunteers.push({
+      volunteerId: getDbUlid(),
+      firstName: `Mock ${i}`,
+      numSessions: i * 2,
+    })
+  }
+  return volunteers
+}
+
+export async function getTotalFavoriteVolunteers(
+  userId: Ulid
+): Promise<number> {
+  try {
+    /** TODO: use postgres query once postgres migration is complete
+    const result = await pgQueries.getTotalFavoriteVolunteers.run(
+      { userId },
+      client
+    )
+    */
+    const result = mockGetTotalFavoriteVolunteers()
+    if (result.length) return makeRequired(result[0]).total
+    return 0
+  } catch (err) {
+    if (err instanceof RepoReadError) throw err
+    throw new RepoReadError(err)
+  }
+}
+
+export async function isFavoriteVolunteer(
+  studentId: Ulid,
+  volunteerId: Ulid
+): Promise<boolean> {
+  try {
+    /** TODO: use postgres query once postgres migration is complete
+    const result = await pgQueries.isFavoriteVolunteer.run(
+      { studentId, volunteerId },
+      client
+    )
+    */
+    const result = mockIsFavoriteVolunteer()
+    if (result.length) return true
+    return false
+  } catch (err) {
+    if (err instanceof RepoReadError) throw err
+    throw new RepoReadError(err)
+  }
+}
+
+type FavoriteVolunteer = {
+  volunteerId: Ulid
+  firstName: string
+  numSessions: number
+}
+
+type FavoriteVolunteersResponse = {
+  favoriteVolunteers: FavoriteVolunteer[]
+  isLastPage: boolean
+}
+
+export async function getFavoriteVolunteers(
+  userId: Ulid,
+  limit: number,
+  offset: number
+): Promise<FavoriteVolunteersResponse> {
+  try {
+    /** TODO: use postgres query once postgres migration is complete
+    const result = (await pgQueries.getFavoriteVolunteers.run(
+      { userId, limit: String(limit), offset: String(offset) },
+      client
+    )) as FavoriteVolunteer[]
+    */
+    const result = mockGetFavoriteVolunteers()
+    return { favoriteVolunteers: result, isLastPage: result.length < limit }
+  } catch (err) {
     throw new RepoReadError(err)
   }
 }

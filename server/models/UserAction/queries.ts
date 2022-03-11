@@ -87,9 +87,11 @@ export async function userHasTakenQuiz(
 }
 
 // pg wrappers
-import client from '../../pg'
+import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeRequired } from '../pgUtils'
+
+const client = getClient()
 
 export async function getQuizzesPassedForDateRangeById(
   userId: Ulid,
