@@ -57,6 +57,7 @@ export default {
       [FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH]: false,
       [FEATURE_FLAGS.CHATBOT]: false,
       [FEATURE_FLAGS.COACH_FAVORITING]: false,
+      [FEATURE_FLAGS.SESSION_HISTORY]: false,
     },
   },
   mutations: {
@@ -91,5 +92,6 @@ export default {
       state.flags[FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH],
     isChatbotActive: state => state.flags[FEATURE_FLAGS.CHATBOT],
     isCoachFavoritingActive: state => state.flags[FEATURE_FLAGS.COACH_FAVORITING],
+    isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY]
   },
 }
