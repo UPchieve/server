@@ -5,8 +5,12 @@ import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import { getSchool } from './SchoolService'
 import * as AnalyticsService from './AnalyticsService'
-import { getStudentById } from '../models/Student/queries'
+import * as StudentRepo from '../models/Student/queries'
 import { getIdFromModelReference } from '../utils/model-reference'
+import * as UserActionCtrl from '../controllers/UserActionCtrl'
+import config from '../config'
+import { Ulid } from '../models/pgUtils'
+import { FavoriteLimitReachedError } from './Errors'
 
 export const queueOnboardingEmails = async (
   studentId: Types.ObjectId
@@ -42,7 +46,7 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
   const userProperties: AnalyticsService.IdentifyProperties = {
     userType: 'student',
   }
-  const student = await getStudentById(studentId)
+  const student = await StudentRepo.getStudentById(studentId)
 
   if (student) {
     let school: School | undefined
@@ -63,4 +67,43 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
     })
     AnalyticsService.identify(student._id, userProperties)
   }
+}
+
+export async function checkAndUpdateVolunteerFavoriting(
+  isFavorite: boolean,
+  studentId: Types.ObjectId,
+  volunteerId: Types.ObjectId,
+  sessionId?: Types.ObjectId,
+  ip?: string
+) {
+  if (isFavorite) {
+    const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
+      studentId.toString()
+    )
+    if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
+      await new UserActionCtrl.AccountActionCreator(studentId, ip, {
+        volunteerId: volunteerId,
+        session: sessionId,
+      }).volunteerFavorited()
+      await StudentRepo.addFavoriteVolunteer(studentId, volunteerId)
+      return { isFavorite: true }
+    }
+    throw new FavoriteLimitReachedError('Favorite volunteer limit reached.')
+  } else {
+    await new UserActionCtrl.AccountActionCreator(studentId, ip, {
+      volunteerId: volunteerId,
+      session: sessionId,
+    }).volunteerUnfavorited()
+    await StudentRepo.deleteFavoriteVolunteer(studentId, volunteerId)
+    return { isFavorite: false }
+  }
+}
+
+export async function getFavoriteVolunteersPaginated(
+  userId: Ulid,
+  page: number
+) {
+  const limit = 10
+  const offset = limit * (page - 1)
+  return await StudentRepo.getFavoriteVolunteers(userId, limit, offset)
 }

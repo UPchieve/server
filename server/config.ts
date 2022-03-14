@@ -350,6 +350,8 @@ const config: Static<typeof Config> = {
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
+  favoriteVolunteerLimit:
+    Number(process.env.SUBWAY_FAVORITE_VOLUNTEER_LIMIT) || 20,
 }
 
 module.exports = config

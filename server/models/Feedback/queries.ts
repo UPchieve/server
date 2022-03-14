@@ -4,7 +4,7 @@ import FeedbackModel, {
   FeedbackVersionOne,
   FeedbackVersionTwo,
 } from './index'
-import { RepoReadError } from '../Errors'
+import { RepoCreateError, RepoReadError } from '../Errors'
 
 export type AnyFeedback = Feedback | FeedbackVersionOne | FeedbackVersionTwo
 
@@ -89,4 +89,23 @@ export async function getFeedbackBySessionIdUserType(
   } catch (err) {
     throw new RepoReadError(err)
   }
+}
+
+export async function saveFeedback(
+  sessionId: Types.ObjectId,
+  userType: string,
+  feedbackData: Partial<AnyFeedback>
+): Promise<Feedback> {
+  const feedback = await FeedbackModel.findOneAndUpdate(
+    {
+      sessionId,
+      userType,
+    },
+    feedbackData,
+    { new: true, upsert: true }
+  )
+    .lean()
+    .exec()
+  if (!feedback) throw new RepoCreateError('Error upserting feedback')
+  return feedback as Feedback
 }
