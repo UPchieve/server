@@ -12,6 +12,24 @@ WHERE
     user_id = :userId!;
 
 
+/* 
+ @name getAvailabilityForVolunteers 
+ @param userIds -> (...)
+ */
+SELECT
+    availabilities.id,
+    availabilities.available_start,
+    availabilities.available_end,
+    availabilities.timezone,
+    availabilities.user_id,
+    weekdays.day AS weekday
+FROM
+    availabilities
+    LEFT JOIN weekdays ON availabilities.weekday_id = weekdays.id
+WHERE
+    user_id IN :userIds!;
+
+
 /* @name getAvailabilityHistoryForDatesByVolunteerId */
 SELECT
     availability_histories.id,
@@ -36,4 +54,46 @@ WHERE
             AND user_id = :userId!)
 ORDER BY
     recorded_at;
+
+
+/* @name saveCurrentAvailabilityAsHistory */
+INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)
+SELECT
+    :id!,
+    NOW(),
+    user_id,
+    available_start,
+    available_end,
+    timezone,
+    weekday_id,
+    NOW(),
+    NOW()
+FROM
+    availabilities
+WHERE
+    user_id = :userId!
+RETURNING
+    id AS ok;
+
+
+/* @name insertNewAvailability */
+INSERT INTO availabilities (id, user_id, weekday_id, available_start, available_end, timezone, created_at, updated_at)
+SELECT
+    :id!,
+    :userId!,
+    id,
+    :availableStart!,
+    :availableEnd!,
+    :timezone!,
+    NOW(),
+    NOW()
+FROM
+    weekdays
+WHERE
+    day = :day!;
+
+
+/* @name clearAvailabilityForVolunteer */
+DELETE FROM availabilities
+WHERE user_id = :userId!;
 

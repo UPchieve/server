@@ -1,41 +1,5 @@
-/**
- * Model that stores push token information
- * to send to users for push notifications
- *
- */
-import { Document, model, Schema, Types } from 'mongoose'
-import { User } from '../User'
+export * from './types'
+export * from './queries'
 
-export interface PushToken {
-  _id: Types.ObjectId
-  user: Types.ObjectId | User
-  createdAt: Date
-  token: string
-}
-
-export type PushTokenDocument = PushToken & Document
-
-const pushTokenSchema = new Schema(
-  {
-    user: {
-      type: Types.ObjectId,
-      ref: 'User',
-    },
-    createdAt: { type: Date, default: Date.now },
-    // Token ID returned from push token register
-    token: { type: String, unique: true },
-  },
-  {
-    toJSON: {
-      virtuals: true,
-    },
-
-    toObject: {
-      virtuals: true,
-    },
-  }
-)
-
-const PushTokenModel = model<PushTokenDocument>('PushToken', pushTokenSchema)
-
+import PushTokenModel from './types'
 export default PushTokenModel
