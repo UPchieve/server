@@ -5,6 +5,7 @@ import Case from 'case'
 import {
   FEATURE_FLAGS,
 } from '../constants'
+import MulticastMessage = messaging.MulticastMessage
 
 async function sendToUser(
   title: string,
@@ -13,7 +14,7 @@ async function sendToUser(
   tokens: string[]
 ) {
 
-  let message
+  let message: MulticastMessage
   if (isEnabled(FEATURE_FLAGS.NEW_MOBILE_APP)) {
     message = {
       tokens,
@@ -24,8 +25,7 @@ async function sendToUser(
       notification: {
         title,
         body: text,
-        sound: 'Tri-tone'
-      }
+      },
     }
   } else {
     message = {
@@ -40,24 +40,18 @@ async function sendToUser(
               alert: {
                 title: title,
                 body: text,
-                'content-available': 1,
               },
             },
           }
         ),
       },
       android: {
-        // TS says this needs to be a string,
-        // of 'high' | 'normal'
-        // Guessing that 1 is equivalent with 'high'
-        priority: 'high',
         data: {
           title: title,
           body: text,
           message: text,
           // image: imageUrl,
           payload: JSON.stringify(data),
-          'content-available': '1',
           // type: message.type,
           icon: 'notification_icon',
           color: '#16d2aa',
@@ -82,7 +76,7 @@ export async function sendVolunteerJoined(
     }
   } else {
     data = {
-      path: _id
+      path: _id.toString()
     }
   }
 
