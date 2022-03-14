@@ -25,6 +25,7 @@ import BackgroundInfoView from './views/BackgroundInfoView'
 import CalendarView from './views/CalendarView'
 import ContactView from './views/ContactView'
 import DashboardView from './views/DashboardView'
+import FavoriteCoachesView from './views/FavoriteCoachesView'
 import FeedbackView from './views/FeedbackView'
 import LegalView from './views/LegalView'
 import LoginView from './views/LoginView'
@@ -262,6 +263,12 @@ const routes = [
     path: '/profile',
     name: 'ProfileView',
     component: ProfileView,
+    meta: { protected: true }
+  },
+  {
+    path: '/favorite-coaches',
+    name: 'FavoriteCoachesView',
+    component: FavoriteCoachesView,
     meta: { protected: true }
   },
   {
