@@ -60,3 +60,31 @@ const insertZipCodeIR: any = {"name":"insertZipCode","params":[{"name":"code","r
 export const insertZipCode = new PreparedQuery<IInsertZipCodeParams,IInsertZipCodeResult>(insertZipCodeIR);
 
 
+/** 'InsertWeekday' parameters type */
+export interface IInsertWeekdayParams {
+  day: string;
+  id: number;
+}
+
+/** 'InsertWeekday' return type */
+export interface IInsertWeekdayResult {
+  ok: number;
+}
+
+/** 'InsertWeekday' query type */
+export interface IInsertWeekdayQuery {
+  params: IInsertWeekdayParams;
+  result: IInsertWeekdayResult;
+}
+
+const insertWeekdayIR: any = {"name":"insertWeekday","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":508,"b":510,"line":8,"col":64}]}},{"name":"day","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":514,"b":517,"line":8,"col":70}]}}],"usedParamSet":{"id":true,"day":true},"statement":{"body":"INSERT INTO weekdays (id, day, created_at, updated_at) VALUES (:id!, :day!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":444,"b":574,"line":8,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO weekdays (id, day, created_at, updated_at) VALUES (:id!, :day!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * ```
+ */
+export const insertWeekday = new PreparedQuery<IInsertWeekdayParams,IInsertWeekdayResult>(insertWeekdayIR);
+
+

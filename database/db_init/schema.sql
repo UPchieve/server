@@ -16,113 +16,6 @@ SET row_security = off;
 CREATE SCHEMA upchieve;
 
 
---
--- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
-
-
---
--- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
-
-
---
--- Name: generate_ulid(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.generate_ulid() RETURNS text
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-  -- Crockford's Base32
-  encoding   BYTEA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
-  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
-  output     TEXT = '';
-
-  unix_time  BIGINT;
-  ulid       BYTEA;
-BEGIN
-  -- 6 timestamp bytes
-  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
-  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
-
-  -- 10 entropy bytes
-  ulid = timestamp || public.gen_random_bytes(10);
-
-  -- Encode the timestamp
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 0) & 224) >> 5));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 0) & 31)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 1) & 248) >> 3));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 1) & 7) << 2) | ((GET_BYTE(ulid, 2) & 192) >> 6)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 2) & 62) >> 1));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 2) & 1) << 4) | ((GET_BYTE(ulid, 3) & 240) >> 4)));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 3) & 15) << 1) | ((GET_BYTE(ulid, 4) & 128) >> 7)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 4) & 124) >> 2));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 4) & 3) << 3) | ((GET_BYTE(ulid, 5) & 224) >> 5)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 5) & 31)));
-
-  -- Encode the entropy
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 6) & 248) >> 3));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 6) & 7) << 2) | ((GET_BYTE(ulid, 7) & 192) >> 6)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 7) & 62) >> 1));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 7) & 1) << 4) | ((GET_BYTE(ulid, 8) & 240) >> 4)));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 8) & 15) << 1) | ((GET_BYTE(ulid, 9) & 128) >> 7)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 9) & 124) >> 2));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 9) & 3) << 3) | ((GET_BYTE(ulid, 10) & 224) >> 5)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 10) & 31)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 11) & 248) >> 3));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 11) & 7) << 2) | ((GET_BYTE(ulid, 12) & 192) >> 6)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 12) & 62) >> 1));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 12) & 1) << 4) | ((GET_BYTE(ulid, 13) & 240) >> 4)));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 13) & 15) << 1) | ((GET_BYTE(ulid, 14) & 128) >> 7)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 14) & 124) >> 2));
-  output = output || CHR(GET_BYTE(encoding, ((GET_BYTE(ulid, 14) & 3) << 3) | ((GET_BYTE(ulid, 15) & 224) >> 5)));
-  output = output || CHR(GET_BYTE(encoding, (GET_BYTE(ulid, 15) & 31)));
-
-  RETURN output;
-END
-$$;
-
-
---
--- Name: generate_ulid_uuid(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.generate_ulid_uuid() RETURNS uuid
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
-
-  unix_time  BIGINT;
-  ulid       BYTEA;
-BEGIN
-  -- 6 timestamp bytes
-  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
-  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
-
-  -- 10 entropy bytes
-  ulid = timestamp || public.gen_random_bytes(10);
-
-  RETURN CAST( substring(CAST (ulid AS text) from 3) AS uuid);
-END
-$$;
-
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -307,6 +200,21 @@ ALTER SEQUENCE upchieve.cities_id_seq OWNED BY upchieve.cities.id;
 
 
 --
+-- Name: contact_form_submissions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.contact_form_submissions (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    user_email text NOT NULL,
+    message text NOT NULL,
+    topic text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: feedbacks; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -316,12 +224,12 @@ CREATE TABLE upchieve.feedbacks (
     subject_id integer,
     user_role_id integer NOT NULL,
     session_id uuid NOT NULL,
-    student_tutoring_feedback json,
-    student_counseling_feedback json,
-    volunteer_feedback json,
+    student_tutoring_feedback jsonb,
+    student_counseling_feedback jsonb,
+    volunteer_feedback jsonb,
     comment text,
     user_id uuid NOT NULL,
-    legacy_feedbacks json,
+    legacy_feedbacks jsonb,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     mongo_id character varying(24)
@@ -595,12 +503,25 @@ CREATE TABLE upchieve.postal_codes (
 
 CREATE TABLE upchieve.pre_session_surveys (
     id uuid NOT NULL,
-    response_data json,
+    response_data jsonb,
     session_id uuid NOT NULL,
     user_id uuid NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     mongo_id character varying(24)
+);
+
+
+--
+-- Name: push_tokens; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.push_tokens (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    token text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -1499,7 +1420,7 @@ CREATE TABLE upchieve.volunteer_profiles (
     college text,
     company text,
     languages text[],
-    experience json,
+    experience jsonb,
     city text,
     state text,
     country text,
@@ -1830,6 +1751,22 @@ ALTER TABLE ONLY upchieve.cities
 
 
 --
+-- Name: contact_form_submissions contact_form_submissions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.contact_form_submissions
+    ADD CONSTRAINT contact_form_submissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: contact_form_submissions contact_form_submissions_user_email_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.contact_form_submissions
+    ADD CONSTRAINT contact_form_submissions_user_email_key UNIQUE (user_email);
+
+
+--
 -- Name: feedbacks feedbacks_mongo_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2027,6 +1964,14 @@ ALTER TABLE ONLY upchieve.pre_session_surveys
 
 ALTER TABLE ONLY upchieve.pre_session_surveys
     ADD CONSTRAINT pre_session_surveys_session_id_key UNIQUE (session_id);
+
+
+--
+-- Name: push_tokens push_tokens_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.push_tokens
+    ADD CONSTRAINT push_tokens_pkey PRIMARY KEY (id);
 
 
 --
@@ -2669,6 +2614,14 @@ ALTER TABLE ONLY upchieve.cities
 
 
 --
+-- Name: contact_form_submissions contact_form_submissions_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.contact_form_submissions
+    ADD CONSTRAINT contact_form_submissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: feedbacks feedbacks_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2810,6 +2763,14 @@ ALTER TABLE ONLY upchieve.pre_session_surveys
 
 ALTER TABLE ONLY upchieve.pre_session_surveys
     ADD CONSTRAINT pre_session_surveys_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: push_tokens push_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.push_tokens
+    ADD CONSTRAINT push_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -3341,4 +3302,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220217160257'),
     ('20220223184006'),
     ('20220310003451'),
-    ('20220310005137');
+    ('20220310005137'),
+    ('20220311204741'),
+    ('20220314150152'),
+    ('20220314195714');

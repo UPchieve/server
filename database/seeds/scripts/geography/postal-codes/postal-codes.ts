@@ -42,4 +42,11 @@ export async function postalCodes() {
     })
   })
   await Promise.all(recordInsertions)
+  await wrapInsert('postal_codes', pgQueries.insertZipCode.run, {
+    code: '00000',
+    usStateCode: 'NA',
+    income: 0,
+    lattitude: 0,
+    longitude: 0
+  })
 }

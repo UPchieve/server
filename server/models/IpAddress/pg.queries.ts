@@ -1,0 +1,145 @@
+/** Types generated for queries found in "server/models/IpAddress/ip_address.sql" */
+import { PreparedQuery } from '@pgtyped/query';
+
+/** 'GetIpByRawString' parameters type */
+export interface IGetIpByRawStringParams {
+  ip: string;
+}
+
+/** 'GetIpByRawString' return type */
+export interface IGetIpByRawStringResult {
+  createdAt: Date;
+  id: string;
+  ip: string;
+  status: string | null;
+  updatedAt: Date;
+}
+
+/** 'GetIpByRawString' query type */
+export interface IGetIpByRawStringQuery {
+  params: IGetIpByRawStringParams;
+  result: IGetIpByRawStringResult;
+}
+
+const getIpByRawStringIR: any = {"name":"getIpByRawString","params":[{"name":"ip","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":133,"b":135,"line":11,"col":10}]}}],"usedParamSet":{"ip":true},"statement":{"body":"SELECT\n    id,\n    ip,\n    status,\n    created_at,\n    updated_at\nFROM\n    ip_addresses\nWHERE\n    ip = :ip!","loc":{"a":29,"b":135,"line":2,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     ip,
+ *     status,
+ *     created_at,
+ *     updated_at
+ * FROM
+ *     ip_addresses
+ * WHERE
+ *     ip = :ip!
+ * ```
+ */
+export const getIpByRawString = new PreparedQuery<IGetIpByRawStringParams,IGetIpByRawStringResult>(getIpByRawStringIR);
+
+
+/** 'InsertIpByRawString' parameters type */
+export interface IInsertIpByRawStringParams {
+  id: string;
+  ip: string;
+}
+
+/** 'InsertIpByRawString' return type */
+export interface IInsertIpByRawStringResult {
+  createdAt: Date;
+  id: string;
+  ip: string;
+  status: string | null;
+  updatedAt: Date;
+}
+
+/** 'InsertIpByRawString' query type */
+export interface IInsertIpByRawStringQuery {
+  params: IInsertIpByRawStringParams;
+  result: IInsertIpByRawStringResult;
+}
+
+const insertIpByRawStringIR: any = {"name":"insertIpByRawString","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":243,"b":245,"line":16,"col":13}]}},{"name":"ip","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":249,"b":251,"line":16,"col":19}]}}],"usedParamSet":{"id":true,"ip":true},"statement":{"body":"INSERT INTO ip_addresses (id, ip, created_at, updated_at)\n    VALUES (:id!, :ip!, NOW(), NOW())\nRETURNING\n    id, ip, status, created_at, updated_at","loc":{"a":172,"b":319,"line":15,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO ip_addresses (id, ip, created_at, updated_at)
+ *     VALUES (:id!, :ip!, NOW(), NOW())
+ * RETURNING
+ *     id, ip, status, created_at, updated_at
+ * ```
+ */
+export const insertIpByRawString = new PreparedQuery<IInsertIpByRawStringParams,IInsertIpByRawStringResult>(insertIpByRawStringIR);
+
+
+/** 'InsertUsersIpById' parameters type */
+export interface IInsertUsersIpByIdParams {
+  id: string;
+  ipId: number;
+  userId: string;
+}
+
+/** 'InsertUsersIpById' return type */
+export interface IInsertUsersIpByIdResult {
+  ok: string;
+}
+
+/** 'InsertUsersIpById' query type */
+export interface IInsertUsersIpByIdQuery {
+  params: IInsertUsersIpByIdParams;
+  result: IInsertUsersIpByIdResult;
+}
+
+const insertUsersIpByIdIR: any = {"name":"insertUsersIpById","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":451,"b":453,"line":23,"col":13}]}},{"name":"ipId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":457,"b":461,"line":23,"col":19}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":465,"b":471,"line":23,"col":27}]}}],"usedParamSet":{"id":true,"ipId":true,"userId":true},"statement":{"body":"INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)\n    VALUES (:id!, :ipId!, :userId!, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":354,"b":509,"line":22,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)
+ *     VALUES (:id!, :ipId!, :userId!, NOW(), NOW())
+ * RETURNING
+ *     id AS ok
+ * ```
+ */
+export const insertUsersIpById = new PreparedQuery<IInsertUsersIpByIdParams,IInsertUsersIpByIdResult>(insertUsersIpByIdIR);
+
+
+/** 'UpdateIpStatusById' parameters type */
+export interface IUpdateIpStatusByIdParams {
+  id: string;
+  status: string;
+}
+
+/** 'UpdateIpStatusById' return type */
+export interface IUpdateIpStatusByIdResult {
+  ok: string;
+}
+
+/** 'UpdateIpStatusById' query type */
+export interface IUpdateIpStatusByIdQuery {
+  params: IUpdateIpStatusByIdParams;
+  result: IUpdateIpStatusByIdResult;
+}
+
+const updateIpStatusByIdIR: any = {"name":"updateIpStatusById","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":592,"b":598,"line":32,"col":14}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":616,"b":618,"line":34,"col":10}]}}],"usedParamSet":{"status":true,"id":true},"statement":{"body":"UPDATE\n    ONLY ip_addresses\nSET\n    status = :status!\nWHERE\n    id = :id!\nRETURNING\n    id AS ok","loc":{"a":545,"b":641,"line":29,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     ONLY ip_addresses
+ * SET
+ *     status = :status!
+ * WHERE
+ *     id = :id!
+ * RETURNING
+ *     id AS ok
+ * ```
+ */
+export const updateIpStatusById = new PreparedQuery<IUpdateIpStatusByIdParams,IUpdateIpStatusByIdResult>(updateIpStatusByIdIR);
+
+

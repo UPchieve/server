@@ -58,6 +58,10 @@ export async function priorityGroups(): Promise<NameToId> {
     {
       name: 'LEGACY: follow-up',
       priority: -1
+    },
+    {
+      name: 'LEGACY: null',
+      priority: -1
     }
   ]
   const temp: NameToId = {}
