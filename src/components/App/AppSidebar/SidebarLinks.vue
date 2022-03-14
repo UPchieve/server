@@ -7,7 +7,11 @@
         <house-icon class="icon" />
       </sidebar-link>
 
-      <sidebar-link v-if="!isVolunteer && isSessionHistoryActive" to='/sessions/history' text="Session History">
+      <sidebar-link
+        v-if="!isVolunteer && isSessionHistoryActive"
+        to='/sessions/history'
+        text="Session History"
+      >
         <calendar-icon class="icon" />
       </sidebar-link>
 
