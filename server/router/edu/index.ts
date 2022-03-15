@@ -64,7 +64,7 @@ edu.route('/questions').get(async (req, res) => {
       return map
     }, {})
 
-    res.render('edu/questions/index', { questions, isActive, imagePaths })
+    res.render('edu/questions/index', { questions, isActive, imagePaths, csrfToken: req.csrfToken() })
   } catch (error) {
     res.status(500).send(`<h1>Internal Server Error</h1> <pre>${error}</pre>`)
   }
@@ -76,7 +76,7 @@ edu.route('/questions/new').get((req, res) => {
     possibleAnswers: [{ val: 'a' }, { val: 'b' }, { val: 'c' }, { val: 'd' }],
   }
   const isActive = isActivePage(req)
-  res.render('edu/questions/new', { question, isActive })
+  res.render('edu/questions/new', { question, isActive, csrfToken: req.csrfToken() })
 })
 
 const eduApi = express()
