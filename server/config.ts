@@ -112,6 +112,7 @@ const config: Static<typeof Config> = {
     volunteerAbsentWarningTemplate: 'd-7458c9322ae747c78b90bd93e27b9269',
     volunteerAbsentStudentApologyTemplate: 'd-e45797aba9d04bb29a9745988a52fc1f',
     failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
+    failedFirstAttemptedTrainingTemplate: 'd-5bf050b4faed477fb84c11557532027f',
     // @\TODO: get template id
     techIssueApologyTemplate: '',
     unsubscribeGroup: {
@@ -311,7 +312,7 @@ const config: Static<typeof Config> = {
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
   zwibblerUrl:
-    process.env.VUE_APP_ZWIBBLER_URL || '/static/js/zwibbler-demo.js',
+    process.env.VUE_APP_ZWIBBLER_URL || '/static/js/march2022_zwibbler2.js',
   websocketRoot: process.env.VUE_APP_WEBSOCKET_ROOT || 'ws://localhost:3000',
   serverRoot: process.env.VUE_APP_SERVER_ROOT || 'http://localhost:3000',
   featureFlagRoot:

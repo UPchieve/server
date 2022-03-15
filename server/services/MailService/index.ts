@@ -8,7 +8,7 @@ import {
   studentPartnerManifests,
 } from '../../partnerManifests'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
-import { SESSION_REPORT_REASON } from '../../constants'
+import { SESSION_REPORT_REASON, TRAINING } from '../../constants'
 import { User } from '../../models/User'
 import { VolunteerContactInfo } from '../../models/Volunteer/queries'
 import { Reference, Volunteer } from '../../models/Volunteer'
@@ -704,11 +704,16 @@ export async function sendFailedFirstAttemptedQuiz(
     categories: ['failed first attempted quiz email'],
   }
 
+  const templateToSend =
+    category === TRAINING.UPCHIEVE_101
+      ? config.sendgrid.failedFirstAttemptedTrainingTemplate
+      : config.sendgrid.failedFirstAttemptedQuizTemplate
+
   await sendEmail(
     email,
     config.mail.senders.noreply,
     'The UPchieve Team',
-    config.sendgrid.failedFirstAttemptedQuizTemplate,
+    templateToSend,
     {
       firstName: capitalize(firstName),
       category: formatMultiWordSubject(category),
