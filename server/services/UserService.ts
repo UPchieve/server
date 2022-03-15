@@ -423,6 +423,7 @@ export async function adminGetUser(userId: Types.ObjectId, page: number = 1) {
         numPastSessions: { $size: '$pastSessions' },
         pastSessions: { $slice: ['$pastSessions', -10 * page, 10] },
         inGatesStudy: 1,
+        currentGrade: 1,
       },
     },
     {
