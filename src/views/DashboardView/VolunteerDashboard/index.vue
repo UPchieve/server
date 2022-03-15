@@ -68,7 +68,7 @@
 
           <a
             class="track-hours-link"
-            href="https://upc-training-materials.s3.us-east-2.amazonaws.com/volunteer-hour-tracking-guide.pdf"
+            :href="hourTrackingGuide"
             target="_blank"
             rel="noopener noreferrer"
             >How to track your volunteer hours <arrow-icon class="arrow-icon" />
@@ -493,6 +493,12 @@ export default {
         }
       ]
       return onboaringActions.sort((a, b) => a.priority - b.priority)
+    },
+
+    hourTrackingGuide() {
+      if (this.isCustomVolunteerPartner)
+        return 'https://cdn.upchieve.org/docs/Verizon-Volunteer-Hour-Tracking-Resource.pdf'
+      return 'https://upc-training-materials.s3.us-east-2.amazonaws.com/volunteer-hour-tracking-guide.pdf'
     },
   },
   methods: {
