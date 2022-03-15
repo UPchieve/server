@@ -312,7 +312,7 @@ const config: Static<typeof Config> = {
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
   zwibblerUrl:
-    process.env.VUE_APP_ZWIBBLER_URL || '/static/js/march2022_zwibbler2.js',
+    process.env.VUE_APP_ZWIBBLER_URL || '/static/js/zwibbler-demo.js',
   websocketRoot: process.env.VUE_APP_WEBSOCKET_ROOT || 'ws://localhost:3000',
   serverRoot: process.env.VUE_APP_SERVER_ROOT || 'http://localhost:3000',
   featureFlagRoot:
