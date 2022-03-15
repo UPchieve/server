@@ -198,7 +198,7 @@
         <FileDialog
           ref="fileDialog"
           class="upload-photo"
-          accept="image/*"
+          accept="image/*, .heic"
           @file-selected="uploadPhoto"
         />
         <PhotoUploadIcon class="toolbar-item__svg--photo" />
