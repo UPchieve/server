@@ -1,4 +1,5 @@
 import expressWs from 'express-ws'
+import { SURVEY_TYPES } from '../../constants'
 import {
   savePresessionSurvey,
   getPresessionSurvey,
@@ -28,7 +29,11 @@ export function routeSurvey(router: expressWs.Router): void {
     const { sessionId } = req.params
 
     try {
-      const survey = await getPresessionSurvey(user._id, asObjectId(sessionId))
+      const survey = await getPresessionSurvey(
+        user._id,
+        asObjectId(sessionId),
+        SURVEY_TYPES.STUDENT_PRESESSION
+      )
       res.json({ survey })
     } catch (error) {
       next(error)
