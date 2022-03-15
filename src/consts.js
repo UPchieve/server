@@ -434,6 +434,7 @@ export const FEATURE_FLAGS = {
   DOWNTIME_BANNER: 'downtime-banner-4-10',
   CHATBOT: 'chatbot',
   COACH_FAVORITING: 'coach-favoriting',
+  SESSION_HISTORY: 'session-history',
 }
 
 export const ANALYTICS_REPORT_ROW = {
