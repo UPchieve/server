@@ -2,9 +2,7 @@ import { messaging } from 'firebase-admin'
 import { Session } from '../models/Session'
 import { isEnabled } from 'unleash-client'
 import Case from 'case'
-import {
-  FEATURE_FLAGS,
-} from '../constants'
+import { FEATURE_FLAGS } from '../constants'
 import MulticastMessage = messaging.MulticastMessage
 
 async function sendToUser(
@@ -13,14 +11,13 @@ async function sendToUser(
   data: { path: string },
   tokens: string[]
 ) {
-
   let message: MulticastMessage
   if (isEnabled(FEATURE_FLAGS.NEW_MOBILE_APP)) {
     message = {
       tokens,
       data: {
-        'data': 'chat',
-        sessionId: data.path
+        data: 'chat',
+        sessionId: data.path,
       },
       notification: {
         title,
@@ -76,7 +73,7 @@ export async function sendVolunteerJoined(
     }
   } else {
     data = {
-      path: _id.toString()
+      path: _id.toString(),
     }
   }
 
