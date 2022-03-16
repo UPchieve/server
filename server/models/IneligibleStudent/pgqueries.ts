@@ -4,11 +4,21 @@ import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeSomeRequired, getDbUlid, makeRequired } from '../pgUtils'
 
-export async function getIneligibleStudentByEmail(email: string): Promise<PgIneligibleStudent | undefined> {
+export async function getIneligibleStudentByEmail(
+  email: string
+): Promise<PgIneligibleStudent | undefined> {
   try {
-    const result = await pgQueries.getIneligibleStudentByEmail.run({ email }, getClient())
+    const result = await pgQueries.getIneligibleStudentByEmail.run(
+      { email },
+      getClient()
+    )
     if (!result.length) return
-    return makeSomeRequired(result[0], ['zipCode', 'ipAddress', 'school', 'currentGrade'])
+    return makeSomeRequired(result[0], [
+      'zipCode',
+      'ipAddress',
+      'school',
+      'currentGrade',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -29,19 +39,36 @@ export type IneligibleStudentsWithSchoolInfo = {
   ipAddress: string
 }
 
-export async function getIneligibleStudentsPaginated(email: string, limit: number, offset: number): Promise<IneligibleStudentsWithSchoolInfo[]> {
+export async function getIneligibleStudentsPaginated(
+  email: string,
+  limit: number,
+  offset: number
+): Promise<IneligibleStudentsWithSchoolInfo[]> {
   try {
-    const result = await pgQueries.getIneligibleStudentsPaginated.run({ limit: String(limit), offset: String(offset) }, getClient())
+    const result = await pgQueries.getIneligibleStudentsPaginated.run(
+      { limit: String(limit), offset: String(offset) },
+      getClient()
+    )
     return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function insertIneligibleStudent(email: string, schoolId: Ulid, postalCode?: string, gradeLevel?: string, ip?: string): Promise<void> {
+export async function insertIneligibleStudent(
+  email: string,
+  schoolId: Ulid,
+  postalCode?: string,
+  gradeLevel?: string,
+  ip?: string
+): Promise<void> {
   try {
-    const result = await pgQueries.insertIneligibleStudent.run({ id: getDbUlid(), email, schoolId, postalCode, gradeLevel, ip }, getClient())
-    if (!(result.length && makeRequired(result[0]).ok)) throw new Error('Insert did not return new row')
+    const result = await pgQueries.insertIneligibleStudent.run(
+      { id: getDbUlid(), email, schoolId, postalCode, gradeLevel, ip },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('Insert did not return new row')
   } catch (err) {
     throw new RepoCreateError(err)
   }

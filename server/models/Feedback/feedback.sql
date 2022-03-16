@@ -1,7 +1,7 @@
 /* @name getFeedbackBySessionId */
 SELECT
     feedbacks.id,
-    topics.name AS type,
+    topics.name AS TYPE,
     subjects.name AS sub_topic,
     user_roles.name AS user_role,
     user_id,
@@ -21,7 +21,7 @@ WHERE
 /* @name getFeedbackById */
 SELECT
     feedbacks.id,
-    topics.name AS type,
+    topics.name AS TYPE,
     subjects.name AS sub_topic,
     user_roles.name AS user_role,
     user_id,
@@ -41,7 +41,7 @@ WHERE
 /* @name getFeedbackBySessionIdUserType */
 SELECT
     feedbacks.id,
-    topics.name AS type,
+    topics.name AS TYPE,
     subjects.name AS sub_topic,
     user_roles.name AS user_role,
     user_id,

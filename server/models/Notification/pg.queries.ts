@@ -25,7 +25,7 @@ export interface IGetNotificationsByVolunteerIdQuery {
   result: IGetNotificationsByVolunteerIdResult;
 }
 
-const getNotificationsByVolunteerIdIR: any = {"name":"getNotificationsByVolunteerId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":674,"b":680,"line":18,"col":29}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    notifications.id,\n    user_id AS volunteer,\n    sent_at,\n    successful AS was_successful,\n    message_carrier_id AS message_id,\n    session_id,\n    notification_types.type AS type,\n    notification_priority_groups.name AS priority_group,\n    notification_methods.method AS method\nFROM\n    notifications\n    LEFT JOIN notification_methods ON notifications.method_id = notification_methods.id\n    LEFT JOIN notification_types ON notifications.type_id = notification_types.id\n    LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id\nWHERE\n    notifications.user_id = :userId!","loc":{"a":42,"b":680,"line":2,"col":0}}};
+const getNotificationsByVolunteerIdIR: any = {"name":"getNotificationsByVolunteerId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":674,"b":680,"line":18,"col":29}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    notifications.id,\n    user_id AS volunteer,\n    sent_at,\n    successful AS was_successful,\n    message_carrier_id AS message_id,\n    session_id,\n    notification_types.type AS TYPE,\n    notification_priority_groups.name AS priority_group,\n    notification_methods.method AS method\nFROM\n    notifications\n    LEFT JOIN notification_methods ON notifications.method_id = notification_methods.id\n    LEFT JOIN notification_types ON notifications.type_id = notification_types.id\n    LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id\nWHERE\n    notifications.user_id = :userId!","loc":{"a":42,"b":680,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -37,7 +37,7 @@ const getNotificationsByVolunteerIdIR: any = {"name":"getNotificationsByVoluntee
  *     successful AS was_successful,
  *     message_carrier_id AS message_id,
  *     session_id,
- *     notification_types.type AS type,
+ *     notification_types.type AS TYPE,
  *     notification_priority_groups.name AS priority_group,
  *     notification_methods.method AS method
  * FROM
@@ -77,7 +77,7 @@ export interface IGetSessionNotificationsWithSessionIdQuery {
   result: IGetSessionNotificationsWithSessionIdResult;
 }
 
-const getSessionNotificationsWithSessionIdIR: any = {"name":"getSessionNotificationsWithSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1692,"b":1701,"line":42,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    notifications.id,\n    sent_at,\n    successful AS was_successful,\n    message_carrier_id AS message_id,\n    session_id,\n    notification_types.type AS type,\n    notification_priority_groups.name AS priority_group,\n    notification_methods.method AS method,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    users.first_name AS first_name\nFROM\n    notifications\n    LEFT JOIN notification_methods ON notifications.method_id = notification_methods.id\n    LEFT JOIN notification_types ON notifications.type_id = notification_types.id\n    LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id\n    LEFT JOIN users ON notifications.user_id = users.id\n    LEFT JOIN volunteer_profiles ON notifications.user_id = volunteer_profiles.user_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\nWHERE\n    notifications.session_id = :sessionId!","loc":{"a":734,"b":1701,"line":22,"col":0}}};
+const getSessionNotificationsWithSessionIdIR: any = {"name":"getSessionNotificationsWithSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1692,"b":1701,"line":42,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    notifications.id,\n    sent_at,\n    successful AS was_successful,\n    message_carrier_id AS message_id,\n    session_id,\n    notification_types.type AS TYPE,\n    notification_priority_groups.name AS priority_group,\n    notification_methods.method AS method,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    users.first_name AS first_name\nFROM\n    notifications\n    LEFT JOIN notification_methods ON notifications.method_id = notification_methods.id\n    LEFT JOIN notification_types ON notifications.type_id = notification_types.id\n    LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id\n    LEFT JOIN users ON notifications.user_id = users.id\n    LEFT JOIN volunteer_profiles ON notifications.user_id = volunteer_profiles.user_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\nWHERE\n    notifications.session_id = :sessionId!","loc":{"a":734,"b":1701,"line":22,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -88,7 +88,7 @@ const getSessionNotificationsWithSessionIdIR: any = {"name":"getSessionNotificat
  *     successful AS was_successful,
  *     message_carrier_id AS message_id,
  *     session_id,
- *     notification_types.type AS type,
+ *     notification_types.type AS TYPE,
  *     notification_priority_groups.name AS priority_group,
  *     notification_methods.method AS method,
  *     volunteer_partner_orgs.name AS volunteer_partner_org,
@@ -127,34 +127,34 @@ export interface IGetNotificationsForGentleWarningQuery {
   result: IGetNotificationsForGentleWarningResult;
 }
 
-const getNotificationsForGentleWarningIR: any = {"name":"getNotificationsForGentleWarning","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2220,"b":2229,"line":64,"col":30}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n  users.id,\n  users.first_name AS first_name,\n  users.email AS email,\n  COUNT(*)::int AS total_notifications\nFROM\n  notifications\n  JOIN sessions ON notifications.session_id = sessions.id\n  JOIN users ON notifications.user_id = users.id\n  JOIN (\n    SELECT\n      sessions.volunteer_id\n    FROM\n      sessions\n    GROUP BY\n      volunteer_id\n   \tHAVING COUNT(*) = 0\n  ) as session_count ON session_count.volunteer_id = users.id\nWHERE\n  notifications.session_id = :sessionId! AND\n  notifications.user_id != sessions.volunteer_id\nGROUP BY\n  users.id","loc":{"a":1750,"b":2302,"line":45,"col":0}}};
+const getNotificationsForGentleWarningIR: any = {"name":"getNotificationsForGentleWarning","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2282,"b":2291,"line":65,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    users.id,\n    users.first_name AS first_name,\n    users.email AS email,\n    COUNT(*)::int AS total_notifications\nFROM\n    notifications\n    JOIN sessions ON notifications.session_id = sessions.id\n    JOIN users ON notifications.user_id = users.id\n    JOIN (\n        SELECT\n            sessions.volunteer_id\n        FROM\n            sessions\n        GROUP BY\n            volunteer_id\n        HAVING\n            COUNT(*) = 0) AS session_count ON session_count.volunteer_id = users.id\nWHERE\n    notifications.session_id = :sessionId!\n    AND notifications.user_id != sessions.volunteer_id\nGROUP BY\n    users.id","loc":{"a":1751,"b":2368,"line":46,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   users.id,
- *   users.first_name AS first_name,
- *   users.email AS email,
- *   COUNT(*)::int AS total_notifications
+ *     users.id,
+ *     users.first_name AS first_name,
+ *     users.email AS email,
+ *     COUNT(*)::int AS total_notifications
  * FROM
- *   notifications
- *   JOIN sessions ON notifications.session_id = sessions.id
- *   JOIN users ON notifications.user_id = users.id
- *   JOIN (
- *     SELECT
- *       sessions.volunteer_id
- *     FROM
- *       sessions
- *     GROUP BY
- *       volunteer_id
- *    	HAVING COUNT(*) = 0
- *   ) as session_count ON session_count.volunteer_id = users.id
+ *     notifications
+ *     JOIN sessions ON notifications.session_id = sessions.id
+ *     JOIN users ON notifications.user_id = users.id
+ *     JOIN (
+ *         SELECT
+ *             sessions.volunteer_id
+ *         FROM
+ *             sessions
+ *         GROUP BY
+ *             volunteer_id
+ *         HAVING
+ *             COUNT(*) = 0) AS session_count ON session_count.volunteer_id = users.id
  * WHERE
- *   notifications.session_id = :sessionId! AND
- *   notifications.user_id != sessions.volunteer_id
+ *     notifications.session_id = :sessionId!
+ *     AND notifications.user_id != sessions.volunteer_id
  * GROUP BY
- *   users.id
+ *     users.id
  * ```
  */
 export const getNotificationsForGentleWarning = new PreparedQuery<IGetNotificationsForGentleWarningParams,IGetNotificationsForGentleWarningResult>(getNotificationsForGentleWarningIR);

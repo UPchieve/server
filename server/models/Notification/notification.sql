@@ -6,7 +6,7 @@ SELECT
     successful AS was_successful,
     message_carrier_id AS message_id,
     session_id,
-    notification_types.type AS type,
+    notification_types.type AS TYPE,
     notification_priority_groups.name AS priority_group,
     notification_methods.method AS method
 FROM
@@ -25,7 +25,7 @@ SELECT
     successful AS was_successful,
     message_carrier_id AS message_id,
     session_id,
-    notification_types.type AS type,
+    notification_types.type AS TYPE,
     notification_priority_groups.name AS priority_group,
     notification_methods.method AS method,
     volunteer_partner_orgs.name AS volunteer_partner_org,
@@ -41,27 +41,29 @@ FROM
 WHERE
     notifications.session_id = :sessionId!;
 
+
 /* @name getNotificationsForGentleWarning */
 SELECT
-  users.id,
-  users.first_name AS first_name,
-  users.email AS email,
-  COUNT(*)::int AS total_notifications
+    users.id,
+    users.first_name AS first_name,
+    users.email AS email,
+    COUNT(*)::int AS total_notifications
 FROM
-  notifications
-  JOIN sessions ON notifications.session_id = sessions.id
-  JOIN users ON notifications.user_id = users.id
-  JOIN (
-    SELECT
-      sessions.volunteer_id
-    FROM
-      sessions
-    GROUP BY
-      volunteer_id
-   	HAVING COUNT(*) = 0
-  ) as session_count ON session_count.volunteer_id = users.id
+    notifications
+    JOIN sessions ON notifications.session_id = sessions.id
+    JOIN users ON notifications.user_id = users.id
+    JOIN (
+        SELECT
+            sessions.volunteer_id
+        FROM
+            sessions
+        GROUP BY
+            volunteer_id
+        HAVING
+            COUNT(*) = 0) AS session_count ON session_count.volunteer_id = users.id
 WHERE
-  notifications.session_id = :sessionId! AND
-  notifications.user_id != sessions.volunteer_id
+    notifications.session_id = :sessionId!
+    AND notifications.user_id != sessions.volunteer_id
 GROUP BY
-  users.id;
+    users.id;
+
