@@ -67,7 +67,9 @@ export function routes(app: Express) {
 
       const isSchoolApproved = !!school && school.isApproved
       const isZipCodeEligible = !!zipCode && zipCode.isEligible
-      const isStudentEligible = isSchoolApproved || isZipCodeEligible
+      const isCollegeStudent = currentGrade === 'College' ? true : false
+      const isStudentEligible =
+        (!isCollegeStudent && isSchoolApproved) || isZipCodeEligible
 
       if (!isStudentEligible) {
         const referredBy = await UserCtrl.checkReferral(referredByCode)
@@ -81,7 +83,12 @@ export function routes(app: Express) {
         )
       }
 
-      return res.json({ isEligible: isStudentEligible })
+      if (isCollegeStudent)
+        return res.json({
+          isEligible: isStudentEligible,
+          message: 'Student is not a high school student.',
+        })
+      else return res.json({ isEligible: isStudentEligible })
     } catch (err) {
       resError(res, err)
     }

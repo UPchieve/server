@@ -210,13 +210,20 @@
     <div class="ineligible-icon-wrapper">
       <error-badge />
     </div>
-    <h3>Sorry, we can't verify your eligibility yet.</h3>
+    <h3>{{ title }}</h3>
 
-    <p class="small-paragraph">
+    <p v-if="isCollegeStudent" class="small-paragraph">
+      {{ collegeIneligibleDescription }} <a href="upchieve.org/volunteer">becoming an Academic Coach</a>
+    </p>
+    <p v-else class="small-paragraph">
       We weren’t able to verify your eligibility based on the information you’ve
       entered so far.
       <strong>Don’t worry: you may still be eligible!</strong> We just need your
       parent/guardian to answer some more questions first!
+    </p>
+
+    <p v-if="isCollegeStudent" class="small-paragraph">
+      <i>Still need help? <a href=""> Find college resources here </a></i>
     </p>
 
     <button
@@ -520,7 +527,8 @@ export default {
       hasEnteredZipCode: false,
       hasEnteredFirstName: false,
       hasEnteredLastName: false,
-      hasEnteredPassword: false
+      hasEnteredPassword: false,
+      isCollegeStudent: false
     }
   },
   async mounted() {
@@ -540,7 +548,16 @@ export default {
       // extracting the first word out of the gradeLevels
       // example: "8th grade" --> "8th"
       return this.profile.currentGrade.split(' ')[0]
-    }
+    },
+    title() {
+      if(this.isCollegeStudent)
+        return "Oops, looks like you're not a high school student!"
+      else
+        return "Sorry, we can't verify your eligibility yet."
+    },
+    collegeIneligibleDescription() {
+      return "We don't have the capacity to help college students right now, but did you know that many UPchieve students dream of going to college just like you? Give back by "
+    },
   },
   watch: {
     'eligibility.email': function(currentValue, oldValue) {
@@ -710,6 +727,8 @@ export default {
             this.credentials.email = this.eligibility.email
           } else {
             this.step = 'ineligible'
+           if(response.body.message === 'Student is not a high school student.')
+              this.isCollegeStudent = true
             this.$router.push('/sign-up/student/ineligible')
             AnalyticsService.captureEvent(EVENTS.ELIGIBILITY_INELIGIBLE, {
               event: EVENTS.ELIGIBILITY_INELIGIBLE
@@ -864,6 +883,12 @@ export default {
     font-size: 14px;
   }
 }
+
+a {
+    color: $upchieve-green;
+    font-weight: 600;
+    text-decoration: underline;
+  }
 
 .name-fields {
   @include child-spacing(right, 15px);
