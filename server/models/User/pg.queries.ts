@@ -50,7 +50,7 @@ export interface IGetUserIdByPhoneQuery {
   result: IGetUserIdByPhoneResult;
 }
 
-const getUserIdByPhoneIR: any = {"name":"getUserIdByPhone","params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":172,"b":177,"line":17,"col":13}]}}],"usedParamSet":{"phone":true},"statement":{"body":"SELECT\n    id\nFROM\n    users\nWHERE\n    phone = :phone!\nLIMIT 1","loc":{"a":124,"b":185,"line":12,"col":0}}};
+const getUserIdByPhoneIR: any = {"name":"getUserIdByPhone","params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":171,"b":176,"line":16,"col":13}]}}],"usedParamSet":{"phone":true},"statement":{"body":"SELECT\n    id\nFROM\n    users\nWHERE\n    phone = :phone!\nLIMIT 1","loc":{"a":123,"b":184,"line":11,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -85,7 +85,7 @@ export interface IGetUserContactInfoByIdQuery {
   result: IGetUserContactInfoByIdResult;
 }
 
-const getUserContactInfoByIdIR: any = {"name":"getUserContactInfoById","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":297,"b":299,"line":29,"col":10}]}}],"usedParamSet":{"id":true},"statement":{"body":"SELECT\n    id,\n    first_name,\n    email\nFROM\n    users\nWHERE\n    id = :id!\nLIMIT 1","loc":{"a":225,"b":307,"line":22,"col":0}}};
+const getUserContactInfoByIdIR: any = {"name":"getUserContactInfoById","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":296,"b":298,"line":28,"col":10}]}}],"usedParamSet":{"id":true},"statement":{"body":"SELECT\n    id,\n    first_name,\n    email\nFROM\n    users\nWHERE\n    id = :id!\nLIMIT 1","loc":{"a":224,"b":306,"line":21,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -122,7 +122,7 @@ export interface IGetUserContactInfoByReferralCodeQuery {
   result: IGetUserContactInfoByReferralCodeResult;
 }
 
-const getUserContactInfoByReferralCodeIR: any = {"name":"getUserContactInfoByReferralCode","params":[{"name":"referralCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":440,"b":452,"line":41,"col":21}]}}],"usedParamSet":{"referralCode":true},"statement":{"body":"SELECT\n    id,\n    first_name,\n    email\nFROM\n    users\nWHERE\n    referral_code = :referralCode!\nLIMIT 1","loc":{"a":357,"b":460,"line":34,"col":0}}};
+const getUserContactInfoByReferralCodeIR: any = {"name":"getUserContactInfoByReferralCode","params":[{"name":"referralCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":439,"b":451,"line":40,"col":21}]}}],"usedParamSet":{"referralCode":true},"statement":{"body":"SELECT\n    id,\n    first_name,\n    email\nFROM\n    users\nWHERE\n    referral_code = :referralCode!\nLIMIT 1","loc":{"a":356,"b":459,"line":33,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -159,7 +159,7 @@ export interface IGetUserForPassportQuery {
   result: IGetUserForPassportResult;
 }
 
-const getUserForPassportIR: any = {"name":"getUserForPassport","params":[{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":569,"b":574,"line":53,"col":13}]}}],"usedParamSet":{"email":true},"statement":{"body":"SELECT\n    id,\n    email,\n    PASSWORD\nFROM\n    users\nWHERE\n    email = :email!\nLIMIT 1","loc":{"a":496,"b":582,"line":46,"col":0}}};
+const getUserForPassportIR: any = {"name":"getUserForPassport","params":[{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":567,"b":572,"line":51,"col":13}]}}],"usedParamSet":{"email":true},"statement":{"body":"SELECT\n    id,\n    email,\n    password\nFROM\n    users\nWHERE\n    email = :email!\nLIMIT 1","loc":{"a":494,"b":580,"line":44,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -167,7 +167,7 @@ const getUserForPassportIR: any = {"name":"getUserForPassport","params":[{"name"
  * SELECT
  *     id,
  *     email,
- *     PASSWORD
+ *     password
  * FROM
  *     users
  * WHERE
@@ -196,7 +196,7 @@ export interface IGetUserContactInfoByResetTokenQuery {
   result: IGetUserContactInfoByResetTokenResult;
 }
 
-const getUserContactInfoByResetTokenIR: any = {"name":"getUserContactInfoByResetToken","params":[{"name":"resetToken","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":720,"b":730,"line":65,"col":28}]}}],"usedParamSet":{"resetToken":true},"statement":{"body":"SELECT\n    id,\n    first_name,\n    email\nFROM\n    users\nWHERE\n    password_reset_token = :resetToken!\nLIMIT 1","loc":{"a":630,"b":738,"line":58,"col":0}}};
+const getUserContactInfoByResetTokenIR: any = {"name":"getUserContactInfoByResetToken","params":[{"name":"resetToken","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":717,"b":727,"line":62,"col":28}]}}],"usedParamSet":{"resetToken":true},"statement":{"body":"SELECT\n    id,\n    first_name,\n    email\nFROM\n    users\nWHERE\n    password_reset_token = :resetToken!\nLIMIT 1","loc":{"a":627,"b":735,"line":55,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -231,7 +231,7 @@ export interface ICountUsersReferredByOtherIdQuery {
   result: ICountUsersReferredByOtherIdResult;
 }
 
-const countUsersReferredByOtherIdIR: any = {"name":"countUsersReferredByOtherId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":857,"b":863,"line":75,"col":19}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    count(*)::int AS total\nFROM\n    users\nWHERE\n    referred_by = :userId!","loc":{"a":783,"b":863,"line":70,"col":0}}};
+const countUsersReferredByOtherIdIR: any = {"name":"countUsersReferredByOtherId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":854,"b":860,"line":72,"col":19}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    count(*)::int AS total\nFROM\n    users\nWHERE\n    referred_by = :userId!","loc":{"a":780,"b":860,"line":67,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -264,7 +264,7 @@ export interface IUpdateUserResetTokenByIdQuery {
   result: IUpdateUserResetTokenByIdResult;
 }
 
-const updateUserResetTokenByIdIR: any = {"name":"updateUserResetTokenById","params":[{"name":"token","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":954,"b":959,"line":82,"col":28}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":977,"b":983,"line":84,"col":10}]}}],"usedParamSet":{"token":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    password_reset_token = :token!\nWHERE\n    id = :userId!\nRETURNING\n    id","loc":{"a":905,"b":1000,"line":79,"col":0}}};
+const updateUserResetTokenByIdIR: any = {"name":"updateUserResetTokenById","params":[{"name":"token","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":951,"b":956,"line":79,"col":28}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":974,"b":980,"line":81,"col":10}]}}],"usedParamSet":{"token":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    password_reset_token = :token!\nWHERE\n    id = :userId!\nRETURNING\n    id","loc":{"a":902,"b":997,"line":76,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -299,7 +299,7 @@ export interface IUpdateUserPasswordByIdQuery {
   result: IUpdateUserPasswordByIdResult;
 }
 
-const updateUserPasswordByIdIR: any = {"name":"updateUserPasswordById","params":[{"name":"password","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1077,"b":1085,"line":93,"col":16}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1103,"b":1109,"line":95,"col":10}]}}],"usedParamSet":{"password":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    PASSWORD = :password!\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":1040,"b":1132,"line":90,"col":0}}};
+const updateUserPasswordByIdIR: any = {"name":"updateUserPasswordById","params":[{"name":"password","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1073,"b":1081,"line":89,"col":16}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1099,"b":1105,"line":91,"col":10}]}}],"usedParamSet":{"password":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    password = :password!\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":1036,"b":1128,"line":86,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -307,7 +307,7 @@ const updateUserPasswordByIdIR: any = {"name":"updateUserPasswordById","params":
  * UPDATE
  *     users
  * SET
- *     PASSWORD = :password!
+ *     password = :password!
  * WHERE
  *     id = :userId!
  * RETURNING
@@ -335,30 +335,22 @@ export interface IInsertUserIpByIdQuery {
   result: IInsertUserIpByIdResult;
 }
 
-const insertUserIpByIdIR: any = {"name":"insertUserIpById","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1281,"b":1283,"line":103,"col":17}]}},{"name":"ipId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1287,"b":1291,"line":103,"col":23},{"a":1536,"b":1540,"line":118,"col":25}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1295,"b":1301,"line":103,"col":31},{"a":1569,"b":1575,"line":119,"col":27}]}}],"usedParamSet":{"id":true,"ipId":true,"userId":true},"statement":{"body":"WITH ins AS (\nINSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)\n        VALUES (:id!, :ipId!, :userId!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id AS ok\n    FROM\n        users_ip_addresses\n    WHERE\n        ip_address_id = :ipId!\n            AND user_id = :userId!","loc":{"a":1166,"b":1575,"line":101,"col":0}}};
+const insertUserIpByIdIR: any = {"name":"insertUserIpById","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1279,"b":1281,"line":98,"col":17}]}},{"name":"ipId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1285,"b":1289,"line":98,"col":23},{"a":1475,"b":1479,"line":106,"col":67}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1293,"b":1299,"line":98,"col":31},{"a":1496,"b":1502,"line":106,"col":88}]}}],"usedParamSet":{"id":true,"ipId":true,"userId":true},"statement":{"body":"WITH ins AS(\n    INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)\n        VALUES (:id!, :ipId!, :userId!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok\n)\nSELECT * FROM ins\nUNION\n    SELECT id AS ok FROM users_ip_addresses WHERE ip_address_id = :ipId! AND user_id = :userId!","loc":{"a":1161,"b":1502,"line":96,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * WITH ins AS (
- * INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)
+ * WITH ins AS(
+ *     INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)
  *         VALUES (:id!, :ipId!, :userId!, NOW(), NOW())
  *     ON CONFLICT
  *         DO NOTHING
  *     RETURNING
- *         id AS ok)
- *     SELECT
- *         *
- *     FROM
- *         ins
- *     UNION
- *     SELECT
  *         id AS ok
- *     FROM
- *         users_ip_addresses
- *     WHERE
- *         ip_address_id = :ipId!
- *             AND user_id = :userId!
+ * )
+ * SELECT * FROM ins
+ * UNION
+ *     SELECT id AS ok FROM users_ip_addresses WHERE ip_address_id = :ipId! AND user_id = :userId!
  * ```
  */
 export const insertUserIpById = new PreparedQuery<IInsertUserIpByIdParams,IInsertUserIpByIdResult>(insertUserIpByIdIR);
@@ -381,7 +373,7 @@ export interface IUpdateUserVerifiedEmailByIdQuery {
   result: IUpdateUserVerifiedEmailByIdResult;
 }
 
-const updateUserVerifiedEmailByIdIR: any = {"name":"updateUserVerifiedEmailById","params":[{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1654,"b":1659,"line":126,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1725,"b":1731,"line":130,"col":10}]}}],"usedParamSet":{"email":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    email = :email!,\n    email_verified = TRUE,\n    verified = TRUE\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":1620,"b":1754,"line":123,"col":0}}};
+const updateUserVerifiedEmailByIdIR: any = {"name":"updateUserVerifiedEmailById","params":[{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1580,"b":1585,"line":112,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1651,"b":1657,"line":116,"col":10}]}}],"usedParamSet":{"email":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    email = :email!,\n    email_verified = true,\n    verified = true\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":1546,"b":1680,"line":109,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -390,8 +382,8 @@ const updateUserVerifiedEmailByIdIR: any = {"name":"updateUserVerifiedEmailById"
  *     users
  * SET
  *     email = :email!,
- *     email_verified = TRUE,
- *     verified = TRUE
+ *     email_verified = true,
+ *     verified = true
  * WHERE
  *     id = :userId!
  * RETURNING
@@ -418,7 +410,7 @@ export interface IUpdateUserVerifiedPhoneByIdQuery {
   result: IUpdateUserVerifiedPhoneByIdResult;
 }
 
-const updateUserVerifiedPhoneByIdIR: any = {"name":"updateUserVerifiedPhoneById","params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1833,"b":1838,"line":139,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1904,"b":1910,"line":143,"col":10}]}}],"usedParamSet":{"phone":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    phone = :phone!,\n    phone_verified = TRUE,\n    verified = TRUE\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":1799,"b":1933,"line":136,"col":0}}};
+const updateUserVerifiedPhoneByIdIR: any = {"name":"updateUserVerifiedPhoneById","params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1758,"b":1763,"line":124,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1829,"b":1835,"line":128,"col":10}]}}],"usedParamSet":{"phone":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    phone = :phone!,\n    phone_verified = true,\n    verified = true\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":1724,"b":1858,"line":121,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -427,8 +419,8 @@ const updateUserVerifiedPhoneByIdIR: any = {"name":"updateUserVerifiedPhoneById"
  *     users
  * SET
  *     phone = :phone!,
- *     phone_verified = TRUE,
- *     verified = TRUE
+ *     phone_verified = true,
+ *     verified = true
  * WHERE
  *     id = :userId!
  * RETURNING
@@ -455,7 +447,7 @@ export interface IUpdateUserLastActivityByIdQuery {
   result: IUpdateUserLastActivityByIdResult;
 }
 
-const updateUserLastActivityByIdIR: any = {"name":"updateUserLastActivityById","params":[{"name":"lastActivityAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2022,"b":2036,"line":152,"col":24}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2054,"b":2060,"line":154,"col":10}]}}],"usedParamSet":{"lastActivityAt":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    last_activity_at = :lastActivityAt!\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":1977,"b":2083,"line":149,"col":0}}};
+const updateUserLastActivityByIdIR: any = {"name":"updateUserLastActivityById","params":[{"name":"lastActivityAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1946,"b":1960,"line":136,"col":24}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1978,"b":1984,"line":138,"col":10}]}}],"usedParamSet":{"lastActivityAt":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    last_activity_at = :lastActivityAt!\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":1901,"b":2007,"line":133,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -490,7 +482,7 @@ export interface IUpdateUserBanByIdQuery {
   result: IUpdateUserBanByIdResult;
 }
 
-const updateUserBanByIdIR: any = {"name":"updateUserBanById","params":[{"name":"banReason","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2337,"b":2346,"line":172,"col":16}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2377,"b":2383,"line":174,"col":10}]}}],"usedParamSet":{"banReason":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    banned = subquery.banned,\n    ban_reason_id = subquery.ban_reason_id\nFROM (\n    SELECT\n        TRUE AS banned,\n        id AS ban_reason_id\n    FROM\n        ban_reasons\n    WHERE\n        name = :banReason!) AS subquery\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":2118,"b":2406,"line":160,"col":0}}};
+const updateUserBanByIdIR: any = {"name":"updateUserBanById","params":[{"name":"banReason","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2260,"b":2269,"line":155,"col":16}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2301,"b":2307,"line":158,"col":10}]}}],"usedParamSet":{"banReason":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    banned = subquery.banned,\n    ban_reason_id = subquery.ban_reason_id\nFROM (\n    SELECT\n        true AS banned,\n        id AS ban_reason_id\n    FROM\n        ban_reasons\n    WHERE\n        name = :banReason!\n) AS subquery\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":2041,"b":2330,"line":143,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -502,12 +494,13 @@ const updateUserBanByIdIR: any = {"name":"updateUserBanById","params":[{"name":"
  *     ban_reason_id = subquery.ban_reason_id
  * FROM (
  *     SELECT
- *         TRUE AS banned,
+ *         true AS banned,
  *         id AS ban_reason_id
  *     FROM
  *         ban_reasons
  *     WHERE
- *         name = :banReason!) AS subquery
+ *         name = :banReason!
+ * ) AS subquery
  * WHERE
  *     id = :userId!
  * RETURNING
@@ -532,13 +525,13 @@ export interface IGetLegacyUserResult {
   firstname: string;
   firstName: string;
   id: string;
-  isAdmin: boolean | null;
   isapproved: boolean;
   isbanned: boolean;
   isdeactivated: boolean;
   isfakeuser: boolean | null;
   isonboarded: boolean;
   istestuser: boolean;
+  isVolunteer: boolean | null;
   isVolunteer: boolean | null;
   lastactivityat: Date | null;
   phone: string | null;
@@ -557,7 +550,7 @@ export interface IGetLegacyUserQuery {
   result: IGetLegacyUserResult;
 }
 
-const getLegacyUserIR: any = {"name":"getLegacyUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3973,"b":3979,"line":228,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    users.first_name,\n    users.created_at,\n    users.email,\n    users.verified,\n    users.first_name AS firstname,\n    users.phone,\n    volunteer_profiles.college,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    (\n        CASE WHEN admin_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_admin,\n    users.banned AS isBanned,\n    ban_reasons.name AS banReason,\n    users.test_user AS isTestUser,\n    FALSE AS isFakeUser,\n    users.deactivated AS isDeactivated,\n    users.last_activity_at AS lastActivityAt,\n    users.referral_code AS referralCode,\n    users.referred_by AS referredBy,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            'volunteer'\n        ELSE\n            'student'\n        END) AS TYPE,\n    volunteer_profiles.onboarded AS isOnboarded,\n    volunteer_profiles.approved AS isApproved,\n    volunteer_partner_orgs.name AS volunteerPartnerOrg,\n    volunteer_profiles.country,\n    volunteer_profiles.timezone,\n    volunteer_profiles.photo_id_status AS photoIdStatus\nFROM\n    users\n    LEFT JOIN admin_profiles ON users.id = admin_profiles.user_id\n    LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\n    LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id\nWHERE\n    users.id = :userId!","loc":{"a":2437,"b":3979,"line":180,"col":0}}};
+const getLegacyUserIR: any = {"name":"getLegacyUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3772,"b":3778,"line":201,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    users.first_name,\n    users.created_at,\n    users.email,\n    users.verified,\n    users.first_name AS firstname,\n    users.phone,\n    volunteer_profiles.college,\n    (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN true\n         ELSE FALSE\n    END) as is_volunteer,\n    (CASE WHEN admin_profiles.user_id IS NOT NULL THEN true\n         ELSE FALSE\n    END) as is_volunteer,\n    users.banned AS isBanned,\n    ban_reasons.name AS banReason,\n    users.test_user AS isTestUser,\n    false AS isFakeUser,\n    users.deactivated AS isDeactivated,\n    users.last_activity_at AS lastActivityAt,\n    users.referral_code AS referralCode,\n    users.referred_by AS referredBy,\n    (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN 'volunteer'\n         ELSE 'student'\n    END) as type,\n    volunteer_profiles.onboarded AS isOnboarded,\n    volunteer_profiles.approved AS isApproved,\n    volunteer_partner_orgs.name AS volunteerPartnerOrg,\n    volunteer_profiles.country,\n    volunteer_profiles.timezone,\n    volunteer_profiles.photo_id_status AS photoIdStatus\nFROM users\nLEFT JOIN admin_profiles ON users.id = admin_profiles.user_id\nLEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id\nLEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\nLEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id\nWHERE\n    users.id = :userId!","loc":{"a":2360,"b":3778,"line":163,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -571,44 +564,34 @@ const getLegacyUserIR: any = {"name":"getLegacyUser","params":[{"name":"userId",
  *     users.first_name AS firstname,
  *     users.phone,
  *     volunteer_profiles.college,
- *     (
- *         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
- *             TRUE
- *         ELSE
- *             FALSE
- *         END) AS is_volunteer,
- *     (
- *         CASE WHEN admin_profiles.user_id IS NOT NULL THEN
- *             TRUE
- *         ELSE
- *             FALSE
- *         END) AS is_admin,
+ *     (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN true
+ *          ELSE FALSE
+ *     END) as is_volunteer,
+ *     (CASE WHEN admin_profiles.user_id IS NOT NULL THEN true
+ *          ELSE FALSE
+ *     END) as is_volunteer,
  *     users.banned AS isBanned,
  *     ban_reasons.name AS banReason,
  *     users.test_user AS isTestUser,
- *     FALSE AS isFakeUser,
+ *     false AS isFakeUser,
  *     users.deactivated AS isDeactivated,
  *     users.last_activity_at AS lastActivityAt,
  *     users.referral_code AS referralCode,
  *     users.referred_by AS referredBy,
- *     (
- *         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
- *             'volunteer'
- *         ELSE
- *             'student'
- *         END) AS TYPE,
+ *     (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN 'volunteer'
+ *          ELSE 'student'
+ *     END) as type,
  *     volunteer_profiles.onboarded AS isOnboarded,
  *     volunteer_profiles.approved AS isApproved,
  *     volunteer_partner_orgs.name AS volunteerPartnerOrg,
  *     volunteer_profiles.country,
  *     volunteer_profiles.timezone,
  *     volunteer_profiles.photo_id_status AS photoIdStatus
- * FROM
- *     users
- *     LEFT JOIN admin_profiles ON users.id = admin_profiles.user_id
- *     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
- *     LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
- *     LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id
+ * FROM users
+ * LEFT JOIN admin_profiles ON users.id = admin_profiles.user_id
+ * LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
+ * LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
+ * LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id
  * WHERE
  *     users.id = :userId!
  * ```
