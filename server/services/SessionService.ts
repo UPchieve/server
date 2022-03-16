@@ -13,7 +13,6 @@ import {
   SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SUBJECT_TYPES,
-  USER_BAN_REASON,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
@@ -118,14 +117,14 @@ export async function reportSession(user: User, data: unknown) {
   if (isBanReason && reportedBy.isVolunteer) {
     await UserRepo.banUserById(
       session.student as Types.ObjectId,
-      USER_BAN_REASON.SESSION_REPORTED
+      'SESSION REPORTED'
     )
     await new UserActionCtrl.AccountActionCreator(
       session.student as Types.ObjectId,
       '',
       {
         session: session._id,
-        banReason: USER_BAN_REASON.SESSION_REPORTED,
+        banReason: 'SESSION_REPORTED',
       }
     ).accountBanned()
     await AnalyticsService.captureEvent(
@@ -134,7 +133,7 @@ export async function reportSession(user: User, data: unknown) {
       {
         event: EVENTS.ACCOUNT_BANNED,
         sessionId: session._id.toString(),
-        banReason: USER_BAN_REASON.SESSION_REPORTED,
+        banReason: 'SESSION_REPORTED',
       }
     )
   }

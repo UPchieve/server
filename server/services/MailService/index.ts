@@ -8,7 +8,7 @@ import {
   studentPartnerManifests,
 } from '../../partnerManifests'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
-import { SESSION_REPORT_REASON } from '../../constants'
+import { SESSION_REPORT_REASON, USER_BAN_REASON } from '../../constants'
 import { User } from '../../models/User'
 import { VolunteerContactInfo } from '../../models/Volunteer/queries'
 import { Reference, Volunteer } from '../../models/Volunteer'
@@ -426,7 +426,7 @@ export async function sendReadyToCoachEmail<V extends VolunteerContactInfo>(
 
 export async function sendBannedUserAlert(
   userId: Types.ObjectId,
-  banReason: string,
+  banReason: USER_BAN_REASON,
   sessionId?: Types.ObjectId
 ): Promise<void> {
   const userAdminLink = buildLink(`admin/users/${userId}`)

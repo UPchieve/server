@@ -29,6 +29,9 @@ export async function sessionFlags(): Promise<NameToId> {
       name: 'Comment from student',
     },
     {
+      name: 'Comment from volunteer',
+    },
+    {
       name: 'Has been unmatched',
     },
     {
