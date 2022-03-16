@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-import StudentModel, { Student } from './index'
+import StudentModel, { Student } from './types'
 import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
 

@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-import UserModel, { User } from './index'
+import UserModel, { User } from './types'
 import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASON } from '../../constants'
 
