@@ -213,7 +213,7 @@
     <h3>{{ title }}</h3>
 
     <p v-if="isCollegeStudent" class="small-paragraph">
-      {{ collegeIneligibleDescription }} <a href="upchieve.org/volunteer">becoming an Academic Coach</a>
+      We don't have the capacity to help college students right now, but did you know that many UPchieve students dream of going to college just like you? Give back by <a href="https://upchieve.org/volunteer">becoming an Academic Coach.</a>
     </p>
     <p v-else class="small-paragraph">
       We weren’t able to verify your eligibility based on the information you’ve
@@ -223,7 +223,7 @@
     </p>
 
     <p v-if="isCollegeStudent" class="small-paragraph">
-      <i>Still need help? <a href=""> Find college resources here </a></i>
+      <i>Still need help? <a href=""> Find college resources here. </a></i>
     </p>
 
     <button
@@ -555,9 +555,6 @@ export default {
       else
         return "Sorry, we can't verify your eligibility yet."
     },
-    collegeIneligibleDescription() {
-      return "We don't have the capacity to help college students right now, but did you know that many UPchieve students dream of going to college just like you? Give back by "
-    },
   },
   watch: {
     'eligibility.email': function(currentValue, oldValue) {
@@ -885,8 +882,8 @@ export default {
 }
 
 a {
-    color: $upchieve-green;
-    font-weight: 600;
+    color: $c-success-green;
+    font-weight: 500;
     text-decoration: underline;
   }
 

@@ -69,7 +69,7 @@ export function routes(app: Express) {
       const isZipCodeEligible = !!zipCode && zipCode.isEligible
       const isCollegeStudent = currentGrade === 'College' ? true : false
       const isStudentEligible =
-        (!isCollegeStudent && isSchoolApproved) || isZipCodeEligible
+        (isSchoolApproved || isZipCodeEligible) && !isCollegeStudent
 
       if (!isStudentEligible) {
         const referredBy = await UserCtrl.checkReferral(referredByCode)
