@@ -9,9 +9,7 @@ import {
   Availability,
   HOURS,
   DAYS,
-  DAY,
   AvailabilityDay,
-  HOUR,
   AvailabilityHistory,
   AvailabilitySnapshot,
 } from './pgtypes'
@@ -31,7 +29,7 @@ function createNewAvailability(): Availability {
   return availability as Availability
 }
 
-function getAvailabilityHour(baseHour: number): HOUR {
+function getAvailabilityHour(baseHour: number): HOURS {
   let hour: string
 
   if (baseHour >= 12) {
@@ -46,7 +44,7 @@ function getAvailabilityHour(baseHour: number): HOUR {
     hour = `${baseHour}a`
   }
 
-  return hour as HOUR
+  return hour as HOURS
 }
 
 const day_array = [
@@ -58,8 +56,8 @@ const day_array = [
   'Saturday',
   'Sunday',
 ]
-export function getAvailabilityDay(baseDay: number): DAY {
-  return day_array[baseDay] as DAY
+export function getAvailabilityDay(baseDay: number): DAYS {
+  return day_array[baseDay] as DAYS
 }
 
 function buildAvailabilityModel(
@@ -175,11 +173,11 @@ export async function updateAvailabilityByVolunteerId(
     let currStart: number | undefined
     let currEnd: number | undefined
     for (const day in availability) {
-      const availabilityDay = availability[day as DAY]
+      const availabilityDay = availability[day as DAYS]
       for (const hour in availabilityDay) {
         if (currStart && currEnd) {
           // we're already in a streak
-          if (availabilityDay[hour as HOUR]) currEnd = Number(hour) + 1
+          if (availabilityDay[hour as HOURS]) currEnd = Number(hour) + 1
           // continue streak
           else {
             // end and restart streak

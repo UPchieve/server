@@ -1,6 +1,5 @@
 import { Job } from 'bull'
 import { getStudent } from '../../../models/Student/queries'
-import { USER_BAN_REASON } from '../../../constants'
 import * as MailService from '../../../services/MailService'
 import { safeAsync } from '../../../utils/safe-async'
 import { asObjectId } from '../../../utils/type-utils'
