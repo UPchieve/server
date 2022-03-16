@@ -3,7 +3,7 @@ import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { makeRequired, Ulid, Pgid, getDbUlid } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
-import { USER_BAN_REASON } from '../../constants'
+import { USER_BAN_REASONS } from '../../constants'
 
 export async function getUserIdByPhone(
   phone: string
@@ -189,10 +189,7 @@ export async function updateUserLastActivityById(
   }
 }
 
-export async function banUserById(
-  userId: Ulid,
-  banReason: USER_BAN_REASON
-) {
+export async function banUserById(userId: Ulid, banReason: USER_BAN_REASONS) {
   try {
     const result = await pgQueries.updateUserBanById.run({ userId, banReason }, getClient())
     if (!(result.length && makeRequired(result[0]).ok))
