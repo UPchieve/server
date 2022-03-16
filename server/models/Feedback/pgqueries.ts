@@ -5,8 +5,17 @@ import * as pgQueries from './pg.queries'
 import { Ulid, makeSomeRequired } from '../pgUtils'
 
 function buildFeedback(rows: pgQueries.IGetFeedbackByIdResult[]): PgFeedback {
-  if (rows.length > 2) throw new Error('Found more than 2 feedbacks for a session')
-  const newRows = rows.map(v => makeSomeRequired(v, ['studentCounselingFeedback', 'studentTutoringFeedback', 'volunteerFeedback', 'type', 'subTopic']))
+  if (rows.length > 2)
+    throw new Error('Found more than 2 feedbacks for a session')
+  const newRows = rows.map(v =>
+    makeSomeRequired(v, [
+      'studentCounselingFeedback',
+      'studentTutoringFeedback',
+      'volunteerFeedback',
+      'type',
+      'subTopic',
+    ])
+  )
   const feedback: PgFeedback = {
     id: newRows[0].id,
     sessionId: newRows[0].sessionId,
@@ -26,9 +35,14 @@ function buildFeedback(rows: pgQueries.IGetFeedbackByIdResult[]): PgFeedback {
   return feedback
 }
 
-export async function getFeedbackBySessionId(sessionId: Ulid): Promise<PgFeedback | undefined> {
+export async function getFeedbackBySessionId(
+  sessionId: Ulid
+): Promise<PgFeedback | undefined> {
   try {
-    const result = await pgQueries.getFeedbackBySessionId.run({ sessionId }, getClient())
+    const result = await pgQueries.getFeedbackBySessionId.run(
+      { sessionId },
+      getClient()
+    )
     if (!result.length) return
     return buildFeedback(result)
   } catch (err) {
@@ -36,7 +50,9 @@ export async function getFeedbackBySessionId(sessionId: Ulid): Promise<PgFeedbac
   }
 }
 
-export async function getFeedbackById(id: Ulid): Promise<PgFeedback | undefined> {
+export async function getFeedbackById(
+  id: Ulid
+): Promise<PgFeedback | undefined> {
   try {
     const result = await pgQueries.getFeedbackById.run({ id }, getClient())
     if (!result.length) return
@@ -47,16 +63,29 @@ export async function getFeedbackById(id: Ulid): Promise<PgFeedback | undefined>
 }
 
 export type SingleFeedback = PgFeedback & {
-  userId: Ulid,
-  createdAt: Date,
+  userId: Ulid
+  createdAt: Date
   updatedAt: Date
 }
 
-export async function getFeedbackBySessionIdUserType(sessionId: Ulid, userRole: 'student' | 'volunteer'): Promise<SingleFeedback | undefined> {
+export async function getFeedbackBySessionIdUserType(
+  sessionId: Ulid,
+  userRole: 'student' | 'volunteer'
+): Promise<SingleFeedback | undefined> {
   try {
-    const result = await pgQueries.getFeedbackBySessionIdUserType.run({ sessionId, userRole }, getClient())
+    const result = await pgQueries.getFeedbackBySessionIdUserType.run(
+      { sessionId, userRole },
+      getClient()
+    )
     if (!result.length) return
-    return makeSomeRequired(result[0], ['legacyFeedbacks', 'studentCounselingFeedback', 'studentTutoringFeedback', 'volunteerFeedback', 'subTopic', 'type'])
+    return makeSomeRequired(result[0], [
+      'legacyFeedbacks',
+      'studentCounselingFeedback',
+      'studentTutoringFeedback',
+      'volunteerFeedback',
+      'subTopic',
+      'type',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }

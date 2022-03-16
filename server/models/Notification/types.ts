@@ -6,7 +6,7 @@
 import { values } from 'lodash'
 import { Document, model, Schema, Types } from 'mongoose'
 import { Volunteer } from '../Volunteer'
-import { Ulid } from "../pgUtils"
+import { Ulid } from '../pgUtils'
 
 export type PgNotification = {
   id: Ulid

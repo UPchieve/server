@@ -59,16 +59,16 @@ export type VolunteerFeedback = {
 }
 
 export type PgFeedback = {
-  id: Ulid,
-  sessionId: Ulid,
-  studentId?: Ulid,
-  volunteerId?: Ulid,
+  id: Ulid
+  sessionId: Ulid
+  studentId?: Ulid
+  volunteerId?: Ulid
   // old names for topic/subject for legacy compatibility
-  type?: string,
-  subTopic?: string,
-  studentTutoringFeedback?: StudentTutoringFeedback | Json,
-  studentCounselingFeedback?: StudentCounselingFeedback | Json,
-  volunteerFeedback?: VolunteerFeedback | Json,
+  type?: string
+  subTopic?: string
+  studentTutoringFeedback?: StudentTutoringFeedback | Json
+  studentCounselingFeedback?: StudentCounselingFeedback | Json
+  volunteerFeedback?: VolunteerFeedback | Json
   // old name for legacy feedback for legacy compatibility
   responseData?: ResponseData | Json
 }

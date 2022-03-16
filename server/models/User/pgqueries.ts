@@ -73,7 +73,10 @@ export async function getUserForPassport(
   email: string
 ): Promise<PassportUser | undefined> {
   try {
-    const result = await pgQueries.getUserForPassport.run({ email }, getClient())
+    const result = await pgQueries.getUserForPassport.run(
+      { email },
+      getClient()
+    )
     if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
@@ -133,7 +136,10 @@ export async function updateUserPasswordById(
   password: string
 ): Promise<void> {
   try {
-    const result = await pgQueries.updateUserPasswordById.run({ userId, password }, getClient())
+    const result = await pgQueries.updateUserPasswordById.run(
+      { userId, password },
+      getClient()
+    )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
@@ -148,7 +154,10 @@ export async function insertUserIpById(
   ipId: Pgid
 ): Promise<void> {
   try {
-    const result = await pgQueries.insertUserIpById.run({ id: getDbUlid(), userId, ipId }, getClient())
+    const result = await pgQueries.insertUserIpById.run(
+      { id: getDbUlid(), userId, ipId },
+      getClient()
+    )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Insert query did not return ok')
   } catch (err) {
@@ -162,9 +171,15 @@ export async function updateUserVerifiedInfoById(
   sendTo: string,
   isPhoneVerification: boolean
 ): Promise<void> {
-  const update = isPhoneVerification ? 
-    pgQueries.updateUserVerifiedPhoneById.run({ userId, phone: sendTo }, getClient()) : 
-    pgQueries.updateUserVerifiedEmailById.run({ userId, email: sendTo }, getClient())
+  const update = isPhoneVerification
+    ? pgQueries.updateUserVerifiedPhoneById.run(
+        { userId, phone: sendTo },
+        getClient()
+      )
+    : pgQueries.updateUserVerifiedEmailById.run(
+        { userId, email: sendTo },
+        getClient()
+      )
   try {
     const result = await update
     if (!(result.length && makeRequired(result[0]).ok))
@@ -180,7 +195,10 @@ export async function updateUserLastActivityById(
   lastActivityAt: Date
 ) {
   try {
-    const result = await pgQueries.updateUserLastActivityById.run({ userId, lastActivityAt }, getClient())
+    const result = await pgQueries.updateUserLastActivityById.run(
+      { userId, lastActivityAt },
+      getClient()
+    )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
@@ -189,12 +207,12 @@ export async function updateUserLastActivityById(
   }
 }
 
-export async function banUserById(
-  userId: Ulid,
-  banReason: USER_BAN_REASON
-) {
+export async function banUserById(userId: Ulid, banReason: USER_BAN_REASON) {
   try {
-    const result = await pgQueries.updateUserBanById.run({ userId, banReason }, getClient())
+    const result = await pgQueries.updateUserBanById.run(
+      { userId, banReason },
+      getClient()
+    )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {

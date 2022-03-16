@@ -8,7 +8,6 @@ import {
   updateAssistmentsDataSentById,
   createAssistmentsDataBySessionId,
 } from '../../models/AssistmentsData/pgqueries'
-import { Ulid } from '../../models/pgUtils'
 import { Pool } from 'pg'
 import {
   buildSession,

@@ -4,10 +4,17 @@ import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeSomeRequired, makeRequired } from '../pgUtils'
 
-export async function getNotificationsByVolunteerId(userId: Ulid): Promise<PgNotification[]> {
+export async function getNotificationsByVolunteerId(
+  userId: Ulid
+): Promise<PgNotification[]> {
   try {
-    const result = await pgQueries.getNotificationsByVolunteerId.run({ userId }, getClient())
-    return result.map(v => makeSomeRequired(v, ['sentAt', 'messageId', 'wasSuccessful']))
+    const result = await pgQueries.getNotificationsByVolunteerId.run(
+      { userId },
+      getClient()
+    )
+    return result.map(v =>
+      makeSomeRequired(v, ['sentAt', 'messageId', 'wasSuccessful'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -21,12 +28,24 @@ export type SessionNotification = {
   }
 } & PgNotification
 
-export async function getSessionNotificationsWithSessionId(sessionId: Ulid): Promise<SessionNotification[]> {
+export async function getSessionNotificationsWithSessionId(
+  sessionId: Ulid
+): Promise<SessionNotification[]> {
   try {
-    const result = await pgQueries.getSessionNotificationsWithSessionId.run({ sessionId }, getClient())
+    const result = await pgQueries.getSessionNotificationsWithSessionId.run(
+      { sessionId },
+      getClient()
+    )
     return result.map(v => {
-      const row: any = makeSomeRequired(v, ['sentAt', 'messageId', 'wasSuccessful'])
-      row.volunteer = { firstname: row.firstName, volunteerPartnerOrg: row.volunteerPartnerOrg }
+      const row: any = makeSomeRequired(v, [
+        'sentAt',
+        'messageId',
+        'wasSuccessful',
+      ])
+      row.volunteer = {
+        firstname: row.firstName,
+        volunteerPartnerOrg: row.volunteerPartnerOrg,
+      }
       delete row.firstName
       delete row.volunteerPartnerOrg
       return row as SessionNotification
@@ -42,9 +61,14 @@ export type GentleWarning = {
   firstName: string
   email: string
 }
-export async function getNotificationsForGentleWarning(sessionId: Ulid): Promise<GentleWarning[]> {
+export async function getNotificationsForGentleWarning(
+  sessionId: Ulid
+): Promise<GentleWarning[]> {
   try {
-    const result = await pgQueries.getNotificationsForGentleWarning.run({ sessionId }, getClient())
+    const result = await pgQueries.getNotificationsForGentleWarning.run(
+      { sessionId },
+      getClient()
+    )
     return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
