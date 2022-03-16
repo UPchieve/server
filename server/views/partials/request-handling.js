@@ -81,14 +81,24 @@ $('.js-question-tile').on('click', '.js-save-button', e => {
   const $formFlash = $form.find('.js-form-flash')
   $formFlash.removeClass('alert alert-danger alert-success')
 
-  const question = $form.serializeJSON()
-  question.possibleAnswers = question.possibleAnswers.filter(e => e.txt)
+  const data = $form.serializeJSON()
+  data.possibleAnswers = data.possibleAnswers.filter(e => e.txt)
 
   const request = {
     type: $form.attr('method'),
     contentType: 'application/json; charset=utf-8',
     url: $form.attr('action'),
-    data: JSON.stringify({ question }),
+    data: JSON.stringify({
+      _csrf: data._csrf,
+      question: {
+        questionText: data.questionText,
+        imageSrc: data.imageSrc,
+        possibleAnswers: data.possibleAnswers,
+        correctAnswer: data.correctAnswer,
+        category: data.category,
+        subcategory: data.subcategory
+      }
+    }),
     dataType: 'json'
   }
 
