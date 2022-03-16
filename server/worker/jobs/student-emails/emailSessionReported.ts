@@ -40,7 +40,7 @@ async function emailReportedSession(
       const banAlert = await safeAsync(
         MailService.sendBannedUserAlert(
           student._id,
-          USER_BAN_REASON.SESSION_REPORTED,
+          'SESSION REPORTED',
           sessionId
         )
       )

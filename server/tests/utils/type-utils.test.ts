@@ -1,4 +1,4 @@
-import { USER_BAN_REASON } from '../../constants'
+import { ONBOARDING_STATUS } from '../../constants'
 import {
   asDate,
   asFunction,
@@ -129,30 +129,30 @@ describe('asFunction', () => {
 })
 
 describe('asEnum', () => {
-  test('Should pass if given a type BAN REASON', () => {
+  test('Should pass if given a type ONBOARDING_STATUS', () => {
     expect(() =>
-      asEnum<USER_BAN_REASON>(USER_BAN_REASON)(USER_BAN_REASON.NON_US_SIGNUP)
+      asEnum<ONBOARDING_STATUS>(ONBOARDING_STATUS)(ONBOARDING_STATUS.INACTIVE)
     ).not.toThrow()
   })
 
-  test('Should throw error if not given an BAN_REASON', () => {
+  test('Should throw error if not given an ONBOARDING_STATUS', () => {
     expect(() =>
-      asEnum<USER_BAN_REASON>(USER_BAN_REASON)({} as unknown)
+      asEnum<ONBOARDING_STATUS>(ONBOARDING_STATUS)({} as unknown)
     ).toThrow()
     expect(() =>
-      asEnum<USER_BAN_REASON>(USER_BAN_REASON)(1 as unknown)
+      asEnum<ONBOARDING_STATUS>(ONBOARDING_STATUS)(1 as unknown)
     ).toThrow()
     expect(() =>
-      asEnum<USER_BAN_REASON>(USER_BAN_REASON)('hello' as unknown)
+      asEnum<ONBOARDING_STATUS>(ONBOARDING_STATUS)('hello' as unknown)
     ).toThrow()
     expect(() =>
-      asEnum<USER_BAN_REASON>(USER_BAN_REASON)(null as unknown)
+      asEnum<ONBOARDING_STATUS>(ONBOARDING_STATUS)(null as unknown)
     ).toThrow()
     expect(() =>
-      asEnum<USER_BAN_REASON>(USER_BAN_REASON)(undefined as unknown)
+      asEnum<ONBOARDING_STATUS>(ONBOARDING_STATUS)(undefined as unknown)
     ).toThrow()
     expect(() =>
-      asEnum<USER_BAN_REASON>(USER_BAN_REASON)([] as unknown)
+      asEnum<ONBOARDING_STATUS>(ONBOARDING_STATUS)([] as unknown)
     ).toThrow()
   })
 })

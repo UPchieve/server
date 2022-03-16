@@ -42,6 +42,12 @@ export async function getUserByReferralCode(
   }
 }
 
+/**
+ * TODO: figure out new return signature for this
+ * Used in 2 ways:
+ * 1. user contact info (email,phone,name) + isVolunteer
+ * 2. populates req.user in middleware
+ */
 export async function getUserById(
   userId: Types.ObjectId
 ): Promise<User | undefined> {
@@ -68,6 +74,7 @@ export async function getUserForPassport(
   }
 }
 
+// Only needs id (replaced by getUserIdByEmail)
 export async function getUserByEmail(email: string): Promise<User | undefined> {
   try {
     const user = await UserModel.findOne({ email: email })
@@ -184,6 +191,7 @@ export async function updateUserVerifiedInfoById(
   }
 }
 
+// No longer needed with pg schema
 export async function addUserPastSessionById(
   userId: Types.ObjectId,
   sessionId: Types.ObjectId
@@ -235,6 +243,7 @@ export async function banUserById(
   }
 }
 
+// DEAD CODE
 export async function deleteUserByEmail(userEmail: string): Promise<void> {
   try {
     const result = await UserModel.deleteOne({ email: userEmail }).exec()
@@ -245,102 +254,5 @@ export async function deleteUserByEmail(userEmail: string): Promise<void> {
   } catch (err) {
     if (err instanceof RepoDeleteError) throw err
     else throw new RepoDeleteError(err)
-  }
-}
-
-// pg wrappers
-import { getClient } from '../../pg'
-import * as pgQueries from './pg.queries'
-import { Ulid } from '../pgUtils'
-
-export async function IgetUserIdByEmail(
-  email: string
-): Promise<Ulid | undefined> {
-  try {
-    const result = await pgQueries.getUserIdByEmail.run({ email }, getClient())
-    if (result.length) return result[0].id
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export type UserContactInfo = {
-  id: Ulid
-  email: string
-  phone?: string
-  firstName: string
-}
-
-export async function IgetUserContactInfoById(
-  id: Ulid
-): Promise<UserContactInfo | undefined> {
-  try {
-    const result = await pgQueries.getUserContactInfoById.run(
-      { id },
-      getClient()
-    )
-    if (result.length) return result[0]
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function IgetUserContactInfoByReferralCode(
-  referralCode: string
-): Promise<UserContactInfo | undefined> {
-  try {
-    const result = await pgQueries.getUserContactInfoByReferralCode.run(
-      { referralCode },
-      getClient()
-    )
-    if (result.length) return result[0]
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function IgetUserContactInfoByResetToken(
-  resetToken: string
-): Promise<UserContactInfo | undefined> {
-  try {
-    const result = await pgQueries.getUserContactInfoByResetToken.run(
-      { resetToken },
-      getClient()
-    )
-    if (result.length) return result[0]
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function countUsersReferredByOtherId(
-  userId: Ulid
-): Promise<number> {
-  try {
-    const result = await pgQueries.countUsersReferredByOtherId.run(
-      { userId },
-      getClient()
-    )
-    if (result.length && result[0].total) return result[0].total
-    return 0
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function IupdateUserResetTokenById(
-  token: string,
-  userId: Ulid
-): Promise<void> {
-  try {
-    const result = await pgQueries.updateUserResetTokenById.run(
-      { token, userId },
-      getClient()
-    )
-    if (result.length && result[0].id) return
-    throw new RepoUpdateError('Update query did not return updated id')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
   }
 }

@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
 import { Types } from 'mongoose'
-import { EVENTS, REFERENCE_STATUS, USER_BAN_REASON } from '../constants'
+import { EVENTS, REFERENCE_STATUS } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import { UserNotFoundError } from '../models/Errors'
 import { unbanIpsByUser } from '../models/IpAddress/queries'
@@ -238,7 +238,7 @@ export async function adminUpdateUser(data: unknown) {
 
   if (!userBeforeUpdate.isBanned && isBanned)
     // TODO: queue email
-    await MailService.sendBannedUserAlert(userId, USER_BAN_REASON.ADMIN)
+    await MailService.sendBannedUserAlert(userId, 'ADMIN')
 
   const update: any = {
     firstname: firstName,
@@ -273,7 +273,7 @@ export async function adminUpdateUser(data: unknown) {
     }
   }
 
-  if (isBanned) update.banReason = USER_BAN_REASON.ADMIN
+  if (isBanned) update.banReason = 'ADMIN'
   if (isDeactivated && !userBeforeUpdate.isDeactivated)
     await new UserActionCtrl.AdminActionCreator(
       userId.toString()

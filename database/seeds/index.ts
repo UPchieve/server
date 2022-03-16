@@ -32,6 +32,7 @@ import { priorityGroups } from './scripts/notifications/priority-groups'
 
 import { startClient } from './pgClient'
 import { ExpectedErrors } from './scripts/utils'
+import { weekdays } from './scripts/geography/weekdays'
 
 async function seedData(): Promise<void> {
   let exitCode = 0
@@ -40,6 +41,7 @@ async function seedData(): Promise<void> {
 
     await usStates()
     await postalCodes()
+    await weekdays()
 
     await userRoles()
     await banReasons()

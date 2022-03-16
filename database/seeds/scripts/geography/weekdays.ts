@@ -1,7 +1,7 @@
 import { wrapInsert, NameToId } from '../utils'
 import * as pgQueries from './pg.queries'
 
-export async function usStates(): Promise<NameToId> {
+export async function weekdays(): Promise<NameToId> {
   const temp: NameToId = {}
   const weekdays = [
     { id: 1, day: 'Sunday' },

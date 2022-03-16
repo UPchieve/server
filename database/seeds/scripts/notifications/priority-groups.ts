@@ -4,6 +4,10 @@ import * as pgQueries from './pg.queries'
 export async function priorityGroups(): Promise<NameToId> {
   const groups = [
     {
+      name: 'follow-up',
+      priority: -1
+    },
+    {
       name:
         'Partner volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       priority: 1,
@@ -53,10 +57,6 @@ export async function priorityGroups(): Promise<NameToId> {
     },
     {
       name: 'LEGACY: Mizuho and Atlassian volunteers - Not notified in last 3 days',
-      priority: -1
-    },
-    {
-      name: 'LEGACY: follow-up',
       priority: -1
     },
     {
