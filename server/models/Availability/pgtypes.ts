@@ -9,7 +9,7 @@ export const DAYS = <const>[
   'Friday',
   'Saturday',
 ]
-export type DAY = typeof DAYS[number]
+export type DAYS = typeof DAYS[number]
 
 export const HOURS = <const>[
   '12a',
@@ -37,14 +37,14 @@ export const HOURS = <const>[
   '10p',
   '11p',
 ]
-export type HOUR = typeof HOURS[number]
+export type HOURS = typeof HOURS[number]
 
 export type AvailabilityDay = {
-  [hour in HOUR]: boolean
+  [hour in HOURS]: boolean
 }
 
 export type Availability = {
-  [day in DAY]: AvailabilityDay
+  [day in DAYS]: AvailabilityDay
 }
 
 export interface AvailabilityHistory {

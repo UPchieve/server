@@ -3,11 +3,10 @@ import { Document, model, Schema, Types } from 'mongoose'
 import bcrypt from 'bcrypt'
 import validator from 'validator'
 import config from '../../config'
-import { USER_BAN_REASON, USER_BAN_REASONS } from '../../constants'
+import { USER_BAN_REASONS } from '../../constants'
 import { Session } from '../Session'
 import { IpAddress } from '../IpAddress'
 import { Pgid, Ulid } from '../pgUtils'
-import { Availability } from '../Availability/types'
 
 export type PgUser = {
   id: Ulid
@@ -50,7 +49,7 @@ export interface User {
   isVolunteer: boolean
   isAdmin: boolean
   isBanned: boolean
-  banReason?: USER_BAN_REASON
+  banReason?: USER_BAN_REASONS
   isTestUser: boolean
   isFakeUser: boolean
   isDeactivated: boolean

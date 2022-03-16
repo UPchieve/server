@@ -1,5 +1,5 @@
 import { Ulid } from '../pgUtils'
-import { USER_BAN_REASON } from '../../constants'
+import { USER_BAN_REASONS } from '../../constants'
 import { Reference, Certifications, TrainingCourses } from '../Volunteer'
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
@@ -21,7 +21,7 @@ export type LegacyUserModel = {
   isVolunteer: boolean
   isAdmin: boolean
   isBanned: boolean
-  banReason?: USER_BAN_REASON
+  banReason?: USER_BAN_REASONS
   isTestUser: boolean
   isFakeUser: boolean
   isDeactivated: boolean

@@ -66,7 +66,7 @@ export const USER_BAN_REASONS = <const>[
   'BANNED SERVICE PROVIDER',
   'ADMIN',
 ]
-export type USER_BAN_REASON = typeof USER_BAN_REASONS[number]
+export type USER_BAN_REASONS = typeof USER_BAN_REASONS[number]
 
 export enum IP_ADDRESS_STATUS {
   OK = 'OK',

@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
 import UserModel, { User } from './types'
 import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
-import { USER_BAN_REASON } from '../../constants'
+import { USER_BAN_REASONS } from '../../constants'
 
 export async function getUserIdByPhone(
   phone: string
@@ -228,7 +228,7 @@ export async function updateUserLastActivityById(
 
 export async function banUserById(
   userId: Types.ObjectId,
-  banReason: USER_BAN_REASON
+  banReason: USER_BAN_REASONS
 ) {
   try {
     const result = await UserModel.updateOne(
