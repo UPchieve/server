@@ -202,7 +202,7 @@ export interface IUpdateUpfGatesQualifiedFlagByIdQuery {
   result: IUpdateUpfGatesQualifiedFlagByIdResult;
 }
 
-const updateUpfGatesQualifiedFlagByIdIR: any = {"name":"updateUPFGatesQualifiedFlagById","params":[{"name":"gatesQualified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1406,"b":1420,"line":73,"col":23}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1473,"b":1479,"line":76,"col":15}]}}],"usedParamSet":{"gatesQualified":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    gates_qualified = :gatesQualified!,\n    updated_at = NOW()::date\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id,\n    gates_qualified","loc":{"a":1349,"b":1522,"line":70,"col":0}}};
+const updateUpfGatesQualifiedFlagByIdIR: any = {"name":"updateUpfGatesQualifiedFlagById","params":[{"name":"gatesQualified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1406,"b":1420,"line":73,"col":23}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1473,"b":1479,"line":76,"col":15}]}}],"usedParamSet":{"gatesQualified":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    gates_qualified = :gatesQualified!,\n    updated_at = NOW()::date\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id,\n    gates_qualified","loc":{"a":1349,"b":1522,"line":70,"col":0}}};
 
 /**
  * Query generated from SQL:

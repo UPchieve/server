@@ -66,7 +66,7 @@ FROM
     user_product_flags;
 
 
-/* @name updateUPFGatesQualifiedFlagById */
+/* @name updateUpfGatesQualifiedFlagById */
 UPDATE
     user_product_flags
 SET
