@@ -6,16 +6,16 @@ import {
 import { Ulid } from '../pgUtils'
 
 export type pgQuestion = {
-    id: Ulid
-    questionText: string
-    possibleAnswers: {
-      txt: string
-      val: string
-    }[]
-    correctAnswer: string
-    category: string
-    subcategory: string
-    imageSrc: string
+  id: Ulid
+  questionText: string
+  possibleAnswers: {
+    txt: string
+    val: string
+  }[]
+  correctAnswer: string
+  category: string
+  subcategory: string
+  imageSrc: string
 }
 
 export interface Question {

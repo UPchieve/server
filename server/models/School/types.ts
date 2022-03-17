@@ -5,7 +5,7 @@ import { Ulid } from '../pgUtils'
 
 // new signature does not support usage of 'upchieveId'
 // reference regular id in the backend instead of upchieveId
-// frontend: clone id prop into the upchieveId prop to support legacy code 
+// frontend: clone id prop into the upchieveId prop to support legacy code
 export type PgSchool = {
   id: Ulid
   nameStored: string

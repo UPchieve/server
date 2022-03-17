@@ -9,7 +9,7 @@ export async function findSchoolById(
 ): Promise<PgSchool | undefined> {
   try {
     const result = await pgQueries.findSchoolById.run({ schoolId }, getClient())
-     
+
     if (result.length) {
       return makeRequired(result[0])
     }

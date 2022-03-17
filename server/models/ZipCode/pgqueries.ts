@@ -8,8 +8,11 @@ export async function getZipCodeByZipCode(
   zipCode: string
 ): Promise<PgZipCode | undefined> {
   try {
-    const result = await pgQueries.getZipCodeByZipCode.run({ zipCode }, getClient())
-     
+    const result = await pgQueries.getZipCodeByZipCode.run(
+      { zipCode },
+      getClient()
+    )
+
     if (result.length) {
       return makeRequired(result[0])
     }
