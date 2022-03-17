@@ -8,6 +8,7 @@ export interface IGetZipCodeByZipCodeParams {
 
 /** 'GetZipCodeByZipCode' return type */
 export interface IGetZipCodeByZipCodeResult {
+  isEligible: boolean | null;
   medianIncome: number | null;
   zipCode: string;
 }
@@ -18,14 +19,15 @@ export interface IGetZipCodeByZipCodeQuery {
   result: IGetZipCodeByZipCodeResult;
 }
 
-const getZipCodeByZipCodeIR: any = {"name":"getZipCodeByZipCode","params":[{"name":"zipCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":129,"b":136,"line":8,"col":12}]}}],"usedParamSet":{"zipCode":true},"statement":{"body":"SELECT\n    code AS zip_code,\n    income AS median_income\nFROM\n    postal_codes\nWHERE\n    code = :zipCode!","loc":{"a":32,"b":136,"line":2,"col":0}}};
+const getZipCodeByZipCodeIR: any = {"name":"getZipCodeByZipCode","params":[{"name":"zipCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":165,"b":172,"line":9,"col":12}]}}],"usedParamSet":{"zipCode":true},"statement":{"body":"SELECT\n    code AS zip_code,\n    income AS median_income,\n    income >= 60000 AS is_eligible\nFROM\n    postal_codes\nWHERE\n    code = :zipCode!","loc":{"a":32,"b":172,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     code AS zip_code,
- *     income AS median_income
+ *     income AS median_income,
+ *     income >= 60000 AS is_eligible
  * FROM
  *     postal_codes
  * WHERE

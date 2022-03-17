@@ -1,12 +1,11 @@
 import { Document, model, Model, Schema, Types } from 'mongoose'
-import { Ulid } from '../pgUtils'
 
 const MEDIUM_INCOME_THRESHOLD = 60000
 
 export type PgZipCode = {
   zipCode: string
   medianIncome: number
-  // isEligible: boolean
+  isEligible: boolean
 }
 
 export interface ZipCode {
