@@ -78,7 +78,7 @@ export async function updateUPFGatesQualifiedFlagById(
       { userId, gatesQualified: status },
       getClient()
     )
-    if (result.length) return
+    if (result.length && result[0].ok) return
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
@@ -95,7 +95,7 @@ export async function updateSentInactiveThirtyDayEmail(
       { userId, sentInactiveThirtyDayEmail },
       getClient()
     )
-    if (result.length) return
+    if (result.length && result[0].ok) return
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
@@ -112,7 +112,7 @@ export async function updateSentInactiveSixtyDayEmail(
       { userId, sentInactiveSixtyDayEmail },
       getClient()
     )
-    if (result.length) return
+    if (result.length && result[0].ok) return
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
@@ -129,7 +129,7 @@ export async function updateSentInactiveNinetyDayEmail(
       { userId, sentInactiveNinetyDayEmail },
       getClient()
     )
-    if (result.length) return
+    if (result.length && result[0].ok) return
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err

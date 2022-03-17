@@ -94,5 +94,5 @@ SET
 WHERE
     user_id = :userId!
 RETURNING
-    user_id;
+    user_id AS ok;
 

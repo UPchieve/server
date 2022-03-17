@@ -75,8 +75,7 @@ SET
 WHERE
     user_id = :userId!
 RETURNING
-    user_id,
-    gates_qualified;
+    user_id AS ok;
 
 
 /* @name updateSentInactiveThirtyDayEmail */
@@ -88,8 +87,7 @@ SET
 WHERE
     user_id = :userId!
 RETURNING
-    user_id,
-    sent_inactive_thirty_day_email;
+    user_id AS ok;
 
 
 /* @name updateSentInactiveSixtyDayEmail */
@@ -101,8 +99,7 @@ SET
 WHERE
     user_id = :userId!
 RETURNING
-    user_id,
-    sent_inactive_sixty_day_email;
+    user_id AS ok;
 
 
 /* @name updateSentInactiveNinetyDayEmail */
@@ -114,6 +111,5 @@ SET
 WHERE
     user_id = :userId!
 RETURNING
-    user_id,
-    sent_inactive_ninety_day_email;
+    user_id AS ok;
 
