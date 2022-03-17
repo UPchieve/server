@@ -3,7 +3,7 @@ import { validUser } from '../../utils/validators'
 import { Ulid } from '../pgUtils'
 import { User } from '../User'
 
-export interface PgUserProductFlags {
+export type PgUserProductFlags = {
   userId: Ulid
   sentReadyToCoachEmail: boolean
   sentHourSummaryIntroEmail: boolean
@@ -13,16 +13,6 @@ export interface PgUserProductFlags {
   gatesQualified: boolean
   createdAt: Date
   updatedAt: Date
-
-  // user_id uuid NOT NULL,
-  // sent_ready_to_coach_email boolean DEFAULT false NOT NULL,
-  // sent_hour_summary_intro_email boolean DEFAULT false NOT NULL,
-  // sent_inactive_thirty_day_email boolean DEFAULT false NOT NULL,
-  // sent_inactive_sixty_day_email boolean DEFAULT false NOT NULL,
-  // sent_inactive_ninety_day_email boolean DEFAULT false NOT NULL,
-  // gates_qualified boolean DEFAULT false NOT NULL,
-  // created_at timestamp with time zone NOT NULL,
-  // updated_at timestamp with time zone NOT NULL
 }
 
 export interface UserProductFlags {

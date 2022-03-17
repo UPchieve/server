@@ -16,7 +16,7 @@ export enum METRIC_TYPES {
   // statistics = 'statistics
 }
 
-export interface PgUserSessionMetrics {
+export type PgUserSessionMetrics = {
   userId: Ulid
   absentStudent: number
   absentVolunteer: number
