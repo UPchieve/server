@@ -4,16 +4,8 @@ import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { PgSurvey } from './types'
 
-export type Json =
-  | null
-  | boolean
-  | number
-  | string
-  | Json[]
-  | { [key: string]: Json }
-
 export type PgSurveyQueryResult = Omit<PgSurvey, 'responseData'> & {
-  responseData: Json
+  responseData: pgQueries.Json
 }
 
 export function parseQueryResult(result: PgSurveyQueryResult): PgSurvey {
