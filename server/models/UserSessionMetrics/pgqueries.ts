@@ -48,7 +48,7 @@ export async function getAllUSM(): Promise<PgUserSessionMetrics[]> {
   }
 }
 
-export type UserSessionMetricsUpdateQuery =  { [key: string]: number }
+export type UserSessionMetricsUpdateQuery = { [key: string]: number }
 
 // NOTE: when queries are merged conflicting scalar values will be overwritten
 // ex: a = { a: { aa: 1, bb: 2 } }, b = { a: { aa: 3, cc: 4 } }
@@ -63,7 +63,7 @@ export async function executeUSMUpdatesByUserId(
   //   'counters.hasBeenUnmatched': 109,
   //   'counters.absentStudent': 22,
   //   'counters.absentVolunteer': 27
-  //   ... 
+  //   ...
   // }
   const update: any = {}
   for (const q of queries) {
@@ -76,7 +76,8 @@ export async function executeUSMUpdatesByUserId(
         absentStudent: update['counters.absentStudent'],
         absentVolunteer: update['counters.absentVolunteer'],
         lowSessionRatingFromCoach: update['counters.lowSessionRatingFromCoach'],
-        lowSessionRatingFromStudent: update['counters.lowSessionRatingFromStudent'],
+        lowSessionRatingFromStudent:
+          update['counters.lowSessionRatingFromStudent'],
         lowCoachRatingFromStudent: update['counters.lowCoachRatingFromStudent'],
         reported: update['counters.reported'],
         onlyLookingForAnswers: update['counters.onlyLookingForAnswers'],
