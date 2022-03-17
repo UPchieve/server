@@ -80,7 +80,7 @@ export async function executeUSMUpdatesByUserId(
       },
       getClient()
     )
-    if (result.length && result[0].ok) return
+    if (result.length && makeRequired(result[0].ok)) return
     throw new RepoUpdateError('Update query did not return id')
   } catch (err) {
     throw new RepoUpdateError(
