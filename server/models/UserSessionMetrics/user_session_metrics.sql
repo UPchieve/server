@@ -53,27 +53,6 @@ WHERE
     user_id = :userId!;
 
 
-/* @name getAllUSM */
-SELECT
-    user_id,
-    absent_student,
-    absent_volunteer,
-    low_session_rating_from_coach,
-    low_session_rating_from_student,
-    low_coach_rating_from_student,
-    only_looking_for_answers,
-    rude_or_inappropriate,
-    comment_from_student,
-    comment_from_volunteer,
-    has_been_unmatched,
-    has_had_technical_issues,
-    reported,
-    created_at,
-    updated_at
-FROM
-    user_session_metrics;
-
-
 /* @name executeUSMUpdatesByUserId */
 UPDATE
     user_session_metrics

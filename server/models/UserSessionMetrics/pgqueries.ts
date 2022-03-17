@@ -39,15 +39,6 @@ export async function getUSMByUserId(
   }
 }
 
-export async function getAllUSM(): Promise<PgUserSessionMetrics[]> {
-  try {
-    const results = await pgQueries.getAllUsm.run(undefined, getClient())
-    return makeRequired(results)
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export type UserSessionMetricsUpdateQuery = { [key: string]: number }
 
 // NOTE: when queries are merged conflicting scalar values will be overwritten

@@ -51,21 +51,6 @@ WHERE
     user_id = :userId!;
 
 
-/* @name getAllUpf */
-SELECT
-    user_id,
-    sent_ready_to_coach_email,
-    sent_hour_summary_intro_email,
-    sent_inactive_thirty_day_email,
-    sent_inactive_sixty_day_email,
-    sent_inactive_ninety_day_email,
-    gates_qualified,
-    created_at,
-    updated_at
-FROM
-    user_product_flags;
-
-
 /* @name updateUpfGatesQualifiedFlagById */
 UPDATE
     user_product_flags

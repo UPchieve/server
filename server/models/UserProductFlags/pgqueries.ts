@@ -60,15 +60,6 @@ export async function getPublicUPFByUserId(
   }
 }
 
-export async function getAllUPF(): Promise<PgUserProductFlags[]> {
-  try {
-    const results = await pgQueries.getAllUpf.run(undefined, getClient())
-    return makeRequired(results)
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function updateUPFGatesQualifiedFlagById(
   userId: Ulid,
   status: boolean
