@@ -4,14 +4,24 @@ import { SURVEY_TYPES } from '../../constants'
 import { Ulid } from '../pgUtils'
 import { User } from '../User'
 
-export interface PgSurvey {
+export type PresessionSurveyResponseData = {
+  'primary-goal': {
+    answer: string,
+    other?: string
+  },
+  'topic-understanding': {
+    answer: number
+  }
+}
+
+export type PgSurvey = {
   id: Ulid
   userId: Ulid
   sessionId: Ulid
-  responseData: { [key: string]: any }
+  responseData: PresessionSurveyResponseData
   createdAt: Date
   updatedAt: Date
-  mongoId?: Types.ObjectId
+  mongoId?: string
 }
 
 export interface Survey {
