@@ -1,11 +1,23 @@
 /* @name savePresessionSurvey */
 INSERT INTO pre_session_surveys (id, user_id, session_id, response_data, created_at, updated_at)
-    VALUES (:id!, :userId!, :sessionId!, :responseData!, NOW()::date, NOW()::date)
+SELECT
+    :id!,
+    :userId!,
+    :sessionId!,
+    :responseData!,
+    NOW()::date,
+    NOW()::date
 ON CONFLICT (session_id)
     DO UPDATE SET
-        response_data = :responseData!, updated_at = NOW()::date
+        response_data = :responseData!,
+        updated_at = NOW()::date
     RETURNING
-        id, user_id, session_id, response_data, created_at, updated_at;
+        id,
+        user_id,
+        session_id,
+        response_data,
+        created_at,
+        updated_at;
 
 
 /* @name getPresessionSurvey */
