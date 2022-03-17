@@ -8,6 +8,7 @@ export type PgSurveyQueryResult = Omit<PgSurvey, 'responseData'> & {
   responseData: pgQueries.Json
 }
 
+// parse a query result containing `responseData` from JSON to an object
 export function parseQueryResult(result: PgSurveyQueryResult): PgSurvey {
   const responseData =
     typeof result.responseData === 'string'
@@ -26,8 +27,8 @@ export async function savePresessionSurvey(
     const result = await pgQueries.savePresessionSurvey.run(
       {
         id: getDbUlid(),
-        sessionId,
         userId,
+        sessionId,
         responseData: JSON.stringify(responseData),
       },
       getClient()

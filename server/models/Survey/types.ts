@@ -6,9 +6,9 @@ import { User } from '../User'
 
 export type PresessionSurveyResponseData = {
   'primary-goal': {
-    answer: string,
+    answer: string
     other?: string
-  },
+  }
   'topic-understanding': {
     answer: number
   }
