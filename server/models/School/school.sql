@@ -4,7 +4,7 @@ SELECT
     schools.name AS name_stored,
     approved AS is_approved,
     partner AS is_partner,
-    us_state_code AS state_stored,
+    schools.us_state_code AS state_stored,
     created_at,
     updated_at,
     cities.name AS city_name_stored

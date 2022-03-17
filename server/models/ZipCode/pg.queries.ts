@@ -1,20 +1,31 @@
 /** Types generated for queries found in "server/models/ZipCode/zipcode.sql" */
 import { PreparedQuery } from '@pgtyped/query';
 
-/** Query 'GetZipCodeByZipCode' is invalid, so its result is assigned type 'never' */
-export type IGetZipCodeByZipCodeResult = never;
+/** 'GetZipCodeByZipCode' parameters type */
+export interface IGetZipCodeByZipCodeParams {
+  zipCode: string;
+}
 
-/** Query 'GetZipCodeByZipCode' is invalid, so its parameters are assigned type 'never' */
-export type IGetZipCodeByZipCodeParams = never;
+/** 'GetZipCodeByZipCode' return type */
+export interface IGetZipCodeByZipCodeResult {
+  medianIncome: number | null;
+  zipCode: string;
+}
 
-const getZipCodeByZipCodeIR: any = {"name":"getZipCodeByZipCode","params":[{"name":"zipCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":130,"b":137,"line":8,"col":12}]}}],"usedParamSet":{"zipCode":true},"statement":{"body":"SELECT\n    code AS zip_code,\n    income AS median_income,\nFROM\n    postal_codes\nWHERE\n    code = :zipCode!","loc":{"a":32,"b":137,"line":2,"col":0}}};
+/** 'GetZipCodeByZipCode' query type */
+export interface IGetZipCodeByZipCodeQuery {
+  params: IGetZipCodeByZipCodeParams;
+  result: IGetZipCodeByZipCodeResult;
+}
+
+const getZipCodeByZipCodeIR: any = {"name":"getZipCodeByZipCode","params":[{"name":"zipCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":129,"b":136,"line":8,"col":12}]}}],"usedParamSet":{"zipCode":true},"statement":{"body":"SELECT\n    code AS zip_code,\n    income AS median_income\nFROM\n    postal_codes\nWHERE\n    code = :zipCode!","loc":{"a":32,"b":136,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     code AS zip_code,
- *     income AS median_income,
+ *     income AS median_income
  * FROM
  *     postal_codes
  * WHERE
