@@ -8,8 +8,9 @@ export async function getZipCodeByZipCode(
   zipCode: string
 ): Promise<PgZipCode | undefined> {
   try {
+    const medianIncomeThreshold = 60000
     const result = await pgQueries.getZipCodeByZipCode.run(
-      { zipCode },
+      { zipCode, medianIncomeThreshold },
       getClient()
     )
 
