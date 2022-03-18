@@ -21,15 +21,15 @@ export async function findSchoolByUpchieveId(
   }
 }
 
-export async function getSchool(schoolId: Ulid): Promise<PgSchool | undefined> {
-  try {
-    const result = await pgQueries.getSchool.run({ schoolId }, getClient())
+// export async function getSchool(schoolId: Ulid): Promise<PgSchool | undefined> {
+//   try {
+//     const result = await pgQueries.getSchool.run({ schoolId }, getClient())
 
-    // TODO: fix return type with virtuals and add approvalNotifyEmails
-    if (result.length) {
-      return makeRequired(result[0])
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
+//     // TODO: fix return type with virtuals and add approvalNotifyEmails
+//     if (result.length) {
+//       return makeRequired(result[0])
+//     }
+//   } catch (err) {
+//     throw new RepoReadError(err)
+//   }
+// }
