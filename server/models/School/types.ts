@@ -19,79 +19,30 @@ export type PgSchool = {
   districtNameStored?: string
   SCHOOL_YEAR?: string
   FIPST?: number
-  STATENAME?: string
   ST?: string
   SCH_NAME?: string
   LEA_NAME?: string
-  STATE_AGENCY_NO?: number
-  UNION?: string
-  ST_LEAID?: string
-  LEAID?: number
   ST_SCHID?: string
-  NCESSCH?: number
-  SCHID?: number
-  MSTREET1?: string
-  MSTREET2?: string
-  MSTREET3?: string
   MCITY?: string
-  MSTATE?: string
   MZIP?: number
-  MZIP4?: number
-  LSTREET1?: string
-  LSTREET2?: string
-  LSTREET3?: string
   LCITY?: string
-  LSTATE?: string
   LZIP?: number
-  LZIP4?: string
-  PHONE?: string
-  WEBSITE?: string
-  SY_STATUS?: number
-  SY_STATUS_TEXT?: string
-  UPDATED_STATUS?: number
-  UPDATED_STATUS_TEXT?: string
-  EFFECTIVE_DATE?: string
-  SCH_TYPE?: number
-  SCH_TYPE_TEXT?: string
-  RECON_STATUS?: string
-  OUT_OF_STATE_FLAG?: string
-  CHARTER_TEXT?: string
-  CHARTAUTH1?: string
-  CHARTAUTHN1?: string
-  CHARTAUTH2?: string
-  CHARTAUTHN2?: string
-  NOGRADES?: string
-  G_PK_OFFERED?: string
-  G_KG_OFFERED?: string
-  G_1_OFFERED?: string
-  G_2_OFFERED?: string
-  G_3_OFFERED?: string
-  G_4_OFFERED?: string
-  G_5_OFFERED?: string
-  G_6_OFFERED?: string
-  G_7_OFFERED?: string
-  G_8_OFFERED?: string
   G_9_OFFERED?: string
   G_10_OFFERED?: string
   G_11_OFFERED?: string
   G_12_OFFERED?: string
-  G_13_OFFERED?: string
-  G_UG_OFFERED?: string
-  G_AE_OFFERED?: string
-
-  // school may offer PK or KG as well as high school
-  GSLO?: string
-  GSHI?: number
-  LEVEL?: string
-  IGOFFERED?: string
+  approvalNotifyEmails?: {
+    email: string
+    addedAt: Date
+  }[]
 
   // virtuals
-  studentUsers?: UserDocument[]
+  // studentUsers?: UserDocument[]
+  // TODO get the following from the query
   name?: string
   districtName?: string
   city?: string
   state?: string
-  searchableName?: string
 }
 
 export interface School {
