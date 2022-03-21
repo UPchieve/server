@@ -45,3 +45,76 @@ FROM
 WHERE
     schools.id = :schoolId!;
 
+
+/* @name createSchoolMetaData */
+INSERT INTO school_nces_metadata (mzip, lzip)
+    VALUES (:zipCode!, :zipCode!);
+
+
+/* @name createSchool */
+WITH city AS (
+INSERT INTO cities (name)
+        VALUES (:city!)
+    RETURNING
+        id)
+    INSERT INTO schools (name, approved, us_state_code, created_at, updated_at, city_id)
+    SELECT
+        :name!,
+        :isApproved!,
+        :state!,
+        NOW(),
+        NOW(),
+        id
+    FROM
+        city;
+
+
+/* @name updateApproval */
+UPDATE
+    schools
+SET
+    approved = :isApproved!
+WHERE
+    id = :schoolId!;
+
+
+/* @name updateIsPartner */
+UPDATE
+    schools
+SET
+    partner = :isPartner!
+WHERE
+    id = :schoolId!;
+
+
+/* @name adminUpdateSchool */
+WITH updated_school AS (
+    UPDATE
+        schools
+    SET
+        name = :name,
+        approved = :isApproved,
+        us_state_code = :state
+    WHERE
+        id = :schoolId!
+    RETURNING
+        city_id)
+UPDATE
+    cities
+SET
+    name = :city
+FROM
+    updated_school
+WHERE
+    cities.id = updated_school.city_id;
+
+
+/* @name adminUpdateSchoolMetaData */
+UPDATE
+    school_nces_metadata
+SET
+    mzip = :zipCode,
+    lzip = :zipCode
+WHERE
+    school_id = :schoolId!;
+

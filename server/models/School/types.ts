@@ -37,7 +37,6 @@ export type PgSchool = {
   }[]
 
   // virtuals
-  // studentUsers?: UserDocument[]
   // TODO get the following from the query
   name?: string
   districtName?: string
