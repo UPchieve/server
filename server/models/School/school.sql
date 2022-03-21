@@ -46,6 +46,27 @@ WHERE
     schools.id = :schoolId!;
 
 
+/* @name getSchools */
+SELECT
+    approved AS is_approved,
+    meta.mzip AS zip_code,
+    COALESCE(meta.sch_name, schools.name) AS name,
+    COALESCE(meta.st, schools.us_state_code) AS state,
+    COALESCE(meta.lcity, cities.name) AS city
+FROM
+    schools
+    LEFT JOIN cities ON schools.city_id = cities.id
+    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
+WHERE (schools.name = :name!
+    OR meta.sch_name = :name!)
+AND (meta.st = :state!
+    OR schools.us_state_code = :state!)
+AND (meta.mcity = :city!
+    OR meta.lcity = :city!
+    OR cities.name = :city!)
+LIMIT :limit! OFFSET :offset!;
+
+
 /* @name createSchoolMetaData */
 INSERT INTO school_nces_metadata (mzip, lzip)
     VALUES (:zipCode!, :zipCode!);

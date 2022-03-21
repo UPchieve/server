@@ -34,6 +34,30 @@ export async function getSchool(schoolId: Ulid) {
   }
 }
 
+export type GetSchoolsPayload = {
+  name: string
+  state: string
+  city: string
+}
+
+export async function getSchools(
+  data: GetSchoolsPayload,
+  limit: number,
+  offset: number
+) {
+  try {
+    const { name, state, city } = data
+    const result = await pgQueries.getSchools.run(
+      { name, state, city, limit: String(limit), offset: String(offset) },
+      getClient()
+    )
+
+    return result.map(v => makeRequired(v))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type CreateSchoolPayload = {
   name: string
   city: string
