@@ -21,7 +21,7 @@ export async function findSchoolByUpchieveId(
   }
 }
 
-export async function getSchool(schoolId: Ulid) {
+export async function getSchool(schoolId: Ulid): Promise<PgSchool | undefined> {
   try {
     const result = await pgQueries.getSchool.run({ schoolId }, getClient())
 
@@ -44,7 +44,7 @@ export async function getSchools(
   data: GetSchoolsPayload,
   limit: number,
   offset: number
-) {
+): Promise<PgSchool[] | undefined> {
   try {
     const { name, state, city } = data
     const result = await pgQueries.getSchools.run(
@@ -66,7 +66,9 @@ export type CreateSchoolPayload = {
   isApproved: boolean
 }
 
-export async function createSchool(data: CreateSchoolPayload) {
+export async function createSchool(
+  data: CreateSchoolPayload
+): Promise<PgSchool | undefined> {
   try {
     const { isApproved, name, city, state, zipCode } = data
 
@@ -81,7 +83,10 @@ export async function createSchool(data: CreateSchoolPayload) {
   }
 }
 
-export async function updateApproval(schoolId: Ulid, isApproved: boolean) {
+export async function updateApproval(
+  schoolId: Ulid,
+  isApproved: boolean
+): Promise<void> {
   try {
     const result = await pgQueries.updateApproval.run(
       { schoolId, isApproved },
@@ -94,7 +99,10 @@ export async function updateApproval(schoolId: Ulid, isApproved: boolean) {
   }
 }
 
-export async function updateIsPartner(schoolId: Ulid, isPartner: boolean) {
+export async function updateIsPartner(
+  schoolId: Ulid,
+  isPartner: boolean
+): Promise<void> {
   try {
     const result = await pgQueries.updateIsPartner.run(
       { schoolId, isPartner },
@@ -116,7 +124,7 @@ export type AdminUpdate = {
   isApproved?: boolean
 }
 
-export async function adminUpdateSchool(data: AdminUpdate) {
+export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
   try {
     const { schoolId, name, city, state, zipCode, isApproved } = data
 
@@ -124,11 +132,10 @@ export async function adminUpdateSchool(data: AdminUpdate) {
       { schoolId, zipCode },
       getClient()
     )
-    const result = await pgQueries.adminUpdateSchool.run(
+    await pgQueries.adminUpdateSchool.run(
       { schoolId, name, state, city, isApproved },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoUpdateError(err)
   }

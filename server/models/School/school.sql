@@ -35,9 +35,12 @@ SELECT
     approved AS is_approved,
     partner AS is_partner,
     meta.mzip AS zip_code,
-    COALESCE(meta.sch_name, schools.name) AS name,
-    COALESCE(meta.st, schools.us_state_code) AS state,
-    COALESCE(meta.lcity, cities.name) AS city
+    COALESCE(meta.sch_name, schools.name) AS name_stored,
+    COALESCE(meta.st, schools.us_state_code) AS state_stored,
+    COALESCE(meta.lcity, cities.name) AS city_name_stored,
+    schools.id,
+    schools.created_at,
+    schools.updated_at
 FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
@@ -49,10 +52,14 @@ WHERE
 /* @name getSchools */
 SELECT
     approved AS is_approved,
+    partner AS is_partner,
     meta.mzip AS zip_code,
-    COALESCE(meta.sch_name, schools.name) AS name,
-    COALESCE(meta.st, schools.us_state_code) AS state,
-    COALESCE(meta.lcity, cities.name) AS city
+    COALESCE(meta.sch_name, schools.name) AS name_stored,
+    COALESCE(meta.st, schools.us_state_code) AS state_stored,
+    COALESCE(meta.lcity, cities.name) AS city_name_stored,
+    schools.id,
+    schools.created_at,
+    schools.updated_at
 FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
@@ -85,16 +92,25 @@ INSERT INTO cities (name)
         :state!,
         NOW(),
         NOW(),
-        id
+        city.id
     FROM
-        city;
+        city
+    RETURNING
+        id,
+        approved AS is_approved,
+        partner AS is_partner,
+        name AS name_stored,
+        updated_at,
+        created_at,
+        us_state_code AS state_stored;
 
 
 /* @name updateApproval */
 UPDATE
     schools
 SET
-    approved = :isApproved!
+    approved = :isApproved!,
+    updated_at = NOW()
 WHERE
     id = :schoolId!;
 
@@ -103,31 +119,38 @@ WHERE
 UPDATE
     schools
 SET
-    partner = :isPartner!
+    partner = :isPartner!,
+    updated_at = NOW()
 WHERE
     id = :schoolId!;
 
 
 /* @name adminUpdateSchool */
-WITH updated_school AS (
-    UPDATE
-        schools
-    SET
-        name = :name,
-        approved = :isApproved,
-        us_state_code = :state
+WITH ins AS (
+INSERT INTO cities (name)
+    SELECT
+        :city
     WHERE
-        id = :schoolId!
-    RETURNING
-        city_id)
+        NOT EXISTS (
+            SELECT
+                id
+            FROM
+                CITIES
+            WHERE
+                cities.name = :city))
 UPDATE
-    cities
+    schools
 SET
-    name = :city
+    name = COALESCE(:name, schools.name),
+    approved = COALESCE(:isApproved, schools.approved),
+    us_state_code = COALESCE(:state, schools.us_state_code),
+    updated_at = NOW(),
+    city_id = cities.id
 FROM
-    updated_school
+    cities
 WHERE
-    cities.id = updated_school.city_id;
+    schools.id = :schoolId!
+    AND cities.name = :city;
 
 
 /* @name adminUpdateSchoolMetaData */
@@ -135,7 +158,8 @@ UPDATE
     school_nces_metadata
 SET
     mzip = :zipCode,
-    lzip = :zipCode
+    lzip = :zipCode,
+    updated_at = NOW()
 WHERE
     school_id = :schoolId!;
 

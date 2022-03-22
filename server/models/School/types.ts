@@ -14,7 +14,7 @@ export type PgSchool = {
   isPartner: boolean
   createdAt: Date
   updatedAt: Date
-  cityNameStored: string
+  cityNameStored?: string
   mongoId?: string
   districtNameStored?: string
   SCHOOL_YEAR?: string
