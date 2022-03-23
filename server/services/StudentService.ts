@@ -46,6 +46,7 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
   const userProperties: AnalyticsService.IdentifyProperties = {
     userType: 'student',
   }
+  // TODO: use getStudentPartnerInfoById from Student Repo
   const student = await StudentRepo.getStudentById(studentId)
 
   if (student) {
