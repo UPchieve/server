@@ -16,6 +16,9 @@ export type pgQuestion = {
   category: string
   subcategory: string
   imageSrc: string
+  createdAt: Date
+  updatedAt: Date
+  mongoId: Ulid
 }
 
 export interface Question {

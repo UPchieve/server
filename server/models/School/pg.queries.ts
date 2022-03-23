@@ -353,7 +353,7 @@ export interface IAdminUpdateSchoolQuery {
   result: IAdminUpdateSchoolResult;
 }
 
-const adminUpdateSchoolIR: any = {"name":"adminUpdateSchool","params":[{"name":"city","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2981,"b":2984,"line":132,"col":9},{"a":3144,"b":3147,"line":140,"col":31},{"a":3454,"b":3457,"line":153,"col":23}]}},{"name":"name","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3195,"b":3198,"line":144,"col":21}]}},{"name":"isApproved","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3241,"b":3250,"line":145,"col":25}]}},{"name":"state","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3302,"b":3306,"line":146,"col":30}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3421,"b":3429,"line":152,"col":18}]}}],"usedParamSet":{"city":true,"name":true,"isApproved":true,"state":true,"schoolId":true},"statement":{"body":"WITH ins AS (\nINSERT INTO cities (name)\n    SELECT\n        :city\n    WHERE\n        NOT EXISTS (\n            SELECT\n                id\n            FROM\n                CITIES\n            WHERE\n                cities.name = :city))\nUPDATE\n    schools\nSET\n    name = COALESCE(:name, schools.name),\n    approved = COALESCE(:isApproved, schools.approved),\n    us_state_code = COALESCE(:state, schools.us_state_code),\n    updated_at = NOW(),\n    city_id = cities.id\nFROM\n    cities\nWHERE\n    schools.id = :schoolId!\n    AND cities.name = :city","loc":{"a":2921,"b":3457,"line":129,"col":0}}};
+const adminUpdateSchoolIR: any = {"name":"adminUpdateSchool","params":[{"name":"city","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2981,"b":2984,"line":132,"col":9},{"a":3144,"b":3147,"line":140,"col":31},{"a":3454,"b":3457,"line":153,"col":23}]}},{"name":"name","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3195,"b":3198,"line":144,"col":21}]}},{"name":"isApproved","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3241,"b":3250,"line":145,"col":25}]}},{"name":"state","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3302,"b":3306,"line":146,"col":30}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3421,"b":3429,"line":152,"col":18}]}}],"usedParamSet":{"city":true,"name":true,"isApproved":true,"state":true,"schoolId":true},"statement":{"body":"WITH ins AS (\nINSERT INTO cities (name)\n    SELECT\n        :city\n    WHERE\n        NOT EXISTS (\n            SELECT\n                id\n            FROM\n                cities\n            WHERE\n                cities.name = :city))\nUPDATE\n    schools\nSET\n    name = COALESCE(:name, schools.name),\n    approved = COALESCE(:isApproved, schools.approved),\n    us_state_code = COALESCE(:state, schools.us_state_code),\n    updated_at = NOW(),\n    city_id = cities.id\nFROM\n    cities\nWHERE\n    schools.id = :schoolId!\n    AND cities.name = :city","loc":{"a":2921,"b":3457,"line":129,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -367,7 +367,7 @@ const adminUpdateSchoolIR: any = {"name":"adminUpdateSchool","params":[{"name":"
  *             SELECT
  *                 id
  *             FROM
- *                 CITIES
+ *                 cities
  *             WHERE
  *                 cities.name = :city))
  * UPDATE

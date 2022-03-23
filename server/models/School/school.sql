@@ -135,7 +135,7 @@ INSERT INTO cities (name)
             SELECT
                 id
             FROM
-                CITIES
+                cities
             WHERE
                 cities.name = :city))
 UPDATE
