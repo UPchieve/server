@@ -29,23 +29,35 @@ LIMIT 1;
 
 /* @name getUserContactInfoById */
 SELECT
-    id,
+    users.id,
     first_name,
-    email
+    email,
+    (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN true
+        ELSE FALSE
+    END) AS is_volunteer,
+    volunteer_partner_orgs.name AS volunteer_partner_org
 FROM
     users
+LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
-    id = :id!
+    users.id = :id!
 LIMIT 1;
 
 
 /* @name getUserContactInfoByReferralCode */
 SELECT
-    id,
+    users.id,
     first_name,
-    email
+    email,
+    (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN true
+        ELSE FALSE
+    END) AS is_volunteer,
+    volunteer_partner_orgs.name AS volunteer_partner_org
 FROM
     users
+LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     referral_code = :referralCode!
 LIMIT 1;
@@ -75,11 +87,17 @@ LIMIT 1;
 
 /* @name getUserContactInfoByResetToken */
 SELECT
-    id,
+    users.id,
     first_name,
-    email
+    email,
+    (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN true
+        ELSE FALSE
+    END) AS is_volunteer,
+    volunteer_partner_orgs.name AS volunteer_partner_org
 FROM
     users
+LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     password_reset_token = :resetToken!
 LIMIT 1;
@@ -98,7 +116,8 @@ WHERE
 UPDATE
     users
 SET
-    password_reset_token = :token!
+    password_reset_token = :token!,
+    updated_at = NOW()
 WHERE
     id = :userId!
 RETURNING
@@ -108,7 +127,8 @@ RETURNING
 UPDATE
     users
 SET
-    password = :password!
+    PASSWORD = :password!,
+    updated_at = NOW()
 WHERE
     id = :userId!
 RETURNING
@@ -132,8 +152,9 @@ UPDATE
     users
 SET
     email = :email!,
-    email_verified = true,
-    verified = true
+    email_verified = TRUE,
+    verified = TRUE,
+    updated_at = NOW()
 WHERE
     id = :userId!
 RETURNING
@@ -144,8 +165,9 @@ UPDATE
     users
 SET
     phone = :phone!,
-    phone_verified = true,
-    verified = true
+    phone_verified = TRUE,
+    verified = TRUE,
+    updated_at = NOW()
 WHERE
     id = :userId!
 RETURNING
@@ -155,7 +177,8 @@ RETURNING
 UPDATE
     users
 SET
-    last_activity_at = :lastActivityAt!
+    last_activity_at = :lastActivityAt!,
+    updated_at = NOW()
 WHERE
     id = :userId!
 RETURNING
@@ -166,7 +189,8 @@ UPDATE
     users
 SET
     banned = subquery.banned,
-    ban_reason_id = subquery.ban_reason_id
+    ban_reason_id = subquery.ban_reason_id,
+    updated_at = NOW()
 FROM (
     SELECT
         true AS banned,
@@ -180,6 +204,55 @@ WHERE
     id = :userId!
 RETURNING
     id AS ok;
+
+/* @name getUserForAdminUpdate */
+SELECT
+    users.id,
+    banned,
+    email,
+    deactivated,
+    (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN true
+        ELSE FALSE
+    END) AS is_volunteer,
+    student_partner_orgs.name AS student_partner_org
+FROM
+    users
+LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
+WHERE
+    users.id = :userId!;
+
+/* @name getUsersForAdminSearch */
+SELECT
+    users.id,
+    users.email,
+    users.first_name,
+    users.last_name,
+    users.created_at,
+    (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN true
+        ELSE FALSE
+    END) AS is_volunteer
+FROM
+    users
+LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
+LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+LEFT JOIN schools ON schools.id = student_profiles.school_id
+LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id
+WHERE
+    ((:userId)::uuid IS NULL OR users.id = :userId) AND
+    ((:email)::text IS NULL OR users.email LIKE :email) AND
+    ((:firstName)::text IS NULL OR users.first_name LIKE :firstName) AND
+    ((:lastName)::text IS NULL OR users.last_name LIKE :lastName) AND
+    ((:partnerOrg)::text IS NULL OR volunteer_partner_orgs.name LIKE :partnerOrg OR student_partner_orgs.name LIKE :partnerOrg) AND
+    ((:highSchool)::text IS NULL OR schools.name LIKE :highSchool OR school_nces_metadata.sch_name LIKE :highSchool)
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
+
+
+
+
 
 /* @name getLegacyUser */
 SELECT
@@ -196,70 +269,51 @@ SELECT
     END) as is_volunteer,
     (CASE WHEN admin_profiles.user_id IS NOT NULL THEN true
          ELSE FALSE
-    END) as is_volunteer,
-    users.banned AS isBanned,
-    ban_reasons.name AS banReason,
-    users.test_user AS isTestUser,
-    false AS isFakeUser,
-    users.deactivated AS isDeactivated,
-    users.last_activity_at AS lastActivityAt,
-    users.referral_code AS referralCode,
-    users.referred_by AS referredBy,
+    END) as is_admin,
+    users.banned AS is_banned,
+    ban_reasons.name AS ban_reason,
+    users.test_user AS is_test_user,
+    false AS is_fake_user,
+    users.deactivated AS is_deactivated,
+    users.last_activity_at AS last_activity_at,
+    users.referral_code AS referral_code,
+    users.referred_by AS referred_by,
     (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN 'volunteer'
          ELSE 'student'
     END) as type,
-    volunteer_profiles.onboarded AS isOnboarded,
-    volunteer_profiles.approved AS isApproved,
-    volunteer_partner_orgs.name AS volunteerPartnerOrg,
+    volunteer_profiles.onboarded AS is_onboarded,
+    volunteer_profiles.approved AS is_approved,
+    volunteer_partner_orgs.name AS volunteer_partner_org,
     volunteer_profiles.country,
     volunteer_profiles.timezone,
-    volunteer_profiles.photo_id_status AS photoIdStatus
+    photo_id_statuses.name AS photo_id_status,
+    past_sessions.sessions AS past_sessions,
+    round(past_sessions.time_tutored/3600000::numeric, 2)::float AS hours_tutored,
+    total_subjects.subjects AS subjects,
+    recent_availability.updated_at AS availability_last_modified_at,
+    occupations.occupations AS occupation
 FROM users
+LEFT JOIN (
+  SELECT
+  	updated_at
+  FROM
+  	availability_histories 
+  WHERE
+  	availability_histories.user_id = :userId!
+  ORDER BY updated_at
+  LIMIT 1
+) AS recent_availability ON true 
+LEFT JOIN (
+  SELECT
+  	array_agg(occupation) AS occupations
+  FROM
+  	volunteer_occupations
+  WHERE
+    user_id = :userId!
+) AS occupations ON true
 LEFT JOIN admin_profiles ON users.id = admin_profiles.user_id
 LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
-LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
-LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id
-WHERE
-    users.id = :userId!;
-
-
-SELECT
-    users.id,
-    users.first_name,
-    users.created_at,
-    users.email,
-    users.verified,
-    users.first_name AS firstname,
-    users.phone,
-    volunteer_profiles.college,
-    (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN true
-         ELSE FALSE
-    END) as is_volunteer,
-    (CASE WHEN admin_profiles.user_id IS NOT NULL THEN true
-         ELSE FALSE
-    END) as is_volunteer,
-    users.banned AS isBanned,
-    ban_reasons.name AS banReason,
-    users.test_user AS isTestUser,
-    false AS isFakeUser,
-    users.deactivated AS isDeactivated,
-    users.last_activity_at AS lastActivityAt,
-    users.referral_code AS referralCode,
-    users.referred_by AS referredBy,
-    (CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN 'volunteer'
-         ELSE 'student'
-    END) as type,
-    volunteer_profiles.onboarded AS isOnboarded,
-    volunteer_profiles.approved AS isApproved,
-    volunteer_partner_orgs.name AS volunteerPartnerOrg,
-    volunteer_profiles.country,
-    volunteer_profiles.timezone,
-    volunteer_profiles.photo_id_status AS photoIdStatus,
-    past_sessions.sessions AS pastSessions,
-    round(past_sessions.time_tutored/3600000::numeric, 2) AS hoursTutored
-FROM users
-LEFT JOIN admin_profiles ON users.id = admin_profiles.user_id
-LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
+LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
 LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
 LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id
 LEFT JOIN (
@@ -286,7 +340,7 @@ LEFT JOIN (
                   subjects.name
           ) AS subject_certs ON subject_certs.name = subjects.name
       WHERE
-          users.id = '017F8F3748284DEAC13784F0B7D7E8C9'
+          users.id = :userId!
       GROUP BY
           subjects.name, subject_certs.total
       HAVING
@@ -299,8 +353,8 @@ LEFT JOIN (
   FROM
   	sessions
   WHERE
-  	student_id = '017F8F3748284DEAC13784F0B7D7E8C9' OR
-  	volunteer_id = '017F8F3748284DEAC13784F0B7D7E8C9'
+  	student_id = :userId! OR
+  	volunteer_id = :userId!
 ) AS past_sessions ON true
 WHERE
-    users.id = '017F8F3748284DEAC13784F0B7D7E8C9';
+    users.id = :userId!;

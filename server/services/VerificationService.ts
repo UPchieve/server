@@ -76,6 +76,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
 }
 
 async function sendEmails(userId: Types.ObjectId): Promise<void> {
+  // replaced by getUserContactInfo
   const user = await getUserById(userId)
   if (user) {
     if (user.isVolunteer) {

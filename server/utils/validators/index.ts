@@ -3,7 +3,7 @@ import UserModel from '../../models/User'
 export * from './manifests'
 
 export async function validUser(userId: Types.ObjectId): Promise<boolean> {
-  // TODO: should this go through the repo?
+  // replaced by get user contact info by ID
   const user = await UserModel.findById(userId)
     .lean()
     .exec()

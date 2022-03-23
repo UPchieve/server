@@ -219,6 +219,7 @@ export async function adminUpdateUser(data: unknown) {
     isApproved,
     inGatesStudy,
   } = asAdminUpdate(data)
+  // replaced by UserRepo.getUserForAdminUpdate
   const userBeforeUpdate = await getUserById(userId)
   if (!userBeforeUpdate) {
     throw new UserNotFoundError('_id', userId.toString())
@@ -371,7 +372,7 @@ export async function getUsers(data: unknown) {
   if (highSchool) aggregateQuery.push(...highSchoolQuery)
 
   try {
-    // TODO: repo pattern
+    // Replaced by getUsersForAdminSearch
     const users = await UserModel.aggregate(aggregateQuery)
       .skip(skip)
       .limit(PER_PAGE)

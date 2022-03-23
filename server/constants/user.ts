@@ -1,3 +1,5 @@
+type ExtractValues<T extends { readonly [k: string]: string }> =  T[keyof T]
+
 export const USER_ACTION = {
   TYPE: {
     QUIZ: 'QUIZ',
@@ -43,7 +45,7 @@ export const USER_ACTION = {
 
 // new format to move to from USER_ACTIONS
 // user events in a [noun][verb] format
-export const EVENTS = {
+export const EVENTS = <const>{
   ACCOUNT_CREATED: 'ACCOUNT_CREATED',
   ACCOUNT_APPROVED: 'ACCOUNT_APPROVED',
   ACCOUNT_ONBOARDED: 'ACCOUNT_ONBOARDED',
@@ -58,41 +60,46 @@ export const EVENTS = {
   SUBJECT_UNLOCKED: 'SUBJECT_UNLOCKED',
   SESSION_REPLIED_YES_TO_TEXT: 'SESSION_REPLIED_YES_TO_TEXT', // @note: currently deprecated
 }
+export type EVENTS = ExtractValues<typeof EVENTS>
 
-export const USER_BAN_REASONS = <const>[
-  'NON US SIGNUP',
-  'USED BANNED IP',
-  'SESSION REPORTED',
-  'BANNED SERVICE PROVIDER',
-  'ADMIN',
-]
-export type USER_BAN_REASONS = typeof USER_BAN_REASONS[number]
-
-export enum IP_ADDRESS_STATUS {
-  OK = 'OK',
-  BANNED = 'BANNED',
+export const USER_BAN_REASONS = <const>{
+  NON_US_SIGNUP: 'NON US SIGNUP',
+  USED_BANNED_IP: 'USED BANNED IP',
+  SESSION_REPORTED: 'SESSION REPORTED',
+  BANNED_SERVICE_PROVIDER: 'BANNED SERVICE PROVIDER',
+  ADMIN: 'ADMIN',
 }
+export type USER_BAN_REASONS = ExtractValues<typeof USER_BAN_REASONS>
 
-export const STATUS = {
+export const IP_ADDRESS_STATUS = <const>{
+  OK: 'OK',
+  BANNED: 'BANNED',
+}
+export type IP_ADDRESS_STATUS = ExtractValues<typeof IP_ADDRESS_STATUS>
+
+export const STATUS = <const>{
   SUBMITTED: 'SUBMITTED',
   REJECTED: 'REJECTED',
   APPROVED: 'APPROVED',
 }
+export type STATUS = ExtractValues<typeof STATUS>
 
-export const PHOTO_ID_STATUS = {
+export const PHOTO_ID_STATUS = <const>{
   EMPTY: 'EMPTY',
   SUBMITTED: STATUS.SUBMITTED,
   REJECTED: STATUS.REJECTED,
   APPROVED: STATUS.APPROVED,
 }
+export type PHOTO_ID_STATUS = ExtractValues<typeof PHOTO_ID_STATUS>
 
-export const REFERENCE_STATUS = {
+export const REFERENCE_STATUS = <const>{
   UNSENT: 'UNSENT',
   SENT: 'SENT',
   SUBMITTED: STATUS.SUBMITTED,
   REJECTED: STATUS.REJECTED,
   APPROVED: STATUS.APPROVED,
 }
+export type REFERENCE_STATUS = ExtractValues<typeof REFERENCE_STATUS>
 
 export enum VERIFICATION_METHOD {
   SMS = 'sms',
