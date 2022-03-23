@@ -110,3 +110,96 @@ INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, u
         student_id = :studentId!
             AND volunteer_id = :volunteerId!;
 
+
+/* @name getReportedStudent */
+SELECT
+    users.id AS id,
+    first_name,
+    last_name,
+    email,
+    users.created_at AS created_at,
+    test_user AS is_test_user,
+    banned AS is_banned,
+    deactivated AS is_deactivated,
+    FALSE AS is_volunteer,
+    student_partner_orgs.key AS student_partner_org
+FROM
+    users
+    JOIN student_profiles ON users.id = student_profiles.user_id
+    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
+WHERE
+    deactivated = FALSE
+    AND test_user = FALSE
+    AND users.id = :userId!;
+
+/* @name getStudentPartnerInfoById */
+SELECT
+    student_profiles.user_id as id,
+    student_partner_orgs.key AS student_partner_org,
+    school_id as approved_highschool
+FROM
+    student_profiles
+    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
+WHERE
+    student_profiles.user_id = :userId!;
+
+
+/* @name deleteStudent */
+UPDATE
+    users
+SET
+    email = :email!
+WHERE
+    id = :userId!
+RETURNING
+    id as ok;
+
+/* @name adminUpdateStudent */
+UPDATE
+    users
+SET
+    first_name = :firstName!,
+    last_name = :lastName!,
+    email = :email!,
+    verified = :verified!,
+    banned = :banned!,
+    deactivated = :deactivated!,
+    updated_at = NOW()::date
+WHERE
+    id = :userId!
+RETURNING
+    id as ok;
+
+/* @name adminUpdateStudentProfile */
+UPDATE
+    student_profiles
+SET
+    student_partner_org_id = :partnerOrgId!,
+    student_partner_org_site_id = :partnerOrgSiteId!,
+    updated_at = NOW()::date
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id as ok;
+
+/* @name getPartnerOrgByKey */
+SELECT
+  student_partner_orgs.id as partner_id,
+  student_partner_orgs.key as partner_key,
+  student_partner_orgs.name as partner_name,
+  student_partner_org_sites.id as site_id,
+  student_partner_org_sites.name as site_name
+FROM
+  student_partner_orgs
+  LEFT JOIN (
+    SELECT
+      name,
+      id,
+      student_partner_org_id
+    FROM
+      student_partner_org_sites
+    WHERE
+      student_partner_org_sites.name = :partnerOrgSiteName
+  ) as student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+WHERE
+  student_partner_orgs.key = :partnerOrgKey!; 
