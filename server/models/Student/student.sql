@@ -149,7 +149,8 @@ WHERE
 UPDATE
     users
 SET
-    email = :email!
+    email = :email!,
+    updated_at = NOW()::date
 WHERE
     id = :userId!
 RETURNING
