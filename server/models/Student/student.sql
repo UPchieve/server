@@ -132,11 +132,12 @@ WHERE
     AND test_user = FALSE
     AND users.id = :userId!;
 
+
 /* @name getStudentPartnerInfoById */
 SELECT
-    student_profiles.user_id as id,
+    student_profiles.user_id AS id,
     student_partner_orgs.key AS student_partner_org,
-    school_id as approved_highschool
+    school_id AS approved_highschool
 FROM
     student_profiles
     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
@@ -152,7 +153,8 @@ SET
 WHERE
     id = :userId!
 RETURNING
-    id as ok;
+    id AS ok;
+
 
 /* @name adminUpdateStudent */
 UPDATE
@@ -168,7 +170,8 @@ SET
 WHERE
     id = :userId!
 RETURNING
-    id as ok;
+    id AS ok;
+
 
 /* @name adminUpdateStudentProfile */
 UPDATE
@@ -180,26 +183,27 @@ SET
 WHERE
     user_id = :userId!
 RETURNING
-    user_id as ok;
+    user_id AS ok;
+
 
 /* @name getPartnerOrgByKey */
 SELECT
-  student_partner_orgs.id as partner_id,
-  student_partner_orgs.key as partner_key,
-  student_partner_orgs.name as partner_name,
-  student_partner_org_sites.id as site_id,
-  student_partner_org_sites.name as site_name
+    student_partner_orgs.id AS partner_id,
+    student_partner_orgs.key AS partner_key,
+    student_partner_orgs.name AS partner_name,
+    student_partner_org_sites.id AS site_id,
+    student_partner_org_sites.name AS site_name
 FROM
-  student_partner_orgs
-  LEFT JOIN (
-    SELECT
-      name,
-      id,
-      student_partner_org_id
-    FROM
-      student_partner_org_sites
-    WHERE
-      student_partner_org_sites.name = :partnerOrgSiteName
-  ) as student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+    student_partner_orgs
+    LEFT JOIN (
+        SELECT
+            name,
+            id,
+            student_partner_org_id
+        FROM
+            student_partner_org_sites
+        WHERE
+            student_partner_org_sites.name = :partnerOrgSiteName) AS student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
 WHERE
-  student_partner_orgs.key = :partnerOrgKey!; 
+    student_partner_orgs.key = :partnerOrgKey!;
+

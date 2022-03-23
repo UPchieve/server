@@ -384,15 +384,15 @@ export interface IGetStudentPartnerInfoByIdQuery {
   result: IGetStudentPartnerInfoByIdResult;
 }
 
-const getStudentPartnerInfoByIdIR: any = {"name":"getStudentPartnerInfoById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3492,"b":3498,"line":144,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    student_profiles.user_id as id,\n    student_partner_orgs.key AS student_partner_org,\n    school_id as approved_highschool\nFROM\n    student_profiles\n    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id\nWHERE\n    student_profiles.user_id = :userId!","loc":{"a":3191,"b":3498,"line":136,"col":0}}};
+const getStudentPartnerInfoByIdIR: any = {"name":"getStudentPartnerInfoById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3493,"b":3499,"line":145,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    student_profiles.user_id AS id,\n    student_partner_orgs.key AS student_partner_org,\n    school_id AS approved_highschool\nFROM\n    student_profiles\n    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id\nWHERE\n    student_profiles.user_id = :userId!","loc":{"a":3192,"b":3499,"line":137,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     student_profiles.user_id as id,
+ *     student_profiles.user_id AS id,
  *     student_partner_orgs.key AS student_partner_org,
- *     school_id as approved_highschool
+ *     school_id AS approved_highschool
  * FROM
  *     student_profiles
  *     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
@@ -420,7 +420,7 @@ export interface IDeleteStudentQuery {
   result: IDeleteStudentResult;
 }
 
-const deleteStudentIR: any = {"name":"deleteStudent","params":[{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3563,"b":3568,"line":151,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3586,"b":3592,"line":153,"col":10}]}}],"usedParamSet":{"email":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    email = :email!\nWHERE\n    id = :userId!\nRETURNING\n    id as ok","loc":{"a":3529,"b":3615,"line":148,"col":0}}};
+const deleteStudentIR: any = {"name":"deleteStudent","params":[{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3564,"b":3569,"line":152,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3587,"b":3593,"line":154,"col":10}]}}],"usedParamSet":{"email":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    email = :email!\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":3530,"b":3616,"line":149,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -432,7 +432,7 @@ const deleteStudentIR: any = {"name":"deleteStudent","params":[{"name":"email","
  * WHERE
  *     id = :userId!
  * RETURNING
- *     id as ok
+ *     id AS ok
  * ```
  */
 export const deleteStudent = new PreparedQuery<IDeleteStudentParams,IDeleteStudentResult>(deleteStudentIR);
@@ -460,7 +460,7 @@ export interface IAdminUpdateStudentQuery {
   result: IAdminUpdateStudentResult;
 }
 
-const adminUpdateStudentIR: any = {"name":"adminUpdateStudent","params":[{"name":"firstName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3689,"b":3698,"line":161,"col":18}]}},{"name":"lastName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3718,"b":3726,"line":162,"col":17}]}},{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3742,"b":3747,"line":163,"col":13}]}},{"name":"verified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3766,"b":3774,"line":164,"col":16}]}},{"name":"banned","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3791,"b":3797,"line":165,"col":14}]}},{"name":"deactivated","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3819,"b":3830,"line":166,"col":19}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3878,"b":3884,"line":169,"col":10}]}}],"usedParamSet":{"firstName":true,"lastName":true,"email":true,"verified":true,"banned":true,"deactivated":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    first_name = :firstName!,\n    last_name = :lastName!,\n    email = :email!,\n    verified = :verified!,\n    banned = :banned!,\n    deactivated = :deactivated!,\n    updated_at = NOW()::date\nWHERE\n    id = :userId!\nRETURNING\n    id as ok","loc":{"a":3650,"b":3907,"line":158,"col":0}}};
+const adminUpdateStudentIR: any = {"name":"adminUpdateStudent","params":[{"name":"firstName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3691,"b":3700,"line":163,"col":18}]}},{"name":"lastName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3720,"b":3728,"line":164,"col":17}]}},{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3744,"b":3749,"line":165,"col":13}]}},{"name":"verified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3768,"b":3776,"line":166,"col":16}]}},{"name":"banned","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3793,"b":3799,"line":167,"col":14}]}},{"name":"deactivated","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3821,"b":3832,"line":168,"col":19}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3880,"b":3886,"line":171,"col":10}]}}],"usedParamSet":{"firstName":true,"lastName":true,"email":true,"verified":true,"banned":true,"deactivated":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    first_name = :firstName!,\n    last_name = :lastName!,\n    email = :email!,\n    verified = :verified!,\n    banned = :banned!,\n    deactivated = :deactivated!,\n    updated_at = NOW()::date\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":3652,"b":3909,"line":160,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -478,7 +478,7 @@ const adminUpdateStudentIR: any = {"name":"adminUpdateStudent","params":[{"name"
  * WHERE
  *     id = :userId!
  * RETURNING
- *     id as ok
+ *     id AS ok
  * ```
  */
 export const adminUpdateStudent = new PreparedQuery<IAdminUpdateStudentParams,IAdminUpdateStudentResult>(adminUpdateStudentIR);
@@ -502,7 +502,7 @@ export interface IAdminUpdateStudentProfileQuery {
   result: IAdminUpdateStudentProfileResult;
 }
 
-const adminUpdateStudentProfileIR: any = {"name":"adminUpdateStudentProfile","params":[{"name":"partnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4011,"b":4023,"line":177,"col":30}]}},{"name":"partnerOrgSiteId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4061,"b":4077,"line":178,"col":35}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4130,"b":4136,"line":181,"col":15}]}}],"usedParamSet":{"partnerOrgId":true,"partnerOrgSiteId":true,"userId":true},"statement":{"body":"UPDATE\n    student_profiles\nSET\n    student_partner_org_id = :partnerOrgId!,\n    student_partner_org_site_id = :partnerOrgSiteId!,\n    updated_at = NOW()::date\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id as ok","loc":{"a":3949,"b":4164,"line":174,"col":0}}};
+const adminUpdateStudentProfileIR: any = {"name":"adminUpdateStudentProfile","params":[{"name":"partnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4014,"b":4026,"line":180,"col":30}]}},{"name":"partnerOrgSiteId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4064,"b":4080,"line":181,"col":35}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4133,"b":4139,"line":184,"col":15}]}}],"usedParamSet":{"partnerOrgId":true,"partnerOrgSiteId":true,"userId":true},"statement":{"body":"UPDATE\n    student_profiles\nSET\n    student_partner_org_id = :partnerOrgId!,\n    student_partner_org_site_id = :partnerOrgSiteId!,\n    updated_at = NOW()::date\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":3952,"b":4167,"line":177,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -516,7 +516,7 @@ const adminUpdateStudentProfileIR: any = {"name":"adminUpdateStudentProfile","pa
  * WHERE
  *     user_id = :userId!
  * RETURNING
- *     user_id as ok
+ *     user_id AS ok
  * ```
  */
 export const adminUpdateStudentProfile = new PreparedQuery<IAdminUpdateStudentProfileParams,IAdminUpdateStudentProfileResult>(adminUpdateStudentProfileIR);
@@ -543,31 +543,30 @@ export interface IGetPartnerOrgByKeyQuery {
   result: IGetPartnerOrgByKeyResult;
 }
 
-const getPartnerOrgByKeyIR: any = {"name":"getPartnerOrgByKey","params":[{"name":"partnerOrgSiteName","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4619,"b":4636,"line":202,"col":40}]}},{"name":"partnerOrgKey","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4785,"b":4798,"line":205,"col":30}]}}],"usedParamSet":{"partnerOrgSiteName":true,"partnerOrgKey":true},"statement":{"body":"SELECT\n  student_partner_orgs.id as partner_id,\n  student_partner_orgs.key as partner_key,\n  student_partner_orgs.name as partner_name,\n  student_partner_org_sites.id as site_id,\n  student_partner_org_sites.name as site_name\nFROM\n  student_partner_orgs\n  LEFT JOIN (\n    SELECT\n      name,\n      id,\n      student_partner_org_id\n    FROM\n      student_partner_org_sites\n    WHERE\n      student_partner_org_sites.name = :partnerOrgSiteName\n  ) as student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id\nWHERE\n  student_partner_orgs.key = :partnerOrgKey!","loc":{"a":4199,"b":4798,"line":186,"col":0}}};
+const getPartnerOrgByKeyIR: any = {"name":"getPartnerOrgByKey","params":[{"name":"partnerOrgSiteName","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4679,"b":4696,"line":206,"col":46}]}},{"name":"partnerOrgKey","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4844,"b":4857,"line":208,"col":32}]}}],"usedParamSet":{"partnerOrgSiteName":true,"partnerOrgKey":true},"statement":{"body":"SELECT\n    student_partner_orgs.id AS partner_id,\n    student_partner_orgs.key AS partner_key,\n    student_partner_orgs.name AS partner_name,\n    student_partner_org_sites.id AS site_id,\n    student_partner_org_sites.name AS site_name\nFROM\n    student_partner_orgs\n    LEFT JOIN (\n        SELECT\n            name,\n            id,\n            student_partner_org_id\n        FROM\n            student_partner_org_sites\n        WHERE\n            student_partner_org_sites.name = :partnerOrgSiteName) AS student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id\nWHERE\n    student_partner_orgs.key = :partnerOrgKey!","loc":{"a":4203,"b":4857,"line":190,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   student_partner_orgs.id as partner_id,
- *   student_partner_orgs.key as partner_key,
- *   student_partner_orgs.name as partner_name,
- *   student_partner_org_sites.id as site_id,
- *   student_partner_org_sites.name as site_name
+ *     student_partner_orgs.id AS partner_id,
+ *     student_partner_orgs.key AS partner_key,
+ *     student_partner_orgs.name AS partner_name,
+ *     student_partner_org_sites.id AS site_id,
+ *     student_partner_org_sites.name AS site_name
  * FROM
- *   student_partner_orgs
- *   LEFT JOIN (
- *     SELECT
- *       name,
- *       id,
- *       student_partner_org_id
- *     FROM
- *       student_partner_org_sites
- *     WHERE
- *       student_partner_org_sites.name = :partnerOrgSiteName
- *   ) as student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+ *     student_partner_orgs
+ *     LEFT JOIN (
+ *         SELECT
+ *             name,
+ *             id,
+ *             student_partner_org_id
+ *         FROM
+ *             student_partner_org_sites
+ *         WHERE
+ *             student_partner_org_sites.name = :partnerOrgSiteName) AS student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
  * WHERE
- *   student_partner_orgs.key = :partnerOrgKey!
+ *     student_partner_orgs.key = :partnerOrgKey!
  * ```
  */
 export const getPartnerOrgByKey = new PreparedQuery<IGetPartnerOrgByKeyParams,IGetPartnerOrgByKeyResult>(getPartnerOrgByKeyIR);
