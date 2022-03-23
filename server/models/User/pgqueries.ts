@@ -1,7 +1,6 @@
-// pg wrappers
 import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
-import { makeRequired, Ulid, Pgid, getDbUlid } from '../pgUtils'
+import { makeRequired, makeSomeRequired, Ulid, Pgid, getDbUlid } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS } from '../../constants'
 
@@ -32,6 +31,8 @@ export type UserContactInfo = {
   email: string
   phone?: string
   firstName: string
+  isVolunteer: boolean,
+  volunteerPartnerOrg?: string
 }
 
 export async function getUserContactInfoById(
@@ -42,7 +43,7 @@ export async function getUserContactInfoById(
       { id },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -57,7 +58,7 @@ export async function getUserContactInfoByReferralCode(
       { referralCode },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -92,7 +93,7 @@ export async function getUserContactInfoByResetToken(
       { resetToken },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -218,5 +219,34 @@ export async function banUserById(userId: Ulid, banReason: USER_BAN_REASONS) {
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
+  }
+}
+
+type UserQuery = {
+  userId: string | undefined
+  firstName: string | undefined
+  lastName: string | undefined
+  email: string | undefined
+  partnerOrg: string | undefined
+  highSchool: string | undefined
+}
+type AdminUser = {
+  id: Ulid,
+  firstName: string,
+  lastName: string,
+  email: string,
+  isVolunteer: boolean,
+  createdAt: Date
+}
+
+export async function getUsersForAdminSearch(payload: UserQuery, limit: number, offset: number): Promise<AdminUser[]> {
+  try {
+    const result = await pgQueries.getUsersForAdminSearch.run(
+      { ...payload, limit, offset },
+      getClient()
+    )
+    return result.map(v => makeRequired(v))
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

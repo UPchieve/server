@@ -329,6 +329,7 @@ export async function getQuizScore(
     }
   }
 
+  // replaced by VolunteerRepo updateVolunteerOnboarded, updateVolunteerQuiz, addVolunteerCertification
   await VolunteerModel.updateOne({ _id: user._id }, userUpdates, {
     runValidators: true,
   })

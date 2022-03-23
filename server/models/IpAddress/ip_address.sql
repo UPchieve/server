@@ -29,7 +29,8 @@ RETURNING
 UPDATE
     ONLY ip_addresses
 SET
-    status = :status!
+    status = :status!,
+    updated_at = NOW()
 WHERE
     id = :id!
 RETURNING

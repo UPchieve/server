@@ -12,7 +12,7 @@ import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Availability } from '../Availability/types'
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import NotificationModel from '../Notification'
-import VolunteerModel, { Volunteer } from './index'
+import VolunteerModel, { Volunteer } from './types'
 
 /**
  * Wraps a db read to throw a RepoReadError if anything went wrong
@@ -32,7 +32,7 @@ export async function getVolunteersWithPipeline(pipeline: any): Promise<any> {
   return await VolunteerModel.aggregate(pipeline)
 }
 
-// TODO: this should not be used (emailReference) - use a custom getter
+// Replaced by getVolunteersForEmailReference
 export async function getVolunteers(query: any = {}): Promise<Volunteer[]> {
   return await wrapRead(async () => {
     return await VolunteerModel.find(query)
@@ -41,14 +41,7 @@ export async function getVolunteers(query: any = {}): Promise<Volunteer[]> {
   })
 }
 
-export async function getAllVolunteers(): Promise<Volunteer[]> {
-  return await wrapRead(async () => {
-    return await VolunteerModel.find()
-      .lean()
-      .exec()
-  })
-}
-
+// Replaced by getVolunteerForPendingStatus
 export async function getVolunteerById(
   volunteerId: Types.ObjectId
 ): Promise<Volunteer | undefined> {
@@ -87,7 +80,8 @@ export async function getVolunteerContactInfoById(
     if (volunteer) return volunteer as VolunteerContactInfo
   })
 }
-// TODO: proper type for query
+
+// Replaced by getVolunteersForNiceToMeetYou, getVolunteersForReadyToCoach, getVolunteersForWaitingReferences
 export async function getVolunteersContactInfo(
   query: any
 ): Promise<VolunteerContactInfo[]> {
@@ -103,7 +97,8 @@ export async function getVolunteersContactInfo(
       .exec()
   })
 }
-// TODO: proper type for filter
+
+// replaced by getNextFOOVolunteerToNotify for various priority groups
 export async function getNextVolunteerToNotify(
   filter: any
 ): Promise<VolunteerContactInfo | undefined> {
@@ -136,6 +131,7 @@ export async function getVolunteersForBlackoutOver(
   })
 }
 
+// Dead code - should be removed
 export async function getVolunteersFailsafe(): Promise<VolunteerContactInfo[]> {
   try {
     return (await VolunteerModel.find(
@@ -776,6 +772,7 @@ export async function updateVolunteerProfileById(
   }
 }
 
+// no longer needed, compute time tutored on the fly
 export async function updateTimeTutored(
   volunteerId: Types.ObjectId,
   timeTutored: number
@@ -791,77 +788,5 @@ export async function updateTimeTutored(
     await VolunteerModel.updateOne(query, update)
   } catch (err) {
     throw new RepoUpdateError(err)
-  }
-}
-
-// pg wrappers
-import { getClient } from '../../pg'
-import * as pgQueries from './pg.queries'
-import { Ulid, Subject, makeRequired, makeSomeRequired } from '../pgUtils'
-
-export async function getSubjectsForVolunteer(
-  userId: Ulid
-): Promise<Subject[]> {
-  try {
-    const result = await pgQueries.getSubjectsForVolunteer.run(
-      { userId },
-      getClient()
-    )
-    return result.map(r => r.subject)
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-type IVolunteerContactInfo = {
-  firstName: string
-  email: string
-  volunteerPartnerOrg?: string
-}
-
-export async function IgetNextVolunteerToNotify(
-  subject: string,
-  lastNotified: Date
-): Promise<IVolunteerContactInfo | undefined> {
-  try {
-    const result = await pgQueries.getNextOpenVolunteerToNotify.run(
-      { subject, lastNotified },
-      getClient()
-    )
-    if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getNextAnyPartnerVolunteerToNotify(
-  subject: string,
-  lastNotified: Date
-): Promise<IVolunteerContactInfo | undefined> {
-  try {
-    const result = await pgQueries.getNextAnyPartnerVolunteerToNotify.run(
-      { subject, lastNotified },
-      getClient()
-    )
-    if (result.length) return makeRequired(result[0])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getNextSpecificPartnerVolunteerToNotify(
-  subject: string,
-  lastNotified: Date,
-  volunteerPartnerOrg: string
-): Promise<IVolunteerContactInfo | undefined> {
-  try {
-    const result = await pgQueries.getNextSpecificPartnerVolunteerToNotify.run(
-      { subject, lastNotified, volunteerPartnerOrg },
-      getClient()
-    )
-    if (result.length) return makeRequired(result[0])
-  } catch (err) {
-    throw new RepoReadError(err)
   }
 }

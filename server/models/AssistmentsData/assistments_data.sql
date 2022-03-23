@@ -19,7 +19,9 @@ WHERE
 UPDATE
     assistments_data
 SET
-    sent = TRUE
+    sent = TRUE,
+    sent_at = NOW(),
+    updated_at = NOW()
 WHERE
     id = :assistmentsDataId!
 RETURNING

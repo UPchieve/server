@@ -44,9 +44,10 @@ export async function getUserByReferralCode(
 
 /**
  * TODO: figure out new return signature for this
- * Used in 2 ways:
- * 1. user contact info (email,phone,name) + isVolunteer
- * 2. populates req.user in middleware
+ * Used in 3 ways:
+ * 1. user contact info DONE
+ * 2. user admin update (id, isBanned, email, deactivated, studentPartnerOrg, isVolunteer) DONE
+ * 3. populates req.user in middleware (legacyUser)
  */
 export async function getUserById(
   userId: Types.ObjectId
