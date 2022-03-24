@@ -128,8 +128,8 @@ FROM
     JOIN student_profiles ON users.id = student_profiles.user_id
     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
 WHERE
-    deactivated = FALSE
-    AND test_user = FALSE
+    deactivated IS FALSE
+    AND test_user IS FALSE
     AND users.id = :userId!;
 
 
