@@ -5,6 +5,7 @@ import { Session } from '../../models/Session'
 import { Student } from '../../models/Student'
 import { Volunteer } from '../../models/Volunteer'
 import {
+  buildMessage,
   buildStudent,
   buildVolunteer,
   getObjectId,
@@ -57,6 +58,7 @@ import * as QuillDocService from '../../services/QuillDocService'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as AwsService from '../../services/AwsService'
 import * as FeedbackRepo from '../../models/Feedback/queries'
+import SocketService from '../../services/SocketService'
 import * as PushTokenRepo from '../../models/PushToken/queries'
 import * as PushTokenService from '../../services/PushTokenService'
 import * as SessionUtils from '../../utils/session-utils'
@@ -68,8 +70,7 @@ import { SESSION_EVENTS } from '../../constants/events'
 import { emitter } from '../../services/EventsService'
 import * as USMRepo from '../../models/UserSessionMetrics/queries'
 import * as UserRepo from '../../models/User/queries'
-import { LockError } from 'redlock'
-import logger from '../../logger'
+import { mockApp, mockSocketServer } from '../mock-app'
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/AssistmentsData/queries')
 jest.mock('../../services/MailService')
@@ -572,37 +573,17 @@ describe('processFirstSessionCongratsEmail', () => {
 describe('storeAndDeleteQuillDoc', () => {
   test('Should store and delete the quill doc', async () => {
     const sessionId = getObjectId()
-    const delta = { ops: [] }
-    const quillState = {
-      doc: new Delta(delta),
-      lastDeltaStored: undefined,
-    }
-    mockedQuillDocService.lockAndGetDocCacheState.mockImplementationOnce(
-      async () => quillState
+    const quillDoc = { ops: [] }
+    mockedQuillDocService.getDoc.mockImplementationOnce(
+      async () => new Delta(quillDoc)
     )
     await SessionService.storeAndDeleteQuillDoc(sessionId)
-    expect(QuillDocService.lockAndGetDocCacheState).toHaveBeenCalledTimes(1)
+    expect(QuillDocService.getDoc).toHaveBeenCalledTimes(1)
     expect(SessionRepo.updateSessionQuillDoc).toHaveBeenCalledWith(
       sessionId,
-      JSON.stringify(quillState.doc)
+      JSON.stringify(quillDoc)
     )
     expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
-  })
-
-  test('Should retry getting and updating the document on lock error', async () => {
-    const sessionId = getObjectId()
-    const errorMessage = 'locked'
-    const expectedError = `LockError: ${errorMessage}`
-    mockedQuillDocService.lockAndGetDocCacheState.mockRejectedValue(
-      new LockError(errorMessage)
-    )
-    await SessionService.storeAndDeleteQuillDoc(sessionId)
-    expect(QuillDocService.lockAndGetDocCacheState).toHaveBeenCalledTimes(11)
-    expect(logger.error).toHaveBeenCalledWith(
-      `Failed to update and get document in the cache for session ${sessionId} - ${expectedError}`
-    )
-    expect(SessionRepo.updateSessionQuillDoc).toHaveBeenCalledTimes(0)
-    expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(0)
   })
 })
 
@@ -638,22 +619,18 @@ describe('processSessionEditors', () => {
       subTopic: SUBJECTS.ESSAYS,
     })
     const sessionId = mockedSession._id
-    const delta = { ops: [] }
-    const quillState = {
-      doc: new Delta(delta),
-      lastDeltaStored: undefined,
-    }
+    const docString = { ops: [] }
     mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
       async () => mockedSession
     )
-    mockedQuillDocService.lockAndGetDocCacheState.mockImplementationOnce(
-      async () => quillState
+    mockedQuillDocService.getDoc.mockImplementationOnce(
+      async () => new Delta(docString)
     )
     await SessionService.storeAndDeleteQuillDoc(sessionId)
-    expect(QuillDocService.lockAndGetDocCacheState).toHaveBeenCalledTimes(1)
+    expect(QuillDocService.getDoc).toHaveBeenCalledTimes(1)
     expect(SessionRepo.updateSessionQuillDoc).toHaveBeenCalledWith(
       sessionId,
-      JSON.stringify(quillState.doc)
+      JSON.stringify(docString)
     )
     expect(QuillDocService.deleteDoc).toHaveBeenCalledTimes(1)
     expect(WhiteboardService.getDoc).toHaveBeenCalledTimes(0)
