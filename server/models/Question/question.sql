@@ -22,7 +22,7 @@ WHERE
 /* @name create */
 WITH quiz AS (
 INSERT INTO quizzes (id, name, created_at, updated_at)
-        VALUES (:subjectId!, :category!, NOW(), NOW())
+        VALUES (:quizId!, :category!, NOW(), NOW())
     ON CONFLICT
         DO NOTHING
 ), subcategory AS (
@@ -53,28 +53,33 @@ RETURNING
     id AS ok;
 
 
-/* @name update */
-WITH subcategory AS (
+/* @name updateSubcategory */
 INSERT INTO quiz_subcategories (id, name, created_at, updated_at)
-        VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())
-    ON CONFLICT
-        DO NOTHING
-    RETURNING
-        id)
-    UPDATE
-        quiz_questions
-    SET
-        id = :questionId!,
-        question_text = :questionText!,
-        possible_answers = jsonb_set(possible_answers, '{txt}', :txt!, TRUE),
-        correct_answer = :correctAnswer!,
-        image_source = :imageSrc!,
-        updated_at = NOW(),
-        quiz_subcategory_id = subcategory.id
+    VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())
+ON CONFLICT
+    DO NOTHING;
+
+
+/* @name update */
+UPDATE
+    quiz_questions
+SET
+    id = :questionId!,
+    question_text = :questionText!,
+    possible_answers = possible_answers || jsonb_set(jsonb_set(possible_answers, '{txt}', :txt!, TRUE), '{val}', :val!, TRUE),
+    correct_answer = :correctAnswer!,
+    image_source = :imageSrc!,
+    updated_at = NOW(),
+    quiz_subcategory_id = subcat.id
+FROM (
+    SELECT
+        id
     FROM
-        subcategory
+        quiz_subcategories
     WHERE
-        quiz_questions.id = :questionId!;
+        name = :subcategory!) AS subcat
+WHERE
+    quiz_questions.id = :questionId!;
 
 
 /* @name categories */

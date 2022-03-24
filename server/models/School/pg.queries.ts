@@ -130,9 +130,9 @@ export const getSchool = new PreparedQuery<IGetSchoolParams,IGetSchoolResult>(ge
 /** 'GetSchools' parameters type */
 export interface IGetSchoolsParams {
   city: string;
-  limit: string;
+  limit: number;
   name: string;
-  offset: string;
+  offset: number;
   state: string;
 }
 
@@ -155,7 +155,7 @@ export interface IGetSchoolsQuery {
   result: IGetSchoolsResult;
 }
 
-const getSchoolsIR: any = {"name":"getSchools","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1761,"b":1765,"line":67,"col":23},{"a":1791,"b":1795,"line":68,"col":24}]}},{"name":"state","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1814,"b":1819,"line":69,"col":16},{"a":1853,"b":1858,"line":70,"col":32}]}},{"name":"city","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1880,"b":1884,"line":71,"col":19},{"a":1907,"b":1911,"line":72,"col":21},{"a":1935,"b":1939,"line":73,"col":22}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1949,"b":1954,"line":74,"col":7}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1964,"b":1970,"line":74,"col":22}]}}],"usedParamSet":{"name":true,"state":true,"city":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    approved AS is_approved,\n    partner AS is_partner,\n    meta.mzip AS zip_code,\n    COALESCE(meta.sch_name, schools.name) AS name_stored,\n    COALESCE(meta.st, schools.us_state_code) AS state_stored,\n    COALESCE(meta.lcity, cities.name) AS city_name_stored,\n    schools.id,\n    schools.created_at,\n    schools.updated_at\nFROM\n    schools\n    LEFT JOIN cities ON schools.city_id = cities.id\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\nWHERE (schools.name = :name!\n    OR meta.sch_name = :name!)\nAND (meta.st = :state!\n    OR schools.us_state_code = :state!)\nAND (meta.mcity = :city!\n    OR meta.lcity = :city!\n    OR cities.name = :city!)\nLIMIT :limit! OFFSET :offset!","loc":{"a":1266,"b":1970,"line":53,"col":0}}};
+const getSchoolsIR: any = {"name":"getSchools","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1761,"b":1765,"line":67,"col":23},{"a":1791,"b":1795,"line":68,"col":24}]}},{"name":"state","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1814,"b":1819,"line":69,"col":16},{"a":1853,"b":1858,"line":70,"col":32}]}},{"name":"city","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1880,"b":1884,"line":71,"col":19},{"a":1907,"b":1911,"line":72,"col":21},{"a":1935,"b":1939,"line":73,"col":22}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1949,"b":1954,"line":74,"col":7}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1969,"b":1975,"line":74,"col":27}]}}],"usedParamSet":{"name":true,"state":true,"city":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    approved AS is_approved,\n    partner AS is_partner,\n    meta.mzip AS zip_code,\n    COALESCE(meta.sch_name, schools.name) AS name_stored,\n    COALESCE(meta.st, schools.us_state_code) AS state_stored,\n    COALESCE(meta.lcity, cities.name) AS city_name_stored,\n    schools.id,\n    schools.created_at,\n    schools.updated_at\nFROM\n    schools\n    LEFT JOIN cities ON schools.city_id = cities.id\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\nWHERE (schools.name = :name!\n    OR meta.sch_name = :name!)\nAND (meta.st = :state!\n    OR schools.us_state_code = :state!)\nAND (meta.mcity = :city!\n    OR meta.lcity = :city!\n    OR cities.name = :city!)\nLIMIT :limit!::int OFFSET :offset!::int","loc":{"a":1266,"b":1980,"line":53,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -181,7 +181,7 @@ const getSchoolsIR: any = {"name":"getSchools","params":[{"name":"name","require
  * AND (meta.mcity = :city!
  *     OR meta.lcity = :city!
  *     OR cities.name = :city!)
- * LIMIT :limit! OFFSET :offset!
+ * LIMIT :limit!::int OFFSET :offset!::int
  * ```
  */
 export const getSchools = new PreparedQuery<IGetSchoolsParams,IGetSchoolsResult>(getSchoolsIR);
@@ -201,7 +201,7 @@ export interface ICreateSchoolMetaDataQuery {
   result: ICreateSchoolMetaDataResult;
 }
 
-const createSchoolMetaDataIR: any = {"name":"createSchoolMetaData","params":[{"name":"zipCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2067,"b":2074,"line":79,"col":13},{"a":2078,"b":2085,"line":79,"col":24}]}}],"usedParamSet":{"zipCode":true},"statement":{"body":"INSERT INTO school_nces_metadata (mzip, lzip)\n    VALUES (:zipCode!, :zipCode!)","loc":{"a":2008,"b":2086,"line":78,"col":0}}};
+const createSchoolMetaDataIR: any = {"name":"createSchoolMetaData","params":[{"name":"zipCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2077,"b":2084,"line":79,"col":13},{"a":2088,"b":2095,"line":79,"col":24}]}}],"usedParamSet":{"zipCode":true},"statement":{"body":"INSERT INTO school_nces_metadata (mzip, lzip)\n    VALUES (:zipCode!, :zipCode!)","loc":{"a":2018,"b":2096,"line":78,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -211,6 +211,34 @@ const createSchoolMetaDataIR: any = {"name":"createSchoolMetaData","params":[{"n
  * ```
  */
 export const createSchoolMetaData = new PreparedQuery<ICreateSchoolMetaDataParams,ICreateSchoolMetaDataResult>(createSchoolMetaDataIR);
+
+
+/** 'CreateCity' parameters type */
+export interface ICreateCityParams {
+  city: string;
+}
+
+/** 'CreateCity' return type */
+export type ICreateCityResult = void;
+
+/** 'CreateCity' query type */
+export interface ICreateCityQuery {
+  params: ICreateCityParams;
+  result: ICreateCityResult;
+}
+
+const createCityIR: any = {"name":"createCity","params":[{"name":"city","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2187,"b":2191,"line":84,"col":13}]}}],"usedParamSet":{"city":true},"statement":{"body":"INSERT INTO cities (name, created_at, updated_at)\n    VALUES (:city!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING","loc":{"a":2124,"b":2233,"line":83,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO cities (name, created_at, updated_at)
+ *     VALUES (:city!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * ```
+ */
+export const createCity = new PreparedQuery<ICreateCityParams,ICreateCityResult>(createCityIR);
 
 
 /** 'CreateSchool' parameters type */
@@ -238,34 +266,35 @@ export interface ICreateSchoolQuery {
   result: ICreateSchoolResult;
 }
 
-const createSchoolIR: any = {"name":"createSchool","params":[{"name":"city","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2174,"b":2178,"line":85,"col":17}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2316,"b":2320,"line":90,"col":9}]}},{"name":"isApproved","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2332,"b":2342,"line":91,"col":9}]}},{"name":"state","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2354,"b":2359,"line":92,"col":9}]}}],"usedParamSet":{"city":true,"name":true,"isApproved":true,"state":true},"statement":{"body":"WITH city AS (\nINSERT INTO cities (name)\n        VALUES (:city!)\n    RETURNING\n        id)\n    INSERT INTO schools (name, approved, us_state_code, created_at, updated_at, city_id)\n    SELECT\n        :name!,\n        :isApproved!,\n        :state!,\n        NOW(),\n        NOW(),\n        city.id\n    FROM\n        city\n    RETURNING\n        id,\n        approved AS is_approved,\n        partner AS is_partner,\n        name AS name_stored,\n        updated_at,\n        created_at,\n        us_state_code AS state_stored","loc":{"a":2116,"b":2625,"line":83,"col":0}}};
+const createSchoolIR: any = {"name":"createSchool","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2360,"b":2364,"line":92,"col":5}]}},{"name":"isApproved","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2372,"b":2382,"line":93,"col":5}]}},{"name":"state","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2390,"b":2395,"line":94,"col":5}]}},{"name":"city","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2525,"b":2529,"line":105,"col":16}]}}],"usedParamSet":{"name":true,"isApproved":true,"state":true,"city":true},"statement":{"body":"INSERT INTO schools (name, approved, us_state_code, created_at, updated_at, city_id)\nSELECT\n    :name!,\n    :isApproved!,\n    :state!,\n    NOW(),\n    NOW(),\n    city.id\nFROM (\n    SELECT\n        id,\n        name\n    FROM\n        cities\n    WHERE\n        name = :city!) AS city\nRETURNING\n    id,\n    approved AS is_approved,\n    partner AS is_partner,\n    name AS name_stored,\n    updated_at,\n    created_at,\n    us_state_code AS state_stored","loc":{"a":2263,"b":2703,"line":90,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * WITH city AS (
- * INSERT INTO cities (name)
- *         VALUES (:city!)
- *     RETURNING
- *         id)
- *     INSERT INTO schools (name, approved, us_state_code, created_at, updated_at, city_id)
+ * INSERT INTO schools (name, approved, us_state_code, created_at, updated_at, city_id)
+ * SELECT
+ *     :name!,
+ *     :isApproved!,
+ *     :state!,
+ *     NOW(),
+ *     NOW(),
+ *     city.id
+ * FROM (
  *     SELECT
- *         :name!,
- *         :isApproved!,
- *         :state!,
- *         NOW(),
- *         NOW(),
- *         city.id
- *     FROM
- *         city
- *     RETURNING
  *         id,
- *         approved AS is_approved,
- *         partner AS is_partner,
- *         name AS name_stored,
- *         updated_at,
- *         created_at,
- *         us_state_code AS state_stored
+ *         name
+ *     FROM
+ *         cities
+ *     WHERE
+ *         name = :city!) AS city
+ * RETURNING
+ *     id,
+ *     approved AS is_approved,
+ *     partner AS is_partner,
+ *     name AS name_stored,
+ *     updated_at,
+ *     created_at,
+ *     us_state_code AS state_stored
  * ```
  */
 export const createSchool = new PreparedQuery<ICreateSchoolParams,ICreateSchoolResult>(createSchoolIR);
@@ -286,7 +315,7 @@ export interface IUpdateApprovalQuery {
   result: IUpdateApprovalResult;
 }
 
-const updateApprovalIR: any = {"name":"updateApproval","params":[{"name":"isApproved","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2696,"b":2706,"line":112,"col":16}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2748,"b":2756,"line":115,"col":10}]}}],"usedParamSet":{"isApproved":true,"schoolId":true},"statement":{"body":"UPDATE\n    schools\nSET\n    approved = :isApproved!,\n    updated_at = NOW()\nWHERE\n    id = :schoolId!","loc":{"a":2657,"b":2756,"line":109,"col":0}}};
+const updateApprovalIR: any = {"name":"updateApproval","params":[{"name":"isApproved","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2774,"b":2784,"line":120,"col":16}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2826,"b":2834,"line":123,"col":10}]}}],"usedParamSet":{"isApproved":true,"schoolId":true},"statement":{"body":"UPDATE\n    schools\nSET\n    approved = :isApproved!,\n    updated_at = NOW()\nWHERE\n    id = :schoolId!","loc":{"a":2735,"b":2834,"line":117,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -318,7 +347,7 @@ export interface IUpdateIsPartnerQuery {
   result: IUpdateIsPartnerResult;
 }
 
-const updateIsPartnerIR: any = {"name":"updateIsPartner","params":[{"name":"isPartner","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2827,"b":2836,"line":122,"col":15}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2878,"b":2886,"line":125,"col":10}]}}],"usedParamSet":{"isPartner":true,"schoolId":true},"statement":{"body":"UPDATE\n    schools\nSET\n    partner = :isPartner!,\n    updated_at = NOW()\nWHERE\n    id = :schoolId!","loc":{"a":2789,"b":2886,"line":119,"col":0}}};
+const updateIsPartnerIR: any = {"name":"updateIsPartner","params":[{"name":"isPartner","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2905,"b":2914,"line":130,"col":15}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2956,"b":2964,"line":133,"col":10}]}}],"usedParamSet":{"isPartner":true,"schoolId":true},"statement":{"body":"UPDATE\n    schools\nSET\n    partner = :isPartner!,\n    updated_at = NOW()\nWHERE\n    id = :schoolId!","loc":{"a":2867,"b":2964,"line":127,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -353,7 +382,7 @@ export interface IAdminUpdateSchoolQuery {
   result: IAdminUpdateSchoolResult;
 }
 
-const adminUpdateSchoolIR: any = {"name":"adminUpdateSchool","params":[{"name":"city","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2981,"b":2984,"line":132,"col":9},{"a":3144,"b":3147,"line":140,"col":31},{"a":3454,"b":3457,"line":153,"col":23}]}},{"name":"name","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3195,"b":3198,"line":144,"col":21}]}},{"name":"isApproved","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3241,"b":3250,"line":145,"col":25}]}},{"name":"state","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3302,"b":3306,"line":146,"col":30}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3421,"b":3429,"line":152,"col":18}]}}],"usedParamSet":{"city":true,"name":true,"isApproved":true,"state":true,"schoolId":true},"statement":{"body":"WITH ins AS (\nINSERT INTO cities (name)\n    SELECT\n        :city\n    WHERE\n        NOT EXISTS (\n            SELECT\n                id\n            FROM\n                cities\n            WHERE\n                cities.name = :city))\nUPDATE\n    schools\nSET\n    name = COALESCE(:name, schools.name),\n    approved = COALESCE(:isApproved, schools.approved),\n    us_state_code = COALESCE(:state, schools.us_state_code),\n    updated_at = NOW(),\n    city_id = cities.id\nFROM\n    cities\nWHERE\n    schools.id = :schoolId!\n    AND cities.name = :city","loc":{"a":2921,"b":3457,"line":129,"col":0}}};
+const adminUpdateSchoolIR: any = {"name":"adminUpdateSchool","params":[{"name":"city","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3059,"b":3062,"line":140,"col":9},{"a":3222,"b":3225,"line":148,"col":31},{"a":3532,"b":3535,"line":161,"col":23}]}},{"name":"name","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3273,"b":3276,"line":152,"col":21}]}},{"name":"isApproved","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3319,"b":3328,"line":153,"col":25}]}},{"name":"state","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3380,"b":3384,"line":154,"col":30}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3499,"b":3507,"line":160,"col":18}]}}],"usedParamSet":{"city":true,"name":true,"isApproved":true,"state":true,"schoolId":true},"statement":{"body":"WITH ins AS (\nINSERT INTO cities (name)\n    SELECT\n        :city\n    WHERE\n        NOT EXISTS (\n            SELECT\n                id\n            FROM\n                cities\n            WHERE\n                cities.name = :city))\nUPDATE\n    schools\nSET\n    name = COALESCE(:name, schools.name),\n    approved = COALESCE(:isApproved, schools.approved),\n    us_state_code = COALESCE(:state, schools.us_state_code),\n    updated_at = NOW(),\n    city_id = cities.id\nFROM\n    cities\nWHERE\n    schools.id = :schoolId!\n    AND cities.name = :city","loc":{"a":2999,"b":3535,"line":137,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -403,7 +432,7 @@ export interface IAdminUpdateSchoolMetaDataQuery {
   result: IAdminUpdateSchoolMetaDataResult;
 }
 
-const adminUpdateSchoolMetaDataIR: any = {"name":"adminUpdateSchoolMetaData","params":[{"name":"zipCode","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3548,"b":3554,"line":160,"col":12},{"a":3569,"b":3575,"line":161,"col":12}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3624,"b":3632,"line":164,"col":17}]}}],"usedParamSet":{"zipCode":true,"schoolId":true},"statement":{"body":"UPDATE\n    school_nces_metadata\nSET\n    mzip = :zipCode,\n    lzip = :zipCode,\n    updated_at = NOW()\nWHERE\n    school_id = :schoolId!","loc":{"a":3500,"b":3632,"line":157,"col":0}}};
+const adminUpdateSchoolMetaDataIR: any = {"name":"adminUpdateSchoolMetaData","params":[{"name":"zipCode","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3626,"b":3632,"line":168,"col":12},{"a":3647,"b":3653,"line":169,"col":12}]}},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3702,"b":3710,"line":172,"col":17}]}}],"usedParamSet":{"zipCode":true,"schoolId":true},"statement":{"body":"UPDATE\n    school_nces_metadata\nSET\n    mzip = :zipCode,\n    lzip = :zipCode,\n    updated_at = NOW()\nWHERE\n    school_id = :schoolId!","loc":{"a":3578,"b":3710,"line":165,"col":0}}};
 
 /**
  * Query generated from SQL:

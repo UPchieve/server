@@ -48,7 +48,7 @@ export async function getSchools(
   try {
     const { name, state, city } = data
     const result = await pgQueries.getSchools.run(
-      { name, state, city, limit: String(limit), offset: String(offset) },
+      { name, state, city, limit: limit, offset: offset },
       getClient()
     )
 
@@ -70,13 +70,12 @@ export async function createSchool(
   data: CreateSchoolPayload
 ): Promise<PgSchool | undefined> {
   try {
-    const { isApproved, name, city, state, zipCode } = data
-
-    await pgQueries.createSchoolMetaData.run({ zipCode }, getClient())
-    const result = await pgQueries.createSchool.run(
-      { isApproved, name, city, state },
+    await pgQueries.createSchoolMetaData.run(
+      { zipCode: data.zipCode },
       getClient()
     )
+    await pgQueries.createCity.run({ city: data.city }, getClient())
+    const result = await pgQueries.createSchool.run({ ...data }, getClient())
     if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoCreateError(err)

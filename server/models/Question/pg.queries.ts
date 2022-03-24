@@ -67,9 +67,9 @@ export interface ICreateParams {
   possibleAnswers: Json;
   questionId: number;
   questionText: string;
+  quizId: number;
   quizSubcategoryId: number;
   subcategory: string;
-  subjectId: number;
 }
 
 /** 'Create' return type */
@@ -81,14 +81,14 @@ export interface ICreateQuery {
   result: ICreateResult;
 }
 
-const createIR: any = {"name":"create","params":[{"name":"subjectId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":595,"b":604,"line":25,"col":17}]}},{"name":"category","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":608,"b":616,"line":25,"col":30}]}},{"name":"quizSubcategoryId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":771,"b":788,"line":30,"col":17}]}},{"name":"subcategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":792,"b":803,"line":30,"col":38}]}},{"name":"questionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1045,"b":1055,"line":37,"col":9}]}},{"name":"questionText","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1067,"b":1079,"line":38,"col":9}]}},{"name":"possibleAnswers","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1091,"b":1106,"line":39,"col":9}]}},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1118,"b":1131,"line":40,"col":9}]}},{"name":"imageSrc","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1143,"b":1151,"line":41,"col":9}]}}],"usedParamSet":{"subjectId":true,"category":true,"quizSubcategoryId":true,"subcategory":true,"questionId":true,"questionText":true,"possibleAnswers":true,"correctAnswer":true,"imageSrc":true},"statement":{"body":"WITH quiz AS (\nINSERT INTO quizzes (id, name, created_at, updated_at)\n        VALUES (:subjectId!, :category!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n), subcategory AS (\nINSERT INTO quiz_subcategories (id, name, created_at, updated_at)\n        VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id)\n    INSERT INTO quiz_questions (id, question_text, possible_answers, correct_answer, image_source, created_at, updated_at, quiz_subcategory_id)\n    SELECT\n        :questionId!,\n        :questionText!,\n        :possibleAnswers!,\n        :correctAnswer!,\n        :imageSrc!,\n        NOW(),\n        NOw(),\n        subcategory.id\n    FROM\n        subcategory","loc":{"a":508,"b":1234,"line":23,"col":0}}};
+const createIR: any = {"name":"create","params":[{"name":"quizId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":595,"b":601,"line":25,"col":17}]}},{"name":"category","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":605,"b":613,"line":25,"col":27}]}},{"name":"quizSubcategoryId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":768,"b":785,"line":30,"col":17}]}},{"name":"subcategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":789,"b":800,"line":30,"col":38}]}},{"name":"questionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1042,"b":1052,"line":37,"col":9}]}},{"name":"questionText","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1064,"b":1076,"line":38,"col":9}]}},{"name":"possibleAnswers","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1088,"b":1103,"line":39,"col":9}]}},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1115,"b":1128,"line":40,"col":9}]}},{"name":"imageSrc","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1140,"b":1148,"line":41,"col":9}]}}],"usedParamSet":{"quizId":true,"category":true,"quizSubcategoryId":true,"subcategory":true,"questionId":true,"questionText":true,"possibleAnswers":true,"correctAnswer":true,"imageSrc":true},"statement":{"body":"WITH quiz AS (\nINSERT INTO quizzes (id, name, created_at, updated_at)\n        VALUES (:quizId!, :category!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n), subcategory AS (\nINSERT INTO quiz_subcategories (id, name, created_at, updated_at)\n        VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id)\n    INSERT INTO quiz_questions (id, question_text, possible_answers, correct_answer, image_source, created_at, updated_at, quiz_subcategory_id)\n    SELECT\n        :questionId!,\n        :questionText!,\n        :possibleAnswers!,\n        :correctAnswer!,\n        :imageSrc!,\n        NOW(),\n        NOw(),\n        subcategory.id\n    FROM\n        subcategory","loc":{"a":508,"b":1231,"line":23,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * WITH quiz AS (
  * INSERT INTO quizzes (id, name, created_at, updated_at)
- *         VALUES (:subjectId!, :category!, NOW(), NOW())
+ *         VALUES (:quizId!, :category!, NOW(), NOW())
  *     ON CONFLICT
  *         DO NOTHING
  * ), subcategory AS (
@@ -131,7 +131,7 @@ export interface IDestroyQuery {
   result: IDestroyResult;
 }
 
-const destroyIR: any = {"name":"destroy","params":[{"name":"questionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1313,"b":1323,"line":51,"col":27}]}}],"usedParamSet":{"questionId":true},"statement":{"body":"DELETE FROM quiz_questions\nWHERE quiz_questions.id = :questionId!\nRETURNING\n    id AS ok","loc":{"a":1259,"b":1346,"line":50,"col":0}}};
+const destroyIR: any = {"name":"destroy","params":[{"name":"questionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1310,"b":1320,"line":51,"col":27}]}}],"usedParamSet":{"questionId":true},"statement":{"body":"DELETE FROM quiz_questions\nWHERE quiz_questions.id = :questionId!\nRETURNING\n    id AS ok","loc":{"a":1256,"b":1343,"line":50,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -145,15 +145,44 @@ const destroyIR: any = {"name":"destroy","params":[{"name":"questionId","require
 export const destroy = new PreparedQuery<IDestroyParams,IDestroyResult>(destroyIR);
 
 
+/** 'UpdateSubcategory' parameters type */
+export interface IUpdateSubcategoryParams {
+  quizSubcategoryId: number;
+  subcategory: string;
+}
+
+/** 'UpdateSubcategory' return type */
+export type IUpdateSubcategoryResult = void;
+
+/** 'UpdateSubcategory' query type */
+export interface IUpdateSubcategoryQuery {
+  params: IUpdateSubcategoryParams;
+  result: IUpdateSubcategoryResult;
+}
+
+const updateSubcategoryIR: any = {"name":"updateSubcategory","params":[{"name":"quizSubcategoryId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1457,"b":1474,"line":58,"col":13}]}},{"name":"subcategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1478,"b":1489,"line":58,"col":34}]}}],"usedParamSet":{"quizSubcategoryId":true,"subcategory":true},"statement":{"body":"INSERT INTO quiz_subcategories (id, name, created_at, updated_at)\n    VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING","loc":{"a":1378,"b":1531,"line":57,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO quiz_subcategories (id, name, created_at, updated_at)
+ *     VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * ```
+ */
+export const updateSubcategory = new PreparedQuery<IUpdateSubcategoryParams,IUpdateSubcategoryResult>(updateSubcategoryIR);
+
+
 /** 'Update' parameters type */
 export interface IUpdateParams {
   correctAnswer: string;
   imageSrc: string;
   questionId: number;
   questionText: string;
-  quizSubcategoryId: number;
   subcategory: string;
   txt: Json;
+  val: Json;
 }
 
 /** 'Update' return type */
@@ -165,32 +194,30 @@ export interface IUpdateQuery {
   result: IUpdateResult;
 }
 
-const updateIR: any = {"name":"update","params":[{"name":"quizSubcategoryId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1475,"b":1492,"line":59,"col":17}]}},{"name":"subcategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1496,"b":1507,"line":59,"col":38}]}},{"name":"questionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1641,"b":1651,"line":67,"col":14},{"a":1990,"b":2000,"line":77,"col":29}]}},{"name":"questionText","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1679,"b":1691,"line":68,"col":25}]}},{"name":"txt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1759,"b":1762,"line":69,"col":65}]}},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1798,"b":1811,"line":70,"col":26}]}},{"name":"imageSrc","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1838,"b":1846,"line":71,"col":24}]}}],"usedParamSet":{"quizSubcategoryId":true,"subcategory":true,"questionId":true,"questionText":true,"txt":true,"correctAnswer":true,"imageSrc":true},"statement":{"body":"WITH subcategory AS (\nINSERT INTO quiz_subcategories (id, name, created_at, updated_at)\n        VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id)\n    UPDATE\n        quiz_questions\n    SET\n        id = :questionId!,\n        question_text = :questionText!,\n        possible_answers = jsonb_set(possible_answers, '{txt}', :txt!, TRUE),\n        correct_answer = :correctAnswer!,\n        image_source = :imageSrc!,\n        updated_at = NOW(),\n        quiz_subcategory_id = subcategory.id\n    FROM\n        subcategory\n    WHERE\n        quiz_questions.id = :questionId!","loc":{"a":1370,"b":2000,"line":57,"col":0}}};
+const updateIR: any = {"name":"update","params":[{"name":"questionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1595,"b":1605,"line":67,"col":10},{"a":2046,"b":2056,"line":82,"col":25}]}},{"name":"questionText","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1629,"b":1641,"line":68,"col":21}]}},{"name":"txt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1735,"b":1738,"line":69,"col":91}]}},{"name":"val","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1758,"b":1761,"line":69,"col":114}]}},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1793,"b":1806,"line":70,"col":22}]}},{"name":"imageSrc","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1829,"b":1837,"line":71,"col":20}]}},{"name":"subcategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1991,"b":2002,"line":80,"col":16}]}}],"usedParamSet":{"questionId":true,"questionText":true,"txt":true,"val":true,"correctAnswer":true,"imageSrc":true,"subcategory":true},"statement":{"body":"UPDATE\n    quiz_questions\nSET\n    id = :questionId!,\n    question_text = :questionText!,\n    possible_answers = possible_answers || jsonb_set(jsonb_set(possible_answers, '{txt}', :txt!, TRUE), '{val}', :val!, TRUE),\n    correct_answer = :correctAnswer!,\n    image_source = :imageSrc!,\n    updated_at = NOW(),\n    quiz_subcategory_id = subcat.id\nFROM (\n    SELECT\n        id\n    FROM\n        quiz_subcategories\n    WHERE\n        name = :subcategory!) AS subcat\nWHERE\n    quiz_questions.id = :questionId!","loc":{"a":1555,"b":2056,"line":64,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * WITH subcategory AS (
- * INSERT INTO quiz_subcategories (id, name, created_at, updated_at)
- *         VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())
- *     ON CONFLICT
- *         DO NOTHING
- *     RETURNING
- *         id)
- *     UPDATE
- *         quiz_questions
- *     SET
- *         id = :questionId!,
- *         question_text = :questionText!,
- *         possible_answers = jsonb_set(possible_answers, '{txt}', :txt!, TRUE),
- *         correct_answer = :correctAnswer!,
- *         image_source = :imageSrc!,
- *         updated_at = NOW(),
- *         quiz_subcategory_id = subcategory.id
+ * UPDATE
+ *     quiz_questions
+ * SET
+ *     id = :questionId!,
+ *     question_text = :questionText!,
+ *     possible_answers = possible_answers || jsonb_set(jsonb_set(possible_answers, '{txt}', :txt!, TRUE), '{val}', :val!, TRUE),
+ *     correct_answer = :correctAnswer!,
+ *     image_source = :imageSrc!,
+ *     updated_at = NOW(),
+ *     quiz_subcategory_id = subcat.id
+ * FROM (
+ *     SELECT
+ *         id
  *     FROM
- *         subcategory
+ *         quiz_subcategories
  *     WHERE
- *         quiz_questions.id = :questionId!
+ *         name = :subcategory!) AS subcat
+ * WHERE
+ *     quiz_questions.id = :questionId!
  * ```
  */
 export const update = new PreparedQuery<IUpdateParams,IUpdateResult>(updateIR);
@@ -211,7 +238,7 @@ export interface ICategoriesQuery {
   result: ICategoriesResult;
 }
 
-const categoriesIR: any = {"name":"categories","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    quizzes.name AS categories,\n    array_agg(quiz_subcategories.name) AS subcategories\nFROM\n    quizzes\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.quiz_id = quizzes.id\nGROUP BY\n    quizzes.name","loc":{"a":2028,"b":2240,"line":81,"col":0}}};
+const categoriesIR: any = {"name":"categories","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    quizzes.name AS categories,\n    array_agg(quiz_subcategories.name) AS subcategories\nFROM\n    quizzes\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.quiz_id = quizzes.id\nGROUP BY\n    quizzes.name","loc":{"a":2084,"b":2296,"line":86,"col":0}}};
 
 /**
  * Query generated from SQL:

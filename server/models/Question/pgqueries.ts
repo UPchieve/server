@@ -46,7 +46,7 @@ export async function create(question: PgQuestion): Promise<void> {
       {
         questionId: getPgid(),
         quizSubcategoryId: getPgid(),
-        subjectId: getPgid(),
+        quizId: getPgid(),
         ...question,
       },
       getClient()
@@ -65,15 +65,18 @@ export async function update(options: QuestionUpdateOptions): Promise<void> {
   try {
     const question = options.question
     const txt = question.possibleAnswers.map(ans => ans.txt)
-    // const val = question.possibleAnswers.map(ans => ans.val)
+    const val = question.possibleAnswers.map(ans => ans.val)
 
-    // TODO send val to update json
+    await pgQueries.updateSubcategory.run(
+      { subcategory: question.subcategory, quizSubcategoryId: getPgid() },
+      getClient()
+    )
     await pgQueries.update.run(
       {
         questionId: options.id,
         ...question,
-        quizSubcategoryId: getPgid(),
         txt,
+        val,
       },
       getClient()
     )

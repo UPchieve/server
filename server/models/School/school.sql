@@ -71,7 +71,7 @@ AND (meta.st = :state!
 AND (meta.mcity = :city!
     OR meta.lcity = :city!
     OR cities.name = :city!)
-LIMIT :limit! OFFSET :offset!;
+LIMIT :limit!::int OFFSET :offset!::int;
 
 
 /* @name createSchoolMetaData */
@@ -79,30 +79,38 @@ INSERT INTO school_nces_metadata (mzip, lzip)
     VALUES (:zipCode!, :zipCode!);
 
 
+/* @name createCity */
+INSERT INTO cities (name, created_at, updated_at)
+    VALUES (:city!, NOW(), NOW())
+ON CONFLICT
+    DO NOTHING;
+
+
 /* @name createSchool */
-WITH city AS (
-INSERT INTO cities (name)
-        VALUES (:city!)
-    RETURNING
-        id)
-    INSERT INTO schools (name, approved, us_state_code, created_at, updated_at, city_id)
+INSERT INTO schools (name, approved, us_state_code, created_at, updated_at, city_id)
+SELECT
+    :name!,
+    :isApproved!,
+    :state!,
+    NOW(),
+    NOW(),
+    city.id
+FROM (
     SELECT
-        :name!,
-        :isApproved!,
-        :state!,
-        NOW(),
-        NOW(),
-        city.id
-    FROM
-        city
-    RETURNING
         id,
-        approved AS is_approved,
-        partner AS is_partner,
-        name AS name_stored,
-        updated_at,
-        created_at,
-        us_state_code AS state_stored;
+        name
+    FROM
+        cities
+    WHERE
+        name = :city!) AS city
+RETURNING
+    id,
+    approved AS is_approved,
+    partner AS is_partner,
+    name AS name_stored,
+    updated_at,
+    created_at,
+    us_state_code AS state_stored;
 
 
 /* @name updateApproval */
