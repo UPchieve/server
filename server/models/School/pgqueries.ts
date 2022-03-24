@@ -25,7 +25,7 @@ export async function getSchool(schoolId: Ulid): Promise<PgSchool | undefined> {
   try {
     const result = await pgQueries.getSchool.run({ schoolId }, getClient())
 
-    // TODO: fix return type with virtuals and add approvalNotifyEmails
+    // TODO: fix return type to upper case
     if (result.length) {
       return makeRequired(result[0])
     }

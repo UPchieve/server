@@ -3,10 +3,10 @@ import {
   CATEGORY_TO_SUBCATEGORY_MAP,
   ACTIVE_QUIZ_CATEGORIES,
 } from '../../constants'
-import { Ulid } from '../pgUtils'
+import { Pgid, Ulid } from '../pgUtils'
 
-export type pgQuestion = {
-  id: Ulid
+export type PgQuestion = {
+  id: Pgid
   questionText: string
   possibleAnswers: {
     txt: string

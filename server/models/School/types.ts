@@ -31,10 +31,6 @@ export type PgSchool = {
   G_10_OFFERED?: string
   G_11_OFFERED?: string
   G_12_OFFERED?: string
-  approvalNotifyEmails?: {
-    email: string
-    addedAt: Date
-  }[]
 
   // virtuals
   // TODO get the following from the query

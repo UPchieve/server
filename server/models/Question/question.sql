@@ -1,6 +1,27 @@
+/* @name list */
+SELECT
+    ques.id,
+    question_text,
+    possible_answers,
+    correct_answer,
+    quizzes.name AS category,
+    subcat.name AS subcategory,
+    image_source AS image_src,
+    ques.created_at,
+    ques.updated_at,
+    ques.mongo_id
+FROM
+    quiz_questions AS ques
+    LEFT JOIN quiz_subcategories subcat ON ques.quiz_subcategory_id = subcat.id
+    LEFT JOIN quizzes ON quizzes.id = subcat.quiz_id
+WHERE
+    quizzes.name = :category!
+    OR subcat.name = :subcategory;
+
+
 /* @name create */
-WITH subject AS (
-INSERT INTO subjects (id, name, created_at, updated_at)
+WITH quiz AS (
+INSERT INTO quizzes (id, name, created_at, updated_at)
     SELECT
         :subjectId!,
         :category!,
@@ -11,9 +32,9 @@ INSERT INTO subjects (id, name, created_at, updated_at)
             SELECT
                 name
             FROM
-                subjects
+                quizzes
             WHERE
-                subjects.name = :category!)
+                quizzes.name = :category!)
 ),
 subcategory AS (
 INSERT INTO quiz_subcategories (id, name, created_at, updated_at)
@@ -50,7 +71,26 @@ FROM
 DELETE FROM quiz_questions
 WHERE quiz_questions.id = :questionId!
 RETURNING
-    *;
+    id,
+    question_text,
+    possible_answers,
+    correct_answer,
+    image_source AS image_src,
+    created_at,
+    updated_at,
+    mongo_id;
+
+
+/* @name getQuestionCategory */
+SELECT
+    quizzes.name AS category,
+    subcat.name AS subcategory
+FROM
+    quiz_questions AS ques
+    LEFT JOIN quiz_subcategories subcat ON ques.quiz_subcategory_id = subcat.id
+    LEFT JOIN quizzes ON quizzes.id = subcat.quiz_id
+WHERE
+    ques.id = :questionId!;
 
 
 /* @name update */
@@ -89,20 +129,11 @@ WHERE
 
 /* @name categories */
 SELECT
-    subcat.name
+    quizzes.name AS categories,
+    array_agg(quiz_subcategories.name) AS subcategories
 FROM
-    quiz_questions AS questions
-    LEFT JOIN quiz_subcategories subcat ON questions.quiz_subcategory_id = subcat.id
+    quizzes
+    LEFT JOIN quiz_subcategories ON quiz_subcategories.quiz_id = quizzes.id
 GROUP BY
-    subcat.id;
-
-
-/* @name topics */
-SELECT
-    topics.name
-FROM
-    subjects
-    LEFT JOIN topics ON subjects.topic_id = topics.id
-GROUP BY
-    topics.id;
+    quizzes.name;
 
