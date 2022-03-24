@@ -24,12 +24,12 @@ export function parseQueryResult(result: PgQuestionQueryResult): PgQuestion {
 
 export async function list(filters: any): Promise<PgQuestion[] | undefined> {
   try {
-    const result = await pgQueries.list.run({ ...filters }, getClient())
+    const questions = await pgQueries.list.run({ ...filters }, getClient())
 
-    if (result.length) {
+    if (questions.length) {
+      const result = questions.map(v => makeRequired(v))
       const parsedResult = result.map(res => parseQueryResult(res))
-
-      return parsedResult.map(v => makeRequired(v))
+      return parsedResult
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -82,14 +82,10 @@ export async function update(options: QuestionUpdateOptions): Promise<void> {
   }
 }
 
-export async function destroy(
-  questionId: Pgid
-): Promise<PgQuestion | undefined> {
+export async function destroy(questionId: Pgid): Promise<void> {
   try {
-    // const questionInfo = await pgQueries.getQuestionCategory.run({ questionId }, getClient())
     const result = await pgQueries.destroy.run({ questionId }, getClient())
-
-    if (result.length) return makeRequired(result[0])
+    if (result.length && makeRequired(result[0].ok)) return
   } catch (err) {
     throw new RepoDeleteError(err)
   }

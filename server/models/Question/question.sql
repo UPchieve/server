@@ -22,109 +22,59 @@ WHERE
 /* @name create */
 WITH quiz AS (
 INSERT INTO quizzes (id, name, created_at, updated_at)
-    SELECT
-        :subjectId!,
-        :category!,
-        NOW(),
-        NOW()
-    WHERE
-        NOT EXISTS (
-            SELECT
-                name
-            FROM
-                quizzes
-            WHERE
-                quizzes.name = :category!)
-),
-subcategory AS (
+        VALUES (:subjectId!, :category!, NOW(), NOW())
+    ON CONFLICT
+        DO NOTHING
+), subcategory AS (
 INSERT INTO quiz_subcategories (id, name, created_at, updated_at)
+        VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())
+    ON CONFLICT
+        DO NOTHING
+    RETURNING
+        id)
+    INSERT INTO quiz_questions (id, question_text, possible_answers, correct_answer, image_source, created_at, updated_at, quiz_subcategory_id)
     SELECT
-        :quizSubcategoryId!,
-        :subcategory!,
+        :questionId!,
+        :questionText!,
+        :possibleAnswers!,
+        :correctAnswer!,
+        :imageSrc!,
         NOW(),
-        NOW()
-    WHERE
-        NOT EXISTS (
-            SELECT
-                name
-            FROM
-                quiz_subcategories
-            WHERE
-                quiz_subcategories.name = :subcategory!)
-        RETURNING
-            id)
-INSERT INTO quiz_questions (id, question_text, possible_answers, correct_answer, image_source, created_at, updated_at, quiz_subcategory_id)
-SELECT
-    :questionId!,
-    :questionText!,
-    :possibleAnswers!,
-    :correctAnswer!,
-    :imageSrc!,
-    NOW(),
-    NOw(),
-    subcategory.id
-FROM
-    subcategory;
+        NOw(),
+        subcategory.id
+    FROM
+        subcategory;
 
 
 /* @name destroy */
 DELETE FROM quiz_questions
 WHERE quiz_questions.id = :questionId!
 RETURNING
-    id,
-    question_text,
-    possible_answers,
-    correct_answer,
-    image_source AS image_src,
-    created_at,
-    updated_at,
-    mongo_id;
-
-
-/* @name getQuestionCategory */
-SELECT
-    quizzes.name AS category,
-    subcat.name AS subcategory
-FROM
-    quiz_questions AS ques
-    LEFT JOIN quiz_subcategories subcat ON ques.quiz_subcategory_id = subcat.id
-    LEFT JOIN quizzes ON quizzes.id = subcat.quiz_id
-WHERE
-    ques.id = :questionId!;
+    id AS ok;
 
 
 /* @name update */
 WITH subcategory AS (
 INSERT INTO quiz_subcategories (id, name, created_at, updated_at)
-    SELECT
-        :quizSubcategoryId!,
-        :subcategory!,
-        NOW(),
-        NOW()
+        VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())
+    ON CONFLICT
+        DO NOTHING
+    RETURNING
+        id)
+    UPDATE
+        quiz_questions
+    SET
+        id = :questionId!,
+        question_text = :questionText!,
+        possible_answers = jsonb_set(possible_answers, '{txt}', :txt!, TRUE),
+        correct_answer = :correctAnswer!,
+        image_source = :imageSrc!,
+        updated_at = NOW(),
+        quiz_subcategory_id = subcategory.id
+    FROM
+        subcategory
     WHERE
-        NOT EXISTS (
-            SELECT
-                name
-            FROM
-                quiz_subcategories
-            WHERE
-                quiz_subcategories.name = :subcategory!)
-        RETURNING
-            id)
-UPDATE
-    quiz_questions
-SET
-    id = :questionId!,
-    question_text = :questionText!,
-    possible_answers = jsonb_set(possible_answers, '{txt}', :txt!, TRUE),
-    correct_answer = :correctAnswer!,
-    image_source = :imageSrc!,
-    updated_at = NOW(),
-    quiz_subcategory_id = subcategory.id
-FROM
-    subcategory
-WHERE
-    quiz_questions.id = :questionId!;
+        quiz_questions.id = :questionId!;
 
 
 /* @name categories */
