@@ -3,14 +3,6 @@ import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
 import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 
-async function wrapRead<T>(fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn()
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export type ReportedStudent = {
   id: Ulid
   firstName: string
@@ -27,7 +19,7 @@ export type ReportedStudent = {
 export async function getReportedStudent(
   studentId: Ulid
 ): Promise<ReportedStudent | undefined> {
-  return await wrapRead(async () => {
+  try {
     const result = await pgQueries.getReportedStudent.run(
       {
         userId: studentId,
@@ -35,7 +27,9 @@ export async function getReportedStudent(
       getClient()
     )
     if (result.length) return makeRequired(result[0])
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 export type StudentPartnerInfo = {
@@ -47,7 +41,7 @@ export type StudentPartnerInfo = {
 export async function getStudentPartnerInfoById(
   studentId: Ulid
 ): Promise<StudentPartnerInfo | undefined> {
-  return await wrapRead(async () => {
+  try {
     const result = await pgQueries.getStudentPartnerInfoById.run(
       {
         userId: studentId,
@@ -59,7 +53,9 @@ export async function getStudentPartnerInfoById(
         'studentPartnerOrg',
         'approvedHighschool',
       ])
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 export type StudentContactInfo = {
@@ -70,7 +66,7 @@ export type StudentContactInfo = {
 export async function getStudentContactInfoById(
   studentId: Ulid
 ): Promise<StudentContactInfo | undefined> {
-  return await wrapRead(async () => {
+  try {
     const result = await pgQueries.getStudentContactInfoById.run(
       {
         userId: studentId,
@@ -78,7 +74,9 @@ export async function getStudentContactInfoById(
       getClient()
     )
     if (result.length) return makeRequired(result[0])
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 // NOTE: duplicate of `isTestUser` query function in this file
@@ -86,7 +84,7 @@ export async function getStudentContactInfoById(
 export async function getTestStudentExistsById(
   studentId: Ulid
 ): Promise<boolean> {
-  return await wrapRead(async () => {
+  try {
     const result = await pgQueries.isTestUser.run(
       {
         userId: studentId,
@@ -95,11 +93,13 @@ export async function getTestStudentExistsById(
     )
     if (result.length) return makeRequired(result[0].testUser)
     return false
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 export async function isTestUser(studentId: Ulid): Promise<boolean> {
-  return await wrapRead(async () => {
+  try {
     const result = await pgQueries.isTestUser.run(
       {
         userId: studentId,
@@ -108,7 +108,9 @@ export async function isTestUser(studentId: Ulid): Promise<boolean> {
     )
     if (result.length) return makeRequired(result[0].testUser)
     return false
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 type GatesStudent = {
@@ -121,40 +123,46 @@ type GatesStudent = {
 export async function getGatesStudentById(
   userId: Ulid
 ): Promise<GatesStudent | undefined> {
-  return await wrapRead(async () => {
+  try {
     const result = await pgQueries.getGatesStudentById.run(
       { userId },
       getClient()
     )
     if (result.length) return makeRequired(result[0])
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 export async function getTotalFavoriteVolunteers(
   userId: Ulid
 ): Promise<number> {
-  return await wrapRead(async () => {
+  try {
     const result = await pgQueries.getTotalFavoriteVolunteers.run(
       { userId },
       getClient()
     )
     if (result.length) return makeRequired(result[0]).total
     return 0
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 export async function isFavoriteVolunteer(
   studentId: Ulid,
   volunteerId: Ulid
 ): Promise<boolean> {
-  return await wrapRead(async () => {
+  try {
     const result = await pgQueries.isFavoriteVolunteer.run(
       { studentId, volunteerId },
       getClient()
     )
     if (result.length) return true
     return false
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 type FavoriteVolunteer = {
@@ -178,13 +186,15 @@ export async function getFavoriteVolunteers(
   limit: number,
   offset: number
 ): Promise<FavoriteVolunteersResponse> {
-  return await wrapRead(async () => {
+  try {
     const result = (await pgQueries.getFavoriteVolunteers.run(
       { userId, limit: String(limit), offset: String(offset) },
       getClient()
     )) as FavoriteVolunteer[]
     return { favoriteVolunteers: result, isLastPage: result.length < limit }
-  })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 export async function deleteFavoriteVolunteer(
