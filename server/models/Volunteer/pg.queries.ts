@@ -26,7 +26,7 @@ export interface IGetVolunteerContactInfoByIdQuery {
   result: IGetVolunteerContactInfoByIdResult;
 }
 
-const getVolunteerContactInfoByIdIR: any = {"name":"getVolunteerContactInfoById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":382,"b":388,"line":13,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId! AND  \n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE","loc":{"a":40,"b":488,"line":2,"col":0}}};
+const getVolunteerContactInfoByIdIR: any = {"name":"getVolunteerContactInfoById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":393,"b":399,"line":14,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE","loc":{"a":40,"b":497,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -37,15 +37,16 @@ const getVolunteerContactInfoByIdIR: any = {"name":"getVolunteerContactInfoById"
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  * WHERE
- *     users.id = :userId! AND  
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE
+ *     users.id = :userId!
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getVolunteerContactInfoById = new PreparedQuery<IGetVolunteerContactInfoByIdParams,IGetVolunteerContactInfoByIdResult>(getVolunteerContactInfoByIdIR);
@@ -72,7 +73,7 @@ export interface IGetVolunteerContactInfoByIdsQuery {
   result: IGetVolunteerContactInfoByIdsResult;
 }
 
-const getVolunteerContactInfoByIdsIR: any = {"name":"getVolunteerContactInfoByIds","params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":879,"b":886,"line":30,"col":20}]}}],"usedParamSet":{"userIds":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = ANY(:userIds!) AND  \n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE","loc":{"a":533,"b":987,"line":19,"col":0}}};
+const getVolunteerContactInfoByIdsIR: any = {"name":"getVolunteerContactInfoByIds","params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":901,"b":908,"line":33,"col":21}]}}],"usedParamSet":{"userIds":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = ANY (:userIds!)\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE","loc":{"a":543,"b":1007,"line":21,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -83,15 +84,16 @@ const getVolunteerContactInfoByIdsIR: any = {"name":"getVolunteerContactInfoById
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  * WHERE
- *     users.id = ANY(:userIds!) AND  
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE
+ *     users.id = ANY (:userIds!)
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getVolunteerContactInfoByIds = new PreparedQuery<IGetVolunteerContactInfoByIdsParams,IGetVolunteerContactInfoByIdsResult>(getVolunteerContactInfoByIdsIR);
@@ -119,7 +121,7 @@ export interface IGetVolunteersForBlackoutOverQuery {
   result: IGetVolunteersForBlackoutOverResult;
 }
 
-const getVolunteersForBlackoutOverIR: any = {"name":"getVolunteersForBlackoutOver","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1374,"b":1380,"line":47,"col":16}]}},{"name":"startDate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1416,"b":1425,"line":48,"col":30}]}}],"usedParamSet":{"userId":true,"startDate":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId! AND\n    users.last_activity_at < :startDate! AND\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE","loc":{"a":1032,"b":1523,"line":36,"col":0}}};
+const getVolunteersForBlackoutOverIR: any = {"name":"getVolunteersForBlackoutOver","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1406,"b":1412,"line":52,"col":16}]}},{"name":"startDate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1448,"b":1457,"line":53,"col":34}]}}],"usedParamSet":{"userId":true,"startDate":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND users.last_activity_at < :startDate!\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE","loc":{"a":1053,"b":1555,"line":40,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -130,16 +132,17 @@ const getVolunteersForBlackoutOverIR: any = {"name":"getVolunteersForBlackoutOve
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  * WHERE
- *     users.id = :userId! AND
- *     users.last_activity_at < :startDate! AND
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE
+ *     users.id = :userId!
+ *     AND users.last_activity_at < :startDate!
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getVolunteersForBlackoutOver = new PreparedQuery<IGetVolunteersForBlackoutOverParams,IGetVolunteersForBlackoutOverResult>(getVolunteersForBlackoutOverIR);
@@ -166,7 +169,7 @@ export interface IGetVolunteerForQuickTipsQuery {
   result: IGetVolunteerForQuickTipsResult;
 }
 
-const getVolunteerForQuickTipsIR: any = {"name":"getVolunteerForQuickTips","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1905,"b":1911,"line":65,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId! AND\n    volunteer_profiles.onboarded IS TRUE AND\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE","loc":{"a":1563,"b":2054,"line":54,"col":0}}};
+const getVolunteerForQuickTipsIR: any = {"name":"getVolunteerForQuickTips","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1949,"b":1955,"line":72,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND volunteer_profiles.onboarded IS TRUE\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE","loc":{"a":1596,"b":2098,"line":60,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -177,16 +180,17 @@ const getVolunteerForQuickTipsIR: any = {"name":"getVolunteerForQuickTips","para
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  * WHERE
- *     users.id = :userId! AND
- *     volunteer_profiles.onboarded IS TRUE AND
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE
+ *     users.id = :userId!
+ *     AND volunteer_profiles.onboarded IS TRUE
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getVolunteerForQuickTips = new PreparedQuery<IGetVolunteerForQuickTipsParams,IGetVolunteerForQuickTipsResult>(getVolunteerForQuickTipsIR);
@@ -213,7 +217,7 @@ export interface IGetPartnerVolunteerForLowHoursQuery {
   result: IGetPartnerVolunteerForLowHoursResult;
 }
 
-const getPartnerVolunteerForLowHoursIR: any = {"name":"getPartnerVolunteerForLowHours","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2512,"b":2518,"line":83,"col":79},{"a":2570,"b":2576,"line":86,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nLEFT JOIN (\n    SELECT COUNT(*)::INT AS total FROM sessions WHERE sessions.volunteer_id = :userId!\n) AS total_sessions ON TRUE\nWHERE\n    users.id = :userId! AND\n    volunteer_profiles.onboarded IS TRUE AND\n    volunteer_profiles.volunteer_partner_org_id IS NOT NULL AND\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    total_sessions.total > 0 AND\n    users.test_user IS FALSE","loc":{"a":2101,"b":2816,"line":72,"col":0}}};
+const getPartnerVolunteerForLowHoursIR: any = {"name":"getPartnerVolunteerForLowHours","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2628,"b":2634,"line":97,"col":37},{"a":2685,"b":2691,"line":99,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = :userId!) AS total_sessions ON TRUE\nWHERE\n    users.id = :userId!\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND total_sessions.total > 0\n    AND users.test_user IS FALSE","loc":{"a":2146,"b":2931,"line":80,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -224,21 +228,26 @@ const getPartnerVolunteerForLowHoursIR: any = {"name":"getPartnerVolunteerForLow
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- * LEFT JOIN (
- *     SELECT COUNT(*)::INT AS total FROM sessions WHERE sessions.volunteer_id = :userId!
- * ) AS total_sessions ON TRUE
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     LEFT JOIN (
+ *         SELECT
+ *             COUNT(*)::int AS total
+ *         FROM
+ *             sessions
+ *         WHERE
+ *             sessions.volunteer_id = :userId!) AS total_sessions ON TRUE
  * WHERE
- *     users.id = :userId! AND
- *     volunteer_profiles.onboarded IS TRUE AND
- *     volunteer_profiles.volunteer_partner_org_id IS NOT NULL AND
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     total_sessions.total > 0 AND
- *     users.test_user IS FALSE
+ *     users.id = :userId!
+ *     AND volunteer_profiles.onboarded IS TRUE
+ *     AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND total_sessions.total > 0
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getPartnerVolunteerForLowHours = new PreparedQuery<IGetPartnerVolunteerForLowHoursParams,IGetPartnerVolunteerForLowHoursResult>(getPartnerVolunteerForLowHoursIR);
@@ -265,7 +274,7 @@ export interface IGetPartnerVolunteerForCollegeQuery {
   result: IGetPartnerVolunteerForCollegeResult;
 }
 
-const getPartnerVolunteerForCollegeIR: any = {"name":"getPartnerVolunteerForCollege","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4019,"b":4025,"line":130,"col":24},{"a":4226,"b":4232,"line":138,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"WITH CTE AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nLEFT JOIN (\n    SELECT\n        array_agg(DISTINCT subjects_unlocked.topic) AS topics\n    FROM (\n        SELECT\n            subjects.name AS subject,\n            topics.name AS topic\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN users ON users.id = users_certifications.user_id\n            JOIN topics ON topics.id = subjects.topic_id\n            JOIN CTE ON CTE.name = subjects.name\n        WHERE\n            users.id = :userId!\n        GROUP BY\n            subjects.name, CTE.total, topics.name\n        HAVING\n            COUNT(*)::int >= CTE.total\n    ) AS subjects_unlocked\n) AS topics_unlocked ON TRUE\nWHERE\n    users.id = :userId! AND\n    volunteer_profiles.onboarded IS TRUE AND\n    array_length(topics_unlocked.topics, 1) = 1 AND\n    topics_unlocked.topics = ARRAY['college'] AND\n    volunteer_profiles.volunteer_partner_org_id IS NOT NULL AND\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE","loc":{"a":2862,"b":4541,"line":95,"col":0}}};
+const getPartnerVolunteerForCollegeIR: any = {"name":"getPartnerVolunteerForCollege","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4210,"b":4216,"line":145,"col":28},{"a":4427,"b":4433,"line":151,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"WITH CTE AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN (\n        SELECT\n            array_agg(DISTINCT subjects_unlocked.topic) AS topics\n        FROM (\n            SELECT\n                subjects.name AS subject,\n                topics.name AS topic\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN users ON users.id = users_certifications.user_id\n                JOIN topics ON topics.id = subjects.topic_id\n                JOIN CTE ON CTE.name = subjects.name\n            WHERE\n                users.id = :userId!\n            GROUP BY\n                subjects.name, CTE.total, topics.name\n            HAVING\n                COUNT(*)::int >= CTE.total) AS subjects_unlocked) AS topics_unlocked ON TRUE\nWHERE\n    users.id = :userId!\n    AND volunteer_profiles.onboarded IS TRUE\n    AND array_length(topics_unlocked.topics, 1) = 1\n    AND topics_unlocked.topics = ARRAY['college']\n    AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE","loc":{"a":2978,"b":4742,"line":109,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -286,41 +295,40 @@ const getPartnerVolunteerForCollegeIR: any = {"name":"getPartnerVolunteerForColl
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- * LEFT JOIN (
- *     SELECT
- *         array_agg(DISTINCT subjects_unlocked.topic) AS topics
- *     FROM (
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     LEFT JOIN (
  *         SELECT
- *             subjects.name AS subject,
- *             topics.name AS topic
- *         FROM
- *             users_certifications
- *             JOIN certification_subject_unlocks USING (certification_id)
- *             JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
- *             JOIN users ON users.id = users_certifications.user_id
- *             JOIN topics ON topics.id = subjects.topic_id
- *             JOIN CTE ON CTE.name = subjects.name
- *         WHERE
- *             users.id = :userId!
- *         GROUP BY
- *             subjects.name, CTE.total, topics.name
- *         HAVING
- *             COUNT(*)::int >= CTE.total
- *     ) AS subjects_unlocked
- * ) AS topics_unlocked ON TRUE
+ *             array_agg(DISTINCT subjects_unlocked.topic) AS topics
+ *         FROM (
+ *             SELECT
+ *                 subjects.name AS subject,
+ *                 topics.name AS topic
+ *             FROM
+ *                 users_certifications
+ *                 JOIN certification_subject_unlocks USING (certification_id)
+ *                 JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
+ *                 JOIN users ON users.id = users_certifications.user_id
+ *                 JOIN topics ON topics.id = subjects.topic_id
+ *                 JOIN CTE ON CTE.name = subjects.name
+ *             WHERE
+ *                 users.id = :userId!
+ *             GROUP BY
+ *                 subjects.name, CTE.total, topics.name
+ *             HAVING
+ *                 COUNT(*)::int >= CTE.total) AS subjects_unlocked) AS topics_unlocked ON TRUE
  * WHERE
- *     users.id = :userId! AND
- *     volunteer_profiles.onboarded IS TRUE AND
- *     array_length(topics_unlocked.topics, 1) = 1 AND
- *     topics_unlocked.topics = ARRAY['college'] AND
- *     volunteer_profiles.volunteer_partner_org_id IS NOT NULL AND
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE
+ *     users.id = :userId!
+ *     AND volunteer_profiles.onboarded IS TRUE
+ *     AND array_length(topics_unlocked.topics, 1) = 1
+ *     AND topics_unlocked.topics = ARRAY['college']
+ *     AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getPartnerVolunteerForCollege = new PreparedQuery<IGetPartnerVolunteerForCollegeParams,IGetPartnerVolunteerForCollegeResult>(getPartnerVolunteerForCollegeIR);
@@ -348,7 +356,7 @@ export interface IGetVolunteersForWeeklyHourSummaryQuery {
   result: IGetVolunteersForWeeklyHourSummaryResult;
 }
 
-const getVolunteersForWeeklyHourSummaryIR: any = {"name":"getVolunteersForWeeklyHourSummary","params":[{"name":"unsubscribedPartners","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5065,"b":5085,"line":161,"col":43}]}}],"usedParamSet":{"unsubscribedPartners":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    sent_hour_summary_intro_email\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nLEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE\n    NOT volunteer_partner_orgs.name = ANY(:unsubscribedPartners!) AND\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE\nGROUP BY users.id, volunteer_partner_org, sent_hour_summary_intro_email","loc":{"a":4591,"b":5256,"line":148,"col":0}}};
+const getVolunteersForWeeklyHourSummaryIR: any = {"name":"getVolunteersForWeeklyHourSummary","params":[{"name":"unsubscribedPartners","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5282,"b":5302,"line":176,"col":43}]}}],"usedParamSet":{"unsubscribedPartners":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    sent_hour_summary_intro_email\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE\n    NOT volunteer_partner_orgs.key = ANY (:unsubscribedPartners!)\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\nGROUP BY\n    users.id,\n    volunteer_partner_org,\n    sent_hour_summary_intro_email","loc":{"a":4793,"b":5485,"line":162,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -359,18 +367,22 @@ const getVolunteersForWeeklyHourSummaryIR: any = {"name":"getVolunteersForWeekly
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org,
+ *     volunteer_partner_orgs.key AS volunteer_partner_org,
  *     sent_hour_summary_intro_email
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- * LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id
  * WHERE
- *     NOT volunteer_partner_orgs.name = ANY(:unsubscribedPartners!) AND
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE
- * GROUP BY users.id, volunteer_partner_org, sent_hour_summary_intro_email
+ *     NOT volunteer_partner_orgs.key = ANY (:unsubscribedPartners!)
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
+ * GROUP BY
+ *     users.id,
+ *     volunteer_partner_org,
+ *     sent_hour_summary_intro_email
  * ```
  */
 export const getVolunteersForWeeklyHourSummary = new PreparedQuery<IGetVolunteersForWeeklyHourSummaryParams,IGetVolunteersForWeeklyHourSummaryResult>(getVolunteersForWeeklyHourSummaryIR);
@@ -392,7 +404,7 @@ export interface IUpdateVolunteerHourSummaryIntroByIdQuery {
   result: IUpdateVolunteerHourSummaryIntroByIdResult;
 }
 
-const updateVolunteerHourSummaryIntroByIdIR: any = {"name":"updateVolunteerHourSummaryIntroById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5428,"b":5434,"line":174,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_hour_summary_intro_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":5308,"b":5462,"line":168,"col":0}}};
+const updateVolunteerHourSummaryIntroByIdIR: any = {"name":"updateVolunteerHourSummaryIntroById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5658,"b":5664,"line":193,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_hour_summary_intro_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":5538,"b":5692,"line":187,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -425,18 +437,19 @@ export interface IGetVolunteerIdsForElapsedAvailabilityQuery {
   result: IGetVolunteerIdsForElapsedAvailabilityResult;
 }
 
-const getVolunteerIdsForElapsedAvailabilityIR: any = {"name":"getVolunteerIdsForElapsedAvailability","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    user_id\nFROM volunteer_profiles\nLEFT JOIN users ON volunteer_profiles.user_id = users.id\nWHERE\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE","loc":{"a":5517,"b":5685,"line":179,"col":0}}};
+const getVolunteerIdsForElapsedAvailabilityIR: any = {"name":"getVolunteerIdsForElapsedAvailability","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    user_id\nFROM\n    volunteer_profiles\n    LEFT JOIN users ON volunteer_profiles.user_id = users.id\nWHERE\n    users.deactivated IS FALSE\n    AND users.test_user IS FALSE","loc":{"a":5747,"b":5923,"line":199,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     user_id
- * FROM volunteer_profiles
- * LEFT JOIN users ON volunteer_profiles.user_id = users.id
+ * FROM
+ *     volunteer_profiles
+ *     LEFT JOIN users ON volunteer_profiles.user_id = users.id
  * WHERE
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE
+ *     users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getVolunteerIdsForElapsedAvailability = new PreparedQuery<IGetVolunteerIdsForElapsedAvailabilityParams,IGetVolunteerIdsForElapsedAvailabilityResult>(getVolunteerIdsForElapsedAvailabilityIR);
@@ -458,25 +471,27 @@ export interface IGetVolunteersForTotalHoursQuery {
   result: IGetVolunteersForTotalHoursResult;
 }
 
-const getVolunteersForTotalHoursIR: any = {"name":"getVolunteersForTotalHours","params":[{"name":"targetPartnerOrgs","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":6052,"b":6069,"line":195,"col":39}]}}],"usedParamSet":{"targetPartnerOrgs":true},"statement":{"body":"SELECT\n    users.id\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nLEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE\n    volunteer_partner_orgs.name = ANY(:targetPartnerOrgs!) AND\n    volunteer_profiles.onboarded IS TRUE AND\n    volunteer_profiles.approved IS TRUE AND \n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE\nGROUP BY users.id","loc":{"a":5728,"b":6276,"line":188,"col":0}}};
+const getVolunteersForTotalHoursIR: any = {"name":"getVolunteersForTotalHours","params":[{"name":"targetPartnerOrgs","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":6307,"b":6324,"line":218,"col":39}]}}],"usedParamSet":{"targetPartnerOrgs":true},"statement":{"body":"SELECT\n    users.id\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE\n    volunteer_partner_orgs.key = ANY (:targetPartnerOrgs!)\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\nGROUP BY\n    users.id","loc":{"a":5967,"b":6534,"line":210,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     users.id
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- * LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id
  * WHERE
- *     volunteer_partner_orgs.name = ANY(:targetPartnerOrgs!) AND
- *     volunteer_profiles.onboarded IS TRUE AND
- *     volunteer_profiles.approved IS TRUE AND 
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE
- * GROUP BY users.id
+ *     volunteer_partner_orgs.key = ANY (:targetPartnerOrgs!)
+ *     AND volunteer_profiles.onboarded IS TRUE
+ *     AND volunteer_profiles.approved IS TRUE
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
+ * GROUP BY
+ *     users.id
  * ```
  */
 export const getVolunteersForTotalHours = new PreparedQuery<IGetVolunteersForTotalHoursParams,IGetVolunteersForTotalHoursResult>(getVolunteersForTotalHoursIR);
@@ -504,7 +519,7 @@ export interface IGetVolunteerForOnboardingByIdQuery {
   result: IGetVolunteerForOnboardingByIdResult;
 }
 
-const getVolunteerForOnboardingByIdIR: any = {"name":"getVolunteerForOnboardingById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7230,"b":7236,"line":235,"col":20}]}}],"usedParamSet":{"userId":true},"statement":{"body":"WITH CTE AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    users.id,\n    email,\n    first_name,\n    volunteer_profiles.onboarded,\n    array_agg(subjects_unlocked.subject) AS subjects,\n    country,\n    MAX(availabilities.updated_at) AS availability_last_modified_at\nFROM users\nLEFT JOIN (\n    SELECT\n        subjects.name AS subject,\n        COUNT(*)::int AS earned_certs,\n        CTE.total\n    FROM\n        users_certifications\n        JOIN certification_subject_unlocks USING (certification_id)\n        JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n        JOIN users ON users.id = users_certifications.user_id\n        JOIN CTE ON CTE.name = subjects.name\n    WHERE\n        users.id = :userId!\n    GROUP BY\n        subjects.name, CTE.total\n    HAVING\n        COUNT(*)::int >= CTE.total\n) AS subjects_unlocked ON TRUE\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN availabilities ON availabilities.user_id = users.id\nWHERE\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE AND\n    volunteer_profiles.onboarded IS FALSE\nGROUP BY users.id, onboarded, country","loc":{"a":6322,"b":7675,"line":204,"col":0}}};
+const getVolunteerForOnboardingByIdIR: any = {"name":"getVolunteerForOnboardingById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7545,"b":7551,"line":261,"col":24}]}}],"usedParamSet":{"userId":true},"statement":{"body":"WITH CTE AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    users.id,\n    email,\n    first_name,\n    volunteer_profiles.onboarded,\n    array_agg(subjects_unlocked.subject) AS subjects,\n    country,\n    MAX(availabilities.updated_at) AS availability_last_modified_at\nFROM\n    users\n    LEFT JOIN (\n        SELECT\n            subjects.name AS subject,\n            COUNT(*)::int AS earned_certs,\n            CTE.total\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN users ON users.id = users_certifications.user_id\n            JOIN CTE ON CTE.name = subjects.name\n        WHERE\n            users.id = :userId!\n        GROUP BY\n            subjects.name, CTE.total\n        HAVING\n            COUNT(*)::int >= CTE.total) AS subjects_unlocked ON TRUE\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN availabilities ON availabilities.user_id = users.id\nWHERE\n    users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS FALSE\nGROUP BY\n    users.id,\n    onboarded,\n    country","loc":{"a":6581,"b":8025,"line":229,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -527,33 +542,36 @@ const getVolunteerForOnboardingByIdIR: any = {"name":"getVolunteerForOnboardingB
  *     array_agg(subjects_unlocked.subject) AS subjects,
  *     country,
  *     MAX(availabilities.updated_at) AS availability_last_modified_at
- * FROM users
- * LEFT JOIN (
- *     SELECT
- *         subjects.name AS subject,
- *         COUNT(*)::int AS earned_certs,
- *         CTE.total
- *     FROM
- *         users_certifications
- *         JOIN certification_subject_unlocks USING (certification_id)
- *         JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
- *         JOIN users ON users.id = users_certifications.user_id
- *         JOIN CTE ON CTE.name = subjects.name
- *     WHERE
- *         users.id = :userId!
- *     GROUP BY
- *         subjects.name, CTE.total
- *     HAVING
- *         COUNT(*)::int >= CTE.total
- * ) AS subjects_unlocked ON TRUE
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN availabilities ON availabilities.user_id = users.id
+ * FROM
+ *     users
+ *     LEFT JOIN (
+ *         SELECT
+ *             subjects.name AS subject,
+ *             COUNT(*)::int AS earned_certs,
+ *             CTE.total
+ *         FROM
+ *             users_certifications
+ *             JOIN certification_subject_unlocks USING (certification_id)
+ *             JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
+ *             JOIN users ON users.id = users_certifications.user_id
+ *             JOIN CTE ON CTE.name = subjects.name
+ *         WHERE
+ *             users.id = :userId!
+ *         GROUP BY
+ *             subjects.name, CTE.total
+ *         HAVING
+ *             COUNT(*)::int >= CTE.total) AS subjects_unlocked ON TRUE
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN availabilities ON availabilities.user_id = users.id
  * WHERE
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE AND
- *     volunteer_profiles.onboarded IS FALSE
- * GROUP BY users.id, onboarded, country
+ *     users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
+ *     AND volunteer_profiles.onboarded IS FALSE
+ * GROUP BY
+ *     users.id,
+ *     onboarded,
+ *     country
  * ```
  */
 export const getVolunteerForOnboardingById = new PreparedQuery<IGetVolunteerForOnboardingByIdParams,IGetVolunteerForOnboardingByIdResult>(getVolunteerForOnboardingByIdIR);
@@ -581,7 +599,7 @@ export interface IGetVolunteersForTelecomReportQuery {
   result: IGetVolunteersForTelecomReportResult;
 }
 
-const getVolunteersForTelecomReportIR: any = {"name":"getVolunteersForTelecomReport","params":[{"name":"partnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8104,"b":8114,"line":263,"col":35}]}}],"usedParamSet":{"partnerOrg":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    users.created_at\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    volunteer_partner_orgs.name = :partnerOrg! AND\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE AND\n    volunteer_profiles.onboarded IS TRUE AND\n    volunteer_profiles.approved IS TRUE\nGROUP BY users.id, volunteer_partner_org","loc":{"a":7721,"b":8342,"line":251,"col":0}}};
+const getVolunteersForTelecomReportIR: any = {"name":"getVolunteersForTelecomReport","params":[{"name":"partnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8465,"b":8475,"line":293,"col":34}]}}],"usedParamSet":{"partnerOrg":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    users.created_at\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    volunteer_partner_orgs.key = :partnerOrg!\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE\nGROUP BY\n    users.id,\n    volunteer_partner_org","loc":{"a":8072,"b":8711,"line":280,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -592,19 +610,22 @@ const getVolunteersForTelecomReportIR: any = {"name":"getVolunteersForTelecomRep
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org,
+ *     volunteer_partner_orgs.key AS volunteer_partner_org,
  *     users.created_at
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  * WHERE
- *     volunteer_partner_orgs.name = :partnerOrg! AND
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE AND
- *     volunteer_profiles.onboarded IS TRUE AND
- *     volunteer_profiles.approved IS TRUE
- * GROUP BY users.id, volunteer_partner_org
+ *     volunteer_partner_orgs.key = :partnerOrg!
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
+ *     AND volunteer_profiles.onboarded IS TRUE
+ *     AND volunteer_profiles.approved IS TRUE
+ * GROUP BY
+ *     users.id,
+ *     volunteer_partner_org
  * ```
  */
 export const getVolunteersForTelecomReport = new PreparedQuery<IGetVolunteersForTelecomReportParams,IGetVolunteersForTelecomReportResult>(getVolunteersForTelecomReportIR);
@@ -626,17 +647,20 @@ export interface IGetVolunteersNotifiedSinceDateQuery {
   result: IGetVolunteersNotifiedSinceDateResult;
 }
 
-const getVolunteersNotifiedSinceDateIR: any = {"name":"getVolunteersNotifiedSinceDate","params":[{"name":"sinceDate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8535,"b":8544,"line":277,"col":37}]}}],"usedParamSet":{"sinceDate":true},"statement":{"body":"SELECT\n    users.id\nFROM users\nLEFT JOIN notifications ON users.id = notifications.user_id\nGROUP BY users.id\nHAVING MAX(notifications.sent_at) > :sinceDate!","loc":{"a":8389,"b":8544,"line":272,"col":0}}};
+const getVolunteersNotifiedSinceDateIR: any = {"name":"getVolunteersNotifiedSinceDate","params":[{"name":"sinceDate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8921,"b":8930,"line":313,"col":34}]}}],"usedParamSet":{"sinceDate":true},"statement":{"body":"SELECT\n    users.id\nFROM\n    users\n    LEFT JOIN notifications ON users.id = notifications.user_id\nGROUP BY\n    users.id\nHAVING\n    MAX(notifications.sent_at) > :sinceDate!","loc":{"a":8759,"b":8930,"line":305,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     users.id
- * FROM users
- * LEFT JOIN notifications ON users.id = notifications.user_id
- * GROUP BY users.id
- * HAVING MAX(notifications.sent_at) > :sinceDate!
+ * FROM
+ *     users
+ *     LEFT JOIN notifications ON users.id = notifications.user_id
+ * GROUP BY
+ *     users.id
+ * HAVING
+ *     MAX(notifications.sent_at) > :sinceDate!
  * ```
  */
 export const getVolunteersNotifiedSinceDate = new PreparedQuery<IGetVolunteersNotifiedSinceDateParams,IGetVolunteersNotifiedSinceDateResult>(getVolunteersNotifiedSinceDateIR);
@@ -658,14 +682,15 @@ export interface IGetVolunteersNotifiedBySessionIdQuery {
   result: IGetVolunteersNotifiedBySessionIdResult;
 }
 
-const getVolunteersNotifiedBySessionIdIR: any = {"name":"getVolunteersNotifiedBySessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8683,"b":8692,"line":284,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    notifications.user_id\nFROM notifications\nWHERE\n    notifications.session_id = :sessionId!","loc":{"a":8593,"b":8692,"line":280,"col":0}}};
+const getVolunteersNotifiedBySessionIdIR: any = {"name":"getVolunteersNotifiedBySessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9074,"b":9083,"line":322,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    notifications.user_id\nFROM\n    notifications\nWHERE\n    notifications.session_id = :sessionId!","loc":{"a":8980,"b":9083,"line":317,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     notifications.user_id
- * FROM notifications
+ * FROM
+ *     notifications
  * WHERE
  *     notifications.session_id = :sessionId!
  * ```
@@ -689,14 +714,15 @@ export interface IGetVolunteerByReferenceQuery {
   result: IGetVolunteerByReferenceResult;
 }
 
-const getVolunteerByReferenceIR: any = {"name":"getVolunteerByReference","params":[{"name":"referenceId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8835,"b":8846,"line":291,"col":31}]}}],"usedParamSet":{"referenceId":true},"statement":{"body":"SELECT\n    volunteer_references.user_id\nFROM volunteer_references\nWHERE\n    volunteer_references.id = :referenceId!","loc":{"a":8732,"b":8846,"line":287,"col":0}}};
+const getVolunteerByReferenceIR: any = {"name":"getVolunteerByReference","params":[{"name":"referenceId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9231,"b":9242,"line":331,"col":31}]}}],"usedParamSet":{"referenceId":true},"statement":{"body":"SELECT\n    volunteer_references.user_id\nFROM\n    volunteer_references\nWHERE\n    volunteer_references.id = :referenceId!","loc":{"a":9124,"b":9242,"line":326,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     volunteer_references.user_id
- * FROM volunteer_references
+ * FROM
+ *     volunteer_references
  * WHERE
  *     volunteer_references.id = :referenceId!
  * ```
@@ -724,7 +750,7 @@ export interface IAddVolunteerReferenceByIdQuery {
   result: IAddVolunteerReferenceByIdResult;
 }
 
-const addVolunteerReferenceByIdIR: any = {"name":"addVolunteerReferenceById","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9012,"b":9014,"line":296,"col":5}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9022,"b":9028,"line":297,"col":5}]}},{"name":"firstName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9036,"b":9045,"line":298,"col":5}]}},{"name":"lastName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9053,"b":9061,"line":299,"col":5}]}},{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9069,"b":9074,"line":300,"col":5}]}}],"usedParamSet":{"id":true,"userId":true,"firstName":true,"lastName":true,"email":true},"statement":{"body":"INSERT INTO volunteer_references (id, user_id, first_name, last_name, email, status_id, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    :firstName!,\n    :lastName!,\n    :email!,\n    volunteer_reference_statuses.id,\n    NOW(),\n    NOW()\nFROM volunteer_reference_statuses\nWHERE name = 'unsent'::text\nON CONFLICT (user_id, email) DO NOTHING\nRETURNING id AS ok","loc":{"a":8888,"b":9254,"line":294,"col":0}}};
+const addVolunteerReferenceByIdIR: any = {"name":"addVolunteerReferenceById","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9409,"b":9411,"line":337,"col":5}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9419,"b":9425,"line":338,"col":5}]}},{"name":"firstName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9433,"b":9442,"line":339,"col":5}]}},{"name":"lastName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9450,"b":9458,"line":340,"col":5}]}},{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9466,"b":9471,"line":341,"col":5}]}}],"usedParamSet":{"id":true,"userId":true,"firstName":true,"lastName":true,"email":true},"statement":{"body":"INSERT INTO volunteer_references (id, user_id, first_name, last_name, email, status_id, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    :firstName!,\n    :lastName!,\n    :email!,\n    volunteer_reference_statuses.id,\n    NOW(),\n    NOW()\nFROM\n    volunteer_reference_statuses\nWHERE\n    name = 'unsent'::text\nON CONFLICT (user_id,\n    email)\n    DO NOTHING\nRETURNING\n    id AS ok","loc":{"a":9285,"b":9671,"line":335,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -739,10 +765,15 @@ const addVolunteerReferenceByIdIR: any = {"name":"addVolunteerReferenceById","pa
  *     volunteer_reference_statuses.id,
  *     NOW(),
  *     NOW()
- * FROM volunteer_reference_statuses
- * WHERE name = 'unsent'::text
- * ON CONFLICT (user_id, email) DO NOTHING
- * RETURNING id AS ok
+ * FROM
+ *     volunteer_reference_statuses
+ * WHERE
+ *     name = 'unsent'::text
+ * ON CONFLICT (user_id,
+ *     email)
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const addVolunteerReferenceById = new PreparedQuery<IAddVolunteerReferenceByIdParams,IAddVolunteerReferenceByIdResult>(addVolunteerReferenceByIdIR);
@@ -770,7 +801,7 @@ export interface IGetInactiveVolunteersQuery {
   result: IGetInactiveVolunteersResult;
 }
 
-const getInactiveVolunteersIR: any = {"name":"getInactiveVolunteers","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9649,"b":9654,"line":321,"col":31}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9690,"b":9693,"line":322,"col":30}]}}],"usedParamSet":{"start":true,"end":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.last_activity_at >= :start! AND\n    users.last_activity_at < :end! AND\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE","loc":{"a":9292,"b":9791,"line":310,"col":0}}};
+const getInactiveVolunteersIR: any = {"name":"getInactiveVolunteers","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10078,"b":10083,"line":369,"col":31}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10119,"b":10122,"line":370,"col":34}]}}],"usedParamSet":{"start":true,"end":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.last_activity_at >= :start!\n    AND users.last_activity_at < :end!\n    AND users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE","loc":{"a":9710,"b":10220,"line":357,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -781,16 +812,17 @@ const getInactiveVolunteersIR: any = {"name":"getInactiveVolunteers","params":[{
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  * WHERE
- *     users.last_activity_at >= :start! AND
- *     users.last_activity_at < :end! AND
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE
+ *     users.last_activity_at >= :start!
+ *     AND users.last_activity_at < :end!
+ *     AND users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getInactiveVolunteers = new PreparedQuery<IGetInactiveVolunteersParams,IGetInactiveVolunteersResult>(getInactiveVolunteersIR);
@@ -812,7 +844,7 @@ export interface IUpdateVolunteerReferenceStatusByIdQuery {
   result: IUpdateVolunteerReferenceStatusByIdResult;
 }
 
-const updateVolunteerReferenceStatusByIdIR: any = {"name":"updateVolunteerReferenceStatusById","params":[{"name":"referenceId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10093,"b":10104,"line":341,"col":31}]}}],"usedParamSet":{"referenceId":true},"statement":{"body":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    sent_at = NOW(),\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM volunteer_reference_statuses\n    WHERE name = 'sent'\n) AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok","loc":{"a":9842,"b":10148,"line":328,"col":0}}};
+const updateVolunteerReferenceStatusByIdIR: any = {"name":"updateVolunteerReferenceStatusById","params":[{"name":"referenceId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10538,"b":10549,"line":391,"col":31}]}}],"usedParamSet":{"referenceId":true},"statement":{"body":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    sent_at = NOW(),\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        volunteer_reference_statuses\n    WHERE\n        name = 'sent') AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok","loc":{"a":10272,"b":10593,"line":377,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -826,9 +858,10 @@ const updateVolunteerReferenceStatusByIdIR: any = {"name":"updateVolunteerRefere
  * FROM (
  *     SELECT
  *         id
- *     FROM volunteer_reference_statuses
- *     WHERE name = 'sent'
- * ) AS subquery
+ *     FROM
+ *         volunteer_reference_statuses
+ *     WHERE
+ *         name = 'sent') AS subquery
  * WHERE
  *     volunteer_references.id = :referenceId!
  * RETURNING
@@ -854,7 +887,7 @@ export interface IDeleteVolunteerReferenceByIdQuery {
   result: IDeleteVolunteerReferenceByIdResult;
 }
 
-const deleteVolunteerReferenceByIdIR: any = {"name":"deleteVolunteerReferenceById","params":[{"name":"referenceId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10427,"b":10438,"line":358,"col":31}]}}],"usedParamSet":{"referenceId":true},"statement":{"body":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM volunteer_reference_statuses\n    WHERE name = 'removed'\n) AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok","loc":{"a":10194,"b":10482,"line":346,"col":0}}};
+const deleteVolunteerReferenceByIdIR: any = {"name":"deleteVolunteerReferenceById","params":[{"name":"referenceId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10887,"b":10898,"line":410,"col":31}]}}],"usedParamSet":{"referenceId":true},"statement":{"body":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        volunteer_reference_statuses\n    WHERE\n        name = 'removed') AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok","loc":{"a":10639,"b":10942,"line":397,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -867,9 +900,10 @@ const deleteVolunteerReferenceByIdIR: any = {"name":"deleteVolunteerReferenceByI
  * FROM (
  *     SELECT
  *         id
- *     FROM volunteer_reference_statuses
- *     WHERE name = 'removed'
- * ) AS subquery
+ *     FROM
+ *         volunteer_reference_statuses
+ *     WHERE
+ *         name = 'removed') AS subquery
  * WHERE
  *     volunteer_references.id = :referenceId!
  * RETURNING
@@ -895,7 +929,7 @@ export interface IUpdateVolunteersReadyToCoachByIdsQuery {
   result: IUpdateVolunteersReadyToCoachByIdsResult;
 }
 
-const updateVolunteersReadyToCoachByIdsIR: any = {"name":"updateVolunteersReadyToCoachByIds","params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10653,"b":10660,"line":369,"col":19}]}}],"usedParamSet":{"userIds":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_ready_to_coach_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = ANY(:userIds!)\nRETURNING\n    user_id AS ok","loc":{"a":10533,"b":10689,"line":363,"col":0}}};
+const updateVolunteersReadyToCoachByIdsIR: any = {"name":"updateVolunteersReadyToCoachByIds","params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11114,"b":11121,"line":422,"col":20}]}}],"usedParamSet":{"userIds":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_ready_to_coach_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = ANY (:userIds!)\nRETURNING\n    user_id AS ok","loc":{"a":10993,"b":11150,"line":416,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -906,7 +940,7 @@ const updateVolunteersReadyToCoachByIdsIR: any = {"name":"updateVolunteersReadyT
  *     sent_ready_to_coach_email = TRUE,
  *     updated_at = NOW()
  * WHERE
- *     user_id = ANY(:userIds!)
+ *     user_id = ANY (:userIds!)
  * RETURNING
  *     user_id AS ok
  * ```
@@ -931,7 +965,7 @@ export interface IUpdateVolunteerElapsedAvailabilityByIdQuery {
   result: IUpdateVolunteerElapsedAvailabilityByIdResult;
 }
 
-const updateVolunteerElapsedAvailabilityByIdIR: any = {"name":"updateVolunteerElapsedAvailabilityById","params":[{"name":"elapsedAvailability","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10876,"b":10895,"line":379,"col":49}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10953,"b":10959,"line":379,"col":126},{"a":10996,"b":11002,"line":382,"col":15}]}}],"usedParamSet":{"elapsedAvailability":true,"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    elapsed_availability = subquery.total\nFROM (\n    SELECT COALESCE(elapsed_availability, 0) + (:elapsedAvailability!)::int AS total FROM volunteer_profiles WHERE user_id = :userId!\n) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":10744,"b":11030,"line":374,"col":0}}};
+const updateVolunteerElapsedAvailabilityByIdIR: any = {"name":"updateVolunteerElapsedAvailabilityById","params":[{"name":"elapsedAvailability","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11346,"b":11365,"line":434,"col":46}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11447,"b":11453,"line":438,"col":19},{"a":11489,"b":11495,"line":440,"col":15}]}}],"usedParamSet":{"elapsedAvailability":true,"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    elapsed_availability = subquery.total\nFROM (\n    SELECT\n        COALESCE(elapsed_availability, 0) + (:elapsedAvailability!)::int AS total\n    FROM\n        volunteer_profiles\n    WHERE\n        user_id = :userId!) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":11206,"b":11523,"line":428,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -941,8 +975,12 @@ const updateVolunteerElapsedAvailabilityByIdIR: any = {"name":"updateVolunteerEl
  * SET
  *     elapsed_availability = subquery.total
  * FROM (
- *     SELECT COALESCE(elapsed_availability, 0) + (:elapsedAvailability!)::int AS total FROM volunteer_profiles WHERE user_id = :userId!
- * ) AS subquery
+ *     SELECT
+ *         COALESCE(elapsed_availability, 0) + (:elapsedAvailability!)::int AS total
+ *     FROM
+ *         volunteer_profiles
+ *     WHERE
+ *         user_id = :userId!) AS subquery
  * WHERE
  *     user_id = :userId!
  * RETURNING
@@ -969,7 +1007,7 @@ export interface IUpdateVolunteerTotalHoursByIdQuery {
   result: IUpdateVolunteerTotalHoursByIdResult;
 }
 
-const updateVolunteerTotalHoursByIdIR: any = {"name":"updateVolunteerTotalHoursById","params":[{"name":"totalHours","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11210,"b":11220,"line":392,"col":50}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11282,"b":11288,"line":392,"col":122},{"a":11325,"b":11331,"line":395,"col":15}]}}],"usedParamSet":{"totalHours":true,"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    total_volunteer_hours = subquery.total\nFROM (\n    SELECT COALESCE(total_volunteer_hours, 0) + (:totalHours!)::numeric AS total FROM volunteer_profiles WHERE user_id = :userId!\n) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":11076,"b":11359,"line":387,"col":0}}};
+const updateVolunteerTotalHoursByIdIR: any = {"name":"updateVolunteerTotalHoursById","params":[{"name":"totalHours","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11712,"b":11722,"line":452,"col":47}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11808,"b":11814,"line":456,"col":19},{"a":11850,"b":11856,"line":458,"col":15}]}}],"usedParamSet":{"totalHours":true,"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    total_volunteer_hours = subquery.total\nFROM (\n    SELECT\n        COALESCE(total_volunteer_hours, 0) + (:totalHours!)::numeric AS total\n    FROM\n        volunteer_profiles\n    WHERE\n        user_id = :userId!) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":11570,"b":11884,"line":446,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -979,8 +1017,12 @@ const updateVolunteerTotalHoursByIdIR: any = {"name":"updateVolunteerTotalHoursB
  * SET
  *     total_volunteer_hours = subquery.total
  * FROM (
- *     SELECT COALESCE(total_volunteer_hours, 0) + (:totalHours!)::numeric AS total FROM volunteer_profiles WHERE user_id = :userId!
- * ) AS subquery
+ *     SELECT
+ *         COALESCE(total_volunteer_hours, 0) + (:totalHours!)::numeric AS total
+ *     FROM
+ *         volunteer_profiles
+ *     WHERE
+ *         user_id = :userId!) AS subquery
  * WHERE
  *     user_id = :userId!
  * RETURNING
@@ -1010,31 +1052,35 @@ export interface IUpdateVolunteerTrainingByIdQuery {
   result: IUpdateVolunteerTrainingByIdResult;
 }
 
-const updateVolunteerTrainingByIdIR: any = {"name":"updateVolunteerTrainingById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11550,"b":11556,"line":402,"col":3}]}},{"name":"complete","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11585,"b":11593,"line":404,"col":3},{"a":11802,"b":11810,"line":413,"col":16}]}},{"name":"progress","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11599,"b":11607,"line":405,"col":3},{"a":11829,"b":11837,"line":414,"col":16}]}},{"name":"materialKey","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11620,"b":11631,"line":406,"col":10},{"a":11905,"b":11916,"line":415,"col":65},{"a":11959,"b":11970,"line":418,"col":8}]}},{"name":"trainingCourse","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11712,"b":11726,"line":410,"col":31}]}}],"usedParamSet":{"userId":true,"complete":true,"progress":true,"materialKey":true,"trainingCourse":true},"statement":{"body":"INSERT INTO users_training_courses AS ins (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)\nSELECT\n  :userId!,\n  training_courses.id,\n  :complete!,\n  :progress!,\n  ARRAY[(:materialKey!)::text],\n  NOW(),\n  NOW()\nFROM training_courses\nWHERE training_courses.name = :trainingCourse!\nON CONFLICT (user_id, training_course_id) DO UPDATE\n  SET\n    complete = :complete!,\n    progress = :progress!,\n    completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),\n    updated_at = NOW()\n  WHERE\n  \tNOT :materialKey! = ANY(ins.completed_materials)\nRETURNING user_id AS ok","loc":{"a":11403,"b":12025,"line":400,"col":0}}};
+const updateVolunteerTrainingByIdIR: any = {"name":"updateVolunteerTrainingById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12078,"b":12084,"line":466,"col":5}]}},{"name":"complete","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12117,"b":12125,"line":468,"col":5},{"a":12360,"b":12368,"line":480,"col":20}]}},{"name":"progress","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12133,"b":12141,"line":469,"col":5},{"a":12391,"b":12399,"line":481,"col":20}]}},{"name":"materialKey","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12156,"b":12167,"line":470,"col":12},{"a":12471,"b":12482,"line":482,"col":69},{"a":12536,"b":12547,"line":485,"col":13}]}},{"name":"trainingCourse","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12260,"b":12274,"line":476,"col":29}]}}],"usedParamSet":{"userId":true,"complete":true,"progress":true,"materialKey":true,"trainingCourse":true},"statement":{"body":"INSERT INTO users_training_courses AS ins (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)\nSELECT\n    :userId!,\n    training_courses.id,\n    :complete!,\n    :progress!,\n    ARRAY[(:materialKey!)::text],\n    NOW(),\n    NOW()\nFROM\n    training_courses\nWHERE\n    training_courses.name = :trainingCourse!\nON CONFLICT (user_id,\n    training_course_id)\n    DO UPDATE SET\n        complete = :complete!,\n        progress = :progress!,\n        completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),\n        updated_at = NOW()\n    WHERE\n        NOT :materialKey! = ANY (ins.completed_materials)\n    RETURNING\n        user_id AS ok","loc":{"a":11929,"b":12615,"line":464,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO users_training_courses AS ins (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)
  * SELECT
- *   :userId!,
- *   training_courses.id,
- *   :complete!,
- *   :progress!,
- *   ARRAY[(:materialKey!)::text],
- *   NOW(),
- *   NOW()
- * FROM training_courses
- * WHERE training_courses.name = :trainingCourse!
- * ON CONFLICT (user_id, training_course_id) DO UPDATE
- *   SET
- *     complete = :complete!,
- *     progress = :progress!,
- *     completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),
- *     updated_at = NOW()
- *   WHERE
- *   	NOT :materialKey! = ANY(ins.completed_materials)
- * RETURNING user_id AS ok
+ *     :userId!,
+ *     training_courses.id,
+ *     :complete!,
+ *     :progress!,
+ *     ARRAY[(:materialKey!)::text],
+ *     NOW(),
+ *     NOW()
+ * FROM
+ *     training_courses
+ * WHERE
+ *     training_courses.name = :trainingCourse!
+ * ON CONFLICT (user_id,
+ *     training_course_id)
+ *     DO UPDATE SET
+ *         complete = :complete!,
+ *         progress = :progress!,
+ *         completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),
+ *         updated_at = NOW()
+ *     WHERE
+ *         NOT :materialKey! = ANY (ins.completed_materials)
+ *     RETURNING
+ *         user_id AS ok
  * ```
  */
 export const updateVolunteerTrainingById = new PreparedQuery<IUpdateVolunteerTrainingByIdParams,IUpdateVolunteerTrainingByIdResult>(updateVolunteerTrainingByIdIR);
@@ -1058,7 +1104,7 @@ export interface IUpdateVolunteerPhotoIdByIdQuery {
   result: IUpdateVolunteerPhotoIdByIdResult;
 }
 
-const updateVolunteerPhotoIdByIdIR: any = {"name":"updateVolunteerPhotoIdById","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12125,"b":12128,"line":425,"col":23}]}},{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12223,"b":12229,"line":428,"col":51}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12266,"b":12272,"line":431,"col":15}]}}],"usedParamSet":{"key":true,"status":true,"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    photo_id_s3_key = :key!,\n    photo_id_status = subquery.id\nFROM (\n    SELECT id FROM photo_id_statuses WHERE name = :status!\n) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":12068,"b":12300,"line":422,"col":0}}};
+const updateVolunteerPhotoIdByIdIR: any = {"name":"updateVolunteerPhotoIdById","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12716,"b":12719,"line":494,"col":23}]}},{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12846,"b":12852,"line":502,"col":16}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12888,"b":12894,"line":504,"col":15}]}}],"usedParamSet":{"key":true,"status":true,"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    photo_id_s3_key = :key!,\n    photo_id_status = subquery.id\nFROM (\n    SELECT\n        id\n    FROM\n        photo_id_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":12659,"b":12922,"line":491,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1069,8 +1115,12 @@ const updateVolunteerPhotoIdByIdIR: any = {"name":"updateVolunteerPhotoIdById","
  *     photo_id_s3_key = :key!,
  *     photo_id_status = subquery.id
  * FROM (
- *     SELECT id FROM photo_id_statuses WHERE name = :status!
- * ) AS subquery
+ *     SELECT
+ *         id
+ *     FROM
+ *         photo_id_statuses
+ *     WHERE
+ *         name = :status!) AS subquery
  * WHERE
  *     user_id = :userId!
  * RETURNING
@@ -1096,7 +1146,7 @@ export interface IUpdateVolunteerSentInactive30DayEmailQuery {
   result: IUpdateVolunteerSentInactive30DayEmailResult;
 }
 
-const updateVolunteerSentInactive30DayEmailIR: any = {"name":"updateVolunteerSentInactive30DayEmail","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12475,"b":12481,"line":442,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":12354,"b":12509,"line":436,"col":0}}};
+const updateVolunteerSentInactive30DayEmailIR: any = {"name":"updateVolunteerSentInactive30DayEmail","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13098,"b":13104,"line":516,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":12977,"b":13132,"line":510,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1131,7 +1181,7 @@ export interface IUpdateVolunteerSentInactive60DayEmailQuery {
   result: IUpdateVolunteerSentInactive60DayEmailResult;
 }
 
-const updateVolunteerSentInactive60DayEmailIR: any = {"name":"updateVolunteerSentInactive60DayEmail","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12726,"b":12732,"line":454,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = TRUE,\n    sent_inactive_sixty_day_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":12563,"b":12760,"line":447,"col":0}}};
+const updateVolunteerSentInactive60DayEmailIR: any = {"name":"updateVolunteerSentInactive60DayEmail","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13350,"b":13356,"line":529,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = TRUE,\n    sent_inactive_sixty_day_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":13187,"b":13384,"line":522,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1167,7 +1217,7 @@ export interface IUpdateVolunteerSentInactive90DayEmailQuery {
   result: IUpdateVolunteerSentInactive90DayEmailResult;
 }
 
-const updateVolunteerSentInactive90DayEmailIR: any = {"name":"updateVolunteerSentInactive90DayEmail","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12935,"b":12941,"line":465,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_ninety_day_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":12814,"b":12969,"line":459,"col":0}}};
+const updateVolunteerSentInactive90DayEmailIR: any = {"name":"updateVolunteerSentInactive90DayEmail","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13560,"b":13566,"line":541,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_ninety_day_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":13439,"b":13594,"line":535,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1204,7 +1254,7 @@ export interface IUpdateVolunteerProfileByIdQuery {
   result: IUpdateVolunteerProfileByIdResult;
 }
 
-const updateVolunteerProfileByIdIR: any = {"name":"updateVolunteerProfileById","params":[{"name":"deactivated","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13061,"b":13071,"line":473,"col":28}]}},{"name":"phone","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13110,"b":13114,"line":474,"col":22}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13140,"b":13146,"line":476,"col":10}]}}],"usedParamSet":{"deactivated":true,"phone":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    deactivated = COALESCE(:deactivated, deactivated),\n    phone = COALESCE(:phone, phone)\nWHERE\n    id = :userId!\nRETURNING id AS ok","loc":{"a":13012,"b":13165,"line":470,"col":0}}};
+const updateVolunteerProfileByIdIR: any = {"name":"updateVolunteerProfileById","params":[{"name":"deactivated","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13687,"b":13697,"line":550,"col":28}]}},{"name":"phone","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13736,"b":13740,"line":551,"col":22}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13766,"b":13772,"line":553,"col":10}]}}],"usedParamSet":{"deactivated":true,"phone":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    deactivated = COALESCE(:deactivated, deactivated),\n    phone = COALESCE(:phone, phone)\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":13638,"b":13795,"line":547,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1216,7 +1266,8 @@ const updateVolunteerProfileByIdIR: any = {"name":"updateVolunteerProfileById","
  *     phone = COALESCE(:phone, phone)
  * WHERE
  *     id = :userId!
- * RETURNING id AS ok
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const updateVolunteerProfileById = new PreparedQuery<IUpdateVolunteerProfileByIdParams,IUpdateVolunteerProfileByIdResult>(updateVolunteerProfileByIdIR);
@@ -1240,7 +1291,7 @@ export interface IGetVolunteerUnsentReferencesQuery {
   result: IGetVolunteerUnsentReferencesResult;
 }
 
-const getVolunteerUnsentReferencesIR: any = {"name":"getVolunteerUnsentReferences","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    volunteer_references.id,\n    user_id,\n    first_name,\n    email,\n    volunteer_reference_statuses.name AS status\nFROM volunteer_references\nLEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_reference_statuses.name = 'UNSENT'","loc":{"a":13210,"b":13520,"line":480,"col":0}}};
+const getVolunteerUnsentReferencesIR: any = {"name":"getVolunteerUnsentReferences","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    volunteer_references.id,\n    user_id,\n    first_name,\n    email,\n    volunteer_reference_statuses.name AS status\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_reference_statuses.name = 'UNSENT'","loc":{"a":13841,"b":14159,"line":559,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1251,8 +1302,9 @@ const getVolunteerUnsentReferencesIR: any = {"name":"getVolunteerUnsentReference
  *     first_name,
  *     email,
  *     volunteer_reference_statuses.name AS status
- * FROM volunteer_references
- * LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+ * FROM
+ *     volunteer_references
+ *     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
  * WHERE
  *     volunteer_reference_statuses.name = 'UNSENT'
  * ```
@@ -1280,7 +1332,7 @@ export interface IGetReferencesByVolunteerQuery {
   result: IGetReferencesByVolunteerResult;
 }
 
-const getReferencesByVolunteerIR: any = {"name":"getReferencesByVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13862,"b":13868,"line":501,"col":36}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    volunteer_references.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_reference_statuses.name AS status\nFROM volunteer_references\nLEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_references.user_id = :userId!","loc":{"a":13561,"b":13868,"line":492,"col":0}}};
+const getReferencesByVolunteerIR: any = {"name":"getReferencesByVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":14510,"b":14516,"line":583,"col":36}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    volunteer_references.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_reference_statuses.name AS status\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_references.user_id = :userId!","loc":{"a":14201,"b":14516,"line":573,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1291,8 +1343,9 @@ const getReferencesByVolunteerIR: any = {"name":"getReferencesByVolunteer","para
  *     last_name,
  *     email,
  *     volunteer_reference_statuses.name AS status
- * FROM volunteer_references
- * LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+ * FROM
+ *     volunteer_references
+ *     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
  * WHERE
  *     volunteer_references.user_id = :userId!
  * ```
@@ -1326,7 +1379,7 @@ export interface IGetVolunteerForPendingStatusQuery {
   result: IGetVolunteerForPendingStatusResult;
 }
 
-const getVolunteerForPendingStatusIR: any = {"name":"getVolunteerForPendingStatus","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":14625,"b":14631,"line":525,"col":19},{"a":14680,"b":14686,"line":528,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_profiles.approved,\n    volunteer_profiles.onboarded,\n    volunteer_profiles.country,\n    photo_id_statuses.name AS photo_id_status,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    occupations.occupations\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nLEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\nLEFT JOIN (\n    SELECT\n        array_agg(occupation) AS occupations\n    FROM volunteer_occupations\n    WHERE\n        user_id = :userId!\n) AS occupations ON TRUE\nWHERE\n    users.id = :userId!","loc":{"a":13913,"b":14686,"line":504,"col":0}}};
+const getVolunteerForPendingStatusIR: any = {"name":"getVolunteerForPendingStatus","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15325,"b":15331,"line":610,"col":23},{"a":15379,"b":15385,"line":612,"col":16}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_profiles.approved,\n    volunteer_profiles.onboarded,\n    volunteer_profiles.country,\n    photo_id_statuses.name AS photo_id_status,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    occupations.occupations\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    LEFT JOIN (\n        SELECT\n            array_agg(occupation) AS occupations\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = :userId!) AS occupations ON TRUE\nWHERE\n    users.id = :userId!","loc":{"a":14562,"b":15385,"line":587,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1341,19 +1394,20 @@ const getVolunteerForPendingStatusIR: any = {"name":"getVolunteerForPendingStatu
  *     volunteer_profiles.onboarded,
  *     volunteer_profiles.country,
  *     photo_id_statuses.name AS photo_id_status,
- *     volunteer_partner_orgs.name AS volunteer_partner_org,
+ *     volunteer_partner_orgs.key AS volunteer_partner_org,
  *     occupations.occupations
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- * LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
- * LEFT JOIN (
- *     SELECT
- *         array_agg(occupation) AS occupations
- *     FROM volunteer_occupations
- *     WHERE
- *         user_id = :userId!
- * ) AS occupations ON TRUE
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
+ *     LEFT JOIN (
+ *         SELECT
+ *             array_agg(occupation) AS occupations
+ *         FROM
+ *             volunteer_occupations
+ *         WHERE
+ *             user_id = :userId!) AS occupations ON TRUE
  * WHERE
  *     users.id = :userId!
  * ```
@@ -1378,7 +1432,7 @@ export interface IUpdateVolunteerReferenceStatusQuery {
   result: IUpdateVolunteerReferenceStatusResult;
 }
 
-const updateVolunteerReferenceStatusIR: any = {"name":"updateVolunteerReferenceStatus","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":14890,"b":14896,"line":537,"col":62}]}},{"name":"referenceId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":14949,"b":14960,"line":540,"col":31}]}}],"usedParamSet":{"status":true,"referenceId":true},"statement":{"body":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT id FROM volunteer_reference_statuses WHERE name = :status!\n) AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING volunteer_references.id AS ok","loc":{"a":14733,"b":15000,"line":531,"col":0}}};
+const updateVolunteerReferenceStatusIR: any = {"name":"updateVolunteerReferenceStatus","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15622,"b":15628,"line":627,"col":16}]}},{"name":"referenceId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15680,"b":15691,"line":629,"col":31}]}}],"usedParamSet":{"status":true,"referenceId":true},"statement":{"body":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        volunteer_reference_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok","loc":{"a":15433,"b":15735,"line":616,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1389,11 +1443,16 @@ const updateVolunteerReferenceStatusIR: any = {"name":"updateVolunteerReferenceS
  *     status_id = subquery.id,
  *     updated_at = NOW()
  * FROM (
- *     SELECT id FROM volunteer_reference_statuses WHERE name = :status!
- * ) AS subquery
+ *     SELECT
+ *         id
+ *     FROM
+ *         volunteer_reference_statuses
+ *     WHERE
+ *         name = :status!) AS subquery
  * WHERE
  *     volunteer_references.id = :referenceId!
- * RETURNING volunteer_references.id AS ok
+ * RETURNING
+ *     volunteer_references.id AS ok
  * ```
  */
 export const updateVolunteerReferenceStatus = new PreparedQuery<IUpdateVolunteerReferenceStatusParams,IUpdateVolunteerReferenceStatusResult>(updateVolunteerReferenceStatusIR);
@@ -1415,7 +1474,7 @@ export interface IUpdateVolunteerApprovedQuery {
   result: IUpdateVolunteerApprovedResult;
 }
 
-const updateVolunteerApprovedIR: any = {"name":"updateVolunteerApproved","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15158,"b":15164,"line":550,"col":34}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    approved = TRUE,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING volunteer_profiles.user_id AS ok","loc":{"a":15040,"b":15207,"line":544,"col":0}}};
+const updateVolunteerApprovedIR: any = {"name":"updateVolunteerApproved","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15894,"b":15900,"line":641,"col":34}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    approved = TRUE,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING\n    volunteer_profiles.user_id AS ok","loc":{"a":15776,"b":15947,"line":635,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1427,7 +1486,8 @@ const updateVolunteerApprovedIR: any = {"name":"updateVolunteerApproved","params
  *     updated_at = NOW()
  * WHERE
  *     volunteer_profiles.user_id = :userId!
- * RETURNING volunteer_profiles.user_id AS ok
+ * RETURNING
+ *     volunteer_profiles.user_id AS ok
  * ```
  */
 export const updateVolunteerApproved = new PreparedQuery<IUpdateVolunteerApprovedParams,IUpdateVolunteerApprovedResult>(updateVolunteerApprovedIR);
@@ -1449,7 +1509,7 @@ export interface IUpdateVolunteerOnboardedQuery {
   result: IUpdateVolunteerOnboardedResult;
 }
 
-const updateVolunteerOnboardedIR: any = {"name":"updateVolunteerOnboarded","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15367,"b":15373,"line":560,"col":34}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    onboarded = TRUE,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING volunteer_profiles.user_id AS ok","loc":{"a":15248,"b":15416,"line":554,"col":0}}};
+const updateVolunteerOnboardedIR: any = {"name":"updateVolunteerOnboarded","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":16108,"b":16114,"line":653,"col":34}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    volunteer_profiles\nSET\n    onboarded = TRUE,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING\n    volunteer_profiles.user_id AS ok","loc":{"a":15989,"b":16161,"line":647,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1461,7 +1521,8 @@ const updateVolunteerOnboardedIR: any = {"name":"updateVolunteerOnboarded","para
  *     updated_at = NOW()
  * WHERE
  *     volunteer_profiles.user_id = :userId!
- * RETURNING volunteer_profiles.user_id AS ok
+ * RETURNING
+ *     volunteer_profiles.user_id AS ok
  * ```
  */
 export const updateVolunteerOnboarded = new PreparedQuery<IUpdateVolunteerOnboardedParams,IUpdateVolunteerOnboardedResult>(updateVolunteerOnboardedIR);
@@ -1489,7 +1550,7 @@ export interface IGetVolunteersForNiceToMeetYouQuery {
   result: IGetVolunteersForNiceToMeetYouResult;
 }
 
-const getVolunteersForNiceToMeetYouIR: any = {"name":"getVolunteersForNiceToMeetYou","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15911,"b":15916,"line":578,"col":25}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15946,"b":15949,"line":579,"col":24}]}}],"usedParamSet":{"start":true,"end":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE AND\n    users.created_at >= :start! AND\n    users.created_at < :end!","loc":{"a":15462,"b":15949,"line":564,"col":0}}};
+const getVolunteersForNiceToMeetYouIR: any = {"name":"getVolunteersForNiceToMeetYou","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":16668,"b":16673,"line":674,"col":29}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":16703,"b":16706,"line":675,"col":28}]}}],"usedParamSet":{"start":true,"end":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND users.created_at >= :start!\n    AND users.created_at < :end!","loc":{"a":16208,"b":16706,"line":659,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1500,16 +1561,17 @@ const getVolunteersForNiceToMeetYouIR: any = {"name":"getVolunteersForNiceToMeet
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  * WHERE
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE AND
- *     users.created_at >= :start! AND
- *     users.created_at < :end!
+ *     users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
+ *     AND users.created_at >= :start!
+ *     AND users.created_at < :end!
  * ```
  */
 export const getVolunteersForNiceToMeetYou = new PreparedQuery<IGetVolunteersForNiceToMeetYouParams,IGetVolunteersForNiceToMeetYouResult>(getVolunteersForNiceToMeetYouIR);
@@ -1534,7 +1596,7 @@ export interface IGetVolunteersForReadyToCoachQuery {
   result: IGetVolunteersForReadyToCoachResult;
 }
 
-const getVolunteersForReadyToCoachIR: any = {"name":"getVolunteersForReadyToCoach","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nLEFT JOIN user_product_flags ON user_product_flags.user_id = users.id\nWHERE\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE AND\n    volunteer_profiles.onboarded IS TRUE AND\n    volunteer_profiles.approved IS TRUE AND\n    user_product_flags.sent_ready_to_coach_email IS FALSE","loc":{"a":15994,"b":16633,"line":582,"col":0}}};
+const getVolunteersForReadyToCoachIR: any = {"name":"getVolunteersForReadyToCoach","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id\nWHERE\n    users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE\n    AND user_product_flags.sent_ready_to_coach_email IS FALSE","loc":{"a":16752,"b":17406,"line":679,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1545,18 +1607,19 @@ const getVolunteersForReadyToCoachIR: any = {"name":"getVolunteersForReadyToCoac
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- * LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id
  * WHERE
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE AND
- *     volunteer_profiles.onboarded IS TRUE AND
- *     volunteer_profiles.approved IS TRUE AND
- *     user_product_flags.sent_ready_to_coach_email IS FALSE
+ *     users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
+ *     AND volunteer_profiles.onboarded IS TRUE
+ *     AND volunteer_profiles.approved IS TRUE
+ *     AND user_product_flags.sent_ready_to_coach_email IS FALSE
  * ```
  */
 export const getVolunteersForReadyToCoach = new PreparedQuery<IGetVolunteersForReadyToCoachParams,IGetVolunteersForReadyToCoachResult>(getVolunteersForReadyToCoachIR);
@@ -1584,7 +1647,7 @@ export interface IGetVolunteersForWaitingReferencesQuery {
   result: IGetVolunteersForWaitingReferencesResult;
 }
 
-const getVolunteersForWaitingReferencesIR: any = {"name":"getVolunteersForWaitingReferences","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":17399,"b":17404,"line":619,"col":36}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":17446,"b":17449,"line":620,"col":36}]}}],"usedParamSet":{"start":true,"end":true},"statement":{"body":"SELECT\n    users.id,\n    users.first_name,\n    users.last_name,\n    users.phone,\n    users.email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM users\nLEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nLEFT JOIN volunteer_references ON volunteer_references.user_id = users.id\nLEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE AND\n    volunteer_reference_statuses.name = 'sent' AND\n    volunteer_references.sent_at > :start! AND\n    volunteer_references.sent_at < :end!\nGROUP BY users.id, volunteer_partner_orgs.name","loc":{"a":16683,"b":17496,"line":602,"col":0}}};
+const getVolunteersForWaitingReferencesIR: any = {"name":"getVolunteersForWaitingReferences","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18192,"b":18197,"line":719,"col":40}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18239,"b":18242,"line":720,"col":40}]}}],"usedParamSet":{"start":true,"end":true},"statement":{"body":"SELECT\n    users.id,\n    users.first_name,\n    users.last_name,\n    users.phone,\n    users.email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN volunteer_references ON volunteer_references.user_id = users.id\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_reference_statuses.name = 'sent'\n    AND volunteer_references.sent_at > :start!\n    AND volunteer_references.sent_at < :end!\nGROUP BY\n    users.id,\n    volunteer_partner_orgs.key","loc":{"a":17457,"b":18296,"line":701,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1595,20 +1658,23 @@ const getVolunteersForWaitingReferencesIR: any = {"name":"getVolunteersForWaitin
  *     users.last_name,
  *     users.phone,
  *     users.email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
- * FROM users
- * LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- * LEFT JOIN volunteer_references ON volunteer_references.user_id = users.id
- * LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
+ * FROM
+ *     users
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+ *     LEFT JOIN volunteer_references ON volunteer_references.user_id = users.id
+ *     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
  * WHERE
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE AND
- *     volunteer_reference_statuses.name = 'sent' AND
- *     volunteer_references.sent_at > :start! AND
- *     volunteer_references.sent_at < :end!
- * GROUP BY users.id, volunteer_partner_orgs.name
+ *     users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
+ *     AND volunteer_reference_statuses.name = 'sent'
+ *     AND volunteer_references.sent_at > :start!
+ *     AND volunteer_references.sent_at < :end!
+ * GROUP BY
+ *     users.id,
+ *     volunteer_partner_orgs.key
  * ```
  */
 export const getVolunteersForWaitingReferences = new PreparedQuery<IGetVolunteersForWaitingReferencesParams,IGetVolunteersForWaitingReferencesResult>(getVolunteersForWaitingReferencesIR);
@@ -1631,7 +1697,7 @@ export interface IAddVolunteerCertificationQuery {
   result: IAddVolunteerCertificationResult;
 }
 
-const addVolunteerCertificationIR: any = {"name":"addVolunteerCertification","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":17635,"b":17641,"line":626,"col":5}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":17831,"b":17838,"line":635,"col":26}]}}],"usedParamSet":{"userId":true,"subject":true},"statement":{"body":"INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at)\nSELECT\n    :userId!,\n    subquery.id,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        certifications.id\n    FROM certifications\n    JOIN quizzes ON quizzes.name = certifications.name\n    WHERE quizzes.name = :subject!\n) AS subquery\nON CONFLICT (user_id, certification_id) DO NOTHING\nRETURNING user_id AS ok","loc":{"a":17538,"b":17927,"line":624,"col":0}}};
+const addVolunteerCertificationIR: any = {"name":"addVolunteerCertification","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18436,"b":18442,"line":729,"col":5}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18652,"b":18659,"line":740,"col":24}]}}],"usedParamSet":{"userId":true,"subject":true},"statement":{"body":"INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at)\nSELECT\n    :userId!,\n    subquery.id,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        certifications.id\n    FROM\n        certifications\n        JOIN quizzes ON quizzes.name = certifications.name\n    WHERE\n        quizzes.name = :subject!) AS subquery\nON CONFLICT (user_id,\n    certification_id)\n    DO NOTHING\nRETURNING\n    user_id AS ok","loc":{"a":18339,"b":18759,"line":727,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1645,12 +1711,16 @@ const addVolunteerCertificationIR: any = {"name":"addVolunteerCertification","pa
  * FROM (
  *     SELECT
  *         certifications.id
- *     FROM certifications
- *     JOIN quizzes ON quizzes.name = certifications.name
- *     WHERE quizzes.name = :subject!
- * ) AS subquery
- * ON CONFLICT (user_id, certification_id) DO NOTHING
- * RETURNING user_id AS ok
+ *     FROM
+ *         certifications
+ *         JOIN quizzes ON quizzes.name = certifications.name
+ *     WHERE
+ *         quizzes.name = :subject!) AS subquery
+ * ON CONFLICT (user_id,
+ *     certification_id)
+ *     DO NOTHING
+ * RETURNING
+ *     user_id AS ok
  * ```
  */
 export const addVolunteerCertification = new PreparedQuery<IAddVolunteerCertificationParams,IAddVolunteerCertificationResult>(addVolunteerCertificationIR);
@@ -1674,7 +1744,7 @@ export interface IUpdateVolunteerQuizQuery {
   result: IUpdateVolunteerQuizResult;
 }
 
-const updateVolunteerQuizIR: any = {"name":"updateVolunteerQuiz","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18069,"b":18075,"line":643,"col":5}]}},{"name":"passed","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18107,"b":18113,"line":646,"col":5},{"a":18329,"b":18335,"line":658,"col":14}]}},{"name":"quiz","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18217,"b":18221,"line":653,"col":26}]}}],"usedParamSet":{"userId":true,"passed":true,"quiz":true},"statement":{"body":"INSERT INTO users_quizzes AS ins (user_id, quiz_id, attempts, passed, created_at, updated_at)\nSELECT\n    :userId!,\n    subquery.id,\n    1,\n    :passed!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        quizzes.id\n    FROM quizzes\n    WHERE quizzes.name = :quiz!\n) AS subquery\nON CONFLICT (user_id, quiz_id) DO UPDATE\nSET\n    attempts = ins.attempts + 1,\n    passed = :passed!,\n    updated_at = NOW()\nRETURNING user_id AS ok","loc":{"a":17963,"b":18383,"line":641,"col":0}}};
+const updateVolunteerQuizIR: any = {"name":"updateVolunteerQuiz","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18902,"b":18908,"line":751,"col":5}]}},{"name":"passed","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18940,"b":18946,"line":754,"col":5},{"a":19193,"b":19199,"line":768,"col":18}]}},{"name":"quiz","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19066,"b":19070,"line":763,"col":24}]}}],"usedParamSet":{"userId":true,"passed":true,"quiz":true},"statement":{"body":"INSERT INTO users_quizzes AS ins (user_id, quiz_id, attempts, passed, created_at, updated_at)\nSELECT\n    :userId!,\n    subquery.id,\n    1,\n    :passed!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        quizzes.id\n    FROM\n        quizzes\n    WHERE\n        quizzes.name = :quiz!) AS subquery\nON CONFLICT (user_id,\n    quiz_id)\n    DO UPDATE SET\n        attempts = ins.attempts + 1,\n        passed = :passed!,\n        updated_at = NOW()\n    RETURNING\n        user_id AS ok","loc":{"a":18796,"b":19263,"line":749,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1690,15 +1760,18 @@ const updateVolunteerQuizIR: any = {"name":"updateVolunteerQuiz","params":[{"nam
  * FROM (
  *     SELECT
  *         quizzes.id
- *     FROM quizzes
- *     WHERE quizzes.name = :quiz!
- * ) AS subquery
- * ON CONFLICT (user_id, quiz_id) DO UPDATE
- * SET
- *     attempts = ins.attempts + 1,
- *     passed = :passed!,
- *     updated_at = NOW()
- * RETURNING user_id AS ok
+ *     FROM
+ *         quizzes
+ *     WHERE
+ *         quizzes.name = :quiz!) AS subquery
+ * ON CONFLICT (user_id,
+ *     quiz_id)
+ *     DO UPDATE SET
+ *         attempts = ins.attempts + 1,
+ *         passed = :passed!,
+ *         updated_at = NOW()
+ *     RETURNING
+ *         user_id AS ok
  * ```
  */
 export const updateVolunteerQuiz = new PreparedQuery<IUpdateVolunteerQuizParams,IUpdateVolunteerQuizResult>(updateVolunteerQuizIR);
@@ -1720,7 +1793,7 @@ export interface IGetVolunteersAdminAvailabilityQuery {
   result: IGetVolunteersAdminAvailabilityResult;
 }
 
-const getVolunteersAdminAvailabilityIR: any = {"name":"getVolunteersAdminAvailability","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18654,"b":18661,"line":669,"col":27},{"a":19186,"b":19193,"line":685,"col":25}]}}],"usedParamSet":{"subject":true},"statement":{"body":"WITH certs_for_subject AS (\n    SELECT\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    WHERE subjects.name = :subject!\n)\nSELECT users.id FROM users\nJOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nJOIN (\n    SELECT\n        users.id,\n        COUNT(*)::int AS earned_certs,\n        certs_for_subject.total\n    FROM\n        users_certifications\n        JOIN certification_subject_unlocks USING (certification_id)\n        JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n        JOIN users ON users.id = users_certifications.user_id\n        JOIN certs_for_subject ON TRUE\n    WHERE\n        subjects.name = :subject!\n    GROUP BY\n        users.id, subjects.name, certs_for_subject.total\n    HAVING\n        COUNT(*)::int >= certs_for_subject.total\n) user_certs ON user_certs.id = users.id\nWHERE\n    users.test_user IS FALSE AND\n    volunteer_profiles.onboarded IS TRUE AND\n    users.deactivated IS FALSE AND\n    users.banned IS FALSE","loc":{"a":18430,"b":19509,"line":663,"col":0}}};
+const getVolunteersAdminAvailabilityIR: any = {"name":"getVolunteersAdminAvailability","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19543,"b":19550,"line":782,"col":25},{"a":20139,"b":20146,"line":801,"col":29}]}}],"usedParamSet":{"subject":true},"statement":{"body":"WITH certs_for_subject AS (\n    SELECT\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    WHERE\n        subjects.name = :subject!\n)\nSELECT\n    users.id\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN (\n        SELECT\n            users.id,\n            COUNT(*)::int AS earned_certs,\n            certs_for_subject.total\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN users ON users.id = users_certifications.user_id\n            JOIN certs_for_subject ON TRUE\n        WHERE\n            subjects.name = :subject!\n        GROUP BY\n            users.id, subjects.name, certs_for_subject.total\n        HAVING\n            COUNT(*)::int >= certs_for_subject.total) user_certs ON user_certs.id = users.id\nWHERE\n    users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND users.deactivated IS FALSE\n    AND users.banned IS FALSE","loc":{"a":19311,"b":20477,"line":775,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1731,122 +1804,39 @@ const getVolunteersAdminAvailabilityIR: any = {"name":"getVolunteersAdminAvailab
  *     FROM
  *         certification_subject_unlocks
  *         JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
- *     WHERE subjects.name = :subject!
- * )
- * SELECT users.id FROM users
- * JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * JOIN (
- *     SELECT
- *         users.id,
- *         COUNT(*)::int AS earned_certs,
- *         certs_for_subject.total
- *     FROM
- *         users_certifications
- *         JOIN certification_subject_unlocks USING (certification_id)
- *         JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
- *         JOIN users ON users.id = users_certifications.user_id
- *         JOIN certs_for_subject ON TRUE
  *     WHERE
  *         subjects.name = :subject!
- *     GROUP BY
- *         users.id, subjects.name, certs_for_subject.total
- *     HAVING
- *         COUNT(*)::int >= certs_for_subject.total
- * ) user_certs ON user_certs.id = users.id
+ * )
+ * SELECT
+ *     users.id
+ * FROM
+ *     users
+ *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     JOIN (
+ *         SELECT
+ *             users.id,
+ *             COUNT(*)::int AS earned_certs,
+ *             certs_for_subject.total
+ *         FROM
+ *             users_certifications
+ *             JOIN certification_subject_unlocks USING (certification_id)
+ *             JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
+ *             JOIN users ON users.id = users_certifications.user_id
+ *             JOIN certs_for_subject ON TRUE
+ *         WHERE
+ *             subjects.name = :subject!
+ *         GROUP BY
+ *             users.id, subjects.name, certs_for_subject.total
+ *         HAVING
+ *             COUNT(*)::int >= certs_for_subject.total) user_certs ON user_certs.id = users.id
  * WHERE
- *     users.test_user IS FALSE AND
- *     volunteer_profiles.onboarded IS TRUE AND
- *     users.deactivated IS FALSE AND
- *     users.banned IS FALSE
+ *     users.test_user IS FALSE
+ *     AND volunteer_profiles.onboarded IS TRUE
+ *     AND users.deactivated IS FALSE
+ *     AND users.banned IS FALSE
  * ```
  */
 export const getVolunteersAdminAvailability = new PreparedQuery<IGetVolunteersAdminAvailabilityParams,IGetVolunteersAdminAvailabilityResult>(getVolunteersAdminAvailabilityIR);
-
-
-/** 'CreateVolunteer' parameters type */
-export interface ICreateVolunteerParams {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  password: string;
-  phone: string;
-  referralCode: string;
-  referredBy: string | null | void;
-  timezone: string;
-  volunteerPartnerOrg: string | null | void;
-}
-
-/** 'CreateVolunteer' return type */
-export interface ICreateVolunteerResult {
-  banned: boolean;
-  createdAt: Date;
-  deactivated: boolean;
-  email: string;
-  firstName: string;
-  id: string;
-  isAdmin: boolean | null;
-  isVolunteer: boolean | null;
-  lastName: string;
-  phone: string | null;
-  testUser: boolean;
-  volunteerPartnerOrg: string;
-}
-
-/** 'CreateVolunteer' query type */
-export interface ICreateVolunteerQuery {
-  params: ICreateVolunteerParams;
-  result: ICreateVolunteerResult;
-}
-
-const createVolunteerIR: any = {"name":"createVolunteer","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19709,"b":19711,"line":700,"col":13}]}},{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19715,"b":19720,"line":700,"col":19}]}},{"name":"phone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19724,"b":19729,"line":700,"col":28}]}},{"name":"firstName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19733,"b":19742,"line":700,"col":37}]}},{"name":"lastName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19746,"b":19754,"line":700,"col":50}]}},{"name":"password","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19758,"b":19766,"line":700,"col":62}]}},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19777,"b":19786,"line":700,"col":81}]}},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19790,"b":19802,"line":700,"col":94}]}},{"name":"timezone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":20161,"b":20169,"line":710,"col":5}]}},{"name":"volunteerPartnerOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":20375,"b":20393,"line":718,"col":70}]}}],"usedParamSet":{"id":true,"email":true,"phone":true,"firstName":true,"lastName":true,"password":true,"referredBy":true,"referralCode":true,"timezone":true,"volunteerPartnerOrg":true},"statement":{"body":"WITH ins_user AS (\n    INSERT INTO users (id, email, phone, first_name, last_name, password, verified, referred_by, referral_code, created_at, updated_at)\n    VALUES (:id!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())\n    ON CONFLICT (email) DO NOTHING\n    RETURNING id, email, first_name, last_name, phone, banned, test_user, deactivated, created_at\n),\nins_vp AS (\n  INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)\n  SELECT\n    subquery.id,\n    FALSE,\n    subquery.volunteer_partner_org_id,\n    :timezone!,\n    NOW(),\n    NOW()\n  FROM (\n\tSELECT\n    \tins_user.id,\n    \tvolunteer_partner_orgs.id AS volunteer_partner_org_id\n    FROM ins_user\n  \tLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.name = :volunteerPartnerOrg\n  ) AS subquery\n  RETURNING user_id, volunteer_partner_org_id\n)\nSELECT\n    ins_user.id,\n    ins_user.first_name,\n    ins_user.last_name,\n    ins_user.email,\n    ins_user.phone,\n    ins_user.banned,\n    ins_user.test_user,\n    ins_user.deactivated,\n    ins_user.created_at,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    TRUE AS is_volunteer,\n    FALSE AS is_admin\nFROM ins_user\nJOIN ins_vp ON ins_user.id = ins_vp.user_id\nLEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = ins_vp.volunteer_partner_org_id","loc":{"a":19541,"b":20926,"line":698,"col":0}}};
-
-/**
- * Query generated from SQL:
- * ```
- * WITH ins_user AS (
- *     INSERT INTO users (id, email, phone, first_name, last_name, password, verified, referred_by, referral_code, created_at, updated_at)
- *     VALUES (:id!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())
- *     ON CONFLICT (email) DO NOTHING
- *     RETURNING id, email, first_name, last_name, phone, banned, test_user, deactivated, created_at
- * ),
- * ins_vp AS (
- *   INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)
- *   SELECT
- *     subquery.id,
- *     FALSE,
- *     subquery.volunteer_partner_org_id,
- *     :timezone!,
- *     NOW(),
- *     NOW()
- *   FROM (
- * 	SELECT
- *     	ins_user.id,
- *     	volunteer_partner_orgs.id AS volunteer_partner_org_id
- *     FROM ins_user
- *   	LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.name = :volunteerPartnerOrg
- *   ) AS subquery
- *   RETURNING user_id, volunteer_partner_org_id
- * )
- * SELECT
- *     ins_user.id,
- *     ins_user.first_name,
- *     ins_user.last_name,
- *     ins_user.email,
- *     ins_user.phone,
- *     ins_user.banned,
- *     ins_user.test_user,
- *     ins_user.deactivated,
- *     ins_user.created_at,
- *     volunteer_partner_orgs.name AS volunteer_partner_org,
- *     TRUE AS is_volunteer,
- *     FALSE AS is_admin
- * FROM ins_user
- * JOIN ins_vp ON ins_user.id = ins_vp.user_id
- * LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = ins_vp.volunteer_partner_org_id
- * ```
- */
-export const createVolunteer = new PreparedQuery<ICreateVolunteerParams,ICreateVolunteerResult>(createVolunteerIR);
 
 
 /** 'GetVolunteerForTextResponse' parameters type */
@@ -1870,7 +1860,7 @@ export interface IGetVolunteerForTextResponseQuery {
   result: IGetVolunteerForTextResponseResult;
 }
 
-const getVolunteerForTextResponseIR: any = {"name":"getVolunteerForTextResponse","params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":21478,"b":21483,"line":754,"col":19}]}}],"usedParamSet":{"phone":true},"statement":{"body":"SELECT\n    users.id AS volunteer_id,\n    sessions.id AS session_id,\n    sessions.volunteer_joined_at,\n    sessions.ended_at,\n    subjects.name AS subject,\n    topics.name AS topic\nFROM users\nJOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nLEFT JOIN notifications ON notifications.user_id = users.id\nLEFT JOIN sessions ON sessions.id = notifications.session_id\nLEFT JOIN subjects ON subjects.id = sessions.subject_id\nLEFT JOIN topics ON topics.id = subjects.topic_id\nWHERE\n    users.phone = :phone!\nORDER BY notifications.created_at DESC LIMIT 1","loc":{"a":20970,"b":21530,"line":740,"col":0}}};
+const getVolunteerForTextResponseIR: any = {"name":"getVolunteerForTextResponse","params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":21054,"b":21059,"line":829,"col":19}]}}],"usedParamSet":{"phone":true},"statement":{"body":"SELECT\n    users.id AS volunteer_id,\n    sessions.id AS session_id,\n    sessions.volunteer_joined_at,\n    sessions.ended_at,\n    subjects.name AS subject,\n    topics.name AS topic\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN notifications ON notifications.user_id = users.id\n    LEFT JOIN sessions ON sessions.id = notifications.session_id\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\nWHERE\n    users.phone = :phone!\nORDER BY\n    notifications.created_at DESC\nLIMIT 1","loc":{"a":20522,"b":21110,"line":814,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1882,15 +1872,18 @@ const getVolunteerForTextResponseIR: any = {"name":"getVolunteerForTextResponse"
  *     sessions.ended_at,
  *     subjects.name AS subject,
  *     topics.name AS topic
- * FROM users
- * JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * LEFT JOIN notifications ON notifications.user_id = users.id
- * LEFT JOIN sessions ON sessions.id = notifications.session_id
- * LEFT JOIN subjects ON subjects.id = sessions.subject_id
- * LEFT JOIN topics ON topics.id = subjects.topic_id
+ * FROM
+ *     users
+ *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN notifications ON notifications.user_id = users.id
+ *     LEFT JOIN sessions ON sessions.id = notifications.session_id
+ *     LEFT JOIN subjects ON subjects.id = sessions.subject_id
+ *     LEFT JOIN topics ON topics.id = subjects.topic_id
  * WHERE
  *     users.phone = :phone!
- * ORDER BY notifications.created_at DESC LIMIT 1
+ * ORDER BY
+ *     notifications.created_at DESC
+ * LIMIT 1
  * ```
  */
 export const getVolunteerForTextResponse = new PreparedQuery<IGetVolunteerForTextResponseParams,IGetVolunteerForTextResponseResult>(getVolunteerForTextResponseIR);
@@ -1918,7 +1911,7 @@ export interface IGetVolunteersToReviewQuery {
   result: IGetVolunteersToReviewResult;
 }
 
-const getVolunteersToReviewIR: any = {"name":"getVolunteersToReview","params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22838,"b":22843,"line":787,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22860,"b":22866,"line":787,"col":30}]}}],"usedParamSet":{"limit":true,"offset":true},"statement":{"body":"SELECT\n    users.id,\n    users.first_name,\n    users.last_name,\n    users.email,\n    users.created_at,\n    MAX(user_actions.created_at) AS ready_for_review_at\nFROM users\nJOIN volunteer_profiles ON users.id = volunteer_profiles.user_id\nLEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\nLEFT JOIN (\n    SELECT user_id, count(*) AS total_references\n    FROM volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\n    WHERE\n        NOT volunteer_reference_statuses.name = ANY('{ \"sent\", \"unsent\", \"rejected\" }')\n    GROUP BY user_id\n) AS reference_count ON reference_count.user_id = users.id\nJOIN volunteer_occupations ON volunteer_occupations.user_id = users.id\nLEFT JOIN user_actions ON user_actions.user_id = users.id\nWHERE\n    volunteer_profiles.approved IS FALSE AND\n    NOT volunteer_profiles.country IS NULL AND\n    NOT volunteer_profiles.photo_id_s3_key IS NULL AND\n    photo_id_statuses.name = ANY('{ \"submitted\", \"approved\" }') AND\n    user_actions.action_type = ANY('{ \"added photo id\", \"submitted reference form\", \"completed background info\" }') AND\n    reference_count.total_references = 2\nGROUP BY users.id\nORDER BY ready_for_review_at\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":21568,"b":22872,"line":758,"col":0}}};
+const getVolunteersToReviewIR: any = {"name":"getVolunteersToReview","params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22529,"b":22534,"line":871,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22551,"b":22557,"line":871,"col":30}]}}],"usedParamSet":{"limit":true,"offset":true},"statement":{"body":"SELECT\n    users.id,\n    users.first_name,\n    users.last_name,\n    users.email,\n    users.created_at,\n    MAX(user_actions.created_at) AS ready_for_review_at\nFROM\n    users\n    JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    LEFT JOIN (\n        SELECT\n            user_id,\n            count(*) AS total_references\n        FROM\n            volunteer_references\n            LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\n        WHERE\n            NOT volunteer_reference_statuses.name = ANY ('{ \"sent\", \"unsent\", \"rejected\" }')\n        GROUP BY\n            user_id) AS reference_count ON reference_count.user_id = users.id\n    JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id\n    LEFT JOIN user_actions ON user_actions.user_id = users.id\nWHERE\n    volunteer_profiles.approved IS FALSE\n    AND NOT volunteer_profiles.country IS NULL\n    AND NOT volunteer_profiles.photo_id_s3_key IS NULL\n    AND photo_id_statuses.name = ANY ('{ \"submitted\", \"approved\" }')\n    AND user_actions.action_type = ANY ('{ \"added photo id\", \"submitted reference form\", \"completed background info\" }')\n    AND reference_count.total_references = 2\nGROUP BY\n    users.id\nORDER BY\n    ready_for_review_at\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":21149,"b":22563,"line":836,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1930,28 +1923,34 @@ const getVolunteersToReviewIR: any = {"name":"getVolunteersToReview","params":[{
  *     users.email,
  *     users.created_at,
  *     MAX(user_actions.created_at) AS ready_for_review_at
- * FROM users
- * JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
- * LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
- * LEFT JOIN (
- *     SELECT user_id, count(*) AS total_references
- *     FROM volunteer_references
- *     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
- *     WHERE
- *         NOT volunteer_reference_statuses.name = ANY('{ "sent", "unsent", "rejected" }')
- *     GROUP BY user_id
- * ) AS reference_count ON reference_count.user_id = users.id
- * JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id
- * LEFT JOIN user_actions ON user_actions.user_id = users.id
+ * FROM
+ *     users
+ *     JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
+ *     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
+ *     LEFT JOIN (
+ *         SELECT
+ *             user_id,
+ *             count(*) AS total_references
+ *         FROM
+ *             volunteer_references
+ *             LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+ *         WHERE
+ *             NOT volunteer_reference_statuses.name = ANY ('{ "sent", "unsent", "rejected" }')
+ *         GROUP BY
+ *             user_id) AS reference_count ON reference_count.user_id = users.id
+ *     JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id
+ *     LEFT JOIN user_actions ON user_actions.user_id = users.id
  * WHERE
- *     volunteer_profiles.approved IS FALSE AND
- *     NOT volunteer_profiles.country IS NULL AND
- *     NOT volunteer_profiles.photo_id_s3_key IS NULL AND
- *     photo_id_statuses.name = ANY('{ "submitted", "approved" }') AND
- *     user_actions.action_type = ANY('{ "added photo id", "submitted reference form", "completed background info" }') AND
- *     reference_count.total_references = 2
- * GROUP BY users.id
- * ORDER BY ready_for_review_at
+ *     volunteer_profiles.approved IS FALSE
+ *     AND NOT volunteer_profiles.country IS NULL
+ *     AND NOT volunteer_profiles.photo_id_s3_key IS NULL
+ *     AND photo_id_statuses.name = ANY ('{ "submitted", "approved" }')
+ *     AND user_actions.action_type = ANY ('{ "added photo id", "submitted reference form", "completed background info" }')
+ *     AND reference_count.total_references = 2
+ * GROUP BY
+ *     users.id
+ * ORDER BY
+ *     ready_for_review_at
  * LIMIT (:limit!)::int OFFSET (:offset!)::int
  * ```
  */
@@ -1981,7 +1980,7 @@ export interface IGetReferencesToFollowupQuery {
   result: IGetReferencesToFollowupResult;
 }
 
-const getReferencesToFollowupIR: any = {"name":"getReferencesToFollowup","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23697,"b":23702,"line":807,"col":36}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23744,"b":23747,"line":808,"col":36}]}}],"usedParamSet":{"start":true,"end":true},"statement":{"body":"SELECT\n    users.id AS volunteer_id,\n    users.first_name AS volunteer_first_name,\n    users.last_name AS volunteer_last_name,\n    volunteer_references.id AS reference_id,\n    volunteer_references.first_name AS reference_first_name,\n    volunteer_references.last_name AS reference_last_name,\n    volunteer_references.email AS reference_email\nFROM users\nJOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\nJOIN volunteer_references ON volunteer_references.user_id = users.id\nLEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    users.banned IS FALSE AND\n    users.deactivated IS FALSE AND\n    users.test_user IS FALSE AND\n    volunteer_reference_statuses.name = 'sent' AND\n    volunteer_references.sent_at > :start! AND\n    volunteer_references.sent_at < :end!","loc":{"a":22912,"b":23747,"line":790,"col":0}}};
+const getReferencesToFollowupIR: any = {"name":"getReferencesToFollowup","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23405,"b":23410,"line":893,"col":40}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23452,"b":23455,"line":894,"col":40}]}}],"usedParamSet":{"start":true,"end":true},"statement":{"body":"SELECT\n    users.id AS volunteer_id,\n    users.first_name AS volunteer_first_name,\n    users.last_name AS volunteer_last_name,\n    volunteer_references.id AS reference_id,\n    volunteer_references.first_name AS reference_first_name,\n    volunteer_references.last_name AS reference_last_name,\n    volunteer_references.email AS reference_email\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN volunteer_references ON volunteer_references.user_id = users.id\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    users.banned IS FALSE\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_reference_statuses.name = 'sent'\n    AND volunteer_references.sent_at > :start!\n    AND volunteer_references.sent_at < :end!","loc":{"a":22604,"b":23455,"line":875,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1994,17 +1993,18 @@ const getReferencesToFollowupIR: any = {"name":"getReferencesToFollowup","params
  *     volunteer_references.first_name AS reference_first_name,
  *     volunteer_references.last_name AS reference_last_name,
  *     volunteer_references.email AS reference_email
- * FROM users
- * JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- * JOIN volunteer_references ON volunteer_references.user_id = users.id
- * LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+ * FROM
+ *     users
+ *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     JOIN volunteer_references ON volunteer_references.user_id = users.id
+ *     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
  * WHERE
- *     users.banned IS FALSE AND
- *     users.deactivated IS FALSE AND
- *     users.test_user IS FALSE AND
- *     volunteer_reference_statuses.name = 'sent' AND
- *     volunteer_references.sent_at > :start! AND
- *     volunteer_references.sent_at < :end!
+ *     users.banned IS FALSE
+ *     AND users.deactivated IS FALSE
+ *     AND users.test_user IS FALSE
+ *     AND volunteer_reference_statuses.name = 'sent'
+ *     AND volunteer_references.sent_at > :start!
+ *     AND volunteer_references.sent_at < :end!
  * ```
  */
 export const getReferencesToFollowup = new PreparedQuery<IGetReferencesToFollowupParams,IGetReferencesToFollowupResult>(getReferencesToFollowupIR);
@@ -2041,7 +2041,7 @@ export interface IUpdateVolunteerBackgroundInfoQuery {
   result: IUpdateVolunteerBackgroundInfoResult;
 }
 
-const updateVolunteerBackgroundInfoIR: any = {"name":"updateVolunteerBackgroundInfo","params":[{"name":"occupation","codeRefs":{"defined":{"a":23806,"b":23815,"line":812,"col":11},"used":[{"a":24070,"b":24080,"line":820,"col":12}]},"transform":{"type":"pick_array_spread","keys":[{"name":"userId","required":false},{"name":"occupation","required":false},{"name":"createdAt","required":false},{"name":"updatedAt","required":false}]},"required":true},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23950,"b":23956,"line":816,"col":21},{"a":24589,"b":24595,"line":836,"col":15}]}},{"name":"approved","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24166,"b":24173,"line":825,"col":25}]}},{"name":"experience","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24214,"b":24223,"line":826,"col":27}]}},{"name":"company","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24263,"b":24269,"line":827,"col":24}]}},{"name":"college","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24306,"b":24312,"line":828,"col":24}]}},{"name":"linkedInUrl","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24354,"b":24364,"line":829,"col":29}]}},{"name":"country","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24406,"b":24412,"line":830,"col":24}]}},{"name":"state","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24447,"b":24451,"line":831,"col":22}]}},{"name":"city","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24483,"b":24486,"line":832,"col":21}]}},{"name":"languages","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24522,"b":24530,"line":833,"col":26}]}}],"usedParamSet":{"userId":true,"occupation":true,"approved":true,"experience":true,"company":true,"college":true,"linkedInUrl":true,"country":true,"state":true,"city":true,"languages":true},"statement":{"body":"WITH clear_occ AS (\n    DELETE FROM volunteer_occupations\n    WHERE user_id = :userId!\n),\nins_occ AS (\n    INSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)\n    VALUES :occupation!\n    ON CONFLICT DO NOTHING\n)\nUPDATE volunteer_profiles\nSET\n    approved = COALESCE(:approved, approved),\n    experience = COALESCE(:experience, experience),\n    company = COALESCE(:company, company),\n    college = COALESCE(:college, college),\n    linkedin_url = COALESCE(:linkedInUrl, linkedin_url),\n    country = COALESCE(:country, country),\n    state = COALESCE(:state, state),\n    city = COALESCE(:city, city),\n    languages = COALESCE(:languages, languages),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING user_id AS ok","loc":{"a":23871,"b":24619,"line":814,"col":0}}};
+const updateVolunteerBackgroundInfoIR: any = {"name":"updateVolunteerBackgroundInfo","params":[{"name":"occupation","codeRefs":{"defined":{"a":23509,"b":23518,"line":899,"col":8},"used":[{"a":23786,"b":23796,"line":908,"col":13}]},"transform":{"type":"pick_array_spread","keys":[{"name":"userId","required":false},{"name":"occupation","required":false},{"name":"createdAt","required":false},{"name":"updatedAt","required":false}]},"required":true},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23654,"b":23660,"line":903,"col":21},{"a":24444,"b":24450,"line":925,"col":23}]}},{"name":"approved","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23933,"b":23940,"line":914,"col":33}]}},{"name":"experience","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23989,"b":23998,"line":915,"col":35}]}},{"name":"company","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24046,"b":24052,"line":916,"col":32}]}},{"name":"college","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24097,"b":24103,"line":917,"col":32}]}},{"name":"linkedInUrl","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24153,"b":24163,"line":918,"col":37}]}},{"name":"country","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24213,"b":24219,"line":919,"col":32}]}},{"name":"state","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24262,"b":24266,"line":920,"col":30}]}},{"name":"city","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24306,"b":24309,"line":921,"col":29}]}},{"name":"languages","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24353,"b":24361,"line":922,"col":34}]}}],"usedParamSet":{"userId":true,"occupation":true,"approved":true,"experience":true,"company":true,"college":true,"linkedInUrl":true,"country":true,"state":true,"city":true,"languages":true},"statement":{"body":"WITH clear_occ AS (\n    DELETE FROM volunteer_occupations\n    WHERE user_id = :userId!\n),\nins_occ AS (\nINSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)\n        VALUES\n            :occupation!\n        ON CONFLICT\n            DO NOTHING)\n        UPDATE\n            volunteer_profiles\n        SET\n            approved = COALESCE(:approved, approved),\n            experience = COALESCE(:experience, experience),\n            company = COALESCE(:company, company),\n            college = COALESCE(:college, college),\n            linkedin_url = COALESCE(:linkedInUrl, linkedin_url),\n            country = COALESCE(:country, country),\n            state = COALESCE(:state, state),\n            city = COALESCE(:city, city),\n            languages = COALESCE(:languages, languages),\n            updated_at = NOW()\n        WHERE\n            user_id = :userId!\n        RETURNING\n            user_id AS ok","loc":{"a":23575,"b":24494,"line":901,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2051,28 +2051,124 @@ const updateVolunteerBackgroundInfoIR: any = {"name":"updateVolunteerBackgroundI
  *     WHERE user_id = :userId!
  * ),
  * ins_occ AS (
- *     INSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)
- *     VALUES :occupation!
- *     ON CONFLICT DO NOTHING
- * )
- * UPDATE volunteer_profiles
- * SET
- *     approved = COALESCE(:approved, approved),
- *     experience = COALESCE(:experience, experience),
- *     company = COALESCE(:company, company),
- *     college = COALESCE(:college, college),
- *     linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
- *     country = COALESCE(:country, country),
- *     state = COALESCE(:state, state),
- *     city = COALESCE(:city, city),
- *     languages = COALESCE(:languages, languages),
- *     updated_at = NOW()
- * WHERE
- *     user_id = :userId!
- * RETURNING user_id AS ok
+ * INSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)
+ *         VALUES
+ *             :occupation!
+ *         ON CONFLICT
+ *             DO NOTHING)
+ *         UPDATE
+ *             volunteer_profiles
+ *         SET
+ *             approved = COALESCE(:approved, approved),
+ *             experience = COALESCE(:experience, experience),
+ *             company = COALESCE(:company, company),
+ *             college = COALESCE(:college, college),
+ *             linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
+ *             country = COALESCE(:country, country),
+ *             state = COALESCE(:state, state),
+ *             city = COALESCE(:city, city),
+ *             languages = COALESCE(:languages, languages),
+ *             updated_at = NOW()
+ *         WHERE
+ *             user_id = :userId!
+ *         RETURNING
+ *             user_id AS ok
  * ```
  */
 export const updateVolunteerBackgroundInfo = new PreparedQuery<IUpdateVolunteerBackgroundInfoParams,IUpdateVolunteerBackgroundInfoResult>(updateVolunteerBackgroundInfoIR);
+
+
+/** 'CreateVolunteerUser' parameters type */
+export interface ICreateVolunteerUserParams {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  phone: string;
+  referralCode: string;
+  referredBy: string | null | void;
+  userId: string;
+}
+
+/** 'CreateVolunteerUser' return type */
+export interface ICreateVolunteerUserResult {
+  banned: boolean;
+  createdAt: Date;
+  deactivated: boolean;
+  email: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  phone: string | null;
+  testUser: boolean;
+}
+
+/** 'CreateVolunteerUser' query type */
+export interface ICreateVolunteerUserQuery {
+  params: ICreateVolunteerUserParams;
+  result: ICreateVolunteerUserResult;
+}
+
+const createVolunteerUserIR: any = {"name":"createVolunteerUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24676,"b":24682,"line":932,"col":13}]}},{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24686,"b":24691,"line":932,"col":23}]}},{"name":"phone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24695,"b":24700,"line":932,"col":32}]}},{"name":"firstName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24704,"b":24713,"line":932,"col":41}]}},{"name":"lastName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24717,"b":24725,"line":932,"col":54}]}},{"name":"password","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24729,"b":24737,"line":932,"col":66}]}},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24748,"b":24757,"line":932,"col":85}]}},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24761,"b":24773,"line":932,"col":98}]}}],"usedParamSet":{"userId":true,"email":true,"phone":true,"firstName":true,"lastName":true,"password":true,"referredBy":true,"referralCode":true},"statement":{"body":"INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, created_at, updated_at)\n    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, last_name, phone, banned, test_user, deactivated, created_at","loc":{"a":24531,"b":24921,"line":931,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, created_at, updated_at)
+ *     VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())
+ * ON CONFLICT (email)
+ *     DO NOTHING
+ * RETURNING
+ *     id, email, first_name, last_name, phone, banned, test_user, deactivated, created_at
+ * ```
+ */
+export const createVolunteerUser = new PreparedQuery<ICreateVolunteerUserParams,ICreateVolunteerUserResult>(createVolunteerUserIR);
+
+
+/** 'CreateVolunteerProfile' parameters type */
+export interface ICreateVolunteerProfileParams {
+  timezone: string;
+  userId: string;
+  volunteerPartnerOrg: string | null | void;
+}
+
+/** 'CreateVolunteerProfile' return type */
+export interface ICreateVolunteerProfileResult {
+  ok: string;
+}
+
+/** 'CreateVolunteerProfile' query type */
+export interface ICreateVolunteerProfileQuery {
+  params: ICreateVolunteerProfileParams;
+  result: ICreateVolunteerProfileResult;
+}
+
+const createVolunteerProfileIR: any = {"name":"createVolunteerProfile","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":25084,"b":25090,"line":942,"col":5}]}},{"name":"timezone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":25148,"b":25156,"line":945,"col":5}]}},{"name":"volunteerPartnerOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":25339,"b":25357,"line":955,"col":38}]}}],"usedParamSet":{"userId":true,"timezone":true,"volunteerPartnerOrg":true},"statement":{"body":"INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)\nSELECT\n    :userId!,\n    FALSE,\n    subquery.volunteer_partner_org_id,\n    :timezone!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        id AS volunteer_partner_org_id,\n        name\n    FROM\n        volunteer_partner_orgs\n    WHERE\n        volunteer_partner_orgs.key = :volunteerPartnerOrg) AS subquery\nRETURNING\n    user_id AS ok","loc":{"a":24961,"b":25398,"line":940,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)
+ * SELECT
+ *     :userId!,
+ *     FALSE,
+ *     subquery.volunteer_partner_org_id,
+ *     :timezone!,
+ *     NOW(),
+ *     NOW()
+ * FROM (
+ *     SELECT
+ *         id AS volunteer_partner_org_id,
+ *         name
+ *     FROM
+ *         volunteer_partner_orgs
+ *     WHERE
+ *         volunteer_partner_orgs.key = :volunteerPartnerOrg) AS subquery
+ * RETURNING
+ *     user_id AS ok
+ * ```
+ */
+export const createVolunteerProfile = new PreparedQuery<ICreateVolunteerProfileParams,ICreateVolunteerProfileResult>(createVolunteerProfileIR);
 
 
 /** 'GetCertificationsForVolunteers' parameters type */
@@ -2095,7 +2191,7 @@ export interface IGetCertificationsForVolunteersQuery {
   result: IGetCertificationsForVolunteersResult;
 }
 
-const getCertificationsForVolunteersIR: any = {"name":"getCertificationsForVolunteers","params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24912,"b":24919,"line":877,"col":19}]}}],"usedParamSet":{"userIds":true},"statement":{"body":"SELECT\n    user_id,\n    attempts AS tries,\n    users_quizzes.updated_at AS last_attempted_at,\n    passed,\n    quizzes.name\nFROM users_quizzes\nJOIN quizzes ON users_quizzes.quiz_id = quizzes.id\nWHERE\n    user_id = ANY(:userIds!)","loc":{"a":24694,"b":24920,"line":868,"col":0}}};
+const getCertificationsForVolunteersIR: any = {"name":"getCertificationsForVolunteers","params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":25673,"b":25680,"line":971,"col":20}]}}],"usedParamSet":{"userIds":true},"statement":{"body":"SELECT\n    user_id,\n    attempts AS tries,\n    users_quizzes.updated_at AS last_attempted_at,\n    passed,\n    quizzes.name\nFROM\n    users_quizzes\n    JOIN quizzes ON users_quizzes.quiz_id = quizzes.id\nWHERE\n    user_id = ANY (:userIds!)","loc":{"a":25446,"b":25681,"line":961,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2106,10 +2202,11 @@ const getCertificationsForVolunteersIR: any = {"name":"getCertificationsForVolun
  *     users_quizzes.updated_at AS last_attempted_at,
  *     passed,
  *     quizzes.name
- * FROM users_quizzes
- * JOIN quizzes ON users_quizzes.quiz_id = quizzes.id
+ * FROM
+ *     users_quizzes
+ *     JOIN quizzes ON users_quizzes.quiz_id = quizzes.id
  * WHERE
- *     user_id = ANY(:userIds!)
+ *     user_id = ANY (:userIds!)
  * ```
  */
 export const getCertificationsForVolunteers = new PreparedQuery<IGetCertificationsForVolunteersParams,IGetCertificationsForVolunteersResult>(getCertificationsForVolunteersIR);
@@ -2131,7 +2228,7 @@ export interface IGetSubjectsForVolunteerQuery {
   result: IGetSubjectsForVolunteerResult;
 }
 
-const getSubjectsForVolunteerIR: any = {"name":"getSubjectsForVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":25669,"b":25675,"line":903,"col":19}]}}],"usedParamSet":{"userId":true},"statement":{"body":"WITH subject_cert_total AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    subjects_unlocked.subject\nFROM (\n    SELECT\n        subjects.name AS subject,\n        COUNT(*)::int AS earned_certs,\n        subject_cert_total.total\n    FROM\n        users_certifications\n        JOIN certification_subject_unlocks USING (certification_id)\n        JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n        JOIN subject_cert_total ON subject_cert_total.name = subjects.name\n    WHERE\n        user_id = :userId!\n    GROUP BY\n        subjects.name, subject_cert_total.total\n    HAVING\n        COUNT(*)::int >= subject_cert_total.total) AS subjects_unlocked","loc":{"a":24960,"b":25819,"line":880,"col":0}}};
+const getSubjectsForVolunteerIR: any = {"name":"getSubjectsForVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":26431,"b":26437,"line":998,"col":19}]}}],"usedParamSet":{"userId":true},"statement":{"body":"WITH subject_cert_total AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    subjects_unlocked.subject\nFROM (\n    SELECT\n        subjects.name AS subject,\n        COUNT(*)::int AS earned_certs,\n        subject_cert_total.total\n    FROM\n        users_certifications\n        JOIN certification_subject_unlocks USING (certification_id)\n        JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n        JOIN subject_cert_total ON subject_cert_total.name = subjects.name\n    WHERE\n        user_id = :userId!\n    GROUP BY\n        subjects.name, subject_cert_total.total\n    HAVING\n        COUNT(*)::int >= subject_cert_total.total) AS subjects_unlocked","loc":{"a":25722,"b":26581,"line":975,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2191,7 +2288,7 @@ export interface IGetNextAnyVolunteerToNotifyQuery {
   result: IGetNextAnyVolunteerToNotifyResult;
 }
 
-const getNextAnyVolunteerToNotifyIR: any = {"name":"getNextAnyVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27948,"b":27955,"line":958,"col":37}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":28130,"b":28142,"line":966,"col":33}]}}],"usedParamSet":{"subject":true,"lastNotified":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end\n    AND subjects_unlocked.subject = :subject!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":25863,"b":28152,"line":910,"col":0}}};
+const getNextAnyVolunteerToNotifyIR: any = {"name":"getNextAnyVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":28710,"b":28717,"line":1054,"col":37}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":28892,"b":28904,"line":1062,"col":33}]}}],"usedParamSet":{"subject":true,"lastNotified":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end\n    AND subjects_unlocked.subject = :subject!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":26626,"b":28914,"line":1006,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2202,7 +2299,7 @@ const getNextAnyVolunteerToNotifyIR: any = {"name":"getNextAnyVolunteerToNotify"
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
  * FROM
  *     users
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -2281,7 +2378,7 @@ export interface IGetNextOpenVolunteerToNotifyQuery {
   result: IGetNextOpenVolunteerToNotifyResult;
 }
 
-const getNextOpenVolunteerToNotifyIR: any = {"name":"getNextOpenVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":30282,"b":30289,"line":1018,"col":37}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":30524,"b":30536,"line":1027,"col":33}]}}],"usedParamSet":{"subject":true,"lastNotified":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end\n    AND subjects_unlocked.subject = :subject!\n    AND volunteer_profiles.volunteer_partner_org_id IS NULL\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":28197,"b":30546,"line":970,"col":0}}};
+const getNextOpenVolunteerToNotifyIR: any = {"name":"getNextOpenVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":31044,"b":31051,"line":1115,"col":37}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":31286,"b":31298,"line":1124,"col":33}]}}],"usedParamSet":{"subject":true,"lastNotified":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end\n    AND subjects_unlocked.subject = :subject!\n    AND volunteer_profiles.volunteer_partner_org_id IS NULL\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":28960,"b":31308,"line":1067,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2292,7 +2389,7 @@ const getNextOpenVolunteerToNotifyIR: any = {"name":"getNextOpenVolunteerToNotif
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
  * FROM
  *     users
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -2372,7 +2469,7 @@ export interface IGetNextAnyPartnerVolunteerToNotifyQuery {
   result: IGetNextAnyPartnerVolunteerToNotifyResult;
 }
 
-const getNextAnyPartnerVolunteerToNotifyIR: any = {"name":"getNextAnyPartnerVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":32678,"b":32685,"line":1080,"col":37}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":32924,"b":32936,"line":1089,"col":33}]}}],"usedParamSet":{"subject":true,"lastNotified":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end\n    AND subjects_unlocked.subject = :subject!\n    AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":30598,"b":32946,"line":1032,"col":0}}};
+const getNextAnyPartnerVolunteerToNotifyIR: any = {"name":"getNextAnyPartnerVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33439,"b":33446,"line":1177,"col":37}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33685,"b":33697,"line":1186,"col":33}]}}],"usedParamSet":{"subject":true,"lastNotified":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end\n    AND subjects_unlocked.subject = :subject!\n    AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":31360,"b":33707,"line":1129,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2383,7 +2480,7 @@ const getNextAnyPartnerVolunteerToNotifyIR: any = {"name":"getNextAnyPartnerVolu
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
  * FROM
  *     users
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -2464,7 +2561,7 @@ export interface IGetNextSpecificPartnerVolunteerToNotifyQuery {
   result: IGetNextSpecificPartnerVolunteerToNotifyResult;
 }
 
-const getNextSpecificPartnerVolunteerToNotifyIR: any = {"name":"getNextSpecificPartnerVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35083,"b":35090,"line":1142,"col":37}]}},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35131,"b":35150,"line":1143,"col":39}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35325,"b":35337,"line":1151,"col":33}]}}],"usedParamSet":{"subject":true,"volunteerPartnerOrg":true,"lastNotified":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.name AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end\n    AND subjects_unlocked.subject = :subject!\n    AND volunteer_partner_orgs.name = :volunteerPartnerOrg!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":33003,"b":35347,"line":1094,"col":0}}};
+const getNextSpecificPartnerVolunteerToNotifyIR: any = {"name":"getNextSpecificPartnerVolunteerToNotify","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35843,"b":35850,"line":1239,"col":37}]}},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35890,"b":35909,"line":1240,"col":38}]}},{"name":"lastNotified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36084,"b":36096,"line":1248,"col":33}]}}],"usedParamSet":{"subject":true,"volunteerPartnerOrg":true,"lastNotified":true},"statement":{"body":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND deactivated IS FALSE\n    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end\n    AND subjects_unlocked.subject = :subject!\n    AND volunteer_partner_orgs.key = :volunteerPartnerOrg!\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = users.id\n            AND sent_at >= DATE(:lastNotified!))\nLIMIT 1","loc":{"a":33764,"b":36106,"line":1191,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2475,7 +2572,7 @@ const getNextSpecificPartnerVolunteerToNotifyIR: any = {"name":"getNextSpecificP
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.name AS volunteer_partner_org
+ *     volunteer_partner_orgs.key AS volunteer_partner_org
  * FROM
  *     users
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -2518,7 +2615,7 @@ const getNextSpecificPartnerVolunteerToNotifyIR: any = {"name":"getNextSpecificP
  *     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
  *     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
  *     AND subjects_unlocked.subject = :subject!
- *     AND volunteer_partner_orgs.name = :volunteerPartnerOrg!
+ *     AND volunteer_partner_orgs.key = :volunteerPartnerOrg!
  *     AND NOT EXISTS (
  *         SELECT
  *             user_id

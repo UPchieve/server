@@ -43,7 +43,6 @@ export async function getUserByReferralCode(
 }
 
 /**
- * TODO: figure out new return signature for this
  * Used in 3 ways:
  * 1. user contact info DONE
  * 2. user admin update (id, isBanned, email, deactivated, studentPartnerOrg, isVolunteer) DONE

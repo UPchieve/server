@@ -389,7 +389,7 @@ export async function getUsers(data: unknown) {
 //        for new pastSessions to display. May be better served as a separate
 //        service method for getting the user's past sessions
 export async function adminGetUser(userId: Types.ObjectId, page: number = 1) {
-  // TODO: repo pattern
+  // Replaced by getUserForAdminDetail
   const [results] = await UserModel.aggregate([
     {
       $match: {
