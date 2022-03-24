@@ -1,4 +1,4 @@
-import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
+import { makeSomeOptional, Ulid } from '../pgUtils'
 import { USER_BAN_REASONS } from '../../constants'
 import { Reference, Certifications, TrainingCourses } from '../Volunteer'
 import { Availability } from '../Availability/types'
@@ -6,6 +6,11 @@ import { RepoReadError } from '../Errors'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
 import _ from 'lodash'
+import { getAvailabilityForVolunteer } from '../Availability/pgqueries'
+import {
+  getCertificationsForVolunteers,
+  getReferencesByVolunteer,
+} from '../Volunteer/pgqueries'
 
 export type LegacyUserModel = {
   // pg
@@ -51,15 +56,6 @@ export type LegacyUserModel = {
 }
 
 /*
-TODO: still need
-    certifications: Certifications
-
-    trainingCourses: TrainingCourses 
-
-    availability: Availability 
-
-    references: Reference[] 
-
 BACKEND (req.user)
 _id x
 lastActivityAt x
@@ -108,22 +104,42 @@ createdAt x
 isTestUser x
 . (entire user re-emitted to socket on session join and new message)
   - message needs _id and isVolunteer
-  - join need isVolunteer, isApproved, and _id
-
-
+  - session join needs isVolunteer, isApproved, and _id
 */
 
 export async function getLegacyUserObject(
   userId: Ulid
 ): Promise<LegacyUserModel | undefined> {
   try {
-    const baseResult = await pgQueries.getLegacyUser.run({ userId }, getClient())
+    const baseResult = await pgQueries.getLegacyUser.run(
+      { userId },
+      getClient()
+    )
     if (!baseResult.length) return
-    const baseUser = makeSomeRequired(baseResult[0],
-      ['banReason', 'phone', 'college', 'referredBy'])
+    const baseUser = makeSomeOptional(baseResult[0], [
+      'id',
+      'firstName',
+      'firstname',
+      'createdAt',
+      'email',
+      'verified',
+      'isAdmin',
+      'isVolunteer',
+      'isTestUser',
+      'isBanned',
+      'isDeactivated',
+      'lastActivityAt',
+      'referralCode',
+      'type',
+      'pastSessions',
+    ])
     if (baseUser.isVolunteer) {
-      // TODO: get availability, certs, training courses, and references
+      // TODO: get training courses
+      const availability = await getAvailabilityForVolunteer(userId)
+      const certs = (await getCertificationsForVolunteers([userId]))[userId]
+      const references = await getReferencesByVolunteer(userId)
     }
+    // TODO: get past sessions
     const final = _.merge({ _id: baseUser.id }, baseUser)
     return final as LegacyUserModel
   } catch (err) {

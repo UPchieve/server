@@ -1160,7 +1160,7 @@ export async function sendOnlyLookingForAnswersWarning(
   await sendEmail(email, sender, from, template, { firstName }, overrides)
 }
 
-// TODO: needs [contactInfo, banned, testuser, isVolunteer, isAdmin, deactivated, createdAt, passedUpchieve101, student/volunteerPartnerOrg, student/volunteerPartnerOrgDisplay] 
+// TODO: needs [contactInfo, banned, testuser, isVolunteer, isAdmin, deactivated, createdAt, passedUpchieve101, student/volunteerPartnerOrg, student/volunteerPartnerOrgDisplay]
 export async function createContact(
   user: User | Student | Volunteer
 ): Promise<any> {

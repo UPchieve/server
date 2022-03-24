@@ -28,7 +28,7 @@ SELECT
     notification_types.type AS TYPE,
     notification_priority_groups.name AS priority_group,
     notification_methods.method AS method,
-    volunteer_partner_orgs.name AS volunteer_partner_org,
+    volunteer_partner_orgs.key AS volunteer_partner_org,
     users.first_name AS first_name
 FROM
     notifications
