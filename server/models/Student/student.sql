@@ -76,7 +76,7 @@ WHERE
     student_favorite_volunteers.student_id = :userId!
 ORDER BY
     student_favorite_volunteers.created_at DESC
-LIMIT :limit! OFFSET :offset!;
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
 /* @name deleteFavoriteVolunteer */

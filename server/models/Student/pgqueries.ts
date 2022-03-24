@@ -158,7 +158,7 @@ export async function isFavoriteVolunteer(
       { studentId, volunteerId },
       getClient()
     )
-    if (result.length) return true
+    if (result.length && makeRequired(result[0]).volunteerId) return true
     return false
   } catch (err) {
     throw new RepoReadError(err)
@@ -188,7 +188,7 @@ export async function getFavoriteVolunteers(
 ): Promise<FavoriteVolunteersResponse> {
   try {
     const result = (await pgQueries.getFavoriteVolunteers.run(
-      { userId, limit: String(limit), offset: String(offset) },
+      { userId, limit, offset },
       getClient()
     )) as FavoriteVolunteer[]
     return { favoriteVolunteers: result, isLastPage: result.length < limit }
