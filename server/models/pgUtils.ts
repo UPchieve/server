@@ -78,10 +78,10 @@ export async function doTransaction<T>(
   try {
     await client.query('BEGIN')
 
-    const response = await executeQueries(client)
+    const result = await executeQueries(client)
 
     await client.query('COMMIT')
-    return response
+    return result
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoTransactionError(err)
