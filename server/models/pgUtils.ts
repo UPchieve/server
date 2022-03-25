@@ -3,6 +3,8 @@ import { Ulid as ULID } from 'id128'
 import { v4 as UUID } from 'uuid'
 import { CustomError } from 'ts-custom-error'
 import { SetOptional } from 'type-fest'
+import { RepoTransactionError } from './Errors'
+import { Pool, PoolClient } from 'pg'
 
 /**
  * pgTyped DOES NOT actually modify the incoming data to use camelCase keys even
@@ -66,6 +68,26 @@ export function getUuid(): Uuid {
 }
 export function getPgid(): Pgid {
   return Math.floor(Math.random() * 8 ** 4) // int4
+}
+
+export async function doTransaction<T>(
+  executeQueries: (poolClient: PoolClient) => T,
+  pool: Pool
+): Promise<T> {
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    const response = await executeQueries(client)
+
+    await client.query('COMMIT')
+    return response
+  } catch (err) {
+    await client.query('ROLLBACK')
+    throw new RepoTransactionError(err)
+  } finally {
+    client.release()
+  }
 }
 
 export type Uuid = string // UUID
