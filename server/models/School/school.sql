@@ -87,22 +87,14 @@ ON CONFLICT
 
 
 /* @name createSchool */
-INSERT INTO schools (name, approved, us_state_code, created_at, updated_at, city_id)
-SELECT
-    :name!,
-    :isApproved!,
-    :state!,
-    NOW(),
-    NOW(),
-    city.id
-FROM (
-    SELECT
-        id,
-        name
-    FROM
-        cities
-    WHERE
-        name = :city!) AS city
+INSERT INTO schools (id, name, approved, us_state_code, city_id, created_at, updated_at)
+VALUES (:id!,
+        :name!,
+        :isApproved!,
+        :state!,
+        :cityId!,
+        NOW(),
+        NOW())
 RETURNING
     id,
     approved AS is_approved,
@@ -134,18 +126,6 @@ WHERE
 
 
 /* @name adminUpdateSchool */
-WITH ins AS (
-INSERT INTO cities (name)
-    SELECT
-        :city
-    WHERE
-        NOT EXISTS (
-            SELECT
-                id
-            FROM
-                cities
-            WHERE
-                cities.name = :city))
 UPDATE
     schools
 SET
@@ -153,13 +133,9 @@ SET
     approved = COALESCE(:isApproved, schools.approved),
     us_state_code = COALESCE(:state, schools.us_state_code),
     updated_at = NOW(),
-    city_id = cities.id
-FROM
-    cities
+    city_id = COALESCE(:cityId, schools.city_id)
 WHERE
-    schools.id = :schoolId!
-    AND cities.name = :city;
-
+    schools.id = :schoolId!;
 
 /* @name adminUpdateSchoolMetaData */
 UPDATE

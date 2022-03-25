@@ -1,8 +1,9 @@
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { PgSchool } from './types'
-import { makeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
+import * as geoQueries from '../Geography/pg.queries'
 
 export async function findSchoolByUpchieveId(
   schoolId: Ulid
@@ -69,15 +70,32 @@ export type CreateSchoolPayload = {
 export async function createSchool(
   data: CreateSchoolPayload
 ): Promise<PgSchool | undefined> {
+  const client = await getClient().connect()
   try {
     await pgQueries.createSchoolMetaData.run(
       { zipCode: data.zipCode },
-      getClient()
+      client
     )
-    await pgQueries.createCity.run({ city: data.city }, getClient())
-    const result = await pgQueries.createSchool.run({ ...data }, getClient())
-    if (result.length) return makeRequired(result[0])
+
+    // we need to find the city's id, or if it doesn't exist, create it
+    const upsertCityResult = await geoQueries.upsertCity.run({ name: data.city }, client)
+    const cityId = makeRequired(upsertCityResult[0]).id
+
+    const result = await pgQueries.createSchool.run({
+      cityId,
+      id: getDbUlid(),
+      isApproved: data.isApproved,
+      name: data.name,
+      state: data.state,
+    }, client)
+    if (result.length) {
+      await client.query('COMMIT')
+      return makeRequired(result[0])
+    } else {
+      throw new Error('inserting new school did not return a result')
+    }
   } catch (err) {
+    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
   }
 }
@@ -124,18 +142,32 @@ export type AdminUpdate = {
 }
 
 export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
+  const client = await getClient().connect()
   try {
     const { schoolId, name, city, state, zipCode, isApproved } = data
 
+    await client.query('BEGIN')
     await pgQueries.adminUpdateSchoolMetaData.run(
       { schoolId, zipCode },
-      getClient()
+      client
     )
+
+    // we need to find the city's id, or if it doesn't exist, create it
+    let cityId: number | undefined
+    if (city) {
+      const result = await geoQueries.upsertCity.run({ name: city }, client)
+      cityId = makeRequired(result[0]).id
+    }
+
     await pgQueries.adminUpdateSchool.run(
-      { schoolId, name, state, city, isApproved },
-      getClient()
+      { schoolId, name, state, cityId, isApproved },
+      client
     )
+    await client.query('COMMIT')
   } catch (err) {
+    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
+  } finally {
+    client.release()
   }
 }
