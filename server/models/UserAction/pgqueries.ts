@@ -70,17 +70,19 @@ interface QuizActionParams {
 
 async function createQuizAction(params: QuizActionParams) {
   try {
-    await pgQueries.createQuizAction.run(
+    const result = await pgQueries.createQuizAction.run(
       {
         action: params.action,
         actionType: USER_ACTION_TYPES.QUIZ,
         ipAddressId: params.ipAddressId ? params.ipAddressId : null,
         quizCategory: getSubjectType(params.quizSubcategory).toUpperCase(),
         quizSubcategory: (params.quizSubcategory as string).toUpperCase(),
-        userId: params.userId
+        userId: params.userId,
       },
       client
     )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of quiz user action did not return ok')
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -100,7 +102,7 @@ interface SessionActionParams {
 
 async function createSessionAction(params: SessionActionParams) {
   try {
-    await pgQueries.createSessionAction.run(
+    const result = await pgQueries.createSessionAction.run(
       {
         action: params.action,
         actionType: USER_ACTION_TYPES.SESSION,
@@ -117,6 +119,8 @@ async function createSessionAction(params: SessionActionParams) {
       },
       client
     )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of session user action did not return ok')
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -133,7 +137,7 @@ interface AccountActionParams {
 
 async function createAccountAction(params: AccountActionParams) {
   try {
-    await pgQueries.createAccountAction.run(
+    const result = await pgQueries.createAccountAction.run(
       {
         action: params.action,
         actionType: USER_ACTION_TYPES.ACCOUNT,
@@ -145,6 +149,8 @@ async function createAccountAction(params: AccountActionParams) {
       },
       client
     )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of account user action did not return ok')
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -152,7 +158,7 @@ async function createAccountAction(params: AccountActionParams) {
 
 async function createAdminAction(action: ACCOUNT_USER_ACTIONS, userId: Ulid) {
   try {
-    await pgQueries.createAdminAction.run(
+    const result = await pgQueries.createAdminAction.run(
       {
         action,
         actionType: USER_ACTION_TYPES.ADMIN,
@@ -160,6 +166,8 @@ async function createAdminAction(action: ACCOUNT_USER_ACTIONS, userId: Ulid) {
       },
       client
     )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of admin user action did not return ok')
   } catch (err) {
     throw new RepoCreateError(err)
   }
