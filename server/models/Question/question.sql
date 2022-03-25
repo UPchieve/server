@@ -20,30 +20,37 @@ WHERE
 
 
 /* @name create */
-WITH quiz AS (
-INSERT INTO quizzes (id, name, created_at, updated_at)
-        VALUES (:quizId!, :category!, NOW(), NOW())
-    ON CONFLICT
-        DO NOTHING
-), subcategory AS (
-INSERT INTO quiz_subcategories (id, name, created_at, updated_at)
-        VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())
-    ON CONFLICT
-        DO NOTHING
-    RETURNING
-        id)
-    INSERT INTO quiz_questions (id, question_text, possible_answers, correct_answer, image_source, created_at, updated_at, quiz_subcategory_id)
-    SELECT
-        :questionId!,
-        :questionText!,
-        :possibleAnswers!,
-        :correctAnswer!,
-        :imageSrc!,
-        NOW(),
-        NOw(),
-        subcategory.id
-    FROM
-        subcategory;
+INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, image_source, quiz_subcategory_id, created_at, updated_at)
+    VALUES (:questionText!,
+            :possibleAnswers!,
+            :correctAnswer!,
+            :imageSrc!,
+            :subcategoryId!,
+            NOW(),
+            NOW()) RETURNING id as ok;
+
+
+/* @name upsertQuiz */
+WITH ins AS(
+  INSERT INTO quizzes (name, created_at, updated_at)
+    VALUES (:name!, NOW(), NOW())
+    ON CONFLICT (name) DO NOTHING
+    RETURNING id
+)
+SELECT * FROM ins
+UNION
+SELECT id FROM quizzes WHERE name=:name!;
+
+/* @name upsertQuizSubcategory */
+WITH ins AS(
+  INSERT INTO quiz_subcategories (name, quiz_id, created_at, updated_at)
+    VALUES (:name!, :quizId!, NOW(), NOW())
+    ON CONFLICT (name, quiz_id) DO NOTHING
+    RETURNING id
+)
+SELECT * FROM ins
+UNION
+SELECT id FROM quiz_subcategories WHERE name=:name!;
 
 
 /* @name destroy */
@@ -54,8 +61,8 @@ RETURNING
 
 
 /* @name updateSubcategory */
-INSERT INTO quiz_subcategories (id, name, created_at, updated_at)
-    VALUES (:quizSubcategoryId!, :subcategory!, NOW(), NOW())
+INSERT INTO quiz_subcategories (id, name, quiz_id, created_at, updated_at)
+    VALUES (:quizSubcategoryId!, :subcategory!, :quizId!, NOW(), NOW())
 ON CONFLICT
     DO NOTHING;
 
@@ -64,22 +71,14 @@ ON CONFLICT
 UPDATE
     quiz_questions
 SET
-    id = :questionId!,
     question_text = :questionText!,
-    possible_answers = possible_answers || jsonb_set(jsonb_set(possible_answers, '{txt}', :txt!, TRUE), '{val}', :val!, TRUE),
+    possible_answers = COALESCE(:possibleAnswers!, possible_answers),
     correct_answer = :correctAnswer!,
     image_source = :imageSrc!,
     updated_at = NOW(),
-    quiz_subcategory_id = subcat.id
-FROM (
-    SELECT
-        id
-    FROM
-        quiz_subcategories
-    WHERE
-        name = :subcategory!) AS subcat
+    quiz_subcategory_id = :subcategoryId!
 WHERE
-    quiz_questions.id = :questionId!;
+    quiz_questions.id = :questionId! RETURNING id as ok;
 
 
 /* @name categories */

@@ -4,7 +4,7 @@ import {
   RepoReadError,
   RepoUpdateError,
 } from '../Errors'
-import { getPgid, makeRequired, makeSomeRequired, Pgid } from '../pgUtils'
+import { makeRequired, makeSomeRequired, Pgid } from '../pgUtils'
 import { PgQuestion } from './types'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
@@ -37,22 +37,34 @@ export async function list(filters: any): Promise<PgQuestion[] | undefined> {
 }
 
 export async function create(question: PgQuestion): Promise<void> {
+  const client = await getClient().connect()
   try {
-    // const txt = question.possibleAnswers.map(ans => ans.txt)
-    // const val = question.possibleAnswers.map(ans => ans.val)
+    await client.query('BEGIN')
 
-    // TODO send val to insert json
-    await pgQueries.create.run(
+    const quizUpsertResult = await pgQueries.upsertQuiz.run({name: question.category}, client)
+    const quizId = makeRequired(quizUpsertResult[0]).id
+
+    const subcategoryUpsertResult = await pgQueries.upsertQuizSubcategory.run({name: question.subcategory, quizId}, client)
+    const subcategoryId = makeRequired(subcategoryUpsertResult[0]).id
+
+    const result = await pgQueries.create.run(
       {
-        questionId: getPgid(),
-        quizSubcategoryId: getPgid(),
-        quizId: getPgid(),
-        ...question,
+        questionText: question.questionText,
+        possibleAnswers: question.possibleAnswers,
+        correctAnswer: question.correctAnswer,
+        imageSrc: question.imageSrc,
+        subcategoryId,
       },
-      getClient()
+      client
     )
+    if (!(result.length && makeRequired(result[0]).ok)) throw new Error('insertion of question did not return ok')
+
+    await client.query('COMMIT')
   } catch (err) {
+    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
+  } finally {
+    client.release()
   }
 }
 
@@ -62,26 +74,39 @@ export type QuestionUpdateOptions = {
 }
 
 export async function update(options: QuestionUpdateOptions): Promise<void> {
+  const client = await getClient().connect()
   try {
     const question = options.question
     const txt = question.possibleAnswers.map(ans => ans.txt)
     const val = question.possibleAnswers.map(ans => ans.val)
 
-    await pgQueries.updateSubcategory.run(
-      { subcategory: question.subcategory, quizSubcategoryId: getPgid() },
-      getClient()
-    )
-    await pgQueries.update.run(
+    await client.query('BEGIN')
+
+    const quizUpsertResult = await pgQueries.upsertQuiz.run({name: question.category}, client)
+    const quizId = makeRequired(quizUpsertResult[0]).id
+
+    const subcategoryUpsertResult = await pgQueries.upsertQuizSubcategory.run({name: question.subcategory, quizId}, client)
+    const subcategoryId = makeRequired(subcategoryUpsertResult[0]).id
+
+    const result = await pgQueries.update.run(
       {
         questionId: options.id,
-        ...question,
-        txt,
-        val,
+        correctAnswer: question.correctAnswer,
+        imageSrc: question.imageSrc,
+        questionText: question.questionText,
+        subcategoryId: subcategoryId,
+        possibleAnswers: question.possibleAnswers,
       },
-      getClient()
+      client
     )
+    if (!(result.length && makeRequired(result[0]).ok)) throw new Error('insertion of question did not return ok')
+
+    await client.query('COMMIT')
   } catch (err) {
+    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
+  } finally {
+    client.release()
   }
 }
 
