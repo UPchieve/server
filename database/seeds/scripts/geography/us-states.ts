@@ -216,6 +216,9 @@ export async function usStates(): Promise<NameToId> {
       { ...state }
     )
   }
-  temp['NA'] = await wrapInsert('us_states', pgQueries.insertUsState.run, { code: 'NA', name: 'NA' })
+  temp['NA'] = await wrapInsert('us_states', pgQueries.insertUsState.run, {
+    code: 'NA',
+    name: 'NA',
+  })
   return temp
 }

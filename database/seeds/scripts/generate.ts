@@ -140,8 +140,5 @@ type SessionOverrides = {
 } & Partial<IInsertSessionParams>
 
 export function buildSession(overrides: SessionOverrides) {
-  return Object.assign(
-    { id: getDbUlid() },
-    overrides
-  )
+  return Object.assign({ id: getDbUlid() }, overrides)
 }

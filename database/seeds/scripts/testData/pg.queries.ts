@@ -272,22 +272,11 @@ const insertSessionIR: any = {"name":"insertSession","params":[{"name":"id","req
 export const insertSession = new PreparedQuery<IInsertSessionParams,IInsertSessionResult>(insertSessionIR);
 
 
-/** 'InsertStudentFavoriteVolunteers' parameters type */
-export interface IInsertStudentFavoriteVolunteersParams {
-  studentId: string;
-  volunteerId: string;
-}
+/** Query 'InsertStudentFavoriteVolunteers' is invalid, so its result is assigned type 'never' */
+export type IInsertStudentFavoriteVolunteersResult = never;
 
-/** 'InsertStudentFavoriteVolunteers' return type */
-export interface IInsertStudentFavoriteVolunteersResult {
-  ok: string;
-}
-
-/** 'InsertStudentFavoriteVolunteers' query type */
-export interface IInsertStudentFavoriteVolunteersQuery {
-  params: IInsertStudentFavoriteVolunteersParams;
-  result: IInsertStudentFavoriteVolunteersResult;
-}
+/** Query 'InsertStudentFavoriteVolunteers' is invalid, so its parameters are assigned type 'never' */
+export type IInsertStudentFavoriteVolunteersParams = never;
 
 const insertStudentFavoriteVolunteersIR: any = {"name":"insertStudentFavoriteVolunteers","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2333,"b":2342,"line":29,"col":100}]}},{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2346,"b":2357,"line":29,"col":113}]}}],"usedParamSet":{"studentId":true,"volunteerId":true},"statement":{"body":"INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) VALUES (:studentId!, :volunteerId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_id AS ok","loc":{"a":2233,"b":2422,"line":29,"col":0}}};
 

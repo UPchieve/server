@@ -47,6 +47,6 @@ export async function postalCodes() {
     usStateCode: 'NA',
     income: 0,
     lattitude: 0,
-    longitude: 0
+    longitude: 0,
   })
 }
