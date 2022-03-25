@@ -61,21 +61,23 @@ one "createUserAction" function because they take different,
 but consistent, arguments, per type of user action created.
 */
 
-async function createQuizAction(
-  action: QUIZ_USER_ACTIONS,
-  userId: Ulid,
-  ipAddressId: Ulid,
+interface QuizActionParams {
+  action: QUIZ_USER_ACTIONS
   quizSubcategory: keyof Certifications
-) {
+  userId: Ulid
+  ipAddressId?: Ulid
+}
+
+async function createQuizAction(params: QuizActionParams) {
   try {
     await pgQueries.createQuizAction.run(
       {
-        action,
-        action_type: USER_ACTION_TYPES.QUIZ,
-        ip_address_id: ipAddressId,
-        quiz_category: getSubjectType(quizSubcategory).toUpperCase(),
-        quiz_subcategory: (quizSubcategory as string).toUpperCase(),
-        user_id: userId,
+        action: params.action,
+        actionType: USER_ACTION_TYPES.QUIZ,
+        ipAddressId: params.ipAddressId ? params.ipAddressId : null,
+        quizCategory: getSubjectType(params.quizSubcategory).toUpperCase(),
+        quizSubcategory: (params.quizSubcategory as string).toUpperCase(),
+        userId: params.userId
       },
       client
     )
@@ -84,32 +86,34 @@ async function createQuizAction(
   }
 }
 
-async function createSessionAction(
-  action: SESSION_USER_ACTIONS,
-  userId: Ulid,
-  sessionId: Ulid,
-  ipAddressId?: Ulid,
-  device?: string,
-  browser?: string,
-  browserVersion?: string,
-  operatingSystem?: string,
+interface SessionActionParams {
+  action: SESSION_USER_ACTIONS
+  sessionId: Ulid
+  userId: Ulid
+  browser?: string
+  browserVersion?: string
+  device?: string
+  ipAddressId?: Ulid
+  operatingSystem?: string
   operatingSystemVersion?: string
-) {
+}
+
+async function createSessionAction(params: SessionActionParams) {
   try {
     await pgQueries.createSessionAction.run(
       {
-        action,
-        action_type: USER_ACTION_TYPES.SESSION,
-        browser: browser ? browser : null,
-        browser_version: browserVersion ? browserVersion : null,
-        device: device ? device : null,
-        ip_address_id: ipAddressId ? ipAddressId : null,
-        operating_system: operatingSystem ? operatingSystem : null,
-        operating_system_version: operatingSystemVersion
-          ? operatingSystemVersion
+        action: params.action,
+        actionType: USER_ACTION_TYPES.SESSION,
+        browser: params.browser ? params.browser : null,
+        browserVersion: params.browserVersion ? params.browserVersion : null,
+        device: params.device ? params.device : null,
+        ipAddressId: params.ipAddressId ? params.ipAddressId : null,
+        operatingSystem: params.operatingSystem ? params.operatingSystem : null,
+        operatingSystemVersion: params.operatingSystemVersion
+          ? params.operatingSystemVersion
           : null,
-        session_id: sessionId,
-        user_id: userId,
+        sessionId: params.sessionId,
+        userId: params.userId,
       },
       client
     )
@@ -118,24 +122,26 @@ async function createSessionAction(
   }
 }
 
-async function createAccountAction(
-  action: ACCOUNT_USER_ACTIONS,
-  userId: Ulid,
-  ipAddressId?: Ulid,
-  volunteerId?: Ulid,
-  sessionId?: Ulid,
+interface AccountActionParams {
+  action: ACCOUNT_USER_ACTIONS
+  userId: Ulid
+  ipAddressId?: Ulid
   referenceEmail?: string
-) {
+  sessionId?: Ulid
+  volunteerId?: Ulid
+}
+
+async function createAccountAction(params: AccountActionParams) {
   try {
     await pgQueries.createAccountAction.run(
       {
-        action,
-        action_type: USER_ACTION_TYPES.ACCOUNT,
-        ip_address_id: ipAddressId ? ipAddressId : null,
-        reference_email: referenceEmail ? referenceEmail : null,
-        session_id: sessionId ? sessionId : null,
-        user_id: userId,
-        volunteer_id: volunteerId ? volunteerId : null,
+        action: params.action,
+        actionType: USER_ACTION_TYPES.ACCOUNT,
+        ipAddressId: params.ipAddressId ? params.ipAddressId : null,
+        referenceEmail: params.referenceEmail ? params.referenceEmail : null,
+        sessionId: params.sessionId ? params.sessionId : null,
+        userId: params.userId,
+        volunteerId: params.volunteerId ? params.volunteerId : null,
       },
       client
     )
@@ -149,8 +155,8 @@ async function createAdminAction(action: ACCOUNT_USER_ACTIONS, userId: Ulid) {
     await pgQueries.createAdminAction.run(
       {
         action,
-        action_type: USER_ACTION_TYPES.ADMIN,
-        user_id: userId,
+        actionType: USER_ACTION_TYPES.ADMIN,
+        userId: userId,
       },
       client
     )
