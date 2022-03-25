@@ -37,6 +37,7 @@ export async function createStudent(
 ): Promise<Student> {
   studentData.password = await hashPassword(studentData.password)
   // TODO: repo pattern
+  // replace with createStudent
   const student = new StudentModel(studentData)
   student.referralCode = generateReferralCode(student._id)
 
