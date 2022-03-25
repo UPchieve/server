@@ -15,7 +15,7 @@
         class="dashboard-notice"
         :class="'dashboard-notice--downtime'"
       >
-        {{ downtimeMessage }}
+        <a href="https://upchieve.statuspage.io" target="_blank">{{ downtimeMessage }}</a>
       </div>
     </div>
 
