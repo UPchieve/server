@@ -573,3 +573,121 @@ const getPartnerOrgByKeyIR: any = {"name":"getPartnerOrgByKey","params":[{"name"
 export const getPartnerOrgByKey = new PreparedQuery<IGetPartnerOrgByKeyParams,IGetPartnerOrgByKeyResult>(getPartnerOrgByKeyIR);
 
 
+/** 'CreateStudentUser' parameters type */
+export interface ICreateStudentUserParams {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  referralCode: string;
+  referredBy: string | null | void;
+  userId: string;
+}
+
+/** 'CreateStudentUser' return type */
+export interface ICreateStudentUserResult {
+  banned: boolean;
+  createdAt: Date;
+  deactivated: boolean;
+  email: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  testUser: boolean;
+  verified: boolean;
+}
+
+/** 'CreateStudentUser' query type */
+export interface ICreateStudentUserQuery {
+  params: ICreateStudentUserParams;
+  result: ICreateStudentUserResult;
+}
+
+const createStudentUserIR: any = {"name":"createStudentUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5076,"b":5082,"line":214,"col":13}]}},{"name":"firstName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5086,"b":5095,"line":214,"col":23}]}},{"name":"lastName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5099,"b":5107,"line":214,"col":36}]}},{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5111,"b":5116,"line":214,"col":48}]}},{"name":"password","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5120,"b":5128,"line":214,"col":57}]}},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5139,"b":5148,"line":214,"col":76}]}},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5152,"b":5164,"line":214,"col":89}]}}],"usedParamSet":{"userId":true,"firstName":true,"lastName":true,"email":true,"password":true,"referredBy":true,"referralCode":true},"statement":{"body":"INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, referred_by, referral_code, created_at, updated_at)\n    VALUES (:userId!, :firstName!, :lastName!, :email!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, first_name, last_name, email, verified, banned, test_user, deactivated, created_at","loc":{"a":4938,"b":5315,"line":213,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, referred_by, referral_code, created_at, updated_at)
+ *     VALUES (:userId!, :firstName!, :lastName!, :email!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())
+ * ON CONFLICT (email)
+ *     DO NOTHING
+ * RETURNING
+ *     id, first_name, last_name, email, verified, banned, test_user, deactivated, created_at
+ * ```
+ */
+export const createStudentUser = new PreparedQuery<ICreateStudentUserParams,ICreateStudentUserResult>(createStudentUserIR);
+
+
+/** 'CreateStudentProfile' parameters type */
+export interface ICreateStudentProfileParams {
+  college: string | null | void;
+  gradeLevel: string | null | void;
+  highSchool: string | null | void;
+  partnerOrg: string | null | void;
+  partnerSite: string | null | void;
+  postalCode: string;
+  userId: string;
+}
+
+/** 'CreateStudentProfile' return type */
+export interface ICreateStudentProfileResult {
+  college: string | null;
+  createdAt: Date;
+  gradeLevel: string | null;
+  partnerSite: string | null;
+  postalCode: string | null;
+  schoolId: string | null;
+  studentPartnerOrg: string | null;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'CreateStudentProfile' query type */
+export interface ICreateStudentProfileQuery {
+  params: ICreateStudentProfileParams;
+  result: ICreateStudentProfileResult;
+}
+
+const createStudentProfileIR: any = {"name":"createStudentProfile","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5530,"b":5536,"line":224,"col":5}]}},{"name":"postalCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5544,"b":5554,"line":225,"col":5}]}},{"name":"college","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5670,"b":5676,"line":230,"col":5}]}},{"name":"partnerOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5853,"b":5862,"line":240,"col":36},{"a":6125,"b":6134,"line":247,"col":5}]}},{"name":"partnerSite","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5921,"b":5931,"line":241,"col":44},{"a":6165,"b":6175,"line":248,"col":5}]}},{"name":"gradeLevel","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5997,"b":6006,"line":242,"col":31},{"a":6199,"b":6208,"line":249,"col":5}]}},{"name":"highSchool","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":6054,"b":6063,"line":243,"col":26}]}}],"usedParamSet":{"userId":true,"postalCode":true,"college":true,"partnerOrg":true,"partnerSite":true,"gradeLevel":true,"highSchool":true},"statement":{"body":"INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at)\nSELECT\n    :userId!,\n    :postalCode!,\n    subquery.student_partner_org_id,\n    student_partner_org_sites.id,\n    grade_levels.id,\n    schools.id,\n    :college,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        id AS student_partner_org_id,\n        name\n    FROM\n        student_partner_orgs\n    WHERE\n        student_partner_orgs.key = :partnerOrg) AS subquery\n    LEFT JOIN student_partner_org_sites ON :partnerSite = student_partner_org_sites.name\n    LEFT JOIN grade_levels ON :gradeLevel = grade_levels.name\n    LEFT JOIN schools ON :highSchool = schools.name\nRETURNING\n    user_id,\n    postal_code,\n    :partnerOrg AS student_partner_org,\n    :partnerSite AS partner_site,\n    :gradeLevel AS grade_level,\n    school_id,\n    college,\n    created_at,\n    updated_at","loc":{"a":5353,"b":6283,"line":222,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at)
+ * SELECT
+ *     :userId!,
+ *     :postalCode!,
+ *     subquery.student_partner_org_id,
+ *     student_partner_org_sites.id,
+ *     grade_levels.id,
+ *     schools.id,
+ *     :college,
+ *     NOW(),
+ *     NOW()
+ * FROM (
+ *     SELECT
+ *         id AS student_partner_org_id,
+ *         name
+ *     FROM
+ *         student_partner_orgs
+ *     WHERE
+ *         student_partner_orgs.key = :partnerOrg) AS subquery
+ *     LEFT JOIN student_partner_org_sites ON :partnerSite = student_partner_org_sites.name
+ *     LEFT JOIN grade_levels ON :gradeLevel = grade_levels.name
+ *     LEFT JOIN schools ON :highSchool = schools.name
+ * RETURNING
+ *     user_id,
+ *     postal_code,
+ *     :partnerOrg AS student_partner_org,
+ *     :partnerSite AS partner_site,
+ *     :gradeLevel AS grade_level,
+ *     school_id,
+ *     college,
+ *     created_at,
+ *     updated_at
+ * ```
+ */
+export const createStudentProfile = new PreparedQuery<ICreateStudentProfileParams,ICreateStudentProfileResult>(createStudentProfileIR);
+
+

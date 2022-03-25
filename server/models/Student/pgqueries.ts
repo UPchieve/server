@@ -1,6 +1,18 @@
 import { getClient } from '../../pg'
-import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
-import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
+import generateReferralCode from '../../utils/generate-referral-code'
+import {
+  RepoCreateError,
+  RepoDeleteError,
+  RepoReadError,
+  RepoUpdateError,
+} from '../Errors'
+import {
+  doTransaction,
+  getDbUlid,
+  makeRequired,
+  makeSomeRequired,
+  Ulid,
+} from '../pgUtils'
 import * as pgQueries from './pg.queries'
 
 export type ReportedStudent = {
@@ -274,9 +286,8 @@ export async function adminUpdateStudent(
     )
     const partnerOrg = makeRequired(partnerOrgResult[0])
 
-    // TODO: use transactions
-    const results = await Promise.all([
-      pgQueries.adminUpdateStudent.run(
+    const results = await doTransaction(async client => {
+      const updateStudentResult = await pgQueries.adminUpdateStudent.run(
         {
           userId: studentId,
           firstName: update.firstName,
@@ -286,28 +297,120 @@ export async function adminUpdateStudent(
           banned: update.isBanned,
           deactivated: update.isDeactivated,
         },
-        getClient()
-      ),
-      pgQueries.adminUpdateStudentProfile.run(
+        client
+      )
+      const updateStudentProfileResult = await pgQueries.adminUpdateStudentProfile.run(
         {
           userId: studentId,
           partnerOrgId: partnerOrg.partnerId,
           partnerOrgSiteId: partnerOrg.siteId,
         },
-        getClient()
-      ),
-    ])
+        client
+      )
 
-    const [updateStudentResult, updateStudentProfileResult] = results
+      return { updateStudentResult, updateStudentProfileResult }
+    }, getClient())
+
+    const { updateStudentResult, updateStudentProfileResult } = results
 
     if (
-      results.length &&
-      makeRequired(updateStudentResult[0].ok) &&
-      updateStudentProfileResult[0].ok
+      Object.keys(results).length &&
+      makeRequired(updateStudentResult[0]).ok &&
+      makeRequired(updateStudentProfileResult[0]).ok
     )
       return
     throw new RepoUpdateError('Update query did not update the student')
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+type CreateStudentPayload = {
+  email: string
+  firstName: string
+  lastName: string
+  password: string
+  referredBy: Ulid | undefined
+  studentPartnerOrg?: string | undefined
+  zipCode: string
+  // TODO: figure out type -- Ulid or name of high school?
+  approvedHighschool: Ulid | string
+  currentGrade: string
+  partnerSite?: string
+  partnerUserId?: string
+  college?: string
+}
+type CreatedStudent = StudentContactInfo & {
+  isDeactivated: boolean
+  isTestUser: boolean
+  createdAt: Date
+  isVolunteer: boolean
+  isAdmin: boolean
+  isBanned: boolean
+  verified: boolean
+  zipCode: string
+  currentGrade: string
+  lastname: string
+  firstname: string
+}
+
+export async function createStudent(
+  studentData: CreateStudentPayload
+): Promise<CreatedStudent | undefined> {
+  try {
+    const response = await doTransaction(async client => {
+      const userId = getDbUlid()
+      const userResult = await pgQueries.createStudentUser.run(
+        {
+          userId,
+          referralCode: generateReferralCode(userId),
+          ...studentData,
+        },
+        client
+      )
+      const profileResult = await pgQueries.createStudentProfile.run(
+        {
+          userId,
+          college: studentData.college,
+          partnerOrg: studentData.studentPartnerOrg,
+          partnerSite: studentData.partnerSite,
+          postalCode: studentData.zipCode,
+          gradeLevel: studentData.currentGrade,
+          highSchool: studentData.approvedHighschool,
+        },
+        client
+      )
+
+      return {
+        userResult,
+        profileResult,
+      }
+    }, getClient())
+
+    const { userResult, profileResult } = response
+
+    if (userResult.length && profileResult.length) {
+      const profile = makeRequired(profileResult[0])
+      const user = makeRequired(userResult[0])
+
+      return {
+        id: user.id,
+        firstname: user.firstName,
+        firstName: user.firstName,
+        lastname: user.lastName,
+        email: user.email,
+        isBanned: user.banned,
+        isDeactivated: user.deactivated,
+        isTestUser: user.testUser,
+        isAdmin: false,
+        isVolunteer: false,
+        verified: user.verified,
+        createdAt: user.createdAt,
+        currentGrade: profile.gradeLevel,
+        zipCode: profile.postalCode,
+      }
+    }
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

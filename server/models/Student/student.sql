@@ -208,3 +208,47 @@ FROM
 WHERE
     student_partner_orgs.key = :partnerOrgKey!;
 
+
+/* @name createStudentUser */
+INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, referred_by, referral_code, created_at, updated_at)
+    VALUES (:userId!, :firstName!, :lastName!, :email!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())
+ON CONFLICT (email)
+    DO NOTHING
+RETURNING
+    id, first_name, last_name, email, verified, banned, test_user, deactivated, created_at;
+
+
+/* @name createStudentProfile */
+INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at)
+SELECT
+    :userId!,
+    :postalCode!,
+    subquery.student_partner_org_id,
+    student_partner_org_sites.id,
+    grade_levels.id,
+    schools.id,
+    :college,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        id AS student_partner_org_id,
+        name
+    FROM
+        student_partner_orgs
+    WHERE
+        student_partner_orgs.key = :partnerOrg) AS subquery
+    LEFT JOIN student_partner_org_sites ON :partnerSite = student_partner_org_sites.name
+    LEFT JOIN grade_levels ON :gradeLevel = grade_levels.name
+    LEFT JOIN schools ON :highSchool = schools.name
+RETURNING
+    user_id,
+    postal_code,
+    :partnerOrg AS student_partner_org,
+    :partnerSite AS partner_site,
+    :gradeLevel AS grade_level,
+    school_id,
+    college,
+    created_at,
+    updated_at;
+
