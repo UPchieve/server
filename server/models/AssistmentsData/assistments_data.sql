@@ -35,8 +35,8 @@ SELECT
     :studentId!,
     :sessionId!,
     FALSE,
-    NOW()::date,
-    NOW()::date
+    NOW(),
+    NOW()
 WHERE
     NOT EXISTS (
         SELECT

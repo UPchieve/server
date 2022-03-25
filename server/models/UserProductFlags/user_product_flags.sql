@@ -2,8 +2,8 @@
 INSERT INTO user_product_flags (user_id, created_at, updated_at)
 SELECT
     :userId!,
-    NOW()::date,
-    NOW()::date
+    NOW(),
+    NOW()
 WHERE
     NOT EXISTS (
         SELECT
@@ -56,7 +56,7 @@ UPDATE
     user_product_flags
 SET
     gates_qualified = :gatesQualified!,
-    updated_at = NOW()::date
+    updated_at = NOW()
 WHERE
     user_id = :userId!
 RETURNING
@@ -68,7 +68,7 @@ UPDATE
     user_product_flags
 SET
     sent_inactive_thirty_day_email = :sentInactiveThirtyDayEmail!,
-    updated_at = NOW()::date
+    updated_at = NOW()
 WHERE
     user_id = :userId!
 RETURNING
@@ -80,7 +80,7 @@ UPDATE
     user_product_flags
 SET
     sent_inactive_sixty_day_email = :sentInactiveSixtyDayEmail!,
-    updated_at = NOW()::date
+    updated_at = NOW()
 WHERE
     user_id = :userId!
 RETURNING
@@ -92,7 +92,7 @@ UPDATE
     user_product_flags
 SET
     sent_inactive_ninety_day_email = :sentInactiveNinetyDayEmail!,
-    updated_at = NOW()::date
+    updated_at = NOW()
 WHERE
     user_id = :userId!
 RETURNING

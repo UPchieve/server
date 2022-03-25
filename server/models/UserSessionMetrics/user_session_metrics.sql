@@ -2,8 +2,8 @@
 INSERT INTO user_session_metrics (user_id, created_at, updated_at)
 SELECT
     :userId!,
-    NOW()::date,
-    NOW()::date
+    NOW(),
+    NOW()
 WHERE
     NOT EXISTS (
         SELECT
@@ -69,7 +69,7 @@ SET
     has_been_unmatched = COALESCE(:hasBeenUnmatched!, has_been_unmatched),
     has_had_technical_issues = COALESCE(:hasHadTechnicalIssues!, has_had_technical_issues),
     reported = COALESCE(:reported!, reported),
-    updated_at = NOW()::date
+    updated_at = NOW()
 WHERE
     user_id = :userId!
 RETURNING

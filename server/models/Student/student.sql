@@ -150,7 +150,7 @@ UPDATE
     users
 SET
     email = :email!,
-    updated_at = NOW()::date
+    updated_at = NOW()
 WHERE
     id = :userId!
 RETURNING
@@ -167,7 +167,7 @@ SET
     verified = :verified!,
     banned = :banned!,
     deactivated = :deactivated!,
-    updated_at = NOW()::date
+    updated_at = NOW()
 WHERE
     id = :userId!
 RETURNING
@@ -180,7 +180,7 @@ UPDATE
 SET
     student_partner_org_id = :partnerOrgId!,
     student_partner_org_site_id = :partnerOrgSiteId!,
-    updated_at = NOW()::date
+    updated_at = NOW()
 WHERE
     user_id = :userId!
 RETURNING
