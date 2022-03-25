@@ -4,15 +4,10 @@ import {
   RepoCreateError,
   RepoDeleteError,
   RepoReadError,
+  RepoTransactionError,
   RepoUpdateError,
 } from '../Errors'
-import {
-  doTransaction,
-  getDbUlid,
-  makeRequired,
-  makeSomeRequired,
-  Ulid,
-} from '../pgUtils'
+import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 
 export type ReportedStudent = {
@@ -268,14 +263,14 @@ export type AdminUpdateStudent = {
   isVerified: boolean
   isBanned: boolean
   isDeactivated: boolean
-  // TODO: where did this field go and can it be dropped?
-  inGatesStudy?: boolean
+  inGatesStudy: boolean
 }
 
 export async function adminUpdateStudent(
   studentId: Ulid,
   update: AdminUpdateStudent
 ) {
+  const transactionClient = await getClient().connect()
   try {
     const partnerOrgResult = await pgQueries.getPartnerOrgByKey.run(
       {
@@ -285,43 +280,46 @@ export async function adminUpdateStudent(
       getClient()
     )
     const partnerOrg = makeRequired(partnerOrgResult[0])
+    await transactionClient.query('BEGIN')
 
-    const results = await doTransaction(async client => {
-      const updateStudentResult = await pgQueries.adminUpdateStudent.run(
-        {
-          userId: studentId,
-          firstName: update.firstName,
-          lastName: update.lastName,
-          email: update.email,
-          verified: update.isVerified,
-          banned: update.isBanned,
-          deactivated: update.isDeactivated,
-        },
-        client
-      )
-      const updateStudentProfileResult = await pgQueries.adminUpdateStudentProfile.run(
-        {
-          userId: studentId,
-          partnerOrgId: partnerOrg.partnerId,
-          partnerOrgSiteId: partnerOrg.siteId,
-        },
-        client
-      )
+    const updateStudentResult = await pgQueries.adminUpdateStudent.run(
+      {
+        userId: studentId,
+        firstName: update.firstName,
+        lastName: update.lastName,
+        email: update.email,
+        verified: update.isVerified,
+        banned: update.isBanned,
+        deactivated: update.isDeactivated,
+      },
+      transactionClient
+    )
+    const updateStudentProfileResult = await pgQueries.adminUpdateStudentProfile.run(
+      {
+        userId: studentId,
+        partnerOrgId: partnerOrg.partnerId,
+        partnerOrgSiteId: partnerOrg.siteId,
+      },
+      transactionClient
+    )
+    const updateProductFlagsResult = await pgQueries
 
-      return { updateStudentResult, updateStudentProfileResult }
-    }, getClient())
-
-    const { updateStudentResult, updateStudentProfileResult } = results
+    await transactionClient.query('COMMIT')
 
     if (
-      Object.keys(results).length &&
+      updateStudentResult.length &&
+      updateStudentProfileResult.length &&
       makeRequired(updateStudentResult[0]).ok &&
       makeRequired(updateStudentProfileResult[0]).ok
     )
       return
     throw new RepoUpdateError('Update query did not update the student')
   } catch (err) {
-    throw new RepoUpdateError(err)
+    await transactionClient.query('ROLLBACK')
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoTransactionError(err)
+  } finally {
+    transactionClient.release()
   }
 }
 
@@ -357,37 +355,31 @@ type CreatedStudent = StudentContactInfo & {
 export async function createStudent(
   studentData: CreateStudentPayload
 ): Promise<CreatedStudent | undefined> {
+  const transactionClient = await getClient().connect()
   try {
-    const response = await doTransaction(async client => {
-      const userId = getDbUlid()
-      const userResult = await pgQueries.createStudentUser.run(
-        {
-          userId,
-          referralCode: generateReferralCode(userId),
-          ...studentData,
-        },
-        client
-      )
-      const profileResult = await pgQueries.createStudentProfile.run(
-        {
-          userId,
-          college: studentData.college,
-          partnerOrg: studentData.studentPartnerOrg,
-          partnerSite: studentData.partnerSite,
-          postalCode: studentData.zipCode,
-          gradeLevel: studentData.currentGrade,
-          highSchool: studentData.approvedHighschool,
-        },
-        client
-      )
-
-      return {
-        userResult,
-        profileResult,
-      }
-    }, getClient())
-
-    const { userResult, profileResult } = response
+    const userId = getDbUlid()
+    await transactionClient.query('BEGIN')
+    const userResult = await pgQueries.createStudentUser.run(
+      {
+        userId,
+        referralCode: generateReferralCode(userId),
+        ...studentData,
+      },
+      transactionClient
+    )
+    const profileResult = await pgQueries.createStudentProfile.run(
+      {
+        userId,
+        college: studentData.college,
+        partnerOrg: studentData.studentPartnerOrg,
+        partnerSite: studentData.partnerSite,
+        postalCode: studentData.zipCode,
+        gradeLevel: studentData.currentGrade,
+        highSchool: studentData.approvedHighschool,
+      },
+      transactionClient
+    )
+    await transactionClient.query('COMMIT')
 
     if (userResult.length && profileResult.length) {
       const profile = makeRequired(profileResult[0])
@@ -410,7 +402,12 @@ export async function createStudent(
         zipCode: profile.postalCode,
       }
     }
+    throw new RepoCreateError('Insert did not return new row')
   } catch (err) {
-    throw new RepoCreateError(err)
+    await transactionClient.query('ROLLBACK')
+    if (err instanceof RepoCreateError) throw err
+    throw new RepoTransactionError(err)
+  } finally {
+    transactionClient.release()
   }
 }
