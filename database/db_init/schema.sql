@@ -59,6 +59,21 @@ CREATE TABLE upchieve.assistments_data (
 
 
 --
+-- Name: associated_partners; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.associated_partners (
+    id uuid NOT NULL,
+    key text NOT NULL,
+    volunteer_partner_org_id uuid NOT NULL,
+    student_partner_org_id uuid,
+    student_sponsor_org_id uuid,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: availabilities; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -965,7 +980,8 @@ CREATE TABLE upchieve.sponsor_orgs (
     id uuid NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    key text
 );
 
 
@@ -1737,6 +1753,14 @@ ALTER TABLE ONLY upchieve.assistments_data
 
 ALTER TABLE ONLY upchieve.assistments_data
     ADD CONSTRAINT assistments_data_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: associated_partners associated_partners_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.associated_partners
+    ADD CONSTRAINT associated_partners_pkey PRIMARY KEY (id);
 
 
 --
@@ -2659,6 +2683,30 @@ ALTER TABLE ONLY upchieve.assistments_data
 
 
 --
+-- Name: associated_partners associated_partners_student_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.associated_partners
+    ADD CONSTRAINT associated_partners_student_partner_org_id_fkey FOREIGN KEY (student_partner_org_id) REFERENCES upchieve.student_partner_orgs(id);
+
+
+--
+-- Name: associated_partners associated_partners_student_sponsor_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.associated_partners
+    ADD CONSTRAINT associated_partners_student_sponsor_org_id_fkey FOREIGN KEY (student_sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
+
+
+--
+-- Name: associated_partners associated_partners_volunteer_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.associated_partners
+    ADD CONSTRAINT associated_partners_volunteer_partner_org_id_fkey FOREIGN KEY (volunteer_partner_org_id) REFERENCES upchieve.volunteer_partner_orgs(id);
+
+
+--
 -- Name: availabilities availabilities_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3464,3 +3512,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220325223612'),
     ('20220326034520'),
     ('20220326153520');
+    ('20220325163001'),
+    ('20220325172541');
