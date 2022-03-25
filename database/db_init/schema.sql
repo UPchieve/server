@@ -1197,7 +1197,9 @@ CREATE TABLE upchieve.user_actions (
     quiz_category text,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24)
+    mongo_id character varying(24),
+    reference_email text,
+    volunteer_id uuid
 );
 
 
@@ -3305,4 +3307,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220310005137'),
     ('20220311204741'),
     ('20220314150152'),
-    ('20220314195714');
+    ('20220314195714'),
+    ('20220324220941');
