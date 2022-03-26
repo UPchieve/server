@@ -44,7 +44,7 @@ export async function priorityGroups(): Promise<NameToId> {
       priority: 8,
     },
     {
-      name: 'Verizon volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
+      name: 'Verizon volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       priority: 9,
     },
     {
