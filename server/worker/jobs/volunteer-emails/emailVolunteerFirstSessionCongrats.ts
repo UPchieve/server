@@ -15,7 +15,7 @@ export default async (
 ): Promise<void> => {
   const { name: currentJob } = job
   const sessionId = asObjectId(job.data.sessionId)
-  // TODO: repo pattern
+  // Replaced by getVolunteerForEmailFirstSession
   const [session] = await getSessionsWithPipeline([
     {
       $match: {

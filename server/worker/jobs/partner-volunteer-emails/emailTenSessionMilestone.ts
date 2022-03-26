@@ -32,7 +32,7 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
   if (!volunteer) return
 
   const fifteenMins = 1000 * 60 * 15
-  // TODO: repo pattern
+  // replaced by getSessionsVolunteerRating
   const sessions = await getSessionsWithPipeline([
     {
       $match: {

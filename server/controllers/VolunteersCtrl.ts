@@ -79,7 +79,7 @@ export async function getVolunteersAvailability(
     isBanned: false,
   }
 
-  // TODO: repo pattern
+  // Replaced by VolunteerRepo.getVolunteersAdminAvailability
   // the projection returns { _id: 1, type: 1}
   const volunteers = await VolunteerModel.find(volunteerQuery)
     .select({ _id: 1 })

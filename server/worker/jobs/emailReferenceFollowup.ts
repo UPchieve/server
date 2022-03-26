@@ -23,6 +23,7 @@ export default async (): Promise<void> => {
       $lt: new Date(threeDaysAgo),
     },
   }
+  // Replaced by VolunteerRepo.getReferencesToFollowup (with some signature changes)
   const referencesToEmail: ReferencesToEmail[] = await VolunteerModel.aggregate(
     [
       {

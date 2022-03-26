@@ -101,8 +101,8 @@ export const insertIneligibleStudent = new PreparedQuery<IInsertIneligibleStuden
 
 /** 'GetIneligibleStudentsPaginated' parameters type */
 export interface IGetIneligibleStudentsPaginatedParams {
-  limit: string;
-  offset: string;
+  limit: number;
+  offset: number;
 }
 
 /** 'GetIneligibleStudentsPaginated' return type */
@@ -127,7 +127,7 @@ export interface IGetIneligibleStudentsPaginatedQuery {
   result: IGetIneligibleStudentsPaginatedResult;
 }
 
-const getIneligibleStudentsPaginatedIR: any = {"name":"getIneligibleStudentsPaginated","params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1738,"b":1743,"line":61,"col":7}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1753,"b":1759,"line":61,"col":22}]}}],"usedParamSet":{"limit":true,"offset":true},"statement":{"body":"SELECT\n    email,\n    postal_code AS zip_code,\n    ip_addresses.ip AS ip_address,\n    school_id,\n    schools.name AS school_name,\n    schools.us_state_code AS school_state,\n    cities.name AS school_city,\n    postal_code AS school_zip_code,\n    schools.approved AS is_approved,\n    postal_codes.income AS median_income,\n    ineligible_students.created_at,\n    ineligible_students.updated_at\nFROM\n    ineligible_students\n    LEFT JOIN ip_addresses ON ineligible_students.ip_address_id = ip_addresses.id\n    LEFT JOIN postal_codes ON ineligible_students.postal_code = postal_codes.code\n    LEFT JOIN schools ON ineligible_students.school_id = schools.id\n    LEFT JOIN cities ON schools.city_id = cities.id\nLIMIT :limit! OFFSET :offset!","loc":{"a":1027,"b":1759,"line":42,"col":0}}};
+const getIneligibleStudentsPaginatedIR: any = {"name":"getIneligibleStudentsPaginated","params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1739,"b":1744,"line":61,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1761,"b":1767,"line":61,"col":30}]}}],"usedParamSet":{"limit":true,"offset":true},"statement":{"body":"SELECT\n    email,\n    postal_code AS zip_code,\n    ip_addresses.ip AS ip_address,\n    school_id,\n    schools.name AS school_name,\n    schools.us_state_code AS school_state,\n    cities.name AS school_city,\n    postal_code AS school_zip_code,\n    schools.approved AS is_approved,\n    postal_codes.income AS median_income,\n    ineligible_students.created_at,\n    ineligible_students.updated_at\nFROM\n    ineligible_students\n    LEFT JOIN ip_addresses ON ineligible_students.ip_address_id = ip_addresses.id\n    LEFT JOIN postal_codes ON ineligible_students.postal_code = postal_codes.code\n    LEFT JOIN schools ON ineligible_students.school_id = schools.id\n    LEFT JOIN cities ON schools.city_id = cities.id\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":1027,"b":1773,"line":42,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -151,7 +151,7 @@ const getIneligibleStudentsPaginatedIR: any = {"name":"getIneligibleStudentsPagi
  *     LEFT JOIN postal_codes ON ineligible_students.postal_code = postal_codes.code
  *     LEFT JOIN schools ON ineligible_students.school_id = schools.id
  *     LEFT JOIN cities ON schools.city_id = cities.id
- * LIMIT :limit! OFFSET :offset!
+ * LIMIT (:limit!)::int OFFSET (:offset!)::int
  * ```
  */
 export const getIneligibleStudentsPaginated = new PreparedQuery<IGetIneligibleStudentsPaginatedParams,IGetIneligibleStudentsPaginatedResult>(getIneligibleStudentsPaginatedIR);

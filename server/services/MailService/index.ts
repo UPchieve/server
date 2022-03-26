@@ -8,7 +8,11 @@ import {
   studentPartnerManifests,
 } from '../../partnerManifests'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
-import { SESSION_REPORT_REASON, TRAINING, USER_BAN_REASONS } from '../../constants'
+import {
+  SESSION_REPORT_REASON,
+  USER_BAN_REASONS,
+  TRAINING,
+} from '../../constants'
 import { User } from '../../models/User'
 import { VolunteerContactInfo } from '../../models/Volunteer/queries'
 import { Reference, Volunteer } from '../../models/Volunteer'
@@ -1165,6 +1169,7 @@ export async function sendOnlyLookingForAnswersWarning(
   await sendEmail(email, sender, from, template, { firstName }, overrides)
 }
 
+// TODO: needs [contactInfo, banned, testuser, isVolunteer, isAdmin, deactivated, createdAt, passedUpchieve101, student/volunteerPartnerOrg, student/volunteerPartnerOrgDisplay]
 export async function createContact(
   user: User | Student | Volunteer
 ): Promise<any> {

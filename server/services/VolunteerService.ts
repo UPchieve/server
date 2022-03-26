@@ -123,7 +123,7 @@ export async function getVolunteersToReview(
   const skip = (pageNum - 1) * PER_PAGE
 
   try {
-    // TODO: repo pattern
+    // Replaced by VolunteerRepo.getVolunteersToReview
     const volunteers = await VolunteerModel.aggregate([
       {
         $match: {
@@ -248,7 +248,7 @@ export async function updatePendingVolunteerStatus(
   if (photoIdStatus) update.photoIdStatus = photoIdStatus
   if (referenceOneStatus) update['references.0.status'] = referenceOneStatus
   if (referenceTwoStatus) update['references.1.status'] = referenceTwoStatus
-  // TODO: repo pattern
+  // replaced by updateVolunteerReferenceStatusById
   await VolunteerModel.updateOne({ _id: volunteerId }, update)
 
   if (
@@ -295,6 +295,7 @@ export async function addBackgroundInfo(
   update: Partial<Volunteer>,
   ip: string
 ): Promise<void> {
+  // replaced with getContactInfo
   const volunteer = await getVolunteerById(volunteerId)
   if (!volunteer) throw new Error('Volunteer for background info not found')
   const volunteerPartnerOrg = volunteer.volunteerPartnerOrg
@@ -321,6 +322,6 @@ export async function addBackgroundInfo(
     volunteerId,
     ip
   ).completedBackgroundInfo()
-  // TODO: repo pattern
+  // Replaced with VolunteerRepo.updateVolunteerBackgroundInfo
   await VolunteerModel.updateOne({ _id: volunteerId }, update)
 }

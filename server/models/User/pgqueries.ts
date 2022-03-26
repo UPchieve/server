@@ -1,9 +1,16 @@
-// pg wrappers
 import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
-import { makeRequired, Ulid, Pgid, getDbUlid } from '../pgUtils'
+import {
+  makeRequired,
+  makeSomeRequired,
+  makeSomeOptional,
+  Ulid,
+  Pgid,
+  getDbUlid,
+} from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS } from '../../constants'
+import { getReferencesByVolunteer } from '../Volunteer/pgqueries'
 
 export async function getUserIdByPhone(
   phone: string
@@ -32,6 +39,8 @@ export type UserContactInfo = {
   email: string
   phone?: string
   firstName: string
+  isVolunteer: boolean
+  volunteerPartnerOrg?: string
 }
 
 export async function getUserContactInfoById(
@@ -42,7 +51,8 @@ export async function getUserContactInfoById(
       { id },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -57,7 +67,8 @@ export async function getUserContactInfoByReferralCode(
       { referralCode },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -92,7 +103,8 @@ export async function getUserContactInfoByResetToken(
       { resetToken },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -218,5 +230,99 @@ export async function banUserById(userId: Ulid, banReason: USER_BAN_REASONS) {
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
+  }
+}
+
+type UserQuery = {
+  userId: string | undefined
+  firstName: string | undefined
+  lastName: string | undefined
+  email: string | undefined
+  partnerOrg: string | undefined
+  highSchool: string | undefined
+}
+type AdminUser = {
+  id: Ulid
+  _id: Ulid
+  firstName: string
+  lastName: string
+  email: string
+  isVolunteer: boolean
+  createdAt: Date
+}
+function cleanPayload(payload: UserQuery): UserQuery {
+  const temp: any = {}
+  for (const [key, value] of Object.entries(payload)) {
+    temp[key] = value === '' ? undefined : value
+  }
+  return temp as UserQuery
+}
+export async function getUsersForAdminSearch(
+  payload: UserQuery,
+  limit: number,
+  offset: number
+): Promise<AdminUser[]> {
+  try {
+    const result = await pgQueries.getUsersForAdminSearch.run(
+      { ...cleanPayload(payload), limit, offset },
+      getClient()
+    )
+    return result.map(v => {
+      const user = makeRequired(v)
+      return {
+        _id: user.id,
+        ...user,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+/*
+pastSessions: { $slice: ['$pastSessions', -10 * page, 10] }, /////////
+
+    sessions: {
+                type: 1,
+                subTopic: 1,
+                totalMessages: {
+                  $size: '$messages',
+                },
+                volunteer: 1,
+                student: 1,
+                volunteerJoinedAt: 1,
+                createdAt: 1,
+                endedAt: 1,
+              },
+*/
+// TODO: needs formal return type which is huge due to frontend
+export async function getUserForAdminDetail(userId: Ulid) {
+  try {
+    const userResult = await pgQueries.getUserForAdminDetail.run(
+      { userId },
+      getClient()
+    )
+    const user = makeSomeOptional(userResult[0], [
+      'id',
+      'createdAt',
+      'email',
+      'firstname',
+      'lastname',
+      'isAdmin',
+      'isDeactivated',
+      'isTestUser',
+      'isVolunteer',
+      'verified',
+      'numPastSessions',
+    ])
+    const references = await getReferencesByVolunteer(user.id)
+    const sessions: any[] = [] // TODO: get past sessions
+    return {
+      ...user,
+      references,
+      pastSessions: sessions,
+      _id: user.id,
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

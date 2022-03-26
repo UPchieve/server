@@ -40,13 +40,12 @@ export type IneligibleStudentsWithSchoolInfo = {
 }
 
 export async function getIneligibleStudentsPaginated(
-  email: string,
   limit: number,
   offset: number
 ): Promise<IneligibleStudentsWithSchoolInfo[]> {
   try {
     const result = await pgQueries.getIneligibleStudentsPaginated.run(
-      { limit: String(limit), offset: String(offset) },
+      { limit, offset },
       getClient()
     )
     return result.map(v => makeRequired(v))
