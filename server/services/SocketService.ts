@@ -25,7 +25,7 @@ class SocketService {
       { path: 'volunteer', select: 'firstname isVolunteer' },
     ]
 
-    // TODO: repo pattern
+    // Replaced by getCurrentSessionBySessionId
     const populatedSession = await SessionModel.findById(sessionId)
       .populate(populateOptions)
       .exec()

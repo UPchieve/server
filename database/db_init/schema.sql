@@ -53,7 +53,8 @@ CREATE TABLE upchieve.assistments_data (
     sent boolean DEFAULT false,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    sent_at timestamp with time zone
+    sent_at timestamp with time zone,
+    mongo_id character varying(24)
 );
 
 
@@ -640,31 +641,6 @@ ALTER SEQUENCE upchieve.quizzes_id_seq OWNED BY upchieve.quizzes.id;
 
 
 --
--- Name: references; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve."references" (
-    id uuid NOT NULL,
-    user_id uuid NOT NULL,
-    first_name text NOT NULL,
-    last_name text NOT NULL,
-    email text NOT NULL,
-    status_id integer NOT NULL,
-    sent_at timestamp with time zone,
-    affiliation text,
-    relationship_length text,
-    patient smallint,
-    positive_role_model smallint,
-    agreeable_and_approachable smallint,
-    communicates_effectively smallint,
-    rejection_reason text,
-    additional_info text,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
-);
-
-
---
 -- Name: report_reasons; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -815,6 +791,18 @@ CREATE TABLE upchieve.schools_sponsor_orgs (
 
 
 --
+-- Name: session_failed_joins; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_failed_joins (
+    session_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: session_flags; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -862,6 +850,18 @@ CREATE TABLE upchieve.session_messages (
 
 
 --
+-- Name: session_photos; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_photos (
+    session_id uuid NOT NULL,
+    photo_key text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: session_reports; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -872,6 +872,18 @@ CREATE TABLE upchieve.session_reports (
     reporting_user_id uuid NOT NULL,
     session_id uuid NOT NULL,
     reported_user_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: session_review_reasons; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_review_reasons (
+    session_id uuid NOT NULL,
+    session_flag_id integer NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
 );
@@ -1391,6 +1403,18 @@ CREATE TABLE upchieve.users_training_courses (
 
 
 --
+-- Name: volunteer_occupations; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.volunteer_occupations (
+    user_id uuid NOT NULL,
+    occupation text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: volunteer_partner_orgs; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1425,7 +1449,9 @@ CREATE TABLE upchieve.volunteer_profiles (
     state text,
     country text,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    total_volunteer_hours double precision,
+    elapsed_availability bigint
 );
 
 
@@ -1459,6 +1485,31 @@ CREATE SEQUENCE upchieve.volunteer_reference_statuses_id_seq
 --
 
 ALTER SEQUENCE upchieve.volunteer_reference_statuses_id_seq OWNED BY upchieve.volunteer_reference_statuses.id;
+
+
+--
+-- Name: volunteer_references; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.volunteer_references (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    email text NOT NULL,
+    status_id integer,
+    sent_at timestamp without time zone,
+    affiliation text,
+    relationship_length text,
+    patient smallint,
+    positive_role_model smallint,
+    agreeable_and_approachable smallint,
+    communicates_effectively smallint,
+    rejection_reason text,
+    additional_info text,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
 
 
 --
@@ -1668,6 +1719,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 ALTER TABLE ONLY upchieve.admin_profiles
     ADD CONSTRAINT admin_profiles_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: assistments_data assistments_data_mongo_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assistments_data
+    ADD CONSTRAINT assistments_data_mongo_id_key UNIQUE (mongo_id);
 
 
 --
@@ -2023,14 +2082,6 @@ ALTER TABLE ONLY upchieve.quizzes
 
 
 --
--- Name: references references_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve."references"
-    ADD CONSTRAINT references_pkey PRIMARY KEY (id);
-
-
---
 -- Name: report_reasons report_reasons_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2132,6 +2183,14 @@ ALTER TABLE ONLY upchieve.session_messages
 
 ALTER TABLE ONLY upchieve.session_reports
     ADD CONSTRAINT session_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: session_review_reasons session_review_reasons_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_review_reasons
+    ADD CONSTRAINT session_review_reasons_pkey PRIMARY KEY (session_id, session_flag_id);
 
 
 --
@@ -2335,6 +2394,14 @@ ALTER TABLE ONLY upchieve.users_ip_addresses
 
 
 --
+-- Name: volunteer_occupations unique_user_id_occupation; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_occupations
+    ADD CONSTRAINT unique_user_id_occupation UNIQUE (user_id, occupation);
+
+
+--
 -- Name: us_states us_states_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2364,6 +2431,22 @@ ALTER TABLE ONLY upchieve.user_actions
 
 ALTER TABLE ONLY upchieve.user_actions
     ADD CONSTRAINT user_actions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: volunteer_references user_id_ref_email_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_references
+    ADD CONSTRAINT user_id_ref_email_unique UNIQUE (user_id, email);
+
+
+--
+-- Name: users_training_courses user_id_training_course_id_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_training_courses
+    ADD CONSTRAINT user_id_training_course_id_unique UNIQUE (user_id, training_course_id);
 
 
 --
@@ -2516,6 +2599,14 @@ ALTER TABLE ONLY upchieve.volunteer_reference_statuses
 
 ALTER TABLE ONLY upchieve.volunteer_reference_statuses
     ADD CONSTRAINT volunteer_reference_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: volunteer_references volunteer_references_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_references
+    ADD CONSTRAINT volunteer_references_pkey PRIMARY KEY (id);
 
 
 --
@@ -2806,22 +2897,6 @@ ALTER TABLE ONLY upchieve.quiz_subcategories
 
 
 --
--- Name: references references_status_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve."references"
-    ADD CONSTRAINT references_status_id_fkey FOREIGN KEY (status_id) REFERENCES upchieve.volunteer_reference_statuses(id);
-
-
---
--- Name: references references_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve."references"
-    ADD CONSTRAINT references_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
-
-
---
 -- Name: required_email_domains required_email_domains_volunteer_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2870,6 +2945,22 @@ ALTER TABLE ONLY upchieve.schools
 
 
 --
+-- Name: session_failed_joins session_failed_joins_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_failed_joins
+    ADD CONSTRAINT session_failed_joins_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_failed_joins session_failed_joins_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_failed_joins
+    ADD CONSTRAINT session_failed_joins_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: session_messages session_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2883,6 +2974,14 @@ ALTER TABLE ONLY upchieve.session_messages
 
 ALTER TABLE ONLY upchieve.session_messages
     ADD CONSTRAINT session_messages_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_photos session_photos_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_photos
+    ADD CONSTRAINT session_photos_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
 
 
 --
@@ -2915,6 +3014,22 @@ ALTER TABLE ONLY upchieve.session_reports
 
 ALTER TABLE ONLY upchieve.session_reports
     ADD CONSTRAINT session_reports_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_review_reasons session_review_reasons_session_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_review_reasons
+    ADD CONSTRAINT session_review_reasons_session_flag_id_fkey FOREIGN KEY (session_flag_id) REFERENCES upchieve.session_flags(id);
+
+
+--
+-- Name: session_review_reasons session_review_reasons_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_review_reasons
+    ADD CONSTRAINT session_review_reasons_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
 
 
 --
@@ -3198,6 +3313,14 @@ ALTER TABLE ONLY upchieve.users_training_courses
 
 
 --
+-- Name: volunteer_occupations volunteer_occupations_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_occupations
+    ADD CONSTRAINT volunteer_occupations_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: volunteer_profiles volunteer_profiles_photo_id_status_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3219,6 +3342,22 @@ ALTER TABLE ONLY upchieve.volunteer_profiles
 
 ALTER TABLE ONLY upchieve.volunteer_profiles
     ADD CONSTRAINT volunteer_profiles_volunteer_partner_org_id_fkey FOREIGN KEY (volunteer_partner_org_id) REFERENCES upchieve.volunteer_partner_orgs(id);
+
+
+--
+-- Name: volunteer_references volunteer_references_status_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_references
+    ADD CONSTRAINT volunteer_references_status_id_fkey FOREIGN KEY (status_id) REFERENCES upchieve.volunteer_reference_statuses(id);
+
+
+--
+-- Name: volunteer_references volunteer_references_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_references
+    ADD CONSTRAINT volunteer_references_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -3305,4 +3444,9 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220310005137'),
     ('20220311204741'),
     ('20220314150152'),
-    ('20220314195714');
+    ('20220314195714'),
+    ('20220316180429'),
+    ('20220321125820'),
+    ('20220321152006'),
+    ('20220321174656'),
+    ('20220326034520');

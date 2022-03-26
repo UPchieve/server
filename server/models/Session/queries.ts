@@ -94,7 +94,7 @@ export async function getSessionById(
   return session
 }
 
-// TODO: This should not be used - move queries using this pipeline to this repo as custom getters
+// replaced everywhere it was used
 export function getSessionsWithPipeline(pipeline: any[]) {
   return (SessionModel.aggregate(pipeline) as unknown) as Promise<any[]>
 }
@@ -250,7 +250,6 @@ export interface SessionsToReview {
   reviewReasons: USER_SESSION_METRICS[]
 }
 
-// TODO: duck type validation - options payload
 export async function getSessionsToReview({
   query,
   skip,
@@ -405,7 +404,6 @@ export async function getActiveSessionsWithVolunteers(): Promise<Session[]> {
 
 export async function updateSessionReported(
   sessionId: Types.ObjectId,
-  // TODO: duck type validation - repo payload
   report: { reportReason: string; reportMessage: string }
 ): Promise<void> {
   const query = { _id: sessionId }
@@ -492,7 +490,6 @@ export async function updateSessionHasWhiteboardDoc(
 
 export async function updateSessionToEnd(
   sessionId: Types.ObjectId,
-  // TODO: duck type validation
   data: {
     endedAt: Date
     endedBy: Types.ObjectId | null
@@ -628,7 +625,6 @@ export interface AdminFilteredSessions {
   studentRating: number
 }
 
-// TODO: duck type validation
 export async function getAdminFilteredSessions({
   startDate,
   endDate,
@@ -1014,7 +1010,6 @@ export async function getSessionByIdWithStudentAndVolunteer(
   }
 }
 
-// TODO: duck type validation
 export async function createSession({
   studentId,
   type,
@@ -1026,7 +1021,6 @@ export async function createSession({
   subTopic: string
   isStudentBanned: boolean
 }): Promise<Session> {
-  // TODO: use model.create
   const session = new SessionModel({
     student: studentId,
     type: type,

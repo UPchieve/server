@@ -125,7 +125,7 @@ export interface IUpdateIpStatusByIdQuery {
   result: IUpdateIpStatusByIdResult;
 }
 
-const updateIpStatusByIdIR: any = {"name":"updateIpStatusById","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":592,"b":598,"line":32,"col":14}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":616,"b":618,"line":34,"col":10}]}}],"usedParamSet":{"status":true,"id":true},"statement":{"body":"UPDATE\n    ONLY ip_addresses\nSET\n    status = :status!\nWHERE\n    id = :id!\nRETURNING\n    id AS ok","loc":{"a":545,"b":641,"line":29,"col":0}}};
+const updateIpStatusByIdIR: any = {"name":"updateIpStatusById","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":592,"b":598,"line":32,"col":14}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":640,"b":642,"line":35,"col":10}]}}],"usedParamSet":{"status":true,"id":true},"statement":{"body":"UPDATE\n    ONLY ip_addresses\nSET\n    status = :status!,\n    updated_at = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id AS ok","loc":{"a":545,"b":665,"line":29,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -133,7 +133,8 @@ const updateIpStatusByIdIR: any = {"name":"updateIpStatusById","params":[{"name"
  * UPDATE
  *     ONLY ip_addresses
  * SET
- *     status = :status!
+ *     status = :status!,
+ *     updated_at = NOW()
  * WHERE
  *     id = :id!
  * RETURNING

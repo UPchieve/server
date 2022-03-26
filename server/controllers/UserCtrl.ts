@@ -79,7 +79,7 @@ export async function createVolunteer(
   ip: string
 ): Promise<Volunteer> {
   volunteerData.password = await hashPassword(volunteerData.password)
-  // TODO: repo pattern
+  // Replaced by VolunteerRepo.createVolunteer
   const volunteer = new VolunteerModel(volunteerData)
   volunteer.referralCode = generateReferralCode(volunteer.id)
 
@@ -109,11 +109,13 @@ export async function createVolunteer(
   }
 
   try {
+    // needs id, firstname, lastname, email, isvolunteer, banned, testuser, admin, deactivated, createdat
     await createContact(volunteer)
   } catch (err) {
     captureException(err)
   }
 
+  // needs to return id and partner org for frontend
   return volunteer.toObject()
 }
 

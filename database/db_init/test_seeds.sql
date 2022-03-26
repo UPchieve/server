@@ -561,7 +561,7 @@ COPY upchieve.volunteer_reference_statuses (id, name, created_at, updated_at) FR
 -- Data for Name: references; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve."references" (id, user_id, first_name, last_name, email, status_id, sent_at, affiliation, relationship_length, patient, positive_role_model, agreeable_and_approachable, communicates_effectively, rejection_reason, additional_info, created_at, updated_at) FROM stdin;
+COPY upchieve."volunteer_references" (id, user_id, first_name, last_name, email, status_id, sent_at, affiliation, relationship_length, patient, positive_role_model, agreeable_and_approachable, communicates_effectively, rejection_reason, additional_info, created_at, updated_at) FROM stdin;
 \.
 
 

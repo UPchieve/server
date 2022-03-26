@@ -66,7 +66,7 @@ export function routes(app: Express): void {
          * 2. Populate their most recent notification
          * 3. Populate that notification's session
          */
-        // TODO: repo pattern
+        // Replaced with VolunteerRepo.getVolunteerForTextResponse
         const populatedUser = await VolunteerModel.findOne({
           phone: incomingPhoneNumber,
         })
