@@ -385,7 +385,9 @@ SELECT
     round(past_sessions.time_tutored / 3600000::numeric, 2)::float AS hours_tutored,
     total_subjects.subjects AS subjects,
     recent_availability.updated_at AS availability_last_modified_at,
-    occupations.occupations AS occupation
+    occupations.occupations AS occupation,
+    student_partner_org_sites.name AS partner_site,
+    student_partner_orgs.name AS student_partner_org
 FROM
     users
     LEFT JOIN (
@@ -405,11 +407,14 @@ FROM
             volunteer_occupations
         WHERE
             user_id = :userId!) AS occupations ON TRUE
+    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN admin_profiles ON users.id = admin_profiles.user_id
     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
     LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
     LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id
+    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
+    LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id
     LEFT JOIN (
         SELECT
             array_agg(subjects_unlocked.subject) AS subjects

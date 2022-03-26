@@ -278,6 +278,7 @@ export async function processCalculateMetrics(sessionId: Types.ObjectId) {
 export async function processFirstSessionCongratsEmail(
   sessionId: Types.ObjectId
 ) {
+  // TODO: replace this getting the bloew used fields
   const session = await SessionRepo.getSessionByIdWithStudentAndVolunteer(
     sessionId
   )
