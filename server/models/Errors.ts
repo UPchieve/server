@@ -71,6 +71,19 @@ export class RepoDeleteError extends CustomError {
   }
 }
 
+export class RepoTransactionError extends CustomError {
+  constructor(arg: unknown) {
+    if (arg instanceof RepoTransactionError) return arg
+    else {
+      const msg =
+        typeof arg === 'string'
+          ? arg
+          : `Database transaction error: ${(arg as Error).message}`
+      super(msg)
+    }
+  }
+}
+
 export class NotAllowedError extends CustomError {}
 export class InputError extends CustomError {}
 export class LookupError extends CustomError {}

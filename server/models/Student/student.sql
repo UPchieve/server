@@ -76,7 +76,7 @@ WHERE
     student_favorite_volunteers.student_id = :userId!
 ORDER BY
     student_favorite_volunteers.created_at DESC
-LIMIT :limit! OFFSET :offset!;
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
 /* @name deleteFavoriteVolunteer */
@@ -110,3 +110,143 @@ INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, u
         student_id = :studentId!
             AND volunteer_id = :volunteerId!;
 
+/* @name getReportedStudent */
+SELECT
+    users.id AS id,
+    first_name,
+    last_name,
+    email,
+    users.created_at AS created_at,
+    test_user AS is_test_user,
+    banned AS is_banned,
+    deactivated AS is_deactivated,
+    FALSE AS is_volunteer,
+    student_partner_orgs.key AS student_partner_org
+FROM
+    users
+    JOIN student_profiles ON users.id = student_profiles.user_id
+    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
+WHERE
+    deactivated IS FALSE
+    AND test_user IS FALSE
+    AND users.id = :userId!;
+
+
+/* @name getStudentPartnerInfoById */
+SELECT
+    student_profiles.user_id AS id,
+    student_partner_orgs.key AS student_partner_org,
+    school_id AS approved_highschool
+FROM
+    student_profiles
+    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
+WHERE
+    student_profiles.user_id = :userId!;
+
+
+/* @name deleteStudent */
+UPDATE
+    users
+SET
+    email = :email!,
+    updated_at = NOW()
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
+
+/* @name adminUpdateStudent */
+UPDATE
+    users
+SET
+    first_name = :firstName!,
+    last_name = :lastName!,
+    email = :email!,
+    verified = :verified!,
+    banned = :banned!,
+    deactivated = :deactivated!,
+    updated_at = NOW()
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
+
+/* @name adminUpdateStudentProfile */
+UPDATE
+    student_profiles
+SET
+    student_partner_org_id = :partnerOrgId!,
+    student_partner_org_site_id = :partnerOrgSiteId!,
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
+
+
+/* @name getPartnerOrgByKey */
+SELECT
+    student_partner_orgs.id AS partner_id,
+    student_partner_orgs.key AS partner_key,
+    student_partner_orgs.name AS partner_name,
+    student_partner_org_sites.id AS site_id,
+    student_partner_org_sites.name AS site_name
+FROM
+    student_partner_orgs
+    LEFT JOIN (
+        SELECT
+            name,
+            id,
+            student_partner_org_id
+        FROM
+            student_partner_org_sites
+        WHERE
+            student_partner_org_sites.name = :partnerOrgSiteName) AS student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+WHERE
+    student_partner_orgs.key = :partnerOrgKey!;
+
+
+/* @name createStudentUser */
+INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, referred_by, referral_code, created_at, updated_at)
+    VALUES (:userId!, :firstName!, :lastName!, :email!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())
+ON CONFLICT (email)
+    DO NOTHING
+RETURNING
+    id, first_name, last_name, email, verified, banned, test_user, deactivated, created_at;
+
+
+/* @name createStudentProfile */
+INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at)
+SELECT
+    :userId!,
+    :postalCode!,
+    subquery.student_partner_org_id,
+    student_partner_org_sites.id,
+    grade_levels.id,
+    schools.id,
+    :college,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        id AS student_partner_org_id,
+        name
+    FROM
+        student_partner_orgs
+    WHERE
+        student_partner_orgs.key = :partnerOrg) AS subquery
+    LEFT JOIN student_partner_org_sites ON :partnerSite = student_partner_org_sites.name
+    LEFT JOIN grade_levels ON :gradeLevel = grade_levels.name
+    LEFT JOIN schools ON :highSchool = schools.name
+RETURNING
+    user_id,
+    postal_code,
+    :partnerOrg AS student_partner_org,
+    :partnerSite AS partner_site,
+    :gradeLevel AS grade_level,
+    school_id,
+    college,
+    created_at,
+    updated_at;

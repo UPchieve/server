@@ -25,6 +25,7 @@ export async function quizzes(): Promise<NameToId> {
     'precalculus',
     'calculusAB',
     'calculusBC',
+    'upchieve101'
   ]
   const temp: NameToId = {}
   for (const quiz of quizzes) {

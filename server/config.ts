@@ -353,6 +353,8 @@ const config: Static<typeof Config> = {
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
   favoriteVolunteerLimit:
     Number(process.env.SUBWAY_FAVORITE_VOLUNTEER_LIMIT) || 20,
+  eligibleIncomeThreshold:
+    Number(process.env.SUBWAY_ELIGIBLE_INCOME_THRESHOLD) || 60000,
 }
 
 module.exports = config

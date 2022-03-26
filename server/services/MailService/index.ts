@@ -1178,6 +1178,7 @@ export async function createContact(
     [SG_CUSTOM_FIELDS.isTestUser]: String(user.isTestUser),
     [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
     [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
+    // TODO: remove line below after PG migration. We no longer store fake user
     [SG_CUSTOM_FIELDS.isFakeUser]: String(user.isFakeUser),
     [SG_CUSTOM_FIELDS.isDeactivated]: String(user.isDeactivated),
     [SG_CUSTOM_FIELDS.joined]: user.createdAt,

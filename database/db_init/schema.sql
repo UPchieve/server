@@ -1209,7 +1209,9 @@ CREATE TABLE upchieve.user_actions (
     quiz_category text,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24)
+    mongo_id character varying(24),
+    reference_email text,
+    volunteer_id uuid
 );
 
 
@@ -1914,6 +1916,14 @@ ALTER TABLE ONLY upchieve.legacy_availability_histories
 
 
 --
+-- Name: quiz_subcategories name_quiz_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.quiz_subcategories
+    ADD CONSTRAINT name_quiz_id UNIQUE (name, quiz_id);
+
+
+--
 -- Name: notification_methods notification_methods_method_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2383,6 +2393,14 @@ ALTER TABLE ONLY upchieve.training_courses
 
 ALTER TABLE ONLY upchieve.training_courses
     ADD CONSTRAINT training_courses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schools unique_name__state_code_city_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.schools
+    ADD CONSTRAINT unique_name__state_code_city_id UNIQUE (name, us_state_code, city_id);
 
 
 --
@@ -3449,4 +3467,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220321125820'),
     ('20220321152006'),
     ('20220321174656'),
+    ('20220324190648'),
+    ('20220324220941'),
+    ('20220325223612'),
     ('20220326034520');

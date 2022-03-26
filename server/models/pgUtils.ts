@@ -2,6 +2,11 @@ import _ from 'lodash'
 import { Ulid as ULID } from 'id128'
 import { v4 as UUID } from 'uuid'
 import { CustomError } from 'ts-custom-error'
+import base64url from 'base64url'
+
+export function generateReferralCode(userId: Ulid): string {
+  return base64url(Buffer.from(userId, 'hex'))
+}
 
 /**
  * pgTyped DOES NOT actually modify the incoming data to use camelCase keys even

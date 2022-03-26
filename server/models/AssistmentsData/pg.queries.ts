@@ -113,7 +113,7 @@ export interface ICreateAssistmentsDataBySessionIdQuery {
   result: ICreateAssistmentsDataBySessionIdResult;
 }
 
-const createAssistmentsDataBySessionIdIR: any = {"name":"createAssistmentsDataBySessionId","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":602,"b":604,"line":34,"col":5}]}},{"name":"problemId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":612,"b":621,"line":35,"col":5}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":629,"b":641,"line":36,"col":5}]}},{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":649,"b":658,"line":37,"col":5}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":666,"b":675,"line":38,"col":5},{"a":856,"b":865,"line":49,"col":26}]}}],"usedParamSet":{"id":true,"problemId":true,"assignmentId":true,"studentId":true,"sessionId":true},"statement":{"body":"INSERT INTO assistments_data (id, problem_id, assignment_id, student_id, session_id, sent, created_at, updated_at)\nSELECT\n    :id!,\n    :problemId!,\n    :assignmentId!,\n    :studentId!,\n    :sessionId!,\n    FALSE,\n    NOW()::date,\n    NOW()::date\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            assistments_data\n        WHERE\n            session_id = :sessionId!)\nRETURNING\n    id,\n    problem_id,\n    assignment_id,\n    student_id,\n    session_id,\n    sent,\n    sent_at,\n    created_at,\n    updated_at","loc":{"a":475,"b":1005,"line":32,"col":0}}};
+const createAssistmentsDataBySessionIdIR: any = {"name":"createAssistmentsDataBySessionId","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":602,"b":604,"line":34,"col":5}]}},{"name":"problemId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":612,"b":621,"line":35,"col":5}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":629,"b":641,"line":36,"col":5}]}},{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":649,"b":658,"line":37,"col":5}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":666,"b":675,"line":38,"col":5},{"a":844,"b":853,"line":49,"col":26}]}}],"usedParamSet":{"id":true,"problemId":true,"assignmentId":true,"studentId":true,"sessionId":true},"statement":{"body":"INSERT INTO assistments_data (id, problem_id, assignment_id, student_id, session_id, sent, created_at, updated_at)\nSELECT\n    :id!,\n    :problemId!,\n    :assignmentId!,\n    :studentId!,\n    :sessionId!,\n    FALSE,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            assistments_data\n        WHERE\n            session_id = :sessionId!)\nRETURNING\n    id,\n    problem_id,\n    assignment_id,\n    student_id,\n    session_id,\n    sent,\n    sent_at,\n    created_at,\n    updated_at","loc":{"a":475,"b":993,"line":32,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -126,8 +126,8 @@ const createAssistmentsDataBySessionIdIR: any = {"name":"createAssistmentsDataBy
  *     :studentId!,
  *     :sessionId!,
  *     FALSE,
- *     NOW()::date,
- *     NOW()::date
+ *     NOW(),
+ *     NOW()
  * WHERE
  *     NOT EXISTS (
  *         SELECT

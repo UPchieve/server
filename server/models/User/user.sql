@@ -17,6 +17,7 @@ WHERE
     phone = :phone!
 LIMIT 1;
 
+
 /* @name getUserContactInfoById */
 SELECT
     users.id,

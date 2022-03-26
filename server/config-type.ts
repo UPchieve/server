@@ -213,4 +213,5 @@ export const Config = Record({
   fileWorkRootPath: String,
   ipWhoIsApiKey: String,
   favoriteVolunteerLimit: Number,
+  eligibleIncomeThreshold: Number,
 })

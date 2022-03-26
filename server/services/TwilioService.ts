@@ -256,6 +256,7 @@ export function getAssociatedPartner(
 export async function notifyVolunteer(
   session: Session
 ): Promise<Types.ObjectId | undefined> {
+  // Replace with getStudentPartnerInfoById from Student Repo
   const student = await getStudentById(getIdFromModelReference(session.student))
   if (!student) return
   const associatedPartner = getAssociatedPartner(

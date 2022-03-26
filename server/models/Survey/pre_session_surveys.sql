@@ -5,8 +5,8 @@ SELECT
     :userId!,
     :sessionId!,
     :responseData!,
-    NOW()::date,
-    NOW()::date
+    NOW(),
+    NOW()
 ON CONFLICT (session_id)
     DO UPDATE SET
         response_data = :responseData!,

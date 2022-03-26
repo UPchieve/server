@@ -24,6 +24,7 @@ async function emailReportedSession(
 
   // a student should receive this email regardless of banned status
   // need full student to create sendGrid contact below
+  // Replace with getReportedStudent from Student Repo
   const student = await getStudent({
     _id: studentId,
     isDeactivated: false,
@@ -68,6 +69,7 @@ async function emailReportedSession(
     const studentEmail = await safeAsync(
       MailService.sendStudentReported(
         student.email,
+        // TODO: fix firstname to firstName
         student.firstname,
         reportReason
       )

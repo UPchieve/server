@@ -201,6 +201,7 @@ export async function flagForDeletion(user: User) {
     // TODO: repo pattern
     return VolunteerModel.updateOne({ _id: user._id }, update)
   } else {
+    // Replace with deleteStudent from Student Repo
     return StudentModel.updateOne({ _id: user._id }, update)
   }
 }
@@ -291,6 +292,7 @@ export async function adminUpdateUser(data: unknown) {
     // TODO: repo pattern
     return VolunteerModel.updateOne({ _id: userId }, update)
   } else {
+    // Replace with adminUpdateStudent from Student Repo
     return StudentModel.updateOne({ _id: userId }, update)
   }
 }

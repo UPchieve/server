@@ -1,4 +1,4 @@
-/* @name getQuizzesPassedForDateRangeById */
+/* @name getQuizzesPassedForDateRangeByVolunteerId */
 SELECT
     count(*)::int AS total
 FROM
@@ -39,4 +39,32 @@ SELECT
             AND (action = 'PASSED QUIZ'
                 OR action = 'FAILED QUIZ')
             AND user_id = :userId!);
+
+
+/* @name createQuizAction */
+INSERT INTO user_actions (action_type, action, user_id, quiz_subcategory, quiz_category, ip_address_id, created_at, updated_at)
+    VALUES (:actionType!, :action!, :userId!, :quizSubcategory!, :quizCategory!, :ipAddressId, NOW(), NOW())
+RETURNING
+    id AS ok;
+
+
+/* @name createSessionAction */
+INSERT INTO user_actions (user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, created_at, updated_at)
+    VALUES (:actionType!, :action!, :userId!, :sessionId!, :ipAddressId, :device, :browser, :browserVersion, :operatingSystem, :operatingSystemVersion, NOW(), NOW())
+RETURNING
+    id AS ok;
+
+
+/* @name createAccountAction */
+INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, created_at, updated_at)
+    VALUES (:actionType!, :action!, :userId!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, NOW(), NOW())
+RETURNING
+    id AS ok;
+
+
+/* @name createAdminAction */
+INSERT INTO user_actions (user_id, action_type, action, created_at, updated_at)
+    VALUES (:actionType!, :action!, :userId!, NOW(), NOW())
+RETURNING
+    id AS ok;
 

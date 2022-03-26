@@ -4,8 +4,8 @@ import {
   makeRequired,
   makeSomeRequired,
   Ulid,
-  Pgid,
   getDbUlid,
+  generateReferralCode,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/pgtypes'
@@ -14,7 +14,6 @@ import { PgCertifications } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS } from '../../constants'
-import base64url from 'base64url'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -859,9 +858,6 @@ export async function getVolunteersAdminAvailability(
   }
 }
 
-function generateReferralCode(userId: Ulid) {
-  return base64url(Buffer.from(userId, 'hex'))
-}
 type CreateVolunteerPayload = {
   email: string
   phone: string
