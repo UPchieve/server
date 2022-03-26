@@ -331,8 +331,7 @@ type CreateStudentPayload = {
   referredBy: Ulid | undefined
   studentPartnerOrg?: string | undefined
   zipCode: string
-  // TODO: figure out type -- Ulid or name of high school?
-  approvedHighschool: Ulid | string
+  approvedHighschool: Ulid
   currentGrade: string
   partnerSite?: string
   partnerUserId?: string
@@ -363,7 +362,11 @@ export async function createStudent(
       {
         userId,
         referralCode: generateReferralCode(userId),
-        ...studentData,
+        email: studentData.email,
+        firstName: studentData.firstName,
+        lastName: studentData.lastName,
+        password: studentData.password,
+        referredBy: studentData.referredBy,
       },
       transactionClient
     )
@@ -379,11 +382,12 @@ export async function createStudent(
       },
       transactionClient
     )
-    await transactionClient.query('COMMIT')
 
     if (userResult.length && profileResult.length) {
       const profile = makeRequired(profileResult[0])
       const user = makeRequired(userResult[0])
+
+      await transactionClient.query('COMMIT')
 
       return {
         id: user.id,
@@ -402,7 +406,7 @@ export async function createStudent(
         zipCode: profile.postalCode,
       }
     }
-    throw new RepoCreateError('Insert did not return new row')
+    throw new RepoCreateError('insert did not return new row')
   } catch (err) {
     await transactionClient.query('ROLLBACK')
     if (err instanceof RepoCreateError) throw err
