@@ -207,7 +207,7 @@ ALTER SEQUENCE upchieve.cities_id_seq OWNED BY upchieve.cities.id;
 CREATE TABLE upchieve.contact_form_submissions (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
-    user_email text NOT NULL,
+    user_email text,
     message text NOT NULL,
     topic text NOT NULL,
     created_at timestamp with time zone NOT NULL,
@@ -1817,14 +1817,6 @@ ALTER TABLE ONLY upchieve.cities
 
 ALTER TABLE ONLY upchieve.contact_form_submissions
     ADD CONSTRAINT contact_form_submissions_pkey PRIMARY KEY (id);
-
-
---
--- Name: contact_form_submissions contact_form_submissions_user_email_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.contact_form_submissions
-    ADD CONSTRAINT contact_form_submissions_user_email_key UNIQUE (user_email);
 
 
 --
@@ -3470,4 +3462,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220324190648'),
     ('20220324220941'),
     ('20220325223612'),
-    ('20220326034520');
+    ('20220326034520'),
+    ('20220326153520');
