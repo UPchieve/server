@@ -107,7 +107,9 @@ isTestUser x
   - session join needs isVolunteer, isApproved, and _id
 */
 
-export async function getLegacyUserObject(userId: Ulid): Promise<LegacyUserModel | undefined> {
+export async function getLegacyUserObject(
+  userId: Ulid
+): Promise<LegacyUserModel | undefined> {
   try {
     const baseResult = await pgQueries.getLegacyUser.run(
       { userId },

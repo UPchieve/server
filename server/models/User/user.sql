@@ -7,15 +7,6 @@ WHERE
     email = :email!
 LIMIT 1;
 
-/* @name getUserIdByPhone */
-SELECT
-    id
-FROM
-    users
-WHERE
-    phone = :phone!
-LIMIT 1;
-
 
 /* @name getUserIdByPhone */
 SELECT
@@ -25,7 +16,6 @@ FROM
 WHERE
     phone = :phone!
 LIMIT 1;
-
 
 /* @name getUserContactInfoById */
 SELECT
@@ -68,16 +58,6 @@ WHERE
     referral_code = :referralCode!
 LIMIT 1;
 
-/* @name getUserForPassport */
-SELECT
-    id,
-    email,
-    password
-FROM
-    users
-WHERE
-    email = :email!
-LIMIT 1;
 
 /* @name getUserForPassport */
 SELECT
@@ -132,6 +112,7 @@ WHERE
 RETURNING
     id;
 
+
 /* @name updateUserPasswordById */
 UPDATE
     users
@@ -143,18 +124,28 @@ WHERE
 RETURNING
     id AS ok;
 
+
 /* @name insertUserIpById */
-WITH ins AS(
-    INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)
+WITH ins AS (
+INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)
         VALUES (:id!, :ipId!, :userId!, NOW(), NOW())
     ON CONFLICT
         DO NOTHING
     RETURNING
+        id AS ok)
+    SELECT
+        *
+    FROM
+        ins
+    UNION
+    SELECT
         id AS ok
-)
-SELECT * FROM ins
-UNION
-    SELECT id AS ok FROM users_ip_addresses WHERE ip_address_id = :ipId! AND user_id = :userId!;
+    FROM
+        users_ip_addresses
+    WHERE
+        ip_address_id = :ipId!
+            AND user_id = :userId!;
+
 
 /* @name updateUserVerifiedEmailById */
 UPDATE
@@ -169,6 +160,7 @@ WHERE
 RETURNING
     id AS ok;
 
+
 /* @name updateUserVerifiedPhoneById */
 UPDATE
     users
@@ -182,6 +174,7 @@ WHERE
 RETURNING
     id AS ok;
 
+
 /* @name updateUserLastActivityById */
 UPDATE
     users
@@ -193,6 +186,7 @@ WHERE
 RETURNING
     id AS ok;
 
+
 /* @name updateUserBanById */
 UPDATE
     users
@@ -202,13 +196,12 @@ SET
     updated_at = NOW()
 FROM (
     SELECT
-        true AS banned,
+        TRUE AS banned,
         id AS ban_reason_id
     FROM
         ban_reasons
     WHERE
-        name = :banReason!
-) AS subquery
+        name = :banReason!) AS subquery
 WHERE
     id = :userId!
 RETURNING
