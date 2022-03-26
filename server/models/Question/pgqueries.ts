@@ -41,10 +41,16 @@ export async function create(question: PgQuestion): Promise<void> {
   try {
     await client.query('BEGIN')
 
-    const quizUpsertResult = await pgQueries.upsertQuiz.run({name: question.category}, client)
+    const quizUpsertResult = await pgQueries.upsertQuiz.run(
+      { name: question.category },
+      client
+    )
     const quizId = makeRequired(quizUpsertResult[0]).id
 
-    const subcategoryUpsertResult = await pgQueries.upsertQuizSubcategory.run({name: question.subcategory, quizId}, client)
+    const subcategoryUpsertResult = await pgQueries.upsertQuizSubcategory.run(
+      { name: question.subcategory, quizId },
+      client
+    )
     const subcategoryId = makeRequired(subcategoryUpsertResult[0]).id
 
     const result = await pgQueries.create.run(
@@ -57,7 +63,8 @@ export async function create(question: PgQuestion): Promise<void> {
       },
       client
     )
-    if (!(result.length && makeRequired(result[0]).ok)) throw new Error('insertion of question did not return ok')
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of question did not return ok')
 
     await client.query('COMMIT')
   } catch (err) {
@@ -82,10 +89,16 @@ export async function update(options: QuestionUpdateOptions): Promise<void> {
 
     await client.query('BEGIN')
 
-    const quizUpsertResult = await pgQueries.upsertQuiz.run({name: question.category}, client)
+    const quizUpsertResult = await pgQueries.upsertQuiz.run(
+      { name: question.category },
+      client
+    )
     const quizId = makeRequired(quizUpsertResult[0]).id
 
-    const subcategoryUpsertResult = await pgQueries.upsertQuizSubcategory.run({name: question.subcategory, quizId}, client)
+    const subcategoryUpsertResult = await pgQueries.upsertQuizSubcategory.run(
+      { name: question.subcategory, quizId },
+      client
+    )
     const subcategoryId = makeRequired(subcategoryUpsertResult[0]).id
 
     const result = await pgQueries.update.run(
@@ -99,7 +112,8 @@ export async function update(options: QuestionUpdateOptions): Promise<void> {
       },
       client
     )
-    if (!(result.length && makeRequired(result[0]).ok)) throw new Error('insertion of question did not return ok')
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of question did not return ok')
 
     await client.query('COMMIT')
   } catch (err) {

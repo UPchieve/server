@@ -72,22 +72,25 @@ export async function createSchool(
 ): Promise<PgSchool | undefined> {
   const client = await getClient().connect()
   try {
-    await pgQueries.createSchoolMetaData.run(
-      { zipCode: data.zipCode },
-      client
-    )
+    await pgQueries.createSchoolMetaData.run({ zipCode: data.zipCode }, client)
 
     // we need to find the city's id, or if it doesn't exist, create it
-    const upsertCityResult = await geoQueries.upsertCity.run({ name: data.city }, client)
+    const upsertCityResult = await geoQueries.upsertCity.run(
+      { name: data.city },
+      client
+    )
     const cityId = makeRequired(upsertCityResult[0]).id
 
-    const result = await pgQueries.createSchool.run({
-      cityId,
-      id: getDbUlid(),
-      isApproved: data.isApproved,
-      name: data.name,
-      state: data.state,
-    }, client)
+    const result = await pgQueries.createSchool.run(
+      {
+        cityId,
+        id: getDbUlid(),
+        isApproved: data.isApproved,
+        name: data.name,
+        state: data.state,
+      },
+      client
+    )
     if (result.length) {
       await client.query('COMMIT')
       return makeRequired(result[0])
@@ -147,10 +150,7 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
     const { schoolId, name, city, state, zipCode, isApproved } = data
 
     await client.query('BEGIN')
-    await pgQueries.adminUpdateSchoolMetaData.run(
-      { schoolId, zipCode },
-      client
-    )
+    await pgQueries.adminUpdateSchoolMetaData.run({ schoolId, zipCode }, client)
 
     // we need to find the city's id, or if it doesn't exist, create it
     let cityId: number | undefined

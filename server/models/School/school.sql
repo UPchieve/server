@@ -88,21 +88,9 @@ ON CONFLICT
 
 /* @name createSchool */
 INSERT INTO schools (id, name, approved, us_state_code, city_id, created_at, updated_at)
-VALUES (:id!,
-        :name!,
-        :isApproved!,
-        :state!,
-        :cityId!,
-        NOW(),
-        NOW())
+    VALUES (:id!, :name!, :isApproved!, :state!, :cityId!, NOW(), NOW())
 RETURNING
-    id,
-    approved AS is_approved,
-    partner AS is_partner,
-    name AS name_stored,
-    updated_at,
-    created_at,
-    us_state_code AS state_stored;
+    id, approved AS is_approved, partner AS is_partner, name AS name_stored, updated_at, created_at, us_state_code AS state_stored;
 
 
 /* @name updateApproval */
@@ -136,6 +124,7 @@ SET
     city_id = COALESCE(:cityId, schools.city_id)
 WHERE
     schools.id = :schoolId!;
+
 
 /* @name adminUpdateSchoolMetaData */
 UPDATE

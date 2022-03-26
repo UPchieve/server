@@ -21,36 +21,51 @@ WHERE
 
 /* @name create */
 INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, image_source, quiz_subcategory_id, created_at, updated_at)
-    VALUES (:questionText!,
-            :possibleAnswers!,
-            :correctAnswer!,
-            :imageSrc!,
-            :subcategoryId!,
-            NOW(),
-            NOW()) RETURNING id as ok;
+    VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :imageSrc!, :subcategoryId!, NOW(), NOW())
+RETURNING
+    id AS ok;
 
 
 /* @name upsertQuiz */
-WITH ins AS(
-  INSERT INTO quizzes (name, created_at, updated_at)
-    VALUES (:name!, NOW(), NOW())
-    ON CONFLICT (name) DO NOTHING
-    RETURNING id
-)
-SELECT * FROM ins
-UNION
-SELECT id FROM quizzes WHERE name=:name!;
+WITH ins AS (
+INSERT INTO quizzes (name, created_at, updated_at)
+        VALUES (:name!, NOW(), NOW())
+    ON CONFLICT (name)
+        DO NOTHING
+    RETURNING
+        id)
+    SELECT
+        *
+    FROM
+        ins
+    UNION
+    SELECT
+        id
+    FROM
+        quizzes
+    WHERE
+        name = :name!;
+
 
 /* @name upsertQuizSubcategory */
-WITH ins AS(
-  INSERT INTO quiz_subcategories (name, quiz_id, created_at, updated_at)
-    VALUES (:name!, :quizId!, NOW(), NOW())
-    ON CONFLICT (name, quiz_id) DO NOTHING
-    RETURNING id
-)
-SELECT * FROM ins
-UNION
-SELECT id FROM quiz_subcategories WHERE name=:name!;
+WITH ins AS (
+INSERT INTO quiz_subcategories (name, quiz_id, created_at, updated_at)
+        VALUES (:name!, :quizId!, NOW(), NOW())
+    ON CONFLICT (name, quiz_id)
+        DO NOTHING
+    RETURNING
+        id)
+    SELECT
+        *
+    FROM
+        ins
+    UNION
+    SELECT
+        id
+    FROM
+        quiz_subcategories
+    WHERE
+        name = :name!;
 
 
 /* @name destroy */
@@ -78,7 +93,9 @@ SET
     updated_at = NOW(),
     quiz_subcategory_id = :subcategoryId!
 WHERE
-    quiz_questions.id = :questionId! RETURNING id as ok;
+    quiz_questions.id = :questionId!
+RETURNING
+    id AS ok;
 
 
 /* @name categories */
