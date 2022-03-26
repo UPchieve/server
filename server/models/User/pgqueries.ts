@@ -229,7 +229,13 @@ type AdminUser = {
   isVolunteer: boolean
   createdAt: Date
 }
-
+function cleanPayload(payload: UserQuery): UserQuery {
+  const temp: any = {}
+  for (const [key, value] of Object.entries(payload)) {
+    temp[key] = value === '' ? undefined : value
+  }
+  return temp as UserQuery
+}
 export async function getUsersForAdminSearch(
   payload: UserQuery,
   limit: number,
@@ -237,7 +243,7 @@ export async function getUsersForAdminSearch(
 ): Promise<AdminUser[]> {
   try {
     const result = await pgQueries.getUsersForAdminSearch.run(
-      { ...payload, limit, offset },
+      { ...cleanPayload(payload), limit, offset },
       getClient()
     )
     return result.map(v => {

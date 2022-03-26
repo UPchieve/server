@@ -71,7 +71,9 @@ export async function buildSession(
 ): Promise<PgSession> {
   return {
     id: getDbUlid(),
-    subjectId: await getSubjectIdByName('algebraOne', client),
+    subject: 'algebraOne',
+    topic: 'math',
+    reported: false,
     hasWhiteboardDoc: true,
     reviewed: false,
     toReview: false,

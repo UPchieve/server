@@ -12,18 +12,21 @@ export type PgSession = {
   id: Ulid
   studentId: Ulid
   volunteerId?: Ulid
-  subjectId: Pgid
+  topic: string
+  subject: string
   hasWhiteboardDoc: boolean
   quillDoc?: string
+  photos?: string[]
   volunteerJoinedAt?: Date
   endedAt?: Date
-  endedByRoleId?: Pgid
+  endedByRole?: string
   reviewed: boolean
   toReview: boolean
   studentBanned?: boolean
   timeTutored: number
   createdAt: Date
   updatedAt: Date
+  reported: boolean
 }
 
 const validTypes = [

@@ -78,6 +78,7 @@ async function chatbot(job: Job<ChatbotPayload>): Promise<void> {
   const sessionId = asObjectId(job.data.sessionId)
   const chatbotId = await lookupChatbotFromCache()
   if (!chatbot) throw new Error('Chatbot user not found!')
+  // replaced by getSessionForChatbot
   const session = await getSessionMessagesById(sessionId)
   if (!session) throw new Error(`Session ${sessionId} not found`)
   await messageControlFlow(session, chatbotId!, MESSAGES, MESSAGE_TYPING_DELAY)

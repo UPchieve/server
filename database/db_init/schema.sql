@@ -791,6 +791,18 @@ CREATE TABLE upchieve.schools_sponsor_orgs (
 
 
 --
+-- Name: session_failed_joins; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_failed_joins (
+    session_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: session_flags; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -838,6 +850,18 @@ CREATE TABLE upchieve.session_messages (
 
 
 --
+-- Name: session_photos; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_photos (
+    session_id uuid NOT NULL,
+    photo_key text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: session_reports; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -848,6 +872,18 @@ CREATE TABLE upchieve.session_reports (
     reporting_user_id uuid NOT NULL,
     session_id uuid NOT NULL,
     reported_user_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: session_review_reasons; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_review_reasons (
+    session_id uuid NOT NULL,
+    session_flag_id integer NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
 );
@@ -2150,6 +2186,14 @@ ALTER TABLE ONLY upchieve.session_reports
 
 
 --
+-- Name: session_review_reasons session_review_reasons_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_review_reasons
+    ADD CONSTRAINT session_review_reasons_pkey PRIMARY KEY (session_id, session_flag_id);
+
+
+--
 -- Name: sessions sessions_mongo_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2901,6 +2945,22 @@ ALTER TABLE ONLY upchieve.schools
 
 
 --
+-- Name: session_failed_joins session_failed_joins_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_failed_joins
+    ADD CONSTRAINT session_failed_joins_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_failed_joins session_failed_joins_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_failed_joins
+    ADD CONSTRAINT session_failed_joins_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: session_messages session_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2914,6 +2974,14 @@ ALTER TABLE ONLY upchieve.session_messages
 
 ALTER TABLE ONLY upchieve.session_messages
     ADD CONSTRAINT session_messages_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_photos session_photos_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_photos
+    ADD CONSTRAINT session_photos_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
 
 
 --
@@ -2946,6 +3014,22 @@ ALTER TABLE ONLY upchieve.session_reports
 
 ALTER TABLE ONLY upchieve.session_reports
     ADD CONSTRAINT session_reports_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_review_reasons session_review_reasons_session_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_review_reasons
+    ADD CONSTRAINT session_review_reasons_session_flag_id_fkey FOREIGN KEY (session_flag_id) REFERENCES upchieve.session_flags(id);
+
+
+--
+-- Name: session_review_reasons session_review_reasons_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_review_reasons
+    ADD CONSTRAINT session_review_reasons_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
 
 
 --
@@ -3364,4 +3448,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220316180429'),
     ('20220321125820'),
     ('20220321152006'),
-    ('20220321174656');
+    ('20220321174656'),
+    ('20220326034520');
