@@ -65,15 +65,14 @@ export function buildAssistmentsData(
   }
 }
 
+type PgSessionRow = any
 export async function buildSession(
-  overrides: Partial<PgSession> & { studentId: Ulid },
+  overrides: Partial<PgSessionRow> & { studentId: Ulid },
   client: Pool
-): Promise<PgSession> {
+): Promise<PgSessionRow> {
   return {
     id: getDbUlid(),
-    subject: 'algebraOne',
-    topic: 'math',
-    reported: false,
+    subjectId: await getSubjectIdByName('algebraOne', client),
     hasWhiteboardDoc: true,
     reviewed: false,
     toReview: false,
