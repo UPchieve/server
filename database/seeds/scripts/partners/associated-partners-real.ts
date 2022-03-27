@@ -11,21 +11,23 @@ export async function associatedPartnersReal(
       id: getDbUlid(),
       key: 'att-connected-learning',
       volunteerPartnerOrgId: (vpoIds['att'] as string),
-      studentPartnerOrgId: (spoIds['att-connected-learning'] as string)
+      studentPartnerOrgId: (spoIds['att-connected-learning'] as string),
+      studentSponsorOrgId: undefined
     },
     {
       id: getDbUlid(),
       key: 'vils',
       volunteerPartnerOrgId: (vpoIds['verizon'] as string),
+      studentPartnerOrgId: undefined,
       studentSponsorOrgId: (ssoIds['vils'] as string)
     },
   ]
   const temp: NameToId = {}
   for (const partner of partners) {
-    temp[org.key] = await wrapInsert(
+    temp[partner.key] = await wrapInsert(
       'associated_partners',
       pgQueries.insertAssociatedPartner.run,
-      { ...org }
+      { ...partner }
     )
   }
   return temp

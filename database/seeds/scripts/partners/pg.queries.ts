@@ -126,10 +126,9 @@ export const insertRequiredEmailDomain = new PreparedQuery<IInsertRequiredEmailD
 export interface IInsertAssociatedPartnerParams {
   id: string;
   key: string;
-  name: string;
   studentPartnerOrgId: string | null | void;
   studentSponsorOrgId: string | null | void;
-  volunteerPartnerOrgd: string;
+  volunteerPartnerOrgId: string;
 }
 
 /** 'InsertAssociatedPartner' return type */
@@ -143,12 +142,12 @@ export interface IInsertAssociatedPartnerQuery {
   result: IInsertAssociatedPartnerResult;
 }
 
-const insertAssociatedPartnerIR: any = {"name":"insertAssociatedPartner","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1285,"b":1287,"line":14,"col":155}]}},{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1291,"b":1294,"line":14,"col":161}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1298,"b":1302,"line":14,"col":168}]}},{"name":"volunteerPartnerOrgd","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1306,"b":1326,"line":14,"col":176}]}},{"name":"studentPartnerOrgId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1330,"b":1348,"line":14,"col":200}]}},{"name":"studentSponsorOrgId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1352,"b":1370,"line":14,"col":222}]}}],"usedParamSet":{"id":true,"key":true,"name":true,"volunteerPartnerOrgd":true,"studentPartnerOrgId":true,"studentSponsorOrgId":true},"statement":{"body":"INSERT INTO associated_partners (id, key, name, volunteer_partner_org_id, student_partner_org_id, student_sponsor_org_id, created_at, updated_at) VALUES (:id!, :key!, :name!, :volunteerPartnerOrgd!, :studentPartnerOrgId, :studentSponsorOrgId, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":1130,"b":1427,"line":14,"col":0}}};
+const insertAssociatedPartnerIR: any = {"name":"insertAssociatedPartner","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1279,"b":1281,"line":14,"col":149}]}},{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1285,"b":1288,"line":14,"col":155}]}},{"name":"volunteerPartnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1292,"b":1313,"line":14,"col":162}]}},{"name":"studentPartnerOrgId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1317,"b":1335,"line":14,"col":187}]}},{"name":"studentSponsorOrgId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1339,"b":1357,"line":14,"col":209}]}}],"usedParamSet":{"id":true,"key":true,"volunteerPartnerOrgId":true,"studentPartnerOrgId":true,"studentSponsorOrgId":true},"statement":{"body":"INSERT INTO associated_partners (id, key, volunteer_partner_org_id, student_partner_org_id, student_sponsor_org_id, created_at, updated_at) VALUES (:id!, :key!, :volunteerPartnerOrgId!, :studentPartnerOrgId, :studentSponsorOrgId, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":1130,"b":1414,"line":14,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO associated_partners (id, key, name, volunteer_partner_org_id, student_partner_org_id, student_sponsor_org_id, created_at, updated_at) VALUES (:id!, :key!, :name!, :volunteerPartnerOrgd!, :studentPartnerOrgId, :studentSponsorOrgId, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO associated_partners (id, key, volunteer_partner_org_id, student_partner_org_id, student_sponsor_org_id, created_at, updated_at) VALUES (:id!, :key!, :volunteerPartnerOrgId!, :studentPartnerOrgId, :studentSponsorOrgId, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
  * ```
  */
 export const insertAssociatedPartner = new PreparedQuery<IInsertAssociatedPartnerParams,IInsertAssociatedPartnerResult>(insertAssociatedPartnerIR);
@@ -172,7 +171,7 @@ export interface IInsertSponsorOrgQuery {
   result: IInsertSponsorOrgResult;
 }
 
-const insertSponsorOrgIR: any = {"name":"insertSponsorOrg","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1534,"b":1536,"line":17,"col":74}]}},{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1540,"b":1543,"line":17,"col":80}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1547,"b":1551,"line":17,"col":87}]}}],"usedParamSet":{"id":true,"key":true,"name":true},"statement":{"body":"INSERT INTO sponsor_orgs (id, key, name, created_at, updated_at) VALUES (:id!, :key!, :name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":1460,"b":1608,"line":17,"col":0}}};
+const insertSponsorOrgIR: any = {"name":"insertSponsorOrg","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1521,"b":1523,"line":17,"col":74}]}},{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1527,"b":1530,"line":17,"col":80}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1534,"b":1538,"line":17,"col":87}]}}],"usedParamSet":{"id":true,"key":true,"name":true},"statement":{"body":"INSERT INTO sponsor_orgs (id, key, name, created_at, updated_at) VALUES (:id!, :key!, :name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":1447,"b":1595,"line":17,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -199,7 +198,7 @@ export interface IGetSchoolIdByMongoIdQuery {
   result: IGetSchoolIdByMongoIdResult;
 }
 
-const getSchoolIdByMongoIdIR: any = {"name":"getSchoolIdByMongoId","params":[{"name":"mongo_id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1686,"b":1694,"line":20,"col":41}]}}],"usedParamSet":{"mongo_id":true},"statement":{"body":"SELECT id from schools WHERE mongo_id = :mongo_id!","loc":{"a":1645,"b":1694,"line":20,"col":0}}};
+const getSchoolIdByMongoIdIR: any = {"name":"getSchoolIdByMongoId","params":[{"name":"mongo_id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1673,"b":1681,"line":20,"col":41}]}}],"usedParamSet":{"mongo_id":true},"statement":{"body":"SELECT id from schools WHERE mongo_id = :mongo_id!","loc":{"a":1632,"b":1681,"line":20,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -228,7 +227,7 @@ export interface IInsertSchoolsSponsorOrgsQuery {
   result: IInsertSchoolsSponsorOrgsResult;
 }
 
-const insertSchoolsSponsorOrgsIR: any = {"name":"insertSchoolsSponsorOrgs","params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1829,"b":1837,"line":23,"col":94}]}},{"name":"sponsorOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1841,"b":1853,"line":23,"col":106}]}}],"usedParamSet":{"schoolId":true,"sponsorOrgId":true},"statement":{"body":"INSERT INTO schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updated_at) VALUES (:schoolId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING school_id, sponsor_org_id AS ok","loc":{"a":1735,"b":1933,"line":23,"col":0}}};
+const insertSchoolsSponsorOrgsIR: any = {"name":"insertSchoolsSponsorOrgs","params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1816,"b":1824,"line":23,"col":94}]}},{"name":"sponsorOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1828,"b":1840,"line":23,"col":106}]}}],"usedParamSet":{"schoolId":true,"sponsorOrgId":true},"statement":{"body":"INSERT INTO schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updated_at) VALUES (:schoolId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING school_id, sponsor_org_id AS ok","loc":{"a":1722,"b":1920,"line":23,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -257,7 +256,7 @@ export interface IInsertStudentPartnerOrgsSponsorOrgsQuery {
   result: IInsertStudentPartnerOrgsSponsorOrgsResult;
 }
 
-const insertStudentPartnerOrgsSponsorOrgsIR: any = {"name":"insertStudentPartnerOrgsSponsorOrgs","params":[{"name":"studentPartnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2105,"b":2124,"line":26,"col":120}]}},{"name":"sponsorOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2128,"b":2140,"line":26,"col":143}]}}],"usedParamSet":{"studentPartnerOrgId":true,"sponsorOrgId":true},"statement":{"body":"INSERT INTO student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor_org_id, created_at, updated_at) VALUES (:studentPartnerOrgId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_partner_org_id, sponsor_org_id AS ok","loc":{"a":1985,"b":2233,"line":26,"col":0}}};
+const insertStudentPartnerOrgsSponsorOrgsIR: any = {"name":"insertStudentPartnerOrgsSponsorOrgs","params":[{"name":"studentPartnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2092,"b":2111,"line":26,"col":120}]}},{"name":"sponsorOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2115,"b":2127,"line":26,"col":143}]}}],"usedParamSet":{"studentPartnerOrgId":true,"sponsorOrgId":true},"statement":{"body":"INSERT INTO student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor_org_id, created_at, updated_at) VALUES (:studentPartnerOrgId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_partner_org_id, sponsor_org_id AS ok","loc":{"a":1972,"b":2220,"line":26,"col":0}}};
 
 /**
  * Query generated from SQL:

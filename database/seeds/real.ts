@@ -53,8 +53,8 @@ async function seedData(): Promise<void> {
     const vpoIds = await volunteerPartnerOrgsReal()
     await requiredEmailDomainsReal(vpoIds)
     const ssoIds = await sponsorOrgsReal()
-    await schoolsSponsorOrgsReal(ssoIds)
-    await studentPartnerOrgsSponsorOrgsReal(ssoIds, spoIds)
+    // await schoolsSponsorOrgsReal(ssoIds)
+    // await studentPartnerOrgsSponsorOrgsReal(ssoIds, spoIds)
     await associatedPartnersReal(vpoIds, spoIds, ssoIds)
 
     await photoIdStatuses()

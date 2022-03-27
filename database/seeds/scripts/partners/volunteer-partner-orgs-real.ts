@@ -35,7 +35,7 @@ export async function volunteerPartnerOrgsReal(): Promise<NameToId> {
     },
     {
       id: getDbUlid(),
-      key: 'mizuhuo',
+      key: 'mizuho',
       name: 'Mizuho',
       receiveWeeklyHourSummaryEmail: true,
     },

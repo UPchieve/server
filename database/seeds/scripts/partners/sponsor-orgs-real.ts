@@ -1,5 +1,6 @@
 import { wrapInsert, NameToId, getDbUlid } from '../utils'
 import * as pgQueries from './pg.queries'
+import pgClient from '../../pgClient'
 
 export async function sponsorOrgsReal(): Promise<NameToId> {
   const orgs = [
@@ -51,8 +52,9 @@ export async function schoolsSponsorOrgsReal(
     '5d6466b7cd70635841b2cfdf',
   ]
   schoolMongoIds.forEach(async (mongoId) => {
-    const id = await pgQueries.getSchoolIdByMongoId.run, {mongo_id: mongoId}
-    await pgQueries.insertSchoolsSponsorOrgs.run, {sponsor_org_id: (sponsorOrgIds['vils'] as string), schoolId: id}
+    const result = await pgQueries.getSchoolIdByMongoId.run({mongo_id: mongoId}, pgClient)
+    const id = result[0].id
+    await pgQueries.insertSchoolsSponsorOrgs.run({sponsorOrgId: (sponsorOrgIds['vils'] as string), schoolId: id}, pgClient)
   })
 }
 
@@ -67,6 +69,6 @@ export async function studentPartnerOrgsSponsorOrgsReal(
   ]
 
   partnerOrgs.forEach(async (org) => {
-    await pgQueries.insertStudentPartnerOrgsSponsorOrgs.run, {studentPartnerOrgId: (org as string), sponsorOrgId: (sponsorOrgIds['pfed'] as string)}
+    await pgQueries.insertStudentPartnerOrgsSponsorOrgs.run({studentPartnerOrgId: (org as string), sponsorOrgId: (sponsorOrgIds['pfed'] as string)}, pgClient)
   })
 }
