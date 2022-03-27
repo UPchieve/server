@@ -1,23 +1,21 @@
-import { Types } from 'mongoose'
-import { AvailabilityDay } from '../models/Availability/types'
-import { getHistoryForDatesByVolunteerId } from '../models/Availability/queries'
+import { Ulid } from '../models/pgUtils'
+import { AvailabilityDay, getAvailabilityHistoryForDatesByVolunteerId } from '../models/Availability'
 
-export function getElapsedAvailability(day: AvailabilityDay): number {
+export function getElapsedAvailabilityForDay(day: AvailabilityDay): number {
   let elapsedAvailability = 0
   const availabileTimes = Object.values(day)
   for (const time of availabileTimes) {
     if (time) elapsedAvailability++
   }
-
   return elapsedAvailability
 }
 
 export async function getElapsedAvailabilityForDateRange(
-  volunteerId: Types.ObjectId,
+  volunteerId: Ulid,
   fromDate: Date,
   toDate: Date
 ): Promise<number> {
-  const historyDocs = await getHistoryForDatesByVolunteerId(
+  const historyDocs = await getAvailabilityHistoryForDatesByVolunteerId(
     volunteerId,
     fromDate,
     toDate
@@ -25,7 +23,8 @@ export async function getElapsedAvailabilityForDateRange(
 
   let totalElapsedAvailability = 0
   for (const doc of historyDocs) {
-    totalElapsedAvailability += getElapsedAvailability(doc.availability)
+    for (const [day, avail] of Object.entries(doc.availability))
+      totalElapsedAvailability += getElapsedAvailabilityForDay(avail)
   }
 
   return totalElapsedAvailability

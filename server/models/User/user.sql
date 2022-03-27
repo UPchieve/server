@@ -23,17 +23,30 @@ SELECT
     users.id,
     first_name,
     email,
+    banned,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
         ELSE
             FALSE
         END) AS is_volunteer,
-    volunteer_partner_orgs.key AS volunteer_partner_org
+    (
+        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_admin,
+    volunteer_partner_orgs.key AS volunteer_partner_org,
+    student_partner_orgs.key AS student_partner_org,
+    users.last_activity_at,
+    deactivated
 FROM
     users
+    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
     users.id = :id!
 LIMIT 1;
@@ -44,17 +57,30 @@ SELECT
     users.id,
     first_name,
     email,
+    banned,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
         ELSE
             FALSE
         END) AS is_volunteer,
-    volunteer_partner_orgs.key AS volunteer_partner_org
+    (
+        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_admin,
+    volunteer_partner_orgs.key AS volunteer_partner_org,
+    student_partner_orgs.key AS student_partner_org,
+    users.last_activity_at,
+    deactivated
 FROM
     users
+    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
     referral_code = :referralCode!
 LIMIT 1;
@@ -77,17 +103,30 @@ SELECT
     users.id,
     first_name,
     email,
+    banned,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
         ELSE
             FALSE
         END) AS is_volunteer,
-    volunteer_partner_orgs.key AS volunteer_partner_org
+    (
+        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_admin,
+    volunteer_partner_orgs.key AS volunteer_partner_org,
+    student_partner_orgs.key AS student_partner_org,
+    users.last_activity_at,
+    deactivated
 FROM
     users
+    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
     password_reset_token = :resetToken!
 LIMIT 1;
@@ -455,3 +494,46 @@ FROM
 WHERE
     users.id = :userId!;
 
+/* @name getUserToCreateSendGridContact */
+SELECT
+    users.id,
+    first_name,
+    email,
+    banned,
+    (
+        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_volunteer,
+    (
+        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_admin,
+    volunteer_partner_orgs.key AS volunteer_partner_org,
+    volunteer_partner_orgs.name AS volunteer_partner_org_display,
+    student_partner_orgs.key AS student_partner_org,
+    student_partner_orgs.name AS student_partner_org_display,
+    users.last_activity_at,
+    users.created_at,
+    users.deactivated,
+    (CASE WHEN user_upchieve101.id IS NULL THEN FALSE ELSE TRUE END) AS passed_upchieve101,
+    users.test_user,
+    users.last_name
+FROM
+    users
+    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
+    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
+    LEFT JOIN LATERAL (
+        SELECT id FROM users_training_courses
+        LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id
+        WHERE users_training_courses.user_id = users.id AND training_courses.name = 'UPchieve 101'
+    ) AS user_upchieve101 ON TRUE
+WHERE
+    users.id = :userId!
+LIMIT 1;

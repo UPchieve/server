@@ -1,111 +1,121 @@
-import { Types } from 'mongoose'
-import FeedbackModel, {
-  Feedback,
-  FeedbackVersionOne,
-  FeedbackVersionTwo,
-} from './index'
+import { Feedback } from './types'
 import { RepoCreateError, RepoReadError } from '../Errors'
+import { getClient } from '../../pg'
+import * as pgQueries from './pg.queries'
+import { Ulid, makeSomeRequired, getDbUlid, makeRequired } from '../pgUtils'
 
-export type AnyFeedback = Feedback | FeedbackVersionOne | FeedbackVersionTwo
-
-/**
- * Gets version 2 feedback associated with a session from both the student
- * and volunteer.
- *
- * @param sessionId {Types.ObjectId} session whose Feedback we want
- * @returns feedback {FeedbackVersionTwo} a feedback object containing student and volunteer feedback associated with the session
- */
-export async function getFeedbackV2BySessionId(
-  sessionId: Types.ObjectId
-): Promise<AnyFeedback | undefined> {
-  try {
-    const [feedback] = await FeedbackModel.aggregate([
-      {
-        $match: {
-          sessionId,
-          versionNumber: 2,
-          $and: [
-            {
-              $or: [
-                { studentCounselingFeedback: { $ne: null } },
-                { studentCounselingFeedback: { $exists: false } },
-              ],
-            },
-            {
-              $or: [
-                { studentTutoringFeedback: { $ne: null } },
-                { studentTutoringFeedback: { $exists: false } },
-              ],
-            },
-            {
-              $or: [
-                { volunteerFeedback: { $ne: null } },
-                { volunteerFeedback: { $exists: false } },
-              ],
-            },
-          ],
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          root: { $mergeObjects: '$$ROOT' },
-        },
-      },
-      {
-        $replaceRoot: {
-          newRoot: '$root',
-        },
-      },
+function buildFeedback(rows: pgQueries.IGetFeedbackByIdResult[]): Feedback {
+  if (rows.length > 2)
+    throw new Error('Found more than 2 feedbacks for a session')
+  const newRows = rows.map(v =>
+    makeSomeRequired(v, [
+      'studentCounselingFeedback',
+      'studentTutoringFeedback',
+      'volunteerFeedback',
+      'type',
+      'subTopic',
     ])
-    if (feedback) return feedback as AnyFeedback
+  )
+  const feedback: Feedback = {
+    id: newRows[0].id,
+    sessionId: newRows[0].sessionId,
+    type: newRows[0].type,
+    subTopic: newRows[0].subTopic,
+  }
+  for (const row of newRows) {
+    if (row.userRole === 'student') {
+      feedback.studentId = row.userId
+      feedback.studentCounselingFeedback = row.studentCounselingFeedback as any
+      feedback.studentTutoringFeedback = row.studentTutoringFeedback as any
+    } else if (row.userRole === 'volunteer') {
+      feedback.volunteerId = row.userId
+      feedback.volunteerFeedback = row.volunteerFeedback as any
+    } else throw new Error('Found feedback with unknown user role')
+  }
+  return feedback
+}
+
+export async function getFeedbackBySessionId(
+  sessionId: Ulid
+): Promise<Feedback | undefined> {
+  try {
+    const result = await pgQueries.getFeedbackBySessionId.run(
+      { sessionId },
+      getClient()
+    )
+    if (!result.length) return
+    return buildFeedback(result)
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
 export async function getFeedbackById(
-  feedbackId: Types.ObjectId
-): Promise<AnyFeedback | undefined> {
+  id: Ulid
+): Promise<Feedback | undefined> {
   try {
-    const feedback = await FeedbackModel.findOne({ _id: feedbackId })
-      .lean()
-      .exec()
-    if (feedback) return feedback as AnyFeedback
+    const result = await pgQueries.getFeedbackById.run({ id }, getClient())
+    if (!result.length) return
+    return buildFeedback(result)
   } catch (err) {
     throw new RepoReadError(err)
   }
+}
+
+export type SingleFeedback = Feedback & {
+  userId: Ulid
+  createdAt: Date
+  updatedAt: Date
 }
 
 export async function getFeedbackBySessionIdUserType(
-  sessionId: Types.ObjectId,
-  userType: string
-): Promise<AnyFeedback | undefined> {
+  sessionId: Ulid,
+  userRole: 'student' | 'volunteer'
+): Promise<SingleFeedback | undefined> {
   try {
-    const feedback = await FeedbackModel.findOne({ sessionId, userType })
-      .lean()
-      .exec()
-    if (feedback) return feedback as AnyFeedback
+    const result = await pgQueries.getFeedbackBySessionIdUserType.run(
+      { sessionId, userRole },
+      getClient()
+    )
+    if (!result.length) return
+    const temp = makeSomeRequired(result[0], [
+      'legacyFeedbacks',
+      'studentCounselingFeedback',
+      'studentTutoringFeedback',
+      'volunteerFeedback',
+      'subTopic',
+      'type',
+    ])
+    return {
+      userId: temp.id,
+      createdAt: temp.createdAt,
+      updatedAt: temp.updatedAt,
+      ...buildFeedback([temp])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function saveFeedback(
-  sessionId: Types.ObjectId,
-  userType: string,
-  feedbackData: Partial<AnyFeedback>
-): Promise<Feedback> {
-  const feedback = await FeedbackModel.findOneAndUpdate(
-    {
+export type FeedbackPayload = Pick<Feedback,
+  | 'studentCounselingFeedback'
+  | 'studentTutoringFeedback'
+  | 'volunteerFeedback'
+  | 'comment'
+>
+export async function saveFeedback(sessionId: Ulid, userRole: 'student' | 'volunteer', feedback: FeedbackPayload): Promise<Ulid> {
+  try {
+    const result = await pgQueries.saveFeedback.run({
+      id: getDbUlid(),
       sessionId,
-      userType,
-    },
-    feedbackData,
-    { new: true, upsert: true }
-  )
-    .lean()
-    .exec()
-  if (!feedback) throw new RepoCreateError('Error upserting feedback')
-  return feedback as Feedback
+      userRole,
+      studentCounselingFeedback: feedback.studentCounselingFeedback,
+      studentTutoringFeedback: feedback.studentTutoringFeedback,
+      volunteerFeedback: feedback.volunteerFeedback,
+      comment: feedback.comment
+    }, getClient())
+    return makeRequired(result[0]).id
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
 }

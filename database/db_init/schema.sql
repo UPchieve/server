@@ -1211,7 +1211,9 @@ CREATE TABLE upchieve.user_actions (
     updated_at timestamp with time zone NOT NULL,
     mongo_id character varying(24),
     reference_email text,
-    volunteer_id uuid
+    volunteer_id uuid,
+    favorited_volunteer uuid,
+    ban_reason text
 );
 
 
@@ -3195,6 +3197,14 @@ ALTER TABLE ONLY upchieve.subjects
 
 
 --
+-- Name: user_actions user_actions_favorited_volunteer_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.user_actions
+    ADD CONSTRAINT user_actions_favorited_volunteer_fkey FOREIGN KEY (favorited_volunteer) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: user_actions user_actions_ip_address_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3463,4 +3473,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220324220941'),
     ('20220325223612'),
     ('20220326034520'),
-    ('20220326153520');
+    ('20220326153520'),
+    ('20220326215210');

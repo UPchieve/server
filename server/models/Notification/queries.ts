@@ -1,56 +1,76 @@
-import { Aggregate, Types } from 'mongoose'
-import NotificationModel, { Notification } from './index'
-import * as SessionRepo from '../Session/queries'
+import { Notification } from './types'
 import { RepoReadError } from '../Errors'
+import { getClient } from '../../pg'
+import * as pgQueries from './pg.queries'
+import { Ulid, makeSomeRequired, makeRequired } from '../pgUtils'
 
 export async function getNotificationsByVolunteerId(
-  id: Types.ObjectId
+  userId: Ulid
 ): Promise<Notification[]> {
   try {
-    return NotificationModel.find({ volunteer: id })
-      .lean()
-      .exec()
+    const result = await pgQueries.getNotificationsByVolunteerId.run(
+      { userId },
+      getClient()
+    )
+    return result.map(v =>
+      makeSomeRequired(v, ['sentAt', 'messageId', 'wasSuccessful'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-/**
- * This function is only used by the session service to populate notifications in
- * the amdin session view. The admin view only needs tehe volunteer firstname
- * and volunteer partner org but we sent the entire volunteer object
- */
+export type SessionNotification = {
+  volunteer: {
+    // old firstName for legacy compatibility
+    firstname: string
+    volunteerPartnerOrg: string
+  }
+} & Notification
+
 export async function getSessionNotificationsWithSessionId(
-  sessionId: Types.ObjectId
-): Promise<Notification[]> {
+  sessionId: Ulid
+): Promise<SessionNotification[]> {
   try {
-    const session = await SessionRepo.getSessionById(sessionId)
-    return NotificationModel.aggregate([
-      {
-        $match: {
-          $expr: {
-            $in: ['$_id', session.notifications],
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'volunteer',
-          foreignField: '_id',
-          as: 'volunteer',
-        },
-      },
-      { $unwind: '$volunteer' },
-    ]).exec()
+    const result = await pgQueries.getSessionNotificationsWithSessionId.run(
+      { sessionId },
+      getClient()
+    )
+    return result.map(v => {
+      const row: any = makeSomeRequired(v, [
+        'sentAt',
+        'messageId',
+        'wasSuccessful',
+      ])
+      row.volunteer = {
+        firstname: row.firstName,
+        volunteerPartnerOrg: row.volunteerPartnerOrg,
+      }
+      delete row.firstName
+      delete row.volunteerPartnerOrg
+      return row as SessionNotification
+    })
   } catch (err) {
-    if (err instanceof RepoReadError) throw err
     throw new RepoReadError(err)
   }
 }
 
-// TODO: this should not be used - if you need an agg write a custom getter function
-export const getNotificationsWithPipeline = (
-  pipeline: any
-): Aggregate<Notification[]> =>
-  NotificationModel.aggregate(pipeline).read('secondaryPreferred')
+export type GentleWarning = {
+  id: Ulid
+  totalNotifications: number
+  firstName: string
+  email: string
+}
+export async function getNotificationsForGentleWarning(
+  sessionId: Ulid
+): Promise<GentleWarning[]> {
+  try {
+    const result = await pgQueries.getNotificationsForGentleWarning.run(
+      { sessionId },
+      getClient()
+    )
+    return result.map(v => makeRequired(v))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

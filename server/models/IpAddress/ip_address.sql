@@ -25,14 +25,16 @@ RETURNING
     id AS ok;
 
 
-/* @name updateIpStatusById */
+/* @name updateIpStatusByUserId */
 UPDATE
     ONLY ip_addresses
 SET
     status = :status!,
     updated_at = NOW()
 WHERE
-    id = :id!
+    id = ANY(
+        SELECT ip_address_id FROM users_ip_addresses WHERE user_id = :userId
+    )
 RETURNING
     id AS ok;
 

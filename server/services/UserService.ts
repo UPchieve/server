@@ -1,20 +1,20 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
-import { Types } from 'mongoose'
-import { EVENTS, REFERENCE_STATUS } from '../constants'
+import { Ulid } from '../models/pgUtils'
+import { ACCOUNT_USER_ACTIONS, EVENTS, IP_ADDRESS_STATUS, PHOTO_ID_STATUS, REFERENCE_STATUS } from '../constants'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import { UserNotFoundError } from '../models/Errors'
-import { unbanIpsByUser } from '../models/IpAddress/queries'
-import StudentModel, { Student } from '../models/Student'
-import UserModel, { User } from '../models/User'
-import { getUserById } from '../models/User/queries'
-import VolunteerModel, { Reference, Volunteer } from '../models/Volunteer'
+import { updateIpStatusByUserId } from '../models/IpAddress'
+import { Student } from '../models/Student'
+import { LegacyUser, UserContactInfo, getUserContactInfoById, getUsersForAdminSearch, getUserForAdminDetail } from '../models/User'
 import {
+  UnsentReference,
+  VolunteerContactInfo,
   addVolunteerReferenceById,
-  deleteVolunteerReferenceById,
   updateVolunteerPhotoIdById,
   updateVolunteerReferenceStatusById,
-} from '../models/Volunteer/queries'
+  deleteVolunteerReferenceByEmail
+} from '../models/Volunteer'
 import {
   studentPartnerManifests,
   volunteerPartnerManifests,
@@ -24,14 +24,15 @@ import {
   asBoolean,
   asFactory,
   asNumber,
-  asObjectId,
   asOptional,
   asString,
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
 import logger from '../logger'
+import { createAccountAction } from '../models/UserAction'
 
+// TODO: come back when legacy user is done
 export function parseUser(user: User | Student | Volunteer) {
   // Approved volunteer
   if (user.isVolunteer && (user as Volunteer).isApproved) {
@@ -44,24 +45,28 @@ export function parseUser(user: User | Student | Volunteer) {
 }
 
 export async function addPhotoId(
-  userId: Types.ObjectId,
+  userId: Ulid,
   ip: string
 ): Promise<string> {
   const photoIdS3Key = crypto.randomBytes(32).toString('hex')
-  await new UserActionCtrl.AccountActionCreator(userId, ip).addedPhotoId()
-  await updateVolunteerPhotoIdById(userId, photoIdS3Key)
+  await createAccountAction({
+    userId,
+    ipAddress: ip,
+    action: ACCOUNT_USER_ACTIONS.ADDED_PHOTO_ID
+  })
+  await updateVolunteerPhotoIdById(userId, photoIdS3Key, PHOTO_ID_STATUS.SUBMITTED)
   return photoIdS3Key
 }
 
 interface AddReferencePayload {
-  userId: Types.ObjectId
+  userId: Ulid
   referenceFirstName: string
   referenceLastName: string
   referenceEmail: string
   ip: string
 }
 const asAddReferencePayload = asFactory<AddReferencePayload>({
-  userId: asObjectId,
+  userId: asString,
   referenceFirstName: asString,
   referenceLastName: asString,
   referenceEmail: asString,
@@ -82,14 +87,17 @@ export async function addReference(data: unknown) {
     email: referenceEmail,
   }
   await addVolunteerReferenceById(userId, referenceData)
-  await new UserActionCtrl.AccountActionCreator(userId, ip, {
-    referenceEmail,
-  }).addedReference()
+  await createAccountAction({
+    userId,
+    ipAddress: ip,
+    action: ACCOUNT_USER_ACTIONS.ADDED_REFERENCE,
+    referenceEmail
+  })
 }
 
 export async function saveReferenceForm(
-  userId: Types.ObjectId,
-  referenceId: Types.ObjectId,
+  userId: Ulid,
+  referenceId: Ulid,
   referenceEmail: string,
   referenceFormData: unknown,
   ip: string
@@ -106,9 +114,12 @@ export async function saveReferenceForm(
     additionalInfo,
   } = asReferenceFormData(referenceFormData)
 
-  await new UserActionCtrl.AccountActionCreator(userId, ip, {
-    referenceEmail,
-  }).submittedReferenceForm()
+  await createAccountAction({
+    userId,
+    ipAddress: ip,
+    action: ACCOUNT_USER_ACTIONS.SUBMITTED_REFERENCE_FORM,
+    referenceEmail
+  })
 
   // See: https://docs.mongodb.com/manual/reference/operator/update/positional/#up._S_
   // TODO: repo pattern
@@ -132,31 +143,34 @@ export async function saveReferenceForm(
 }
 
 export async function notifyReference(
-  reference: Reference,
-  volunteer: Volunteer
+  reference: UnsentReference,
+  volunteer: VolunteerContactInfo
 ) {
   // TODO: error handling - these need to be 'atomic'
   await MailService.sendReferenceForm(reference, volunteer)
-  await updateVolunteerReferenceStatusById(reference._id, new Date())
+  await updateVolunteerReferenceStatusById(reference.id)
 }
 
 export async function deleteReference(
-  userId: Types.ObjectId,
+  userId: Ulid,
   referenceEmail: string,
   ip: string
 ) {
-  await new UserActionCtrl.AccountActionCreator(userId, ip, {
-    referenceEmail,
-  }).deletedReference()
+  await createAccountAction({
+    userId,
+    ipAddress: ip,
+    action: ACCOUNT_USER_ACTIONS.DELETED_REFERENCE,
+    referenceEmail
+  })
   AnalyticsService.captureEvent(userId, EVENTS.REFERENCE_DELETED, {
     event: EVENTS.REFERENCE_DELETED,
     referenceEmail,
   })
-  await deleteVolunteerReferenceById(userId, referenceEmail)
+  await deleteVolunteerReferenceByEmail(userId, referenceEmail)
 }
 
 interface AdminUpdate {
-  userId: Types.ObjectId
+  userId: Ulid
   firstName?: string
   lastName?: string
   email?: string
@@ -169,7 +183,7 @@ interface AdminUpdate {
   inGatesStudy?: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
-  userId: asObjectId,
+  userId: asString,
   firstName: asOptional(asString),
   lastName: asOptional(asString),
   email: asOptional(asString),
@@ -182,7 +196,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   inGatesStudy: asOptional(asBoolean),
 })
 
-export async function flagForDeletion(user: User) {
+export async function flagForDeletion(user: UserContactInfo) {
   try {
     // if a user is requesting deletion, we should remove them from automatic emails
     const contact = await MailService.searchContact(user.email)
@@ -221,7 +235,7 @@ export async function adminUpdateUser(data: unknown) {
     inGatesStudy,
   } = asAdminUpdate(data)
   // replaced by UserRepo.getUserForAdminUpdate
-  const userBeforeUpdate = await getUserById(userId)
+  const userBeforeUpdate = await getUserContactInfoById(userId)
   if (!userBeforeUpdate) {
     throw new UserNotFoundError('_id', userId.toString())
   }
@@ -235,10 +249,10 @@ export async function adminUpdateUser(data: unknown) {
   }
 
   // if unbanning student, also unban their IP addresses
-  if (!isVolunteer && userBeforeUpdate.isBanned && !isBanned)
-    await unbanIpsByUser(userBeforeUpdate._id)
+  if (!isVolunteer && userBeforeUpdate.banned && !isBanned)
+    await updateIpStatusByUserId(userBeforeUpdate.id, IP_ADDRESS_STATUS.OK)
 
-  if (!userBeforeUpdate.isBanned && isBanned)
+  if (!userBeforeUpdate.banned && isBanned)
     // TODO: queue email
     await MailService.sendBannedUserAlert(userId, 'ADMIN')
 
@@ -268,7 +282,7 @@ export async function adminUpdateUser(data: unknown) {
     if (inGatesStudy !== undefined) update.inGatesStudy = inGatesStudy
 
     // tracking organic/partner students for posthog if there is a change in partner status
-    if ((userBeforeUpdate as Student).studentPartnerOrg !== partnerOrg) {
+    if (userBeforeUpdate.studentPartnerOrg !== partnerOrg) {
       AnalyticsService.identify(userId, {
         partner: partnerOrg,
       })
@@ -276,7 +290,7 @@ export async function adminUpdateUser(data: unknown) {
   }
 
   if (isBanned) update.banReason = 'ADMIN'
-  if (isDeactivated && !userBeforeUpdate.isDeactivated)
+  if (isDeactivated && !userBeforeUpdate.deactivated)
     await new UserActionCtrl.AdminActionCreator(
       userId.toString()
     ).adminDeactivatedAccount()
@@ -328,57 +342,19 @@ export async function getUsers(data: unknown) {
     highSchool,
     page,
   } = asUserQuery(data)
-  const query: any = {}
   const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
 
-  if (userId) query._id = asObjectId(userId)
-  if (firstName) query.firstname = { $regex: firstName, $options: 'i' }
-  if (lastName) query.lastname = { $regex: lastName, $options: 'i' }
-  if (email) query.email = { $regex: email, $options: 'i' }
-  if (partnerOrg) {
-    if (studentPartnerManifests[partnerOrg])
-      query.studentPartnerOrg = { $regex: partnerOrg, $options: 'i' }
-
-    if (volunteerPartnerManifests[partnerOrg])
-      query.volunteerPartnerOrg = { $regex: partnerOrg, $options: 'i' }
-  }
-
-  let highSchoolQuery = [
-    {
-      $lookup: {
-        from: 'schools',
-        localField: 'approvedHighschool',
-        foreignField: '_id',
-        as: 'highSchool',
-      },
-    },
-    {
-      $unwind: '$highSchool',
-    },
-    {
-      $match: {
-        $or: [
-          { 'highSchool.nameStored': { $regex: highSchool, $options: 'i' } },
-          { 'highSchool.SCH_NAME': { $regex: highSchool, $options: 'i' } },
-        ],
-      },
-    },
-  ]
-
-  const aggregateQuery: any[] = [
-    { $match: query },
-    { $project: { password: 0 } },
-  ]
-  if (highSchool) aggregateQuery.push(...highSchoolQuery)
-
   try {
-    // Replaced by getUsersForAdminSearch
-    const users = await UserModel.aggregate(aggregateQuery)
-      .skip(skip)
-      .limit(PER_PAGE)
-      .exec()
+    const users = await getUsersForAdminSearch({
+      userId,
+      firstName,
+      lastName,
+      email,
+      partnerOrg,
+      highSchool
+    }, PER_PAGE, skip)
 
     const isLastPage = users.length < PER_PAGE
     return { users, isLastPage }
@@ -390,120 +366,8 @@ export async function getUsers(data: unknown) {
 // @note: this query is making a request for user data on every page transition
 //        for new pastSessions to display. May be better served as a separate
 //        service method for getting the user's past sessions
-export async function adminGetUser(userId: Types.ObjectId, page: number = 1) {
-  // Replaced by getUserForAdminDetail
-  const [results] = await UserModel.aggregate([
-    {
-      $match: {
-        _id: userId,
-      },
-    },
-    {
-      $project: {
-        firstname: 1,
-        lastname: 1,
-        email: 1,
-        createdAt: 1,
-        isVolunteer: 1,
-        isApproved: 1,
-        isAdmin: 1,
-        isBanned: 1,
-        isDeactivated: 1,
-        isTestUser: 1,
-        isFakeUser: 1,
-        partnerSite: 1,
-        zipCode: 1,
-        background: 1,
-        studentPartnerOrg: 1,
-        volunteerPartnerOrg: 1,
-        approvedHighschool: 1,
-        photoIdS3Key: 1,
-        photoIdStatus: 1,
-        references: 1,
-        occupation: 1,
-        country: 1,
-        verified: 1,
-        numPastSessions: { $size: '$pastSessions' },
-        pastSessions: { $slice: ['$pastSessions', -10 * page, 10] },
-        inGatesStudy: 1,
-        currentGrade: 1,
-      },
-    },
-    {
-      $facet: {
-        user: [
-          {
-            $lookup: {
-              from: 'schools',
-              localField: 'approvedHighschool',
-              foreignField: '_id',
-              as: 'approvedHighschool',
-            },
-          },
-          {
-            $unwind: {
-              path: '$approvedHighschool',
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-        ],
-        pastSessions: [
-          {
-            $unwind: {
-              path: '$pastSessions',
-            },
-          },
-          {
-            $lookup: {
-              from: 'sessions',
-              let: {
-                sessionId: '$pastSessions',
-              },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $eq: ['$_id', '$$sessionId'],
-                    },
-                  },
-                },
-                {
-                  $project: {
-                    type: 1,
-                    subTopic: 1,
-                    totalMessages: {
-                      $size: '$messages',
-                    },
-                    volunteer: 1,
-                    student: 1,
-                    volunteerJoinedAt: 1,
-                    createdAt: 1,
-                    endedAt: 1,
-                  },
-                },
-              ],
-              as: 'pastSessions',
-            },
-          },
-          {
-            $unwind: {
-              path: '$pastSessions',
-            },
-          },
-          {
-            $replaceRoot: {
-              newRoot: '$pastSessions',
-            },
-          },
-        ],
-      },
-    },
-  ])
-
-  const user = {
-    ...results.user[0],
-    pastSessions: results.pastSessions,
-  }
+export async function adminGetUser(userId: Ulid) {
+  const user = await getUserForAdminDetail(userId)
 
   return user
 }

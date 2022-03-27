@@ -108,24 +108,24 @@ const insertUsersIpByIdIR: any = {"name":"insertUsersIpById","params":[{"name":"
 export const insertUsersIpById = new PreparedQuery<IInsertUsersIpByIdParams,IInsertUsersIpByIdResult>(insertUsersIpByIdIR);
 
 
-/** 'UpdateIpStatusById' parameters type */
-export interface IUpdateIpStatusByIdParams {
-  id: string;
+/** 'UpdateIpStatusByUserId' parameters type */
+export interface IUpdateIpStatusByUserIdParams {
   status: string;
+  userId: string | null | void;
 }
 
-/** 'UpdateIpStatusById' return type */
-export interface IUpdateIpStatusByIdResult {
+/** 'UpdateIpStatusByUserId' return type */
+export interface IUpdateIpStatusByUserIdResult {
   ok: string;
 }
 
-/** 'UpdateIpStatusById' query type */
-export interface IUpdateIpStatusByIdQuery {
-  params: IUpdateIpStatusByIdParams;
-  result: IUpdateIpStatusByIdResult;
+/** 'UpdateIpStatusByUserId' query type */
+export interface IUpdateIpStatusByUserIdQuery {
+  params: IUpdateIpStatusByUserIdParams;
+  result: IUpdateIpStatusByUserIdResult;
 }
 
-const updateIpStatusByIdIR: any = {"name":"updateIpStatusById","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":592,"b":598,"line":32,"col":14}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":640,"b":642,"line":35,"col":10}]}}],"usedParamSet":{"status":true,"id":true},"statement":{"body":"UPDATE\n    ONLY ip_addresses\nSET\n    status = :status!,\n    updated_at = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id AS ok","loc":{"a":545,"b":665,"line":29,"col":0}}};
+const updateIpStatusByUserIdIR: any = {"name":"updateIpStatusByUserId","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":596,"b":602,"line":32,"col":14}]}},{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":718,"b":723,"line":36,"col":70}]}}],"usedParamSet":{"status":true,"userId":true},"statement":{"body":"UPDATE\n    ONLY ip_addresses\nSET\n    status = :status!,\n    updated_at = NOW()\nWHERE\n    id = ANY(\n        SELECT ip_address_id FROM users_ip_addresses WHERE user_id = :userId\n    )\nRETURNING\n    id AS ok","loc":{"a":549,"b":752,"line":29,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -136,11 +136,13 @@ const updateIpStatusByIdIR: any = {"name":"updateIpStatusById","params":[{"name"
  *     status = :status!,
  *     updated_at = NOW()
  * WHERE
- *     id = :id!
+ *     id = ANY(
+ *         SELECT ip_address_id FROM users_ip_addresses WHERE user_id = :userId
+ *     )
  * RETURNING
  *     id AS ok
  * ```
  */
-export const updateIpStatusById = new PreparedQuery<IUpdateIpStatusByIdParams,IUpdateIpStatusByIdResult>(updateIpStatusByIdIR);
+export const updateIpStatusByUserId = new PreparedQuery<IUpdateIpStatusByUserIdParams,IUpdateIpStatusByUserIdResult>(updateIpStatusByUserIdIR);
 
 

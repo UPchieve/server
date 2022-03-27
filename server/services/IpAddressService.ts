@@ -1,13 +1,10 @@
 import axios from 'axios'
 import Sentry from '@sentry/node'
-import { Types } from 'mongoose'
-import { IpAddress } from '../models/IpAddress'
 import {
+  IpAddress,
   getIpByRawString,
-  createIpByRawString,
-  updateIpUserById,
-} from '../models/IpAddress/queries'
-import { updateUserIpById } from '../models/User/queries'
+  insertIpByRawString
+} from '../models/IpAddress'
 import { NotAllowedError } from '../models/Errors'
 import { asString } from '../utils/type-utils'
 import net from 'net'
@@ -41,7 +38,7 @@ export async function findOrCreateIpAddress(
 
   if (existingIpAddress) return existingIpAddress
 
-  const newIpAddress = await createIpByRawString(ipString)
+  const newIpAddress = await insertIpByRawString(ipString)
   return newIpAddress
 }
 
@@ -58,16 +55,3 @@ export async function checkIpAddress(data: unknown | string) {
   if (countryCode && countryCode !== 'US') throw new NotAllowedError()
 }
 
-export async function record(userId: Types.ObjectId, ipString: string) {
-  const userIpAddress = await findOrCreateIpAddress(ipString)
-  const alreadyRecorded = (userIpAddress.users as Types.ObjectId[]).some(u =>
-    u.equals(userId)
-  )
-
-  if (!alreadyRecorded) {
-    await updateUserIpById(userId, userIpAddress._id)
-    await updateIpUserById(userIpAddress._id, userId)
-  }
-
-  return userIpAddress
-}

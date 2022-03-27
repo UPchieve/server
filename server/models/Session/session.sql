@@ -74,7 +74,8 @@ SELECT
     (time_tutored)::float,
     sessions.created_at,
     sessions.updated_at,
-    session_reported_count.total <> 0 AS reported
+    session_reported_count.total <> 0 AS reported,
+    session_flag_array.flags
 FROM
     sessions
     LEFT JOIN subjects ON subjects.id = sessions.subject_id
@@ -88,6 +89,13 @@ FROM
             session_reports
         WHERE
             session_reports.session_id = sessions.id) AS session_reported_count ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(name) AS flags
+        FROM sessions_session_flags
+        LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id
+        WHERE sessions_session_flags.session_id = sessions.id
+    ) AS session_flag_array ON TRUE
 WHERE
     sessions.id = :sessionId!;
 
@@ -309,7 +317,7 @@ RETURNING
     id AS ok;
 
 
-/* @name updatedSessionToEnd */
+/* @name updateSessionToEnd */
 UPDATE
     sessions
 SET
@@ -319,10 +327,15 @@ SET
 FROM (
     SELECT
         user_roles.id
-    FROM
-        user_roles
+    FROM sessions
+    LEFT JOIN user_roles ON TRUE
     WHERE
-        name = COALESCE(:roleName, '')) AS subquery
+        sessions.id = :sessionId! AND
+        user_roles.name = (
+        CASE WHEN sessions.volunteer_id = :endedBy THEN 'volunteer'
+        WHEN sessions.student_id = :endedBy THEN 'student'
+        ELSE NULL
+        END)) AS subquery
 WHERE
     sessions.id = :sessionId!
 RETURNING
@@ -408,6 +421,19 @@ FROM
             session_photos.session_id = sessions.id) AS session_photo ON TRUE
 WHERE
     sessions.id = :sessionId!;
+
+/* @name getSessionUserAgent */
+SELECT
+    device,
+    browser,
+    browser_version,
+    operating_system,
+    operating_system_version
+FROM user_actions 
+WHERE 
+    user_actions.session_id = :sessionId! AND 
+    user_actions.action = 'REQUESTED SESSION'
+LIMIT 1;
 
 
 /* @name getUserForSessionAdminView */

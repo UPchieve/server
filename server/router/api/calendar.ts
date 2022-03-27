@@ -1,7 +1,6 @@
 import { updateSchedule, clearSchedule } from '../../controllers/CalendarCtrl'
 import { resError } from '../res-error'
 import { InputError } from '../../models/Errors'
-import { Volunteer } from '../../models/Volunteer'
 import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
@@ -12,10 +11,9 @@ export function routeCalendar(router: Router): void {
       const user = extractUser(req)
       if (!req.body.hasOwnProperty('availability'))
         throw new InputError('No availability object specified')
-      // TODO: use duck type validators
       await updateSchedule({
         ...req.body,
-        user: user as Volunteer,
+        user: user,
         ip: req.ip,
       })
       res.json({
@@ -29,7 +27,7 @@ export function routeCalendar(router: Router): void {
   router.post('/calendar/clear', async function(req, res) {
     try {
       const user = extractUser(req)
-      await clearSchedule(user as Volunteer, asString(req.body.tz))
+      await clearSchedule(user, asString(req.body.tz))
       res.json({
         msg: 'Schedule cleared',
       })

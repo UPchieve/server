@@ -1,13 +1,10 @@
 import _ from 'lodash'
-import Case from 'case'
 import {
-  Feedback,
   StudentCounselingFeedback,
   StudentTutoringFeedback,
   VolunteerFeedback,
 } from '../models/Feedback'
 import * as FeedbackRepo from '../models/Feedback/queries'
-import { FEEDBACK_VERSIONS } from '../constants'
 import { FEEDBACK_EVENTS } from '../constants/events'
 import { emitter } from './EventsService'
 import {
@@ -15,10 +12,10 @@ import {
   asNumber,
   asFactory,
   asOptional,
-  asArray,
-  asObjectId,
+  asArray
 } from '../utils/type-utils'
 import { InputError } from '../models/Errors'
+import { Ulid } from '../models/pgUtils'
 
 const asStudentTutoringFeedback = asFactory<StudentTutoringFeedback>({
   'session-goal': asOptional(asNumber),
@@ -53,28 +50,20 @@ const asVolunteerFeedback = asFactory<VolunteerFeedback>({
 })
 
 const asFeedbackPayload = asFactory({
-  sessionId: asObjectId,
-  topic: asString,
-  subTopic: asString,
+  sessionId: asString,
   studentTutoringFeedback: asOptional(asStudentTutoringFeedback),
   studentCounselingFeedback: asOptional(asStudentCounselingFeedback),
   volunteerFeedback: asOptional(asVolunteerFeedback),
   userType: asString,
-  studentId: asObjectId,
-  volunteerId: asObjectId,
 })
 
-export async function saveFeedback(data: unknown): Promise<Feedback> {
+export async function saveFeedback(data: unknown): Promise<Ulid> {
   const {
     sessionId,
-    topic,
-    subTopic,
     studentTutoringFeedback,
     studentCounselingFeedback,
     volunteerFeedback,
-    userType,
-    studentId,
-    volunteerId,
+    userType
   } = asFeedbackPayload(data)
   if (
     _.isEmpty(studentTutoringFeedback) &&
@@ -82,19 +71,14 @@ export async function saveFeedback(data: unknown): Promise<Feedback> {
     _.isEmpty(volunteerFeedback)
   )
     throw new InputError('Must answer at least one question')
+  
+  if (!(userType === 'student' || userType === 'volunteer')) throw new Error('User type unrecognized')
 
-  const doc = await FeedbackRepo.saveFeedback(sessionId, userType, {
-    sessionId,
-    type: Case.camel(topic),
-    subTopic: Case.camel(subTopic),
+  const feedbackId = await FeedbackRepo.saveFeedback(sessionId, userType, {
     studentTutoringFeedback,
     studentCounselingFeedback,
-    volunteerFeedback,
-    userType,
-    studentId,
-    volunteerId,
-    versionNumber: FEEDBACK_VERSIONS.TWO,
+    volunteerFeedback
   })
-  emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, doc.sessionId, doc._id)
-  return doc
+  emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, sessionId, feedbackId)
+  return feedbackId
 }

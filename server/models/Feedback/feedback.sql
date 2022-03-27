@@ -62,3 +62,23 @@ WHERE
     feedbacks.session_id = :sessionId!
     AND user_roles.name = :userRole!;
 
+/* @name saveFeedback */
+INSERT INTO feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, created_at, updated_at)
+SELECT
+    :id!,
+    subjects.topic_id,
+    sessions.subject_id,
+    user_roles.id,
+    :sessionId!,
+    :studentTutoringFeedback,
+    :studentCounselingFeedback,
+    :volunteerFeedback,
+    :comment,
+    (CASE WHEN :userRole! = 'student' THEN sessions.student_id ELSE sessions.volunteer_id END),
+    NOW(),
+    NOW()
+FROM sessions
+LEFT JOIN subjects ON subjects.id = sessions.subject_id
+JOIN user_roles ON user_roles.name = :userRole!
+WHERE sessions.id = :sessionId!
+RETURNING feedbacks.id;

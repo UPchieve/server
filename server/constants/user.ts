@@ -1,4 +1,4 @@
-type ExtractValues<T extends { readonly [k: string]: string }> = T[keyof T]
+export type ExtractValues<T extends { readonly [k: string]: string }> = T[keyof T]
 
 export const USER_ACTION_TYPES = <const>{
   QUIZ: 'QUIZ',

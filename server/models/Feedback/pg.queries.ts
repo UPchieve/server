@@ -166,3 +166,54 @@ const getFeedbackBySessionIdUserTypeIR: any = {"name":"getFeedbackBySessionIdUse
 export const getFeedbackBySessionIdUserType = new PreparedQuery<IGetFeedbackBySessionIdUserTypeParams,IGetFeedbackBySessionIdUserTypeResult>(getFeedbackBySessionIdUserTypeIR);
 
 
+/** 'SaveFeedback' parameters type */
+export interface ISaveFeedbackParams {
+  comment: string | null | void;
+  id: string;
+  sessionId: string;
+  studentCounselingFeedback: Json | null | void;
+  studentTutoringFeedback: Json | null | void;
+  userRole: string;
+  volunteerFeedback: Json | null | void;
+}
+
+/** 'SaveFeedback' return type */
+export interface ISaveFeedbackResult {
+  id: string;
+}
+
+/** 'SaveFeedback' query type */
+export interface ISaveFeedbackQuery {
+  params: ISaveFeedbackParams;
+  result: ISaveFeedbackResult;
+}
+
+const saveFeedbackIR: any = {"name":"saveFeedback","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1891,"b":1893,"line":68,"col":5}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1968,"b":1977,"line":72,"col":5},{"a":2336,"b":2345,"line":83,"col":21}]}},{"name":"studentTutoringFeedback","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1985,"b":2007,"line":73,"col":5}]}},{"name":"studentCounselingFeedback","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2015,"b":2039,"line":74,"col":5}]}},{"name":"volunteerFeedback","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2047,"b":2063,"line":75,"col":5}]}},{"name":"comment","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2071,"b":2077,"line":76,"col":5}]}},{"name":"userRole","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2096,"b":2104,"line":77,"col":16},{"a":2305,"b":2313,"line":82,"col":38}]}}],"usedParamSet":{"id":true,"sessionId":true,"studentTutoringFeedback":true,"studentCounselingFeedback":true,"volunteerFeedback":true,"comment":true,"userRole":true},"statement":{"body":"INSERT INTO feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, created_at, updated_at)\nSELECT\n    :id!,\n    subjects.topic_id,\n    sessions.subject_id,\n    user_roles.id,\n    :sessionId!,\n    :studentTutoringFeedback,\n    :studentCounselingFeedback,\n    :volunteerFeedback,\n    :comment,\n    (CASE WHEN :userRole! = 'student' THEN sessions.student_id ELSE sessions.volunteer_id END),\n    NOW(),\n    NOW()\nFROM sessions\nLEFT JOIN subjects ON subjects.id = sessions.subject_id\nJOIN user_roles ON user_roles.name = :userRole!\nWHERE sessions.id = :sessionId!\nRETURNING feedbacks.id","loc":{"a":1686,"b":2368,"line":66,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, created_at, updated_at)
+ * SELECT
+ *     :id!,
+ *     subjects.topic_id,
+ *     sessions.subject_id,
+ *     user_roles.id,
+ *     :sessionId!,
+ *     :studentTutoringFeedback,
+ *     :studentCounselingFeedback,
+ *     :volunteerFeedback,
+ *     :comment,
+ *     (CASE WHEN :userRole! = 'student' THEN sessions.student_id ELSE sessions.volunteer_id END),
+ *     NOW(),
+ *     NOW()
+ * FROM sessions
+ * LEFT JOIN subjects ON subjects.id = sessions.subject_id
+ * JOIN user_roles ON user_roles.name = :userRole!
+ * WHERE sessions.id = :sessionId!
+ * RETURNING feedbacks.id
+ * ```
+ */
+export const saveFeedback = new PreparedQuery<ISaveFeedbackParams,ISaveFeedbackResult>(saveFeedbackIR);
+
+

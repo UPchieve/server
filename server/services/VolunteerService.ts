@@ -1,6 +1,5 @@
-import { Types } from 'mongoose'
-import VolunteerModel, { Volunteer } from '../models/Volunteer'
-import { getVolunteerById } from '../models/Volunteer/queries'
+import { Ulid } from '../models/pgUtils'
+import * as VolunteerRepo from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getElapsedAvailabilityForDateRange } from './AvailabilityService'
@@ -26,7 +25,7 @@ export interface HourSummaryStats {
 }
 
 export async function getHourSummaryStats(
-  volunteerId: Types.ObjectId,
+  volunteerId: Ulid,
   fromDate: Date,
   toDate: Date
 ): Promise<HourSummaryStats> {
@@ -60,7 +59,7 @@ export async function getHourSummaryStats(
 }
 
 export async function queueOnboardingReminderOneEmail(
-  volunteerId: Types.ObjectId
+  volunteerId: Ulid
 ): Promise<void> {
   const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7
   await QueueService.add(
@@ -71,7 +70,7 @@ export async function queueOnboardingReminderOneEmail(
 }
 
 export async function queueOnboardingEventEmails(
-  volunteerId: Types.ObjectId
+  volunteerId: Ulid
 ): Promise<void> {
   await QueueService.add(
     Jobs.EmailVolunteerQuickTips,
@@ -85,7 +84,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
   category: string,
   email: string,
   firstName: string,
-  volunteerId: Types.ObjectId
+  volunteerId: Ulid
 ) {
   await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
     category,
@@ -96,7 +95,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
 }
 
 export async function queuePartnerOnboardingEventEmails(
-  volunteerId: Types.ObjectId
+  volunteerId: Ulid
 ): Promise<void> {
   await QueueService.add(
     Jobs.EmailPartnerVolunteerLowHoursSelected,
@@ -124,72 +123,7 @@ export async function getVolunteersToReview(
 
   try {
     // Replaced by VolunteerRepo.getVolunteersToReview
-    const volunteers = await VolunteerModel.aggregate([
-      {
-        $match: {
-          isApproved: false,
-          photoIdS3Key: { $ne: null },
-          photoIdStatus: {
-            $in: [PHOTO_ID_STATUS.SUBMITTED, PHOTO_ID_STATUS.APPROVED],
-          },
-          references: { $size: 2 },
-          'references.status': {
-            $nin: [
-              REFERENCE_STATUS.REJECTED,
-              REFERENCE_STATUS.UNSENT,
-              REFERENCE_STATUS.SENT,
-            ],
-          },
-          occupation: { $ne: null },
-          country: { $ne: null },
-        },
-      },
-      {
-        $project: {
-          firstname: 1,
-          lastname: 1,
-          email: 1,
-          createdAt: 1,
-        },
-      },
-      {
-        $lookup: {
-          from: 'useractions',
-          localField: '_id',
-          foreignField: 'user',
-          as: 'userAction',
-        },
-      },
-      {
-        $unwind: '$userAction',
-      },
-      {
-        $match: {
-          'userAction.action': {
-            $in: [
-              USER_ACTION.ACCOUNT.ADDED_PHOTO_ID,
-              USER_ACTION.ACCOUNT.SUBMITTED_REFERENCE_FORM,
-              USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO,
-            ],
-          },
-        },
-      },
-      {
-        $group: {
-          _id: '$_id',
-          firstname: { $first: '$firstname' },
-          lastname: { $first: '$lastname' },
-          email: { $first: '$email' },
-          // Get the date of their latest user action associated with the approval process
-          readyForReviewAt: {
-            $max: '$userAction.createdAt',
-          },
-        },
-      },
-    ])
-      .sort({ readyForReviewAt: 1 })
-      .skip(skip)
-      .limit(PER_PAGE)
+    const volunteers = await VolunteerRepo.getVolunteersToReview(PER_PAGE, skip)
 
     const isLastPage = volunteers.length < PER_PAGE
     return { volunteers, isLastPage }
@@ -219,16 +153,16 @@ interface PendingVolunteerUpdate {
 }
 
 export async function updatePendingVolunteerStatus(
-  volunteerId: Types.ObjectId,
+  volunteerId: Ulid,
   photoIdStatus: string,
   referencesStatus: string[]
 ): Promise<void> {
-  const volunteerBeforeUpdate = await getVolunteerById(volunteerId)
+  const volunteerBeforeUpdate = await VolunteerRepo.getVolunteerForPendingStatus(volunteerId)
   if (!volunteerBeforeUpdate) return
 
   const hasCompletedBackgroundInfo =
-    volunteerBeforeUpdate.occupation &&
-    volunteerBeforeUpdate.occupation.length > 0 &&
+    volunteerBeforeUpdate.occupations &&
+    volunteerBeforeUpdate.occupations.length > 0 &&
     volunteerBeforeUpdate.country
       ? true
       : false
@@ -249,7 +183,8 @@ export async function updatePendingVolunteerStatus(
   if (referenceOneStatus) update['references.0.status'] = referenceOneStatus
   if (referenceTwoStatus) update['references.1.status'] = referenceTwoStatus
   // replaced by updateVolunteerReferenceStatusById
-  await VolunteerModel.updateOne({ _id: volunteerId }, update)
+  // TODO: aw fuck man
+  await VolunteerRepo.updateVolunteerReferenceStatusById(re)
 
   if (
     photoIdStatus === PHOTO_ID_STATUS.REJECTED &&
@@ -291,7 +226,7 @@ export async function updatePendingVolunteerStatus(
 }
 
 export async function addBackgroundInfo(
-  volunteerId: Types.ObjectId,
+  volunteerId: Ulid,
   update: Partial<Volunteer>,
   ip: string
 ): Promise<void> {

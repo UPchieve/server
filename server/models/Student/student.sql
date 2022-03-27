@@ -3,7 +3,8 @@ SELECT
     student_profiles.user_id AS id,
     grade_levels.name AS current_grade,
     student_partner_orgs.name AS student_partner_org,
-    schools.partner AS is_partner_school
+    schools.partner AS is_partner_school,
+    student_profiles.school_id AS approved_highschool
 FROM
     student_profiles
     JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
@@ -15,16 +16,20 @@ WHERE
 
 /* @name getStudentContactInfoById */
 SELECT
-    id,
+    users.id,
     first_name,
-    email
+    email,
+    student_partner_orgs.key AS student_partner_org,
+    student_profiles.school_id
 FROM
     users
+LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
     banned IS FALSE
     AND deactivated IS FALSE
     AND test_user IS FALSE
-    AND id = :userId!;
+    AND users.id = :userId!;
 
 
 /* @name isTestUser */
@@ -221,7 +226,7 @@ RETURNING
 INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at)
 SELECT
     :userId!,
-    :postalCode!,
+    :postalCode,
     subquery.student_partner_org_id,
     student_partner_org_sites.id,
     grade_levels.id,

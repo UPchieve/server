@@ -1,13 +1,13 @@
 import PostHog from 'posthog-node'
-import { Types } from 'mongoose'
 import config from '../config'
+import { Ulid } from '../models/pgUtils'
 
 const client = new PostHog(config.posthogToken, {
   host: 'https://app.posthog.com',
 })
 
 export const captureEvent = (
-  userId: Types.ObjectId,
+  userId: Ulid,
   eventName: string,
   properties: {
     event: string
@@ -32,7 +32,7 @@ export type IdentifyProperties = {
 }
 
 export function identify(
-  userId: Types.ObjectId,
+  userId: Ulid,
   properties: IdentifyProperties
 ) {
   client.identify({

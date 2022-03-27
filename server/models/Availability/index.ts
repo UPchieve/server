@@ -1,2 +1,2 @@
-export * from './pgtypes'
-export * from './pgqueries'
+export * from './types'
+export * from './queries'

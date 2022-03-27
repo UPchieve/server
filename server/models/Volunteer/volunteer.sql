@@ -194,6 +194,18 @@ WHERE
 RETURNING
     user_id AS ok;
 
+/* @name updateVolunteerThroughAvailability */
+UPDATE
+    volunteer_profiles
+SET
+    timezone = COALESCE(:timezone, timezone),
+    onboarded = COALESCE(:onboarded, onboarded),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
+
 
 /* @name getVolunteerIdsForElapsedAvailability */
 SELECT
@@ -407,7 +419,8 @@ FROM (
     WHERE
         name = 'removed') AS subquery
 WHERE
-    volunteer_references.id = :referenceId!
+    volunteer_references.email = :referenceEmail! AND
+    volunteer_references.user_id = :userId!
 RETURNING
     volunteer_references.id AS ok;
 
@@ -459,6 +472,19 @@ WHERE
 RETURNING
     user_id AS ok;
 
+/* @name getVolunteerTrainingCourses */
+SELECT
+    user_id,
+    complete,
+    training_courses.name AS training_course,
+    progress,
+    completed_materials,
+    users_training_courses.created_at,
+    users_training_courses.updated_at
+FROM users_training_courses
+LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id
+WHERE
+    users_training_courses.user_id = :userId!;
 
 /* @name updateVolunteerTrainingById */
 INSERT INTO users_training_courses AS ins (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)
@@ -560,13 +586,14 @@ SELECT
     volunteer_references.id,
     user_id,
     first_name,
+    last_name,
     email,
     volunteer_reference_statuses.name AS status
 FROM
     volunteer_references
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
-    volunteer_reference_statuses.name = 'UNSENT';
+    volunteer_reference_statuses.name = 'unsent';
 
 
 /* @name getReferencesByVolunteer */
@@ -852,7 +879,7 @@ FROM
             volunteer_references
             LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
         WHERE
-            NOT volunteer_reference_statuses.name = ANY ('{ "sent", "unsent", "rejected" }')
+            NOT volunteer_reference_statuses.name = ANY ('{ "sent", "unsent", "rejected", "removed" }')
         GROUP BY
             user_id) AS reference_count ON reference_count.user_id = users.id
     JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id
@@ -1062,7 +1089,6 @@ WHERE
             AND sent_at >= DATE(:lastNotified!))
 LIMIT 1;
 
-
 /* @name getNextOpenVolunteerToNotify */
 SELECT
     users.id,
@@ -1248,3 +1274,96 @@ WHERE
             AND sent_at >= DATE(:lastNotified!))
 LIMIT 1;
 
+/* @name getVolunteerForScheduleUpdate */
+SELECT
+    users.id,
+    volunteer_partner_orgs.key AS volunteer_partner_org,
+    volunteer_profiles.onboarded,
+    subjects_unlocked.subjects
+FROM
+    users
+    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(sub_unlocked.subject) AS subjects
+        FROM (
+            SELECT
+                user_id,
+                subjects.name AS subject,
+                COUNT(*)::int AS earned_certs,
+                subject_total.total
+            FROM
+                users_certifications
+                JOIN certification_subject_unlocks USING (certification_id)
+                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
+                JOIN (
+                    SELECT
+                        subjects.name, COUNT(*)::int AS total
+                    FROM
+                        certification_subject_unlocks
+                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
+                    GROUP BY
+                        subjects.name) AS subject_total ON subject_total.name = subjects.name
+                WHERE users_certifications.user_id = users.id
+                GROUP BY
+                    user_id,
+                    subjects.name,
+                    subject_total.total
+                HAVING
+                    COUNT(*)::int >= subject_total.total) AS sub_unlocked) AS subjects_unlocked ON TRUE
+WHERE
+    users.id = :userId!
+LIMIT 1;
+
+/* @name getVolunteersOnDeck */
+SELECT
+    users.id,
+    first_name,
+    last_name,
+    phone,
+    email,
+    volunteer_partner_orgs.key AS volunteer_partner_org
+FROM
+    users
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN availabilities ON users.id = availabilities.user_id
+    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+    JOIN (
+        SELECT
+            sub_unlocked.user_id,
+            subjects.name AS subject
+        FROM (
+            SELECT
+                user_id,
+                subjects.name AS subject,
+                COUNT(*)::int AS earned_certs,
+                subject_total.total
+            FROM
+                users_certifications
+                JOIN certification_subject_unlocks USING (certification_id)
+                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
+                JOIN (
+                    SELECT
+                        subjects.name, COUNT(*)::int AS total
+                    FROM
+                        certification_subject_unlocks
+                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
+                    GROUP BY
+                        subjects.name) AS subject_total ON subject_total.name = subjects.name
+                GROUP BY
+                    user_id,
+                    subjects.name,
+                    subject_total.total
+                HAVING
+                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
+                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id
+WHERE
+    test_user IS FALSE
+    AND banned IS FALSE
+    AND deactivated IS FALSE
+    AND NOT users.id = ANY(:excludedIds!)
+    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
+    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
+    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
+    AND subjects_unlocked.subject = :subject!;

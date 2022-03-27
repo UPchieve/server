@@ -1,25 +1,22 @@
 import { logger } from '@sentry/utils'
 import Case from 'case'
-import { Types } from 'mongoose'
+import { Ulid } from '../models/pgUtils'
 import { Socket } from 'socket.io'
 import { CustomError } from 'ts-custom-error'
 import { SUBJECTS, SUBJECT_TYPES, CHATBOT_EMAIL } from '../constants'
 import { DAYS, HOURS } from '../models/Availability/types'
 import { InputError } from '../models/Errors'
-import { Message } from '../models/Message'
-import { Session } from '../models/Session'
-import { SessionToEnd } from '../models/Session/queries'
+import { getMessagesForFrontend, Session } from '../models/Session'
+import { SessionToEnd, MessageForFrontend } from '../models/Session'
 import { Student } from '../models/Student'
 import { User } from '../models/User'
-import { getUserIdByEmail } from '../models/User/queries'
-import { Volunteer } from '../models/Volunteer'
+import { getUserIdByEmail } from '../models/User'
 import {
   asBoolean,
   asDate,
   asEnum,
   asFactory,
   asNumber,
-  asObjectId,
   asOptional,
   asString,
 } from './type-utils'
@@ -29,19 +26,15 @@ export class EndSessionError extends CustomError {}
 export class ReportSessionError extends CustomError {}
 
 export function didParticipantsChat(
-  messages: Message[],
-  studentId: Types.ObjectId,
-  volunteerId: Types.ObjectId
+  messages: MessageForFrontend[],
+  studentId: Ulid,
+  volunteerId: Ulid
 ): boolean {
   let studentSentMessage = false
   let volunteerSentMessage = false
 
   for (const message of messages) {
-    const messagerId =
-      message.user instanceof Types.ObjectId
-        ? message.user
-        : (message.user as User)._id
-
+    const messagerId = message.user
     if (studentId === messagerId) studentSentMessage = true
     if (volunteerId === messagerId) volunteerSentMessage = true
     if (studentSentMessage && volunteerSentMessage) break
@@ -51,9 +44,9 @@ export function didParticipantsChat(
 }
 
 export function getMessagesAfterDate(
-  messages: Message[],
+  messages: MessageForFrontend[],
   date: Date
-): Message[] {
+): MessageForFrontend[] {
   if (!date) return []
 
   for (let i = 0; i < messages.length; i++) {
@@ -65,34 +58,28 @@ export function getMessagesAfterDate(
 }
 
 export function isSessionParticipant(
-  session: Session | SessionToEnd,
-  userId: Types.ObjectId | null,
-  chatbotId?: Types.ObjectId
+  studentId: Ulid,
+  volunteerId: Ulid,
+  userId: Ulid | null,
+  chatbotId?: Ulid
 ): boolean {
   if (!userId) return false
 
-  const studentId =
-    session.student instanceof Types.ObjectId
-      ? session.student
-      : (session.student as Student)._id
-  const volunteerId =
-    session.volunteer instanceof Types.ObjectId || !session.volunteer
-      ? session.volunteer
-      : (session.volunteer as Volunteer)._id
-
   return (
-    userId.equals(studentId as Types.ObjectId) ||
-    userId.equals(volunteerId as Types.ObjectId) ||
-    userId.equals(chatbotId ? chatbotId : '')
+    userId === studentId ||
+    userId === volunteerId ||
+    userId === (chatbotId ? chatbotId : '')
   )
 }
 
-export function calculateTimeTutored(session: Session): number {
+export type SessionForTimeTutored = Pick<Session, 'volunteerId' | 'volunteerJoinedAt' | 'endedAt' | 'id'>
+export async function calculateTimeTutored(session: SessionForTimeTutored): Promise<number> {
   const threeHoursMs = 1000 * 60 * 60 * 3
   const fifteenMinsMs = 1000 * 60 * 15
 
-  const { volunteerJoinedAt, endedAt, messages, volunteer } = session
-  if (!volunteer || !volunteerJoinedAt || !endedAt) return 0
+  const { volunteerJoinedAt, endedAt, volunteerId } = session
+  const messages = await getMessagesForFrontend(session.id)
+  if (!volunteerId || !volunteerJoinedAt || !endedAt) return 0
   // skip if no messages are sent
   if (messages.length === 0) return 0
 
@@ -139,7 +126,7 @@ export function calculateTimeTutored(session: Session): number {
 
 export function isSessionFulfilled(session: Session) {
   const hasEnded = !!session.endedAt
-  const hasVolunteerJoined = !!session.volunteer
+  const hasVolunteerJoined = !!session.volunteerId
 
   return hasEnded || hasVolunteerJoined
 }
@@ -172,9 +159,9 @@ export function createEmptyHeatMap() {
   for (const day in DAYS) {
     const currentDay: any = {}
     for (const hour in HOURS) {
-      currentDay[HOURS[hour as keyof typeof HOURS]] = 0
+      currentDay[HOURS[hour]] = 0
     }
-    heatMap[DAYS[day as keyof typeof DAYS]] = currentDay as HeatMapDay
+    heatMap[DAYS[day]] = currentDay as HeatMapDay
   }
 
   return heatMap as HeatMap
@@ -220,36 +207,36 @@ export const asSessionsToReviewData = asFactory<SessionsToReviewData>({
 })
 
 export interface ReviewSessionData {
-  sessionId: Types.ObjectId
+  sessionId: Ulid
   reviewed: boolean
   toReview: boolean
 }
 export const asReviewSessionData = asFactory<ReviewSessionData>({
-  sessionId: asObjectId,
+  sessionId: asString,
   reviewed: asBoolean,
   toReview: asBoolean,
 })
 
 export interface ReportSessionData {
-  sessionId: Types.ObjectId
+  sessionId: Ulid
   reportReason: string
   reportMessage: string
 }
 export const asReportSessionData = asFactory<ReportSessionData>({
-  sessionId: asObjectId,
+  sessionId: asString,
   reportReason: asString,
   reportMessage: asString,
 })
 
 export interface SessionTimedOutData {
-  sessionId: Types.ObjectId
+  sessionId: Ulid
   timeout: number
   ip: string
   userAgent: string
 }
 export const asSessionTimedOutData = asFactory<SessionTimedOutData>({
   ...requestIdentifierValidators,
-  sessionId: asObjectId,
+  sessionId: asString,
   timeout: asNumber,
 })
 
@@ -304,13 +291,13 @@ interface JoinSessionData {
   joinedFrom?: string
 }
 interface JoinSession {
-  _id: Types.ObjectId
+  _id: Ulid
   createdAt: Date
   endedAt?: Date
   type: string
   subTopic: string
-  student: Types.ObjectId
-  volunteer?: Types.ObjectId
+  student: Ulid
+  volunteer?: Ulid
 }
 export const asJoinSessionData = asFactory<JoinSessionData>({
   socket: asFactory<PartialSocket>({
@@ -319,22 +306,22 @@ export const asJoinSessionData = asFactory<JoinSessionData>({
     disconnected: asBoolean,
   }),
   session: asFactory<JoinSession>({
-    _id: asObjectId,
+    _id: asString,
     createdAt: asDate,
     endedAt: asOptional(asDate),
     type: asString,
     subTopic: asString,
-    student: asObjectId,
-    volunteer: asOptional(asObjectId),
+    student: asString,
+    volunteer: asOptional(asString),
   }),
   joinedFrom: asOptional(asString),
 })
 
 interface SaveMessageData {
-  sessionId: Types.ObjectId
+  sessionId: Ulid
   message: string
 }
 export const asSaveMessageData = asFactory<SaveMessageData>({
-  sessionId: asObjectId,
+  sessionId: asString,
   message: asString,
 })

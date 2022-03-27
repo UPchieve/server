@@ -95,5 +95,6 @@ WHERE
 
 /* @name clearAvailabilityForVolunteer */
 DELETE FROM availabilities
-WHERE user_id = :userId!;
+WHERE user_id = :userId!
+RETURNING user_id AS ok;
 

@@ -1,23 +1,23 @@
 import config from '../config'
 import logger from '../logger'
 import { getBlob, uploadBlob } from './AzureService'
-import { Types } from 'mongoose'
+import { Ulid } from '../models/pgUtils'
 import * as cache from '../cache'
 
-const sessionIdToKey = (id: Types.ObjectId): string => `zwibbler-${id}`
+const sessionIdToKey = (id: Ulid): string => `zwibbler-${id}`
 
-export const createDoc = async (sessionId: Types.ObjectId): Promise<string> => {
+export const createDoc = async (sessionId: Ulid): Promise<string> => {
   const newDoc = ''
   await cache.save(sessionIdToKey(sessionId), newDoc)
   return newDoc
 }
 
-export const getDoc = (sessionId: Types.ObjectId): Promise<string> => {
+export const getDoc = (sessionId: Ulid): Promise<string> => {
   return cache.get(sessionIdToKey(sessionId))
 }
 
 export const getDocLength = async (
-  sessionId: Types.ObjectId
+  sessionId: Ulid
 ): Promise<number> => {
   const document = await cache.get(sessionIdToKey(sessionId))
   if (document === undefined) return 0
@@ -25,19 +25,19 @@ export const getDocLength = async (
 }
 
 export const appendToDoc = (
-  sessionId: Types.ObjectId,
+  sessionId: Ulid,
   docAddition: string | undefined
 ): Promise<void> => {
   if (docAddition === undefined) return Promise.resolve()
   return cache.append(sessionIdToKey(sessionId), docAddition)
 }
 
-export const deleteDoc = (sessionId: Types.ObjectId): Promise<void> => {
+export const deleteDoc = (sessionId: Ulid): Promise<void> => {
   return cache.remove(sessionIdToKey(sessionId))
 }
 
 export const uploadedToStorage = async (
-  sessionId: Types.ObjectId,
+  sessionId: Ulid,
   whiteboardDoc: string,
   attempts = 0
 ): Promise<boolean> => {
@@ -70,7 +70,7 @@ export const uploadedToStorage = async (
 }
 
 export const getDocFromStorage = async (
-  sessionId: Types.ObjectId
+  sessionId: Ulid
 ): Promise<string> => {
   try {
     const whiteboardDoc = await getBlob(

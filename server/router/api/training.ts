@@ -113,7 +113,7 @@ export function routeTraining(router: Router): void {
       const user = extractUser(req)
       const courseKey = asString(req.params.courseKey)
       const course = TrainingCourseService.getCourse(
-        user as Volunteer,
+        user,
         courseKey as keyof TrainingCourses
       )
       if (!course) return res.sendStatus(404)
@@ -129,7 +129,7 @@ export function routeTraining(router: Router): void {
       const courseKey = asString(req.params.courseKey)
       const materialKey = asString(req.body.materialKey)
       const result = await TrainingCourseService.recordProgress(
-        user as Volunteer,
+        user,
         courseKey as keyof TrainingCourses,
         materialKey
       )

@@ -3,7 +3,7 @@
  */
 
 import { metaSetup } from '../postgres-test-hook'
-import { getNextOpenVolunteerToNotify } from '../../models/Volunteer/pgqueries'
+import { getNextOpenVolunteerToNotify } from '../../models/Volunteer/queries'
 
 metaSetup()
 

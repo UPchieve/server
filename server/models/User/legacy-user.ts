@@ -6,11 +6,11 @@ import { RepoReadError } from '../Errors'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
 import _ from 'lodash'
-import { getAvailabilityForVolunteer } from '../Availability/pgqueries'
+import { getAvailabilityForVolunteer } from '../Availability/queries'
 import {
   getCertificationsForVolunteers,
   getReferencesByVolunteer,
-} from '../Volunteer/pgqueries'
+} from '../Volunteer/queries'
 
 export type LegacyUserModel = {
   // pg

@@ -1,45 +1,9 @@
-import { values } from 'lodash'
-import { Document, model, Schema, Types } from 'mongoose'
-import { IP_ADDRESS_STATUS } from '../../constants'
 import { Ulid } from '../pgUtils'
-import { User } from '../User'
 
-export type PgIpAddress = {
+export type IpAddress = {
   id: Ulid
   ip: string
   status?: string
   createdAt: Date
   updatedAt: Date
 }
-
-export interface IpAddress {
-  _id: Types.ObjectId
-  createdAt: Date
-  ip: string
-  users: (Types.ObjectId | User)[]
-  status: IP_ADDRESS_STATUS
-}
-
-export type IpAddressDocument = IpAddress & Document
-
-const ipAddressSchema = new Schema({
-  createdAt: { type: Date, default: Date.now },
-
-  ip: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-
-  users: [{ type: Types.ObjectId, ref: 'User' }],
-
-  status: {
-    type: String,
-    enum: values(IP_ADDRESS_STATUS),
-    default: IP_ADDRESS_STATUS.OK,
-  },
-})
-
-const IpAddressModel = model<IpAddressDocument>('IpAddress', ipAddressSchema)
-
-export default IpAddressModel

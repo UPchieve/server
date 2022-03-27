@@ -3,7 +3,7 @@
  */
 
 import { metaSetup } from '../postgres-test-hook'
-import { getUserIdByEmail } from '../../models/User/pgqueries'
+import { getUserIdByEmail } from '../../models/User'
 
 metaSetup()
 

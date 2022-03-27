@@ -1,11 +1,10 @@
-import { Student } from './models/Student'
-import { Volunteer } from './models/Volunteer'
-import { Types } from 'mongoose'
+import { UserContactInfo } from '../models/User'
+import { Ulid } from '../models/pgUtils'
 
 declare global {
   namespace Express {
-    export interface User extends Student, Volunteer {
-      _id: Types.ObjectId
+    export interface User {
+      id: Ulid
       isAdmin: boolean
     }
     export interface Request {

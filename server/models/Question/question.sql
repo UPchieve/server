@@ -23,7 +23,7 @@ WHERE
 INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, image_source, quiz_subcategory_id, created_at, updated_at)
     VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :imageSrc!, :subcategoryId!, NOW(), NOW())
 RETURNING
-    id AS ok;
+   id, question_text, possible_answers, correct_answer, image_source AS image_src, created_at, updated_at;
 
 
 /* @name upsertQuiz */
@@ -108,3 +108,14 @@ FROM
 GROUP BY
     quizzes.name;
 
+/* @name getSubcategoriesForQuiz */
+SELECT
+    quiz_subcategories.name
+FROM quiz_subcategories
+JOIN quizzes ON quiz_subcategories.quiz_id = quizzes.id
+WHERE quizzes.name = :quizName!;
+
+/* @name getMultipleQuestionsById */
+SELECT *
+FROM quiz_questions
+WHERE id = ANY(:ids!);

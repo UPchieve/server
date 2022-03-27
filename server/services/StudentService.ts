@@ -1,19 +1,18 @@
-import { Types } from 'mongoose'
-import { EVENTS } from '../constants'
+import { ACCOUNT_USER_ACTIONS, EVENTS } from '../constants'
 import { School } from '../models/School'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import { getSchool } from './SchoolService'
 import * as AnalyticsService from './AnalyticsService'
 import * as StudentRepo from '../models/Student/queries'
-import { getIdFromModelReference } from '../utils/model-reference'
 import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import config from '../config'
 import { Ulid } from '../models/pgUtils'
 import { FavoriteLimitReachedError } from './Errors'
+import { createAccountAction } from '../models/UserAction'
 
 export const queueOnboardingEmails = async (
-  studentId: Types.ObjectId
+  studentId: Ulid
 ): Promise<void> => {
   await QueueService.add(
     Jobs.EmailStudentOnboardingHowItWorks,
@@ -42,19 +41,17 @@ export const queueOnboardingEmails = async (
 }
 
 // registered as listener on student-created
-export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
+export async function processStudentTrackingPostHog(studentId: Ulid) {
   const userProperties: AnalyticsService.IdentifyProperties = {
     userType: 'student',
   }
   // replace with getStudentPartnerInfoById from Student Repo
-  const student = await StudentRepo.getStudentById(studentId)
+  const student = await StudentRepo.getStudentContactInfoById(studentId)
 
   if (student) {
     let school: School | undefined
-    if (student.approvedHighschool)
-      school = await getSchool(
-        getIdFromModelReference(student.approvedHighschool)
-      )
+    if (student.schoolId)
+      school = await getSchool(student.schoolId)
 
     // if student is school partner student
     if (school && school.isPartner) userProperties.schoolPartner = school.name
@@ -63,18 +60,18 @@ export async function processStudentTrackingPostHog(studentId: Types.ObjectId) {
     if (student.studentPartnerOrg)
       userProperties.partner = student.studentPartnerOrg
 
-    AnalyticsService.captureEvent(student._id, EVENTS.ACCOUNT_CREATED, {
+    AnalyticsService.captureEvent(student.id, EVENTS.ACCOUNT_CREATED, {
       event: EVENTS.ACCOUNT_CREATED,
     })
-    AnalyticsService.identify(student._id, userProperties)
+    AnalyticsService.identify(student.id, userProperties)
   }
 }
 
 export async function checkAndUpdateVolunteerFavoriting(
   isFavorite: boolean,
-  studentId: Types.ObjectId,
-  volunteerId: Types.ObjectId,
-  sessionId?: Types.ObjectId,
+  studentId: Ulid,
+  volunteerId: Ulid,
+  sessionId?: Ulid,
   ip?: string
 ) {
   if (isFavorite) {
@@ -82,19 +79,23 @@ export async function checkAndUpdateVolunteerFavoriting(
       studentId.toString()
     )
     if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
-      await new UserActionCtrl.AccountActionCreator(studentId, ip, {
+      await createAccountAction({
+        userId: studentId,
         volunteerId: volunteerId,
-        session: sessionId,
-      }).volunteerFavorited()
+        sessionId: sessionId,
+        action: ACCOUNT_USER_ACTIONS.VOLUNTEER_FAVORITED
+      })
       await StudentRepo.addFavoriteVolunteer(studentId, volunteerId)
       return { isFavorite: true }
     }
     throw new FavoriteLimitReachedError('Favorite volunteer limit reached.')
   } else {
-    await new UserActionCtrl.AccountActionCreator(studentId, ip, {
+    await createAccountAction({
+      userId: studentId,
       volunteerId: volunteerId,
-      session: sessionId,
-    }).volunteerUnfavorited()
+      sessionId: sessionId,
+      action: ACCOUNT_USER_ACTIONS.VOLUNTEER_UNFAVORITED
+    })
     await StudentRepo.deleteFavoriteVolunteer(studentId, volunteerId)
     return { isFavorite: false }
   }

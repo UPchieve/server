@@ -234,7 +234,9 @@ export interface IClearAvailabilityForVolunteerParams {
 }
 
 /** 'ClearAvailabilityForVolunteer' return type */
-export type IClearAvailabilityForVolunteerResult = void;
+export interface IClearAvailabilityForVolunteerResult {
+  ok: string;
+}
 
 /** 'ClearAvailabilityForVolunteer' query type */
 export interface IClearAvailabilityForVolunteerQuery {
@@ -242,13 +244,14 @@ export interface IClearAvailabilityForVolunteerQuery {
   result: IClearAvailabilityForVolunteerResult;
 }
 
-const clearAvailabilityForVolunteerIR: any = {"name":"clearAvailabilityForVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2173,"b":2179,"line":98,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM availabilities\nWHERE user_id = :userId!","loc":{"a":2129,"b":2179,"line":97,"col":0}}};
+const clearAvailabilityForVolunteerIR: any = {"name":"clearAvailabilityForVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2173,"b":2179,"line":98,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM availabilities\nWHERE user_id = :userId!\nRETURNING user_id AS ok","loc":{"a":2129,"b":2203,"line":97,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * DELETE FROM availabilities
  * WHERE user_id = :userId!
+ * RETURNING user_id AS ok
  * ```
  */
 export const clearAvailabilityForVolunteer = new PreparedQuery<IClearAvailabilityForVolunteerParams,IClearAvailabilityForVolunteerResult>(clearAvailabilityForVolunteerIR);

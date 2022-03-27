@@ -7,7 +7,7 @@ import {
   getAssistmentsDataBySession,
   updateAssistmentsDataSentById,
   createAssistmentsDataBySessionId,
-} from '../../models/AssistmentsData/pgqueries'
+} from '../../models/AssistmentsData/queries'
 import { Pool } from 'pg'
 import {
   buildSession,

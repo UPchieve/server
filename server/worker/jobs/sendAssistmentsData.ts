@@ -1,12 +1,11 @@
 import axios from 'axios'
 import { backOff } from 'exponential-backoff'
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import config from '../../config'
-import { AssistmentsData } from '../../models/AssistmentsData'
+import { PgAssistmentsData } from '../../models/AssistmentsData'
 import {
   getAssistmentsDataBySession,
-  updateAssistmentsDataSentAtById,
+  updateAssistmentsDataSentById,
 } from '../../models/AssistmentsData/queries'
 import { Message } from '../../models/Message'
 import { getSessionById } from '../../models/Session/queries'
@@ -57,14 +56,14 @@ export function pluckMessages(messages: Message[]): PartMessage[] {
 }
 
 export async function buildRequest(
-  data: AssistmentsData
+  data: PgAssistmentsData
 ): Promise<{ params: Parameters; payload: Payload }> {
   try {
     const params = {
       assignmentXref: data.assignmentId,
       userXref: data.studentId,
     }
-    const session = await getSessionById(data.session as Types.ObjectId)
+    const session = await getSessionById(data.sessionId)
     if (!session.endedAt) throw new Error('Assistments session has not ended!')
     const partSession = {
       createdAt: session.createdAt.getTime(),
@@ -89,7 +88,7 @@ export async function buildRequest(
     return { params, payload }
   } catch (err) {
     throw new Error(
-      `Error building request to send AssistmentsData ${data._id}: ${
+      `Error building request to send AssistmentsData ${data.id}: ${
         (err as Error).message
       }`
     )
@@ -171,10 +170,10 @@ export default async (job: Job<SendAssistmentsDataJobData>): Promise<void> => {
     const { params, payload } = await buildRequest(data)
     await sendWrapper(params, payload)
     try {
-      await updateAssistmentsDataSentAtById(data._id, new Date())
+      await updateAssistmentsDataSentById(data.id)
     } catch (err) {
       throw new Error(
-        `Error updating assistments data ${data._id}: ${(err as Error).message}`
+        `Error updating assistments data ${data.id}: ${(err as Error).message}`
       )
     }
   }

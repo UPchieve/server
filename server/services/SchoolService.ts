@@ -1,15 +1,14 @@
 import * as crypto from 'crypto'
-import { Types } from 'mongoose'
-import SchoolModel, { School } from '../models/School/index'
+import * as SchoolRepo from '../models/School'
 import config from '../config'
 import {
   asString,
   asBoolean,
   asFactory,
   asNumber,
-  asOptional,
-  asObjectId,
+  asOptional
 } from '../utils/type-utils'
+import { Ulid } from '../models/pgUtils'
 
 // helper to escape regex special characters
 function escapeRegex(str: string) {
@@ -120,41 +119,10 @@ export async function search(query: any): Promise<any> {
 }
 
 export async function getSchool(
-  schoolId: Types.ObjectId
-): Promise<School | undefined> {
+  schoolId: Ulid
+): Promise<SchoolRepo.School | undefined> {
   try {
-    const [school] = await SchoolModel.aggregate([
-      { $match: { _id: schoolId } },
-      {
-        $project: {
-          name: {
-            $cond: {
-              if: { $not: ['$nameStored'] },
-              then: '$SCH_NAME',
-              else: '$nameStored',
-            },
-          },
-          state: {
-            $cond: {
-              if: { $not: ['$stateStored'] },
-              then: '$ST',
-              else: '$stateStored',
-            },
-          },
-          city: {
-            $cond: {
-              if: { $not: ['$cityNameStored'] },
-              then: '$LCITY',
-              else: '$cityNameStored',
-            },
-          },
-          zipCode: '$MZIP',
-          isApproved: 1,
-          isPartner: 1,
-          approvalNotifyEmails: 1,
-        },
-      },
-    ]).exec()
+    const school = await SchoolRepo.getSchool(schoolId)
 
     if (school) return school
   } catch (error) {
@@ -180,89 +148,25 @@ export async function getSchools(data: unknown) {
   const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
-  const queries = []
-
-  if (name) {
-    const nameQuery = {
-      $or: [
-        { nameStored: { $regex: name, $options: 'i' } },
-        { SCH_NAME: { $regex: name, $options: 'i' } },
-      ],
-    }
-    queries.push(nameQuery)
-  }
-  if (state) {
-    const stateQuery = {
-      $or: [
-        { ST: { $regex: state, $options: 'i' } },
-        { stateStored: { $regex: state, $options: 'i' } },
-      ],
-    }
-    queries.push(stateQuery)
-  }
-  if (city) {
-    const cityQuery = {
-      $or: [
-        { city: { $regex: city, $options: 'i' } },
-        { MCITY: { $regex: city, $options: 'i' } },
-        { LCITY: { $regex: city, $options: 'i' } },
-      ],
-    }
-    queries.push(cityQuery)
-  }
-
-  const query = queries.length === 0 ? {} : { $and: queries }
 
   try {
-    const schools = await SchoolModel.aggregate([
-      {
-        $match: query,
-      },
-      {
-        $project: {
-          name: {
-            $cond: {
-              if: { $not: ['$nameStored'] },
-              then: '$SCH_NAME',
-              else: '$nameStored',
-            },
-          },
-          state: {
-            $cond: {
-              if: { $not: ['$stateStored'] },
-              then: '$ST',
-              else: '$stateStored',
-            },
-          },
-          city: {
-            $cond: {
-              if: { $not: ['$cityNameStored'] },
-              then: '$LCITY',
-              else: '$cityNameStored',
-            },
-          },
-          zipCode: '$MZIP',
-          isApproved: '$isApproved',
-        },
-      },
-    ])
-      .skip(skip)
-      .limit(PER_PAGE)
-      .exec()
-
-    const isLastPage = schools.length < PER_PAGE
-    return { schools, isLastPage }
+    const schools = await SchoolRepo.getSchools(data as GetSchoolsPayload, PER_PAGE, skip)
+    
+    if(schools){
+      const isLastPage = schools.length < PER_PAGE
+      return { schools, isLastPage }
+    }
   } catch (error) {
     throw new Error((error as Error).message)
   }
 }
 
-export function updateApproval(schoolId: Types.ObjectId, isApproved: boolean) {
-  return SchoolModel.updateOne({ _id: schoolId }, { isApproved }).exec()
+export function updateApproval(schoolId: Ulid, isApproved: boolean) {
+  return SchoolRepo.updateApproval(schoolId, isApproved)
 }
 
-export function updateIsPartner(schoolId: Types.ObjectId, isPartner: boolean) {
-  return SchoolModel.updateOne({ _id: schoolId }, { isPartner }).exec()
+export function updateIsPartner(schoolId: Ulid, isPartner: boolean) {
+  return SchoolRepo.updateIsPartner(schoolId, isPartner)
 }
 
 interface CreateSchoolPayload {
@@ -283,47 +187,33 @@ const asCreateSchoolPayload = asFactory<CreateSchoolPayload>({
 export async function createSchool(data: unknown) {
   const { name, city, state, zipCode, isApproved } = asCreateSchoolPayload(data)
   let upchieveId = createUpchieveId()
-  let existingSchool = await SchoolModel.findOne({ upchieveId })
-    .lean()
-    .exec()
+  let existingSchool = await SchoolRepo.findSchoolByUpchieveId( upchieveId )
 
   // Avoid collision with schools containing the same upchieveId
   while (existingSchool) {
     upchieveId = createUpchieveId()
-    existingSchool = await SchoolModel.findOne({ upchieveId })
-      .lean()
-      .exec()
+    existingSchool = await SchoolRepo.findSchoolByUpchieveId( upchieveId )
   }
 
-  const schoolData = {
-    isApproved,
-    nameStored: name,
-    cityNameStored: city,
-    stateStored: state,
-    MZIP: zipCode,
-    LZIP: zipCode,
-    upchieveId,
-  }
-  const school = new SchoolModel(schoolData)
+  const school = await SchoolRepo.createSchool(data as CreateSchoolPayload)
 
-  await school.save()
-  return school.toObject()
+  return school
 }
 
 interface AdminUpdate {
-  schoolId: Types.ObjectId
+  schoolId: Ulid
   name?: string
   city?: string
   state?: string
-  zipCode?: number
+  zipCode?: string
   isApproved?: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
-  schoolId: asObjectId,
+  schoolId: asString,
   name: asOptional(asString),
   city: asOptional(asString),
   state: asOptional(asString),
-  zipCode: asOptional(asNumber),
+  zipCode: asOptional(asString),
   isApproved: asOptional(asBoolean),
 })
 
@@ -333,12 +223,12 @@ export async function adminUpdateSchool(data: unknown) {
   )
   const schoolData = {
     isApproved,
-    nameStored: name,
-    cityNameStored: city,
-    stateStored: state,
-    MZIP: zipCode,
-    LZIP: zipCode,
+    name,
+    city,
+    state,
+    zipCode,
+    schoolId
   }
 
-  return SchoolModel.updateOne({ _id: schoolId }, schoolData)
+  return SchoolRepo.adminUpdateSchool(data as AdminUpdate)
 }

@@ -54,26 +54,6 @@ export function asFunction(s: unknown, errMsg?: string): Function {
   throw new InputError(`${errMsg} : ${s} is not a function`)
 }
 
-// Checks if arg is actual ObjectId OR coerces into objectId if possible
-export function asObjectId(s: unknown, errMsg?: string): Types.ObjectId {
-  if (s instanceof Types.ObjectId) return s as Types.ObjectId
-  else if (typeof s === 'string') {
-    try {
-      const x = new Types.ObjectId(s as string)
-      return x
-    } catch (err) {
-      throw new InputError(`${errMsg} : ${s} is not an ObjectId`)
-    }
-  }
-  throw new InputError(`${errMsg} : ${s} is not an ObjectId`)
-}
-
-export function asStringObjectId(s: unknown, errMsg?: string): string {
-  if (typeof s === 'string' && Types.ObjectId.isValid(s)) return s as string
-  else
-    throw new InputError(`${errMsg} : ${s} is not a string formatted ObjectId`)
-}
-
 export function asAny(s: unknown): any {
   return s as any
 }

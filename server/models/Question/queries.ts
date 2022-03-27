@@ -4,16 +4,16 @@ import {
   RepoReadError,
   RepoUpdateError,
 } from '../Errors'
-import { makeRequired, makeSomeRequired, Pgid } from '../pgUtils'
-import { PgQuestion } from './types'
+import { makeRequired, Pgid } from '../pgUtils'
+import { Question } from './types'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
 
-export type PgQuestionQueryResult = Omit<PgQuestion, 'possibleAnswers'> & {
+export type QuestionQueryResult = Omit<Question, 'possibleAnswers'> & {
   possibleAnswers: pgQueries.Json
 }
 
-export function parseQueryResult(result: PgQuestionQueryResult): PgQuestion {
+export function parseQueryResult(result: QuestionQueryResult): Question {
   const possibleAnswers =
     typeof result.possibleAnswers === 'string'
       ? JSON.parse(result.possibleAnswers)
@@ -22,21 +22,19 @@ export function parseQueryResult(result: PgQuestionQueryResult): PgQuestion {
   return { ...result, possibleAnswers }
 }
 
-export async function list(filters: any): Promise<PgQuestion[] | undefined> {
+export async function listQuestions(filters: pgQueries.IListParams): Promise<Question[]> {
   try {
     const questions = await pgQueries.list.run({ ...filters }, getClient())
 
-    if (questions.length) {
-      const result = questions.map(v => makeRequired(v))
-      const parsedResult = result.map(res => parseQueryResult(res))
-      return parsedResult
-    }
+    const result = questions.map(v => makeRequired(v))
+    const parsedResult = result.map(res => parseQueryResult(res))
+    return parsedResult
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function create(question: PgQuestion): Promise<void> {
+export async function createQuestion(question: Question): Promise<Question> {
   const client = await getClient().connect()
   try {
     await client.query('BEGIN')
@@ -63,10 +61,18 @@ export async function create(question: PgQuestion): Promise<void> {
       },
       client
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new Error('insertion of question did not return ok')
+    if (result.length) {
+      const newQuestion = makeRequired(result[0])
+      const toRtn = parseQueryResult({
+        ...newQuestion,
+        category: question.category,
+        subcategory: question.subcategory
+      })
+      await client.query('COMMIT')
+      return toRtn
+    } else
+      throw new Error('insertion of question did not return new row')
 
-    await client.query('COMMIT')
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoCreateError(err)
@@ -77,15 +83,13 @@ export async function create(question: PgQuestion): Promise<void> {
 
 export type QuestionUpdateOptions = {
   id: Pgid
-  question: PgQuestion
+  question: Question
 }
 
-export async function update(options: QuestionUpdateOptions): Promise<void> {
+export async function updateQuestion(options: QuestionUpdateOptions): Promise<Question> {
   const client = await getClient().connect()
   try {
     const question = options.question
-    const txt = question.possibleAnswers.map(ans => ans.txt)
-    const val = question.possibleAnswers.map(ans => ans.val)
 
     await client.query('BEGIN')
 
@@ -116,6 +120,7 @@ export async function update(options: QuestionUpdateOptions): Promise<void> {
       throw new Error('insertion of question did not return ok')
 
     await client.query('COMMIT')
+    return question
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
@@ -130,5 +135,32 @@ export async function destroy(questionId: Pgid): Promise<void> {
     if (result.length && makeRequired(result[0].ok)) return
   } catch (err) {
     throw new RepoDeleteError(err)
+  }
+}
+
+export async function getCategories(): Promise<pgQueries.ICategoriesResult[]> {
+  try {
+    const result = await pgQueries.categories.run(undefined, getClient())
+    return makeRequired(result)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSubcategoriesForQuiz(quizName: string): Promise<pgQueries.IGetSubcategoriesForQuizResult[]> {
+  try {
+    const result = await pgQueries.getSubcategoriesForQuiz.run({quizName}, getClient())
+    return makeRequired(result)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getMultipleQuestionsById(ids: number[]): Promise<pgQueries.IGetMultipleQuestionsByIdResult[]> {
+  try {
+    const result = await pgQueries.getMultipleQuestionsById.run({ids}, getClient())
+    return makeRequired(result)
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

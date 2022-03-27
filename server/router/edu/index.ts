@@ -4,7 +4,6 @@ const expressLayouts = require('express-ejs-layouts')
 
 import config from '../../config'
 import { authPassport } from '../../utils/auth-utils'
-import QuestionModel from '../../models/Question'
 import * as QuestionCtrl from '../../controllers/QuestionCtrl'
 import { questionsPath, isActivePage, frontEndPath } from './helpers'
 import logger from '../../logger'
@@ -57,7 +56,7 @@ edu.route('/questions').get(async (req, res) => {
 
     // question._id --> URL
     const imagePaths = questions.reduce((map: any, question) => {
-      map[question._id] = frontEndPath(
+      map[question.id] = frontEndPath(
         question.imageSrc,
         edu.locals.frontEndRoot
       )
@@ -136,8 +135,8 @@ eduApi.put('/questions/:id', async (req, res) => {
 // DELETE[JSON] /edu/questions/:id
 eduApi.delete('/questions/:id', async (req, res) => {
   try {
-    const question = await QuestionCtrl.destroy(asString(req.params.id))
-    res.status(200).json({ question: question })
+    await QuestionCtrl.destroyQuestion(Number(req.params.id))
+    res.status(200).json({ id: req.params.id })
   } catch (error) {
     res.status(422).json({ error })
   }
