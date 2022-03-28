@@ -18,7 +18,3 @@ const client = buildClient()
 export function getClient(): Pool {
   return client
 }
-
-export async function startClient(): Promise<void> {
-  await client.connect()
-}

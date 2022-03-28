@@ -265,7 +265,7 @@ const config: Static<typeof Config> = {
   postgresHost: process.env.SUBWAY_PORTGRES_HOST || 'localhost',
   postgresPort: Number(process.env.SUBWAY_PORTGRES_PORT || 5432),
   postgresUser: process.env.SUBWAY_PORTGRES_USER || 'subway',
-  postgresPassword: process.env.SUBWAY_PORTGRES_PASSWORD || 'bogus',
+  postgresPassword: process.env.SUBWAY_PORTGRES_PASSWORD || 'Password123',
   postgresDatabase: process.env.SUBWAY_PORTGRES_DB || 'upchieve',
   firebase: {
     projectId: process.env.SUBWAY_FIREBASE_PROJECT_ID || '123456789012',
