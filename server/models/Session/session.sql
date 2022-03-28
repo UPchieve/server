@@ -75,7 +75,7 @@ SELECT
     sessions.created_at,
     sessions.updated_at,
     session_reported_count.total <> 0 AS reported,
-    session_flag_array.flags
+    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags
 FROM
     sessions
     LEFT JOIN subjects ON subjects.id = sessions.subject_id

@@ -24,6 +24,7 @@ import {
   asEnum,
 } from './type-utils'
 import validator from 'validator'
+import logger from '../logger'
 
 // Custom errors
 export class RegistrationError extends CustomError {}

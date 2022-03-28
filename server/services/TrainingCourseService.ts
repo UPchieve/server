@@ -10,7 +10,7 @@ export async function getCourse(
   courseKey: keyof TrainingCourses
 ): Promise<any> {
   const volunteerTrainingCourses = await getVolunteerTrainingCourses(volunteer.id)
-  const foundCourse = volunteerTrainingCourses.find(v => v.trainingCourse === courseKey)
+  const foundCourse = volunteerTrainingCourses[courseKey]
   if (!foundCourse) return
 
   const course = Object.assign({}, TrainingUtils.getCourse(courseKey))
@@ -35,7 +35,7 @@ export async function recordProgress(
   materialKey: string
 ) {
   const volunteerTrainingCourses = await getVolunteerTrainingCourses(volunteer.id)
-  const foundCourse = volunteerTrainingCourses.find(v => v.trainingCourse === courseKey)
+  const foundCourse = volunteerTrainingCourses[courseKey]
   if (!foundCourse) return
 
   // Early exit if already saved progress

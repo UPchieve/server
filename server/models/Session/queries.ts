@@ -122,7 +122,7 @@ export async function getSessionById(sessionId: Ulid): Promise<Session> {
       'volunteerJoinedAt',
       'endedAt',
       'endedByRole',
-      'studentBanned',
+      'studentBanned'
     ])
   } catch (err) {
     throw new RepoReadError(err)
@@ -553,7 +553,7 @@ export type CurrentSession = {
   type: string
   student: CurrentSessionUser
   volunteer?: CurrentSessionUser
-  volunteerJoinedAt: Date
+  volunteerJoinedAt?: Date
   messages: MessageForFrontend[]
   endedAt?: Date
 }
@@ -566,7 +566,10 @@ export async function getCurrentSessionByUserId(
       { userId },
       client
     )
-    const session = makeRequired(result[0])
+    if (!result.length) return
+    const session = makeSomeRequired(result[0], [
+      'volunteerId', 'endedAt', 'volunteerJoinedAt'
+    ])
     const messages = await getMessagesForFrontend(session.id, client)
     const userResult = await pgQueries.getCurrentSessionUser.run(
       { sessionId: session.id },

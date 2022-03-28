@@ -59,7 +59,8 @@ export type UserContactInfo = {
   studentPartnerOrg?: string
   lastActivityAt: Date,
   banned: boolean,
-  deactivated: boolean
+  deactivated: boolean,
+  approved?: boolean
 }
 
 export async function getUserContactInfoById(

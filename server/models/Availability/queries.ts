@@ -151,7 +151,7 @@ export async function saveCurrentAvailabilityAsHistory(
 ): Promise<void> {
   try {
     const result = await pgQueries.saveCurrentAvailabilityAsHistory.run(
-      { id: getDbUlid(), userId },
+      { userId },
       getClient()
     )
     const errors = []
@@ -165,6 +165,8 @@ export async function saveCurrentAvailabilityAsHistory(
   }
 }
 
+import logger from '../../logger'
+
 export async function updateAvailabilityByVolunteerId(
   userId: Ulid,
   availability: Availability,
@@ -176,7 +178,8 @@ export async function updateAvailabilityByVolunteerId(
     let currEnd: number | undefined
     for (const day in availability) {
       const availabilityDay = availability[day as DAYS]
-      for (const hour in availabilityDay) {
+      for (let hour in availabilityDay) {
+        hour = hour.slice(0, -1)
         if (currStart && currEnd) {
           // we're already in a streak
           if (availabilityDay[hour as HOURS]) currEnd = Number(hour) + 1
@@ -194,7 +197,7 @@ export async function updateAvailabilityByVolunteerId(
             currStart = undefined
             currEnd = undefined
           }
-        } else {
+        } else if (availabilityDay[hour as HOURS]) {
           // new streak
           currStart = Number(hour)
           currEnd = Number(hour) + 1
@@ -202,6 +205,8 @@ export async function updateAvailabilityByVolunteerId(
       }
     }
     const errors: string[] = []
+    logger.info(`Attempting to insert availability OBJECT ${JSON.stringify(availability)}`)
+    logger.info(`Attempting to insert availability rows ${JSON.stringify(rows)}`)
     for (const row of rows) {
       const result = await pgQueries.insertNewAvailability.run(
         { ...row },

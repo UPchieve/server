@@ -283,32 +283,13 @@ interface PartialSocket {
 }
 interface JoinSessionData {
   socket: Partial<Socket>
-  session: JoinSession
   joinedFrom?: string
-}
-interface JoinSession {
-  _id: Ulid
-  createdAt: Date
-  endedAt?: Date
-  type: string
-  subTopic: string
-  student: Ulid
-  volunteer?: Ulid
 }
 export const asJoinSessionData = asFactory<JoinSessionData>({
   socket: asFactory<PartialSocket>({
     id: asString,
     connected: asBoolean,
     disconnected: asBoolean,
-  }),
-  session: asFactory<JoinSession>({
-    _id: asString,
-    createdAt: asDate,
-    endedAt: asOptional(asDate),
-    type: asString,
-    subTopic: asString,
-    student: asString,
-    volunteer: asOptional(asString),
   }),
   joinedFrom: asOptional(asString),
 })

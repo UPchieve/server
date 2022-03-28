@@ -1,4 +1,4 @@
-import { makeSomeOptional, Ulid } from '../pgUtils'
+import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import { USER_BAN_REASONS } from '../../constants'
 import { Reference, Certifications, TrainingCourses, getVolunteerTrainingCourses } from '../Volunteer'
 import { Availability } from '../Availability/types'
@@ -110,10 +110,11 @@ isTestUser x
 export async function getLegacyUserObject(
   userId: Ulid
 ): Promise<LegacyUserModel> {
+  const client = await getClient().connect()
   try {
     const baseResult = await pgQueries.getLegacyUser.run(
       { userId },
-      getClient()
+      client
     )
     if (!baseResult.length) throw new RepoReadError('Did not find Legacy User object')
     const baseUser = makeSomeOptional(baseResult[0], [
@@ -132,12 +133,38 @@ export async function getLegacyUserObject(
       'referralCode',
       'type'
     ])
+    // The frontend still expects ALL possible certification objects on the legacy user
+    // So we get all quizzes and map their name to a fresh CertificationInfo object
+    const legacyCertificationsResult = await pgQueries.getLegacyCertifications.run(undefined, client)
+    const legacyCertifications = legacyCertificationsResult.reduce((agg, v) => {
+      const name = makeRequired(v).name
+      return {
+        ...agg,
+        [name]: {
+          tries: 0,
+          passed: false,
+          lastAttemptedAt: undefined
+        }
+      }
+    }, {})
     const volunteerUser: any = {}
     if (baseUser.isVolunteer) {
+      // TODO: reuse client
       volunteerUser.availability = await getAvailabilityForVolunteer(userId)
-      volunteerUser.certifications = (await getCertificationsForVolunteers([userId]))[userId]
       volunteerUser.references = await getReferencesByVolunteer(userId)
-      volunteerUser.trainingCourses = await getVolunteerTrainingCourses(userId)
+      const trainingCourses = await getVolunteerTrainingCourses(userId)
+      volunteerUser.trainingCourses = {
+        upchieve101: trainingCourses['UPchieve 101']
+      }
+      volunteerUser.certifications = {
+        ...legacyCertifications,
+        upchieve101: {
+          passed: trainingCourses['UPchieve 101'].complete,
+          tries: 1,
+          lastAttemptedAt: trainingCourses['UPchieve 101'].updatedAt
+        },
+        ...(await getCertificationsForVolunteers([userId]))[userId]
+      }
     }
     const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser)
     return final as LegacyUserModel

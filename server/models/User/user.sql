@@ -39,7 +39,8 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org,
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
-    deactivated
+    deactivated,
+    volunteer_profiles.approved
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -73,7 +74,8 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org,
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
-    deactivated
+    deactivated,
+    volunteer_profiles.approved
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -119,7 +121,8 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org,
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
-    deactivated
+    deactivated,
+    volunteer_profiles.approved
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -589,3 +592,7 @@ WHERE
     sessions.volunteer_id = :userId!
     OR sessions.student_id = :userId!;
 
+/* @name getLegacyCertifications */
+SELECT
+    name
+FROM quizzes;

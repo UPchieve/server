@@ -12,12 +12,13 @@ import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
+import logger from '../../logger'
 
 export function routeUser(router: Router): void {
-  router.route('/user').get(function(req, res) {
+  router.route('/user').get(async function(req, res) {
     const user = extractUser(req)
-
-    const parsedUser = UserService.parseUser(user)
+    const parsedUser = await UserService.parseUser(user)
+    logger.error(`parsed.user = ${JSON.stringify(parsedUser)}`)
     return res.json({ user: parsedUser })
   })
 

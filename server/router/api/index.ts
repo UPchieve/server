@@ -1,5 +1,5 @@
 import { Express, Router } from 'express'
-import { MongoStore } from 'connect-mongo'
+import { RedisStore } from 'connect-redis'
 import expressWs from 'express-ws'
 import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
@@ -23,7 +23,7 @@ import { routeStudents } from './students'
 
 export function routes(
   app: Express,
-  sessionStore: MongoStore,
+  sessionStore: RedisStore,
   io: Server
 ): void {
   const router: expressWs.Router = Router()

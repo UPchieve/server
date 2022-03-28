@@ -1,24 +1,21 @@
 import session from 'express-session'
-import connectMongo from 'connect-mongo'
+import CreateRedisStore from 'connect-redis'
 import config from '../../config'
 import { Express } from 'express'
+import { redisClient } from '../../services/RedisService'
 
-const MongoStore = connectMongo(session)
+const RedisStore = CreateRedisStore(session)
 
 export const sessionStoreCollectionName = 'auth-sessions'
 
-export default function(app: Express): connectMongo.MongoStore {
-  const sessionStore = new MongoStore({
-    url: config.database,
-    collection: sessionStoreCollectionName,
-  })
-
+export default function(app: Express) {
+  const store = new RedisStore({ client: redisClient })
   app.use(
     session({
       resave: true,
       saveUninitialized: true,
       secret: config.sessionSecret,
-      store: sessionStore,
+      store: store,
       cookie: {
         httpOnly: false,
         maxAge: config.sessionCookieMaxAge,
@@ -26,5 +23,5 @@ export default function(app: Express): connectMongo.MongoStore {
     })
   )
 
-  return sessionStore
+  return store
 }

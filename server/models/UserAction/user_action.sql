@@ -71,21 +71,21 @@ RETURNING
 
 /* @name createSessionAction */
 INSERT INTO user_actions (user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, created_at, updated_at)
-    VALUES (:actionType!, :action!, :userId!, :sessionId!, :ipAddressId, :device, :browser, :browserVersion, :operatingSystem, :operatingSystemVersion, NOW(), NOW())
+    VALUES (:userId!, :sessionId!, :actionType!, :action!, :ipAddressId, :device, :browser, :browserVersion, :operatingSystem, :operatingSystemVersion, NOW(), NOW())
 RETURNING
     id AS ok;
 
 
 /* @name createAccountAction */
 INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at)
-    VALUES (:actionType!, :action!, :userId!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW())
+    VALUES (:userId!, :actionType!, :action!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW())
 RETURNING
     id AS ok;
 
 
 /* @name createAdminAction */
 INSERT INTO user_actions (user_id, action_type, action, created_at, updated_at)
-    VALUES (:actionType!, :action!, :userId!, NOW(), NOW())
+    VALUES (:userId!, :actionType!, :action!, NOW(), NOW())
 RETURNING
     id AS ok;
 

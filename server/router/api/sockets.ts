@@ -3,9 +3,8 @@
  */
 // TODO: types for passport
 const passportSocketIo = require('passport.socketio')
-import { Types } from 'mongoose'
 import Sentry from '@sentry/node'
-import connectMongo from 'connect-mongo'
+import ConnectRedis from 'connect-redis'
 import cookieParser from 'cookie-parser'
 import newrelic from 'newrelic'
 import { Server, Socket } from 'socket.io'
@@ -55,7 +54,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 // TODO: upgrade socketio and adapter so we can async this whole file
 export function routeSockets(
   io: Server,
-  sessionStore: connectMongo.MongoStore
+  sessionStore: ConnectRedis.RedisStore
 ): void {
   const socketService = new SocketService(io)
 
@@ -191,14 +190,16 @@ export function routeSockets(
 
             const { sessionId, joinedFrom } = data
             const {
-              request: { user },
+              request: { user: socketUser },
             } = socket
             let session: Session
+
+            const user = socketUser as UserContactInfo
 
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (user.isVolunteer && !user.isApproved)
+              if (user.isVolunteer && !user.approved)
                 throw new Error('Volunteer not approved')
               session = await SessionRepo.getSessionById(sessionId)
             } catch (error) {
@@ -209,14 +210,13 @@ export function routeSockets(
 
             try {
               // TODO: correctly type User from passport
-              await SessionService.joinSession(user, {
+              await SessionService.joinSession(user, session, {
                 socket,
-                session,
                 joinedFrom,
               })
 
               const sessionRoom = getSessionRoom(sessionId)
-              const socketIds = await getSocketIdsFromRoom(user._id.toString())
+              const socketIds = await getSocketIdsFromRoom(user.id)
               // Have all of the user's socket connections join the tutoring session room
               for (const id of socketIds) {
                 await remoteJoinRoom(id, sessionRoom)
@@ -284,7 +284,7 @@ export function routeSockets(
             const createdAt = new Date()
 
             try {
-              // TODO: correctly type user from passport
+              // TODO: correctly type user from payload
               await SessionService.saveMessage(
                 user,
                 createdAt,

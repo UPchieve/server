@@ -599,16 +599,24 @@ export type TrainingCourse = {
   completedMaterials: string[]
   createdAt: Date
   updatedAt: Date
+  // legacy names for frontend
+  isComplete: boolean
 }
+type VolunteerTrainingCourses = { [key: string]: TrainingCourse }
 export async function getVolunteerTrainingCourses(
   userId: Ulid
-): Promise<TrainingCourse[]> {
+): Promise<VolunteerTrainingCourses> {
   try {
     const result = await pgQueries.getVolunteerTrainingCourses.run(
       { userId },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    const map: VolunteerTrainingCourses = {}
+    for (const row of result) {
+      const temp = { ...makeRequired(row) }
+      map[temp.trainingCourse] = { ...temp, isComplete: temp.complete }
+    }
+    return map
   } catch (err) {
     throw new RepoReadError(err)
   }

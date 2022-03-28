@@ -59,7 +59,7 @@ ORDER BY
 /* @name saveCurrentAvailabilityAsHistory */
 INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)
 SELECT
-    :id!,
+    generate_ulid(),
     NOW(),
     user_id,
     available_start,

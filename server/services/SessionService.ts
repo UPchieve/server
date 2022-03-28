@@ -585,19 +585,10 @@ export async function getSessionNotifications(data: unknown) {
   return NotificationRepo.getSessionNotificationsWithSessionId(sessionId)
 }
 
-export async function joinSession(user: UserContactInfo, data: unknown): Promise<void> {
-  const { socket, session: joinedSession, joinedFrom } = sessionUtils.asJoinSessionData(data)
+export async function joinSession(user: UserContactInfo, session: Session, data: unknown): Promise<void> {
+  const { socket, joinedFrom } = sessionUtils.asJoinSessionData(data)
   const userAgent = socket.request.headers['user-agent']
-
-  const session = {
-    id: joinedSession._id,
-    subject: joinedSession.subTopic,
-    topic: joinedSession.type,
-    createdAt: joinedSession.createdAt,
-    endedAt: joinedSession.endedAt,
-    studentId: joinedSession.student,
-    volunteerId: joinedSession.volunteer,
-  }
+  
   // TODO: it is unclear how to extract IP from socketio connection
   /**
    * We used to use socket.handshake.address but new versions of socketio have allegedly
