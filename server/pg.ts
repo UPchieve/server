@@ -3,14 +3,18 @@ import config from './config'
 
 // TODO: exponential backoff, reconnect strategy
 
+const connectionString = `postgres://${config.postgresUser}:${config.postgresPassword}@${config.postgresHost}:${config.postgresPort}/${config.postgresDatabase}?sslmode=${config.postgresRequireSSL ? 'require' : 'disable' }`
+console.log('The postgres connection string is:', connectionString)
+
 export function buildClient(): Pool {
   return new Pool({
-    host: config.postgresHost,
-    port: config.postgresPort,
-    user: config.postgresUser,
-    password: config.postgresPassword,
-    database: config.postgresDatabase,
-    ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false
+    connectionString
+    // host: config.postgresHost,
+    // port: config.postgresPort,
+    // user: config.postgresUser,
+    // password: config.postgresPassword,
+    // database: config.postgresDatabase,
+    // ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false
   })
 }
 
