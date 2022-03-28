@@ -976,7 +976,7 @@ export type CreateVolunteerPayload = {
   password: string
   referredBy: Ulid | undefined
   volunteerPartnerOrg: string | undefined
-  timezone: string
+  timezone: string | undefined
 }
 export type CreatedVolunteer = VolunteerContactInfo & {
   deactivated: boolean

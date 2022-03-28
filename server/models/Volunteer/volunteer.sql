@@ -1086,7 +1086,7 @@ WHERE
 
 /* @name createVolunteerProfile */
 INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)
-    VALUES (:userId!, FALSE, :partnerOrgId, :timezone!, NOW(), NOW())
+    VALUES (:userId!, FALSE, :partnerOrgId, :timezone, NOW(), NOW())
 RETURNING
     user_id AS ok;
 

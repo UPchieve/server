@@ -93,23 +93,23 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
 
 export interface VolunteerRegData extends UserRegData {
   phone: string,
-  timezone: string
+  timezone?: string
 }
 export const asVolunteerRegData = asFactory<VolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
-  timezone: asString
+  timezone: asOptional(asString)
 })
 
 export interface PartnerVolunteerRegData extends VolunteerRegData {
   volunteerPartnerOrg: string,
-  timezone: string
+  timezone?: string
 }
 export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
   volunteerPartnerOrg: asString,
-  timezone: asString,
+  timezone: asOptional(asString),
 })
 
 export interface ResetConfirmData {
