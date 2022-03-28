@@ -9,34 +9,41 @@ import {
   ONBOARDING_STATUS,
   DATE_RANGE_COMPARISON_FIELDS,
 } from '../constants'
-import { getActionsWithPipeline } from '../models/UserAction/queries'
+import * as UserActionRepo from '../models/UserAction/queries'
 import * as SessionRepo from '../models/Session/queries'
-import { getHistoryForDatesByVolunteerId } from '../models/Availability/queries'
+import * as AvailabilityRepo from '../models/Availability/queries'
+// import { HOURS } from '../models/Availability/types'
 import logger from '../logger'
 import { isCertified } from '../controllers/UserCtrl'
-import { Session } from '../models/Session'
 import { Certifications } from '../models/Volunteer'
-import { getVolunteersWithPipeline } from '../models/Volunteer/queries'
-import { HOURS } from '../models/Availability/types'
-import { AvailabilityHistory } from '../models/Availability/History'
-import { UserAction } from '../models/UserAction'
 import {
-  VolunteerForHourSummary,
+  VolunteerForWeeklyHourSummary,
   VolunteerForTelecomReport,
 } from '../models/Volunteer/queries'
+import * as VolunteerRepo from '../models/Volunteer/queries'
+import * as SponsorOrgRepo from '../models/SponsorOrg/queries'
+// import { getVolunteersWithPipeline } from '../models/Volunteer/queries'
 import { HourSummaryStats } from '../services/VolunteerService'
-import {
-  studentPartnerManifests,
-  volunteerPartnerManifests,
-  sponsorOrgManifests,
-} from '../partnerManifests'
+// import {
+//   sponsorOrgManifests,
+//   studentPartnerManifests,
+//   volunteerPartnerManifests,
+// } from '../partnerManifests'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
 import roundUpToNearestInterval from './round-up-to-nearest-interval'
 import { countCertsByType } from './count-certs-by-type'
 import { asFactory, asOptional, asString } from './type-utils'
 import config from '../config'
-import getAssociatedPartnerOrgByKey from './get-associated-partner-by-key'
+// import getAssociatedPartnerOrgByKey from './get-associated-partner-by-key'
+import { QuizzesPassedForDateRange } from '../models/UserAction/types'
+import {
+  AvailabilityHistory,
+  DAYS,
+  HOURS,
+} from '../models/Availability/types'
+import * as AssociatedPartnerRepo from '../models/AssociatedPartner/queries'
+import { Ulid } from '../models/pgUtils'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query
@@ -94,9 +101,9 @@ function reduceAcc(acc: any) {
 }
 
 function telecomTutorTime(
-  sessions: Session[],
+  sessions: SessionRepo.SessionsForVolunteerHourSummary[],
   availabilityForDateRange: AvailabilityHistory[],
-  quizPassedActions: UserAction[]
+  quizPassedActions: QuizzesPassedForDateRange[]
 ) {
   const acc: any = {} // accumulator { MM-DD-YYYY: {H: time volunteered in minutes } }
   const sessionAcc: any = {}
@@ -121,20 +128,24 @@ function telecomTutorTime(
     }
   }
   // Add time spent on call per availability hour
+  // TODO FIX
   for (const availabilityHistory of availabilityForDateRange) {
     const availability = availabilityHistory.availability
-    for (const hourA of Object.keys(availability)) {
-      if (availability[hourA as HOURS]) {
-        const temp = moment(availabilityHistory.date)
-        const { day, hour } = formatStamp(
-          temp.hour(HOUR_TO_UTC_MAPPING[hourA as HOURS])
-        )
-        // If day is not aleady accounted for do not add since no tutoring happened
-        if (day in acc) {
-          acc[day][hour] = 60
-          // Count into availability accumulator separately
-          if (day in availabilityAcc) availabilityAcc[day][hour] = 60
-          else availabilityAcc[day] = { hour: 60 }
+    for (const day of Object.keys(availability) as DAYS[]) {
+      // TODO: is this nested a level deeper now?
+      if (availability[day]) {
+        for (const hourA of Object.keys(availability[day]) as HOURS[]) {
+          const temp = moment(availabilityHistory.recordedAt)
+          const { day, hour } = formatStamp(
+            temp.hour(HOUR_TO_UTC_MAPPING[hourA])
+          )
+          // If day is not aleady accounted for do not add since no tutoring happened
+          if (day in acc) {
+            acc[day][hour] = 60
+            // Count into availability accumulator separately
+            if (day in availabilityAcc) availabilityAcc[day][hour] = 60
+            else availabilityAcc[day] = { hour: 60 }
+          }
         }
       }
     }
@@ -194,68 +205,26 @@ interface TelecomRow {
   hours: number
 }
 
-async function getVolunteerData<V extends VolunteerForHourSummary>(
+// TODO: do I use VolunteerForTelecomReport or VolunteerForWeeklyHourSummary????
+async function getVolunteerData<V extends VolunteerRepo.VolunteerForTelecomReport>(
   volunteer: V,
-  dateQuery: any
+  start: Date,
+  end: Date
 ) {
-  const quizPassedActions: UserAction[] = await getActionsWithPipeline([
-    {
-      $match: {
-        user: volunteer._id,
-        action: USER_ACTION.QUIZ.PASSED,
-        createdAt: dateQuery,
-      },
-    },
-    {
-      $sort: {
-        createdAt: 1,
-      },
-    },
-  ])
-  const sessions: Session[] = await SessionRepo.getSessionsWithPipeline([
-    {
-      $sort: {
-        createdAt: 1,
-      },
-    },
-    {
-      $match: {
-        volunteer: volunteer._id,
-        createdAt: dateQuery,
-      },
-    },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'student',
-        foreignField: '_id',
-        as: 'student',
-      },
-    },
-    {
-      $unwind: '$student',
-    },
-    {
-      $match: {
-        'student.isFakeUser': false,
-        'student.isTestUser': false,
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-        createdAt: 1,
-        endedAt: 1,
-        subTopic: 1,
-        timeTutored: 1,
-        volunteerJoinedAt: 1,
-      },
-    },
-  ])
-  const availabilityForDateRange = await getHistoryForDatesByVolunteerId(
-    volunteer._id,
-    dateQuery.$gt,
-    dateQuery.$lte
+  const quizPassedActions = await UserActionRepo.getQuizzesPassedForDateRangeById(
+    volunteer.id,
+    start,
+    end
+  )
+  const sessions = await SessionRepo.getSessionsForVolunteerHourSummary(
+    volunteer.id,
+    start,
+    end
+  )
+  const availabilityForDateRange = await AvailabilityRepo.getAvailabilityHistoryForDatesByVolunteerId(
+    volunteer.id,
+    start,
+    end
   )
   return {
     sessions,
@@ -266,7 +235,8 @@ async function getVolunteerData<V extends VolunteerForHourSummary>(
 
 async function telecomProcessVolunteer<V extends VolunteerForTelecomReport>(
   volunteer: V,
-  dateQuery: any
+  start: Date,
+  end: Date
 ): Promise<TelecomRow[]> {
   const totalCerts = countCerts(volunteer.certifications)
   if (totalCerts === 0) return []
@@ -274,12 +244,12 @@ async function telecomProcessVolunteer<V extends VolunteerForTelecomReport>(
     sessions,
     availabilityForDateRange,
     quizPassedActions,
-  } = await getVolunteerData(volunteer, dateQuery)
+  } = await getVolunteerData(volunteer, start, end)
   // Accumulate hours into rows
   const rows = []
 
-  const volunteerFirstName = capitalize(volunteer.firstname)
-  const volunterLastName = capitalize(volunteer.lastname)
+  const volunteerFirstName = capitalize(volunteer.firstName)
+  const volunterLastName = capitalize(volunteer.lastName)
   const name = volunteerFirstName + ' ' + volunterLastName
   const email = volunteer.email
   const { totalTime: accumulatedHours } = telecomTutorTime(
@@ -302,15 +272,15 @@ async function telecomProcessVolunteer<V extends VolunteerForTelecomReport>(
 
 export async function generateTelecomReport<
   V extends VolunteerForTelecomReport
->(volunteers: V[], dateQuery: any): Promise<TelecomRow[]> {
+>(volunteers: V[], start: Date, end: Date): Promise<TelecomRow[]> {
   const volunteerPartnerReport = []
   const errors = []
   for (const volunteer of volunteers) {
     try {
-      const volunteerRows = await telecomProcessVolunteer(volunteer, dateQuery)
+      const volunteerRows = await telecomProcessVolunteer(volunteer, start, end)
       volunteerPartnerReport.push(...volunteerRows)
     } catch (error) {
-      errors.push(`volunteer ${volunteer._id}: ${error}`)
+      errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
   }
   if (errors.length) {
@@ -341,8 +311,8 @@ export function emptyHours(): HourSummaryStats {
 
 // To be used by email/update job(s) for generating telecom volunteer hours
 export async function telecomHourSummaryStats<
-  V extends VolunteerForHourSummary
->(volunteer: V, dateQuery: any): Promise<HourSummaryStats> {
+  V extends VolunteerForWeeklyHourSummary
+>(volunteer: V, start: Date, end: Date): Promise<HourSummaryStats> {
   try {
     const totalCerts = countCerts(volunteer.certifications)
     if (totalCerts === 0) return emptyHours()
@@ -351,7 +321,7 @@ export async function telecomHourSummaryStats<
       sessions,
       availabilityForDateRange,
       quizPassedActions,
-    } = await getVolunteerData(volunteer, dateQuery)
+    } = await getVolunteerData(volunteer, start, end)
     const {
       totalTime,
       sessionTime,
@@ -451,13 +421,12 @@ function isDateWithin(date: string, startDate: Date, endDate: Date) {
 }
 
 export interface GroupStats {
-  _id: null
   total: number
   totalWithinDateRange: number
 }
 
 export interface PartnerVolunteerAnalytics {
-  _id: Types.ObjectId
+  id: Ulid
   firstName: string
   lastName: string
   email: string
@@ -620,46 +589,7 @@ export async function getUniqueStudentStats(
   startDate: Date,
   endDate: Date
 ) {
-  return ((await getVolunteersWithPipeline([
-    {
-      $match: {
-        volunteerPartnerOrg: partnerOrg,
-      },
-    },
-    {
-      $lookup: {
-        from: 'sessions',
-        foreignField: '_id',
-        localField: 'pastSessions',
-        as: 'pastSession',
-      },
-    },
-    {
-      $unwind: '$pastSession',
-    },
-    {
-      $group: {
-        _id: '$pastSession.student',
-        frequency: { $sum: 1 },
-        frequencyWithinDateRange: getSumOperatorForDateRange(
-          startDate,
-          endDate,
-          DATE_RANGE_COMPARISON_FIELDS.PAST_SESSION_CREATED_AT
-        ),
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: 1 },
-        totalWithinDateRange: {
-          $sum: {
-            $cond: [{ $gte: ['$frequencyWithinDateRange', 1] }, 1, 0],
-          },
-        },
-      },
-    },
-  ])) as unknown) as GroupStats[]
+  return await VolunteerRepo.getUniqueStudentHelped(partnerOrg, startDate, endDate)
 }
 
 export async function getUniquePartnerStudentStats(
@@ -667,58 +597,10 @@ export async function getUniquePartnerStudentStats(
   startDate: Date,
   endDate: Date
 ) {
-  return ((await getVolunteersWithPipeline([
-    {
-      $match: {
-        volunteerPartnerOrg: partnerOrg,
-      },
-    },
-    {
-      $lookup: {
-        from: 'sessions',
-        foreignField: '_id',
-        localField: 'pastSessions',
-        as: 'pastSession',
-      },
-    },
-    {
-      $unwind: '$pastSession',
-    },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'pastSession.student',
-        foreignField: '_id',
-        as: 'student',
-      },
-    },
-    {
-      $unwind: '$student',
-    },
-    getPartnerStudentsFilter(partnerOrg),
-    {
-      $group: {
-        _id: '$student._id',
-        frequency: { $sum: 1 },
-        frequencyWithinDateRange: getSumOperatorForDateRange(
-          startDate,
-          endDate,
-          DATE_RANGE_COMPARISON_FIELDS.PAST_SESSION_CREATED_AT
-        ),
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: 1 },
-        totalWithinDateRange: {
-          $sum: {
-            $cond: [{ $gte: ['$frequencyWithinDateRange', 1] }, 1, 0],
-          },
-        },
-      },
-    },
-  ])) as unknown) as GroupStats[]
+  const partners = await getAssociatedPartnersAndSchools(partnerOrg)
+  // TODO: test and fix query
+  return await VolunteerRepo.getUniquePartnerStudentHelped(partnerOrg, startDate, endDate, partners.associatedStudentPartnerOrgs, partners.associatedPartnerSchools)
+  
 }
 
 export interface AnalyticsReportSummaryData {
@@ -823,13 +705,13 @@ export async function getAnalyticsReportSummary(
     ).toFixed(2)
   )
 
-  const [uniqueStudentStats] = await getUniqueStudentStats(
+  const uniqueStudentStats = await getUniqueStudentStats(
     partnerOrg,
     startDate,
     endDate
   )
 
-  const [uniquePartnerStudentStats] = await getUniquePartnerStudentStats(
+  const uniquePartnerStudentStats = await getUniquePartnerStudentStats(
     partnerOrg,
     startDate,
     endDate
@@ -1003,7 +885,9 @@ export function processAnalyticsReportDataSheet(
   }
 
   if (isCustomAnalyticsReport) {
-    const partnerName = volunteerPartnerManifests[partnerOrg].name
+    // TODO": return partner name in row
+    // const partnerName = row.partnerOrg
+    const partnerName = ''
     // Create sectional headers in the first row for att/verizon reports
     worksheet.getCell('A1').value = sectionalHeaders.volunteerInformation
     worksheet.getCell('H1').value = sectionalHeaders.totalImpact
@@ -1101,7 +985,9 @@ export function processAnalyticsReportSummarySheet(
     )
       continue
     else if (key === 'uniquePartnerStudentsHelped') {
-      const partnerName = volunteerPartnerManifests[partnerOrg].name
+      // const partnerName = volunteerPartnerManifests[partnerOrg].name
+      // TODO
+      const partnerName = ''
       description = `Unique ${partnerName} students helped`
     }
     worksheet.addRow({ description, total, totalWithinDateRange }, 'i')
@@ -1126,10 +1012,6 @@ export function validateVolunteerReportQuery(data: unknown) {
   const { partnerOrg, startDate, endDate } = asValidateVolunteerReportQuery(
     data
   )
-  // Volunteer partner org check
-  const volunteerPartnerManifest = volunteerPartnerManifests[partnerOrg]
-  if (!volunteerPartnerManifest)
-    throw new InputError('Invalid volunteer partner organization')
   if (!moment(startDate, 'MM-DD-YYYY', true).isValid())
     throw new InputError('Start date does not follow a MM-DD-YYYY format')
   if (!moment(endDate, 'MM-DD-YYYY', true).isValid())
@@ -1216,82 +1098,70 @@ export function validateJoinedDateRanges({
 }
 
 export function validateStudentReportQuery(data: StudentReportQuery) {
-  if (data.studentPartnerOrg) {
-    const studentPartner = studentPartnerManifests[data.studentPartnerOrg]
-    if (!studentPartner)
-      throw new InputError('Invalid student partner organization')
-    else if (
-      (data.studentPartnerSite && !studentPartner.hasOwnProperty('sites')) ||
-      (data.studentPartnerSite &&
-        studentPartner.sites &&
-        !studentPartner.sites.includes(data.studentPartnerSite))
-    )
-      throw new InputError(
-        `Invalid student partner site for ${data.studentPartnerOrg}`
-      )
-  }
-  if (data.highSchoolId && !Types.ObjectId.isValid(data.highSchoolId))
-    throw new InputError('Invalid high school id')
   validateSessionDateRanges(data)
 }
 
 export function validateStudentSessionReportQuery(data: unknown) {
   const validatedData = asValidateStudentSessionReportQuery(data)
-  validateStudentReportQuery(validatedData)
   return validatedData
 }
 
 export function validateStudentUsageReportQuery(data: unknown) {
   const validatedData = asValidateStudentUsageReportQuery(data)
-  validateStudentReportQuery(validatedData)
   validateJoinedDateRanges(validatedData)
   return validatedData
 }
 
 interface AssociatedPartnersAndSchools {
   associatedStudentPartnerOrgs: string[]
-  associatedPartnerSchools: Types.ObjectId[]
+  associatedPartnerSchools: string[]
 }
 
-export function getAssociatedPartnersAndSchools(
+export async function getAssociatedPartnersAndSchools(
   partnerOrg: string
-): AssociatedPartnersAndSchools {
+): Promise<AssociatedPartnersAndSchools> {
+
+  const associatedPartners = await AssociatedPartnerRepo.getAssociatedPartners()
+
+  let associatedPartner 
+  for(const partner of associatedPartners){
+    if(partner.volunteerPartnerOrg === partnerOrg) associatedPartner = partner
+  }
+
   const associatedStudentPartnerOrgs: string[] = []
-  const associatedPartnerSchools: Types.ObjectId[] = []
-  const associatedPartner = getAssociatedPartnerOrgByKey(
-    'volunteerPartnerOrg',
-    partnerOrg
-  )
+  const associatedPartnerSchools: string[] = []
 
   if (associatedPartner?.studentPartnerOrg)
     associatedStudentPartnerOrgs.push(associatedPartner.studentPartnerOrg)
   else if (associatedPartner?.studentSponsorOrg) {
-    const sponsorOrg = sponsorOrgManifests[associatedPartner.studentSponsorOrg]
-    if (sponsorOrg.schools) associatedPartnerSchools.push(...sponsorOrg.schools)
-    if (sponsorOrg.partnerOrgs)
-      associatedStudentPartnerOrgs.push(...sponsorOrg.partnerOrgs)
+    const sponsorOrg = await SponsorOrgRepo.getSponsorOrgsByKey(associatedPartner.studentSponsorOrg)
+    
+    if (sponsorOrg.schoolIds.length) associatedPartnerSchools.push(...sponsorOrg.schoolIds)
+    if (sponsorOrg.studentPartnerOrgKeys.length)
+      associatedStudentPartnerOrgs.push(...sponsorOrg.studentPartnerOrgKeys)
   }
   return { associatedStudentPartnerOrgs, associatedPartnerSchools }
 }
 
-export function getPartnerStudentsFilter(partnerOrg: string) {
-  const {
-    associatedStudentPartnerOrgs,
-    associatedPartnerSchools,
-  } = getAssociatedPartnersAndSchools(partnerOrg)
+// NOTE: Keeping here as reference while analytics report is tested
+// export function getPartnerStudentsFilter(partnerOrg: string) {
+//   const {
+//     associatedStudentPartnerOrgs,
+//     associatedPartnerSchools,
+//   } = getAssociatedPartnersAndSchools(partnerOrg)
 
-  return {
-    $match: {
-      $expr: {
-        $or: [
-          {
-            $in: ['$student.studentPartnerOrg', associatedStudentPartnerOrgs],
-          },
-          {
-            $in: ['$student.approvedHighschool', associatedPartnerSchools],
-          },
-        ],
-      },
-    },
-  }
-}
+//   return {
+//     $match: {
+//       $expr: {
+//         $or: [
+//           {
+//             $in: ['$student.studentPartnerOrg', associatedStudentPartnerOrgs],
+//           },
+//           {
+//             $in: ['$student.approvedHighschool', associatedPartnerSchools],
+//           },
+//         ],
+//       },
+//     },
+//   }
+// }

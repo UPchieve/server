@@ -188,7 +188,7 @@ export interface ISaveFeedbackQuery {
   result: ISaveFeedbackResult;
 }
 
-const saveFeedbackIR: any = {"name":"saveFeedback","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1891,"b":1893,"line":68,"col":5}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1968,"b":1977,"line":72,"col":5},{"a":2336,"b":2345,"line":83,"col":21}]}},{"name":"studentTutoringFeedback","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1985,"b":2007,"line":73,"col":5}]}},{"name":"studentCounselingFeedback","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2015,"b":2039,"line":74,"col":5}]}},{"name":"volunteerFeedback","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2047,"b":2063,"line":75,"col":5}]}},{"name":"comment","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2071,"b":2077,"line":76,"col":5}]}},{"name":"userRole","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2096,"b":2104,"line":77,"col":16},{"a":2305,"b":2313,"line":82,"col":38}]}}],"usedParamSet":{"id":true,"sessionId":true,"studentTutoringFeedback":true,"studentCounselingFeedback":true,"volunteerFeedback":true,"comment":true,"userRole":true},"statement":{"body":"INSERT INTO feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, created_at, updated_at)\nSELECT\n    :id!,\n    subjects.topic_id,\n    sessions.subject_id,\n    user_roles.id,\n    :sessionId!,\n    :studentTutoringFeedback,\n    :studentCounselingFeedback,\n    :volunteerFeedback,\n    :comment,\n    (CASE WHEN :userRole! = 'student' THEN sessions.student_id ELSE sessions.volunteer_id END),\n    NOW(),\n    NOW()\nFROM sessions\nLEFT JOIN subjects ON subjects.id = sessions.subject_id\nJOIN user_roles ON user_roles.name = :userRole!\nWHERE sessions.id = :sessionId!\nRETURNING feedbacks.id","loc":{"a":1686,"b":2368,"line":66,"col":0}}};
+const saveFeedbackIR: any = {"name":"saveFeedback","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1892,"b":1894,"line":69,"col":5}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1969,"b":1978,"line":73,"col":5},{"a":2402,"b":2411,"line":91,"col":19}]}},{"name":"studentTutoringFeedback","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1986,"b":2008,"line":74,"col":5}]}},{"name":"studentCounselingFeedback","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2016,"b":2040,"line":75,"col":5}]}},{"name":"volunteerFeedback","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2048,"b":2064,"line":76,"col":5}]}},{"name":"comment","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2072,"b":2078,"line":77,"col":5}]}},{"name":"userRole","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2106,"b":2114,"line":79,"col":19},{"a":2367,"b":2375,"line":89,"col":42}]}}],"usedParamSet":{"id":true,"sessionId":true,"studentTutoringFeedback":true,"studentCounselingFeedback":true,"volunteerFeedback":true,"comment":true,"userRole":true},"statement":{"body":"INSERT INTO feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, created_at, updated_at)\nSELECT\n    :id!,\n    subjects.topic_id,\n    sessions.subject_id,\n    user_roles.id,\n    :sessionId!,\n    :studentTutoringFeedback,\n    :studentCounselingFeedback,\n    :volunteerFeedback,\n    :comment,\n    (\n        CASE WHEN :userRole! = 'student' THEN\n            sessions.student_id\n        ELSE\n            sessions.volunteer_id\n        END),\n    NOW(),\n    NOW()\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN user_roles ON user_roles.name = :userRole!\nWHERE\n    sessions.id = :sessionId!\nRETURNING\n    feedbacks.id","loc":{"a":1687,"b":2438,"line":67,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -204,16 +204,83 @@ const saveFeedbackIR: any = {"name":"saveFeedback","params":[{"name":"id","requi
  *     :studentCounselingFeedback,
  *     :volunteerFeedback,
  *     :comment,
- *     (CASE WHEN :userRole! = 'student' THEN sessions.student_id ELSE sessions.volunteer_id END),
+ *     (
+ *         CASE WHEN :userRole! = 'student' THEN
+ *             sessions.student_id
+ *         ELSE
+ *             sessions.volunteer_id
+ *         END),
  *     NOW(),
  *     NOW()
- * FROM sessions
- * LEFT JOIN subjects ON subjects.id = sessions.subject_id
- * JOIN user_roles ON user_roles.name = :userRole!
- * WHERE sessions.id = :sessionId!
- * RETURNING feedbacks.id
+ * FROM
+ *     sessions
+ *     LEFT JOIN subjects ON subjects.id = sessions.subject_id
+ *     JOIN user_roles ON user_roles.name = :userRole!
+ * WHERE
+ *     sessions.id = :sessionId!
+ * RETURNING
+ *     feedbacks.id
  * ```
  */
 export const saveFeedback = new PreparedQuery<ISaveFeedbackParams,ISaveFeedbackResult>(saveFeedbackIR);
+
+
+/** 'GetFeedbackByUserId' parameters type */
+export interface IGetFeedbackByUserIdParams {
+  userId: string;
+}
+
+/** 'GetFeedbackByUserId' return type */
+export interface IGetFeedbackByUserIdResult {
+  createdAt: Date;
+  id: string;
+  legacyFeedbacks: Json | null;
+  responseData: Json | null;
+  sessionId: string;
+  studentCounselingFeedback: Json | null;
+  studentTutoringFeedback: Json | null;
+  subTopic: string;
+  type: string;
+  updatedAt: Date;
+  userId: string;
+  userRole: string;
+  volunteerFeedback: Json | null;
+}
+
+/** 'GetFeedbackByUserId' query type */
+export interface IGetFeedbackByUserIdQuery {
+  params: IGetFeedbackByUserIdParams;
+  result: IGetFeedbackByUserIdResult;
+}
+
+const getFeedbackByUserIdIR: any = {"name":"getFeedbackByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3048,"b":3054,"line":117,"col":25}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    feedbacks.id,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    user_id,\n    user_roles.name AS user_role,\n    session_id,\n    student_tutoring_feedback,\n    student_counseling_feedback,\n    volunteer_feedback,\n    legacy_feedbacks,\n    legacy_feedbacks AS response_data,\n    feedbacks.created_at,\n    feedbacks.updated_at\nFROM\n    feedbacks\n    LEFT JOIN topics ON feedbacks.topic_id = topics.id\n    LEFT JOIN subjects ON feedbacks.subject_id = subjects.id\n    JOIN user_roles ON feedbacks.user_role_id = user_roles.id\nWHERE\n    feedbacks.user_id = :userId!","loc":{"a":2475,"b":3054,"line":97,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     feedbacks.id,
+ *     topics.name AS TYPE,
+ *     subjects.name AS sub_topic,
+ *     user_id,
+ *     user_roles.name AS user_role,
+ *     session_id,
+ *     student_tutoring_feedback,
+ *     student_counseling_feedback,
+ *     volunteer_feedback,
+ *     legacy_feedbacks,
+ *     legacy_feedbacks AS response_data,
+ *     feedbacks.created_at,
+ *     feedbacks.updated_at
+ * FROM
+ *     feedbacks
+ *     LEFT JOIN topics ON feedbacks.topic_id = topics.id
+ *     LEFT JOIN subjects ON feedbacks.subject_id = subjects.id
+ *     JOIN user_roles ON feedbacks.user_role_id = user_roles.id
+ * WHERE
+ *     feedbacks.user_id = :userId!
+ * ```
+ */
+export const getFeedbackByUserId = new PreparedQuery<IGetFeedbackByUserIdParams,IGetFeedbackByUserIdResult>(getFeedbackByUserIdIR);
 
 

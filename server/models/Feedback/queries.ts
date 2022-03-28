@@ -1,8 +1,8 @@
-import { Feedback } from './types'
-import { RepoCreateError, RepoReadError } from '../Errors'
 import { getClient } from '../../pg'
+import { RepoCreateError, RepoReadError } from '../Errors'
+import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeSomeRequired, getDbUlid, makeRequired } from '../pgUtils'
+import { Feedback } from './types'
 
 function buildFeedback(rows: pgQueries.IGetFeedbackByIdResult[]): Feedback {
   if (rows.length > 2)
@@ -117,5 +117,36 @@ export async function saveFeedback(sessionId: Ulid, userRole: 'student' | 'volun
     return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function getFeedbackByUserId(
+  userId: Ulid
+): Promise<SingleFeedback[] | undefined> {
+  try {
+    const result = await pgQueries.getFeedbackByUserId.run(
+      { userId },
+      getClient()
+    )
+    if (!result.length) return
+    return result.map(row => {
+      const temp = makeSomeRequired(row, [
+        'legacyFeedbacks',
+        'studentCounselingFeedback',
+        'studentTutoringFeedback',
+        'volunteerFeedback',
+        'subTopic',
+        'type',
+        'responseData',
+      ])
+      return {
+        userId: temp.id,
+        createdAt: temp.createdAt,
+        updatedAt: temp.updatedAt,
+        ...buildFeedback([temp]),
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

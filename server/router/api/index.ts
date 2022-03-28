@@ -13,7 +13,7 @@ import { routeFeedback } from './feedback'
 import { routeSockets } from './sockets'
 import { routeModeration } from './moderate'
 import { routePushToken } from './push-token'
-// import { routeReports } from './reports'
+import { routeReports } from './reports'
 import { routeSurvey } from './survey'
 import { routes as routeStats } from './stats'
 import { routeTraining } from './training'
@@ -38,8 +38,7 @@ export function routes(
   routeSockets(io, sessionStore)
   routeModeration(router)
   routePushToken(router)
-  // TODO: bring this back
-  // routeReports(router)
+  routeReports(router)
   routeSurvey(router)
   routeStats(router)
   routeProductFlags(router)

@@ -1,4 +1,3 @@
-/*
 import expressWs from 'express-ws'
 import { resError } from '../res-error'
 
@@ -59,4 +58,3 @@ export function routeReports(router: expressWs.Router): void {
     }
   )
 }
-*/

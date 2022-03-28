@@ -12,9 +12,7 @@ import { Notification } from '../Notification'
 import moment from 'moment'
 import { Session } from './types'
 import 'moment-timezone'
-import {
-  USER_SESSION_METRICS,
-} from '../../constants'
+import { USER_SESSION_METRICS } from '../../constants'
 import { UserActionAgent } from '../UserAction'
 import { getFeedbackBySessionId } from '../Feedback/queries'
 import {
@@ -494,10 +492,13 @@ export async function getSessionByIdWithStudentAndVolunteer(
       'reportReason',
       'reviewReasons',
     ])
-    const userAgentResult = await pgQueries.getSessionUserAgent.run({ sessionId }, client)
-    const userAgent = userAgentResult.length ? 
-      makeSomeOptional(userAgentResult[0], []) :
-      undefined
+    const userAgentResult = await pgQueries.getSessionUserAgent.run(
+      { sessionId },
+      client
+    )
+    const userAgent = userAgentResult.length
+      ? makeSomeOptional(userAgentResult[0], [])
+      : undefined
     const userResult = await pgQueries.getUserForSessionAdminView.run(
       { sessionId },
       client
@@ -516,7 +517,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
       messages,
       feedbacks,
       _id: session.id,
-      userAgent
+      userAgent,
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -541,7 +542,11 @@ export async function createSession(
   }
 }
 
-export type CurrentSessionUser = { _id: Ulid; firstname: string; isVolunteer: boolean }
+export type CurrentSessionUser = {
+  _id: Ulid
+  firstname: string
+  isVolunteer: boolean
+}
 export type CurrentSession = {
   _id: Ulid
   subTopic: string
@@ -760,9 +765,9 @@ export type VolunteerForGentleWarning = {
   email: string
   totalNotifications: number
 }
-export async function getVolunteersForGentleWarning(sessionId: Ulid): Promise<
-  VolunteerForGentleWarning[]
-> {
+export async function getVolunteersForGentleWarning(
+  sessionId: Ulid
+): Promise<VolunteerForGentleWarning[]> {
   try {
     const result = await pgQueries.getVolunteersForGentleWarning.run(
       { sessionId },
@@ -974,6 +979,33 @@ export async function updateSessionPhotoKey(
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export type SessionsForVolunteerHourSummary = {
+  sessionId: Ulid
+  createdAt: Date
+  endedAt: Date
+  timeTutored: number
+  subject: string
+  topic: string
+  volunteerJoinedAt: Date
+}
+
+export async function getSessionsForVolunteerHourSummary(
+  volunteerId: Ulid,
+  start: Date,
+  end: Date
+): Promise<SessionsForVolunteerHourSummary[]> {
+  try {
+    const result = await pgQueries.getSessionsForVolunteerHourSummary.run(
+      { volunteerId, start, end },
+      getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row))
+    throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
   }

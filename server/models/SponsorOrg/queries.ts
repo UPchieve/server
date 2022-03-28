@@ -13,3 +13,13 @@ export async function getSponsorOrgs() {
     throw new RepoReadError(err)
   }
 }
+
+export async function getSponsorOrgsByKey(sponsorOrg: string) {
+  try {
+    const result = await pgQueries.getSponsorOrgsByKey.run({ sponsorOrg}, getClient())
+    return makeSomeRequired(result[0], ['schoolIds', 'studentPartnerOrgKeys'])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+

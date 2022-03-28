@@ -2,14 +2,13 @@ import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeRequired } from '../pgUtils'
 import { RepoReadError, RepoCreateError, RepoUpdateError } from '../Errors'
-import { UserActionAgent } from './types'
+import { UserActionAgent, QuizzesPassedForDateRange } from './types'
 import {
   ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
   SESSION_USER_ACTIONS,
   USER_ACTION_TYPES
 } from '../../constants'
-import { Certifications } from '../Volunteer'
 import { getSubjectType } from '../../utils/getSubjectType'
 import { PoolClient } from 'pg'
 
@@ -17,14 +16,14 @@ export async function getQuizzesPassedForDateRangeById(
   userId: Ulid,
   start: Date,
   end: Date
-): Promise<number> {
+): Promise<QuizzesPassedForDateRange[]> {
   try {
     const result = await pgQueries.getQuizzesPassedForDateRangeByVolunteerId.run(
       { userId, start, end },
       getClient()
     )
-    if (result.length) return makeRequired(result[0]).total
-    return 0
+    if (result.length) return result.map(row => makeRequired(row))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -72,7 +71,7 @@ but consistent, arguments, per type of user action created.
 */
 
 interface QuizActionParams {
-  action: QUIZ_USER_ACTIONS,
+  action: QUIZ_USER_ACTIONS
   quizSubcategory: string
   userId: Ulid
   ipAddress?: string
@@ -104,7 +103,7 @@ export async function createQuizAction(params: QuizActionParams) {
 }
 
 interface SessionActionParams {
-  action: SESSION_USER_ACTIONS,
+  action: SESSION_USER_ACTIONS
   sessionId: Ulid
   userId: Ulid
   browser?: string
@@ -147,12 +146,12 @@ export async function createSessionAction(params: SessionActionParams) {
 }
 
 interface AccountActionParams {
-  action: ACCOUNT_USER_ACTIONS,
+  action: ACCOUNT_USER_ACTIONS
   userId: Ulid
   ipAddress?: string
   referenceEmail?: string
   sessionId?: Ulid
-  volunteerId?: Ulid,
+  volunteerId?: Ulid
   banReason?: string
 }
 

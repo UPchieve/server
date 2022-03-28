@@ -6,6 +6,8 @@ import {
   RepoTransactionError,
   RepoUpdateError,
 } from '../Errors'
+import { SingleFeedback } from '../Feedback/queries'
+import { ResponseData, StudentCounselingFeedback } from '../Feedback/types'
 import {
   getDbUlid,
   makeRequired,
@@ -14,6 +16,7 @@ import {
   generateReferralCode,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
+import * as FeedbackRepo from '../../models/Feedback/queries'
 
 export type ReportedStudent = {
   id: Ulid
@@ -424,5 +427,168 @@ export async function createStudent(
     throw new RepoTransactionError(err)
   } finally {
     transactionClient.release()
+  }
+}
+
+export type StudentSessionReportQuery = {
+  highSchoolId?: Ulid
+  studentPartnerOrg?: string
+  studentPartnerSite?: string
+  sponsorOrg?: string
+  start: Date
+  end: Date
+}
+
+export type SessionReportRow = {
+  sessionId: Ulid
+  topic: string
+  subject: string
+  createdAt: Date
+  endedAt: Date
+  firstName: string
+  lastName: string
+  email: string
+  partnerSite?: string
+  waitTimeMins?: string
+  totalMessages: string
+  volunteerJoined: string
+  volunteerJoinedAt?: Date
+  sessionRating?: number
+  sponsorOrg?: string
+}
+
+function toObject<T>(obj: unknown): T {
+  const thing =
+    typeof obj === 'object'
+      ? obj
+      : typeof obj === 'string'
+      ? JSON.parse(obj)
+      : undefined
+  return thing
+}
+
+export async function getSessionReport(
+  query: StudentSessionReportQuery
+): Promise<SessionReportRow[] | undefined> {
+  try {
+    const result = await pgQueries.getSessionReport.run(
+      {
+        highSchoolId: query?.highSchoolId,
+        studentPartnerOrg: query?.studentPartnerOrg,
+        studentPartnerSite: query?.studentPartnerSite,
+        sponsorOrg: query?.sponsorOrg,
+        start: query.start,
+        end: query.end,
+      },
+      getClient()
+    )
+
+    const report = []
+
+    if (result.length) {
+      for (const row of result) {
+        const feedback = await FeedbackRepo.getFeedbackBySessionIdUserType(
+          row.sessionId,
+          'student'
+        )
+        const session = makeSomeRequired(row, [
+          'partnerSite',
+          'volunteerJoinedAt',
+          'sponsorOrg',
+          'waitTimeMins',
+        ])
+
+        let sessionRating: number | undefined
+
+        if (feedback) {
+          const counselingFeedback:
+            | StudentCounselingFeedback
+            | undefined = toObject(feedback.studentCounselingFeedback)
+          const responseData: ResponseData | undefined = toObject(
+            feedback.responseData
+          )
+
+          sessionRating =
+            counselingFeedback?.['rate-session']?.rating ||
+            responseData?.['rate-session']?.rating
+        }
+
+        report.push({ ...session, sessionRating })
+      }
+
+      return report
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export type StudentUsageReportQuery = {
+  highSchoolId?: Ulid
+  studentPartnerOrg?: string
+  studentPartnerSite?: string
+  sponsorOrg?: string
+  joinedStart: Date
+  joinedEnd: Date
+  sessionStart: Date
+  sessionEnd: Date
+}
+
+export type UsageReportRow = {
+  userId: Ulid
+  firstName: string
+  lastName: string
+  email: string
+  joinDate: Date
+  studentPartnerOrg?: string
+  partnerSite?: string
+  sponsorOrg?: string
+  school?: string
+  totalSessions: number
+  totalSessionLengthMins: number
+  rangeTotalSessions: number
+  rangeSessionLengthMins: number
+  feedbacks: SingleFeedback[]
+}
+
+export async function getUsageReport(
+  query: StudentUsageReportQuery
+): Promise<UsageReportRow[] | undefined> {
+  try {
+    const result = await pgQueries.getUsageReport.run(
+      {
+        highSchoolId: query?.highSchoolId,
+        studentPartnerOrg: query?.studentPartnerOrg,
+        studentPartnerSite: query?.studentPartnerSite,
+        sponsorOrg: query?.sponsorOrg,
+        joinedStart: query.joinedStart,
+        joinedEnd: query.joinedEnd,
+        sessionStart: query.sessionStart,
+        sessionEnd: query.sessionEnd,
+      },
+      getClient()
+    )
+
+    const report = []
+
+    if (result.length) {
+      for (const row of result) {
+        const feedbacks = await FeedbackRepo.getFeedbackByUserId(row.userId)
+        const session = makeSomeRequired(row, [
+          'partnerSite',
+          'studentPartnerOrg',
+          'school',
+          'sponsorOrg',
+        ])
+        report.push({
+          ...session,
+          feedbacks: feedbacks?.length ? feedbacks : [],
+        })
+      }
+
+      return report
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

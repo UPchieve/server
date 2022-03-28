@@ -92,10 +92,11 @@ FROM
     LEFT JOIN LATERAL (
         SELECT
             array_agg(name) AS flags
-        FROM sessions_session_flags
-        LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id
-        WHERE sessions_session_flags.session_id = sessions.id
-    ) AS session_flag_array ON TRUE
+        FROM
+            sessions_session_flags
+            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id
+        WHERE
+            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE
 WHERE
     sessions.id = :sessionId!;
 
@@ -327,14 +328,18 @@ SET
 FROM (
     SELECT
         user_roles.id
-    FROM sessions
+    FROM
+        sessions
     LEFT JOIN user_roles ON TRUE
-    WHERE
-        sessions.id = :sessionId! AND
-        user_roles.name = (
-        CASE WHEN sessions.volunteer_id = :endedBy THEN 'volunteer'
-        WHEN sessions.student_id = :endedBy THEN 'student'
-        ELSE NULL
+WHERE
+    sessions.id = :sessionId!
+    AND user_roles.name = (
+        CASE WHEN sessions.volunteer_id = :endedBy THEN
+            'volunteer'
+        WHEN sessions.student_id = :endedBy THEN
+            'student'
+        ELSE
+            NULL
         END)) AS subquery
 WHERE
     sessions.id = :sessionId!
@@ -422,6 +427,7 @@ FROM
 WHERE
     sessions.id = :sessionId!;
 
+
 /* @name getSessionUserAgent */
 SELECT
     device,
@@ -429,10 +435,11 @@ SELECT
     browser_version,
     operating_system,
     operating_system_version
-FROM user_actions 
-WHERE 
-    user_actions.session_id = :sessionId! AND 
-    user_actions.action = 'REQUESTED SESSION'
+FROM
+    user_actions
+WHERE
+    user_actions.session_id = :sessionId!
+    AND user_actions.action = 'REQUESTED SESSION'
 LIMIT 1;
 
 
@@ -850,4 +857,25 @@ INSERT INTO session_photos (session_id, photo_key, created_at, updated_at)
     VALUES (:sessionId!, :photoKey!, NOW(), NOW())
 RETURNING
     session_id AS ok;
+
+
+/* @name getSessionsForVolunteerHourSummary */
+SELECT
+    sessions.id AS session_id,
+    sessions.created_at AS created_at,
+    sessions.ended_at AS ended_at,
+    sessions.time_tutored::int AS time_tutored,
+    subjects.name AS subject,
+    topics.name AS topic,
+    sessions.volunteer_joined_at AS volunteer_joined_at
+FROM
+    sessions
+    JOIN subjects ON subjects.id = sessions.subject_id
+    JOIN topics ON topics.id = subjects.topic_id
+    JOIN users ON users.id = sessions.student_id
+WHERE
+    sessions.created_at >= :start!
+    AND sessions.created_at <= :end!
+    AND sessions.volunteer_id = :volunteerId!
+    AND users.test_user = FALSE;
 

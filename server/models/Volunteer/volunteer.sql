@@ -171,11 +171,11 @@ FROM
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id
-WHERE
-    (volunteer_partner_orgs.id IS NULL OR volunteer_partner_orgs.receive_weekly_hour_summary_email IS TRUE)
-    AND users.banned IS FALSE
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE
+WHERE (volunteer_partner_orgs.id IS NULL
+    OR volunteer_partner_orgs.receive_weekly_hour_summary_email IS TRUE)
+AND users.banned IS FALSE
+AND users.deactivated IS FALSE
+AND users.test_user IS FALSE
 GROUP BY
     users.id,
     volunteer_partner_org,
@@ -192,6 +192,7 @@ WHERE
     user_id = :userId!
 RETURNING
     user_id AS ok;
+
 
 /* @name updateVolunteerThroughAvailability */
 UPDATE
@@ -365,8 +366,10 @@ ON CONFLICT (user_id,
 RETURNING
     id AS ok;
 
+
 /* @name updateVolunteerReferenceSubmission */
-UPDATE volunteer_references
+UPDATE
+    volunteer_references
 SET
     status_id = subquery.id,
     affiliation = COALESCE(:affiliation, affiliation),
@@ -380,10 +383,16 @@ SET
     trustworthy_with_children = COALESCE(:trustworthyWithChildren, trustworthy_with_children),
     updated_at = NOW()
 FROM (
-    SELECT id FROM volunteer_reference_statuses WHERE name = 'submitted' 
-) AS subquery
-WHERE volunteer_references.id = :referenceId!
-RETURNING volunteer_references.id AS ok;
+    SELECT
+        id
+    FROM
+        volunteer_reference_statuses
+    WHERE
+        name = 'submitted') AS subquery
+WHERE
+    volunteer_references.id = :referenceId!
+RETURNING
+    volunteer_references.id AS ok;
 
 
 /* @name getInactiveVolunteers */
@@ -425,6 +434,7 @@ WHERE
 RETURNING
     volunteer_references.id AS ok;
 
+
 /* @name updateVolunteerReferenceStatusById */
 UPDATE
     volunteer_references
@@ -459,8 +469,8 @@ FROM (
     WHERE
         name = 'removed') AS subquery
 WHERE
-    volunteer_references.email = :referenceEmail! AND
-    volunteer_references.user_id = :userId!
+    volunteer_references.email = :referenceEmail!
+    AND volunteer_references.user_id = :userId!
 RETURNING
     volunteer_references.id AS ok;
 
@@ -512,6 +522,7 @@ WHERE
 RETURNING
     user_id AS ok;
 
+
 /* @name getVolunteerTrainingCourses */
 SELECT
     user_id,
@@ -521,10 +532,12 @@ SELECT
     completed_materials,
     users_training_courses.created_at,
     users_training_courses.updated_at
-FROM users_training_courses
-LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id
+FROM
+    users_training_courses
+    LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id
 WHERE
     users_training_courses.user_id = :userId!;
+
 
 /* @name updateVolunteerTrainingById */
 INSERT INTO users_training_courses AS ins (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)
@@ -709,6 +722,7 @@ WHERE
 RETURNING
     volunteer_profiles.user_id AS ok;
 
+
 /* @name updateVolunteerPending */
 UPDATE
     volunteer_profiles
@@ -717,12 +731,17 @@ SET
     photo_id_status = subquery.id,
     updated_at = NOW()
 FROM (
-    SELECT id FROM photo_id_statuses WHERE name = :status!
-) AS subquery
+    SELECT
+        id
+    FROM
+        photo_id_statuses
+    WHERE
+        name = :status!) AS subquery
 WHERE
     volunteer_profiles.user_id = :userId!
 RETURNING
     volunteer_profiles.user_id AS ok;
+
 
 /* @name updateVolunteerOnboarded */
 UPDATE
@@ -1007,18 +1026,22 @@ INSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)
         RETURNING
             user_id AS ok;
 
+
 /* @name getQuizzesPassedForDateRange */
 SELECT
     COUNT(*)::int AS total
-FROM users_quizzes
+FROM
+    users_quizzes
 WHERE
-    user_id = :userId! AND
-    updated_at >= :start! AND
-    updated_at <= :end! AND
-    passed IS TRUE;
+    user_id = :userId!
+    AND updated_at >= :start!
+    AND updated_at <= :end!
+    AND passed IS TRUE;
+
 
 /* @name updateVolunteerUserForAdmin */
-UPDATE users
+UPDATE
+    users
 SET
     first_name = :firstName!,
     last_name = :lastName!,
@@ -1028,15 +1051,19 @@ SET
     deactivated = :isDeactivated!
 WHERE
     users.id = :userId!
-RETURNING id AS ok;
+RETURNING
+    id AS ok;
+
 
 /* @name updateVolunteerProfilesForAdmin */
-UPDATE volunteer_profiles
+UPDATE
+    volunteer_profiles
 SET
     volunteer_partner_org_id = :partnerOrgId
 WHERE
     user_id = :userId!
-RETURNING user_id AS ok;
+RETURNING
+    user_id AS ok;
 
 
 /* @name createVolunteerUser */
@@ -1047,23 +1074,22 @@ ON CONFLICT (email)
 RETURNING
     id, email, first_name, last_name, phone, banned, test_user, deactivated, created_at;
 
+
 /* @name getVolunteerPartnerOrgIdByKey */
 SELECT
     id
-FROM volunteer_partner_orgs
-WHERE key = :volunteerPartnerOrg!;
+FROM
+    volunteer_partner_orgs
+WHERE
+    KEY = :volunteerPartnerOrg!;
+
 
 /* @name createVolunteerProfile */
 INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)
-VALUES (
-    :userId!,
-    FALSE,
-    :partnerOrgId,
-    :timezone!,
-    NOW(),
-    NOW())
+    VALUES (:userId!, FALSE, :partnerOrgId, :timezone!, NOW(), NOW())
 RETURNING
     user_id AS ok;
+
 
 /* @name getCertificationsForVolunteers */
 SELECT
@@ -1158,9 +1184,9 @@ WHERE
     AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY(subjects_unlocked.subjects)
+    AND :subject! = ANY (subjects_unlocked.subjects)
     AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY(:disqualifiedVolunteers!)
+    AND NOT users.id = ANY (:disqualifiedVolunteers!)
     AND NOT EXISTS (
         SELECT
             user_id
@@ -1170,6 +1196,7 @@ WHERE
             user_id = users.id
             AND sent_at >= DATE(:lastNotified!))
 LIMIT 1;
+
 
 /* @name getNextOpenVolunteerToNotify */
 SELECT
@@ -1219,9 +1246,9 @@ WHERE
     AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY(subjects_unlocked.subjects)
+    AND :subject! = ANY (subjects_unlocked.subjects)
     AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY(:disqualifiedVolunteers!)
+    AND NOT users.id = ANY (:disqualifiedVolunteers!)
     AND volunteer_profiles.volunteer_partner_org_id IS NULL
     AND NOT EXISTS (
         SELECT
@@ -1282,9 +1309,9 @@ WHERE
     AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY(subjects_unlocked.subjects)
+    AND :subject! = ANY (subjects_unlocked.subjects)
     AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY(:disqualifiedVolunteers!)
+    AND NOT users.id = ANY (:disqualifiedVolunteers!)
     AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL
     AND NOT EXISTS (
         SELECT
@@ -1345,9 +1372,9 @@ WHERE
     AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY(subjects_unlocked.subjects)
+    AND :subject! = ANY (subjects_unlocked.subjects)
     AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY(:disqualifiedVolunteers!)
+    AND NOT users.id = ANY (:disqualifiedVolunteers!)
     AND volunteer_partner_orgs.key = :volunteerPartnerOrg!
     AND NOT EXISTS (
         SELECT
@@ -1358,6 +1385,7 @@ WHERE
             user_id = users.id
             AND sent_at >= DATE(:lastNotified!))
 LIMIT 1;
+
 
 /* @name getVolunteerForScheduleUpdate */
 SELECT
@@ -1390,7 +1418,8 @@ FROM
                         JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
                     GROUP BY
                         subjects.name) AS subject_total ON subject_total.name = subjects.name
-                WHERE users_certifications.user_id = users.id
+                WHERE
+                    users_certifications.user_id = users.id
                 GROUP BY
                     user_id,
                     subjects.name,
@@ -1400,6 +1429,7 @@ FROM
 WHERE
     users.id = :userId!
 LIMIT 1;
+
 
 /* @name getVolunteersOnDeck */
 SELECT
@@ -1447,8 +1477,76 @@ WHERE
     test_user IS FALSE
     AND banned IS FALSE
     AND deactivated IS FALSE
-    AND NOT users.id = ANY(:excludedIds!)
-    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
+    AND NOT users.id = ANY (:excludedIds!)
+AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
     AND subjects_unlocked.subject = :subject!;
+
+
+/* @name getUniqueStudentHelped */
+SELECT
+    SUM(sessions.total)::int AS total,
+    SUM(
+        CASE WHEN sessions.frequency_within_date_range > 0 THEN
+            1
+        ELSE
+            0
+        END)::int AS total_within_date_range
+FROM
+    volunteer_partner_orgs
+    JOIN volunteer_profiles ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
+    LEFT JOIN (
+        SELECT
+            COUNT(DISTINCT student_id) AS total,
+            volunteer_id,
+            every(sessions.created_at >= :start!
+                    AND sessions.created_at <= :end!)::int AS frequency_within_date_range
+        FROM
+            sessions
+    WHERE
+        ended_at IS NOT NULL
+    GROUP BY
+        student_id,
+        volunteer_id) AS sessions ON volunteer_profiles.user_id = sessions.volunteer_id
+WHERE ((:volunteerPartnerOrg!)::text IS NULL
+    OR volunteer_partner_orgs.key = :volunteerPartnerOrg!)
+GROUP BY
+    volunteer_partner_orgs.name;
+
+
+/* @name getUniquePartnerStudentsHelped */
+SELECT
+    SUM(sessions.total)::int AS total,
+    SUM(
+        CASE WHEN sessions.frequency_within_date_range > 0 THEN
+            1
+        ELSE
+            0
+        END)::int AS total_within_date_range
+FROM
+    volunteer_partner_orgs
+    JOIN volunteer_profiles ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
+    LEFT JOIN associated_partners ON volunteer_partner_orgs.id = associated_partners.volunteer_partner_org_id
+    LEFT JOIN sponsor_orgs ON associated_partners.student_sponsor_org_id = sponsor_orgs.id
+    LEFT JOIN schools_sponsor_orgs ON sponsor_orgs.id = schools_sponsor_orgs.school_id
+    LEFT JOIN (
+        SELECT
+            COUNT(DISTINCT student_id) AS total,
+            volunteer_id,
+            every(sessions.created_at >= :start!
+                    AND sessions.created_at <= :end!)::int AS frequency_within_date_range
+        FROM
+            sessions
+    WHERE
+        ended_at IS NOT NULL
+    GROUP BY
+        student_id,
+        volunteer_id) AS sessions ON volunteer_profiles.user_id = sessions.volunteer_id
+WHERE ((:volunteerPartnerOrg!)::text IS NULL
+    OR volunteer_partner_orgs.key = :volunteerPartnerOrg!)
+AND associated_partners.student_partner_org_id = ANY (:partnerStudentOrgs::uuid[])
+AND schools_sponsor_orgs.school_id = ANY (:partnerSchoolIds!::uuid[])
+GROUP BY
+    volunteer_partner_orgs.name;
+

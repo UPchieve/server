@@ -1358,3 +1358,35 @@ export type PartnerVolunteerAnalytics = {
   hourSummaryTotal: HourSummaryStats
   hourSummaryDateRange: HourSummaryStats
 }
+
+export interface UniqueStudentsHelped {
+  total: number
+  totalWithinDateRange: number
+}
+
+export async function getUniqueStudentHelped(volunteerPartnerOrg: string, start: Date, end: Date): Promise<UniqueStudentsHelped | undefined> {
+  try {
+    const result = await pgQueries.getUniqueStudentHelped.run(
+      { volunteerPartnerOrg, start, end },
+      getClient()
+    )
+    if(result.length) return makeRequired(result[0])
+    throw new RepoReadError('Unable to compute unique students helped')
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+// TODO: refactor to be included in getUniqueStudentHelped 
+export async function getUniquePartnerStudentHelped(volunteerPartnerOrg: string, start: Date, end: Date, partnerStudentOrgs: Ulid[], partnerSchoolIds: Ulid[]): Promise<UniqueStudentsHelped | undefined> {
+  try {
+    const result = await pgQueries.getUniquePartnerStudentsHelped.run(
+      { volunteerPartnerOrg, start, end, partnerStudentOrgs, partnerSchoolIds },
+      getClient()
+    )
+    if(result.length) return makeRequired(result[0])
+    throw new RepoReadError('Unable to compute unique students helped')
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

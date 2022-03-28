@@ -23,8 +23,8 @@ SELECT
     student_profiles.school_id
 FROM
     users
-LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
+    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
     banned IS FALSE
     AND deactivated IS FALSE
@@ -114,6 +114,7 @@ INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, u
     WHERE
         student_id = :studentId!
             AND volunteer_id = :volunteerId!;
+
 
 /* @name getReportedStudent */
 SELECT
@@ -213,13 +214,16 @@ WHERE
     student_partner_orgs.key = :partnerOrgKey
 LIMIT 1;
 
+
 /* @name updateStudentInGatesStudy */
-UPDATE user_product_flags
+UPDATE
+    user_product_flags
 SET
     in_gates_study = COALESCE(:inGatesStudy, in_gates_study)
 WHERE
     user_id = :userId!
-RETURNING user_id AS ok;
+RETURNING
+    user_id AS ok;
 
 
 /* @name createStudentUser */
@@ -264,3 +268,132 @@ RETURNING
     college,
     created_at,
     updated_at;
+
+
+/* @name getSessionReport */
+SELECT
+    sessions.id AS session_id,
+    sessions.created_at AS created_at,
+    sessions.ended_at AS ended_at,
+    topics.name AS topic,
+    subjects.name AS subject,
+    users.first_name AS first_name,
+    users.last_name AS last_name,
+    users.email AS email,
+    student_partner_org_sites.name AS partner_site,
+    (
+        CASE WHEN sessions.volunteer_id IS NOT NULL THEN
+            'YES'
+        ELSE
+            'NO'
+        END) AS volunteer_joined,
+    sessions.volunteer_joined_at AS volunteer_joined_at,
+    COALESCE(session_messages.total, 0)::text AS total_messages,
+    (
+        CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN
+            TRUNC(EXTRACT(EPOCH FROM (sessions.volunteer_joined_at - sessions.created_at)) / 60)
+        ELSE
+            NULL
+        END) AS wait_time_mins,
+    sponsor_orgs.name AS sponsor_org
+FROM
+    student_profiles
+    JOIN users ON student_profiles.user_id = users.id
+    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
+    LEFT JOIN student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)
+    LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id
+    LEFT JOIN schools ON student_profiles.school_id = schools.id
+    JOIN sessions ON sessions.student_id = student_profiles.user_id
+    LEFT JOIN (
+        SELECT
+            session_id,
+            count(*) AS total
+        FROM
+            session_messages
+        GROUP BY
+            session_id) AS session_messages ON sessions.id = session_messages.session_id
+    JOIN subjects ON sessions.subject_id = subjects.id
+    JOIN topics ON subjects.topic_id = topics.id
+WHERE
+    sessions.created_at >= :start!
+    AND sessions.created_at <= :end!
+    AND sessions.ended_at IS NOT NULL
+    AND ((:highSchoolId)::uuid IS NULL
+        OR student_profiles.school_id = :highSchoolId)
+    AND ((:studentPartnerOrg)::text IS NULL
+        OR student_partner_orgs.key = :studentPartnerOrg)
+    AND ((:studentPartnerSite)::text IS NULL
+        OR student_partner_org_sites.name = :studentPartnerSite)
+    AND ((:sponsorOrg)::text IS NULL
+        OR sponsor_orgs.name = :sponsorOrg)
+ORDER BY
+    sessions.created_at ASC;
+
+
+/* @name getUsageReport */
+SELECT
+    users.id AS user_id,
+    users.first_name AS first_name,
+    users.last_name AS last_name,
+    users.email AS email,
+    users.created_at AS join_date,
+    student_partner_orgs.name AS student_partner_org,
+    student_partner_org_sites.name AS partner_site,
+    sponsor_orgs.name AS sponsor_org,
+    schools.name AS school,
+    COALESCE(sessions.total_sessions, 0) AS total_sessions,
+    COALESCE(sessions.total_session_length_mins, 0) AS total_session_length_mins,
+    COALESCE(sessions.range_total_sessions, 0) AS range_total_sessions,
+    COALESCE(sessions.range_session_length_mins, 0) AS range_session_length_mins
+FROM
+    student_profiles
+    JOIN users ON student_profiles.user_id = users.id
+    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
+    LEFT JOIN student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)
+    LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id
+    LEFT JOIN schools ON student_profiles.school_id = schools.id
+    LEFT JOIN (
+        SELECT
+            sum(
+                CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN
+                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60)
+                ELSE
+                    0
+                END)::int AS total_session_length_mins,
+            sum(
+                CASE WHEN sessions.volunteer_joined_at IS NOT NULL
+                    AND sessions.created_at >= :sessionStart!
+                    AND sessions.created_at <= :sessionEnd! THEN
+                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60)
+                ELSE
+                    0
+                END)::int AS range_session_length_mins,
+            count(*)::int AS total_sessions,
+            sum(
+                CASE WHEN sessions.created_at >= :sessionStart!
+                    AND sessions.created_at <= :sessionEnd! THEN
+                    1
+                ELSE
+                    0
+                END)::int AS range_total_sessions,
+            student_id
+        FROM
+            sessions
+    GROUP BY
+        sessions.student_id) AS sessions ON sessions.student_id = student_profiles.user_id
+WHERE
+    users.created_at >= :joinedStart!
+    AND users.created_at <= :joinedEnd!
+    AND ((:highSchoolId)::uuid IS NULL
+        OR student_profiles.school_id = :highSchoolId)
+    AND ((:studentPartnerOrg)::text IS NULL
+        OR student_partner_orgs.key = :studentPartnerOrg)
+    AND ((:studentPartnerSite)::text IS NULL
+        OR student_partner_org_sites.name = :studentPartnerSite)
+    AND ((:sponsorOrg)::text IS NULL
+        OR sponsor_orgs.name = :sponsorOrg)
+ORDER BY
+    users.created_at ASC;
+

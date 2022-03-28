@@ -5,3 +5,7 @@ export interface UserActionAgent {
   operatingSystem: string
   operatingSystemVersion: string
 }
+
+export type QuizzesPassedForDateRange = {
+  createdAt: Date
+}
