@@ -6,14 +6,28 @@ import { routes as EligibilityRouter } from '../../router/eligibility'
 import { NotAllowedError } from '../../models/Errors'
 import { mockApp } from '../mock-app'
 import { GRADES } from '../../constants'
-import { buildStudent, buildSchool } from '../generate'
+import {
+  buildStudent,
+  buildSchool,
+  getIpAddress,
+  getObjectId,
+} from '../generate'
 import * as IneligibleStudentRepo from '../../models/IneligibleStudent/queries'
+import * as SchoolRepo from '../../models/School/queries'
+import * as UserCtrl from '../../controllers/UserCtrl'
+import * as UserRepo from '../../models/User/queries'
 
 jest.mock('../../services/IpAddressService')
 jest.mock('../../models/IneligibleStudent/queries')
+jest.mock('../../models/School/queries')
+jest.mock('../../controllers/UserCtrl')
+jest.mock('../../models/User/queries')
 
 const mockedIpAddressService = mocked(IpAddressService, true)
 const mockedIneligibleStudentRepo = mocked(IneligibleStudentRepo, true)
+const mockedSchoolRepo = mocked(SchoolRepo, true)
+const mockedUserCtrl = mocked(UserCtrl, true)
+const mockedUserRepo = mocked(UserRepo, true)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api-public/eligibility'
@@ -63,25 +77,36 @@ const ELIGIBILITY_CHECK_PATH = '/check'
 describe(ELIGIBILITY_CHECK_PATH, () => {
   test('Should send error message when college students sign up', async () => {
     const student = buildStudent()
-    const school = buildSchool()
+    const referredBy = getObjectId()
+    const school = buildSchool({
+      isApproved: false,
+    })
     const payload = {
-      schoolUpchieveId: school._id,
-      zipCode: '11201',
+      schoolUpchieveId: school.upchieveId,
+      zipCodeInput: '11201',
       email: student.email,
       currentGrade: GRADES.COLLEGE,
     }
     const mockIneligibleStudent = {
-      schoolUpchieveId: school._id,
-      zipCode: '11201',
-      email: student.email,
-      currentGrade: GRADES.COLLEGE,
+      ...student,
+      school: school._id,
+      referredBy: student.referredBy ? student.referredBy : referredBy,
+      ipAddress: getIpAddress(),
     }
 
-    // mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue()
-    //mockedIneligibleStudentRepo.createIneligibleStudent.mockResolvedValue(mockIneligibleStudent)
-    // const response = await sendPost(ELIGIBILITY_CHECK_PATH, payload)
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined)
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValueOnce(
+      undefined
+    )
+    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+    mockedIneligibleStudentRepo.createIneligibleStudent.mockResolvedValue(
+      mockIneligibleStudent
+    )
 
-    // expect(response.body.isEligible).toBe(false)
+    const response = await sendPost(ELIGIBILITY_CHECK_PATH, payload)
+    // console.log(response.body)
+    expect(response.body.isEligible).toBe(false)
     // expect(response.body.message).toBe('Student is not a high school student.')
   })
 })
