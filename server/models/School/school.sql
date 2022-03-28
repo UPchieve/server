@@ -136,18 +136,23 @@ SET
 WHERE
     school_id = :schoolId!;
 
+
 /* @name schoolSearch */
-SELECT schools.id, 
-COALESCE(meta.sch_name, schools.name) AS name_stored,
-COALESCE(meta.st, schools.us_state_code) AS state_stored,
-COALESCE(meta.lcity, cities.name) AS city_name_stored, 
-meta.lea_name AS district_name_stored,
-schools.created_at,
-schools.updated_at,
-approved AS is_approved,
-partner AS is_partner
-FROM schools 
-LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
-LEFT JOIN cities ON schools.city_id = cities.id
-WHERE schools.name LIKE '%' || :query! || '%'
+SELECT
+    schools.id,
+    COALESCE(meta.sch_name, schools.name) AS name_stored,
+    COALESCE(meta.st, schools.us_state_code) AS state_stored,
+    COALESCE(meta.lcity, cities.name) AS city_name_stored,
+    meta.lea_name AS district_name_stored,
+    schools.created_at,
+    schools.updated_at,
+    approved AS is_approved,
+    partner AS is_partner
+FROM
+    schools
+    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
+    LEFT JOIN cities ON schools.city_id = cities.id
+WHERE
+    schools.name LIKE '%' || :query! || '%'
 LIMIT 100;
+

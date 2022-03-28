@@ -96,7 +96,9 @@ WHERE
 /* @name clearAvailabilityForVolunteer */
 DELETE FROM availabilities
 WHERE user_id = :userId!
-RETURNING user_id AS ok;
+RETURNING
+    user_id AS ok;
+
 
 /* @name saveLegacyAvailability */
 INSERT INTO legacy_availability_histories (id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at)
@@ -108,7 +110,11 @@ SELECT
     :availability!,
     NOW(),
     NOW()
-FROM availabilities
-WHERE user_id = :userId!
+FROM
+    availabilities
+WHERE
+    user_id = :userId!
 LIMIT 1
-RETURNING id AS ok;
+RETURNING
+    id AS ok;
+

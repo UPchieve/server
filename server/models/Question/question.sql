@@ -23,7 +23,7 @@ WHERE
 INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, image_source, quiz_subcategory_id, created_at, updated_at)
     VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :imageSrc!, :subcategoryId!, NOW(), NOW())
 RETURNING
-   id, question_text, possible_answers, correct_answer, image_source AS image_src, created_at, updated_at;
+    id, question_text, possible_answers, correct_answer, image_source AS image_src, created_at, updated_at;
 
 
 /* @name upsertQuiz */
@@ -108,17 +108,25 @@ FROM
 GROUP BY
     quizzes.name;
 
+
 /* @name getSubcategoriesForQuiz */
 SELECT
     quiz_subcategories.name
-FROM quiz_subcategories
-JOIN quizzes ON quiz_subcategories.quiz_id = quizzes.id
-WHERE quizzes.name = :quizName!;
+FROM
+    quiz_subcategories
+    JOIN quizzes ON quiz_subcategories.quiz_id = quizzes.id
+WHERE
+    quizzes.name = :quizName!;
+
 
 /* @name getMultipleQuestionsById */
-SELECT *
-FROM quiz_questions
-WHERE id = ANY(:ids!);
+SELECT
+    *
+FROM
+    quiz_questions
+WHERE
+    id = ANY (:ids!);
+
 
 /* @name getQuestionsByCategory */
 SELECT
@@ -132,8 +140,11 @@ SELECT
     ques.created_at,
     ques.updated_at,
     ques.mongo_id
-FROM quiz_questions ques
-LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id
-LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id
-WHERE quizzes.name = :category!
+FROM
+    quiz_questions ques
+    LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id
+    LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id
+WHERE
+    quizzes.name = :category!
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
+

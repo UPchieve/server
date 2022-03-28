@@ -440,24 +440,27 @@ export interface ISchoolSearchQuery {
   result: ISchoolSearchResult;
 }
 
-const schoolSearchIR: any = {"name":"schoolSearch","params":[{"name":"query","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3826,"b":3831,"line":152,"col":32}]}}],"usedParamSet":{"query":true},"statement":{"body":"SELECT schools.id, \nCOALESCE(meta.sch_name, schools.name) AS name_stored,\nCOALESCE(meta.st, schools.us_state_code) AS state_stored,\nCOALESCE(meta.lcity, cities.name) AS city_name_stored, \nmeta.lea_name AS district_name_stored,\nschools.created_at,\nschools.updated_at,\napproved AS is_approved,\npartner AS is_partner\nFROM schools \nLEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\nLEFT JOIN cities ON schools.city_id = cities.id\nWHERE schools.name LIKE '%' || :query! || '%'\nLIMIT 100","loc":{"a":3351,"b":3848,"line":140,"col":0}}};
+const schoolSearchIR: any = {"name":"schoolSearch","params":[{"name":"query","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3876,"b":3881,"line":156,"col":30}]}}],"usedParamSet":{"query":true},"statement":{"body":"SELECT\n    schools.id,\n    COALESCE(meta.sch_name, schools.name) AS name_stored,\n    COALESCE(meta.st, schools.us_state_code) AS state_stored,\n    COALESCE(meta.lcity, cities.name) AS city_name_stored,\n    meta.lea_name AS district_name_stored,\n    schools.created_at,\n    schools.updated_at,\n    approved AS is_approved,\n    partner AS is_partner\nFROM\n    schools\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\n    LEFT JOIN cities ON schools.city_id = cities.id\nWHERE\n    schools.name LIKE '%' || :query! || '%'\nLIMIT 100","loc":{"a":3352,"b":3898,"line":141,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT schools.id, 
- * COALESCE(meta.sch_name, schools.name) AS name_stored,
- * COALESCE(meta.st, schools.us_state_code) AS state_stored,
- * COALESCE(meta.lcity, cities.name) AS city_name_stored, 
- * meta.lea_name AS district_name_stored,
- * schools.created_at,
- * schools.updated_at,
- * approved AS is_approved,
- * partner AS is_partner
- * FROM schools 
- * LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
- * LEFT JOIN cities ON schools.city_id = cities.id
- * WHERE schools.name LIKE '%' || :query! || '%'
+ * SELECT
+ *     schools.id,
+ *     COALESCE(meta.sch_name, schools.name) AS name_stored,
+ *     COALESCE(meta.st, schools.us_state_code) AS state_stored,
+ *     COALESCE(meta.lcity, cities.name) AS city_name_stored,
+ *     meta.lea_name AS district_name_stored,
+ *     schools.created_at,
+ *     schools.updated_at,
+ *     approved AS is_approved,
+ *     partner AS is_partner
+ * FROM
+ *     schools
+ *     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
+ *     LEFT JOIN cities ON schools.city_id = cities.id
+ * WHERE
+ *     schools.name LIKE '%' || :query! || '%'
  * LIMIT 100
  * ```
  */

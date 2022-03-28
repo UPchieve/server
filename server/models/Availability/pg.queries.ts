@@ -246,14 +246,15 @@ export interface IClearAvailabilityForVolunteerQuery {
   result: IClearAvailabilityForVolunteerResult;
 }
 
-const clearAvailabilityForVolunteerIR: any = {"name":"clearAvailabilityForVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2173,"b":2179,"line":98,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM availabilities\nWHERE user_id = :userId!\nRETURNING user_id AS ok","loc":{"a":2129,"b":2203,"line":97,"col":0}}};
+const clearAvailabilityForVolunteerIR: any = {"name":"clearAvailabilityForVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2173,"b":2179,"line":98,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM availabilities\nWHERE user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":2129,"b":2207,"line":97,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * DELETE FROM availabilities
  * WHERE user_id = :userId!
- * RETURNING user_id AS ok
+ * RETURNING
+ *     user_id AS ok
  * ```
  */
 export const clearAvailabilityForVolunteer = new PreparedQuery<IClearAvailabilityForVolunteerParams,IClearAvailabilityForVolunteerResult>(clearAvailabilityForVolunteerIR);
@@ -277,7 +278,7 @@ export interface ISaveLegacyAvailabilityQuery {
   result: ISaveLegacyAvailabilityResult;
 }
 
-const saveLegacyAvailabilityIR: any = {"name":"saveLegacyAvailability","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2378,"b":2380,"line":104,"col":5}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2388,"b":2394,"line":105,"col":5},{"a":2515,"b":2521,"line":112,"col":17}]}},{"name":"availability","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2442,"b":2454,"line":108,"col":5}]}}],"usedParamSet":{"id":true,"userId":true,"availability":true},"statement":{"body":"INSERT INTO legacy_availability_histories (id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    availabilities.timezone,\n    NOW(),\n    :availability!,\n    NOW(),\n    NOW()\nFROM availabilities\nWHERE user_id = :userId!\nLIMIT 1\nRETURNING id AS ok","loc":{"a":2242,"b":2548,"line":102,"col":0}}};
+const saveLegacyAvailabilityIR: any = {"name":"saveLegacyAvailability","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2383,"b":2385,"line":106,"col":5}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2393,"b":2399,"line":107,"col":5},{"a":2528,"b":2534,"line":116,"col":15}]}},{"name":"availability","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2447,"b":2459,"line":110,"col":5}]}}],"usedParamSet":{"id":true,"userId":true,"availability":true},"statement":{"body":"INSERT INTO legacy_availability_histories (id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    availabilities.timezone,\n    NOW(),\n    :availability!,\n    NOW(),\n    NOW()\nFROM\n    availabilities\nWHERE\n    user_id = :userId!\nLIMIT 1\nRETURNING\n    id AS ok","loc":{"a":2247,"b":2565,"line":104,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -291,10 +292,13 @@ const saveLegacyAvailabilityIR: any = {"name":"saveLegacyAvailability","params":
  *     :availability!,
  *     NOW(),
  *     NOW()
- * FROM availabilities
- * WHERE user_id = :userId!
+ * FROM
+ *     availabilities
+ * WHERE
+ *     user_id = :userId!
  * LIMIT 1
- * RETURNING id AS ok
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const saveLegacyAvailability = new PreparedQuery<ISaveLegacyAvailabilityParams,ISaveLegacyAvailabilityResult>(saveLegacyAvailabilityIR);

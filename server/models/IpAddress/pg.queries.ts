@@ -125,7 +125,7 @@ export interface IUpdateIpStatusByUserIdQuery {
   result: IUpdateIpStatusByUserIdResult;
 }
 
-const updateIpStatusByUserIdIR: any = {"name":"updateIpStatusByUserId","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":596,"b":602,"line":32,"col":14}]}},{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":718,"b":723,"line":36,"col":70}]}}],"usedParamSet":{"status":true,"userId":true},"statement":{"body":"UPDATE\n    ONLY ip_addresses\nSET\n    status = :status!,\n    updated_at = NOW()\nWHERE\n    id = ANY(\n        SELECT ip_address_id FROM users_ip_addresses WHERE user_id = :userId\n    )\nRETURNING\n    id AS ok","loc":{"a":549,"b":752,"line":29,"col":0}}};
+const updateIpStatusByUserIdIR: any = {"name":"updateIpStatusByUserId","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":596,"b":602,"line":32,"col":14}]}},{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":771,"b":776,"line":41,"col":23}]}}],"usedParamSet":{"status":true,"userId":true},"statement":{"body":"UPDATE\n    ONLY ip_addresses\nSET\n    status = :status!,\n    updated_at = NOW()\nWHERE\n    id = ANY (\n        SELECT\n            ip_address_id\n        FROM\n            users_ip_addresses\n        WHERE\n            user_id = :userId)\nRETURNING\n    id AS ok","loc":{"a":549,"b":800,"line":29,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -136,9 +136,13 @@ const updateIpStatusByUserIdIR: any = {"name":"updateIpStatusByUserId","params":
  *     status = :status!,
  *     updated_at = NOW()
  * WHERE
- *     id = ANY(
- *         SELECT ip_address_id FROM users_ip_addresses WHERE user_id = :userId
- *     )
+ *     id = ANY (
+ *         SELECT
+ *             ip_address_id
+ *         FROM
+ *             users_ip_addresses
+ *         WHERE
+ *             user_id = :userId)
  * RETURNING
  *     id AS ok
  * ```

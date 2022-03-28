@@ -1,6 +1,6 @@
 /* @name getQuizzesPassedForDateRangeByVolunteerId */
 SELECT
-    count(*)::int AS total
+    created_at
 FROM
     user_actions
 WHERE
@@ -26,16 +26,27 @@ WHERE
     AND action = 'REQUESTED SESSION'
     AND session_id = :sessionId!;
 
+
 /* @name upsertIpAddress */
 WITH ins AS (
-    INSERT INTO ip_addresses (ip, created_at, updated_at)
-    VALUES (:ip!, NOW(), NOW())
-    ON CONFLICT DO NOTHING
-    RETURNING id
-)
-SELECT * FROM ins
-UNION
-    SELECT id FROM ip_addresses WHERE ip = :ip!;
+INSERT INTO ip_addresses (ip, created_at, updated_at)
+        VALUES (:ip!, NOW(), NOW())
+    ON CONFLICT
+        DO NOTHING
+    RETURNING
+        id)
+    SELECT
+        *
+    FROM
+        ins
+    UNION
+    SELECT
+        id
+    FROM
+        ip_addresses
+    WHERE
+        ip = :ip!;
+
 
 /* @name userHasTakenQuiz */
 SELECT

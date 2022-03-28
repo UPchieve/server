@@ -32,9 +32,13 @@ SET
     status = :status!,
     updated_at = NOW()
 WHERE
-    id = ANY(
-        SELECT ip_address_id FROM users_ip_addresses WHERE user_id = :userId
-    )
+    id = ANY (
+        SELECT
+            ip_address_id
+        FROM
+            users_ip_addresses
+        WHERE
+            user_id = :userId)
 RETURNING
     id AS ok;
 

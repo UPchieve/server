@@ -20,22 +20,23 @@ export interface IGetAssociatedPartnersQuery {
   result: IGetAssociatedPartnersResult;
 }
 
-const getAssociatedPartnersIR: any = {"name":"getAssociatedPartners","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n  ap.key as key,\n  vpo.key as volunteer_partner_org,\n  vpo.name as volunteer_org_display,\n  spo.key as student_partner_org,\n  spo.name as student_org_display,\n  so.key as student_sponsor_org\nFROM associated_partners ap\nJOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\nJOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\nJOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id","loc":{"a":34,"b":456,"line":2,"col":0}}};
+const getAssociatedPartnersIR: any = {"name":"getAssociatedPartners","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    ap.key AS KEY,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.key AS student_partner_org,\n    spo.name AS student_org_display,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id","loc":{"a":34,"b":484,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   ap.key as key,
- *   vpo.key as volunteer_partner_org,
- *   vpo.name as volunteer_org_display,
- *   spo.key as student_partner_org,
- *   spo.name as student_org_display,
- *   so.key as student_sponsor_org
- * FROM associated_partners ap
- * JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id
- * JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id
- * JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id
+ *     ap.key AS KEY,
+ *     vpo.key AS volunteer_partner_org,
+ *     vpo.name AS volunteer_org_display,
+ *     spo.key AS student_partner_org,
+ *     spo.name AS student_org_display,
+ *     so.key AS student_sponsor_org
+ * FROM
+ *     associated_partners ap
+ *     JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id
+ *     JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id
+ *     JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id
  * ```
  */
 export const getAssociatedPartners = new PreparedQuery<IGetAssociatedPartnersParams,IGetAssociatedPartnersResult>(getAssociatedPartnersIR);
@@ -62,23 +63,25 @@ export interface IGetAssociatedPartnerByKeyQuery {
   result: IGetAssociatedPartnerByKeyResult;
 }
 
-const getAssociatedPartnerByKeyIR: any = {"name":"getAssociatedPartnerByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":936,"b":939,"line":26,"col":14}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n  ap.key as key,\n  vpo.key as volunteer_partner_org,\n  vpo.name as volunteer_org_display,\n  spo.key as student_partner_org,\n  spo.name as student_org_display,\n  so.key as student_sponsor_org\nFROM associated_partners ap\nJOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\nJOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\nJOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE ap.key=:key!","loc":{"a":498,"b":939,"line":15,"col":0}}};
+const getAssociatedPartnerByKeyIR: any = {"name":"getAssociatedPartnerByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":999,"b":1002,"line":30,"col":14}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    ap.key AS KEY,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.key AS student_partner_org,\n    spo.name AS student_org_display,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    ap.key = :key!","loc":{"a":527,"b":1002,"line":17,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   ap.key as key,
- *   vpo.key as volunteer_partner_org,
- *   vpo.name as volunteer_org_display,
- *   spo.key as student_partner_org,
- *   spo.name as student_org_display,
- *   so.key as student_sponsor_org
- * FROM associated_partners ap
- * JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id
- * JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id
- * JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id
- * WHERE ap.key=:key!
+ *     ap.key AS KEY,
+ *     vpo.key AS volunteer_partner_org,
+ *     vpo.name AS volunteer_org_display,
+ *     spo.key AS student_partner_org,
+ *     spo.name AS student_org_display,
+ *     so.key AS student_sponsor_org
+ * FROM
+ *     associated_partners ap
+ *     JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id
+ *     JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id
+ *     JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id
+ * WHERE
+ *     ap.key = :key!
  * ```
  */
 export const getAssociatedPartnerByKey = new PreparedQuery<IGetAssociatedPartnerByKeyParams,IGetAssociatedPartnerByKeyResult>(getAssociatedPartnerByKeyIR);

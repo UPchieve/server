@@ -131,6 +131,7 @@ WHERE
     password_reset_token = :resetToken!
 LIMIT 1;
 
+
 /* @name deleteUser */
 UPDATE
     users
@@ -150,10 +151,8 @@ FROM
     users
 WHERE
     referred_by = :userId!
-AND
-    phone_verified IS true
-OR
-    email_verified IS true;
+    AND phone_verified IS TRUE
+    OR email_verified IS TRUE;
 
 
 /* @name updateUserResetTokenById */
@@ -509,6 +508,7 @@ FROM
 WHERE
     users.id = :userId!;
 
+
 /* @name getUserToCreateSendGridContact */
 SELECT
     users.id,
@@ -534,7 +534,12 @@ SELECT
     users.last_activity_at,
     users.created_at,
     users.deactivated,
-    (CASE WHEN user_upchieve101.id IS NULL THEN FALSE ELSE TRUE END) AS passed_upchieve101,
+    (
+        CASE WHEN user_upchieve101.id IS NULL THEN
+            FALSE
+        ELSE
+            TRUE
+        END) AS passed_upchieve101,
     users.test_user,
     users.last_name
 FROM
@@ -545,17 +550,22 @@ FROM
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
     LEFT JOIN LATERAL (
-        SELECT id FROM users_training_courses
-        LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id
-        WHERE users_training_courses.user_id = users.id AND training_courses.name = 'UPchieve 101'
-    ) AS user_upchieve101 ON TRUE
+        SELECT
+            id
+        FROM
+            users_training_courses
+            LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id
+        WHERE
+            users_training_courses.user_id = users.id
+            AND training_courses.name = 'UPchieve 101') AS user_upchieve101 ON TRUE
 WHERE
     users.id = :userId!
 LIMIT 1;
 
+
 /* @name getPastSessionsForAdminDetail */
 SELECT
-    topics.name AS type,
+    topics.name AS TYPE,
     subjects.name AS sub_topic,
     sessions.id,
     messages.total AS total_messages,
@@ -564,12 +574,18 @@ SELECT
     sessions.volunteer_joined_at,
     sessions.created_at,
     sessions.ended_at
-FROM sessions
-LEFT JOIN subjects ON subjects.id = sessions.subject_id
-LEFT JOIN topics ON topics.id = subjects.topic_id
-LEFT JOIN LATERAL (
-    SELECT COUNT(*)::int AS total FROM session_messages WHERE session_id = sessions.id
-) AS messages ON TRUE
+FROM
+    sessions
+    LEFT JOIN subjects ON subjects.id = sessions.subject_id
+    LEFT JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN LATERAL (
+        SELECT
+            COUNT(*)::int AS total
+        FROM
+            session_messages
+        WHERE
+            session_id = sessions.id) AS messages ON TRUE
 WHERE
-    sessions.volunteer_id = :userId! OR
-    sessions.student_id = :userId!;
+    sessions.volunteer_id = :userId!
+    OR sessions.student_id = :userId!;
+
