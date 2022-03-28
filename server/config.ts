@@ -267,6 +267,7 @@ const config: Static<typeof Config> = {
   postgresUser: process.env.SUBWAY_PORTGRES_USER || 'subway',
   postgresPassword: process.env.SUBWAY_PORTGRES_PASSWORD || 'Password123',
   postgresDatabase: process.env.SUBWAY_PORTGRES_DB || 'upchieve',
+  postgresRequireSSL: Boolean(process.env.SUBWAY_PORTGRES_REQUIRE_SSL || false),
   firebase: {
     projectId: process.env.SUBWAY_FIREBASE_PROJECT_ID || '123456789012',
   },

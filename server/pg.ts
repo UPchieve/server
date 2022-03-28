@@ -10,6 +10,7 @@ export function buildClient(): Pool {
     user: config.postgresUser,
     password: config.postgresPassword,
     database: config.postgresDatabase,
+    ssl: config.postgresRequireSSL
   })
 }
 
