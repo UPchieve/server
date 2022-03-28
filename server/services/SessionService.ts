@@ -14,12 +14,10 @@ import {
   SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SESSION_USER_ACTIONS,
-  SUBJECT_TYPES,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
 import { SESSION_EVENTS } from '../constants/events'
-import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import logger from '../logger'
 import * as AssistmentsDataRepo from '../models/AssistmentsData'
 import { DAYS } from '../models/Availability/types'
@@ -47,7 +45,6 @@ import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
 import * as TwilioService from './TwilioService'
 import {
-  beginFailsafeNotifications,
   beginRegularNotifications,
 } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
@@ -112,11 +109,11 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
       session.studentId,
       'SESSION REPORTED'
     )
-    // TODO: record ban reason
     await createAccountAction({
       userId: session.studentId,
       action: ACCOUNT_USER_ACTIONS.BANNED,
-      sessionId: session.id
+      sessionId: session.id,
+      banReason: reportReason
     })
     AnalyticsService.captureEvent(
       session.studentId as Ulid,
@@ -522,7 +519,6 @@ export async function startSession(user: UserContactInfo, data: unknown) {
 
   if (!user.banned) {
     await beginRegularNotifications(newSessionId)
-    await beginFailsafeNotifications(newSessionId)
   }
 
   // Auto end the session after 45 minutes if the session is unmatched
@@ -563,7 +559,7 @@ export async function studentLatestSession(data: unknown) {
   return await SessionRepo.getLatestSessionByStudentId(userId)
 }
 
-export async function sessionTimedOut(user: User, data: unknown) {
+export async function sessionTimedOut(user: UserContactInfo, data: unknown) {
   const {
     sessionId,
     timeout,
@@ -692,12 +688,12 @@ export async function saveMessage(
   user: any,
   createdAt: Date,
   data: unknown,
-  chatbot: Ulid
+  chatbot: Ulid | undefined
 ): Promise<void> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   if (
-    !sessionUtils.isSessionParticipant(session.id, asString(user._id), chatbot)
+    !sessionUtils.isSessionParticipant(session.id, asString(user._id), chatbot || null)
   )
     throw new Error('Only session participants are allowed to send messages')
 

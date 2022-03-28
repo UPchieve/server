@@ -182,8 +182,8 @@ RETURNING
 UPDATE
     student_profiles
 SET
-    student_partner_org_id = :partnerOrgId!,
-    student_partner_org_site_id = :partnerOrgSiteId!,
+    student_partner_org_id = :partnerOrgId,
+    student_partner_org_site_id = :partnerOrgSiteId,
     updated_at = NOW()
 WHERE
     user_id = :userId!
@@ -210,7 +210,16 @@ FROM
         WHERE
             student_partner_org_sites.name = :partnerOrgSiteName) AS student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
 WHERE
-    student_partner_orgs.key = :partnerOrgKey!;
+    student_partner_orgs.key = :partnerOrgKey
+LIMIT 1;
+
+/* @name updateStudentInGatesStudy */
+UPDATE user_product_flags
+SET
+    in_gates_study = COALESCE(:inGatesStudy, in_gates_study)
+WHERE
+    user_id = :userId!
+RETURNING user_id AS ok;
 
 
 /* @name createStudentUser */

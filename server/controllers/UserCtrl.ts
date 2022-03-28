@@ -6,7 +6,7 @@ import * as UserRepo from '../models/User'
 import * as StudentRepo from '../models/Student'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as UserActionRepo from '../models/UserAction'
-
+import { Certifications } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
 import { createUSMByUserId } from '../models/UserSessionMetrics/queries'
 import { createUPFByUserId } from '../models/UserProductFlags/queries'

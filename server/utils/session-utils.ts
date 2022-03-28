@@ -1,16 +1,12 @@
-import { logger } from '@sentry/utils'
 import Case from 'case'
 import { Ulid } from '../models/pgUtils'
 import { Socket } from 'socket.io'
 import { CustomError } from 'ts-custom-error'
-import { SUBJECTS, SUBJECT_TYPES, CHATBOT_EMAIL } from '../constants'
+import { SUBJECTS, SUBJECT_TYPES } from '../constants'
 import { DAYS, HOURS } from '../models/Availability/types'
 import { InputError } from '../models/Errors'
 import { getMessagesForFrontend, Session } from '../models/Session'
-import { SessionToEnd, MessageForFrontend } from '../models/Session'
-import { Student } from '../models/Student'
-import { User } from '../models/User'
-import { getUserIdByEmail } from '../models/User'
+import { MessageForFrontend } from '../models/Session'
 import {
   asBoolean,
   asDate,

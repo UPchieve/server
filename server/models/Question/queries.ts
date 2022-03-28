@@ -164,3 +164,14 @@ export async function getMultipleQuestionsById(ids: number[]): Promise<pgQueries
     throw new RepoReadError(err)
   }
 }
+
+export async function getQuestionsByCategory(category: string, limit: number, offset: number): Promise<Question[]> {
+  try {
+    const questions = await pgQueries.getQuestionsByCategory.run({ category, limit, offset }, getClient())
+    const result = questions.map(v => makeRequired(v))
+    const parsedResult = result.map(res => parseQueryResult(res))
+    return parsedResult
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

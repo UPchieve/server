@@ -233,6 +233,7 @@ export const createSessionAction = new PreparedQuery<ICreateSessionActionParams,
 export interface ICreateAccountActionParams {
   action: string;
   actionType: string;
+  banReason: string | null | void;
   ipAddressId: string | null | void;
   referenceEmail: string | null | void;
   sessionId: string | null | void;
@@ -251,13 +252,13 @@ export interface ICreateAccountActionQuery {
   result: ICreateAccountActionResult;
 }
 
-const createAccountActionIR: any = {"name":"createAccountAction","params":[{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1986,"b":1996,"line":70,"col":13}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2000,"b":2006,"line":70,"col":27}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2010,"b":2016,"line":70,"col":37}]}},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2020,"b":2030,"line":70,"col":47}]}},{"name":"referenceEmail","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2034,"b":2047,"line":70,"col":61}]}},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2051,"b":2061,"line":70,"col":78}]}},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2065,"b":2073,"line":70,"col":92}]}}],"usedParamSet":{"actionType":true,"action":true,"userId":true,"ipAddressId":true,"referenceEmail":true,"volunteerId":true,"sessionId":true},"statement":{"body":"INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, created_at, updated_at)\n    VALUES (:actionType!, :action!, :userId!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":1835,"b":2111,"line":69,"col":0}}};
+const createAccountActionIR: any = {"name":"createAccountAction","params":[{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1998,"b":2008,"line":70,"col":13}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2012,"b":2018,"line":70,"col":27}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2022,"b":2028,"line":70,"col":37}]}},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2032,"b":2042,"line":70,"col":47}]}},{"name":"referenceEmail","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2046,"b":2059,"line":70,"col":61}]}},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2063,"b":2073,"line":70,"col":78}]}},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2077,"b":2085,"line":70,"col":92}]}},{"name":"banReason","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2089,"b":2097,"line":70,"col":104}]}}],"usedParamSet":{"actionType":true,"action":true,"userId":true,"ipAddressId":true,"referenceEmail":true,"volunteerId":true,"sessionId":true,"banReason":true},"statement":{"body":"INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at)\n    VALUES (:actionType!, :action!, :userId!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":1835,"b":2135,"line":69,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, created_at, updated_at)
- *     VALUES (:actionType!, :action!, :userId!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, NOW(), NOW())
+ * INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at)
+ *     VALUES (:actionType!, :action!, :userId!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW())
  * RETURNING
  *     id AS ok
  * ```
@@ -283,7 +284,7 @@ export interface ICreateAdminActionQuery {
   result: ICreateAdminActionResult;
 }
 
-const createAdminActionIR: any = {"name":"createAdminAction","params":[{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2239,"b":2249,"line":77,"col":13}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2253,"b":2259,"line":77,"col":27}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2263,"b":2269,"line":77,"col":37}]}}],"usedParamSet":{"actionType":true,"action":true,"userId":true},"statement":{"body":"INSERT INTO user_actions (user_id, action_type, action, created_at, updated_at)\n    VALUES (:actionType!, :action!, :userId!, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":2146,"b":2307,"line":76,"col":0}}};
+const createAdminActionIR: any = {"name":"createAdminAction","params":[{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2263,"b":2273,"line":77,"col":13}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2277,"b":2283,"line":77,"col":27}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2287,"b":2293,"line":77,"col":37}]}}],"usedParamSet":{"actionType":true,"action":true,"userId":true},"statement":{"body":"INSERT INTO user_actions (user_id, action_type, action, created_at, updated_at)\n    VALUES (:actionType!, :action!, :userId!, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":2170,"b":2331,"line":76,"col":0}}};
 
 /**
  * Query generated from SQL:

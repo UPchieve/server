@@ -4,14 +4,14 @@ import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
 import { updateVolunteerProfileById } from '../../models/Volunteer/queries'
-import { getUsersReferredByOtherId } from '../../models/User/queries'
+import { countUsersReferredByOtherId } from '../../models/User/queries'
 import { authPassport } from '../../utils/auth-utils'
-import * as UserActionCtrl from '../../controllers/UserActionCtrl'
-
 import { Router } from 'express'
 import { resError } from '../res-error'
-import { asString, asBoolean, asObjectId } from '../../utils/type-utils'
+import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
+import { createAccountAction } from '../../models/UserAction'
+import { ACCOUNT_USER_ACTIONS } from '../../constants'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(function(req, res) {
@@ -30,16 +30,14 @@ export function routeUser(router: Router): void {
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
 
-      if (isDeactivated !== user.isDeactivated) {
-        const updatedUser = Object.assign(user, { isDeactivated })
+      if (isDeactivated !== user.deactivated) {
+        const updatedUser = Object.assign(user, { deactivated: isDeactivated as string })
         MailService.createContact(updatedUser)
 
         if (isDeactivated)
-          await new UserActionCtrl.AccountActionCreator(user._id, ip)
-            .accountDeactivated()
-            .catch(error => Sentry.captureException(error))
+          createAccountAction({action: ACCOUNT_USER_ACTIONS.DEACTIVATED, userId: user.id})
       }
-      await updateVolunteerProfileById(user._id, isDeactivated, phone)
+      await updateVolunteerProfileById(user.id, isDeactivated, phone)
       res.sendStatus(200)
     } catch (err) {
       resError(res, err)
@@ -73,7 +71,7 @@ export function routeUser(router: Router): void {
       const { ip } = req
       const user = extractUser(req)
       await UserService.addReference({
-        userId: user._id,
+        userId: user.id,
         ip,
         ...req.body,
       } as unknown)
@@ -88,7 +86,7 @@ export function routeUser(router: Router): void {
       const { ip } = req
       const user = extractUser(req)
       await UserService.deleteReference(
-        user._id,
+        user.id,
         asString(req.body.referenceEmail),
         ip
       )
@@ -103,7 +101,7 @@ export function routeUser(router: Router): void {
       const { ip } = req
       const user = extractUser(req)
 
-      const photoIdS3Key = await UserService.addPhotoId(user._id, ip)
+      const photoIdS3Key = await UserService.addPhotoId(user.id, ip)
       const uploadUrl = await AwsService.getPhotoIdUploadUrl(photoIdS3Key)
 
       if (uploadUrl) {
@@ -155,7 +153,7 @@ export function routeUser(router: Router): void {
       }
 
       try {
-        await VolunteerService.addBackgroundInfo(user._id, update, ip)
+        await VolunteerService.addBackgroundInfo(user.id, update, ip)
         res.sendStatus(200)
       } catch (error) {
         res.sendStatus(500)
@@ -166,8 +164,10 @@ export function routeUser(router: Router): void {
   router.get('/user/referred-friends', async (req, res) => {
     try {
       const user = extractUser(req)
-      const referredFriends = await getUsersReferredByOtherId(user._id)
-      res.json({ referredFriends })
+      const referredFriends = await countUsersReferredByOtherId(user.id)
+      // the frontend is expecting to look at the length of an array, not a #
+      const referredFriendsArr = Array(referredFriends) 
+      res.json({ referredFriendsArr })
     } catch (err) {
       resError(res, err)
     }
@@ -179,12 +179,14 @@ export function routeUser(router: Router): void {
 
     try {
       const user = await UserService.adminGetUser(
-        asObjectId(userId),
-        parseInt(asString(page))
+        asUlid(userId)
       )
 
-      if (user.isVolunteer && user.photoIdS3Key)
-        user.photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
+      let resUser: any = user
+      if (user.isVolunteer && user.photoIdS3Key) {
+        const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key) 
+        resUser = Object.assign(resUser, {photoUrl})
+      }
 
       res.json({ user })
     } catch (err) {

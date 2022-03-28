@@ -56,14 +56,15 @@ export async function getIneligibleStudentsPaginated(
 
 export async function insertIneligibleStudent(
   email: string,
-  schoolId: Ulid,
+  schoolId?: Ulid,
   postalCode?: string,
   gradeLevel?: string,
+  referredBy?: Ulid,
   ip?: string
 ): Promise<void> {
   try {
     const result = await pgQueries.insertIneligibleStudent.run(
-      { id: getDbUlid(), email, schoolId, postalCode, gradeLevel, ip },
+      { id: getDbUlid(), email, schoolId, postalCode, gradeLevel, referredBy, ip },
       getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))

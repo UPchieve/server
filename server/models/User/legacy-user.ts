@@ -1,12 +1,12 @@
 import { makeSomeOptional, Ulid } from '../pgUtils'
 import { USER_BAN_REASONS } from '../../constants'
-import { Reference, Certifications, TrainingCourses } from '../Volunteer'
+import { Reference, Certifications, TrainingCourses, getVolunteerTrainingCourses } from '../Volunteer'
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
 import _ from 'lodash'
-import { getAvailabilityForVolunteer } from '../Availability/queries'
+import { getAvailabilityForVolunteer } from '../Availability'
 import {
   getCertificationsForVolunteers,
   getReferencesByVolunteer,
@@ -109,13 +109,13 @@ isTestUser x
 
 export async function getLegacyUserObject(
   userId: Ulid
-): Promise<LegacyUserModel | undefined> {
+): Promise<LegacyUserModel> {
   try {
     const baseResult = await pgQueries.getLegacyUser.run(
       { userId },
       getClient()
     )
-    if (!baseResult.length) return
+    if (!baseResult.length) throw new RepoReadError('Did not find Legacy User object')
     const baseUser = makeSomeOptional(baseResult[0], [
       'id',
       'firstName',
@@ -130,17 +130,16 @@ export async function getLegacyUserObject(
       'isDeactivated',
       'lastActivityAt',
       'referralCode',
-      'type',
-      'pastSessions',
+      'type'
     ])
+    const volunteerUser: any = {}
     if (baseUser.isVolunteer) {
-      // TODO: get training courses
-      const availability = await getAvailabilityForVolunteer(userId)
-      const certs = (await getCertificationsForVolunteers([userId]))[userId]
-      const references = await getReferencesByVolunteer(userId)
+      volunteerUser.availability = await getAvailabilityForVolunteer(userId)
+      volunteerUser.certifications = (await getCertificationsForVolunteers([userId]))[userId]
+      volunteerUser.references = await getReferencesByVolunteer(userId)
+      volunteerUser.trainingCourses = await getVolunteerTrainingCourses(userId)
     }
-    // TODO: get past sessions
-    const final = _.merge({ _id: baseUser.id }, baseUser)
+    const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser)
     return final as LegacyUserModel
   } catch (err) {
     throw new RepoReadError(err)

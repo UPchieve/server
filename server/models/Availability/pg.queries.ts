@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/Availability/availability.sql" */
 import { PreparedQuery } from '@pgtyped/query';
 
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
 /** 'GetAvailabilityForVolunteer' parameters type */
 export interface IGetAvailabilityForVolunteerParams {
   userId: string;
@@ -255,5 +257,46 @@ const clearAvailabilityForVolunteerIR: any = {"name":"clearAvailabilityForVolunt
  * ```
  */
 export const clearAvailabilityForVolunteer = new PreparedQuery<IClearAvailabilityForVolunteerParams,IClearAvailabilityForVolunteerResult>(clearAvailabilityForVolunteerIR);
+
+
+/** 'SaveLegacyAvailability' parameters type */
+export interface ISaveLegacyAvailabilityParams {
+  availability: Json;
+  id: string;
+  userId: string;
+}
+
+/** 'SaveLegacyAvailability' return type */
+export interface ISaveLegacyAvailabilityResult {
+  ok: string;
+}
+
+/** 'SaveLegacyAvailability' query type */
+export interface ISaveLegacyAvailabilityQuery {
+  params: ISaveLegacyAvailabilityParams;
+  result: ISaveLegacyAvailabilityResult;
+}
+
+const saveLegacyAvailabilityIR: any = {"name":"saveLegacyAvailability","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2378,"b":2380,"line":104,"col":5}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2388,"b":2394,"line":105,"col":5},{"a":2515,"b":2521,"line":112,"col":17}]}},{"name":"availability","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2442,"b":2454,"line":108,"col":5}]}}],"usedParamSet":{"id":true,"userId":true,"availability":true},"statement":{"body":"INSERT INTO legacy_availability_histories (id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    availabilities.timezone,\n    NOW(),\n    :availability!,\n    NOW(),\n    NOW()\nFROM availabilities\nWHERE user_id = :userId!\nLIMIT 1\nRETURNING id AS ok","loc":{"a":2242,"b":2548,"line":102,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO legacy_availability_histories (id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at)
+ * SELECT
+ *     :id!,
+ *     :userId!,
+ *     availabilities.timezone,
+ *     NOW(),
+ *     :availability!,
+ *     NOW(),
+ *     NOW()
+ * FROM availabilities
+ * WHERE user_id = :userId!
+ * LIMIT 1
+ * RETURNING id AS ok
+ * ```
+ */
+export const saveLegacyAvailability = new PreparedQuery<ISaveLegacyAvailabilityParams,ISaveLegacyAvailabilityResult>(saveLegacyAvailabilityIR);
 
 

@@ -70,7 +70,7 @@ export type SingleFeedback = Feedback & {
 
 export async function getFeedbackBySessionIdUserType(
   sessionId: Ulid,
-  userRole: 'student' | 'volunteer'
+  userRole: string
 ): Promise<SingleFeedback | undefined> {
   try {
     const result = await pgQueries.getFeedbackBySessionIdUserType.run(

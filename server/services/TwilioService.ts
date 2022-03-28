@@ -8,28 +8,20 @@ import {
 } from '../models/Student'
 import {
   VolunteerContactInfo,
-  getVolunteersFailsafe,
-  getVolunteersNotifiedSinceDate,
   getVolunteersNotifiedBySessionId,
-  getNextVolunteerToNotify,
-} from '../models/Volunteer/queries'
+} from '../models/Volunteer'
 import queue from './QueueService'
 import * as SessionRepo from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
-import {
-  Notification,
-} from '../models/Notification'
 import formatMultiWordSubject from '../utils/format-multi-word-subject'
 import Case from 'case'
 import logger from '../logger'
-import { MATH_CERTS, VERIFICATION_METHOD, SUBJECTS } from '../constants'
-import {
-  AssociatedPartnerManifest,
-  associatedPartnerManifests,
-  sponsorOrgManifests,
-} from '../partnerManifests'
+import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import startsWithVowel from '../utils/starts-with-vowel'
 import { Ulid } from '../models/pgUtils'
+import { getSessionById } from '../models/Session'
+import { AssociatedPartner, getAssociatedPartnerByKey } from '../models/AssociatedPartner'
+import { getSponsorOrgs } from '../models/SponsorOrg'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -72,26 +64,6 @@ export function getCurrentAvailabilityPath(): string {
   ]
 
   return `availability.${days[day]}.${hour}`
-}
-
-export async function getNextVolunteer(
-  priorityFilter = {}
-): Promise<VolunteerContactInfo | undefined> {
-  const availabilityPath = getCurrentAvailabilityPath()
-
-  const filter = {
-    isApproved: true,
-    [availabilityPath]: true,
-    phone: { $exists: true },
-    isTestUser: false,
-    isFakeUser: false,
-    isDeactivated: false,
-    isFailsafeVolunteer: false,
-    isBanned: false,
-    ...priorityFilter,
-  }
-
-  return getNextVolunteerToNotify(filter)
 }
 
 export async function sendTextMessage(
@@ -152,7 +124,8 @@ logger.info(`Voice call to ${phoneNumber} with id ${call.sid}`)
 }
 
 // the URL that the volunteer can use to join the session on the client
-export function getSessionUrl(session: Session): string {
+type SessionForUrl = Pick<SessionRepo.Session, 'subject' | 'topic' | 'id'>
+export function getSessionUrl(session: SessionForUrl): string {
   return `${protocol}://${config.client.host}/session/${Case.kebab(
     session.topic
   )}/${Case.kebab(session.subject)}/${session.id}`
@@ -174,37 +147,37 @@ export async function sendFollowupText(
 ): Promise<void> {
   const messageText = 'Heads up: this student is still waiting for help!'
   const sidPromise = sendTextMessage(volunteerPhone, messageText)
-  // TODO: repo pattern
-  const notification = new NotificationModel({
-    volunteer: volunteerId,
-    type: 'REGULAR',
-    method: 'SMS',
-    priorityGroup: 'follow-up',
-    sessionId,
-  })
 
-  await recordNotification(sidPromise, notification)
+  const { wasSuccessful, messageId } = await sendNotification(sidPromise)
   await SessionRepo.addSessionNotifications(sessionId, [
-    notification.toObject(),
+    {
+      wasSuccessful,
+      messageId,
+      volunteer: volunteerId,
+      type: 'regular',
+      method: 'sms',
+      priorityGroup: 'follow-up',
+    },
   ])
 }
 
 export function buildTargetStudentContent(
   volunteer: VolunteerContactInfo,
-  associatedPartner: AssociatedPartnerManifest | undefined
+  associatedPartner: AssociatedPartner | undefined
 ) {
   return associatedPartner &&
+    associatedPartner.studentOrgDisplay && 
     volunteer.volunteerPartnerOrg === associatedPartner.volunteerPartnerOrg
-    ? startsWithVowel(associatedPartner.studentOrgDisplay)
-      ? `an ${associatedPartner.studentOrgDisplay} student`
-      : `a ${associatedPartner.studentOrgDisplay} student`
+    ? startsWithVowel(associatedPartner.studentOrgDisplay!)
+      ? `an ${associatedPartner.studentOrgDisplay!} student`
+      : `a ${associatedPartner.studentOrgDisplay!} student`
     : 'a student'
 }
 
 export function buildNotificationContent(
-  session: Session,
+  session: SessionRepo.Session,
   volunteer: VolunteerContactInfo,
-  associatedPartner: AssociatedPartnerManifest | undefined
+  associatedPartner: AssociatedPartner | undefined
 ) {
   // Format multi-word subtopics from a key name to a display name
   // ex: physicsOne -> Physics 1
@@ -216,71 +189,61 @@ export function buildNotificationContent(
   )} needs help in ${subtopic} on UPchieve! ${sessionUrl}`
 }
 
-export function getAssociatedPartner(
+export async function getAssociatedPartner(
   partnerOrg: string,
-  highSchool: Ulid | undefined
-): AssociatedPartnerManifest | undefined {
+  highSchoolId: Ulid | undefined
+): Promise<AssociatedPartner | undefined> {
   // Determine if the student's partner org is one of the orgs that
   // should have priority matching with its partner volunteer org counterpart
   if (config.priorityMatchingPartnerOrgs.some(org => partnerOrg === org))
-    return associatedPartnerManifests[partnerOrg]
+    return getAssociatedPartnerByKey(partnerOrg)
 
   for (const sponsorOrg of config.priorityMatchingSponsorOrgs) {
     // Determine if the student's school belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
+    const sponsorOrgs = await getSponsorOrgs()
+    const matchingOrgs = sponsorOrgs.filter(org => {
+      org.key === sponsorOrg
+    })
     if (
-      highSchool &&
-      sponsorOrgManifests[sponsorOrg] &&
-      Array.isArray(sponsorOrgManifests[sponsorOrg].schools) &&
-      sponsorOrgManifests[sponsorOrg].schools.some(school =>
-        school.equals(highSchool)
+      highSchoolId &&
+      matchingOrgs.length > 0 &&
+      Array.isArray(matchingOrgs[0].schoolIds) &&
+      matchingOrgs[0].schoolIds.some(schoolId =>
+        schoolId === highSchoolId)
       )
-    )
-      return associatedPartnerManifests[sponsorOrg]
+      return getAssociatedPartnerByKey(sponsorOrg)
 
     // Determine if the student's partner org belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
     if (
-      sponsorOrgManifests[sponsorOrg] &&
-      Array.isArray(sponsorOrgManifests[sponsorOrg].partnerOrgs) &&
-      sponsorOrgManifests[sponsorOrg].partnerOrgs.includes(partnerOrg)
+      matchingOrgs.length > 0 &&
+      Array.isArray(matchingOrgs[0].studentPartnerOrgKeys) &&
+      matchingOrgs[0].studentPartnerOrgKeys.includes(partnerOrg)
     )
-      return associatedPartnerManifests[sponsorOrg]
+      return getAssociatedPartnerByKey(sponsorOrg)
   }
 
   return undefined
 }
 
 export async function notifyVolunteer(
-  session: Session
+  session: SessionRepo.Session
 ): Promise<Ulid | undefined> {
   // Replace with getStudentPartnerInfoById from Student Repo
   const student = await getStudentContactInfoById(session.studentId)
   if (!student) return
-  const associatedPartner = getAssociatedPartner(
+  const associatedPartner = student.studentPartnerOrg ?  await getAssociatedPartner(
     student.studentPartnerOrg,
     student.schoolId
-  )
+  ) : undefined
 
-  // typed as `any` because `subtopic` gets reassigned as a regex query object if `subtopic` is algebraTwo
-  let subtopic: any = session.subject
+  let subtopic: string = session.subject
   const activeSessionVolunteers = await getActiveSessionVolunteers()
-  const notifiedLastFifteenMins = await getVolunteersNotifiedSinceDate(
-    relativeDate(15 * 60 * 1000)
-  )
-  const notifiedLastSixtyMins = await getVolunteersNotifiedSinceDate(
-    relativeDate(60 * 60 * 1000)
-  )
-  const notifiedLastTwentyFourHours = await getVolunteersNotifiedSinceDate(
-    relativeDate(24 * 60 * 60 * 1000)
-  )
-  const notifiedLastThreeDays = await getVolunteersNotifiedSinceDate(
-    relativeDate(3 * 24 * 60 * 60 * 1000)
-  )
-
   const notifiedForThisSessionId = await getVolunteersNotifiedBySessionId(
     session.id
   )
+  const disqualifiedVolunteers = [...activeSessionVolunteers, ...notifiedForThisSessionId]
 
   // Prioritize volunteers who do not have high-level subjects to avoid
   // lack of volunteers when high-level subjects are requested
@@ -289,13 +252,6 @@ export async function notifyVolunteer(
     SUBJECTS.CHEMISTRY,
     SUBJECTS.STATISTICS,
   ]
-  const isHighLevelSubject = highLevelSubjects.includes(subtopic)
-  // Temporarily notify tutors with algebraTwo-temporary as subject
-  // TODO: remove regex check for algebraTwo in algebra 2 launch cleanup
-  if (subtopic === MATH_CERTS.ALGEBRA_TWO) {
-    subjectsFilter = { $regex: MATH_CERTS.ALGEBRA_TWO }
-    subtopic = { $regex: MATH_CERTS.ALGEBRA_TWO }
-  }
 
   /**
    * 1. Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
@@ -313,38 +269,38 @@ export async function notifyVolunteer(
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
       } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
       query: associatedPartner ? 
-        () => VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(session.subject, moment().subtract(3, 'days').toDate(), associatedPartner.volunteerPartnerOrg) :
-        () => VolunteerRepo.getNextAnyPartnerVolunteerToNotify(session.subject, moment().subtract(3, 'days').toDate())
+        () => VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(session.subject, moment().subtract(3, 'days').toDate(), associatedPartner.volunteerPartnerOrg, highLevelSubjects, disqualifiedVolunteers) :
+        () => VolunteerRepo.getNextAnyPartnerVolunteerToNotify(session.subject, moment().subtract(3, 'days').toDate(), highLevelSubjects, disqualifiedVolunteers)
     },
     {
       groupName:
         'Regular volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
-      query: () => VolunteerRepo.getNextOpenVolunteerToNotify(session.subject, moment().subtract(3, 'days').toDate())
+      query: () => VolunteerRepo.getNextOpenVolunteerToNotify(session.subject, moment().subtract(3, 'days').toDate(), highLevelSubjects, disqualifiedVolunteers)
     },
     {
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
       } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
       query: associatedPartner ? 
-        () => VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(session.subject, moment().subtract(1, 'days').toDate(), associatedPartner.volunteerPartnerOrg) :
-        () => VolunteerRepo.getNextAnyPartnerVolunteerToNotify(session.subject, moment().subtract(1, 'days').toDate())
+        () => VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(session.subject, moment().subtract(1, 'days').toDate(), associatedPartner.volunteerPartnerOrg, highLevelSubjects, disqualifiedVolunteers) :
+        () => VolunteerRepo.getNextAnyPartnerVolunteerToNotify(session.subject, moment().subtract(1, 'days').toDate(), highLevelSubjects, disqualifiedVolunteers)
     },
     {
       groupName:
         'Regular volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
-        query: () => VolunteerRepo.getNextOpenVolunteerToNotify(session.subject,moment().subtract(1, 'days').toDate())
+        query: () => VolunteerRepo.getNextOpenVolunteerToNotify(session.subject,moment().subtract(1, 'days').toDate(), highLevelSubjects, disqualifiedVolunteers)
     },
     {
       groupName: 'All volunteers - not notified in the last 24 hours',
-      query: () => VolunteerRepo.getNextAnyVolunteerToNotify(session.subject,moment().subtract(1, 'days').toDate())
+      query: () => VolunteerRepo.getNextAnyVolunteerToNotify(session.subject,moment().subtract(1, 'days').toDate(), [], disqualifiedVolunteers)
     },
     {
       groupName: 'All volunteers - not notified in the last 60 mins',
-      query: () => VolunteerRepo.getNextAnyVolunteerToNotify(session.subject,moment().subtract(1, 'hour').toDate())
+      query: () => VolunteerRepo.getNextAnyVolunteerToNotify(session.subject,moment().subtract(1, 'hour').toDate(), [], disqualifiedVolunteers)
     },
     {
       groupName: 'All volunteers - not notified in the last 15 mins',
-      query: () => VolunteerRepo.getNextAnyVolunteerToNotify(session.subject,moment().subtract(15, 'minutes').toDate())
+      query: () => VolunteerRepo.getNextAnyVolunteerToNotify(session.subject,moment().subtract(15, 'minutes').toDate(), [], disqualifiedVolunteers)
     },
   ]
 
@@ -366,68 +322,26 @@ export async function notifyVolunteer(
     volunteer,
     associatedPartner
   )
-  const sidPromise = sendTextMessage(volunteer.phone as string, messageText)
+  const sidPromise = sendTextMessage(volunteer.phone, messageText)
 
-  // TODO: repo pattern
-  const notification = new NotificationModel({
-    volunteer,
-    type: 'REGULAR',
-    method: 'SMS',
-    priorityGroup,
-    sessionId: session._id,
-  })
-
-  await recordNotification(sidPromise, notification)
-  await SessionRepo.addSessionNotifications([
-    notification,
-  ])
-
-  return volunteer.id
-}
-
-export async function notifyFailsafe(
-  session: Session,
-  voice: boolean = false
-): Promise<void> {
-  const subtopic = session.subTopic
-  const sessionUrl = getSessionUrl(session)
-  const volunteersToNotify = await getVolunteersFailsafe()
-  const isTestUser = await getTestStudentExistsById(
-    getIdFromModelReference(session.student)
-  )
-
-  const notifications = []
-
-  for (const volunteer of volunteersToNotify) {
-    const phoneNumber = volunteer.phone as string
-
-    let messageText = `UPchieve failsafe alert: new ${subtopic} request`
-
-    if (isTestUser) messageText = '[TEST USER] ' + messageText
-    if (!voice) messageText = messageText + `\n${sessionUrl}`
-
-    let sidPromise: Promise<string>
-    if (voice) sidPromise = sendVoiceMessage(phoneNumber, messageText)
-    else sidPromise = sendTextMessage(phoneNumber, messageText)
-
-    // record notification to database
-    // TODO: repo pattern
-    const notification = new NotificationModel({
-      volunteer: volunteer,
-      type: 'FAILSAFE',
-      method: voice ? 'VOICE' : 'SMS',
-      sessionId: session._id,
-    })
-
-    try {
-      notifications.push(await recordNotification(sidPromise, notification))
-    } catch (err) {
-      logger.error(err as Error)
+  try {
+    const { wasSuccessful, messageId } = await sendNotification(sidPromise)
+    const notification = {
+      wasSuccessful,
+      messageId,
+      volunteer: volunteer.id,
+      type: subtopic,
+      method:'sms',
+      priorityGroup
     }
+    await SessionRepo.addSessionNotifications(session.id, [
+      notification,
+    ])
+  } catch (err) {
+    logger.error(err as Error)
   }
 
-  // save notifications to session object
-  await SessionRepo.addSessionNotifications(session._id, notifications)
+  return volunteer.id
 }
 
 /**
@@ -439,22 +353,25 @@ export async function notifyFailsafe(
  * @returns a Promise that resolves to the saved notification
  * object
  */
-export async function recordNotification(
+export async function sendNotification(
   sidPromise: Promise<string>,
-  notification: NotificationDocument
-): Promise<Notification> {
+): Promise<{
+  wasSuccessful: boolean,
+  messageId?: string
+}> {
+  let wasSuccessful = false
+  let messageId: undefined | string
   try {
     const sid = await sidPromise
     // record notification in database
-    notification.wasSuccessful = true
-    notification.messageId = sid
+    wasSuccessful = true
+    messageId = sid
   } catch (err) {
     // record notification failure in database
     logger.error(err as Error)
-    notification.wasSuccessful = false
+    wasSuccessful = false
   } finally {
-    await notification.save()
-    return notification.toObject()
+    return { wasSuccessful, messageId }
   }
 }
 
@@ -499,9 +416,8 @@ export async function confirmVerification(
 export async function beginRegularNotifications(
   sessionId: Ulid
 ): Promise<void> {
-  const isTestUser = await getTestStudentExistsById(
-    getIdFromModelReference(session.studentId)
-  )
+  const session = await getSessionById(sessionId)
+  const isTestUser = await getTestStudentExistsById(session.studentId)
 
   if (isTestUser) return
 
@@ -514,10 +430,4 @@ export async function beginRegularNotifications(
     { sessionId, notificationSchedule },
     { delay }
   )
-}
-
-export async function beginFailsafeNotifications(
-  sessionId: Ulid
-): Promise<void> {
-  await notifyFailsafe(sessionId, false)
 }

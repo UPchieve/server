@@ -1,13 +1,13 @@
 import { Express, Router } from 'express'
 import passport from 'passport'
 
-import { Types } from 'mongoose'
 import * as AuthService from '../../services/AuthService'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
 import { asString } from '../../utils/type-utils'
+import { Ulid } from '../../models/pgUtils'
 
 export function routes(app: Express) {
   const router = Router()
@@ -182,12 +182,12 @@ export function routes(app: Express) {
         // do not respond with info about no email match
         if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
       }
-      let userId: Types.ObjectId | undefined
+      let userId: Ulid | undefined
       if (!req.user) {
         // user not logged in
         userId = await getUserIdByEmail(email)
       } // logged in
-      else userId = req.user._id
+      else userId = req.user.id
       req.session.destroy(() => {
         /* do nothing */
       })

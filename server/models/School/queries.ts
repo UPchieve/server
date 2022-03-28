@@ -45,7 +45,7 @@ export async function getSchools(
   data: GetSchoolsPayload,
   limit: number,
   offset: number
-): Promise<School[] | undefined> {
+): Promise<School[]> {
   try {
     const { name, state, city } = data
     const result = await pgQueries.getSchools.run(
@@ -69,7 +69,7 @@ export type CreateSchoolPayload = {
 
 export async function createSchool(
   data: CreateSchoolPayload
-): Promise<School | undefined> {
+): Promise<School> {
   const client = await getClient().connect()
   try {
     await pgQueries.createSchoolMetaData.run({ zipCode: data.zipCode }, client)
@@ -92,14 +92,17 @@ export async function createSchool(
       client
     )
     if (result.length) {
+      const school = makeRequired(result[0])
       await client.query('COMMIT')
-      return makeRequired(result[0])
+      return school
     } else {
       throw new Error('inserting new school did not return a result')
     }
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoCreateError(err)
+  } finally {
+    client.release()
   }
 }
 
@@ -169,5 +172,15 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
     throw new RepoUpdateError(err)
   } finally {
     client.release()
+  }
+}
+
+export async function schoolSearch(query: any): Promise<School[] | undefined> {
+  try{
+    const results = await pgQueries.schoolSearch.run({ query }, getClient())
+    if(results.length)
+      return results.map(v => makeRequired(v))
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

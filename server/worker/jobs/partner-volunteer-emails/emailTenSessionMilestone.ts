@@ -1,10 +1,10 @@
 import { Job } from 'bull'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
-import { getSessionsWithPipeline } from '../../../models/Session/queries'
-import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
+import { getSessionsVolunteerRating } from '../../../models/Session'
+import { getVolunteerContactInfoById } from '../../../models/Volunteer'
 import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../../constants'
-import { asObjectId } from '../../../utils/type-utils'
+import { asString } from '../../../utils/type-utils'
 
 /**
  *
@@ -26,97 +26,12 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
     data: { firstName, email },
     name: currentJob,
   } = job
-  const volunteerId = asObjectId(job.data.volunteerId)
+  const volunteerId = asString(job.data.volunteerId)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
   // Do not send email if volunteer does not match email recipient spec
   if (!volunteer) return
 
-  const fifteenMins = 1000 * 60 * 15
-  // replaced by getSessionsVolunteerRating
-  const sessions = await getSessionsWithPipeline([
-    {
-      $match: {
-        volunteer: volunteerId,
-        timeTutored: { $gte: fifteenMins },
-        reviewFlags: {
-          $nin: [
-            USER_SESSION_METRICS.absentStudent,
-            USER_SESSION_METRICS.absentVolunteer,
-          ],
-        },
-      },
-    },
-    {
-      $lookup: {
-        from: 'feedbacks',
-        localField: 'volunteer',
-        foreignField: 'volunteerId',
-        as: 'feedbacks',
-      },
-    },
-    {
-      $lookup: {
-        from: 'feedbacks',
-        let: {
-          volunteerId: '$volunteer',
-          sessionId: '$_id',
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$sessionId', '$$sessionId'] },
-                  { $eq: ['$volunteerId', '$$volunteerId'] },
-                ],
-              },
-            },
-          },
-        ],
-        as: 'feedback',
-      },
-    },
-    {
-      $unwind: {
-        path: '$feedback',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-        sessionRating: {
-          $switch: {
-            branches: [
-              {
-                case: {
-                  $and: [
-                    {
-                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.ONE],
-                    },
-                    '$feedback.responseData.session-rating.rating',
-                  ],
-                },
-                then: '$feedback.responseData.session-rating.rating',
-              },
-              {
-                case: {
-                  $and: [
-                    {
-                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.TWO],
-                    },
-                    '$feedback.volunteerFeedback.session-enjoyable',
-                  ],
-                },
-                then: '$feedback.volunteerFeedback.session-enjoyable',
-              },
-            ],
-            default: null,
-          },
-        },
-      },
-    },
-  ])
+  const sessions = await getSessionsVolunteerRating(volunteerId)
 
   if (sessions.length === 10) {
     let totalLowSessionRatings = 0

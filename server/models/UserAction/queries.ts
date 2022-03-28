@@ -44,7 +44,7 @@ export async function getSessionRequestedUserAgentFromSessionId(
   }
 }
 
-export async function userHasTakeQuiz(userId: Ulid): Promise<boolean> {
+export async function userHasTakenQuiz(userId: Ulid): Promise<boolean> {
   try {
     const result = await pgQueries.userHasTakenQuiz.run({ userId }, getClient())
     if (result.length) return makeRequired(result[0]).exists
@@ -152,7 +152,8 @@ interface AccountActionParams {
   ipAddress?: string
   referenceEmail?: string
   sessionId?: Ulid
-  volunteerId?: Ulid
+  volunteerId?: Ulid,
+  banReason?: string
 }
 
 export async function createAccountAction(params: AccountActionParams) {
@@ -169,6 +170,7 @@ export async function createAccountAction(params: AccountActionParams) {
         sessionId: params.sessionId ? params.sessionId : null,
         userId: params.userId,
         volunteerId: params.volunteerId ? params.volunteerId : null,
+        banReason: params.banReason ? params.banReason : null
       },
       client
     )

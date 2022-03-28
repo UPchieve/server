@@ -8,14 +8,6 @@ else
   exit 1
 fi
 
-if [[ $(cp -r server/localManifests build/localManifests) -eq 0 ]]
-then
-  echo "Copied local manifest files"
-else
-  echo "Failed to copy local manifest files" >&2
-  exit 1
-fi
-
 if [[ $(cp -r server/swagger build/swagger) -eq 0 ]]
 then
   echo "Copied swagger files"

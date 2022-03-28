@@ -96,14 +96,14 @@ export interface IGetStudentPartnerOrgsQuery {
   result: IGetStudentPartnerOrgsResult;
 }
 
-const getStudentPartnerOrgsIR: any = {"name":"getStudentPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n       key,\n       string_agg(signup_code, null) as signup_code,\n       bool_or(high_school_signup) as high_school_signup,\n       bool_or(college_signup) as college_signup,\n       bool_or(school_signup_required) as school_signup_required,\n       array_agg(spos.name) as sites\nfrom student_partner_orgs spo\njoin student_partner_org_sites spos on spo.id = spos.student_partner_org_id\ngroup by spo.key","loc":{"a":740,"b":1144,"line":22,"col":0}}};
+const getStudentPartnerOrgsIR: any = {"name":"getStudentPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n       key,\n       max(signup_code) as signup_code,\n       bool_or(high_school_signup) as high_school_signup,\n       bool_or(college_signup) as college_signup,\n       bool_or(school_signup_required) as school_signup_required,\n       array_agg(spos.name) as sites\nfrom student_partner_orgs spo\njoin student_partner_org_sites spos on spo.id = spos.student_partner_org_id\ngroup by spo.key","loc":{"a":740,"b":1131,"line":22,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *        key,
- *        string_agg(signup_code, null) as signup_code,
+ *        max(signup_code) as signup_code,
  *        bool_or(high_school_signup) as high_school_signup,
  *        bool_or(college_signup) as college_signup,
  *        bool_or(school_signup_required) as school_signup_required,
@@ -114,5 +114,34 @@ const getStudentPartnerOrgsIR: any = {"name":"getStudentPartnerOrgs","params":[]
  * ```
  */
 export const getStudentPartnerOrgs = new PreparedQuery<IGetStudentPartnerOrgsParams,IGetStudentPartnerOrgsResult>(getStudentPartnerOrgsIR);
+
+
+/** 'GetStudentPartnerOrgKeyByCode' parameters type */
+export interface IGetStudentPartnerOrgKeyByCodeParams {
+  signupCode: string;
+}
+
+/** 'GetStudentPartnerOrgKeyByCode' return type */
+export interface IGetStudentPartnerOrgKeyByCodeResult {
+  key: string;
+}
+
+/** 'GetStudentPartnerOrgKeyByCode' query type */
+export interface IGetStudentPartnerOrgKeyByCodeQuery {
+  params: IGetStudentPartnerOrgKeyByCodeParams;
+  result: IGetStudentPartnerOrgKeyByCodeResult;
+}
+
+const getStudentPartnerOrgKeyByCodeIR: any = {"name":"getStudentPartnerOrgKeyByCode","params":[{"name":"signupCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1233,"b":1243,"line":36,"col":19}]}}],"usedParamSet":{"signupCode":true},"statement":{"body":"SELECT key\nFROM student_partner_orgs\nWHERE signup_code=:signupCode!","loc":{"a":1177,"b":1243,"line":34,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT key
+ * FROM student_partner_orgs
+ * WHERE signup_code=:signupCode!
+ * ```
+ */
+export const getStudentPartnerOrgKeyByCode = new PreparedQuery<IGetStudentPartnerOrgKeyByCodeParams,IGetStudentPartnerOrgKeyByCodeResult>(getStudentPartnerOrgKeyByCodeIR);
 
 

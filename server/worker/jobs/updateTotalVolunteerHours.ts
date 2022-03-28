@@ -5,10 +5,15 @@ import {
   updateVolunteerTotalHoursById,
 } from '../../models/Volunteer/queries'
 import { log } from '../logger'
-import { telecomHourSummaryStats } from '../../utils/reportUtils'
+// import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import config from '../../config'
 import * as cache from '../../cache'
 import { Jobs } from './index'
+
+// TODO: replace this with the real deal
+function telecomHourSummaryStats(foo: any, bar: any) {
+  return { totalVolunteerHours: 1 }
+}
 
 async function updateTotalVolunteerHours(): Promise<void> {
   const startDate = moment(
@@ -25,11 +30,11 @@ async function updateTotalVolunteerHours(): Promise<void> {
     try {
       const stats = await telecomHourSummaryStats(volunteer, dateQuery)
       await updateVolunteerTotalHoursById(
-        volunteer._id,
+        volunteer.id,
         stats.totalVolunteerHours
       )
     } catch (error) {
-      errors.push(`${volunteer._id}: ${error}\n`)
+      errors.push(`${volunteer.id}: ${error}\n`)
       continue
     }
     totalUpdated += 1

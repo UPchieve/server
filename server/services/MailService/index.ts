@@ -3,10 +3,6 @@ import { Ulid } from '../../models/pgUtils'
 import sgMail from '@sendgrid/mail'
 import axios from 'axios'
 import { capitalize } from 'lodash'
-import {
-  volunteerPartnerManifests,
-  studentPartnerManifests,
-} from '../../partnerManifests'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
 import {
   SESSION_REPORT_REASON,
@@ -15,6 +11,8 @@ import {
 } from '../../constants'
 import { getUserToCreateSendGridContact } from '../../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
+import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
+import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -1194,7 +1192,7 @@ export async function createContact(
       customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrg] =
         volunteer.volunteerPartnerOrg
       customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] =
-        volunteerPartnerManifests[volunteer.volunteerPartnerOrg].name
+        (await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)).key
     }
   } else {
     const student = user
@@ -1202,7 +1200,7 @@ export async function createContact(
       customFields[SG_CUSTOM_FIELDS.studentPartnerOrg] =
         student.studentPartnerOrg
       customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] =
-        studentPartnerManifests[student.studentPartnerOrg].name
+      (await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)).key
     }
   }
 

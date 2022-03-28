@@ -262,16 +262,20 @@ export async function deleteStudent(studentId: Ulid, email: string) {
   }
 }
 
+// if partnerOrg isnt provided then remove partnerOrg entirely
+// if parttnerSite isnt provided then remove partnerSite entirely
+// if gates study isnt provided then dont touch it
+// all other fields override
 export type AdminUpdateStudent = {
   firstName: string
   lastName: string
   email: string
-  partnerOrg: string
-  partnerSite?: string
+  studentPartnerOrg: string | undefined
+  partnerSite: string | undefined
   isVerified: boolean
   isBanned: boolean
   isDeactivated: boolean
-  inGatesStudy: boolean
+  inGatesStudy: boolean | undefined
 }
 
 export async function adminUpdateStudent(
@@ -282,12 +286,12 @@ export async function adminUpdateStudent(
   try {
     const partnerOrgResult = await pgQueries.getPartnerOrgByKey.run(
       {
-        partnerOrgKey: update.partnerOrg,
+        partnerOrgKey: update.studentPartnerOrg,
         partnerOrgSiteName: update.partnerSite,
       },
       getClient()
     )
-    const partnerOrg = makeRequired(partnerOrgResult[0])
+    const partnerOrg = partnerOrgResult.length ? makeRequired(partnerOrgResult[0]) : undefined
     await transactionClient.query('BEGIN')
 
     const updateStudentResult = await pgQueries.adminUpdateStudent.run(
@@ -305,23 +309,22 @@ export async function adminUpdateStudent(
     const updateStudentProfileResult = await pgQueries.adminUpdateStudentProfile.run(
       {
         userId: studentId,
-        partnerOrgId: partnerOrg.partnerId,
-        partnerOrgSiteId: partnerOrg.siteId,
+        partnerOrgId: partnerOrg ? partnerOrg.partnerId : undefined,
+        partnerOrgSiteId: partnerOrg ? partnerOrg.siteId : undefined,
       },
       transactionClient
     )
-    const updateProductFlagsResult = await pgQueries
-
-    await transactionClient.query('COMMIT')
-
-    if (
+    const updateProductFlagsResult = await pgQueries.updateStudentInGatesStudy.run({ userId: studentId, inGatesStudy: update.inGatesStudy }, transactionClient)
+    if (!(
       updateStudentResult.length &&
       updateStudentProfileResult.length &&
+      updateProductFlagsResult.length &&
       makeRequired(updateStudentResult[0]).ok &&
-      makeRequired(updateStudentProfileResult[0]).ok
-    )
-      return
-    throw new RepoUpdateError('Update query did not update the student')
+      makeRequired(updateStudentProfileResult[0]).ok &&
+      makeRequired(updateProductFlagsResult[0]).ok
+    ))
+      throw new RepoUpdateError('Update query did not update the student')
+    await transactionClient.query('COMMIT')
   } catch (err) {
     await transactionClient.query('ROLLBACK')
     if (err instanceof RepoUpdateError) throw err

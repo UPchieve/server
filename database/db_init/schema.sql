@@ -16,6 +16,34 @@ SET row_security = off;
 CREATE SCHEMA upchieve;
 
 
+--
+-- Name: btree_gin; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS btree_gin WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION btree_gin; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION btree_gin IS 'support for indexing common datatypes in GIN';
+
+
+--
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -55,6 +83,21 @@ CREATE TABLE upchieve.assistments_data (
     updated_at timestamp with time zone NOT NULL,
     sent_at timestamp with time zone,
     mongo_id character varying(24)
+);
+
+
+--
+-- Name: associated_partners; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.associated_partners (
+    id uuid NOT NULL,
+    key text NOT NULL,
+    volunteer_partner_org_id uuid NOT NULL,
+    student_partner_org_id uuid,
+    student_sponsor_org_id uuid,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -282,7 +325,8 @@ CREATE TABLE upchieve.ineligible_students (
     grade_level_id integer,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24)
+    mongo_id character varying(24),
+    referred_by uuid
 );
 
 
@@ -773,7 +817,6 @@ CREATE TABLE upchieve.schools (
     us_state_code character varying(2),
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    name_search tsvector GENERATED ALWAYS AS (to_tsvector('english'::regconfig, name)) STORED,
     mongo_id character varying(24)
 );
 
@@ -965,7 +1008,8 @@ CREATE TABLE upchieve.sponsor_orgs (
     id uuid NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    key text NOT NULL
 );
 
 
@@ -1249,7 +1293,8 @@ CREATE TABLE upchieve.user_product_flags (
     sent_inactive_ninety_day_email boolean DEFAULT false NOT NULL,
     gates_qualified boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    in_gates_study boolean DEFAULT false NOT NULL
 );
 
 
@@ -1512,7 +1557,8 @@ CREATE TABLE upchieve.volunteer_references (
     rejection_reason text,
     additional_info text,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    trustworthy_with_children smallint
 );
 
 
@@ -1739,6 +1785,14 @@ ALTER TABLE ONLY upchieve.assistments_data
 
 ALTER TABLE ONLY upchieve.assistments_data
     ADD CONSTRAINT assistments_data_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: associated_partners associated_partners_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.associated_partners
+    ADD CONSTRAINT associated_partners_pkey PRIMARY KEY (id);
 
 
 --
@@ -2638,10 +2692,17 @@ ALTER TABLE ONLY upchieve.weekdays
 
 
 --
--- Name: name_search_idx; Type: INDEX; Schema: upchieve; Owner: -
+-- Name: name_search; Type: INDEX; Schema: upchieve; Owner: -
 --
 
-CREATE INDEX name_search_idx ON upchieve.schools USING gin (name_search);
+CREATE INDEX name_search ON upchieve.schools USING gin (name public.gin_trgm_ops);
+
+
+--
+-- Name: school_name_search; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX school_name_search ON upchieve.schools USING gin (name public.gin_trgm_ops);
 
 
 --
@@ -2658,6 +2719,30 @@ ALTER TABLE ONLY upchieve.admin_profiles
 
 ALTER TABLE ONLY upchieve.assistments_data
     ADD CONSTRAINT assistments_data_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: associated_partners associated_partners_student_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.associated_partners
+    ADD CONSTRAINT associated_partners_student_partner_org_id_fkey FOREIGN KEY (student_partner_org_id) REFERENCES upchieve.student_partner_orgs(id);
+
+
+--
+-- Name: associated_partners associated_partners_student_sponsor_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.associated_partners
+    ADD CONSTRAINT associated_partners_student_sponsor_org_id_fkey FOREIGN KEY (student_sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
+
+
+--
+-- Name: associated_partners associated_partners_volunteer_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.associated_partners
+    ADD CONSTRAINT associated_partners_volunteer_partner_org_id_fkey FOREIGN KEY (volunteer_partner_org_id) REFERENCES upchieve.volunteer_partner_orgs(id);
 
 
 --
@@ -3474,4 +3559,12 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220325223612'),
     ('20220326034520'),
     ('20220326153520'),
-    ('20220326215210');
+    ('20220326215210'),
+    ('20220327162839'),
+    ('20220327162854'),
+    ('20220327165314'),
+    ('20220327170322'),
+    ('20220327183934'),
+    ('20220327183940'),
+    ('20220327183950'),
+    ('20220327211734');

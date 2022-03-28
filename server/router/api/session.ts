@@ -7,7 +7,7 @@ import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
-import { asObjectId } from '../../utils/type-utils'
+import { asUlid } from '../../utils/type-utils'
 
 // TODO: figure out a better way to expose SocketService
 export function routeSession(router: Router, io: Server) {
@@ -34,8 +34,8 @@ export function routeSession(router: Router, io: Server) {
         throw new InputError('Missing sessionId body string')
       const user = extractUser(req)
       await SessionService.endSession(
-        asObjectId(req.body.sessionId),
-        user._id,
+        asUlid(req.body.sessionId),
+        user.id,
         false,
         socketService,
         {
@@ -68,7 +68,7 @@ export function routeSession(router: Router, io: Server) {
   router.route('/session/current').post(async function(req, res) {
     try {
       const user = extractUser(req)
-      const currentSession = await SessionService.currentSession(user._id)
+      const currentSession = await SessionService.currentSession(user.id)
       // TODO: should not return an error is session is missing
       if (!currentSession) {
         resError(res, new LookupError('No current session'), 404)
@@ -90,6 +90,8 @@ export function routeSession(router: Router, io: Server) {
       const latestSession = await SessionService.studentLatestSession(
         req.body.userId as unknown
       )
+
+      if (!latestSession) throw new Error('could not find latest session')
 
       res.json({
         sessionId: latestSession._id,

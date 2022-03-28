@@ -3,15 +3,19 @@ import 'moment-timezone'
 import { log } from '../logger'
 import { getHourSummaryStats } from '../../services/VolunteerService'
 import * as MailService from '../../services/MailService'
-import { volunteerPartnerManifests } from '../../partnerManifests'
 import config from '../../config'
-import { telecomHourSummaryStats } from '../../utils/reportUtils'
+// import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import { Jobs } from '.'
 import {
   getVolunteersForWeeklyHourSummary,
   updateVolunteerHourSummaryIntroById,
 } from '../../models/Volunteer/queries'
 import newrelic from 'newrelic'
+
+// TODO: replace this with the real deal
+function telecomHourSummaryStats(foo: any, bar: any) {
+  return { totalVolunteerHours: 1, totalCoachingHours: 1, totalElapsedAvailability: 1, totalQuizzesPassed:1 }
+}
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
@@ -25,15 +29,8 @@ export default async (): Promise<void> => {
     .subtract(1, 'weeks')
     .endOf('isoWeek')
 
-  const unsubscribedPartners: string[] = []
-  for (const partnerOrg in volunteerPartnerManifests) {
-    if (!volunteerPartnerManifests[partnerOrg].receiveWeeklyHourSummaryEmail)
-      unsubscribedPartners.push(partnerOrg)
-  }
 
-  const volunteers = await getVolunteersForWeeklyHourSummary(
-    unsubscribedPartners
-  )
+  const volunteers = await getVolunteersForWeeklyHourSummary()
 
   const dateQuery = { $gt: lastMonday.toDate(), $lte: lastSunday.toDate() }
 
@@ -41,8 +38,8 @@ export default async (): Promise<void> => {
   const errors: string[] = []
   for (const volunteer of volunteers) {
     const {
-      _id,
-      firstname,
+      id,
+      firstName,
       email,
       sentHourSummaryIntroEmail,
       volunteerPartnerOrg,
@@ -56,7 +53,7 @@ export default async (): Promise<void> => {
         summaryStats = await telecomHourSummaryStats(volunteer, dateQuery)
       else
         summaryStats = await getHourSummaryStats(
-          _id,
+          id,
           lastMonday.toDate(),
           lastSunday.toDate()
         )
@@ -71,7 +68,7 @@ export default async (): Promise<void> => {
       if (!summaryStats || summaryStats.totalVolunteerHours <= 0.01) continue
 
       await MailService.sendHourSummaryEmail(
-        firstname,
+        firstName,
         email,
         sentHourSummaryIntroEmail,
         lastMonday.format('dddd, MMM D'),
@@ -83,10 +80,10 @@ export default async (): Promise<void> => {
         customCheck
       )
       if (!sentHourSummaryIntroEmail)
-        await updateVolunteerHourSummaryIntroById(volunteer._id, true)
+        await updateVolunteerHourSummaryIntroById(volunteer.id)
       totalEmailed++
     } catch (error) {
-      errors.push(`${_id}: ${error}\n`)
+      errors.push(`${id}: ${error}\n`)
     }
   }
 

@@ -1,4 +1,3 @@
-import { Types } from 'mongoose'
 import { GRADES } from '../constants'
 import { getGatesStudentById } from '../models/Student/queries'
 import { getSchool } from '../services/SchoolService'

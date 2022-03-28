@@ -2,23 +2,20 @@ import crypto from 'crypto'
 import { omit } from 'lodash'
 import { Ulid } from '../models/pgUtils'
 import { ACCOUNT_USER_ACTIONS, EVENTS, IP_ADDRESS_STATUS, PHOTO_ID_STATUS, REFERENCE_STATUS } from '../constants'
-import * as UserActionCtrl from '../controllers/UserActionCtrl'
 import { UserNotFoundError } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
-import { Student } from '../models/Student'
-import { LegacyUser, UserContactInfo, getUserContactInfoById, getUsersForAdminSearch, getUserForAdminDetail } from '../models/User'
+import { adminUpdateStudent } from '../models/Student'
+import { UserContactInfo, getUserContactInfoById, getUsersForAdminSearch, getUserForAdminDetail, deleteUser } from '../models/User'
 import {
   UnsentReference,
   VolunteerContactInfo,
   addVolunteerReferenceById,
   updateVolunteerPhotoIdById,
-  updateVolunteerReferenceStatusById,
-  deleteVolunteerReferenceByEmail
+  updateVolunteerReferenceSentById,
+  deleteVolunteerReferenceByEmail,
+  updateVolunteerForAdmin,
+  updateVolunteerReferenceSubmission
 } from '../models/Volunteer'
-import {
-  studentPartnerManifests,
-  volunteerPartnerManifests,
-} from '../partnerManifests'
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
   asBoolean,
@@ -31,12 +28,13 @@ import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
 import logger from '../logger'
 import { createAccountAction } from '../models/UserAction'
+import { getLegacyUserObject } from '../models/User/legacy-user'
 
-// TODO: come back when legacy user is done
-export function parseUser(user: User | Student | Volunteer) {
+export async function parseUser(baseUser: UserContactInfo) {
+  const user = await getLegacyUserObject(baseUser.id)
   // Approved volunteer
-  if (user.isVolunteer && (user as Volunteer).isApproved) {
-    ;(user as Volunteer).hoursTutored = Number((user as Volunteer).hoursTutored)
+  if (user.isVolunteer && user.isApproved) {
+    user.hoursTutored = Number(user.hoursTutored)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
 
@@ -121,25 +119,17 @@ export async function saveReferenceForm(
     referenceEmail
   })
 
-  // See: https://docs.mongodb.com/manual/reference/operator/update/positional/#up._S_
-  // TODO: repo pattern
-  return VolunteerModel.updateOne(
-    { 'references._id': referenceId },
-    {
-      $set: {
-        'references.$.status': REFERENCE_STATUS.SUBMITTED,
-        'references.$.affiliation': affiliation,
-        'references.$.relationshipLength': relationshipLength,
-        'references.$.rejectionReason': rejectionReason,
-        'references.$.additionalInfo': additionalInfo,
-        'references.$.patient': patient,
-        'references.$.positiveRoleModel': positiveRoleModel,
-        'references.$.agreeableAndApproachable': agreeableAndApproachable,
-        'references.$.communicatesEffectively': communicatesEffectively,
-        'references.$.trustworthyWithChildren': trustworthyWithChildren,
-      },
-    }
-  )
+  await updateVolunteerReferenceSubmission(referenceId, {
+    affiliation,
+    relationshipLength,
+    patient,
+    positiveRoleModel,
+    agreeableAndApproachable,
+    communicatesEffectively,
+    trustworthyWithChildren,
+    rejectionReason,
+    additionalInfo
+  })
 }
 
 export async function notifyReference(
@@ -148,7 +138,7 @@ export async function notifyReference(
 ) {
   // TODO: error handling - these need to be 'atomic'
   await MailService.sendReferenceForm(reference, volunteer)
-  await updateVolunteerReferenceStatusById(reference.id)
+  await updateVolunteerReferenceSentById(reference.id)
 }
 
 export async function deleteReference(
@@ -171,28 +161,28 @@ export async function deleteReference(
 
 interface AdminUpdate {
   userId: Ulid
-  firstName?: string
-  lastName?: string
-  email?: string
+  firstName: string
+  lastName: string
+  email: string
   partnerOrg?: string
   partnerSite?: string
-  isVerified?: boolean
-  isBanned?: boolean
-  isDeactivated?: boolean
-  isApproved?: boolean
+  isVerified: boolean
+  isBanned: boolean
+  isDeactivated: boolean
+  isApproved: boolean
   inGatesStudy?: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
   userId: asString,
-  firstName: asOptional(asString),
-  lastName: asOptional(asString),
-  email: asOptional(asString),
+  firstName: asString,
+  lastName: asString,
+  email: asString,
   partnerOrg: asOptional(asString),
   partnerSite: asOptional(asString),
-  isVerified: asOptional(asBoolean),
-  isBanned: asOptional(asBoolean),
-  isDeactivated: asOptional(asBoolean),
-  isApproved: asOptional(asBoolean),
+  isVerified: asBoolean,
+  isBanned: asBoolean,
+  isDeactivated: asBoolean,
+  isApproved: asBoolean,
   inGatesStudy: asOptional(asBoolean),
 })
 
@@ -206,18 +196,7 @@ export async function flagForDeletion(user: UserContactInfo) {
       `Error searching for or deleting contact in user deletion process: ${err}`
     )
   }
-
-  const update: any = {
-    email: `${user.email}deactivated`,
-  }
-
-  if (user.isVolunteer) {
-    // TODO: repo pattern
-    return VolunteerModel.updateOne({ _id: user._id }, update)
-  } else {
-    // Replace with deleteStudent from Student Repo
-    return StudentModel.updateOne({ _id: user._id }, update)
-  }
+  await deleteUser(user.id, `${user.email}deactivated`)
 }
 
 export async function adminUpdateUser(data: unknown) {
@@ -237,7 +216,7 @@ export async function adminUpdateUser(data: unknown) {
   // replaced by UserRepo.getUserForAdminUpdate
   const userBeforeUpdate = await getUserContactInfoById(userId)
   if (!userBeforeUpdate) {
-    throw new UserNotFoundError('_id', userId.toString())
+    throw new UserNotFoundError('id', userId)
   }
   const { isVolunteer } = userBeforeUpdate
   const isUpdatedEmail = userBeforeUpdate.email !== email
@@ -256,31 +235,22 @@ export async function adminUpdateUser(data: unknown) {
     // TODO: queue email
     await MailService.sendBannedUserAlert(userId, 'ADMIN')
 
-  const update: any = {
-    firstname: firstName,
-    lastname: lastName,
+  const update = {
+    firstName,
+    lastName,
     email,
-    verified: isVerified,
+    isVerified,
     isBanned,
     isDeactivated,
     isApproved,
-    $unset: {},
-  }
-
-  if (isVolunteer) {
-    if (partnerOrg) update.volunteerPartnerOrg = partnerOrg
-    else update.$unset.volunteerPartnerOrg = ''
+    volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
+    studentPartnerOrg: !isVolunteer && partnerOrg ? partnerOrg : undefined,
+    partnerSite: !isVolunteer && partnerSite ? partnerSite : undefined,
+    inGatesStudy: !isVolunteer && inGatesStudy ? inGatesStudy : undefined,
+    banReason: isBanned ? 'admin' : undefined
   }
 
   if (!isVolunteer) {
-    if (partnerOrg) update.studentPartnerOrg = partnerOrg
-    else update.$unset.studentPartnerOrg = ''
-
-    if (partnerSite) update.partnerSite = partnerSite
-    else update.$unset.partnerSite = ''
-
-    if (inGatesStudy !== undefined) update.inGatesStudy = inGatesStudy
-
     // tracking organic/partner students for posthog if there is a change in partner status
     if (userBeforeUpdate.studentPartnerOrg !== partnerOrg) {
       AnalyticsService.identify(userId, {
@@ -289,26 +259,19 @@ export async function adminUpdateUser(data: unknown) {
     }
   }
 
-  if (isBanned) update.banReason = 'ADMIN'
   if (isDeactivated && !userBeforeUpdate.deactivated)
-    await new UserActionCtrl.AdminActionCreator(
-      userId.toString()
-    ).adminDeactivatedAccount()
-
-  // Remove $unset property if it has no properties to remove
-  if (Object.keys(update.$unset).length === 0) delete update.$unset
-
-  // TODO: shouldn't this totally fuck up the objects????
-  const updatedUser = Object.assign(userBeforeUpdate, update)
-  MailService.createContact(updatedUser)
+    await createAccountAction({
+      userId,
+      action: ACCOUNT_USER_ACTIONS.DEACTIVATED
+    })
 
   if (isVolunteer) {
-    // TODO: repo pattern
-    return VolunteerModel.updateOne({ _id: userId }, update)
+    await updateVolunteerForAdmin(userId, update)
   } else {
-    // Replace with adminUpdateStudent from Student Repo
-    return StudentModel.updateOne({ _id: userId }, update)
+    await adminUpdateStudent(userId, update)
   }
+
+  await MailService.createContact(userId)
 }
 
 interface UserQuery {

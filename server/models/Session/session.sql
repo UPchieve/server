@@ -5,7 +5,7 @@ INSERT INTO notifications (id, user_id, sent_at, type_id, method_id, priority_gr
 SELECT
     :id!,
     :volunteer!,
-    :sentAt!,
+    NOW(),
     notification_types.id,
     notification_methods.id,
     notification_priority_groups.id,
@@ -500,7 +500,8 @@ SELECT
     sessions.created_at,
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
-    sessions.student_id
+    sessions.student_id,
+    sessions.ended_at
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -659,6 +660,7 @@ WHERE
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND session_count.total = 0
+    AND notifications.session_id = :sessionId!
 GROUP BY
     users.id;
 

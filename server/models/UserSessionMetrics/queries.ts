@@ -48,7 +48,6 @@ export async function executeUSMUpdatesByUserId(
   userId: Ulid,
   queries: UserSessionMetricsUpdateQuery[]
 ): Promise<void> {
-  // TODO: fix `counters` nesting
   // NOTE: `queries` has an example shape similar to below after `merge()`
   // {
   //   hasBeenUnmatched': 109,

@@ -24,22 +24,41 @@ import {
 import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
 
+export type NotificationData = {
+  // old name for volunteerId for legacy compatibility
+  volunteer: Ulid
+  type: string
+  method: string
+  wasSuccessful: boolean
+  messageId?: string 
+  priorityGroup: string
+}
 export async function addSessionNotifications(
-  notification: Notification
+  sessionId: Ulid,
+  notifications: NotificationData[]
 ): Promise<void> {
+  const client = await getClient().connect()
   try {
-    const result = await pgQueries.addNotification.run(
-      {
-        ...notification,
-        sentAt: new Date(),
-        wasSuccessful: true,
-      },
-      getClient()
-    )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoCreateError('Insert query did not return ok')
+    await client.query('BEGIN')
+    for (const notification of notifications) {
+      const result = await pgQueries.addNotification.run(
+        {
+          ...notification,
+          sessionId,
+          id: getDbUlid()
+        },
+        getClient()
+      )
+      // TODO: better error handling - this drops all sessions from saving if any fail
+      if (!result.length && makeRequired(result[0]).ok)
+        throw new RepoCreateError('Insert query did not return ok')
+    }
+    await client.query('COMMIT')
   } catch (err) {
+    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
+  } finally {
+    client.release()
   }
 }
 
@@ -129,7 +148,7 @@ export async function updateSessionFlagsById(
         errors.push(`Update query for flag ${flag} did not return ok`)
     }
     if (errors.length) throw new RepoReadError(errors.join('\n'))
-    await client.query('END')
+    await client.query('COMMIT')
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
@@ -531,6 +550,7 @@ export type CurrentSession = {
   volunteer?: CurrentSessionUser
   volunteerJoinedAt: Date
   messages: MessageForFrontend[]
+  endedAt?: Date
 }
 export async function getCurrentSessionByUserId(
   userId: Ulid
@@ -740,12 +760,12 @@ export type VolunteerForGentleWarning = {
   email: string
   totalNotifications: number
 }
-export async function getVolunteersForGentleWarning(): Promise<
+export async function getVolunteersForGentleWarning(sessionId: Ulid): Promise<
   VolunteerForGentleWarning[]
 > {
   try {
     const result = await pgQueries.getVolunteersForGentleWarning.run(
-      undefined,
+      { sessionId },
       getClient()
     )
     return result.map(v => makeRequired(v))
@@ -918,7 +938,7 @@ export async function updateSessionReviewReasonsById(
       if (!result.length && makeRequired(result[0]).ok)
         throw new Error('Insert did not return ok')
     }
-    await client.query('END')
+    await client.query('COMMIT')
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoCreateError(err)

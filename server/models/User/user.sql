@@ -131,6 +131,17 @@ WHERE
     password_reset_token = :resetToken!
 LIMIT 1;
 
+/* @name deleteUser */
+UPDATE
+    users
+SET
+    email = :email!,
+    updated_at = NOW()
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
 
 /* @name countUsersReferredByOtherId */
 SELECT
@@ -138,7 +149,11 @@ SELECT
 FROM
     users
 WHERE
-    referred_by = :userId!;
+    referred_by = :userId!
+AND
+    phone_verified IS true
+OR
+    email_verified IS true;
 
 
 /* @name updateUserResetTokenById */
@@ -537,3 +552,24 @@ FROM
 WHERE
     users.id = :userId!
 LIMIT 1;
+
+/* @name getPastSessionsForAdminDetail */
+SELECT
+    topics.name AS type,
+    subjects.name AS sub_topic,
+    sessions.id,
+    messages.total AS total_messages,
+    sessions.volunteer_id AS volunteer,
+    sessions.student_id AS student,
+    sessions.volunteer_joined_at,
+    sessions.created_at,
+    sessions.ended_at
+FROM sessions
+LEFT JOIN subjects ON subjects.id = sessions.subject_id
+LEFT JOIN topics ON topics.id = subjects.topic_id
+LEFT JOIN LATERAL (
+    SELECT COUNT(*)::int AS total FROM session_messages WHERE session_id = sessions.id
+) AS messages ON TRUE
+WHERE
+    sessions.volunteer_id = :userId! OR
+    sessions.student_id = :userId!;

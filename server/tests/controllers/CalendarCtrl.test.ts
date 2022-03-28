@@ -1,34 +1,22 @@
-import mongoose from 'mongoose'
+import { mocked } from 'ts-jest/utils'
+import { ACCOUNT_USER_ACTIONS } from '../../constants'
+
 import * as CalendarCtrl from '../../controllers/CalendarCtrl'
-import {
-  insertAvailabilitySnapshot,
-  insertVolunteer,
-  resetDb,
-} from '../db-utils'
-import {
-  buildAvailability,
-  buildVolunteer,
-  buildCertifications,
-} from '../generate'
-import VolunteerModel, { Volunteer } from '../../models/Volunteer'
-import UserActionModel from '../../models/UserAction'
-import { USER_ACTION, SUBJECTS } from '../../constants'
-import { getSnapshotByVolunteerId } from '../../models/Availability/queries'
-import * as VolunteerService from '../../services/VolunteerService'
+import * as VolunteerRepo from '../../models/Volunteer'
+import * as AvailabilityRepo from '../../models/Availability'
+import { getDbUlid } from '../../../database/seeds/scripts/utils'
+import { Ulid } from '../../models/pgUtils'
+import { buildUserContactInfo, buildAvailability, getIpAddress } from '../pg-generate'
+import * as UserActionRepo from '../../models/UserAction'
 jest.mock('../../services/VolunteerService')
+jest.mock('../../services/AnalyticsService')
 
-// db connection
-beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__)
-})
+jest.mock('../../models/Volunteer')
+jest.mock('../../models/UserAction')
+jest.mock('../../models/Availability')
+jest.mock('../../models/User')
 
-afterAll(async () => {
-  await mongoose.connection.close()
-})
-
-beforeEach(async () => {
-  await resetDb()
-})
+const mockedVolunteerRepo = mocked(VolunteerRepo, true)
 
 const mockSaturdayAvailability = {
   '10a': false,
@@ -57,13 +45,35 @@ const mockSaturdayAvailability = {
   '2p': true,
 }
 
+export type VolunteerForScheduleUpdate = {
+  id: Ulid
+  volunteerPartnerOrg?: string
+  onboarded: boolean
+  availability: AvailabilityRepo.Availability,
+  subjects?: string[]
+}
+
+function buildVolunteerForScheduleUpdate(userId?: Ulid, subjects?: string[]): VolunteerRepo.VolunteerForScheduleUpdate {
+  return {
+    id: userId || getDbUlid(),
+    volunteerPartnerOrg: fakerStatic.company.companyName(),
+    onboarded: true,
+    availability: buildAvailability(),
+    subjects: subjects || []
+  }
+}
+
+const user = buildUserContactInfo()
+const tz = 'American/New York'
+const ip = getIpAddress()
+
 describe('Save availability and time zone', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
   test('Should throw error when not provided an availability', async () => {
-    const input = {
-      user: await insertVolunteer(),
-      tz: 'American/New York',
-      ip: '',
-    }
+    const input = { user, tz, ip }
 
     await expect(CalendarCtrl.updateSchedule(input)).rejects.toThrow(
       'No availability object specified'
@@ -71,14 +81,13 @@ describe('Save availability and time zone', () => {
   })
 
   test('Should throw error when provided availability with missing keys', async () => {
-    const volunteer: Volunteer = await insertVolunteer()
     const availability: any = buildAvailability()
     availability.Saturday = undefined
     const input = {
-      user: volunteer,
-      tz: 'American/New York',
+      user,
+      tz,
       availability,
-      ip: '',
+      ip,
     }
 
     await expect(CalendarCtrl.updateSchedule(input)).rejects.toThrow(
@@ -87,123 +96,83 @@ describe('Save availability and time zone', () => {
   })
 
   test('Should update availability (and user action fires) not onboarded', async () => {
-    const volunteer = await insertVolunteer()
-    await insertAvailabilitySnapshot({ volunteerId: volunteer._id })
+    mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(buildVolunteerForScheduleUpdate(user.id))
+
     const availability = buildAvailability({
       Saturday: mockSaturdayAvailability,
     })
     const input = {
-      user: volunteer,
-      tz: 'American/New York',
+      user,
+      tz,
       availability,
-      ip: '',
+      ip,
     }
     await CalendarCtrl.updateSchedule(input)
 
-    const {
-      availability: updatedAvailability,
-      isOnboarded,
-    } = (await VolunteerModel.findOne({
-      _id: volunteer._id,
+    /**
+     * expect
+     * 1. user action for updating availability
+     * 2. save old availability as history
+     * 3. update availability
+     * 4/ update onboarded status - FALSE
+     */
+    expect(UserActionRepo.createAccountAction).toHaveBeenLastCalledWith({
+      userId: user.id,
+      action: ACCOUNT_USER_ACTIONS.UPDATED_AVAILABILITY,
+      ipAddress: ''
     })
-      .lean()
-      .select('availability isOnboarded')
-      .exec()) as Volunteer
-    const availabilitySnapshot = await getSnapshotByVolunteerId(volunteer._id)
-    const expectedUserAction = await UserActionModel.findOne({
-      user: volunteer._id,
-      action: USER_ACTION.ACCOUNT.ONBOARDED,
-    })
-
-    expect(updatedAvailability).toMatchObject(availability)
-    expect(availabilitySnapshot!.onCallAvailability).toMatchObject(availability)
-    expect(isOnboarded).toBeFalsy()
-    expect(expectedUserAction).toBeNull()
+    expect(AvailabilityRepo.saveCurrentAvailabilityAsHistory).toHaveBeenLastCalledWith(user.id)
+    expect(AvailabilityRepo.updateAvailabilityByVolunteerId).toHaveBeenLastCalledWith(user.id, availability, ip)
+    expect(VolunteerRepo.updateVolunteerThroughAvailability).toHaveBeenLastCalledWith(user.id, tz, false)
   })
 
   test('Should update availability (and user action) and becomes onboarded - with user action', async () => {
-    const certifications = buildCertifications({
-      algebra: { passed: true, tries: 1 },
-    })
-    const volunteer = await insertVolunteer(
-      buildVolunteer({
-        certifications,
-        subjects: [
-          SUBJECTS.ALGEBRA_TWO,
-          SUBJECTS.ALGEBRA_ONE,
-          SUBJECTS.PREALGREBA,
-        ],
-        volunteerPartnerOrg: 'example',
-      })
-    )
-    await insertAvailabilitySnapshot({ volunteerId: volunteer._id })
+    mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(buildVolunteerForScheduleUpdate(user.id, ['algebraOne']))
+
     const availability = buildAvailability({
       Saturday: mockSaturdayAvailability,
     })
     const input = {
-      user: volunteer,
-      tz: 'American/New York',
+      user,
+      tz,
       availability,
-      ip: '',
+      ip,
     }
     await CalendarCtrl.updateSchedule(input)
 
-    const {
-      availability: updatedAvailability,
-      isOnboarded,
-    } = (await VolunteerModel.findOne({
-      _id: volunteer._id,
+    /**
+     * expect
+     * 1. user action for updating availability
+     * 2. user action for becoming onboarded
+     * 3. save old availability as history
+     * 4. update availability
+     * 5/ update onboarded status - TRUE
+     */
+    expect(UserActionRepo.createAccountAction).toHaveBeenCalledWith({
+      userId: user.id,
+      action: ACCOUNT_USER_ACTIONS.UPDATED_AVAILABILITY,
+      ipAddress: ''
     })
-      .lean()
-      .select('availability isOnboarded')
-      .exec()) as Volunteer
-    const userAction = await UserActionModel.findOne({
-      user: volunteer._id,
-      action: USER_ACTION.ACCOUNT.ONBOARDED,
+    expect(UserActionRepo.createAccountAction).toHaveBeenCalledWith({
+      userId: user.id,
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      ipAddress: ''
     })
-    const availabilitySnapshot = await getSnapshotByVolunteerId(volunteer._id)
-    const expectedUserAction = {
-      user: volunteer._id,
-      actionType: USER_ACTION.TYPE.ACCOUNT,
-      action: USER_ACTION.ACCOUNT.ONBOARDED,
-    }
-
-    expect(updatedAvailability).toMatchObject(availability)
-    expect(availabilitySnapshot!.onCallAvailability).toMatchObject(availability)
-    expect(isOnboarded).toBeTruthy()
-    expect(userAction).toMatchObject(expectedUserAction)
-    expect(VolunteerService.queueOnboardingEventEmails).toBeCalledTimes(1)
-    expect(VolunteerService.queuePartnerOnboardingEventEmails).toBeCalledTimes(
-      1
-    )
+    expect(AvailabilityRepo.saveCurrentAvailabilityAsHistory).toHaveBeenLastCalledWith(user.id)
+    expect(AvailabilityRepo.updateAvailabilityByVolunteerId).toHaveBeenLastCalledWith(user.id, availability, ip)
+    expect(VolunteerRepo.updateVolunteerThroughAvailability).toHaveBeenLastCalledWith(user.id, tz, true)
   })
 })
 
 describe('Clear schedule', () => {
-  test('Should clear schedule', async () => {
-    const certifications = buildCertifications({
-      algebra: { passed: true, tries: 1 },
-    })
-    const availability = buildAvailability({
-      Saturday: mockSaturdayAvailability,
-    })
-    const volunteer = await insertVolunteer(
-      buildVolunteer({ availability, certifications })
-    )
-    const timezone = 'American/New York'
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+  test('Should clear schedule and save history', async () => {
+    await CalendarCtrl.clearSchedule(user, tz)
 
-    await CalendarCtrl.clearSchedule(volunteer, timezone)
-
-    const emptyAvailability = buildAvailability()
-    const { availability: updatedAvailability } = (await VolunteerModel.findOne(
-      {
-        _id: volunteer._id,
-      }
-    )
-      .lean()
-      .select('availability')
-      .exec()) as Volunteer
-
-    expect(updatedAvailability).toMatchObject(emptyAvailability)
+    expect(AvailabilityRepo.saveCurrentAvailabilityAsHistory).toHaveBeenLastCalledWith(user.id)
+    expect(AvailabilityRepo.clearAvailabilityForVolunteer).toHaveBeenLastCalledWith(user.id)
+    expect(VolunteerRepo.updateVolunteerThroughAvailability).toHaveBeenLastCalledWith(user.id, tz)
   })
 })

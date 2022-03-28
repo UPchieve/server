@@ -395,3 +395,56 @@ const getMultipleQuestionsByIdIR: any = {"name":"getMultipleQuestionsById","para
 export const getMultipleQuestionsById = new PreparedQuery<IGetMultipleQuestionsByIdParams,IGetMultipleQuestionsByIdResult>(getMultipleQuestionsByIdIR);
 
 
+/** 'GetQuestionsByCategory' parameters type */
+export interface IGetQuestionsByCategoryParams {
+  category: string;
+  limit: number;
+  offset: number;
+}
+
+/** 'GetQuestionsByCategory' return type */
+export interface IGetQuestionsByCategoryResult {
+  category: string;
+  correctAnswer: string;
+  createdAt: Date;
+  id: number;
+  imageSrc: string | null;
+  mongoId: string | null;
+  possibleAnswers: Json | null;
+  questionText: string;
+  subcategory: string;
+  updatedAt: Date;
+}
+
+/** 'GetQuestionsByCategory' query type */
+export interface IGetQuestionsByCategoryQuery {
+  params: IGetQuestionsByCategoryParams;
+  result: IGetQuestionsByCategoryResult;
+}
+
+const getQuestionsByCategoryIR: any = {"name":"getQuestionsByCategory","params":[{"name":"category","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3249,"b":3257,"line":138,"col":22}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3267,"b":3272,"line":139,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3289,"b":3295,"line":139,"col":30}]}}],"usedParamSet":{"category":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    quiz_subcategories.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at,\n    ques.mongo_id\nFROM quiz_questions ques\nLEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id\nLEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id\nWHERE quizzes.name = :category!\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":2814,"b":3301,"line":124,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     ques.id,
+ *     question_text,
+ *     possible_answers,
+ *     correct_answer,
+ *     quizzes.name AS category,
+ *     quiz_subcategories.name AS subcategory,
+ *     image_source AS image_src,
+ *     ques.created_at,
+ *     ques.updated_at,
+ *     ques.mongo_id
+ * FROM quiz_questions ques
+ * LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id
+ * LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id
+ * WHERE quizzes.name = :category!
+ * LIMIT (:limit!)::int OFFSET (:offset!)::int
+ * ```
+ */
+export const getQuestionsByCategory = new PreparedQuery<IGetQuestionsByCategoryParams,IGetQuestionsByCategoryResult>(getQuestionsByCategoryIR);
+
+

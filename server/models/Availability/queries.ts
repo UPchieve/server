@@ -224,3 +224,12 @@ export async function clearAvailabilityForVolunteer(userId: Ulid): Promise<void>
     throw new RepoUpdateError(err)
   }
 }
+
+export async function saveLegacyAvailability(userId: Ulid, availability: any): Promise<void> {
+  try {
+    const result = await pgQueries.saveLegacyAvailability.run({ id: getDbUlid(), userId, availability }, getClient())
+    
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}

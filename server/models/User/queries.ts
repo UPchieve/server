@@ -11,6 +11,7 @@ import {
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS } from '../../constants'
 import { getReferencesByVolunteer } from '../Volunteer/queries'
+import { PoolClient } from 'pg'
 
 export async function getUserIdByPhone(
   phone: string
@@ -31,6 +32,19 @@ export async function getUserIdByEmail(
     if (result.length) return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function deleteUser(userId: Ulid, email: string) {
+  try {
+    const result = await pgQueries.deleteUser.run(
+      { userId: userId, email },
+      getClient()
+    )
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query did not delete student')
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }
 
@@ -283,28 +297,35 @@ export async function getUsersForAdminSearch(
     throw new RepoReadError(err)
   }
 }
-/*
-pastSessions: { $slice: ['$pastSessions', -10 * page, 10] }, /////////
 
-    sessions: {
-                type: 1,
-                subTopic: 1,
-                totalMessages: {
-                  $size: '$messages',
-                },
-                volunteer: 1,
-                student: 1,
-                volunteerJoinedAt: 1,
-                createdAt: 1,
-                endedAt: 1,
-              },
-*/
+export type PastSessionForAdmin = {
+  type: string
+  subTopic: string
+  totalMessages: number
+  volunteer?: Ulid
+  student: Ulid
+  volunteerJoinedAt?: Date
+  createdAt: Date
+  endedAt?: Date
+}
+
+export async function getPastSessionsForAdminDetail(userId: Ulid, poolClient?: PoolClient): Promise<PastSessionForAdmin[]> {
+  const client = poolClient ? poolClient : getClient()
+  try {
+    const result = await pgQueries.getPastSessionsForAdminDetail.run({userId}, client)
+    return result.map(v => makeSomeRequired(v, ['volunteer', 'volunteerJoinedAt', 'endedAt']))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 // TODO: needs formal return type which is huge due to frontend
 export async function getUserForAdminDetail(userId: Ulid) {
+  const client = await getClient().connect()
   try {
     const userResult = await pgQueries.getUserForAdminDetail.run(
       { userId },
-      getClient()
+      client
     )
     const user = makeSomeOptional(userResult[0], [
       'id',
@@ -319,8 +340,8 @@ export async function getUserForAdminDetail(userId: Ulid) {
       'verified',
       'numPastSessions',
     ])
-    const references = await getReferencesByVolunteer(user.id)
-    const sessions: any[] = [] // TODO: get past sessions
+    const references = await getReferencesByVolunteer(user.id, client)
+    const sessions = await getPastSessionsForAdminDetail(user.id, client)
     return {
       ...user,
       references,
@@ -329,6 +350,8 @@ export async function getUserForAdminDetail(userId: Ulid) {
     }
   } catch (err) {
     throw new RepoReadError(err)
+  } finally {
+    client.release()
   }
 }
 

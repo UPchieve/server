@@ -9,6 +9,7 @@ import { questionsPath, isActivePage, frontEndPath } from './helpers'
 import logger from '../../logger'
 import path from 'path'
 import { asString } from '../../utils/type-utils'
+import * as QuestionRepo from '../../models/Question'
 
 const edu = express()
 edu.set('view engine', 'ejs')
@@ -99,10 +100,7 @@ eduApi.post('/categoryquestions', async (req, res) => {
   const limit = req.body.limit
 
   try {
-    const questions = await QuestionModel.find({ category }, null, {
-      skip,
-      limit,
-    }).exec()
+    const questions = await QuestionRepo.getQuestionsByCategory(category, limit, skip)
     res.status(200).json({ questions: questions })
   } catch (error) {
     res.status(422).json({ error: (error as Error).toString() })
@@ -123,7 +121,7 @@ eduApi.post('/questions', async (req, res) => {
 eduApi.put('/questions/:id', async (req, res) => {
   try {
     const updatedQuestion = await QuestionCtrl.update({
-      id: req.params.id,
+      id: Number(req.params.id),
       question: req.body.question,
     })
     res.status(200).json({ question: updatedQuestion })

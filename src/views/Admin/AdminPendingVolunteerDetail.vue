@@ -1,10 +1,10 @@
 <template>
   <div v-if="showReferenceForm">
     <admin-reference-view
-      :reference="volunteer.references[chosenReferenceIndex]"
+      :reference="chosenReference"
       :closeReferenceView="toggleReferenceView"
       :updateReferenceStatus="updateReferenceStatus"
-      :referenceStatusText="referencesStatus[chosenReferenceIndex]"
+      :referenceStatusText="chosenReference.status"
     />
   </div>
   <div v-else-if="volunteer._id" class="user-detail">
@@ -58,7 +58,7 @@
         >
           <p>
             <span
-              @click="toggleReferenceView(index)"
+              @click="toggleReferenceView(reference)"
               class="reference__form-link"
               >{{ reference.firstName }} {{ reference.lastName }}</span
             >
@@ -116,15 +116,15 @@ export default {
       error: '',
       photoIdStatus: '',
       showReferenceForm: false,
-      chosenReferenceIndex: 0,
-      referencesStatus: []
+      chosenReference: undefined,
+      referenceStatusMap: {}
     }
   },
   async created() {
     this.photoIdStatus = this.volunteer.photoIdStatus
-    this.referencesStatus = this.volunteer.references.map(
-      reference => reference.status
-    )
+    for (const reference of this.volunteer.references) {
+      this.referenceStatusMap[reference._id] = reference.status
+    }
   },
   methods: {
     async handleSubmit() {
@@ -132,7 +132,7 @@ export default {
 
       const data = {
         photoIdStatus: this.photoIdStatus,
-        referencesStatus: this.referencesStatus,
+        referencesStatusMap: this.referencesStatusMap,
         volunteerId: this.volunteer._id
       }
       try {
@@ -144,18 +144,15 @@ export default {
         this.error = "There was an error updating the volunteer's status."
       }
     },
-    toggleReferenceView(referenceIndex) {
-      this.chosenReferenceIndex = referenceIndex
+    toggleReferenceView(reference) {
+      this.chosenReference = reference
       this.showReferenceForm = !this.showReferenceForm
     },
     updateReferenceStatus(event) {
       const {
         target: { value }
       } = event
-      this.referencesStatus = this.referencesStatus.map((status, index) => {
-        if (index === this.chosenReferenceIndex) return value
-        else return status
-      })
+      this.referenceStatusMap[this.chosenReference._id] = value
     },
     statusText(status) {
       if (status === 'SUBMITTED') return 'WAITING FOR REVIEW'

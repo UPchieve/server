@@ -146,23 +146,6 @@ export const buildTrainingCourses = (overrides = {}): TrainingCourses => {
   }
 }
 
-export const buildAvailability = (overrides = {}): Availability => {
-  const availability = {} as Availability
-  for (const day in DAYS) {
-    const tempDay: any = {}
-    for (const hour in HOURS) {
-      tempDay[HOURS[hour as keyof typeof HOURS] as HOURS] = false
-    }
-    availability[
-      DAYS[day as keyof typeof DAYS] as DAYS
-    ] = tempDay as AvailabilityDay
-  }
-
-  const mergedAvailability = merge(availability, overrides)
-
-  return mergedAvailability
-}
-
 export const buildAvailabilitySnapshot = (
   overrides = {}
 ): AvailabilitySnapshot => {

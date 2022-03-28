@@ -119,3 +119,21 @@ WHERE quizzes.name = :quizName!;
 SELECT *
 FROM quiz_questions
 WHERE id = ANY(:ids!);
+
+/* @name getQuestionsByCategory */
+SELECT
+    ques.id,
+    question_text,
+    possible_answers,
+    correct_answer,
+    quizzes.name AS category,
+    quiz_subcategories.name AS subcategory,
+    image_source AS image_src,
+    ques.created_at,
+    ques.updated_at,
+    ques.mongo_id
+FROM quiz_questions ques
+LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id
+LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id
+WHERE quizzes.name = :category!
+LIMIT (:limit!)::int OFFSET (:offset!)::int;

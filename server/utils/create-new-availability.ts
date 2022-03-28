@@ -3,20 +3,17 @@ import {
   AvailabilityDay,
   DAYS,
   HOURS,
-  enumKeys,
-} from '../models/Availability/types'
+} from '../models/Availability'
 
 function createNewAvailability(): Availability {
   const availability: any = {}
 
-  for (const day of enumKeys(DAYS)) {
+  for (const day of DAYS) {
     const currentDay: any = {}
-    for (const hour of enumKeys(HOURS)) {
-      const hourLabel = HOURS[hour as keyof typeof HOURS]
-      currentDay[hourLabel] = false
+    for (const hour of HOURS) {
+      currentDay[hour] = false
     }
-    const dayLabel = DAYS[day as keyof typeof DAYS]
-    availability[dayLabel] = currentDay as AvailabilityDay
+    availability[day] = currentDay as AvailabilityDay
   }
 
   return availability as Availability

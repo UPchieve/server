@@ -13,7 +13,7 @@ export type School = {
   updatedAt: Date
   cityNameStored?: string
   mongoId?: string
-  districtNameStored?: string
+  districtNameStored?: string   // stored as lea_name
   SCHOOL_YEAR?: string
   FIPST?: number
   ST?: string
@@ -30,7 +30,6 @@ export type School = {
   G_12_OFFERED?: string
 
   // virtuals
-  // TODO get the following from the query
   name?: string
   districtName?: string
   city?: string

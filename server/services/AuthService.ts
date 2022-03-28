@@ -16,7 +16,8 @@ import { School } from '../models/School'
 import { findSchoolByUpchieveId } from '../models/School/queries'
 import * as UserCtrl from '../controllers/UserCtrl'
 import { getVolunteerPartnerOrgForRegistrationByKey, getVolunteerPartnerOrgs, getFullVolunteerPartnerOrgByKey, VolunteerPartnerOrg, VolunteerPartnerOrgForRegistration } from '../models/VolunteerPartnerOrg'
-import { getStudentPartnerOrgForRegistrationByKey, getStudentPartnerOrgs, getFullStudentPartnerOrgByKey, StudentPartnerOrgForRegistration, StudentPartnerOrg } from '../models/StudentPartnerOrg'
+import { getStudentPartnerOrgForRegistrationByKey, getStudentPartnerOrgs, getFullStudentPartnerOrgByKey, StudentPartnerOrgForRegistration, StudentPartnerOrg, getStudentPartnerOrgKeyByCode } from '../models/StudentPartnerOrg'
+import { SponsorOrg, getSponsorOrgs  } from '../models/SponsorOrg'
 
 import {
   asCredentialData,
@@ -357,13 +358,11 @@ export async function lookupPartnerStudent(
 // Handles /partner/student/code route
 export async function lookupPartnerStudentCode(data: unknown): Promise<string> {
   const partnerSignupCode = asString(data)
-  const studentPartnerKey = findKey(studentPartnerManifests, {
-    signupCode: partnerSignupCode.toUpperCase(),
-  })
+  const studentPartnerKey = getStudentPartnerOrgKeyByCode(partnerSignupCode.toUpperCase())
 
   if (!studentPartnerKey)
     throw new LookupError(
-      `No partner key found for partnerSignupCode "${partnerSignupCode}"`
+      `no partner key found for partnerSignupCode "${partnerSignupCode}"`
     )
 
   return studentPartnerKey
@@ -382,17 +381,8 @@ export async function lookupVolunteerPartners(): Promise<VolunteerPartnerOrg[]> 
 }
 
 // Handles /partner/sponsor-orgs route (admin only)
-export async function lookupSponsorOrgs(): Promise<PartnerOrg[]> {
-  const sponsorOrgs = []
-  for (const [key, value] of Object.entries(sponsorOrgManifests) as [
-    string,
-    SponsorOrgManifest
-  ][]) {
-    sponsorOrgs.push({
-      key,
-      displayName: value.name ? value.name : key,
-    })
-  }
+export async function lookupSponsorOrgs(): Promise<SponsorOrg[]> {
+  const sponsorOrgs = await getSponsorOrgs()
   return sponsorOrgs
 }
 

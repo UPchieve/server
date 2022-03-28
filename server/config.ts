@@ -195,10 +195,6 @@ const config: Static<typeof Config> = {
 
   socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
 
-  volunteerPartnerManifestPath:
-    process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
-    'localManifests/volunteer.yaml',
-
   customVolunteerPartnerOrgs: (
     process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
   ).split(','),
@@ -211,18 +207,6 @@ const config: Static<typeof Config> = {
   customAnalyticsReportPartnerOrgs: (
     process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'bogus'
   ).split(','),
-
-  studentPartnerManifestPath:
-    process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
-    'localManifests/student.yaml',
-
-  sponsorOrgManifestPath:
-    process.env.SUBWAY_SPONSOR_ORG_MANIFEST_PATH ||
-    'localManifests/sponsor-orgs.yaml',
-
-  associatedPartnerManifestPath:
-    process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS ||
-    'localManifests/associated-partners.yaml',
 
   clusterServerAddress:
     process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',

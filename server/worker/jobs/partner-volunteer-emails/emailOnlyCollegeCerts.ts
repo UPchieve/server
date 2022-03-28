@@ -3,7 +3,7 @@ import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getPartnerVolunteerForCollege } from '../../../models/Volunteer/queries'
-import { asObjectId } from '../../../utils/type-utils'
+import { asString } from '../../../utils/type-utils'
 
 /**
  *
@@ -26,15 +26,15 @@ export default async (
     name: currentJob,
   } = job
 
-  const volunteer = await getPartnerVolunteerForCollege(asObjectId(volunteerId))
+  const volunteer = await getPartnerVolunteerForCollege(asString(volunteerId))
 
   if (volunteer) {
-    const { _id, firstname, email } = volunteer
-    const textNotifications = await getNotificationsByVolunteerId(_id)
+    const { id, firstName, email } = volunteer
+    const textNotifications = await getNotificationsByVolunteerId(id)
 
     if (textNotifications.length < 2) {
       try {
-        await MailService.sendPartnerVolunteerOnlyCollegeCerts(email, firstname)
+        await MailService.sendPartnerVolunteerOnlyCollegeCerts(email, firstName)
         log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(

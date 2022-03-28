@@ -1,7 +1,7 @@
 import { Pool } from 'pg'
 import config from './config'
 
-// TODO: safer connection string, exponential backoff, reconnect strategy
+// TODO: exponential backoff, reconnect strategy
 
 export function buildClient(): Pool {
   return new Pool({

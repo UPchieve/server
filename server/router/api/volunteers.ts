@@ -7,10 +7,7 @@ import * as cache from '../../cache'
 import { Router } from 'express'
 import {
   asNumber,
-  asObjectId,
-  asString,
-  asArray,
-  asFactory,
+  asString
 } from '../../utils/type-utils'
 import { resError } from '../res-error'
 
@@ -53,26 +50,23 @@ export function routeVolunteers(router: Router): void {
     }
   })
 
-  interface Test {
-    test: string[]
-  }
-  const stringArrayValidator = asFactory<Test>({
-    test: asArray(asString),
-  })
   router.post('/volunteers/review/:id', authPassport.isAdmin, async function(
     req,
     res
   ) {
     try {
-      const volunteerId = asObjectId(req.params.id)
+      const volunteerId = asString(req.params.id)
       const { photoIdStatus, referencesStatus } = req.body
-      const { test: validStatuses } = stringArrayValidator({
-        test: referencesStatus,
-      })
+      const referenceIds = Object.keys(referencesStatus)
+      // TODO: better type validation
+      const validStatus: any = {}
+      for (const referenceId of referenceIds) {
+        validStatus[referenceId] = referencesStatus[referenceId]
+      }
       await VolunteerService.updatePendingVolunteerStatus(
         volunteerId,
         asString(photoIdStatus),
-        validStatuses
+        validStatus
       )
       res.sendStatus(200)
     } catch (error) {

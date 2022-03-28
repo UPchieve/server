@@ -49,8 +49,7 @@ FROM
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
-    users.id = :userId!
-    AND users.last_activity_at < :startDate!
+    users.last_activity_at < :startDate!
     AND users.banned IS FALSE
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE;
@@ -173,7 +172,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id
 WHERE
-    NOT volunteer_partner_orgs.key = ANY (:unsubscribedPartners!)
+    (volunteer_partner_orgs.id IS NULL OR volunteer_partner_orgs.receive_weekly_hour_summary_email IS TRUE)
     AND users.banned IS FALSE
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
@@ -336,11 +335,13 @@ WHERE
 
 /* @name getVolunteerByReference */
 SELECT
-    volunteer_references.user_id
+    volunteer_references.user_id AS volunteer_id,
+    volunteer_references.email AS reference_email
 FROM
     volunteer_references
 WHERE
-    volunteer_references.id = :referenceId!;
+    volunteer_references.id = :referenceId!
+LIMIT 1;
 
 
 /* @name addVolunteerReferenceById */
@@ -364,6 +365,26 @@ ON CONFLICT (user_id,
 RETURNING
     id AS ok;
 
+/* @name updateVolunteerReferenceSubmission */
+UPDATE volunteer_references
+SET
+    status_id = subquery.id,
+    affiliation = COALESCE(:affiliation, affiliation),
+    relationship_length = COALESCE(:relationshipLength, relationship_length),
+    rejection_reason = COALESCE(:rejectionReason, rejection_reason),
+    additional_info = COALESCE(:additionalInfo, additional_info),
+    patient = COALESCE(:patient, patient),
+    positive_role_model = COALESCE(:positiveRoleModel, positive_role_model),
+    agreeable_and_approachable = COALESCE(:agreeableAndApproachable, agreeable_and_approachable),
+    communicates_effectively = COALESCE(:communicatesEffectively, communicates_effectively),
+    trustworthy_with_children = COALESCE(:trustworthyWithChildren, trustworthy_with_children),
+    updated_at = NOW()
+FROM (
+    SELECT id FROM volunteer_reference_statuses WHERE name = 'submitted' 
+) AS subquery
+WHERE volunteer_references.id = :referenceId!
+RETURNING volunteer_references.id AS ok;
+
 
 /* @name getInactiveVolunteers */
 SELECT
@@ -385,7 +406,7 @@ WHERE
     AND users.test_user IS FALSE;
 
 
-/* @name updateVolunteerReferenceStatusById */
+/* @name updateVolunteerReferenceSentById */
 UPDATE
     volunteer_references
 SET
@@ -399,6 +420,25 @@ FROM (
         volunteer_reference_statuses
     WHERE
         name = 'sent') AS subquery
+WHERE
+    volunteer_references.id = :referenceId!
+RETURNING
+    volunteer_references.id AS ok;
+
+/* @name updateVolunteerReferenceStatusById */
+UPDATE
+    volunteer_references
+SET
+    status_id = subquery.id,
+    sent_at = NOW(),
+    updated_at = NOW()
+FROM (
+    SELECT
+        id
+    FROM
+        volunteer_reference_statuses
+    WHERE
+        name = :status!) AS subquery
 WHERE
     volunteer_references.id = :referenceId!
 RETURNING
@@ -669,6 +709,20 @@ WHERE
 RETURNING
     volunteer_profiles.user_id AS ok;
 
+/* @name updateVolunteerPending */
+UPDATE
+    volunteer_profiles
+SET
+    approved = :approved!,
+    photo_id_status = subquery.id,
+    updated_at = NOW()
+FROM (
+    SELECT id FROM photo_id_statuses WHERE name = :status!
+) AS subquery
+WHERE
+    volunteer_profiles.user_id = :userId!
+RETURNING
+    volunteer_profiles.user_id AS ok;
 
 /* @name updateVolunteerOnboarded */
 UPDATE
@@ -953,6 +1007,37 @@ INSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)
         RETURNING
             user_id AS ok;
 
+/* @name getQuizzesPassedForDateRange */
+SELECT
+    COUNT(*)::int AS total
+FROM users_quizzes
+WHERE
+    user_id = :userId! AND
+    updated_at >= :start! AND
+    updated_at <= :end! AND
+    passed IS TRUE;
+
+/* @name updateVolunteerUserForAdmin */
+UPDATE users
+SET
+    first_name = :firstName!,
+    last_name = :lastName!,
+    email = :email!,
+    verified = :isVerified!,
+    banned = :isBanned!,
+    deactivated = :isDeactivated!
+WHERE
+    users.id = :userId!
+RETURNING id AS ok;
+
+/* @name updateVolunteerProfilesForAdmin */
+UPDATE volunteer_profiles
+SET
+    volunteer_partner_org_id = :partnerOrgId
+WHERE
+    user_id = :userId!
+RETURNING user_id AS ok;
+
 
 /* @name createVolunteerUser */
 INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, created_at, updated_at)
@@ -962,27 +1047,23 @@ ON CONFLICT (email)
 RETURNING
     id, email, first_name, last_name, phone, banned, test_user, deactivated, created_at;
 
+/* @name getVolunteerPartnerOrgIdByKey */
+SELECT
+    id
+FROM volunteer_partner_orgs
+WHERE key = :volunteerPartnerOrg!;
 
 /* @name createVolunteerProfile */
 INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)
-SELECT
+VALUES (
     :userId!,
     FALSE,
-    subquery.volunteer_partner_org_id,
+    :partnerOrgId,
     :timezone!,
     NOW(),
-    NOW()
-FROM (
-    SELECT
-        id AS volunteer_partner_org_id,
-        name
-    FROM
-        volunteer_partner_orgs
-    WHERE
-        volunteer_partner_orgs.key = :volunteerPartnerOrg) AS subquery
+    NOW())
 RETURNING
     user_id AS ok;
-
 
 /* @name getCertificationsForVolunteers */
 SELECT
@@ -1042,10 +1123,9 @@ FROM
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     JOIN availabilities ON users.id = availabilities.user_id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    JOIN (
+    LEFT JOIN LATERAL (
         SELECT
-            sub_unlocked.user_id,
-            subjects.name AS subject
+            array_agg(subjects.name) AS subjects
         FROM (
             SELECT
                 user_id,
@@ -1070,7 +1150,7 @@ FROM
                     subject_total.total
                 HAVING
                     COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id
+                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
 WHERE
     test_user IS FALSE
     AND banned IS FALSE
@@ -1078,7 +1158,9 @@ WHERE
     AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND subjects_unlocked.subject = :subject!
+    AND :subject! = ANY(subjects_unlocked.subjects)
+    AND :highLevelSubjects && subjects_unlocked.subjects
+    AND NOT users.id = ANY(:disqualifiedVolunteers!)
     AND NOT EXISTS (
         SELECT
             user_id
@@ -1102,10 +1184,9 @@ FROM
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     JOIN availabilities ON users.id = availabilities.user_id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    JOIN (
+    LEFT JOIN LATERAL (
         SELECT
-            sub_unlocked.user_id,
-            subjects.name AS subject
+            array_agg(subjects.name) AS subjects
         FROM (
             SELECT
                 user_id,
@@ -1130,7 +1211,7 @@ FROM
                     subject_total.total
                 HAVING
                     COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id
+                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
 WHERE
     test_user IS FALSE
     AND banned IS FALSE
@@ -1138,7 +1219,9 @@ WHERE
     AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND subjects_unlocked.subject = :subject!
+    AND :subject! = ANY(subjects_unlocked.subjects)
+    AND :highLevelSubjects && subjects_unlocked.subjects
+    AND NOT users.id = ANY(:disqualifiedVolunteers!)
     AND volunteer_profiles.volunteer_partner_org_id IS NULL
     AND NOT EXISTS (
         SELECT
@@ -1164,10 +1247,9 @@ FROM
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     JOIN availabilities ON users.id = availabilities.user_id
     JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    JOIN (
+    LEFT JOIN LATERAL (
         SELECT
-            sub_unlocked.user_id,
-            subjects.name AS subject
+            array_agg(subjects.name) AS subjects
         FROM (
             SELECT
                 user_id,
@@ -1192,7 +1274,7 @@ FROM
                     subject_total.total
                 HAVING
                     COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id
+                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
 WHERE
     test_user IS FALSE
     AND banned IS FALSE
@@ -1200,7 +1282,9 @@ WHERE
     AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND subjects_unlocked.subject = :subject!
+    AND :subject! = ANY(subjects_unlocked.subjects)
+    AND :highLevelSubjects && subjects_unlocked.subjects
+    AND NOT users.id = ANY(:disqualifiedVolunteers!)
     AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL
     AND NOT EXISTS (
         SELECT
@@ -1226,10 +1310,9 @@ FROM
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     JOIN availabilities ON users.id = availabilities.user_id
     JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    JOIN (
+    LEFT JOIN LATERAL (
         SELECT
-            sub_unlocked.user_id,
-            subjects.name AS subject
+            array_agg(subjects.name) AS subjects
         FROM (
             SELECT
                 user_id,
@@ -1254,7 +1337,7 @@ FROM
                     subject_total.total
                 HAVING
                     COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id
+                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
 WHERE
     test_user IS FALSE
     AND banned IS FALSE
@@ -1262,7 +1345,9 @@ WHERE
     AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND subjects_unlocked.subject = :subject!
+    AND :subject! = ANY(subjects_unlocked.subjects)
+    AND :highLevelSubjects && subjects_unlocked.subjects
+    AND NOT users.id = ANY(:disqualifiedVolunteers!)
     AND volunteer_partner_orgs.key = :volunteerPartnerOrg!
     AND NOT EXISTS (
         SELECT

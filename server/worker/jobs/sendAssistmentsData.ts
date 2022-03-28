@@ -2,15 +2,14 @@ import axios from 'axios'
 import { backOff } from 'exponential-backoff'
 import { Job } from 'bull'
 import config from '../../config'
-import { PgAssistmentsData } from '../../models/AssistmentsData'
 import {
+  AssistmentsData,
   getAssistmentsDataBySession,
   updateAssistmentsDataSentById,
-} from '../../models/AssistmentsData/queries'
-import { Message } from '../../models/Message'
-import { getSessionById } from '../../models/Session/queries'
+} from '../../models/AssistmentsData'
+import { getMessagesForFrontend, getSessionById, MessageForFrontend } from '../../models/Session'
 import { log } from '../logger'
-import { asObjectId } from '../../utils/type-utils'
+import { asString } from '../../utils/type-utils'
 
 interface PartMessage {
   contents: string
@@ -43,7 +42,7 @@ export interface Payload {
   session: PartSession
 }
 
-export function pluckMessages(messages: Message[]): PartMessage[] {
+export function pluckMessages(messages: MessageForFrontend[]): PartMessage[] {
   const final: PartMessage[] = []
   for (const message of messages) {
     final.push({
@@ -56,7 +55,7 @@ export function pluckMessages(messages: Message[]): PartMessage[] {
 }
 
 export async function buildRequest(
-  data: PgAssistmentsData
+  data: AssistmentsData
 ): Promise<{ params: Parameters; payload: Payload }> {
   try {
     const params = {
@@ -64,20 +63,21 @@ export async function buildRequest(
       userXref: data.studentId,
     }
     const session = await getSessionById(data.sessionId)
+    const messages = await getMessagesForFrontend(data.sessionId)
     if (!session.endedAt) throw new Error('Assistments session has not ended!')
     const partSession = {
       createdAt: session.createdAt.getTime(),
       endedAt: session.endedAt.getTime(),
-      id: session._id.toString(),
-      messages: pluckMessages(session.messages),
-      studentId: session.student.toString(),
-      subject: session.type,
-      subTopic: session.subTopic,
+      id: session.id,
+      messages: pluckMessages(messages),
+      studentId: session.studentId,
+      subject: session.topic,
+      subTopic: session.subject,
       timeTutored: session.timeTutored,
       volunteerJoinedAt: session.volunteerJoinedAt
         ? session.volunteerJoinedAt.getTime()
         : undefined,
-      volunteerId: session.volunteer ? session.volunteer.toString() : undefined,
+      volunteerId: session.volunteerId,
     }
     const payload = {
       studentId: data.studentId,
@@ -164,7 +164,7 @@ export interface SendAssistmentsDataJobData {
 }
 
 export default async (job: Job<SendAssistmentsDataJobData>): Promise<void> => {
-  const sessionId = asObjectId(job.data.sessionId)
+  const sessionId = asString(job.data.sessionId)
   const data = await getAssistmentsDataBySession(sessionId)
   if (data && !data.sent) {
     const { params, payload } = await buildRequest(data)

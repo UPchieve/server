@@ -1,17 +1,14 @@
 import _ from 'lodash'
-import { ACCOUNT_USER_ACTIONS } from '../constants'
-import {
-  DAYS,
-  HOURS,
-  Availability,
-} from '../models/Availability/types'
-import { clearAvailabilityForVolunteer, saveCurrentAvailabilityAsHistory, updateAvailabilityByVolunteerId } from '../models/Availability'
+import { ACCOUNT_USER_ACTIONS, EVENTS } from '../constants'
+
 import { captureEvent } from '../services/AnalyticsService'
-import { EVENTS } from '../constants'
 import {
   queueOnboardingEventEmails,
   queuePartnerOnboardingEventEmails,
 } from '../services/VolunteerService'
+import { clearAvailabilityForVolunteer, saveCurrentAvailabilityAsHistory, updateAvailabilityByVolunteerId, DAYS,
+  HOURS,
+  Availability, } from '../models/Availability'
 import { createAccountAction } from '../models/UserAction'
 import { UserContactInfo } from '../models/User'
 import { getVolunteerForScheduleUpdate, VolunteerForScheduleUpdate, updateVolunteerThroughAvailability } from '../models/Volunteer'
@@ -43,7 +40,7 @@ export async function updateSchedule(
     await createAccountAction({
       userId: volunteer.id,
       action: ACCOUNT_USER_ACTIONS.UPDATED_AVAILABILITY,
-      ipAddress: options.ip
+      ipAddress: ip
     })
     captureEvent(volunteer.id, EVENTS.ACCOUNT_ONBOARDED, {
       event: EVENTS.ACCOUNT_ONBOARDED,
@@ -84,8 +81,9 @@ async function executeUpdate(
     throw new Error('Availability object missing required keys')
   }
 
+  // TODO: run these with the same client
+  await saveCurrentAvailabilityAsHistory(user.id)
   await Promise.all([
-    // Replaced by AvailabilityRepo.updateAvailabilityByVolunteerId
     updateAvailabilityByVolunteerId(user.id, availability, tz),
     updateVolunteerThroughAvailability(user.id, tz, onboarded),
   ])

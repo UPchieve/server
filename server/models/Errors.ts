@@ -8,19 +8,6 @@ export class UserNotFoundError extends CustomError {
   }
 }
 
-// TODO: deprecate DocFooError in favor of RepoFooErrors
-export class DocCreationError extends CustomError {}
-
-export class DocUpdateError extends CustomError {
-  constructor(error: Error, query: any, update: any) {
-    super(
-      `Document update error ${error.message} via query ${JSON.stringify(
-        query
-      )} and update ${JSON.stringify(update)}`
-    )
-  }
-}
-
 export class RepoCreateError extends CustomError {
   constructor(arg: unknown) {
     if (arg instanceof RepoCreateError) return arg

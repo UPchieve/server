@@ -20,7 +20,7 @@ WHERE
 WITH TEMP AS (
     SELECT
         1)
-INSERT INTO ineligible_students (id, email, postal_code, ip_address_id, school_id, grade_level_id, created_at, updated_at)
+INSERT INTO ineligible_students (id, email, postal_code, ip_address_id, school_id, grade_level_id, referred_by, created_at, updated_at)
 SELECT
     :id!,
     :email!,
@@ -28,6 +28,7 @@ SELECT
     ip_addresses.id,
     :schoolId,
     grade_levels.id,
+    :referredBy,
     NOW(),
     NOW()
 FROM

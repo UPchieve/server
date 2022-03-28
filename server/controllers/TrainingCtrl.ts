@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { captureEvent } from '../services/AnalyticsService'
 import {
   CERT_UNLOCKING,
@@ -17,7 +16,10 @@ import {
   SUBJECTS,
   FEATURE_FLAGS,
 } from '../constants'
+import { isEnabled } from 'unleash-client'
 import { getSubjectType } from '../utils/getSubjectType'
+
+import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
 import {
   Certifications,
@@ -26,12 +28,9 @@ import {
   queueOnboardingEventEmails,
   queuePartnerOnboardingEventEmails,
 } from '../services/VolunteerService'
-import { isEnabled } from 'unleash-client'
 import * as QuestionModel from '../models/Question'
 import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
-
-// TODO: repo pattern - whole file
 
 // change depending on how many of each subcategory are wanted
 const numQuestions = {

@@ -3,19 +3,19 @@ import * as VolunteerRepo from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getElapsedAvailabilityForDateRange } from './AvailabilityService'
-import { getQuizzesPassedForDateRange } from '../models/UserAction/queries'
+import { createAccountAction } from '../models/UserAction'
 import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
-import * as UserActionCtrl from '../controllers/UserActionCtrl'
 
 import {
   PHOTO_ID_STATUS,
-  USER_ACTION,
   REFERENCE_STATUS,
   STATUS,
   EVENTS,
+  ACCOUNT_USER_ACTIONS,
 } from '../constants'
+import { logger } from '@sentry/utils'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -35,7 +35,7 @@ export async function getHourSummaryStats(
     elapsedAvailability,
     timeTutoredMS,
   ] = await Promise.all([
-    getQuizzesPassedForDateRange(volunteerId, fromDate, toDate),
+    VolunteerRepo.getQuizzesPassedForDateRange(volunteerId, fromDate, toDate),
     getElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
     getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
   ])
@@ -46,13 +46,13 @@ export async function getHourSummaryStats(
   const totalVolunteerHours = Number(
     (
       totalCoachingHours +
-      quizzesPassed.length +
+      quizzesPassed +
       Number(elapsedAvailability) * 0.1
     ).toFixed(2)
   )
   return {
     totalCoachingHours,
-    totalQuizzesPassed: quizzesPassed.length,
+    totalQuizzesPassed: quizzesPassed,
     totalElapsedAvailability: elapsedAvailability,
     totalVolunteerHours: totalVolunteerHours,
   }
@@ -155,7 +155,7 @@ interface PendingVolunteerUpdate {
 export async function updatePendingVolunteerStatus(
   volunteerId: Ulid,
   photoIdStatus: string,
-  referencesStatus: string[]
+  referencesStatus: { [key: string]: string }
 ): Promise<void> {
   const volunteerBeforeUpdate = await VolunteerRepo.getVolunteerForPendingStatus(volunteerId)
   if (!volunteerBeforeUpdate) return
@@ -171,51 +171,57 @@ export async function updatePendingVolunteerStatus(
   //  2. photo id
   const isApproved = getPendingVolunteerApprovalStatus(
     photoIdStatus,
-    referencesStatus,
+    Object.values(referencesStatus),
     hasCompletedBackgroundInfo
   )
 
-  const [referenceOneStatus, referenceTwoStatus] = referencesStatus
-  const update: PendingVolunteerUpdate = {
-    isApproved,
+  for (const [referenceId, status] of Object.entries(referencesStatus)) {
+    await VolunteerRepo.updateVolunteerReferenceStatusById(referenceId, status)
   }
-  if (photoIdStatus) update.photoIdStatus = photoIdStatus
-  if (referenceOneStatus) update['references.0.status'] = referenceOneStatus
-  if (referenceTwoStatus) update['references.1.status'] = referenceTwoStatus
-  // replaced by updateVolunteerReferenceStatusById
-  // TODO: aw fuck man
-  await VolunteerRepo.updateVolunteerReferenceStatusById(re)
+  await VolunteerRepo.updateVolunteerPending(volunteerId, isApproved, photoIdStatus)
 
   if (
     photoIdStatus === PHOTO_ID_STATUS.REJECTED &&
     volunteerBeforeUpdate.photoIdStatus !== PHOTO_ID_STATUS.REJECTED
   ) {
-    await new UserActionCtrl.AccountActionCreator(volunteerId).rejectedPhotoId()
+    await createAccountAction({
+      userId: volunteerId,
+      action: ACCOUNT_USER_ACTIONS.REJECTED_PHOTO_ID
+    })
     AnalyticsService.captureEvent(volunteerId, EVENTS.PHOTO_ID_REJECTED, {
       event: EVENTS.PHOTO_ID_REJECTED,
     })
     MailService.sendRejectedPhotoSubmission(volunteerBeforeUpdate)
   }
 
-  const isNewlyApproved = isApproved && !volunteerBeforeUpdate.isApproved
+  const isNewlyApproved = isApproved && !volunteerBeforeUpdate.approved
   if (isNewlyApproved) {
-    await new UserActionCtrl.AccountActionCreator(volunteerId).accountApproved()
+    await createAccountAction({
+      userId: volunteerId,
+      action: ACCOUNT_USER_ACTIONS.APPROVED
+    })
     AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_APPROVED, {
       event: EVENTS.ACCOUNT_APPROVED,
     })
   }
-  if (isNewlyApproved && !volunteerBeforeUpdate.isOnboarded)
+  if (isNewlyApproved && !volunteerBeforeUpdate.onboarded)
     MailService.sendApprovedNotOnboardedEmail(volunteerBeforeUpdate)
 
-  for (let i = 0; i < referencesStatus.length; i++) {
-    const reference = volunteerBeforeUpdate.references[i]
+  for (const [referenceId, status] of Object.entries(referencesStatus)) {
+    const reference = volunteerBeforeUpdate.references.find(v => v.id === referenceId)
+    if (!reference) {
+      logger.error(`Recieved status update for reference ${referenceId} which does not belong to volunteer ${volunteerBeforeUpdate.id}`)
+      continue
+    }
     if (
-      referencesStatus[i] === REFERENCE_STATUS.REJECTED &&
+      status === REFERENCE_STATUS.REJECTED &&
       reference.status !== REFERENCE_STATUS.REJECTED
     ) {
-      await new UserActionCtrl.AccountActionCreator(volunteerId, '', {
-        referenceEmail: reference.email,
-      }).rejectedReference()
+      await createAccountAction({
+        userId: volunteerId,
+        action: ACCOUNT_USER_ACTIONS.REJECTED_REFERENCE,
+        referenceEmail: reference.email
+      })
       AnalyticsService.captureEvent(volunteerId, EVENTS.REFERENCE_REJECTED, {
         event: EVENTS.REFERENCE_REJECTED,
         referenceEmail: reference.email,
@@ -227,16 +233,20 @@ export async function updatePendingVolunteerStatus(
 
 export async function addBackgroundInfo(
   volunteerId: Ulid,
-  update: Partial<Volunteer>,
+  update: Omit<VolunteerRepo.BackgroundInfo, 'approved'>,
   ip: string
 ): Promise<void> {
-  // replaced with getContactInfo
-  const volunteer = await getVolunteerById(volunteerId)
+  const volunteer = await VolunteerRepo.getVolunteerContactInfoById(volunteerId)
   if (!volunteer) throw new Error('Volunteer for background info not found')
   const volunteerPartnerOrg = volunteer.volunteerPartnerOrg
+  let approved: boolean | undefined
   if (volunteerPartnerOrg) {
-    update.isApproved = true
-    await new UserActionCtrl.AccountActionCreator(volunteerId).accountApproved()
+    approved = true
+    await createAccountAction({
+      userId: volunteerId,
+      action: ACCOUNT_USER_ACTIONS.APPROVED,
+      ipAddress: ip
+    })
     // TODO: if not onboarded, send a partner-specific version of the "approved but not onboarded" email
   }
 
@@ -250,13 +260,13 @@ export async function addBackgroundInfo(
         (update[tField] as Array<any>).length === 0) ||
       update[tField] === ''
     )
-      delete update[tField]
+      update[tField] = undefined
   }
 
-  await new UserActionCtrl.AccountActionCreator(
-    volunteerId,
-    ip
-  ).completedBackgroundInfo()
-  // Replaced with VolunteerRepo.updateVolunteerBackgroundInfo
-  await VolunteerModel.updateOne({ _id: volunteerId }, update)
+  await createAccountAction({
+    userId: volunteerId,
+    action: ACCOUNT_USER_ACTIONS.COMPLETED_BACKGROUND_INFO,
+    ipAddress: ip
+  })
+  await VolunteerRepo.updateVolunteerBackgroundInfo(volunteerId, { ...update, approved })
 }

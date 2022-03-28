@@ -1,5 +1,5 @@
-import { Types } from 'mongoose'
 import { InputError } from '../models/Errors'
+import { Ulid } from '../models/pgUtils'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
 
@@ -9,6 +9,11 @@ export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {
     if (s === undefined || s === null) return undefined
     return as(s, errMsg)
   }
+}
+
+export function asUlid(s: unknown, errMsg = ''): Ulid {
+  if (typeof s === 'string') return s as string
+  throw new InputError(`${errMsg} ${s} is not a string`)
 }
 
 // Primitive typechecks
