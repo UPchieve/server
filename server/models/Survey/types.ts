@@ -17,5 +17,4 @@ export type Survey = {
   responseData: PresessionSurveyResponseData
   createdAt: Date
   updatedAt: Date
-  mongoId?: string
 }

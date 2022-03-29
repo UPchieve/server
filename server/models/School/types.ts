@@ -12,7 +12,6 @@ export type School = {
   createdAt: Date
   updatedAt: Date
   cityNameStored?: string
-  mongoId?: string
   districtNameStored?: string   // stored as lea_name
   SCHOOL_YEAR?: string
   FIPST?: number

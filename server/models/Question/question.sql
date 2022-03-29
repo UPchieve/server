@@ -8,8 +8,7 @@ SELECT
     subcat.name AS subcategory,
     image_source AS image_src,
     ques.created_at,
-    ques.updated_at,
-    ques.mongo_id
+    ques.updated_at
 FROM
     quiz_questions AS ques
     LEFT JOIN quiz_subcategories subcat ON ques.quiz_subcategory_id = subcat.id
@@ -21,7 +20,7 @@ WHERE
 
 /* @name create */
 INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, image_source, quiz_subcategory_id, created_at, updated_at)
-    VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :imageSrc!, :subcategoryId!, NOW(), NOW())
+    VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :imageSrc, :subcategoryId!, NOW(), NOW())
 RETURNING
     id, question_text, possible_answers, correct_answer, image_source AS image_src, created_at, updated_at;
 
@@ -89,7 +88,7 @@ SET
     question_text = :questionText!,
     possible_answers = COALESCE(:possibleAnswers!, possible_answers),
     correct_answer = :correctAnswer!,
-    image_source = :imageSrc!,
+    image_source = COALESCE(:imageSrc, image_source),
     updated_at = NOW(),
     quiz_subcategory_id = :subcategoryId!
 WHERE
@@ -121,11 +120,21 @@ WHERE
 
 /* @name getMultipleQuestionsById */
 SELECT
-    *
+    ques.id,
+    question_text,
+    possible_answers,
+    correct_answer,
+    quizzes.name AS category,
+    quiz_subcategories.name AS subcategory,
+    image_source AS image_src,
+    ques.created_at,
+    ques.updated_at
 FROM
-    quiz_questions
+    quiz_questions ques
+    LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id
+    LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id
 WHERE
-    id = ANY (:ids!);
+    ques.id = ANY (:ids!);
 
 
 /* @name getQuestionsByCategory */
@@ -138,8 +147,7 @@ SELECT
     quiz_subcategories.name AS subcategory,
     image_source AS image_src,
     ques.created_at,
-    ques.updated_at,
-    ques.mongo_id
+    ques.updated_at
 FROM
     quiz_questions ques
     LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id

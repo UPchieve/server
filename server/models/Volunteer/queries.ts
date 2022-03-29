@@ -43,7 +43,7 @@ export async function getVolunteerContactInfoById(
 export async function getSubjectsForVolunteer(userId: Ulid) {
   try {
     const result = await pgQueries.getSubjectsForVolunteer.run({userId}, getClient())
-    const subjects = makeRequired(result).map(r => r.subject)
+    const subjects = result.map(v => makeRequired(v).subject)
     return subjects
   } catch (err) {
     throw new RepoReadError(err)
@@ -270,8 +270,8 @@ export type VolunteerForOnboarding = Pick<
   onboarded: boolean
   certifications: Certifications
   subjects: string[]
-  availabilityLastModifiedAt: Date
-  country: string
+  availabilityLastModifiedAt?: Date
+  country?: string
 }
 export async function getVolunteerForOnboardingById(
   userId: Ulid
@@ -282,7 +282,7 @@ export async function getVolunteerForOnboardingById(
       getClient()
     )
     if (!result.length) return
-    const volunteer = makeRequired(result[0])
+    const volunteer = makeSomeRequired(result[0], ['availabilityLastModifiedAt', 'country'])
     const certifications = await getCertificationsForVolunteers([volunteer.id])
     return {
       ...volunteer,
@@ -1352,7 +1352,7 @@ export type PartnerVolunteerAnalytics = {
   createdAt: Date
   dateOnboarded: Date
   certifications: Certifications
-  availabilityLastModifiedAt: Date
+  availabilityLastModifiedAt?: Date
   sessionAnalytics: {
     uniqueStudentsHelped: [GroupStats]
     sessionStats: [GroupStats]

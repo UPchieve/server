@@ -336,6 +336,8 @@ export const getProgress = (
   const completedMaterials = requiredMaterials.filter(mat =>
     userCompleted.includes(mat)
   )
+  console.log(`REQUIRED: ${JSON.stringify(requiredMaterials)}`)
+  console.log(`USER: ${JSON.stringify(userCompleted)}`)
   const fraction = completedMaterials.length / requiredMaterials.length
   return Math.floor(fraction * 100)
 }

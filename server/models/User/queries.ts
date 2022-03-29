@@ -72,7 +72,7 @@ export async function getUserContactInfoById(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg'])
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -88,7 +88,7 @@ export async function getUserContactInfoByReferralCode(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg'])
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -124,7 +124,7 @@ export async function getUserContactInfoByResetToken(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg'])
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved'])
   } catch (err) {
     throw new RepoReadError(err)
   }

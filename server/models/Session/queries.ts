@@ -206,7 +206,7 @@ export async function getSessionToEndById(
       getClient()
     )
     if (!result.length) throw new RepoReadError('Session not found')
-    const rawSession = makeSomeRequired(result[0], ['volunteerPartnerOrg'])
+    const rawSession = makeSomeRequired(result[0], ['volunteerJoinedAt', 'endedAt', 'volunteerEmail', 'volunteerId', 'volunteerFirstName', 'volunteerNumPastSessions', 'volunteerPartnerOrg'])
     return {
       ...rawSession,
       student: {

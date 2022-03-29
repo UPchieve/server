@@ -90,7 +90,8 @@ SELECT
 FROM
     weekdays
 WHERE
-    day = :day!;
+    day = :day!
+RETURNING id AS ok;
 
 
 /* @name clearAvailabilityForVolunteer */

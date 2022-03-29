@@ -684,7 +684,7 @@ export async function saveMessage(
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   if (
-    !sessionUtils.isSessionParticipant(session.id, asString(user._id), chatbot || null)
+    !sessionUtils.isSessionParticipant(session.studentId, session.volunteerId, asString(user._id), chatbot || null)
   )
     throw new Error('Only session participants are allowed to send messages')
 

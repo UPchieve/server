@@ -153,15 +153,13 @@ export async function getLegacyUserObject(
       volunteerUser.availability = await getAvailabilityForVolunteer(userId)
       volunteerUser.references = await getReferencesByVolunteer(userId)
       const trainingCourses = await getVolunteerTrainingCourses(userId)
-      volunteerUser.trainingCourses = {
-        upchieve101: trainingCourses['UPchieve 101']
-      }
+      volunteerUser.trainingCourses = trainingCourses
       volunteerUser.certifications = {
         ...legacyCertifications,
         upchieve101: {
-          passed: trainingCourses['UPchieve 101'].complete,
+          passed: trainingCourses['upchieve101'].complete,
           tries: 1,
-          lastAttemptedAt: trainingCourses['UPchieve 101'].updatedAt
+          lastAttemptedAt: trainingCourses['upchieve101'].updatedAt
         },
         ...(await getCertificationsForVolunteers([userId]))[userId]
       }

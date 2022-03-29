@@ -13,7 +13,7 @@ export function parseQueryResult(result: SurveyQueryResult): Survey {
   const responseData =
     typeof result.responseData === 'string'
       ? JSON.parse(result.responseData)
-      : {}
+      : result.responseData
 
   return { ...result, responseData }
 }

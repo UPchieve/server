@@ -106,14 +106,15 @@ export function routeTraining(router: Router): void {
     }
   })
 
-  router.get('/training/course/:courseKey', function(req, res) {
+  router.get('/training/course/:courseKey', async function(req, res) {
     try {
       const user = extractUser(req)
       const courseKey = asString(req.params.courseKey)
-      const course = TrainingCourseService.getCourse(
+      const course = await TrainingCourseService.getCourse(
         user,
         courseKey as keyof TrainingCourses
       )
+      console.log(`ROUTER COURSE: ${JSON.stringify(course)}`)
       if (!course) return res.sendStatus(404)
       res.status(200).json({ course })
     } catch (err) {

@@ -82,7 +82,7 @@ export async function getQuestions(
   }
 
   const questions = await QuestionModel.listQuestions({category, subcategory: null})
-
+  console.log(`QUESTIONS: ${JSON.stringify(questions)}`)
   const questionsBySubcategory = _.groupBy(
     questions,
     question => question.subcategory
@@ -265,7 +265,7 @@ export async function getQuizScore(
   const certificationMap = await VolunteerModel.getCertificationsForVolunteers([user.id])
   const certifications = certificationMap[user.id]
 
-  const tries = certifications[cert]['tries'] + 1
+  const tries = certifications[cert] ? certifications[cert].tries : 1
   
   await VolunteerModel.updateVolunteerQuiz(user.id, options.category as string, passed)
 
@@ -273,7 +273,7 @@ export async function getQuizScore(
     let unlockedSubjects = getUnlockedSubjects(cert, certifications)
 
     // set custom field passedUpchieve101 in SendGrid
-    if (cert === TRAINING.UPCHIEVE_101) createContact(user.id)
+    if (cert === TRAINING.UPCHIEVE_101) await createContact(user.id)
 
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
@@ -313,12 +313,15 @@ export async function getQuizScore(
       unlockedSubjects.length > 0
     ) {
       await VolunteerModel.updateVolunteerOnboarded(user.id)
-      queueOnboardingEventEmails(user.id)
-      if (user.volunteerPartnerOrg) queuePartnerOnboardingEventEmails(user.id)
+      await queueOnboardingEventEmails(user.id)
+      if (user.volunteerPartnerOrg) await queuePartnerOnboardingEventEmails(user.id)
       await createAccountAction({action: ACCOUNT_USER_ACTIONS.ONBOARDED, userId: user.id, ipAddress: ip})
       captureEvent(user.id, EVENTS.ACCOUNT_ONBOARDED, {
         event: EVENTS.ACCOUNT_ONBOARDED,
       })
+    } else {
+      console.log(`AVAILABILITY LAST MODIFIED: ${volunteerProfile.availabilityLastModifiedAt}`)
+      console.log(`UNLOCKED SUBJECTS: ${unlockedSubjects}`)
     }
   }
 

@@ -463,7 +463,7 @@ function toObject<T>(obj: unknown): T {
       ? obj
       : typeof obj === 'string'
       ? JSON.parse(obj)
-      : undefined
+      : obj
   return thing
 }
 

@@ -9,7 +9,7 @@ export interface IGetAssociatedPartnersResult {
   key: string;
   studentOrgDisplay: string;
   studentPartnerOrg: string;
-  studentSponsorOrg: string;
+  studentSponsorOrg: string | null;
   volunteerOrgDisplay: string;
   volunteerPartnerOrg: string;
 }
@@ -52,7 +52,7 @@ export interface IGetAssociatedPartnerByKeyResult {
   key: string;
   studentOrgDisplay: string;
   studentPartnerOrg: string;
-  studentSponsorOrg: string;
+  studentSponsorOrg: string | null;
   volunteerOrgDisplay: string;
   volunteerPartnerOrg: string;
 }

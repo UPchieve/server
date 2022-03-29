@@ -55,15 +55,15 @@ export function getMessagesAfterDate(
 
 export function isSessionParticipant(
   studentId: Ulid,
-  volunteerId: Ulid,
-  userId: Ulid | null,
-  chatbotId?: Ulid
+  volunteerId?: Ulid,
+  userId?: Ulid | null,
+  chatbotId?: Ulid | null
 ): boolean {
   if (!userId) return false
 
   return (
     userId === studentId ||
-    userId === volunteerId ||
+    (userId === volunteerId && !!volunteerId) ||
     userId === (chatbotId ? chatbotId : '')
   )
 }

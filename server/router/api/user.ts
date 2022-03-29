@@ -12,13 +12,12 @@ import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
-import logger from '../../logger'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
     const user = extractUser(req)
     const parsedUser = await UserService.parseUser(user)
-    logger.error(`parsed.user = ${JSON.stringify(parsedUser)}`)
+
     return res.json({ user: parsedUser })
   })
 
@@ -31,14 +30,13 @@ export function routeUser(router: Router): void {
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
 
+      await updateVolunteerProfileById(user.id, isDeactivated, phone)
       if (isDeactivated !== user.deactivated) {
-        const updatedUser = Object.assign(user, { deactivated: isDeactivated as string })
-        MailService.createContact(updatedUser)
+        await MailService.createContact(user.id)
 
         if (isDeactivated)
-          createAccountAction({action: ACCOUNT_USER_ACTIONS.DEACTIVATED, userId: user.id})
+          await createAccountAction({action: ACCOUNT_USER_ACTIONS.DEACTIVATED, userId: user.id, ipAddress: ip})
       }
-      await updateVolunteerProfileById(user.id, isDeactivated, phone)
       res.sendStatus(200)
     } catch (err) {
       resError(res, err)

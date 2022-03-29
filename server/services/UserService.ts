@@ -32,7 +32,6 @@ import { getLegacyUserObject } from '../models/User/legacy-user'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
-  logger.error(`Legacy user = ${JSON.stringify(user)}`)
 
   // Approved volunteer
   if (user.isVolunteer && user.isApproved) {

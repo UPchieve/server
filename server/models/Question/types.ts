@@ -1,6 +1,7 @@
-import { Pgid, Ulid } from '../pgUtils'
+import { Pgid } from '../pgUtils'
 
 export type Question = {
+  _id?: Pgid  // legacy ID for frontend
   id: Pgid
   questionText: string
   possibleAnswers: {
@@ -10,8 +11,7 @@ export type Question = {
   correctAnswer: string
   category: string
   subcategory: string
-  imageSrc: string
+  imageSrc?: string | undefined
   createdAt: Date
   updatedAt: Date
-  mongoId?: Ulid
 }

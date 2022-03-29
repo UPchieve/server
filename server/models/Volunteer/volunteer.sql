@@ -282,6 +282,7 @@ WHERE
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS FALSE
+    AND users.id = :userId!
 GROUP BY
     users.id,
     onboarded,

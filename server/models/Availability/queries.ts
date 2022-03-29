@@ -1,4 +1,3 @@
-// pg wrappers
 import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
@@ -49,20 +48,28 @@ function getAvailabilityHour(baseHour: number): HOURS {
 }
 
 const day_array = [
+  'Sunday',
   'Monday',
   'Tuesday',
   'Wednesday',
   'Thursday',
   'Friday',
   'Saturday',
-  'Sunday',
 ]
 export function getAvailabilityDay(baseDay: number): DAYS {
   return day_array[baseDay] as DAYS
 }
 
+type AvailabilityRow = {
+  availableEnd: number
+  availableStart: number
+  id: string
+  timezone: string
+  weekday: string
+}
+
 function buildAvailabilityModel(
-  rows: pgQueries.IGetAvailabilityForVolunteerResult[]
+  rows: AvailabilityRow[]
 ): Availability {
   const availability = createNewAvailability()
   for (const row of rows) {
@@ -88,7 +95,7 @@ export async function getAvailabilityForVolunteer(
       { userId },
       client
     )
-    return buildAvailabilityModel(result)
+    return buildAvailabilityModel(result.map(v => makeRequired(v)))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -108,7 +115,7 @@ export async function getAvailabilityForVolunteers(
       const rows = groups[user]
       availabilities.push({
         volunteerId: user,
-        availability: buildAvailabilityModel(rows),
+        availability: buildAvailabilityModel(rows.map(v => makeRequired(v))),
       })
     }
     return availabilities
@@ -133,7 +140,7 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
     for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>
       new Date(a[0]) > new Date(b[0]) ? 1 : -1
     )) {
-      const availability = buildAvailabilityModel(rows)
+      const availability = buildAvailabilityModel(rows.map(v => makeRequired(v)))
       histories.push({
         volunteerId: userId,
         recordedAt: new Date(date),
@@ -165,8 +172,6 @@ export async function saveCurrentAvailabilityAsHistory(
   }
 }
 
-import logger from '../../logger'
-
 export async function updateAvailabilityByVolunteerId(
   userId: Ulid,
   availability: Availability,
@@ -174,46 +179,31 @@ export async function updateAvailabilityByVolunteerId(
 ): Promise<void> {
   try {
     const rows: pgQueries.IInsertNewAvailabilityParams[] = []
-    let currStart: number | undefined
-    let currEnd: number | undefined
     for (const day in availability) {
       const availabilityDay = availability[day as DAYS]
-      for (let hour in availabilityDay) {
-        hour = hour.slice(0, -1)
-        if (currStart && currEnd) {
-          // we're already in a streak
-          if (availabilityDay[hour as HOURS]) currEnd = Number(hour) + 1
-          // continue streak
-          else {
-            // end and restart streak
-            rows.push({
-              id: getDbUlid(),
-              userId,
-              timezone,
-              availableStart: currStart as number,
-              availableEnd: currEnd as number,
-              day,
-            })
-            currStart = undefined
-            currEnd = undefined
-          }
-        } else if (availabilityDay[hour as HOURS]) {
-          // new streak
-          currStart = Number(hour)
-          currEnd = Number(hour) + 1
-        }
+      for (const hour in availabilityDay) {
+        const parsedHour = Number(hour.slice(0, -1))
+        if (availabilityDay[hour as HOURS])
+          rows.push({
+            availableEnd: parsedHour + 1,
+            availableStart: parsedHour,
+            day,
+            id: getDbUlid(),
+            timezone: timezone,
+            userId
+          })
       }
     }
     const errors: string[] = []
-    logger.info(`Attempting to insert availability OBJECT ${JSON.stringify(availability)}`)
-    logger.info(`Attempting to insert availability rows ${JSON.stringify(rows)}`)
+    console.log(`Attempting to insert availability OBJECT ${JSON.stringify(availability)}`)
+    console.log(`Attempting to insert availability rows ${JSON.stringify(rows)}`)
     for (const row of rows) {
       const result = await pgQueries.insertNewAvailability.run(
         { ...row },
         getClient()
       )
       if (!(result.length && makeRequired(result[0])))
-        errors.push(`Availability row ${row} did not save correctly`)
+        errors.push(`Availability row ${JSON.stringify(row)} did not save correctly`)
     }
     if (errors.length) throw new Error(errors.join('\n'))
   } catch (err) {

@@ -83,6 +83,7 @@ async function executeUpdate(
 
   // TODO: run these with the same client
   await saveCurrentAvailabilityAsHistory(user.id)
+  await clearAvailabilityForVolunteer(user.id)
   await Promise.all([
     updateAvailabilityByVolunteerId(user.id, availability, tz),
     updateVolunteerThroughAvailability(user.id, tz, onboarded),

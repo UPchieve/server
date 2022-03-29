@@ -24,7 +24,8 @@ export async function getCourse(
   return {
     ...course,
     isComplete: foundCourse.complete,
-    progress: foundCourse.progress
+    progress: foundCourse.progress,
+    quizKey: courseKey
   }
 }
 
@@ -42,12 +43,12 @@ export async function recordProgress(
   if (foundCourse.completedMaterials.includes(materialKey)) return
 
   // Mutate user object's completedMaterials
-  const completedMaterials = []
+  const completedMaterials = [...foundCourse.completedMaterials]
   completedMaterials.push(materialKey)
 
   const progress = TrainingUtils.getProgress(
     courseKey,
-    foundCourse.completedMaterials
+    completedMaterials
   )
   const isComplete = progress === 100
 
