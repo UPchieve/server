@@ -1005,8 +1005,8 @@ export async function getSessionsForVolunteerHourSummary(
       getClient()
     )
     if (result.length) return result.map(row => makeRequired(row))
-    throw new RepoUpdateError('Update query did not return ok')
+    return []
   } catch (err) {
-    throw new RepoUpdateError(err)
+    throw new RepoReadError(err)
   }
 }
