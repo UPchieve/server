@@ -295,7 +295,8 @@ export async function getVolunteerForOnboardingById(
 
 export type VolunteerForTelecomReport = Omit<
   VolunteerForWeeklyHourSummary,
-  'sentHourSummaryIntroEmail'
+  'sentHourSummaryIntroEmail' |
+  'phone'
 >
 export async function getVolunteersForTelecomReport(
   partnerOrg: string

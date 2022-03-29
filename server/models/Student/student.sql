@@ -281,6 +281,7 @@ SELECT
     users.last_name AS last_name,
     users.email AS email,
     student_partner_org_sites.name AS partner_site,
+    sponsor_orgs.name AS sponsor_org,
     (
         CASE WHEN sessions.volunteer_id IS NOT NULL THEN
             'YES'
@@ -288,19 +289,18 @@ SELECT
             'NO'
         END) AS volunteer_joined,
     sessions.volunteer_joined_at AS volunteer_joined_at,
-    COALESCE(session_messages.total, 0)::text AS total_messages,
+    COALESCE(session_messages.total, 0)::int AS total_messages,
     (
         CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN
-            TRUNC(EXTRACT(EPOCH FROM (sessions.volunteer_joined_at - sessions.created_at)) / 60)
+            ROUND(EXTRACT(EPOCH FROM (sessions.volunteer_joined_at - sessions.created_at) / 60), 1)
         ELSE
             NULL
-        END) AS wait_time_mins,
-    sponsor_orgs.name AS sponsor_org
+        END)::float AS wait_time_mins
 FROM
     student_profiles
     JOIN users ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
-    LEFT JOIN student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+    LEFT JOIN student_partner_org_sites ON student_profiles.student_partner_org_site_id = student_partner_org_sites.id
     LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)
     LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id
     LEFT JOIN schools ON student_profiles.school_id = schools.id
@@ -343,33 +343,45 @@ SELECT
     sponsor_orgs.name AS sponsor_org,
     schools.name AS school,
     COALESCE(sessions.total_sessions, 0) AS total_sessions,
-    COALESCE(sessions.total_session_length_mins, 0) AS total_session_length_mins,
+    COALESCE(sessions.total_session_length_mins, 0)::float AS total_session_length_mins,
     COALESCE(sessions.range_total_sessions, 0) AS range_total_sessions,
-    COALESCE(sessions.range_session_length_mins, 0) AS range_session_length_mins
+    COALESCE(sessions.range_session_length_mins, 0)::float AS range_session_length_mins
 FROM
     student_profiles
     JOIN users ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
-    LEFT JOIN student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+    LEFT JOIN student_partner_org_sites ON student_profiles.student_partner_org_site_id = student_partner_org_sites.id
     LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)
     LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     LEFT JOIN (
         SELECT
             sum(
-                CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN
-                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60)
+                CASE WHEN TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60) < 0 THEN
+                    0
+                WHEN sessions.volunteer_joined_at IS NOT NULL
+                    AND TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 3600) >= 1
+                    AND last_message.created_at IS NOT NULL THEN
+                    ROUND(EXTRACT(EPOCH FROM (last_message.created_at - sessions.volunteer_joined_at)) / 60, 2)
+                WHEN sessions.volunteer_joined_at IS NOT NULL THEN
+                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60, 2)
                 ELSE
                     0
-                END)::int AS total_session_length_mins,
+                END) AS total_session_length_mins,
             sum(
                 CASE WHEN sessions.volunteer_joined_at IS NOT NULL
                     AND sessions.created_at >= :sessionStart!
+                    AND sessions.created_at <= :sessionEnd!
+                    AND TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 3600) >= 1
+                    AND last_message.created_at IS NOT NULL THEN
+                    ROUND(EXTRACT(EPOCH FROM (last_message.created_at - sessions.volunteer_joined_at)) / 60, 2)
+                WHEN sessions.volunteer_joined_at IS NOT NULL
+                    AND sessions.created_at >= :sessionStart!
                     AND sessions.created_at <= :sessionEnd! THEN
-                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60)
+                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60, 2)
                 ELSE
                     0
-                END)::int AS range_session_length_mins,
+                END) AS range_session_length_mins,
             count(*)::int AS total_sessions,
             sum(
                 CASE WHEN sessions.created_at >= :sessionStart!
@@ -381,6 +393,16 @@ FROM
             student_id
         FROM
             sessions
+    LEFT JOIN ( SELECT DISTINCT ON (session_id)
+            session_id,
+            created_at
+        FROM
+            session_messages
+        ORDER BY
+            session_id,
+            created_at DESC) AS last_message ON last_message.session_id = sessions.id
+    WHERE
+        sessions.ended_at IS NOT NULL
     GROUP BY
         sessions.student_id) AS sessions ON sessions.student_id = student_profiles.user_id
 WHERE
@@ -388,12 +410,12 @@ WHERE
     AND users.created_at <= :joinedEnd!
     AND ((:highSchoolId)::uuid IS NULL
         OR student_profiles.school_id = :highSchoolId)
-    AND ((:studentPartnerOrg)::text IS NULL
-        OR student_partner_orgs.key = :studentPartnerOrg)
-    AND ((:studentPartnerSite)::text IS NULL
-        OR student_partner_org_sites.name = :studentPartnerSite)
-    AND ((:sponsorOrg)::text IS NULL
-        OR sponsor_orgs.name = :sponsorOrg)
+AND ((:studentPartnerOrg)::text IS NULL
+    OR student_partner_orgs.key = :studentPartnerOrg)
+AND ((:studentPartnerSite)::text IS NULL
+    OR student_partner_org_sites.name = :studentPartnerSite)
+AND ((:sponsorOrg)::text IS NULL
+    OR sponsor_orgs.name = :sponsorOrg)
 ORDER BY
     users.created_at ASC;
 
