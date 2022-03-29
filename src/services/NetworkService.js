@@ -647,7 +647,7 @@ export default {
       .get(`${API_ROOT}/product-flags`)
       .then(this._successHandler, this._errorHandler)
   },
-  updateFavoriteVolunteerStatus(volunteerId, data){
+  updateFavoriteVolunteerStatus(volunteerId, data) {
     return Vue.http
     .post(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`, data)
     .then(this._successHandler, this._errorHandler)
@@ -662,4 +662,44 @@ export default {
       .get(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`)
       .then(this._successHandler, this._errorHandler)
   },
+  getSessionHistory(page) {
+    return Vue.http
+      .get(`${API_ROOT}/session/history?page=${page}`)
+      .then(this._successHandler, this._errorHandler)
+  },
+  mockGetSessionHistory(page) {
+    return Promise.resolve({
+      body: {
+        page: page,
+        isLastPage: true,
+        sessions:
+          [
+            {
+              subject: 'Algebra 1',
+              createdAt: '08/22/2020 @ 3:30 PM',
+              timeTutored: 60,
+              volunteerFirstName: 'Susan',
+              volunteerId: '6228f23d3cf2cabeb0a82702',
+              isFavorited: true,
+              studentFirstName: 'Victoria',
+              studentId: '6228f23d3cf2cabeb0a825bf',
+              id: '62293b971d33b47d70196980',
+              topic: 'math'
+            },
+            {
+              subject: 'Statistics',
+              createdAt: '08/25/2020 @ 7:00 PM',
+              timeTutored: 30,
+              volunteerFirstName: 'Derek',
+              volunteerId: '6228f23d3cf2cabeb0a82702',
+              isFavorited: false,
+              studentFirstName: 'Victoria',
+              studentId: '6228f23d3cf2cabeb0a825bf',
+              id: '62293b971d33b47d70196989',
+              topic: 'math'
+            }
+          ]
+      }
+    })
+  }
 }

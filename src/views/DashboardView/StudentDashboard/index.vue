@@ -1,5 +1,6 @@
 <template>
   <div class="student-dashboard">
+    <session-history-view />
     <dashboard-banner />
     <div class="dashboard-notices">
       <div
@@ -33,6 +34,7 @@ import DashboardBanner from '../DashboardBanner'
 import SubjectSelection from './SubjectSelection'
 import FirstSessionCongratsModal from './FirstSessionCongratsModal'
 import moment from 'moment-timezone'
+import SessionHistoryView from '../../SessionHistoryView.vue'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -52,6 +54,7 @@ export default {
     DashboardBanner,
     SubjectSelection,
     FirstSessionCongratsModal,
+    SessionHistoryView
   },
   created() {
     if (this.user && this.user.isBanned) {
