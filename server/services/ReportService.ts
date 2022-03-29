@@ -150,7 +150,7 @@ export const sessionReport = async (
         Topic: row.topic,
         Subtopic: row.subject,
         'Created at': formatDate(row.createdAt),
-        Messages: row.totalMessages,
+        Messages: String(row.totalMessages),
         'First name': row.firstName,
         'Last name': row.lastName,
         Email: row.email,
@@ -161,7 +161,7 @@ export const sessionReport = async (
           ? formatDate(row.volunteerJoinedAt)
           : '',
         'Ended at': formatDate(row.endedAt),
-        'Wait time': row.waitTimeMins && `${row.waitTimeMins}mins`,
+        'Wait time': row.waitTimeMins ? `${row.waitTimeMins}mins` : undefined,
         'Session rating': row.sessionRating ? String(row.sessionRating) : '',
       }
     })

@@ -757,10 +757,10 @@ export interface IGetSessionReportResult {
   sponsorOrg: string;
   subject: string;
   topic: string;
-  totalMessages: string | null;
+  totalMessages: number | null;
   volunteerJoined: string | null;
   volunteerJoinedAt: Date | null;
-  waitTimeMins: string | null;
+  waitTimeMins: number | null;
 }
 
 /** 'GetSessionReport' query type */
@@ -769,7 +769,7 @@ export interface IGetSessionReportQuery {
   result: IGetSessionReportResult;
 }
 
-const getSessionReportIR: any = {"name":"getSessionReport","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8755,"b":8760,"line":319,"col":28}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8794,"b":8797,"line":320,"col":32}]}},{"name":"highSchoolId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8848,"b":8859,"line":322,"col":11},{"a":8917,"b":8928,"line":323,"col":41}]}},{"name":"studentPartnerOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8942,"b":8958,"line":324,"col":11},{"a":9014,"b":9030,"line":325,"col":39}]}},{"name":"studentPartnerSite","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9044,"b":9061,"line":326,"col":11},{"a":9123,"b":9140,"line":327,"col":45}]}},{"name":"sponsorOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9154,"b":9163,"line":328,"col":11},{"a":9212,"b":9221,"line":329,"col":32}]}}],"usedParamSet":{"start":true,"end":true,"highSchoolId":true,"studentPartnerOrg":true,"studentPartnerSite":true,"sponsorOrg":true},"statement":{"body":"SELECT\n    sessions.id AS session_id,\n    sessions.created_at AS created_at,\n    sessions.ended_at AS ended_at,\n    topics.name AS topic,\n    subjects.name AS subject,\n    users.first_name AS first_name,\n    users.last_name AS last_name,\n    users.email AS email,\n    student_partner_org_sites.name AS partner_site,\n    (\n        CASE WHEN sessions.volunteer_id IS NOT NULL THEN\n            'YES'\n        ELSE\n            'NO'\n        END) AS volunteer_joined,\n    sessions.volunteer_joined_at AS volunteer_joined_at,\n    COALESCE(session_messages.total, 0)::text AS total_messages,\n    (\n        CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN\n            TRUNC(EXTRACT(EPOCH FROM (sessions.volunteer_joined_at - sessions.created_at)) / 60)\n        ELSE\n            NULL\n        END) AS wait_time_mins,\n    sponsor_orgs.name AS sponsor_org\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id\n    LEFT JOIN student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id\n    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)\n    LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id\n    LEFT JOIN schools ON student_profiles.school_id = schools.id\n    JOIN sessions ON sessions.student_id = student_profiles.user_id\n    LEFT JOIN (\n        SELECT\n            session_id,\n            count(*) AS total\n        FROM\n            session_messages\n        GROUP BY\n            session_id) AS session_messages ON sessions.id = session_messages.session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN topics ON subjects.topic_id = topics.id\nWHERE\n    sessions.created_at >= :start!\n    AND sessions.created_at <= :end!\n    AND sessions.ended_at IS NOT NULL\n    AND ((:highSchoolId)::uuid IS NULL\n        OR student_profiles.school_id = :highSchoolId)\n    AND ((:studentPartnerOrg)::text IS NULL\n        OR student_partner_orgs.key = :studentPartnerOrg)\n    AND ((:studentPartnerSite)::text IS NULL\n        OR student_partner_org_sites.name = :studentPartnerSite)\n    AND ((:sponsorOrg)::text IS NULL\n        OR sponsor_orgs.name = :sponsorOrg)\nORDER BY\n    sessions.created_at ASC","loc":{"a":6822,"b":9259,"line":274,"col":0}}};
+const getSessionReportIR: any = {"name":"getSessionReport","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8765,"b":8770,"line":319,"col":28}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8804,"b":8807,"line":320,"col":32}]}},{"name":"highSchoolId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8858,"b":8869,"line":322,"col":11},{"a":8927,"b":8938,"line":323,"col":41}]}},{"name":"studentPartnerOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8952,"b":8968,"line":324,"col":11},{"a":9024,"b":9040,"line":325,"col":39}]}},{"name":"studentPartnerSite","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9054,"b":9071,"line":326,"col":11},{"a":9133,"b":9150,"line":327,"col":45}]}},{"name":"sponsorOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9164,"b":9173,"line":328,"col":11},{"a":9222,"b":9231,"line":329,"col":32}]}}],"usedParamSet":{"start":true,"end":true,"highSchoolId":true,"studentPartnerOrg":true,"studentPartnerSite":true,"sponsorOrg":true},"statement":{"body":"SELECT\n    sessions.id AS session_id,\n    sessions.created_at AS created_at,\n    sessions.ended_at AS ended_at,\n    topics.name AS topic,\n    subjects.name AS subject,\n    users.first_name AS first_name,\n    users.last_name AS last_name,\n    users.email AS email,\n    student_partner_org_sites.name AS partner_site,\n    sponsor_orgs.name AS sponsor_org,\n    (\n        CASE WHEN sessions.volunteer_id IS NOT NULL THEN\n            'YES'\n        ELSE\n            'NO'\n        END) AS volunteer_joined,\n    sessions.volunteer_joined_at AS volunteer_joined_at,\n    COALESCE(session_messages.total, 0)::int AS total_messages,\n    (\n        CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN\n            ROUND(EXTRACT(EPOCH FROM (sessions.volunteer_joined_at - sessions.created_at) / 60), 1)\n        ELSE\n            NULL\n        END)::float AS wait_time_mins\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id\n    LEFT JOIN student_partner_org_sites ON student_profiles.student_partner_org_site_id = student_partner_org_sites.id\n    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)\n    LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id\n    LEFT JOIN schools ON student_profiles.school_id = schools.id\n    JOIN sessions ON sessions.student_id = student_profiles.user_id\n    LEFT JOIN (\n        SELECT\n            session_id,\n            count(*) AS total\n        FROM\n            session_messages\n        GROUP BY\n            session_id) AS session_messages ON sessions.id = session_messages.session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN topics ON subjects.topic_id = topics.id\nWHERE\n    sessions.created_at >= :start!\n    AND sessions.created_at <= :end!\n    AND sessions.ended_at IS NOT NULL\n    AND ((:highSchoolId)::uuid IS NULL\n        OR student_profiles.school_id = :highSchoolId)\n    AND ((:studentPartnerOrg)::text IS NULL\n        OR student_partner_orgs.key = :studentPartnerOrg)\n    AND ((:studentPartnerSite)::text IS NULL\n        OR student_partner_org_sites.name = :studentPartnerSite)\n    AND ((:sponsorOrg)::text IS NULL\n        OR sponsor_orgs.name = :sponsorOrg)\nORDER BY\n    sessions.created_at ASC","loc":{"a":6822,"b":9269,"line":274,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -784,6 +784,7 @@ const getSessionReportIR: any = {"name":"getSessionReport","params":[{"name":"st
  *     users.last_name AS last_name,
  *     users.email AS email,
  *     student_partner_org_sites.name AS partner_site,
+ *     sponsor_orgs.name AS sponsor_org,
  *     (
  *         CASE WHEN sessions.volunteer_id IS NOT NULL THEN
  *             'YES'
@@ -791,19 +792,18 @@ const getSessionReportIR: any = {"name":"getSessionReport","params":[{"name":"st
  *             'NO'
  *         END) AS volunteer_joined,
  *     sessions.volunteer_joined_at AS volunteer_joined_at,
- *     COALESCE(session_messages.total, 0)::text AS total_messages,
+ *     COALESCE(session_messages.total, 0)::int AS total_messages,
  *     (
  *         CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN
- *             TRUNC(EXTRACT(EPOCH FROM (sessions.volunteer_joined_at - sessions.created_at)) / 60)
+ *             ROUND(EXTRACT(EPOCH FROM (sessions.volunteer_joined_at - sessions.created_at) / 60), 1)
  *         ELSE
  *             NULL
- *         END) AS wait_time_mins,
- *     sponsor_orgs.name AS sponsor_org
+ *         END)::float AS wait_time_mins
  * FROM
  *     student_profiles
  *     JOIN users ON student_profiles.user_id = users.id
  *     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
- *     LEFT JOIN student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+ *     LEFT JOIN student_partner_org_sites ON student_profiles.student_partner_org_site_id = student_partner_org_sites.id
  *     LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)
  *     LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id
  *     LEFT JOIN schools ON student_profiles.school_id = schools.id
@@ -872,7 +872,7 @@ export interface IGetUsageReportQuery {
   result: IGetUsageReportResult;
 }
 
-const getUsageReportIR: any = {"name":"getUsageReport","params":[{"name":"sessionStart","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11020,"b":11032,"line":367,"col":48},{"a":11413,"b":11425,"line":375,"col":50}]}},{"name":"sessionEnd","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11082,"b":11092,"line":368,"col":48},{"a":11475,"b":11485,"line":376,"col":48}]}},{"name":"joinedStart","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11800,"b":11811,"line":387,"col":25}]}},{"name":"joinedEnd","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11842,"b":11851,"line":388,"col":29}]}},{"name":"highSchoolId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11864,"b":11875,"line":389,"col":11},{"a":11933,"b":11944,"line":390,"col":41}]}},{"name":"studentPartnerOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11958,"b":11974,"line":391,"col":11},{"a":12030,"b":12046,"line":392,"col":39}]}},{"name":"studentPartnerSite","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12060,"b":12077,"line":393,"col":11},{"a":12139,"b":12156,"line":394,"col":45}]}},{"name":"sponsorOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12170,"b":12179,"line":395,"col":11},{"a":12228,"b":12237,"line":396,"col":32}]}}],"usedParamSet":{"sessionStart":true,"sessionEnd":true,"joinedStart":true,"joinedEnd":true,"highSchoolId":true,"studentPartnerOrg":true,"studentPartnerSite":true,"sponsorOrg":true},"statement":{"body":"SELECT\n    users.id AS user_id,\n    users.first_name AS first_name,\n    users.last_name AS last_name,\n    users.email AS email,\n    users.created_at AS join_date,\n    student_partner_orgs.name AS student_partner_org,\n    student_partner_org_sites.name AS partner_site,\n    sponsor_orgs.name AS sponsor_org,\n    schools.name AS school,\n    COALESCE(sessions.total_sessions, 0) AS total_sessions,\n    COALESCE(sessions.total_session_length_mins, 0) AS total_session_length_mins,\n    COALESCE(sessions.range_total_sessions, 0) AS range_total_sessions,\n    COALESCE(sessions.range_session_length_mins, 0) AS range_session_length_mins\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id\n    LEFT JOIN student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id\n    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)\n    LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id\n    LEFT JOIN schools ON student_profiles.school_id = schools.id\n    LEFT JOIN (\n        SELECT\n            sum(\n                CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN\n                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60)\n                ELSE\n                    0\n                END)::int AS total_session_length_mins,\n            sum(\n                CASE WHEN sessions.volunteer_joined_at IS NOT NULL\n                    AND sessions.created_at >= :sessionStart!\n                    AND sessions.created_at <= :sessionEnd! THEN\n                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60)\n                ELSE\n                    0\n                END)::int AS range_session_length_mins,\n            count(*)::int AS total_sessions,\n            sum(\n                CASE WHEN sessions.created_at >= :sessionStart!\n                    AND sessions.created_at <= :sessionEnd! THEN\n                    1\n                ELSE\n                    0\n                END)::int AS range_total_sessions,\n            student_id\n        FROM\n            sessions\n    GROUP BY\n        sessions.student_id) AS sessions ON sessions.student_id = student_profiles.user_id\nWHERE\n    users.created_at >= :joinedStart!\n    AND users.created_at <= :joinedEnd!\n    AND ((:highSchoolId)::uuid IS NULL\n        OR student_profiles.school_id = :highSchoolId)\n    AND ((:studentPartnerOrg)::text IS NULL\n        OR student_partner_orgs.key = :studentPartnerOrg)\n    AND ((:studentPartnerSite)::text IS NULL\n        OR student_partner_org_sites.name = :studentPartnerSite)\n    AND ((:sponsorOrg)::text IS NULL\n        OR sponsor_orgs.name = :sponsorOrg)\nORDER BY\n    users.created_at ASC","loc":{"a":9291,"b":12272,"line":335,"col":0}}};
+const getUsageReportIR: any = {"name":"getUsageReport","params":[{"name":"sessionStart","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11531,"b":11543,"line":373,"col":48},{"a":12006,"b":12018,"line":379,"col":48},{"a":12397,"b":12409,"line":387,"col":50}]}},{"name":"sessionEnd","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11593,"b":11603,"line":374,"col":48},{"a":12068,"b":12078,"line":380,"col":48},{"a":12459,"b":12469,"line":388,"col":48}]}},{"name":"joinedStart","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13096,"b":13107,"line":409,"col":25}]}},{"name":"joinedEnd","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13138,"b":13147,"line":410,"col":29}]}},{"name":"highSchoolId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13160,"b":13171,"line":411,"col":11},{"a":13229,"b":13240,"line":412,"col":41}]}},{"name":"studentPartnerOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13250,"b":13266,"line":413,"col":7},{"a":13318,"b":13334,"line":414,"col":35}]}},{"name":"studentPartnerSite","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13344,"b":13361,"line":415,"col":7},{"a":13419,"b":13436,"line":416,"col":41}]}},{"name":"sponsorOrg","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":13446,"b":13455,"line":417,"col":7},{"a":13500,"b":13509,"line":418,"col":28}]}}],"usedParamSet":{"sessionStart":true,"sessionEnd":true,"joinedStart":true,"joinedEnd":true,"highSchoolId":true,"studentPartnerOrg":true,"studentPartnerSite":true,"sponsorOrg":true},"statement":{"body":"SELECT\n    users.id AS user_id,\n    users.first_name AS first_name,\n    users.last_name AS last_name,\n    users.email AS email,\n    users.created_at AS join_date,\n    student_partner_orgs.name AS student_partner_org,\n    student_partner_org_sites.name AS partner_site,\n    sponsor_orgs.name AS sponsor_org,\n    schools.name AS school,\n    COALESCE(sessions.total_sessions, 0) AS total_sessions,\n    COALESCE(sessions.total_session_length_mins, 0)::float AS total_session_length_mins,\n    COALESCE(sessions.range_total_sessions, 0) AS range_total_sessions,\n    COALESCE(sessions.range_session_length_mins, 0)::float AS range_session_length_mins\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id\n    LEFT JOIN student_partner_org_sites ON student_profiles.student_partner_org_site_id = student_partner_org_sites.id\n    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)\n    LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id\n    LEFT JOIN schools ON student_profiles.school_id = schools.id\n    LEFT JOIN (\n        SELECT\n            sum(\n                CASE WHEN TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60) < 0 THEN\n                    0\n                WHEN sessions.volunteer_joined_at IS NOT NULL\n                    AND TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 3600) >= 1\n                    AND last_message.created_at IS NOT NULL THEN\n                    ROUND(EXTRACT(EPOCH FROM (last_message.created_at - sessions.volunteer_joined_at)) / 60, 2)\n                WHEN sessions.volunteer_joined_at IS NOT NULL THEN\n                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60, 2)\n                ELSE\n                    0\n                END) AS total_session_length_mins,\n            sum(\n                CASE WHEN sessions.volunteer_joined_at IS NOT NULL\n                    AND sessions.created_at >= :sessionStart!\n                    AND sessions.created_at <= :sessionEnd!\n                    AND TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 3600) >= 1\n                    AND last_message.created_at IS NOT NULL THEN\n                    ROUND(EXTRACT(EPOCH FROM (last_message.created_at - sessions.volunteer_joined_at)) / 60, 2)\n                WHEN sessions.volunteer_joined_at IS NOT NULL\n                    AND sessions.created_at >= :sessionStart!\n                    AND sessions.created_at <= :sessionEnd! THEN\n                    TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60, 2)\n                ELSE\n                    0\n                END) AS range_session_length_mins,\n            count(*)::int AS total_sessions,\n            sum(\n                CASE WHEN sessions.created_at >= :sessionStart!\n                    AND sessions.created_at <= :sessionEnd! THEN\n                    1\n                ELSE\n                    0\n                END)::int AS range_total_sessions,\n            student_id\n        FROM\n            sessions\n    LEFT JOIN ( SELECT DISTINCT ON (session_id)\n            session_id,\n            created_at\n        FROM\n            session_messages\n        ORDER BY\n            session_id,\n            created_at DESC) AS last_message ON last_message.session_id = sessions.id\n    WHERE\n        sessions.ended_at IS NOT NULL\n    GROUP BY\n        sessions.student_id) AS sessions ON sessions.student_id = student_profiles.user_id\nWHERE\n    users.created_at >= :joinedStart!\n    AND users.created_at <= :joinedEnd!\n    AND ((:highSchoolId)::uuid IS NULL\n        OR student_profiles.school_id = :highSchoolId)\nAND ((:studentPartnerOrg)::text IS NULL\n    OR student_partner_orgs.key = :studentPartnerOrg)\nAND ((:studentPartnerSite)::text IS NULL\n    OR student_partner_org_sites.name = :studentPartnerSite)\nAND ((:sponsorOrg)::text IS NULL\n    OR sponsor_orgs.name = :sponsorOrg)\nORDER BY\n    users.created_at ASC","loc":{"a":9301,"b":13544,"line":335,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -888,33 +888,45 @@ const getUsageReportIR: any = {"name":"getUsageReport","params":[{"name":"sessio
  *     sponsor_orgs.name AS sponsor_org,
  *     schools.name AS school,
  *     COALESCE(sessions.total_sessions, 0) AS total_sessions,
- *     COALESCE(sessions.total_session_length_mins, 0) AS total_session_length_mins,
+ *     COALESCE(sessions.total_session_length_mins, 0)::float AS total_session_length_mins,
  *     COALESCE(sessions.range_total_sessions, 0) AS range_total_sessions,
- *     COALESCE(sessions.range_session_length_mins, 0) AS range_session_length_mins
+ *     COALESCE(sessions.range_session_length_mins, 0)::float AS range_session_length_mins
  * FROM
  *     student_profiles
  *     JOIN users ON student_profiles.user_id = users.id
  *     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
- *     LEFT JOIN student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id
+ *     LEFT JOIN student_partner_org_sites ON student_profiles.student_partner_org_site_id = student_partner_org_sites.id
  *     LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)
  *     LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id
  *     LEFT JOIN schools ON student_profiles.school_id = schools.id
  *     LEFT JOIN (
  *         SELECT
  *             sum(
- *                 CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN
- *                     TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60)
+ *                 CASE WHEN TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60) < 0 THEN
+ *                     0
+ *                 WHEN sessions.volunteer_joined_at IS NOT NULL
+ *                     AND TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 3600) >= 1
+ *                     AND last_message.created_at IS NOT NULL THEN
+ *                     ROUND(EXTRACT(EPOCH FROM (last_message.created_at - sessions.volunteer_joined_at)) / 60, 2)
+ *                 WHEN sessions.volunteer_joined_at IS NOT NULL THEN
+ *                     TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60, 2)
  *                 ELSE
  *                     0
- *                 END)::int AS total_session_length_mins,
+ *                 END) AS total_session_length_mins,
  *             sum(
  *                 CASE WHEN sessions.volunteer_joined_at IS NOT NULL
  *                     AND sessions.created_at >= :sessionStart!
+ *                     AND sessions.created_at <= :sessionEnd!
+ *                     AND TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 3600) >= 1
+ *                     AND last_message.created_at IS NOT NULL THEN
+ *                     ROUND(EXTRACT(EPOCH FROM (last_message.created_at - sessions.volunteer_joined_at)) / 60, 2)
+ *                 WHEN sessions.volunteer_joined_at IS NOT NULL
+ *                     AND sessions.created_at >= :sessionStart!
  *                     AND sessions.created_at <= :sessionEnd! THEN
- *                     TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60)
+ *                     TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60, 2)
  *                 ELSE
  *                     0
- *                 END)::int AS range_session_length_mins,
+ *                 END) AS range_session_length_mins,
  *             count(*)::int AS total_sessions,
  *             sum(
  *                 CASE WHEN sessions.created_at >= :sessionStart!
@@ -926,6 +938,16 @@ const getUsageReportIR: any = {"name":"getUsageReport","params":[{"name":"sessio
  *             student_id
  *         FROM
  *             sessions
+ *     LEFT JOIN ( SELECT DISTINCT ON (session_id)
+ *             session_id,
+ *             created_at
+ *         FROM
+ *             session_messages
+ *         ORDER BY
+ *             session_id,
+ *             created_at DESC) AS last_message ON last_message.session_id = sessions.id
+ *     WHERE
+ *         sessions.ended_at IS NOT NULL
  *     GROUP BY
  *         sessions.student_id) AS sessions ON sessions.student_id = student_profiles.user_id
  * WHERE
@@ -933,12 +955,12 @@ const getUsageReportIR: any = {"name":"getUsageReport","params":[{"name":"sessio
  *     AND users.created_at <= :joinedEnd!
  *     AND ((:highSchoolId)::uuid IS NULL
  *         OR student_profiles.school_id = :highSchoolId)
- *     AND ((:studentPartnerOrg)::text IS NULL
- *         OR student_partner_orgs.key = :studentPartnerOrg)
- *     AND ((:studentPartnerSite)::text IS NULL
- *         OR student_partner_org_sites.name = :studentPartnerSite)
- *     AND ((:sponsorOrg)::text IS NULL
- *         OR sponsor_orgs.name = :sponsorOrg)
+ * AND ((:studentPartnerOrg)::text IS NULL
+ *     OR student_partner_orgs.key = :studentPartnerOrg)
+ * AND ((:studentPartnerSite)::text IS NULL
+ *     OR student_partner_org_sites.name = :studentPartnerSite)
+ * AND ((:sponsorOrg)::text IS NULL
+ *     OR sponsor_orgs.name = :sponsorOrg)
  * ORDER BY
  *     users.created_at ASC
  * ```

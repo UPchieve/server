@@ -449,8 +449,8 @@ export type SessionReportRow = {
   lastName: string
   email: string
   partnerSite?: string
-  waitTimeMins?: string
-  totalMessages: string
+  waitTimeMins?: number
+  totalMessages: number
   volunteerJoined: string
   volunteerJoinedAt?: Date
   sessionRating?: number
