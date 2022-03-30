@@ -31,7 +31,7 @@
           <select
             v-model="selectedTz"
             class="tz-selector"
-            @change="someThingChanged"
+            @change="tzChanged"
           >
             <option v-for="tz in tzList" :key="tz">
               {{ tz }}
@@ -111,10 +111,20 @@ export default {
     this.initWaitTimeData()
   },
   methods: {
+    tzChanged() {
+      this.updateLocalWaitTimes()
+      this.someThingChanged()
+    },
     updateLocalAvailability(payload) {
       const oldValue = this.availability[payload.day][payload.hour]
       this.availability[payload.day][payload.hour] = !oldValue
       this.someThingChanged()
+    },
+    updateLocalWaitTimes() {
+      const originalWaitTimes = await CalendarService.getWaitTimes(this)
+      var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
+      var offset = (-1 * userUtcOffset) / 60
+      this.waitTimes = this.convertAvailability(originalWaitTimes, offset)
     },
     someThingChanged() {
       this.saveState = saveStates.UNSAVED
@@ -135,10 +145,7 @@ export default {
       const hasValidTimezone = userTimezone && this.userTzInList(userTimezone)
       this.selectedTz = hasValidTimezone ? userTimezone : moment.tz.guess()
 
-      const originalWaitTimes = await CalendarService.getWaitTimes(this)
-      var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
-      var offset = (-1 * userUtcOffset) / 60
-      this.waitTimes = this.convertAvailability(originalWaitTimes, offset)
+      this.updateLocalWaitTimes()
     },
     sortTimes() {
       const keysMap = {}
