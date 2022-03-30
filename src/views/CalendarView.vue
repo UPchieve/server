@@ -120,7 +120,7 @@ export default {
       this.availability[payload.day][payload.hour] = !oldValue
       this.someThingChanged()
     },
-    updateLocalWaitTimes() {
+    async updateLocalWaitTimes() {
       const originalWaitTimes = await CalendarService.getWaitTimes(this)
       var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
       var offset = (-1 * userUtcOffset) / 60
@@ -145,7 +145,7 @@ export default {
       const hasValidTimezone = userTimezone && this.userTzInList(userTimezone)
       this.selectedTz = hasValidTimezone ? userTimezone : moment.tz.guess()
 
-      this.updateLocalWaitTimes()
+      await this.updateLocalWaitTimes()
     },
     sortTimes() {
       const keysMap = {}
