@@ -16,6 +16,78 @@ SET row_security = off;
 CREATE SCHEMA upchieve;
 
 
+--
+-- Name: btree_gin; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS btree_gin WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION btree_gin; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION btree_gin IS 'support for indexing common datatypes in GIN';
+
+
+--
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: generate_ulid(); Type: FUNCTION; Schema: upchieve; Owner: -
+--
+
+CREATE FUNCTION upchieve.generate_ulid() RETURNS uuid
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
+
+  unix_time  BIGINT;
+  ulid       BYTEA;
+BEGIN
+  -- 6 timestamp bytes
+  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
+  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
+
+  -- 10 entropy bytes
+  ulid = timestamp || public.gen_random_bytes(10);
+
+  RETURN CAST( substring(CAST (ulid AS text) from 3) AS uuid);
+END
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -222,7 +294,7 @@ ALTER SEQUENCE upchieve.cities_id_seq OWNED BY upchieve.cities.id;
 CREATE TABLE upchieve.contact_form_submissions (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
-    user_email text,
+    user_email text NOT NULL,
     message text NOT NULL,
     topic text NOT NULL,
     created_at timestamp with time zone NOT NULL,
@@ -297,7 +369,8 @@ CREATE TABLE upchieve.ineligible_students (
     grade_level_id integer,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24)
+    mongo_id character varying(24),
+    referred_by uuid
 );
 
 
@@ -788,7 +861,6 @@ CREATE TABLE upchieve.schools (
     us_state_code character varying(2),
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    name_search tsvector GENERATED ALWAYS AS (to_tsvector('english'::regconfig, name)) STORED,
     mongo_id character varying(24)
 );
 
@@ -981,7 +1053,7 @@ CREATE TABLE upchieve.sponsor_orgs (
     name text NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    key text
+    key text NOT NULL
 );
 
 
@@ -1227,7 +1299,8 @@ CREATE TABLE upchieve.user_actions (
     updated_at timestamp with time zone NOT NULL,
     mongo_id character varying(24),
     reference_email text,
-    volunteer_id uuid
+    volunteer_id uuid,
+    ban_reason text
 );
 
 
@@ -1263,7 +1336,8 @@ CREATE TABLE upchieve.user_product_flags (
     sent_inactive_ninety_day_email boolean DEFAULT false NOT NULL,
     gates_qualified boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    in_gates_study boolean DEFAULT false NOT NULL
 );
 
 
@@ -1526,7 +1600,8 @@ CREATE TABLE upchieve.volunteer_references (
     rejection_reason text,
     additional_info text,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    trustworthy_with_children smallint
 );
 
 
@@ -2660,10 +2735,10 @@ ALTER TABLE ONLY upchieve.weekdays
 
 
 --
--- Name: name_search_idx; Type: INDEX; Schema: upchieve; Owner: -
+-- Name: school_name_search; Type: INDEX; Schema: upchieve; Owner: -
 --
 
-CREATE INDEX name_search_idx ON upchieve.schools USING gin (name_search);
+CREATE INDEX school_name_search ON upchieve.schools USING gin (name public.gin_trgm_ops);
 
 
 --
@@ -3509,8 +3584,16 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220321174656'),
     ('20220324190648'),
     ('20220324220941'),
-    ('20220325163001'),
-    ('20220325172541'),
     ('20220325223612'),
     ('20220326034520'),
-    ('20220326153520');
+    ('20220326215210'),
+    ('20220327162839'),
+    ('20220327162854'),
+    ('20220327165314'),
+    ('20220327170322'),
+    ('20220327183934'),
+    ('20220327183940'),
+    ('20220327183950'),
+    ('20220327211734'),
+    ('20220328213107'),
+    ('20220328213115');

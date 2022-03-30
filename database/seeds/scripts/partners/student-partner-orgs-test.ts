@@ -9,6 +9,8 @@ export async function studentPartnerOrgsTest(): Promise<NameToId> {
       name: 'Placeholder 1',
       highSchoolSignup: true,
       schoolSignupRequired: true,
+      collegeSignup: undefined,
+      signupCode: undefined
     },
     {
       id: getDbUlid(),
@@ -16,6 +18,8 @@ export async function studentPartnerOrgsTest(): Promise<NameToId> {
       name: 'Placeholder 2',
       highSchoolSignup: true,
       schoolSignupRequired: false,
+      collegeSignup: undefined,
+      signupCode: undefined
     },
     {
       id: getDbUlid(),
@@ -23,6 +27,8 @@ export async function studentPartnerOrgsTest(): Promise<NameToId> {
       name: 'Placeholder 3',
       highSchoolSignup: false,
       schoolSignupRequired: false,
+      collegeSignup: undefined,
+      signupCode: undefined
     },
   ]
   const temp: NameToId = {}
