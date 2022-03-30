@@ -12,6 +12,10 @@
   </div>
   <div class="container">
     <section class="session-history">
+      <div class = "spacing--grid title-headers">
+        <span> Session History </span>
+        <span> Favorite Coaches </span>
+      </div>
       <div class="spacing--grid session-list__headers">
         <span>SUBJECT</span>
         <span>DATE</span>
@@ -21,31 +25,30 @@
         <li v-for="(session, index) in sessions" :key="session._id">
           <div>
             <div>
-              <component v-bind:is="sessions.svg" class="subject-icon" />
-              <div class="session-list-subject-container">
+              <component v-bind:is="session.svg" class="subject-icon" />
+              <div class="session-list__subject-container">
               <span
                 class="session-list__subject"
                 >{{ session.subject }}</span
               >
-              <span class=""> {{ session.timeTutored }} minutes</span>
+              <span class="session-list__subject-time-tutored"> {{ getSessionDuration(session.timeTutored) }} </span>
               </div>
             </div>
 
-            <span
-              >{{ session.createdAt }}</span
+            <span class="session-list__created-at"
+              >{{ getSessionDate(session.timeTutored) }} @ {{ getSessionTime(session.timeTutored) }}</span
             >
             <favoriting-toggle
               :initialIsFavorite="session.isFavorite"
               :volunteerName="session.volunteerFirstName"
               :volunteerId="session.volunteerId"
             />
-            <span class="session-list-name-container"> {{ session.volunteerName }} </span>
+            <span class="session-list__coach-name"> {{ session.volunteerFirstName }} </span>
           </div>
           <div class="border--thin" v-if="index !== 4"></div>
         </li>
       </ul>
         <footer class="page-actions-container">
-        <div class="border--thin"></div>
         <div class="page-actions">
           <div
             @click="() => getSessionHistory(page - 1)"
@@ -123,6 +126,18 @@ export default {
           session.svg = this.svgs[session.topic]
           return session
       })
+    },
+    getSessionTimeTutored(timeTutored) {
+      const sessionTime = timeTutored.getTime()
+      return sessionTime
+    },
+    getSessionDate(timeTutored) {
+      const sessionDate = timeTutored.getDate()
+      return sessionDate
+    },
+    getSessionDuration(timeTutored) {
+      const duration = this.getSessionTimeTutored(timeTutored)/60000
+      return duration
     }
    },
   async created() {
@@ -150,6 +165,10 @@ ul {
   font-weight: 500;
   font-size: 22px;
   margin-bottom: 1em;
+
+  &-headers {
+    font-size: 20px;
+  }
 }
 
 .subtitle {
@@ -180,7 +199,7 @@ ul {
 
 .session-list {
   @include flex-container(row, space-evenly);
-  min-height: 600px;
+  min-height: 696px;
   padding: 0 2em;
 
   &__headers {
@@ -189,32 +208,30 @@ ul {
     padding: 1em 2em;
   }
 
-  &__coach {
-    padding: 2.4em 0;
-
-    &-name {
-      font-weight: 500;
-      text-align: left;
-
-      @include breakpoint-above('medium') {
-        width: 100px;
-      }
-    }
-
-    &-name-container {
+  &__coach-name {
       @include flex-container(column, center, center);
 
       @include breakpoint-above('medium') {
         flex-direction: row;
       }
     }
-  }
 
-  &-subject-container {
+  &__subject {
+    text-align: left;
+    @include font-category('heading');
+
+    &-container {
     @include flex-container(column, center, center);
-    @include breakpoint-above('medium') {
-        flex-direction: row;
-      }
+    }
+
+    &-time-tutored {
+    @include font-category('helper-text');
+    color: $c-secondary-grey;
+  }
+}
+  
+  &__created-at {
+    @include font-category('subheading')
   }
 }
 
@@ -222,6 +239,12 @@ ul {
   height: 50px;
   width: 50px;
   margin-left: 1.375em;
+}
+
+.border--thin {
+  width: 95%;
+  border-bottom: 2px solid $c-background-grey;
+  margin: 0 auto;
 }
 
 .page-actions-container {
