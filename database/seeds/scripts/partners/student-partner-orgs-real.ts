@@ -246,6 +246,34 @@ export async function studentPartnerOrgsReal(): Promise<NameToId> {
       collegeSignup: false,
       signupCode: 'BML',
     },
+    {
+      id: getDbUlid(),
+      key: 'ehtp',
+      name: 'EHTP',
+      highSchoolSignup: false,
+      schoolSignupRequired: false,
+      collegeSignup: false,
+      signupCode: 'EHTP',
+    },
+    {
+      id: getDbUlid(),
+      key: 'first-graduate',
+      name: 'First Graduate',
+      highSchoolSignup: false,
+      schoolSignupRequired: false,
+      collegeSignup: false,
+      signupCode: 'FIRSTGRAD',
+    },
+    {
+      id: getDbUlid(),
+      key: 'bbbs-nyc',
+      name: 'BBBS NYC',
+      highSchoolSignup: false,
+      schoolSignupRequired: false,
+      collegeSignup: false,
+      signupCode: 'BBBS',
+    },
+
   ]
   const temp: NameToId = {}
   for (const org of orgs) {

@@ -123,6 +123,13 @@ export async function volunteerPartnerOrgsReal(): Promise<NameToId> {
       name: 'SOMOS',
       receiveWeeklyHourSummaryEmail: true,
     },
+    {
+      id: getDbUlid(),
+      key: 'nhs-brookline',
+      name: 'NHS at Hollis Brookline High School',
+      receiveWeeklyHourSummaryEmail: true,
+    }
+
   ]
   const temp: NameToId = {}
   for (const org of orgs) {

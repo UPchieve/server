@@ -858,10 +858,10 @@ CREATE TABLE upchieve.schools (
     approved boolean DEFAULT false NOT NULL,
     partner boolean DEFAULT false NOT NULL,
     city_id integer,
-    us_state_code character varying(2),
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    mongo_id character varying(24)
+    mongo_id character varying(24),
+    legacy_city_name text
 );
 
 
@@ -2487,14 +2487,6 @@ ALTER TABLE ONLY upchieve.training_courses
 
 
 --
--- Name: schools unique_name__state_code_city_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.schools
-    ADD CONSTRAINT unique_name__state_code_city_id UNIQUE (name, us_state_code, city_id);
-
-
---
 -- Name: users_ip_addresses unique_user_id_ip_address_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3070,14 +3062,6 @@ ALTER TABLE ONLY upchieve.schools_sponsor_orgs
 
 
 --
--- Name: schools schools_us_state_code_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.schools
-    ADD CONSTRAINT schools_us_state_code_fkey FOREIGN KEY (us_state_code) REFERENCES upchieve.us_states(code);
-
-
---
 -- Name: session_failed_joins session_failed_joins_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3596,4 +3580,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220327183950'),
     ('20220327211734'),
     ('20220328213107'),
-    ('20220328213115');
+    ('20220328213115'),
+    ('20220330203235'),
+    ('20220330203351');
