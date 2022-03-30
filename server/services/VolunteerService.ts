@@ -1,21 +1,19 @@
+import { logger } from '@sentry/utils'
+import {
+  ACCOUNT_USER_ACTIONS, EVENTS, PHOTO_ID_STATUS,
+  REFERENCE_STATUS,
+  STATUS
+} from '../constants'
 import { Ulid } from '../models/pgUtils'
+import { createAccountAction } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
-import { getTimeTutoredForDateRange } from './SessionService'
-import { getElapsedAvailabilityForDateRange } from './AvailabilityService'
-import { createAccountAction } from '../models/UserAction'
-import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
+import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
+import QueueService from './QueueService'
+import { getTimeTutoredForDateRange } from './SessionService'
 
-import {
-  PHOTO_ID_STATUS,
-  REFERENCE_STATUS,
-  STATUS,
-  EVENTS,
-  ACCOUNT_USER_ACTIONS,
-} from '../constants'
-import { logger } from '@sentry/utils'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -36,7 +34,7 @@ export async function getHourSummaryStats(
     timeTutoredMS,
   ] = await Promise.all([
     VolunteerRepo.getQuizzesPassedForDateRange(volunteerId, fromDate, toDate),
-    getElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
+    getTotalElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
     getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
   ])
 

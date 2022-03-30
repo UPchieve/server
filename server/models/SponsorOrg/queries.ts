@@ -17,7 +17,7 @@ export async function getSponsorOrgs() {
 export async function getSponsorOrgsByKey(sponsorOrg: string) {
   try {
     const result = await pgQueries.getSponsorOrgsByKey.run({ sponsorOrg}, getClient())
-    return makeSomeRequired(result[0], ['schoolIds', 'studentPartnerOrgKeys'])
+    return makeSomeRequired(result[0], ['schoolIds', 'studentPartnerOrgKeys', 'studentPartnerOrgIds'])
   } catch (err) {
     throw new RepoReadError(err)
   }

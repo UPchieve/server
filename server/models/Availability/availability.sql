@@ -56,6 +56,29 @@ ORDER BY
     recorded_at;
 
 
+/* @name getLegacyAvailabilityHistoryForDatesByVolunteerId */
+SELECT
+    legacy_availability_histories.id,
+    legacy_availability_histories.recorded_at,
+    legacy_availability_histories.legacy_availability,
+    legacy_availability_histories.timezone
+FROM
+    legacy_availability_histories
+WHERE
+    user_id = :userId!
+    AND recorded_at <= :end!
+    AND recorded_at >= (
+        SELECT
+            MAX(recorded_at)
+        FROM
+            legacy_availability_histories
+        WHERE
+            recorded_at <= :start!
+            AND user_id = :userId!)
+ORDER BY
+    recorded_at;
+
+
 /* @name saveCurrentAvailabilityAsHistory */
 INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)
 SELECT

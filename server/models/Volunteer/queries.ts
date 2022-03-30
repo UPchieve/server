@@ -10,11 +10,13 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
-import { Certifications } from './types'
+import { Certifications, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS } from '../../constants'
 import { PoolClient } from 'pg'
+import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
+import { UniqueStudentsHelped } from '.'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -1330,71 +1332,67 @@ export async function getVolunteersOnDeck(subject: string, excludedIds: Ulid[]):
   }
 }
 
-// TODO: report query below
-export type GroupStats = {
-  total: number
-  totalWithinDateRange: number
-}
-
-export type HourSummaryStats = {
-  totalCoachingHours: number
-  totalQuizzesPassed: number
-  totalElapsedAvailability: number
-  totalVolunteerHours: number
-}
-
-export type PartnerVolunteerAnalytics = {
-  id: Ulid
-  firstName: string
-  lastName: string
-  email: string
-  state: string
-  isOnboarded: boolean
-  createdAt: Date
-  dateOnboarded: Date
-  certifications: Certifications
-  availabilityLastModifiedAt?: Date
-  sessionAnalytics: {
-    uniqueStudentsHelped: [GroupStats]
-    sessionStats: [GroupStats]
-    uniquePartnerStudentsHelped: [GroupStats]
-    sessionPartnerStats: [GroupStats]
-    timeTutoredPartnerStats: [GroupStats]
-  }
-  textNotifications: GroupStats
-  isDeactivated: boolean
-  lastActivityAt: Date
-  hourSummaryTotal: HourSummaryStats
-  hourSummaryDateRange: HourSummaryStats
-}
-
-export interface UniqueStudentsHelped {
-  total: number
-  totalWithinDateRange: number
-}
-
-export async function getUniqueStudentHelped(volunteerPartnerOrg: string, start: Date, end: Date): Promise<UniqueStudentsHelped | undefined> {
+export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
+  volunteerPartnerOrg: string,
+  start: Date,
+  end: Date
+): Promise<UniqueStudentsHelped> {
   try {
-    const result = await pgQueries.getUniqueStudentHelped.run(
-      { volunteerPartnerOrg, start, end },
+    const associatedPartners = await getAssociatedPartnersAndSchools(
+      volunteerPartnerOrg
+    )
+    const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummary.run(
+      {
+        volunteerPartnerOrg,
+        start,
+        end,
+        studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
+        studentSchoolIds: associatedPartners.associatedStudentPartnerOrgs,
+      },
       getClient()
     )
-    if(result.length) return makeRequired(result[0])
-    throw new RepoReadError('Unable to compute unique students helped')
+    if (!(result.length && makeRequired(result[0])))
+      throw new Error(
+        `no volunteer partner org found with key ${volunteerPartnerOrg}`
+      )
+    return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-// TODO: refactor to be included in getUniqueStudentHelped 
-export async function getUniquePartnerStudentHelped(volunteerPartnerOrg: string, start: Date, end: Date, partnerStudentOrgs: Ulid[], partnerSchoolIds: Ulid[]): Promise<UniqueStudentsHelped | undefined> {
+export async function getVolunteersForAnalyticsReport(
+  volunteerPartnerOrg: string,
+  start: Date,
+  end: Date
+): Promise<VolunteersForAnalyticsReport[] | undefined> {
   try {
-    const result = await pgQueries.getUniquePartnerStudentsHelped.run(
-      { volunteerPartnerOrg, start, end, partnerStudentOrgs, partnerSchoolIds },
+    const associatedPartners = await getAssociatedPartnersAndSchools(
+      volunteerPartnerOrg
+    )
+    const result = await pgQueries.getVolunteersForAnalyticsReport.run(
+      {
+        volunteerPartnerOrg,
+        start,
+        end,
+        studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
+        studentSchoolIds: associatedPartners.associatedStudentPartnerOrgs,
+      },
       getClient()
     )
-    if(result.length) return makeRequired(result[0])
-    throw new RepoReadError('Unable to compute unique students helped')
+
+    if (!result.length)
+      throw new Error(
+        `no volunteer partner org found with key ${volunteerPartnerOrg}`
+      )
+
+    return result.map(row =>
+      makeSomeRequired(row, [
+        'state',
+        'dateOnboarded',
+        'availabilityLastModifiedAt',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -4,6 +4,7 @@ import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
 
 import _ from 'lodash'
 import moment from 'moment'
+import 'moment-timezone'
 import {
   Availability,
   HOURS,
@@ -134,7 +135,8 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
       { userId, start, end },
       getClient()
     )
-    const rowsByDate = _.groupBy(result, 'recordedAt')
+    const rows = result.map(row => makeRequired(row))
+    const rowsByDate = _.groupBy(rows, 'recordedAt')
 
     const histories: AvailabilityHistory[] = []
     for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>
@@ -152,6 +154,40 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
     throw new RepoReadError(err)
   }
 }
+
+export async function getLegacyAvailabilityHistoryForDatesByVolunteerId(
+  userId: Ulid,
+  start: Date,
+  end: Date
+): Promise<AvailabilityHistory[]> {
+  try {
+    const result = await pgQueries.getLegacyAvailabilityHistoryForDatesByVolunteerId.run(
+      { userId, start, end },
+      getClient()
+    )
+    const rows = result.map(row => makeRequired(row))
+    const histories: AvailabilityHistory[] = []
+    for (const row of rows) {
+      const availability = createNewAvailability()
+      const tzDay = moment(row.recordedAt)
+        .tz(row.timezone)
+        .weekday()
+      const day = getAvailabilityDay(tzDay)
+      histories.push({
+        volunteerId: userId,
+        recordedAt: new Date(row.recordedAt),
+        availability: Object.assign(availability, {
+          [day]: row.legacyAvailability,
+        }),
+      })
+    }
+
+    return histories
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 
 export async function saveCurrentAvailabilityAsHistory(
   userId: Ulid

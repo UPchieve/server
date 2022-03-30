@@ -1484,69 +1484,260 @@ AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabi
     AND subjects_unlocked.subject = :subject!;
 
 
-/* @name getUniqueStudentHelped */
+/* @name getUniqueStudentsHelpedForAnalyticsReportSummary */
 SELECT
-    SUM(sessions.total)::int AS total,
-    SUM(
-        CASE WHEN sessions.frequency_within_date_range > 0 THEN
-            1
-        ELSE
-            0
-        END)::int AS total_within_date_range
+  COALESCE(unique_students_stats.total, 0) AS total_unique_students_helped,
+  COALESCE(unique_students_stats.total_within_range, 0) AS total_unique_students_helped_within_range,
+  COALESCE(unique_partner_students_stats.total, 0) AS total_unique_partner_students_helped,
+  COALESCE(unique_partner_students_stats.total_within_range, 0) AS total_unique_partner_students_helped_within_range
 FROM
-    volunteer_partner_orgs
-    JOIN volunteer_profiles ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
-    LEFT JOIN (
-        SELECT
-            COUNT(DISTINCT student_id) AS total,
-            volunteer_id,
-            every(sessions.created_at >= :start!
-                    AND sessions.created_at <= :end!)::int AS frequency_within_date_range
-        FROM
-            sessions
+  volunteer_partner_orgs
+  LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(DISTINCT student_id):: int AS total,
+      SUM(
+        CASE
+          WHEN created_at >= :start!
+          AND created_at <= :end! THEN 1
+          ELSE 0
+        END
+      ):: int as total_within_range
+    FROM
+      sessions
     WHERE
-        ended_at IS NOT NULL
-    GROUP BY
-        student_id,
-        volunteer_id) AS sessions ON volunteer_profiles.user_id = sessions.volunteer_id
-WHERE ((:volunteerPartnerOrg!)::text IS NULL
-    OR volunteer_partner_orgs.key = :volunteerPartnerOrg!)
-GROUP BY
-    volunteer_partner_orgs.name;
+      volunteer_profiles.user_id = sessions.volunteer_id
+  ) AS unique_students_stats ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(DISTINCT student_id):: int AS acc,
+      SUM(
+        CASE
+          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds)
+          OR student_profiles.school_id = ANY(
+            :studentSchoolIds
+          ) THEN 1
+          ELSE 0
+        END
+      ):: int as total,
+      SUM(
+        CASE
+          WHEN sessions.created_at >= :start!
+          AND sessions.created_at <= :end!
+          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds)
+          OR student_profiles.school_id = ANY(
+            :studentSchoolIds
+          ) THEN 1
+          ELSE 0
+        END
+      ):: int as total_within_range
+    FROM
+      sessions
+      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
+    WHERE
+      volunteer_profiles.user_id = sessions.volunteer_id
+  ) AS unique_partner_students_stats ON TRUE
+WHERE
+  volunteer_partner_orgs.key = :volunteerPartnerOrg!;
 
-
-/* @name getUniquePartnerStudentsHelped */
+/* @name getVolunteersForAnalyticsReport */
 SELECT
-    SUM(sessions.total)::int AS total,
-    SUM(
-        CASE WHEN sessions.frequency_within_date_range > 0 THEN
-            1
-        ELSE
-            0
-        END)::int AS total_within_date_range
+  users.id AS user_id,
+  users.first_name AS first_name,
+  users.last_name AS last_name,
+  users.email AS email,
+  users.created_at AS created_at,
+  users.deactivated AS is_deactivated,
+  users.last_activity_at AS last_activity_at,
+  volunteer_profiles.state AS state,
+  volunteer_profiles.onboarded AS is_onboarded,
+  user_actions.created_at AS date_onboarded,
+  COALESCE(users_certifications.total, 0) AS total_certifications,
+  COALESCE(users_training_courses.total, 0) AS total_training,
+  availabilities.updated_at AS availability_last_modified_at,
+  COALESCE(unique_students_stats.total, 0) AS total_unique_students_helped,
+  COALESCE(unique_students_stats.total_within_range, 0) AS total_unique_students_helped_within_range,
+  COALESCE(unique_partner_students_stats.total, 0) AS total_unique_partner_students_helped,
+  COALESCE(unique_partner_students_stats.total_within_range, 0) AS total_unique_partner_students_helped_within_range,
+  COALESCE(sessions_stats.total, 0) AS total_sessions,
+  COALESCE(sessions_stats.total_within_range, 0) AS total_sessions_within_range,
+  COALESCE(partner_sessions_stats.total, 0) AS total_partner_sessions,
+  COALESCE(partner_sessions_stats.total_within_range, 0) AS total_partner_sessions_within_range,
+  COALESCE(partner_time_tutored_stats.total, 0) AS total_partner_time_tutored,
+  COALESCE(partner_time_tutored_stats.total_within_range, 0) AS total_partner_time_tutored_within_range,
+  COALESCE(notifications_stats.total, 0) AS total_notifications,
+  COALESCE(notifications_stats.total_within_range, 0) AS total_notifications_within_range
 FROM
-    volunteer_partner_orgs
-    JOIN volunteer_profiles ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
-    LEFT JOIN associated_partners ON volunteer_partner_orgs.id = associated_partners.volunteer_partner_org_id
-    LEFT JOIN sponsor_orgs ON associated_partners.student_sponsor_org_id = sponsor_orgs.id
-    LEFT JOIN schools_sponsor_orgs ON sponsor_orgs.id = schools_sponsor_orgs.school_id
-    LEFT JOIN (
-        SELECT
-            COUNT(DISTINCT student_id) AS total,
-            volunteer_id,
-            every(sessions.created_at >= :start!
-                    AND sessions.created_at <= :end!)::int AS frequency_within_date_range
-        FROM
-            sessions
+  users
+  JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+  LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
+  LEFT JOIN (
+    SELECT
+		COUNT(*)::int as total,
+    user_id
+    FROM
+      users_certifications
+    GROUP BY user_id
+  ) as users_certifications ON users_certifications.user_id = volunteer_profiles.user_id
+  LEFT JOIN (
+    SELECT
+		COUNT(*)::int as total,
+    user_id
+    FROM
+      users_training_courses
+    WHERE complete = true
+    GROUP BY user_id
+  ) as users_training_courses ON users_training_courses.user_id = volunteer_profiles.user_id
+  LEFT JOIN(
+    select
+      distinct on (user_id) user_id,
+      updated_at
+    from
+      availabilities
+    order by
+      user_id,
+      updated_at desc
+  ) as availabilities ON availabilities.user_id = users.id
+  LEFT JOIN (
+    SELECT
+      created_at,
+      user_id
+    FROM
+      user_actions
     WHERE
-        ended_at IS NOT NULL
-    GROUP BY
-        student_id,
-        volunteer_id) AS sessions ON volunteer_profiles.user_id = sessions.volunteer_id
-WHERE ((:volunteerPartnerOrg!)::text IS NULL
-    OR volunteer_partner_orgs.key = :volunteerPartnerOrg!)
-AND associated_partners.student_partner_org_id = ANY (:partnerStudentOrgs::uuid[])
-AND schools_sponsor_orgs.school_id = ANY (:partnerSchoolIds!::uuid[])
-GROUP BY
-    volunteer_partner_orgs.name;
-
+      action = 'ONBOARDED'
+  ) as user_actions ON user_actions.user_id = volunteer_profiles.user_id
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(DISTINCT student_id):: int AS total,
+      SUM(
+        CASE
+          WHEN created_at >= :start!
+          AND created_at <= :end! THEN 1
+          ELSE 0
+        END
+      ):: int as total_within_range
+    FROM
+      sessions
+    WHERE
+      volunteer_profiles.user_id = sessions.volunteer_id
+  ) AS unique_students_stats ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(*):: int AS total,
+      SUM(
+        CASE
+          WHEN created_at >= :start!
+          AND created_at <= :end! THEN 1
+          ELSE 0
+        END
+      ):: int as total_within_range
+    FROM
+      sessions
+    WHERE
+      volunteer_profiles.user_id = sessions.volunteer_id
+  ) AS sessions_stats ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(DISTINCT student_id):: int AS acc,
+      SUM(
+        CASE
+          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+          OR student_profiles.school_id = ANY(
+            :studentSchoolIds!
+          ) THEN 1
+          ELSE 0
+        END
+      ):: int as total,
+      SUM(
+        CASE
+          WHEN sessions.created_at >= :start!
+          AND sessions.created_at <= :end!
+          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+          OR student_profiles.school_id = ANY(
+            :studentSchoolIds!
+          ) THEN 1
+          ELSE 0
+        END
+      ):: int as total_within_range
+    FROM
+      sessions
+      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
+    WHERE
+      volunteer_profiles.user_id = sessions.volunteer_id
+  ) AS unique_partner_students_stats ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      SUM(
+        CASE
+          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+          OR student_profiles.school_id = ANY(
+            :studentSchoolIds!
+          ) THEN 1
+          ELSE 0
+        END
+      ):: int as total,
+      SUM(
+        CASE
+          WHEN sessions.created_at >= :start!
+          AND sessions.created_at <= :end!
+          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+          OR student_profiles.school_id = ANY(
+            :studentSchoolIds!
+          ) THEN 1
+          ELSE 0
+        END
+      ):: int as total_within_range
+    FROM
+      sessions
+      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
+    WHERE
+      volunteer_profiles.user_id = sessions.volunteer_id
+  ) AS partner_sessions_stats ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      SUM(
+        CASE
+          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+          OR student_profiles.school_id = ANY(
+            :studentSchoolIds!
+          ) THEN sessions.time_tutored
+          ELSE 0
+        END
+      ):: int as total,
+      SUM(
+        CASE
+          WHEN sessions.created_at >= :start!
+          AND sessions.created_at <= :end!
+          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+          OR student_profiles.school_id = ANY(
+            :studentSchoolIds!
+          ) THEN sessions.time_tutored
+          ELSE 0
+        END
+      ):: int as total_within_range
+    FROM
+      sessions
+      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
+    WHERE
+      volunteer_profiles.user_id = sessions.volunteer_id
+  ) AS partner_time_tutored_stats ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(*):: int AS total,
+      SUM(
+        CASE
+          WHEN sent_at >= :start!
+          AND sent_at <= :end! THEN 1
+          ELSE 0
+        END
+      ):: int as total_within_range
+    FROM
+      notifications
+    WHERE
+      volunteer_profiles.user_id = notifications.user_id
+  ) AS notifications_stats ON TRUE
+WHERE
+  volunteer_partner_orgs.key = :volunteerPartnerOrg!
+ORDER BY
+  users.created_at ASC;
