@@ -122,8 +122,8 @@ export default {
     },
     async updateLocalWaitTimes() {
       const originalWaitTimes = await CalendarService.getWaitTimes(this)
-      var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
-      var offset = (-1 * userUtcOffset) / 60
+      const userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
+      const offset = (-1 * userUtcOffset) / 60
       this.waitTimes = this.convertAvailability(originalWaitTimes, offset)
     },
     someThingChanged() {
@@ -135,9 +135,9 @@ export default {
       this.selectedTz = hasValidTimezone ? userTimezone : moment.tz.guess()
 
       const originalAvailability = this.user.availability
-      var estUtcOffset = moment.tz.zone('America/New_York').parse(Date.now())
-      var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
-      var offset = (estUtcOffset - userUtcOffset) / 60
+      const estUtcOffset = moment.tz.zone('America/New_York').parse(Date.now())
+      const userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
+      const offset = (estUtcOffset - userUtcOffset) / 60
       this.availability = this.convertAvailability(originalAvailability, offset)
     },
     async initWaitTimeData() {
@@ -226,7 +226,7 @@ export default {
         Friday: 'Thursday',
         Saturday: 'Friday'
       }
-      var convertedAvailability = {}
+      const convertedAvailability = {}
       for (const day in availability) {
         const times = availability[day]
         convertedAvailability[day] = {}
