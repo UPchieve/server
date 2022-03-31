@@ -1,9 +1,9 @@
 <template>
 <div>
-  <div class="page-description">
+  <div>
       <section class="header">
       <h1 class="title">
-        Session History
+        Session
       </h1>
       <p class="subtitle">
         On this page you can review your past sessions on UPchieve and favorite your preferred Academic Coaches. We’ll do our best to pair you with your favorited coaches when they’re available.      
@@ -11,7 +11,7 @@
     </section>
   </div>
   <div class="container">
-    <section class="session-history">
+    <section>
       <div class = "spacing--grid title-headers">
         <span> Session History </span>
         <span> Favorite Coaches </span>
@@ -23,27 +23,28 @@
       </div>
       <ul class="session-list">
         <li v-for="(session, index) in sessions" :key="session._id">
-          <div>
-            <div>
-              <component v-bind:is="session.svg" class="subject-icon" />
-              <div class="session-list__subject-container">
-              <span
-                class="session-list__subject"
-                >{{ session.subject }}</span
+          <div class="session-list__session">
+            <div class="session-list__subject-container">
+            <component v-bind:is="session.svg" class="subject-icon" />
+              <div class="subject-name-container">
+              <div
+                class="subject"
+                >{{ session.subject }}</div
               >
-              <span class="session-list__subject-time-tutored"> {{ getSessionDuration(session.timeTutored) }} </span>
+              <span class="subject-time-tutored"> {{ getSessionDuration(session.timeTutored) }} minutes</span>
               </div>
             </div>
-
             <span class="session-list__created-at"
-              >{{ getSessionDate(session.timeTutored) }} @ {{ getSessionTime(session.timeTutored) }}</span
+              >{{ getSessionDate(session.timeTutored) }} @ {{ getSessionTimeTutored(session.timeTutored) }}</span
             >
+            <div class="session-list__coach-name-container">
             <favoriting-toggle
               :initialIsFavorite="session.isFavorite"
               :volunteerName="session.volunteerFirstName"
               :volunteerId="session.volunteerId"
             />
             <span class="session-list__coach-name"> {{ session.volunteerFirstName }} </span>
+            </div>
           </div>
           <div class="border--thin" v-if="index !== 4"></div>
         </li>
@@ -71,7 +72,7 @@
             </span>
           </div>
           <div
-            @click="() => getFavoriteCoaches(page + 1)"
+            @click="() => getSessionHistory(page + 1)"
             :class="isLastPage && 'page-actions__stepper--disabled'"
             class="page-actions__stepper"
           >
@@ -93,10 +94,12 @@ import SATSVG from '@/assets/subject_icons/sat.svg'
 import ReadingWritingSVG from '@/assets/subject_icons/more-resources.svg'
 import NetworkService from '../services/NetworkService'
 import CaretIcon from '@/assets/caret.svg'
+import FavoritingToggle from '../components/FavoritingToggle.vue'
+import { mapState, mapGetters } from 'vuex'
 
 export default {
   name: 'session-history-view',
-  components: { MathSVG, CollegeSVG, ScienceSVG, SATSVG, ReadingWritingSVG, CaretIcon},
+  components: { MathSVG, CollegeSVG, ScienceSVG, SATSVG, ReadingWritingSVG, CaretIcon, FavoritingToggle},
   data() {
      const svgs = {
       math: MathSVG,
@@ -110,7 +113,25 @@ export default {
       sessions: [],
       isLastPage: true,
       page: 1,
-      svgs
+      hasNext: false,
+      svgs,
+      total: 0
+    }
+  },
+  computed: {
+    ...mapState({
+      user: (state) => state.user.user,
+    }),
+    ...mapGetters({
+      mobileMode: 'app/mobileMode',
+    }),
+    isFirstPage() {
+      return this.page === 1
+    },
+    totalPages() {
+      const sessionLimitPerPage = 5
+      const totalPages = Math.ceil(this.total / sessionLimitPerPage)
+      return totalPages === 0 ? 1 : totalPages
     }
   },
   methods: {
@@ -121,6 +142,10 @@ export default {
       this.isLastPage = response.body.isLastPage
       this.page = page
     },
+    async handlePageClick(page) {
+      if (this.page === page) return
+      await this.getFavoriteCoaches(page)
+    },
     getSessionTopicIcons() {
       this.sessions = this.sessions.map((session) => {
           session.svg = this.svgs[session.topic]
@@ -128,17 +153,19 @@ export default {
       })
     },
     getSessionTimeTutored(timeTutored) {
-      const sessionTime = timeTutored.getTime()
-      return sessionTime
+      // const sessionTime = timeTutored.getTime(
+      // return sessionTime
+      return timeTutored
     },
     getSessionDate(timeTutored) {
-      const sessionDate = timeTutored.getDate()
-      return sessionDate
+      // const sessionDate = timeTutored.getDate()
+      // return sessionDate
+      return timeTutored
     },
     getSessionDuration(timeTutored) {
-      const duration = this.getSessionTimeTutored(timeTutored)/60000
-      return duration
-    }
+     // const duration = this.getSessionTimeTutored(timeTutored)/60000
+      return timeTutored
+    },
    },
   async created() {
     await this.getSessionHistory(this.page)
@@ -167,7 +194,10 @@ ul {
   margin-bottom: 1em;
 
   &-headers {
+    font-weight: 500;
     font-size: 20px;
+    margin-bottom: 1em;
+    text-align: left;
   }
 }
 
@@ -179,6 +209,9 @@ ul {
 .container {
   padding: 1.5em;
   margin: 0;
+  background-color: white;
+  border: 1px solid $c-border-grey;
+  min-width: 100%;
 
   @include breakpoint-above('large') {
     padding: 2.5em 2.5em 0 2.5em;
@@ -198,47 +231,62 @@ ul {
 }
 
 .session-list {
-  @include flex-container(row, space-evenly);
   min-height: 696px;
   padding: 0 2em;
 
   &__headers {
     @include font-category('subheading');
     background-color: $c-background-blue;
+    width: 100%;
     padding: 1em 2em;
   }
 
   &__coach-name {
-      @include flex-container(column, center, center);
-
-      @include breakpoint-above('medium') {
-        flex-direction: row;
+      @include font-category('subheading');
+      margin: 0.8em;
+      &-container {
+        @include flex-container(row, center, center);
       }
     }
-
-  &__subject {
-    text-align: left;
-    @include font-category('heading');
-
-    &-container {
-    @include flex-container(column, center, center);
-    }
-
-    &-time-tutored {
-    @include font-category('helper-text');
-    color: $c-secondary-grey;
-  }
-}
   
+  &__session {
+    @include flex-container(row, space-around, center);
+    display: grid;
+    @include breakpoint-above('tiny') {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+    padding: 1.2em 0;
+  }
+  
+  &__subject-container {
+    @include flex-container(row, initial, center);
+  }
+
   &__created-at {
     @include font-category('subheading')
   }
 }
 
-.subject-icon {
+.subject {
+  text-align: left;
+  @include font-category('heading');
+
+  &-icon {
   height: 50px;
   width: 50px;
   margin-left: 1.375em;
+  }
+
+  &-name-container {
+    @include flex-container(column, center, flex-start);
+    margin: 1.375em;
+  }
+
+  &-time-tutored {
+    @include font-category('helper-text');
+    color: $c-secondary-grey;
+  }
+
 }
 
 .border--thin {
