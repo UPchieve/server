@@ -2,13 +2,13 @@
 <div class="session-history">
   <section class="header">
     <h1 class="title">
-      Session
+      Session History
     </h1>
-    <p class="subtitle">
+    <p v-if="!mobileMode" class="subtitle">
       On this page you can review your past sessions on UPchieve and favorite your preferred Academic Coaches. We’ll do our best to pair you with your favorited coaches when they’re available.      
     </p>
   </section>
-  <div class="container">
+  <div v-if="!mobileMode" class="container">
     <section>
       <div class="spacing--grid session-list__headers">
         <span>SUBJECT</span>
@@ -77,6 +77,72 @@
       </footer>
     </section>
   </div>
+  <div v-if="mobileMode">
+    <div class="mobile-container">
+    <section>
+      <ul class="mobile-session-list">
+        <li v-for="(session, index) in sessions" :key="session._id">
+          <div class="mobile-session-list__session">
+            <div class="mobile-session-list__subject-container">
+            <component v-bind:is="session.svg" class="mobile-subject-icon" />
+              <div class="mobile-subject-name-container">
+              <div
+                class="mobile-subject"
+                >{{ session.subject }}</div
+              >
+              <span class="mobile-subject-time-tutored"> {{ getSessionDuration(session.timeTutored) }} minutes</span>
+              </div>
+            </div>
+            <div class="mobile-session-list__createdAt-container">
+            <div class="mobile-session-list__coach-name-container">
+              <favoriting-toggle
+              :initialIsFavorite="session.isFavorite"
+              :volunteerName="session.volunteerFirstName"
+              :volunteerId="session.volunteerId"
+              />
+              <span class="mobile-session-list__coach-name"> {{ session.volunteerFirstName }} </span>
+            </div>
+            <span class="mobile-session-list__created-at"> {{ getSessionTimeForMobile(session.createdAt) }}</span>
+            </div>
+          </div>
+          <div class="border--thin" v-if="index !== 5"></div>
+        </li>
+      </ul>
+      <footer class="page-actions-container">
+        <div class="page-actions">
+          <div
+            @click="() => getSessionHistory(page - 1)"
+            :class="isFirstPage && 'page-actions__stepper--disabled'"
+            class="page-actions__stepper"
+          >
+            <caret-icon class="caret caret--previous" /><span v-if="!mobileMode"
+              >Previous</span
+            >
+          </div>
+          <div class="page-numbers">
+            <span
+              v-for="pageNum in totalPages"
+              :key="pageNum"
+              :class="pageNum === page && 'page-num--active'"
+              class="page-num"
+              @click="() => handlePageClick(pageNum)"
+            >
+              {{ pageNum }}
+            </span>
+          </div>
+          <div
+            @click="() => getSessionHistory(page + 1)"
+            :class="isLastPage && 'page-actions__stepper--disabled'"
+            class="page-actions__stepper"
+          >
+            <span v-if="!mobileMode">Next</span
+            ><caret-icon class="caret caret--next" />
+          </div>
+        </div>
+      </footer>
+    </section>
+    </div>
+  </div>
 </div>
 </template>
 
@@ -96,12 +162,20 @@ export default {
   name: 'session-history-view',
   components: { MathSVG, CollegeSVG, ScienceSVG, SATSVG, ReadingWritingSVG, CaretIcon, FavoritingToggle},
   data() {
+     const svgs = {
+        math: MathSVG,
+        college: CollegeSVG,
+        science: ScienceSVG,
+        readingWriting: ReadingWritingSVG,
+        sat: SATSVG
+      }
     return {
       sessions: [],
       isLastPage: true,
       page: 1,
       hasNext: false,
-      total: 0
+      total: 0,
+      svgs
     }
   },
   computed: {
@@ -119,16 +193,6 @@ export default {
       const totalPages = Math.ceil(this.total / sessionLimitPerPage)
       return totalPages === 0 ? 1 : totalPages
     },
-    getSubjectIcons() {
-      const svgs = {
-        math: MathSVG,
-        college: CollegeSVG,
-        science: ScienceSVG,
-        readingWriting: ReadingWritingSVG,
-        sat: SATSVG
-      }
-      return svgs
-    }
   },
   methods: {
     async getSessionHistory(page) {
@@ -143,14 +207,16 @@ export default {
       await this.getFavoriteCoaches(page)
     },
     getSessionTopicIcons() {
-      const svgs = this.getSubjectIcons()
       this.sessions = this.sessions.map((session) => {
-          session.svg = svgs[session.topic]
+          session.svg = this.svgs[session.topic]
           return session
       })
     },
     getSessionTime(sessionCreatedAt) {
-      return moment(sessionCreatedAt).format('l @ h:mm a')
+      return moment(sessionCreatedAt).format('l @ h:mm A')
+    },
+    getSessionTimeForMobile(sessionCreatedAt) {
+      return moment(sessionCreatedAt).format('l h:mm A')
     },
     getSessionDuration(timeTutored) {
       const duration = Math.ceil(timeTutored/(1000 * 60))
@@ -181,7 +247,11 @@ ul {
 .title {
   font-weight: 500;
   font-size: 22px;
-  margin-bottom: 1em;
+  margin-bottom: 1em; 
+
+  @include breakpoint-below('small') {
+    margin: 1em;
+  }
 }
 
 .subtitle {
@@ -191,6 +261,10 @@ ul {
 
 .session-history {
   padding: 53px;
+
+  @include breakpoint-below('small') {
+    padding: 0;
+  }
 }
 
 .container {
@@ -205,12 +279,8 @@ ul {
 .spacing--grid {
   // @include flex-container(row, space-around, center);
   display: grid;
-  @include breakpoint-above('tiny') {
+  @include breakpoint-above('small') {
     grid-template-columns: 1fr 1fr 1fr;
-  }
-
-  @include breakpoint-below('medium') {
-    flex-direction: column;
   }
 }
 
@@ -229,7 +299,7 @@ ul {
       margin: 0.8em;
       &-container {
         @include flex-container(row, center, center);
-      }
+  }
     }
   
   &__session {
@@ -248,7 +318,7 @@ ul {
   &__created-at {
     @include font-category('subheading');
     color: $c-secondary-grey;
-  }
+  }    
 }
 
 .subject {
@@ -291,6 +361,9 @@ ul {
 
 .page-actions {
   @include flex-container(row, flex-end);
+  @include breakpoint-below('small') {
+    @include flex-container(row, space-between);
+  }
   &__stepper {
     display: flex;
     align-items: center;
@@ -354,4 +427,88 @@ ul {
   }
 }
 
+// mobile css styling
+.mobile-title {
+  font-weight: 500;
+  font-size: 22px;
+  margin: 1em;
+  background-color: white;
+}
+
+.mobile-container {
+  padding: 0.5em;
+  margin: 0;
+  background-color: white;
+  border: 1px solid $c-border-grey;
+  border-radius: 8px 8px 16px 16px;
+  min-width: 100%;
+  padding-right: 1em;
+  padding-left: 1em;
+}
+
+.mobile-spacing--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+}
+
+.mobile-session-list {
+  padding: 0;
+
+  &__coach-name {
+      @include font-category('subheading');
+      font-size: 14px;
+      margin: 0.8em;
+      &-container {
+        @include flex-container(row, center, center);
+      }        
+    }
+  
+  &__session {
+    @include flex-container(row, space-between, center);
+    padding: 0.2em;
+  }
+  
+  &__subject-container {
+    @include flex-container(row, initial, center);
+  }
+
+  &__created-at {
+    @include font-category('subheading');
+    color: $c-secondary-grey;
+    font-size: 12px;
+  }    
+
+  &__createdAt-container {
+    @include flex-container(column, center, flex-end)
+  } 
+
+  &__heart {
+    height: 10.72px;
+    width: 11.54px;
+  }
+}
+
+.mobile-subject {
+  text-align: left;
+  font-weight: 600;
+  font-size: 16px;
+
+  &-icon {
+  height: 30px;
+  width: 30px;
+  margin-left: 1.375em;
+  }
+
+  &-name-container {
+    @include flex-container(column, center, flex-start);
+    margin: 1.375em;
+  }
+
+  &-time-tutored {
+    @include font-category('helper-text');
+    color: $c-secondary-grey;
+    font-size: 12px;
+  }
+}
 </style>
