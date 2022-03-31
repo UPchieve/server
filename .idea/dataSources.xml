@@ -8,5 +8,12 @@
       <jdbc-url>mongodb+srv://upchieve-dev-zlkok.azure.mongodb.net/upchieve-dev</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="Staging Alpha" uuid="e93103ed-4864-4511-8922-bbba21c072a3">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://staging-pg-alpha-upchieve-staging.aivencloud.com:15600/upchieve</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
