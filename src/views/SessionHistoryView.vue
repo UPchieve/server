@@ -1,13 +1,13 @@
 <template>
 <div class="session-history">
-      <section class="header">
-      <h1 class="title">
-        Session
-      </h1>
-      <p class="subtitle">
-        On this page you can review your past sessions on UPchieve and favorite your preferred Academic Coaches. We’ll do our best to pair you with your favorited coaches when they’re available.      
-      </p>
-    </section>
+  <section class="header">
+    <h1 class="title">
+      Session
+    </h1>
+    <p class="subtitle">
+      On this page you can review your past sessions on UPchieve and favorite your preferred Academic Coaches. We’ll do our best to pair you with your favorited coaches when they’re available.      
+    </p>
+  </section>
   <div class="container">
     <section>
       <div class="spacing--grid session-list__headers">
@@ -96,20 +96,11 @@ export default {
   name: 'session-history-view',
   components: { MathSVG, CollegeSVG, ScienceSVG, SATSVG, ReadingWritingSVG, CaretIcon, FavoritingToggle},
   data() {
-     const svgs = {
-      math: MathSVG,
-      college: CollegeSVG,
-      science: ScienceSVG,
-      readingWriting: ReadingWritingSVG,
-      sat: SATSVG
-    }
-
     return {
       sessions: [],
       isLastPage: true,
       page: 1,
       hasNext: false,
-      svgs,
       total: 0
     }
   },
@@ -127,6 +118,16 @@ export default {
       const sessionLimitPerPage = 5
       const totalPages = Math.ceil(this.total / sessionLimitPerPage)
       return totalPages === 0 ? 1 : totalPages
+    },
+    getSubjectIcons() {
+      const svgs = {
+        math: MathSVG,
+        college: CollegeSVG,
+        science: ScienceSVG,
+        readingWriting: ReadingWritingSVG,
+        sat: SATSVG
+      }
+      return svgs
     }
   },
   methods: {
@@ -142,8 +143,9 @@ export default {
       await this.getFavoriteCoaches(page)
     },
     getSessionTopicIcons() {
+      const svgs = this.getSubjectIcons
       this.sessions = this.sessions.map((session) => {
-          session.svg = this.svgs[session.topic]
+          session.svg = svgs[session.topic]
           return session
       })
     },
