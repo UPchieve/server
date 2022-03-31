@@ -131,7 +131,7 @@ const routes = [
     meta: { loggedOutOnly: true }
   },
   { 
-    path: '/session/history',
+    path: '/sessions/history',
     name: 'SessionHistoryView',
     component: SessionHistoryView,
     meta: { protected: true }

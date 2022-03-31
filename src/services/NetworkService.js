@@ -664,7 +664,7 @@ export default {
   },
   getSessionHistory(page) {
     return Vue.http
-      .get(`${API_ROOT}/session/history?page=${page}`)
+      .get(`${API_ROOT}/sessions/history?page=${page}`)
       .then(this._successHandler, this._errorHandler)
   },
   mockGetSessionHistory(page) {
@@ -676,8 +676,8 @@ export default {
           [
             {
               subject: 'Algebra 1',
-              createdAt: '08/22/2020 @ 3:30 PM',
-              timeTutored: 60,
+              createdAt: new Date('2021-04-14T06:00:00.000+00:00'),
+              timeTutored: 3916379,
               volunteerFirstName: 'Susan',
               volunteerId: '6228f23d3cf2cabeb0a82702',
               isFavorited: true,
@@ -688,8 +688,8 @@ export default {
             },
             {
               subject: 'Statistics',
-              createdAt: '08/25/2020 @ 7:00 PM',
-              timeTutored: 30,
+              createdAt: new Date('2021-04-14T06:00:00.000+00:00'),
+              timeTutored: 5713828,
               volunteerFirstName: 'Derek',
               volunteerId: '6228f23d3cf2cabeb0a82702',
               isFavorited: false,
@@ -700,8 +700,8 @@ export default {
             },
             {
               subject: 'Essays',
-              createdAt: '08/22/2020 @ 3:30 PM',
-              timeTutored: 60,
+              createdAt: new Date('2021-04-14T06:00:00.000+00:00'),
+              timeTutored: 1835868,
               volunteerFirstName: 'Susan',
               volunteerId: '6228f23d3cf2cabeb0a82702',
               isFavorited: true,
@@ -712,8 +712,8 @@ export default {
             },
             {
               subject: 'Critical Reading',
-              createdAt: '08/22/2020 @ 3:30 PM',
-              timeTutored: 60,
+              createdAt: new Date('2021-04-14T06:00:00.000+00:00'),
+              timeTutored: 2903063,
               volunteerFirstName: 'Susan',
               volunteerId: '6228f23d3cf2cabeb0a82702',
               isFavorited: true,
@@ -724,8 +724,8 @@ export default {
             },
             {
               subject: 'Biology',
-              createdAt: '08/25/2020 @ 7:00 PM',
-              timeTutored: 30,
+              createdAt: new Date('2021-04-14T06:00:00.000+00:00'),
+              timeTutored: 1492482,
               volunteerFirstName: 'Derek',
               volunteerId: '6228f23d3cf2cabeb0a82702',
               isFavorited: false,

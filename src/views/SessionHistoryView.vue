@@ -1,5 +1,5 @@
 <template>
-<div>
+<div class="session-history">
       <section class="header">
       <h1 class="title">
         Session
@@ -10,10 +10,6 @@
     </section>
   <div class="container">
     <section>
-      <div class = "spacing--grid title-headers">
-        <span> Session History </span>
-        <span> Favorite Coaches </span>
-      </div>
       <div class="spacing--grid session-list__headers">
         <span>SUBJECT</span>
         <span>DATE</span>
@@ -33,7 +29,7 @@
               </div>
             </div>
             <span class="session-list__created-at"
-              >{{ getSessionDate(session.timeTutored) }} @ {{ getSessionTimeTutored(session.timeTutored) }}</span
+              > {{ getSessionTime(session.createdAt) }}</span
             >
             <div class="session-list__coach-name-container">
             <favoriting-toggle
@@ -44,7 +40,7 @@
             <span class="session-list__coach-name"> {{ session.volunteerFirstName }} </span>
             </div>
           </div>
-          <div class="border--thin" v-if="index !== 4"></div>
+          <div class="border--thin" v-if="index !== 5"></div>
         </li>
       </ul>
         <footer class="page-actions-container">
@@ -94,6 +90,7 @@ import NetworkService from '../services/NetworkService'
 import CaretIcon from '@/assets/caret.svg'
 import FavoritingToggle from '../components/FavoritingToggle.vue'
 import { mapState, mapGetters } from 'vuex'
+import moment from 'moment'
 
 export default {
   name: 'session-history-view',
@@ -137,8 +134,8 @@ export default {
       if (page < 1 || page > this.totalPages) return
       const response = await NetworkService.mockGetSessionHistory(page)
       this.sessions = response.body.sessions
-      // this.isLastPage = response.body.isLastPage
-      // this.page = page
+      this.isLastPage = response.body.isLastPage
+      this.page = page
     },
     async handlePageClick(page) {
       if (this.page === page) return
@@ -150,19 +147,12 @@ export default {
           return session
       })
     },
-    getSessionTimeTutored(timeTutored) {
-      // const sessionTime = timeTutored.getTime(
-      // return sessionTime
-      return timeTutored
-    },
-    getSessionDate(timeTutored) {
-      // const sessionDate = timeTutored.getDate()
-      // return sessionDate
-      return timeTutored
+    getSessionTime(sessionCreatedAt) {
+      return moment(sessionCreatedAt).format('l @ h:mm a')
     },
     getSessionDuration(timeTutored) {
-     // const duration = this.getSessionTimeTutored(timeTutored)/60000
-      return timeTutored
+      const duration = Math.ceil(timeTutored/(1000 * 60))
+      return duration
     },
    },
   async created() {
@@ -190,13 +180,6 @@ ul {
   font-weight: 500;
   font-size: 22px;
   margin-bottom: 1em;
-
-  &-headers {
-    font-weight: 500;
-    font-size: 20px;
-    margin-bottom: 1em;
-    text-align: left;
-  }
 }
 
 .subtitle {
@@ -204,20 +187,21 @@ ul {
   color: $c-secondary-grey;
 }
 
+.session-history {
+  padding: 53px;
+}
+
 .container {
-  padding: 1.5em;
+  padding: 0;
   margin: 0;
   background-color: white;
   border: 1px solid $c-border-grey;
+  border-radius: 8px 8px 16px 16px;
   min-width: 100%;
-
-  @include breakpoint-above('large') {
-    padding: 2.5em 2.5em 0 2.5em;
-  }
 }
 
 .spacing--grid {
-  @include flex-container(row, space-around, center);
+  // @include flex-container(row, space-around, center);
   display: grid;
   @include breakpoint-above('tiny') {
     grid-template-columns: 1fr 1fr 1fr;
@@ -229,7 +213,6 @@ ul {
 }
 
 .session-list {
-  min-height: 696px;
   padding: 0 2em;
 
   &__headers {
@@ -253,7 +236,7 @@ ul {
     @include breakpoint-above('tiny') {
     grid-template-columns: 1fr 1fr 1fr;
   }
-    padding: 1.2em 0;
+    padding: 1em 0;
   }
   
   &__subject-container {
@@ -261,7 +244,8 @@ ul {
   }
 
   &__created-at {
-    @include font-category('subheading')
+    @include font-category('subheading');
+    color: $c-secondary-grey;
   }
 }
 
@@ -294,7 +278,7 @@ ul {
 }
 
 .page-actions-container {
-  padding: 0 2em;
+  padding: 1.2em 1.75em 1.4em ;
 }
 
 .page-numbers {
@@ -304,6 +288,7 @@ ul {
 }
 
 .page-actions {
+  @include flex-container(row, flex-end);
   &__stepper {
     display: flex;
     align-items: center;
@@ -354,6 +339,8 @@ ul {
 }
 
 .caret {
+  width: 20px;
+  height: 12px;
   &--previous {
     transform: rotate(90deg);
     margin-right: 0.4em;
