@@ -1,6 +1,5 @@
 <template>
 <div>
-  <div>
       <section class="header">
       <h1 class="title">
         Session
@@ -9,7 +8,6 @@
         On this page you can review your past sessions on UPchieve and favorite your preferred Academic Coaches. We’ll do our best to pair you with your favorited coaches when they’re available.      
       </p>
     </section>
-  </div>
   <div class="container">
     <section>
       <div class = "spacing--grid title-headers">
@@ -83,7 +81,7 @@
       </footer>
     </section>
   </div>
-  </div>
+</div>
 </template>
 
 <script>
@@ -139,8 +137,8 @@ export default {
       if (page < 1 || page > this.totalPages) return
       const response = await NetworkService.mockGetSessionHistory(page)
       this.sessions = response.body.sessions
-      this.isLastPage = response.body.isLastPage
-      this.page = page
+      // this.isLastPage = response.body.isLastPage
+      // this.page = page
     },
     async handlePageClick(page) {
       if (this.page === page) return
@@ -290,7 +288,7 @@ ul {
 }
 
 .border--thin {
-  width: 95%;
+  width: 100%;
   border-bottom: 2px solid $c-background-grey;
   margin: 0 auto;
 }
@@ -357,12 +355,12 @@ ul {
 
 .caret {
   &--previous {
-    rotate: 90deg;
+    transform: rotate(90deg);
     margin-right: 0.4em;
   }
 
   &--next {
-    rotate: -90deg;
+    transform: rotate(-90deg);
     margin-left: 0.4em;
   }
 }
