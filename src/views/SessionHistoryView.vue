@@ -143,7 +143,7 @@ export default {
       await this.getFavoriteCoaches(page)
     },
     getSessionTopicIcons() {
-      const svgs = this.getSubjectIcons
+      const svgs = this.getSubjectIcons()
       this.sessions = this.sessions.map((session) => {
           session.svg = svgs[session.topic]
           return session
