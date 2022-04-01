@@ -222,6 +222,10 @@ export async function usStates(): Promise<NameToId> {
     {
       code: 'AS',
       name: 'American Samoa'
+    },
+    {
+      code: 'BI',
+      name: 'Bureau of Indian Education'
     }
   ]
   const temp: NameToId = {}
