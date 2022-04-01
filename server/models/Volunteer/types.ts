@@ -66,8 +66,7 @@ export type VolunteersForAnalyticsReport = {
   dateOnboarded?: Date
   lastActivityAt: Date
   availabilityLastModifiedAt?: Date
-  totalCertifications: number
-  totalTraining: number
+  totalQuizzesPassed: number
   totalNotifications: number
   totalNotificationsWithinRange: number
   totalPartnerSessions: number

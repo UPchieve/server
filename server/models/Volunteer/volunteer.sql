@@ -1552,8 +1552,7 @@ SELECT
   volunteer_profiles.state AS state,
   volunteer_profiles.onboarded AS is_onboarded,
   user_actions.created_at AS date_onboarded,
-  COALESCE(users_certifications.total, 0) AS total_certifications,
-  COALESCE(users_training_courses.total, 0) AS total_training,
+  COALESCE(users_quizzes.total, 0) AS total_quizzes_passed,
   availabilities.updated_at AS availability_last_modified_at,
   COALESCE(unique_students_stats.total, 0) AS total_unique_students_helped,
   COALESCE(unique_students_stats.total_within_range, 0) AS total_unique_students_helped_within_range,
@@ -1576,27 +1575,18 @@ FROM
 		COUNT(*)::int as total,
     user_id
     FROM
-      users_certifications
+      users_quizzes
+    WHERE passed = TRUE
     GROUP BY user_id
-  ) as users_certifications ON users_certifications.user_id = volunteer_profiles.user_id
-  LEFT JOIN (
-    SELECT
-		COUNT(*)::int as total,
-    user_id
-    FROM
-      users_training_courses
-    WHERE complete = true
-    GROUP BY user_id
-  ) as users_training_courses ON users_training_courses.user_id = volunteer_profiles.user_id
+  ) as users_quizzes ON users_quizzes.user_id = volunteer_profiles.user_id
   LEFT JOIN(
-    select
-      distinct on (user_id) user_id,
-      updated_at
-    from
+    SELECT
+      MAX(updated_at) as updated_at,
+      user_id
+    FROM
       availabilities
-    order by
-      user_id,
-      updated_at desc
+    GROUP BY
+      user_id
   ) as availabilities ON availabilities.user_id = users.id
   LEFT JOIN (
     SELECT

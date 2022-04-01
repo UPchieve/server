@@ -328,8 +328,7 @@ interface GetOnboardingStatusOptions {
   isDeactivated: boolean
   lastActivityAt: Date
   availabilityLastModifiedAt?: Date
-  totalCerts: number
-  totalTraining: number
+  totalQuizzesPassed: number
 }
 
 function getOnboardingStatus({
@@ -337,15 +336,14 @@ function getOnboardingStatus({
   isDeactivated,
   lastActivityAt,
   availabilityLastModifiedAt,
-  totalCerts,
-  totalTraining
+  totalQuizzesPassed,
 }: GetOnboardingStatusOptions): ONBOARDING_STATUS {
   if (isOnboarded) return ONBOARDING_STATUS.ONBOARDED
   if (isDeactivated) return ONBOARDING_STATUS.DEACTIVATED
   const ninetyDaysAgo = new Date().getTime() - 1000 * 60 * 60 * 24 * 90
   if (lastActivityAt && lastActivityAt.getTime() <= ninetyDaysAgo)
     return ONBOARDING_STATUS.INACTIVE
-  if (availabilityLastModifiedAt || totalCerts > 0 || totalTraining > 0)
+  if (availabilityLastModifiedAt || totalQuizzesPassed > 0)
     return ONBOARDING_STATUS.IN_PROGRESS
   return ONBOARDING_STATUS.NOT_STARTED
 }
@@ -414,15 +412,14 @@ export function getAnalyticsReportRow(
     availabilityLastModifiedAt: volunteer.availabilityLastModifiedAt,
     isDeactivated: volunteer.isDeactivated,
     lastActivityAt: volunteer.lastActivityAt,
-    totalCerts: volunteer.totalCertifications,
-    totalTraining: volunteer.totalTraining
+    totalQuizzesPassed: volunteer.totalQuizzesPassed,
   })
   row.dateAccountCreated = moment(volunteer.createdAt).format(
     'MM/DD/YYYY HH:mm'
   )
 
   // Total certifications received
-  row.certificationsReceived = volunteer.totalCertifications
+  row.certificationsReceived = volunteer.totalQuizzesPassed
 
   // Volunteer impact - cumulative
   row.totalTextsReceived = volunteer.totalNotifications
