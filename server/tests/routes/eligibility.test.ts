@@ -16,18 +16,21 @@ import * as IneligibleStudentRepo from '../../models/IneligibleStudent/queries'
 import * as SchoolRepo from '../../models/School/queries'
 import * as UserCtrl from '../../controllers/UserCtrl'
 import * as UserRepo from '../../models/User/queries'
+import * as ZipCodeRepo from '../../models/ZipCode/queries'
 
 jest.mock('../../services/IpAddressService')
 jest.mock('../../models/IneligibleStudent/queries')
 jest.mock('../../models/School/queries')
 jest.mock('../../controllers/UserCtrl')
 jest.mock('../../models/User/queries')
+jest.mock('../../models/ZipCode/queries')
 
 const mockedIpAddressService = mocked(IpAddressService, true)
 const mockedIneligibleStudentRepo = mocked(IneligibleStudentRepo, true)
 const mockedSchoolRepo = mocked(SchoolRepo, true)
 const mockedUserCtrl = mocked(UserCtrl, true)
 const mockedUserRepo = mocked(UserRepo, true)
+const mockedZipCodeRepo = mocked(ZipCodeRepo, true)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api-public/eligibility'
@@ -48,7 +51,7 @@ async function sendGet(route: string, payload: any): Promise<Test> {
 
 async function sendPost(route: string, payload: any): Promise<Test> {
   return agent
-    .get(API_ROUTE + route)
+    .post(API_ROUTE + route)
     .set('X-Forwarded-For', US_IP_ADDRESS)
     .set('Accept', 'application/json')
     .send(payload)
@@ -79,11 +82,17 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     const student = buildStudent()
     const referredBy = getObjectId()
     const school = buildSchool({
-      isApproved: false,
+      isApproved: true,
     })
+    const mockZipCode = {
+      _id: getObjectId(),
+      zipCode: '11201',
+      isEligible: true,
+      medianIncome: 20000,
+    }
     const payload = {
-      schoolUpchieveId: school.upchieveId,
-      zipCodeInput: '11201',
+      schoolUpchieveId: school.upchieveId ? school.upchieveId : getObjectId(),
+      zipCode: '11201',
       email: student.email,
       currentGrade: GRADES.COLLEGE,
     }
@@ -98,6 +107,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValueOnce(
       undefined
     )
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(mockZipCode)
     mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
     mockedIneligibleStudentRepo.createIneligibleStudent.mockResolvedValue(
@@ -105,8 +115,8 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     )
 
     const response = await sendPost(ELIGIBILITY_CHECK_PATH, payload)
-    // console.log(response.body)
+
     expect(response.body.isEligible).toBe(false)
-    // expect(response.body.message).toBe('Student is not a high school student.')
+    expect(response.body.message).toBe('Student is not a high school student.')
   })
 })
