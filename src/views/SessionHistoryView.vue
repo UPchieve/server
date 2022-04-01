@@ -456,14 +456,12 @@ ul {
 
 // mobile css styling
 .mobile-container {
-  padding: 0.5em;
+  padding: 0.5em 1.5em 0.5em 1.5em;
   margin: 0;
   background-color: white;
   border: 1px solid $c-border-grey;
   border-radius: 8px 8px 16px 16px;
   min-width: 100%;
-  padding-right: 1em;
-  padding-left: 1em;
 }
 
 .mobile-spacing--grid {
@@ -486,7 +484,6 @@ ul {
   
   &__session {
     @include flex-container(row, space-between, center);
-    padding: 0.2em;
   }
   
   &__subject-container {
@@ -512,7 +509,6 @@ ul {
   &-icon {
   height: 30px;
   width: 30px;
-  margin-left: 1.375em;
   }
 
   &-name-container {
