@@ -10,7 +10,7 @@ export interface IGetQuizzesPassedForDateRangeByVolunteerIdParams {
 
 /** 'GetQuizzesPassedForDateRangeByVolunteerId' return type */
 export interface IGetQuizzesPassedForDateRangeByVolunteerIdResult {
-  createdAt: Date;
+  total: number | null;
 }
 
 /** 'GetQuizzesPassedForDateRangeByVolunteerId' query type */
@@ -19,7 +19,45 @@ export interface IGetQuizzesPassedForDateRangeByVolunteerIdQuery {
   result: IGetQuizzesPassedForDateRangeByVolunteerIdResult;
 }
 
-const getQuizzesPassedForDateRangeByVolunteerIdIR: any = {"name":"getQuizzesPassedForDateRangeByVolunteerId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":179,"b":185,"line":9,"col":19}]}},{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":215,"b":220,"line":10,"col":28}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":250,"b":253,"line":11,"col":27}]}}],"usedParamSet":{"userId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    created_at\nFROM\n    user_actions\nWHERE\n    action_type = 'QUIZ'\n    AND action = 'PASSED QUIZ'\n    AND user_id = :userId!\n    AND created_at >= DATE(:start!)\n    AND created_at < DATE(:end!)","loc":{"a":54,"b":254,"line":2,"col":0}}};
+const getQuizzesPassedForDateRangeByVolunteerIdIR: any = {"name":"getQuizzesPassedForDateRangeByVolunteerId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":191,"b":197,"line":9,"col":19}]}},{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":227,"b":232,"line":10,"col":28}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":262,"b":265,"line":11,"col":27}]}}],"usedParamSet":{"userId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    count(*)::int AS total\nFROM\n    user_actions\nWHERE\n    action_type = 'QUIZ'\n    AND action = 'PASSED QUIZ'\n    AND user_id = :userId!\n    AND created_at >= DATE(:start!)\n    AND created_at < DATE(:end!)","loc":{"a":54,"b":266,"line":2,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     count(*)::int AS total
+ * FROM
+ *     user_actions
+ * WHERE
+ *     action_type = 'QUIZ'
+ *     AND action = 'PASSED QUIZ'
+ *     AND user_id = :userId!
+ *     AND created_at >= DATE(:start!)
+ *     AND created_at < DATE(:end!)
+ * ```
+ */
+export const getQuizzesPassedForDateRangeByVolunteerId = new PreparedQuery<IGetQuizzesPassedForDateRangeByVolunteerIdParams,IGetQuizzesPassedForDateRangeByVolunteerIdResult>(getQuizzesPassedForDateRangeByVolunteerIdIR);
+
+
+/** 'GetQuizzesPassedForDateRangeForTelecomReportByVolunteerId' parameters type */
+export interface IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdParams {
+  end: Date;
+  start: Date;
+  userId: string;
+}
+
+/** 'GetQuizzesPassedForDateRangeForTelecomReportByVolunteerId' return type */
+export interface IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdResult {
+  createdAt: Date;
+}
+
+/** 'GetQuizzesPassedForDateRangeForTelecomReportByVolunteerId' query type */
+export interface IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdQuery {
+  params: IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdParams;
+  result: IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdResult;
+}
+
+const getQuizzesPassedForDateRangeForTelecomReportByVolunteerIdIR: any = {"name":"getQuizzesPassedForDateRangeForTelecomReportByVolunteerId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":465,"b":471,"line":21,"col":19}]}},{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":501,"b":506,"line":22,"col":28}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":536,"b":539,"line":23,"col":27}]}}],"usedParamSet":{"userId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    created_at\nFROM\n    user_actions\nWHERE\n    action_type = 'QUIZ'\n    AND action = 'PASSED QUIZ'\n    AND user_id = :userId!\n    AND created_at >= DATE(:start!)\n    AND created_at < DATE(:end!)","loc":{"a":340,"b":540,"line":14,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -36,7 +74,7 @@ const getQuizzesPassedForDateRangeByVolunteerIdIR: any = {"name":"getQuizzesPass
  *     AND created_at < DATE(:end!)
  * ```
  */
-export const getQuizzesPassedForDateRangeByVolunteerId = new PreparedQuery<IGetQuizzesPassedForDateRangeByVolunteerIdParams,IGetQuizzesPassedForDateRangeByVolunteerIdResult>(getQuizzesPassedForDateRangeByVolunteerIdIR);
+export const getQuizzesPassedForDateRangeForTelecomReportByVolunteerId = new PreparedQuery<IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdParams,IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdResult>(getQuizzesPassedForDateRangeForTelecomReportByVolunteerIdIR);
 
 
 /** 'GetSessionRequestedUserAgentFromSessionId' parameters type */
@@ -60,7 +98,7 @@ export interface IGetSessionRequestedUserAgentFromSessionIdQuery {
   result: IGetSessionRequestedUserAgentFromSessionIdResult;
 }
 
-const getSessionRequestedUserAgentFromSessionIdIR: any = {"name":"getSessionRequestedUserAgentFromSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":540,"b":549,"line":27,"col":22}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    id,\n    device,\n    browser,\n    browser_version,\n    operating_system,\n    operating_system_version\nFROM\n    user_actions\nWHERE\n    action_type = 'SESSION'\n    AND action = 'REQUESTED SESSION'\n    AND session_id = :sessionId!","loc":{"a":313,"b":549,"line":15,"col":0}}};
+const getSessionRequestedUserAgentFromSessionIdIR: any = {"name":"getSessionRequestedUserAgentFromSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":826,"b":835,"line":39,"col":22}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    id,\n    device,\n    browser,\n    browser_version,\n    operating_system,\n    operating_system_version\nFROM\n    user_actions\nWHERE\n    action_type = 'SESSION'\n    AND action = 'REQUESTED SESSION'\n    AND session_id = :sessionId!","loc":{"a":599,"b":835,"line":27,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -99,7 +137,7 @@ export interface IUpsertIpAddressQuery {
   result: IUpsertIpAddressResult;
 }
 
-const upsertIpAddressIR: any = {"name":"upsertIpAddress","params":[{"name":"ip","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":667,"b":669,"line":33,"col":17},{"a":875,"b":877,"line":48,"col":14}]}}],"usedParamSet":{"ip":true},"statement":{"body":"WITH ins AS (\nINSERT INTO ip_addresses (ip, created_at, updated_at)\n        VALUES (:ip!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        ip_addresses\n    WHERE\n        ip = :ip!","loc":{"a":582,"b":877,"line":31,"col":0}}};
+const upsertIpAddressIR: any = {"name":"upsertIpAddress","params":[{"name":"ip","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":953,"b":955,"line":45,"col":17},{"a":1161,"b":1163,"line":60,"col":14}]}}],"usedParamSet":{"ip":true},"statement":{"body":"WITH ins AS (\nINSERT INTO ip_addresses (ip, created_at, updated_at)\n        VALUES (:ip!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        ip_addresses\n    WHERE\n        ip = :ip!","loc":{"a":868,"b":1163,"line":43,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -143,7 +181,7 @@ export interface IUserHasTakenQuizQuery {
   result: IUserHasTakenQuizResult;
 }
 
-const userHasTakenQuizIR: any = {"name":"userHasTakenQuiz","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1155,"b":1161,"line":62,"col":27}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            action_type = 'QUIZ'\n            AND (action = 'PASSED QUIZ'\n                OR action = 'FAILED QUIZ')\n            AND user_id = :userId!)","loc":{"a":911,"b":1162,"line":52,"col":0}}};
+const userHasTakenQuizIR: any = {"name":"userHasTakenQuiz","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1441,"b":1447,"line":74,"col":27}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            action_type = 'QUIZ'\n            AND (action = 'PASSED QUIZ'\n                OR action = 'FAILED QUIZ')\n            AND user_id = :userId!)","loc":{"a":1197,"b":1448,"line":64,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -185,7 +223,7 @@ export interface ICreateQuizActionQuery {
   result: ICreateQuizActionResult;
 }
 
-const createQuizActionIR: any = {"name":"createQuizAction","params":[{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1337,"b":1347,"line":67,"col":13}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1351,"b":1357,"line":67,"col":27}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1361,"b":1367,"line":67,"col":37}]}},{"name":"quizSubcategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1371,"b":1386,"line":67,"col":47}]}},{"name":"quizCategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1390,"b":1402,"line":67,"col":66}]}},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1406,"b":1416,"line":67,"col":82}]}}],"usedParamSet":{"actionType":true,"action":true,"userId":true,"quizSubcategory":true,"quizCategory":true,"ipAddressId":true},"statement":{"body":"INSERT INTO user_actions (action_type, action, user_id, quiz_subcategory, quiz_category, ip_address_id, created_at, updated_at)\n    VALUES (:actionType!, :action!, :userId!, :quizSubcategory!, :quizCategory!, :ipAddressId, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":1196,"b":1454,"line":66,"col":0}}};
+const createQuizActionIR: any = {"name":"createQuizAction","params":[{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1623,"b":1633,"line":79,"col":13}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1637,"b":1643,"line":79,"col":27}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1647,"b":1653,"line":79,"col":37}]}},{"name":"quizSubcategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1657,"b":1672,"line":79,"col":47}]}},{"name":"quizCategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1676,"b":1688,"line":79,"col":66}]}},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1692,"b":1702,"line":79,"col":82}]}}],"usedParamSet":{"actionType":true,"action":true,"userId":true,"quizSubcategory":true,"quizCategory":true,"ipAddressId":true},"statement":{"body":"INSERT INTO user_actions (action_type, action, user_id, quiz_subcategory, quiz_category, ip_address_id, created_at, updated_at)\n    VALUES (:actionType!, :action!, :userId!, :quizSubcategory!, :quizCategory!, :ipAddressId, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":1482,"b":1740,"line":78,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -224,7 +262,7 @@ export interface ICreateSessionActionQuery {
   result: ICreateSessionActionResult;
 }
 
-const createSessionActionIR: any = {"name":"createSessionAction","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1689,"b":1695,"line":74,"col":13}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1699,"b":1708,"line":74,"col":23}]}},{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1712,"b":1722,"line":74,"col":36}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1726,"b":1732,"line":74,"col":50}]}},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1736,"b":1746,"line":74,"col":60}]}},{"name":"device","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1750,"b":1755,"line":74,"col":74}]}},{"name":"browser","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1759,"b":1765,"line":74,"col":83}]}},{"name":"browserVersion","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1769,"b":1782,"line":74,"col":93}]}},{"name":"operatingSystem","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1786,"b":1800,"line":74,"col":110}]}},{"name":"operatingSystemVersion","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1804,"b":1825,"line":74,"col":128}]}}],"usedParamSet":{"userId":true,"sessionId":true,"actionType":true,"action":true,"ipAddressId":true,"device":true,"browser":true,"browserVersion":true,"operatingSystem":true,"operatingSystemVersion":true},"statement":{"body":"INSERT INTO user_actions (user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, created_at, updated_at)\n    VALUES (:userId!, :sessionId!, :actionType!, :action!, :ipAddressId, :device, :browser, :browserVersion, :operatingSystem, :operatingSystemVersion, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":1491,"b":1863,"line":73,"col":0}}};
+const createSessionActionIR: any = {"name":"createSessionAction","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1975,"b":1981,"line":86,"col":13}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1985,"b":1994,"line":86,"col":23}]}},{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1998,"b":2008,"line":86,"col":36}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2012,"b":2018,"line":86,"col":50}]}},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2022,"b":2032,"line":86,"col":60}]}},{"name":"device","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2036,"b":2041,"line":86,"col":74}]}},{"name":"browser","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2045,"b":2051,"line":86,"col":83}]}},{"name":"browserVersion","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2055,"b":2068,"line":86,"col":93}]}},{"name":"operatingSystem","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2072,"b":2086,"line":86,"col":110}]}},{"name":"operatingSystemVersion","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2090,"b":2111,"line":86,"col":128}]}}],"usedParamSet":{"userId":true,"sessionId":true,"actionType":true,"action":true,"ipAddressId":true,"device":true,"browser":true,"browserVersion":true,"operatingSystem":true,"operatingSystemVersion":true},"statement":{"body":"INSERT INTO user_actions (user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, created_at, updated_at)\n    VALUES (:userId!, :sessionId!, :actionType!, :action!, :ipAddressId, :device, :browser, :browserVersion, :operatingSystem, :operatingSystemVersion, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":1777,"b":2149,"line":85,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -261,7 +299,7 @@ export interface ICreateAccountActionQuery {
   result: ICreateAccountActionResult;
 }
 
-const createAccountActionIR: any = {"name":"createAccountAction","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2063,"b":2069,"line":81,"col":13}]}},{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2073,"b":2083,"line":81,"col":23}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2087,"b":2093,"line":81,"col":37}]}},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2097,"b":2107,"line":81,"col":47}]}},{"name":"referenceEmail","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2111,"b":2124,"line":81,"col":61}]}},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2128,"b":2138,"line":81,"col":78}]}},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2142,"b":2150,"line":81,"col":92}]}},{"name":"banReason","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2154,"b":2162,"line":81,"col":104}]}}],"usedParamSet":{"userId":true,"actionType":true,"action":true,"ipAddressId":true,"referenceEmail":true,"volunteerId":true,"sessionId":true,"banReason":true},"statement":{"body":"INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at)\n    VALUES (:userId!, :actionType!, :action!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":1900,"b":2200,"line":80,"col":0}}};
+const createAccountActionIR: any = {"name":"createAccountAction","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2349,"b":2355,"line":93,"col":13}]}},{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2359,"b":2369,"line":93,"col":23}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2373,"b":2379,"line":93,"col":37}]}},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2383,"b":2393,"line":93,"col":47}]}},{"name":"referenceEmail","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2397,"b":2410,"line":93,"col":61}]}},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2414,"b":2424,"line":93,"col":78}]}},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2428,"b":2436,"line":93,"col":92}]}},{"name":"banReason","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2440,"b":2448,"line":93,"col":104}]}}],"usedParamSet":{"userId":true,"actionType":true,"action":true,"ipAddressId":true,"referenceEmail":true,"volunteerId":true,"sessionId":true,"banReason":true},"statement":{"body":"INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at)\n    VALUES (:userId!, :actionType!, :action!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":2186,"b":2486,"line":92,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -293,7 +331,7 @@ export interface ICreateAdminActionQuery {
   result: ICreateAdminActionResult;
 }
 
-const createAdminActionIR: any = {"name":"createAdminAction","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2328,"b":2334,"line":88,"col":13}]}},{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2338,"b":2348,"line":88,"col":23}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2352,"b":2358,"line":88,"col":37}]}}],"usedParamSet":{"userId":true,"actionType":true,"action":true},"statement":{"body":"INSERT INTO user_actions (user_id, action_type, action, created_at, updated_at)\n    VALUES (:userId!, :actionType!, :action!, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":2235,"b":2396,"line":87,"col":0}}};
+const createAdminActionIR: any = {"name":"createAdminAction","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2614,"b":2620,"line":100,"col":13}]}},{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2624,"b":2634,"line":100,"col":23}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2638,"b":2644,"line":100,"col":37}]}}],"usedParamSet":{"userId":true,"actionType":true,"action":true},"statement":{"body":"INSERT INTO user_actions (user_id, action_type, action, created_at, updated_at)\n    VALUES (:userId!, :actionType!, :action!, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":2521,"b":2682,"line":99,"col":0}}};
 
 /**
  * Query generated from SQL:

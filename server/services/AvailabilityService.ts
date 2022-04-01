@@ -1,5 +1,5 @@
+import { AvailabilityDay, AvailabilityHistory, getAvailabilityHistoryForDatesByVolunteerId, getLegacyAvailabilityHistoryForDatesByVolunteerId } from '../models/Availability'
 import { Ulid } from '../models/pgUtils'
-import { AvailabilityDay, getAvailabilityHistoryForDatesByVolunteerId } from '../models/Availability'
 
 export function getElapsedAvailabilityForDay(day: AvailabilityDay): number {
   let elapsedAvailability = 0
@@ -10,7 +10,26 @@ export function getElapsedAvailabilityForDay(day: AvailabilityDay): number {
   return elapsedAvailability
 }
 
-export async function getElapsedAvailabilityForDateRange(
+export async function getElapsedAvailabilityForTelecomReport(
+  volunteerId: Ulid,
+  fromDate: Date,
+  toDate: Date
+): Promise<AvailabilityHistory[]> {
+  const historyDocs = await getAvailabilityHistoryForDatesByVolunteerId(
+    volunteerId,
+    fromDate,
+    toDate
+  )
+  const legacyDocs = await getLegacyAvailabilityHistoryForDatesByVolunteerId(
+    volunteerId,
+    fromDate,
+    toDate
+  )
+
+  return historyDocs.concat(legacyDocs)
+}
+
+export async function getTotalElapsedAvailabilityForDateRange(
   volunteerId: Ulid,
   fromDate: Date,
   toDate: Date
@@ -20,9 +39,14 @@ export async function getElapsedAvailabilityForDateRange(
     fromDate,
     toDate
   )
+  const legacyDocs = await getLegacyAvailabilityHistoryForDatesByVolunteerId(
+    volunteerId,
+    fromDate,
+    toDate
+  )
 
   let totalElapsedAvailability = 0
-  for (const doc of historyDocs) {
+  for (const doc of historyDocs.concat(legacyDocs)) {
     for (const [day, avail] of Object.entries(doc.availability))
       totalElapsedAvailability += getElapsedAvailabilityForDay(avail)
   }

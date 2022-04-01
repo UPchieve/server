@@ -393,14 +393,15 @@ FROM
             student_id
         FROM
             sessions
-    LEFT JOIN ( SELECT DISTINCT ON (session_id)
-            session_id,
-            created_at
+    LEFT JOIN(
+        SELECT
+            MAX(created_at) as created_at,
+            session_id
         FROM
             session_messages
-        ORDER BY
-            session_id,
-            created_at DESC) AS last_message ON last_message.session_id = sessions.id
+        GROUP BY
+            session_id
+    ) as last_message ON last_message.session_id = sessions.id
     WHERE
         sessions.ended_at IS NOT NULL
     GROUP BY

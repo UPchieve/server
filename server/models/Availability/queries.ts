@@ -1,9 +1,10 @@
 import { getClient } from '../../pg'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
+import { Ulid, getDbUlid, makeRequired, makeSomeRequired } from '../pgUtils'
 
 import _ from 'lodash'
 import moment from 'moment'
+import 'moment-timezone'
 import {
   Availability,
   HOURS,
@@ -134,7 +135,8 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
       { userId, start, end },
       getClient()
     )
-    const rowsByDate = _.groupBy(result, 'recordedAt')
+    const rows = result.map(row => makeRequired(row))
+    const rowsByDate = _.groupBy(rows, 'recordedAt')
 
     const histories: AvailabilityHistory[] = []
     for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>
@@ -152,6 +154,46 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
     throw new RepoReadError(err)
   }
 }
+
+export async function getLegacyAvailabilityHistoryForDatesByVolunteerId(
+  userId: Ulid,
+  start: Date,
+  end: Date
+): Promise<AvailabilityHistory[]> {
+  try {
+    const result = await pgQueries.getLegacyAvailabilityHistoryForDatesByVolunteerId.run(
+      { userId, start, end },
+      getClient()
+    )
+    const rows = result.map(row => makeSomeRequired(row, ['timezone']))
+    const rowsByDate = _.groupBy(rows, 'recordedAt')
+    const histories: AvailabilityHistory[] = []
+      for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>
+      new Date(a[0]) > new Date(b[0]) ? 1 : -1
+    )) {
+      // NOTE: the DB currently has duplicate entries for legacy_availabilities, ignore duplicates here
+      const row = rows[0]
+      const availability = createNewAvailability()
+      // NOTE: some entries in the db do not have a timezone
+      const tzDay = row.timezone ? moment(row.recordedAt)
+      .tz(row.timezone)
+      .weekday() : moment(row.recordedAt).weekday()
+      const day = getAvailabilityDay(tzDay)
+      histories.push({
+        volunteerId: userId,
+        recordedAt: new Date(row.recordedAt),
+        availability: Object.assign(availability, {
+          [day]: row.legacyAvailability,
+        }),
+      })
+    }
+
+    return histories
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 
 export async function saveCurrentAvailabilityAsHistory(
   userId: Ulid

@@ -16,9 +16,27 @@ export async function getQuizzesPassedForDateRangeById(
   userId: Ulid,
   start: Date,
   end: Date
-): Promise<QuizzesPassedForDateRange[]> {
+): Promise<number> {
   try {
     const result = await pgQueries.getQuizzesPassedForDateRangeByVolunteerId.run(
+      { userId, start, end },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0]).total
+    return 0
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+
+export async function getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
+  userId: Ulid,
+  start: Date,
+  end: Date
+): Promise<QuizzesPassedForDateRange[]> {
+  try {
+    const result = await pgQueries.getQuizzesPassedForDateRangeForTelecomReportByVolunteerId.run(
       { userId, start, end },
       getClient()
     )

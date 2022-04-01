@@ -1,13 +1,14 @@
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
-import { makeRequired, makeSomeRequired } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import { RepoReadError } from '../Errors'
-import { AssociatedPartner } from './types'
+import { AssociatedPartner, AssociatedPartnersAndSchools } from './types'
+import * as SponsorOrgRepo from '../SponsorOrg/queries'
 
 export async function getAssociatedPartners(): Promise<AssociatedPartner[]> {
   try {
     const result = await pgQueries.getAssociatedPartners.run(undefined, getClient())
-    const orgs: AssociatedPartner[] = result.map(org => makeSomeRequired(org, ['studentPartnerOrg', 'studentOrgDisplay', 'studentSponsorOrg']))
+    const orgs: AssociatedPartner[] = result.map(org => makeSomeRequired(org, ['studentPartnerOrg', 'studentPartnerOrgId', 'studentOrgDisplay', 'studentSponsorOrgId','studentSponsorOrg']))
     return orgs
   } catch (err) {
     throw new RepoReadError(err)
@@ -17,10 +18,51 @@ export async function getAssociatedPartners(): Promise<AssociatedPartner[]> {
 export async function getAssociatedPartnerByKey(key: string): Promise<AssociatedPartner> {
   try {
     const result = await pgQueries.getAssociatedPartnerByKey.run({key}, getClient())
-    if (!(result.length && makeRequired(result[0])))
+    if (!result.length)
       throw new Error(`no associated partner found with key ${key}`)
-    return makeSomeRequired(result[0], ['studentPartnerOrg', 'studentOrgDisplay', 'studentSponsorOrg'])
+    return makeSomeRequired(result[0], ['studentPartnerOrg', 'studentPartnerOrgId', 'studentOrgDisplay', 'studentSponsorOrgId','studentSponsorOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
+
+export async function getAssociatedPartnerByVolunteerPartnerKey(key: string): Promise<AssociatedPartner> {
+  try {
+    const result = await pgQueries.getAssociatedPartnerByVolunteerPartnerKey.run({key}, getClient())
+    if (!result.length)
+      throw new Error(`no associated partner found with volunteerPartnerOrg ${key}`)
+    return makeSomeRequired(result[0], ['studentPartnerOrg', 'studentPartnerOrgId', 'studentOrgDisplay', 'studentSponsorOrgId','studentSponsorOrg'])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getAssociatedPartnersAndSchools(
+  partnerOrg: string
+): Promise<AssociatedPartnersAndSchools> {
+  const associatedPartner = await getAssociatedPartnerByVolunteerPartnerKey(partnerOrg)
+  let sponsorOrg
+  if (associatedPartner.studentSponsorOrg)
+    sponsorOrg = await SponsorOrgRepo.getSponsorOrgsByKey(
+      associatedPartner.studentSponsorOrg
+    )
+
+  const associatedStudentPartnerOrgs: string[] = []
+  const associatedPartnerSchools: string[] = []
+
+  if (associatedPartner?.studentPartnerOrgId)
+    associatedStudentPartnerOrgs.push(associatedPartner.studentPartnerOrgId)
+  else if (associatedPartner?.studentSponsorOrg) {
+    const sponsorOrg = await SponsorOrgRepo.getSponsorOrgsByKey(
+      associatedPartner.studentSponsorOrg
+    )
+
+    if (Array.isArray(sponsorOrg.schoolIds) && sponsorOrg.schoolIds.length)
+      associatedPartnerSchools.push(...sponsorOrg.schoolIds)
+    if (Array.isArray(sponsorOrg.studentPartnerOrgIds) && sponsorOrg.studentPartnerOrgIds.length)
+      associatedStudentPartnerOrgs.push(...sponsorOrg.studentPartnerOrgIds)
+  }
+  
+  return { associatedStudentPartnerOrgs, associatedPartnerSchools }
+}
+

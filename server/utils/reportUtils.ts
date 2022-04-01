@@ -1,49 +1,33 @@
 import moment from 'moment'
 import 'moment-timezone'
-import { Types } from 'mongoose'
 import { capitalize } from 'lodash'
 import exceljs from 'exceljs'
 import {
-  USER_ACTION,
   HOUR_TO_UTC_MAPPING,
   ONBOARDING_STATUS,
-  DATE_RANGE_COMPARISON_FIELDS,
 } from '../constants'
 import * as UserActionRepo from '../models/UserAction/queries'
 import * as SessionRepo from '../models/Session/queries'
-import * as AvailabilityRepo from '../models/Availability/queries'
-// import { HOURS } from '../models/Availability/types'
 import logger from '../logger'
-import { isCertified } from '../controllers/UserCtrl'
-import { Certifications } from '../models/Volunteer'
+import { VolunteersForAnalyticsReport } from '../models/Volunteer'
 import {
   VolunteerForWeeklyHourSummary,
   VolunteerForTelecomReport,
 } from '../models/Volunteer/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
-import * as SponsorOrgRepo from '../models/SponsorOrg/queries'
-// import { getVolunteersWithPipeline } from '../models/Volunteer/queries'
 import { HourSummaryStats } from '../services/VolunteerService'
-// import {
-//   sponsorOrgManifests,
-//   studentPartnerManifests,
-//   volunteerPartnerManifests,
-// } from '../partnerManifests'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
 import roundUpToNearestInterval from './round-up-to-nearest-interval'
-import { countCertsByType } from './count-certs-by-type'
 import { asFactory, asOptional, asString } from './type-utils'
 import config from '../config'
-// import getAssociatedPartnerOrgByKey from './get-associated-partner-by-key'
 import { QuizzesPassedForDateRange } from '../models/UserAction/types'
 import {
   AvailabilityHistory,
   DAYS,
   HOURS,
 } from '../models/Availability/types'
-import * as AssociatedPartnerRepo from '../models/AssociatedPartner/queries'
-import { Ulid } from '../models/pgUtils'
+import { getElapsedAvailabilityForTelecomReport } from '../services/AvailabilityService'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query
@@ -128,11 +112,9 @@ function telecomTutorTime(
     }
   }
   // Add time spent on call per availability hour
-  // TODO FIX
   for (const availabilityHistory of availabilityForDateRange) {
     const availability = availabilityHistory.availability
-    for (const day of Object.keys(availability) as DAYS[]) {
-      // TODO: is this nested a level deeper now?
+    const day = DAYS[moment(availabilityHistory.recordedAt).day()]
       if (availability[day]) {
         for (const hourA of Object.keys(availability[day]) as HOURS[]) {
           const temp = moment(availabilityHistory.recordedAt)
@@ -146,10 +128,10 @@ function telecomTutorTime(
             if (day in availabilityAcc) availabilityAcc[day][hour] = 60
             else availabilityAcc[day] = { hour: 60 }
           }
-        }
       }
     }
   }
+  
   // Add time spent in tutoring sessions
   for (const session of sessions) {
     if (session.timeTutored === 0) continue
@@ -205,13 +187,12 @@ interface TelecomRow {
   hours: number
 }
 
-// TODO: do I use VolunteerForTelecomReport or VolunteerForWeeklyHourSummary????
 async function getVolunteerData<V extends VolunteerRepo.VolunteerForTelecomReport>(
   volunteer: V,
   start: Date,
   end: Date
 ) {
-  const quizPassedActions = await UserActionRepo.getQuizzesPassedForDateRangeById(
+  const quizPassedActions = await UserActionRepo.getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
     volunteer.id,
     start,
     end
@@ -221,7 +202,7 @@ async function getVolunteerData<V extends VolunteerRepo.VolunteerForTelecomRepor
     start,
     end
   )
-  const availabilityForDateRange = await AvailabilityRepo.getAvailabilityHistoryForDatesByVolunteerId(
+  const availabilityForDateRange = await getElapsedAvailabilityForTelecomReport(
     volunteer.id,
     start,
     end
@@ -340,62 +321,12 @@ export async function telecomHourSummaryStats<
   }
 }
 
-export function getSumOperatorForDateRange(
-  startDate: Date,
-  endDate: Date,
-  fieldToCompareDateRange: DATE_RANGE_COMPARISON_FIELDS = DATE_RANGE_COMPARISON_FIELDS.CREATED_AT
-) {
-  return {
-    $sum: {
-      $cond: [
-        {
-          $and: [
-            {
-              $gte: [fieldToCompareDateRange, startDate],
-            },
-            {
-              $lte: [fieldToCompareDateRange, endDate],
-            },
-          ],
-        },
-        1,
-        0,
-      ],
-    },
-  }
-}
-
-export function getSumOperatorForTimeTutoredDateRange(
-  startDate: Date,
-  endDate: Date,
-  fieldToCompareDateRange: DATE_RANGE_COMPARISON_FIELDS = DATE_RANGE_COMPARISON_FIELDS.CREATED_AT
-) {
-  return {
-    $sum: {
-      $cond: [
-        {
-          $and: [
-            {
-              $gte: [fieldToCompareDateRange, startDate],
-            },
-            {
-              $lte: [fieldToCompareDateRange, endDate],
-            },
-          ],
-        },
-        '$timeTutored',
-        0,
-      ],
-    },
-  }
-}
-
 interface GetOnboardingStatusOptions {
   isOnboarded: boolean
   isDeactivated: boolean
   lastActivityAt: Date
-  availabilityLastModifiedAt: Date
-  certifications: Certifications
+  availabilityLastModifiedAt?: Date
+  totalQuizzesPassed: number
 }
 
 function getOnboardingStatus({
@@ -403,14 +334,14 @@ function getOnboardingStatus({
   isDeactivated,
   lastActivityAt,
   availabilityLastModifiedAt,
-  certifications,
+  totalQuizzesPassed,
 }: GetOnboardingStatusOptions): ONBOARDING_STATUS {
   if (isOnboarded) return ONBOARDING_STATUS.ONBOARDED
   if (isDeactivated) return ONBOARDING_STATUS.DEACTIVATED
   const ninetyDaysAgo = new Date().getTime() - 1000 * 60 * 60 * 24 * 90
   if (lastActivityAt && lastActivityAt.getTime() <= ninetyDaysAgo)
     return ONBOARDING_STATUS.INACTIVE
-  if (availabilityLastModifiedAt || isCertified(certifications))
+  if (availabilityLastModifiedAt || totalQuizzesPassed > 0)
     return ONBOARDING_STATUS.IN_PROGRESS
   return ONBOARDING_STATUS.NOT_STARTED
 }
@@ -425,30 +356,10 @@ export interface GroupStats {
   totalWithinDateRange: number
 }
 
-export interface PartnerVolunteerAnalytics {
-  id: Ulid
-  firstName: string
-  lastName: string
-  email: string
-  state: string
-  isOnboarded: boolean
-  createdAt: Date
-  dateOnboarded: Date
-  certifications: Certifications
-  availabilityLastModifiedAt: Date
-  sessionAnalytics: {
-    uniqueStudentsHelped: [GroupStats]
-    sessionStats: [GroupStats]
-    uniquePartnerStudentsHelped: [GroupStats]
-    sessionPartnerStats: [GroupStats]
-    timeTutoredPartnerStats: [GroupStats]
-  }
-  textNotifications: GroupStats
-  isDeactivated: boolean
-  lastActivityAt: Date
+export type PartnerVolunteerAnalytics = {
   hourSummaryTotal: HourSummaryStats
   hourSummaryDateRange: HourSummaryStats
-}
+} & VolunteersForAnalyticsReport
 
 export interface AnalyticsReportRow {
   firstName: string
@@ -479,31 +390,19 @@ export interface AnalyticsReportRow {
   dateRangeElapsedAvailabilityHours: number
   dateRangeVolunteerHours: number
   dateOnboarded?: string // hack only used for summary
+  partnerOrg: string
 }
 
 export function getAnalyticsReportRow(
   volunteer: PartnerVolunteerAnalytics
 ): AnalyticsReportRow {
-  const { sessionAnalytics } = volunteer
-  const {
-    uniqueStudentsHelped,
-    sessionStats,
-    uniquePartnerStudentsHelped,
-    sessionPartnerStats,
-    timeTutoredPartnerStats,
-  } = sessionAnalytics
-  const [uniqueStudentsHelpedStats] = uniqueStudentsHelped
-  const [uniquePartnerStudentsHelpedStats] = uniquePartnerStudentsHelped
-  const [sessionGroupStats] = sessionStats
-  const [sessionPartnerGroupStats] = sessionPartnerStats
-  const [timeTutoredPartnerGroupStats] = timeTutoredPartnerStats
   const row = {} as AnalyticsReportRow
 
   // Volunteer profile
   row.firstName = volunteer.firstName
   row.lastName = volunteer.lastName
   row.email = volunteer.email
-  row.state = volunteer.state
+  row.state = volunteer.state ? volunteer.state : ''
 
   // Volunteer status
   row.onboardingStatus = getOnboardingStatus({
@@ -511,34 +410,23 @@ export function getAnalyticsReportRow(
     availabilityLastModifiedAt: volunteer.availabilityLastModifiedAt,
     isDeactivated: volunteer.isDeactivated,
     lastActivityAt: volunteer.lastActivityAt,
-    certifications: volunteer.certifications,
+    totalQuizzesPassed: volunteer.totalQuizzesPassed,
   })
   row.dateAccountCreated = moment(volunteer.createdAt).format(
     'MM/DD/YYYY HH:mm'
   )
 
   // Total certifications received
-  const certificationAmounts = countCertsByType(volunteer.certifications)
-  row.certificationsReceived = certificationAmounts.total
+  row.certificationsReceived = volunteer.totalQuizzesPassed
 
   // Volunteer impact - cumulative
-  row.totalTextsReceived = volunteer.textNotifications
-    ? volunteer.textNotifications.total
-    : 0
-  row.totalSessionsCompleted = sessionGroupStats ? sessionGroupStats.total : 0
-  row.totalPartnerSessionsCompleted = sessionPartnerGroupStats
-    ? sessionPartnerGroupStats.total
-    : 0
-  row.totalUniqueStudentsHelped = uniqueStudentsHelpedStats
-    ? uniqueStudentsHelpedStats.total
-    : 0
-  row.totalUniquePartnerStudentsHelped = uniquePartnerStudentsHelpedStats
-    ? uniquePartnerStudentsHelpedStats.total
-    : 0
+  row.totalTextsReceived = volunteer.totalNotifications
+  row.totalSessionsCompleted = volunteer.totalSessions
+  row.totalPartnerSessionsCompleted = volunteer.totalPartnerSessions
+  row.totalUniqueStudentsHelped = volunteer.totalUniqueStudentsHelped
+  row.totalUniquePartnerStudentsHelped = volunteer.totalUniquePartnerStudentsHelped
   row.totalTutoringHours = volunteer.hourSummaryTotal.totalCoachingHours
-  row.totalPartnerStudentsTutoringHours = timeTutoredPartnerGroupStats
-    ? Number(Number(timeTutoredPartnerGroupStats.total / 3600000).toFixed(2))
-    : 0
+  row.totalPartnerStudentsTutoringHours = Number((volunteer.totalPartnerTimeTutored / 3600000).toFixed(2))
   row.totalTrainingHours = volunteer.hourSummaryTotal.totalQuizzesPassed
   row.totalElapsedAvailabilityHours = Number(
     (volunteer.hourSummaryTotal.totalElapsedAvailability * 0.1).toFixed(1)
@@ -546,37 +434,23 @@ export function getAnalyticsReportRow(
   row.totalVolunteerHours = volunteer.hourSummaryTotal.totalVolunteerHours || 0
 
   // Volunteer impact within date range
-  row.dateRangeTextsReceived = volunteer.textNotifications
-    ? volunteer.textNotifications.totalWithinDateRange
-    : 0
-  row.dateRangeSessionsCompleted = sessionGroupStats
-    ? sessionGroupStats.totalWithinDateRange
-    : 0
-  row.dateRangePartnerSessionsCompleted = sessionPartnerGroupStats
-    ? sessionPartnerGroupStats.totalWithinDateRange
-    : 0
-  row.dateRangeUniqueStudentsHelped = uniqueStudentsHelpedStats
-    ? uniqueStudentsHelpedStats.totalWithinDateRange
-    : 0
-  row.dateRangeUniquePartnerStudentsHelped = uniquePartnerStudentsHelpedStats
-    ? uniquePartnerStudentsHelpedStats.totalWithinDateRange
-    : 0
+  row.dateRangeTextsReceived = volunteer.totalNotificationsWithinRange
+  row.dateRangeSessionsCompleted = volunteer.totalSessionsWithinRange
+  row.dateRangePartnerSessionsCompleted = volunteer.totalPartnerSessionsWithinRange
+  row.dateRangeUniqueStudentsHelped = volunteer.totalUniqueStudentsHelpedWithinRange
+  row.dateRangeUniquePartnerStudentsHelped = volunteer.totalUniquePartnerStudentsHelped
   row.dateRangeTutoringHours = volunteer.hourSummaryDateRange.totalCoachingHours
-  row.dateRangePartnerStudentsTutoringHours = timeTutoredPartnerGroupStats
-    ? Number(
-        Number(
-          timeTutoredPartnerGroupStats.totalWithinDateRange / 3600000
+  row.dateRangePartnerStudentsTutoringHours = Number(
+       (
+          volunteer.totalPartnerTimeTutoredWithinRange / 3600000
         ).toFixed(2)
       )
-    : 0
   row.dateRangeTrainingHours = volunteer.hourSummaryDateRange.totalQuizzesPassed
-
   row.dateRangeElapsedAvailabilityHours = Number(
     (volunteer.hourSummaryDateRange.totalElapsedAvailability * 0.1).toFixed(1)
   )
   row.dateRangeVolunteerHours =
     volunteer.hourSummaryDateRange.totalVolunteerHours
-
   row.dateOnboarded = volunteer.dateOnboarded
     ? moment(volunteer.dateOnboarded).format('MM/DD/YYYY HH:mm')
     : ''
@@ -584,31 +458,13 @@ export function getAnalyticsReportRow(
   return row
 }
 
-export async function getUniqueStudentStats(
-  partnerOrg: string,
-  startDate: Date,
-  endDate: Date
-) {
-  return await VolunteerRepo.getUniqueStudentHelped(partnerOrg, startDate, endDate)
-}
 
-export async function getUniquePartnerStudentStats(
-  partnerOrg: string,
-  startDate: Date,
-  endDate: Date
-) {
-  const partners = await getAssociatedPartnersAndSchools(partnerOrg)
-  // TODO: test and fix query
-  return await VolunteerRepo.getUniquePartnerStudentHelped(partnerOrg, startDate, endDate, partners.associatedStudentPartnerOrgs, partners.associatedPartnerSchools)
-  
-}
-
-export interface AnalyticsReportSummaryData {
+export type AnalyticsReportSummaryData = {
   total: number
   totalWithinDateRange: number
 }
 
-export interface AnalyticsReportSummary {
+export type AnalyticsReportSummary = {
   signUps: AnalyticsReportSummaryData
   volunteersOnboarded: AnalyticsReportSummaryData
   onboardingRate: AnalyticsReportSummaryData
@@ -705,31 +561,13 @@ export async function getAnalyticsReportSummary(
     ).toFixed(2)
   )
 
-  const uniqueStudentStats = await getUniqueStudentStats(
-    partnerOrg,
-    startDate,
-    endDate
-  )
+  const uniqueStudentSummary = await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(partnerOrg, startDate, endDate)
+  
+  summary.uniqueStudentsHelped.total = uniqueStudentSummary ? uniqueStudentSummary.totalUniqueStudentsHelped : 0
+  summary.uniqueStudentsHelped.totalWithinDateRange = uniqueStudentSummary ? uniqueStudentSummary.totalUniqueStudentsHelpedWithinRange : 0
 
-  const uniquePartnerStudentStats = await getUniquePartnerStudentStats(
-    partnerOrg,
-    startDate,
-    endDate
-  )
-
-  summary.uniqueStudentsHelped.total = uniqueStudentStats
-    ? uniqueStudentStats.total
-    : 0
-  summary.uniqueStudentsHelped.totalWithinDateRange = uniqueStudentStats
-    ? uniqueStudentStats.totalWithinDateRange
-    : 0
-
-  summary.uniquePartnerStudentsHelped.total = uniquePartnerStudentStats
-    ? uniquePartnerStudentStats.total
-    : 0
-  summary.uniquePartnerStudentsHelped.totalWithinDateRange = uniquePartnerStudentStats
-    ? uniquePartnerStudentStats.totalWithinDateRange
-    : 0
+  summary.uniquePartnerStudentsHelped.total = uniqueStudentSummary ? uniqueStudentSummary.totalUniquePartnerStudentsHelped : 0
+  summary.uniquePartnerStudentsHelped.totalWithinDateRange = uniqueStudentSummary ? uniqueStudentSummary.totalUniquePartnerStudentsHelpedWithinRange : 0
   return summary
 }
 
@@ -835,7 +673,8 @@ export function processAnalyticsReportDataSheet(
   worksheet: exceljs.Worksheet,
   startDate: string,
   endDate: string,
-  partnerOrg: string
+  partnerOrg: string,
+  partnerName: string
 ) {
   const columnsWithHeaderKeys = []
   const formattedColumnHeaders = []
@@ -885,9 +724,6 @@ export function processAnalyticsReportDataSheet(
   }
 
   if (isCustomAnalyticsReport) {
-    // TODO": return partner name in row
-    // const partnerName = row.partnerOrg
-    const partnerName = ''
     // Create sectional headers in the first row for att/verizon reports
     worksheet.getCell('A1').value = sectionalHeaders.volunteerInformation
     worksheet.getCell('H1').value = sectionalHeaders.totalImpact
@@ -939,7 +775,8 @@ export function processAnalyticsReportSummarySheet(
   worksheet: exceljs.Worksheet,
   startDate: string,
   endDate: string,
-  partnerOrg: string
+  partnerOrg: string,
+  partnerName: string
 ) {
   const summaryColumnMapping = {
     description: '',
@@ -984,12 +821,9 @@ export function processAnalyticsReportSummarySheet(
       key === 'uniquePartnerStudentsHelped'
     )
       continue
-    else if (key === 'uniquePartnerStudentsHelped') {
-      // const partnerName = volunteerPartnerManifests[partnerOrg].name
-      // TODO
-      const partnerName = ''
+    else if (key === 'uniquePartnerStudentsHelped')
       description = `Unique ${partnerName} students helped`
-    }
+    
     worksheet.addRow({ description, total, totalWithinDateRange }, 'i')
   }
   worksheet.properties.defaultRowHeight = 30
@@ -1111,57 +945,3 @@ export function validateStudentUsageReportQuery(data: unknown) {
   validateJoinedDateRanges(validatedData)
   return validatedData
 }
-
-interface AssociatedPartnersAndSchools {
-  associatedStudentPartnerOrgs: string[]
-  associatedPartnerSchools: string[]
-}
-
-export async function getAssociatedPartnersAndSchools(
-  partnerOrg: string
-): Promise<AssociatedPartnersAndSchools> {
-
-  const associatedPartners = await AssociatedPartnerRepo.getAssociatedPartners()
-
-  let associatedPartner 
-  for(const partner of associatedPartners){
-    if(partner.volunteerPartnerOrg === partnerOrg) associatedPartner = partner
-  }
-
-  const associatedStudentPartnerOrgs: string[] = []
-  const associatedPartnerSchools: string[] = []
-
-  if (associatedPartner?.studentPartnerOrg)
-    associatedStudentPartnerOrgs.push(associatedPartner.studentPartnerOrg)
-  else if (associatedPartner?.studentSponsorOrg) {
-    const sponsorOrg = await SponsorOrgRepo.getSponsorOrgsByKey(associatedPartner.studentSponsorOrg)
-    
-    if (sponsorOrg.schoolIds.length) associatedPartnerSchools.push(...sponsorOrg.schoolIds)
-    if (sponsorOrg.studentPartnerOrgKeys.length)
-      associatedStudentPartnerOrgs.push(...sponsorOrg.studentPartnerOrgKeys)
-  }
-  return { associatedStudentPartnerOrgs, associatedPartnerSchools }
-}
-
-// NOTE: Keeping here as reference while analytics report is tested
-// export function getPartnerStudentsFilter(partnerOrg: string) {
-//   const {
-//     associatedStudentPartnerOrgs,
-//     associatedPartnerSchools,
-//   } = getAssociatedPartnersAndSchools(partnerOrg)
-
-//   return {
-//     $match: {
-//       $expr: {
-//         $or: [
-//           {
-//             $in: ['$student.studentPartnerOrg', associatedStudentPartnerOrgs],
-//           },
-//           {
-//             $in: ['$student.approvedHighschool', associatedPartnerSchools],
-//           },
-//         ],
-//       },
-//     },
-//   }
-// }

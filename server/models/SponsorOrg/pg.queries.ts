@@ -8,9 +8,10 @@ export type IGetSponsorOrgsParams = void;
 
 /** 'GetSponsorOrgs' return type */
 export interface IGetSponsorOrgsResult {
-  key: string | null;
+  key: string;
   name: string | null;
   schoolIds: stringArray | null;
+  studentPartnerOrgIds: stringArray | null;
   studentPartnerOrgKeys: stringArray | null;
 }
 
@@ -20,7 +21,7 @@ export interface IGetSponsorOrgsQuery {
   result: IGetSponsorOrgsResult;
 }
 
-const getSponsorOrgsIR: any = {"name":"getSponsorOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    so.key,\n    max(so.name) AS name,\n    array_agg(sso.school_id) AS school_ids,\n    array_agg(spo.key) AS student_partner_org_keys\nFROM\n    sponsor_orgs so\n    JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id\n    JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id\n    JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id\nGROUP BY\n    so.key","loc":{"a":27,"b":430,"line":2,"col":0}}};
+const getSponsorOrgsIR: any = {"name":"getSponsorOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    so.key,\n    max(so.name) AS name,\n    array_agg(sso.school_id) AS school_ids,\n    array_agg(spo.key) AS student_partner_org_keys,\n    array_agg(spo.id) AS student_partner_org_ids\nFROM\n    sponsor_orgs so\n    LEFT JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id\n    JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id\n    JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id\nGROUP BY\n    so.key","loc":{"a":27,"b":485,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -29,10 +30,11 @@ const getSponsorOrgsIR: any = {"name":"getSponsorOrgs","params":[],"usedParamSet
  *     so.key,
  *     max(so.name) AS name,
  *     array_agg(sso.school_id) AS school_ids,
- *     array_agg(spo.key) AS student_partner_org_keys
+ *     array_agg(spo.key) AS student_partner_org_keys,
+ *     array_agg(spo.id) AS student_partner_org_ids
  * FROM
  *     sponsor_orgs so
- *     JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id
+ *     LEFT JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id
  *     JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id
  *     JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id
  * GROUP BY
@@ -49,9 +51,10 @@ export interface IGetSponsorOrgsByKeyParams {
 
 /** 'GetSponsorOrgsByKey' return type */
 export interface IGetSponsorOrgsByKeyResult {
-  key: string | null;
+  key: string;
   name: string | null;
   schoolIds: stringArray | null;
+  studentPartnerOrgIds: stringArray | null;
   studentPartnerOrgKeys: stringArray | null;
 }
 
@@ -61,7 +64,7 @@ export interface IGetSponsorOrgsByKeyQuery {
   result: IGetSponsorOrgsByKeyResult;
 }
 
-const getSponsorOrgsByKeyIR: any = {"name":"getSponsorOrgsByKey","params":[{"name":"sponsorOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":872,"b":882,"line":28,"col":14}]}}],"usedParamSet":{"sponsorOrg":true},"statement":{"body":"SELECT\n    so.key,\n    max(so.name) AS name,\n    array_agg(sso.school_id) AS school_ids,\n    array_agg(spo.key) AS student_partner_org_keys\nFROM\n    sponsor_orgs so\n    JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id\n    JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id\n    JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id\nWHERE\n    so.key = :sponsorOrg!\nGROUP BY\n    so.key","loc":{"a":467,"b":902,"line":17,"col":0}}};
+const getSponsorOrgsByKeyIR: any = {"name":"getSponsorOrgsByKey","params":[{"name":"sponsorOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":982,"b":992,"line":30,"col":14}]}}],"usedParamSet":{"sponsorOrg":true},"statement":{"body":"SELECT\n    so.key,\n    max(so.name) AS name,\n    array_agg(sso.school_id) AS school_ids,\n    array_agg(spo.key) AS student_partner_org_keys,\n    array_agg(spo.id) AS student_partner_org_ids\nFROM\n    sponsor_orgs so\n    LEFT JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id\n    JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id\n    JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id\nWHERE\n    so.key = :sponsorOrg!\nGROUP BY\n    so.key","loc":{"a":522,"b":1012,"line":18,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -70,10 +73,11 @@ const getSponsorOrgsByKeyIR: any = {"name":"getSponsorOrgsByKey","params":[{"nam
  *     so.key,
  *     max(so.name) AS name,
  *     array_agg(sso.school_id) AS school_ids,
- *     array_agg(spo.key) AS student_partner_org_keys
+ *     array_agg(spo.key) AS student_partner_org_keys,
+ *     array_agg(spo.id) AS student_partner_org_ids
  * FROM
  *     sponsor_orgs so
- *     JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id
+ *     LEFT JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id
  *     JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id
  *     JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id
  * WHERE

@@ -266,6 +266,7 @@ export async function getTotalTimeTutoredForDateRange(
       { volunteerId, start, end },
       getClient()
     )
+    if (!(result.length && result[0].total)) return 0
     return makeRequired(result[0]).total
   } catch (error) {
     throw new RepoReadError(error)

@@ -2,27 +2,20 @@ import path from 'path'
 import fs from 'fs'
 import moment from 'moment'
 import 'moment-timezone'
-import mongoose, { Types } from 'mongoose'
 import _ from 'lodash'
 import exceljs from 'exceljs'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomError } from 'ts-custom-error'
-import { SponsorOrg } from '../models/SponsorOrg'
 import logger from '../logger'
 import {
-  FEEDBACK_VERSIONS,
-  DATE_RANGE_COMPARISON_FIELDS,
   REPORT_FILE_NAMES,
 } from '../constants'
 import config from '../config'
 import {
   generateTelecomReport,
   getAnalyticsReportRow,
-  getSumOperatorForDateRange,
-  getSumOperatorForTimeTutoredDateRange,
   AnalyticsReportRow,
   AnalyticsReportSummary,
-  PartnerVolunteerAnalytics,
   getAnalyticsReportSummary,
   processAnalyticsReportSummarySheet,
   processAnalyticsReportDataSheet,
@@ -32,13 +25,10 @@ import {
 } from '../utils/reportUtils'
 import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
-import {
-  getVolunteersForTelecomReport,
-  // getVolunteersWithPipeline,
-} from '../models/Volunteer/queries'
 import { asFactory, asString } from '../utils/type-utils'
 import * as StudentRepo from '../models/Student/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
+import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
 import { SingleFeedback } from '../models/Feedback/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
@@ -273,244 +263,21 @@ export async function generatePartnerAnalyticsReport(
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
 
-  // const partnerStudentsFilter = getPartnerStudentsFilter(partnerOrg)
-
-  // TODO: Analytics report
-  // get volunteers for analytics
-  // const volunteers = ((await getVolunteersWithPipeline([
-  //   {
-  //     $match: {
-  //       volunteerPartnerOrg: partnerOrg,
-  //     },
-  //   },
-  //   // Get the volunteer's user action "ONBOARDED"
-  //   {
-  //     $lookup: {
-  //       from: 'useractions',
-  //       let: { userId: '$_id' },
-  //       pipeline: [
-  //         {
-  //           $match: {
-  //             $expr: {
-  //               $and: [
-  //                 { $eq: ['$action', 'ONBOARDED'] },
-  //                 { $eq: ['$user', '$$userId'] },
-  //               ],
-  //             },
-  //           },
-  //         },
-  //       ],
-  //       as: 'actionOnboarded',
-  //     },
-  //   },
-  //   {
-  //     $unwind: {
-  //       path: '$actionOnboarded',
-  //       preserveNullAndEmptyArrays: true,
-  //     },
-  //   },
-
-  //   /**
-  //    *
-  //    * Get analytics for a user's sessions
-  //    * - How many unique students were helped
-  //    * - Total amount of sessions they have had
-  //    * - Amount of sessions that they have had within the date range
-  //    *
-  //    */
-  //   {
-  //     $lookup: {
-  //       from: 'sessions',
-  //       let: { userId: '$_id' },
-  //       pipeline: [
-  //         {
-  //           $match: {
-  //             $expr: {
-  //               $eq: ['$volunteer', '$$userId'],
-  //             },
-  //           },
-  //         },
-  //         {
-  //           $lookup: {
-  //             from: 'users',
-  //             localField: 'student',
-  //             foreignField: '_id',
-  //             as: 'student',
-  //           },
-  //         },
-  //         {
-  //           $unwind: '$student',
-  //         },
-  //         {
-  //           $facet: {
-  //             uniqueStudentsHelped: [
-  //               {
-  //                 $group: {
-  //                   _id: '$student._id',
-  //                   frequency: { $sum: 1 },
-  //                   frequencyWithinDateRange: getSumOperatorForDateRange(
-  //                     start,
-  //                     end
-  //                   ),
-  //                 },
-  //               },
-  //               {
-  //                 $group: {
-  //                   _id: null,
-  //                   total: { $sum: 1 },
-  //                   totalWithinDateRange: {
-  //                     $sum: {
-  //                       $cond: [
-  //                         { $gte: ['$frequencyWithinDateRange', 1] },
-  //                         1,
-  //                         0,
-  //                       ],
-  //                     },
-  //                   },
-  //                 },
-  //               },
-  //             ],
-  //             sessionStats: [
-  //               {
-  //                 $group: {
-  //                   _id: null,
-  //                   total: { $sum: 1 },
-  //                   totalWithinDateRange: getSumOperatorForDateRange(
-  //                     start,
-  //                     end
-  //                   ),
-  //                 },
-  //               },
-  //             ],
-  //             uniquePartnerStudentsHelped: [
-  //               partnerStudentsFilter,
-  //               {
-  //                 $group: {
-  //                   _id: '$student._id',
-  //                   frequency: { $sum: 1 },
-  //                   frequencyWithinDateRange: getSumOperatorForDateRange(
-  //                     start,
-  //                     end
-  //                   ),
-  //                 },
-  //               },
-  //               {
-  //                 $group: {
-  //                   _id: null,
-  //                   total: { $sum: 1 },
-  //                   totalWithinDateRange: {
-  //                     $sum: {
-  //                       $cond: [
-  //                         { $gte: ['$frequencyWithinDateRange', 1] },
-  //                         1,
-  //                         0,
-  //                       ],
-  //                     },
-  //                   },
-  //                 },
-  //               },
-  //             ],
-  //             sessionPartnerStats: [
-  //               partnerStudentsFilter,
-  //               {
-  //                 $group: {
-  //                   _id: null,
-  //                   total: { $sum: 1 },
-  //                   totalWithinDateRange: getSumOperatorForDateRange(
-  //                     start,
-  //                     end
-  //                   ),
-  //                 },
-  //               },
-  //             ],
-  //             timeTutoredPartnerStats: [
-  //               partnerStudentsFilter,
-  //               {
-  //                 $group: {
-  //                   _id: null,
-  //                   total: { $sum: '$timeTutored' },
-  //                   totalWithinDateRange: getSumOperatorForTimeTutoredDateRange(
-  //                     start,
-  //                     end
-  //                   ),
-  //                 },
-  //               },
-  //             ],
-  //           },
-  //         },
-  //       ],
-  //       as: 'sessionAnalytics',
-  //     },
-  //   },
-  //   {
-  //     $unwind: {
-  //       path: '$sessionAnalytics',
-  //       preserveNullAndEmptyArrays: true,
-  //     },
-  //   },
-  //   // Get the total amount of text messages that were sent to a volunteer
-  //   // and the total amount sent within startDate - endDate
-  //   {
-  //     $lookup: {
-  //       from: 'notifications',
-  //       let: { userId: '$_id' },
-  //       pipeline: [
-  //         {
-  //           $match: {
-  //             $expr: {
-  //               $eq: ['$volunteer', '$$userId'],
-  //             },
-  //           },
-  //         },
-  //         {
-  //           $group: {
-  //             _id: null,
-  //             total: { $sum: 1 },
-  //             totalWithinDateRange: getSumOperatorForDateRange(
-  //               start,
-  //               end,
-  //               DATE_RANGE_COMPARISON_FIELDS.SENT_AT
-  //             ),
-  //           },
-  //         },
-  //       ],
-  //       as: 'textNotifications',
-  //     },
-  //   },
-  //   {
-  //     $project: {
-  //       _id: 1,
-  //       firstName: '$firstname',
-  //       lastName: '$lastname',
-  //       email: 1,
-  //       state: 1,
-  //       isOnboarded: 1,
-  //       createdAt: 1,
-  //       dateOnboarded: '$actionOnboarded.createdAt',
-  //       certifications: 1,
-  //       availabilityLastModifiedAt: 1,
-  //       sessionAnalytics: 1,
-  //       textNotifications: { $arrayElemAt: ['$textNotifications', 0] },
-  //       isDeactivated: 1,
-  //       activityLastAt: 1,
-  //     },
-  //   },
-  // ])) as unknown) as PartnerVolunteerAnalytics[]
-
-  const volunteers = [] as PartnerVolunteerAnalytics[]
+  const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(partnerOrg, start, end)
+  if (!volunteers) throw new Error(`no volunteer partner org found with key ${partnerOrg}`)
 
   const report: AnalyticsReportRow[] = []
   for (const volunteer of volunteers) {
     // Get all hour summary data for the volunteer
     const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
-      volunteer.id,
+      volunteer.userId,
       new Date(volunteer.createdAt),
       moment()
         .utc()
         .toDate()
     )
     const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
-      volunteer.id,
+      volunteer.userId,
       start,
       end
     )
@@ -552,19 +319,23 @@ export async function writeAnalyticsReport(
   const dataSheet = workbook.addWorksheet('Data', sheetOptions)
   const formattedStartDate = moment(startDate, 'MM-DD-YYYY').format('MM/DD/YY')
   const formattedEndDate = moment(endDate, 'MM-DD-YYYY').format('MM/DD/YY')
+  const partner = await VolunteerPartnerOrgRepo.getFullVolunteerPartnerOrgByKey(partnerOrg)
+  const partnerName = partner.name
   processAnalyticsReportSummarySheet(
     data.summary,
     summarySheet,
     formattedStartDate,
     formattedEndDate,
-    partnerOrg
+    partnerOrg,
+    partnerName
   )
   processAnalyticsReportDataSheet(
     data.report,
     dataSheet,
     formattedStartDate,
     formattedEndDate,
-    partnerOrg
+    partnerOrg,
+    partnerName
   )
   summarySheet.commit()
   dataSheet.commit()

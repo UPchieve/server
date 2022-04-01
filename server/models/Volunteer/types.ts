@@ -46,3 +46,33 @@ export type TrainingCourses = {
   [TRAINING.COLLEGE_SKILLS]: TrainingCourseData
   [TRAINING.SAT_STRATEGIES]: TrainingCourseData
 }
+
+export type UniqueStudentsHelped = {
+  totalUniquePartnerStudentsHelped: number
+  totalUniquePartnerStudentsHelpedWithinRange: number
+  totalUniqueStudentsHelped: number
+  totalUniqueStudentsHelpedWithinRange: number
+}
+
+export type VolunteersForAnalyticsReport = {
+  userId: Ulid
+  firstName: string
+  lastName: string
+  email: string
+  state?: string
+  isOnboarded: boolean
+  isDeactivated: boolean
+  createdAt: Date
+  dateOnboarded?: Date
+  lastActivityAt: Date
+  availabilityLastModifiedAt?: Date
+  totalQuizzesPassed: number
+  totalNotifications: number
+  totalNotificationsWithinRange: number
+  totalPartnerSessions: number
+  totalPartnerSessionsWithinRange: number
+  totalPartnerTimeTutored: number
+  totalPartnerTimeTutoredWithinRange: number
+  totalSessions: number
+  totalSessionsWithinRange: number
+} & UniqueStudentsHelped

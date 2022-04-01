@@ -43,15 +43,24 @@ FROM
     LEFT JOIN weekdays ON availability_histories.weekday_id = weekdays.id
 WHERE
     user_id = :userId!
+    AND recorded_at >= :start!
     AND recorded_at <= :end!
-    AND recorded_at >= (
-        SELECT
-            MAX(recorded_at)
-        FROM
-            availability_histories
-        WHERE
-            recorded_at <= :start!
-            AND user_id = :userId!)
+ORDER BY
+    recorded_at;
+
+
+/* @name getLegacyAvailabilityHistoryForDatesByVolunteerId */
+SELECT
+    legacy_availability_histories.id,
+    legacy_availability_histories.recorded_at,
+    legacy_availability_histories.legacy_availability,
+    legacy_availability_histories.timezone
+FROM
+    legacy_availability_histories
+WHERE
+    user_id = :userId!
+    AND recorded_at >= :start!
+    AND recorded_at <= :end!
 ORDER BY
     recorded_at;
 
