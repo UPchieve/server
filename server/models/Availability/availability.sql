@@ -43,15 +43,8 @@ FROM
     LEFT JOIN weekdays ON availability_histories.weekday_id = weekdays.id
 WHERE
     user_id = :userId!
+    AND recorded_at >= :start!
     AND recorded_at <= :end!
-    AND recorded_at >= (
-        SELECT
-            MAX(recorded_at)
-        FROM
-            availability_histories
-        WHERE
-            recorded_at <= :start!
-            AND user_id = :userId!)
 ORDER BY
     recorded_at;
 
@@ -66,15 +59,8 @@ FROM
     legacy_availability_histories
 WHERE
     user_id = :userId!
+    AND recorded_at >= :start!
     AND recorded_at <= :end!
-    AND recorded_at >= (
-        SELECT
-            MAX(recorded_at)
-        FROM
-            legacy_availability_histories
-        WHERE
-            recorded_at <= :start!
-            AND user_id = :userId!)
 ORDER BY
     recorded_at;
 

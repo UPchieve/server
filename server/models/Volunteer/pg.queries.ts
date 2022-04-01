@@ -3167,8 +3167,8 @@ export const getVolunteersOnDeck = new PreparedQuery<IGetVolunteersOnDeckParams,
 export interface IGetUniqueStudentsHelpedForAnalyticsReportSummaryParams {
   end: Date;
   start: Date;
-  studentPartnerOrgIds: stringArray | null | void;
-  studentSchoolIds: stringArray | null | void;
+  studentPartnerOrgIds: stringArray;
+  studentSchoolIds: stringArray;
   volunteerPartnerOrg: string;
 }
 
@@ -3186,63 +3186,76 @@ export interface IGetUniqueStudentsHelpedForAnalyticsReportSummaryQuery {
   result: IGetUniqueStudentsHelpedForAnalyticsReportSummaryResult;
 }
 
-const getUniqueStudentsHelpedForAnalyticsReportSummaryIR: any = {"name":"getUniqueStudentsHelpedForAnalyticsReportSummary","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":44182,"b":44187,"line":1501,"col":30},{"a":44823,"b":44828,"line":1525,"col":39}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":44218,"b":44221,"line":1502,"col":29},{"a":44868,"b":44871,"line":1526,"col":38}]}},{"name":"studentPartnerOrgIds","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":44589,"b":44608,"line":1516,"col":62},{"a":44934,"b":44953,"line":1527,"col":61}]}},{"name":"studentSchoolIds","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":44671,"b":44686,"line":1518,"col":13},{"a":45016,"b":45031,"line":1529,"col":13}]}},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":45374,"b":45393,"line":1541,"col":32}]}}],"usedParamSet":{"start":true,"end":true,"studentPartnerOrgIds":true,"studentSchoolIds":true,"volunteerPartnerOrg":true},"statement":{"body":"SELECT\n  COALESCE(unique_students_stats.total, 0) AS total_unique_students_helped,\n  COALESCE(unique_students_stats.total_within_range, 0) AS total_unique_students_helped_within_range,\n  COALESCE(unique_partner_students_stats.total, 0) AS total_unique_partner_students_helped,\n  COALESCE(unique_partner_students_stats.total_within_range, 0) AS total_unique_partner_students_helped_within_range\nFROM\n  volunteer_partner_orgs\n  LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS total,\n      SUM(\n        CASE\n          WHEN created_at >= :start!\n          AND created_at <= :end! THEN 1\n          ELSE 0\n        END\n      ):: int as total_within_range\n    FROM\n      sessions\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n  ) AS unique_students_stats ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS acc,\n      SUM(\n        CASE\n          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds\n          ) THEN 1\n          ELSE 0\n        END\n      ):: int as total,\n      SUM(\n        CASE\n          WHEN sessions.created_at >= :start!\n          AND sessions.created_at <= :end!\n          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds\n          ) THEN 1\n          ELSE 0\n        END\n      ):: int as total_within_range\n    FROM\n      sessions\n      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n  ) AS unique_partner_students_stats ON TRUE\nWHERE\n  volunteer_partner_orgs.key = :volunteerPartnerOrg!","loc":{"a":43516,"b":45393,"line":1488,"col":0}}};
+const getUniqueStudentsHelpedForAnalyticsReportSummaryIR: any = {"name":"getUniqueStudentsHelpedForAnalyticsReportSummary","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":44584,"b":44589,"line":1522,"col":34},{"a":45607,"b":45612,"line":1550,"col":34}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":44625,"b":44628,"line":1523,"col":34},{"a":45648,"b":45651,"line":1551,"col":34}]}},{"name":"studentPartnerOrgIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":45009,"b":45029,"line":1534,"col":55},{"a":45478,"b":45498,"line":1547,"col":55}]}},{"name":"studentSchoolIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":45077,"b":45093,"line":1535,"col":45},{"a":45546,"b":45562,"line":1548,"col":45}]}},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":45756,"b":45775,"line":1554,"col":32}]}}],"usedParamSet":{"start":true,"end":true,"studentPartnerOrgIds":true,"studentSchoolIds":true,"volunteerPartnerOrg":true},"statement":{"body":"SELECT\n  COALESCE(SUM(total_unique_students_helped.total), 0)::int AS total_unique_students_helped,\n  COALESCE(\n    SUM(total_unique_students_helped_within_range.total),\n    0\n  )::int AS total_unique_students_helped_within_range,\n  COALESCE(\n    SUM(total_unique_partner_students_helped.total),\n    0\n  )::int AS total_unique_partner_students_helped,\n  COALESCE(\n    SUM(\n      total_unique_partner_students_helped_within_range.total\n    ),\n    0\n  )::int AS total_unique_partner_students_helped_within_range\nFROM\n  volunteer_partner_orgs\n  LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS total\n    FROM\n      sessions\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n  ) AS total_unique_students_helped ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS total\n    FROM\n      sessions\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n      AND sessions.created_at >= :start!\n      AND sessions.created_at <= :end!\n  ) AS total_unique_students_helped_within_range ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS total\n    FROM\n      sessions\n      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n      AND (\n        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n        OR student_profiles.school_id = ANY(:studentSchoolIds!)\n      )\n  ) AS total_unique_partner_students_helped ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS total\n    FROM\n      sessions\n      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n      AND (\n        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n        OR student_profiles.school_id = ANY(:studentSchoolIds!)\n      )\n      AND sessions.created_at >= :start!\n      AND sessions.created_at <= :end!\n  ) AS total_unique_partner_students_helped_within_range ON TRUE\nWHERE\n  volunteer_partner_orgs.key = :volunteerPartnerOrg!","loc":{"a":43516,"b":45775,"line":1488,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   COALESCE(unique_students_stats.total, 0) AS total_unique_students_helped,
- *   COALESCE(unique_students_stats.total_within_range, 0) AS total_unique_students_helped_within_range,
- *   COALESCE(unique_partner_students_stats.total, 0) AS total_unique_partner_students_helped,
- *   COALESCE(unique_partner_students_stats.total_within_range, 0) AS total_unique_partner_students_helped_within_range
+ *   COALESCE(SUM(total_unique_students_helped.total), 0)::int AS total_unique_students_helped,
+ *   COALESCE(
+ *     SUM(total_unique_students_helped_within_range.total),
+ *     0
+ *   )::int AS total_unique_students_helped_within_range,
+ *   COALESCE(
+ *     SUM(total_unique_partner_students_helped.total),
+ *     0
+ *   )::int AS total_unique_partner_students_helped,
+ *   COALESCE(
+ *     SUM(
+ *       total_unique_partner_students_helped_within_range.total
+ *     ),
+ *     0
+ *   )::int AS total_unique_partner_students_helped_within_range
  * FROM
  *   volunteer_partner_orgs
  *   LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  *   LEFT JOIN LATERAL (
  *     SELECT
- *       COUNT(DISTINCT student_id):: int AS total,
- *       SUM(
- *         CASE
- *           WHEN created_at >= :start!
- *           AND created_at <= :end! THEN 1
- *           ELSE 0
- *         END
- *       ):: int as total_within_range
+ *       COUNT(DISTINCT student_id):: int AS total
  *     FROM
  *       sessions
  *     WHERE
  *       volunteer_profiles.user_id = sessions.volunteer_id
- *   ) AS unique_students_stats ON TRUE
+ *   ) AS total_unique_students_helped ON TRUE
  *   LEFT JOIN LATERAL (
  *     SELECT
- *       COUNT(DISTINCT student_id):: int AS acc,
- *       SUM(
- *         CASE
- *           WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds)
- *           OR student_profiles.school_id = ANY(
- *             :studentSchoolIds
- *           ) THEN 1
- *           ELSE 0
- *         END
- *       ):: int as total,
- *       SUM(
- *         CASE
- *           WHEN sessions.created_at >= :start!
- *           AND sessions.created_at <= :end!
- *           AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds)
- *           OR student_profiles.school_id = ANY(
- *             :studentSchoolIds
- *           ) THEN 1
- *           ELSE 0
- *         END
- *       ):: int as total_within_range
+ *       COUNT(DISTINCT student_id):: int AS total
+ *     FROM
+ *       sessions
+ *     WHERE
+ *       volunteer_profiles.user_id = sessions.volunteer_id
+ *       AND sessions.created_at >= :start!
+ *       AND sessions.created_at <= :end!
+ *   ) AS total_unique_students_helped_within_range ON TRUE
+ *   LEFT JOIN LATERAL (
+ *     SELECT
+ *       COUNT(DISTINCT student_id):: int AS total
  *     FROM
  *       sessions
  *       LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
  *     WHERE
  *       volunteer_profiles.user_id = sessions.volunteer_id
- *   ) AS unique_partner_students_stats ON TRUE
+ *       AND (
+ *         student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+ *         OR student_profiles.school_id = ANY(:studentSchoolIds!)
+ *       )
+ *   ) AS total_unique_partner_students_helped ON TRUE
+ *   LEFT JOIN LATERAL (
+ *     SELECT
+ *       COUNT(DISTINCT student_id):: int AS total
+ *     FROM
+ *       sessions
+ *       LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
+ *     WHERE
+ *       volunteer_profiles.user_id = sessions.volunteer_id
+ *       AND (
+ *         student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+ *         OR student_profiles.school_id = ANY(:studentSchoolIds!)
+ *       )
+ *       AND sessions.created_at >= :start!
+ *       AND sessions.created_at <= :end!
+ *   ) AS total_unique_partner_students_helped_within_range ON TRUE
  * WHERE
  *   volunteer_partner_orgs.key = :volunteerPartnerOrg!
  * ```
@@ -3293,7 +3306,7 @@ export interface IGetVolunteersForAnalyticsReportQuery {
   result: IGetVolunteersForAnalyticsReportResult;
 }
 
-const getVolunteersForAnalyticsReportIR: any = {"name":"getVolunteersForAnalyticsReport","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":47887,"b":47892,"line":1605,"col":30},{"a":48246,"b":48251,"line":1620,"col":30},{"a":48882,"b":48887,"line":1644,"col":39},{"a":49752,"b":49757,"line":1672,"col":39},{"a":50635,"b":50640,"line":1700,"col":39},{"a":51282,"b":51287,"line":1720,"col":27}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":47923,"b":47926,"line":1606,"col":29},{"a":48282,"b":48285,"line":1621,"col":29},{"a":48927,"b":48930,"line":1645,"col":38},{"a":49797,"b":49800,"line":1673,"col":38},{"a":50680,"b":50683,"line":1701,"col":38},{"a":51315,"b":51318,"line":1721,"col":26}]}},{"name":"studentPartnerOrgIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":48646,"b":48666,"line":1635,"col":62},{"a":48993,"b":49013,"line":1646,"col":61},{"a":49516,"b":49536,"line":1663,"col":62},{"a":49863,"b":49883,"line":1674,"col":61},{"a":50379,"b":50399,"line":1691,"col":62},{"a":50746,"b":50766,"line":1702,"col":61}]}},{"name":"studentSchoolIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":48729,"b":48745,"line":1637,"col":13},{"a":49076,"b":49092,"line":1648,"col":13},{"a":49599,"b":49615,"line":1665,"col":13},{"a":49946,"b":49962,"line":1676,"col":13},{"a":50462,"b":50478,"line":1693,"col":13},{"a":50829,"b":50845,"line":1704,"col":13}]}},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":51561,"b":51580,"line":1731,"col":32}]}}],"usedParamSet":{"start":true,"end":true,"studentPartnerOrgIds":true,"studentSchoolIds":true,"volunteerPartnerOrg":true},"statement":{"body":"SELECT\n  users.id AS user_id,\n  users.first_name AS first_name,\n  users.last_name AS last_name,\n  users.email AS email,\n  users.created_at AS created_at,\n  users.deactivated AS is_deactivated,\n  users.last_activity_at AS last_activity_at,\n  volunteer_profiles.state AS state,\n  volunteer_profiles.onboarded AS is_onboarded,\n  user_actions.created_at AS date_onboarded,\n  COALESCE(users_quizzes.total, 0) AS total_quizzes_passed,\n  availabilities.updated_at AS availability_last_modified_at,\n  COALESCE(unique_students_stats.total, 0) AS total_unique_students_helped,\n  COALESCE(unique_students_stats.total_within_range, 0) AS total_unique_students_helped_within_range,\n  COALESCE(unique_partner_students_stats.total, 0) AS total_unique_partner_students_helped,\n  COALESCE(unique_partner_students_stats.total_within_range, 0) AS total_unique_partner_students_helped_within_range,\n  COALESCE(sessions_stats.total, 0) AS total_sessions,\n  COALESCE(sessions_stats.total_within_range, 0) AS total_sessions_within_range,\n  COALESCE(partner_sessions_stats.total, 0) AS total_partner_sessions,\n  COALESCE(partner_sessions_stats.total_within_range, 0) AS total_partner_sessions_within_range,\n  COALESCE(partner_time_tutored_stats.total, 0) AS total_partner_time_tutored,\n  COALESCE(partner_time_tutored_stats.total_within_range, 0) AS total_partner_time_tutored_within_range,\n  COALESCE(notifications_stats.total, 0) AS total_notifications,\n  COALESCE(notifications_stats.total_within_range, 0) AS total_notifications_within_range\nFROM\n  users\n  JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n  LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\n  LEFT JOIN (\n    SELECT\n\t\tCOUNT(*)::int as total,\n    user_id\n    FROM\n      users_quizzes\n    WHERE passed = TRUE\n    GROUP BY user_id\n  ) as users_quizzes ON users_quizzes.user_id = volunteer_profiles.user_id\n  LEFT JOIN(\n    SELECT\n      MAX(updated_at) as updated_at,\n      user_id\n    FROM\n      availabilities\n    GROUP BY\n      user_id\n  ) as availabilities ON availabilities.user_id = users.id\n  LEFT JOIN (\n    SELECT\n      created_at,\n      user_id\n    FROM\n      user_actions\n    WHERE\n      action = 'ONBOARDED'\n  ) as user_actions ON user_actions.user_id = volunteer_profiles.user_id\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS total,\n      SUM(\n        CASE\n          WHEN created_at >= :start!\n          AND created_at <= :end! THEN 1\n          ELSE 0\n        END\n      ):: int as total_within_range\n    FROM\n      sessions\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n  ) AS unique_students_stats ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(*):: int AS total,\n      SUM(\n        CASE\n          WHEN created_at >= :start!\n          AND created_at <= :end! THEN 1\n          ELSE 0\n        END\n      ):: int as total_within_range\n    FROM\n      sessions\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n  ) AS sessions_stats ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS acc,\n      SUM(\n        CASE\n          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN 1\n          ELSE 0\n        END\n      ):: int as total,\n      SUM(\n        CASE\n          WHEN sessions.created_at >= :start!\n          AND sessions.created_at <= :end!\n          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN 1\n          ELSE 0\n        END\n      ):: int as total_within_range\n    FROM\n      sessions\n      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n  ) AS unique_partner_students_stats ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      SUM(\n        CASE\n          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN 1\n          ELSE 0\n        END\n      ):: int as total,\n      SUM(\n        CASE\n          WHEN sessions.created_at >= :start!\n          AND sessions.created_at <= :end!\n          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN 1\n          ELSE 0\n        END\n      ):: int as total_within_range\n    FROM\n      sessions\n      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n  ) AS partner_sessions_stats ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      SUM(\n        CASE\n          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN sessions.time_tutored\n          ELSE 0\n        END\n      ):: int as total,\n      SUM(\n        CASE\n          WHEN sessions.created_at >= :start!\n          AND sessions.created_at <= :end!\n          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN sessions.time_tutored\n          ELSE 0\n        END\n      ):: int as total_within_range\n    FROM\n      sessions\n      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n  ) AS partner_time_tutored_stats ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(*):: int AS total,\n      SUM(\n        CASE\n          WHEN sent_at >= :start!\n          AND sent_at <= :end! THEN 1\n          ELSE 0\n        END\n      ):: int as total_within_range\n    FROM\n      notifications\n    WHERE\n      volunteer_profiles.user_id = notifications.user_id\n  ) AS notifications_stats ON TRUE\nWHERE\n  volunteer_partner_orgs.key = :volunteerPartnerOrg!\nORDER BY\n  users.created_at ASC","loc":{"a":45441,"b":51612,"line":1544,"col":0}}};
+const getVolunteersForAnalyticsReportIR: any = {"name":"getVolunteersForAnalyticsReport","params":[{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":48489,"b":48494,"line":1631,"col":39},{"a":48960,"b":48965,"line":1647,"col":39},{"a":49637,"b":49642,"line":1667,"col":39},{"a":50375,"b":50380,"line":1689,"col":25},{"a":51429,"b":51434,"line":1721,"col":34},{"a":51655,"b":51660,"line":1729,"col":27}]}},{"name":"end","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":48534,"b":48537,"line":1632,"col":38},{"a":49005,"b":49008,"line":1648,"col":38},{"a":49682,"b":49685,"line":1668,"col":38},{"a":50407,"b":50410,"line":1690,"col":25},{"a":51470,"b":51473,"line":1722,"col":34},{"a":51688,"b":51691,"line":1730,"col":26}]}},{"name":"studentPartnerOrgIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":48707,"b":48727,"line":1638,"col":62},{"a":49071,"b":49091,"line":1649,"col":61},{"a":49360,"b":49380,"line":1658,"col":62},{"a":49748,"b":49768,"line":1669,"col":61},{"a":50791,"b":50811,"line":1701,"col":55},{"a":51280,"b":51300,"line":1716,"col":55}]}},{"name":"studentSchoolIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":48790,"b":48806,"line":1640,"col":13},{"a":49154,"b":49170,"line":1651,"col":13},{"a":49443,"b":49459,"line":1660,"col":13},{"a":49831,"b":49847,"line":1671,"col":13},{"a":50870,"b":50886,"line":1703,"col":11},{"a":51359,"b":51375,"line":1718,"col":11}]}},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":51934,"b":51953,"line":1740,"col":32}]}}],"usedParamSet":{"start":true,"end":true,"studentPartnerOrgIds":true,"studentSchoolIds":true,"volunteerPartnerOrg":true},"statement":{"body":"SELECT\n  users.id AS user_id,\n  users.first_name AS first_name,\n  users.last_name AS last_name,\n  users.email AS email,\n  users.created_at AS created_at,\n  users.deactivated AS is_deactivated,\n  users.last_activity_at AS last_activity_at,\n  volunteer_profiles.state AS state,\n  volunteer_profiles.onboarded AS is_onboarded,\n  user_actions.created_at AS date_onboarded,\n  COALESCE(users_quizzes.total, 0) AS total_quizzes_passed,\n  availabilities.updated_at AS availability_last_modified_at,\n  COALESCE(sessions_stats.total_unique_students_helped, 0) AS total_unique_students_helped,\n  COALESCE(\n    total_unique_students_helped_within_range.total,\n    0\n  ) AS total_unique_students_helped_within_range,\n  COALESCE(total_unique_partner_students_helped.total, 0) AS total_unique_partner_students_helped,\n  COALESCE(\n    total_unique_partner_students_helped_within_range.total,\n    0\n  ) AS total_unique_partner_students_helped_within_range,\n  COALESCE(sessions_stats.total_sessions, 0) AS total_sessions,\n  COALESCE(sessions_stats.total_sessions_within_range, 0) AS total_sessions_within_range,\n  COALESCE(sessions_stats.total_partner_sessions, 0) AS total_partner_sessions,\n  COALESCE(\n    sessions_stats.total_partner_sessions_within_range,\n    0\n  ) AS total_partner_sessions_within_range,\n  COALESCE(sessions_stats.total_partner_time_tutored, 0) AS total_partner_time_tutored,\n  COALESCE(\n    sessions_stats.total_partner_time_tutored_within_range,\n    0\n  ) AS total_partner_time_tutored_within_range,\n  COALESCE(notifications_stats.total, 0) AS total_notifications,\n  COALESCE(notifications_stats.total_within_range, 0) AS total_notifications_within_range\nFROM\n  users\n  JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n  LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\n  LEFT JOIN (\n    SELECT\n        COUNT(*)::int as total,\n        user_id\n    FROM\n      users_quizzes\n    WHERE passed = TRUE\n    GROUP BY user_id\n  ) as users_quizzes ON users_quizzes.user_id = volunteer_profiles.user_id\n  LEFT JOIN(\n    SELECT\n      MAX(updated_at) as updated_at,\n      user_id\n    FROM\n      availabilities\n    GROUP BY\n      user_id\n  ) as availabilities ON availabilities.user_id = users.id\n  LEFT JOIN (\n    SELECT\n      created_at,\n      user_id\n    FROM\n      user_actions\n    WHERE\n      action = 'ONBOARDED'\n  ) as user_actions ON user_actions.user_id = volunteer_profiles.user_id\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(*)::int AS total_sessions,\n      COUNT(DISTINCT student_id):: int AS total_unique_students_helped,\n      SUM(\n        CASE\n          WHEN sessions.created_at >= :start!\n          AND sessions.created_at <= :end! THEN 1\n          ELSE 0\n        END\n      ):: int as total_sessions_within_range,\n      SUM(\n        CASE\n          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN 1\n          ELSE 0\n        END\n      ):: int as total_partner_sessions,\n      SUM(\n        CASE\n          WHEN sessions.created_at >= :start!\n          AND sessions.created_at <= :end!\n          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN 1\n          ELSE 0\n        END\n      ):: int as total_partner_sessions_within_range,\n      SUM(\n        CASE\n          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN sessions.time_tutored\n          ELSE 0\n        END\n      ):: int as total_partner_time_tutored,\n      SUM(\n        CASE\n          WHEN sessions.created_at >= :start!\n          AND sessions.created_at <= :end!\n          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n          OR student_profiles.school_id = ANY(\n            :studentSchoolIds!\n          ) THEN sessions.time_tutored\n          ELSE 0\n        END\n      ):: int as total_partner_time_tutored_within_range\n    FROM\n      sessions\n      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n  ) AS sessions_stats ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS total\n    FROM\n      sessions\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n      AND created_at >= :start!\n      AND created_at <= :end!\n  ) AS total_unique_students_helped_within_range ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS total\n    FROM\n      sessions\n      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n      AND (\n        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n        OR student_profiles.school_id = ANY(\n          :studentSchoolIds!\n        )\n      )\n  ) AS total_unique_partner_students_helped ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(DISTINCT student_id):: int AS total\n    FROM\n      sessions\n      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\n    WHERE\n      volunteer_profiles.user_id = sessions.volunteer_id\n      AND (\n        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)\n        OR student_profiles.school_id = ANY(\n          :studentSchoolIds!\n        )\n      )\n      AND sessions.created_at >= :start!\n      AND sessions.created_at <= :end!\n  ) AS total_unique_partner_students_helped_within_range ON TRUE\n  LEFT JOIN LATERAL (\n    SELECT\n      COUNT(*):: int AS total,\n      SUM(\n        CASE\n          WHEN sent_at >= :start!\n          AND sent_at <= :end! THEN 1\n          ELSE 0\n        END\n      ):: int as total_within_range\n    FROM\n      notifications\n    WHERE\n      volunteer_profiles.user_id = notifications.user_id\n  ) AS notifications_stats ON TRUE\nWHERE\n  volunteer_partner_orgs.key = :volunteerPartnerOrg!\nORDER BY\n  users.created_at DESC","loc":{"a":45823,"b":51986,"line":1557,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -3311,16 +3324,28 @@ const getVolunteersForAnalyticsReportIR: any = {"name":"getVolunteersForAnalytic
  *   user_actions.created_at AS date_onboarded,
  *   COALESCE(users_quizzes.total, 0) AS total_quizzes_passed,
  *   availabilities.updated_at AS availability_last_modified_at,
- *   COALESCE(unique_students_stats.total, 0) AS total_unique_students_helped,
- *   COALESCE(unique_students_stats.total_within_range, 0) AS total_unique_students_helped_within_range,
- *   COALESCE(unique_partner_students_stats.total, 0) AS total_unique_partner_students_helped,
- *   COALESCE(unique_partner_students_stats.total_within_range, 0) AS total_unique_partner_students_helped_within_range,
- *   COALESCE(sessions_stats.total, 0) AS total_sessions,
- *   COALESCE(sessions_stats.total_within_range, 0) AS total_sessions_within_range,
- *   COALESCE(partner_sessions_stats.total, 0) AS total_partner_sessions,
- *   COALESCE(partner_sessions_stats.total_within_range, 0) AS total_partner_sessions_within_range,
- *   COALESCE(partner_time_tutored_stats.total, 0) AS total_partner_time_tutored,
- *   COALESCE(partner_time_tutored_stats.total_within_range, 0) AS total_partner_time_tutored_within_range,
+ *   COALESCE(sessions_stats.total_unique_students_helped, 0) AS total_unique_students_helped,
+ *   COALESCE(
+ *     total_unique_students_helped_within_range.total,
+ *     0
+ *   ) AS total_unique_students_helped_within_range,
+ *   COALESCE(total_unique_partner_students_helped.total, 0) AS total_unique_partner_students_helped,
+ *   COALESCE(
+ *     total_unique_partner_students_helped_within_range.total,
+ *     0
+ *   ) AS total_unique_partner_students_helped_within_range,
+ *   COALESCE(sessions_stats.total_sessions, 0) AS total_sessions,
+ *   COALESCE(sessions_stats.total_sessions_within_range, 0) AS total_sessions_within_range,
+ *   COALESCE(sessions_stats.total_partner_sessions, 0) AS total_partner_sessions,
+ *   COALESCE(
+ *     sessions_stats.total_partner_sessions_within_range,
+ *     0
+ *   ) AS total_partner_sessions_within_range,
+ *   COALESCE(sessions_stats.total_partner_time_tutored, 0) AS total_partner_time_tutored,
+ *   COALESCE(
+ *     sessions_stats.total_partner_time_tutored_within_range,
+ *     0
+ *   ) AS total_partner_time_tutored_within_range,
  *   COALESCE(notifications_stats.total, 0) AS total_notifications,
  *   COALESCE(notifications_stats.total_within_range, 0) AS total_notifications_within_range
  * FROM
@@ -3329,8 +3354,8 @@ const getVolunteersForAnalyticsReportIR: any = {"name":"getVolunteersForAnalytic
  *   LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
  *   LEFT JOIN (
  *     SELECT
- * 		COUNT(*)::int as total,
- *     user_id
+ *         COUNT(*)::int as total,
+ *         user_id
  *     FROM
  *       users_quizzes
  *     WHERE passed = TRUE
@@ -3356,119 +3381,103 @@ const getVolunteersForAnalyticsReportIR: any = {"name":"getVolunteersForAnalytic
  *   ) as user_actions ON user_actions.user_id = volunteer_profiles.user_id
  *   LEFT JOIN LATERAL (
  *     SELECT
- *       COUNT(DISTINCT student_id):: int AS total,
+ *       COUNT(*)::int AS total_sessions,
+ *       COUNT(DISTINCT student_id):: int AS total_unique_students_helped,
  *       SUM(
  *         CASE
- *           WHEN created_at >= :start!
- *           AND created_at <= :end! THEN 1
+ *           WHEN sessions.created_at >= :start!
+ *           AND sessions.created_at <= :end! THEN 1
  *           ELSE 0
  *         END
- *       ):: int as total_within_range
- *     FROM
- *       sessions
- *     WHERE
- *       volunteer_profiles.user_id = sessions.volunteer_id
- *   ) AS unique_students_stats ON TRUE
- *   LEFT JOIN LATERAL (
- *     SELECT
- *       COUNT(*):: int AS total,
+ *       ):: int as total_sessions_within_range,
  *       SUM(
  *         CASE
- *           WHEN created_at >= :start!
- *           AND created_at <= :end! THEN 1
+ *           WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+ *           OR student_profiles.school_id = ANY(
+ *             :studentSchoolIds!
+ *           ) THEN 1
  *           ELSE 0
  *         END
- *       ):: int as total_within_range
+ *       ):: int as total_partner_sessions,
+ *       SUM(
+ *         CASE
+ *           WHEN sessions.created_at >= :start!
+ *           AND sessions.created_at <= :end!
+ *           AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+ *           OR student_profiles.school_id = ANY(
+ *             :studentSchoolIds!
+ *           ) THEN 1
+ *           ELSE 0
+ *         END
+ *       ):: int as total_partner_sessions_within_range,
+ *       SUM(
+ *         CASE
+ *           WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+ *           OR student_profiles.school_id = ANY(
+ *             :studentSchoolIds!
+ *           ) THEN sessions.time_tutored
+ *           ELSE 0
+ *         END
+ *       ):: int as total_partner_time_tutored,
+ *       SUM(
+ *         CASE
+ *           WHEN sessions.created_at >= :start!
+ *           AND sessions.created_at <= :end!
+ *           AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+ *           OR student_profiles.school_id = ANY(
+ *             :studentSchoolIds!
+ *           ) THEN sessions.time_tutored
+ *           ELSE 0
+ *         END
+ *       ):: int as total_partner_time_tutored_within_range
  *     FROM
  *       sessions
+ *       LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
  *     WHERE
  *       volunteer_profiles.user_id = sessions.volunteer_id
  *   ) AS sessions_stats ON TRUE
  *   LEFT JOIN LATERAL (
  *     SELECT
- *       COUNT(DISTINCT student_id):: int AS acc,
- *       SUM(
- *         CASE
- *           WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
- *           OR student_profiles.school_id = ANY(
- *             :studentSchoolIds!
- *           ) THEN 1
- *           ELSE 0
- *         END
- *       ):: int as total,
- *       SUM(
- *         CASE
- *           WHEN sessions.created_at >= :start!
- *           AND sessions.created_at <= :end!
- *           AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
- *           OR student_profiles.school_id = ANY(
- *             :studentSchoolIds!
- *           ) THEN 1
- *           ELSE 0
- *         END
- *       ):: int as total_within_range
+ *       COUNT(DISTINCT student_id):: int AS total
  *     FROM
  *       sessions
- *       LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
  *     WHERE
  *       volunteer_profiles.user_id = sessions.volunteer_id
- *   ) AS unique_partner_students_stats ON TRUE
+ *       AND created_at >= :start!
+ *       AND created_at <= :end!
+ *   ) AS total_unique_students_helped_within_range ON TRUE
  *   LEFT JOIN LATERAL (
  *     SELECT
- *       SUM(
- *         CASE
- *           WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
- *           OR student_profiles.school_id = ANY(
- *             :studentSchoolIds!
- *           ) THEN 1
- *           ELSE 0
- *         END
- *       ):: int as total,
- *       SUM(
- *         CASE
- *           WHEN sessions.created_at >= :start!
- *           AND sessions.created_at <= :end!
- *           AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
- *           OR student_profiles.school_id = ANY(
- *             :studentSchoolIds!
- *           ) THEN 1
- *           ELSE 0
- *         END
- *       ):: int as total_within_range
+ *       COUNT(DISTINCT student_id):: int AS total
  *     FROM
  *       sessions
  *       LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
  *     WHERE
  *       volunteer_profiles.user_id = sessions.volunteer_id
- *   ) AS partner_sessions_stats ON TRUE
+ *       AND (
+ *         student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+ *         OR student_profiles.school_id = ANY(
+ *           :studentSchoolIds!
+ *         )
+ *       )
+ *   ) AS total_unique_partner_students_helped ON TRUE
  *   LEFT JOIN LATERAL (
  *     SELECT
- *       SUM(
- *         CASE
- *           WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
- *           OR student_profiles.school_id = ANY(
- *             :studentSchoolIds!
- *           ) THEN sessions.time_tutored
- *           ELSE 0
- *         END
- *       ):: int as total,
- *       SUM(
- *         CASE
- *           WHEN sessions.created_at >= :start!
- *           AND sessions.created_at <= :end!
- *           AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
- *           OR student_profiles.school_id = ANY(
- *             :studentSchoolIds!
- *           ) THEN sessions.time_tutored
- *           ELSE 0
- *         END
- *       ):: int as total_within_range
+ *       COUNT(DISTINCT student_id):: int AS total
  *     FROM
  *       sessions
  *       LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
  *     WHERE
  *       volunteer_profiles.user_id = sessions.volunteer_id
- *   ) AS partner_time_tutored_stats ON TRUE
+ *       AND (
+ *         student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+ *         OR student_profiles.school_id = ANY(
+ *           :studentSchoolIds!
+ *         )
+ *       )
+ *       AND sessions.created_at >= :start!
+ *       AND sessions.created_at <= :end!
+ *   ) AS total_unique_partner_students_helped_within_range ON TRUE
  *   LEFT JOIN LATERAL (
  *     SELECT
  *       COUNT(*):: int AS total,
@@ -3487,7 +3496,7 @@ const getVolunteersForAnalyticsReportIR: any = {"name":"getVolunteersForAnalytic
  * WHERE
  *   volunteer_partner_orgs.key = :volunteerPartnerOrg!
  * ORDER BY
- *   users.created_at ASC
+ *   users.created_at DESC
  * ```
  */
 export const getVolunteersForAnalyticsReport = new PreparedQuery<IGetVolunteersForAnalyticsReportParams,IGetVolunteersForAnalyticsReportResult>(getVolunteersForAnalyticsReportIR);

@@ -112,11 +112,9 @@ function telecomTutorTime(
     }
   }
   // Add time spent on call per availability hour
-  // TODO FIX
   for (const availabilityHistory of availabilityForDateRange) {
     const availability = availabilityHistory.availability
-    for (const day of Object.keys(availability) as DAYS[]) {
-      // TODO: is this nested a level deeper now?
+    const day = DAYS[moment(availabilityHistory.recordedAt).day()]
       if (availability[day]) {
         for (const hourA of Object.keys(availability[day]) as HOURS[]) {
           const temp = moment(availabilityHistory.recordedAt)
@@ -130,10 +128,10 @@ function telecomTutorTime(
             if (day in availabilityAcc) availabilityAcc[day][hour] = 60
             else availabilityAcc[day] = { hour: 60 }
           }
-        }
       }
     }
   }
+  
   // Add time spent in tutoring sessions
   for (const session of sessions) {
     if (session.timeTutored === 0) continue
@@ -566,7 +564,7 @@ export async function getAnalyticsReportSummary(
   const uniqueStudentSummary = await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(partnerOrg, startDate, endDate)
   
   summary.uniqueStudentsHelped.total = uniqueStudentSummary ? uniqueStudentSummary.totalUniqueStudentsHelped : 0
-  summary.uniqueStudentsHelped.totalWithinDateRange = uniqueStudentSummary ? uniqueStudentSummary.totalUniquePartnerStudentsHelpedWithinRange : 0
+  summary.uniqueStudentsHelped.totalWithinDateRange = uniqueStudentSummary ? uniqueStudentSummary.totalUniqueStudentsHelpedWithinRange : 0
 
   summary.uniquePartnerStudentsHelped.total = uniqueStudentSummary ? uniqueStudentSummary.totalUniquePartnerStudentsHelped : 0
   summary.uniquePartnerStudentsHelped.totalWithinDateRange = uniqueStudentSummary ? uniqueStudentSummary.totalUniquePartnerStudentsHelpedWithinRange : 0

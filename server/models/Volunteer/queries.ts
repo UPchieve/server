@@ -1347,7 +1347,7 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
         start,
         end,
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
-        studentSchoolIds: associatedPartners.associatedStudentPartnerOrgs,
+        studentSchoolIds: associatedPartners.associatedPartnerSchools,
       },
       getClient()
     )
