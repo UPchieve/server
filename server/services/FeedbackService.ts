@@ -1,10 +1,5 @@
 import _ from 'lodash'
-import {
-  StudentCounselingFeedback,
-  StudentTutoringFeedback,
-  VolunteerFeedback,
-} from '../models/Feedback'
-import * as FeedbackRepo from '../models/Feedback/queries'
+import * as FeedbackRepo from '../models/Feedback'
 import { FEEDBACK_EVENTS } from '../constants/events'
 import { emitter } from './EventsService'
 import {
@@ -17,7 +12,7 @@ import {
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
 
-const asStudentTutoringFeedback = asFactory<StudentTutoringFeedback>({
+const asStudentTutoringFeedback = asFactory<FeedbackRepo.StudentTutoringFeedback>({
   'session-goal': asOptional(asNumber),
   'subject-understanding': asOptional(asNumber),
   'coach-rating': asOptional(asNumber),
@@ -34,14 +29,14 @@ const asCoachRating = asFactory({
   'coach-friendly': asOptional(asNumber),
   'coach-help-again': asOptional(asNumber),
 })
-const asStudentCounselingFeedback = asFactory<StudentCounselingFeedback>({
+const asStudentCounselingFeedback = asFactory<FeedbackRepo.StudentCounselingFeedback>({
   'rate-session': asOptional(asRateSession),
   'session-goal': asOptional(asString),
   'coach-ratings': asOptional(asCoachRating),
   'other-feedback': asOptional(asString),
 })
 
-const asVolunteerFeedback = asFactory<VolunteerFeedback>({
+const asVolunteerFeedback = asFactory<FeedbackRepo.VolunteerFeedback>({
   'session-enjoyable': asOptional(asNumber),
   'session-improvements': asOptional(asString),
   'student-understanding': asOptional(asNumber),

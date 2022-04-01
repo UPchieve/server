@@ -1,4 +1,5 @@
 import { Job } from 'bull'
+import { USER_BAN_REASONS } from '../../../constants'
 import { getReportedStudent } from '../../../models/Student'
 import * as MailService from '../../../services/MailService'
 import { safeAsync } from '../../../utils/safe-async'
@@ -35,7 +36,7 @@ async function emailReportedSession(
       const banAlert = await safeAsync(
         MailService.sendBannedUserAlert(
           student.id,
-          'SESSION REPORTED',
+          USER_BAN_REASONS.SESSION_REPORTED,
           sessionId
         )
       )

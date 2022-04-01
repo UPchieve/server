@@ -1,6 +1,5 @@
 import moment from 'moment'
 import { Request, Response, NextFunction } from 'express'
-import { Student } from '../models/Student'
 import { updateUserLastActivityById } from '../models/User/queries'
 import { extractUser } from '../router/extract-user'
 

@@ -152,6 +152,7 @@ export async function getLegacyUserObject(
       // TODO: reuse client
       volunteerUser.availability = await getAvailabilityForVolunteer(userId)
       volunteerUser.references = await getReferencesByVolunteer(userId)
+      console.log(`LEGACY REFERENCES: ${JSON.stringify(volunteerUser.references)}`)
       const trainingCourses = await getVolunteerTrainingCourses(userId)
       volunteerUser.trainingCourses = trainingCourses
       volunteerUser.certifications = {
@@ -165,6 +166,7 @@ export async function getLegacyUserObject(
       }
     }
     const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser)
+    console.log(`LEGACY USER: ${JSON.stringify(final)}`)
     return final as LegacyUserModel
   } catch (err) {
     throw new RepoReadError(err)

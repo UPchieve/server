@@ -1,10 +1,11 @@
 import { Ulid } from '../../models/pgUtils'
-import { Session, getMessagesForFrontend } from '../../models/Session'
 import {
+  Session, 
+  getMessagesForFrontend,
   getSessionById,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
-} from '../../models/Session/queries'
+} from '../../models/Session'
 import {
   UserSessionMetrics,
   UserSessionMetricsUpdateQuery,
@@ -20,7 +21,7 @@ import { Feedback } from '../../models/Feedback'
 import { emitter } from '../EventsService'
 import logger from '../../logger'
 import { safeAsync } from '../../utils/safe-async'
-import { getFeedbackById } from '../../models/Feedback/queries'
+import { getFeedbackById } from '../../models/Feedback'
 import { METRIC_PROCESSORS, MetricProcessorOutputs } from './metrics'
 import {
   UpdateValueData,

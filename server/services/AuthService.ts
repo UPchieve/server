@@ -1,5 +1,4 @@
 import { randomBytes } from 'crypto'
-import { findKey } from 'lodash'
 import validator from 'validator'
 
 import mongoose from 'mongoose'

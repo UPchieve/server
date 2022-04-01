@@ -5,7 +5,7 @@ import {
   GATES_STUDY_PERIOD_START,
   GATES_STUDY_PERIOD_END,
 } from '../constants'
-import * as UserProductFlagsRepo from '../models/UserProductFlags/queries'
+import * as UserProductFlagsRepo from '../models/UserProductFlags'
 import * as gatesStudyUtils from '../utils/gates-study-utils'
 import { isDateWithinRange } from '../utils/is-date-within-range'
 import { Ulid } from '../models/pgUtils'

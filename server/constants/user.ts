@@ -75,11 +75,11 @@ export const EVENTS = <const>{
 export type EVENTS = ExtractValues<typeof EVENTS>
 
 export const USER_BAN_REASONS = <const>{
-  NON_US_SIGNUP: 'NON US SIGNUP',
-  USED_BANNED_IP: 'USED BANNED IP',
-  SESSION_REPORTED: 'SESSION REPORTED',
-  BANNED_SERVICE_PROVIDER: 'BANNED SERVICE PROVIDER',
-  ADMIN: 'ADMIN',
+  NON_US_SIGNUP: 'non us signup',
+  USED_BANNED_IP: 'used banned ip',
+  SESSION_REPORTED: 'session reported',
+  BANNED_SERVICE_PROVIDER: 'banned service provider',
+  ADMIN: 'admin',
 }
 export type USER_BAN_REASONS = ExtractValues<typeof USER_BAN_REASONS>
 
@@ -90,14 +90,14 @@ export const IP_ADDRESS_STATUS = <const>{
 export type IP_ADDRESS_STATUS = ExtractValues<typeof IP_ADDRESS_STATUS>
 
 export const STATUS = <const>{
-  SUBMITTED: 'SUBMITTED',
-  REJECTED: 'REJECTED',
-  APPROVED: 'APPROVED',
+  SUBMITTED: 'submitted',
+  REJECTED: 'rejected',
+  APPROVED: 'approved',
 }
 export type STATUS = ExtractValues<typeof STATUS>
 
 export const PHOTO_ID_STATUS = <const>{
-  EMPTY: 'EMPTY',
+  EMPTY: 'empty',
   SUBMITTED: STATUS.SUBMITTED,
   REJECTED: STATUS.REJECTED,
   APPROVED: STATUS.APPROVED,
@@ -105,8 +105,8 @@ export const PHOTO_ID_STATUS = <const>{
 export type PHOTO_ID_STATUS = ExtractValues<typeof PHOTO_ID_STATUS>
 
 export const REFERENCE_STATUS = <const>{
-  UNSENT: 'UNSENT',
-  SENT: 'SENT',
+  UNSENT: 'unsent',
+  SENT: 'sent',
   SUBMITTED: STATUS.SUBMITTED,
   REJECTED: STATUS.REJECTED,
   APPROVED: STATUS.APPROVED,

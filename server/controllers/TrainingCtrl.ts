@@ -284,8 +284,8 @@ export async function getQuizScore(
           event: EVENTS.SUBJECT_UNLOCKED,
           subject,
         })
+        await VolunteerModel.addVolunteerCertification(user.id, subject)
       }
-      await VolunteerModel.addVolunteerCertification(user.id, subject)
     }
     /**
      *

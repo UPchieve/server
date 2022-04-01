@@ -210,6 +210,7 @@ export function routeSockets(
 
             try {
               // TODO: correctly type User from passport
+              console.log(`Attempting to join session ${sessionId}`)
               await SessionService.joinSession(user, session, {
                 socket,
                 joinedFrom,
@@ -225,6 +226,7 @@ export function routeSockets(
               socketService.emitSessionChange(sessionId)
               resolve()
             } catch (error) {
+              console.log(`Caught join session error to bump ${error}`)
               socketService.bump(
                 socket,
                 {
@@ -234,7 +236,7 @@ export function routeSockets(
                 },
                 error as Error
               )
-              reject(error)
+              resolve()
             }
           })
       )

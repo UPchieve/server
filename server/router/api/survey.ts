@@ -1,5 +1,4 @@
 import expressWs from 'express-ws'
-import { SURVEY_TYPES } from '../../constants'
 import {
   savePresessionSurvey,
   getPresessionSurvey,

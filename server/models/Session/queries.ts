@@ -290,10 +290,12 @@ export async function updateSessionReported(
   reportMessage: string
 ): Promise<void> {
   try {
+    console.log(`Inserting session_reports row`)
     const result = await pgQueries.updateSessionReported.run(
       { id: getDbUlid(), sessionId, reportReason, reportMessage },
       getClient()
     )
+    console.log(`Insert session report result: ${JSON.stringify(result)}`)
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {

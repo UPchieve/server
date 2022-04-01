@@ -8,7 +8,8 @@ async function sendToUser(
   data: { path: string },
   tokens: string[]
 ) {
-  return await messaging().sendMulticast({
+  // TODO: uncoment this
+  return /* await messaging().sendMulticast({
     tokens, // can also send to a topic (group of people)
     // ios and android process data a little differently, so setup separate objects for each
     apns: {
@@ -45,6 +46,7 @@ async function sendToUser(
       },
     },
   })
+  */
 }
 
 export async function sendVolunteerJoined(

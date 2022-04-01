@@ -14,6 +14,7 @@ import {
   SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SESSION_USER_ACTIONS,
+  USER_BAN_REASONS,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
@@ -99,15 +100,15 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
 
   const reportedBy = user
   await SessionRepo.updateSessionReported(sessionId,
-    reportMessage,
     reportReason,
+    reportMessage
   )
 
   const isBanReason = reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
   if (isBanReason && reportedBy.isVolunteer) {
     await UserRepo.banUserById(
       session.studentId,
-      'SESSION REPORTED'
+      USER_BAN_REASONS.SESSION_REPORTED
     )
     await createAccountAction({
       userId: session.studentId,
@@ -121,7 +122,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
       {
         event: EVENTS.ACCOUNT_BANNED,
         sessionId: session.id,
-        banReason: 'SESSION_REPORTED',
+        banReason: USER_BAN_REASONS.SESSION_REPORTED,
       }
     )
   }
@@ -600,7 +601,9 @@ export async function joinSession(user: UserContactInfo, session: Session, data:
     socket.handshake?.address || socket.request?.connection.remoteAddress
 
   if (session.endedAt) {
+    console.log(`ALEPH`)
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    console.log(`oof`)
     throw new Error('Session has ended')
   }
 

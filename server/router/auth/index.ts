@@ -8,7 +8,6 @@ import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
 import { asString } from '../../utils/type-utils'
 import { Ulid } from '../../models/pgUtils'
-import logger from '../../logger'
 
 export function routes(app: Express) {
   const router = Router()

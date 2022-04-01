@@ -9,7 +9,6 @@ import { getMessagesForFrontend, Session } from '../models/Session'
 import { MessageForFrontend } from '../models/Session'
 import {
   asBoolean,
-  asDate,
   asEnum,
   asFactory,
   asNumber,

@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
 import { Ulid } from '../models/pgUtils'
-import { ACCOUNT_USER_ACTIONS, EVENTS, IP_ADDRESS_STATUS, PHOTO_ID_STATUS, REFERENCE_STATUS } from '../constants'
+import { ACCOUNT_USER_ACTIONS, EVENTS, IP_ADDRESS_STATUS, PHOTO_ID_STATUS } from '../constants'
 import { UserNotFoundError } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
@@ -234,7 +234,7 @@ export async function adminUpdateUser(data: unknown) {
 
   if (!userBeforeUpdate.banned && isBanned)
     // TODO: queue email
-    await MailService.sendBannedUserAlert(userId, 'ADMIN')
+    await MailService.sendBannedUserAlert(userId, 'admin')
 
   const update = {
     firstName,
