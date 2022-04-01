@@ -15,6 +15,10 @@
         <span>DATE</span>
         <span>COACH</span>
       </div>
+      <div v-if="hasNoPastSessions()">
+          <h1 class="title title-no-sessions"> Past sessions will appear here. </h1>
+          <p class="subtitle subtitle-no-sessions"> Get help now by clicking on the dashboard </p>
+      </div>
       <ul class="session-list">
         <li v-for="(session, index) in sessions" :key="session._id">
           <div class="session-list__session">
@@ -50,19 +54,15 @@
             :class="isFirstPage && 'page-actions__stepper--disabled'"
             class="page-actions__stepper"
           >
-            <caret-icon class="caret caret--previous" /><span v-if="!mobileMode"
+            <caret-icon class="caret caret--previous" /><span
               >Previous</span
             >
           </div>
           <div class="page-numbers">
             <span
-              v-for="pageNum in totalPages"
-              :key="pageNum"
-              :class="pageNum === page && 'page-num--active'"
-              class="page-num"
-              @click="() => handlePageClick(pageNum)"
+              class="page-num page-num--active"
             >
-              {{ pageNum }}
+              {{ page }} 
             </span>
           </div>
           <div
@@ -70,7 +70,7 @@
             :class="isLastPage && 'page-actions__stepper--disabled'"
             class="page-actions__stepper"
           >
-            <span v-if="!mobileMode">Next</span
+            <span>Next</span
             ><caret-icon class="caret caret--next" />
           </div>
         </div>
@@ -80,6 +80,10 @@
   <div v-if="mobileMode">
     <div class="mobile-container">
     <section>
+      <div v-if="hasNoPastSessions()">
+          <h1 class="title title-no-sessions"> Past sessions will appear here. </h1>
+          <p class="subtitle subtitle-no-sessions"> Get help now by clicking on the dashboard </p>
+      </div>
       <ul class="mobile-session-list">
         <li v-for="(session, index) in sessions" :key="session._id">
           <div class="mobile-session-list__session">
@@ -116,19 +120,13 @@
             :class="isFirstPage && 'page-actions__stepper--disabled'"
             class="page-actions__stepper"
           >
-            <caret-icon class="caret caret--previous" /><span v-if="!mobileMode"
-              >Previous</span
-            >
+            <caret-icon class="caret caret--previous" />
           </div>
           <div class="page-numbers">
             <span
-              v-for="pageNum in totalPages"
-              :key="pageNum"
-              :class="pageNum === page && 'page-num--active'"
-              class="page-num"
-              @click="() => handlePageClick(pageNum)"
+              class="page-num page-num--active"
             >
-              {{ pageNum }}
+              {{ page }}
             </span>
           </div>
           <div
@@ -136,8 +134,7 @@
             :class="isLastPage && 'page-actions__stepper--disabled'"
             class="page-actions__stepper"
           >
-            <span v-if="!mobileMode">Next</span
-            ><caret-icon class="caret caret--next" />
+            <caret-icon class="caret caret--next" />
           </div>
         </div>
       </footer>
@@ -200,12 +197,20 @@ export default {
       if (page < 1 || page > this.totalPages) return
       const response = await NetworkService.mockGetSessionHistory(page)
       this.sessions = response.body.sessions
+      if(this.sessions){
+        this.getSessionTopicIcons()
+      }
       this.isLastPage = response.body.isLastPage
       this.page = page
     },
+    async getTotalSessions() {
+      const response = await NetworkService.mockGetTotalSessions()
+      this.total = response.body.total
+    },
+    // @todo: to be revisited to implement new design for page actions
     async handlePageClick(page) {
       if (this.page === page) return
-      await this.getFavoriteCoaches(page)
+      await this.getSessionHistory(page)
     },
     getSessionTopicIcons() {
       this.sessions = this.sessions.map((session) => {
@@ -223,10 +228,14 @@ export default {
       const duration = Math.ceil(timeTutored/(1000 * 60))
       return duration
     },
+    hasNoPastSessions() {
+      return this.total === 0
+    }
    },
   async created() {
-    await this.getSessionHistory(this.page)
-    this.getSessionTopicIcons()
+    await Promise.all([this.getSessionHistory(this.page),
+    this.getTotalSessions(),
+    ])
   }
 }
 
@@ -258,11 +267,19 @@ ul {
     margin: 1em;
     font-size: 18px;
   }
+
+  &-no-sessions {
+    margin-top: 3em;
+  }
 }
 
 .subtitle {
   @include font-category('heading');
   color: $c-secondary-grey;
+
+  &-no-sessions {
+    font-size: 16px;
+  }
 }
 
 .session-history {
@@ -291,6 +308,7 @@ ul {
 
 .session-list {
   padding: 0 2em;
+  min-height: 600px;
 
   &__headers {
     @include font-category('subheading');
@@ -359,9 +377,7 @@ ul {
 }
 
 .page-numbers {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  @include flex-container(row, center, center)
 }
 
 .page-actions {
@@ -387,6 +403,9 @@ ul {
     @include breakpoint-above('medium') {
       margin-right: 2em;
     }
+    @include breakpoint-below('small') {
+        margin: 0;
+      }
 
     &--disabled {
       margin-right: 1em;
@@ -399,12 +418,15 @@ ul {
       @include breakpoint-above('medium') {
         margin-right: 2em;
       }
+
+      @include breakpoint-below('small') {
+        margin: 0;
+      }
     }
   }
 }
 
 .page-num {
-  margin-right: 1em;
   @include breakpoint-above('medium') {
     margin-right: 2em;
   }
@@ -452,7 +474,7 @@ ul {
 
 .mobile-session-list {
   padding: 0;
-
+  min-height: 500px;
   &__coach-name {
       font-weight: 500;
       font-size: 14px;

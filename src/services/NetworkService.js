@@ -733,9 +733,12 @@ export default {
               studentId: '6228f23d3cf2cabeb0a825bf',
               id: '62293b971d33b47d7496989',
               topic: 'science'
-            }
+            },
           ]
       }
     })
+  },
+  mockGetTotalSessions() {
+    return Promise.resolve({ body: { total: 35 }})
   }
 }
