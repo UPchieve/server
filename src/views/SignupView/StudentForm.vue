@@ -223,7 +223,7 @@
     </p>
 
     <p v-if="isCollegeStudent" class="small-paragraph">
-      <i>Still need help? <a href=""> Find college resources here. </a></i>
+      <i>Still need help? <a href="https://upchieve.org/resources-for-college-students"> Find college resources here. </a></i>
     </p>
 
     <button
