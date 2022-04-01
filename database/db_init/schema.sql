@@ -1895,14 +1895,6 @@ ALTER TABLE ONLY upchieve.certifications
 
 
 --
--- Name: cities cities_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.cities
-    ADD CONSTRAINT cities_name_key UNIQUE (name);
-
-
---
 -- Name: cities cities_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2484,6 +2476,14 @@ ALTER TABLE ONLY upchieve.training_courses
 
 ALTER TABLE ONLY upchieve.training_courses
     ADD CONSTRAINT training_courses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cities unique_city_name_state; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.cities
+    ADD CONSTRAINT unique_city_name_state UNIQUE (name, us_state_code);
 
 
 --
