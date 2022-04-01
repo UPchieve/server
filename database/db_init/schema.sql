@@ -293,7 +293,7 @@ ALTER SEQUENCE upchieve.cities_id_seq OWNED BY upchieve.cities.id;
 
 CREATE TABLE upchieve.contact_form_submissions (
     id uuid NOT NULL,
-    user_id uuid NOT NULL,
+    user_id uuid,
     user_email text NOT NULL,
     message text NOT NULL,
     topic text NOT NULL,
