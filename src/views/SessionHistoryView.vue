@@ -95,8 +95,9 @@
             </div>
             <div class="mobile-session-list__createdAt-container">
             <div class="mobile-session-list__coach-name-container">
-              <favoriting-toggle
-              :initialIsFavorite="session.isFavorite"
+              <favoriting-toggle class="heart"
+              v-if="session.isFavorited"
+              :initialIsFavorite="session.isFavorited"
               :volunteerName="session.volunteerFirstName"
               :volunteerId="session.volunteerId"
               />
@@ -242,6 +243,10 @@ ul {
 .header {
   text-align: left;
   margin-bottom: 2em;
+
+  @include breakpoint-below('small') {
+    margin-bottom: 0;
+  }
 }
 
 .title {
@@ -251,6 +256,7 @@ ul {
 
   @include breakpoint-below('small') {
     margin: 1em;
+    font-size: 18px;
   }
 }
 
@@ -277,7 +283,6 @@ ul {
 }
 
 .spacing--grid {
-  // @include flex-container(row, space-around, center);
   display: grid;
   @include breakpoint-above('small') {
     grid-template-columns: 1fr 1fr 1fr;
@@ -428,13 +433,6 @@ ul {
 }
 
 // mobile css styling
-.mobile-title {
-  font-weight: 500;
-  font-size: 22px;
-  margin: 1em;
-  background-color: white;
-}
-
 .mobile-container {
   padding: 0.5em;
   margin: 0;
@@ -456,9 +454,9 @@ ul {
   padding: 0;
 
   &__coach-name {
-      @include font-category('subheading');
+      font-weight: 500;
       font-size: 14px;
-      margin: 0.8em;
+      margin: 0.4em;
       &-container {
         @include flex-container(row, center, center);
       }        
@@ -474,19 +472,14 @@ ul {
   }
 
   &__created-at {
-    @include font-category('subheading');
     color: $c-secondary-grey;
     font-size: 12px;
+    font-weight: 400;
   }    
 
   &__createdAt-container {
     @include flex-container(column, center, flex-end)
   } 
-
-  &__heart {
-    height: 10.72px;
-    width: 11.54px;
-  }
 }
 
 .mobile-subject {
@@ -510,5 +503,9 @@ ul {
     color: $c-secondary-grey;
     font-size: 12px;
   }
+}
+
+.heart {
+  transform: scale(0.6);
 }
 </style>
