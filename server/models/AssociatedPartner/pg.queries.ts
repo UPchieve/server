@@ -10,7 +10,7 @@ export interface IGetAssociatedPartnersResult {
   studentOrgDisplay: string;
   studentPartnerOrg: string;
   studentPartnerOrgId: string;
-  studentSponsorOrg: string;
+  studentSponsorOrg: string | null;
   studentSponsorOrgId: string;
   volunteerOrgDisplay: string;
   volunteerPartnerOrg: string;
@@ -59,7 +59,7 @@ export interface IGetAssociatedPartnerByKeyResult {
   studentOrgDisplay: string;
   studentPartnerOrg: string;
   studentPartnerOrgId: string;
-  studentSponsorOrg: string;
+  studentSponsorOrg: string | null;
   studentSponsorOrgId: string;
   volunteerOrgDisplay: string;
   volunteerPartnerOrg: string;
@@ -110,7 +110,7 @@ export interface IGetAssociatedPartnerByVolunteerPartnerKeyResult {
   studentOrgDisplay: string;
   studentPartnerOrg: string;
   studentPartnerOrgId: string;
-  studentSponsorOrg: string;
+  studentSponsorOrg: string | null;
   studentSponsorOrgId: string;
   volunteerOrgDisplay: string;
   volunteerPartnerOrg: string;

@@ -31,3 +31,7 @@ try {
 export function getClient(): Pool {
   return client
 }
+
+export async function closeClient(): Promise<void> {
+  await client.end()
+}
