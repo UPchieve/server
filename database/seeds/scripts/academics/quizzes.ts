@@ -131,6 +131,14 @@ export async function quizCertificationGrants(
       certificationId: certIds['prealgebra'] as number,
     },
     {
+      quizId: quizIds['algebraOne'] as number,
+      certificationId: certIds['algebraOne'] as number,
+    },
+    {
+      quizId: quizIds['algebraOne'] as number,
+      certificationId: certIds['prealgebra'] as number,
+    },
+    {
       quizId: quizIds['trigonometry'] as number,
       certificationId: certIds['trigonometry'] as number,
     },
