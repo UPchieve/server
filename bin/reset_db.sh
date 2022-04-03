@@ -7,11 +7,10 @@ docker ps -q --filter "name=subway_pgadmin_1" | grep -q . && docker stop subway_
 
 PGURL='postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable' 
 
-dbmate -d "/Users/davesudia/code/upchieve/subway/database/migrations" --url $PGURL drop
+dbmate --url $PGURL drop
 
 dbmate \
   --no-dump-schema \
-  -d "/Users/davesudia/code/upchieve/subway/database/migrations" \
   --url $PGURL \
   up \
   > /dev/null

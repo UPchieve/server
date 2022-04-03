@@ -3,12 +3,12 @@ import * as pgQueries from './pg.queries'
 
 export async function gradeLevels(): Promise<NameToId> {
   const grades = [
-    { name: '8' },
-    { name: '9' },
-    { name: '10' },
-    { name: '11' },
-    { name: '12' },
-    { name: 'college' },
+    { name: '8th' },
+    { name: '9th' },
+    { name: '10th' },
+    { name: '11th' },
+    { name: '12th' },
+    { name: 'College' },
   ]
   const temp: NameToId = {}
   for (const grade of grades) {

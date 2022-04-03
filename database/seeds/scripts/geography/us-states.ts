@@ -207,6 +207,26 @@ export async function usStates(): Promise<NameToId> {
       code: 'WY',
       name: 'Wyoming',
     },
+    {
+      code: 'PR',
+      name: 'Puerto Rico'
+    },
+    {
+      code: 'GU',
+      name: 'Guam'
+    },
+    {
+      code: 'VI',
+      name: 'Virgin Islands'
+    },
+    {
+      code: 'AS',
+      name: 'American Samoa'
+    },
+    {
+      code: 'BI',
+      name: 'Bureau of Indian Education'
+    }
   ]
   const temp: NameToId = {}
   for (const state of usStates) {
