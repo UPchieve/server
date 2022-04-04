@@ -10,6 +10,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: migration; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA migration;
+
+
+--
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -91,6 +98,506 @@ $$;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: assistmentsdatas; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.assistmentsdatas (
+    id integer NOT NULL,
+    _id json,
+    problemid integer,
+    assignmentid text,
+    studentid text,
+    session json,
+    sent boolean,
+    __v integer,
+    sentat timestamp without time zone
+);
+
+
+--
+-- Name: availabilityhistories; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.availabilityhistories (
+    id integer NOT NULL,
+    _id json,
+    availability json,
+    volunteerid json,
+    timezone text,
+    date timestamp without time zone,
+    modifiedat timestamp without time zone,
+    createdat timestamp without time zone,
+    __v integer
+);
+
+
+--
+-- Name: availabilitysnapshots; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.availabilitysnapshots (
+    id integer NOT NULL,
+    _id json,
+    oncallavailability json,
+    volunteerid json,
+    modifiedat timestamp without time zone,
+    createdat timestamp without time zone,
+    __v integer,
+    timezone text
+);
+
+
+--
+-- Name: contactformsubmissions; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.contactformsubmissions (
+    id integer NOT NULL,
+    _id json,
+    userid json,
+    useremail text,
+    topic text,
+    message text,
+    createdat timestamp without time zone,
+    __v integer
+);
+
+
+--
+-- Name: feedbacks; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.feedbacks (
+    id integer NOT NULL,
+    _id json,
+    type text,
+    subtopic text,
+    usertype text,
+    sessionid json,
+    studenttutoringfeedback json,
+    studentcounselingfeedback json,
+    studentid json,
+    volunteerid json,
+    versionnumber integer,
+    createdat timestamp without time zone,
+    __v integer,
+    volunteerfeedback json,
+    responsedata json
+);
+
+
+--
+-- Name: ineligiblestudents; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.ineligiblestudents (
+    id integer NOT NULL,
+    _id json,
+    email text,
+    zipcode text,
+    school json,
+    ipaddress text,
+    currentgrade text,
+    createdat timestamp without time zone,
+    __v integer
+);
+
+
+--
+-- Name: ipaddresses; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.ipaddresses (
+    id integer NOT NULL,
+    _id json,
+    users json,
+    status text,
+    ip text,
+    createdat timestamp without time zone,
+    __v integer
+);
+
+
+--
+-- Name: notifications; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.notifications (
+    id integer NOT NULL,
+    _id json,
+    type text,
+    wassuccessful boolean,
+    volunteer json,
+    method text,
+    sentat timestamp without time zone,
+    messageid text,
+    __v integer,
+    prioritygroup text,
+    sessionid json
+);
+
+
+--
+-- Name: pushtokens; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.pushtokens (
+    id integer NOT NULL,
+    _id json,
+    "user" json,
+    token text,
+    createdat timestamp without time zone,
+    __v integer
+);
+
+
+--
+-- Name: question; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.question (
+    id integer NOT NULL,
+    _id json,
+    questiontext text,
+    imagesrc text,
+    possibleanswers json,
+    correctanswer text,
+    category text,
+    subcategory text
+);
+
+
+--
+-- Name: schools; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.schools (
+    id integer NOT NULL,
+    _id json,
+    isapproved boolean,
+    upchieveid text,
+    namestored text,
+    districtnamestored text,
+    citynamestored text,
+    statestored text,
+    approvalnotifyemails json,
+    school_year text,
+    fipst integer,
+    lzip integer,
+    createdat timestamp without time zone,
+    mzip integer,
+    __v integer,
+    statename text,
+    st text,
+    sch_name text,
+    lea_name text,
+    state_agency_no integer,
+    "union" text,
+    st_leaid text,
+    leaid text,
+    st_schid text,
+    ncessch bigint,
+    schid integer,
+    mstreet1 text,
+    mstreet2 text,
+    mstreet3 text,
+    mcity text,
+    mstate text,
+    mzip4 integer,
+    lstreet1 text,
+    lstreet2 text,
+    lstreet3 text,
+    lcity text,
+    lstate text,
+    lzip4 text,
+    phone text,
+    website text,
+    sy_status integer,
+    sy_status_text text,
+    updated_status integer,
+    updated_status_text text,
+    effective_date text,
+    sch_type_text text,
+    sch_type integer,
+    recon_status text,
+    out_of_state_flag text,
+    charter_text text,
+    chartauth1 text,
+    chartauthn1 text,
+    chartauth2 text,
+    chartauthn2 text,
+    nogrades text,
+    g_pk_offered text,
+    g_kg_offered text,
+    g_1_offered text,
+    g_2_offered text,
+    g_3_offered text,
+    g_4_offered text,
+    g_5_offered text,
+    g_6_offered text,
+    g_7_offered text,
+    g_8_offered text,
+    g_9_offered text,
+    g_10_offered text,
+    g_11_offered text,
+    g_12_offered text,
+    g_13_offered text,
+    g_ug_offered text,
+    g_ae_offered text,
+    gslo text,
+    gshi integer,
+    level text,
+    igoffered text
+);
+
+
+--
+-- Name: sessions; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.sessions (
+    id integer NOT NULL,
+    _id json,
+    subtopic text,
+    quilldoc text,
+    failedjoins json,
+    notifications json,
+    photos json,
+    isreported boolean,
+    reportreason text,
+    whiteboarddoc text,
+    reportmessage text,
+    toreview boolean,
+    flags json,
+    reviewreasons json,
+    timetutored integer,
+    student json,
+    type text,
+    isstudentbanned boolean,
+    messages json,
+    createdat timestamp without time zone,
+    __v integer,
+    volunteer json,
+    volunteerjoinedat timestamp without time zone,
+    endedat timestamp without time zone,
+    endedby json,
+    haswhiteboarddoc boolean,
+    reviewed boolean,
+    reviewedstudent text,
+    reviewedvolunteer text,
+    whiteboardurl text
+);
+
+
+--
+-- Name: surveys; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.surveys (
+    id integer NOT NULL,
+    _id json,
+    responsedata json,
+    session json,
+    "user" json,
+    surveytype text,
+    createdat timestamp without time zone,
+    __v integer
+);
+
+
+--
+-- Name: test; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.test (
+    a integer
+);
+
+
+--
+-- Name: useractions; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.useractions (
+    id integer NOT NULL,
+    _id json,
+    "user" json,
+    session json,
+    actiontype text,
+    action text,
+    ipaddress text,
+    device text,
+    browser text,
+    browserversion text,
+    operatingsystem text,
+    operatingsystemversion text,
+    createdat timestamp without time zone,
+    __v integer,
+    quizsubcategory text,
+    quizcategory text,
+    banreason text,
+    referenceemail text
+);
+
+
+--
+-- Name: userproductflags; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.userproductflags (
+    id integer NOT NULL,
+    _id json,
+    "user" json,
+    gatesqualified boolean,
+    __v integer
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.users (
+    id integer NOT NULL,
+    _id json,
+    verified boolean,
+    partnersite text,
+    verifiedemail boolean,
+    verifiedphone boolean,
+    isvolunteer boolean,
+    isadmin boolean,
+    isbanned boolean,
+    istestuser boolean,
+    isfakeuser boolean,
+    isdeactivated boolean,
+    pastsessions json,
+    ipaddresses json,
+    type text,
+    firstname text,
+    lastname text,
+    email text,
+    zipcode text,
+    approvedhighschool json,
+    password text,
+    createdat timestamp without time zone,
+    lastactivityat timestamp without time zone,
+    referralcode text,
+    __v integer,
+    passwordresettoken text,
+    trainingcourses json,
+    certifications json,
+    isapproved boolean,
+    photoidstatus text,
+    isonboarded boolean,
+    isfailsafevolunteer boolean,
+    occupation json,
+    languages json,
+    availability json,
+    hourstutored double precision,
+    timetutored integer,
+    currentgrade text,
+    elapsedavailability integer,
+    sentreadytocoachemail boolean,
+    subjects json,
+    senthoursummaryintroemail boolean,
+    sentinactivethirtydayemail boolean,
+    sentinactivesixtydayemail boolean,
+    sentinactiveninetydayemail boolean,
+    phone text,
+    "references" json,
+    verificationtoken text,
+    referredby uuid,
+    volunteerpartnerorg text,
+    city text,
+    company text,
+    country text,
+    experience json,
+    state text,
+    photoids3key text,
+    availabilitylastmodifiedat timestamp without time zone,
+    timezone text,
+    college text,
+    banreason text,
+    difficultacademicsubject text,
+    planning json,
+    serviceinterests json,
+    onboarding json,
+    applications json,
+    essay json,
+    chemistry json,
+    nickname text,
+    referred text,
+    highschool text,
+    partneruserid text,
+    highestleveleducation json,
+    linkedinurl text,
+    calculus json,
+    commoncollegedocs json,
+    birthdate text,
+    favoriteacademicsubject text,
+    esl json,
+    gender text,
+    computeraccess json,
+    preferredcontactmethod json,
+    algebra json,
+    gpa text,
+    registrationcode text,
+    heardfrom text,
+    expectedgraduation text,
+    background json,
+    race json,
+    application json,
+    linkedinstatus text,
+    geometry json,
+    difficultcollegeprocess json,
+    groupidentification json,
+    trigonometry json,
+    hasschedule boolean,
+    essays json,
+    studentpartnerorg text,
+    precalculus json,
+    hasguidancecounselor text,
+    biology json,
+    preferredtimes json,
+    totalvolunteerhours json
+);
+
+
+--
+-- Name: usersessionmetrics; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.usersessionmetrics (
+    id integer NOT NULL,
+    _id json,
+    "user" json,
+    __v integer
+);
+
+
+--
+-- Name: usersessionmetrics_counters; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.usersessionmetrics_counters (
+    id integer NOT NULL,
+    usersessionmetrics_id integer,
+    absentstudent integer,
+    absentvolunteer integer,
+    lowsessionratingfromcoach integer,
+    lowsessionratingfromstudent integer,
+    lowcoachratingfromstudent integer,
+    reported integer,
+    onlylookingforanswers integer,
+    rudeorinappropriate integer,
+    commentfromstudent integer,
+    commentfromvolunteer integer,
+    hasbeenunmatched integer,
+    hashadtechnicalissues integer
+);
+
 
 --
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
@@ -1527,7 +2034,7 @@ CREATE TABLE upchieve.volunteer_partner_orgs (
 CREATE TABLE upchieve.volunteer_profiles (
     user_id uuid NOT NULL,
     volunteer_partner_org_id uuid,
-    timezone text NOT NULL,
+    timezone text,
     approved boolean DEFAULT false NOT NULL,
     onboarded boolean DEFAULT false NOT NULL,
     photo_id_s3_key text,
@@ -1796,6 +2303,150 @@ ALTER TABLE ONLY upchieve.volunteer_reference_statuses ALTER COLUMN id SET DEFAU
 --
 
 ALTER TABLE ONLY upchieve.weekdays ALTER COLUMN id SET DEFAULT nextval('upchieve.weekdays_id_seq'::regclass);
+
+
+--
+-- Name: assistmentsdatas assistmentsdatas_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.assistmentsdatas
+    ADD CONSTRAINT assistmentsdatas_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: availabilityhistories availabilityhistories_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.availabilityhistories
+    ADD CONSTRAINT availabilityhistories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: availabilitysnapshots availabilitysnapshots_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.availabilitysnapshots
+    ADD CONSTRAINT availabilitysnapshots_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: contactformsubmissions contactformsubmissions_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.contactformsubmissions
+    ADD CONSTRAINT contactformsubmissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: feedbacks feedbacks_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.feedbacks
+    ADD CONSTRAINT feedbacks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ineligiblestudents ineligiblestudents_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.ineligiblestudents
+    ADD CONSTRAINT ineligiblestudents_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ipaddresses ipaddresses_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.ipaddresses
+    ADD CONSTRAINT ipaddresses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pushtokens pushtokens_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.pushtokens
+    ADD CONSTRAINT pushtokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: question question_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.question
+    ADD CONSTRAINT question_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schools schools_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.schools
+    ADD CONSTRAINT schools_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.sessions
+    ADD CONSTRAINT sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: surveys surveys_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.surveys
+    ADD CONSTRAINT surveys_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: useractions useractions_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.useractions
+    ADD CONSTRAINT useractions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: userproductflags userproductflags_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.userproductflags
+    ADD CONSTRAINT userproductflags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: usersessionmetrics_counters usersessionmetrics_counters_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.usersessionmetrics_counters
+    ADD CONSTRAINT usersessionmetrics_counters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: usersessionmetrics usersessionmetrics_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.usersessionmetrics
+    ADD CONSTRAINT usersessionmetrics_pkey PRIMARY KEY (id);
 
 
 --
@@ -2731,6 +3382,14 @@ ALTER TABLE ONLY upchieve.weekdays
 --
 
 CREATE INDEX school_name_search ON upchieve.schools USING gin (name public.gin_trgm_ops);
+
+
+--
+-- Name: usersessionmetrics_counters s3t_usersessionmetrics_counte_usersessionmetrics_0; Type: FK CONSTRAINT; Schema: migration; Owner: -
+--
+
+ALTER TABLE ONLY migration.usersessionmetrics_counters
+    ADD CONSTRAINT s3t_usersessionmetrics_counte_usersessionmetrics_0 FOREIGN KEY (usersessionmetrics_id) REFERENCES migration.usersessionmetrics(id);
 
 
 --
