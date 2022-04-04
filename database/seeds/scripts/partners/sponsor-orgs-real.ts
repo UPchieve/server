@@ -53,6 +53,7 @@ export async function schoolsSponsorOrgsReal(
   ]
   schoolMongoIds.forEach(async (mongoId) => {
     const result = await pgQueries.getSchoolIdByMongoId.run({mongo_id: mongoId}, pgClient)
+    if (!result[0]) return
     const id = result[0].id
     await pgQueries.insertSchoolsSponsorOrgs.run({sponsorOrgId: (sponsorOrgIds['vils'] as string), schoolId: id}, pgClient)
   })
