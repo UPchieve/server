@@ -267,3 +267,60 @@ const insertStudentPartnerOrgsSponsorOrgsIR: any = {"name":"insertStudentPartner
 export const insertStudentPartnerOrgsSponsorOrgs = new PreparedQuery<IInsertStudentPartnerOrgsSponsorOrgsParams,IInsertStudentPartnerOrgsSponsorOrgsResult>(insertStudentPartnerOrgsSponsorOrgsIR);
 
 
+/** 'GetStudentPartnerOrgs' parameters type */
+export type IGetStudentPartnerOrgsParams = void;
+
+/** 'GetStudentPartnerOrgs' return type */
+export interface IGetStudentPartnerOrgsResult {
+  id: string;
+  key: string;
+}
+
+/** 'GetStudentPartnerOrgs' query type */
+export interface IGetStudentPartnerOrgsQuery {
+  params: IGetStudentPartnerOrgsParams;
+  result: IGetStudentPartnerOrgsResult;
+}
+
+const getStudentPartnerOrgsIR: any = {"name":"getStudentPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n  id,\n  key\nFROM student_partner_orgs","loc":{"a":2257,"b":2300,"line":29,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *   id,
+ *   key
+ * FROM student_partner_orgs
+ * ```
+ */
+export const getStudentPartnerOrgs = new PreparedQuery<IGetStudentPartnerOrgsParams,IGetStudentPartnerOrgsResult>(getStudentPartnerOrgsIR);
+
+
+/** 'GetSponsorOrgs' parameters type */
+export type IGetSponsorOrgsParams = void;
+
+/** 'GetSponsorOrgs' return type */
+export interface IGetSponsorOrgsResult {
+  id: string;
+  key: string;
+}
+
+/** 'GetSponsorOrgs' query type */
+export interface IGetSponsorOrgsQuery {
+  params: IGetSponsorOrgsParams;
+  result: IGetSponsorOrgsResult;
+}
+
+const getSponsorOrgsIR: any = {"name":"getSponsorOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n  id, key\nFROM sponsor_orgs","loc":{"a":2331,"b":2364,"line":35,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *   id, key
+ * FROM sponsor_orgs
+ * ```
+ */
+export const getSponsorOrgs = new PreparedQuery<IGetSponsorOrgsParams,IGetSponsorOrgsResult>(getSponsorOrgsIR);
+
+

@@ -24,3 +24,14 @@ INSERT INTO schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updated
 
 /* @name insertStudentPartnerOrgsSponsorOrgs */
 INSERT INTO student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor_org_id, created_at, updated_at) VALUES (:studentPartnerOrgId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_partner_org_id, sponsor_org_id AS ok;
+
+/* @name getStudentPartnerOrgs */
+SELECT
+  id,
+  key
+FROM student_partner_orgs;
+
+/* @name getSponsorOrgs */
+SELECT
+  id, key
+FROM sponsor_orgs;
