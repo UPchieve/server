@@ -51,12 +51,11 @@ export async function schoolsSponsorOrgsReal(
     '5d6466b7cd70635841b2cfea',
     '5d6466b7cd70635841b2cfdf',
   ]
-  schoolMongoIds.forEach(async (mongoId) => {
+  for (const mongoId of schoolMongoIds) {
     const result = await pgQueries.getSchoolIdByMongoId.run({mongo_id: mongoId}, pgClient)
-    if (!result[0]) return
     const id = result[0].id
     await pgQueries.insertSchoolsSponsorOrgs.run({sponsorOrgId: (sponsorOrgIds['vils'] as string), schoolId: id}, pgClient)
-  })
+  }
 }
 
 export async function studentPartnerOrgsSponsorOrgsReal(
@@ -69,7 +68,7 @@ export async function studentPartnerOrgsSponsorOrgsReal(
     studentPartnerOrgIds['nac'],
   ]
 
-  partnerOrgs.forEach(async (org) => {
+  for (const org of partnerOrgs) {
     await pgQueries.insertStudentPartnerOrgsSponsorOrgs.run({studentPartnerOrgId: (org as string), sponsorOrgId: (sponsorOrgIds['pfed'] as string)}, pgClient)
-  })
+  }
 }
