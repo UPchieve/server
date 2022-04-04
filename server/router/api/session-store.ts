@@ -2,14 +2,14 @@ import session from 'express-session'
 import CreateRedisStore from 'connect-redis'
 import config from '../../config'
 import { Express } from 'express'
-import Redis from 'ioredis'
+import { redisClient } from '../../services/RedisService'
 
 const RedisStore = CreateRedisStore(session)
 
 export const sessionStoreCollectionName = 'auth-sessions'
 
 export default function(app: Express) {
-  const store = new RedisStore({ client: new Redis(config.redisConnectionString) })
+  const store = new RedisStore({ client: redisClient })
   app.use(
     session({
       resave: false,
