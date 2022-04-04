@@ -57,7 +57,7 @@ export type UserContactInfo = {
   isAdmin: boolean
   volunteerPartnerOrg?: string
   studentPartnerOrg?: string
-  lastActivityAt: Date,
+  lastActivityAt?: Date,
   banned: boolean,
   deactivated: boolean,
   approved?: boolean
@@ -72,7 +72,7 @@ export async function getUserContactInfoById(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved'])
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved', 'lastActivityAt'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -88,7 +88,7 @@ export async function getUserContactInfoByReferralCode(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved'])
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved', 'lastActivityAt'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -124,7 +124,7 @@ export async function getUserContactInfoByResetToken(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved'])
+      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved', 'lastActivityAt'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -374,7 +374,7 @@ export async function getUserToCreateSendGridContact(userId: Ulid): Promise<User
   try {
     const result = await pgQueries.getUserToCreateSendGridContact.run({ userId }, getClient())
     if (!result.length) throw new RepoReadError('User not found')
-    return makeSomeRequired(result[0], ['studentPartnerOrg', 'volunteerPartnerOrg', 'studentPartnerOrgDisplay', 'volunteerPartnerOrgDisplay', 'passedUpchieve101'])
+    return makeSomeRequired(result[0], ['studentPartnerOrg', 'volunteerPartnerOrg', 'studentPartnerOrgDisplay', 'volunteerPartnerOrgDisplay', 'passedUpchieve101', 'lastActivityAt'])
   } catch (err) {
     throw new RepoReadError(err)
   }

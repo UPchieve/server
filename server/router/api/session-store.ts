@@ -12,8 +12,8 @@ export default function(app: Express) {
   const store = new RedisStore({ client: redisClient })
   app.use(
     session({
-      resave: true,
-      saveUninitialized: true,
+      resave: false,
+      saveUninitialized: false,
       secret: config.sessionSecret,
       store: store,
       cookie: {

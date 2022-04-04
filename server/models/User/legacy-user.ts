@@ -32,7 +32,7 @@ export type LegacyUserModel = {
   isFakeUser: boolean
   isDeactivated: boolean
   pastSessions: Ulid[]
-  lastActivityAt: Date
+  lastActivityAt?: Date
   referralCode: string
   referredBy?: Ulid
   type: string
@@ -129,9 +129,8 @@ export async function getLegacyUserObject(
       'isTestUser',
       'isBanned',
       'isDeactivated',
-      'lastActivityAt',
       'referralCode',
-      'type'
+      'type',
     ])
     // The frontend still expects ALL possible certification objects on the legacy user
     // So we get all quizzes and map their name to a fresh CertificationInfo object
@@ -150,10 +149,22 @@ export async function getLegacyUserObject(
     const volunteerUser: any = {}
     if (baseUser.isVolunteer) {
       // TODO: reuse client
+      if (!baseUser.subjects) baseUser.subjects = []
       volunteerUser.availability = await getAvailabilityForVolunteer(userId)
       volunteerUser.references = await getReferencesByVolunteer(userId)
-      console.log(`LEGACY REFERENCES: ${JSON.stringify(volunteerUser.references)}`)
       const trainingCourses = await getVolunteerTrainingCourses(userId)
+      if (!trainingCourses['upchieve101']) {
+        trainingCourses['upchieve101'] = {
+          userId: baseUser.id,
+          trainingCourse: 'upchieve101',
+          complete: false,
+          isComplete: false,
+          completedMaterials: [],
+          progress: 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      }
       volunteerUser.trainingCourses = trainingCourses
       volunteerUser.certifications = {
         ...legacyCertifications,

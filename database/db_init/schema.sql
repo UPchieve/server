@@ -1527,7 +1527,7 @@ CREATE TABLE upchieve.volunteer_partner_orgs (
 CREATE TABLE upchieve.volunteer_profiles (
     user_id uuid NOT NULL,
     volunteer_partner_org_id uuid,
-    timezone text NOT NULL,
+    timezone text,
     approved boolean DEFAULT false NOT NULL,
     onboarded boolean DEFAULT false NOT NULL,
     photo_id_s3_key text,

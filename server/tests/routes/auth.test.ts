@@ -8,7 +8,7 @@ import {
 } from '../../partnerManifests'
 import * as AuthRouter from '../../router/auth'
 import * as AuthService from '../../services/AuthService'
-import { buildUser } from '../pg-generate'
+import { buildUser, buildUserContactInfo } from '../pg-generate'
 import { mockApp, mockPassportMiddleware } from '../mock-app'
 
 jest.mock('../../services/AuthService')
@@ -29,7 +29,7 @@ const AUTH_ROUTE = '/auth'
 
 const app = mockApp()
 
-const mockGetUser = () => buildUser()
+const mockGetUser = () => buildUserContactInfo()
 const mockLogin = jest.fn()
 const mockLogout = jest.fn()
 const mockDestroy = jest.fn()
