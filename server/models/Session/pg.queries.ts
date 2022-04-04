@@ -1937,3 +1937,59 @@ const getSessionsForVolunteerHourSummaryIR: any = {"name":"getSessionsForVolunte
 export const getSessionsForVolunteerHourSummary = new PreparedQuery<IGetSessionsForVolunteerHourSummaryParams,IGetSessionsForVolunteerHourSummaryResult>(getSessionsForVolunteerHourSummaryIR);
 
 
+/** 'GetSessionHistory' parameters type */
+export interface IGetSessionHistoryParams {
+  limit: number;
+  minSessionLength: number;
+  offset: number;
+  studentId: string;
+}
+
+/** 'GetSessionHistory' return type */
+export interface IGetSessionHistoryResult {
+  createdAt: Date;
+  id: string;
+  studentFirstName: string;
+  studentId: string;
+  subject: string;
+  timeTutored: number | null;
+  topic: string;
+  volunteerFirstName: string;
+  volunteerId: string;
+}
+
+/** 'GetSessionHistory' query type */
+export interface IGetSessionHistoryQuery {
+  params: IGetSessionHistoryParams;
+  result: IGetSessionHistoryResult;
+}
+
+const getSessionHistoryIR: any = {"name":"getSessionHistory","params":[{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24456,"b":24472,"line":899,"col":31}]}},{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24498,"b":24507,"line":900,"col":19}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24517,"b":24522,"line":901,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24539,"b":24545,"line":901,"col":30}]}}],"usedParamSet":{"minSessionLength":true,"studentId":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    sessions.time_tutored::int AS time_tutored,\n    subjects.name AS subject,\n    topics.name AS topic,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.id AS volunteer_id,\n    students.id AS student_id,\n    students.first_name AS student_first_name\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id\n    LEFT JOIN users students ON students.id = sessions.student_id\nWHERE sessions.time_tutored > :minSessionLength!::int\nAND students.id = :studentId!\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":23835,"b":24551,"line":883,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     sessions.created_at AS created_at,
+ *     sessions.time_tutored::int AS time_tutored,
+ *     subjects.name AS subject,
+ *     topics.name AS topic,
+ *     volunteers.first_name AS volunteer_first_name,
+ *     volunteers.id AS volunteer_id,
+ *     students.id AS student_id,
+ *     students.first_name AS student_first_name
+ * FROM
+ *     sessions
+ *     JOIN subjects ON subjects.id = sessions.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ *     LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id
+ *     LEFT JOIN users students ON students.id = sessions.student_id
+ * WHERE sessions.time_tutored > :minSessionLength!::int
+ * AND students.id = :studentId!
+ * LIMIT (:limit!)::int OFFSET (:offset!)::int
+ * ```
+ */
+export const getSessionHistory = new PreparedQuery<IGetSessionHistoryParams,IGetSessionHistoryResult>(getSessionHistoryIR);
+
+

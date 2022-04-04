@@ -879,3 +879,25 @@ WHERE
     AND sessions.volunteer_id = :volunteerId!
     AND users.test_user = FALSE;
 
+/* @name getSessionHistory */
+SELECT
+    sessions.id,
+    sessions.created_at AS created_at,
+    sessions.time_tutored::int AS time_tutored,
+    subjects.name AS subject,
+    topics.name AS topic,
+    volunteers.first_name AS volunteer_first_name,
+    volunteers.id AS volunteer_id,
+    students.id AS student_id,
+    students.first_name AS student_first_name
+FROM
+    sessions
+    JOIN subjects ON subjects.id = sessions.subject_id
+    JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id
+    LEFT JOIN users students ON students.id = sessions.student_id
+WHERE sessions.time_tutored > :minSessionLength!::int
+AND students.id = :studentId!
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
+
+
