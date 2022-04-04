@@ -21,6 +21,8 @@ export function buildClient(): Pool {
 
 const client = buildClient()
 
+client.on('error', (err) => console.error(`PG ERROR: ${err}`))
+
 try {
   client.connect().then(v => v.release())
 } catch (err) {

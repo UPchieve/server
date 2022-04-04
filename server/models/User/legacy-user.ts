@@ -148,11 +148,10 @@ export async function getLegacyUserObject(
     }, {})
     const volunteerUser: any = {}
     if (baseUser.isVolunteer) {
-      // TODO: reuse client
       if (!baseUser.subjects) baseUser.subjects = []
-      volunteerUser.availability = await getAvailabilityForVolunteer(userId)
-      volunteerUser.references = await getReferencesByVolunteer(userId)
-      const trainingCourses = await getVolunteerTrainingCourses(userId)
+      volunteerUser.availability = await getAvailabilityForVolunteer(userId, client)
+      volunteerUser.references = await getReferencesByVolunteer(userId, client)
+      const trainingCourses = await getVolunteerTrainingCourses(userId, client)
       if (!trainingCourses['upchieve101']) {
         trainingCourses['upchieve101'] = {
           userId: baseUser.id,
@@ -173,7 +172,7 @@ export async function getLegacyUserObject(
           tries: 1,
           lastAttemptedAt: trainingCourses['upchieve101'].updatedAt
         },
-        ...(await getCertificationsForVolunteers([userId]))[userId]
+        ...(await getCertificationsForVolunteers([userId], client))[userId]
       }
     }
     const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser)
@@ -181,5 +180,7 @@ export async function getLegacyUserObject(
     return final as LegacyUserModel
   } catch (err) {
     throw new RepoReadError(err)
+  } finally {
+    client.release()
   }
 }

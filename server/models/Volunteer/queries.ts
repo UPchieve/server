@@ -14,7 +14,7 @@ import { Certifications, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS } from '../../constants'
-import { PoolClient } from 'pg'
+import { Pool, PoolClient } from 'pg'
 import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
 
@@ -148,12 +148,13 @@ export type VolunteerTypeMap<T> = {
 }
 export type VolunteerCertMap = VolunteerTypeMap<Certifications>
 export async function getCertificationsForVolunteers(
-  userIds: Ulid[]
+  userIds: Ulid[], poolClient?: PoolClient
 ): Promise<VolunteerCertMap> {
+  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getCertificationsForVolunteers.run(
       { userIds },
-      getClient()
+      client
     )
     const rows = result.map(v => makeRequired(v))
     const rowsByUser = _.groupBy(rows, v => v.userId)
@@ -607,12 +608,13 @@ export type TrainingCourse = {
 }
 type VolunteerTrainingCourses = { [key: string]: TrainingCourse }
 export async function getVolunteerTrainingCourses(
-  userId: Ulid
+  userId: Ulid, poolClient?: PoolClient
 ): Promise<VolunteerTrainingCourses> {
+  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getVolunteerTrainingCourses.run(
       { userId },
-      getClient()
+      client
     )
     const map: VolunteerTrainingCourses = {}
     for (const row of result) {
