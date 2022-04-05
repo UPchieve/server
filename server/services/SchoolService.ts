@@ -50,15 +50,15 @@ export async function getSchool(
 }
 
 interface GetSchoolsPayload {
-  name: string
-  state: string
-  city: string
+  name?: string
+  state?: string
+  city?: string
   page?: number
 }
 const asGetSchoolsPayload = asFactory<GetSchoolsPayload>({
-  name: asString,
-  state: asString,
-  city: asString,
+  name: asOptional(asString),
+  state: asOptional(asString),
+  city: asOptional(asString),
   page: asOptional(asNumber),
 })
 // TODO: clean up return type
@@ -70,7 +70,7 @@ export async function getSchools(data: unknown) {
 
   try {
     const schools = await SchoolRepo.getSchools({
-      name, state, city, page
+      name, state, city, pag
     } as GetSchoolsPayload, PER_PAGE, skip)
 
     const isLastPage = schools.length < PER_PAGE
