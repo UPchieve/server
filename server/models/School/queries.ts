@@ -50,9 +50,9 @@ export async function getSchools(
     const { name, state, city } = data
     const result = await pgQueries.getSchools.run(
       {
-        name: name || null,
-        state: state || null,
-        city: city || null,
+        name: name,
+        state: state,
+        city: city,
         limit: limit, offset: offset },
       getClient()
     )

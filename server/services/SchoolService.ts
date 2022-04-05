@@ -70,7 +70,7 @@ export async function getSchools(data: unknown) {
 
   try {
     const schools = await SchoolRepo.getSchools({
-      name, state, city, pag
+      name, state, city, page
     } as GetSchoolsPayload, PER_PAGE, skip)
 
     const isLastPage = schools.length < PER_PAGE
