@@ -1,5 +1,5 @@
 import { Express, Router } from 'express'
-import { RedisStore } from 'connect-redis'
+import { PGStore } from 'connect-pg-simple'
 import expressWs from 'express-ws'
 import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
@@ -23,7 +23,7 @@ import { routeStudents } from './students'
 
 export function routes(
   app: Express,
-  sessionStore: RedisStore,
+  sessionStore: PGStore,
   io: Server
 ): void {
   const router: expressWs.Router = Router()
