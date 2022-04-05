@@ -8,3 +8,8 @@ GRANT usage ON SCHEMA upchieve TO subway;
 
 ALTER ROLE subway SET search_path = upchieve;
 
+GRANT ALL privileges ON ALL tables IN SCHEMA auth TO subway;
+
+GRANT ALL privileges ON ALL sequences IN SCHEMA auth TO subway;
+
+GRANT usage ON SCHEMA auth TO subway;

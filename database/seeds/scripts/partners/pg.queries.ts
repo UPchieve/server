@@ -1,6 +1,8 @@
 /** Types generated for queries found in "database/seeds/scripts/partners/partners.sql" */
 import { PreparedQuery } from '@pgtyped/query';
 
+export type stringArray = (string)[];
+
 /** 'InsertVolunteerPartnerOrg' parameters type */
 export interface IInsertVolunteerPartnerOrgParams {
   id: string;
@@ -322,5 +324,71 @@ const getSponsorOrgsIR: any = {"name":"getSponsorOrgs","params":[],"usedParamSet
  * ```
  */
 export const getSponsorOrgs = new PreparedQuery<IGetSponsorOrgsParams,IGetSponsorOrgsResult>(getSponsorOrgsIR);
+
+
+/** 'InsertAdminUser' parameters type */
+export interface IInsertAdminUserParams {
+  mongoIds: stringArray;
+}
+
+/** 'InsertAdminUser' return type */
+export interface IInsertAdminUserResult {
+  ok: string;
+}
+
+/** 'InsertAdminUser' query type */
+export interface IInsertAdminUserQuery {
+  params: IInsertAdminUserParams;
+  result: IInsertAdminUserResult;
+}
+
+const insertAdminUserIR: any = {"name":"insertAdminUser","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2526,"b":2534,"line":46,"col":22}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"INSERT INTO admin_profiles (user_id, created_at, updated_at)\nSELECT\n  users.id,\n  NOW(),\n  NOW()\nFROM users\nWHERE mongo_id = ANY(:mongoIds!)\nRETURNING user_id AS ok","loc":{"a":2396,"b":2559,"line":40,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO admin_profiles (user_id, created_at, updated_at)
+ * SELECT
+ *   users.id,
+ *   NOW(),
+ *   NOW()
+ * FROM users
+ * WHERE mongo_id = ANY(:mongoIds!)
+ * RETURNING user_id AS ok
+ * ```
+ */
+export const insertAdminUser = new PreparedQuery<IInsertAdminUserParams,IInsertAdminUserResult>(insertAdminUserIR);
+
+
+/** 'UpdateSchoolPartner' parameters type */
+export interface IUpdateSchoolPartnerParams {
+  mongoIds: stringArray;
+}
+
+/** 'UpdateSchoolPartner' return type */
+export interface IUpdateSchoolPartnerResult {
+  ok: string | null;
+}
+
+/** 'UpdateSchoolPartner' query type */
+export interface IUpdateSchoolPartnerQuery {
+  params: IUpdateSchoolPartnerParams;
+  result: IUpdateSchoolPartnerResult;
+}
+
+const updateSchoolPartnerIR: any = {"name":"updateSchoolPartner","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2655,"b":2663,"line":54,"col":18}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"UPDATE schools\nSET\n  partner = TRUE\nWHERE\n  mongo_id = ANY(:mongoIds!)\nRETURNING mongo_id AS ok","loc":{"a":2595,"b":2689,"line":50,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE schools
+ * SET
+ *   partner = TRUE
+ * WHERE
+ *   mongo_id = ANY(:mongoIds!)
+ * RETURNING mongo_id AS ok
+ * ```
+ */
+export const updateSchoolPartner = new PreparedQuery<IUpdateSchoolPartnerParams,IUpdateSchoolPartnerResult>(updateSchoolPartnerIR);
 
 

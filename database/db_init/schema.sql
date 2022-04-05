@@ -10,6 +10,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: auth; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA auth;
+
+
+--
 -- Name: migration; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -66,6 +73,36 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
+-- Name: generate_ulid(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.generate_ulid() RETURNS uuid
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
+
+  unix_time  BIGINT;
+  ulid       BYTEA;
+BEGIN
+  -- 6 timestamp bytes
+  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
+  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
+
+  -- 10 entropy bytes
+  ulid = timestamp || public.gen_random_bytes(10);
+
+  RETURN CAST( substring(CAST (ulid AS text) from 3) AS uuid);
+END
+$$;
+
+
+--
 -- Name: generate_ulid(); Type: FUNCTION; Schema: upchieve; Owner: -
 --
 
@@ -98,6 +135,17 @@ $$;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: session; Type: TABLE; Schema: auth; Owner: -
+--
+
+CREATE TABLE auth.session (
+    sid character varying NOT NULL,
+    sess json NOT NULL,
+    expire timestamp(6) without time zone NOT NULL
+);
+
 
 --
 -- Name: assistmentsdatas; Type: TABLE; Schema: migration; Owner: -
@@ -189,6 +237,21 @@ CREATE TABLE migration.feedbacks (
 
 
 --
+-- Name: formatted_sessions; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.formatted_sessions (
+    id uuid,
+    session_id text,
+    mongo_id text,
+    sender_id text,
+    contents text,
+    created_at text,
+    updated_at text
+);
+
+
+--
 -- Name: ineligiblestudents; Type: TABLE; Schema: migration; Owner: -
 --
 
@@ -221,6 +284,69 @@ CREATE TABLE migration.ipaddresses (
 
 
 --
+-- Name: mappings; Type: VIEW; Schema: migration; Owner: -
+--
+
+CREATE VIEW migration.mappings AS
+ SELECT 'school_nces_metadata'::text AS table_name,
+    'schools'::text AS collection
+UNION
+ SELECT 'availabilities'::text AS table_name,
+    'availabilitysnapshots'::text AS collection
+UNION
+ SELECT 'users_subject_metadata'::text AS table_name,
+    'users'::text AS collection
+UNION
+ SELECT 'users_roles'::text AS table_name,
+    'users'::text AS collection
+UNION
+ SELECT 'ineligible_students'::text AS table_name,
+    'ineligiblestudents'::text AS collection
+UNION
+ SELECT 'quiz_questions'::text AS table_name,
+    'question'::text AS collection
+UNION
+ SELECT 'pre_session_surveys'::text AS table_name,
+    'surveys'::text AS collection
+UNION
+ SELECT 'user_actions'::text AS table_name,
+    'useractions'::text AS collection
+UNION
+ SELECT 'user_product_flags'::text AS table_name,
+    'userproductflags'::text AS collection
+UNION
+ SELECT 'user_session_metrics'::text AS table_name,
+    'usersessionmetrics'::text AS collection
+UNION
+ SELECT 'legacy_availability_histories'::text AS table_name,
+    'availabilityhistories'::text AS collection
+UNION
+ SELECT 'assistments_data'::text AS table_name,
+    'assistmentsdatas'::text AS collection
+UNION
+ SELECT 'push_tokens'::text AS table_name,
+    'pushtokens'::text AS collection
+UNION
+ SELECT 'contact_form_submissions'::text AS table_name,
+    'contactformsubmissions'::text AS collection;
+
+
+--
+-- Name: mongo_details; Type: TABLE; Schema: migration; Owner: -
+--
+
+CREATE TABLE migration.mongo_details (
+    sl integer,
+    collection character varying(35),
+    keys character varying(26),
+    datatype character varying(13),
+    totalcount integer,
+    nullcount integer,
+    nullpercent real
+);
+
+
+--
 -- Name: notifications; Type: TABLE; Schema: migration; Owner: -
 --
 
@@ -237,6 +363,80 @@ CREATE TABLE migration.notifications (
     prioritygroup text,
     sessionid json
 );
+
+
+--
+-- Name: prod_migration_status; Type: VIEW; Schema: migration; Owner: -
+--
+
+CREATE VIEW migration.prod_migration_status AS
+ SELECT mc.table_schema AS migration_schema,
+    pg.table_schema AS pg_schema,
+    md.collection,
+    pg.table_name AS pg_table_name,
+    md.totalcount AS mongodb_count,
+    mc.row_count AS migration_count,
+    pg.row_count AS pg_count,
+    round(COALESCE((((mc.row_count)::numeric * 100.00) / (md.totalcount)::numeric), ('-1'::integer)::numeric), 2) AS stage1_pct,
+    round((((pg.row_count)::numeric * 100.00) / (mc.row_count)::numeric), 2) AS stage2_pct
+   FROM ((( SELECT DISTINCT mongo_details.collection,
+            mongo_details.totalcount
+           FROM migration.mongo_details) md
+     FULL JOIN ( SELECT tc.table_schema,
+            tc.table_name,
+            (((xpath('/row/cnt/text()'::text, tc.xml_count))[1])::text)::integer AS row_count
+           FROM ( SELECT tables.table_name,
+                    tables.table_schema,
+                    query_to_xml(format('select count(*) as cnt from %I.%I'::text, tables.table_schema, tables.table_name), false, true, ''::text) AS xml_count
+                   FROM information_schema.tables
+                  WHERE (((tables.table_schema)::name = 'migration'::name) AND ((tables.table_name)::name <> 'usersessionmetrics_counters'::name) AND ((tables.table_name)::name <> ALL (ARRAY['prod_migration_status'::name, 'demo_migration_status'::name])))) tc
+        UNION
+         SELECT 'migration'::name,
+            custom_tc.table_name,
+            (((xpath('/row/cnt/text()'::text, custom_tc.xml_count))[1])::text)::integer AS row_count
+           FROM ( SELECT 'session_reports'::text AS table_name,
+                    query_to_xml('select count(*) as cnt from migration.sessions where reportreason is not null'::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'student_profiles'::text AS table_name,
+                    query_to_xml('select count(*) as cnt from migration.users where isVolunteer = ''false'' '::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'volunteer_profiles'::text,
+                    query_to_xml('select count(*) as cnt from migration.users where isVolunteer = ''true'' '::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'volunteer_references'::text,
+                    query_to_xml('select count(*) as cnt from (select json_array_elements_text("references") from migration.users) a'::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'session_messages'::text,
+                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(messages) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'session_photos'::text,
+                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(photos) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'session_failed_joins'::text,
+                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(failedjoins) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'sessions_session_flags'::text,
+                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(flags) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'session_review_reasons'::text,
+                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(reviewReasons) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'volunteer_occupations'::text,
+                    query_to_xml('select count(*) as cnt from (select json_array_elements_text("occupation") from migration.users) a'::text, false, true, ''::text) AS xml_count
+                UNION ALL
+                 SELECT 'users_ip_addresses'::text,
+                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(users) from migration.ipaddresses) a'::text, false, true, ''::text) AS xml_count) custom_tc) mc ON ((mc.table_name = (md.collection)::text)))
+     FULL JOIN ( SELECT tc.table_schema,
+            tc.table_name,
+            COALESCE(mm.collection, (tc.table_name)::text) AS mapped_table_name,
+            (((xpath('/row/cnt/text()'::text, tc.xml_count))[1])::text)::integer AS row_count
+           FROM (( SELECT tables.table_name,
+                    tables.table_schema,
+                    query_to_xml(format('select count(*) as cnt from %I.%I'::text, tables.table_schema, tables.table_name), false, true, ''::text) AS xml_count
+                   FROM information_schema.tables
+                  WHERE ((tables.table_schema)::name = 'main'::name)) tc
+             LEFT JOIN migration.mappings mm ON ((mm.table_name = (tc.table_name)::name)))) pg ON ((pg.mapped_table_name = mc.table_name)))
+  ORDER BY (round(COALESCE((((pg.row_count)::numeric * 100.00) / (mc.row_count)::numeric), ('-1'::integer)::numeric), 2)) DESC, (round(COALESCE((((mc.row_count)::numeric * 100.00) / (md.totalcount)::numeric), ('-1'::integer)::numeric), 2)) DESC, md.totalcount DESC, mc.row_count DESC, pg.row_count DESC;
 
 
 --
@@ -2306,6 +2506,14 @@ ALTER TABLE ONLY upchieve.weekdays ALTER COLUMN id SET DEFAULT nextval('upchieve
 
 
 --
+-- Name: session session_pkey; Type: CONSTRAINT; Schema: auth; Owner: -
+--
+
+ALTER TABLE ONLY auth.session
+    ADD CONSTRAINT session_pkey PRIMARY KEY (sid);
+
+
+--
 -- Name: assistmentsdatas assistmentsdatas_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
 --
 
@@ -3378,6 +3586,13 @@ ALTER TABLE ONLY upchieve.weekdays
 
 
 --
+-- Name: IDX_session_expire; Type: INDEX; Schema: auth; Owner: -
+--
+
+CREATE INDEX "IDX_session_expire" ON auth.session USING btree (expire);
+
+
+--
 -- Name: school_name_search; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4146,6 +4361,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 
 INSERT INTO public.schema_migrations (version) VALUES
+    ('200220405152437'),
     ('20211026204222'),
     ('20211026204728'),
     ('20211026205335'),

@@ -35,3 +35,21 @@ FROM student_partner_orgs;
 SELECT
   id, key
 FROM sponsor_orgs;
+
+/* @name insertAdminUser */
+INSERT INTO admin_profiles (user_id, created_at, updated_at)
+SELECT
+  users.id,
+  NOW(),
+  NOW()
+FROM users
+WHERE mongo_id = ANY(:mongoIds!)
+RETURNING user_id AS ok;
+
+/* @name updateSchoolPartner */
+UPDATE schools
+SET
+  partner = TRUE
+WHERE
+  mongo_id = ANY(:mongoIds!)
+RETURNING mongo_id AS ok;
