@@ -110,8 +110,6 @@ export default {
     return {
       coaches: [],
       page: 1,
-      isLastPage: true,
-      hasNext: false,
       total: 0,
     }
   },
@@ -139,13 +137,15 @@ export default {
       const totalPages = Math.ceil(this.total / coachLimitPerPage)
       return totalPages === 0 ? 1 : totalPages
     },
+    isLastPage(){
+      return this.page === this.totalPages
+    }
   },
   methods: {
     async getFavoriteCoaches(page) {
       if (page < 1 || page > this.totalPages) return
       const response = await NetworkService.getFavoriteVolunteers(page)
       this.coaches = response.data.favoriteVolunteers
-      this.isLastPage = response.data.isLastPage
       this.page = page
     },
     async getTotalFavoriteCoaches() {
