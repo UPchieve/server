@@ -115,7 +115,7 @@ export default {
     },
     downtimeMessage() {
       if (this.isDowntimeBannerActive) {
-        return 'UPchieve will be down for maintenance 8 AM to 2:30 PM ET on Monday, April 4.'
+        return 'UPchieve will be down for maintenance 7:30 AM to 2:30 PM ET on Tuesday, April 12.'
       } else {
         return ''
       }
