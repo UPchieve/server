@@ -1,0 +1,68 @@
+import { wrapInsert, NameToId, getDbUlid } from '../utils'
+import * as pgQueries from './pg.queries'
+
+export async function students(spoIds: NameToId, schoolIds: NameToId) {
+  const student1 = getDbUlid()
+  const student2 = getDbUlid()
+  const student3 = getDbUlid()
+
+  const users = [
+    {
+      id: student1,
+      email: 'student1@upchieve.org',
+      password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
+      firstName: 'Student',
+      lastName: 'UPchieve',
+      referralCode: 'A',
+      verified: true,
+    },
+    {
+      id: student2,
+      email: 'student2@upchieve.org',
+      password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
+      firstName: 'Student',
+      lastName: 'UPchieve',
+      referralCode: 'F',
+      verified: true,
+    },
+    {
+      id: student3,
+      email: 'student3@upchieve.org',
+      password: '$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y',
+      firstName: 'Student',
+      lastName: 'UPchieve',
+      referralCode: 'G',
+      verified: true,
+      test_user: true,
+    },
+  ]
+
+  const userMap: NameToId = {}
+  for (const user of users) {
+    userMap[user.id] = await wrapInsert('users', pgQueries.insertStudentUser.run, { ...user })
+  }
+
+  const profiles = [
+    {
+      userId: userMap[student1] as string,
+      studentPartnerOrgId: undefined,
+      schoolId: schoolIds['Legacy Signup High School'] as string 
+    },
+    {
+      userId: userMap[student2] as string,
+      studentPartnerOrgId: undefined,
+      schoolId: schoolIds['Legacy Signup High School'] as string
+    },
+    {
+      userId: userMap[student3] as string,
+      studentPartnerOrgId: spoIds['Placeholder 3'] as string,
+      schoolId: undefined
+    },
+  ]
+
+  for (const profile of profiles) {
+    await wrapInsert('student_profiles', pgQueries.insertStudentProfile.run, {
+      ...profile,
+    })
+  }
+}
