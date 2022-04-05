@@ -1,5 +1,5 @@
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { School } from './types'
+import { AdminSchool, School } from './types'
 import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
@@ -45,7 +45,7 @@ export async function getSchools(
   data: GetSchoolsPayload,
   limit: number,
   offset: number
-): Promise<School[]> {
+): Promise<AdminSchool[]> {
   try {
     const { name, state, city } = data
     const result = await pgQueries.getSchools.run(
