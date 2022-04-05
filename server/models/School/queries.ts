@@ -50,12 +50,15 @@ export async function getSchools(
     const { name, state, city } = data
     const result = await pgQueries.getSchools.run(
       {
-        name: name,
-        state: state,
-        city: city,
-        limit: limit, offset: offset },
+        name: name || null,
+        state: state || null,
+        city: city || null,
+        limit: limit,
+        offset: offset },
       getClient()
     )
+    const schools = result.map(v => makeRequired(v))
+
     return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)

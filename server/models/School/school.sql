@@ -64,13 +64,16 @@ FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
-WHERE (schools.name ILIKE :name
-    OR meta.sch_name ILIKE :name)
-OR (meta.st ILIKE :state
+WHERE (:name::text is null OR
+    schools.name ILIKE '%' || :name || '%'
+    OR meta.sch_name ILIKE '%' || :name || '%')
+AND (:state::text is null OR
+    meta.st ILIKE :state
     OR cities.us_state_code ILIKE :state)
-OR (meta.mcity ILIKE :city
-    OR meta.lcity ILIKE :city
-    OR cities.name ILIKE :city)
+AND (:city::text is null OR
+    meta.mcity ILIKE '%' || :city || '%'
+    OR meta.lcity ILIKE '%' || :city || '%'
+    OR cities.name ILIKE '%' || :city || '%')
 LIMIT :limit!::int OFFSET :offset!::int;
 
 
