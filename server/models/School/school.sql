@@ -152,6 +152,6 @@ FROM
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
     LEFT JOIN cities ON schools.city_id = cities.id
 WHERE
-    schools.name LIKE '%' || :query! || '%'
+    schools.name ILIKE '%' || :query! || '%'
 LIMIT 100;
 

@@ -1,6 +1,6 @@
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { School } from './types'
-import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
 import * as geoQueries from '../Geography/pg.queries'
@@ -177,11 +177,11 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
   }
 }
 
-export async function schoolSearch(query: any): Promise<School[] | undefined> {
+export async function schoolSearch(query: string): Promise<School[] | undefined> {
   try{
     const results = await pgQueries.schoolSearch.run({ query }, getClient())
-    if(results.length)
-      return results.map(v => makeRequired(v))
+    if (results.length)
+      return results.map(v => makeSomeRequired(v, ['districtNameStored']))
   } catch (err) {
     throw new RepoReadError(err)
   }
