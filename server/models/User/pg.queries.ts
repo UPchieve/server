@@ -932,7 +932,7 @@ export interface IGetLegacyUserResult {
   referredBy: string | null;
   studentPartnerOrg: string;
   subjects: stringArray | null;
-  timezone: string;
+  timezone: string | null;
   type: string | null;
   verified: boolean;
   volunteerPartnerOrg: string;

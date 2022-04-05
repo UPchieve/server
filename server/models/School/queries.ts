@@ -76,7 +76,7 @@ export async function createSchool(
 
     // we need to find the city's id, or if it doesn't exist, create it
     const upsertCityResult = await geoQueries.upsertCity.run(
-      { name: data.city },
+      { name: data.city, state: data.state },
       client
     )
     const cityId = makeRequired(upsertCityResult[0]).id
@@ -87,14 +87,16 @@ export async function createSchool(
         id: getDbUlid(),
         isApproved: data.isApproved,
         name: data.name,
-        state: data.state,
       },
       client
     )
     if (result.length) {
       const school = makeRequired(result[0])
       await client.query('COMMIT')
-      return school
+      return {
+        ...school,
+        stateStored: data.state
+      }
     } else {
       throw new Error('inserting new school did not return a result')
     }
@@ -140,11 +142,11 @@ export async function updateIsPartner(
 
 export type AdminUpdate = {
   schoolId: Ulid
-  name?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  isApproved?: boolean
+  name: string
+  city: string
+  state: string
+  zipCode: string
+  isApproved: boolean
 }
 
 export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
@@ -158,12 +160,12 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
     // we need to find the city's id, or if it doesn't exist, create it
     let cityId: number | undefined
     if (city) {
-      const result = await geoQueries.upsertCity.run({ name: city }, client)
+      const result = await geoQueries.upsertCity.run({ name: city, state }, client)
       cityId = makeRequired(result[0]).id
     }
 
     await pgQueries.adminUpdateSchool.run(
-      { schoolId, name, state, cityId, isApproved },
+      { schoolId, name, cityId, isApproved },
       client
     )
     await client.query('COMMIT')

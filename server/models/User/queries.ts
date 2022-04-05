@@ -147,8 +147,8 @@ export async function countUsersReferredByOtherId(
 }
 
 export async function updateUserResetTokenById(
-  token: string,
-  userId: Ulid
+  userId: Ulid,
+  token: string
 ): Promise<void> {
   try {
     const result = await pgQueries.updateUserResetTokenById.run(
@@ -158,7 +158,6 @@ export async function updateUserResetTokenById(
     if (result.length && result[0].id) return
     throw new RepoUpdateError('Update query did not return updated id')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -175,7 +174,6 @@ export async function updateUserPasswordById(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -193,7 +191,6 @@ export async function insertUserIpById(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Insert query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -217,7 +214,6 @@ export async function updateUserVerifiedInfoById(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -234,7 +230,6 @@ export async function updateUserLastActivityById(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -248,7 +243,6 @@ export async function banUserById(userId: Ulid, banReason: USER_BAN_REASONS) {
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }

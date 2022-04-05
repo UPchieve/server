@@ -16,8 +16,8 @@ export interface IInsertContactFormSubmissionByUserResult {
   message: string;
   topic: string;
   updatedAt: Date;
-  userEmail: string | null;
-  userId: string;
+  userEmail: string;
+  userId: string | null;
 }
 
 /** 'InsertContactFormSubmissionByUser' query type */
@@ -72,8 +72,8 @@ export interface IInsertContactFormSubmissionByEmailResult {
   message: string;
   topic: string;
   updatedAt: Date;
-  userEmail: string | null;
-  userId: string;
+  userEmail: string;
+  userId: string | null;
 }
 
 /** 'InsertContactFormSubmissionByEmail' query type */

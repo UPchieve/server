@@ -46,7 +46,7 @@ SELECT
     ip_addresses.ip AS ip_address,
     school_id,
     schools.name AS school_name,
-    schools.us_state_code AS school_state,
+    cities.us_state_code AS school_state,
     cities.name AS school_city,
     postal_code AS school_zip_code,
     schools.approved AS is_approved,

@@ -8,7 +8,7 @@ export type IGetSponsorOrgsParams = void;
 
 /** 'GetSponsorOrgs' return type */
 export interface IGetSponsorOrgsResult {
-  key: string | null;
+  key: string;
   name: string | null;
   schoolIds: stringArray | null;
   studentPartnerOrgIds: stringArray | null;
@@ -51,7 +51,7 @@ export interface IGetSponsorOrgsByKeyParams {
 
 /** 'GetSponsorOrgsByKey' return type */
 export interface IGetSponsorOrgsByKeyResult {
-  key: string | null;
+  key: string;
   name: string | null;
   schoolIds: stringArray | null;
   studentPartnerOrgIds: stringArray | null;

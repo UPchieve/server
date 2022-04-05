@@ -10,6 +10,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: auth; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA auth;
+
+
+--
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -91,6 +98,17 @@ $$;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: session; Type: TABLE; Schema: auth; Owner: -
+--
+
+CREATE TABLE auth.session (
+    sid character varying NOT NULL,
+    sess json NOT NULL,
+    expire timestamp(6) without time zone NOT NULL
+);
+
 
 --
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
@@ -1799,6 +1817,14 @@ ALTER TABLE ONLY upchieve.weekdays ALTER COLUMN id SET DEFAULT nextval('upchieve
 
 
 --
+-- Name: session session_pkey; Type: CONSTRAINT; Schema: auth; Owner: -
+--
+
+ALTER TABLE ONLY auth.session
+    ADD CONSTRAINT session_pkey PRIMARY KEY (sid);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2727,6 +2753,13 @@ ALTER TABLE ONLY upchieve.weekdays
 
 
 --
+-- Name: IDX_session_expire; Type: INDEX; Schema: auth; Owner: -
+--
+
+CREATE INDEX "IDX_session_expire" ON auth.session USING btree (expire);
+
+
+--
 -- Name: availability_histories_user_id_recorded_at; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -3622,4 +3655,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220401143650'),
     ('20220401143754'),
     ('20220401143804'),
-    ('20220401143810');
+    ('20220401143810'),
+    ('20220405152437');

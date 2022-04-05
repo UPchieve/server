@@ -1,7 +1,6 @@
 import { randomBytes } from 'crypto'
 import validator from 'validator'
 
-import mongoose from 'mongoose'
 import {
   getUserForPassport,
   getUserContactInfoByResetToken,
@@ -36,12 +35,12 @@ import {
 } from '../utils/auth-utils'
 import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
-import { sessionStoreCollectionName } from '../router/api/session-store'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
 import { getIpWhoIs } from './IpAddressService'
 import * as MailService from './MailService'
 import { Ulid } from '../models/pgUtils'
+import * as AuthRepo from '../models/Auth'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -423,9 +422,7 @@ export async function confirmReset(data: unknown): Promise<void> {
 
 export async function deleteAllUserSessions(userId: string) {
   try {
-    await mongoose.connection.db
-      .collection(sessionStoreCollectionName)
-      .deleteMany({ $text: { $search: userId } })
+    await AuthRepo.deleteAuthSessionsByUserId(userId)
   } catch (err) {
     logger.error(
       `Unable to invalidate all user sessions on password reset: ${err}`

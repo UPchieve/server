@@ -2,7 +2,7 @@
 SELECT
     schools.id,
     schools.name AS name_stored,
-    schools.us_state_code AS state_stored,
+    cities.us_state_code AS state_stored,
     approved AS is_approved,
     partner AS is_partner,
     schools.created_at,
@@ -36,7 +36,7 @@ SELECT
     partner AS is_partner,
     meta.mzip AS zip_code,
     COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, schools.us_state_code) AS state_stored,
+    COALESCE(meta.st, cities.us_state_code) AS state_stored,
     COALESCE(meta.lcity, cities.name) AS city_name_stored,
     schools.id,
     schools.created_at,
@@ -55,7 +55,7 @@ SELECT
     partner AS is_partner,
     meta.mzip AS zip_code,
     COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, schools.us_state_code) AS state_stored,
+    COALESCE(meta.st, cities.us_state_code) AS state_stored,
     COALESCE(meta.lcity, cities.name) AS city_name_stored,
     schools.id,
     schools.created_at,
@@ -67,7 +67,7 @@ FROM
 WHERE (schools.name = :name!
     OR meta.sch_name = :name!)
 AND (meta.st = :state!
-    OR schools.us_state_code = :state!)
+    OR cities.us_state_code = :state!)
 AND (meta.mcity = :city!
     OR meta.lcity = :city!
     OR cities.name = :city!)
@@ -87,10 +87,10 @@ ON CONFLICT
 
 
 /* @name createSchool */
-INSERT INTO schools (id, name, approved, us_state_code, city_id, created_at, updated_at)
-    VALUES (:id!, :name!, :isApproved!, :state!, :cityId!, NOW(), NOW())
+INSERT INTO schools (id, name, approved, city_id, created_at, updated_at)
+    VALUES (:id!, :name!, :isApproved!, :cityId!, NOW(), NOW())
 RETURNING
-    id, approved AS is_approved, partner AS is_partner, name AS name_stored, updated_at, created_at, us_state_code AS state_stored;
+    id, approved AS is_approved, partner AS is_partner, name AS name_stored, updated_at, created_at;
 
 
 /* @name updateApproval */
@@ -119,7 +119,6 @@ UPDATE
 SET
     name = COALESCE(:name, schools.name),
     approved = COALESCE(:isApproved, schools.approved),
-    us_state_code = COALESCE(:state, schools.us_state_code),
     updated_at = NOW(),
     city_id = COALESCE(:cityId, schools.city_id)
 WHERE
@@ -141,7 +140,7 @@ WHERE
 SELECT
     schools.id,
     COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, schools.us_state_code) AS state_stored,
+    COALESCE(meta.st, cities.us_state_code) AS state_stored,
     COALESCE(meta.lcity, cities.name) AS city_name_stored,
     meta.lea_name AS district_name_stored,
     schools.created_at,

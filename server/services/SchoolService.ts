@@ -129,11 +129,11 @@ interface AdminUpdate {
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
   schoolId: asString,
-  name: asOptional(asString),
-  city: asOptional(asString),
-  state: asOptional(asString),
-  zipCode: asOptional(asString),
-  isApproved: asOptional(asBoolean),
+  name: asString,
+  city: asString,
+  state: asString,
+  zipCode: asString,
+  isApproved: asBoolean,
 })
 
 export async function adminUpdateSchool(data: unknown) {
@@ -149,5 +149,5 @@ export async function adminUpdateSchool(data: unknown) {
     schoolId
   }
 
-  return SchoolRepo.adminUpdateSchool(data as AdminUpdate)
+  return SchoolRepo.adminUpdateSchool(schoolData as AdminUpdate)
 }
