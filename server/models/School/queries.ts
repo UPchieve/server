@@ -1,6 +1,6 @@
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { School } from './types'
-import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
+import { AdminSchool, School } from './types'
+import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../pg'
 import * as geoQueries from '../Geography/pg.queries'
@@ -22,7 +22,7 @@ export async function findSchoolByUpchieveId(
   }
 }
 
-export async function getSchool(schoolId: Ulid): Promise<School | undefined> {
+export async function getSchool(schoolId: Ulid): Promise<AdminSchool | undefined> {
   try {
     const result = await pgQueries.getSchool.run({ schoolId }, getClient())
 
@@ -36,22 +36,28 @@ export async function getSchool(schoolId: Ulid): Promise<School | undefined> {
 }
 
 export type GetSchoolsPayload = {
-  name: string
-  state: string
-  city: string
+  name?: string
+  state?: string
+  city?: string
 }
 
 export async function getSchools(
   data: GetSchoolsPayload,
   limit: number,
   offset: number
-): Promise<School[]> {
+): Promise<AdminSchool[]> {
   try {
     const { name, state, city } = data
     const result = await pgQueries.getSchools.run(
-      { name, state, city, limit: limit, offset: offset },
+      {
+        name: name || null,
+        state: state || null,
+        city: city || null,
+        limit: limit,
+        offset: offset },
       getClient()
     )
+    const schools = result.map(v => makeRequired(v))
 
     return result.map(v => makeRequired(v))
   } catch (err) {
@@ -177,11 +183,11 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
   }
 }
 
-export async function schoolSearch(query: any): Promise<School[] | undefined> {
+export async function schoolSearch(query: string): Promise<School[] | undefined> {
   try{
     const results = await pgQueries.schoolSearch.run({ query }, getClient())
-    if(results.length)
-      return results.map(v => makeRequired(v))
+    if (results.length)
+      return results.map(v => makeSomeRequired(v, ['districtNameStored']))
   } catch (err) {
     throw new RepoReadError(err)
   }

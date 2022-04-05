@@ -35,9 +35,9 @@ SELECT
     approved AS is_approved,
     partner AS is_partner,
     meta.mzip AS zip_code,
-    COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, cities.us_state_code) AS state_stored,
-    COALESCE(meta.lcity, cities.name) AS city_name_stored,
+    COALESCE(meta.sch_name, schools.name) AS name,
+    COALESCE(meta.st, cities.us_state_code) AS state,
+    COALESCE(meta.lcity, cities.name) AS city,
     schools.id,
     schools.created_at,
     schools.updated_at
@@ -54,23 +54,26 @@ SELECT
     approved AS is_approved,
     partner AS is_partner,
     meta.mzip AS zip_code,
-    COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, cities.us_state_code) AS state_stored,
-    COALESCE(meta.lcity, cities.name) AS city_name_stored,
-    schools.id,
+    COALESCE(meta.sch_name, schools.name) AS name,
+    COALESCE(meta.st, cities.us_state_code) AS state,
+    COALESCE(meta.lcity, cities.name) AS city,
+    schools.id as id,
     schools.created_at,
     schools.updated_at
 FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
-WHERE (schools.name = :name!
-    OR meta.sch_name = :name!)
-AND (meta.st = :state!
-    OR cities.us_state_code = :state!)
-AND (meta.mcity = :city!
-    OR meta.lcity = :city!
-    OR cities.name = :city!)
+WHERE (:name::text is null OR
+    schools.name ILIKE '%' || :name || '%'
+    OR meta.sch_name ILIKE '%' || :name || '%')
+AND (:state::text is null OR
+    meta.st ILIKE :state
+    OR cities.us_state_code ILIKE :state)
+AND (:city::text is null OR
+    meta.mcity ILIKE '%' || :city || '%'
+    OR meta.lcity ILIKE '%' || :city || '%'
+    OR cities.name ILIKE '%' || :city || '%')
 LIMIT :limit!::int OFFSET :offset!::int;
 
 
@@ -152,6 +155,6 @@ FROM
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
     LEFT JOIN cities ON schools.city_id = cities.id
 WHERE
-    schools.name LIKE '%' || :query! || '%'
+    schools.name ILIKE '%' || :query! || '%'
 LIMIT 100;
 

@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="Staging DB" uuid="a9699fe3-a73e-4296-b35f-26f954a9a9a7">
-      <driver-ref>mongo</driver-ref>
+    <data-source source="LOCAL" name="Local Dev Postgres" uuid="7483a744-88c7-4611-a493-5b32c9a6b800">
+      <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
-      <jdbc-driver>com.dbschema.MongoJdbcDriver</jdbc-driver>
-      <jdbc-url>mongodb+srv://upchieve-dev-zlkok.azure.mongodb.net/upchieve-dev</jdbc-url>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://localhost:5432/upchieve</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="Staging" uuid="1e9db1ba-bf4d-461c-8e24-6318c1d542f9">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://subway-pg-upchieve-staging.aivencloud.com:15600/upchieve</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

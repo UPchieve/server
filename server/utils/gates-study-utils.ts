@@ -2,12 +2,12 @@ import { GRADES } from '../constants'
 import { getGatesStudentById } from '../models/Student/queries'
 import { getSchool } from '../services/SchoolService'
 import * as StudentRepo from '../models/Student'
-import { School } from '../models/School'
+import { AdminSchool } from '../models/School'
 import { Ulid } from '../models/pgUtils'
 
 export interface GatesQualifiedData {
   student: StudentRepo.GatesStudent
-  school: School
+  school: AdminSchool
 }
 
 /**
@@ -34,7 +34,7 @@ export async function prepareForGatesQualificationCheck(
   const student = await getGatesStudentById(userId)
   if (!student) throw new Error('Gates student not found')
   const school = await getSchool(student.approvedHighschool)
-  
+
   if (!school) throw new Error('Gates school not found')
   return {
     student,

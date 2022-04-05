@@ -13,16 +13,10 @@ function escapeRegex(str: string) {
   return str.replace(/[.*|\\+?{}()[^$]/g, c => '\\' + c)
 }
 
-// TODO: repo pattern - once we have stronger school type
-// search for schools by name or ID
-// TODO: duck type validation
-export async function search(query: any): Promise<any> {
-  // @note: Atlas Search is unavailable for local development. This is a
-  // fallback query to be able to search for schools in local development
-  // if (config.NODE_ENV === 'dev') {
-    const regex = new RegExp(escapeRegex(query), 'i')
-    const results = await SchoolRepo.schoolSearch(regex)
-   
+// search for schools by name
+export async function search(query: string): Promise<any> {
+    const results = await SchoolRepo.schoolSearch(query)
+
     if(results)
     return results
       .sort((s1: SchoolRepo.School , s2: SchoolRepo.School) => {
@@ -45,26 +39,28 @@ export async function search(query: any): Promise<any> {
 
 export async function getSchool(
   schoolId: Ulid
-): Promise<SchoolRepo.School | undefined> {
+): Promise<SchoolRepo.AdminSchool> {
   try {
     const school = await SchoolRepo.getSchool(schoolId)
 
-    if (school) return school
+    if (!school) throw new Error(`no school found with id ${schoolId}`)
+
+    return school
   } catch (error) {
     throw new Error((error as Error).message)
   }
 }
 
 interface GetSchoolsPayload {
-  name: string
-  state: string
-  city: string
+  name?: string
+  state?: string
+  city?: string
   page?: number
 }
 const asGetSchoolsPayload = asFactory<GetSchoolsPayload>({
-  name: asString,
-  state: asString,
-  city: asString,
+  name: asOptional(asString),
+  state: asOptional(asString),
+  city: asOptional(asString),
   page: asOptional(asNumber),
 })
 // TODO: clean up return type
@@ -78,9 +74,9 @@ export async function getSchools(data: unknown) {
     const schools = await SchoolRepo.getSchools({
       name, state, city, page
     } as GetSchoolsPayload, PER_PAGE, skip)
-    
+
     const isLastPage = schools.length < PER_PAGE
-    return { schools, isLastPage }
+    return { schools: schools.map(s => {return {...s, _id: s.id}}), isLastPage }
   } catch (error) {
     throw new Error((error as Error).message)
   }
