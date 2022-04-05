@@ -12,24 +12,28 @@
     <section class="favorite-coaches">
       <div class="spacing--grid coach-list__headers">
         <span>Favorite Coach</span>
-        <span>Total Session</span>
+        <span v-if="!mobileMode">Total Session</span>
         <span>Favorite</span>
       </div>
-      <ul class="coach-list">
+      <ul class="coach-list" v-if="total > 0">
         <li v-for="(coach, index) in coaches" :key="coach.volunteerId">
           <div class="spacing--grid coach-list__coach">
             <div class="coach-list__coach-name-container">
-              <coach-icon class="coach-icon" /><span
-                class="coach-list__coach-name"
-                >{{ coach.firstName }}</span
-              >
+              <coach-icon class="coach-icon" />
+              <span v-if="!mobileMode" class="coach-list__coach-name">{{
+                coach.firstName
+              }}</span>
+              <div v-else class="coach-list__coach-name-session">
+                <span class="coach-list__coach-name">{{
+                  coach.firstName
+                }}</span>
+                <span
+                  >{{ coach.numSessions }} {{getSessionsTextDisplay(coach.numSessions)}}</span>
+              </div>
             </div>
 
-            <span
-              >{{ coach.numSessions }} Session{{
-                coach.numSessions > 1 ? 's' : ''
-              }}</span
-            >
+            <span v-if="!mobileMode"
+              >{{ coach.numSessions }} {{getSessionsTextDisplay(coach.numSessions)}}</span>
             <favoriting-toggle
               :initialIsFavorite="true"
               :volunteerName="coach.firstName"
@@ -39,9 +43,19 @@
           <div class="border--thin" v-if="index !== 4"></div>
         </li>
       </ul>
+      <div v-else class="favorite-coaches__no-coaches">
+        <heart-icon class="heart-icon" />
+        <h2 class="secondary-header">You can now favorite a coach!</h2>
+        <p class="favorite-coaches__no-coaches-description">
+          Favoriting a coach will increase your chances of matching with them in
+          the future. To favorite a coach you really like, fill out the form
+          after your tutoring session or go to Session History on the navigation
+          bar to the left.
+        </p>
+      </div>
       <footer class="page-actions-container">
         <div class="border--thin"></div>
-        <div class="page-actions">
+        <div class="page-actions" v-if="total > 0">
           <div
             @click="() => getFavoriteCoaches(page - 1)"
             :class="isFirstPage && 'page-actions__stepper--disabled'"
@@ -82,6 +96,7 @@ import FavoritingToggle from '@/components/FavoritingToggle'
 import NetworkService from '@/services/NetworkService'
 import CaretIcon from '@/assets/caret.svg'
 import CoachIcon from '@/assets/volunteer-icon.svg'
+import HeartIcon from '@/assets/heart.svg'
 
 export default {
   name: 'profile-view',
@@ -89,6 +104,7 @@ export default {
     FavoritingToggle,
     CaretIcon,
     CoachIcon,
+    HeartIcon,
   },
   data() {
     return {
@@ -140,6 +156,9 @@ export default {
       if (this.page === page) return
       await this.getFavoriteCoaches(page)
     },
+    getSessionsTextDisplay(numSessions){
+      return numSessions > 1 ? 'Sessions' : 'Session'
+    }
   },
 }
 </script>
@@ -155,6 +174,10 @@ ul {
 .header {
   text-align: left;
   margin-bottom: 2em;
+}
+
+.secondary-header {
+  font-size: 1.4rem;
 }
 
 .title {
@@ -173,7 +196,7 @@ ul {
   margin: 0;
 
   @include breakpoint-above('large') {
-    padding: 2.5em 2.5em 0 2.5em;
+    padding: 2.5em;
   }
 }
 
@@ -201,11 +224,17 @@ ul {
     }
 
     &-name-container {
-      @include flex-container(column, center, center);
+      @include flex-container(row, center, center);
 
       @include breakpoint-above('medium') {
         flex-direction: row;
       }
+    }
+
+    &-name-session {
+      @include flex-container(column);
+      text-align: left;
+      margin-left: 1em;
     }
   }
 }
@@ -213,23 +242,33 @@ ul {
 .favorite-coaches {
   background-color: $upchieve-white;
   border-radius: 8px;
+  border: 1px solid $c-background-blue;
+
+  &__no-coaches {
+    @include flex-container(column, normal, center);
+    margin: 4em 2em 2em;
+    min-height: 60vh;
+
+    &-description {
+      max-width: 600px;
+      margin-top: 1em;
+      color: $c-secondary-grey;
+    }
+  }
 }
 
 .spacing--grid {
   @include flex-container(row, space-around, center);
   display: grid;
-  @include breakpoint-above('tiny') {
+  grid-template-columns: 1fr 1fr;
+  @include breakpoint-above('medium') {
     grid-template-columns: 1fr 1fr 1fr;
-  }
-
-  @include breakpoint-below('medium') {
-    flex-direction: column;
   }
 }
 
 .page-actions {
+  @include flex-container(row, space-around);
   padding: 1em 0;
-  display: flex;
 
   @include breakpoint-above('large') {
     justify-content: flex-end;
@@ -276,6 +315,10 @@ ul {
       margin-right: 1em;
       color: $c-disabled-grey;
 
+      &:hover {
+        cursor: default;
+      }
+
       & .caret path {
         fill: $c-disabled-grey;
       }
@@ -299,17 +342,21 @@ ul {
 
   &--active {
     color: $c-information-blue;
+
+    &:hover {
+      cursor: default;
+    }
   }
 }
 
 .caret {
   &--previous {
-    rotate: 90deg;
+    transform: rotate(90deg);
     margin-right: 0.4em;
   }
 
   &--next {
-    rotate: -90deg;
+    transform: rotate(-90deg);
     margin-left: 0.4em;
   }
 }
@@ -317,6 +364,16 @@ ul {
 .coach-icon {
   @include breakpoint-above('medium') {
     margin-right: 1em;
+  }
+}
+
+.heart-icon {
+  width: 40px;
+  height: 40px;
+  margin: 1em 0;
+
+  & path {
+    stroke: $c-secondary-grey;
   }
 }
 </style>
