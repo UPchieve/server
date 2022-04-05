@@ -4,7 +4,7 @@
 // TODO: types for passport
 const passportSocketIo = require('passport.socketio')
 import Sentry from '@sentry/node'
-import ConnectRedis from 'connect-redis'
+import { PGStore } from 'connect-pg-simple'
 import cookieParser from 'cookie-parser'
 import newrelic from 'newrelic'
 import { Server, Socket } from 'socket.io'
@@ -54,7 +54,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 // TODO: upgrade socketio and adapter so we can async this whole file
 export function routeSockets(
   io: Server,
-  sessionStore: ConnectRedis.RedisStore
+  sessionStore: PGStore
 ): void {
   const socketService = new SocketService(io)
 

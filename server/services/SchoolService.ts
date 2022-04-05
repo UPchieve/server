@@ -115,11 +115,11 @@ export async function createSchool(data: unknown) {
 
 interface AdminUpdate {
   schoolId: Ulid
-  name?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  isApproved?: boolean
+  name: string
+  city: string
+  state: string
+  zipCode: string
+  isApproved: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
   schoolId: asString,
