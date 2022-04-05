@@ -106,7 +106,10 @@ export function routes(app: Express) {
     try {
       const schoolId = asUlid(req.params.schoolId)
       const school = await SchoolService.getSchool(schoolId)
-      res.json({ school })
+      res.json({ school: {
+        _id: school.id,
+          ...school
+        } })
     } catch (err) {
       resError(res, err)
     }
@@ -183,7 +186,7 @@ export function routes(app: Express) {
   ) {
     try {
       const PER_PAGE = 15
-    
+
       const page = req.query.page ? parseInt(req.query.page as string) : 1
       const skip = (page - 1) * PER_PAGE
       const ineligibleStudents = await getIneligibleStudentsPaginated(PER_PAGE, skip)

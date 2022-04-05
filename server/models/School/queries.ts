@@ -22,7 +22,7 @@ export async function findSchoolByUpchieveId(
   }
 }
 
-export async function getSchool(schoolId: Ulid): Promise<School | undefined> {
+export async function getSchool(schoolId: Ulid): Promise<AdminSchool | undefined> {
   try {
     const result = await pgQueries.getSchool.run({ schoolId }, getClient())
 

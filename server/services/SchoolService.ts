@@ -39,7 +39,7 @@ export async function search(query: string): Promise<any> {
 
 export async function getSchool(
   schoolId: Ulid
-): Promise<SchoolRepo.School | undefined> {
+): Promise<SchoolRepo.AdminSchool | undefined> {
   try {
     const school = await SchoolRepo.getSchool(schoolId)
 
@@ -74,7 +74,7 @@ export async function getSchools(data: unknown) {
     } as GetSchoolsPayload, PER_PAGE, skip)
 
     const isLastPage = schools.length < PER_PAGE
-    return { schools, isLastPage }
+    return { schools: schools.map(s => {return {...s, _id: s.id}}), isLastPage }
   } catch (error) {
     throw new Error((error as Error).message)
   }

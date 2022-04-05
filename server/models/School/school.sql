@@ -35,9 +35,9 @@ SELECT
     approved AS is_approved,
     partner AS is_partner,
     meta.mzip AS zip_code,
-    COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, cities.us_state_code) AS state_stored,
-    COALESCE(meta.lcity, cities.name) AS city_name_stored,
+    COALESCE(meta.sch_name, schools.name) AS name,
+    COALESCE(meta.st, cities.us_state_code) AS state,
+    COALESCE(meta.lcity, cities.name) AS city,
     schools.id,
     schools.created_at,
     schools.updated_at
@@ -57,7 +57,7 @@ SELECT
     COALESCE(meta.sch_name, schools.name) AS name,
     COALESCE(meta.st, cities.us_state_code) AS state,
     COALESCE(meta.lcity, cities.name) AS city,
-    schools.id as _id,
+    schools.id as id,
     schools.created_at,
     schools.updated_at
 FROM
