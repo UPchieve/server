@@ -90,7 +90,7 @@ export function routes(app: Express) {
     const { q } = req.query
 
     try {
-      const results = await SchoolService.search(q)
+      const results = await SchoolService.search(q as string)
       res.json({
         results: results,
       })

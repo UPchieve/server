@@ -39,11 +39,13 @@ export async function search(query: string): Promise<any> {
 
 export async function getSchool(
   schoolId: Ulid
-): Promise<SchoolRepo.AdminSchool | undefined> {
+): Promise<SchoolRepo.AdminSchool> {
   try {
     const school = await SchoolRepo.getSchool(schoolId)
 
-    if (school) return school
+    if (!school) throw new Error(`no school found with id ${schoolId}`)
+
+    return school
   } catch (error) {
     throw new Error((error as Error).message)
   }
