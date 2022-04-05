@@ -127,7 +127,7 @@ export async function isTestUser(userId: Ulid): Promise<boolean> {
 }
 
 function mockGetTotalFavoriteVolunteers() {
-  return [{ total: 4 }]
+  return [{ total: mockGetFavoriteVolunteers().length }]
 }
 
 function mockIsFavoriteVolunteer() {
@@ -214,7 +214,11 @@ export async function getFavoriteVolunteers(
     )) as FavoriteVolunteer[]
     */
     const result = mockGetFavoriteVolunteers()
-    return { favoriteVolunteers: result, isLastPage: result.length < limit }
+    const volunteers = result.slice(offset, limit + offset)
+    return {
+      favoriteVolunteers: volunteers,
+      isLastPage: volunteers.length < limit,
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
