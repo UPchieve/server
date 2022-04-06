@@ -197,12 +197,16 @@ SELECT
     session_reported_count.total <> 0 AS is_reported,
     flags.flags,
     messages.total AS total_messages,
-    session_review_reason.review_reasons
+    session_review_reason.review_reasons,
+    sessions.to_review,
+    student_feedback.student_counseling_feedback
 FROM
     sessions
     LEFT JOIN subjects ON subjects.id = sessions.subject_id
     LEFT JOIN topics ON topics.id = subjects.topic_id
     LEFT JOIN users students ON students.id = sessions.student_id
+    LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id
+        AND student_feedback.user_id = sessions.student_id)
     LEFT JOIN LATERAL (
         SELECT
             COUNT(id)::int AS total
@@ -400,7 +404,8 @@ SELECT
     session_reports.report_message,
     report_reasons.reason AS report_reason,
     session_review_reason.review_reasons,
-    session_photo.photos
+    session_photo.photos,
+    sessions.to_review
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -708,110 +713,163 @@ WHERE
 
 /* @name getSessionsForAdminFilter */
 SELECT
-    sessions.created_at,
-    sessions.ended_at,
-    message_count.total AS total_messages,
-    topics.name AS TYPE,
-    subjects.name AS sub_topic,
-    students.first_name AS student_first_name,
-    students.email AS student_email,
-    students.banned AS student_is_banned,
-    students.test_user AS student_test_user,
-    student_sessions.total AS student_total_past_sessions,
-    volunteers.first_name AS volunteer_first_name,
-    volunteers.email AS volunteer_email,
-    volunteers.banned AS volunteer_is_banned,
-    volunteers.test_user AS volunteer_test_user,
-    volunteer_sessions.total AS volunteer_total_past_sessions,
-    student_feedback.student_counseling_feedback,
-    volunteer_feedback.volunteer_feedback
+  sessions.id,
+  sessions.created_at,
+  sessions.ended_at,
+  message_count.total AS total_messages,
+  topics.name AS TYPE,
+  subjects.name AS sub_topic,
+  students.first_name AS student_first_name,
+  students.email AS student_email,
+  students.banned AS student_is_banned,
+  students.test_user AS student_test_user,
+  student_sessions.total AS student_total_past_sessions,
+  volunteers.first_name AS volunteer_first_name,
+  volunteers.email AS volunteer_email,
+  volunteers.banned AS volunteer_is_banned,
+  volunteers.test_user AS volunteer_test_user,
+  volunteer_sessions.total AS volunteer_total_past_sessions,
+  student_feedback.student_counseling_feedback,
+  volunteer_feedback.volunteer_feedback,
+  review_reasons.review_reasons
 FROM
-    sessions
-    LEFT JOIN subjects ON subjects.id = sessions.subject_id
-    LEFT JOIN topics ON topics.id = subjects.topic_id
-    LEFT JOIN LATERAL (
-        SELECT
-            first_name,
-            id,
-            email,
-            banned,
-            test_user
-        FROM
-            users
-        WHERE
-            users.id = sessions.student_id) AS students ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            first_name,
-            id,
-            email,
-            banned,
-            test_user
-        FROM
-            users
-        WHERE
-            users.id = sessions.volunteer_id) AS volunteers ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(id)::int AS total
-        FROM
-            session_messages
-        WHERE
-            session_messages.session_id = sessions.id) AS message_count ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(id)::int AS total
-        FROM
-            session_reports
-        WHERE
-            sessions.id = session_reports.session_id) AS session_reported_count ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(id)::int AS total
-        FROM
-            sessions
-        WHERE
-            sessions.student_id = students.id) AS student_sessions ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(id)::int AS total
-        FROM
-            sessions
-        WHERE
-            sessions.volunteer_id = volunteers.id) AS volunteer_sessions ON TRUE
-    LEFT JOIN feedbacks student_feedback ON student_feedback.session_id = sessions.id
-        AND student_feedback.user_id = sessions.student_id
-    LEFT JOIN feedbacks volunteer_feedback ON volunteer_feedback.session_id = sessions.id
-        AND volunteer_feedback.user_id = sessions.volunteer_id
-    LEFT JOIN LATERAL (
-        SELECT
-            MAX(created_at) AS last_banned_at
-        FROM
-            user_actions
-        WHERE
-            user_actions.user_id = sessions.student_id
-            AND user_actions.action = 'BANNED') AS student_banned ON TRUE
+  sessions
+  LEFT JOIN subjects ON subjects.id = sessions.subject_id
+  LEFT JOIN topics ON topics.id = subjects.topic_id
+  LEFT JOIN LATERAL (
+    SELECT
+      array_agg(session_flags.name) AS review_reasons
+    FROM
+      session_review_reasons
+      LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id
+    WHERE
+      session_id = sessions.id
+  ) AS review_reasons ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      first_name,
+      id,
+      email,
+      banned,
+      test_user
+    FROM
+      users
+    WHERE
+      users.id = sessions.student_id
+  ) AS students ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      first_name,
+      id,
+      email,
+      banned,
+      test_user
+    FROM
+      users
+    WHERE
+      users.id = sessions.volunteer_id
+  ) AS volunteers ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(*):: int AS total
+    FROM
+      session_messages
+    WHERE
+      session_messages.session_id = sessions.id
+  ) AS message_count ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(id):: int AS total
+    FROM
+      session_reports
+    WHERE
+      sessions.id = session_reports.session_id
+  ) AS session_reported_count ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(id):: int AS total
+    FROM
+      sessions
+    WHERE
+      sessions.student_id = students.id
+  ) AS student_sessions ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COUNT(id):: int AS total
+    FROM
+      sessions
+    WHERE
+      sessions.volunteer_id = volunteers.id
+  ) AS volunteer_sessions ON TRUE
+  LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id
+  AND student_feedback.user_id = sessions.student_id)
+  LEFT JOIN feedbacks volunteer_feedback ON (volunteer_feedback.session_id = sessions.id
+  AND volunteer_feedback.volunteer_feedback IS NOT NULL)
+  LEFT JOIN LATERAL (
+    SELECT
+      MAX(created_at) AS last_banned_at
+    FROM
+      user_actions
+    WHERE
+      user_actions.user_id = sessions.student_id
+      AND user_actions.action = 'BANNED'
+  ) AS student_banned ON TRUE
 WHERE
-    NOT sessions.ended_at IS NULL
-    AND sessions.created_at >= :start!
-    AND sessions.created_at <= :end!
-    AND ((:messageCount)::int IS NULL
-        OR message_count.total >= (:messageCount)::int)
-    AND ((:sessionLength)::int IS NULL
-        OR EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at)) > (:sessionLength)::int)
-    AND ((:reported)::boolean IS FALSE
-        OR session_reported_count.total > 0)
-    AND (student_banned.last_banned_at IS NULL
-        OR sessions.created_at < student_banned.last_banned_at
-        OR sessions.student_banned IS FALSE
-        OR (:showBannedUsers)::boolean IS TRUE)
-    AND ((:showTestUsers)::boolean IS TRUE
-        OR students.test_user IS FALSE)
-    AND ((:firstTimeStudent)::boolean IS FALSE
-        OR student_sessions.total = 1)
-    AND ((:firstTimeVolunteer)::boolean IS FALSE
-        OR volunteer_sessions.total = 1)
-LIMIT (:limit!)::int OFFSET (:offset!)::int;
+  NOT sessions.ended_at IS NULL
+  AND sessions.created_at >= :start!
+  AND sessions.created_at <= :end!
+  AND (
+    (:messageCount):: int IS NULL
+    OR message_count.total >= (:messageCount):: int
+  )
+  AND (
+    (:sessionLength):: int IS NULL
+    OR (
+      EXTRACT(
+        'epoch'
+        FROM
+          (sessions.ended_at - sessions.created_at)
+      ) / 60
+    ) > (:sessionLength):: int
+  )
+  AND (
+    (:reported):: boolean IS NULL
+    OR (:reported):: boolean IS FALSE
+    OR session_reported_count.total > 0
+  )
+  AND (
+    student_banned.last_banned_at IS NULL
+    OR sessions.created_at < student_banned.last_banned_at
+    OR sessions.student_banned IS FALSE
+    OR (:showBannedUsers):: boolean IS TRUE
+  )
+  AND (
+    (:showTestUsers):: boolean IS NULL
+    OR (:showTestUsers):: boolean IS TRUE
+    OR students.test_user IS FALSE
+  )
+  AND (
+    (:firstTimeStudent):: boolean IS NULL
+    OR (:firstTimeStudent):: boolean IS FALSE
+    OR student_sessions.total = 1
+  )
+  AND (
+    (:firstTimeVolunteer):: boolean IS NULL
+    OR (:firstTimeVolunteer):: boolean IS FALSE
+    OR volunteer_sessions.total = 1
+  )
+  AND (
+    (:studentRating):: int IS NULL
+    OR (student_feedback.student_counseling_feedback IS NOT NULL 
+        AND (student_feedback.student_counseling_feedback->'rate-session'->'rating'->>'$numberInt')::int = (:studentRating)::int)
+  )
+  AND (
+    (:volunteerRating):: int IS NULL
+    OR (volunteer_feedback.volunteer_feedback IS NOT NULL
+        AND (volunteer_feedback.volunteer_feedback->'session-enjoyable'->>'$numberInt')::int = (:volunteerRating)::int)
+  )
+LIMIT
+  (:limit!):: int OFFSET (:offset!):: int;
 
 
 /* @name insertSessionReviewReason */

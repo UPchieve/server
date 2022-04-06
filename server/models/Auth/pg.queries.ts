@@ -3,7 +3,7 @@ import { PreparedQuery } from '@pgtyped/query';
 
 /** 'DeleteAuthSessionsForUser' parameters type */
 export interface IDeleteAuthSessionsForUserParams {
-  userId: string | null | void;
+  userId: string;
 }
 
 /** 'DeleteAuthSessionsForUser' return type */
@@ -17,12 +17,12 @@ export interface IDeleteAuthSessionsForUserQuery {
   result: IDeleteAuthSessionsForUserResult;
 }
 
-const deleteAuthSessionsForUserIR: any = {"name":"deleteAuthSessionsForUser","params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":100,"b":105,"line":2,"col":62}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM auth.session WHERE (sess->'passport')->>'user' = :userId RETURNING sid AS ok","loc":{"a":38,"b":125,"line":2,"col":0}}};
+const deleteAuthSessionsForUserIR: any = {"name":"deleteAuthSessionsForUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":100,"b":106,"line":2,"col":62}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM auth.session WHERE (sess->'passport')->>'user' = :userId! RETURNING sid AS ok","loc":{"a":38,"b":126,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * DELETE FROM auth.session WHERE (sess->'passport')->>'user' = :userId RETURNING sid AS ok
+ * DELETE FROM auth.session WHERE (sess->'passport')->>'user' = :userId! RETURNING sid AS ok
  * ```
  */
 export const deleteAuthSessionsForUser = new PreparedQuery<IDeleteAuthSessionsForUserParams,IDeleteAuthSessionsForUserResult>(deleteAuthSessionsForUserIR);
