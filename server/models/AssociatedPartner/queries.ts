@@ -40,7 +40,12 @@ export async function getAssociatedPartnerByVolunteerPartnerKey(key: string): Pr
 export async function getAssociatedPartnersAndSchools(
   partnerOrg: string
 ): Promise<AssociatedPartnersAndSchools> {
-  const associatedPartner = await getAssociatedPartnerByVolunteerPartnerKey(partnerOrg)
+  let associatedPartner: AssociatedPartner | undefined
+  try {
+    associatedPartner = await getAssociatedPartnerByVolunteerPartnerKey(partnerOrg)
+  } catch(err) {
+    if(!(err instanceof RepoReadError)) throw err
+  }
   const associatedStudentPartnerOrgs: string[] = []
   const associatedPartnerSchools: string[] = []
 
