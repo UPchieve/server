@@ -473,10 +473,10 @@ export async function getSessionReport(
   try {
     const result = await pgQueries.getSessionReport.run(
       {
-        highSchoolId: query?.highSchoolId,
-        studentPartnerOrg: query?.studentPartnerOrg,
-        studentPartnerSite: query?.studentPartnerSite,
-        sponsorOrg: query?.sponsorOrg,
+        highSchoolId: query.highSchoolId ? query.highSchoolId : undefined ,
+        studentPartnerOrg: query.studentPartnerOrg ? query.studentPartnerOrg : undefined,
+        studentPartnerSite: query.studentPartnerSite ? query.studentPartnerSite : undefined,
+        sponsorOrg: query.sponsorOrg ? query.sponsorOrg : undefined,
         start: query.start,
         end: query.end,
       },
@@ -557,10 +557,10 @@ export async function getUsageReport(
   try {
     const result = await pgQueries.getUsageReport.run(
       {
-        highSchoolId: query?.highSchoolId,
-        studentPartnerOrg: query?.studentPartnerOrg,
-        studentPartnerSite: query?.studentPartnerSite,
-        sponsorOrg: query?.sponsorOrg,
+        highSchoolId: query.highSchoolId ? query.highSchoolId : undefined,
+        studentPartnerOrg: query.studentPartnerOrg ? query.studentPartnerOrg : undefined,
+        studentPartnerSite: query.studentPartnerSite ? query.studentPartnerSite : undefined,
+        sponsorOrg: query.sponsorOrg ? query.sponsorOrg : undefined,
         joinedStart: query.joinedStart,
         joinedEnd: query.joinedEnd,
         sessionStart: query.sessionStart,
