@@ -1486,70 +1486,46 @@ AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabi
 
 /* @name getUniqueStudentsHelpedForAnalyticsReportSummary */
 SELECT
-  COALESCE(SUM(total_unique_students_helped.total), 0)::int AS total_unique_students_helped,
+  COALESCE(COUNT(distinct sessions.student_id), 0)::int AS total_unique_students_helped,
   COALESCE(
-    SUM(total_unique_students_helped_within_range.total),
+    COUNT(
+      distinct CASE
+        WHEN sessions.created_at >= :start!
+        AND sessions.created_at <= :end! THEN sessions.student_id
+        ELSE null
+      end
+    ),
     0
   )::int AS total_unique_students_helped_within_range,
   COALESCE(
-    SUM(total_unique_partner_students_helped.total),
+    COUNT(
+      distinct CASE
+        WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+        OR student_profiles.school_id = ANY(:studentSchoolIds!) THEN sessions.student_id
+        ELSE null
+      end
+    ),
     0
   )::int AS total_unique_partner_students_helped,
   COALESCE(
-    SUM(
-      total_unique_partner_students_helped_within_range.total
+    COUNT(
+      distinct CASE
+        WHEN sessions.created_at >= :start!
+        AND sessions.created_at <= :end!
+        AND (
+          student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+          OR student_profiles.school_id = ANY(:studentSchoolIds!)
+        ) THEN sessions.student_id
+        ELSE null
+      end
     ),
     0
   )::int AS total_unique_partner_students_helped_within_range
 FROM
   volunteer_partner_orgs
-  LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-  ) AS total_unique_students_helped ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND sessions.created_at >= :start!
-      AND sessions.created_at <= :end!
-  ) AS total_unique_students_helped_within_range ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND (
-        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-        OR student_profiles.school_id = ANY(:studentSchoolIds!)
-      )
-  ) AS total_unique_partner_students_helped ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND (
-        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-        OR student_profiles.school_id = ANY(:studentSchoolIds!)
-      )
-      AND sessions.created_at >= :start!
-      AND sessions.created_at <= :end!
-  ) AS total_unique_partner_students_helped_within_range ON TRUE
+  LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id 
+  LEFT JOIN sessions on volunteer_profiles.user_id = sessions.volunteer_id
+  LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
 WHERE
   volunteer_partner_orgs.key = :volunteerPartnerOrg!;
 
@@ -1569,12 +1545,12 @@ SELECT
   availabilities.updated_at AS availability_last_modified_at,
   COALESCE(sessions_stats.total_unique_students_helped, 0) AS total_unique_students_helped,
   COALESCE(
-    total_unique_students_helped_within_range.total,
+    sessions_stats.total_unique_students_helped_within_range,
     0
   ) AS total_unique_students_helped_within_range,
-  COALESCE(total_unique_partner_students_helped.total, 0) AS total_unique_partner_students_helped,
+  COALESCE(sessions_stats.total_unique_partner_students_helped, 0) AS total_unique_partner_students_helped,
   COALESCE(
-    total_unique_partner_students_helped_within_range.total,
+    sessions_stats.total_unique_partner_students_helped_within_range,
     0
   ) AS total_unique_partner_students_helped_within_range,
   COALESCE(sessions_stats.total_sessions, 0) AS total_sessions,
@@ -1625,14 +1601,42 @@ FROM
   LEFT JOIN LATERAL (
     SELECT
       COUNT(*)::int AS total_sessions,
-      COUNT(DISTINCT student_id):: int AS total_unique_students_helped,
+      COUNT(DISTINCT student_id)::int AS total_unique_students_helped,
+      COUNT(
+        DISTINCT CASE
+          WHEN sessions.created_at >= :start!
+          AND sessions.created_at <= :end! THEN student_id
+          ELSE null
+        end
+      )::int AS total_unique_students_helped_within_range,
+    COUNT(
+      DISTINCT CASE
+        WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+        OR student_profiles.school_id = ANY(
+         :studentSchoolIds!
+        ) THEN sessions.student_id
+        ELSE null
+      end
+    )::int AS total_unique_partner_students_helped,
+    COUNT(
+      DISTINCT CASE
+        WHEN sessions.created_at >= :start!
+          AND sessions.created_at <= :end! 
+          AND (
+              student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+              OR student_profiles.school_id = ANY(:studentSchoolIds!)
+            ) 
+        THEN sessions.student_id
+        ELSE null
+      end
+    )::int AS total_unique_partner_students_helped_within_range,
       SUM(
         CASE
           WHEN sessions.created_at >= :start!
           AND sessions.created_at <= :end! THEN 1
           ELSE 0
         END
-      ):: int as total_sessions_within_range,
+      )::int as total_sessions_within_range,
       SUM(
         CASE
           WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
@@ -1641,18 +1645,18 @@ FROM
           ) THEN 1
           ELSE 0
         END
-      ):: int as total_partner_sessions,
+      )::int as total_partner_sessions,
       SUM(
         CASE
           WHEN sessions.created_at >= :start!
           AND sessions.created_at <= :end!
-          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+          AND (student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
           OR student_profiles.school_id = ANY(
             :studentSchoolIds!
-          ) THEN 1
+          )) THEN 1
           ELSE 0
         END
-      ):: int as total_partner_sessions_within_range,
+      )::int as total_partner_sessions_within_range,
       SUM(
         CASE
           WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
@@ -1661,18 +1665,18 @@ FROM
           ) THEN sessions.time_tutored
           ELSE 0
         END
-      ):: int as total_partner_time_tutored,
+      )::int as total_partner_time_tutored,
       SUM(
         CASE
           WHEN sessions.created_at >= :start!
           AND sessions.created_at <= :end!
-          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
+          AND (student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
           OR student_profiles.school_id = ANY(
             :studentSchoolIds!
-          ) THEN sessions.time_tutored
+          )) THEN sessions.time_tutored
           ELSE 0
         END
-      ):: int as total_partner_time_tutored_within_range
+      )::int as total_partner_time_tutored_within_range
     FROM
       sessions
       LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
@@ -1681,56 +1685,14 @@ FROM
   ) AS sessions_stats ON TRUE
   LEFT JOIN LATERAL (
     SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND created_at >= :start!
-      AND created_at <= :end!
-  ) AS total_unique_students_helped_within_range ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND (
-        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-        OR student_profiles.school_id = ANY(
-          :studentSchoolIds!
-        )
-      )
-  ) AS total_unique_partner_students_helped ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND (
-        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-        OR student_profiles.school_id = ANY(
-          :studentSchoolIds!
-        )
-      )
-      AND sessions.created_at >= :start!
-      AND sessions.created_at <= :end!
-  ) AS total_unique_partner_students_helped_within_range ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(*):: int AS total,
+      COUNT(*)::int AS total,
       SUM(
         CASE
           WHEN sent_at >= :start!
           AND sent_at <= :end! THEN 1
           ELSE 0
         END
-      ):: int as total_within_range
+      )::int as total_within_range
     FROM
       notifications
     WHERE

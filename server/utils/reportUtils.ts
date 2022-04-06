@@ -440,7 +440,7 @@ export function getAnalyticsReportRow(
   row.dateRangeSessionsCompleted = volunteer.totalSessionsWithinRange
   row.dateRangePartnerSessionsCompleted = volunteer.totalPartnerSessionsWithinRange
   row.dateRangeUniqueStudentsHelped = volunteer.totalUniqueStudentsHelpedWithinRange
-  row.dateRangeUniquePartnerStudentsHelped = volunteer.totalUniquePartnerStudentsHelped
+  row.dateRangeUniquePartnerStudentsHelped = volunteer.totalUniquePartnerStudentsHelpedWithinRange
   row.dateRangeTutoringHours = volunteer.hourSummaryDateRange.totalCoachingHours
   row.dateRangePartnerStudentsTutoringHours = Number(
        (

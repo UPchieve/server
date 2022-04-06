@@ -64,7 +64,7 @@ export interface IGetSponsorOrgsByKeyQuery {
   result: IGetSponsorOrgsByKeyResult;
 }
 
-const getSponsorOrgsByKeyIR: any = {"name":"getSponsorOrgsByKey","params":[{"name":"sponsorOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":982,"b":992,"line":30,"col":14}]}}],"usedParamSet":{"sponsorOrg":true},"statement":{"body":"SELECT\n    so.key,\n    max(so.name) AS name,\n    array_agg(sso.school_id) AS school_ids,\n    array_agg(spo.key) AS student_partner_org_keys,\n    array_agg(spo.id) AS student_partner_org_ids\nFROM\n    sponsor_orgs so\n    LEFT JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id\n    JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id\n    JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id\nWHERE\n    so.key = :sponsorOrg!\nGROUP BY\n    so.key","loc":{"a":522,"b":1012,"line":18,"col":0}}};
+const getSponsorOrgsByKeyIR: any = {"name":"getSponsorOrgsByKey","params":[{"name":"sponsorOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1150,"b":1160,"line":30,"col":14}]}}],"usedParamSet":{"sponsorOrg":true},"statement":{"body":"SELECT\n    so.key,\n    max(so.name) AS name,\n    COALESCE(array_agg(sso.school_id) FILTER (WHERE sso.school_id IS NOT NULL), '{}') AS school_ids,\n    COALESCE(array_agg(spo.key) FILTER (WHERE spo.key IS NOT NULL), '{}') AS student_partner_org_keys,\n    COALESCE(array_agg(spo.id) FILTER (WHERE spo.id IS NOT NULL), '{}') AS student_partner_org_ids\nFROM\n    sponsor_orgs so\n    LEFT JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id\n    LEFT JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id\n    LEFT JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id\nWHERE\n    so.key = :sponsorOrg!\nGROUP BY\n    so.key","loc":{"a":522,"b":1180,"line":18,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -72,14 +72,14 @@ const getSponsorOrgsByKeyIR: any = {"name":"getSponsorOrgsByKey","params":[{"nam
  * SELECT
  *     so.key,
  *     max(so.name) AS name,
- *     array_agg(sso.school_id) AS school_ids,
- *     array_agg(spo.key) AS student_partner_org_keys,
- *     array_agg(spo.id) AS student_partner_org_ids
+ *     COALESCE(array_agg(sso.school_id) FILTER (WHERE sso.school_id IS NOT NULL), '{}') AS school_ids,
+ *     COALESCE(array_agg(spo.key) FILTER (WHERE spo.key IS NOT NULL), '{}') AS student_partner_org_keys,
+ *     COALESCE(array_agg(spo.id) FILTER (WHERE spo.id IS NOT NULL), '{}') AS student_partner_org_ids
  * FROM
  *     sponsor_orgs so
  *     LEFT JOIN schools_sponsor_orgs sso ON so.id = sso.sponsor_org_id
- *     JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id
- *     JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id
+ *     LEFT JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id
+ *     LEFT JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id
  * WHERE
  *     so.key = :sponsorOrg!
  * GROUP BY

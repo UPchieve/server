@@ -19,7 +19,7 @@ SELECT
     array_agg(DOMAIN) AS domains
 FROM
     volunteer_partner_orgs vpo
-    JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
+    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
 WHERE
     KEY = :key!
 GROUP BY

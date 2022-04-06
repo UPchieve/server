@@ -41,12 +41,6 @@ export async function getAssociatedPartnersAndSchools(
   partnerOrg: string
 ): Promise<AssociatedPartnersAndSchools> {
   const associatedPartner = await getAssociatedPartnerByVolunteerPartnerKey(partnerOrg)
-  let sponsorOrg
-  if (associatedPartner.studentSponsorOrg)
-    sponsorOrg = await SponsorOrgRepo.getSponsorOrgsByKey(
-      associatedPartner.studentSponsorOrg
-    )
-
   const associatedStudentPartnerOrgs: string[] = []
   const associatedPartnerSchools: string[] = []
 

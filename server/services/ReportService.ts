@@ -257,8 +257,8 @@ export async function generatePartnerAnalyticsReport(
   startDate: string,
   endDate: string
 ): Promise<FullReport> {
-  const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
-  const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
+  const start: Date = moment.utc(startDate, 'MM-DD-YYYY').toDate()
+  const end: Date = moment.utc(endDate, 'MM-DD-YYYY').toDate()
 
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
