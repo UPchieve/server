@@ -17,7 +17,7 @@ INSERT INTO associated_partners (id, key, volunteer_partner_org_id, student_part
 INSERT INTO sponsor_orgs (id, key, name, created_at, updated_at) VALUES (:id!, :key!, :name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok;
 
 /* @name getSchoolIdByMongoId */
-SELECT id from schools WHERE mongo_id = :mongo_id!;
+SELECT id from schools WHERE mongo_id = :mongoId!;
 
 /* @name insertSchoolsSponsorOrgs */
 INSERT INTO schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updated_at) VALUES (:schoolId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING school_id, sponsor_org_id AS ok;
@@ -53,3 +53,12 @@ SET
 WHERE
   mongo_id = ANY(:mongoIds!)
 RETURNING mongo_id AS ok;
+
+/* @name updateInGatesStudy */
+UPDATE user_product_flags
+SET in_gates_study = TRUE
+FROM users
+WHERE
+  user_id = users.id AND
+  users.mongo_id = ANY(:mongoIds!)
+RETURNING users.mongo_id AS ok;

@@ -17,13 +17,6 @@ CREATE SCHEMA auth;
 
 
 --
--- Name: migration; Type: SCHEMA; Schema: -; Owner: -
---
-
-CREATE SCHEMA migration;
-
-
---
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -73,36 +66,6 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
--- Name: generate_ulid(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.generate_ulid() RETURNS uuid
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
-
-  unix_time  BIGINT;
-  ulid       BYTEA;
-BEGIN
-  -- 6 timestamp bytes
-  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
-  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
-
-  -- 10 entropy bytes
-  ulid = timestamp || public.gen_random_bytes(10);
-
-  RETURN CAST( substring(CAST (ulid AS text) from 3) AS uuid);
-END
-$$;
-
-
---
 -- Name: generate_ulid(); Type: FUNCTION; Schema: upchieve; Owner: -
 --
 
@@ -144,658 +107,6 @@ CREATE TABLE auth.session (
     sid character varying NOT NULL,
     sess json NOT NULL,
     expire timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: assistmentsdatas; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.assistmentsdatas (
-    id integer NOT NULL,
-    _id json,
-    problemid integer,
-    assignmentid text,
-    studentid text,
-    session json,
-    sent boolean,
-    __v integer,
-    sentat timestamp without time zone
-);
-
-
---
--- Name: availabilityhistories; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.availabilityhistories (
-    id integer NOT NULL,
-    _id json,
-    availability json,
-    volunteerid json,
-    timezone text,
-    date timestamp without time zone,
-    modifiedat timestamp without time zone,
-    createdat timestamp without time zone,
-    __v integer
-);
-
-
---
--- Name: availabilitysnapshots; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.availabilitysnapshots (
-    id integer NOT NULL,
-    _id json,
-    oncallavailability json,
-    volunteerid json,
-    modifiedat timestamp without time zone,
-    createdat timestamp without time zone,
-    __v integer,
-    timezone text
-);
-
-
---
--- Name: contactformsubmissions; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.contactformsubmissions (
-    id integer NOT NULL,
-    _id json,
-    userid json,
-    useremail text,
-    topic text,
-    message text,
-    createdat timestamp without time zone,
-    __v integer
-);
-
-
---
--- Name: feedbacks; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.feedbacks (
-    id integer NOT NULL,
-    _id json,
-    type text,
-    subtopic text,
-    usertype text,
-    sessionid json,
-    studenttutoringfeedback json,
-    studentcounselingfeedback json,
-    studentid json,
-    volunteerid json,
-    versionnumber integer,
-    createdat timestamp without time zone,
-    __v integer,
-    volunteerfeedback json,
-    responsedata json
-);
-
-
---
--- Name: formatted_sessions; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.formatted_sessions (
-    id uuid,
-    session_id text,
-    mongo_id text,
-    sender_id text,
-    contents text,
-    created_at text,
-    updated_at text
-);
-
-
---
--- Name: ineligiblestudents; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.ineligiblestudents (
-    id integer NOT NULL,
-    _id json,
-    email text,
-    zipcode text,
-    school json,
-    ipaddress text,
-    currentgrade text,
-    createdat timestamp without time zone,
-    __v integer
-);
-
-
---
--- Name: ipaddresses; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.ipaddresses (
-    id integer NOT NULL,
-    _id json,
-    users json,
-    status text,
-    ip text,
-    createdat timestamp without time zone,
-    __v integer
-);
-
-
---
--- Name: mappings; Type: VIEW; Schema: migration; Owner: -
---
-
-CREATE VIEW migration.mappings AS
- SELECT 'school_nces_metadata'::text AS table_name,
-    'schools'::text AS collection
-UNION
- SELECT 'availabilities'::text AS table_name,
-    'availabilitysnapshots'::text AS collection
-UNION
- SELECT 'users_subject_metadata'::text AS table_name,
-    'users'::text AS collection
-UNION
- SELECT 'users_roles'::text AS table_name,
-    'users'::text AS collection
-UNION
- SELECT 'ineligible_students'::text AS table_name,
-    'ineligiblestudents'::text AS collection
-UNION
- SELECT 'quiz_questions'::text AS table_name,
-    'question'::text AS collection
-UNION
- SELECT 'pre_session_surveys'::text AS table_name,
-    'surveys'::text AS collection
-UNION
- SELECT 'user_actions'::text AS table_name,
-    'useractions'::text AS collection
-UNION
- SELECT 'user_product_flags'::text AS table_name,
-    'userproductflags'::text AS collection
-UNION
- SELECT 'user_session_metrics'::text AS table_name,
-    'usersessionmetrics'::text AS collection
-UNION
- SELECT 'legacy_availability_histories'::text AS table_name,
-    'availabilityhistories'::text AS collection
-UNION
- SELECT 'assistments_data'::text AS table_name,
-    'assistmentsdatas'::text AS collection
-UNION
- SELECT 'push_tokens'::text AS table_name,
-    'pushtokens'::text AS collection
-UNION
- SELECT 'contact_form_submissions'::text AS table_name,
-    'contactformsubmissions'::text AS collection;
-
-
---
--- Name: mongo_details; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.mongo_details (
-    sl integer,
-    collection character varying(35),
-    keys character varying(26),
-    datatype character varying(13),
-    totalcount integer,
-    nullcount integer,
-    nullpercent real
-);
-
-
---
--- Name: notifications; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.notifications (
-    id integer NOT NULL,
-    _id json,
-    type text,
-    wassuccessful boolean,
-    volunteer json,
-    method text,
-    sentat timestamp without time zone,
-    messageid text,
-    __v integer,
-    prioritygroup text,
-    sessionid json
-);
-
-
---
--- Name: prod_migration_status; Type: VIEW; Schema: migration; Owner: -
---
-
-CREATE VIEW migration.prod_migration_status AS
- SELECT mc.table_schema AS migration_schema,
-    pg.table_schema AS pg_schema,
-    md.collection,
-    pg.table_name AS pg_table_name,
-    md.totalcount AS mongodb_count,
-    mc.row_count AS migration_count,
-    pg.row_count AS pg_count,
-    round(COALESCE((((mc.row_count)::numeric * 100.00) / (md.totalcount)::numeric), ('-1'::integer)::numeric), 2) AS stage1_pct,
-    round((((pg.row_count)::numeric * 100.00) / (mc.row_count)::numeric), 2) AS stage2_pct
-   FROM ((( SELECT DISTINCT mongo_details.collection,
-            mongo_details.totalcount
-           FROM migration.mongo_details) md
-     FULL JOIN ( SELECT tc.table_schema,
-            tc.table_name,
-            (((xpath('/row/cnt/text()'::text, tc.xml_count))[1])::text)::integer AS row_count
-           FROM ( SELECT tables.table_name,
-                    tables.table_schema,
-                    query_to_xml(format('select count(*) as cnt from %I.%I'::text, tables.table_schema, tables.table_name), false, true, ''::text) AS xml_count
-                   FROM information_schema.tables
-                  WHERE (((tables.table_schema)::name = 'migration'::name) AND ((tables.table_name)::name <> 'usersessionmetrics_counters'::name) AND ((tables.table_name)::name <> ALL (ARRAY['prod_migration_status'::name, 'demo_migration_status'::name])))) tc
-        UNION
-         SELECT 'migration'::name,
-            custom_tc.table_name,
-            (((xpath('/row/cnt/text()'::text, custom_tc.xml_count))[1])::text)::integer AS row_count
-           FROM ( SELECT 'session_reports'::text AS table_name,
-                    query_to_xml('select count(*) as cnt from migration.sessions where reportreason is not null'::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'student_profiles'::text AS table_name,
-                    query_to_xml('select count(*) as cnt from migration.users where isVolunteer = ''false'' '::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'volunteer_profiles'::text,
-                    query_to_xml('select count(*) as cnt from migration.users where isVolunteer = ''true'' '::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'volunteer_references'::text,
-                    query_to_xml('select count(*) as cnt from (select json_array_elements_text("references") from migration.users) a'::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'session_messages'::text,
-                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(messages) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'session_photos'::text,
-                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(photos) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'session_failed_joins'::text,
-                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(failedjoins) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'sessions_session_flags'::text,
-                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(flags) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'session_review_reasons'::text,
-                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(reviewReasons) from migration.sessions) a'::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'volunteer_occupations'::text,
-                    query_to_xml('select count(*) as cnt from (select json_array_elements_text("occupation") from migration.users) a'::text, false, true, ''::text) AS xml_count
-                UNION ALL
-                 SELECT 'users_ip_addresses'::text,
-                    query_to_xml('select count(*) as cnt from (select json_array_elements_text(users) from migration.ipaddresses) a'::text, false, true, ''::text) AS xml_count) custom_tc) mc ON ((mc.table_name = (md.collection)::text)))
-     FULL JOIN ( SELECT tc.table_schema,
-            tc.table_name,
-            COALESCE(mm.collection, (tc.table_name)::text) AS mapped_table_name,
-            (((xpath('/row/cnt/text()'::text, tc.xml_count))[1])::text)::integer AS row_count
-           FROM (( SELECT tables.table_name,
-                    tables.table_schema,
-                    query_to_xml(format('select count(*) as cnt from %I.%I'::text, tables.table_schema, tables.table_name), false, true, ''::text) AS xml_count
-                   FROM information_schema.tables
-                  WHERE ((tables.table_schema)::name = 'main'::name)) tc
-             LEFT JOIN migration.mappings mm ON ((mm.table_name = (tc.table_name)::name)))) pg ON ((pg.mapped_table_name = mc.table_name)))
-  ORDER BY (round(COALESCE((((pg.row_count)::numeric * 100.00) / (mc.row_count)::numeric), ('-1'::integer)::numeric), 2)) DESC, (round(COALESCE((((mc.row_count)::numeric * 100.00) / (md.totalcount)::numeric), ('-1'::integer)::numeric), 2)) DESC, md.totalcount DESC, mc.row_count DESC, pg.row_count DESC;
-
-
---
--- Name: pushtokens; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.pushtokens (
-    id integer NOT NULL,
-    _id json,
-    "user" json,
-    token text,
-    createdat timestamp without time zone,
-    __v integer
-);
-
-
---
--- Name: question; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.question (
-    id integer NOT NULL,
-    _id json,
-    questiontext text,
-    imagesrc text,
-    possibleanswers json,
-    correctanswer text,
-    category text,
-    subcategory text
-);
-
-
---
--- Name: schools; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.schools (
-    id integer NOT NULL,
-    _id json,
-    isapproved boolean,
-    upchieveid text,
-    namestored text,
-    districtnamestored text,
-    citynamestored text,
-    statestored text,
-    approvalnotifyemails json,
-    school_year text,
-    fipst integer,
-    lzip integer,
-    createdat timestamp without time zone,
-    mzip integer,
-    __v integer,
-    statename text,
-    st text,
-    sch_name text,
-    lea_name text,
-    state_agency_no integer,
-    "union" text,
-    st_leaid text,
-    leaid text,
-    st_schid text,
-    ncessch bigint,
-    schid integer,
-    mstreet1 text,
-    mstreet2 text,
-    mstreet3 text,
-    mcity text,
-    mstate text,
-    mzip4 integer,
-    lstreet1 text,
-    lstreet2 text,
-    lstreet3 text,
-    lcity text,
-    lstate text,
-    lzip4 text,
-    phone text,
-    website text,
-    sy_status integer,
-    sy_status_text text,
-    updated_status integer,
-    updated_status_text text,
-    effective_date text,
-    sch_type_text text,
-    sch_type integer,
-    recon_status text,
-    out_of_state_flag text,
-    charter_text text,
-    chartauth1 text,
-    chartauthn1 text,
-    chartauth2 text,
-    chartauthn2 text,
-    nogrades text,
-    g_pk_offered text,
-    g_kg_offered text,
-    g_1_offered text,
-    g_2_offered text,
-    g_3_offered text,
-    g_4_offered text,
-    g_5_offered text,
-    g_6_offered text,
-    g_7_offered text,
-    g_8_offered text,
-    g_9_offered text,
-    g_10_offered text,
-    g_11_offered text,
-    g_12_offered text,
-    g_13_offered text,
-    g_ug_offered text,
-    g_ae_offered text,
-    gslo text,
-    gshi integer,
-    level text,
-    igoffered text
-);
-
-
---
--- Name: sessions; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.sessions (
-    id integer NOT NULL,
-    _id json,
-    subtopic text,
-    quilldoc text,
-    failedjoins json,
-    notifications json,
-    photos json,
-    isreported boolean,
-    reportreason text,
-    whiteboarddoc text,
-    reportmessage text,
-    toreview boolean,
-    flags json,
-    reviewreasons json,
-    timetutored integer,
-    student json,
-    type text,
-    isstudentbanned boolean,
-    messages json,
-    createdat timestamp without time zone,
-    __v integer,
-    volunteer json,
-    volunteerjoinedat timestamp without time zone,
-    endedat timestamp without time zone,
-    endedby json,
-    haswhiteboarddoc boolean,
-    reviewed boolean,
-    reviewedstudent text,
-    reviewedvolunteer text,
-    whiteboardurl text
-);
-
-
---
--- Name: surveys; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.surveys (
-    id integer NOT NULL,
-    _id json,
-    responsedata json,
-    session json,
-    "user" json,
-    surveytype text,
-    createdat timestamp without time zone,
-    __v integer
-);
-
-
---
--- Name: test; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.test (
-    a integer
-);
-
-
---
--- Name: useractions; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.useractions (
-    id integer NOT NULL,
-    _id json,
-    "user" json,
-    session json,
-    actiontype text,
-    action text,
-    ipaddress text,
-    device text,
-    browser text,
-    browserversion text,
-    operatingsystem text,
-    operatingsystemversion text,
-    createdat timestamp without time zone,
-    __v integer,
-    quizsubcategory text,
-    quizcategory text,
-    banreason text,
-    referenceemail text
-);
-
-
---
--- Name: userproductflags; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.userproductflags (
-    id integer NOT NULL,
-    _id json,
-    "user" json,
-    gatesqualified boolean,
-    __v integer
-);
-
-
---
--- Name: users; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.users (
-    id integer NOT NULL,
-    _id json,
-    verified boolean,
-    partnersite text,
-    verifiedemail boolean,
-    verifiedphone boolean,
-    isvolunteer boolean,
-    isadmin boolean,
-    isbanned boolean,
-    istestuser boolean,
-    isfakeuser boolean,
-    isdeactivated boolean,
-    pastsessions json,
-    ipaddresses json,
-    type text,
-    firstname text,
-    lastname text,
-    email text,
-    zipcode text,
-    approvedhighschool json,
-    password text,
-    createdat timestamp without time zone,
-    lastactivityat timestamp without time zone,
-    referralcode text,
-    __v integer,
-    passwordresettoken text,
-    trainingcourses json,
-    certifications json,
-    isapproved boolean,
-    photoidstatus text,
-    isonboarded boolean,
-    isfailsafevolunteer boolean,
-    occupation json,
-    languages json,
-    availability json,
-    hourstutored double precision,
-    timetutored integer,
-    currentgrade text,
-    elapsedavailability integer,
-    sentreadytocoachemail boolean,
-    subjects json,
-    senthoursummaryintroemail boolean,
-    sentinactivethirtydayemail boolean,
-    sentinactivesixtydayemail boolean,
-    sentinactiveninetydayemail boolean,
-    phone text,
-    "references" json,
-    verificationtoken text,
-    referredby uuid,
-    volunteerpartnerorg text,
-    city text,
-    company text,
-    country text,
-    experience json,
-    state text,
-    photoids3key text,
-    availabilitylastmodifiedat timestamp without time zone,
-    timezone text,
-    college text,
-    banreason text,
-    difficultacademicsubject text,
-    planning json,
-    serviceinterests json,
-    onboarding json,
-    applications json,
-    essay json,
-    chemistry json,
-    nickname text,
-    referred text,
-    highschool text,
-    partneruserid text,
-    highestleveleducation json,
-    linkedinurl text,
-    calculus json,
-    commoncollegedocs json,
-    birthdate text,
-    favoriteacademicsubject text,
-    esl json,
-    gender text,
-    computeraccess json,
-    preferredcontactmethod json,
-    algebra json,
-    gpa text,
-    registrationcode text,
-    heardfrom text,
-    expectedgraduation text,
-    background json,
-    race json,
-    application json,
-    linkedinstatus text,
-    geometry json,
-    difficultcollegeprocess json,
-    groupidentification json,
-    trigonometry json,
-    hasschedule boolean,
-    essays json,
-    studentpartnerorg text,
-    precalculus json,
-    hasguidancecounselor text,
-    biology json,
-    preferredtimes json,
-    totalvolunteerhours json
-);
-
-
---
--- Name: usersessionmetrics; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.usersessionmetrics (
-    id integer NOT NULL,
-    _id json,
-    "user" json,
-    __v integer
-);
-
-
---
--- Name: usersessionmetrics_counters; Type: TABLE; Schema: migration; Owner: -
---
-
-CREATE TABLE migration.usersessionmetrics_counters (
-    id integer NOT NULL,
-    usersessionmetrics_id integer,
-    absentstudent integer,
-    absentvolunteer integer,
-    lowsessionratingfromcoach integer,
-    lowsessionratingfromstudent integer,
-    lowcoachratingfromstudent integer,
-    reported integer,
-    onlylookingforanswers integer,
-    rudeorinappropriate integer,
-    commentfromstudent integer,
-    commentfromvolunteer integer,
-    hasbeenunmatched integer,
-    hashadtechnicalissues integer
 );
 
 
@@ -2514,150 +1825,6 @@ ALTER TABLE ONLY auth.session
 
 
 --
--- Name: assistmentsdatas assistmentsdatas_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.assistmentsdatas
-    ADD CONSTRAINT assistmentsdatas_pkey PRIMARY KEY (id);
-
-
---
--- Name: availabilityhistories availabilityhistories_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.availabilityhistories
-    ADD CONSTRAINT availabilityhistories_pkey PRIMARY KEY (id);
-
-
---
--- Name: availabilitysnapshots availabilitysnapshots_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.availabilitysnapshots
-    ADD CONSTRAINT availabilitysnapshots_pkey PRIMARY KEY (id);
-
-
---
--- Name: contactformsubmissions contactformsubmissions_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.contactformsubmissions
-    ADD CONSTRAINT contactformsubmissions_pkey PRIMARY KEY (id);
-
-
---
--- Name: feedbacks feedbacks_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.feedbacks
-    ADD CONSTRAINT feedbacks_pkey PRIMARY KEY (id);
-
-
---
--- Name: ineligiblestudents ineligiblestudents_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.ineligiblestudents
-    ADD CONSTRAINT ineligiblestudents_pkey PRIMARY KEY (id);
-
-
---
--- Name: ipaddresses ipaddresses_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.ipaddresses
-    ADD CONSTRAINT ipaddresses_pkey PRIMARY KEY (id);
-
-
---
--- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.notifications
-    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
-
-
---
--- Name: pushtokens pushtokens_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.pushtokens
-    ADD CONSTRAINT pushtokens_pkey PRIMARY KEY (id);
-
-
---
--- Name: question question_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.question
-    ADD CONSTRAINT question_pkey PRIMARY KEY (id);
-
-
---
--- Name: schools schools_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.schools
-    ADD CONSTRAINT schools_pkey PRIMARY KEY (id);
-
-
---
--- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.sessions
-    ADD CONSTRAINT sessions_pkey PRIMARY KEY (id);
-
-
---
--- Name: surveys surveys_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.surveys
-    ADD CONSTRAINT surveys_pkey PRIMARY KEY (id);
-
-
---
--- Name: useractions useractions_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.useractions
-    ADD CONSTRAINT useractions_pkey PRIMARY KEY (id);
-
-
---
--- Name: userproductflags userproductflags_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.userproductflags
-    ADD CONSTRAINT userproductflags_pkey PRIMARY KEY (id);
-
-
---
--- Name: users users_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-
-
---
--- Name: usersessionmetrics_counters usersessionmetrics_counters_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.usersessionmetrics_counters
-    ADD CONSTRAINT usersessionmetrics_counters_pkey PRIMARY KEY (id);
-
-
---
--- Name: usersessionmetrics usersessionmetrics_pkey; Type: CONSTRAINT; Schema: migration; Owner: -
---
-
-ALTER TABLE ONLY migration.usersessionmetrics
-    ADD CONSTRAINT usersessionmetrics_pkey PRIMARY KEY (id);
-
-
---
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3593,6 +2760,27 @@ CREATE INDEX "IDX_session_expire" ON auth.session USING btree (expire);
 
 
 --
+-- Name: availability_histories_user_id_recorded_at; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX availability_histories_user_id_recorded_at ON upchieve.availability_histories USING btree (user_id, recorded_at);
+
+
+--
+-- Name: legacy_availability_histories_user_id_recorded_at; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX legacy_availability_histories_user_id_recorded_at ON upchieve.legacy_availability_histories USING btree (user_id, recorded_at);
+
+
+--
+-- Name: notifications_user_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_id);
+
+
+--
 -- Name: school_name_search; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -3600,11 +2788,52 @@ CREATE INDEX school_name_search ON upchieve.schools USING gin (name public.gin_t
 
 
 --
--- Name: usersessionmetrics_counters s3t_usersessionmetrics_counte_usersessionmetrics_0; Type: FK CONSTRAINT; Schema: migration; Owner: -
+-- Name: session_messages_session_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY migration.usersessionmetrics_counters
-    ADD CONSTRAINT s3t_usersessionmetrics_counte_usersessionmetrics_0 FOREIGN KEY (usersessionmetrics_id) REFERENCES migration.usersessionmetrics(id);
+CREATE INDEX session_messages_session_id ON upchieve.session_messages USING btree (session_id);
+
+
+--
+-- Name: session_reports_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_reports_session_id ON upchieve.session_reports USING btree (session_id);
+
+
+--
+-- Name: session_review_reasons_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_review_reasons_session_id ON upchieve.session_review_reasons USING btree (session_id);
+
+
+--
+-- Name: sessions_student_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX sessions_student_id ON upchieve.sessions USING btree (student_id);
+
+
+--
+-- Name: sessions_volunteer_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX sessions_volunteer_id ON upchieve.sessions USING btree (volunteer_id);
+
+
+--
+-- Name: user_actions_user_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id);
+
+
+--
+-- Name: volunteer_partner_orgs_key; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX volunteer_partner_orgs_key ON upchieve.volunteer_partner_orgs USING btree (key);
 
 
 --
@@ -4361,7 +3590,6 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 
 INSERT INTO public.schema_migrations (version) VALUES
-    ('200220405152437'),
     ('20211026204222'),
     ('20211026204728'),
     ('20211026205335'),
@@ -4457,4 +3685,15 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220328213107'),
     ('20220328213115'),
     ('20220330203235'),
-    ('20220330203351');
+    ('20220330203351'),
+    ('20220401143643'),
+    ('20220401143650'),
+    ('20220401143754'),
+    ('20220401143804'),
+    ('20220401143810'),
+    ('20220405152437'),
+    ('20220405222055'),
+    ('20220405223056'),
+    ('20220405223145'),
+    ('20220405224635'),
+    ('20220405232100');

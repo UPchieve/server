@@ -3,7 +3,7 @@ import { Pool } from 'pg'
 // TODO: safer connection string, exponential backoff, reconnect strategy
 
 const client = new Pool({
-  host: 'subway-pg-upchieve-staging.aivencloud.com',
+  host: 'staging-pg-alpha-upchieve-staging.aivencloud.com',
   user: 'subway',
   password: '',
   database: 'upchieve',

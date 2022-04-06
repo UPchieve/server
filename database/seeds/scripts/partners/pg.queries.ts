@@ -186,7 +186,7 @@ export const insertSponsorOrg = new PreparedQuery<IInsertSponsorOrgParams,IInser
 
 /** 'GetSchoolIdByMongoId' parameters type */
 export interface IGetSchoolIdByMongoIdParams {
-  mongo_id: string;
+  mongoId: string;
 }
 
 /** 'GetSchoolIdByMongoId' return type */
@@ -200,12 +200,12 @@ export interface IGetSchoolIdByMongoIdQuery {
   result: IGetSchoolIdByMongoIdResult;
 }
 
-const getSchoolIdByMongoIdIR: any = {"name":"getSchoolIdByMongoId","params":[{"name":"mongo_id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1672,"b":1680,"line":20,"col":41}]}}],"usedParamSet":{"mongo_id":true},"statement":{"body":"SELECT id from schools WHERE mongo_id = :mongo_id!","loc":{"a":1631,"b":1680,"line":20,"col":0}}};
+const getSchoolIdByMongoIdIR: any = {"name":"getSchoolIdByMongoId","params":[{"name":"mongoId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1672,"b":1679,"line":20,"col":41}]}}],"usedParamSet":{"mongoId":true},"statement":{"body":"SELECT id from schools WHERE mongo_id = :mongoId!","loc":{"a":1631,"b":1679,"line":20,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT id from schools WHERE mongo_id = :mongo_id!
+ * SELECT id from schools WHERE mongo_id = :mongoId!
  * ```
  */
 export const getSchoolIdByMongoId = new PreparedQuery<IGetSchoolIdByMongoIdParams,IGetSchoolIdByMongoIdResult>(getSchoolIdByMongoIdIR);
@@ -229,7 +229,7 @@ export interface IInsertSchoolsSponsorOrgsQuery {
   result: IInsertSchoolsSponsorOrgsResult;
 }
 
-const insertSchoolsSponsorOrgsIR: any = {"name":"insertSchoolsSponsorOrgs","params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1815,"b":1823,"line":23,"col":94}]}},{"name":"sponsorOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1827,"b":1839,"line":23,"col":106}]}}],"usedParamSet":{"schoolId":true,"sponsorOrgId":true},"statement":{"body":"INSERT INTO schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updated_at) VALUES (:schoolId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING school_id, sponsor_org_id AS ok","loc":{"a":1721,"b":1919,"line":23,"col":0}}};
+const insertSchoolsSponsorOrgsIR: any = {"name":"insertSchoolsSponsorOrgs","params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1814,"b":1822,"line":23,"col":94}]}},{"name":"sponsorOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1826,"b":1838,"line":23,"col":106}]}}],"usedParamSet":{"schoolId":true,"sponsorOrgId":true},"statement":{"body":"INSERT INTO schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updated_at) VALUES (:schoolId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING school_id, sponsor_org_id AS ok","loc":{"a":1720,"b":1918,"line":23,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -258,7 +258,7 @@ export interface IInsertStudentPartnerOrgsSponsorOrgsQuery {
   result: IInsertStudentPartnerOrgsSponsorOrgsResult;
 }
 
-const insertStudentPartnerOrgsSponsorOrgsIR: any = {"name":"insertStudentPartnerOrgsSponsorOrgs","params":[{"name":"studentPartnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2091,"b":2110,"line":26,"col":120}]}},{"name":"sponsorOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2114,"b":2126,"line":26,"col":143}]}}],"usedParamSet":{"studentPartnerOrgId":true,"sponsorOrgId":true},"statement":{"body":"INSERT INTO student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor_org_id, created_at, updated_at) VALUES (:studentPartnerOrgId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_partner_org_id, sponsor_org_id AS ok","loc":{"a":1971,"b":2219,"line":26,"col":0}}};
+const insertStudentPartnerOrgsSponsorOrgsIR: any = {"name":"insertStudentPartnerOrgsSponsorOrgs","params":[{"name":"studentPartnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2090,"b":2109,"line":26,"col":120}]}},{"name":"sponsorOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2113,"b":2125,"line":26,"col":143}]}}],"usedParamSet":{"studentPartnerOrgId":true,"sponsorOrgId":true},"statement":{"body":"INSERT INTO student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor_org_id, created_at, updated_at) VALUES (:studentPartnerOrgId!, :sponsorOrgId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_partner_org_id, sponsor_org_id AS ok","loc":{"a":1970,"b":2218,"line":26,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -284,7 +284,7 @@ export interface IGetStudentPartnerOrgsQuery {
   result: IGetStudentPartnerOrgsResult;
 }
 
-const getStudentPartnerOrgsIR: any = {"name":"getStudentPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n  id,\n  key\nFROM student_partner_orgs","loc":{"a":2257,"b":2300,"line":29,"col":0}}};
+const getStudentPartnerOrgsIR: any = {"name":"getStudentPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n  id,\n  key\nFROM student_partner_orgs","loc":{"a":2256,"b":2299,"line":29,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -313,7 +313,7 @@ export interface IGetSponsorOrgsQuery {
   result: IGetSponsorOrgsResult;
 }
 
-const getSponsorOrgsIR: any = {"name":"getSponsorOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n  id, key\nFROM sponsor_orgs","loc":{"a":2331,"b":2364,"line":35,"col":0}}};
+const getSponsorOrgsIR: any = {"name":"getSponsorOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n  id, key\nFROM sponsor_orgs","loc":{"a":2330,"b":2363,"line":35,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -342,7 +342,7 @@ export interface IInsertAdminUserQuery {
   result: IInsertAdminUserResult;
 }
 
-const insertAdminUserIR: any = {"name":"insertAdminUser","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2526,"b":2534,"line":46,"col":22}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"INSERT INTO admin_profiles (user_id, created_at, updated_at)\nSELECT\n  users.id,\n  NOW(),\n  NOW()\nFROM users\nWHERE mongo_id = ANY(:mongoIds!)\nRETURNING user_id AS ok","loc":{"a":2396,"b":2559,"line":40,"col":0}}};
+const insertAdminUserIR: any = {"name":"insertAdminUser","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2525,"b":2533,"line":46,"col":22}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"INSERT INTO admin_profiles (user_id, created_at, updated_at)\nSELECT\n  users.id,\n  NOW(),\n  NOW()\nFROM users\nWHERE mongo_id = ANY(:mongoIds!)\nRETURNING user_id AS ok","loc":{"a":2395,"b":2558,"line":40,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -376,7 +376,7 @@ export interface IUpdateSchoolPartnerQuery {
   result: IUpdateSchoolPartnerResult;
 }
 
-const updateSchoolPartnerIR: any = {"name":"updateSchoolPartner","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2655,"b":2663,"line":54,"col":18}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"UPDATE schools\nSET\n  partner = TRUE\nWHERE\n  mongo_id = ANY(:mongoIds!)\nRETURNING mongo_id AS ok","loc":{"a":2595,"b":2689,"line":50,"col":0}}};
+const updateSchoolPartnerIR: any = {"name":"updateSchoolPartner","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2654,"b":2662,"line":54,"col":18}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"UPDATE schools\nSET\n  partner = TRUE\nWHERE\n  mongo_id = ANY(:mongoIds!)\nRETURNING mongo_id AS ok","loc":{"a":2594,"b":2688,"line":50,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -390,5 +390,38 @@ const updateSchoolPartnerIR: any = {"name":"updateSchoolPartner","params":[{"nam
  * ```
  */
 export const updateSchoolPartner = new PreparedQuery<IUpdateSchoolPartnerParams,IUpdateSchoolPartnerResult>(updateSchoolPartnerIR);
+
+
+/** 'UpdateInGatesStudy' parameters type */
+export interface IUpdateInGatesStudyParams {
+  mongoIds: stringArray;
+}
+
+/** 'UpdateInGatesStudy' return type */
+export interface IUpdateInGatesStudyResult {
+  ok: string | null;
+}
+
+/** 'UpdateInGatesStudy' query type */
+export interface IUpdateInGatesStudyQuery {
+  params: IUpdateInGatesStudyParams;
+  result: IUpdateInGatesStudyResult;
+}
+
+const updateInGatesStudyIR: any = {"name":"updateInGatesStudy","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2841,"b":2849,"line":63,"col":24}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"UPDATE user_product_flags\nSET in_gates_study = TRUE\nFROM users\nWHERE\n  user_id = users.id AND\n  users.mongo_id = ANY(:mongoIds!)\nRETURNING users.mongo_id AS ok","loc":{"a":2723,"b":2881,"line":58,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE user_product_flags
+ * SET in_gates_study = TRUE
+ * FROM users
+ * WHERE
+ *   user_id = users.id AND
+ *   users.mongo_id = ANY(:mongoIds!)
+ * RETURNING users.mongo_id AS ok
+ * ```
+ */
+export const updateInGatesStudy = new PreparedQuery<IUpdateInGatesStudyParams,IUpdateInGatesStudyResult>(updateInGatesStudyIR);
 
 

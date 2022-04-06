@@ -52,9 +52,13 @@ export async function schoolsSponsorOrgsReal(
     '5d6466b7cd70635841b2cfdf',
   ]
   for (const mongoId of schoolMongoIds) {
-    const result = await pgQueries.getSchoolIdByMongoId.run({mongo_id: mongoId}, pgClient)
+    const result = await pgQueries.getSchoolIdByMongoId.run({ mongoId: mongoId }, pgClient)
+    if (!result.length) {
+      console.log('Skipping inserting sponsor org row for school:', mongoId)
+      continue
+    }
     const id = result[0].id
-    await pgQueries.insertSchoolsSponsorOrgs.run({sponsorOrgId: (sponsorOrgIds['vils'] as string), schoolId: id}, pgClient)
+    await pgQueries.insertSchoolsSponsorOrgs.run({ sponsorOrgId: (sponsorOrgIds['vils'] as string), schoolId: id }, pgClient)
   }
 }
 
