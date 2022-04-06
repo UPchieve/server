@@ -115,8 +115,9 @@ function telecomTutorTime(
   for (const availabilityHistory of availabilityForDateRange) {
     const availability = availabilityHistory.availability
     const day = DAYS[moment(availabilityHistory.recordedAt).day()]
-      if (availability[day]) {
-        for (const hourA of Object.keys(availability[day]) as HOURS[]) {
+    if (availability[day]) {
+      for (const hourA of Object.keys(availability[day]) as HOURS[]) {
+        if (availability[day][hourA]) {
           const temp = moment(availabilityHistory.recordedAt)
           const { day, hour } = formatStamp(
             temp.hour(HOUR_TO_UTC_MAPPING[hourA])
@@ -128,6 +129,7 @@ function telecomTutorTime(
             if (day in availabilityAcc) availabilityAcc[day][hour] = 60
             else availabilityAcc[day] = { hour: 60 }
           }
+        } 
       }
     }
   }
