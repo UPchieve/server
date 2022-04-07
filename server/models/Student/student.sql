@@ -240,24 +240,30 @@ INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, stud
 SELECT
     :userId!,
     :postalCode,
-    subquery.student_partner_org_id,
-    student_partner_org_sites.id,
-    grade_levels.id,
-    schools.id,
+    topquery.student_partner_org_id,
+    topquery.student_partner_org_site_id,
+    topquery.grade_level_id,
+    :schoolId,
     :college,
     NOW(),
     NOW()
 FROM (
+  SELECT
+      subquery.student_partner_org_id as student_partner_org_id,
+      student_partner_org_sites.id as student_partner_org_site_id,
+      grade_levels.id as grade_level_id
+  FROM users
+  LEFT JOIN (
     SELECT
         id AS student_partner_org_id,
         name
     FROM
         student_partner_orgs
     WHERE
-        student_partner_orgs.key = :partnerOrg) AS subquery
-    LEFT JOIN student_partner_org_sites ON :partnerSite = student_partner_org_sites.name
-    LEFT JOIN grade_levels ON :gradeLevel = grade_levels.name
-    LEFT JOIN schools ON :highSchool = schools.name
+        student_partner_orgs.key = :partnerOrg) AS subquery ON true
+  LEFT JOIN student_partner_org_sites ON :partnerSite = student_partner_org_sites.name
+  LEFT JOIN grade_levels ON :gradeLevel = grade_levels.name
+  WHERE users.id = :userId!) as topquery
 RETURNING
     user_id,
     postal_code,
@@ -335,11 +341,11 @@ WHERE
         OR student_partner_org_sites.name = :studentPartnerSite)
     AND ((:sponsorOrg)::text IS NULL
         OR ((
-            partner_org_sponsor_org.key IS NOT NULL 
+            partner_org_sponsor_org.key IS NOT NULL
             AND partner_org_sponsor_org.key = :sponsorOrg
         )
         OR (
-            school_sponsor_org.key IS NOT NULL 
+            school_sponsor_org.key IS NOT NULL
             AND school_sponsor_org.key = :sponsorOrg
             ))
         )
@@ -441,11 +447,11 @@ AND ((:studentPartnerSite)::text IS NULL
     OR student_partner_org_sites.name = :studentPartnerSite)
 AND ((:sponsorOrg)::text IS NULL
     OR ((
-        partner_org_sponsor_org.key IS NOT NULL 
+        partner_org_sponsor_org.key IS NOT NULL
         AND partner_org_sponsor_org.key = :sponsorOrg
     )
     OR (
-        school_sponsor_org.key IS NOT NULL 
+        school_sponsor_org.key IS NOT NULL
         AND school_sponsor_org.key = :sponsorOrg
         ))
     )

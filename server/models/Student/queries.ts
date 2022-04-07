@@ -346,7 +346,7 @@ export type CreateStudentPayload = {
   studentPartnerOrg?: string | undefined
   zipCode: string | undefined
   approvedHighschool: Ulid | undefined
-  currentGrade: string
+  currentGrade?: string
   partnerSite?: string
   partnerUserId?: string
   college?: string
@@ -392,17 +392,15 @@ export async function createStudent(
         partnerSite: studentData.partnerSite,
         postalCode: studentData.zipCode,
         gradeLevel: studentData.currentGrade,
-        highSchool: studentData.approvedHighschool,
+        schoolId: studentData.approvedHighschool,
       },
       transactionClient
     )
-
     if (userResult.length && profileResult.length) {
-      const profile = makeRequired(profileResult[0])
+      const profile = makeSomeRequired(profileResult[0], ['studentPartnerOrg', 'partnerSite', 'college', 'postalCode', 'gradeLevel'])
       const user = makeRequired(userResult[0])
 
       await transactionClient.query('COMMIT')
-
       return {
         id: user.id,
         firstname: user.firstName,
@@ -420,7 +418,7 @@ export async function createStudent(
         zipCode: profile.postalCode,
       }
     }
-    throw new RepoCreateError('Insert did not return new row')
+    throw new RepoCreateError('could not create student, profile or user came back with 0 rows')
   } catch (err) {
     await transactionClient.query('ROLLBACK')
     if (err instanceof RepoCreateError) throw err

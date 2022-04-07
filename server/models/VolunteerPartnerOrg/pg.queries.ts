@@ -20,21 +20,22 @@ export interface IGetVolunteerPartnerOrgForRegistrationByKeyQuery {
   result: IGetVolunteerPartnerOrgForRegistrationByKeyResult;
 }
 
-const getVolunteerPartnerOrgForRegistrationByKeyIR: any = {"name":"getVolunteerPartnerOrgForRegistrationByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":239,"b":242,"line":9,"col":11}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    KEY,\n    ARRAY_AGG(DOMAIN) AS domains\nFROM\n    volunteer_partner_orgs vpo\n    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id\nWHERE\n    KEY = :key!\nGROUP BY\n    KEY","loc":{"a":55,"b":259,"line":2,"col":0}}};
+const getVolunteerPartnerOrgForRegistrationByKeyIR: any = {"name":"getVolunteerPartnerOrgForRegistrationByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":367,"b":370,"line":12,"col":11}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    KEY,\n    COALESCE(domains.domains, '{}'::text[]) as domains\nFROM\n    volunteer_partner_orgs vpo\n    LEFT JOIN LATERAL (\n      SELECT ARRAY_AGG(domain) as domains FROM required_email_domains\n      WHERE required_email_domains.volunteer_partner_org_id = vpo.id\n    ) AS domains ON true\nWHERE\n    KEY = :key!","loc":{"a":55,"b":370,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     KEY,
- *     ARRAY_AGG(DOMAIN) AS domains
+ *     COALESCE(domains.domains, '{}'::text[]) as domains
  * FROM
  *     volunteer_partner_orgs vpo
- *     LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
+ *     LEFT JOIN LATERAL (
+ *       SELECT ARRAY_AGG(domain) as domains FROM required_email_domains
+ *       WHERE required_email_domains.volunteer_partner_org_id = vpo.id
+ *     ) AS domains ON true
  * WHERE
  *     KEY = :key!
- * GROUP BY
- *     KEY
  * ```
  */
 export const getVolunteerPartnerOrgForRegistrationByKey = new PreparedQuery<IGetVolunteerPartnerOrgForRegistrationByKeyParams,IGetVolunteerPartnerOrgForRegistrationByKeyResult>(getVolunteerPartnerOrgForRegistrationByKeyIR);
@@ -59,7 +60,7 @@ export interface IGetFullVolunteerPartnerOrgByKeyQuery {
   result: IGetFullVolunteerPartnerOrgByKeyResult;
 }
 
-const getFullVolunteerPartnerOrgByKeyIR: any = {"name":"getFullVolunteerPartnerOrgByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":600,"b":603,"line":24,"col":11}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    KEY,\n    max(name) AS name,\n    bool_or(receive_weekly_hour_summary_email) AS receive_weekly_hour_summary_email,\n    array_agg(DOMAIN) AS domains\nFROM\n    volunteer_partner_orgs vpo\n    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id\nWHERE\n    KEY = :key!\nGROUP BY\n    vpo.key","loc":{"a":308,"b":624,"line":15,"col":0}}};
+const getFullVolunteerPartnerOrgByKeyIR: any = {"name":"getFullVolunteerPartnerOrgByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":711,"b":714,"line":25,"col":11}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    KEY,\n    max(name) AS name,\n    bool_or(receive_weekly_hour_summary_email) AS receive_weekly_hour_summary_email,\n    array_agg(DOMAIN) AS domains\nFROM\n    volunteer_partner_orgs vpo\n    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id\nWHERE\n    KEY = :key!\nGROUP BY\n    vpo.key","loc":{"a":419,"b":735,"line":16,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -98,7 +99,7 @@ export interface IGetVolunteerPartnerOrgsQuery {
   result: IGetVolunteerPartnerOrgsResult;
 }
 
-const getVolunteerPartnerOrgsIR: any = {"name":"getVolunteerPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    KEY,\n    max(name) AS name,\n    bool_or(receive_weekly_hour_summary_email) AS receive_weekly_hour_summary_email,\n    array_agg(DOMAIN) AS domains\nFROM\n    volunteer_partner_orgs vpo\n    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id\nGROUP BY\n    vpo.key","loc":{"a":665,"b":959,"line":30,"col":0}}};
+const getVolunteerPartnerOrgsIR: any = {"name":"getVolunteerPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    KEY,\n    max(name) AS name,\n    bool_or(receive_weekly_hour_summary_email) AS receive_weekly_hour_summary_email,\n    array_agg(DOMAIN) AS domains\nFROM\n    volunteer_partner_orgs vpo\n    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id\nGROUP BY\n    vpo.key","loc":{"a":776,"b":1070,"line":31,"col":0}}};
 
 /**
  * Query generated from SQL:
