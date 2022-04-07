@@ -30,13 +30,15 @@ function createNewAvailability(): Availability {
   return availability as Availability
 }
 
-function getAvailabilityHour(baseHour: number): HOURS {
+function getAvailabilityHour(rawHour: number): HOURS {
+  let baseHour = rawHour
+  if (baseHour === 0) console.log('INCOMING 12')
   let hour: string
 
   if (baseHour >= 12) {
     if (baseHour > 12) {
       baseHour -= 12
-    }
+    } 
     hour = `${baseHour}p`
   } else {
     if (baseHour === 0) {
@@ -44,7 +46,7 @@ function getAvailabilityHour(baseHour: number): HOURS {
     }
     hour = `${baseHour}a`
   }
-
+  if (hour === '12a') console.log('MIDNIGHT')
   return hour as HOURS
 }
 
@@ -69,19 +71,20 @@ type AvailabilityRow = {
   weekday: string
 }
 
+/**
+ * All database rows are currently saved in EST regardless of the user's actual timezone
+ * TODO: save rows (and backfill) in user's actual timezone and do conversion server side
+ * @param rows availability rows straight form postgres
+ * @returns an Availability object model
+ */
 function buildAvailabilityModel(
   rows: AvailabilityRow[]
 ): Availability {
   const availability = createNewAvailability()
   for (const row of rows) {
-    if (!row.availableStart || !row.availableEnd || !row.timezone) continue
-    const tzTime = moment()
-      .tz(row.timezone)
-      .day(row.weekday)
-    const day = getAvailabilityDay(tzTime.day())
-    for (let i = row.availableStart; i < row.availableEnd; i++) {
+    for (let i: number = row.availableStart; i < row.availableEnd; i++) {
       const hour = getAvailabilityHour(i)
-      availability[day][hour] = true
+      availability[row.weekday as DAYS][hour] = true
     }
   }
   return availability
@@ -102,21 +105,27 @@ export async function getAvailabilityForVolunteer(
   }
 }
 
-export async function getAvailabilityForVolunteers(
-  userIds: Ulid[]
+export async function getAvailabilityForVolunteerHeatmap(
+  subject: string
 ): Promise<AvailabilitySnapshot[]> {
   try {
-    const result = await pgQueries.getAvailabilityForVolunteers.run(
-      { userIds },
+    const result = await pgQueries.getAvailabilityForVolunteerHeatmap.run(
+      { subject },
       getClient()
     )
     const availabilities: AvailabilitySnapshot[] = []
-    const groups = _.groupBy(result, row => row.userId)
+    const groups = _.groupBy(result.map(v =>{
+      // @ts-ignore
+      let t = v['available_start']
+      const x = makeRequired(v)
+      if (x.availableStart !== t) console.log('WHAT THE HELL')
+      return x
+    }), row => row.userId)
     for (const user in groups) {
       const rows = groups[user]
       availabilities.push({
         volunteerId: user,
-        availability: buildAvailabilityModel(rows.map(v => makeRequired(v))),
+        availability: buildAvailabilityModel(rows),
       })
     }
     return availabilities
@@ -219,6 +228,7 @@ export async function updateAvailabilityByVolunteerId(
   availability: Availability,
   timezone: string
 ): Promise<void> {
+  const client = await getClient().connect()
   try {
     const rows: pgQueries.IInsertNewAvailabilityParams[] = []
     for (const day in availability) {
@@ -239,17 +249,22 @@ export async function updateAvailabilityByVolunteerId(
     const errors: string[] = []
     console.log(`Attempting to insert availability OBJECT ${JSON.stringify(availability)}`)
     console.log(`Attempting to insert availability rows ${JSON.stringify(rows)}`)
+    await client.query('BEGIN')
     for (const row of rows) {
       const result = await pgQueries.insertNewAvailability.run(
         { ...row },
-        getClient()
+        client
       )
       if (!(result.length && makeRequired(result[0])))
         errors.push(`Availability row ${JSON.stringify(row)} did not save correctly`)
     }
     if (errors.length) throw new Error(errors.join('\n'))
+    await client.query('COMMIT')
   } catch (err) {
+    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
+  } finally {
+    client.release()
   }
 }
 

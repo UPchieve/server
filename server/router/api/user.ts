@@ -173,7 +173,6 @@ export function routeUser(router: Router): void {
 
   router.get('/user/:userId', authPassport.isAdmin, async function(req, res) {
     const { userId } = req.params
-    const { page } = req.query
 
     try {
       const user = await UserService.adminGetUser(
