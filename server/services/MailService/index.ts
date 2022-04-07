@@ -1,7 +1,7 @@
 import config from '../../config'
 import { Ulid } from '../../models/pgUtils'
-// import sgMail from '@sendgrid/mail'
-// import axios from 'axios'
+import sgMail from '@sendgrid/mail'
+import axios from 'axios'
 import { capitalize } from 'lodash'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
 import {
@@ -15,20 +15,19 @@ import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOr
 import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
 import logger from '../../logger'
 
-// TODO: undo this
-const sgMail = {
+// TODO: Save these somewhere nicer for later
+const mockSgMail = {
   setApiKey: (key: string) => {},
   send: (msg: any) => { logger.info(`Sending email ${JSON.stringify(msg)}`) }
 }
 
-const axios = {
+const mockAxios = {
   put: (...params: any[]) => { logger.info(`Sending axios put request ${JSON.stringify(params)}`) },
   post: (...params: any[]) => { 
     logger.info(`Sending axios post request ${JSON.stringify(params)}`)
     return { data: { result: [] } }
   },
   delete: (...params: any[]) => { logger.info(`Sending axios delete request ${JSON.stringify(params)}`) }
-
 }
 
 sgMail.setApiKey(config.sendgrid.apiKey)
