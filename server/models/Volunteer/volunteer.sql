@@ -957,6 +957,8 @@ LIMIT 1;
 /* @name getVolunteersToReview */
 SELECT
     users.id,
+    users.first_name AS first_name,
+    users.last_name AS last_name,
     users.first_name AS firstname,
     users.last_name AS lastname,
     users.email,
