@@ -18,7 +18,7 @@ export async function getStudentPartnerOrgForRegistrationByKey(key: string) {
 export async function getFullStudentPartnerOrgByKey(key: string) {
   try {
     const result = await pgQueries.getFullStudentPartnerOrgByKey.run({key}, getClient())
-    if (!(result.length && makeRequired(result[0])))
+    if (!result.length)
       throw new Error(`no student partner org found with key ${key}`)
     return makeRequired(result[0])
   } catch (err) {

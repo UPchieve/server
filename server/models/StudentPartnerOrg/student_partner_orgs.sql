@@ -1,6 +1,6 @@
 /* @name getStudentPartnerOrgForRegistrationByKey */
 SELECT
-    KEY,
+    key,
     ARRAY_AGG(spos.name) AS sites
 FROM
     student_partner_orgs spo
@@ -13,7 +13,7 @@ GROUP BY
 
 /* @name getFullStudentPartnerOrgByKey */
 SELECT
-    KEY,
+    key,
     string_agg(signup_code, NULL) AS signup_code,
     bool_or(high_school_signup) AS high_school_signup,
     bool_or(college_signup) AS college_signup,
@@ -23,14 +23,14 @@ FROM
     student_partner_orgs spo
     LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
 WHERE
-    KEY = :key!
+    key = :key!
 GROUP BY
     spo.key;
 
 
 /* @name getStudentPartnerOrgs */
 SELECT
-    KEY,
+    key,
     spo.name as name,
     max(signup_code) AS signup_code,
     bool_or(high_school_signup) AS high_school_signup,
@@ -46,7 +46,7 @@ GROUP BY
 
 /* @name getStudentPartnerOrgKeyByCode */
 SELECT
-    KEY
+    key
 FROM
     student_partner_orgs
 WHERE
