@@ -15,7 +15,7 @@ export async function findSchoolByUpchieveId(
     )
 
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['fipst', 'schoolYear', 'schName', 'leaName', 'st', 'stSchid', 'mcity', 'mstate', 'mzip', 'lcity', 'lzip', 'g9Offered', 'g10Offered', 'g11Offered', 'g12Offered'])
     }
   } catch (err) {
     throw new RepoReadError(err)

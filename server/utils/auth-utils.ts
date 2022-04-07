@@ -88,7 +88,7 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   partnerUserId: asOptional(asString),
   partnerSite: asOptional(asString),
   college: asOptional(asString),
-  currentGrade: asEnum(GRADES),
+  currentGrade: asOptional(asEnum(GRADES)),
 })
 
 export interface VolunteerRegData extends UserRegData {
