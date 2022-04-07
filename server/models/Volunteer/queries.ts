@@ -489,7 +489,7 @@ export async function updateVolunteerReferenceStatusById(
     const result = await pgQueries.updateVolunteerReferenceStatusById.run(
       {
         referenceId,
-        status
+        status: status.toLowerCase()
       },
       getClient()
     )
@@ -503,7 +503,10 @@ export async function updateVolunteerReferenceStatusById(
 
 export async function updateVolunteerPending(userId: Ulid, approved: boolean, photoIdStatus: string): Promise<void> {
   try {
-    const result = await pgQueries.updateVolunteerPending.run({ userId, approved, status: photoIdStatus }, getClient())
+    const result = await pgQueries.updateVolunteerPending.run(
+      { userId, approved, status: photoIdStatus.toLowerCase() },
+      getClient()
+    )
     if (!result.length && makeRequired(result[0]).ok) throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
@@ -819,6 +822,21 @@ export async function getReferencesByVolunteer(
   }
 }
 
+export async function getReferencesByVolunteerForAdminDetail(
+  userId: Ulid, poolClient?: PoolClient
+): Promise<ReferenceContactInfo[]> {
+  const client = poolClient ? poolClient : getClient()
+  try {
+    const result = await pgQueries.getReferencesByVolunteerForAdminDetail.run(
+      { userId },
+      client
+    )
+    return result.map(v => makeRequired(v))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type VolunteerForPendingStatus = VolunteerContactInfo & {
   occupations: string[]
   country?: string
@@ -837,7 +855,7 @@ export async function getVolunteerForPendingStatus(
       getClient()
     )
     if (!result.length) return
-    const volunteer = makeSomeRequired(result[0], ['country'])
+    const volunteer = makeSomeRequired(result[0], ['country', 'volunteerPartnerOrg'])
     const references = await getReferencesByVolunteer(userId)
     return {
       ...volunteer,

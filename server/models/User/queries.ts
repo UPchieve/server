@@ -10,7 +10,7 @@ import {
 } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS } from '../../constants'
-import { getReferencesByVolunteer } from '../Volunteer/queries'
+import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { PoolClient } from 'pg'
 
 export async function getUserIdByPhone(
@@ -335,13 +335,18 @@ export async function getUserForAdminDetail(userId: Ulid) {
       'verified',
       'numPastSessions',
     ])
-    const references = await getReferencesByVolunteer(user.id, client)
+    const references = await getReferencesByVolunteerForAdminDetail(user.id, client)
     const sessions = await getPastSessionsForAdminDetail(user.id, client)
     return {
       ...user,
-      references,
+      references: references.map(ref => ({
+        ...ref,
+        _id: ref.id,
+        status: ref.status.toUpperCase(),
+      })),
       pastSessions: sessions,
       _id: user.id,
+      photoIdStatus: user.photoIdStatus.toUpperCase(),
     }
   } catch (err) {
     throw new RepoReadError(err)

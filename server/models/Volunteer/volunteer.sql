@@ -662,6 +662,28 @@ FROM
 WHERE
     volunteer_references.user_id = :userId!;
 
+/* @name getReferencesByVolunteerForAdminDetail */
+SELECT
+    volunteer_references.id,
+    first_name,
+    last_name,
+    email,
+    volunteer_reference_statuses.name AS status,
+    affiliation,
+    relationship_length,
+    patient,
+    positive_role_model,
+    agreeable_and_approachable,
+    communicates_effectively,
+    rejection_reason,
+    additional_info,
+    trustworthy_with_children
+FROM
+    volunteer_references
+    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+WHERE
+    volunteer_references.user_id = :userId!;
+
 
 /* @name getVolunteerForPendingStatus */
 SELECT
@@ -935,39 +957,39 @@ LIMIT 1;
 /* @name getVolunteersToReview */
 SELECT
     users.id,
-    users.first_name,
-    users.last_name,
+    users.first_name AS firstname,
+    users.last_name AS lastname,
     users.email,
     users.created_at,
-    MAX(user_actions.created_at) AS ready_for_review_at
+	MAX(user_actions.created_at) AS ready_for_review_at
 FROM
     users
     JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
-    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
-    LEFT JOIN (
+    JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
+    JOIN (
         SELECT
             user_id,
             count(*) AS total_references
         FROM
             volunteer_references
-            LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+            JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
         WHERE
-            NOT volunteer_reference_statuses.name = ANY ('{ "sent", "unsent", "rejected", "removed" }')
+            volunteer_reference_statuses.name = 'submitted'
         GROUP BY
             user_id) AS reference_count ON reference_count.user_id = users.id
-    JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id
-    LEFT JOIN user_actions ON user_actions.user_id = users.id
+    JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id  -- user is only ready for review if they submitted background info
+	JOIN user_actions ON user_actions.user_id = users.id
 WHERE
     volunteer_profiles.approved IS FALSE
     AND NOT volunteer_profiles.country IS NULL
     AND NOT volunteer_profiles.photo_id_s3_key IS NULL
     AND photo_id_statuses.name = ANY ('{ "submitted", "approved" }')
-    AND user_actions.action_type = ANY ('{ "added photo id", "submitted reference form", "completed background info" }')
+	AND user_actions.action = ANY ('{ "ADDED PHOTO ID", "SUBMITTED REFERENCE FORM", "COMPLETED BACKGROUND INFO" }')
     AND reference_count.total_references = 2
 GROUP BY
     users.id
 ORDER BY
-    ready_for_review_at
+    ready_for_review_at ASC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
