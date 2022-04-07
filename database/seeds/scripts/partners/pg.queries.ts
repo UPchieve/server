@@ -342,7 +342,7 @@ export interface IInsertAdminUserQuery {
   result: IInsertAdminUserResult;
 }
 
-const insertAdminUserIR: any = {"name":"insertAdminUser","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2525,"b":2533,"line":46,"col":22}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"INSERT INTO admin_profiles (user_id, created_at, updated_at)\nSELECT\n  users.id,\n  NOW(),\n  NOW()\nFROM users\nWHERE mongo_id = ANY(:mongoIds!)\nRETURNING user_id AS ok","loc":{"a":2395,"b":2558,"line":40,"col":0}}};
+const insertAdminUserIR: any = {"name":"insertAdminUser","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2525,"b":2533,"line":46,"col":22}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"INSERT INTO admin_profiles (user_id, created_at, updated_at)\nSELECT\n  users.id,\n  NOW(),\n  NOW()\nFROM users\nWHERE mongo_id = ANY(:mongoIds!)\nON CONFLICT DO NOTHING\nRETURNING user_id AS ok","loc":{"a":2395,"b":2581,"line":40,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -354,6 +354,7 @@ const insertAdminUserIR: any = {"name":"insertAdminUser","params":[{"name":"mong
  *   NOW()
  * FROM users
  * WHERE mongo_id = ANY(:mongoIds!)
+ * ON CONFLICT DO NOTHING
  * RETURNING user_id AS ok
  * ```
  */
@@ -376,7 +377,7 @@ export interface IUpdateSchoolPartnerQuery {
   result: IUpdateSchoolPartnerResult;
 }
 
-const updateSchoolPartnerIR: any = {"name":"updateSchoolPartner","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2654,"b":2662,"line":54,"col":18}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"UPDATE schools\nSET\n  partner = TRUE\nWHERE\n  mongo_id = ANY(:mongoIds!)\nRETURNING mongo_id AS ok","loc":{"a":2594,"b":2688,"line":50,"col":0}}};
+const updateSchoolPartnerIR: any = {"name":"updateSchoolPartner","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2677,"b":2685,"line":55,"col":18}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"UPDATE schools\nSET\n  partner = TRUE\nWHERE\n  mongo_id = ANY(:mongoIds!)\nRETURNING mongo_id AS ok","loc":{"a":2617,"b":2711,"line":51,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -408,7 +409,7 @@ export interface IUpdateInGatesStudyQuery {
   result: IUpdateInGatesStudyResult;
 }
 
-const updateInGatesStudyIR: any = {"name":"updateInGatesStudy","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2841,"b":2849,"line":63,"col":24}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"UPDATE user_product_flags\nSET in_gates_study = TRUE\nFROM users\nWHERE\n  user_id = users.id AND\n  users.mongo_id = ANY(:mongoIds!)\nRETURNING users.mongo_id AS ok","loc":{"a":2723,"b":2881,"line":58,"col":0}}};
+const updateInGatesStudyIR: any = {"name":"updateInGatesStudy","params":[{"name":"mongoIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2864,"b":2872,"line":64,"col":24}]}}],"usedParamSet":{"mongoIds":true},"statement":{"body":"UPDATE user_product_flags\nSET in_gates_study = TRUE\nFROM users\nWHERE\n  user_id = users.id AND\n  users.mongo_id = ANY(:mongoIds!)\nRETURNING users.mongo_id AS ok","loc":{"a":2746,"b":2904,"line":59,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -423,5 +424,79 @@ const updateInGatesStudyIR: any = {"name":"updateInGatesStudy","params":[{"name"
  * ```
  */
 export const updateInGatesStudy = new PreparedQuery<IUpdateInGatesStudyParams,IUpdateInGatesStudyResult>(updateInGatesStudyIR);
+
+
+/** 'CountBadFeedbacks' parameters type */
+export type ICountBadFeedbacksParams = void;
+
+/** 'CountBadFeedbacks' return type */
+export interface ICountBadFeedbacksResult {
+  count: number | null;
+}
+
+/** 'CountBadFeedbacks' query type */
+export interface ICountBadFeedbacksQuery {
+  params: ICountBadFeedbacksParams;
+  result: ICountBadFeedbacksResult;
+}
+
+const countBadFeedbacksIR: any = {"name":"countBadFeedbacks","params":[],"usedParamSet":{},"statement":{"body":"select\n\tcount(*)::int as count\nfrom feedbacks\njoin sessions on sessions.id = feedbacks.session_id\njoin user_roles ur on ur.id = feedbacks.user_role_id\nwhere\n\tfeedbacks.user_id <> sessions.volunteer_id AND\n    ur.name = 'volunteer'","loc":{"a":2938,"b":3167,"line":68,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * select
+ * 	count(*)::int as count
+ * from feedbacks
+ * join sessions on sessions.id = feedbacks.session_id
+ * join user_roles ur on ur.id = feedbacks.user_role_id
+ * where
+ * 	feedbacks.user_id <> sessions.volunteer_id AND
+ *     ur.name = 'volunteer'
+ * ```
+ */
+export const countBadFeedbacks = new PreparedQuery<ICountBadFeedbacksParams,ICountBadFeedbacksResult>(countBadFeedbacksIR);
+
+
+/** 'FixVolunteerFeedbacks' parameters type */
+export type IFixVolunteerFeedbacksParams = void;
+
+/** 'FixVolunteerFeedbacks' return type */
+export interface IFixVolunteerFeedbacksResult {
+  ok: string;
+}
+
+/** 'FixVolunteerFeedbacks' query type */
+export interface IFixVolunteerFeedbacksQuery {
+  params: IFixVolunteerFeedbacksParams;
+  result: IFixVolunteerFeedbacksResult;
+}
+
+const fixVolunteerFeedbacksIR: any = {"name":"fixVolunteerFeedbacks","params":[],"usedParamSet":{},"statement":{"body":"UPDATE feedbacks origin\nSET\n  user_id = subquery.user_id,\n  updated_at = NOW()\nFROM (\n  SELECT\n    sessions.volunteer_id AS user_id,\n    feedbacks.id AS feedback_id\n  FROM feedbacks\n  JOIN sessions on sessions.id = feedbacks.session_id\n  JOIN user_roles ON user_roles.id = feedbacks.user_role_id\n  WHERE\n    feedbacks.user_id <> sessions.volunteer_id AND\n    user_roles.name = 'volunteer'\n) AS subquery\nWHERE\n  origin.id = subquery.feedback_id\nRETURNING id AS ok","loc":{"a":3205,"b":3666,"line":78,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE feedbacks origin
+ * SET
+ *   user_id = subquery.user_id,
+ *   updated_at = NOW()
+ * FROM (
+ *   SELECT
+ *     sessions.volunteer_id AS user_id,
+ *     feedbacks.id AS feedback_id
+ *   FROM feedbacks
+ *   JOIN sessions on sessions.id = feedbacks.session_id
+ *   JOIN user_roles ON user_roles.id = feedbacks.user_role_id
+ *   WHERE
+ *     feedbacks.user_id <> sessions.volunteer_id AND
+ *     user_roles.name = 'volunteer'
+ * ) AS subquery
+ * WHERE
+ *   origin.id = subquery.feedback_id
+ * RETURNING id AS ok
+ * ```
+ */
+export const fixVolunteerFeedbacks = new PreparedQuery<IFixVolunteerFeedbacksParams,IFixVolunteerFeedbacksResult>(fixVolunteerFeedbacksIR);
 
 

@@ -12,7 +12,7 @@ async function getStudentPartnerOrgIds(): Promise<NameToId> {
     }
     return map
   } catch (err) {
-    throw new Error('Could not read student partner orgs')
+    throw new Error(`Could not read student partner orgs: ${(err as Error).message}`)
   }
 }
 
@@ -25,16 +25,16 @@ async function getSponsorOrgIds(): Promise<NameToId> {
     }
     return map
   } catch (err) {
-    throw new Error('Could not read student partner orgs')
+    throw new Error(`Could not read student partner orgs: ${(err as Error).message}`)
   }
 }
 
 async function insertAdminUser(mongoIds: string[]): Promise<void> {
   try {
     const result = await pgQueries.insertAdminUser.run({ mongoIds }, client)
-    if (result.length !== mongoIds.length) console.error(`Did not insert admin for ${mongoIds.length - result.length} users`)
+    if (result.length !== mongoIds.length) console.error(`Did not insert admin for ${mongoIds.length - result.length} users due to duplicates`)
   } catch (err) {
-    throw new Error('Could not insert admin users')
+    throw new Error(`Could not insert admin users: ${(err as Error).message}`)
   }
 }
 
@@ -43,9 +43,9 @@ async function updateSchoolPartner(mongoIds: string[]): Promise<void> {
     const result = await pgQueries.updateSchoolPartner.run({ mongoIds }, client)
     const returnedIds = result.map(v => v.ok)
     const diff = mongoIds.filter(v => !returnedIds.includes(v))
-    if (result.length !== mongoIds.length) console.error(`Did not update partrner status for schools: ${diff}`)
+    if (result.length !== mongoIds.length) console.error(`Did not update partrner status for schools due to missing mongoIds: ${diff}`)
   } catch (err) {
-    throw new Error('Could not update school partners')
+    throw new Error(`Could not update school partners: ${(err as Error).message}`)
   }
 }
 
@@ -56,9 +56,23 @@ async function updateInGatesStudy(mongoIds: string[]): Promise<void> {
     const diff = mongoIds.filter(v => !returnedIds.includes(v))
     if (result.length !== mongoIds.length) console.error(`Did not update user in gates study for ${diff} users`)
   } catch (err) {
-    throw new Error('Could not user in gates study')
+    throw new Error(`Could not user in gates study: ${(err as Error).message}`)
   }
 }
+
+async function fixVolunteerFeedbacks(): Promise<void> {
+  try {
+    const countResult = await pgQueries.countBadFeedbacks.run(undefined, client)
+    const count = countResult[0].count || 0
+    const result = await pgQueries.fixVolunteerFeedbacks.run(undefined, client)
+    const returnedIds = result.map(v => v.ok)
+    const diff = count - returnedIds.length
+    if (diff) console.error(`Did not update fix ${diff} feedbacks`)
+  } catch (err) {
+    throw new Error(`Could not fix broken feedbacks: ${(err as Error).message}`)
+  }
+}
+
 
 async function seedData(): Promise<void> {
   let exitCode = 0
@@ -67,6 +81,7 @@ async function seedData(): Promise<void> {
     const ssoIds = await getSponsorOrgIds()
     await schoolsSponsorOrgsReal(ssoIds)
     await studentPartnerOrgsSponsorOrgsReal(ssoIds, spoIds)
+    await fixVolunteerFeedbacks()
 
     await insertAdminUser([
       '5bccb58aa73c02792c0e8657',

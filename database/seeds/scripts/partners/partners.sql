@@ -44,6 +44,7 @@ SELECT
   NOW()
 FROM users
 WHERE mongo_id = ANY(:mongoIds!)
+ON CONFLICT DO NOTHING
 RETURNING user_id AS ok;
 
 /* @name updateSchoolPartner */
@@ -62,3 +63,33 @@ WHERE
   user_id = users.id AND
   users.mongo_id = ANY(:mongoIds!)
 RETURNING users.mongo_id AS ok;
+
+/* @name countBadFeedbacks */
+select
+	count(*)::int as count
+from feedbacks
+join sessions on sessions.id = feedbacks.session_id
+join user_roles ur on ur.id = feedbacks.user_role_id
+where
+	feedbacks.user_id <> sessions.volunteer_id AND
+    ur.name = 'volunteer';
+
+/* @name fixVolunteerFeedbacks */
+UPDATE feedbacks origin
+SET
+  user_id = subquery.user_id,
+  updated_at = NOW()
+FROM (
+  SELECT
+    sessions.volunteer_id AS user_id,
+    feedbacks.id AS feedback_id
+  FROM feedbacks
+  JOIN sessions on sessions.id = feedbacks.session_id
+  JOIN user_roles ON user_roles.id = feedbacks.user_role_id
+  WHERE
+    feedbacks.user_id <> sessions.volunteer_id AND
+    user_roles.name = 'volunteer'
+) AS subquery
+WHERE
+  origin.id = subquery.feedback_id
+RETURNING id AS ok;

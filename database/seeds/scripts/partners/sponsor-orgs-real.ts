@@ -54,7 +54,7 @@ export async function schoolsSponsorOrgsReal(
   for (const mongoId of schoolMongoIds) {
     const result = await pgQueries.getSchoolIdByMongoId.run({ mongoId: mongoId }, pgClient)
     if (!result.length) {
-      console.log('Skipping inserting sponsor org row for school:', mongoId)
+      console.log('Skipping inserting sponsor org row for school due to missing mongoId:', mongoId)
       continue
     }
     const id = result[0].id
