@@ -183,11 +183,7 @@ export async function getLegacyAvailabilityHistoryForDatesByVolunteerId(
       // NOTE: the DB currently has duplicate entries for legacy_availabilities, ignore duplicates here
       const row = rows[0]
       const availability = createNewAvailability()
-      // NOTE: some entries in the db do not have a timezone
-      const tzDay = row.timezone ? moment(row.recordedAt)
-      .tz(row.timezone)
-      .weekday() : moment(row.recordedAt).weekday()
-      const day = getAvailabilityDay(tzDay)
+      const day = getAvailabilityDay(moment(row.recordedAt).day())
       histories.push({
         volunteerId: userId,
         recordedAt: new Date(row.recordedAt),
