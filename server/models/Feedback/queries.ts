@@ -3,6 +3,7 @@ import { RepoCreateError, RepoReadError } from '../Errors'
 import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { Feedback } from './types'
+import { fixNumberInt } from '../../utils/fix-number-int'
 
 function buildFeedback(rows: pgQueries.IGetFeedbackByIdResult[]): Feedback {
   if (rows.length > 2)
@@ -25,11 +26,11 @@ function buildFeedback(rows: pgQueries.IGetFeedbackByIdResult[]): Feedback {
   for (const row of newRows) {
     if (row.userRole === 'student') {
       feedback.studentId = row.userId
-      feedback.studentCounselingFeedback = row.studentCounselingFeedback as any
-      feedback.studentTutoringFeedback = row.studentTutoringFeedback as any
+      feedback.studentCounselingFeedback = fixNumberInt(row.studentCounselingFeedback as any)
+      feedback.studentTutoringFeedback = fixNumberInt(row.studentTutoringFeedback as any)
     } else if (row.userRole === 'volunteer') {
       feedback.volunteerId = row.userId
-      feedback.volunteerFeedback = row.volunteerFeedback as any
+      feedback.volunteerFeedback = fixNumberInt(row.volunteerFeedback as any)
     } else throw new Error('Found feedback with unknown user role')
   }
   return feedback

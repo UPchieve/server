@@ -2788,10 +2788,45 @@ CREATE INDEX school_name_search ON upchieve.schools USING gin (name public.gin_t
 
 
 --
+-- Name: session_messages_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_messages_session_id ON upchieve.session_messages USING btree (session_id);
+
+
+--
+-- Name: session_reports_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_reports_session_id ON upchieve.session_reports USING btree (session_id);
+
+
+--
+-- Name: session_review_reasons_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_review_reasons_session_id ON upchieve.session_review_reasons USING btree (session_id);
+
+
+--
+-- Name: sessions_student_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX sessions_student_id ON upchieve.sessions USING btree (student_id);
+
+
+--
 -- Name: sessions_volunteer_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
 CREATE INDEX sessions_volunteer_id ON upchieve.sessions USING btree (volunteer_id);
+
+
+--
+-- Name: user_actions_user_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id);
 
 
 --
@@ -3656,4 +3691,9 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220401143754'),
     ('20220401143804'),
     ('20220401143810'),
-    ('20220405152437');
+    ('20220405152437'),
+    ('20220405222055'),
+    ('20220405223056'),
+    ('20220405223145'),
+    ('20220405224635'),
+    ('20220405232100');
