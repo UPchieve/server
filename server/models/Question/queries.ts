@@ -52,10 +52,13 @@ export async function createQuestion(question: Question): Promise<Question> {
     )
     const subcategoryId = makeRequired(subcategoryUpsertResult[0]).id
 
+    // pg parser takes any array and makes it a native array, so JSON arrays
+    // break it, so we must JSON.stringify any JSON array.
+    // https://github.com/adelsz/pgtyped/issues/263
     const result = await pgQueries.create.run(
       {
         questionText: question.questionText,
-        possibleAnswers: question.possibleAnswers,
+        possibleAnswers: JSON.stringify(question.possibleAnswers),
         correctAnswer: question.correctAnswer,
         imageSrc: question.imageSrc,
         subcategoryId,
@@ -92,6 +95,8 @@ export async function updateQuestion(options: QuestionUpdateOptions): Promise<Qu
   try {
     const question = options.question
 
+    console.log(question)
+
     await client.query('BEGIN')
 
     const quizUpsertResult = await pgQueries.upsertQuiz.run(
@@ -106,6 +111,9 @@ export async function updateQuestion(options: QuestionUpdateOptions): Promise<Qu
     )
     const subcategoryId = makeRequired(subcategoryUpsertResult[0]).id
 
+    // pg parser takes any array and makes it a native array, so JSON arrays
+    // break it, so we must JSON.stringify any JSON array.
+    // https://github.com/adelsz/pgtyped/issues/263
     const result = await pgQueries.update.run(
       {
         questionId: options.id,
@@ -113,13 +121,12 @@ export async function updateQuestion(options: QuestionUpdateOptions): Promise<Qu
         imageSrc: question.imageSrc,
         questionText: question.questionText,
         subcategoryId: subcategoryId,
-        possibleAnswers: question.possibleAnswers,
+        possibleAnswers: JSON.stringify(question.possibleAnswers),
       },
       client
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new Error('insertion of question did not return ok')
-
     await client.query('COMMIT')
     return question
   } catch (err) {
