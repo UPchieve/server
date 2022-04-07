@@ -193,7 +193,7 @@ export function routes(app: Express) {
       })
       // if account with given email exists then try to destroy its sessions
       if (userId) {
-        await AuthService.deleteAllUserSessions(userId.toString())
+        await AuthService.deleteAllUserSessions(userId)
         req.logout()
       }
       res.status(200).json({

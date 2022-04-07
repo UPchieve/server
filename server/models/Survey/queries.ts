@@ -3,6 +3,7 @@ import { RepoCreateError, RepoReadError } from '../Errors'
 import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { Survey } from './types'
+import { fixNumberInt } from '../../utils/fix-number-int'
 
 export type SurveyQueryResult = Omit<Survey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -15,7 +16,7 @@ export function parseQueryResult(result: SurveyQueryResult): Survey {
       ? JSON.parse(result.responseData)
       : result.responseData
 
-  return { ...result, responseData }
+  return { ...result, responseData: fixNumberInt(responseData) }
 }
 
 export async function savePresessionSurvey(

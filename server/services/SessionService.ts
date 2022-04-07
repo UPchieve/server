@@ -424,10 +424,10 @@ export async function adminFilteredSessions(data: unknown) {
       showTestUsers: !!showTestUsers,
       showBannedUsers: !!showBannedUsers,
       reported: !!isReported,
-      messageCount: Number(minMessagesSent),
-      sessionLength: Number(minSessionLength),
-      volunteerRating: Number(volunteerRating),
-      studentRating: Number(studentRating)
+      messageCount: minMessagesSent ? Number(minMessagesSent) : undefined,
+      sessionLength: minSessionLength ? Number(minSessionLength) : undefined,
+      volunteerRating: volunteerRating ? Number(volunteerRating) : undefined,
+      studentRating: studentRating ? Number(studentRating) : undefined
     }
   )
   const isLastPage = sessions.length < PER_PAGE

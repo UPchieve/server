@@ -8,7 +8,6 @@ import {
   makeSomeOptional,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { Notification } from '../Notification'
 import moment from 'moment'
 import { Session } from './types'
 import 'moment-timezone'
@@ -21,6 +20,7 @@ import {
 } from '../Feedback'
 import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
+import { fixNumberInt } from '../../utils/fix-number-int'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -229,6 +229,8 @@ export async function getSessionToEndById(
 }
 
 export type SessionsToReview = {
+  id: Ulid
+  _id: Ulid
   createdAt: Date
   endedAt: Date
   volunteer?: Ulid
@@ -239,6 +241,8 @@ export type SessionsToReview = {
   isReported: boolean
   flags: string[]
   reviewReasons?: string[]
+  toReview: boolean
+  studentRating?: number
 }
 
 export async function getSessionsToReview(
@@ -250,7 +254,15 @@ export async function getSessionsToReview(
       { limit, offset },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteer', 'reviewReasons']))
+    return result.map(v => {
+      const temp = makeSomeRequired(v, ['volunteer', 'reviewReasons', 'studentCounselingFeedback'])
+      const studentRating = extractStudentRating(fixNumberInt(temp.studentCounselingFeedback))
+      return {
+        ...temp,
+        studentRating,
+        _id: temp.id
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -456,7 +468,8 @@ export type SessionByIdWithStudentAndVolunteer = {
   photos?: string[]
   student: UserForAdmin
   volunteer?: UserForAdmin
-  messages: MessageForFrontend[]
+  messages: MessageForFrontend[],
+  toReview: boolean
 }
 
 export async function getMessagesForFrontend(
@@ -827,6 +840,8 @@ export type AdminFilterUser = {
   totalPastSessions: number
 }
 export type AdminFilteredSessions = {
+  id: Ulid
+  _id: Ulid
   createdAt: Date
   endedAt: Date
   volunteer?: AdminFilterUser
@@ -836,6 +851,7 @@ export type AdminFilteredSessions = {
   student: AdminFilterUser
   studentFirstName: string
   studentRating?: number
+  reviewReasons: string[]
 }
 export type AdminFilterOptions = {
   messageCount: number | undefined
@@ -850,26 +866,24 @@ export type AdminFilterOptions = {
 }
 
 function extractVolunteerRating(
-  feedback: VolunteerFeedback | ResponseData | undefined
+  rawFeedback: VolunteerFeedback | ResponseData | undefined
 ): number | undefined {
-  if (!feedback) return undefined
+  if (!rawFeedback) return undefined
+  const feedback = fixNumberInt(rawFeedback)
   let rating: number | undefined
   if ((feedback as VolunteerFeedback)['session-enjoyable'])
     rating = (feedback as VolunteerFeedback)['session-enjoyable'] as number
-  else if ((feedback as ResponseData)['rate-session'].rating)
+  else if ((feedback as ResponseData)['rate-session'])
     rating = (feedback as ResponseData)['rate-session'].rating as number
   return rating
 }
 function extractStudentRating(
-  feedback: StudentCounselingFeedback | ResponseData | undefined
+  rawFeedback: StudentCounselingFeedback | ResponseData | undefined
 ): number | undefined {
-  if (!feedback) return undefined
-  let rating: number | undefined
+  if (!rawFeedback) return undefined
+  const feedback = fixNumberInt(rawFeedback)
   if ((feedback as StudentCounselingFeedback)['rate-session'])
-    rating = (feedback as StudentCounselingFeedback)['rate-session'] as number
-  else if ((feedback as ResponseData)['rate-session'].rating)
-    rating = (feedback as ResponseData)['rate-session'].rating as number
-  return rating
+    return (feedback as StudentCounselingFeedback)['rate-session']?.rating as number
 }
 export async function getSessionsForAdminFilter(
   start: Date,
@@ -878,14 +892,22 @@ export async function getSessionsForAdminFilter(
   offset: number,
   options: AdminFilterOptions
 ): Promise<AdminFilteredSessions[]> {
-  const client = await getClient().connect()
   try {
     const sessionResult = await pgQueries.getSessionsForAdminFilter.run(
       { start, end, limit, offset, ...options },
-      client
+      getClient()
     )
-    const sessions = sessionResult.map(v => makeRequired(v))
-    const temp = sessions.map(session => {
+    const sessions = sessionResult.map(v => makeSomeRequired(v, [
+      'volunteerFeedback',
+      'studentCounselingFeedback',
+      'volunteerEmail',
+      'volunteerFirstName',
+      'volunteerIsBanned',
+      'volunteerTestUser',
+      'volunteerTotalPastSessions',
+      'reviewReasons'
+    ]))
+    return sessions.map(session => {
       const studentRating = extractStudentRating(
         session.studentCounselingFeedback as any
       )
@@ -912,22 +934,9 @@ export async function getSessionsForAdminFilter(
         volunteerRating,
         student,
         volunteer,
+        reviewReasons: session.reviewReasons || [],
+        _id: session.id
       }
-    })
-    return temp.filter(session => {
-      if (
-        options.studentRating &&
-        session.studentRating &&
-        session.studentRating < options.studentRating
-      )
-        return false
-      else if (
-        options.volunteerRating &&
-        session.volunteerRating &&
-        session.volunteerRating < options.volunteerRating
-      )
-        return false
-      return true
     })
   } catch (err) {
     throw new RepoReadError(err)
