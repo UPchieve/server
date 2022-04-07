@@ -172,6 +172,15 @@ export default {
   font-size: 16px;
   color: #fff;
 
+  a {
+    color: #fff;
+
+    &:hover {
+      color: #f3f3f3;
+      text-decoration: none;
+    }
+  }
+
   &:last-child {
     // TODO: a cleaner way to handle spacing issues with class SubjectSelection
     margin-bottom: -20px;
@@ -186,7 +195,8 @@ export default {
   }
 
   &--downtime {
-    background-color: $c-error-red;
+    color: #fff;
+    background-color: $c-information-blue;
   }
 }
 </style>
