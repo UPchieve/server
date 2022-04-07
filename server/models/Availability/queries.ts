@@ -114,13 +114,7 @@ export async function getAvailabilityForVolunteerHeatmap(
       getClient()
     )
     const availabilities: AvailabilitySnapshot[] = []
-    const groups = _.groupBy(result.map(v =>{
-      // @ts-ignore
-      let t = v['available_start']
-      const x = makeRequired(v)
-      if (x.availableStart !== t) console.log('WHAT THE HELL')
-      return x
-    }), row => row.userId)
+    const groups = _.groupBy(result.map(v => makeRequired(v)), row => row.userId)
     for (const user in groups) {
       const rows = groups[user]
       availabilities.push({

@@ -327,7 +327,7 @@ export async function getUsers(data: unknown) {
   }
 }
 
-// @note: this query is making a request for user data on every page transition
+// TODO: this query is making a request for user data on every page transition
 //        for new pastSessions to display. May be better served as a separate
 //        service method for getting the user's past sessions
 export async function adminGetUser(userId: Ulid) {
