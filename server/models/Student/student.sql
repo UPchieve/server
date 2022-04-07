@@ -286,7 +286,7 @@ SELECT
             partner_org_sponsor_org.name
         WHEN school_sponsor_org.name IS NOT NULL THEN school_sponsor_org.name
         ELSE
-            ''
+            NULL
         END) AS sponsor_org,
     (
         CASE WHEN sessions.volunteer_id IS NOT NULL THEN
@@ -361,7 +361,7 @@ SELECT
             partner_org_sponsor_org.name
         WHEN school_sponsor_org.name IS NOT NULL THEN school_sponsor_org.name
         ELSE
-            ''
+            NULL
         END) AS sponsor_org,
     schools.name AS school,
     COALESCE(sessions.total_sessions, 0) AS total_sessions,
