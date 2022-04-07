@@ -1396,7 +1396,7 @@ export async function getVolunteersForAnalyticsReport(
         start,
         end,
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
-        studentSchoolIds: associatedPartners.associatedStudentPartnerOrgs,
+        studentSchoolIds: associatedPartners.associatedPartnerSchools,
       },
       getClient()
     )

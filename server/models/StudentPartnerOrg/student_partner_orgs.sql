@@ -4,7 +4,7 @@ SELECT
     ARRAY_AGG(spos.name) AS sites
 FROM
     student_partner_orgs spo
-    JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
 WHERE
     spo.key = :key!
 GROUP BY
@@ -21,7 +21,7 @@ SELECT
     array_agg(spos.name) AS sites
 FROM
     student_partner_orgs spo
-    JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
 WHERE
     KEY = :key!
 GROUP BY
@@ -31,6 +31,7 @@ GROUP BY
 /* @name getStudentPartnerOrgs */
 SELECT
     KEY,
+    spo.name as name,
     max(signup_code) AS signup_code,
     bool_or(high_school_signup) AS high_school_signup,
     bool_or(college_signup) AS college_signup,
@@ -38,9 +39,9 @@ SELECT
     array_agg(spos.name) AS sites
 FROM
     student_partner_orgs spo
-    JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
 GROUP BY
-    spo.key;
+    spo.key, spo.name;
 
 
 /* @name getStudentPartnerOrgKeyByCode */
