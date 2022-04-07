@@ -370,7 +370,6 @@ export async function createStudent(
 ): Promise<CreatedStudent> {
   const transactionClient = await getClient().connect()
   try {
-    console.log(studentData)
     const userId = getDbUlid()
     await transactionClient.query('BEGIN')
     const userResult = await pgQueries.createStudentUser.run(
@@ -419,6 +418,7 @@ export async function createStudent(
         zipCode: profile.postalCode,
       }
     }
+    throw new RepoCreateError('could not create student, profile or user came back with 0 rows')
   } catch (err) {
     await transactionClient.query('ROLLBACK')
     if (err instanceof RepoCreateError) throw err

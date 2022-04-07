@@ -78,7 +78,7 @@ export interface PartnerStudentRegData extends StudentRegData {
   partnerUserId?: string
   partnerSite?: string
   college?: string
-  currentGrade: GRADES
+  currentGrade?: GRADES
 }
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   ...userRegDataValidators,
