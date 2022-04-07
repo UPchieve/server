@@ -26,11 +26,10 @@ export async function getAssociatedPartnerByKey(key: string): Promise<Associated
   }
 }
 
-export async function getAssociatedPartnerByVolunteerPartnerKey(key: string): Promise<AssociatedPartner> {
+export async function getAssociatedPartnerByVolunteerPartnerKey(key: string): Promise<AssociatedPartner | undefined> {
   try {
     const result = await pgQueries.getAssociatedPartnerByVolunteerPartnerKey.run({key}, getClient())
-    if (!result.length)
-      throw new Error(`no associated partner found with volunteerPartnerOrg ${key}`)
+    if (result.length)
     return makeSomeRequired(result[0], ['studentPartnerOrg', 'studentPartnerOrgId', 'studentOrgDisplay', 'studentSponsorOrgId','studentSponsorOrg'])
   } catch (err) {
     throw new RepoReadError(err)
@@ -40,12 +39,7 @@ export async function getAssociatedPartnerByVolunteerPartnerKey(key: string): Pr
 export async function getAssociatedPartnersAndSchools(
   partnerOrg: string
 ): Promise<AssociatedPartnersAndSchools> {
-  let associatedPartner: AssociatedPartner | undefined
-  try {
-    associatedPartner = await getAssociatedPartnerByVolunteerPartnerKey(partnerOrg)
-  } catch(err) {
-    if(!(err instanceof RepoReadError)) throw err
-  }
+  const associatedPartner = await getAssociatedPartnerByVolunteerPartnerKey(partnerOrg)
   const associatedStudentPartnerOrgs: string[] = []
   const associatedPartnerSchools: string[] = []
 
