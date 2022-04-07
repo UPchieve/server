@@ -66,7 +66,7 @@ type UsageReport = {
   'High school name': string
   'Partner site': string
   'HS/College': string
-  'Sponsor Org': string
+  'Sponsor Org': string | undefined
   'Partner Org': string
 }
 
@@ -151,7 +151,7 @@ export const sessionReport = async (
           ? formatDate(row.volunteerJoinedAt)
           : '',
         'Ended at': formatDate(row.endedAt),
-        'Wait time': row.waitTimeMins ? `${row.waitTimeMins}mins` : undefined,
+        'Wait time': row.waitTimeMins ? `${row.waitTimeMins}mins` : '',
         'Session rating': row.sessionRating ? String(row.sessionRating) : '',
       }
     })
@@ -201,7 +201,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
         'High school name': student.school ? student.school : '',
         'Partner site': student.partnerSite ? student.partnerSite : '-',
         'HS/College': student.school ? 'High school' : 'College',
-        'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : '',
+        'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : undefined,
         'Partner Org': student.studentPartnerOrg
           ? student.studentPartnerOrg
           : '',

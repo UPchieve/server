@@ -41,7 +41,7 @@
               id="student-partner-org"
               class="filter-panel__partner-select"
               :options="studentPartnerOrgs"
-              label="displayName"
+              label="name"
               v-model="studentPartnerOrg"
             />
           </label>
@@ -64,7 +64,7 @@
               id="sponsor-org"
               class="filter-panel__partner-select"
               :options="sponsorOrgs"
-              label="displayName"
+              label="name"
               v-model="sponsorOrg"
             />
           </label>
@@ -229,7 +229,7 @@ export default {
         joinedAfter: this.formatDate(this.joinedAfter),
         sessionRangeFrom: this.formatDate(this.sessionRangeFrom),
         sessionRangeTo: this.formatDate(this.sessionRangeTo),
-        highSchoolId: this.highSchool._id ? this.highSchool._id : '',
+        highSchoolId: this.highSchool.id ? this.highSchool.id : '',
         // partner org or the sponsor org can be "null" from clearing the v-select, check for if org exists and then get the org
         studentPartnerOrg: this.isValidStudentPartnerOrg
           ? this.studentPartnerOrg.key
@@ -277,10 +277,10 @@ export default {
     fileTitle() {
       let title = ''
       if (this.highSchool.name) title = this.highSchool.name
-      if (this.studentPartnerOrg && this.studentPartnerOrg.displayName)
-        title = this.studentPartnerOrg.displayName
-      if (this.sponsorOrg && this.sponsorOrg.displayName)
-        title = this.sponsorOrg.displayName
+      if (this.studentPartnerOrg && this.studentPartnerOrg.name)
+        title = this.studentPartnerOrg.name
+      if (this.sponsorOrg && this.sponsorOrg.name)
+        title = this.sponsorOrg.name
       if (this.isValidPartnerSite) title = this.studentPartnerSite
 
       return title
