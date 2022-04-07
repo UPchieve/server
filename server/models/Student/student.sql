@@ -281,7 +281,13 @@ SELECT
     users.last_name AS last_name,
     users.email AS email,
     student_partner_org_sites.name AS partner_site,
-    sponsor_orgs.name AS sponsor_org,
+    (
+    CASE WHEN partner_org_sponsor_org.name IS NOT NULL THEN
+            partner_org_sponsor_org.name
+        WHEN school_sponsor_org.name IS NOT NULL THEN school_sponsor_org.name
+        ELSE
+            NULL
+        END) AS sponsor_org,
     (
         CASE WHEN sessions.volunteer_id IS NOT NULL THEN
             'YES'
@@ -301,8 +307,10 @@ FROM
     JOIN users ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
     LEFT JOIN student_partner_org_sites ON student_profiles.student_partner_org_site_id = student_partner_org_sites.id
-    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)
-    LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id
+    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_profiles.student_partner_org_id = student_partner_orgs_sponsor_orgs.student_partner_org_id
+    LEFT JOIN sponsor_orgs AS partner_org_sponsor_org ON student_partner_orgs_sponsor_orgs.sponsor_org_id = partner_org_sponsor_org.id
+    LEFT JOIN schools_sponsor_orgs ON student_profiles.school_id = schools_sponsor_orgs.school_id
+    LEFT JOIN sponsor_orgs AS school_sponsor_org ON schools_sponsor_orgs.sponsor_org_id = school_sponsor_org.id
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     JOIN sessions ON sessions.student_id = student_profiles.user_id
     LEFT JOIN (
@@ -326,7 +334,15 @@ WHERE
     AND ((:studentPartnerSite)::text IS NULL
         OR student_partner_org_sites.name = :studentPartnerSite)
     AND ((:sponsorOrg)::text IS NULL
-        OR sponsor_orgs.name = :sponsorOrg)
+        OR ((
+            partner_org_sponsor_org.key IS NOT NULL 
+            AND partner_org_sponsor_org.key = :sponsorOrg
+        )
+        OR (
+            school_sponsor_org.key IS NOT NULL 
+            AND school_sponsor_org.key = :sponsorOrg
+            ))
+        )
 ORDER BY
     sessions.created_at ASC;
 
@@ -340,7 +356,13 @@ SELECT
     users.created_at AS join_date,
     student_partner_orgs.name AS student_partner_org,
     student_partner_org_sites.name AS partner_site,
-    sponsor_orgs.name AS sponsor_org,
+    (
+    CASE WHEN partner_org_sponsor_org.name IS NOT NULL THEN
+            partner_org_sponsor_org.name
+        WHEN school_sponsor_org.name IS NOT NULL THEN school_sponsor_org.name
+        ELSE
+            NULL
+        END) AS sponsor_org,
     schools.name AS school,
     COALESCE(sessions.total_sessions, 0) AS total_sessions,
     COALESCE(sessions.total_session_length_mins, 0)::float AS total_session_length_mins,
@@ -351,8 +373,10 @@ FROM
     JOIN users ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
     LEFT JOIN student_partner_org_sites ON student_profiles.student_partner_org_site_id = student_partner_org_sites.id
-    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_partner_orgs_sponsor_orgs.student_partner_org_id IN (student_profiles.school_id, student_profiles.student_partner_org_id)
-    LEFT JOIN sponsor_orgs ON student_partner_orgs_sponsor_orgs.sponsor_org_id = sponsor_orgs.id
+    LEFT JOIN student_partner_orgs_sponsor_orgs ON student_profiles.student_partner_org_id = student_partner_orgs_sponsor_orgs.student_partner_org_id
+    LEFT JOIN sponsor_orgs AS partner_org_sponsor_org ON student_partner_orgs_sponsor_orgs.sponsor_org_id = partner_org_sponsor_org.id
+    LEFT JOIN schools_sponsor_orgs ON student_profiles.school_id = schools_sponsor_orgs.school_id
+    LEFT JOIN sponsor_orgs AS school_sponsor_org ON schools_sponsor_orgs.sponsor_org_id = school_sponsor_org.id
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     LEFT JOIN (
         SELECT
@@ -416,7 +440,15 @@ AND ((:studentPartnerOrg)::text IS NULL
 AND ((:studentPartnerSite)::text IS NULL
     OR student_partner_org_sites.name = :studentPartnerSite)
 AND ((:sponsorOrg)::text IS NULL
-    OR sponsor_orgs.name = :sponsorOrg)
+    OR ((
+        partner_org_sponsor_org.key IS NOT NULL 
+        AND partner_org_sponsor_org.key = :sponsorOrg
+    )
+    OR (
+        school_sponsor_org.key IS NOT NULL 
+        AND school_sponsor_org.key = :sponsorOrg
+        ))
+    )
 ORDER BY
     users.created_at ASC;
 
