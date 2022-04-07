@@ -620,7 +620,7 @@ export async function getCurrentSessionBySessionId(
       { sessionId },
       client
     )
-    const session = makeRequired(result[0])
+    const session = makeSomeRequired(result[0], ['volunteerJoinedAt', 'volunteerId'])
     const messages = await getMessagesForFrontend(session.id, client)
     const userResult = await pgQueries.getCurrentSessionUser.run(
       { sessionId: session.id },
