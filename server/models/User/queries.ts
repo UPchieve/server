@@ -353,7 +353,6 @@ export async function getUserForAdminDetail(userId: Ulid, limit: number, offset:
     ])
     const references = await getReferencesByVolunteerForAdminDetail(user.id, client)
     const sessions = await getPastSessionsForAdminDetail(user.id, limit, offset, client)
-    console.log(`YEET: ${JSON.stringify(user)}`)
     return {
       ...user,
       references: references.map(ref => ({
