@@ -55,58 +55,6 @@ export type LegacyUserModel = {
   photoIdStatus?: string
 }
 
-/*
-BACKEND (req.user)
-_id x
-lastActivityAt x
-isAdmin x
-isOnboarded x
-volunterrPartnerOrg x
-subjects x
-availability x
-isVolunteer x
-isBanned x
-email x
-firstname x
-certifications x
-availabilityLastModifiedAt x
-trainingCourses x
-isDeactivated x
-
-FRONTEND (state.user.user which is populated by the same method as req.user above)
-omit(['references', 'photoIdS3Key', 'photoIdStatus'])
-subjects x
-_id x
-referralCode x
-certifications x
-trainingCourses x
-isVolunteer x
-isApproved x
-isOnboarded x
-firstname x
-email x
-type x
-isBanned x
-occupation x
-country x
-timezone x
-availability x
-phone x
-isDeactivated x
-verified x
-pastSessions.length x
-totalVolunteerHours x
-hoursTutored x
-elapsedAvailability x
-references x
-photoIsStatus x
-createdAt x
-isTestUser x
-. (entire user re-emitted to socket on session join and new message)
-  - message needs _id and isVolunteer
-  - session join needs isVolunteer, isApproved, and _id
-*/
-
 export async function getLegacyUserObject(
   userId: Ulid
 ): Promise<LegacyUserModel> {
