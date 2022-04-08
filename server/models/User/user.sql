@@ -442,7 +442,9 @@ SELECT
     recent_availability.updated_at AS availability_last_modified_at,
     occupations.occupations AS occupation,
     student_partner_org_sites.name AS partner_site,
-    student_partner_orgs.name AS student_partner_org
+    student_partner_orgs.name AS student_partner_org,
+    volunteer_profiles.elapsed_availability,
+    volunteer_profiles.total_volunteer_hours
 FROM
     users
     LEFT JOIN (

@@ -12,13 +12,9 @@ import {
   COLLEGE_CERTS,
   ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
-  EVENTS,
-  SUBJECTS,
-  FEATURE_FLAGS,
+  EVENTS
 } from '../constants'
-import { isEnabled } from 'unleash-client'
 import { getSubjectType } from '../utils/getSubjectType'
-
 import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
 import {
@@ -167,9 +163,6 @@ export function getUnlockedSubjects(
     [TRAINING.SAT_STRATEGIES]: { passed: true },
   })
 
-  // UPchieve 101 must be completed before a volunteer can be onboarded
-  if (!userCertifications[TRAINING.UPCHIEVE_101].passed) return []
-
   const certType = getSubjectType(cert as string)
 
   // Check if the user has a certification for the required training
@@ -287,41 +280,22 @@ export async function getQuizScore(
         await VolunteerModel.addVolunteerCertification(user.id, subject)
       }
     }
-    /**
-     *
-     * algebra certs no longer unlock algebraOne and algebraTwo.
-     * When a user takes an algebra quiz, add algebraTwo-temporary
-     * instead of algebraTwo to their subjects. This allows for backwards
-     * compatibility when the algebra 2 launch feature flag is off
-     *
-     */
-    // TODO: remove this condition in algebra 2 launch cleanup
-    if (
-      cert === MATH_CERTS.ALGEBRA &&
-      !isEnabled(FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH)
-    ) {
-      unlockedSubjects = unlockedSubjects.filter(
-        subject => subject !== MATH_CERTS.ALGEBRA_TWO
-      )
-      unlockedSubjects.push(SUBJECTS.ALGEBRA_TWO_TEMP)
-    }
+    // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz
     const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(user.id)
-    if (!volunteerProfile) throw new Error(`user ${user.id} has no volunteer profile, cannot process quiz score`)
     if (
+      volunteerProfile &&
       !volunteerProfile.onboarded &&
       volunteerProfile.availabilityLastModifiedAt &&
       unlockedSubjects.length > 0
     ) {
       await VolunteerModel.updateVolunteerOnboarded(user.id)
       await queueOnboardingEventEmails(user.id)
+      // TODO: this should just be done by the generic onboarding email handler above
       if (user.volunteerPartnerOrg) await queuePartnerOnboardingEventEmails(user.id)
       await createAccountAction({action: ACCOUNT_USER_ACTIONS.ONBOARDED, userId: user.id, ipAddress: ip})
       captureEvent(user.id, EVENTS.ACCOUNT_ONBOARDED, {
         event: EVENTS.ACCOUNT_ONBOARDED,
       })
-    } else {
-      console.log(`AVAILABILITY LAST MODIFIED: ${volunteerProfile.availabilityLastModifiedAt}`)
-      console.log(`UNLOCKED SUBJECTS: ${unlockedSubjects}`)
     }
   }
 
