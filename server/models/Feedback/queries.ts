@@ -5,14 +5,30 @@ import * as pgQueries from './pg.queries'
 import { Feedback } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 
-function buildFeedback(rows: pgQueries.IGetFeedbackByIdResult[]): Feedback {
+export type FeedbackByResult = {
+  id: string
+  sessionId: string
+  studentCounselingFeedback?: pgQueries.Json
+  studentTutoringFeedback?: pgQueries.Json
+  subTopic: string
+  type: string
+  userId: string
+  userRole: string
+  volunteerFeedback?: pgQueries.Json
+  legacyFeedbacks?: pgQueries.Json
+  responseData?: pgQueries.Json
+}
+
+function buildFeedback(rows: FeedbackByResult[]): Feedback {
   if (rows.length > 2)
     throw new Error('Found more than 2 feedbacks for a session')
   const newRows = rows.map(v =>
     makeSomeRequired(v, [
+      'legacyFeedbacks',
       'studentCounselingFeedback',
       'studentTutoringFeedback',
       'volunteerFeedback',
+      'responseData',
       'type',
       'subTopic',
     ])
@@ -24,6 +40,7 @@ function buildFeedback(rows: pgQueries.IGetFeedbackByIdResult[]): Feedback {
     subTopic: newRows[0].subTopic,
   }
   for (const row of newRows) {
+    feedback.responseData = fixNumberInt(row.responseData as any)
     if (row.userRole === 'student') {
       feedback.studentId = row.userId
       feedback.studentCounselingFeedback = fixNumberInt(row.studentCounselingFeedback as any)
@@ -84,6 +101,7 @@ export async function getFeedbackBySessionIdUserType(
       'studentCounselingFeedback',
       'studentTutoringFeedback',
       'volunteerFeedback',
+      'responseData',
       'subTopic',
       'type',
     ])

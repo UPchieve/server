@@ -532,7 +532,8 @@ SELECT
     sessions.created_at,
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
-    sessions.student_id
+    sessions.student_id,
+    sessions.ended_at
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -570,7 +571,8 @@ FROM
 WHERE
     sessions.student_id = :studentId!
 ORDER BY
-    created_at;
+    created_at DESC
+LIMIT 1;
 
 
 /* @name updateSessionVolunteerById */
