@@ -150,7 +150,13 @@ export async function getLegacyUserObject(
     if (baseUser.isVolunteer) {
       if (!baseUser.subjects) baseUser.subjects = []
       volunteerUser.availability = await getAvailabilityForVolunteer(userId, client)
-      volunteerUser.references = await getReferencesByVolunteer(userId, client)
+      const references = await getReferencesByVolunteer(userId, client)
+      volunteerUser.references = references.map(ref => ({
+        ...ref,
+        _id: ref.id,
+        status: ref.status.toUpperCase(),
+      }))
+      baseUser.photoIdStatus = baseUser.photoIdStatus?.toUpperCase()
       const trainingCourses = await getVolunteerTrainingCourses(userId, client)
       if (!trainingCourses['upchieve101']) {
         trainingCourses['upchieve101'] = {
