@@ -40,7 +40,7 @@ function buildFeedback(rows: FeedbackByResult[]): Feedback {
     subTopic: newRows[0].subTopic,
   }
   for (const row of newRows) {
-    feedback.responseData = fixNumberInt(row.legacyFeedbacks as any)
+    feedback.responseData = fixNumberInt(row.responseData as any)
     if (row.userRole === 'student') {
       feedback.studentId = row.userId
       feedback.studentCounselingFeedback = fixNumberInt(row.studentCounselingFeedback as any)
