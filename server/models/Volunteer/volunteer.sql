@@ -660,7 +660,8 @@ FROM
     volunteer_references
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
-    volunteer_references.user_id = :userId!;
+    volunteer_references.user_id = :userId!
+    AND volunteer_reference_statuses.name != 'removed';
 
 /* @name getReferencesByVolunteerForAdminDetail */
 SELECT
@@ -682,7 +683,8 @@ FROM
     volunteer_references
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
-    volunteer_references.user_id = :userId!;
+    volunteer_references.user_id = :userId!
+    AND volunteer_reference_statuses.name != 'removed';
 
 
 /* @name getVolunteerForPendingStatus */
