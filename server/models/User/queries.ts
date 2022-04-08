@@ -259,6 +259,9 @@ type AdminUser = {
   id: Ulid
   _id: Ulid
   firstName: string
+  // TODO: remove old firstnames from frontend
+  firstname: string
+  lastname: string
   lastName: string
   email: string
   isVolunteer: boolean
@@ -285,6 +288,8 @@ export async function getUsersForAdminSearch(
       const user = makeRequired(v)
       return {
         _id: user.id,
+        firstname: user.firstName,
+        lastname: user.lastName,
         ...user,
       }
     })
@@ -294,6 +299,8 @@ export async function getUsersForAdminSearch(
 }
 
 export type PastSessionForAdmin = {
+  id: Ulid
+  _id: Ulid
   type: string
   subTopic: string
   totalMessages: number
@@ -304,18 +311,27 @@ export type PastSessionForAdmin = {
   endedAt?: Date
 }
 
-export async function getPastSessionsForAdminDetail(userId: Ulid, poolClient?: PoolClient): Promise<PastSessionForAdmin[]> {
+export async function getPastSessionsForAdminDetail(userId: Ulid, limit: number, offset: number, poolClient?: PoolClient): Promise<PastSessionForAdmin[]> {
   const client = poolClient ? poolClient : getClient()
   try {
-    const result = await pgQueries.getPastSessionsForAdminDetail.run({userId}, client)
-    return result.map(v => makeSomeRequired(v, ['volunteer', 'volunteerJoinedAt', 'endedAt']))
+    const result = await pgQueries.getPastSessionsForAdminDetail.run({userId, limit, offset}, client)
+    return result.map(v => {
+      const temp = makeSomeRequired(v, ['volunteer', 'volunteerJoinedAt', 'endedAt'])
+      return {
+        ...temp,
+        _id: temp.id
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
 // TODO: needs formal return type which is huge due to frontend
-export async function getUserForAdminDetail(userId: Ulid) {
+// TODO: this query is making a request for user data on every page transition
+//        for new pastSessions to display. May be better served as a separate
+//        service method for getting the user's past sessions
+export async function getUserForAdminDetail(userId: Ulid, limit: number, offset: number) {
   const client = await getClient().connect()
   try {
     const userResult = await pgQueries.getUserForAdminDetail.run(
@@ -336,7 +352,7 @@ export async function getUserForAdminDetail(userId: Ulid) {
       'numPastSessions',
     ])
     const references = await getReferencesByVolunteerForAdminDetail(user.id, client)
-    const sessions = await getPastSessionsForAdminDetail(user.id, client)
+    const sessions = await getPastSessionsForAdminDetail(user.id, limit, offset, client)
     return {
       ...user,
       references: references.map(ref => ({
@@ -344,9 +360,9 @@ export async function getUserForAdminDetail(userId: Ulid) {
         _id: ref.id,
         status: ref.status.toUpperCase(),
       })),
-      pastSessions: sessions,
+      pastSessions: sessions.sort((a,b) => a.createdAt > b.createdAt ? 1 : -1),
       _id: user.id,
-      photoIdStatus: user.photoIdStatus.toUpperCase(),
+      photoIdStatus: user.photoIdStatus?.toUpperCase(),
     }
   } catch (err) {
     throw new RepoReadError(err)

@@ -59,5 +59,6 @@ FROM
     LEFT JOIN postal_codes ON ineligible_students.postal_code = postal_codes.code
     LEFT JOIN schools ON ineligible_students.school_id = schools.id
     LEFT JOIN cities ON schools.city_id = cities.id
+ORDER BY ineligible_students.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 

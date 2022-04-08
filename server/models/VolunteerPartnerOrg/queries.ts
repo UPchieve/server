@@ -29,7 +29,14 @@ export async function getFullVolunteerPartnerOrgByKey(key: string): Promise<Volu
 export async function getVolunteerPartnerOrgs(): Promise<VolunteerPartnerOrg[]> {
   try {
     const result = await pgQueries.getVolunteerPartnerOrgs.run(undefined, getClient())
-    const orgs: VolunteerPartnerOrg[] = result.map(org => makeSomeRequired(org, ['domains']))
+    const orgs: VolunteerPartnerOrg[] = result.map(org => {
+      const temp = makeSomeRequired(org, ['domains'])
+      return {
+        ...temp,
+        // TODO: remove reference to display name in frontend
+        displayName: temp.name
+      }
+    })
     return orgs
   } catch (err) {
     throw new RepoReadError(err)

@@ -660,7 +660,8 @@ FROM
     volunteer_references
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
-    volunteer_references.user_id = :userId!;
+    volunteer_references.user_id = :userId!
+    AND volunteer_reference_statuses.name != 'removed';
 
 /* @name getReferencesByVolunteerForAdminDetail */
 SELECT
@@ -682,7 +683,8 @@ FROM
     volunteer_references
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
-    volunteer_references.user_id = :userId!;
+    volunteer_references.user_id = :userId!
+    AND volunteer_reference_statuses.name != 'removed';
 
 
 /* @name getVolunteerForPendingStatus */
@@ -910,21 +912,20 @@ FROM
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     JOIN (
         SELECT
-            users.id,
+            users_certifications.user_id,
             COUNT(*)::int AS earned_certs,
             certs_for_subject.total
         FROM
             users_certifications
             JOIN certification_subject_unlocks USING (certification_id)
             JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-            JOIN users ON users.id = users_certifications.user_id
             JOIN certs_for_subject ON TRUE
         WHERE
             subjects.name = :subject!
         GROUP BY
-            users.id, subjects.name, certs_for_subject.total
+            users_certifications.user_id, subjects.name, certs_for_subject.total
         HAVING
-            COUNT(*)::int >= certs_for_subject.total) user_certs ON user_certs.id = users.id
+            COUNT(*)::int >= certs_for_subject.total) user_certs ON user_certs.user_id = users.id
 WHERE
     users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE

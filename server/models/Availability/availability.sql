@@ -13,9 +13,17 @@ WHERE
 
 
 /* 
- @name getAvailabilityForVolunteers 
- @param userIds -> (...)
+ @name getAvailabilityForVolunteerHeatmap
  */
+ WITH certs_for_subject AS (
+    SELECT
+        COUNT(*)::int AS total
+    FROM
+        certification_subject_unlocks
+        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
+    WHERE
+        subjects.name = :subject!
+)
 SELECT
     availabilities.id,
     availabilities.available_start,
@@ -26,8 +34,29 @@ SELECT
 FROM
     availabilities
     LEFT JOIN weekdays ON availabilities.weekday_id = weekdays.id
+    JOIN users ON users.id = availabilities.user_id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN (
+        SELECT
+            users_certifications.user_id,
+            COUNT(*)::int AS earned_certs,
+            certs_for_subject.total
+        FROM
+            users_certifications
+            JOIN certification_subject_unlocks USING (certification_id)
+            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
+            JOIN certs_for_subject ON TRUE
+        WHERE
+            subjects.name = :subject!
+        GROUP BY
+            users_certifications.user_id, subjects.name, certs_for_subject.total
+        HAVING
+            COUNT(*)::int >= certs_for_subject.total) user_certs ON user_certs.user_id = users.id
 WHERE
-    user_id IN :userIds!;
+    users.test_user IS FALSE
+    AND volunteer_profiles.onboarded IS TRUE
+    AND users.deactivated IS FALSE
+    AND users.banned IS FALSE;
 
 
 /* @name getAvailabilityHistoryForDatesByVolunteerId */

@@ -286,19 +286,23 @@ export function routes(app: Express): void {
       const message = decode(rawMessage as Uint8Array)
 
       if (message.messageType === MessageType.INIT) {
-        // Active session's document
-        let document = await WhiteboardService.getDoc(asUlid(sessionId))
-        // Get the completed session's whiteboard document from storage
-        if (!document)
-          document = await WhiteboardService.getDocFromStorage(sessionId)
-        return wsClient.send(
-          encode({
-            messageType: MessageType.APPEND,
-            offset: 0,
-            data: document,
-            more: 0,
-          })
-        )
+        try {
+          // Active session's document
+          let document = await WhiteboardService.getDoc(asUlid(sessionId))
+          // Get the completed session's whiteboard document from storage
+          if (!document)
+            document = await WhiteboardService.getDocFromStorage(sessionId)
+          return wsClient.send(
+            encode({
+              messageType: MessageType.APPEND,
+              offset: 0,
+              data: document,
+              more: 0,
+            })
+          )
+        } catch (error) {
+          if (!(error instanceof KeyNotFoundError)) throw error
+        }
       }
     })
   })
