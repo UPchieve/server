@@ -532,7 +532,8 @@ SELECT
     sessions.created_at,
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
-    sessions.student_id
+    sessions.student_id,
+    sessions.ended_at
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
