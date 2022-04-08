@@ -1162,6 +1162,8 @@ export const getUserToCreateSendGridContact = new PreparedQuery<IGetUserToCreate
 
 /** 'GetPastSessionsForAdminDetail' parameters type */
 export interface IGetPastSessionsForAdminDetailParams {
+  limit: number;
+  offset: number;
   userId: string;
 }
 
@@ -1184,7 +1186,7 @@ export interface IGetPastSessionsForAdminDetailQuery {
   result: IGetPastSessionsForAdminDetailResult;
 }
 
-const getPastSessionsForAdminDetailIR: any = {"name":"getPastSessionsForAdminDetail","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":16943,"b":16949,"line":591,"col":29},{"a":16981,"b":16987,"line":592,"col":30}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    sessions.id,\n    messages.total AS total_messages,\n    sessions.volunteer_id AS volunteer,\n    sessions.student_id AS student,\n    sessions.volunteer_joined_at,\n    sessions.created_at,\n    sessions.ended_at\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_id = sessions.id) AS messages ON TRUE\nWHERE\n    sessions.volunteer_id = :userId!\n    OR sessions.student_id = :userId!","loc":{"a":16312,"b":16987,"line":569,"col":0}}};
+const getPastSessionsForAdminDetailIR: any = {"name":"getPastSessionsForAdminDetail","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":16943,"b":16949,"line":591,"col":29},{"a":16981,"b":16987,"line":592,"col":30}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":17031,"b":17036,"line":594,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":17053,"b":17059,"line":594,"col":30}]}}],"usedParamSet":{"userId":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    sessions.id,\n    messages.total AS total_messages,\n    sessions.volunteer_id AS volunteer,\n    sessions.student_id AS student,\n    sessions.volunteer_joined_at,\n    sessions.created_at,\n    sessions.ended_at\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_id = sessions.id) AS messages ON TRUE\nWHERE\n    sessions.volunteer_id = :userId!\n    OR sessions.student_id = :userId!\nORDER BY sessions.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":16312,"b":17065,"line":569,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1213,6 +1215,8 @@ const getPastSessionsForAdminDetailIR: any = {"name":"getPastSessionsForAdminDet
  * WHERE
  *     sessions.volunteer_id = :userId!
  *     OR sessions.student_id = :userId!
+ * ORDER BY sessions.created_at DESC
+ * LIMIT (:limit!)::int OFFSET (:offset!)::int
  * ```
  */
 export const getPastSessionsForAdminDetail = new PreparedQuery<IGetPastSessionsForAdminDetailParams,IGetPastSessionsForAdminDetailResult>(getPastSessionsForAdminDetailIR);
@@ -1232,7 +1236,7 @@ export interface IGetLegacyCertificationsQuery {
   result: IGetLegacyCertificationsResult;
 }
 
-const getLegacyCertificationsIR: any = {"name":"getLegacyCertifications","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    name\nFROM quizzes","loc":{"a":17027,"b":17054,"line":595,"col":0}}};
+const getLegacyCertificationsIR: any = {"name":"getLegacyCertifications","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    name\nFROM quizzes","loc":{"a":17105,"b":17132,"line":597,"col":0}}};
 
 /**
  * Query generated from SQL:

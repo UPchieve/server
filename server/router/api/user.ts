@@ -2,8 +2,8 @@ import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
-import { updateVolunteerProfileById } from '../../models/Volunteer/queries'
-import { countUsersReferredByOtherId } from '../../models/User/queries'
+import { updateVolunteerProfileById } from '../../models/Volunteer/'
+import { countUsersReferredByOtherId, getUserForAdminDetail } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { Router } from 'express'
 import { resError } from '../res-error'
@@ -173,10 +173,16 @@ export function routeUser(router: Router): void {
 
   router.get('/user/:userId', authPassport.isAdmin, async function(req, res) {
     const { userId } = req.params
+    const page = Number(req.query.page || '1')
+
+    const PAGE_SIZE = 10
+    const skip = PAGE_SIZE * (page - 1)
 
     try {
-      const user = await UserService.adminGetUser(
-        asUlid(userId)
+      const user = await getUserForAdminDetail(
+        asUlid(userId),
+        PAGE_SIZE,
+        skip
       )
 
       let resUser: any = user

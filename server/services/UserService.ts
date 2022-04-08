@@ -326,12 +326,3 @@ export async function getUsers(data: unknown) {
     throw new Error((error as Error).message)
   }
 }
-
-// TODO: this query is making a request for user data on every page transition
-//        for new pastSessions to display. May be better served as a separate
-//        service method for getting the user's past sessions
-export async function adminGetUser(userId: Ulid) {
-  const user = await getUserForAdminDetail(userId)
-
-  return user
-}

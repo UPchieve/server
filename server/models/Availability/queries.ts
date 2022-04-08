@@ -32,7 +32,6 @@ function createNewAvailability(): Availability {
 
 function getAvailabilityHour(rawHour: number): HOURS {
   let baseHour = rawHour
-  if (baseHour === 0) console.log('INCOMING 12')
   let hour: string
 
   if (baseHour >= 12) {
@@ -46,7 +45,6 @@ function getAvailabilityHour(rawHour: number): HOURS {
     }
     hour = `${baseHour}a`
   }
-  if (hour === '12a') console.log('MIDNIGHT')
   return hour as HOURS
 }
 

@@ -589,7 +589,9 @@ FROM
             session_id = sessions.id) AS messages ON TRUE
 WHERE
     sessions.volunteer_id = :userId!
-    OR sessions.student_id = :userId!;
+    OR sessions.student_id = :userId!
+ORDER BY sessions.created_at DESC
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 /* @name getLegacyCertifications */
 SELECT
