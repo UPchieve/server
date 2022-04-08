@@ -398,7 +398,7 @@ export async function getLongRunningSessions(
 
 export type PublicSessionUser = {
   _id: Ulid
-  firstname: string
+  firstName: string
 }
 export type PublicSession = {
   _id: Ulid
@@ -425,11 +425,11 @@ export async function getPublicSessionById(
       _id: rawRow.id,
       student: {
         _id: rawRow.studentId,
-        firstname: rawRow.studentFirstName,
+        firstName: rawRow.studentFirstName,
       },
       volunteer: {
         _id: rawRow.volunteerId,
-        firstname: rawRow.volunteerFirstName,
+        firstName: rawRow.volunteerFirstName,
       },
     }
   } catch (error) {
@@ -620,7 +620,7 @@ export async function getCurrentSessionBySessionId(
       { sessionId },
       client
     )
-    const session = makeRequired(result[0])
+    const session = makeSomeRequired(result[0], ['volunteerJoinedAt', 'volunteerId', 'endedAt'])
     const messages = await getMessagesForFrontend(session.id, client)
     const userResult = await pgQueries.getCurrentSessionUser.run(
       { sessionId: session.id },

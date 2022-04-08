@@ -35,8 +35,8 @@ export async function savePresessionSurvey(
       getClient()
     )
     if (result.length) {
-      const parsedResult = parseQueryResult(result[0])
-      return makeRequired(parsedResult)
+      const survey = makeRequired(result[0])
+      return parseQueryResult(survey)
     }
     throw new RepoCreateError('Error upserting presession survey')
   } catch (err) {
@@ -59,8 +59,8 @@ export async function getPresessionSurvey(
       getClient()
     )
     if (result.length) {
-      const parsedResult = parseQueryResult(result[0])
-      return makeRequired(parsedResult)
+      const survey = makeRequired(result[0])
+      return parseQueryResult(survey)
     }
   } catch (err) {
     throw new RepoReadError(err)
