@@ -571,7 +571,8 @@ FROM
 WHERE
     sessions.student_id = :studentId!
 ORDER BY
-    created_at;
+    created_at DESC
+LIMIT 1;
 
 
 /* @name updateSessionVolunteerById */
