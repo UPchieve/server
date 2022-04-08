@@ -29,7 +29,13 @@ export async function getFullStudentPartnerOrgByKey(key: string) {
 export async function getStudentPartnerOrgs() {
   try {
     const result = await pgQueries.getStudentPartnerOrgs.run(undefined, getClient())
-    const orgs: StudentPartnerOrg[] = result.map(org => makeSomeRequired(org, ['sites']))
+    const orgs: StudentPartnerOrg[] = result.map(org => {
+      const temp = makeSomeRequired(org, ['sites'])
+      return {
+        ...temp,
+        displayName: temp.name
+      }
+    })
     return orgs
   } catch (err) {
     throw new RepoReadError(err)

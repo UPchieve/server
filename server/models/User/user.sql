@@ -310,17 +310,17 @@ FROM
 WHERE ((:userId)::uuid IS NULL
     OR users.id = :userId)
 AND ((:email)::text IS NULL
-    OR users.email LIKE :email)
+    OR users.email ILIKE ('%' || :email || '%'))
 AND ((:firstName)::text IS NULL
-    OR users.first_name LIKE :firstName)
+    OR users.first_name ILIKE ('%' || :firstName || '%'))
 AND ((:lastName)::text IS NULL
-    OR users.last_name LIKE :lastName)
+    OR users.last_name ILIKE ('%' || :lastName || '%'))
 AND ((:partnerOrg)::text IS NULL
-    OR volunteer_partner_orgs.name LIKE :partnerOrg
-    OR student_partner_orgs.name LIKE :partnerOrg)
+    OR volunteer_partner_orgs.key = :partnerOrg
+    OR student_partner_orgs.key = :partnerOrg)
 AND ((:highSchool)::text IS NULL
-    OR schools.name LIKE :highSchool
-    OR school_nces_metadata.sch_name LIKE :highSchool)
+    OR schools.name ILIKE ('%' || :highSchool || '%')
+    OR school_nces_metadata.sch_name ILIKE ('%' || :highSchool || '%'))
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
@@ -589,7 +589,9 @@ FROM
             session_id = sessions.id) AS messages ON TRUE
 WHERE
     sessions.volunteer_id = :userId!
-    OR sessions.student_id = :userId!;
+    OR sessions.student_id = :userId!
+ORDER BY sessions.created_at DESC
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 /* @name getLegacyCertifications */
 SELECT
