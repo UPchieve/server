@@ -1,6 +1,6 @@
 import * as VolunteerRepo from '../models/Volunteer'
 import {
-  DAYS, HOURS, Availability, getAvailabilityForVolunteers
+  DAYS, HOURS, Availability, getAvailabilityForVolunteerHeatmap
 } from '../models/Availability'
 
 // TODO: refactor this to be more functional (testable)
@@ -69,8 +69,9 @@ export async function getVolunteersAvailability(
   certifiedSubject: string
 ): Promise<AvailabilityAggregation> {
 
-  const volunteerIds = await VolunteerRepo.getVolunteersAdminAvailability(certifiedSubject)
-  const availabilities = await getAvailabilityForVolunteers(volunteerIds)
+  const availabilities = await getAvailabilityForVolunteerHeatmap(certifiedSubject)
+  const check = availabilities.find(v => v.availability.Sunday['12a'] === true)
+  console.log(`AVAL: ${JSON.stringify(check)}`)
 
   let aggAvailabilities: AvailabilityAggregation = {
     table: Array(7)

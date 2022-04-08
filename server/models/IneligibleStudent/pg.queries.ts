@@ -129,7 +129,7 @@ export interface IGetIneligibleStudentsPaginatedQuery {
   result: IGetIneligibleStudentsPaginatedResult;
 }
 
-const getIneligibleStudentsPaginatedIR: any = {"name":"getIneligibleStudentsPaginated","params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1768,"b":1773,"line":62,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1790,"b":1796,"line":62,"col":30}]}}],"usedParamSet":{"limit":true,"offset":true},"statement":{"body":"SELECT\n    email,\n    postal_code AS zip_code,\n    ip_addresses.ip AS ip_address,\n    school_id,\n    schools.name AS school_name,\n    cities.us_state_code AS school_state,\n    cities.name AS school_city,\n    postal_code AS school_zip_code,\n    schools.approved AS is_approved,\n    postal_codes.income AS median_income,\n    ineligible_students.created_at,\n    ineligible_students.updated_at\nFROM\n    ineligible_students\n    LEFT JOIN ip_addresses ON ineligible_students.ip_address_id = ip_addresses.id\n    LEFT JOIN postal_codes ON ineligible_students.postal_code = postal_codes.code\n    LEFT JOIN schools ON ineligible_students.school_id = schools.id\n    LEFT JOIN cities ON schools.city_id = cities.id\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":1057,"b":1802,"line":43,"col":0}}};
+const getIneligibleStudentsPaginatedIR: any = {"name":"getIneligibleStudentsPaginated","params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1813,"b":1818,"line":63,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1835,"b":1841,"line":63,"col":30}]}}],"usedParamSet":{"limit":true,"offset":true},"statement":{"body":"SELECT\n    email,\n    postal_code AS zip_code,\n    ip_addresses.ip AS ip_address,\n    school_id,\n    schools.name AS school_name,\n    cities.us_state_code AS school_state,\n    cities.name AS school_city,\n    postal_code AS school_zip_code,\n    schools.approved AS is_approved,\n    postal_codes.income AS median_income,\n    ineligible_students.created_at,\n    ineligible_students.updated_at\nFROM\n    ineligible_students\n    LEFT JOIN ip_addresses ON ineligible_students.ip_address_id = ip_addresses.id\n    LEFT JOIN postal_codes ON ineligible_students.postal_code = postal_codes.code\n    LEFT JOIN schools ON ineligible_students.school_id = schools.id\n    LEFT JOIN cities ON schools.city_id = cities.id\nORDER BY ineligible_students.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":1057,"b":1847,"line":43,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -153,6 +153,7 @@ const getIneligibleStudentsPaginatedIR: any = {"name":"getIneligibleStudentsPagi
  *     LEFT JOIN postal_codes ON ineligible_students.postal_code = postal_codes.code
  *     LEFT JOIN schools ON ineligible_students.school_id = schools.id
  *     LEFT JOIN cities ON schools.city_id = cities.id
+ * ORDER BY ineligible_students.created_at DESC
  * LIMIT (:limit!)::int OFFSET (:offset!)::int
  * ```
  */
