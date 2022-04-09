@@ -21,7 +21,11 @@ async function updateTotalVolunteerHours(): Promise<void> {
   const errors: string[] = []
   for (const volunteer of volunteers) {
     try {
-      const stats = await telecomHourSummaryStats(volunteer, startDate.toDate(), endDate.toDate())
+      const stats = await telecomHourSummaryStats(
+        volunteer,
+        startDate.toDate(),
+        endDate.toDate()
+      )
       await updateVolunteerTotalHoursById(
         volunteer.id,
         stats.totalVolunteerHours

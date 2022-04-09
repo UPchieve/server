@@ -291,9 +291,11 @@ export function emptyHours(): HourSummaryStats {
 }
 
 // To be used by email/update job(s) for generating telecom volunteer hours
-export async function telecomHourSummaryStats<
-  V extends VolunteerForTotalHours
->(volunteer: V, start: Date, end: Date): Promise<HourSummaryStats> {
+export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
+  volunteer: V,
+  start: Date,
+  end: Date
+): Promise<HourSummaryStats> {
   try {
     const totalCerts = countCerts(volunteer.certifications)
     if (totalCerts === 0) return emptyHours()
