@@ -5,30 +5,23 @@ import {
   updateVolunteerTotalHoursById,
 } from '../../models/Volunteer/queries'
 import { log } from '../logger'
-// import { telecomHourSummaryStats } from '../../utils/reportUtils'
+import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import config from '../../config'
 import * as cache from '../../cache'
 import { Jobs } from './index'
-
-// TODO: replace this with the real deal
-function telecomHourSummaryStats(foo: any, bar: any) {
-  return { totalVolunteerHours: 1 }
-}
 
 async function updateTotalVolunteerHours(): Promise<void> {
   const startDate = moment(
     await cache.get(config.cacheKeys.updateTotalVolunteerHoursLastRun)
   )
   const endDate = moment()
-
-  const dateQuery = { $gt: startDate.toDate(), $lte: endDate.toDate() }
   const volunteers = await getVolunteersForTotalHours()
 
   let totalUpdated = 0
   const errors: string[] = []
   for (const volunteer of volunteers) {
     try {
-      const stats = await telecomHourSummaryStats(volunteer, dateQuery)
+      const stats = await telecomHourSummaryStats(volunteer, startDate.toDate(), endDate.toDate())
       await updateVolunteerTotalHoursById(
         volunteer.id,
         stats.totalVolunteerHours

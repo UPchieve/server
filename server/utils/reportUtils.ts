@@ -11,7 +11,7 @@ import * as SessionRepo from '../models/Session/queries'
 import logger from '../logger'
 import { VolunteersForAnalyticsReport } from '../models/Volunteer'
 import {
-  VolunteerForWeeklyHourSummary,
+  VolunteerForTotalHours,
   VolunteerForTelecomReport,
 } from '../models/Volunteer/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
@@ -189,7 +189,7 @@ interface TelecomRow {
   hours: number
 }
 
-async function getVolunteerData<V extends VolunteerRepo.VolunteerForTelecomReport>(
+async function getVolunteerData<V extends VolunteerForTotalHours>(
   volunteer: V,
   start: Date,
   end: Date
@@ -294,7 +294,7 @@ export function emptyHours(): HourSummaryStats {
 
 // To be used by email/update job(s) for generating telecom volunteer hours
 export async function telecomHourSummaryStats<
-  V extends VolunteerForWeeklyHourSummary
+  V extends VolunteerForTotalHours
 >(volunteer: V, start: Date, end: Date): Promise<HourSummaryStats> {
   try {
     const totalCerts = countCerts(volunteer.certifications)
