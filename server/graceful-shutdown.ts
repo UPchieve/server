@@ -7,11 +7,7 @@ import { Server } from 'http'
 import { Server as SocketServer } from 'socket.io'
 import { Pool } from 'pg'
 
-function gracefulShutdown(
-  server: Server,
-  pool: Pool,
-  ioServer: SocketServer
-) {
+function gracefulShutdown(server: Server, pool: Pool, ioServer: SocketServer) {
   const shutDownSocketServer = promisify(ioServer.close).bind(ioServer)
 
   return async function(signal: string) {

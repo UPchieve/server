@@ -1,6 +1,6 @@
 import { Ulid } from '../../models/pgUtils'
 import {
-  Session, 
+  Session,
   getMessagesForFrontend,
   getSessionById,
   updateSessionFlagsById,
@@ -49,9 +49,7 @@ for (const metric of Object.values(METRIC_PROCESSORS)) {
 }
 
 // registered as listener on session-ended
-export async function prepareSessionProcessors(
-  sessionId: Ulid
-): Promise<void> {
+export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
   const {
     session,
     feedback,
@@ -90,9 +88,7 @@ export async function prepareFeedbackProcessors(
 }
 
 // registered as listener on session-reported
-export async function prepareReportProcessors(
-  sessionId: Ulid
-): Promise<void> {
+export async function prepareReportProcessors(sessionId: Ulid): Promise<void> {
   const {
     session,
     feedback,
@@ -280,10 +276,7 @@ export const processSessionReviewReasons = metricProcessorFactory(
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
       if (reasons.length) {
-        await updateSessionReviewReasonsById(
-          session.id,
-          reasons
-        )
+        await updateSessionReviewReasonsById(session.id, reasons)
         emitter.emit(
           SESSION_EVENTS.SESSION_REVIEW_REASONS_SET,
           session.id.toString()
@@ -305,10 +298,7 @@ export const processFeedbackReviewReasons = metricProcessorFactory(
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
       if (reasons.length) {
-        await updateSessionReviewReasonsById(
-          session.id,
-          reasons
-        )
+        await updateSessionReviewReasonsById(session.id, reasons)
         emitter.emit(
           SESSION_EVENTS.FEEDBACK_REVIEW_REASONS_SET,
           session.id.toString()
@@ -330,10 +320,7 @@ export const processReportReviewReasons = metricProcessorFactory(
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
       if (reasons.length) {
-        await updateSessionReviewReasonsById(
-          session.id,
-          reasons
-        )
+        await updateSessionReviewReasonsById(session.id, reasons)
         emitter.emit(
           SESSION_EVENTS.REPORT_REVIEW_REASONS_SET,
           session.id.toString()
@@ -358,10 +345,7 @@ export const processStudentUpdateQuery = metricProcessorFactory(
     session: Session
   ): Promise<void> => {
     try {
-      await executeUSMUpdatesByUserId(
-        session.studentId,
-        updates
-      )
+      await executeUSMUpdatesByUserId(session.studentId, updates)
     } catch (err) {
       throw new Error(
         `failed to update USM for user ${session.studentId} - ${err}`
@@ -382,10 +366,7 @@ export const processVolunteerUpdateQuery = metricProcessorFactory(
   ): Promise<void> => {
     try {
       if (session.volunteerId)
-        await executeUSMUpdatesByUserId(
-          session.volunteerId,
-          updates
-        )
+        await executeUSMUpdatesByUserId(session.volunteerId, updates)
     } catch (err) {
       throw new Error(
         `failed to update USM for user ${session.volunteerId} - ${err}`

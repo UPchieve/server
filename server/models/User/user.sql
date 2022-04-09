@@ -17,6 +17,7 @@ WHERE
     phone = :phone!
 LIMIT 1;
 
+
 /* @name getUserContactInfoById */
 SELECT
     users.id,
@@ -592,10 +593,14 @@ FROM
 WHERE
     sessions.volunteer_id = :userId!
     OR sessions.student_id = :userId!
-ORDER BY sessions.created_at DESC
+ORDER BY
+    sessions.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
+
 
 /* @name getLegacyCertifications */
 SELECT
     name
-FROM quizzes;
+FROM
+    quizzes;
+

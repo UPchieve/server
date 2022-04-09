@@ -1,11 +1,22 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
 import { Ulid } from '../models/pgUtils'
-import { ACCOUNT_USER_ACTIONS, EVENTS, IP_ADDRESS_STATUS, PHOTO_ID_STATUS } from '../constants'
+import {
+  ACCOUNT_USER_ACTIONS,
+  EVENTS,
+  IP_ADDRESS_STATUS,
+  PHOTO_ID_STATUS,
+} from '../constants'
 import { UserNotFoundError } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
-import { UserContactInfo, getUserContactInfoById, getUsersForAdminSearch, getUserForAdminDetail, deleteUser } from '../models/User'
+import {
+  UserContactInfo,
+  getUserContactInfoById,
+  getUsersForAdminSearch,
+  getUserForAdminDetail,
+  deleteUser,
+} from '../models/User'
 import {
   UnsentReference,
   VolunteerContactInfo,
@@ -14,7 +25,7 @@ import {
   updateVolunteerReferenceSentById,
   deleteVolunteerReferenceByEmail,
   updateVolunteerForAdmin,
-  updateVolunteerReferenceSubmission
+  updateVolunteerReferenceSubmission,
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
@@ -43,17 +54,18 @@ export async function parseUser(baseUser: UserContactInfo) {
   return user
 }
 
-export async function addPhotoId(
-  userId: Ulid,
-  ip: string
-): Promise<string> {
+export async function addPhotoId(userId: Ulid, ip: string): Promise<string> {
   const photoIdS3Key = crypto.randomBytes(32).toString('hex')
   await createAccountAction({
     userId,
     ipAddress: ip,
-    action: ACCOUNT_USER_ACTIONS.ADDED_PHOTO_ID
+    action: ACCOUNT_USER_ACTIONS.ADDED_PHOTO_ID,
   })
-  await updateVolunteerPhotoIdById(userId, photoIdS3Key, PHOTO_ID_STATUS.SUBMITTED)
+  await updateVolunteerPhotoIdById(
+    userId,
+    photoIdS3Key,
+    PHOTO_ID_STATUS.SUBMITTED
+  )
   return photoIdS3Key
 }
 
@@ -90,7 +102,7 @@ export async function addReference(data: unknown) {
     userId,
     ipAddress: ip,
     action: ACCOUNT_USER_ACTIONS.ADDED_REFERENCE,
-    referenceEmail
+    referenceEmail,
   })
 }
 
@@ -117,7 +129,7 @@ export async function saveReferenceForm(
     userId,
     ipAddress: ip,
     action: ACCOUNT_USER_ACTIONS.SUBMITTED_REFERENCE_FORM,
-    referenceEmail
+    referenceEmail,
   })
 
   await updateVolunteerReferenceSubmission(referenceId, {
@@ -129,7 +141,7 @@ export async function saveReferenceForm(
     communicatesEffectively,
     trustworthyWithChildren,
     rejectionReason,
-    additionalInfo
+    additionalInfo,
   })
 }
 
@@ -151,7 +163,7 @@ export async function deleteReference(
     userId,
     ipAddress: ip,
     action: ACCOUNT_USER_ACTIONS.DELETED_REFERENCE,
-    referenceEmail
+    referenceEmail,
   })
   AnalyticsService.captureEvent(userId, EVENTS.REFERENCE_DELETED, {
     event: EVENTS.REFERENCE_DELETED,
@@ -248,7 +260,7 @@ export async function adminUpdateUser(data: unknown) {
     studentPartnerOrg: !isVolunteer && partnerOrg ? partnerOrg : undefined,
     partnerSite: !isVolunteer && partnerSite ? partnerSite : undefined,
     inGatesStudy: !isVolunteer && inGatesStudy ? inGatesStudy : undefined,
-    banReason: isBanned ? 'admin' : undefined
+    banReason: isBanned ? 'admin' : undefined,
   }
 
   if (!isVolunteer) {
@@ -263,7 +275,7 @@ export async function adminUpdateUser(data: unknown) {
   if (isDeactivated && !userBeforeUpdate.deactivated)
     await createAccountAction({
       userId,
-      action: ACCOUNT_USER_ACTIONS.DEACTIVATED
+      action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
     })
 
   if (isVolunteer) {
@@ -311,14 +323,18 @@ export async function getUsers(data: unknown) {
   const skip = (pageNum - 1) * PER_PAGE
 
   try {
-    const users = await getUsersForAdminSearch({
-      userId,
-      firstName,
-      lastName,
-      email,
-      partnerOrg,
-      highSchool
-    }, PER_PAGE, skip)
+    const users = await getUsersForAdminSearch(
+      {
+        userId,
+        firstName,
+        lastName,
+        email,
+        partnerOrg,
+        highSchool,
+      },
+      PER_PAGE,
+      skip
+    )
 
     const isLastPage = users.length < PER_PAGE
     return { users, isLastPage }

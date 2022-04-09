@@ -66,8 +66,7 @@ export async function executeUSMUpdatesByUserId(
         absentStudent: update['absentStudent'],
         absentVolunteer: update['absentVolunteer'],
         lowSessionRatingFromCoach: update['lowSessionRatingFromCoach'],
-        lowSessionRatingFromStudent:
-          update['lowSessionRatingFromStudent'],
+        lowSessionRatingFromStudent: update['lowSessionRatingFromStudent'],
         lowCoachRatingFromStudent: update['lowCoachRatingFromStudent'],
         reported: update['reported'],
         onlyLookingForAnswers: update['onlyLookingForAnswers'],

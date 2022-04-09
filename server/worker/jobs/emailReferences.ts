@@ -4,17 +4,15 @@ import { getVolunteersForEmailReference } from '../../models/Volunteer'
 import * as UserService from '../../services/UserService'
 import { Jobs } from '.'
 
-
 export default async (): Promise<void> => {
   const volunteers = await getVolunteersForEmailReference()
 
   const unsent = flatten(
     volunteers.map(vol => {
-      return vol.references
-        .map(ref => ({
-          reference: ref,
-          volunteer: vol,
-        }))
+      return vol.references.map(ref => ({
+        reference: ref,
+        volunteer: vol,
+      }))
     })
   )
 

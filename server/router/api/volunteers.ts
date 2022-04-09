@@ -5,10 +5,7 @@ import * as VolunteerService from '../../services/VolunteerService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
 import { Router } from 'express'
-import {
-  asNumber,
-  asString
-} from '../../utils/type-utils'
+import { asNumber, asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
 
 export function routeVolunteers(router: Router): void {
@@ -69,7 +66,9 @@ export function routeVolunteers(router: Router): void {
       // TODO: better type validation
       const validStatus: any = {}
       for (const referenceId of referenceIds) {
-        validStatus[referenceId] = referencesStatusMap[referenceId].toLowerCase()
+        validStatus[referenceId] = referencesStatusMap[
+          referenceId
+        ].toLowerCase()
       }
       await VolunteerService.updatePendingVolunteerStatus(
         volunteerId,

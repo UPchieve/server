@@ -10,9 +10,7 @@ import { Ulid } from '../models/pgUtils'
 import { FavoriteLimitReachedError } from './Errors'
 import { createAccountAction } from '../models/UserAction'
 
-export const queueOnboardingEmails = async (
-  studentId: Ulid
-): Promise<void> => {
+export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
     Jobs.EmailStudentOnboardingHowItWorks,
     { studentId },
@@ -49,8 +47,7 @@ export async function processStudentTrackingPostHog(studentId: Ulid) {
 
   if (student) {
     let school: AdminSchool | undefined
-    if (student.schoolId)
-      school = await getSchool(student.schoolId)
+    if (student.schoolId) school = await getSchool(student.schoolId)
 
     // if student is school partner student
     if (school && school.isPartner) userProperties.schoolPartner = school.name
@@ -82,7 +79,7 @@ export async function checkAndUpdateVolunteerFavoriting(
         userId: studentId,
         volunteerId: volunteerId,
         sessionId: sessionId,
-        action: ACCOUNT_USER_ACTIONS.VOLUNTEER_FAVORITED
+        action: ACCOUNT_USER_ACTIONS.VOLUNTEER_FAVORITED,
       })
       await StudentRepo.addFavoriteVolunteer(studentId, volunteerId)
       return { isFavorite: true }
@@ -93,7 +90,7 @@ export async function checkAndUpdateVolunteerFavoriting(
       userId: studentId,
       volunteerId: volunteerId,
       sessionId: sessionId,
-      action: ACCOUNT_USER_ACTIONS.VOLUNTEER_UNFAVORITED
+      action: ACCOUNT_USER_ACTIONS.VOLUNTEER_UNFAVORITED,
     })
     await StudentRepo.deleteFavoriteVolunteer(studentId, volunteerId)
     return { isFavorite: false }

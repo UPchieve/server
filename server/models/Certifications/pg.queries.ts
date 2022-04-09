@@ -20,28 +20,34 @@ export interface IAddCertificationsForPassedQuizQuery {
   result: IAddCertificationsForPassedQuizResult;
 }
 
-const addCertificationsForPassedQuizIR: any = {"name":"addCertificationsForPassedQuiz","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":138,"b":144,"line":4,"col":3}]}},{"name":"quizzes","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":361,"b":368,"line":13,"col":28}]}}],"usedParamSet":{"userId":true,"quizzes":true},"statement":{"body":"INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at)\nSELECT\n  :userId!,\n  subquery.certification_id,\n  NOW(),\n  NOW()\nFROM (\n  SELECT\n    certification_id\n  FROM quiz_certification_grants\n  LEFT JOIN quizzes ON quizzes.id = quiz_certification_grants.quiz_id\n  WHERE quizzes.name = ANY(:quizzes!)\n) AS subquery\nON CONFLICT DO NOTHING\nRETURNING (\n  SELECT name FROM certifications WHERE id = certification_id\n)","loc":{"a":43,"b":482,"line":2,"col":0}}};
+const addCertificationsForPassedQuizIR: any = {"name":"addCertificationsForPassedQuiz","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":140,"b":146,"line":4,"col":5}]}},{"name":"quizzes","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":390,"b":397,"line":15,"col":25}]}}],"usedParamSet":{"userId":true,"quizzes":true},"statement":{"body":"INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at)\nSELECT\n    :userId!,\n    subquery.certification_id,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        certification_id\n    FROM\n        quiz_certification_grants\n    LEFT JOIN quizzes ON quizzes.id = quiz_certification_grants.quiz_id\nWHERE\n    quizzes.name = ANY (:quizzes!)) AS subquery\nON CONFLICT\n    DO NOTHING\nRETURNING (\n    SELECT\n        name\n    FROM\n        certifications\n    WHERE\n        id = certification_id)","loc":{"a":43,"b":547,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at)
  * SELECT
- *   :userId!,
- *   subquery.certification_id,
- *   NOW(),
- *   NOW()
+ *     :userId!,
+ *     subquery.certification_id,
+ *     NOW(),
+ *     NOW()
  * FROM (
- *   SELECT
- *     certification_id
- *   FROM quiz_certification_grants
- *   LEFT JOIN quizzes ON quizzes.id = quiz_certification_grants.quiz_id
- *   WHERE quizzes.name = ANY(:quizzes!)
- * ) AS subquery
- * ON CONFLICT DO NOTHING
+ *     SELECT
+ *         certification_id
+ *     FROM
+ *         quiz_certification_grants
+ *     LEFT JOIN quizzes ON quizzes.id = quiz_certification_grants.quiz_id
+ * WHERE
+ *     quizzes.name = ANY (:quizzes!)) AS subquery
+ * ON CONFLICT
+ *     DO NOTHING
  * RETURNING (
- *   SELECT name FROM certifications WHERE id = certification_id
- * )
+ *     SELECT
+ *         name
+ *     FROM
+ *         certifications
+ *     WHERE
+ *         id = certification_id)
  * ```
  */
 export const addCertificationsForPassedQuiz = new PreparedQuery<IAddCertificationsForPassedQuizParams,IAddCertificationsForPassedQuizResult>(addCertificationsForPassedQuizIR);
@@ -65,7 +71,7 @@ export interface IGetVolunteersWithCertsQuery {
   result: IGetVolunteersWithCertsResult;
 }
 
-const getVolunteersWithCertsIR: any = {"name":"getVolunteersWithCerts","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    user_id,\n    attempts AS tries,\n    users_quizzes.updated_at AS last_attempted_at,\n    passed,\n    quizzes.name\nFROM\n    users_quizzes\n    JOIN quizzes ON users_quizzes.quiz_id = quizzes.id","loc":{"a":521,"b":720,"line":21,"col":0}}};
+const getVolunteersWithCertsIR: any = {"name":"getVolunteersWithCerts","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    user_id,\n    attempts AS tries,\n    users_quizzes.updated_at AS last_attempted_at,\n    passed,\n    quizzes.name\nFROM\n    users_quizzes\n    JOIN quizzes ON users_quizzes.quiz_id = quizzes.id","loc":{"a":587,"b":786,"line":28,"col":0}}};
 
 /**
  * Query generated from SQL:

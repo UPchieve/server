@@ -1,6 +1,8 @@
 import * as VolunteerRepo from '../models/Volunteer'
+import { DAYS, HOURS } from '../constants'
 import {
-  DAYS, HOURS, Availability, getAvailabilityForVolunteerHeatmap
+  Availability,
+  getAvailabilityForVolunteerHeatmap,
 } from '../models/Availability'
 
 // TODO: refactor this to be more functional (testable)
@@ -68,10 +70,10 @@ function findMinAndMax(
 export async function getVolunteersAvailability(
   certifiedSubject: string
 ): Promise<AvailabilityAggregation> {
-
-  const availabilities = await getAvailabilityForVolunteerHeatmap(certifiedSubject)
+  const availabilities = await getAvailabilityForVolunteerHeatmap(
+    certifiedSubject
+  )
   const check = availabilities.find(v => v.availability.Sunday['12a'] === true)
-  console.log(`AVAL: ${JSON.stringify(check)}`)
 
   let aggAvailabilities: AvailabilityAggregation = {
     table: Array(7)

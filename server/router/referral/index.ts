@@ -11,10 +11,12 @@ export function routes(app: express.Express): void {
       const referralCode = asString(req.params.referralCode)
       // TODO: is it ok to return no user if code isn't used?
       const user = await getUserContactInfoByReferralCode(referralCode)
-      res.json({ user: {
-        ...user,
-        firstname: user?.firstName
-      } })
+      res.json({
+        user: {
+          ...user,
+          firstname: user?.firstName,
+        },
+      })
     } catch (err) {
       resError(res, err)
     }

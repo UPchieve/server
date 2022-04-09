@@ -14,10 +14,7 @@ import 'moment-timezone'
 import { USER_SESSION_METRICS } from '../../constants'
 import { UserActionAgent } from '../UserAction'
 import { getFeedbackBySessionId } from '../Feedback/queries'
-import {
-  ResponseData,
-  StudentCounselingFeedback,
-} from '../Feedback'
+import { ResponseData, StudentCounselingFeedback } from '../Feedback'
 import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
 import { fixNumberInt } from '../../utils/fix-number-int'
@@ -28,7 +25,7 @@ export type NotificationData = {
   type: string
   method: string
   wasSuccessful: boolean
-  messageId?: string 
+  messageId?: string
   priorityGroup: string
 }
 export async function addSessionNotifications(
@@ -43,7 +40,7 @@ export async function addSessionNotifications(
         {
           ...notification,
           sessionId,
-          id: getDbUlid()
+          id: getDbUlid(),
         },
         getClient()
       )
@@ -122,7 +119,7 @@ export async function getSessionById(sessionId: Ulid): Promise<Session> {
       'volunteerJoinedAt',
       'endedAt',
       'endedByRole',
-      'studentBanned'
+      'studentBanned',
     ])
   } catch (err) {
     throw new RepoReadError(err)
@@ -206,7 +203,15 @@ export async function getSessionToEndById(
       getClient()
     )
     if (!result.length) throw new RepoReadError('Session not found')
-    const rawSession = makeSomeRequired(result[0], ['volunteerJoinedAt', 'endedAt', 'volunteerEmail', 'volunteerId', 'volunteerFirstName', 'volunteerNumPastSessions', 'volunteerPartnerOrg'])
+    const rawSession = makeSomeRequired(result[0], [
+      'volunteerJoinedAt',
+      'endedAt',
+      'volunteerEmail',
+      'volunteerId',
+      'volunteerFirstName',
+      'volunteerNumPastSessions',
+      'volunteerPartnerOrg',
+    ])
     return {
       ...rawSession,
       student: {
@@ -255,12 +260,18 @@ export async function getSessionsToReview(
       getClient()
     )
     return result.map(v => {
-      const temp = makeSomeRequired(v, ['volunteer', 'reviewReasons', 'studentCounselingFeedback'])
-      const studentRating = extractStudentRating(fixNumberInt(temp.studentCounselingFeedback))
+      const temp = makeSomeRequired(v, [
+        'volunteer',
+        'reviewReasons',
+        'studentCounselingFeedback',
+      ])
+      const studentRating = extractStudentRating(
+        fixNumberInt(temp.studentCounselingFeedback)
+      )
       return {
         ...temp,
         studentRating,
-        _id: temp.id
+        _id: temp.id,
       }
     })
   } catch (err) {
@@ -303,12 +314,10 @@ export async function updateSessionReported(
   reportMessage: string
 ): Promise<void> {
   try {
-    console.log(`Inserting session_reports row`)
     const result = await pgQueries.updateSessionReported.run(
       { id: getDbUlid(), sessionId, reportReason, reportMessage },
       getClient()
     )
-    console.log(`Insert session report result: ${JSON.stringify(result)}`)
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
@@ -468,7 +477,7 @@ export type SessionByIdWithStudentAndVolunteer = {
   photos?: string[]
   student: UserForAdmin
   volunteer?: UserForAdmin
-  messages: MessageForFrontend[],
+  messages: MessageForFrontend[]
   toReview: boolean
 }
 
@@ -584,7 +593,9 @@ export async function getCurrentSessionByUserId(
     )
     if (!result.length) return
     const session = makeSomeRequired(result[0], [
-      'volunteerId', 'endedAt', 'volunteerJoinedAt'
+      'volunteerId',
+      'endedAt',
+      'volunteerJoinedAt',
     ])
     const messages = await getMessagesForFrontend(session.id, client)
     const userResult = await pgQueries.getCurrentSessionUser.run(
@@ -620,7 +631,11 @@ export async function getCurrentSessionBySessionId(
       { sessionId },
       client
     )
-    const session = makeSomeRequired(result[0], ['volunteerJoinedAt', 'volunteerId', 'endedAt'])
+    const session = makeSomeRequired(result[0], [
+      'volunteerJoinedAt',
+      'volunteerId',
+      'endedAt',
+    ])
     const messages = await getMessagesForFrontend(session.id, client)
     const userResult = await pgQueries.getCurrentSessionUser.run(
       { sessionId: session.id },
@@ -883,7 +898,8 @@ function extractStudentRating(
   if (!rawFeedback) return undefined
   const feedback = fixNumberInt(rawFeedback)
   if ((feedback as StudentCounselingFeedback)['rate-session'])
-    return (feedback as StudentCounselingFeedback)['rate-session']?.rating as number
+    return (feedback as StudentCounselingFeedback)['rate-session']
+      ?.rating as number
 }
 export async function getSessionsForAdminFilter(
   start: Date,
@@ -897,16 +913,18 @@ export async function getSessionsForAdminFilter(
       { start, end, limit, offset, ...options },
       getClient()
     )
-    const sessions = sessionResult.map(v => makeSomeRequired(v, [
-      'volunteerFeedback',
-      'studentCounselingFeedback',
-      'volunteerEmail',
-      'volunteerFirstName',
-      'volunteerIsBanned',
-      'volunteerTestUser',
-      'volunteerTotalPastSessions',
-      'reviewReasons'
-    ]))
+    const sessions = sessionResult.map(v =>
+      makeSomeRequired(v, [
+        'volunteerFeedback',
+        'studentCounselingFeedback',
+        'volunteerEmail',
+        'volunteerFirstName',
+        'volunteerIsBanned',
+        'volunteerTestUser',
+        'volunteerTotalPastSessions',
+        'reviewReasons',
+      ])
+    )
     return sessions.map(session => {
       const studentRating = extractStudentRating(
         session.studentCounselingFeedback as any
@@ -935,7 +953,7 @@ export async function getSessionsForAdminFilter(
         student,
         volunteer,
         reviewReasons: session.reviewReasons || [],
-        _id: session.id
+        _id: session.id,
       }
     })
   } catch (err) {

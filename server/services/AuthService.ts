@@ -13,9 +13,22 @@ import * as VolunteerRepo from '../models/Volunteer'
 import { School } from '../models/School'
 import { findSchoolByUpchieveId } from '../models/School/queries'
 import * as UserCtrl from '../controllers/UserCtrl'
-import { getVolunteerPartnerOrgForRegistrationByKey, getVolunteerPartnerOrgs, getFullVolunteerPartnerOrgByKey, VolunteerPartnerOrg, VolunteerPartnerOrgForRegistration } from '../models/VolunteerPartnerOrg'
-import { getStudentPartnerOrgForRegistrationByKey, getStudentPartnerOrgs, getFullStudentPartnerOrgByKey, StudentPartnerOrgForRegistration, StudentPartnerOrg, getStudentPartnerOrgKeyByCode } from '../models/StudentPartnerOrg'
-import { SponsorOrg, getSponsorOrgs  } from '../models/SponsorOrg'
+import {
+  getVolunteerPartnerOrgForRegistrationByKey,
+  getVolunteerPartnerOrgs,
+  getFullVolunteerPartnerOrgByKey,
+  VolunteerPartnerOrg,
+  VolunteerPartnerOrgForRegistration,
+} from '../models/VolunteerPartnerOrg'
+import {
+  getStudentPartnerOrgForRegistrationByKey,
+  getStudentPartnerOrgs,
+  getFullStudentPartnerOrgByKey,
+  StudentPartnerOrgForRegistration,
+  StudentPartnerOrg,
+  getStudentPartnerOrgKeyByCode,
+} from '../models/StudentPartnerOrg'
+import { SponsorOrg, getSponsorOrgs } from '../models/SponsorOrg'
 
 import {
   asCredentialData,
@@ -84,7 +97,9 @@ export async function checkCredential(data: unknown): Promise<boolean> {
 }
 
 // Handles /register/student/open route
-export async function registerOpenStudent(data: unknown): Promise<StudentRepo.CreatedStudent> {
+export async function registerOpenStudent(
+  data: unknown
+): Promise<StudentRepo.CreatedStudent> {
   const {
     ip,
     email,
@@ -141,7 +156,9 @@ export async function registerOpenStudent(data: unknown): Promise<StudentRepo.Cr
 }
 
 // Handles /register/student/partner route
-export async function registerPartnerStudent(data: unknown): Promise<StudentRepo.CreatedStudent> {
+export async function registerPartnerStudent(
+  data: unknown
+): Promise<StudentRepo.CreatedStudent> {
   const {
     ip,
     email,
@@ -156,7 +173,7 @@ export async function registerPartnerStudent(data: unknown): Promise<StudentRepo
     lastName,
     college,
     partnerSite,
-    currentGrade
+    currentGrade,
   } = asPartnerStudentRegData(data)
 
   await Promise.all([
@@ -171,7 +188,9 @@ export async function registerPartnerStudent(data: unknown): Promise<StudentRepo
 
   let studentPartnerManifest: StudentPartnerOrgForRegistration
   try {
-    studentPartnerManifest = await getStudentPartnerOrgForRegistrationByKey(studentPartnerOrg)
+    studentPartnerManifest = await getStudentPartnerOrgForRegistrationByKey(
+      studentPartnerOrg
+    )
   } catch (err) {
     throw new RegistrationError('Invalid student partner organization')
   }
@@ -180,7 +199,7 @@ export async function registerPartnerStudent(data: unknown): Promise<StudentRepo
   if (highSchoolUpchieveId)
     school = await findSchoolByUpchieveId(highSchoolUpchieveId)
 
-  let referredBy: Ulid| undefined
+  let referredBy: Ulid | undefined
   if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
@@ -197,7 +216,7 @@ export async function registerPartnerStudent(data: unknown): Promise<StudentRepo
     verified: false,
     referredBy,
     password,
-    currentGrade
+    currentGrade,
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
@@ -205,7 +224,9 @@ export async function registerPartnerStudent(data: unknown): Promise<StudentRepo
 }
 
 // Handles /register/volunteer/open route
-export async function registerVolunteer(data: unknown): Promise<VolunteerRepo.CreatedVolunteer> {
+export async function registerVolunteer(
+  data: unknown
+): Promise<VolunteerRepo.CreatedVolunteer> {
   const {
     ip,
     email,
@@ -215,7 +236,7 @@ export async function registerVolunteer(data: unknown): Promise<VolunteerRepo.Cr
     referredByCode,
     firstName,
     lastName,
-    timezone
+    timezone,
   } = asVolunteerRegData(data)
 
   await Promise.all([
@@ -240,7 +261,7 @@ export async function registerVolunteer(data: unknown): Promise<VolunteerRepo.Cr
     referredBy,
     password,
     timezone,
-    volunteerPartnerOrg: undefined
+    volunteerPartnerOrg: undefined,
   }
 
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
@@ -263,7 +284,7 @@ export async function registerPartnerVolunteer(
     referredByCode,
     firstName,
     lastName,
-    timezone
+    timezone,
   } = asPartnerVolunteerRegData(data)
   await Promise.all([
     checkCredential({ email, password }),
@@ -282,7 +303,9 @@ export async function registerPartnerVolunteer(
   // Volunteer partner org check
   let volunteerPartnerManifest: VolunteerPartnerOrgForRegistration
   try {
-    volunteerPartnerManifest = await getVolunteerPartnerOrgForRegistrationByKey(volunteerPartnerOrg)
+    volunteerPartnerManifest = await getVolunteerPartnerOrgForRegistrationByKey(
+      volunteerPartnerOrg
+    )
   } catch (err) {
     throw new RegistrationError('Invalid volunteer partner organization')
   }
@@ -307,7 +330,7 @@ export async function registerPartnerVolunteer(
     verified: false,
     referredBy,
     password,
-    timezone
+    timezone,
   }
 
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
@@ -356,7 +379,9 @@ export async function lookupPartnerStudent(
 // Handles /partner/student/code route
 export async function lookupPartnerStudentCode(data: unknown): Promise<string> {
   const partnerSignupCode = asString(data)
-  const studentPartnerKey = getStudentPartnerOrgKeyByCode(partnerSignupCode.toUpperCase())
+  const studentPartnerKey = getStudentPartnerOrgKeyByCode(
+    partnerSignupCode.toUpperCase()
+  )
 
   if (!studentPartnerKey)
     throw new LookupError(
@@ -373,7 +398,9 @@ export async function lookupStudentPartners(): Promise<StudentPartnerOrg[]> {
 }
 
 // Handles /partner/volunteer-partners route (admin only)
-export async function lookupVolunteerPartners(): Promise<VolunteerPartnerOrg[]> {
+export async function lookupVolunteerPartners(): Promise<
+  VolunteerPartnerOrg[]
+> {
   const partnerOrgs = await getVolunteerPartnerOrgs()
   return partnerOrgs
 }

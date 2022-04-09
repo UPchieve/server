@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
 import * as SessionService from '../../services/SessionService'
-import { buildStudent } from '../generate'
+import { buildUserContactInfo } from '../pg-generate'
 import { KeyNotFoundError } from '../../cache'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { authPassport } from '../../utils/auth-utils'
@@ -14,7 +14,7 @@ const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api'
 
 const app = mockApp()
-const mockGetUser = () => buildStudent()
+const mockGetUser = () => buildUserContactInfo()
 app.use(mockPassportMiddleware(mockGetUser))
 
 const router = mockRouter()

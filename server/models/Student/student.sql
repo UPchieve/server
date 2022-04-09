@@ -248,22 +248,24 @@ SELECT
     NOW(),
     NOW()
 FROM (
-  SELECT
-      subquery.student_partner_org_id as student_partner_org_id,
-      student_partner_org_sites.id as student_partner_org_site_id,
-      grade_levels.id as grade_level_id
-  FROM users
-  LEFT JOIN (
     SELECT
-        id AS student_partner_org_id,
-        name
+        subquery.student_partner_org_id AS student_partner_org_id,
+        student_partner_org_sites.id AS student_partner_org_site_id,
+        grade_levels.id AS grade_level_id
     FROM
-        student_partner_orgs
-    WHERE
-        student_partner_orgs.key = :partnerOrg) AS subquery ON true
-  LEFT JOIN student_partner_org_sites ON :partnerSite = student_partner_org_sites.name
-  LEFT JOIN grade_levels ON :gradeLevel = grade_levels.name
-  WHERE users.id = :userId!) as topquery
+        users
+    LEFT JOIN (
+        SELECT
+            id AS student_partner_org_id,
+            name
+        FROM
+            student_partner_orgs
+        WHERE
+            student_partner_orgs.key = :partnerOrg) AS subquery ON TRUE
+    LEFT JOIN student_partner_org_sites ON :partnerSite = student_partner_org_sites.name
+    LEFT JOIN grade_levels ON :gradeLevel = grade_levels.name
+WHERE
+    users.id = :userId!) AS topquery
 RETURNING
     user_id,
     postal_code,
@@ -288,9 +290,10 @@ SELECT
     users.email AS email,
     student_partner_org_sites.name AS partner_site,
     (
-    CASE WHEN partner_org_sponsor_org.name IS NOT NULL THEN
+        CASE WHEN partner_org_sponsor_org.name IS NOT NULL THEN
             partner_org_sponsor_org.name
-        WHEN school_sponsor_org.name IS NOT NULL THEN school_sponsor_org.name
+        WHEN school_sponsor_org.name IS NOT NULL THEN
+            school_sponsor_org.name
         ELSE
             NULL
         END) AS sponsor_org,
@@ -340,15 +343,10 @@ WHERE
     AND ((:studentPartnerSite)::text IS NULL
         OR student_partner_org_sites.name = :studentPartnerSite)
     AND ((:sponsorOrg)::text IS NULL
-        OR ((
-            partner_org_sponsor_org.key IS NOT NULL
-            AND partner_org_sponsor_org.key = :sponsorOrg
-        )
-        OR (
-            school_sponsor_org.key IS NOT NULL
-            AND school_sponsor_org.key = :sponsorOrg
-            ))
-        )
+        OR ((partner_org_sponsor_org.key IS NOT NULL
+                AND partner_org_sponsor_org.key = :sponsorOrg)
+            OR (school_sponsor_org.key IS NOT NULL
+                AND school_sponsor_org.key = :sponsorOrg)))
 ORDER BY
     sessions.created_at ASC;
 
@@ -363,9 +361,10 @@ SELECT
     student_partner_orgs.name AS student_partner_org,
     student_partner_org_sites.name AS partner_site,
     (
-    CASE WHEN partner_org_sponsor_org.name IS NOT NULL THEN
+        CASE WHEN partner_org_sponsor_org.name IS NOT NULL THEN
             partner_org_sponsor_org.name
-        WHEN school_sponsor_org.name IS NOT NULL THEN school_sponsor_org.name
+        WHEN school_sponsor_org.name IS NOT NULL THEN
+            school_sponsor_org.name
         ELSE
             NULL
         END) AS sponsor_org,
@@ -423,15 +422,14 @@ FROM
             student_id
         FROM
             sessions
-    LEFT JOIN(
+    LEFT JOIN (
         SELECT
-            MAX(created_at) as created_at,
+            MAX(created_at) AS created_at,
             session_id
         FROM
             session_messages
         GROUP BY
-            session_id
-    ) as last_message ON last_message.session_id = sessions.id
+            session_id) AS last_message ON last_message.session_id = sessions.id
     WHERE
         sessions.ended_at IS NOT NULL
     GROUP BY
@@ -446,15 +444,10 @@ AND ((:studentPartnerOrg)::text IS NULL
 AND ((:studentPartnerSite)::text IS NULL
     OR student_partner_org_sites.name = :studentPartnerSite)
 AND ((:sponsorOrg)::text IS NULL
-    OR ((
-        partner_org_sponsor_org.key IS NOT NULL
-        AND partner_org_sponsor_org.key = :sponsorOrg
-    )
-    OR (
-        school_sponsor_org.key IS NOT NULL
-        AND school_sponsor_org.key = :sponsorOrg
-        ))
-    )
+    OR ((partner_org_sponsor_org.key IS NOT NULL
+            AND partner_org_sponsor_org.key = :sponsorOrg)
+        OR (school_sponsor_org.key IS NOT NULL
+            AND school_sponsor_org.key = :sponsorOrg)))
 ORDER BY
     users.created_at ASC;
 

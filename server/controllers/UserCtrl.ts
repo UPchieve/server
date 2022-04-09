@@ -17,7 +17,9 @@ export async function checkReferral(
 ): Promise<Ulid | undefined> {
   if (referredByCode) {
     try {
-      const user = await UserRepo.getUserContactInfoByReferralCode(referredByCode)
+      const user = await UserRepo.getUserContactInfoByReferralCode(
+        referredByCode
+      )
       if (user) return user.id
     } catch (error) {
       captureException(error)
@@ -52,7 +54,7 @@ export async function createStudent(
     await UserActionRepo.createAccountAction({
       action: ACCOUNT_USER_ACTIONS.CREATED,
       userId: student.id,
-      ipAddress: ip
+      ipAddress: ip,
     })
   } catch (err) {
     captureException(err)
@@ -96,8 +98,9 @@ export async function createVolunteer(
     await UserActionRepo.createAccountAction({
       action: ACCOUNT_USER_ACTIONS.CREATED,
       userId: volunteer.id,
-      ipAddress: ip
-    })  } catch (err) {
+      ipAddress: ip,
+    })
+  } catch (err) {
     captureException(err)
   }
 

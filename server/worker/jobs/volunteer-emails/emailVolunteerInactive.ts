@@ -2,15 +2,18 @@ import moment from 'moment'
 import 'moment-timezone'
 import { Jobs } from '..'
 import { log } from '../../logger'
-import { VolunteerContactInfo,
+import {
+  VolunteerContactInfo,
   updateVolunteerSentInactive30DayEmail,
   updateVolunteerSentInactive60DayEmail,
-  updateVolunteerSentInactive90DayEmail } from '../../../models/Volunteer'
-import { clearAvailabilityForVolunteer, saveCurrentAvailabilityAsHistory } from '../../../models/Availability'
-import * as MailService from '../../../services/MailService'
+  updateVolunteerSentInactive90DayEmail,
+} from '../../../models/Volunteer'
 import {
-  getInactiveVolunteers,
-} from '../../../models/Volunteer/queries'
+  clearAvailabilityForVolunteer,
+  saveCurrentAvailabilityAsHistory,
+} from '../../../models/Availability'
+import * as MailService from '../../../services/MailService'
+import { getInactiveVolunteers } from '../../../models/Volunteer/queries'
 import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../../../constants'
 
 enum InactiveGroup {

@@ -7,7 +7,11 @@ import {
   getAssistmentsDataBySession,
   updateAssistmentsDataSentById,
 } from '../../models/AssistmentsData'
-import { getMessagesForFrontend, getSessionById, MessageForFrontend } from '../../models/Session'
+import {
+  getMessagesForFrontend,
+  getSessionById,
+  MessageForFrontend,
+} from '../../models/Session'
 import { log } from '../logger'
 import { asString } from '../../utils/type-utils'
 

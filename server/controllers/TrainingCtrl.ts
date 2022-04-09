@@ -12,14 +12,12 @@ import {
   COLLEGE_CERTS,
   ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
-  EVENTS
+  EVENTS,
 } from '../constants'
 import { getSubjectType } from '../utils/getSubjectType'
 import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
-import {
-  Certifications,
-} from '../models/Volunteer'
+import { Certifications } from '../models/Volunteer'
 import {
   queueOnboardingEventEmails,
   queuePartnerOnboardingEventEmails,
@@ -77,8 +75,10 @@ export async function getQuestions(
     throw new Error('No subcategories defined for category: ' + category)
   }
 
-  const questions = await QuestionModel.listQuestions({category, subcategory: null})
-  console.log(`QUESTIONS: ${JSON.stringify(questions)}`)
+  const questions = await QuestionModel.listQuestions({
+    category,
+    subcategory: null,
+  })
   const questionsBySubcategory = _.groupBy(
     questions,
     question => question.subcategory
@@ -255,12 +255,18 @@ export async function getQuizScore(
       : SUBJECT_THRESHOLD
   const passed = percent >= threshold
 
-  const certificationMap = await VolunteerModel.getCertificationsForVolunteers([user.id])
+  const certificationMap = await VolunteerModel.getCertificationsForVolunteers([
+    user.id,
+  ])
   const certifications = certificationMap[user.id]
 
   const tries = certifications[cert] ? certifications[cert].tries : 1
-  
-  await VolunteerModel.updateVolunteerQuiz(user.id, options.category as string, passed)
+
+  await VolunteerModel.updateVolunteerQuiz(
+    user.id,
+    options.category as string,
+    passed
+  )
 
   if (passed) {
     let unlockedSubjects = getUnlockedSubjects(cert, certifications)
@@ -270,9 +276,15 @@ export async function getQuizScore(
 
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
-      const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(user.id)
+      const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(
+        user.id
+      )
       if (!currentSubjects.includes(subject)) {
-        await createQuizAction({action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT, userId: user.id, quizSubcategory: (options.category as string)})
+        await createQuizAction({
+          action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+          userId: user.id,
+          quizSubcategory: options.category as string,
+        })
         captureEvent(user.id, EVENTS.SUBJECT_UNLOCKED, {
           event: EVENTS.SUBJECT_UNLOCKED,
           subject,
@@ -281,7 +293,9 @@ export async function getQuizScore(
       }
     }
     // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz
-    const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(user.id)
+    const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(
+      user.id
+    )
     if (
       volunteerProfile &&
       !volunteerProfile.onboarded &&
@@ -291,8 +305,13 @@ export async function getQuizScore(
       await VolunteerModel.updateVolunteerOnboarded(user.id)
       await queueOnboardingEventEmails(user.id)
       // TODO: this should just be done by the generic onboarding email handler above
-      if (user.volunteerPartnerOrg) await queuePartnerOnboardingEventEmails(user.id)
-      await createAccountAction({action: ACCOUNT_USER_ACTIONS.ONBOARDED, userId: user.id, ipAddress: ip})
+      if (user.volunteerPartnerOrg)
+        await queuePartnerOnboardingEventEmails(user.id)
+      await createAccountAction({
+        action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+        userId: user.id,
+        ipAddress: ip,
+      })
       captureEvent(user.id, EVENTS.ACCOUNT_ONBOARDED, {
         event: EVENTS.ACCOUNT_ONBOARDED,
       })

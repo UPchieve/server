@@ -21,7 +21,7 @@ import {
 import { SESSION_EVENTS } from '../constants/events'
 import logger from '../logger'
 import * as AssistmentsDataRepo from '../models/AssistmentsData'
-import { DAYS } from '../models/Availability/types'
+import { DAYS } from '../constants'
 import { NotAllowedError } from '../models/Errors'
 import { getFeedbackBySessionId } from '../models/Feedback'
 import * as NotificationRepo from '../models/Notification'
@@ -31,7 +31,11 @@ import { Session } from '../models/Session'
 import * as SessionRepo from '../models/Session'
 import { User, UserContactInfo } from '../models/User'
 import * as UserRepo from '../models/User'
-import { createAccountAction, createSessionAction, getSessionRequestedUserAgentFromSessionId } from '../models/UserAction'
+import {
+  createAccountAction,
+  createSessionAction,
+  getSessionRequestedUserAgentFromSessionId,
+} from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as sessionUtils from '../utils/session-utils'
 import { asString } from '../utils/type-utils'
@@ -45,9 +49,7 @@ import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
 import * as TwilioService from './TwilioService'
-import {
-  beginRegularNotifications,
-} from './TwilioService'
+import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
 import { LockError } from 'redlock'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
@@ -56,7 +58,11 @@ export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
     data
   )
-  return SessionRepo.updateSessionReviewedStatusById(sessionId, reviewed, toReview)
+  return SessionRepo.updateSessionReviewedStatusById(
+    sessionId,
+    reviewed,
+    toReview
+  )
 }
 
 export async function sessionsToReview(data: unknown) {
@@ -65,10 +71,7 @@ export async function sessionsToReview(data: unknown) {
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
 
-  const sessions = await SessionRepo.getSessionsToReview(
-    PER_PAGE,
-    skip
-  )
+  const sessions = await SessionRepo.getSessionsToReview(PER_PAGE, skip)
   const isLastPage = sessions.length < PER_PAGE
   return { sessions, isLastPage }
 }
@@ -92,14 +95,12 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     reportMessage,
   } = sessionUtils.asReportSessionData(data)
   const session = await SessionRepo.getSessionById(sessionId)
-  if (
-    !session.volunteerId ||
-    !(user.id === session.volunteerId)
-  )
+  if (!session.volunteerId || !(user.id === session.volunteerId))
     throw new sessionUtils.ReportSessionError('Unable to report this session')
 
   const reportedBy = user
-  await SessionRepo.updateSessionReported(sessionId,
+  await SessionRepo.updateSessionReported(
+    sessionId,
     reportReason,
     reportMessage
   )
@@ -114,7 +115,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
       userId: session.studentId,
       action: ACCOUNT_USER_ACTIONS.BANNED,
       sessionId: session.id,
-      banReason: reportReason
+      banReason: reportReason,
     })
     AnalyticsService.captureEvent(
       session.studentId as Ulid,
@@ -148,9 +149,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     )
 }
 
-async function isSessionAssistments(
-  sessionId: Ulid
-): Promise<boolean> {
+async function isSessionAssistments(sessionId: Ulid): Promise<boolean> {
   const ad = await AssistmentsDataRepo.getAssistmentsDataBySession(sessionId)
   if (ad) return !_.isEmpty(ad)
   else return false
@@ -172,17 +171,22 @@ export async function endSession(
     throw new sessionUtils.EndSessionError('Session has already ended')
   if (
     !isAdmin &&
-    !sessionUtils.isSessionParticipant(session.student.id, session.volunteer.id, endedBy ? endedBy : null)
+    !sessionUtils.isSessionParticipant(
+      session.student.id,
+      session.volunteer.id,
+      endedBy ? endedBy : null
+    )
   )
     throw new sessionUtils.EndSessionError(
       'Only session participants can end a session'
     )
 
-  await SessionRepo.updateSessionToEnd(session.id,
+  await SessionRepo.updateSessionToEnd(
+    session.id,
     new Date(),
     // NOTE: endedBy is sometimes null when the session is ended by a worker job
     //        due to the session being unmatched for an extended period of time
-    endedBy,
+    endedBy
   )
 
   emitter.emit(SESSION_EVENTS.SESSION_ENDED, session.id)
@@ -194,7 +198,7 @@ export async function endSession(
       sessionId: sessionId,
       ...getUserAgentInfo(reqIdentifiers?.userAgent),
       ipAddress: reqIdentifiers.ip,
-      action: SESSION_USER_ACTIONS.ENDED
+      action: SESSION_USER_ACTIONS.ENDED,
     })
 }
 
@@ -235,9 +239,7 @@ export async function processCalculateMetrics(sessionId: Ulid) {
   emitter.emit(SESSION_EVENTS.SESSION_METRICS_CALCULATED, sessionId)
 }
 
-export async function processFirstSessionCongratsEmail(
-  sessionId: Ulid
-) {
+export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
   const session = await SessionRepo.getSessionByIdWithStudentAndVolunteer(
     sessionId
   )
@@ -408,10 +410,12 @@ export async function adminFilteredSessions(data: unknown) {
   const estTimeOffset = 1000 * 60 * 60 * 4
 
   // Add a day to the sessionActivityTo to make it inclusive for the activity range: [sessionActivityFrom, sessionActivityTo]
-  const inclusiveSessionActivityTo =
-    new Date(new Date(sessionActivityTo).getTime() + oneDayInMS + estTimeOffset)
-  const offsetSessionActivityFrom =
-    new Date(new Date(sessionActivityFrom).getTime() + estTimeOffset)
+  const inclusiveSessionActivityTo = new Date(
+    new Date(sessionActivityTo).getTime() + oneDayInMS + estTimeOffset
+  )
+  const offsetSessionActivityFrom = new Date(
+    new Date(sessionActivityFrom).getTime() + estTimeOffset
+  )
 
   const sessions = await SessionRepo.getSessionsForAdminFilter(
     offsetSessionActivityFrom,
@@ -427,7 +431,7 @@ export async function adminFilteredSessions(data: unknown) {
       messageCount: minMessagesSent ? Number(minMessagesSent) : undefined,
       sessionLength: minSessionLength ? Number(minSessionLength) : undefined,
       volunteerRating: volunteerRating ? Number(volunteerRating) : undefined,
-      studentRating: studentRating ? Number(studentRating) : undefined
+      studentRating: studentRating ? Number(studentRating) : undefined,
     }
   )
   const isLastPage = sessions.length < PER_PAGE
@@ -453,7 +457,10 @@ export async function adminSessionView(data: unknown) {
   )
   const feedback = await getFeedbackBySessionId(sessionId)
   const bucket: keyof typeof config.awsS3 = 'sessionPhotoBucket'
-  const sessionPhotos = await AwsService.getObjects(bucket, session.photos || [])
+  const sessionPhotos = await AwsService.getObjects(
+    bucket,
+    session.photos || []
+  )
 
   return {
     ...session,
@@ -496,7 +503,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     userId,
     // NOTE: sessionType and subtopic are kebab-case
     Case.camel(sessionSubTopic),
-    user.banned,
+    user.banned
   )
 
   const numProblemId = Number(problemId)
@@ -510,9 +517,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       )
     } catch (error) {
       logger.error(
-        `Unable to create ASSISTments data for session: ${
-          newSessionId
-        }, ASSISTments studentId: ${studentId}, assignmentId: ${assignmentId}, problemId: ${problemId}, error: ${
+        `Unable to create ASSISTments data for session: ${newSessionId}, ASSISTments studentId: ${studentId}, assignmentId: ${assignmentId}, problemId: ${problemId}, error: ${
           (error as Error).message
         }`
       )
@@ -539,7 +544,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     sessionId: newSessionId,
     ...getUserAgentInfo(userAgent),
     ipAddress: ip,
-    action: SESSION_USER_ACTIONS.REQUESTED
+    action: SESSION_USER_ACTIONS.REQUESTED,
   })
 
   return newSessionId
@@ -572,7 +577,10 @@ export async function sessionTimedOut(user: UserContactInfo, data: unknown) {
     sessionId: sessionId,
     ...getUserAgentInfo(userAgent),
     ipAddress: ip,
-    action: timeout === 15 ? SESSION_USER_ACTIONS.TIMED_OUT_15_MINS : SESSION_USER_ACTIONS.TIMED_OUT_45_MINS
+    action:
+      timeout === 15
+        ? SESSION_USER_ACTIONS.TIMED_OUT_15_MINS
+        : SESSION_USER_ACTIONS.TIMED_OUT_45_MINS,
   })
 }
 
@@ -586,10 +594,14 @@ export async function getSessionNotifications(data: unknown) {
   return NotificationRepo.getSessionNotificationsWithSessionId(sessionId)
 }
 
-export async function joinSession(user: UserContactInfo, session: Session, data: unknown): Promise<void> {
+export async function joinSession(
+  user: UserContactInfo,
+  session: Session,
+  data: unknown
+): Promise<void> {
   const { socket, joinedFrom } = sessionUtils.asJoinSessionData(data)
   const userAgent = socket.request.headers['user-agent']
-  
+
   // TODO: it is unclear how to extract IP from socketio connection
   /**
    * We used to use socket.handshake.address but new versions of socketio have allegedly
@@ -601,17 +613,11 @@ export async function joinSession(user: UserContactInfo, session: Session, data:
     socket.handshake?.address || socket.request?.connection.remoteAddress
 
   if (session.endedAt) {
-    console.log(`ALEPH`)
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    console.log(`oof`)
     throw new Error('Session has ended')
   }
 
-  if (
-    !user.isVolunteer &&
-    session.studentId &&
-    session.studentId !== user.id
-  ) {
+  if (!user.isVolunteer && session.studentId && session.studentId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error(`A student cannot join another student's session`)
   }
@@ -633,7 +639,7 @@ export async function joinSession(user: UserContactInfo, session: Session, data:
       sessionId: session.id,
       ...getUserAgentInfo(userAgent),
       ipAddress,
-      action: SESSION_USER_ACTIONS.JOINED
+      action: SESSION_USER_ACTIONS.JOINED,
     })
 
     captureEvent(user.id, EVENTS.SESSION_JOINED, {
@@ -647,9 +653,7 @@ export async function joinSession(user: UserContactInfo, session: Session, data:
       sessionId: session.id,
     })
 
-    const pushTokens = await getPushTokensByUserId(
-      session.studentId
-    )
+    const pushTokens = await getPushTokensByUserId(session.studentId)
     if (pushTokens && pushTokens.length > 0) {
       const tokens = pushTokens.map((token: PushToken) => token.token)
       await PushTokenService.sendVolunteerJoined(session as Session, tokens)
@@ -668,7 +672,7 @@ export async function joinSession(user: UserContactInfo, session: Session, data:
       sessionId: session.id,
       ...getUserAgentInfo(userAgent),
       ipAddress,
-      action: SESSION_USER_ACTIONS.REJOINED
+      action: SESSION_USER_ACTIONS.REJOINED,
     })
     captureEvent(user.id, EVENTS.SESSION_REJOINED, {
       event: EVENTS.SESSION_REJOINED,
@@ -687,7 +691,12 @@ export async function saveMessage(
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   if (
-    !sessionUtils.isSessionParticipant(session.studentId, session.volunteerId, asString(user._id), chatbot || null)
+    !sessionUtils.isSessionParticipant(
+      session.studentId,
+      session.volunteerId,
+      asString(user._id),
+      chatbot || null
+    )
   )
     throw new Error('Only session participants are allowed to send messages')
 
@@ -760,9 +769,7 @@ export async function volunteersAvailableForSession(
   return volunteers.length > 0
 }
 
-export async function handleMessageActivity(
-  sessionId: Ulid
-): Promise<void> {
+export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
   try {
     const state = await cache.get(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
     if (Boolean(state)) {

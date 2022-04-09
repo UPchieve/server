@@ -1,8 +1,10 @@
 import { logger } from '@sentry/utils'
 import {
-  ACCOUNT_USER_ACTIONS, EVENTS, PHOTO_ID_STATUS,
+  ACCOUNT_USER_ACTIONS,
+  EVENTS,
+  PHOTO_ID_STATUS,
   REFERENCE_STATUS,
-  STATUS
+  STATUS,
 } from '../constants'
 import { Ulid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
@@ -13,7 +15,6 @@ import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
 import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
-
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -155,7 +156,9 @@ export async function updatePendingVolunteerStatus(
   photoIdStatus: string,
   referencesStatus: { [key: string]: string }
 ): Promise<void> {
-  const volunteerBeforeUpdate = await VolunteerRepo.getVolunteerForPendingStatus(volunteerId)
+  const volunteerBeforeUpdate = await VolunteerRepo.getVolunteerForPendingStatus(
+    volunteerId
+  )
   if (!volunteerBeforeUpdate) return
 
   const hasCompletedBackgroundInfo =
@@ -176,7 +179,11 @@ export async function updatePendingVolunteerStatus(
   for (const [referenceId, status] of Object.entries(referencesStatus)) {
     await VolunteerRepo.updateVolunteerReferenceStatusById(referenceId, status)
   }
-  await VolunteerRepo.updateVolunteerPending(volunteerId, isApproved, photoIdStatus)
+  await VolunteerRepo.updateVolunteerPending(
+    volunteerId,
+    isApproved,
+    photoIdStatus
+  )
 
   if (
     photoIdStatus === PHOTO_ID_STATUS.REJECTED &&
@@ -184,7 +191,7 @@ export async function updatePendingVolunteerStatus(
   ) {
     await createAccountAction({
       userId: volunteerId,
-      action: ACCOUNT_USER_ACTIONS.REJECTED_PHOTO_ID
+      action: ACCOUNT_USER_ACTIONS.REJECTED_PHOTO_ID,
     })
     AnalyticsService.captureEvent(volunteerId, EVENTS.PHOTO_ID_REJECTED, {
       event: EVENTS.PHOTO_ID_REJECTED,
@@ -196,7 +203,7 @@ export async function updatePendingVolunteerStatus(
   if (isNewlyApproved) {
     await createAccountAction({
       userId: volunteerId,
-      action: ACCOUNT_USER_ACTIONS.APPROVED
+      action: ACCOUNT_USER_ACTIONS.APPROVED,
     })
     AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_APPROVED, {
       event: EVENTS.ACCOUNT_APPROVED,
@@ -206,9 +213,13 @@ export async function updatePendingVolunteerStatus(
     MailService.sendApprovedNotOnboardedEmail(volunteerBeforeUpdate)
 
   for (const [referenceId, status] of Object.entries(referencesStatus)) {
-    const reference = volunteerBeforeUpdate.references.find(v => v.id === referenceId)
+    const reference = volunteerBeforeUpdate.references.find(
+      v => v.id === referenceId
+    )
     if (!reference) {
-      logger.error(`Recieved status update for reference ${referenceId} which does not belong to volunteer ${volunteerBeforeUpdate.id}`)
+      logger.error(
+        `Recieved status update for reference ${referenceId} which does not belong to volunteer ${volunteerBeforeUpdate.id}`
+      )
       continue
     }
     if (
@@ -218,7 +229,7 @@ export async function updatePendingVolunteerStatus(
       await createAccountAction({
         userId: volunteerId,
         action: ACCOUNT_USER_ACTIONS.REJECTED_REFERENCE,
-        referenceEmail: reference.email
+        referenceEmail: reference.email,
       })
       AnalyticsService.captureEvent(volunteerId, EVENTS.REFERENCE_REJECTED, {
         event: EVENTS.REFERENCE_REJECTED,
@@ -243,7 +254,7 @@ export async function addBackgroundInfo(
     await createAccountAction({
       userId: volunteerId,
       action: ACCOUNT_USER_ACTIONS.APPROVED,
-      ipAddress: ip
+      ipAddress: ip,
     })
     // TODO: if not onboarded, send a partner-specific version of the "approved but not onboarded" email
   }
@@ -264,7 +275,10 @@ export async function addBackgroundInfo(
   await createAccountAction({
     userId: volunteerId,
     action: ACCOUNT_USER_ACTIONS.COMPLETED_BACKGROUND_INFO,
-    ipAddress: ip
+    ipAddress: ip,
   })
-  await VolunteerRepo.updateVolunteerBackgroundInfo(volunteerId, { ...update, approved })
+  await VolunteerRepo.updateVolunteerBackgroundInfo(volunteerId, {
+    ...update,
+    approved,
+  })
 }

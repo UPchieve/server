@@ -5,11 +5,11 @@ import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
+import { Certifications, TrainingCourses } from '../../models/Volunteer'
 import {
-  Certifications,
-  TrainingCourses,
-} from '../../models/Volunteer'
-import { userHasTakenQuiz, createQuizAction } from '../../models/UserAction/queries'
+  userHasTakenQuiz,
+  createQuizAction,
+} from '../../models/UserAction/queries'
 import { QUIZ_USER_ACTIONS } from '../../constants'
 
 export function routeTraining(router: Router): void {
@@ -52,7 +52,7 @@ export function routeTraining(router: Router): void {
           userId: user.id,
           action: QUIZ_USER_ACTIONS.PASSED,
           quizSubcategory: category,
-          ipAddress: ip
+          ipAddress: ip,
         })
       } else {
         // we want to queue a job to send this email only if this is the first time
@@ -67,12 +67,12 @@ export function routeTraining(router: Router): void {
             user.firstName,
             user.id
           )
-          await createQuizAction({
-            userId: user.id,
-            action: QUIZ_USER_ACTIONS.FAILED,
-            quizSubcategory: category,
-            ipAddress: ip
-          })
+        await createQuizAction({
+          userId: user.id,
+          action: QUIZ_USER_ACTIONS.FAILED,
+          quizSubcategory: category,
+          ipAddress: ip,
+        })
       }
 
       res.json({
@@ -97,7 +97,7 @@ export function routeTraining(router: Router): void {
         userId: user.id,
         action: QUIZ_USER_ACTIONS.VIEWED_MATERIALS,
         quizSubcategory: category,
-        ipAddress: ipAddress
+        ipAddress: ipAddress,
       })
 
       res.sendStatus(204)
@@ -114,7 +114,6 @@ export function routeTraining(router: Router): void {
         user,
         courseKey as keyof TrainingCourses
       )
-      console.log(`ROUTER COURSE: ${JSON.stringify(course)}`)
       if (!course) return res.sendStatus(404)
       res.status(200).json({ course })
     } catch (err) {

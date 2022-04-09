@@ -1,7 +1,7 @@
 import { Pgid } from '../pgUtils'
 
 export type Question = {
-  _id?: Pgid  // legacy ID for frontend
+  _id?: Pgid // legacy ID for frontend
   id: Pgid
   questionText: string
   possibleAnswers: {

@@ -5,11 +5,7 @@ import isLength from 'validator/lib/isLength'
 import nr from 'newrelic'
 import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission/queries'
 import * as MailService from './MailService'
-import {
-  asString,
-  asFactory,
-  asOptional,
-} from '../utils/type-utils'
+import { asString, asFactory, asOptional } from '../utils/type-utils'
 import { InputError } from '../models/Errors'
 
 interface ContactFormSubmissionData {

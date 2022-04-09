@@ -8,8 +8,7 @@ export function fixNumberInt<T>(obj: T): any {
       temp[key] = fixNumberInt(value)
     } else if (key === '$numberInt') {
       return Number(value)
-    } else
-      temp[key] = value
+    } else temp[key] = value
   }
   return temp
 }

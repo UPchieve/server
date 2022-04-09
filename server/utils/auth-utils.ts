@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
 import passportLocal from 'passport-local'
-import{ Ulid } from '../models/pgUtils'
+import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
 import {
@@ -92,17 +92,17 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
 })
 
 export interface VolunteerRegData extends UserRegData {
-  phone: string,
+  phone: string
   timezone?: string
 }
 export const asVolunteerRegData = asFactory<VolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
-  timezone: asOptional(asString)
+  timezone: asOptional(asString),
 })
 
 export interface PartnerVolunteerRegData extends VolunteerRegData {
-  volunteerPartnerOrg: string,
+  volunteerPartnerOrg: string
   timezone?: string
 }
 export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({

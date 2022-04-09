@@ -42,7 +42,9 @@ async function emailReportedSession(
       )
       if (banAlert.error)
         errors.push(`Failed to send ban alert email: ${banAlert.error.message}`)
-      const studentContact = await safeAsync(MailService.createContact(student.id))
+      const studentContact = await safeAsync(
+        MailService.createContact(student.id)
+      )
       if (studentContact.error)
         errors.push(
           `Failed to add student ${studentId} to ban email group: ${studentContact.error.message}`

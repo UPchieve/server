@@ -16,9 +16,7 @@ export const getDoc = (sessionId: Ulid): Promise<string> => {
   return cache.get(sessionIdToKey(sessionId))
 }
 
-export const getDocLength = async (
-  sessionId: Ulid
-): Promise<number> => {
+export const getDocLength = async (sessionId: Ulid): Promise<number> => {
   const document = await cache.get(sessionIdToKey(sessionId))
   if (document === undefined) return 0
   return Buffer.byteLength(document, 'utf8')
@@ -69,9 +67,7 @@ export const uploadedToStorage = async (
   }
 }
 
-export const getDocFromStorage = async (
-  sessionId: Ulid
-): Promise<string> => {
+export const getDocFromStorage = async (sessionId: Ulid): Promise<string> => {
   try {
     const whiteboardDoc = await getBlob(
       config.whiteboardStorageContainer,

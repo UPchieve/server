@@ -1,5 +1,12 @@
 import { Pgid } from '../models/pgUtils'
-import { Question, getCategories, listQuestions, createQuestion, updateQuestion, destroy } from '../models/Question'
+import {
+  Question,
+  getCategories,
+  listQuestions,
+  createQuestion,
+  updateQuestion,
+  destroy,
+} from '../models/Question'
 
 // TODO: duck type validation
 export async function list(

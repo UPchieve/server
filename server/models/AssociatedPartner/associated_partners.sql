@@ -35,6 +35,7 @@ FROM
 WHERE
     ap.key = :key!;
 
+
 /* @name getAssociatedPartnerByVolunteerPartnerKey */
 SELECT
     ap.key AS KEY,
@@ -53,3 +54,4 @@ FROM
     LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id
 WHERE
     vpo.key = :key!;
+

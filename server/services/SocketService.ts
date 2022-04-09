@@ -17,9 +17,7 @@ class SocketService {
    * @param sessionId
    * @returns the session object
    */
-  private async getSessionData(
-    sessionId: Ulid
-  ): Promise<CurrentSession> {
+  private async getSessionData(sessionId: Ulid): Promise<CurrentSession> {
     // Replaced by getCurrentSessionBySessionId
     const populatedSession = await getCurrentSessionBySessionId(sessionId)
 

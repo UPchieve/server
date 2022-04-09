@@ -1,6 +1,5 @@
 import { Ulid } from '../pgUtils'
 
-
 export type AdminSchool = {
   id: Ulid
   name: string
@@ -22,7 +21,7 @@ export type School = {
   createdAt: Date
   updatedAt: Date
   cityNameStored?: string
-  districtNameStored?: string   // stored as lea_name
+  districtNameStored?: string // stored as lea_name
   SCHOOL_YEAR?: string
   FIPST?: number
   ST?: string

@@ -43,7 +43,13 @@ export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
   return function(s: unknown, errMsg?: string): T[] {
     if (Array.isArray(s)) {
       const maybeT = s as T[]
-      if (maybeT.every(item => as(item, errMsg))) return maybeT as T[]
+      if (
+        maybeT.every(item => {
+          as(item, errMsg) // running `asFoo` validator will throw if it fails
+          return true
+        })
+      )
+        return maybeT as T[]
     }
     throw new InputError(`${errMsg} : ${s} is not an array of the given type`)
   }
