@@ -343,7 +343,7 @@ WHERE
         WHEN sessions.student_id = :endedBy THEN
             'student'
         ELSE
-            NULL
+            'admin'
         END)) AS subquery
 WHERE
     sessions.id = :sessionId!
