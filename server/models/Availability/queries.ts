@@ -5,10 +5,9 @@ import { Ulid, getDbUlid, makeRequired, makeSomeRequired } from '../pgUtils'
 import _ from 'lodash'
 import moment from 'moment'
 import 'moment-timezone'
+import { DAYS, HOURS } from '../../constants'
 import {
   Availability,
-  HOURS,
-  DAYS,
   AvailabilityDay,
   AvailabilityHistory,
   AvailabilitySnapshot,
@@ -37,7 +36,7 @@ function getAvailabilityHour(rawHour: number): HOURS {
   if (baseHour >= 12) {
     if (baseHour > 12) {
       baseHour -= 12
-    } 
+    }
     hour = `${baseHour}p`
   } else {
     if (baseHour === 0) {
@@ -75,9 +74,7 @@ type AvailabilityRow = {
  * @param rows availability rows straight form postgres
  * @returns an Availability object model
  */
-function buildAvailabilityModel(
-  rows: AvailabilityRow[]
-): Availability {
+function buildAvailabilityModel(rows: AvailabilityRow[]): Availability {
   const availability = createNewAvailability()
   for (const row of rows) {
     for (let i: number = row.availableStart; i < row.availableEnd; i++) {
@@ -89,7 +86,8 @@ function buildAvailabilityModel(
 }
 
 export async function getAvailabilityForVolunteer(
-  userId: Ulid, poolClient?: PoolClient
+  userId: Ulid,
+  poolClient?: PoolClient
 ): Promise<Availability> {
   const client = poolClient ? poolClient : getClient()
   try {
@@ -112,7 +110,10 @@ export async function getAvailabilityForVolunteerHeatmap(
       getClient()
     )
     const availabilities: AvailabilitySnapshot[] = []
-    const groups = _.groupBy(result.map(v => makeRequired(v)), row => row.userId)
+    const groups = _.groupBy(
+      result.map(v => makeRequired(v)),
+      row => row.userId
+    )
     for (const user in groups) {
       const rows = groups[user]
       availabilities.push({
@@ -143,7 +144,9 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
     for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>
       new Date(a[0]) > new Date(b[0]) ? 1 : -1
     )) {
-      const availability = buildAvailabilityModel(rows.map(v => makeRequired(v)))
+      const availability = buildAvailabilityModel(
+        rows.map(v => makeRequired(v))
+      )
       histories.push({
         volunteerId: userId,
         recordedAt: new Date(date),
@@ -169,7 +172,7 @@ export async function getLegacyAvailabilityHistoryForDatesByVolunteerId(
     const rows = result.map(row => makeSomeRequired(row, ['timezone']))
     const rowsByDate = _.groupBy(rows, 'recordedAt')
     const histories: AvailabilityHistory[] = []
-      for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>
+    for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>
       new Date(a[0]) > new Date(b[0]) ? 1 : -1
     )) {
       // NOTE: the DB currently has duplicate entries for legacy_availabilities, ignore duplicates here
@@ -190,7 +193,6 @@ export async function getLegacyAvailabilityHistoryForDatesByVolunteerId(
     throw new RepoReadError(err)
   }
 }
-
 
 export async function saveCurrentAvailabilityAsHistory(
   userId: Ulid
@@ -230,13 +232,11 @@ export async function updateAvailabilityByVolunteerId(
             day,
             id: getDbUlid(),
             timezone: timezone,
-            userId
+            userId,
           })
       }
     }
     const errors: string[] = []
-    console.log(`Attempting to insert availability OBJECT ${JSON.stringify(availability)}`)
-    console.log(`Attempting to insert availability rows ${JSON.stringify(rows)}`)
     await client.query('BEGIN')
     for (const row of rows) {
       const result = await pgQueries.insertNewAvailability.run(
@@ -244,7 +244,9 @@ export async function updateAvailabilityByVolunteerId(
         client
       )
       if (!(result.length && makeRequired(result[0])))
-        errors.push(`Availability row ${JSON.stringify(row)} did not save correctly`)
+        errors.push(
+          `Availability row ${JSON.stringify(row)} did not save correctly`
+        )
     }
     if (errors.length) throw new Error(errors.join('\n'))
     await client.query('COMMIT')
@@ -256,19 +258,30 @@ export async function updateAvailabilityByVolunteerId(
   }
 }
 
-export async function clearAvailabilityForVolunteer(userId: Ulid): Promise<void> {
+export async function clearAvailabilityForVolunteer(
+  userId: Ulid
+): Promise<void> {
   try {
-    const result = await pgQueries.clearAvailabilityForVolunteer.run({ userId }, getClient())
-    if (!result.length && makeRequired(result[0]).ok) throw new RepoUpdateError('Update query did not return ok')
+    const result = await pgQueries.clearAvailabilityForVolunteer.run(
+      { userId },
+      getClient()
+    )
+    if (!result.length && makeRequired(result[0]).ok)
+      throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
   }
 }
 
-export async function saveLegacyAvailability(userId: Ulid, availability: any): Promise<void> {
+export async function saveLegacyAvailability(
+  userId: Ulid,
+  availability: any
+): Promise<void> {
   try {
-    const result = await pgQueries.saveLegacyAvailability.run({ id: getDbUlid(), userId, availability }, getClient())
-    
+    const result = await pgQueries.saveLegacyAvailability.run(
+      { id: getDbUlid(), userId, availability },
+      getClient()
+    )
   } catch (err) {
     throw new RepoCreateError(err)
   }

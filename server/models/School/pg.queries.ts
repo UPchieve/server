@@ -155,7 +155,7 @@ export interface IGetSchoolsQuery {
   result: IGetSchoolsResult;
 }
 
-const getSchoolsIR: any = {"name":"getSchools","params":[{"name":"name","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1697,"b":1700,"line":67,"col":8},{"a":1750,"b":1753,"line":68,"col":31},{"a":1797,"b":1800,"line":69,"col":35}]}},{"name":"state","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1816,"b":1820,"line":70,"col":6},{"a":1858,"b":1862,"line":71,"col":19},{"a":1899,"b":1903,"line":72,"col":35}]}},{"name":"city","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1912,"b":1915,"line":73,"col":6},{"a":1963,"b":1966,"line":74,"col":29},{"a":2007,"b":2010,"line":75,"col":32},{"a":2052,"b":2055,"line":76,"col":33}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2072,"b":2077,"line":77,"col":7}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2092,"b":2098,"line":77,"col":27}]}}],"usedParamSet":{"name":true,"state":true,"city":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    approved AS is_approved,\n    partner AS is_partner,\n    meta.mzip AS zip_code,\n    COALESCE(meta.sch_name, schools.name) AS name,\n    COALESCE(meta.st, cities.us_state_code) AS state,\n    COALESCE(meta.lcity, cities.name) AS city,\n    schools.id as id,\n    schools.created_at,\n    schools.updated_at\nFROM\n    schools\n    LEFT JOIN cities ON schools.city_id = cities.id\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\nWHERE (:name::text is null OR\n    schools.name ILIKE '%' || :name || '%'\n    OR meta.sch_name ILIKE '%' || :name || '%')\nAND (:state::text is null OR\n    meta.st ILIKE :state\n    OR cities.us_state_code ILIKE :state)\nAND (:city::text is null OR\n    meta.mcity ILIKE '%' || :city || '%'\n    OR meta.lcity ILIKE '%' || :city || '%'\n    OR cities.name ILIKE '%' || :city || '%')\nLIMIT :limit!::int OFFSET :offset!::int","loc":{"a":1238,"b":2103,"line":53,"col":0}}};
+const getSchoolsIR: any = {"name":"getSchools","params":[{"name":"name","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1697,"b":1700,"line":67,"col":8},{"a":1750,"b":1753,"line":68,"col":34},{"a":1797,"b":1800,"line":69,"col":35}]}},{"name":"state","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1816,"b":1820,"line":70,"col":6},{"a":1858,"b":1862,"line":71,"col":22},{"a":1899,"b":1903,"line":72,"col":35}]}},{"name":"city","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1912,"b":1915,"line":73,"col":6},{"a":1963,"b":1966,"line":74,"col":32},{"a":2007,"b":2010,"line":75,"col":32},{"a":2052,"b":2055,"line":76,"col":33}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2072,"b":2077,"line":77,"col":7}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2092,"b":2098,"line":77,"col":27}]}}],"usedParamSet":{"name":true,"state":true,"city":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    approved AS is_approved,\n    partner AS is_partner,\n    meta.mzip AS zip_code,\n    COALESCE(meta.sch_name, schools.name) AS name,\n    COALESCE(meta.st, cities.us_state_code) AS state,\n    COALESCE(meta.lcity, cities.name) AS city,\n    schools.id AS id,\n    schools.created_at,\n    schools.updated_at\nFROM\n    schools\n    LEFT JOIN cities ON schools.city_id = cities.id\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\nWHERE (:name::text IS NULL\n    OR schools.name ILIKE '%' || :name || '%'\n    OR meta.sch_name ILIKE '%' || :name || '%')\nAND (:state::text IS NULL\n    OR meta.st ILIKE :state\n    OR cities.us_state_code ILIKE :state)\nAND (:city::text IS NULL\n    OR meta.mcity ILIKE '%' || :city || '%'\n    OR meta.lcity ILIKE '%' || :city || '%'\n    OR cities.name ILIKE '%' || :city || '%')\nLIMIT :limit!::int OFFSET :offset!::int","loc":{"a":1238,"b":2103,"line":53,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -167,21 +167,21 @@ const getSchoolsIR: any = {"name":"getSchools","params":[{"name":"name","require
  *     COALESCE(meta.sch_name, schools.name) AS name,
  *     COALESCE(meta.st, cities.us_state_code) AS state,
  *     COALESCE(meta.lcity, cities.name) AS city,
- *     schools.id as id,
+ *     schools.id AS id,
  *     schools.created_at,
  *     schools.updated_at
  * FROM
  *     schools
  *     LEFT JOIN cities ON schools.city_id = cities.id
  *     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
- * WHERE (:name::text is null OR
- *     schools.name ILIKE '%' || :name || '%'
+ * WHERE (:name::text IS NULL
+ *     OR schools.name ILIKE '%' || :name || '%'
  *     OR meta.sch_name ILIKE '%' || :name || '%')
- * AND (:state::text is null OR
- *     meta.st ILIKE :state
+ * AND (:state::text IS NULL
+ *     OR meta.st ILIKE :state
  *     OR cities.us_state_code ILIKE :state)
- * AND (:city::text is null OR
- *     meta.mcity ILIKE '%' || :city || '%'
+ * AND (:city::text IS NULL
+ *     OR meta.mcity ILIKE '%' || :city || '%'
  *     OR meta.lcity ILIKE '%' || :city || '%'
  *     OR cities.name ILIKE '%' || :city || '%')
  * LIMIT :limit!::int OFFSET :offset!::int

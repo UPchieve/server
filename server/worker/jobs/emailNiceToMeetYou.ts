@@ -11,7 +11,10 @@ export default async (): Promise<void> => {
   // set the date to midnight
   todaysDate.setHours(0, 0, 0, 0)
 
-  const volunteers = await getVolunteersForNiceToMeetYou(new Date(oneDayAgo), new Date(todaysDate))
+  const volunteers = await getVolunteersForNiceToMeetYou(
+    new Date(oneDayAgo),
+    new Date(todaysDate)
+  )
 
   let totalEmailed = 0
 

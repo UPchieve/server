@@ -7,7 +7,7 @@ import {
   ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
   SESSION_USER_ACTIONS,
-  USER_ACTION_TYPES
+  USER_ACTION_TYPES,
 } from '../../constants'
 import { getSubjectType } from '../../utils/getSubjectType'
 import { PoolClient } from 'pg'
@@ -28,7 +28,6 @@ export async function getQuizzesPassedForDateRangeById(
     throw new RepoReadError(err)
   }
 }
-
 
 export async function getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
   userId: Ulid,
@@ -71,7 +70,10 @@ export async function userHasTakenQuiz(userId: Ulid): Promise<boolean> {
   }
 }
 
-export async function upsertIpAddress(ip: string, poolClient?: PoolClient): Promise<Ulid> {
+export async function upsertIpAddress(
+  ip: string,
+  poolClient?: PoolClient
+): Promise<Ulid> {
   const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.upsertIpAddress.run({ ip }, client)
@@ -187,7 +189,7 @@ export async function createAccountAction(params: AccountActionParams) {
         sessionId: params.sessionId ? params.sessionId : null,
         userId: params.userId,
         volunteerId: params.volunteerId ? params.volunteerId : null,
-        banReason: params.banReason ? params.banReason : null
+        banReason: params.banReason ? params.banReason : null,
       },
       client
     )
@@ -200,7 +202,10 @@ export async function createAccountAction(params: AccountActionParams) {
   }
 }
 
-export async function createAdminAction(action: ACCOUNT_USER_ACTIONS, userId: Ulid) {
+export async function createAdminAction(
+  action: ACCOUNT_USER_ACTIONS,
+  userId: Ulid
+) {
   try {
     const result = await pgQueries.createAdminAction.run(
       {

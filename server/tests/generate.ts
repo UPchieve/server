@@ -1,3 +1,4 @@
+/*
 import moment from 'moment'
 import 'moment-timezone'
 import faker from 'faker'
@@ -476,7 +477,7 @@ export const buildPastSessions = (): Types.ObjectId[] => {
  * Enums NotificationMethod & NotificationType do not exists at runtime, so
  * a type error like "Cannot read property 'SMS' of undefined" is thrown
  *
- **/
+ * 
 export const buildNotification = (overrides = {}): Notification => {
   const _id = new Types.ObjectId()
 
@@ -733,3 +734,4 @@ export function joinSession(session: Session, volunteer: Volunteer): void {
   session.volunteerJoinedAt = new Date()
   session.volunteer = volunteer._id
 }
+*/

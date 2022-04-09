@@ -52,10 +52,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 }
 
 // TODO: upgrade socketio and adapter so we can async this whole file
-export function routeSockets(
-  io: Server,
-  sessionStore: PGStore
-): void {
+export function routeSockets(io: Server, sessionStore: PGStore): void {
   const socketService = new SocketService(io)
 
   async function getSocketIdsFromRoom(room: string): Promise<string[]> {
@@ -210,7 +207,6 @@ export function routeSockets(
 
             try {
               // TODO: correctly type User from passport
-              console.log(`Attempting to join session ${sessionId}`)
               await SessionService.joinSession(user, session, {
                 socket,
                 joinedFrom,
@@ -226,7 +222,6 @@ export function routeSockets(
               socketService.emitSessionChange(sessionId)
               resolve()
             } catch (error) {
-              console.log(`Caught join session error to bump ${error}`)
               socketService.bump(
                 socket,
                 {

@@ -12,7 +12,7 @@ export default function(app: Express) {
   const store = new PgStore({
     pool: getClient(),
     schemaName: 'auth',
-    tableName: 'session'
+    tableName: 'session',
   })
   app.use(
     session({

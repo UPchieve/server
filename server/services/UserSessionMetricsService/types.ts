@@ -1,6 +1,4 @@
-import {
-  UserSessionMetrics,
-} from '../../models/UserSessionMetrics'
+import { UserSessionMetrics } from '../../models/UserSessionMetrics'
 import { Session, MessageForFrontend } from '../../models/Session'
 import { Feedback } from '../../models/Feedback'
 import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
@@ -19,7 +17,7 @@ export interface ProcessorData {
   value: number
 }
 
-type MetricUpdateQuery = { [key: string]: number}
+type MetricUpdateQuery = { [key: string]: number }
 
 export interface MetricProcessor {
   key: USER_SESSION_METRICS // metric name
@@ -33,14 +31,10 @@ export interface MetricProcessor {
   // compiles list of side-effect promises to execute on behalf of this metric
   triggerActions(pd: ProcessorData): Promise<void>[]
   computeStudentUpdateQuery(pd: ProcessorData): MetricUpdateQuery
-  computeVolunteerUpdateQuery(
-    pd: ProcessorData
-  ): MetricUpdateQuery
-
+  computeVolunteerUpdateQuery(pd: ProcessorData): MetricUpdateQuery
 }
 
-export abstract class CounterMetricProcessor
-  implements MetricProcessor {
+export abstract class CounterMetricProcessor implements MetricProcessor {
   protected computeFinalValue = (
     usm: UserSessionMetrics,
     value: number
@@ -55,16 +49,10 @@ export abstract class CounterMetricProcessor
   public abstract key: USER_SESSION_METRICS
   public abstract requiresFeedback: boolean
   public abstract computeUpdateValue(uvd: UpdateValueData): number
-  public abstract computeReviewReason(
-    pd: ProcessorData
-  ): USER_SESSION_METRICS[]
-  public abstract computeFlag(
-    pd: ProcessorData
-  ): USER_SESSION_METRICS[]
+  public abstract computeReviewReason(pd: ProcessorData): USER_SESSION_METRICS[]
+  public abstract computeFlag(pd: ProcessorData): USER_SESSION_METRICS[]
   public abstract triggerActions(pd: ProcessorData): Promise<void>[]
-  public computeStudentUpdateQuery = (
-    pd: ProcessorData
-  ): MetricUpdateQuery => {
+  public computeStudentUpdateQuery = (pd: ProcessorData): MetricUpdateQuery => {
     const metric = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
     if (!metric) throw new Error(`Metric for ${this.key} undefined`)
     const finalValue = this.computeFinalValue(pd.studentUSM, pd.value)
@@ -77,10 +65,8 @@ export abstract class CounterMetricProcessor
     const metric = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
     if (!metric) throw new Error(`Metric for ${this.key} undefined`)
     const finalValue = this.computeFinalValue(pd.volunteerUSM, pd.value)
-    return { [metric]: finalValue }  
+    return { [metric]: finalValue }
   }
-
-
 }
 
 export const NO_FLAGS = [] as USER_SESSION_METRICS[]

@@ -7,12 +7,14 @@ import {
   asNumber,
   asFactory,
   asOptional,
-  asArray
+  asArray,
 } from '../utils/type-utils'
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
 
-const asStudentTutoringFeedback = asFactory<FeedbackRepo.StudentTutoringFeedback>({
+const asStudentTutoringFeedback = asFactory<
+  FeedbackRepo.StudentTutoringFeedback
+>({
   'session-goal': asOptional(asNumber),
   'subject-understanding': asOptional(asNumber),
   'coach-rating': asOptional(asNumber),
@@ -29,7 +31,9 @@ const asCoachRating = asFactory({
   'coach-friendly': asOptional(asNumber),
   'coach-help-again': asOptional(asNumber),
 })
-const asStudentCounselingFeedback = asFactory<FeedbackRepo.StudentCounselingFeedback>({
+const asStudentCounselingFeedback = asFactory<
+  FeedbackRepo.StudentCounselingFeedback
+>({
   'rate-session': asOptional(asRateSession),
   'session-goal': asOptional(asString),
   'coach-ratings': asOptional(asCoachRating),
@@ -58,7 +62,7 @@ export async function saveFeedback(data: unknown): Promise<Ulid> {
     studentTutoringFeedback,
     studentCounselingFeedback,
     volunteerFeedback,
-    userType
+    userType,
   } = asFeedbackPayload(data)
   if (
     _.isEmpty(studentTutoringFeedback) &&
@@ -66,13 +70,14 @@ export async function saveFeedback(data: unknown): Promise<Ulid> {
     _.isEmpty(volunteerFeedback)
   )
     throw new InputError('Must answer at least one question')
-  
-  if (!(userType === 'student' || userType === 'volunteer')) throw new Error('User type unrecognized')
+
+  if (!(userType === 'student' || userType === 'volunteer'))
+    throw new Error('User type unrecognized')
 
   const feedbackId = await FeedbackRepo.saveFeedback(sessionId, userType, {
     studentTutoringFeedback,
     studentCounselingFeedback,
-    volunteerFeedback
+    volunteerFeedback,
   })
   emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, sessionId, feedbackId)
   return feedbackId

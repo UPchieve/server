@@ -17,17 +17,18 @@ export function parseQueryResult(result: QuestionQueryResult): Question {
   const possibleAnswers =
     typeof result.possibleAnswers === 'string'
       ? JSON.parse(result.possibleAnswers)
-      :result.possibleAnswers
+      : result.possibleAnswers
 
   return { ...result, possibleAnswers, _id: result.id }
 }
 
-export async function listQuestions(filters: pgQueries.IListParams): Promise<Question[]> {
+export async function listQuestions(
+  filters: pgQueries.IListParams
+): Promise<Question[]> {
   try {
     const questions = await pgQueries.list.run({ ...filters }, getClient())
 
     const result = questions.map(v => makeSomeRequired(v, ['imageSrc']))
-    console.log(`RAW QUESTIONS: ${JSON.stringify(result)}`)
     const parsedResult = result.map(res => parseQueryResult(res))
     return parsedResult
   } catch (err) {
@@ -70,13 +71,11 @@ export async function createQuestion(question: Question): Promise<Question> {
       const toRtn = parseQueryResult({
         ...newQuestion,
         category: question.category,
-        subcategory: question.subcategory
+        subcategory: question.subcategory,
       })
       await client.query('COMMIT')
       return toRtn
-    } else
-      throw new Error('insertion of question did not return new row')
-
+    } else throw new Error('insertion of question did not return new row')
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoCreateError(err)
@@ -90,12 +89,12 @@ export type QuestionUpdateOptions = {
   question: Question
 }
 
-export async function updateQuestion(options: QuestionUpdateOptions): Promise<Question> {
+export async function updateQuestion(
+  options: QuestionUpdateOptions
+): Promise<Question> {
   const client = await getClient().connect()
   try {
     const question = options.question
-
-    console.log(question)
 
     await client.query('BEGIN')
 
@@ -155,27 +154,44 @@ export async function getCategories(): Promise<pgQueries.ICategoriesResult[]> {
   }
 }
 
-export async function getSubcategoriesForQuiz(quizName: string): Promise<pgQueries.IGetSubcategoriesForQuizResult[]> {
+export async function getSubcategoriesForQuiz(
+  quizName: string
+): Promise<pgQueries.IGetSubcategoriesForQuizResult[]> {
   try {
-    const result = await pgQueries.getSubcategoriesForQuiz.run({quizName}, getClient())
+    const result = await pgQueries.getSubcategoriesForQuiz.run(
+      { quizName },
+      getClient()
+    )
     return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function getMultipleQuestionsById(ids: number[]): Promise<pgQueries.IGetMultipleQuestionsByIdResult[]> {
+export async function getMultipleQuestionsById(
+  ids: number[]
+): Promise<pgQueries.IGetMultipleQuestionsByIdResult[]> {
   try {
-    const result = await pgQueries.getMultipleQuestionsById.run({ids}, getClient())
+    const result = await pgQueries.getMultipleQuestionsById.run(
+      { ids },
+      getClient()
+    )
     return result.map(v => makeSomeRequired(v, ['imageSrc']))
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function getQuestionsByCategory(category: string, limit: number, offset: number): Promise<Question[]> {
+export async function getQuestionsByCategory(
+  category: string,
+  limit: number,
+  offset: number
+): Promise<Question[]> {
   try {
-    const questions = await pgQueries.getQuestionsByCategory.run({ category, limit, offset }, getClient())
+    const questions = await pgQueries.getQuestionsByCategory.run(
+      { category, limit, offset },
+      getClient()
+    )
     const result = questions.map(v => makeSomeRequired(v, ['imageSrc']))
     const parsedResult = result.map(res => parseQueryResult(res))
     return parsedResult

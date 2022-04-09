@@ -7,9 +7,7 @@ import exceljs from 'exceljs'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomError } from 'ts-custom-error'
 import logger from '../logger'
-import {
-  REPORT_FILE_NAMES,
-} from '../constants'
+import { REPORT_FILE_NAMES } from '../constants'
 import config from '../config'
 import {
   generateTelecomReport,
@@ -263,8 +261,13 @@ export async function generatePartnerAnalyticsReport(
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
 
-  const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(partnerOrg, start, end)
-  if (!volunteers) throw new Error(`no volunteer partner org found with key ${partnerOrg}`)
+  const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(
+    partnerOrg,
+    start,
+    end
+  )
+  if (!volunteers)
+    throw new Error(`no volunteer partner org found with key ${partnerOrg}`)
 
   const report: AnalyticsReportRow[] = []
   for (const volunteer of volunteers) {
@@ -319,7 +322,9 @@ export async function writeAnalyticsReport(
   const dataSheet = workbook.addWorksheet('Data', sheetOptions)
   const formattedStartDate = moment(startDate, 'MM-DD-YYYY').format('MM/DD/YY')
   const formattedEndDate = moment(endDate, 'MM-DD-YYYY').format('MM/DD/YY')
-  const partner = await VolunteerPartnerOrgRepo.getFullVolunteerPartnerOrgByKey(partnerOrg)
+  const partner = await VolunteerPartnerOrgRepo.getFullVolunteerPartnerOrgByKey(
+    partnerOrg
+  )
   const partnerName = partner.name
   processAnalyticsReportSummarySheet(
     data.summary,

@@ -10,7 +10,10 @@ export default async (): Promise<void> => {
   const fourDaysAgo = threeDaysAgo - oneDay
 
   // Replaced by VolunteerRepo.getReferencesToFollowup (with some signature changes)
-  const referencesToEmail = await getReferencesToFollowup(new Date(fourDaysAgo), new Date(threeDaysAgo))
+  const referencesToEmail = await getReferencesToFollowup(
+    new Date(fourDaysAgo),
+    new Date(threeDaysAgo)
+  )
 
   let totalEmailed = 0
   const errors: string[] = []
@@ -20,18 +23,21 @@ export default async (): Promise<void> => {
 
   for (const reference of referencesToEmail) {
     try {
-      await MailService.sendReferenceFollowup({
-        id: reference.referenceId,
-        email: reference.referenceEmail,
-        firstName: reference.referenceFirstName,
-        lastName: reference.referenceLastName
-      }, {
-        id: reference.volunteerId,
-        email: '', // not needed for this email
-        phone: '', // not needed for this email
-        firstName: reference.volunteerFirstName,
-        lastName: reference.volunteerLastName,
-      })
+      await MailService.sendReferenceFollowup(
+        {
+          id: reference.referenceId,
+          email: reference.referenceEmail,
+          firstName: reference.referenceFirstName,
+          lastName: reference.referenceLastName,
+        },
+        {
+          id: reference.volunteerId,
+          email: '', // not needed for this email
+          phone: '', // not needed for this email
+          firstName: reference.volunteerFirstName,
+          lastName: reference.volunteerLastName,
+        }
+      )
       totalEmailed++
     } catch (error) {
       errors.push(`reference ${reference.referenceId}: ${error}`)

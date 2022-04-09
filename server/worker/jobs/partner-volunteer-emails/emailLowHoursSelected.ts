@@ -25,9 +25,7 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
     data: { volunteerId },
     name: currentJob,
   } = job
-  const volunteer = await getPartnerVolunteerForLowHours(
-    asString(volunteerId)
-  )
+  const volunteer = await getPartnerVolunteerForLowHours(asString(volunteerId))
 
   if (volunteer) {
     const { id, firstName, email, availability } = volunteer

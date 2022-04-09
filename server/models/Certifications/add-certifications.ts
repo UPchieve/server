@@ -8,7 +8,7 @@ import { CERT_UNLOCKING, COMPUTED_CERTS } from '../../constants'
 import _ from 'lodash'
 
 type VolunteerWithCerts = {
-  id: Ulid,
+  id: Ulid
   certifications: Certifications
 }
 
@@ -55,9 +55,15 @@ function unlockedSubjects(userCertifications: Certifications) {
   return currentSubjects
 }
 
-async function addCertificationsForPassedQuiz(userId: Ulid, quizzes: string[]): Promise<string[]> {
+async function addCertificationsForPassedQuiz(
+  userId: Ulid,
+  quizzes: string[]
+): Promise<string[]> {
   try {
-    const result = await pgQueries.addCertificationsForPassedQuiz.run({ userId, quizzes }, getClient())
+    const result = await pgQueries.addCertificationsForPassedQuiz.run(
+      { userId, quizzes },
+      getClient()
+    )
     return result.map(v => makeRequired(v).name)
   } catch (err) {
     throw new RepoCreateError(err)
@@ -66,7 +72,10 @@ async function addCertificationsForPassedQuiz(userId: Ulid, quizzes: string[]): 
 
 async function getVolunteersWithCerts(): Promise<VolunteerWithCerts[]> {
   try {
-    const result = await pgQueries.getVolunteersWithCerts.run(undefined, getClient())
+    const result = await pgQueries.getVolunteersWithCerts.run(
+      undefined,
+      getClient()
+    )
     const rows = result.map(v => makeRequired(v))
     const rowsByUser = _.groupBy(rows, v => v.userId)
 
@@ -82,7 +91,7 @@ async function getVolunteersWithCerts(): Promise<VolunteerWithCerts[]> {
       }
       users.push({
         id: user,
-        certifications: certs
+        certifications: certs,
       })
     }
     return users
@@ -92,13 +101,22 @@ async function getVolunteersWithCerts(): Promise<VolunteerWithCerts[]> {
 }
 
 async function processVolunteer(volunteer: VolunteerWithCerts): Promise<void> {
-  const passedQuizzes = Object.entries(volunteer.certifications).map(v => v[1].passed ? v[0] : '').filter(v => v !== '')
+  const passedQuizzes = Object.entries(volunteer.certifications)
+    .map(v => (v[1].passed ? v[0] : ''))
+    .filter(v => v !== '')
   const appUnlockedSubjects = unlockedSubjects(volunteer.certifications)
 
   await addCertificationsForPassedQuiz(volunteer.id, passedQuizzes)
-  const dbUnlockedSubjects = new Set(await getSubjectsForVolunteer(volunteer.id))
+  const dbUnlockedSubjects = new Set(
+    await getSubjectsForVolunteer(volunteer.id)
+  )
   const areEqual = eqSet(dbUnlockedSubjects, appUnlockedSubjects)
-  if (!areEqual) throw new Error(`Volunteer ${volunteer.id} app subjects [${Array.from(appUnlockedSubjects)}] and db subjects [${Array.from(dbUnlockedSubjects)}]`)
+  if (!areEqual)
+    throw new Error(
+      `Volunteer ${volunteer.id} app subjects [${Array.from(
+        appUnlockedSubjects
+      )}] and db subjects [${Array.from(dbUnlockedSubjects)}]`
+    )
 }
 
 async function main(): Promise<void> {
@@ -106,7 +124,9 @@ async function main(): Promise<void> {
   try {
     const volunteers = await getVolunteersWithCerts()
     const errors: string[] = []
-    console.log(`Attempting to update certifications for ${volunteers.length} volunteers`)
+    console.log(
+      `Attempting to update certifications for ${volunteers.length} volunteers`
+    )
     for (const volunteer of volunteers) {
       try {
         await processVolunteer(volunteer)

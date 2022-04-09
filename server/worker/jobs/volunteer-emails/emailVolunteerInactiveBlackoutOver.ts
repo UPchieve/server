@@ -1,6 +1,9 @@
 import moment from 'moment'
 import { Jobs } from '../index'
-import { clearAvailabilityForVolunteer, saveCurrentAvailabilityAsHistory } from '../../../models/Availability'
+import {
+  clearAvailabilityForVolunteer,
+  saveCurrentAvailabilityAsHistory,
+} from '../../../models/Availability'
 import * as MailService from '../../../services/MailService'
 import {
   VolunteerContactInfo,

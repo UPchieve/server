@@ -18,7 +18,7 @@ export async function addUserAction(
         await UserActionRepo.createAccountAction({
           action: ACCOUNT_USER_ACTIONS.UPDATED_AVAILABILITY,
           userId: id,
-          ipAddress
+          ipAddress,
         })
       } catch (err) {
         captureException(err)
@@ -32,7 +32,7 @@ export async function addUserAction(
           action: QUIZ_USER_ACTIONS.STARTED,
           quizSubcategory: category,
           userId: id,
-          ipAddress
+          ipAddress,
         })
       } catch (err) {
         captureException(err)
@@ -42,9 +42,9 @@ export async function addUserAction(
     if (req.url === '/api/user' && req.method === 'PUT') {
       try {
         await UserActionRepo.createAccountAction({
-            action: ACCOUNT_USER_ACTIONS.UPDATED_PROFILE,
-            userId: id,
-            ipAddress
+          action: ACCOUNT_USER_ACTIONS.UPDATED_PROFILE,
+          userId: id,
+          ipAddress,
         })
       } catch (err) {
         captureException(err)

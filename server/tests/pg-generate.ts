@@ -32,7 +32,9 @@ export const buildAvailability = (overrides = {}): Availability => {
   return mergedAvailability
 }
 
-export function buildUserContactInfo(overrides: Partial<UserContactInfo> = {}): UserContactInfo {
+export function buildUserContactInfo(
+  overrides: Partial<UserContactInfo> = {}
+): UserContactInfo {
   return {
     id: getDbUlid(),
     email: getEmail(),
@@ -45,7 +47,7 @@ export function buildUserContactInfo(overrides: Partial<UserContactInfo> = {}): 
     lastActivityAt: new Date(),
     banned: false,
     deactivated: false,
-    ...overrides
+    ...overrides,
   }
 }
 

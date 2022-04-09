@@ -3,7 +3,7 @@ import Sentry from '@sentry/node'
 import {
   IpAddress,
   getIpByRawString,
-  insertIpByRawString
+  insertIpByRawString,
 } from '../models/IpAddress'
 import { NotAllowedError } from '../models/Errors'
 import { asString } from '../utils/type-utils'
@@ -54,4 +54,3 @@ export async function checkIpAddress(data: unknown | string) {
   const { country_code: countryCode } = await getIpWhoIs(ip)
   if (countryCode && countryCode !== 'US') throw new NotAllowedError()
 }
-

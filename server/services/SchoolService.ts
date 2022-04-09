@@ -4,7 +4,7 @@ import {
   asBoolean,
   asFactory,
   asNumber,
-  asOptional
+  asOptional,
 } from '../utils/type-utils'
 import { Ulid } from '../models/pgUtils'
 
@@ -15,11 +15,11 @@ function escapeRegex(str: string) {
 
 // search for schools by name
 export async function search(query: string): Promise<any> {
-    const results = await SchoolRepo.schoolSearch(query)
+  const results = await SchoolRepo.schoolSearch(query)
 
-    if(results)
+  if (results)
     return results
-      .sort((s1: SchoolRepo.School , s2: SchoolRepo.School) => {
+      .sort((s1: SchoolRepo.School, s2: SchoolRepo.School) => {
         if (s1.name && s2.name) {
           return s1.name.localeCompare(s2.name)
         }
@@ -71,12 +71,24 @@ export async function getSchools(data: unknown) {
   const skip = (pageNum - 1) * PER_PAGE
 
   try {
-    const schools = await SchoolRepo.getSchools({
-      name, state, city, page
-    } as GetSchoolsPayload, PER_PAGE, skip)
+    const schools = await SchoolRepo.getSchools(
+      {
+        name,
+        state,
+        city,
+        page,
+      } as GetSchoolsPayload,
+      PER_PAGE,
+      skip
+    )
 
     const isLastPage = schools.length < PER_PAGE
-    return { schools: schools.map(s => {return {...s, _id: s.id}}), isLastPage }
+    return {
+      schools: schools.map(s => {
+        return { ...s, _id: s.id }
+      }),
+      isLastPage,
+    }
   } catch (error) {
     throw new Error((error as Error).message)
   }
@@ -109,7 +121,11 @@ export async function createSchool(data: unknown) {
   const { name, city, state, zipCode, isApproved } = asCreateSchoolPayload(data)
 
   const school = await SchoolRepo.createSchool({
-    name, city, state, zipCode, isApproved
+    name,
+    city,
+    state,
+    zipCode,
+    isApproved,
   } as CreateSchoolPayload)
 
   return school
@@ -142,7 +158,7 @@ export async function adminUpdateSchool(data: unknown) {
     city,
     state,
     zipCode,
-    schoolId
+    schoolId,
   }
 
   return SchoolRepo.adminUpdateSchool(schoolData as AdminUpdate)

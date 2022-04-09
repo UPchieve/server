@@ -1,9 +1,5 @@
-import {
-  Availability,
-  AvailabilityDay,
-  DAYS,
-  HOURS,
-} from '../models/Availability'
+import { Availability, AvailabilityDay } from '../models/Availability'
+import { DAYS, HOURS } from '../constants'
 
 function createNewAvailability(): Availability {
   const availability: any = {}

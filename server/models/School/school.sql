@@ -57,21 +57,21 @@ SELECT
     COALESCE(meta.sch_name, schools.name) AS name,
     COALESCE(meta.st, cities.us_state_code) AS state,
     COALESCE(meta.lcity, cities.name) AS city,
-    schools.id as id,
+    schools.id AS id,
     schools.created_at,
     schools.updated_at
 FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
-WHERE (:name::text is null OR
-    schools.name ILIKE '%' || :name || '%'
+WHERE (:name::text IS NULL
+    OR schools.name ILIKE '%' || :name || '%'
     OR meta.sch_name ILIKE '%' || :name || '%')
-AND (:state::text is null OR
-    meta.st ILIKE :state
+AND (:state::text IS NULL
+    OR meta.st ILIKE :state
     OR cities.us_state_code ILIKE :state)
-AND (:city::text is null OR
-    meta.mcity ILIKE '%' || :city || '%'
+AND (:city::text IS NULL
+    OR meta.mcity ILIKE '%' || :city || '%'
     OR meta.lcity ILIKE '%' || :city || '%'
     OR cities.name ILIKE '%' || :city || '%')
 LIMIT :limit!::int OFFSET :offset!::int;

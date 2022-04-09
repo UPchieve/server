@@ -20,7 +20,10 @@ import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import startsWithVowel from '../utils/starts-with-vowel'
 import { Ulid } from '../models/pgUtils'
 import { getSessionById } from '../models/Session'
-import { AssociatedPartner, getAssociatedPartnerByKey } from '../models/AssociatedPartner'
+import {
+  AssociatedPartner,
+  getAssociatedPartnerByKey,
+} from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
@@ -119,7 +122,7 @@ export async function sendVoiceMessage(
     to: fullPhoneNumber,
     from: config.sendingNumber,
   })
-logger.info(`Voice call to ${phoneNumber} with id ${call.sid}`)
+  logger.info(`Voice call to ${phoneNumber} with id ${call.sid}`)
   return call.sid
 }
 
@@ -166,7 +169,7 @@ export function buildTargetStudentContent(
   associatedPartner: AssociatedPartner | undefined
 ) {
   return associatedPartner &&
-    associatedPartner.studentOrgDisplay && 
+    associatedPartner.studentOrgDisplay &&
     volunteer.volunteerPartnerOrg === associatedPartner.volunteerPartnerOrg
     ? startsWithVowel(associatedPartner.studentOrgDisplay!)
       ? `an ${associatedPartner.studentOrgDisplay!} student`
@@ -209,9 +212,8 @@ export async function getAssociatedPartner(
       highSchoolId &&
       matchingOrgs.length > 0 &&
       Array.isArray(matchingOrgs[0].schoolIds) &&
-      matchingOrgs[0].schoolIds.some(schoolId =>
-        schoolId === highSchoolId)
-      )
+      matchingOrgs[0].schoolIds.some(schoolId => schoolId === highSchoolId)
+    )
       return getAssociatedPartnerByKey(sponsorOrg)
 
     // Determine if the student's partner org belongs to a sponsor org that
@@ -233,17 +235,19 @@ export async function notifyVolunteer(
   // Replace with getStudentPartnerInfoById from Student Repo
   const student = await getStudentContactInfoById(session.studentId)
   if (!student) return
-  const associatedPartner = student.studentPartnerOrg ?  await getAssociatedPartner(
-    student.studentPartnerOrg,
-    student.schoolId
-  ) : undefined
+  const associatedPartner = student.studentPartnerOrg
+    ? await getAssociatedPartner(student.studentPartnerOrg, student.schoolId)
+    : undefined
 
   let subtopic: string = session.subject
   const activeSessionVolunteers = await getActiveSessionVolunteers()
   const notifiedForThisSessionId = await getVolunteersNotifiedBySessionId(
     session.id
   )
-  const disqualifiedVolunteers = [...activeSessionVolunteers, ...notifiedForThisSessionId]
+  const disqualifiedVolunteers = [
+    ...activeSessionVolunteers,
+    ...notifiedForThisSessionId,
+  ]
 
   // Prioritize volunteers who do not have high-level subjects to avoid
   // lack of volunteers when high-level subjects are requested
@@ -268,39 +272,113 @@ export async function notifyVolunteer(
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
       } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
-      query: associatedPartner ? 
-        () => VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(session.subject, moment().subtract(3, 'days').toDate(), associatedPartner.volunteerPartnerOrg, highLevelSubjects, disqualifiedVolunteers) :
-        () => VolunteerRepo.getNextAnyPartnerVolunteerToNotify(session.subject, moment().subtract(3, 'days').toDate(), highLevelSubjects, disqualifiedVolunteers)
+      query: associatedPartner
+        ? () =>
+            VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(
+              session.subject,
+              moment()
+                .subtract(3, 'days')
+                .toDate(),
+              associatedPartner.volunteerPartnerOrg,
+              highLevelSubjects,
+              disqualifiedVolunteers
+            )
+        : () =>
+            VolunteerRepo.getNextAnyPartnerVolunteerToNotify(
+              session.subject,
+              moment()
+                .subtract(3, 'days')
+                .toDate(),
+              highLevelSubjects,
+              disqualifiedVolunteers
+            ),
     },
     {
       groupName:
         'Regular volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
-      query: () => VolunteerRepo.getNextOpenVolunteerToNotify(session.subject, moment().subtract(3, 'days').toDate(), highLevelSubjects, disqualifiedVolunteers)
+      query: () =>
+        VolunteerRepo.getNextOpenVolunteerToNotify(
+          session.subject,
+          moment()
+            .subtract(3, 'days')
+            .toDate(),
+          highLevelSubjects,
+          disqualifiedVolunteers
+        ),
     },
     {
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
       } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
-      query: associatedPartner ? 
-        () => VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(session.subject, moment().subtract(1, 'days').toDate(), associatedPartner.volunteerPartnerOrg, highLevelSubjects, disqualifiedVolunteers) :
-        () => VolunteerRepo.getNextAnyPartnerVolunteerToNotify(session.subject, moment().subtract(1, 'days').toDate(), highLevelSubjects, disqualifiedVolunteers)
+      query: associatedPartner
+        ? () =>
+            VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(
+              session.subject,
+              moment()
+                .subtract(1, 'days')
+                .toDate(),
+              associatedPartner.volunteerPartnerOrg,
+              highLevelSubjects,
+              disqualifiedVolunteers
+            )
+        : () =>
+            VolunteerRepo.getNextAnyPartnerVolunteerToNotify(
+              session.subject,
+              moment()
+                .subtract(1, 'days')
+                .toDate(),
+              highLevelSubjects,
+              disqualifiedVolunteers
+            ),
     },
     {
       groupName:
         'Regular volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
-        query: () => VolunteerRepo.getNextOpenVolunteerToNotify(session.subject,moment().subtract(1, 'days').toDate(), highLevelSubjects, disqualifiedVolunteers)
+      query: () =>
+        VolunteerRepo.getNextOpenVolunteerToNotify(
+          session.subject,
+          moment()
+            .subtract(1, 'days')
+            .toDate(),
+          highLevelSubjects,
+          disqualifiedVolunteers
+        ),
     },
     {
       groupName: 'All volunteers - not notified in the last 24 hours',
-      query: () => VolunteerRepo.getNextAnyVolunteerToNotify(session.subject,moment().subtract(1, 'days').toDate(), [], disqualifiedVolunteers)
+      query: () =>
+        VolunteerRepo.getNextAnyVolunteerToNotify(
+          session.subject,
+          moment()
+            .subtract(1, 'days')
+            .toDate(),
+          [],
+          disqualifiedVolunteers
+        ),
     },
     {
       groupName: 'All volunteers - not notified in the last 60 mins',
-      query: () => VolunteerRepo.getNextAnyVolunteerToNotify(session.subject,moment().subtract(1, 'hour').toDate(), [], disqualifiedVolunteers)
+      query: () =>
+        VolunteerRepo.getNextAnyVolunteerToNotify(
+          session.subject,
+          moment()
+            .subtract(1, 'hour')
+            .toDate(),
+          [],
+          disqualifiedVolunteers
+        ),
     },
     {
       groupName: 'All volunteers - not notified in the last 15 mins',
-      query: () => VolunteerRepo.getNextAnyVolunteerToNotify(session.subject,moment().subtract(15, 'minutes').toDate(), [], disqualifiedVolunteers)
+      query: () =>
+        VolunteerRepo.getNextAnyVolunteerToNotify(
+          session.subject,
+          moment()
+            .subtract(15, 'minutes')
+            .toDate(),
+          [],
+          disqualifiedVolunteers
+        ),
     },
   ]
 
@@ -331,12 +409,10 @@ export async function notifyVolunteer(
       messageId,
       volunteer: volunteer.id,
       type: subtopic,
-      method:'sms',
-      priorityGroup
+      method: 'sms',
+      priorityGroup,
     }
-    await SessionRepo.addSessionNotifications(session.id, [
-      notification,
-    ])
+    await SessionRepo.addSessionNotifications(session.id, [notification])
   } catch (err) {
     logger.error(err as Error)
   }
@@ -354,9 +430,9 @@ export async function notifyVolunteer(
  * object
  */
 export async function sendNotification(
-  sidPromise: Promise<string>,
+  sidPromise: Promise<string>
 ): Promise<{
-  wasSuccessful: boolean,
+  wasSuccessful: boolean
   messageId?: string
 }> {
   let wasSuccessful = false

@@ -43,8 +43,12 @@ function buildFeedback(rows: FeedbackByResult[]): Feedback {
     feedback.responseData = fixNumberInt(row.responseData as any)
     if (row.userRole === 'student') {
       feedback.studentId = row.userId
-      feedback.studentCounselingFeedback = fixNumberInt(row.studentCounselingFeedback as any)
-      feedback.studentTutoringFeedback = fixNumberInt(row.studentTutoringFeedback as any)
+      feedback.studentCounselingFeedback = fixNumberInt(
+        row.studentCounselingFeedback as any
+      )
+      feedback.studentTutoringFeedback = fixNumberInt(
+        row.studentTutoringFeedback as any
+      )
     } else if (row.userRole === 'volunteer') {
       feedback.volunteerId = row.userId
       feedback.volunteerFeedback = fixNumberInt(row.volunteerFeedback as any)
@@ -68,9 +72,7 @@ export async function getFeedbackBySessionId(
   }
 }
 
-export async function getFeedbackById(
-  id: Ulid
-): Promise<Feedback | undefined> {
+export async function getFeedbackById(id: Ulid): Promise<Feedback | undefined> {
   try {
     const result = await pgQueries.getFeedbackById.run({ id }, getClient())
     if (!result.length) return
@@ -109,30 +111,38 @@ export async function getFeedbackBySessionIdUserType(
       userId: temp.id,
       createdAt: temp.createdAt,
       updatedAt: temp.updatedAt,
-      ...buildFeedback([temp])
+      ...buildFeedback([temp]),
     }
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export type FeedbackPayload = Pick<Feedback,
+export type FeedbackPayload = Pick<
+  Feedback,
   | 'studentCounselingFeedback'
   | 'studentTutoringFeedback'
   | 'volunteerFeedback'
   | 'comment'
 >
-export async function saveFeedback(sessionId: Ulid, userRole: 'student' | 'volunteer', feedback: FeedbackPayload): Promise<Ulid> {
+export async function saveFeedback(
+  sessionId: Ulid,
+  userRole: 'student' | 'volunteer',
+  feedback: FeedbackPayload
+): Promise<Ulid> {
   try {
-    const result = await pgQueries.saveFeedback.run({
-      id: getDbUlid(),
-      sessionId,
-      userRole,
-      studentCounselingFeedback: feedback.studentCounselingFeedback,
-      studentTutoringFeedback: feedback.studentTutoringFeedback,
-      volunteerFeedback: feedback.volunteerFeedback,
-      comment: feedback.comment
-    }, getClient())
+    const result = await pgQueries.saveFeedback.run(
+      {
+        id: getDbUlid(),
+        sessionId,
+        userRole,
+        studentCounselingFeedback: feedback.studentCounselingFeedback,
+        studentTutoringFeedback: feedback.studentTutoringFeedback,
+        volunteerFeedback: feedback.volunteerFeedback,
+        comment: feedback.comment,
+      },
+      getClient()
+    )
     return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoCreateError(err)

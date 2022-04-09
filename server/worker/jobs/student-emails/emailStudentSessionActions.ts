@@ -8,11 +8,7 @@ import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { Jobs } from '../index'
 import { ISOString } from '../../../constants'
 import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
-import {
-  asFactory,
-  asOptional,
-  asString,
-} from '../../../utils/type-utils'
+import { asFactory, asOptional, asString } from '../../../utils/type-utils'
 
 interface StudentSessionActionsJobData {
   studentId: Ulid

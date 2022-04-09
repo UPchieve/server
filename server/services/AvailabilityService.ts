@@ -1,4 +1,9 @@
-import { AvailabilityDay, AvailabilityHistory, getAvailabilityHistoryForDatesByVolunteerId, getLegacyAvailabilityHistoryForDatesByVolunteerId } from '../models/Availability'
+import {
+  AvailabilityDay,
+  AvailabilityHistory,
+  getAvailabilityHistoryForDatesByVolunteerId,
+  getLegacyAvailabilityHistoryForDatesByVolunteerId,
+} from '../models/Availability'
 import { Ulid } from '../models/pgUtils'
 
 export function getElapsedAvailabilityForDay(day: AvailabilityDay): number {

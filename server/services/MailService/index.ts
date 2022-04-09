@@ -18,17 +18,22 @@ import logger from '../../logger'
 // TODO: undo this
 const sgMail = {
   setApiKey: (key: string) => {},
-  send: (msg: any) => { logger.info(`Sending email ${JSON.stringify(msg)}`) }
+  send: (msg: any) => {
+    logger.info(`Sending email ${JSON.stringify(msg)}`)
+  },
 }
 
 const axios = {
-  put: (...params: any[]) => { logger.info(`Sending axios put request ${JSON.stringify(params)}`) },
-  post: (...params: any[]) => { 
+  put: (...params: any[]) => {
+    logger.info(`Sending axios put request ${JSON.stringify(params)}`)
+  },
+  post: (...params: any[]) => {
     logger.info(`Sending axios post request ${JSON.stringify(params)}`)
     return { data: { result: [] } }
   },
-  delete: (...params: any[]) => { logger.info(`Sending axios delete request ${JSON.stringify(params)}`) }
-
+  delete: (...params: any[]) => {
+    logger.info(`Sending axios delete request ${JSON.stringify(params)}`)
+  },
 }
 
 sgMail.setApiKey(config.sendgrid.apiKey)
@@ -1182,9 +1187,7 @@ export async function sendOnlyLookingForAnswersWarning(
   await sendEmail(email, sender, from, template, { firstName }, overrides)
 }
 
-export async function createContact(
-  userId: Ulid
-): Promise<any> {
+export async function createContact(userId: Ulid): Promise<any> {
   const user = await getUserToCreateSendGridContact(userId)
   const customFields = {
     [SG_CUSTOM_FIELDS.isBanned]: String(user.banned),
@@ -1208,16 +1211,18 @@ export async function createContact(
     if (volunteer.volunteerPartnerOrg) {
       customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrg] =
         volunteer.volunteerPartnerOrg
-      customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] =
-        (await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)).key
+      customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] = (
+        await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
+      ).key
     }
   } else {
     const student = user
     if (student.studentPartnerOrg) {
       customFields[SG_CUSTOM_FIELDS.studentPartnerOrg] =
         student.studentPartnerOrg
-      customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] =
-      (await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)).key
+      customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] = (
+        await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)
+      ).key
     }
   }
 

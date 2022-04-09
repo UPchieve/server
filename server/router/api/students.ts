@@ -1,12 +1,7 @@
 import { Router } from 'express'
 import config from '../../config'
 import * as StudentRepo from '../../models/Student/queries'
-import {
-  asBoolean,
-  asNumber,
-  asUlid,
-  asString,
-} from '../../utils/type-utils'
+import { asBoolean, asNumber, asUlid, asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as StudentService from '../../services/StudentService'

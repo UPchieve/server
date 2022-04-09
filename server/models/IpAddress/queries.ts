@@ -72,7 +72,7 @@ export async function updateIpStatusByUserId(
     const result = await pgQueries.updateIpStatusByUserId.run(
       {
         userId,
-        status
+        status,
       },
       getClient()
     )

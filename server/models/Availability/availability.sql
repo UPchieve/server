@@ -15,7 +15,7 @@ WHERE
 /* 
  @name getAvailabilityForVolunteerHeatmap
  */
- WITH certs_for_subject AS (
+WITH certs_for_subject AS (
     SELECT
         COUNT(*)::int AS total
     FROM
@@ -97,7 +97,7 @@ ORDER BY
 /* @name saveCurrentAvailabilityAsHistory */
 INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)
 SELECT
-    generate_ulid(),
+    generate_ulid (),
     NOW(),
     user_id,
     available_start,
@@ -129,7 +129,8 @@ FROM
     weekdays
 WHERE
     day = :day!
-RETURNING id AS ok;
+RETURNING
+    id AS ok;
 
 
 /* @name clearAvailabilityForVolunteer */

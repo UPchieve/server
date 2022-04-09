@@ -10,6 +10,7 @@ WHERE
     AND created_at >= DATE(:start!)
     AND created_at < DATE(:end!);
 
+
 /* @name getQuizzesPassedForDateRangeForTelecomReportByVolunteerId */
 SELECT
     created_at

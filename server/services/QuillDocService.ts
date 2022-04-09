@@ -16,9 +16,7 @@ export async function createDoc(sessionId: Ulid): Promise<Delta> {
   return newDoc
 }
 
-export async function getDoc(
-  sessionId: Ulid
-): Promise<Delta | undefined> {
+export async function getDoc(sessionId: Ulid): Promise<Delta | undefined> {
   try {
     const docString = await cache.get(sessionIdToKey(sessionId))
     return new Delta(JSON.parse(docString))

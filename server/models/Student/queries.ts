@@ -90,7 +90,8 @@ export async function getStudentContactInfoById(
       },
       getClient()
     )
-    if (result.length) return makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg'])
+    if (result.length)
+      return makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -294,7 +295,9 @@ export async function adminUpdateStudent(
       },
       getClient()
     )
-    const partnerOrg = partnerOrgResult.length ? makeRequired(partnerOrgResult[0]) : undefined
+    const partnerOrg = partnerOrgResult.length
+      ? makeRequired(partnerOrgResult[0])
+      : undefined
     await transactionClient.query('BEGIN')
 
     const updateStudentResult = await pgQueries.adminUpdateStudent.run(
@@ -317,15 +320,20 @@ export async function adminUpdateStudent(
       },
       transactionClient
     )
-    const updateProductFlagsResult = await pgQueries.updateStudentInGatesStudy.run({ userId: studentId, inGatesStudy: update.inGatesStudy }, transactionClient)
-    if (!(
-      updateStudentResult.length &&
-      updateStudentProfileResult.length &&
-      updateProductFlagsResult.length &&
-      makeRequired(updateStudentResult[0]).ok &&
-      makeRequired(updateStudentProfileResult[0]).ok &&
-      makeRequired(updateProductFlagsResult[0]).ok
-    ))
+    const updateProductFlagsResult = await pgQueries.updateStudentInGatesStudy.run(
+      { userId: studentId, inGatesStudy: update.inGatesStudy },
+      transactionClient
+    )
+    if (
+      !(
+        updateStudentResult.length &&
+        updateStudentProfileResult.length &&
+        updateProductFlagsResult.length &&
+        makeRequired(updateStudentResult[0]).ok &&
+        makeRequired(updateStudentProfileResult[0]).ok &&
+        makeRequired(updateProductFlagsResult[0]).ok
+      )
+    )
       throw new RepoUpdateError('Update query did not update the student')
     await transactionClient.query('COMMIT')
   } catch (err) {
@@ -397,7 +405,13 @@ export async function createStudent(
       transactionClient
     )
     if (userResult.length && profileResult.length) {
-      const profile = makeSomeRequired(profileResult[0], ['studentPartnerOrg', 'partnerSite', 'college', 'postalCode', 'gradeLevel'])
+      const profile = makeSomeRequired(profileResult[0], [
+        'studentPartnerOrg',
+        'partnerSite',
+        'college',
+        'postalCode',
+        'gradeLevel',
+      ])
       const user = makeRequired(userResult[0])
 
       await transactionClient.query('COMMIT')
@@ -418,7 +432,9 @@ export async function createStudent(
         zipCode: profile.postalCode,
       }
     }
-    throw new RepoCreateError('could not create student, profile or user came back with 0 rows')
+    throw new RepoCreateError(
+      'could not create student, profile or user came back with 0 rows'
+    )
   } catch (err) {
     await transactionClient.query('ROLLBACK')
     if (err instanceof RepoCreateError) throw err
@@ -471,9 +487,13 @@ export async function getSessionReport(
   try {
     const result = await pgQueries.getSessionReport.run(
       {
-        highSchoolId: query.highSchoolId ? query.highSchoolId : undefined ,
-        studentPartnerOrg: query.studentPartnerOrg ? query.studentPartnerOrg : undefined,
-        studentPartnerSite: query.studentPartnerSite ? query.studentPartnerSite : undefined,
+        highSchoolId: query.highSchoolId ? query.highSchoolId : undefined,
+        studentPartnerOrg: query.studentPartnerOrg
+          ? query.studentPartnerOrg
+          : undefined,
+        studentPartnerSite: query.studentPartnerSite
+          ? query.studentPartnerSite
+          : undefined,
         sponsorOrg: query.sponsorOrg ? query.sponsorOrg : undefined,
         start: query.start,
         end: query.end,
@@ -556,8 +576,12 @@ export async function getUsageReport(
     const result = await pgQueries.getUsageReport.run(
       {
         highSchoolId: query.highSchoolId ? query.highSchoolId : undefined,
-        studentPartnerOrg: query.studentPartnerOrg ? query.studentPartnerOrg : undefined,
-        studentPartnerSite: query.studentPartnerSite ? query.studentPartnerSite : undefined,
+        studentPartnerOrg: query.studentPartnerOrg
+          ? query.studentPartnerOrg
+          : undefined,
+        studentPartnerSite: query.studentPartnerSite
+          ? query.studentPartnerSite
+          : undefined,
         sponsorOrg: query.sponsorOrg ? query.sponsorOrg : undefined,
         joinedStart: query.joinedStart,
         joinedEnd: query.joinedEnd,

@@ -19,9 +19,7 @@ async function textMoreVolunteers(sessionId: Ulid): Promise<void> {
   await QueueService.add(Jobs.NotifyTutors, { sessionId, notificationSchedule })
 }
 
-export async function updateActivityStatus(
-  sessionId: Ulid
-): Promise<void> {
+export async function updateActivityStatus(sessionId: Ulid): Promise<void> {
   socket.emit('activity-prompt-sent', { sessionId })
 }
 
@@ -32,10 +30,7 @@ export async function autoEndSession(sessionId: Ulid): Promise<void> {
 export interface ChatbotMessage {
   key: string
   content(session: SessionForChatbot): string
-  requirements(
-    session: SessionForChatbot,
-    chatbot: Ulid
-  ): Promise<boolean>
+  requirements(session: SessionForChatbot, chatbot: Ulid): Promise<boolean>
   action?(session: SessionForChatbot, chatbot?: Ulid): Promise<void>
 }
 
@@ -43,9 +38,7 @@ function chatbotSentMessage(
   session: SessionForChatbot,
   chatbot: Ulid
 ): boolean {
-  return session.messages.some(msg =>
-    chatbot === msg.user
-  )
+  return session.messages.some(msg => chatbot === msg.user)
 }
 
 function lastChatbotMessage(
@@ -177,7 +170,7 @@ export const m5 = {
       session.messages.some(
         msg =>
           msg.createdAt > lastChatbotMsg.createdAt &&
-            session.student === msg.user
+          session.student === msg.user
       )
     )
   },
@@ -264,10 +257,7 @@ export const m8 = {
         ([m3a.content(), m3b.content(), m3c.content()].some(
           content => content === lastChatbotMsg.contents
         ) &&
-          !(await volunteersAvailableForSession(
-            session.id,
-            session.subject
-          ))))
+          !(await volunteersAvailableForSession(session.id, session.subject))))
     )
   },
   action: async (session: SessionForChatbot) => {

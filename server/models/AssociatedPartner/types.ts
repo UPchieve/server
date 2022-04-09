@@ -1,4 +1,4 @@
-import { Ulid } from "../pgUtils"
+import { Ulid } from '../pgUtils'
 
 export type AssociatedPartner = {
   key: string
@@ -10,7 +10,6 @@ export type AssociatedPartner = {
   volunteerPartnerOrg: string
   volunteerOrgDisplay: string
 }
-
 
 export type AssociatedPartnersAndSchools = {
   associatedStudentPartnerOrgs: string[]

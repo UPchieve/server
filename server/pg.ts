@@ -3,10 +3,6 @@ import { Pool } from 'pg'
 import config from './config'
 
 // TODO: exponential backoff, reconnect strategy
-
-const connectionString = `postgres://${config.postgresUser}:${config.postgresPassword}@${config.postgresHost}:${config.postgresPort}/${config.postgresDatabase}?sslmode=${'require'}`
-console.log('The postgres connection string is:', connectionString)
-
 export function buildClient(): Pool {
   return new Pool({
     // connectionString
@@ -15,13 +11,13 @@ export function buildClient(): Pool {
     user: config.postgresUser,
     password: config.postgresPassword,
     database: config.postgresDatabase,
-    ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false
+    ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
   })
 }
 
 const client = buildClient()
 
-client.on('error', (err) => console.error(`PG ERROR: ${err}`))
+client.on('error', err => console.error(`PG ERROR: ${err}`))
 
 try {
   client.connect().then(v => v.release())

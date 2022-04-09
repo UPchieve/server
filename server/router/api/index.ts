@@ -21,11 +21,7 @@ import { routeUser } from './user'
 import { routeProductFlags } from './product-flags'
 import { routeStudents } from './students'
 
-export function routes(
-  app: Express,
-  sessionStore: PGStore,
-  io: Server
-): void {
+export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
 
   routeVolunteers(router)

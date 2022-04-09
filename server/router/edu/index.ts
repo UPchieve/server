@@ -100,7 +100,11 @@ eduApi.post('/categoryquestions', async (req, res) => {
   const limit = req.body.limit
 
   try {
-    const questions = await QuestionRepo.getQuestionsByCategory(category, limit, skip)
+    const questions = await QuestionRepo.getQuestionsByCategory(
+      category,
+      limit,
+      skip
+    )
     res.status(200).json({ questions: questions })
   } catch (error) {
     res.status(422).json({ error: (error as Error).toString() })

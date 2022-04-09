@@ -1,13 +1,16 @@
 /* @name getVolunteerPartnerOrgForRegistrationByKey */
 SELECT
     KEY,
-    COALESCE(domains.domains, '{}'::text[]) as domains
+    COALESCE(domains.domains, '{}'::text[]) AS domains
 FROM
     volunteer_partner_orgs vpo
     LEFT JOIN LATERAL (
-      SELECT ARRAY_AGG(domain) as domains FROM required_email_domains
-      WHERE required_email_domains.volunteer_partner_org_id = vpo.id
-    ) AS domains ON true
+        SELECT
+            ARRAY_AGG(DOMAIN) AS domains
+        FROM
+            required_email_domains
+        WHERE
+            required_email_domains.volunteer_partner_org_id = vpo.id) AS domains ON TRUE
 WHERE
     KEY = :key!;
 

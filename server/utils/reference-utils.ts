@@ -1,15 +1,15 @@
 import { asFactory, asNumber, asString } from './type-utils'
 
 export type ReferenceFormData = {
-  affiliation: string,
-  relationshipLength: string,
-  patient: number,
-  positiveRoleModel: number,
-  agreeableAndApproachable: number,
-  communicatesEffectively: number,
-  trustworthyWithChildren: number,
-  rejectionReason: string,
-  additionalInfo: string,
+  affiliation: string
+  relationshipLength: string
+  patient: number
+  positiveRoleModel: number
+  agreeableAndApproachable: number
+  communicatesEffectively: number
+  trustworthyWithChildren: number
+  rejectionReason: string
+  additionalInfo: string
 }
 
 export const asReferenceFormData = asFactory<ReferenceFormData>({
