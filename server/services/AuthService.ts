@@ -413,7 +413,10 @@ export async function lookupSponsorOrgs(): Promise<SponsorOrg[]> {
 
 // Password reset handlers
 // Handles /reset/send route
-export async function sendReset(email: unknown, mobile: unknown): Promise<void> {
+export async function sendReset(
+  email: unknown,
+  mobile: unknown
+): Promise<void> {
   const userEmail = asString(email)
   let sendToMobile
   if (sendToMobile) {

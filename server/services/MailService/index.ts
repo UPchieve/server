@@ -177,7 +177,11 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
   )
 }
 
-export async function sendReset(email: string, sendToMobile: boolean, token: string): Promise<void> {
+export async function sendReset(
+  email: string,
+  sendToMobile: boolean,
+  token: string
+): Promise<void> {
   let url: string
   if (sendToMobile) {
     url = `com.upchieve.app://setpassword/${token}`

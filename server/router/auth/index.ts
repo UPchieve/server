@@ -177,8 +177,7 @@ export function routes(app: Express) {
     try {
       const email = asString(req.body.email)
       let mobile: boolean | undefined
-      if (req.body.mobile)
-        mobile = asBoolean(req.body.mobile)
+      if (req.body.mobile) mobile = asBoolean(req.body.mobile)
       try {
         await AuthService.sendReset(email as unknown, mobile as unknown)
       } catch (err) {
