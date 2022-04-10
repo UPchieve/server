@@ -1,4 +1,4 @@
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import { RepoDeleteError } from '../Errors'
 import { makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'

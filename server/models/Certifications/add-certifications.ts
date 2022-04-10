@@ -1,9 +1,8 @@
-import * as TrainingCtrl from '../../controllers/TrainingCtrl'
 import { Certifications, getSubjectsForVolunteer } from '../Volunteer'
 import * as pgQueries from './pg.queries'
 import { makeRequired, Ulid } from '../pgUtils'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { getClient, closeClient } from '../../pg'
+import { getClient, closeClient } from '../../db'
 import { CERT_UNLOCKING, COMPUTED_CERTS } from '../../constants'
 import _ from 'lodash'
 

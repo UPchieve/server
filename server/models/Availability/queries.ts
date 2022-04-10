@@ -1,4 +1,4 @@
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired, makeSomeRequired } from '../pgUtils'
 

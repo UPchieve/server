@@ -7,7 +7,7 @@ import {
 import { makeRequired, makeSomeRequired, Pgid } from '../pgUtils'
 import { Question } from './types'
 import * as pgQueries from './pg.queries'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 
 export type QuestionQueryResult = Omit<Question, 'possibleAnswers'> & {
   possibleAnswers: pgQueries.Json

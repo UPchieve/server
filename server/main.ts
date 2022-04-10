@@ -7,7 +7,7 @@ import { registerListeners } from './services/listeners'
 import { serverSetup } from './server-setup'
 import { registerGracefulShutdownListeners } from './graceful-shutdown'
 import { unleashProxy, initializeUnleash } from './services/FeatureFlagService'
-import { getClient } from './pg'
+import { getClient } from './db'
 
 async function main() {
   try {

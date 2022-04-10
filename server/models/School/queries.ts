@@ -2,7 +2,7 @@ import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { AdminSchool, School } from './types'
 import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
 
 export async function findSchoolByUpchieveId(

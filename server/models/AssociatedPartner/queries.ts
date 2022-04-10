@@ -1,5 +1,5 @@
 import * as pgQueries from './pg.queries'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import { makeSomeRequired } from '../pgUtils'
 import { RepoReadError } from '../Errors'
 import { AssociatedPartner, AssociatedPartnersAndSchools } from './types'
