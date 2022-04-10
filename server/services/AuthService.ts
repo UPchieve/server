@@ -46,7 +46,7 @@ import {
   checkNames,
   checkEmail,
 } from '../utils/auth-utils'
-import { asString } from '../utils/type-utils'
+import { asBoolean, asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
@@ -413,16 +413,22 @@ export async function lookupSponsorOrgs(): Promise<SponsorOrg[]> {
 
 // Password reset handlers
 // Handles /reset/send route
-export async function sendReset(data: unknown): Promise<void> {
-  const email = asString(data)
-  const user = await getUserForPassport(email)
-  if (!user) throw new LookupError(`No account with ${email} found`)
+export async function sendReset(email: unknown, mobile: unknown): Promise<void> {
+  const userEmail = asString(email)
+  let sendToMobile
+  if (sendToMobile) {
+    sendToMobile = asBoolean(mobile)
+  } else {
+    sendToMobile = false
+  }
+  const user = await getUserForPassport(userEmail)
+  if (!user) throw new LookupError(`No account with ${userEmail} found`)
 
   const buffer: Buffer = randomBytes(16)
   const token = buffer.toString('hex')
   await updateUserResetTokenById(user.id, token)
 
-  await MailService.sendReset(email, token)
+  await MailService.sendReset(userEmail, sendToMobile, token)
 }
 
 export async function confirmReset(data: unknown): Promise<void> {
