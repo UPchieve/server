@@ -4,6 +4,7 @@ import { students } from './testData/students'
 import { schools } from './testData/schools'
 import { studentFavoriteVolunteers } from './testData/student-favorite-volunteers'
 import * as statics from './testData/lookupStatics'
+import { cities } from './testData/cities'
 
 async function seedData(): Promise<void> {
   let exitCode = 0
@@ -13,7 +14,8 @@ async function seedData(): Promise<void> {
     const certIds = await statics.getCertifications()
     const quizIds = await statics.getQuizzes()
 
-    const schoolIds = await schools()
+    const cityIds = await cities()
+    const schoolIds = await schools(cityIds)
     await volunteers(vpoIds, certIds, quizIds)
     await students(spoIds, schoolIds)
     // await studentFavoriteVolunteers(certIds, quizIds)
