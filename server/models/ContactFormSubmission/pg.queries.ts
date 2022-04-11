@@ -16,7 +16,7 @@ export interface IInsertContactFormSubmissionByUserResult {
   message: string;
   topic: string;
   updatedAt: Date;
-  userEmail: string;
+  userEmail: string | null;
   userId: string | null;
 }
 
@@ -72,7 +72,7 @@ export interface IInsertContactFormSubmissionByEmailResult {
   message: string;
   topic: string;
   updatedAt: Date;
-  userEmail: string;
+  userEmail: string | null;
   userId: string | null;
 }
 
