@@ -17,15 +17,10 @@ import { asString } from '../../../utils/type-utils'
 
 interface EmailTenSessionJobData {
   volunteerId: string
-  firstName: string
-  email: string
 }
 
 export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
-  const {
-    data: { firstName, email },
-    name: currentJob,
-  } = job
+  const currentJob = job.name
   const volunteerId = asString(job.data.volunteerId)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
   // Do not send email if volunteer does not match email recipient spec
@@ -48,8 +43,8 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
 
     try {
       await MailService.sendPartnerVolunteerTenSessionMilestone(
-        email,
-        firstName
+        volunteer.email,
+        volunteer.firstName
       )
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {

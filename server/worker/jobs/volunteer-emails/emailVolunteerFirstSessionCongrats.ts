@@ -13,7 +13,6 @@ export default async (
 ): Promise<void> => {
   const { name: currentJob } = job
   const sessionId = asString(job.data.sessionId)
-  // Replaced by getVolunteerForEmailFirstSession
   const volunteer = await getVolunteerForEmailFirstSession(sessionId)
 
   if (volunteer) {

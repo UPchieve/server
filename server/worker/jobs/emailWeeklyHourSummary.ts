@@ -4,23 +4,13 @@ import { log } from '../logger'
 import { getHourSummaryStats } from '../../services/VolunteerService'
 import * as MailService from '../../services/MailService'
 import config from '../../config'
-// import { telecomHourSummaryStats } from '../../utils/reportUtils'
+import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import { Jobs } from '.'
 import {
   getVolunteersForWeeklyHourSummary,
   updateVolunteerHourSummaryIntroById,
 } from '../../models/Volunteer/queries'
 import newrelic from 'newrelic'
-
-// TODO: replace this with the real deal
-function telecomHourSummaryStats(foo: any, bar: any) {
-  return {
-    totalVolunteerHours: 1,
-    totalCoachingHours: 1,
-    totalElapsedAvailability: 1,
-    totalQuizzesPassed: 1,
-  }
-}
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
@@ -35,8 +25,6 @@ export default async (): Promise<void> => {
     .endOf('isoWeek')
 
   const volunteers = await getVolunteersForWeeklyHourSummary()
-
-  const dateQuery = { $gt: lastMonday.toDate(), $lte: lastSunday.toDate() }
 
   let totalEmailed = 0
   const errors: string[] = []
@@ -53,8 +41,13 @@ export default async (): Promise<void> => {
         org => org === volunteerPartnerOrg
       )
       let summaryStats
+      if (volunteer.sentHourSummaryIntroEmail === undefined) continue
       if (customCheck)
-        summaryStats = await telecomHourSummaryStats(volunteer, dateQuery)
+        summaryStats = await telecomHourSummaryStats(
+          volunteer,
+          lastMonday.toDate(),
+          lastSunday.toDate()
+        )
       else
         summaryStats = await getHourSummaryStats(
           id,

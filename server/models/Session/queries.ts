@@ -765,7 +765,8 @@ export async function getSessionsWithAvgWaitTimePerDayAndHour(
 }
 
 export type SessionVolunteerRating = {
-  sessionRating: number | undefined
+  id: Ulid
+  sessionRating?: number
 }
 export async function getSessionsVolunteerRating(
   volunteerId: Ulid
@@ -775,12 +776,19 @@ export async function getSessionsVolunteerRating(
       { volunteerId },
       getClient()
     )
-    const feedbacks = result.map(
-      v => makeRequired(v).volunteerFeedback as VolunteerFeedback | ResponseData
-    )
-    return feedbacks.map(v => {
-      const rating = extractVolunteerRating(v)
-      return { sessionRating: rating }
+    return result.map(row => {
+      const session = makeSomeRequired(row, ['volunteerFeedback'])
+      const sessionVolunteerRating: SessionVolunteerRating = {
+        id: session.id,
+      }
+      if (session.volunteerFeedback) {
+        const rating = extractVolunteerRating(
+          session.volunteerFeedback as VolunteerFeedback
+        )
+        sessionVolunteerRating.sessionRating = rating
+      }
+
+      return sessionVolunteerRating
     })
   } catch (err) {
     throw new RepoReadError(err)

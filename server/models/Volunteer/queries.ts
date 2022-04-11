@@ -194,7 +194,9 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
       undefined,
       getClient()
     )
-    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    const rows = result.map(v =>
+      makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail'])
+    )
     const certifications = await getCertificationsForVolunteers(
       rows.map(v => v.id)
     )
@@ -280,7 +282,7 @@ export type VolunteerForOnboarding = Pick<
   'id' | 'email' | 'firstName'
 > & {
   onboarded: boolean
-  certifications: Certifications
+  hasCompletedUpchieve101: boolean
   subjects: string[]
   availabilityLastModifiedAt?: Date
   country?: string
@@ -298,10 +300,11 @@ export async function getVolunteerForOnboardingById(
       'availabilityLastModifiedAt',
       'country',
     ])
-    const certifications = await getCertificationsForVolunteers([volunteer.id])
+    const trainingCourses = await getVolunteerTrainingCourses(volunteer.id)
+
     return {
       ...volunteer,
-      certifications: certifications[volunteer.id],
+      hasCompletedUpchieve101: !!trainingCourses['upchieve101']?.complete,
     }
   } catch (err) {
     throw new RepoReadError(err)
