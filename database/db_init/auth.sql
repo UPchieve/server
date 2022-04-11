@@ -1,3 +1,5 @@
+DROP ROLE IF EXISTS subway;
+
 CREATE ROLE subway WITH LOGIN PASSWORD 'Password123';
 
 GRANT ALL privileges ON ALL tables IN SCHEMA upchieve TO subway;

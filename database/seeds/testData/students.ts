@@ -5,8 +5,10 @@ export async function students(spoIds: NameToId, schoolIds: NameToId) {
   const student1 = getDbUlid()
   const student2 = getDbUlid()
   const student3 = getDbUlid()
+  const student4 = getDbUlid()
 
   const users = [
+    // Student from valid high school
     {
       id: student1,
       email: 'student1@upchieve.org',
@@ -16,6 +18,7 @@ export async function students(spoIds: NameToId, schoolIds: NameToId) {
       referralCode: 'A',
       verified: true,
     },
+    // Student from partner org with a school
     {
       id: student2,
       email: 'student2@upchieve.org',
@@ -25,6 +28,7 @@ export async function students(spoIds: NameToId, schoolIds: NameToId) {
       referralCode: 'F',
       verified: true,
     },
+    // Student from partner org with no school
     {
       id: student3,
       email: 'student3@upchieve.org',
@@ -46,16 +50,16 @@ export async function students(spoIds: NameToId, schoolIds: NameToId) {
     {
       userId: userMap[student1] as string,
       studentPartnerOrgId: undefined,
-      schoolId: schoolIds['Legacy Signup High School'] as string 
+      schoolId: schoolIds['Approved School'] as string
     },
     {
       userId: userMap[student2] as string,
-      studentPartnerOrgId: undefined,
-      schoolId: schoolIds['Legacy Signup High School'] as string
+      studentPartnerOrgId: spoIds['College Mentors'] as string,
+      schoolId: schoolIds['Approved Partner School'] as string
     },
     {
       userId: userMap[student3] as string,
-      studentPartnerOrgId: spoIds['Placeholder 3'] as string,
+      studentPartnerOrgId: spoIds['School Helpers'] as string,
       schoolId: undefined
     },
   ]
