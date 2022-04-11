@@ -6,6 +6,7 @@ import { KeyNotFoundError } from '../../cache'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { authPassport } from '../../utils/auth-utils'
 import { routes as routeStats } from '../../router/api/stats'
+import * as SessionUtils from '../../utils/session-utils'
 
 jest.mock('../../services/SessionService')
 const mockedSessionService = mocked(SessionService, true)
@@ -236,19 +237,5 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
     expect(SessionService.getWaitTimeHeatMap).toHaveBeenCalledTimes(1)
     expect(heatMap).toEqual(mockedHeatMap)
     expect(response.status).toBe(200)
-  })
-
-  test('Should send status 404 when the heat map is not found in the cache', async () => {
-    const payload = {}
-    mockedSessionService.getWaitTimeHeatMap.mockImplementationOnce(async () => {
-      throw new KeyNotFoundError('Not found')
-    })
-    const response = await sendGet(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, payload)
-    const {
-      body: { heatMap },
-    } = response
-    expect(SessionService.getWaitTimeHeatMap).toHaveBeenCalledTimes(1)
-    expect(heatMap).toBeUndefined()
-    expect(response.status).toBe(404)
   })
 })
