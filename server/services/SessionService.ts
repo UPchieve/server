@@ -744,9 +744,20 @@ export async function getWaitTimeHeatMap(
     return JSON.parse(heatMap)
   } catch (err) {
     if (err instanceof cache.KeyNotFoundError) {
-      const lastMonday = moment().utc().startOf('isoWeek').subtract(1, 'week').toDate()
-      const lastSunday = moment().utc().endOf('isoWeek').subtract(1, 'week').toDate()
-      const heatMap = await generateAndStoreWaitTimeHeatMap(lastMonday, lastSunday)
+      const lastMonday = moment()
+        .utc()
+        .startOf('isoWeek')
+        .subtract(1, 'week')
+        .toDate()
+      const lastSunday = moment()
+        .utc()
+        .endOf('isoWeek')
+        .subtract(1, 'week')
+        .toDate()
+      const heatMap = await generateAndStoreWaitTimeHeatMap(
+        lastMonday,
+        lastSunday
+      )
       return heatMap
     }
     throw err

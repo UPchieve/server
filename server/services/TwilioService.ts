@@ -97,7 +97,9 @@ export async function sendTextMessage(
     )
     return message.sid
   }
-  throw new Error(`Failed to send text message ${messageText} to ${phoneNumber}`)
+  throw new Error(
+    `Failed to send text message ${messageText} to ${phoneNumber}`
+  )
 }
 
 export async function sendVoiceMessage(
@@ -284,14 +286,14 @@ export async function notifyVolunteer(
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
-          lastNotified:moment()
+          lastNotified: moment()
             .subtract(3, 'days')
             .toDate(),
           isPartner: true,
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
-        })
+        }),
     },
     {
       groupName:
@@ -305,7 +307,7 @@ export async function notifyVolunteer(
           isPartner: false,
           highLevelSubjects,
           disqualifiedVolunteers,
-          specificPartner: undefined
+          specificPartner: undefined,
         }),
     },
     {
@@ -321,8 +323,8 @@ export async function notifyVolunteer(
           isPartner: true,
           highLevelSubjects,
           disqualifiedVolunteers,
-          specificPartner: associatedPartner?.volunteerPartnerOrg
-        })
+          specificPartner: associatedPartner?.volunteerPartnerOrg,
+        }),
     },
     {
       groupName:
@@ -336,7 +338,7 @@ export async function notifyVolunteer(
           isPartner: false,
           highLevelSubjects,
           disqualifiedVolunteers,
-          specificPartner: undefined
+          specificPartner: undefined,
         }),
     },
     {
@@ -350,7 +352,7 @@ export async function notifyVolunteer(
           isPartner: undefined,
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
-          specificPartner: undefined
+          specificPartner: undefined,
         }),
     },
     {
@@ -364,7 +366,7 @@ export async function notifyVolunteer(
           isPartner: undefined,
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
-          specificPartner: undefined
+          specificPartner: undefined,
         }),
     },
     {
@@ -378,7 +380,7 @@ export async function notifyVolunteer(
           isPartner: undefined,
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
-          specificPartner: undefined
+          specificPartner: undefined,
         }),
     },
   ]
@@ -468,7 +470,6 @@ export async function beginRegularNotifications(
   const isTestUser = await getTestStudentExistsById(session.studentId)
 
   if (isTestUser) return
-  console.log("ADDING TO QUEUE")
   // Delay initial wave of notifications by 1 min to give
   // volunteers on the dashboard time to pick up the request
   const notificationSchedule = config.notificationSchedule.slice()

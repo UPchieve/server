@@ -1293,15 +1293,18 @@ export async function updateVolunteerBackgroundInfo(
 }
 
 export async function getNextVolunteerToNotify(options: {
-  subject: string,
-  lastNotified: Date,
-  isPartner: boolean | undefined,
-  highLevelSubjects: string[] | undefined,
-  disqualifiedVolunteers: Ulid[] | undefined,
+  subject: string
+  lastNotified: Date
+  isPartner: boolean | undefined
+  highLevelSubjects: string[] | undefined
+  disqualifiedVolunteers: Ulid[] | undefined
   specificPartner: string | undefined
 }): Promise<VolunteerContactInfo | undefined> {
   try {
-    const result = await pgQueries.getNextVolunteerToNotify.run(options, getClient())
+    const result = await pgQueries.getNextVolunteerToNotify.run(
+      options,
+      getClient()
+    )
     if (!result.length) return
     return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
   } catch (err) {

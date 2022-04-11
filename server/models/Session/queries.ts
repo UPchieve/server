@@ -711,7 +711,10 @@ export async function getSessionForChatbot(
       { sessionId },
       client
     )
-    const session = makeSomeRequired(result[0], ['endedAt', 'volunteerJoinedAt'])
+    const session = makeSomeRequired(result[0], [
+      'endedAt',
+      'volunteerJoinedAt',
+    ])
     const messages = await getMessagesForFrontend(sessionId, client)
     return {
       ...session,

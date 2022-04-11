@@ -13,7 +13,9 @@ describe(Jobs.GenerateAndStoreWaitTimeHeatMap, () => {
   })
 
   test('Should not throw an error if successfully generated and stored the heat map', () => {
-    mockedSessionService.generateAndStoreWaitTimeHeatMap.mockResolvedValueOnce(SessionUtils.createEmptyHeatMap())
+    mockedSessionService.generateAndStoreWaitTimeHeatMap.mockResolvedValueOnce(
+      SessionUtils.createEmptyHeatMap()
+    )
     expect(() => generateAndStoreWaitTimeHeatMap()).not.toThrow()
   })
 
