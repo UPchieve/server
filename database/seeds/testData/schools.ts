@@ -1,19 +1,28 @@
 import { wrapInsert, NameToId, getDbUlid } from '../utils'
 import * as pgQueries from './pg.queries'
 
-export async function schools(): Promise<NameToId> {
+export async function schools(cityIds: NameToId): Promise<NameToId> {
   const schools = [
     {
       id: getDbUlid(),
-      name: 'Test School',
+      name: 'Unapproved School',
       approved: false,
       partner: false,
+      cityId: cityIds['Denver'] as number,
     },
     {
       id: getDbUlid(),
-      name: 'Legacy Signup High School',
+      name: 'Approved School',
+      approved: true,
+      partner: false,
+      cityId: cityIds['Denver'] as number,
+    },
+    {
+      id: getDbUlid(),
+      name: 'Approved Partner School',
       approved: true,
       partner: true,
+      cityId: cityIds['Brooklyn'] as number,
     },
   ]
   const temp: NameToId = {}

@@ -7,8 +7,8 @@ export async function requiredEmailDomainsTest(
   const domains = [
     {
       id: getDbUlid(),
-      domain: 'placeholder1.com',
-      volunteerPartnerOrgId: vpoIds['Placeholder 1'] as string,
+      domain: 'mailtrap.com',
+      volunteerPartnerOrgId: vpoIds['Big Telecom'] as string,
     },
   ]
   const temp: NameToId = {}

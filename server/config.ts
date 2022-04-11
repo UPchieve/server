@@ -196,7 +196,7 @@ const config: Static<typeof Config> = {
   socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
 
   customVolunteerPartnerOrgs: (
-    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
+    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'big-telecom'
   ).split(','),
   priorityMatchingPartnerOrgs: (
     process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus'
@@ -205,7 +205,7 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus'
   ).split(','),
   customAnalyticsReportPartnerOrgs: (
-    process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'bogus'
+    process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'big-telecom'
   ).split(','),
 
   clusterServerAddress:

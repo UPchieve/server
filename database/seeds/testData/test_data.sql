@@ -1,10 +1,10 @@
 /* @name insertSchool */
-INSERT INTO schools (id, name, approved, partner, created_at, updated_at) VALUES (:id!, :name!, :approved!, :partner!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok;
+INSERT INTO schools (id, name, approved, partner, city_id, created_at, updated_at) VALUES (:id!, :name!, :approved!, :partner!, :cityId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok;
 
 /* @name insertStudentUser */
 WITH ins AS(
-INSERT INTO users (id, email, password, first_name, last_name, referral_code, verified, created_at, updated_at) 
-VALUES (:id!, :email!, :password!, :firstName!, :lastName!, :referralCode!, :verified!, NOW(), NOW()) 
+INSERT INTO users (id, email, password, first_name, last_name, referral_code, verified, created_at, updated_at)
+VALUES (:id!, :email!, :password!, :firstName!, :lastName!, :referralCode!, :verified!, NOW(), NOW())
 ON CONFLICT DO NOTHING
 RETURNING id AS ok)
 SELECT
@@ -26,8 +26,8 @@ INSERT INTO student_profiles (user_id, student_partner_org_id, school_id, create
 /* @name insertVolunteerUser */
 WITH ins AS (
 INSERT INTO users (id, email, phone, password, first_name, last_name, referral_code, verified, test_user, time_tutored, created_at, updated_at)
-VALUES (:id!, :email!, :phone!, :password!, :firstName!, :lastName!, :referralCode!, :verified!, :testUser!, :timeTutored!, NOW(), NOW()) 
-ON CONFLICT DO NOTHING 
+VALUES (:id!, :email!, :phone!, :password!, :firstName!, :lastName!, :referralCode!, :verified!, :testUser!, :timeTutored!, NOW(), NOW())
+ON CONFLICT DO NOTHING
 RETURNING id AS ok)
 SELECT
     *
@@ -49,7 +49,7 @@ INSERT INTO volunteer_profiles (user_id, timezone, approved, onboarded, college,
 INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at) VALUES (:userId!, :certificationId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok;
 
 /* @name insertIntoUserQuizzes */
-INSERT INTO users_quizzes (user_id, quiz_id, created_at, updated_at) VALUES (:userId!, :quizId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok;
+INSERT INTO users_quizzes (user_id, quiz_id, attempts, passed, created_at, updated_at) VALUES (:userId!, :quizId!, :attempts!, :passed!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok;
 
 /* @name insertAdminProfile */
 INSERT INTO admin_profiles (user_id, created_at, updated_at) VALUES (:userId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok;
@@ -85,3 +85,8 @@ SELECT qs.id, qs.name FROM quiz_subcategories qs JOIN quizzes q ON q.id = qs.qui
 INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, quiz_subcategory_id, created_at, updated_at)
 VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :quizSubcategoryId!, NOW(), NOW())
 RETURNING id AS ok;
+
+/* @name insertCity */
+INSERT INTO cities (name, us_state_code, created_at, updated_at)
+VALUES (:name!, :usStateCode!, NOW(), NOW())
+RETURNING id as ok;
