@@ -20,8 +20,6 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
       let nextJob = ''
       const { firstName, email } = volunteer
       if (currentJob === Jobs.EmailOnboardingReminderOne) {
-        const hasCompletedUpchieve101 =
-          volunteer.certifications?.upchieve101.passed
         const hasUnlockedASubject = volunteer.subjects.length > 0
         const hasSelectedAvailability = !!volunteer.availabilityLastModifiedAt
         const hasCompletedBackgroundInfo = !!volunteer.country
@@ -31,7 +29,7 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
           firstName,
           email,
           hasCompletedBackgroundInfo,
-          hasCompletedUpchieve101,
+          volunteer.hasCompletedUpchieve101,
           hasUnlockedASubject,
           hasSelectedAvailability
         )

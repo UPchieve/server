@@ -282,7 +282,7 @@ export type VolunteerForOnboarding = Pick<
   'id' | 'email' | 'firstName'
 > & {
   onboarded: boolean
-  certifications: Certifications
+  hasCompletedUpchieve101: boolean
   subjects: string[]
   availabilityLastModifiedAt?: Date
   country?: string
@@ -300,10 +300,11 @@ export async function getVolunteerForOnboardingById(
       'availabilityLastModifiedAt',
       'country',
     ])
-    const certifications = await getCertificationsForVolunteers([volunteer.id])
+    const trainingCourses = await getVolunteerTrainingCourses(volunteer.id)
+
     return {
       ...volunteer,
-      certifications: certifications[volunteer.id],
+      hasCompletedUpchieve101: !!trainingCourses['upchieve101']?.complete
     }
   } catch (err) {
     throw new RepoReadError(err)
