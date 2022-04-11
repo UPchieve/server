@@ -459,25 +459,26 @@ SELECT
         ELSE
             FALSE
         END) AS is_volunteer,
-    (
-        SELECT
-            array_agg(sessions.id ORDER BY sessions.created_at) AS past_sessions
-        FROM
-            sessions
-        WHERE (volunteer_profiles.user_id IS NULL
-            AND sessions.student_id = users.id)
-        OR (volunteer_profiles.user_id IS NOT NULL
-            AND sessions.volunteer_id = users.id))
+    past_sessions.total AS past_sessions
 FROM
     users
     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
     LEFT JOIN sessions ON sessions.student_id = users.id
         OR sessions.volunteer_id = users.id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(sessions.id ORDER BY sessions.created_at) AS total
+        FROM
+            sessions
+        WHERE
+            student_id = users.id
+            OR volunteer_id = users.id) AS past_sessions ON TRUE
 WHERE
     sessions.id = :sessionId!
 GROUP BY
     users.id,
-    volunteer_profiles.user_id;
+    volunteer_profiles.user_id,
+    past_sessions.total;
 
 
 /* @name getSessionMessagesForFrontend */
