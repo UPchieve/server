@@ -524,6 +524,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     }
 
   if (!user.banned) {
+    console.log('ENTERING NOTIFICATIONS')
     await beginRegularNotifications(newSessionId)
   }
 
@@ -705,17 +706,17 @@ export async function saveMessage(
 
 export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
   const heatMap = sessionUtils.createEmptyHeatMap()
-  const sessions = await SessionRepo.getSessionsWithAvgWaitTimePerDayAndHour(
+  const map = await SessionRepo.getSessionsWithAvgWaitTimePerDayAndHour(
     startDate,
     endDate
   )
 
-  for (const session of sessions) {
+  for (const entry of map) {
     const day = moment()
-      .weekday(session.day)
+      .weekday(entry.day)
       .format('dddd')
-    const hour = UTC_TO_HOUR_MAPPING[session.hour as HOURS_UTC]
-    heatMap[day as DAYS][hour] = session.averageWaitTime
+    const hour = UTC_TO_HOUR_MAPPING[entry.hour as HOURS_UTC]
+    heatMap[day as DAYS][hour] = entry.averageWaitTime
   }
 
   return heatMap
@@ -724,12 +725,13 @@ export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
 export async function generateAndStoreWaitTimeHeatMap(
   startDate: Date,
   endDate: Date
-) {
+): Promise<sessionUtils.HeatMap> {
   const heatMap = await generateWaitTimeHeatMap(startDate, endDate)
   await cache.save(
     config.cacheKeys.waitTimeHeatMapAllSubjects,
     JSON.stringify(heatMap)
   )
+  return heatMap
 }
 
 export async function getWaitTimeHeatMap(
@@ -737,8 +739,29 @@ export async function getWaitTimeHeatMap(
 ): Promise<sessionUtils.HeatMap> {
   if (!user.isVolunteer)
     throw new NotAllowedError('Only volunteers may view the heat map')
-  const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
-  return JSON.parse(heatMap)
+  try {
+    const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
+    return JSON.parse(heatMap)
+  } catch (err) {
+    if (err instanceof cache.KeyNotFoundError) {
+      const lastMonday = moment()
+        .utc()
+        .startOf('isoWeek')
+        .subtract(1, 'week')
+        .toDate()
+      const lastSunday = moment()
+        .utc()
+        .endOf('isoWeek')
+        .subtract(1, 'week')
+        .toDate()
+      const heatMap = await generateAndStoreWaitTimeHeatMap(
+        lastMonday,
+        lastSunday
+      )
+      return heatMap
+    }
+    throw err
+  }
 }
 
 export async function volunteersAvailableForSession(

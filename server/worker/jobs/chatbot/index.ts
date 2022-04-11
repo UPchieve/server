@@ -24,8 +24,8 @@ async function sendMessage(
   await setTimeout(delay)
   socket.emit('notTyping', { sessionId })
   socket.emit('message', {
-    // socket message handler expects a user-like object
-    user: { id: chatbot, isVolunteer: true },
+    // socket message handler expects a FRONTEND user-like object
+    user: { _id: chatbot, isVolunteer: true },
     sessionId,
     message: content,
   })
