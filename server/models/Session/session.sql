@@ -460,10 +460,14 @@ SELECT
             FALSE
         END) AS is_volunteer,
     (
-  		SELECT array_agg(sessions.id ORDER BY sessions.created_at) AS past_sessions
-      FROM sessions
-      WHERE (volunteer_profiles.user_id IS NULL AND sessions.student_id = users.id) OR (volunteer_profiles.user_id IS NOT NULL AND sessions.volunteer_id = users.id)
-    )
+        SELECT
+            array_agg(sessions.id ORDER BY sessions.created_at) AS past_sessions
+        FROM
+            sessions
+        WHERE (volunteer_profiles.user_id IS NULL
+            AND sessions.student_id = users.id)
+        OR (volunteer_profiles.user_id IS NOT NULL
+            AND sessions.volunteer_id = users.id))
 FROM
     users
     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
@@ -653,7 +657,9 @@ FROM
 WHERE
     sessions.volunteer_id = :volunteerId!
     AND sessions.time_tutored >= 15 * 60 * 1000
-    AND (session_flags.name IS NULL OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer"}'));
+    AND (session_flags.name IS NULL
+        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer"}'));
+
 
 /* @name getVolunteersForGentleWarning */
 SELECT
@@ -701,10 +707,8 @@ FROM
     LEFT JOIN users ON users.id = sessions.student_id
 WHERE
     sessions.id = :sessionId!
-    AND (
-        session_flags.name IS NULL 
-        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }')
-        )
+    AND (session_flags.name IS NULL
+        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE;
 
@@ -721,10 +725,8 @@ FROM
     LEFT JOIN users ON users.id = sessions.volunteer_id
 WHERE
     sessions.id = :sessionId!
-    AND (
-        session_flags.name IS NULL 
-        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }')
-        )
+    AND (session_flags.name IS NULL
+        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE;
 

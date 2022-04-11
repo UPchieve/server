@@ -841,6 +841,7 @@ WHERE
 GROUP BY
     users.id;
 
+
 /* @name addVolunteerCertification */
 INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at)
 SELECT

@@ -47,7 +47,8 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
         volunteer.email,
         volunteer.firstName,
         volunteer.volunteerPartnerOrg!,
-        (await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg!)).name
+        (await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg!))
+          .name
       )
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {

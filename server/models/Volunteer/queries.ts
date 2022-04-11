@@ -180,7 +180,10 @@ export async function getCertificationsForVolunteers(
   }
 }
 
-export type VolunteerForWeeklyHourSummary = Omit<VolunteerContactInfo, 'phone'> & {
+export type VolunteerForWeeklyHourSummary = Omit<
+  VolunteerContactInfo,
+  'phone'
+> & {
   sentHourSummaryIntroEmail: boolean
   certifications: Certifications
 }
@@ -193,7 +196,9 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
       undefined,
       getClient()
     )
-    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail']))
+    const rows = result.map(v =>
+      makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail'])
+    )
     const certifications = await getCertificationsForVolunteers(
       rows.map(v => v.id)
     )

@@ -782,13 +782,15 @@ export async function getSessionsVolunteerRating(
       { volunteerId },
       getClient()
     )
-    return result.map(row => { 
+    return result.map(row => {
       const session = makeSomeRequired(row, ['volunteerFeedback'])
       const sessionVolunteerRating: SessionVolunteerRating = {
-        id: session.id
+        id: session.id,
       }
-      if (session.volunteerFeedback){
-        const rating = extractVolunteerRating(session.volunteerFeedback as VolunteerFeedback)
+      if (session.volunteerFeedback) {
+        const rating = extractVolunteerRating(
+          session.volunteerFeedback as VolunteerFeedback
+        )
         sessionVolunteerRating.sessionRating = rating
       }
 

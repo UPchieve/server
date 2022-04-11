@@ -41,9 +41,13 @@ export default async (): Promise<void> => {
         org => org === volunteerPartnerOrg
       )
       let summaryStats
-      if(volunteer.sentHourSummaryIntroEmail === undefined) continue
+      if (volunteer.sentHourSummaryIntroEmail === undefined) continue
       if (customCheck)
-        summaryStats = await telecomHourSummaryStats(volunteer, lastMonday.toDate(), lastSunday.toDate())
+        summaryStats = await telecomHourSummaryStats(
+          volunteer,
+          lastMonday.toDate(),
+          lastSunday.toDate()
+        )
       else
         summaryStats = await getHourSummaryStats(
           id,

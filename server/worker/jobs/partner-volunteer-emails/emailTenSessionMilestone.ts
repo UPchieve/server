@@ -44,7 +44,7 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
     try {
       await MailService.sendPartnerVolunteerTenSessionMilestone(
         volunteer.email,
-        volunteer.firstName,
+        volunteer.firstName
       )
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
