@@ -5,24 +5,27 @@ export async function studentPartnerOrgsTest(): Promise<NameToId> {
   const orgs = [
     {
       id: getDbUlid(),
-      key: 'placeholder1',
-      name: 'Placeholder 1',
+      key: 'college-mentors',
+      name: 'College Mentors',
       highSchoolSignup: true,
       schoolSignupRequired: true,
+      signupCode: 'MENTORS',
     },
     {
       id: getDbUlid(),
-      key: 'placeholder2',
-      name: 'Placeholder 2',
+      key: 'community-org',
+      name: 'Community Org',
       highSchoolSignup: true,
       schoolSignupRequired: false,
+      signupCode: 'COMMUNITY',
     },
     {
       id: getDbUlid(),
-      key: 'placeholder3',
-      name: 'Placeholder 3',
+      key: 'school-helpers',
+      name: 'School Helpers',
       highSchoolSignup: false,
       schoolSignupRequired: false,
+      signupCode: 'SCHOOLHELPERS',
     },
   ]
   const temp: NameToId = {}

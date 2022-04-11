@@ -7,18 +7,18 @@ export async function studentPartnerOrgSitesTest(
   const sites = [
     {
       id: getDbUlid(),
-      name: 'placeholder1',
-      studentPartnerOrgId: spoIds['Placeholder 1'] as string,
+      name: 'Brooklyn',
+      studentPartnerOrgId: spoIds['College Mentors'] as string,
     },
     {
       id: getDbUlid(),
-      name: 'placeholder2',
-      studentPartnerOrgId: spoIds['Placeholder 2'] as string,
+      name: 'Denver',
+      studentPartnerOrgId: spoIds['College Mentors'] as string,
     },
     {
       id: getDbUlid(),
-      name: 'placeholder3',
-      studentPartnerOrgId: spoIds['Placeholder 3'] as string,
+      name: 'Oakland',
+      studentPartnerOrgId: spoIds['College Mentors'] as string,
     },
   ]
   const temp: NameToId = {}

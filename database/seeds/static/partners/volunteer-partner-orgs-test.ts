@@ -5,14 +5,14 @@ export async function volunteerPartnerOrgsTest(): Promise<NameToId> {
   const orgs = [
     {
       id: getDbUlid(),
-      key: 'placeholder1',
-      name: 'Placeholder 1',
+      key: 'big-telecom',
+      name: 'Big Telecom',
       receiveWeeklyHourSummaryEmail: true,
     },
     {
       id: getDbUlid(),
-      key: 'placeholder2',
-      name: 'Placeholder 2',
+      key: 'health-co',
+      name: 'Health Co',
       receiveWeeklyHourSummaryEmail: false,
     },
   ]
