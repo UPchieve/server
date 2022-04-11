@@ -28,32 +28,23 @@ export type NotificationData = {
   messageId?: string
   priorityGroup: string
 }
-export async function addSessionNotifications(
+export async function addSessionNotification(
   sessionId: Ulid,
-  notifications: NotificationData[]
+  notification: NotificationData
 ): Promise<void> {
-  const client = await getClient().connect()
   try {
-    await client.query('BEGIN')
-    for (const notification of notifications) {
-      const result = await pgQueries.addNotification.run(
-        {
-          ...notification,
-          sessionId,
-          id: getDbUlid(),
-        },
-        getClient()
-      )
-      // TODO: better error handling - this drops all sessions from saving if any fail
-      if (!result.length && makeRequired(result[0]).ok)
-        throw new RepoCreateError('Insert query did not return ok')
-    }
-    await client.query('COMMIT')
+    const result = await pgQueries.addNotification.run(
+      {
+        ...notification,
+        sessionId,
+        id: getDbUlid(),
+      },
+      getClient()
+    )
+    if (!result.length && makeRequired(result[0]).ok)
+      throw new RepoCreateError('Insert notification did not return ok')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 
@@ -705,7 +696,7 @@ export type SessionForChatbot = {
   messages: MessageForFrontend[]
   topic: string
   subject: string
-  volunteerJoinedAt: Date
+  volunteerJoinedAt?: Date
   createdAt: Date
   endedAt?: Date
   student: Ulid
@@ -720,7 +711,10 @@ export async function getSessionForChatbot(
       { sessionId },
       client
     )
-    const session = makeSomeRequired(result[0], ['endedAt'])
+    const session = makeSomeRequired(result[0], [
+      'endedAt',
+      'volunteerJoinedAt',
+    ])
     const messages = await getMessagesForFrontend(sessionId, client)
     return {
       ...session,

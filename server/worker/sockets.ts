@@ -24,11 +24,11 @@ socket.on('connect', () => {
 })
 
 socket.on('connect_error', (error: Error) => {
-  logger.info(`Worker socket connection error: ${error}`)
+  // logger.debug(`Worker socket connection error: ${error}`)
 })
 
 socket.on('error', (error: Error) => {
-  logger.debug(`Worker socket error: ${error}`)
+  // logger.debug(`Worker socket error: ${error}`)
 })
 
 export function startSocket(): void {

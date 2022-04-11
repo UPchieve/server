@@ -626,22 +626,25 @@ RETURNING
 SELECT
     extract(isodow FROM sessions.created_at)::int AS day,
     extract(hour FROM sessions.created_at)::int AS hour,
-    AVG(
+    COALESCE(
+      AVG(
         CASE WHEN sessions.volunteer_id IS NULL THEN
             EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at))
         ELSE
             EXTRACT('epoch' FROM (sessions.volunteer_joined_at - sessions.created_at))
-        END)::float AS average_wait_time
+        END),
+      0)::float * 1000 AS average_wait_time  -- in milliseconds
 FROM
     sessions
 WHERE
-    sessions.created_at > :start!
+    sessions.created_at >= :start!
     AND sessions.created_at < :end!
     AND NOT sessions.ended_at IS NULL
-    AND EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at)) > 6000
+    AND EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at)) > 60
 GROUP BY
     day,
     hour;
+
 
 
 /* @name getSessionsForReferCoworker */

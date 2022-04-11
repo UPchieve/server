@@ -28,7 +28,7 @@ export type ReportedStudent = {
   isBanned: boolean
   isDeactivated: boolean
   isVolunteer: boolean
-  studentPartnerOrg: string
+  studentPartnerOrg?: string
 }
 
 export async function getReportedStudent(
@@ -98,7 +98,7 @@ export async function getStudentContactInfoById(
 }
 
 // NOTE: duplicate of `isTestUser` query function in this file
-// remove once there are no more callers of this function
+// TODO: remove once there are no more callers of this function
 export async function getTestStudentExistsById(
   studentId: Ulid
 ): Promise<boolean> {
@@ -109,7 +109,7 @@ export async function getTestStudentExistsById(
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0].testUser)
+    if (result.length) return makeRequired(result[0]).testUser
     return false
   } catch (err) {
     throw new RepoReadError(err)
@@ -124,7 +124,7 @@ export async function isTestUser(studentId: Ulid): Promise<boolean> {
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0].testUser)
+    if (result.length) return makeRequired(result[0]).testUser
     return false
   } catch (err) {
     throw new RepoReadError(err)

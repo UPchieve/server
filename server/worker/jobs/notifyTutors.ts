@@ -20,14 +20,14 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   if (!session) return
   const fulfilled = sessionUtils.isSessionFulfilled(session)
   if (fulfilled) {
-    QueueService.add(Jobs.EmailVolunteerGentleWarning, {
+    await QueueService.add(Jobs.EmailVolunteerGentleWarning, {
       sessionId,
     })
     return log(`Cancel ${Jobs.NotifyTutors} for ${sessionId}: fulfilled`)
   }
   const delay = notificationSchedule.shift()
   if (delay)
-    QueueService.add(
+    await QueueService.add(
       Jobs.NotifyTutors,
       { sessionId: sessionId.toString(), notificationSchedule },
       { delay }
@@ -41,7 +41,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
         `Successfully sent notification for session ${session.id} to volunteer ${volunteerNotified}`
       )
       // send a followup text to the volunteer in 5 mins
-      QueueService.add(
+      await QueueService.add(
         Jobs.SendFollowupText,
         {
           sessionId: sessionId.toString(),

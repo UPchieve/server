@@ -163,8 +163,9 @@ export async function getCertificationsForVolunteers(
     const rows = result.map(v => makeRequired(v))
     const rowsByUser = _.groupBy(rows, v => v.userId)
     const map: VolunteerCertMap = {}
-    for (const [user, rows] of Object.entries(rowsByUser)) {
+    for (const user of userIds) {
       const temp: Certifications = {}
+      const rows = rowsByUser[user] || []
       for (const row of rows) {
         temp[row.name] = {
           passed: row.passed,
@@ -1293,80 +1294,21 @@ export async function updateVolunteerBackgroundInfo(
   }
 }
 
-export async function getNextAnyVolunteerToNotify(
-  subject: string,
-  lastNotified: Date,
-  highLevelSubjects: string[],
-  disqualifiedVolunteers: Ulid[]
-): Promise<VolunteerContactInfo | undefined> {
+export async function getNextVolunteerToNotify(options: {
+  subject: string
+  lastNotified: Date
+  isPartner: boolean | undefined
+  highLevelSubjects: string[] | undefined
+  disqualifiedVolunteers: Ulid[] | undefined
+  specificPartner: string | undefined
+}): Promise<VolunteerContactInfo | undefined> {
   try {
-    const result = await pgQueries.getNextAnyVolunteerToNotify.run(
-      { lastNotified, subject, highLevelSubjects, disqualifiedVolunteers },
+    const result = await pgQueries.getNextVolunteerToNotify.run(
+      options,
       getClient()
     )
     if (!result.length) return
     return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getNextOpenVolunteerToNotify(
-  subject: string,
-  lastNotified: Date,
-  highLevelSubjects: string[],
-  disqualifiedVolunteers: Ulid[]
-): Promise<VolunteerContactInfo | undefined> {
-  try {
-    const result = await pgQueries.getNextOpenVolunteerToNotify.run(
-      { lastNotified, subject, highLevelSubjects, disqualifiedVolunteers },
-      getClient()
-    )
-    if (!result.length) return
-    return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getNextAnyPartnerVolunteerToNotify(
-  subject: string,
-  lastNotified: Date,
-  highLevelSubjects: string[],
-  disqualifiedVolunteers: Ulid[]
-): Promise<VolunteerContactInfo | undefined> {
-  try {
-    const result = await pgQueries.getNextAnyPartnerVolunteerToNotify.run(
-      { lastNotified, subject, highLevelSubjects, disqualifiedVolunteers },
-      getClient()
-    )
-    if (!result.length) return
-    return makeRequired(result[0])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getNextSpecificPartnerVolunteerToNotify(
-  subject: string,
-  lastNotified: Date,
-  volunteerPartnerOrg: string,
-  highLevelSubjects: string[],
-  disqualifiedVolunteers: Ulid[]
-): Promise<VolunteerContactInfo | undefined> {
-  try {
-    const result = await pgQueries.getNextSpecificPartnerVolunteerToNotify.run(
-      {
-        lastNotified,
-        subject,
-        volunteerPartnerOrg,
-        highLevelSubjects,
-        disqualifiedVolunteers,
-      },
-      getClient()
-    )
-    if (!result.length) return
-    return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }
