@@ -1163,9 +1163,16 @@ FROM (
     HAVING
         COUNT(*)::int >= subject_cert_total.total) AS subjects_unlocked;
 
-
-/* @name getNextAnyVolunteerToNotify */
+/* @name getNextVolunteerToNotify */
+WITH subject_totals AS (
 SELECT
+  	subjects.name, COUNT(*)::int AS total
+FROM
+	certification_subject_unlocks
+	JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
+GROUP BY
+  	subjects.name),
+candidates AS (SELECT
     users.id,
     first_name,
     last_name,
@@ -1179,42 +1186,51 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN LATERAL (
         SELECT
-            array_agg(subjects.name) AS subjects
+            array_agg(sub_unlocked.subject)::text[] AS subjects
         FROM (
             SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
+                subjects.name AS subject
             FROM
                 users_certifications
                 JOIN certification_subject_unlocks USING (certification_id)
                 JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
-                HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
+                JOIN subject_totals ON subject_totals.name = subjects.name
+         	WHERE
+          		users_certifications.user_id = users.id
+          	GROUP BY
+          		user_id,
+          		subjects.name,
+          		subject_totals.total
+          	HAVING
+          		COUNT(*)::int >= subject_totals.total
+        ) AS sub_unlocked
+   	) AS subjects_unlocked ON TRUE
 WHERE
     test_user IS FALSE
     AND banned IS FALSE
     AND deactivated IS FALSE
-    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
+    -- availabilities are all stored in EST so convert server time to EST to be safe
+    AND extract(isodow FROM (NOW() at time zone 'America/New_York')) = availabilities.weekday_id
+    AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start
+    AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
     AND :subject! = ANY (subjects_unlocked.subjects)
-    AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY (:disqualifiedVolunteers!)
+    AND ( -- user does not have high level subjects if provided
+        (:highLevelSubjects)::text[] IS NULL OR
+        (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE
+    )
+    AND ( -- user is not part of disqualified group (like active session volunteers) if provided
+        (:disqualifiedVolunteers)::uuid[] IS NULL OR
+        NOT users.id = ANY (:disqualifiedVolunteers)
+    )
+    AND ( -- user is partner or open
+        (:isPartner)::boolean IS NULL OR
+        (:isPartner IS FALSE AND volunteer_profiles.volunteer_partner_org_id IS NULL) OR
+        (:isPartner IS TRUE AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL)
+    )
+    AND (
+        (:specificPartner)::text IS NULL OR
+        volunteer_partner_orgs.key = :specificPartner
+    )
     AND NOT EXISTS (
         SELECT
             user_id
@@ -1222,198 +1238,9 @@ WHERE
             notifications
         WHERE
             user_id = users.id
-            AND sent_at >= DATE(:lastNotified!))
+            AND sent_at >= :lastNotified!))
+SELECT * FROM candidates ORDER BY RANDOM()
 LIMIT 1;
-
-
-/* @name getNextOpenVolunteerToNotify */
-SELECT
-    users.id,
-    first_name,
-    last_name,
-    phone,
-    email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    JOIN availabilities ON users.id = availabilities.user_id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(subjects.name) AS subjects
-        FROM (
-            SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
-            FROM
-                users_certifications
-                JOIN certification_subject_unlocks USING (certification_id)
-                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
-                HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
-WHERE
-    test_user IS FALSE
-    AND banned IS FALSE
-    AND deactivated IS FALSE
-    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY (subjects_unlocked.subjects)
-    AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY (:disqualifiedVolunteers!)
-    AND volunteer_profiles.volunteer_partner_org_id IS NULL
-    AND NOT EXISTS (
-        SELECT
-            user_id
-        FROM
-            notifications
-        WHERE
-            user_id = users.id
-            AND sent_at >= DATE(:lastNotified!))
-LIMIT 1;
-
-
-/* @name getNextAnyPartnerVolunteerToNotify */
-SELECT
-    users.id,
-    first_name,
-    last_name,
-    phone,
-    email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    JOIN availabilities ON users.id = availabilities.user_id
-    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(subjects.name) AS subjects
-        FROM (
-            SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
-            FROM
-                users_certifications
-                JOIN certification_subject_unlocks USING (certification_id)
-                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
-                HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
-WHERE
-    test_user IS FALSE
-    AND banned IS FALSE
-    AND deactivated IS FALSE
-    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY (subjects_unlocked.subjects)
-    AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY (:disqualifiedVolunteers!)
-    AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL
-    AND NOT EXISTS (
-        SELECT
-            user_id
-        FROM
-            notifications
-        WHERE
-            user_id = users.id
-            AND sent_at >= DATE(:lastNotified!))
-LIMIT 1;
-
-
-/* @name getNextSpecificPartnerVolunteerToNotify */
-SELECT
-    users.id,
-    first_name,
-    last_name,
-    phone,
-    email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    JOIN availabilities ON users.id = availabilities.user_id
-    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(subjects.name) AS subjects
-        FROM (
-            SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
-            FROM
-                users_certifications
-                JOIN certification_subject_unlocks USING (certification_id)
-                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
-                HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
-WHERE
-    test_user IS FALSE
-    AND banned IS FALSE
-    AND deactivated IS FALSE
-    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY (subjects_unlocked.subjects)
-    AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY (:disqualifiedVolunteers!)
-    AND volunteer_partner_orgs.key = :volunteerPartnerOrg!
-    AND NOT EXISTS (
-        SELECT
-            user_id
-        FROM
-            notifications
-        WHERE
-            user_id = users.id
-            AND sent_at >= DATE(:lastNotified!))
-LIMIT 1;
-
 
 /* @name getVolunteerForScheduleUpdate */
 SELECT

@@ -10,7 +10,7 @@ import {
   VolunteerContactInfo,
   getVolunteersNotifiedBySessionId,
 } from '../models/Volunteer'
-import queue from './QueueService'
+import QueueService from './QueueService'
 import * as SessionRepo from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
 import formatMultiWordSubject from '../utils/format-multi-word-subject'
@@ -19,12 +19,13 @@ import logger from '../logger'
 import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import startsWithVowel from '../utils/starts-with-vowel'
 import { Ulid } from '../models/pgUtils'
-import { getSessionById } from '../models/Session'
+import { getSessionById, NotificationData } from '../models/Session'
 import {
   AssociatedPartner,
   getAssociatedPartnerByKey,
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
+import { Jobs } from '../worker/jobs'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -90,10 +91,13 @@ export async function sendTextMessage(
     from: config.sendingNumber,
     body: messageText,
   })
-  logger.info(
-    `Message sent to ${phoneNumber} with message id \n ${message.sid}`
-  )
-  return message.sid
+  if (message.sid) {
+    logger.info(
+      `Message sent to ${phoneNumber} with message id \n ${message.sid}`
+    )
+    return message.sid
+  }
+  throw new Error(`Failed to send text message ${messageText} to ${phoneNumber}`)
 }
 
 export async function sendVoiceMessage(
@@ -149,19 +153,24 @@ export async function sendFollowupText(
   volunteerPhone: string
 ): Promise<void> {
   const messageText = 'Heads up: this student is still waiting for help!'
-  const sidPromise = sendTextMessage(volunteerPhone, messageText)
 
-  const { wasSuccessful, messageId } = await sendNotification(sidPromise)
-  await SessionRepo.addSessionNotifications(sessionId, [
-    {
-      wasSuccessful,
-      messageId,
-      volunteer: volunteerId,
-      type: 'regular',
-      method: 'sms',
-      priorityGroup: 'follow-up',
-    },
-  ])
+  let notification: NotificationData = {
+    wasSuccessful: false,
+    messageId: undefined,
+    volunteer: volunteerId,
+    type: 'followup',
+    method: 'sms',
+    priorityGroup: 'follow-up',
+  }
+  try {
+    const messageId = await sendTextMessage(volunteerPhone, messageText)
+    notification.wasSuccessful = true
+    notification.messageId = messageId
+  } catch (err) {
+    logger.error(err as Error)
+  }
+
+  await SessionRepo.addSessionNotification(sessionId, notification)
 }
 
 export function buildTargetStudentContent(
@@ -272,113 +281,105 @@ export async function notifyVolunteer(
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
       } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
-      query: associatedPartner
-        ? () =>
-            VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(
-              session.subject,
-              moment()
-                .subtract(3, 'days')
-                .toDate(),
-              associatedPartner.volunteerPartnerOrg,
-              highLevelSubjects,
-              disqualifiedVolunteers
-            )
-        : () =>
-            VolunteerRepo.getNextAnyPartnerVolunteerToNotify(
-              session.subject,
-              moment()
-                .subtract(3, 'days')
-                .toDate(),
-              highLevelSubjects,
-              disqualifiedVolunteers
-            ),
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified:moment()
+            .subtract(3, 'days')
+            .toDate(),
+          isPartner: true,
+          highLevelSubjects,
+          disqualifiedVolunteers,
+          specificPartner: associatedPartner?.volunteerPartnerOrg,
+        })
     },
     {
       groupName:
         'Regular volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       query: () =>
-        VolunteerRepo.getNextOpenVolunteerToNotify(
-          session.subject,
-          moment()
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
             .subtract(3, 'days')
             .toDate(),
+          isPartner: false,
           highLevelSubjects,
-          disqualifiedVolunteers
-        ),
+          disqualifiedVolunteers,
+          specificPartner: undefined
+        }),
     },
     {
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
       } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
-      query: associatedPartner
-        ? () =>
-            VolunteerRepo.getNextSpecificPartnerVolunteerToNotify(
-              session.subject,
-              moment()
-                .subtract(1, 'days')
-                .toDate(),
-              associatedPartner.volunteerPartnerOrg,
-              highLevelSubjects,
-              disqualifiedVolunteers
-            )
-        : () =>
-            VolunteerRepo.getNextAnyPartnerVolunteerToNotify(
-              session.subject,
-              moment()
-                .subtract(1, 'days')
-                .toDate(),
-              highLevelSubjects,
-              disqualifiedVolunteers
-            ),
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(1, 'day')
+            .toDate(),
+          isPartner: true,
+          highLevelSubjects,
+          disqualifiedVolunteers,
+          specificPartner: associatedPartner?.volunteerPartnerOrg
+        })
     },
     {
       groupName:
         'Regular volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
       query: () =>
-        VolunteerRepo.getNextOpenVolunteerToNotify(
-          session.subject,
-          moment()
-            .subtract(1, 'days')
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(1, 'day')
             .toDate(),
+          isPartner: false,
           highLevelSubjects,
-          disqualifiedVolunteers
-        ),
+          disqualifiedVolunteers,
+          specificPartner: undefined
+        }),
     },
     {
       groupName: 'All volunteers - not notified in the last 24 hours',
       query: () =>
-        VolunteerRepo.getNextAnyVolunteerToNotify(
-          session.subject,
-          moment()
-            .subtract(1, 'days')
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(1, 'day')
             .toDate(),
-          [],
-          disqualifiedVolunteers
-        ),
+          isPartner: undefined,
+          highLevelSubjects: undefined,
+          disqualifiedVolunteers,
+          specificPartner: undefined
+        }),
     },
     {
       groupName: 'All volunteers - not notified in the last 60 mins',
       query: () =>
-        VolunteerRepo.getNextAnyVolunteerToNotify(
-          session.subject,
-          moment()
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
             .subtract(1, 'hour')
             .toDate(),
-          [],
-          disqualifiedVolunteers
-        ),
+          isPartner: undefined,
+          highLevelSubjects: undefined,
+          disqualifiedVolunteers,
+          specificPartner: undefined
+        }),
     },
     {
       groupName: 'All volunteers - not notified in the last 15 mins',
       query: () =>
-        VolunteerRepo.getNextAnyVolunteerToNotify(
-          session.subject,
-          moment()
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
             .subtract(15, 'minutes')
             .toDate(),
-          [],
-          disqualifiedVolunteers
-        ),
+          isPartner: undefined,
+          highLevelSubjects: undefined,
+          disqualifiedVolunteers,
+          specificPartner: undefined
+        }),
     },
   ]
 
@@ -400,55 +401,26 @@ export async function notifyVolunteer(
     volunteer,
     associatedPartner
   )
-  const sidPromise = sendTextMessage(volunteer.phone, messageText)
 
+  let notification: NotificationData = {
+    wasSuccessful: false,
+    messageId: undefined,
+    volunteer: volunteer.id,
+    type: 'initial',
+    method: 'sms',
+    priorityGroup,
+  }
   try {
-    const { wasSuccessful, messageId } = await sendNotification(sidPromise)
-    const notification = {
-      wasSuccessful,
-      messageId,
-      volunteer: volunteer.id,
-      type: subtopic,
-      method: 'sms',
-      priorityGroup,
-    }
-    await SessionRepo.addSessionNotifications(session.id, [notification])
+    const messageId = await sendTextMessage(volunteer.phone, messageText)
+    notification.wasSuccessful = true
+    notification.messageId = messageId
   } catch (err) {
     logger.error(err as Error)
   }
+
+  await SessionRepo.addSessionNotification(session.id, notification)
 
   return volunteer.id
-}
-
-/**
- * Helper function to record notifications, whether successful or
- * failed, to the database
- * @param {sendPromise} a Promise that resolves to the message SID
- * @param {notification} the notification object to save
- * after the message is sent to Twilio
- * @returns a Promise that resolves to the saved notification
- * object
- */
-export async function sendNotification(
-  sidPromise: Promise<string>
-): Promise<{
-  wasSuccessful: boolean
-  messageId?: string
-}> {
-  let wasSuccessful = false
-  let messageId: undefined | string
-  try {
-    const sid = await sidPromise
-    // record notification in database
-    wasSuccessful = true
-    messageId = sid
-  } catch (err) {
-    // record notification failure in database
-    logger.error(err as Error)
-    wasSuccessful = false
-  } finally {
-    return { wasSuccessful, messageId }
-  }
 }
 
 export async function sendVerification(
@@ -496,13 +468,13 @@ export async function beginRegularNotifications(
   const isTestUser = await getTestStudentExistsById(session.studentId)
 
   if (isTestUser) return
-
+  console.log("ADDING TO QUEUE")
   // Delay initial wave of notifications by 1 min to give
   // volunteers on the dashboard time to pick up the request
   const notificationSchedule = config.notificationSchedule.slice()
   const delay = notificationSchedule.shift()
-  await queue.add(
-    'NotifyTutors',
+  await QueueService.add(
+    Jobs.NotifyTutors,
     { sessionId, notificationSchedule },
     { delay }
   )
