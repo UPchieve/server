@@ -23,7 +23,7 @@ export async function setup() {
   const healthCheck = {
     test: `pg_isready -h localhost -U subway -d upchieve -p ${PORT}`,
     interval: 1, // ping every second
-    retries: 60,
+    retries: 240,
     startPeriod: 5, // wait 5 seconds before counting against retries
   }
 
