@@ -180,10 +180,7 @@ export async function getCertificationsForVolunteers(
   }
 }
 
-export type VolunteerForWeeklyHourSummary = Omit<
-  VolunteerContactInfo,
-  'phone'
-> & {
+export type VolunteerForWeeklyHourSummary = VolunteerContactInfo & {
   sentHourSummaryIntroEmail: boolean
   certifications: Certifications
 }
@@ -951,7 +948,7 @@ export async function getVolunteersForNiceToMeetYou(
       { start, end },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -980,7 +977,7 @@ export async function getVolunteersForWaitingReferences(
       { start, end },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
   } catch (err) {
     throw new RepoReadError(err)
   }

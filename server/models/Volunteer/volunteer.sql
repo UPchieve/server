@@ -162,6 +162,7 @@ SELECT
     users.id,
     first_name,
     last_name,
+    phone,
     email,
     volunteer_partner_orgs.key AS volunteer_partner_org,
     sent_hour_summary_intro_email
@@ -787,10 +788,12 @@ SELECT
     first_name,
     last_name,
     phone,
-    email
+    email,
+    volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.banned IS FALSE
     AND users.deactivated IS FALSE
@@ -827,10 +830,12 @@ SELECT
     users.first_name,
     users.last_name,
     users.phone,
-    users.email
+    users.email,
+    volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN volunteer_references ON volunteer_references.user_id = users.id
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
@@ -841,7 +846,8 @@ WHERE
     AND volunteer_references.sent_at > :start!
     AND volunteer_references.sent_at < :end!
 GROUP BY
-    users.id;
+    users.id,
+    volunteer_partner_orgs.key;
 
 
 /* @name addVolunteerCertification */
