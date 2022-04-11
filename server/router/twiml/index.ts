@@ -66,7 +66,6 @@ export function routes(app: Express): void {
          * 2. Populate their most recent notification
          * 3. Populate that notification's session
          */
-        // Replaced with VolunteerRepo.getVolunteerForTextResponse
         session = await getVolunteerForTextResponse(incomingPhoneNumber)
         if (!session) {
           logger.error(

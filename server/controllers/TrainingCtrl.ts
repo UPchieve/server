@@ -29,8 +29,6 @@ import * as VolunteerModel from '../models/Volunteer'
 // change depending on how many of each subcategory are wanted
 const numQuestions = {
   [MATH_CERTS.PREALGREBA]: 2,
-  // TODO: remove `algebra` in the algebra 2 launch cleanup
-  [MATH_CERTS.ALGEBRA]: 2,
   [MATH_CERTS.ALGEBRA_ONE]: 2,
   [MATH_CERTS.ALGEBRA_TWO]: 1,
   [MATH_CERTS.GEOMETRY]: 2,
@@ -60,7 +58,7 @@ const TRAINING_THRESHOLD = 0.9
 function isCertifiedIn(givenCerts: any, userCerts: Certifications): boolean {
   for (const cert in givenCerts) {
     const subject = givenCerts[cert] as keyof Certifications
-    if (userCerts[subject].passed) return true
+    if (userCerts[subject]?.passed) return true
   }
 
   return false

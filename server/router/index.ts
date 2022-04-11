@@ -32,8 +32,7 @@ export default function(app: Express, io: Server) {
   ApiRouter.routes(app, sessionStore, io)
   EduRouter.routes(app)
   EligibilityRouter.routes(app)
-  // TODO: undo this
-  // TwimlRouter.routes(app)
+  TwimlRouter.routes(app)
   ContactFormRouter.routes(app)
   MobileRouter.routes(app)
   ReferenceRouter.routes(app)

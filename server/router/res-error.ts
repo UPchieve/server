@@ -11,7 +11,7 @@ import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
 import { StartSessionError } from '../utils/session-utils'
 import logger from '../logger'
-// import { ReportNoDataFoundError } from '../services/ReportService'
+import { ReportNoDataFoundError } from '../services/ReportService'
 
 export function resError(
   res: Response,
@@ -33,8 +33,7 @@ export function resError(
     else if (err instanceof RegistrationError) status = 422
     else if (err instanceof ResetError) status = 422
     else if (err instanceof StartSessionError) status = 422
-    // TODO: bring this back
-    // else if (err instanceof ReportNoDataFoundError) status = 422
+    else if (err instanceof ReportNoDataFoundError) status = 422
     // bad input
     else if (err instanceof InputError) status = 422
     // unknown error

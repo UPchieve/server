@@ -519,7 +519,6 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     }
 
   if (!user.banned) {
-    console.log('ENTERING NOTIFICATIONS')
     await beginRegularNotifications(newSessionId)
   }
 
