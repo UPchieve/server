@@ -1,7 +1,7 @@
 import config from '../../config'
 import { Ulid } from '../../models/pgUtils'
-// import sgMail from '@sendgrid/mail'
-// import axios from 'axios'
+import sgMail from '@sendgrid/mail'
+import axios from 'axios'
 import { capitalize } from 'lodash'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
 import {
@@ -13,28 +13,6 @@ import { getUserToCreateSendGridContact } from '../../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
-import logger from '../../logger'
-
-// TODO: undo this
-const sgMail = {
-  setApiKey: (key: string) => {},
-  send: (msg: any) => {
-    logger.info(`Sending email ${JSON.stringify(msg)}`)
-  },
-}
-
-const axios = {
-  put: (...params: any[]) => {
-    logger.info(`Sending axios put request ${JSON.stringify(params)}`)
-  },
-  post: (...params: any[]) => {
-    logger.info(`Sending axios post request ${JSON.stringify(params)}`)
-    return { data: { result: [] } }
-  },
-  delete: (...params: any[]) => {
-    logger.info(`Sending axios delete request ${JSON.stringify(params)}`)
-  },
-}
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 

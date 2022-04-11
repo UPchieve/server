@@ -459,17 +459,26 @@ SELECT
         ELSE
             FALSE
         END) AS is_volunteer,
-    array_agg(sessions.id ORDER BY sessions.created_at) AS past_sessions
+    past_sessions.total AS past_sessions
 FROM
     users
     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
     LEFT JOIN sessions ON sessions.student_id = users.id
         OR sessions.volunteer_id = users.id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(sessions.id ORDER BY sessions.created_at) AS total
+        FROM
+            sessions
+        WHERE
+            student_id = users.id
+            OR volunteer_id = users.id) AS past_sessions ON TRUE
 WHERE
     sessions.id = :sessionId!
 GROUP BY
     users.id,
-    volunteer_profiles.user_id;
+    volunteer_profiles.user_id,
+    past_sessions.total;
 
 
 /* @name getSessionMessagesForFrontend */
@@ -618,14 +627,12 @@ RETURNING
 SELECT
     extract(isodow FROM sessions.created_at)::int AS day,
     extract(hour FROM sessions.created_at)::int AS hour,
-    COALESCE(
-      AVG(
-        CASE WHEN sessions.volunteer_id IS NULL THEN
-            EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at))
-        ELSE
-            EXTRACT('epoch' FROM (sessions.volunteer_joined_at - sessions.created_at))
-        END),
-      0)::float * 1000 AS average_wait_time  -- in milliseconds
+    COALESCE(AVG(
+            CASE WHEN sessions.volunteer_id IS NULL THEN
+                EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at))
+            ELSE
+                EXTRACT('epoch' FROM (sessions.volunteer_joined_at - sessions.created_at))
+            END), 0)::float * 1000 AS average_wait_time -- in milliseconds
 FROM
     sessions
 WHERE
@@ -638,9 +645,9 @@ GROUP BY
     hour;
 
 
-
 /* @name getSessionsForReferCoworker */
 SELECT
+    sessions.id,
     feedbacks.volunteer_feedback
 FROM
     sessions
@@ -651,9 +658,8 @@ FROM
 WHERE
     sessions.volunteer_id = :volunteerId!
     AND sessions.time_tutored >= 15 * 60 * 1000
-    AND NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer"}')
-    AND feedbacks.user_id = :volunteerId!
-LIMIT 1;
+    AND (session_flags.name IS NULL
+        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer"}'));
 
 
 /* @name getVolunteersForGentleWarning */
@@ -661,7 +667,7 @@ SELECT
     users.id,
     users.email,
     users.first_name,
-    COUNT(DISTINCT notifications.id)::int AS total_notifications
+    notification_count.total AS total_notifications
 FROM
     notifications
     LEFT JOIN users ON users.id = notifications.user_id
@@ -672,6 +678,13 @@ FROM
             sessions
         WHERE
             sessions.volunteer_id = users.id) AS session_count ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            COUNT(*)::int AS total
+        FROM
+            notifications
+        WHERE
+            notifications.user_id = users.id) AS notification_count ON TRUE
 WHERE
     users.banned IS FALSE
     AND users.deactivated IS FALSE
@@ -679,7 +692,8 @@ WHERE
     AND session_count.total = 0
     AND notifications.session_id = :sessionId!
 GROUP BY
-    users.id;
+    users.id,
+    notification_count.total;
 
 
 /* @name getStudentForEmailFirstSession */
@@ -694,7 +708,8 @@ FROM
     LEFT JOIN users ON users.id = sessions.student_id
 WHERE
     sessions.id = :sessionId!
-    AND NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }')
+    AND (session_flags.name IS NULL
+        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE;
 
@@ -708,10 +723,11 @@ FROM
     sessions
     LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id
     LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id
-    LEFT JOIN users ON users.id = sessions.student_id
+    LEFT JOIN users ON users.id = sessions.volunteer_id
 WHERE
     sessions.id = :sessionId!
-    AND NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low session rating from coach" }')
+    AND (session_flags.name IS NULL
+        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE;
 

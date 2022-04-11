@@ -9,7 +9,6 @@ export default async (): Promise<void> => {
   const threeDaysAgo = Date.now() - oneDay * 3
   const fourDaysAgo = threeDaysAgo - oneDay
 
-  // Replaced by VolunteerRepo.getReferencesToFollowup (with some signature changes)
   const referencesToEmail = await getReferencesToFollowup(
     new Date(fourDaysAgo),
     new Date(threeDaysAgo)
