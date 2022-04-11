@@ -6,7 +6,7 @@ import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
-import { asString } from '../../utils/type-utils'
+import { asBoolean, asString } from '../../utils/type-utils'
 import { Ulid } from '../../models/pgUtils'
 
 export function routes(app: Express) {
@@ -176,8 +176,10 @@ export function routes(app: Express) {
   router.route('/reset/send').post(async function(req, res) {
     try {
       const email = asString(req.body.email)
+      let mobile: boolean | undefined
+      if (req.body.mobile) mobile = asBoolean(req.body.mobile)
       try {
-        await AuthService.sendReset(email as unknown)
+        await AuthService.sendReset(email as unknown, mobile as unknown)
       } catch (err) {
         // do not respond with info about no email match
         if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
