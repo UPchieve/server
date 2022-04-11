@@ -24,7 +24,7 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
   const volunteerId = asString(job.data.volunteerId)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
   // Do not send email if volunteer does not match email recipient spec
-  if (!volunteer) return
+  if (!volunteer || !volunteer.volunteerPartnerOrg) return
 
   const sessions = await getSessionsVolunteerRating(volunteerId)
 
@@ -46,8 +46,8 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
       await MailService.sendPartnerVolunteerReferACoworker(
         volunteer.email,
         volunteer.firstName,
-        volunteer.volunteerPartnerOrg!,
-        (await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg!))
+        volunteer.volunteerPartnerOrg,
+        (await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg))
           .name
       )
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)
