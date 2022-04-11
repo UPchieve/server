@@ -304,7 +304,7 @@ export async function getVolunteerForOnboardingById(
 
     return {
       ...volunteer,
-      hasCompletedUpchieve101: !!trainingCourses['upchieve101']?.complete
+      hasCompletedUpchieve101: !!trainingCourses['upchieve101']?.complete,
     }
   } catch (err) {
     throw new RepoReadError(err)
