@@ -41,7 +41,7 @@ export async function getReportedStudent(
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['studentPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }

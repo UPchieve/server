@@ -180,7 +180,7 @@ export async function getCertificationsForVolunteers(
   }
 }
 
-export type VolunteerForWeeklyHourSummary = VolunteerContactInfo & {
+export type VolunteerForWeeklyHourSummary = Omit<VolunteerContactInfo, 'phone'> & {
   sentHourSummaryIntroEmail: boolean
   certifications: Certifications
 }
@@ -193,7 +193,7 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
       undefined,
       getClient()
     )
-    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail']))
     const certifications = await getCertificationsForVolunteers(
       rows.map(v => v.id)
     )
@@ -946,7 +946,7 @@ export async function getVolunteersForNiceToMeetYou(
       { start, end },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -975,7 +975,7 @@ export async function getVolunteersForWaitingReferences(
       { start, end },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }

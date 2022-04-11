@@ -17,23 +17,15 @@ import { getFullVolunteerPartnerOrgByKey } from '../../../models/VolunteerPartne
 
 interface EmailReferCoworkerJobData {
   volunteerId: string
-  firstName: string
-  email: string
-  partnerOrg: string
 }
 
 export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
-  const {
-    data: { firstName, email, partnerOrg },
-    name: currentJob,
-  } = job
-
+  const currentJob = job.name
   const volunteerId = asString(job.data.volunteerId)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
   // Do not send email if volunteer does not match email recipient spec
   if (!volunteer) return
 
-  // replaced by getSessionsVolunteerRating
   const sessions = await getSessionsVolunteerRating(volunteerId)
 
   if (sessions.length === 5) {
@@ -52,10 +44,10 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
 
     try {
       await MailService.sendPartnerVolunteerReferACoworker(
-        email,
-        firstName,
-        partnerOrg,
-        (await getFullVolunteerPartnerOrgByKey(partnerOrg)).name
+        volunteer.email,
+        volunteer.firstName,
+        volunteer.volunteerPartnerOrg!,
+        (await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg!)).name
       )
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
