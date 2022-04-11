@@ -332,9 +332,6 @@ export async function processEmailPartnerVolunteer(sessionId: Ulid) {
         Jobs.EmailPartnerVolunteerReferACoworker,
         {
           volunteerId: session.volunteer.id,
-          firstName: session.volunteer.firstName,
-          email: session.volunteer.email,
-          partnerOrg: session.volunteer.volunteerPartnerOrg,
         },
         { delay }
       )
@@ -344,8 +341,6 @@ export async function processEmailPartnerVolunteer(sessionId: Ulid) {
         Jobs.EmailPartnerVolunteerTenSessionMilestone,
         {
           volunteerId: session.volunteer.id,
-          firstName: session.volunteer.firstName,
-          email: session.volunteer.email,
         },
         { delay }
       )
