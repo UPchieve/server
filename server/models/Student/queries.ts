@@ -1,4 +1,4 @@
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import {
   RepoCreateError,
   RepoDeleteError,

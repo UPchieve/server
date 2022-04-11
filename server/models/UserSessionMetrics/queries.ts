@@ -1,5 +1,5 @@
 import { merge } from 'lodash'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'

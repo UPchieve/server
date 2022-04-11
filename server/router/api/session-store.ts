@@ -2,7 +2,7 @@ import session from 'express-session'
 import CreatePgStore from 'connect-pg-simple'
 import config from '../../config'
 import { Express } from 'express'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 
 const PgStore = CreatePgStore(session)
 

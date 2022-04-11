@@ -1,6 +1,6 @@
 import { Notification } from './types'
 import { RepoReadError } from '../Errors'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeSomeRequired, makeRequired } from '../pgUtils'
 

@@ -1,10 +1,11 @@
 import { mocked } from 'ts-jest/utils'
 import { Pool } from 'pg'
-import * as PgClient from '../pg'
+import * as PgClient from '../db'
 import config from '../config'
 import * as pgEnv from './postgres-setup'
 
-jest.mock('../pg')
+jest.unmock('pg')
+jest.mock('../db')
 const mockedClient = mocked(PgClient, true)
 
 export const ONE_MINUTE = 60 * 1000

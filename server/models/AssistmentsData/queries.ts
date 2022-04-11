@@ -1,6 +1,6 @@
 import { AssistmentsData } from './types'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { makeSomeRequired, Ulid, getDbUlid } from '../pgUtils'
 

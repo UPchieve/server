@@ -9,7 +9,7 @@ import {
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
 import * as pgQueries from './pg.queries'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import _ from 'lodash'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
