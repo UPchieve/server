@@ -6,12 +6,12 @@ import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
 
 export interface EmailSessionReportedJobData {
-  studentId: string // mongoose.Types.ObjectID is serialized to string on queue
+  studentId: string
   reportedBy: string
   reportReason: string
   reportMessage: string
   isBanReason: boolean
-  sessionId: string // mongoose.Types.ObjectID is serialized to string on queue
+  sessionId: string
 }
 
 async function emailReportedSession(

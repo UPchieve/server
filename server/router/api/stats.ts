@@ -11,7 +11,6 @@ export function routes(router: Router) {
       const heatMap = await SessionService.getWaitTimeHeatMap(user)
       res.json({ heatMap })
     } catch (error) {
-      if (error instanceof KeyNotFoundError) return res.sendStatus(404)
       resError(res, error as Error)
     }
   })
