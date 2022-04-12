@@ -67,12 +67,12 @@ FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-WHERE
-    users.id = :userId!
-    AND volunteer_profiles.onboarded IS TRUE
-    AND users.banned IS FALSE
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+WHERE (users.id::uuid = :userId!
+    OR users.mongo_id::text = :mongoUserId!)
+AND volunteer_profiles.onboarded IS TRUE
+AND users.banned IS FALSE
+AND users.deactivated IS FALSE
+AND users.test_user IS FALSE;
 
 
 /* @name getPartnerVolunteerForLowHours */
@@ -94,14 +94,14 @@ FROM
             sessions
         WHERE
             sessions.volunteer_id = :userId!) AS total_sessions ON TRUE
-WHERE
-    users.id = :userId!
-    AND volunteer_profiles.onboarded IS TRUE
-    AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
-    AND users.banned IS FALSE
-    AND users.deactivated IS FALSE
-    AND total_sessions.total > 0
-    AND users.test_user IS FALSE;
+WHERE (users.id::uuid = :userId!
+    OR users.mongo_id::text = :mongoUserId!)
+AND volunteer_profiles.onboarded IS TRUE
+AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
+AND users.banned IS FALSE
+AND users.deactivated IS FALSE
+AND total_sessions.total > 0
+AND users.test_user IS FALSE;
 
 
 /* @name getPartnerVolunteerForCollege */
@@ -141,15 +141,16 @@ FROM
                 JOIN topics ON topics.id = subjects.topic_id
                 JOIN CTE ON CTE.name = subjects.name
             WHERE
-                users.id = :userId!
+                users.id::uuid = :userId!
+                OR users.mongo_id::text = :mongoUserId!
             GROUP BY
                 subjects.name, CTE.total, topics.name
             HAVING
                 COUNT(*)::int >= CTE.total) AS subjects_unlocked) AS topics_unlocked ON TRUE
-WHERE
-    users.id = :userId!
-    AND volunteer_profiles.onboarded IS TRUE
-    AND array_length(topics_unlocked.topics, 1) = 1
+WHERE (users.id::uuid = :userId!
+    OR users.mongo_id::text = :mongoUserId!)
+AND volunteer_profiles.onboarded IS TRUE
+AND array_length(topics_unlocked.topics, 1) = 1
     AND topics_unlocked.topics = ARRAY['college']
     AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
     AND users.banned IS FALSE
@@ -284,7 +285,8 @@ WHERE
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS FALSE
-    AND users.id = :userId!
+    AND (users.id::uuid = :userId!
+        OR users.mongo_id::text = :mongoUserId!)
 GROUP BY
     users.id,
     onboarded,

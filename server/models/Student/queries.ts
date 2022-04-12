@@ -84,9 +84,11 @@ export async function getStudentContactInfoById(
   studentId: Ulid
 ): Promise<StudentContactInfo | undefined> {
   try {
+    const mongoUserId = studentId
     const result = await pgQueries.getStudentContactInfoById.run(
       {
         userId: studentId,
+        mongoUserId,
       },
       getClient()
     )

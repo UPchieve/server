@@ -90,8 +90,9 @@ export async function getVolunteerForQuickTips(
   userId: Ulid
 ): Promise<VolunteerContactAndAvailability | undefined> {
   try {
+    const mongoUserId = userId
     const vResult = await pgQueries.getVolunteerForQuickTips.run(
-      { userId },
+      { userId, mongoUserId },
       getClient()
     )
     if (!vResult.length) return
@@ -110,8 +111,9 @@ export async function getPartnerVolunteerForLowHours(
   userId: Ulid
 ): Promise<VolunteerContactAndAvailability | undefined> {
   try {
+    const mongoUserId = userId
     const vResult = await pgQueries.getPartnerVolunteerForLowHours.run(
-      { userId },
+      { userId, mongoUserId },
       getClient()
     )
     if (!vResult.length) return
@@ -130,8 +132,9 @@ export async function getPartnerVolunteerForCollege(
   userId: Ulid
 ): Promise<VolunteerContactAndAvailability | undefined> {
   try {
+    const mongoUserId = userId
     const vResult = await pgQueries.getPartnerVolunteerForCollege.run(
-      { userId },
+      { userId, mongoUserId },
       getClient()
     )
     if (!vResult.length) return
@@ -291,8 +294,9 @@ export async function getVolunteerForOnboardingById(
   userId: Ulid
 ): Promise<VolunteerForOnboarding | undefined> {
   try {
+    const mongoUserId = userId
     const result = await pgQueries.getVolunteerForOnboardingById.run(
-      { userId },
+      { userId, mongoUserId },
       getClient()
     )
     if (!result.length) return

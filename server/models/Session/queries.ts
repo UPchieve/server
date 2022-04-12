@@ -805,8 +805,9 @@ export async function getVolunteersForGentleWarning(
   sessionId: Ulid
 ): Promise<VolunteerForGentleWarning[]> {
   try {
+    const mongoSessionId = sessionId
     const result = await pgQueries.getVolunteersForGentleWarning.run(
-      { sessionId },
+      { sessionId, mongoSessionId },
       getClient()
     )
     return result.map(v => makeRequired(v))
@@ -824,8 +825,9 @@ export async function getStudentForEmailFirstSession(
   sessionId: Ulid
 ): Promise<UserForFirstSession | undefined> {
   try {
+    const mongoSessionId = sessionId
     const result = await pgQueries.getStudentForEmailFirstSession.run(
-      { sessionId },
+      { sessionId, mongoSessionId },
       getClient()
     )
     if (!result.length) return
@@ -839,8 +841,9 @@ export async function getVolunteerForEmailFirstSession(
   sessionId: Ulid
 ): Promise<UserForFirstSession | undefined> {
   try {
+    const mongoSessionId = sessionId
     const result = await pgQueries.getVolunteerForEmailFirstSession.run(
-      { sessionId },
+      { sessionId, mongoSessionId },
       getClient()
     )
     if (!result.length) return
