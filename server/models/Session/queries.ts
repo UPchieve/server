@@ -18,7 +18,7 @@ import { ResponseData, StudentCounselingFeedback } from '../Feedback'
 import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
 import { fixNumberInt } from '../../utils/fix-number-int'
-import { asObjectId } from '../../utils/type-utils'
+import { asPgId } from '../../utils/type-utils'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -808,8 +808,8 @@ export async function getVolunteersForGentleWarning(
   try {
     const result = await pgQueries.getVolunteersForGentleWarning.run(
       {
-        sessionId: asObjectId(sessionId),
-        mongoSessionId: asObjectId(sessionId),
+        sessionId: asPgId(sessionId),
+        mongoSessionId: asPgId(sessionId),
       },
       getClient()
     )
@@ -830,8 +830,8 @@ export async function getStudentForEmailFirstSession(
   try {
     const result = await pgQueries.getStudentForEmailFirstSession.run(
       {
-        sessionId: asObjectId(sessionId),
-        mongoSessionId: asObjectId(sessionId),
+        sessionId: asPgId(sessionId),
+        mongoSessionId: asPgId(sessionId),
       },
       getClient()
     )
@@ -848,8 +848,8 @@ export async function getVolunteerForEmailFirstSession(
   try {
     const result = await pgQueries.getVolunteerForEmailFirstSession.run(
       {
-        sessionId: asObjectId(sessionId),
-        mongoSessionId: asObjectId(sessionId),
+        sessionId: asPgId(sessionId),
+        mongoSessionId: asPgId(sessionId),
       },
       getClient()
     )

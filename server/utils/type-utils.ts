@@ -1,6 +1,7 @@
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
 import { Types } from 'mongoose'
+import { Uuid4, Exception } from 'id128'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
 
@@ -142,9 +143,14 @@ export function asUnion<T>(fns: ((s: unknown, errMsg?: string) => T)[]) {
   }
 }
 
-// helper to check if the incoming ID is a mongo id or an PG id
+// helper to check if the incoming ID is a PG id or mongo id
 // TODO: remove once mongo ids are no longer stored in cached jobs
-export function asObjectId(id: string): string | undefined {
-  if (Types.ObjectId.isValid(id)) return id
-  else return undefined
+export function asPgId(id: string): string | undefined {
+  try {
+    Uuid4.fromCanonical(id)
+    return id
+  } catch (err) {
+    if (err instanceof Exception.InvalidEncoding) return undefined
+    throw err
+  }
 }
