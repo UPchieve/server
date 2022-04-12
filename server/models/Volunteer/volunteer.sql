@@ -274,6 +274,7 @@ FROM
             JOIN CTE ON CTE.name = subjects.name
         WHERE
             users.id = :userId!
+            OR users.mongo_id::text = :mongoUserId!
         GROUP BY
             subjects.name, CTE.total
         HAVING
