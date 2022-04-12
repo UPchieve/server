@@ -980,7 +980,7 @@ FROM
             volunteer_references
             JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
         WHERE
-            volunteer_reference_statuses.name = 'submitted'
+            volunteer_reference_statuses.name = ANY ('{ "submitted", "approved" }')
         GROUP BY
             user_id) AS reference_count ON reference_count.user_id = users.id
     JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id -- user is only ready for review if they submitted background info
