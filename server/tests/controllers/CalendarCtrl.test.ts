@@ -115,8 +115,9 @@ describe('Save availability and time zone', () => {
   })
 
   test('Should update availability (and user action fires) not onboarded', async () => {
+    const volunteer = buildVolunteerForScheduleUpdate(user.id)
     mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(
-      buildVolunteerForScheduleUpdate(user.id)
+      volunteer
     )
 
     const availability = buildAvailability({
@@ -145,12 +146,17 @@ describe('Save availability and time zone', () => {
     ).toHaveBeenLastCalledWith(user.id, availability, tz)
     expect(
       VolunteerRepo.updateVolunteerThroughAvailability
-    ).toHaveBeenLastCalledWith(user.id, tz, false)
+    ).toHaveBeenLastCalledWith(user.id, tz, volunteer.onboarded)
   })
 
   test('Should update availability (and user action) and becomes onboarded - with user action', async () => {
+    const volunteer = buildVolunteerForScheduleUpdate(
+      user.id,
+      ['algebraOne'],
+      false
+    )
     mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(
-      buildVolunteerForScheduleUpdate(user.id, ['algebraOne'], false)
+      volunteer
     )
 
     const availability = buildAvailability({
