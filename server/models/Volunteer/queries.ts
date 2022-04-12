@@ -6,6 +6,7 @@ import {
   Ulid,
   getDbUlid,
   generateReferralCode,
+  makeSomeOptional,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
@@ -14,7 +15,7 @@ import { Certifications, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS } from '../../constants'
-import { Pool, PoolClient } from 'pg'
+import { PoolClient } from 'pg'
 import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
 
@@ -833,6 +834,15 @@ export type ReferenceContactInfo = {
   email: string
   firstName: string
   lastName: string
+  affiliation?: string
+  additionalInfo?: string
+  agreeableAndApproachable?: number
+  communicatesEffectively?: number
+  patient?: number
+  positiveRoleModel?: number
+  rejectionReason?: string
+  relationshipLength?: string
+  trustworthyWithChildren?: number
 }
 
 export async function getReferencesByVolunteer(
@@ -861,7 +871,9 @@ export async function getReferencesByVolunteerForAdminDetail(
       { userId },
       client
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v =>
+      makeSomeOptional(v, ['id', 'firstName', 'lastName', 'status', 'email'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
