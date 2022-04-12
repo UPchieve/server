@@ -664,7 +664,7 @@ export async function getLatestSessionByStudentId(
       { studentId },
       getClient()
     )
-    if (!result) return
+    if (!result.length) return
     const session = makeRequired(result[0])
     return {
       _id: session.id,
