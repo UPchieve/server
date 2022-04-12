@@ -39,7 +39,7 @@ export async function updateSchedule(
 
   const volunteer = await getVolunteerForScheduleUpdate(user.id)
   // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
-  let onboarded = false
+  let onboarded = volunteer.onboarded
   if (
     !volunteer.onboarded &&
     volunteer.subjects &&
