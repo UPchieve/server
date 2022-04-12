@@ -2529,14 +2529,6 @@ ALTER TABLE ONLY upchieve.volunteer_occupations
 
 
 --
--- Name: users unique_user_phone; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.users
-    ADD CONSTRAINT unique_user_phone UNIQUE (phone);
-
-
---
 -- Name: us_states us_states_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3704,5 +3696,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220405223056'),
     ('20220405223145'),
     ('20220405224635'),
-    ('20220405232100'),
-    ('20220411192639');
+    ('20220405232100');
