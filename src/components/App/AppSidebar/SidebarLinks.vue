@@ -7,6 +7,14 @@
         <house-icon class="icon" />
       </sidebar-link>
 
+      <sidebar-link
+        v-if="!isVolunteer && isSessionHistoryActive"
+        to='/sessions/history'
+        text="Session History"
+      >
+        <calendar-icon class="icon" />
+      </sidebar-link>
+
       <sidebar-link v-if="isVolunteer" to="/training" text="Training">
         <graduation-cap-icon class="icon" />
       </sidebar-link>
@@ -85,6 +93,7 @@ export default {
   computed: {
     ...mapGetters({
       isReferFriendsActive: 'featureFlags/isReferFriendsActive',
+      isSessionHistoryActive: 'featureFlags/isSessionHistoryActive',
       isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
     }),
   },

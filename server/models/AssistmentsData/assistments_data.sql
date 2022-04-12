@@ -5,7 +5,10 @@ SELECT
     assignment_id,
     student_id,
     session_id,
-    sent
+    sent,
+    sent_at,
+    created_at,
+    updated_at
 FROM
     assistments_data
 WHERE
@@ -48,5 +51,7 @@ RETURNING
     assignment_id,
     student_id,
     session_id,
-    sent;
-
+    sent,
+    sent_at,
+    created_at,
+    updated_at;

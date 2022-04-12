@@ -317,7 +317,7 @@ export async function notifyVolunteer(
     {
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
-      } volunteers - not notified in the last 3 days AND they don’t have "high level subjects"`,
+      } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
       filter: {
         volunteerPartnerOrg: associatedPartner
           ? associatedPartner.volunteerPartnerOrg
@@ -333,7 +333,7 @@ export async function notifyVolunteer(
     },
     {
       groupName:
-        'Regular volunteers - not notified in the last 3 days AND they don’t have "high level subjects"',
+        'Regular volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       filter: {
         volunteerPartnerOrg: { $exists: false },
         subjects: subjectsFilter,
@@ -348,7 +348,7 @@ export async function notifyVolunteer(
     {
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
-      } volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"`,
+      } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
       filter: {
         volunteerPartnerOrg: associatedPartner
           ? associatedPartner.volunteerPartnerOrg
@@ -364,7 +364,7 @@ export async function notifyVolunteer(
     },
     {
       groupName:
-        'Regular volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"',
+        'Regular volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
       filter: {
         volunteerPartnerOrg: {
           $exists: false,

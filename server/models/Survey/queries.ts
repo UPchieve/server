@@ -33,9 +33,9 @@ export async function savePresessionSurvey(
 }
 
 export async function getPresessionSurvey(
-  session: Types.ObjectId,
   user: Types.ObjectId,
-  surveyType?: SURVEY_TYPES
+  session: Types.ObjectId,
+  surveyType: SURVEY_TYPES
 ): Promise<Survey | undefined> {
   try {
     const survey = await SurveyModel.findOne({
