@@ -1,6 +1,5 @@
-import { Types } from 'mongoose'
+import { Ulid } from '../models/pgUtils'
 
-const getSessionRoom = (sessionId: Types.ObjectId): string =>
-  `sessions-${sessionId}`
+const getSessionRoom = (sessionId: Ulid): string => `sessions-${sessionId}`
 
 export default getSessionRoom

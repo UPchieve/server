@@ -1,3 +1,4 @@
+/*
 import { Types } from 'mongoose'
 import { Session } from '../../../models/Session'
 import {
@@ -232,3 +233,4 @@ export function mockedGetPublicSession(overrides = {}): PublicSession {
     ...overrides,
   }
 }
+*/

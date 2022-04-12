@@ -42,7 +42,7 @@ echo "Intercepting replicaset $LATEST_WEB_REPLICA_SET"
 telepresence intercept "$LATEST_WEB_REPLICA_SET" \
   --namespace="$namespace" \
   --port="$port":"$port" \
-  --service="subway-$namespace-stable" \
+  --service="subway" \
   --env-file=./telepresence.env
 
 # all variables sourced will be exported

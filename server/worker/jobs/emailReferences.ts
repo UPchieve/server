@@ -1,31 +1,18 @@
 import { flatten } from 'lodash'
 import { log } from '../logger'
-import { Volunteer, Reference } from '../../models/Volunteer'
-import { getVolunteers } from '../../models/Volunteer/queries'
+import { getVolunteersForEmailReference } from '../../models/Volunteer'
 import * as UserService from '../../services/UserService'
-import { REFERENCE_STATUS } from '../../constants'
-import { EMAIL_RECIPIENT } from '../../utils/aggregation-snippets'
 import { Jobs } from '.'
 
-interface UnsentReference {
-  reference: Reference
-  volunteer: Volunteer
-}
-
 export default async (): Promise<void> => {
-  const volunteers = await getVolunteers({
-    ...EMAIL_RECIPIENT,
-    'references.status': REFERENCE_STATUS.UNSENT,
-  })
+  const volunteers = await getVolunteersForEmailReference()
 
-  const unsent: UnsentReference[] = flatten(
+  const unsent = flatten(
     volunteers.map(vol => {
-      return vol.references
-        .filter(ref => ref.status === REFERENCE_STATUS.UNSENT)
-        .map(ref => ({
-          reference: ref,
-          volunteer: vol,
-        }))
+      return vol.references.map(ref => ({
+        reference: ref,
+        volunteer: vol,
+      }))
     })
   )
 
@@ -38,7 +25,7 @@ export default async (): Promise<void> => {
       await UserService.notifyReference(u.reference, u.volunteer)
       totalEmailed += 1
     } catch (error) {
-      errors.push(`reference ${u.reference._id}: ${error}`)
+      errors.push(`reference ${u.reference.id}: ${error}`)
     }
   }
 

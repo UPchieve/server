@@ -2142,19 +2142,6 @@ paths:
       responses:
         '200':
           description: Returns an object of school results
-  /api-public/eligibility/findeligible:
-    get:
-      tags:
-        - eligibility
-      summary: Paginate eligible high schools
-      description: |
-        - Available in tests only
-        - Admin only
-      security:
-        - cookieAuth: []
-      responses:
-        '200':
-          description: Returns an object of paginated eligible schools
   /api-public/eligibility/school/studentusers/{schoolUpchieveId}:
     get:
       tags:

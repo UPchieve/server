@@ -1,4 +1,5 @@
-import mongoose from 'mongoose'
+test.skip('postgres migration', () => 1)
+/*import mongoose from 'mongoose'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
 import UserProductFlagsModel, {
   UserProductFlags,
@@ -259,3 +260,4 @@ describe('Test read UserProductFlag documents', () => {
     expect((error! as RepoReadError).message).toContain(testError.message)
   })
 })
+*/

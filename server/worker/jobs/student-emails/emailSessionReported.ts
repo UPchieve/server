@@ -1,17 +1,17 @@
 import { Job } from 'bull'
-import { getStudent } from '../../../models/Student/queries'
-import { USER_BAN_REASON } from '../../../constants'
+import { USER_BAN_REASONS } from '../../../constants'
+import { getReportedStudent } from '../../../models/Student'
 import * as MailService from '../../../services/MailService'
 import { safeAsync } from '../../../utils/safe-async'
-import { asObjectId } from '../../../utils/type-utils'
+import { asString } from '../../../utils/type-utils'
 
 export interface EmailSessionReportedJobData {
-  studentId: string // mongoose.Types.ObjectID is serialized to string on queue
+  studentId: string
   reportedBy: string
   reportReason: string
   reportMessage: string
   isBanReason: boolean
-  sessionId: string // mongoose.Types.ObjectID is serialized to string on queue
+  sessionId: string
 }
 
 async function emailReportedSession(
@@ -20,17 +20,13 @@ async function emailReportedSession(
   const {
     data: { reportedBy, reportReason, reportMessage, isBanReason },
   } = job
-  const studentId = asObjectId(job.data.studentId)
-  const sessionId = asObjectId(job.data.sessionId)
+  const studentId = asString(job.data.studentId)
+  const sessionId = asString(job.data.sessionId)
 
   // a student should receive this email regardless of banned status
   // need full student to create sendGrid contact below
-  const student = await getStudent({
-    _id: studentId,
-    isDeactivated: false,
-    isFakeUser: false,
-    isTestUser: false,
-  })
+  // Replace with getReportedStudent from Student Repo
+  const student = await getReportedStudent(studentId)
 
   const errors: string[] = []
 
@@ -39,14 +35,16 @@ async function emailReportedSession(
     if (isBanReason) {
       const banAlert = await safeAsync(
         MailService.sendBannedUserAlert(
-          student._id,
-          USER_BAN_REASON.SESSION_REPORTED,
+          student.id,
+          USER_BAN_REASONS.SESSION_REPORTED,
           sessionId
         )
       )
       if (banAlert.error)
         errors.push(`Failed to send ban alert email: ${banAlert.error.message}`)
-      const studentContact = await safeAsync(MailService.createContact(student))
+      const studentContact = await safeAsync(
+        MailService.createContact(student.id)
+      )
       if (studentContact.error)
         errors.push(
           `Failed to add student ${studentId} to ban email group: ${studentContact.error.message}`
@@ -69,7 +67,7 @@ async function emailReportedSession(
     const studentEmail = await safeAsync(
       MailService.sendStudentReported(
         student.email,
-        student.firstname,
+        student.firstName,
         reportReason
       )
     )

@@ -4,7 +4,7 @@ import * as MailService from '../../../services/MailService'
 import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getVolunteerForQuickTips } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
-import { asObjectId } from '../../../utils/type-utils'
+import { asString } from '../../../utils/type-utils'
 
 interface EmailQuickTipsJobData {
   volunteerId: string
@@ -12,19 +12,19 @@ interface EmailQuickTipsJobData {
 
 export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
   const { name: currentJob } = job
-  const volunteerId = asObjectId(job.data.volunteerId)
+  const volunteerId = asString(job.data.volunteerId)
   const volunteer = await getVolunteerForQuickTips(volunteerId)
 
   if (volunteer) {
-    const { _id, firstname, email, availability } = volunteer
-    const textNotifications = await getNotificationsByVolunteerId(_id)
+    const { id, firstName, email, availability } = volunteer
+    const textNotifications = await getNotificationsByVolunteerId(id)
 
     if (
       textNotifications.length === 0 &&
       countAvailabilitySelected(availability)
     ) {
       try {
-        await MailService.sendVolunteerQuickTips(email, firstname)
+        await MailService.sendVolunteerQuickTips(email, firstName)
         log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(

@@ -7,7 +7,7 @@ export function routeProductFlags(router: Router) {
   router.route('/product-flags').get(async function(req, res) {
     try {
       const user = extractUser(req)
-      const flags = await UserProductFlagsRepo.getPublicUPFByUserId(user._id)
+      const flags = await UserProductFlagsRepo.getPublicUPFByUserId(user.id)
       res.json({ flags })
     } catch (err) {
       resError(res, err)

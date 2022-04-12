@@ -1,17 +1,19 @@
 import axios from 'axios'
 import { backOff } from 'exponential-backoff'
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import config from '../../config'
-import { AssistmentsData } from '../../models/AssistmentsData'
 import {
+  AssistmentsData,
   getAssistmentsDataBySession,
-  updateAssistmentsDataSentAtById,
-} from '../../models/AssistmentsData/queries'
-import { Message } from '../../models/Message'
-import { getSessionById } from '../../models/Session/queries'
+  updateAssistmentsDataSentById,
+} from '../../models/AssistmentsData'
+import {
+  getMessagesForFrontend,
+  getSessionById,
+  MessageForFrontend,
+} from '../../models/Session'
 import { log } from '../logger'
-import { asObjectId } from '../../utils/type-utils'
+import { asString } from '../../utils/type-utils'
 
 interface PartMessage {
   contents: string
@@ -44,7 +46,7 @@ export interface Payload {
   session: PartSession
 }
 
-export function pluckMessages(messages: Message[]): PartMessage[] {
+export function pluckMessages(messages: MessageForFrontend[]): PartMessage[] {
   const final: PartMessage[] = []
   for (const message of messages) {
     final.push({
@@ -64,21 +66,22 @@ export async function buildRequest(
       assignmentXref: data.assignmentId,
       userXref: data.studentId,
     }
-    const session = await getSessionById(data.session as Types.ObjectId)
+    const session = await getSessionById(data.sessionId)
+    const messages = await getMessagesForFrontend(data.sessionId)
     if (!session.endedAt) throw new Error('Assistments session has not ended!')
     const partSession = {
       createdAt: session.createdAt.getTime(),
       endedAt: session.endedAt.getTime(),
-      id: session._id.toString(),
-      messages: pluckMessages(session.messages),
-      studentId: session.student.toString(),
-      subject: session.type,
-      subTopic: session.subTopic,
+      id: session.id,
+      messages: pluckMessages(messages),
+      studentId: session.studentId,
+      subject: session.topic,
+      subTopic: session.subject,
       timeTutored: session.timeTutored,
       volunteerJoinedAt: session.volunteerJoinedAt
         ? session.volunteerJoinedAt.getTime()
         : undefined,
-      volunteerId: session.volunteer ? session.volunteer.toString() : undefined,
+      volunteerId: session.volunteerId,
     }
     const payload = {
       studentId: data.studentId,
@@ -89,7 +92,7 @@ export async function buildRequest(
     return { params, payload }
   } catch (err) {
     throw new Error(
-      `Error building request to send AssistmentsData ${data._id}: ${
+      `Error building request to send AssistmentsData ${data.id}: ${
         (err as Error).message
       }`
     )
@@ -165,16 +168,16 @@ export interface SendAssistmentsDataJobData {
 }
 
 export default async (job: Job<SendAssistmentsDataJobData>): Promise<void> => {
-  const sessionId = asObjectId(job.data.sessionId)
+  const sessionId = asString(job.data.sessionId)
   const data = await getAssistmentsDataBySession(sessionId)
   if (data && !data.sent) {
     const { params, payload } = await buildRequest(data)
     await sendWrapper(params, payload)
     try {
-      await updateAssistmentsDataSentAtById(data._id, new Date())
+      await updateAssistmentsDataSentById(data.id)
     } catch (err) {
       throw new Error(
-        `Error updating assistments data ${data._id}: ${(err as Error).message}`
+        `Error updating assistments data ${data.id}: ${(err as Error).message}`
       )
     }
   }

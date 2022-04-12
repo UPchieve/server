@@ -6,7 +6,7 @@ import QueueService from '../../services/QueueService'
 import * as TwilioService from '../../services/TwilioService'
 import { log } from '../logger'
 import { Jobs } from '.'
-import { asObjectId } from '../../utils/type-utils'
+import { asString } from '../../utils/type-utils'
 
 interface NotifyTutorsJobData {
   sessionId: string
@@ -14,21 +14,20 @@ interface NotifyTutorsJobData {
 }
 
 export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
-  const sessionId = asObjectId(job.data.sessionId)
+  const sessionId = asString(job.data.sessionId)
   const notificationSchedule = job.data.notificationSchedule
   const session = await getSessionById(sessionId)
   if (!session) return
   const fulfilled = sessionUtils.isSessionFulfilled(session)
   if (fulfilled) {
-    QueueService.add(Jobs.EmailVolunteerGentleWarning, {
+    await QueueService.add(Jobs.EmailVolunteerGentleWarning, {
       sessionId,
-      notifications: session.notifications,
     })
     return log(`Cancel ${Jobs.NotifyTutors} for ${sessionId}: fulfilled`)
   }
   const delay = notificationSchedule.shift()
   if (delay)
-    QueueService.add(
+    await QueueService.add(
       Jobs.NotifyTutors,
       { sessionId: sessionId.toString(), notificationSchedule },
       { delay }
@@ -39,10 +38,10 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
 
     if (volunteerNotified) {
       log(
-        `Successfully sent notification for session ${session._id} to volunteer ${volunteerNotified}`
+        `Successfully sent notification for session ${session.id} to volunteer ${volunteerNotified}`
       )
       // send a followup text to the volunteer in 5 mins
-      QueueService.add(
+      await QueueService.add(
         Jobs.SendFollowupText,
         {
           sessionId: sessionId.toString(),
@@ -52,11 +51,11 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
       )
     } else
       log(
-        `Unable to send notification for session ${session._id}: no volunteers available`
+        `Unable to send notification for session ${session.id}: no volunteers available`
       )
   } catch (error) {
     throw new Error(
-      `Failed to send notification for session ${session._id}: ${error}`
+      `Failed to send notification for session ${session.id}: ${error}`
     )
   }
 }

@@ -5,9 +5,10 @@ import _ from 'lodash'
 import config from '../../config'
 import logger from '../../logger'
 import * as twilioService from '../../services/TwilioService'
-import VolunteerModel from '../../models/Volunteer'
-import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 import { resError } from '../res-error'
+import { createSessionAction } from '../../models/UserAction'
+import { SESSION_USER_ACTIONS } from '../../constants'
+import { getVolunteerForTextResponse } from '../../models/Volunteer'
 
 export function routes(app: Express): void {
   const router = Router()
@@ -46,7 +47,6 @@ export function routes(app: Express): void {
     // TODO: duck type validation
     const incomingMessage = req.body.Body
     const incomingPhoneNumber = req.body.From
-    let userId
     let session
 
     if (!incomingPhoneNumber)
@@ -66,26 +66,15 @@ export function routes(app: Express): void {
          * 2. Populate their most recent notification
          * 3. Populate that notification's session
          */
-        // TODO: repo pattern
-        const populatedUser = await VolunteerModel.findOne({
-          phone: incomingPhoneNumber,
-        })
-          .populate({
-            path: 'volunteerLastNotification',
-            populate: {
-              path: 'session',
-              select: '_id volunteerJoinedAt endedAt',
-            },
-          })
-          .lean()
-          .exec()
+        session = await getVolunteerForTextResponse(incomingPhoneNumber)
+        if (!session) {
+          logger.error(
+            `User not found for phone number: ${incomingMessage}. Not acknologing phone reply`
+          )
+          return
+        }
 
-        userId = _.get(populatedUser, '_id')
-
-        // Get the session if it exists, or else an empty object
-        session = _.get(populatedUser, 'volunteerLastNotification.session', {})
-
-        if (!session._id) {
+        if (!session.sessionId) {
           // Handle: No session found
           twiml.message(
             'Error: No session found. You can try joining the session from the dashboard at app.upchieve.org'
@@ -98,7 +87,11 @@ export function routes(app: Express): void {
           twiml.message('The student has cancelled their help request')
         } else {
           // Handle: No issues, so send the session URL
-          const sessionUrl = twilioService.getSessionUrl(session)
+          const sessionUrl = twilioService.getSessionUrl({
+            subject: session.subject,
+            topic: session.topic,
+            id: session.sessionId,
+          })
           twiml.message(sessionUrl)
         }
       } catch (err) {
@@ -114,11 +107,12 @@ export function routes(app: Express): void {
     res.writeHead(200, { 'Content-Type': 'text/xml' })
     res.end(twiml.toString())
 
-    if (isYesMessage && session._id) {
-      await new UserActionCtrl.SessionActionCreator(
-        userId,
-        session._id
-      ).repliedYesToSession()
+    if (isYesMessage && session) {
+      await createSessionAction({
+        userId: session.volunteerId,
+        sessionId: session.sessionId,
+        action: SESSION_USER_ACTIONS.REPLIED_YES,
+      })
     }
   })
 

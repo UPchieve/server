@@ -1,49 +1,61 @@
-import { Volunteer, TrainingCourses } from '../models/Volunteer'
-import { updateVolunteerTrainingById } from '../models/Volunteer/queries'
+import { UserContactInfo } from '../models/User'
+import { TrainingCourses } from '../models/Volunteer'
+import {
+  getVolunteerTrainingCourses,
+  updateVolunteerTrainingById,
+} from '../models/Volunteer'
 import * as TrainingUtils from '../utils/training-courses'
 
 // @note: this type was derived from how the return type is used by the frontend
 // TODO: come back and verify this is the return shape we want
-export function getCourse(
-  volunteer: Volunteer,
+export async function getCourse(
+  volunteer: UserContactInfo,
   courseKey: keyof TrainingCourses
-): any {
-  const course: any = TrainingUtils.getCourse(courseKey)
-  if (!course) return
-  const courseProgress = volunteer.trainingCourses[courseKey]
-  course.isComplete = courseProgress.isComplete
-  course.progress = courseProgress.progress
+): Promise<any> {
+  const volunteerTrainingCourses = await getVolunteerTrainingCourses(
+    volunteer.id
+  )
+  const foundCourse = volunteerTrainingCourses[courseKey]
+  if (!foundCourse) return
+
+  const course = Object.assign({}, TrainingUtils.getCourse(courseKey))
   course.modules.forEach((mod: any) => {
     mod.materials.forEach((mat: any) => {
-      mat.isCompleted = courseProgress.completedMaterials.includes(
-        mat.materialKey
-      )
+      mat.isCompleted = foundCourse.completedMaterials.includes(mat.materialKey)
     })
   })
-  return course
+  return {
+    ...course,
+    isComplete: foundCourse.complete,
+    progress: foundCourse.progress,
+    quizKey: courseKey,
+  }
 }
 
 // TODO: clean up return type
 export async function recordProgress(
-  volunteer: Volunteer,
+  volunteer: UserContactInfo,
   courseKey: keyof TrainingCourses,
   materialKey: string
 ) {
-  const courseProgress = volunteer.trainingCourses[courseKey]
+  const volunteerTrainingCourses = await getVolunteerTrainingCourses(
+    volunteer.id
+  )
+  const foundCourse = volunteerTrainingCourses[courseKey]
+  if (!foundCourse) return
 
   // Early exit if already saved progress
-  if (courseProgress.completedMaterials.includes(materialKey)) return
+  if (foundCourse.completedMaterials.includes(materialKey)) return
 
   // Mutate user object's completedMaterials
-  courseProgress.completedMaterials.push(materialKey)
-  const progress = TrainingUtils.getProgress(
-    courseKey,
-    courseProgress.completedMaterials
-  )
+  const completedMaterials = [...foundCourse.completedMaterials]
+  completedMaterials.push(materialKey)
+
+  const progress = TrainingUtils.getProgress(courseKey, completedMaterials)
   const isComplete = progress === 100
 
   await updateVolunteerTrainingById(
-    volunteer._id,
+    volunteer.id,
     courseKey,
     isComplete,
     progress,

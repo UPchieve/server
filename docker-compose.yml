@@ -20,15 +20,6 @@ services:
             timeout: 30s
             retries: 5
             start_period: 30s
-    mongodb:
-        hostname: mongodb
-        ports:
-            - "27017-27019:27017-27019"
-        image: mongo:4.4.5
-        environment:
-            - MONGO_INITDB_DATABASE=upchieve
-        volumes:
-            - ./mongo-volume:/data/db
     redis:
         hostname: redis
         ports:

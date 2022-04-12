@@ -1,6 +1,5 @@
 import { log } from '../logger'
-import { getVolunteersContactInfo } from '../../models/Volunteer/queries'
-import { REFERENCE_STATUS } from '../../constants'
+import { getVolunteersForWaitingReferences } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
 
@@ -9,15 +8,11 @@ export default async (): Promise<void> => {
   const oneDay = 1000 * 60 * 60 * 24 * 1
   const fiveDaysAgo = Date.now() - oneDay * 5
   const sixDaysAgo = fiveDaysAgo - oneDay
-  const query = {
-    'references.status': REFERENCE_STATUS.SENT,
-    'references.sentAt': {
-      $gt: new Date(sixDaysAgo),
-      $lt: new Date(fiveDaysAgo),
-    },
-  }
 
-  const volunteers = await getVolunteersContactInfo(query)
+  const volunteers = await getVolunteersForWaitingReferences(
+    new Date(sixDaysAgo),
+    new Date(fiveDaysAgo)
+  )
 
   let totalEmailed = 0
   const errors: string[] = []
@@ -26,7 +21,7 @@ export default async (): Promise<void> => {
       await MailService.sendWaitingOnReferences(volunteer)
       totalEmailed++
     } catch (error) {
-      errors.push(`volunteer ${volunteer._id}: ${error}`)
+      errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
   }
 

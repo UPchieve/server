@@ -19,7 +19,9 @@ WHERE
 UPDATE
     assistments_data
 SET
-    sent = TRUE
+    sent = TRUE,
+    sent_at = NOW(),
+    updated_at = NOW()
 WHERE
     id = :assistmentsDataId!
 RETURNING
@@ -35,8 +37,8 @@ SELECT
     :studentId!,
     :sessionId!,
     FALSE,
-    NOW()::date,
-    NOW()::date
+    NOW(),
+    NOW()
 WHERE
     NOT EXISTS (
         SELECT
@@ -55,3 +57,4 @@ RETURNING
     sent_at,
     created_at,
     updated_at;
+

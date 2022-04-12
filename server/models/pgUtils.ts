@@ -2,7 +2,11 @@ import _ from 'lodash'
 import { Ulid as ULID } from 'id128'
 import { v4 as UUID } from 'uuid'
 import { CustomError } from 'ts-custom-error'
-import { SetOptional } from 'type-fest'
+import base64url from 'base64url'
+
+export function generateReferralCode(userId: Ulid): string {
+  return base64url(Buffer.from(userId, 'hex'))
+}
 
 /**
  * pgTyped DOES NOT actually modify the incoming data to use camelCase keys even
@@ -23,9 +27,26 @@ function camelCaseKeys(obj: any): any {
   return temp
 }
 
+export type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends <
+  T
+>() => T extends Y ? 1 : 2
+  ? true
+  : false
+type Filter<KeyType, ExcludeType> = Equals<KeyType, ExcludeType> extends true
+  ? never
+  : KeyType extends ExcludeType
+  ? never
+  : KeyType
+
 type Required<T> = T extends null ? never : T extends undefined ? never : T
 type SetRequired<BaseType, Keys extends keyof BaseType> = BaseType &
   { [K in Keys]: Required<BaseType[K]> }
+
+type Optional<T> = T extends null ? undefined : T
+type SetOptional<BaseType, Keys extends keyof BaseType> = {
+  [K in Filter<keyof BaseType, Keys>]: Optional<BaseType[K]>
+} &
+  { [K in Keys]: Optional<BaseType[K]> }
 
 class UnexpectedNullError extends CustomError {}
 export function makeRequired<T>(obj: T): SetRequired<T, keyof T> {
@@ -56,6 +77,23 @@ export function makeSomeRequired<T extends ObjectLike, U extends keyof T>(
     }
   }
   return temp as SetOptional<SetRequired<T, keyof T>, U>
+}
+
+export function makeSomeOptional<T extends ObjectLike, U extends keyof T>(
+  obj: T,
+  requireds: U[]
+): SetRequired<SetOptional<T, keyof T>, U> {
+  const temp = camelCaseKeys(obj)
+  for (const [key, value] of Object.entries(temp) as [keyof T, any]) {
+    if (value === null || value === undefined) {
+      if (requireds.includes(key))
+        throw new UnexpectedNullError(
+          `Key ${key} was unexpectedly null or undefined`
+        )
+      temp[key] = undefined
+    }
+  }
+  return temp as SetRequired<SetOptional<T, keyof T>, U>
 }
 
 export function getDbUlid(): Ulid {
