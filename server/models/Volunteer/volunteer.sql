@@ -345,11 +345,10 @@ SELECT
     volunteer_references.email AS reference_email
 FROM
     volunteer_references
-LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
     volunteer_references.id = :referenceId!
-AND
-    volunteer_reference_statuses.name <> 'removed'
+    AND volunteer_reference_statuses.name <> 'removed'
 LIMIT 1;
 
 
