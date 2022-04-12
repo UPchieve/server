@@ -355,6 +355,7 @@ SELECT
     photo_id_statuses.name AS photo_id_status,
     volunteer_profiles.country,
     users.verified,
+    users.banned AS is_banned,
     user_product_flags.gates_qualified AS in_gates_study,
     grade_levels.name AS current_grade,
     student_partner_org_sites.name AS partner_site,
@@ -452,9 +453,9 @@ FROM
         SELECT
             updated_at
         FROM
-            availability_histories
+            availabilities
         WHERE
-            availability_histories.user_id = :userId!
+            availabilities.user_id = :userId!
         ORDER BY
             updated_at
         LIMIT 1) AS recent_availability ON TRUE

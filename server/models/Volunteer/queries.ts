@@ -1145,6 +1145,7 @@ export type AdminUpdateVolunteer = {
   isVerified: boolean
   isBanned: boolean
   isDeactivated: boolean
+  isApproved: boolean | undefined
 }
 export async function updateVolunteerForAdmin(
   userId: Ulid,
@@ -1167,6 +1168,7 @@ export async function updateVolunteerForAdmin(
       {
         userId,
         partnerOrgId,
+        approved: update.isApproved,
       },
       client
     )

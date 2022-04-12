@@ -242,6 +242,8 @@ FROM
 WHERE
     sessions.to_review IS TRUE
     AND sessions.reviewed IS FALSE
+ORDER BY
+    (sessions.created_at) DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
@@ -857,6 +859,8 @@ WHERE
     AND ((:volunteerRating)::int IS NULL
         OR (volunteer_feedback.volunteer_feedback IS NOT NULL
             AND (volunteer_feedback.volunteer_feedback -> 'session-enjoyable' ->> '$numberInt')::int = (:volunteerRating)::int))
+ORDER BY
+    (sessions.created_at) DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 

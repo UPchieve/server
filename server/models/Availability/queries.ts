@@ -5,7 +5,7 @@ import { Ulid, getDbUlid, makeRequired, makeSomeRequired } from '../pgUtils'
 import _ from 'lodash'
 import moment from 'moment'
 import 'moment-timezone'
-import { DAYS, HOURS } from '../../constants'
+import { DAYS, HOURS, HOUR_TO_UTC_MAPPING } from '../../constants'
 import {
   Availability,
   AvailabilityDay,
@@ -224,7 +224,7 @@ export async function updateAvailabilityByVolunteerId(
     for (const day in availability) {
       const availabilityDay = availability[day as DAYS]
       for (const hour in availabilityDay) {
-        const parsedHour = Number(hour.slice(0, -1))
+        const parsedHour = HOUR_TO_UTC_MAPPING[hour as HOURS]
         if (availabilityDay[hour as HOURS])
           rows.push({
             availableEnd: parsedHour + 1,

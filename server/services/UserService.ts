@@ -182,7 +182,7 @@ interface AdminUpdate {
   isVerified: boolean
   isBanned: boolean
   isDeactivated: boolean
-  isApproved: boolean
+  isApproved?: boolean
   inGatesStudy?: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
@@ -195,7 +195,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   isVerified: asBoolean,
   isBanned: asBoolean,
   isDeactivated: asBoolean,
-  isApproved: asBoolean,
+  isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
 })
 

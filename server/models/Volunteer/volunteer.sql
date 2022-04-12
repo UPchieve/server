@@ -1022,7 +1022,7 @@ WHERE
     AND volunteer_references.sent_at < :end!;
 
 
-/* 
+/*
  @name updateVolunteerBackgroundInfo
  @param occupation -> ((userId, occupation, createdAt, updatedAt)...)
  */
@@ -1087,7 +1087,8 @@ RETURNING
 UPDATE
     volunteer_profiles
 SET
-    volunteer_partner_org_id = :partnerOrgId
+    volunteer_partner_org_id = :partnerOrgId,
+    approved = COALESCE(:approved, approved)
 WHERE
     user_id = :userId!
 RETURNING
