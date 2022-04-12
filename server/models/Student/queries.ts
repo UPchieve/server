@@ -17,6 +17,7 @@ import {
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import * as FeedbackRepo from '../../models/Feedback/queries'
+import { asPgId } from '../../utils/type-utils'
 
 export type ReportedStudent = {
   id: Ulid
@@ -86,7 +87,8 @@ export async function getStudentContactInfoById(
   try {
     const result = await pgQueries.getStudentContactInfoById.run(
       {
-        userId: studentId,
+        userId: asPgId(studentId),
+        mongoUserId: asPgId(studentId),
       },
       getClient()
     )

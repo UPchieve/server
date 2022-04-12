@@ -1,5 +1,6 @@
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
+import { Uuid4, Exception } from 'id128'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
 
@@ -138,5 +139,17 @@ export function asUnion<T>(fns: ((s: unknown, errMsg?: string) => T)[]) {
       if (!isUnion) throw new Error(errors.join(', '))
     } else
       throw new InputError(`${errMsg} : ${fns} is not an array of validators`)
+  }
+}
+
+// helper to check if the incoming ID is a PG id or mongo id
+// TODO: remove once mongo ids are no longer stored in cached jobs
+export function asPgId(id: string): string | undefined {
+  try {
+    Uuid4.fromCanonical(id)
+    return id
+  } catch (err) {
+    if (err instanceof Exception.InvalidEncoding) return undefined
+    throw err
   }
 }

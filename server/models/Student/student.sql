@@ -29,7 +29,8 @@ WHERE
     banned IS FALSE
     AND deactivated IS FALSE
     AND test_user IS FALSE
-    AND users.id = :userId!;
+    AND (users.id::uuid = :userId
+        OR users.mongo_id::text = :mongoUserId);
 
 
 /* @name isTestUser */

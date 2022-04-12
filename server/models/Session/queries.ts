@@ -18,6 +18,7 @@ import { ResponseData, StudentCounselingFeedback } from '../Feedback'
 import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
 import { fixNumberInt } from '../../utils/fix-number-int'
+import { asPgId } from '../../utils/type-utils'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -806,7 +807,10 @@ export async function getVolunteersForGentleWarning(
 ): Promise<VolunteerForGentleWarning[]> {
   try {
     const result = await pgQueries.getVolunteersForGentleWarning.run(
-      { sessionId },
+      {
+        sessionId: asPgId(sessionId),
+        mongoSessionId: asPgId(sessionId),
+      },
       getClient()
     )
     return result.map(v => makeRequired(v))
@@ -825,7 +829,10 @@ export async function getStudentForEmailFirstSession(
 ): Promise<UserForFirstSession | undefined> {
   try {
     const result = await pgQueries.getStudentForEmailFirstSession.run(
-      { sessionId },
+      {
+        sessionId: asPgId(sessionId),
+        mongoSessionId: asPgId(sessionId),
+      },
       getClient()
     )
     if (!result.length) return
@@ -840,7 +847,10 @@ export async function getVolunteerForEmailFirstSession(
 ): Promise<UserForFirstSession | undefined> {
   try {
     const result = await pgQueries.getVolunteerForEmailFirstSession.run(
-      { sessionId },
+      {
+        sessionId: asPgId(sessionId),
+        mongoSessionId: asPgId(sessionId),
+      },
       getClient()
     )
     if (!result.length) return

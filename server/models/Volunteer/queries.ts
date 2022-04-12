@@ -18,6 +18,7 @@ import { PHOTO_ID_STATUS } from '../../constants'
 import { PoolClient } from 'pg'
 import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
+import { asPgId } from '../../utils/type-utils'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -92,7 +93,10 @@ export async function getVolunteerForQuickTips(
 ): Promise<VolunteerContactAndAvailability | undefined> {
   try {
     const vResult = await pgQueries.getVolunteerForQuickTips.run(
-      { userId },
+      {
+        userId: asPgId(userId),
+        mongoUserId: asPgId(userId),
+      },
       getClient()
     )
     if (!vResult.length) return
@@ -112,7 +116,10 @@ export async function getPartnerVolunteerForLowHours(
 ): Promise<VolunteerContactAndAvailability | undefined> {
   try {
     const vResult = await pgQueries.getPartnerVolunteerForLowHours.run(
-      { userId },
+      {
+        userId: asPgId(userId),
+        mongoUserId: asPgId(userId),
+      },
       getClient()
     )
     if (!vResult.length) return
@@ -132,7 +139,10 @@ export async function getPartnerVolunteerForCollege(
 ): Promise<VolunteerContactAndAvailability | undefined> {
   try {
     const vResult = await pgQueries.getPartnerVolunteerForCollege.run(
-      { userId },
+      {
+        userId: asPgId(userId),
+        mongoUserId: asPgId(userId),
+      },
       getClient()
     )
     if (!vResult.length) return
@@ -293,7 +303,10 @@ export async function getVolunteerForOnboardingById(
 ): Promise<VolunteerForOnboarding | undefined> {
   try {
     const result = await pgQueries.getVolunteerForOnboardingById.run(
-      { userId },
+      {
+        userId: asPgId(userId),
+        mongoUserId: asPgId(userId),
+      },
       getClient()
     )
     if (!result.length) return
