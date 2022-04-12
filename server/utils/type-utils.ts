@@ -1,5 +1,6 @@
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
+import { Types } from 'mongoose'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
 
@@ -139,4 +140,8 @@ export function asUnion<T>(fns: ((s: unknown, errMsg?: string) => T)[]) {
     } else
       throw new InputError(`${errMsg} : ${fns} is not an array of validators`)
   }
+}
+
+export function isValidObjectId(s: string): boolean {
+  return Types.ObjectId.isValid(s)
 }

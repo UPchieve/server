@@ -18,6 +18,7 @@ import { ResponseData, StudentCounselingFeedback } from '../Feedback'
 import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
 import { fixNumberInt } from '../../utils/fix-number-int'
+import { isValidObjectId } from '../../utils/type-utils'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -805,9 +806,12 @@ export async function getVolunteersForGentleWarning(
   sessionId: Ulid
 ): Promise<VolunteerForGentleWarning[]> {
   try {
-    const mongoSessionId = sessionId
+    const isObjectId = isValidObjectId(sessionId)
     const result = await pgQueries.getVolunteersForGentleWarning.run(
-      { sessionId, mongoSessionId },
+      {
+        sessionId: isObjectId ? undefined : sessionId,
+        mongoSessionId: isObjectId ? sessionId : undefined,
+      },
       getClient()
     )
     return result.map(v => makeRequired(v))
@@ -825,9 +829,12 @@ export async function getStudentForEmailFirstSession(
   sessionId: Ulid
 ): Promise<UserForFirstSession | undefined> {
   try {
-    const mongoSessionId = sessionId
+    const isObjectId = isValidObjectId(sessionId)
     const result = await pgQueries.getStudentForEmailFirstSession.run(
-      { sessionId, mongoSessionId },
+      {
+        sessionId: isObjectId ? undefined : sessionId,
+        mongoSessionId: isObjectId ? sessionId : undefined,
+      },
       getClient()
     )
     if (!result.length) return
@@ -841,9 +848,12 @@ export async function getVolunteerForEmailFirstSession(
   sessionId: Ulid
 ): Promise<UserForFirstSession | undefined> {
   try {
-    const mongoSessionId = sessionId
+    const isObjectId = isValidObjectId(sessionId)
     const result = await pgQueries.getVolunteerForEmailFirstSession.run(
-      { sessionId, mongoSessionId },
+      {
+        sessionId: isObjectId ? undefined : sessionId,
+        mongoSessionId: isObjectId ? sessionId : undefined,
+      },
       getClient()
     )
     if (!result.length) return
