@@ -1,6 +1,5 @@
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
-import { Types } from 'mongoose'
 import { Uuid4, Exception } from 'id128'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
