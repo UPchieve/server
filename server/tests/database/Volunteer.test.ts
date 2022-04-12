@@ -3,11 +3,18 @@
  */
 
 import { metaSetup } from '../postgres-test-hook'
-import { IgetNextVolunteerToNotify } from '../../models/Volunteer/queries'
+import { getNextVolunteerToNotify } from '../../models/Volunteer'
 
 metaSetup()
 
 test('Make a connection', async () => {
-  const result = await IgetNextVolunteerToNotify('algebraOne', new Date())
+  const result = await getNextVolunteerToNotify({
+    subject: 'algebraOne',
+    lastNotified: new Date(),
+    isPartner: false,
+    highLevelSubjects: undefined,
+    disqualifiedVolunteers: undefined,
+    specificPartner: undefined,
+  })
   expect(result).toBeUndefined()
 })

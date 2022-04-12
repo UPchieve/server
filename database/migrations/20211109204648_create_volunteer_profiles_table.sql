@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS upchieve.volunteer_profiles (
     user_id uuid PRIMARY KEY REFERENCES upchieve.users (id),
     volunteer_partner_org_id uuid REFERENCES upchieve.volunteer_partner_orgs (id),
-    timezone text NOT NULL,
+    timezone text,
     approved boolean NOT NULL DEFAULT FALSE,
     onboarded boolean NOT NULL DEFAULT FALSE,
     photo_id_s3_key text,

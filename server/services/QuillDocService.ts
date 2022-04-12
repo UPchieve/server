@@ -1,24 +1,22 @@
 import Delta from 'quill-delta'
-import { Types } from 'mongoose'
 import * as cache from '../cache'
+import { Ulid } from '../models/pgUtils'
 
-function sessionIdToKey(id: Types.ObjectId): string {
+function sessionIdToKey(id: Ulid): string {
   return `quill-${id.toString()}`
 }
 
-function getSessionDeltasKey(id: Types.ObjectId): string {
+function getSessionDeltasKey(id: Ulid): string {
   return `${sessionIdToKey(id)}-deltas`
 }
 
-export async function createDoc(sessionId: Types.ObjectId): Promise<Delta> {
+export async function createDoc(sessionId: Ulid): Promise<Delta> {
   const newDoc = new Delta()
   await cache.save(sessionIdToKey(sessionId), JSON.stringify(newDoc))
   return newDoc
 }
 
-export async function getDoc(
-  sessionId: Types.ObjectId
-): Promise<Delta | undefined> {
+export async function getDoc(sessionId: Ulid): Promise<Delta | undefined> {
   try {
     const docString = await cache.get(sessionIdToKey(sessionId))
     return new Delta(JSON.parse(docString))
@@ -40,7 +38,7 @@ export type QuillCacheState = {
  *
  */
 export async function lockAndGetDocCacheState(
-  sessionId: Types.ObjectId
+  sessionId: Ulid
 ): Promise<QuillCacheState | undefined> {
   try {
     const sessionCacheKey = sessionIdToKey(sessionId)
@@ -64,7 +62,7 @@ export async function lockAndGetDocCacheState(
  *
  */
 export async function processDoc(
-  sessionId: Types.ObjectId,
+  sessionId: Ulid,
   docString: string
 ): Promise<QuillCacheState> {
   const deltasCacheKey = getSessionDeltasKey(sessionId)
@@ -87,13 +85,13 @@ export async function processDoc(
 }
 
 export async function appendToDoc(
-  sessionId: Types.ObjectId,
+  sessionId: Ulid,
   delta: Delta
 ): Promise<void> {
   await cache.rpush(getSessionDeltasKey(sessionId), JSON.stringify(delta))
 }
 
-export async function deleteDoc(sessionId: Types.ObjectId): Promise<void> {
+export async function deleteDoc(sessionId: Ulid): Promise<void> {
   try {
     await cache.remove(sessionIdToKey(sessionId))
     await cache.remove(getSessionDeltasKey(sessionId))

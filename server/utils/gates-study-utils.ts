@@ -1,14 +1,13 @@
-import { Types } from 'mongoose'
 import { GRADES } from '../constants'
-import { getStudentById } from '../models/Student/queries'
+import { getGatesStudentById } from '../models/Student/queries'
 import { getSchool } from '../services/SchoolService'
-import { Student } from '../models/Student'
-import { School } from '../models/School'
-import { getIdFromModelReference } from '../utils/model-reference'
+import * as StudentRepo from '../models/Student'
+import { AdminSchool } from '../models/School'
+import { Ulid } from '../models/pgUtils'
 
 export interface GatesQualifiedData {
-  student: Student
-  school: School
+  student: StudentRepo.GatesStudent
+  school: AdminSchool
 }
 
 /**
@@ -30,13 +29,12 @@ export function isGatesQualifiedStudent(data: GatesQualifiedData) {
 }
 
 export async function prepareForGatesQualificationCheck(
-  userId: Types.ObjectId
+  userId: Ulid
 ): Promise<GatesQualifiedData> {
-  const student = await getStudentById(userId)
+  const student = await getGatesStudentById(userId)
   if (!student) throw new Error('Gates student not found')
-  const school = await getSchool(
-    getIdFromModelReference(student.approvedHighschool)
-  )
+  const school = await getSchool(student.approvedHighschool)
+
   if (!school) throw new Error('Gates school not found')
   return {
     student,

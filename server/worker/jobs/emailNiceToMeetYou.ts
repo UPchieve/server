@@ -1,5 +1,5 @@
 import { log } from '../logger'
-import { getVolunteersContactInfo } from '../../models/Volunteer/queries'
+import { getVolunteersForNiceToMeetYou } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
 
@@ -11,12 +11,10 @@ export default async (): Promise<void> => {
   // set the date to midnight
   todaysDate.setHours(0, 0, 0, 0)
 
-  const volunteers = await getVolunteersContactInfo({
-    createdAt: {
-      $gte: new Date(oneDayAgo),
-      $lte: new Date(todaysDate),
-    },
-  })
+  const volunteers = await getVolunteersForNiceToMeetYou(
+    new Date(oneDayAgo),
+    new Date(todaysDate)
+  )
 
   let totalEmailed = 0
 
@@ -26,7 +24,7 @@ export default async (): Promise<void> => {
       await MailService.sendNiceToMeetYou(volunteer)
       totalEmailed++
     } catch (error) {
-      errors.push(`volunteer ${volunteer._id}: ${error}`)
+      errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
   }
   log(`Sent ${Jobs.EmailNiceToMeetYou} to ${totalEmailed} volunteers`)

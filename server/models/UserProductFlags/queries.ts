@@ -1,107 +1,127 @@
-import { Types } from 'mongoose'
-import UserProductFlagsModel, { UserProductFlags } from './index'
+import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { validUser } from '../../utils/validators'
+import { makeRequired, Ulid } from '../pgUtils'
+import * as pgQueries from './pg.queries'
+import { UserProductFlags } from './types'
 
-// Create functions
 export async function createUPFByUserId(
-  userId: Types.ObjectId
+  userId: Ulid
 ): Promise<UserProductFlags> {
-  const upf = await getUPFByUserId(userId)
-  if (upf)
-    throw new RepoCreateError(
-      `UserProductFlags document for user ${userId} already exists`
-    )
-  if (!(await validUser(userId)))
-    throw new RepoCreateError(`User ${userId} does not exist`)
-
   try {
-    const data = await UserProductFlagsModel.create({
-      user: userId,
-    })
-    if (data) return data.toObject() as UserProductFlags
-    else throw new RepoCreateError('Create query did not return created object')
+    const result = await pgQueries.createUpfByUserId.run(
+      {
+        userId,
+      },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+    throw new RepoCreateError('Insert did not return new row')
   } catch (err) {
-    if (err instanceof RepoCreateError) throw err
     throw new RepoCreateError(err)
   }
 }
 
-// Read functions
-export async function getUPFByObjectId(
-  id: Types.ObjectId
-): Promise<UserProductFlags | undefined> {
-  try {
-    const upf = await UserProductFlagsModel.findOne({ _id: id })
-      .lean()
-      .exec()
-    if (upf) return upf as UserProductFlags
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getAllUPF(): Promise<UserProductFlags[]> {
-  try {
-    return (await UserProductFlagsModel.find()
-      .lean()
-      .exec()) as UserProductFlags[]
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function getUPFByUserId(
-  userId: Types.ObjectId
+  userId: Ulid
 ): Promise<UserProductFlags | undefined> {
   try {
-    const upf = await UserProductFlagsModel.findOne({
-      user: userId,
-    })
-      .lean()
-      .exec()
-    if (upf) return upf as UserProductFlags
+    const result = await pgQueries.getUpfByUserId.run(
+      {
+        userId,
+      },
+      getClient()
+    )
+
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export type PublicProductFlags = Pick<UserProductFlags, 'gatesQualified'>
+export type PublicUserProductFlags = Pick<
+  UserProductFlags,
+  'userId' | 'gatesQualified'
+>
 
 export async function getPublicUPFByUserId(
-  userId: Types.ObjectId
-): Promise<PublicProductFlags | undefined> {
+  userId: Ulid
+): Promise<PublicUserProductFlags | undefined> {
   try {
-    const upf = await UserProductFlagsModel.findOne(
+    const result = await pgQueries.getPublicUpfByUserId.run(
       {
-        user: userId,
+        userId,
       },
-      {
-        gatesQualified: 1,
-      }
+      getClient()
     )
-      .lean()
-      .exec()
-    if (upf) return upf
+
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-// Update functions
 export async function updateUPFGatesQualifiedFlagById(
-  userId: Types.ObjectId,
+  userId: Ulid,
   status: boolean
 ): Promise<void> {
   try {
-    const result = await UserProductFlagsModel.updateOne(
-      { user: userId },
-      {
-        gatesQualified: status,
-      }
+    const result = await pgQueries.updateUpfGatesQualifiedFlagById.run(
+      { userId, gatesQualified: status },
+      getClient()
     )
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query was not acknowledged')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateSentInactiveThirtyDayEmail(
+  userId: Ulid,
+  sentInactiveThirtyDayEmail: boolean
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateSentInactiveThirtyDayEmail.run(
+      { userId, sentInactiveThirtyDayEmail },
+      getClient()
+    )
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query was not acknowledged')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateSentInactiveSixtyDayEmail(
+  userId: Ulid,
+  sentInactiveSixtyDayEmail: boolean
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateSentInactiveSixtyDayEmail.run(
+      { userId, sentInactiveSixtyDayEmail },
+      getClient()
+    )
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query was not acknowledged')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateSentInactiveNinetyDayEmail(
+  userId: Ulid,
+  sentInactiveNinetyDayEmail: boolean
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateSentInactiveNinetyDayEmail.run(
+      { userId, sentInactiveNinetyDayEmail },
+      getClient()
+    )
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

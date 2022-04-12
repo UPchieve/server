@@ -1,97 +1,72 @@
-import {
-  METRIC_TYPES,
-  Counter,
-  MetricType,
-  UserSessionMetrics,
-} from '../../models/UserSessionMetrics'
-import { UserSessionMetricsUpdateQuery } from '../../models/UserSessionMetrics/queries'
-import { Session } from '../../models/Session'
-import { FeedbackVersionTwo } from '../../models/Feedback'
+import { UserSessionMetrics } from '../../models/UserSessionMetrics'
+import { Session, MessageForFrontend } from '../../models/Session'
+import { Feedback } from '../../models/Feedback'
 import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
 import { USER_SESSION_METRICS } from '../../constants'
 
-export function computeSetMetricQuery(
-  type: METRIC_TYPES,
-  metric: USER_SESSION_METRICS,
-  value: MetricType
-): UserSessionMetricsUpdateQuery {
-  const path = getEnumKeyByEnumValue(USER_SESSION_METRICS, metric)
-  return { [`${type}.${path}`]: value }
-}
-
 export interface UpdateValueData {
   session: Session // a completed session
-  feedback?: FeedbackVersionTwo // prepopulate the feedback
+  messages: MessageForFrontend[]
+  feedback?: Feedback // prepopulate the feedback
 }
 
-export interface ProcessorData<T extends MetricType> {
+export interface ProcessorData {
   session: Session
   studentUSM: UserSessionMetrics
   volunteerUSM?: UserSessionMetrics
-  value: T
+  value: number
 }
 
-export interface MetricProcessor<T extends MetricType> {
+type MetricUpdateQuery = { [key: string]: number }
+
+export interface MetricProcessor {
   key: USER_SESSION_METRICS // metric name
   requiresFeedback: boolean
   // computes value to update metric based on uvd.session/feedback
-  computeUpdateValue(uvd: UpdateValueData): T
-  // compute db query to execute update to the student USM object
-  computeStudentUpdateQuery(pd: ProcessorData<T>): UserSessionMetricsUpdateQuery
-  // compute db query to execute update to the volunteer USM object
-  computeVolunteerUpdateQuery(
-    pd: ProcessorData<T>
-  ): UserSessionMetricsUpdateQuery
+  computeUpdateValue(uvd: UpdateValueData): number
   // computes list of review reasons to be set on session
-  computeReviewReason(pd: ProcessorData<T>): USER_SESSION_METRICS[]
+  computeReviewReason(pd: ProcessorData): USER_SESSION_METRICS[]
   // computes list of flags to set on session
-  computeFlag(pd: ProcessorData<T>): USER_SESSION_METRICS[]
+  computeFlag(pd: ProcessorData): USER_SESSION_METRICS[]
   // compiles list of side-effect promises to execute on behalf of this metric
-  triggerActions(pd: ProcessorData<T>): Promise<void>[]
+  triggerActions(pd: ProcessorData): Promise<void>[]
+  computeStudentUpdateQuery(pd: ProcessorData): MetricUpdateQuery
+  computeVolunteerUpdateQuery(pd: ProcessorData): MetricUpdateQuery
 }
 
-export abstract class CounterMetricProcessor
-  implements MetricProcessor<Counter> {
-  // common attributes shared by all counter metrics
-  protected static path = METRIC_TYPES.counters
-
+export abstract class CounterMetricProcessor implements MetricProcessor {
   protected computeFinalValue = (
     usm: UserSessionMetrics,
-    value: Counter
-  ): Counter => {
+    value: number
+  ): number => {
     if (!usm) return 0
     const key = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
-    if (key) return usm[CounterMetricProcessor.path][key] + value
+    if (key) return usm[key] + value
     throw new Error(`Counter metric processor key ${this.key} is invalid`)
-  }
-
-  public computeStudentUpdateQuery = (
-    pd: ProcessorData<Counter>
-  ): UserSessionMetricsUpdateQuery => {
-    const metric = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
-    const finalValue = this.computeFinalValue(pd.studentUSM, pd.value)
-    return { [`${CounterMetricProcessor.path}.${metric}`]: finalValue }
-  }
-  public computeVolunteerUpdateQuery = (
-    pd: ProcessorData<Counter>
-  ): UserSessionMetricsUpdateQuery => {
-    if (!pd.volunteerUSM) return {}
-    const metric = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
-    const finalValue = this.computeFinalValue(pd.volunteerUSM, pd.value)
-    return { [`${CounterMetricProcessor.path}.${metric}`]: finalValue }
   }
 
   // must be implemented by subclasses
   public abstract key: USER_SESSION_METRICS
   public abstract requiresFeedback: boolean
-  public abstract computeUpdateValue(uvd: UpdateValueData): Counter
-  public abstract computeReviewReason(
-    pd: ProcessorData<Counter>
-  ): USER_SESSION_METRICS[]
-  public abstract computeFlag(
-    pd: ProcessorData<Counter>
-  ): USER_SESSION_METRICS[]
-  public abstract triggerActions(pd: ProcessorData<Counter>): Promise<void>[]
+  public abstract computeUpdateValue(uvd: UpdateValueData): number
+  public abstract computeReviewReason(pd: ProcessorData): USER_SESSION_METRICS[]
+  public abstract computeFlag(pd: ProcessorData): USER_SESSION_METRICS[]
+  public abstract triggerActions(pd: ProcessorData): Promise<void>[]
+  public computeStudentUpdateQuery = (pd: ProcessorData): MetricUpdateQuery => {
+    const metric = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
+    if (!metric) throw new Error(`Metric for ${this.key} undefined`)
+    const finalValue = this.computeFinalValue(pd.studentUSM, pd.value)
+    return { [metric]: finalValue }
+  }
+  public computeVolunteerUpdateQuery = (
+    pd: ProcessorData
+  ): MetricUpdateQuery => {
+    if (!pd.volunteerUSM) return {}
+    const metric = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
+    if (!metric) throw new Error(`Metric for ${this.key} undefined`)
+    const finalValue = this.computeFinalValue(pd.volunteerUSM, pd.value)
+    return { [metric]: finalValue }
+  }
 }
 
 export const NO_FLAGS = [] as USER_SESSION_METRICS[]

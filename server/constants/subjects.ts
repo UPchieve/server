@@ -16,8 +16,6 @@ export enum TRAINING {
 export enum MATH_CERTS {
   // TODO: fix typo
   PREALGREBA = 'prealgebra',
-  // TODO: remove `algebra` in the algebra 2 launch cleanup
-  ALGEBRA = 'algebra',
   ALGEBRA_ONE = 'algebraOne',
   ALGEBRA_TWO = 'algebraTwo',
   GEOMETRY = 'geometry',
@@ -33,8 +31,6 @@ export enum MATH_SUBJECTS {
   PREALGREBA = 'prealgebra',
   ALGEBRA_ONE = 'algebraOne',
   ALGEBRA_TWO = 'algebraTwo',
-  // TODO: remove `ALGEBRA_TWO_TEMP` in the algebra 2 launch cleanup
-  ALGEBRA_TWO_TEMP = 'algebraTwo-temporary',
   GEOMETRY = 'geometry',
   TRIGONOMETRY = 'trigonometry',
   PRECALCULUS = 'precalculus',
@@ -139,11 +135,6 @@ export const CERT_UNLOCKING = {
     MATH_SUBJECTS.PREALGREBA,
   ],
   [MATH_CERTS.TRIGONOMETRY]: [MATH_SUBJECTS.TRIGONOMETRY],
-  [MATH_CERTS.ALGEBRA]: [
-    MATH_SUBJECTS.ALGEBRA_ONE,
-    MATH_SUBJECTS.ALGEBRA_TWO,
-    MATH_SUBJECTS.PREALGREBA,
-  ],
   [MATH_CERTS.ALGEBRA_ONE]: [
     MATH_SUBJECTS.ALGEBRA_ONE,
     MATH_SUBJECTS.PREALGREBA,
@@ -239,14 +230,6 @@ export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
     'exponents and radicals',
     'polynomials',
     'fractions',
-  ],
-  [MATH_CERTS.ALGEBRA]: [
-    'linear equations',
-    'rational exponents and radicals',
-    'application of linear equations',
-    'two variable equations',
-    'rational expressions',
-    'complex numbers',
   ],
   [MATH_CERTS.ALGEBRA_ONE]: [
     'linear equations',

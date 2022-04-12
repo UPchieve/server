@@ -1,29 +1,34 @@
 import { randomBytes } from 'crypto'
-import { findKey } from 'lodash'
 import validator from 'validator'
 
-import mongoose from 'mongoose'
 import {
-  getUserByEmail,
-  getUserByResetToken,
+  getUserForPassport,
+  getUserContactInfoByResetToken,
   updateUserResetTokenById,
   updateUserPasswordById,
   getUserIdByEmail,
 } from '../models/User/queries'
-import { Student } from '../models/Student'
-import { Volunteer } from '../models/Volunteer'
+import * as StudentRepo from '../models/Student'
+import * as VolunteerRepo from '../models/Volunteer'
 import { School } from '../models/School'
 import { findSchoolByUpchieveId } from '../models/School/queries'
 import * as UserCtrl from '../controllers/UserCtrl'
-
 import {
-  VolunteerPartnerManifest,
-  volunteerPartnerManifests,
-  StudentPartnerManifest,
-  studentPartnerManifests,
-  SponsorOrgManifest,
-  sponsorOrgManifests,
-} from '../partnerManifests'
+  getVolunteerPartnerOrgForRegistrationByKey,
+  getVolunteerPartnerOrgs,
+  getFullVolunteerPartnerOrgByKey,
+  VolunteerPartnerOrg,
+  VolunteerPartnerOrgForRegistration,
+} from '../models/VolunteerPartnerOrg'
+import {
+  getStudentPartnerOrgForRegistrationByKey,
+  getStudentPartnerOrgs,
+  getFullStudentPartnerOrgByKey,
+  StudentPartnerOrgForRegistration,
+  StudentPartnerOrg,
+  getStudentPartnerOrgKeyByCode,
+} from '../models/StudentPartnerOrg'
+import { SponsorOrg, getSponsorOrgs } from '../models/SponsorOrg'
 
 import {
   asCredentialData,
@@ -41,13 +46,14 @@ import {
   checkNames,
   checkEmail,
 } from '../utils/auth-utils'
-import { asString } from '../utils/type-utils'
+import { asBoolean, asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
-import { sessionStoreCollectionName } from '../router/api/session-store'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
 import { getIpWhoIs } from './IpAddressService'
 import * as MailService from './MailService'
+import { Ulid } from '../models/pgUtils'
+import * as AuthRepo from '../models/Auth'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -91,7 +97,9 @@ export async function checkCredential(data: unknown): Promise<boolean> {
 }
 
 // Handles /register/student/open route
-export async function registerOpenStudent(data: unknown): Promise<Student> {
+export async function registerOpenStudent(
+  data: unknown
+): Promise<StudentRepo.CreatedStudent> {
   const {
     ip,
     email,
@@ -129,17 +137,15 @@ export async function registerOpenStudent(data: unknown): Promise<Student> {
       )
   }
 
-  let referredBy: mongoose.Types.ObjectId | undefined
+  let referredBy: Ulid | undefined
   if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
-    firstname: firstName.trim(),
-    lastname: lastName.trim(),
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
     email,
     zipCode,
-    approvedHighschool: school,
-    isVolunteer: false,
-    verified: false,
+    approvedHighschool: school?.id,
     referredBy,
     password,
     currentGrade,
@@ -150,7 +156,9 @@ export async function registerOpenStudent(data: unknown): Promise<Student> {
 }
 
 // Handles /register/student/partner route
-export async function registerPartnerStudent(data: unknown): Promise<Student> {
+export async function registerPartnerStudent(
+  data: unknown
+): Promise<StudentRepo.CreatedStudent> {
   const {
     ip,
     email,
@@ -165,6 +173,7 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
     lastName,
     college,
     partnerSite,
+    currentGrade,
   } = asPartnerStudentRegData(data)
 
   await Promise.all([
@@ -177,8 +186,12 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  const studentPartnerManifest = studentPartnerManifests[studentPartnerOrg]
-  if (!studentPartnerManifest) {
+  let studentPartnerManifest: StudentPartnerOrgForRegistration
+  try {
+    studentPartnerManifest = await getStudentPartnerOrgForRegistrationByKey(
+      studentPartnerOrg
+    )
+  } catch (err) {
     throw new RegistrationError('Invalid student partner organization')
   }
 
@@ -186,23 +199,24 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
   if (highSchoolUpchieveId)
     school = await findSchoolByUpchieveId(highSchoolUpchieveId)
 
-  let referredBy: mongoose.Types.ObjectId | undefined
+  let referredBy: Ulid | undefined
   if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
-    firstname: firstName.trim(),
-    lastname: lastName.trim(),
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
     email,
     zipCode,
     studentPartnerOrg,
     partnerUserId,
     partnerSite,
-    approvedHighschool: school,
+    approvedHighschool: school?.id,
     college,
     isVolunteer: false,
     verified: false,
     referredBy,
     password,
+    currentGrade,
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
@@ -210,7 +224,9 @@ export async function registerPartnerStudent(data: unknown): Promise<Student> {
 }
 
 // Handles /register/volunteer/open route
-export async function registerVolunteer(data: unknown): Promise<Volunteer> {
+export async function registerVolunteer(
+  data: unknown
+): Promise<VolunteerRepo.CreatedVolunteer> {
   const {
     ip,
     email,
@@ -220,6 +236,7 @@ export async function registerVolunteer(data: unknown): Promise<Volunteer> {
     referredByCode,
     firstName,
     lastName,
+    timezone,
   } = asVolunteerRegData(data)
 
   await Promise.all([
@@ -233,23 +250,22 @@ export async function registerVolunteer(data: unknown): Promise<Volunteer> {
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  let referredBy: mongoose.Types.ObjectId | undefined
+  let referredBy: Ulid | undefined
   if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   const volunteerData = {
     email,
-    isVolunteer: true,
-    isApproved: false,
     phone,
-    firstname: firstName.trim(),
-    lastname: lastName.trim(),
-    verified: false,
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
     referredBy,
     password,
+    timezone,
+    volunteerPartnerOrg: undefined,
   }
 
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
-  VolunteerService.queueOnboardingReminderOneEmail(volunteer._id)
+  VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
 
   return volunteer
 }
@@ -257,7 +273,7 @@ export async function registerVolunteer(data: unknown): Promise<Volunteer> {
 // Handles /register/volunteer/partner route
 export async function registerPartnerVolunteer(
   data: unknown
-): Promise<Volunteer> {
+): Promise<VolunteerRepo.CreatedVolunteer> {
   const {
     ip,
     email,
@@ -268,6 +284,7 @@ export async function registerPartnerVolunteer(
     referredByCode,
     firstName,
     lastName,
+    timezone,
   } = asPartnerVolunteerRegData(data)
   await Promise.all([
     checkCredential({ email, password }),
@@ -280,17 +297,20 @@ export async function registerPartnerVolunteer(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  let referredBy: mongoose.Types.ObjectId | undefined
+  let referredBy: Ulid | undefined
   if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   // Volunteer partner org check
-  const volunteerPartnerManifest =
-    volunteerPartnerManifests[volunteerPartnerOrg]
-
-  if (!volunteerPartnerManifest)
+  let volunteerPartnerManifest: VolunteerPartnerOrgForRegistration
+  try {
+    volunteerPartnerManifest = await getVolunteerPartnerOrgForRegistrationByKey(
+      volunteerPartnerOrg
+    )
+  } catch (err) {
     throw new RegistrationError('Invalid volunteer partner organization')
+  }
 
-  const volunteerPartnerDomains = volunteerPartnerManifest.requiredEmailDomains
+  const volunteerPartnerDomains = volunteerPartnerManifest.domains
 
   // Confirm email has one of volunteer partner's required domains
   if (volunteerPartnerDomains && volunteerPartnerDomains.length) {
@@ -303,19 +323,18 @@ export async function registerPartnerVolunteer(
 
   const volunteerData = {
     email,
-    isApproved: false,
-    isVolunteer: true,
     volunteerPartnerOrg,
     phone,
-    firstname: firstName.trim(),
-    lastname: lastName.trim(),
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
     verified: false,
     referredBy,
     password,
+    timezone,
   }
 
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
-  VolunteerService.queueOnboardingReminderOneEmail(volunteer._id)
+  VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
 
   return volunteer
 }
@@ -324,114 +343,95 @@ export async function registerPartnerVolunteer(
 // Handles /partner/volunteer route
 export async function lookupPartnerVolunteer(
   data: unknown
-): Promise<VolunteerPartnerManifest> {
-  const volunteerPartnerId = asString(data)
+): Promise<VolunteerPartnerOrg> {
+  const volunteerPartnerKey = asString(data)
   // If missing master manifest error will bubble up
-  const partnerManifest = volunteerPartnerManifests[volunteerPartnerId]
-
-  if (!partnerManifest)
+  let partnerOrg: VolunteerPartnerOrg
+  try {
+    partnerOrg = await getFullVolunteerPartnerOrgByKey(volunteerPartnerKey)
+  } catch (err) {
     throw new LookupError(
-      `No manifest found for volunteerPartnerId "${volunteerPartnerId}"`
+      `No manifest found for volunteerPartnerId "${volunteerPartnerKey}"`
     )
+  }
 
-  return partnerManifest
+  return partnerOrg
 }
 
 // Handles /partner/student route
 export async function lookupPartnerStudent(
   data: unknown
-): Promise<StudentPartnerManifest> {
-  const studentPartnerId = asString(data)
+): Promise<StudentPartnerOrg> {
+  const studentPartnerKey = asString(data)
   // If missing master manifest error will bubble up
-  const partnerManifest = studentPartnerManifests[studentPartnerId]
-
-  if (!partnerManifest)
+  let partnerOrg: StudentPartnerOrg
+  try {
+    partnerOrg = await getFullStudentPartnerOrgByKey(studentPartnerKey)
+  } catch (err) {
     throw new LookupError(
-      `No manifest found for studentPartnerId "${studentPartnerId}"`
+      `No manifest found for studentPartnerId "${studentPartnerKey}"`
     )
+  }
 
-  return partnerManifest
+  return partnerOrg
 }
 
 // Handles /partner/student/code route
 export async function lookupPartnerStudentCode(data: unknown): Promise<string> {
   const partnerSignupCode = asString(data)
-  const studentPartnerKey = findKey(studentPartnerManifests, {
-    signupCode: partnerSignupCode.toUpperCase(),
-  })
+  const studentPartnerKey = getStudentPartnerOrgKeyByCode(
+    partnerSignupCode.toUpperCase()
+  )
 
   if (!studentPartnerKey)
     throw new LookupError(
-      `No partner key found for partnerSignupCode "${partnerSignupCode}"`
+      `no partner key found for partnerSignupCode "${partnerSignupCode}"`
     )
 
   return studentPartnerKey
 }
 
-interface PartnerOrg {
-  key: string
-  displayName: string
-  sties?: string[]
-}
-
 // Handles /partner/student-partners route (admin only)
-export async function lookupStudentPartners(): Promise<PartnerOrg[]> {
-  const partnerOrgs = []
-  for (const [key, value] of Object.entries(studentPartnerManifests) as [
-    string,
-    StudentPartnerManifest
-  ][]) {
-    partnerOrgs.push({
-      key,
-      displayName: value.name ? value.name : key,
-      sites: value.sites ? value.sites : undefined,
-    })
-  }
+export async function lookupStudentPartners(): Promise<StudentPartnerOrg[]> {
+  const partnerOrgs = await getStudentPartnerOrgs()
   return partnerOrgs
 }
 
 // Handles /partner/volunteer-partners route (admin only)
-export async function lookupVolunteerPartners(): Promise<PartnerOrg[]> {
-  const partnerOrgs = []
-  for (const [key, value] of Object.entries(volunteerPartnerManifests) as [
-    string,
-    VolunteerPartnerManifest
-  ][]) {
-    partnerOrgs.push({
-      key,
-      displayName: value.name ? value.name : key,
-    })
-  }
+export async function lookupVolunteerPartners(): Promise<
+  VolunteerPartnerOrg[]
+> {
+  const partnerOrgs = await getVolunteerPartnerOrgs()
   return partnerOrgs
 }
 
 // Handles /partner/sponsor-orgs route (admin only)
-export async function lookupSponsorOrgs(): Promise<PartnerOrg[]> {
-  const sponsorOrgs = []
-  for (const [key, value] of Object.entries(sponsorOrgManifests) as [
-    string,
-    SponsorOrgManifest
-  ][]) {
-    sponsorOrgs.push({
-      key,
-      displayName: value.name ? value.name : key,
-    })
-  }
+export async function lookupSponsorOrgs(): Promise<SponsorOrg[]> {
+  const sponsorOrgs = await getSponsorOrgs()
   return sponsorOrgs
 }
 
 // Password reset handlers
 // Handles /reset/send route
-export async function sendReset(data: unknown): Promise<void> {
-  const email = asString(data)
-  const user = await getUserByEmail(email)
-  if (!user) throw new LookupError(`No account with ${email} found`)
+export async function sendReset(
+  email: unknown,
+  mobile: unknown
+): Promise<void> {
+  const userEmail = asString(email)
+  let sendToMobile
+  if (sendToMobile) {
+    sendToMobile = asBoolean(mobile)
+  } else {
+    sendToMobile = false
+  }
+  const user = await getUserForPassport(userEmail)
+  if (!user) throw new LookupError(`No account with ${userEmail} found`)
 
   const buffer: Buffer = randomBytes(16)
   const token = buffer.toString('hex')
-  await updateUserResetTokenById(user._id, token)
+  await updateUserResetTokenById(user.id, token)
 
-  await MailService.sendReset(email, token)
+  await MailService.sendReset(userEmail, sendToMobile, token)
 }
 
 export async function confirmReset(data: unknown): Promise<void> {
@@ -442,7 +442,7 @@ export async function confirmReset(data: unknown): Promise<void> {
     throw new ResetError('Invalid password reset token')
   }
 
-  const user = await getUserByResetToken(token)
+  const user = await getUserContactInfoByResetToken(token)
 
   if (!user)
     throw new LookupError('No account found with provided password reset token')
@@ -453,14 +453,12 @@ export async function confirmReset(data: unknown): Promise<void> {
 
   checkPassword(password)
 
-  await updateUserPasswordById(user._id, await hashPassword(password))
+  await updateUserPasswordById(user.id, await hashPassword(password))
 }
 
 export async function deleteAllUserSessions(userId: string) {
   try {
-    await mongoose.connection.db
-      .collection(sessionStoreCollectionName)
-      .deleteMany({ $text: { $search: userId } })
+    await AuthRepo.deleteAuthSessionsByUserId(userId)
   } catch (err) {
     logger.error(
       `Unable to invalidate all user sessions on password reset: ${err}`

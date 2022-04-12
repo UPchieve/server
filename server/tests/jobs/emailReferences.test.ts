@@ -1,4 +1,5 @@
-import mongoose, { Aggregate } from 'mongoose'
+test.skip('postgres migration', () => 1)
+/*import mongoose, { Aggregate } from 'mongoose'
 import emailReferences from '../../worker/jobs/emailReferences'
 import { insertVolunteer, resetDb } from '../db-utils'
 import { buildVolunteer, buildReference } from '../generate'
@@ -97,3 +98,4 @@ describe('Email references', () => {
     )
   })
 })
+*/

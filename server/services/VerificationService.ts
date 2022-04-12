@@ -1,6 +1,6 @@
-import { Types } from 'mongoose'
+import { Ulid } from '../models/pgUtils'
 import { VERIFICATION_METHOD } from '../constants'
-import { asFactory, asString, asEnum, asObjectId } from '../utils/type-utils'
+import { asFactory, asString, asEnum } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
@@ -9,35 +9,34 @@ import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
 import {
   updateUserVerifiedInfoById,
-  getUserById,
+  getUserContactInfoById,
   getUserIdByPhone,
   getUserIdByEmail,
 } from '../models/User/queries'
-import { Volunteer } from '../models/Volunteer'
 
 export interface InitiateVerificationData {
-  userId: Types.ObjectId
+  userId: Ulid
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   firstName: string
 }
 
 const asInitiateVerificationData = asFactory<InitiateVerificationData>({
-  userId: asObjectId,
+  userId: asString,
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   firstName: asString,
 })
 
 export interface ConfirmVerificationData {
-  userId: Types.ObjectId
+  userId: Ulid
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
 }
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
-  userId: asObjectId,
+  userId: asString,
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
@@ -53,7 +52,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
   let existingUserErrorMessage: string
-  let existingUserId: Types.ObjectId | undefined
+  let existingUserId: Ulid | undefined
   if (isPhoneVerification) {
     existingUserErrorMessage = 'The phone number you entered is already in use'
     if (!isValidInternationalPhoneNumber(sendTo))
@@ -65,7 +64,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
       throw new InputError('Must supply a valid email address')
     existingUserId = await getUserIdByEmail(sendTo)
   }
-  if (existingUserId && !userId.equals(existingUserId))
+  if (existingUserId && !(userId === existingUserId))
     throw new LookupError(existingUserErrorMessage)
   if (verificationMethod === VERIFICATION_METHOD.EMAIL && !existingUserId)
     throw new LookupError(
@@ -75,27 +74,28 @@ export async function initiateVerification(data: unknown): Promise<void> {
   await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
 }
 
-async function sendEmails(userId: Types.ObjectId): Promise<void> {
-  const user = await getUserById(userId)
+async function sendEmails(userId: Ulid): Promise<void> {
+  // replaced by getUserContactInfo
+  const user = await getUserContactInfoById(userId)
   if (user) {
     if (user.isVolunteer) {
-      if ((user as Volunteer).volunteerPartnerOrg) {
+      if (user.volunteerPartnerOrg) {
         await MailService.sendPartnerVolunteerWelcomeEmail(
           user.email,
-          user.firstname
+          user.firstName
         )
       } else {
         await MailService.sendOpenVolunteerWelcomeEmail(
           user.email,
-          user.firstname
+          user.firstName
         )
       }
     } else {
       await MailService.sendStudentOnboardingWelcomeEmail(
         user.email,
-        user.firstname
+        user.firstName
       )
-      await StudentService.queueOnboardingEmails(user._id)
+      await StudentService.queueOnboardingEmails(user.id)
     }
   }
 }
