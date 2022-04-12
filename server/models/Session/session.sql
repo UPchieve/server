@@ -692,7 +692,8 @@ WHERE
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND session_count.total = 0
-    AND notifications.session_id = :sessionId!
+    AND (notifications.session_id::uuid = :sessionId
+        OR notifications.mongo_id::text = :mongoSessionId)
 GROUP BY
     users.id,
     notification_count.total;
@@ -708,12 +709,12 @@ FROM
     LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id
     LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id
     LEFT JOIN users ON users.id = sessions.student_id
-WHERE
-    sessions.id = :sessionId!
-    AND (session_flags.name IS NULL
-        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+WHERE (sessions.id::uuid = :sessionId
+    OR sessions.mongo_id::text = :mongoSessionId)
+AND (session_flags.name IS NULL
+    OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
+AND users.deactivated IS FALSE
+AND users.test_user IS FALSE;
 
 
 /* @name getVolunteerForEmailFirstSession */
@@ -726,12 +727,12 @@ FROM
     LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id
     LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id
     LEFT JOIN users ON users.id = sessions.volunteer_id
-WHERE
-    sessions.id = :sessionId!
-    AND (session_flags.name IS NULL
-        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+WHERE (sessions.id::uuid = :sessionId
+    OR sessions.mongo_id::text = :mongoSessionId)
+AND (session_flags.name IS NULL
+    OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
+AND users.deactivated IS FALSE
+AND users.test_user IS FALSE;
 
 
 /* @name getSessionsForAdminFilter */
