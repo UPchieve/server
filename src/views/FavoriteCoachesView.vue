@@ -99,7 +99,7 @@ import CoachIcon from '@/assets/volunteer-icon.svg'
 import HeartIcon from '@/assets/heart.svg'
 
 export default {
-  name: 'profile-view',
+  name: 'favorite-coaches-view',
   components: {
     FavoritingToggle,
     CaretIcon,
