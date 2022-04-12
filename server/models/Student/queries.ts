@@ -17,7 +17,7 @@ import {
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import * as FeedbackRepo from '../../models/Feedback/queries'
-import { isValidObjectId } from '../../utils/type-utils'
+import { asObjectId } from '../../utils/type-utils'
 
 export type ReportedStudent = {
   id: Ulid
@@ -85,11 +85,10 @@ export async function getStudentContactInfoById(
   studentId: Ulid
 ): Promise<StudentContactInfo | undefined> {
   try {
-    const isObjectId = isValidObjectId(studentId)
     const result = await pgQueries.getStudentContactInfoById.run(
       {
-        userId: isObjectId ? undefined : studentId,
-        mongoUserId: isObjectId ? studentId : undefined,
+        userId: asObjectId(studentId),
+        mongoUserId: asObjectId(studentId),
       },
       getClient()
     )

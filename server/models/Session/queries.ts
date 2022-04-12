@@ -18,7 +18,7 @@ import { ResponseData, StudentCounselingFeedback } from '../Feedback'
 import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
 import { fixNumberInt } from '../../utils/fix-number-int'
-import { isValidObjectId } from '../../utils/type-utils'
+import { asObjectId } from '../../utils/type-utils'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -806,11 +806,10 @@ export async function getVolunteersForGentleWarning(
   sessionId: Ulid
 ): Promise<VolunteerForGentleWarning[]> {
   try {
-    const isObjectId = isValidObjectId(sessionId)
     const result = await pgQueries.getVolunteersForGentleWarning.run(
       {
-        sessionId: isObjectId ? undefined : sessionId,
-        mongoSessionId: isObjectId ? sessionId : undefined,
+        sessionId: asObjectId(sessionId),
+        mongoSessionId: asObjectId(sessionId),
       },
       getClient()
     )
@@ -829,11 +828,10 @@ export async function getStudentForEmailFirstSession(
   sessionId: Ulid
 ): Promise<UserForFirstSession | undefined> {
   try {
-    const isObjectId = isValidObjectId(sessionId)
     const result = await pgQueries.getStudentForEmailFirstSession.run(
       {
-        sessionId: isObjectId ? undefined : sessionId,
-        mongoSessionId: isObjectId ? sessionId : undefined,
+        sessionId: asObjectId(sessionId),
+        mongoSessionId: asObjectId(sessionId),
       },
       getClient()
     )
@@ -848,11 +846,10 @@ export async function getVolunteerForEmailFirstSession(
   sessionId: Ulid
 ): Promise<UserForFirstSession | undefined> {
   try {
-    const isObjectId = isValidObjectId(sessionId)
     const result = await pgQueries.getVolunteerForEmailFirstSession.run(
       {
-        sessionId: isObjectId ? undefined : sessionId,
-        mongoSessionId: isObjectId ? sessionId : undefined,
+        sessionId: asObjectId(sessionId),
+        mongoSessionId: asObjectId(sessionId),
       },
       getClient()
     )

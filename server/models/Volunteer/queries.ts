@@ -17,7 +17,7 @@ import { PHOTO_ID_STATUS } from '../../constants'
 import { Pool, PoolClient } from 'pg'
 import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
-import { isValidObjectId } from '../../utils/type-utils'
+import { asObjectId } from '../../utils/type-utils'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -91,11 +91,10 @@ export async function getVolunteerForQuickTips(
   userId: Ulid
 ): Promise<VolunteerContactAndAvailability | undefined> {
   try {
-    const isObjectId = isValidObjectId(userId)
     const vResult = await pgQueries.getVolunteerForQuickTips.run(
       {
-        userId: isObjectId ? undefined : userId,
-        mongoUserId: isObjectId ? userId : undefined,
+        userId: asObjectId(userId),
+        mongoUserId: asObjectId(userId),
       },
       getClient()
     )
@@ -115,11 +114,10 @@ export async function getPartnerVolunteerForLowHours(
   userId: Ulid
 ): Promise<VolunteerContactAndAvailability | undefined> {
   try {
-    const isObjectId = isValidObjectId(userId)
     const vResult = await pgQueries.getPartnerVolunteerForLowHours.run(
       {
-        userId: isObjectId ? undefined : userId,
-        mongoUserId: isObjectId ? userId : undefined,
+        userId: asObjectId(userId),
+        mongoUserId: asObjectId(userId),
       },
       getClient()
     )
@@ -139,11 +137,10 @@ export async function getPartnerVolunteerForCollege(
   userId: Ulid
 ): Promise<VolunteerContactAndAvailability | undefined> {
   try {
-    const isObjectId = isValidObjectId(userId)
     const vResult = await pgQueries.getPartnerVolunteerForCollege.run(
       {
-        userId: isObjectId ? undefined : userId,
-        mongoUserId: isObjectId ? userId : undefined,
+        userId: asObjectId(userId),
+        mongoUserId: asObjectId(userId),
       },
       getClient()
     )
@@ -304,11 +301,10 @@ export async function getVolunteerForOnboardingById(
   userId: Ulid
 ): Promise<VolunteerForOnboarding | undefined> {
   try {
-    const isObjectId = isValidObjectId(userId)
     const result = await pgQueries.getVolunteerForOnboardingById.run(
       {
-        userId: isObjectId ? undefined : userId,
-        mongoUserId: isObjectId ? userId : undefined,
+        userId: asObjectId(userId),
+        mongoUserId: asObjectId(userId),
       },
       getClient()
     )

@@ -142,6 +142,9 @@ export function asUnion<T>(fns: ((s: unknown, errMsg?: string) => T)[]) {
   }
 }
 
-export function isValidObjectId(s: string): boolean {
-  return Types.ObjectId.isValid(s)
+// helper to check if the incoming ID is a mongo id or an PG id
+// TODO: remove once mongo ids are no longer stored in cached jobs
+export function asObjectId(id: string): string | undefined {
+  if (Types.ObjectId.isValid(id)) return id
+  else return undefined
 }
