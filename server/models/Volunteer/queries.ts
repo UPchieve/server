@@ -1332,7 +1332,10 @@ export async function getVolunteerForScheduleUpdate(
       client
     )
     if (!result.length) throw new RepoReadError('Volunteer not found')
-    const volunteer = makeSomeRequired(result[0], ['volunteerPartnerOrg'])
+    const volunteer = makeSomeRequired(result[0], [
+      'volunteerPartnerOrg',
+      'subjects',
+    ])
     const availability = await getAvailabilityForVolunteer(volunteer.id, client)
     return {
       ...volunteer,
