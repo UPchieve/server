@@ -44,7 +44,7 @@ GRANT ALL privileges ON ALL sequences IN SCHEMA upchieve TO retool;
 
 GRANT usage ON SCHEMA upchieve TO retool;
 
-ALTER ROLE subway SET search_path = upchieve;
+ALTER ROLE retool SET search_path = upchieve;
 
 GRANT ALL privileges ON ALL tables IN SCHEMA auth TO retool;
 
