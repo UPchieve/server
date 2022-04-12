@@ -1,5 +1,4 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getVolunteersForGentleWarning } from '../../../models/Session'
