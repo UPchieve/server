@@ -505,7 +505,7 @@ FROM
     LEFT JOIN (
         SELECT
             array_agg(id) AS sessions,
-            sum(time_tutored)::int AS time_tutored
+            sum(time_tutored)::bigint AS time_tutored
         FROM
             sessions
         WHERE

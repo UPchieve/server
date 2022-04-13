@@ -18,7 +18,7 @@ import { PHOTO_ID_STATUS } from '../../constants'
 import { PoolClient } from 'pg'
 import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
-import { asPgId } from '../../utils/type-utils'
+import { isPgId } from '../../utils/type-utils'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -94,8 +94,8 @@ export async function getVolunteerForQuickTips(
   try {
     const vResult = await pgQueries.getVolunteerForQuickTips.run(
       {
-        userId: asPgId(userId),
-        mongoUserId: asPgId(userId),
+        userId: isPgId(userId) ? userId : undefined,
+        mongoUserId: isPgId(userId) ? undefined : userId,
       },
       getClient()
     )
@@ -117,8 +117,8 @@ export async function getPartnerVolunteerForLowHours(
   try {
     const vResult = await pgQueries.getPartnerVolunteerForLowHours.run(
       {
-        userId: asPgId(userId),
-        mongoUserId: asPgId(userId),
+        userId: isPgId(userId) ? userId : undefined,
+        mongoUserId: isPgId(userId) ? undefined : userId,
       },
       getClient()
     )
@@ -140,8 +140,8 @@ export async function getPartnerVolunteerForCollege(
   try {
     const vResult = await pgQueries.getPartnerVolunteerForCollege.run(
       {
-        userId: asPgId(userId),
-        mongoUserId: asPgId(userId),
+        userId: isPgId(userId) ? userId : undefined,
+        mongoUserId: isPgId(userId) ? undefined : userId,
       },
       getClient()
     )
@@ -304,8 +304,8 @@ export async function getVolunteerForOnboardingById(
   try {
     const result = await pgQueries.getVolunteerForOnboardingById.run(
       {
-        userId: asPgId(userId),
-        mongoUserId: asPgId(userId),
+        userId: isPgId(userId) ? userId : undefined,
+        mongoUserId: isPgId(userId) ? undefined : userId,
       },
       getClient()
     )
@@ -1444,13 +1444,21 @@ export async function getVolunteersForAnalyticsReport(
         `no volunteer partner org found with key ${volunteerPartnerOrg}`
       )
 
-    return result.map(row =>
-      makeSomeRequired(row, [
+    return result.map(row => {
+      const temp = makeSomeRequired(row, [
         'state',
         'dateOnboarded',
         'availabilityLastModifiedAt',
       ])
-    )
+      return {
+        ...temp,
+        // manually parse out incoming bigint to number
+        totalPartnerTimeTutored: Number(temp.totalPartnerTimeTutored),
+        totalPartnerTimeTutoredWithinRange: Number(
+          temp.totalPartnerTimeTutoredWithinRange
+        ),
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }

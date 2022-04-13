@@ -397,7 +397,7 @@ FROM
                     TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60, 2)
                 ELSE
                     0
-                END) AS total_session_length_mins,
+                END)::int AS total_session_length_mins,
             sum(
                 CASE WHEN sessions.volunteer_joined_at IS NOT NULL
                     AND sessions.created_at >= :sessionStart!
@@ -411,7 +411,7 @@ FROM
                     TRUNC(EXTRACT(EPOCH FROM (sessions.ended_at - sessions.volunteer_joined_at)) / 60, 2)
                 ELSE
                     0
-                END) AS range_session_length_mins,
+                END)::int AS range_session_length_mins,
             count(*)::int AS total_sessions,
             sum(
                 CASE WHEN sessions.created_at >= :sessionStart!
