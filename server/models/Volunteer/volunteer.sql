@@ -46,7 +46,7 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.last_activity_at < :startDate!
@@ -65,7 +65,7 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE (users.id::uuid = :userId
     OR users.mongo_id::text = :mongoUserId)
@@ -85,7 +85,7 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN (
         SELECT
@@ -124,7 +124,7 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN (
         SELECT
@@ -169,7 +169,7 @@ SELECT
     sent_hour_summary_intro_email
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id
 WHERE (volunteer_partner_orgs.id IS NULL
@@ -213,7 +213,7 @@ SELECT
     user_id
 FROM
     volunteer_profiles
-    LEFT JOIN users ON volunteer_profiles.user_id = users.id
+    JOIN users ON volunteer_profiles.user_id = users.id
 WHERE
     users.deactivated IS FALSE
     AND users.test_user IS FALSE
@@ -226,7 +226,7 @@ SELECT
     users.id
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id
 WHERE
@@ -279,7 +279,7 @@ FROM
             subjects.name, CTE.total
         HAVING
             COUNT(*)::int >= CTE.total) AS subjects_unlocked ON TRUE
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN availabilities ON availabilities.user_id = users.id
 WHERE
     users.banned IS FALSE
@@ -304,7 +304,7 @@ SELECT
     users.created_at
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     volunteer_partner_orgs.key = :partnerOrg!
@@ -412,7 +412,7 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.last_activity_at >= :start!
@@ -727,7 +727,7 @@ SELECT
     occupations.occupations
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
     LEFT JOIN (
@@ -814,7 +814,7 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.banned IS FALSE
@@ -834,7 +834,7 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id
 WHERE
@@ -856,7 +856,7 @@ SELECT
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN volunteer_references ON volunteer_references.user_id = users.id
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
@@ -1277,7 +1277,7 @@ SELECT
     subjects_unlocked.subjects
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN LATERAL (
         SELECT

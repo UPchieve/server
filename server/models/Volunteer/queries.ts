@@ -493,8 +493,7 @@ export async function getInactiveVolunteers(
       inactiveNinetyDays: nineties,
     }
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
+    throw new RepoReadError(err)
   }
 }
 
