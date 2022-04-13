@@ -31,7 +31,7 @@
           <select
             v-model="selectedTz"
             class="tz-selector"
-            @change="someThingChanged"
+            @change="tzChanged"
           >
             <option v-for="tz in tzList" :key="tz">
               {{ tz }}
@@ -111,10 +111,20 @@ export default {
     this.initWaitTimeData()
   },
   methods: {
+    tzChanged() {
+      this.updateLocalWaitTimes()
+      this.someThingChanged()
+    },
     updateLocalAvailability(payload) {
       const oldValue = this.availability[payload.day][payload.hour]
       this.availability[payload.day][payload.hour] = !oldValue
       this.someThingChanged()
+    },
+    async updateLocalWaitTimes() {
+      const originalWaitTimes = await CalendarService.getWaitTimes(this)
+      const userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
+      const offset = (-1 * userUtcOffset) / 60
+      this.waitTimes = this.convertAvailability(originalWaitTimes, offset)
     },
     someThingChanged() {
       this.saveState = saveStates.UNSAVED
@@ -125,9 +135,9 @@ export default {
       this.selectedTz = hasValidTimezone ? userTimezone : moment.tz.guess()
 
       const originalAvailability = this.user.availability
-      var estUtcOffset = moment.tz.zone('America/New_York').parse(Date.now())
-      var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
-      var offset = (estUtcOffset - userUtcOffset) / 60
+      const estUtcOffset = moment.tz.zone('America/New_York').parse(Date.now())
+      const userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
+      const offset = (estUtcOffset - userUtcOffset) / 60
       this.availability = this.convertAvailability(originalAvailability, offset)
     },
     async initWaitTimeData() {
@@ -135,10 +145,7 @@ export default {
       const hasValidTimezone = userTimezone && this.userTzInList(userTimezone)
       this.selectedTz = hasValidTimezone ? userTimezone : moment.tz.guess()
 
-      const originalWaitTimes = await CalendarService.getWaitTimes(this)
-      var userUtcOffset = moment.tz.zone(this.selectedTz).parse(Date.now())
-      var offset = (-1 * userUtcOffset) / 60
-      this.waitTimes = this.convertAvailability(originalWaitTimes, offset)
+      await this.updateLocalWaitTimes()
     },
     sortTimes() {
       const keysMap = {}
@@ -219,7 +226,7 @@ export default {
         Friday: 'Thursday',
         Saturday: 'Friday'
       }
-      var convertedAvailability = {}
+      const convertedAvailability = {}
       for (const day in availability) {
         const times = availability[day]
         convertedAvailability[day] = {}
