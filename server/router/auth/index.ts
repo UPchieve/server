@@ -184,7 +184,7 @@ export function routes(app: Express) {
         await AuthService.sendReset(email as unknown, mobile as unknown)
       } catch (err) {
         // do not respond with info about no email match
-        logger.error(err)
+        logger.info(err)
         if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
       }
       let userId: Ulid | undefined
