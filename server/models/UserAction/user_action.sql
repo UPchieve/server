@@ -23,6 +23,19 @@ WHERE
     AND created_at < DATE(:end!);
 
 
+/* @name getQuizzesPassedForDateRangeForTelecomReportByVolunteerId */
+SELECT
+    created_at
+FROM
+    user_actions
+WHERE
+    action_type = 'QUIZ'
+    AND action = 'PASSED QUIZ'
+    AND user_id = :userId!
+    AND created_at >= DATE(:start!)
+    AND created_at < DATE(:end!);
+
+
 /* @name getSessionRequestedUserAgentFromSessionId */
 SELECT
     id,

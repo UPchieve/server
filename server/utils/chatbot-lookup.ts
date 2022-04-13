@@ -6,9 +6,7 @@ import { CHATBOT_CACHE_KEY, CHATBOT_EMAIL } from '../constants'
 import logger from '../logger'
 import { asString } from './type-utils'
 
-export async function lookupChatbotFromCache(): Promise<
-  Ulid | undefined
-> {
+export async function lookupChatbotFromCache(): Promise<Ulid | undefined> {
   try {
     return asString(await cache.get(CHATBOT_CACHE_KEY))
   } catch (err) {

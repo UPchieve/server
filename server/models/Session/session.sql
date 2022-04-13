@@ -197,12 +197,16 @@ SELECT
     session_reported_count.total <> 0 AS is_reported,
     flags.flags,
     messages.total AS total_messages,
-    session_review_reason.review_reasons
+    session_review_reason.review_reasons,
+    sessions.to_review,
+    student_feedback.student_counseling_feedback
 FROM
     sessions
     LEFT JOIN subjects ON subjects.id = sessions.subject_id
     LEFT JOIN topics ON topics.id = subjects.topic_id
     LEFT JOIN users students ON students.id = sessions.student_id
+    LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id
+            AND student_feedback.user_id = sessions.student_id)
     LEFT JOIN LATERAL (
         SELECT
             COUNT(id)::int AS total
@@ -238,12 +242,14 @@ FROM
 WHERE
     sessions.to_review IS TRUE
     AND sessions.reviewed IS FALSE
+ORDER BY
+    (sessions.created_at) DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
 /* @name getTotalTimeTutoredForDateRange */
 SELECT
-    SUM(time_tutored)::int AS total
+    SUM(time_tutored)::bigint AS total
 FROM
     sessions
 WHERE
@@ -339,7 +345,7 @@ WHERE
         WHEN sessions.student_id = :endedBy THEN
             'student'
         ELSE
-            NULL
+            'admin'
         END)) AS subquery
 WHERE
     sessions.id = :sessionId!
@@ -400,7 +406,8 @@ SELECT
     session_reports.report_message,
     report_reasons.reason AS report_reason,
     session_review_reason.review_reasons,
-    session_photo.photos
+    session_photo.photos,
+    sessions.to_review
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -454,17 +461,26 @@ SELECT
         ELSE
             FALSE
         END) AS is_volunteer,
-    array_agg(sessions.id ORDER BY sessions.created_at) AS past_sessions
+    past_sessions.total AS past_sessions
 FROM
     users
     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
     LEFT JOIN sessions ON sessions.student_id = users.id
         OR sessions.volunteer_id = users.id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(sessions.id ORDER BY sessions.created_at) AS total
+        FROM
+            sessions
+        WHERE
+            student_id = users.id
+            OR volunteer_id = users.id) AS past_sessions ON TRUE
 WHERE
     sessions.id = :sessionId!
 GROUP BY
     users.id,
-    volunteer_profiles.user_id;
+    volunteer_profiles.user_id,
+    past_sessions.total;
 
 
 /* @name getSessionMessagesForFrontend */
@@ -527,7 +543,8 @@ SELECT
     sessions.created_at,
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
-    sessions.student_id
+    sessions.student_id,
+    sessions.ended_at
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -565,7 +582,8 @@ FROM
 WHERE
     sessions.student_id = :studentId!
 ORDER BY
-    created_at;
+    created_at DESC
+LIMIT 1;
 
 
 /* @name updateSessionVolunteerById */
@@ -611,19 +629,19 @@ RETURNING
 SELECT
     extract(isodow FROM sessions.created_at)::int AS day,
     extract(hour FROM sessions.created_at)::int AS hour,
-    AVG(
-        CASE WHEN sessions.volunteer_id IS NULL THEN
-            EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at))
-        ELSE
-            EXTRACT('epoch' FROM (sessions.volunteer_joined_at - sessions.created_at))
-        END)::float AS average_wait_time
+    COALESCE(AVG(
+            CASE WHEN sessions.volunteer_id IS NULL THEN
+                EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at))
+            ELSE
+                EXTRACT('epoch' FROM (sessions.volunteer_joined_at - sessions.created_at))
+            END), 0)::float * 1000 AS average_wait_time -- in milliseconds
 FROM
     sessions
 WHERE
-    sessions.created_at > :start!
+    sessions.created_at >= :start!
     AND sessions.created_at < :end!
     AND NOT sessions.ended_at IS NULL
-    AND EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at)) > 6000
+    AND EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at)) > 60
 GROUP BY
     day,
     hour;
@@ -631,6 +649,7 @@ GROUP BY
 
 /* @name getSessionsForReferCoworker */
 SELECT
+    sessions.id,
     feedbacks.volunteer_feedback
 FROM
     sessions
@@ -641,9 +660,8 @@ FROM
 WHERE
     sessions.volunteer_id = :volunteerId!
     AND sessions.time_tutored >= 15 * 60 * 1000
-    AND NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer"}')
-    AND feedbacks.user_id = :volunteerId!
-LIMIT 1;
+    AND (session_flags.name IS NULL
+        OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer"}'));
 
 
 /* @name getVolunteersForGentleWarning */
@@ -651,7 +669,7 @@ SELECT
     users.id,
     users.email,
     users.first_name,
-    COUNT(DISTINCT notifications.id)::int AS total_notifications
+    notification_count.total AS total_notifications
 FROM
     notifications
     LEFT JOIN users ON users.id = notifications.user_id
@@ -662,14 +680,23 @@ FROM
             sessions
         WHERE
             sessions.volunteer_id = users.id) AS session_count ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            COUNT(*)::int AS total
+        FROM
+            notifications
+        WHERE
+            notifications.user_id = users.id) AS notification_count ON TRUE
 WHERE
     users.banned IS FALSE
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND session_count.total = 0
-    AND notifications.session_id = :sessionId!
+    AND (notifications.session_id::uuid = :sessionId
+        OR notifications.mongo_id::text = :mongoSessionId)
 GROUP BY
-    users.id;
+    users.id,
+    notification_count.total;
 
 
 /* @name getStudentForEmailFirstSession */
@@ -682,11 +709,12 @@ FROM
     LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id
     LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id
     LEFT JOIN users ON users.id = sessions.student_id
-WHERE
-    sessions.id = :sessionId!
-    AND NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }')
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+WHERE (sessions.id::uuid = :sessionId
+    OR sessions.mongo_id::text = :mongoSessionId)
+AND (session_flags.name IS NULL
+    OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
+AND users.deactivated IS FALSE
+AND users.test_user IS FALSE;
 
 
 /* @name getVolunteerForEmailFirstSession */
@@ -698,16 +726,18 @@ FROM
     sessions
     LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id
     LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id
-    LEFT JOIN users ON users.id = sessions.student_id
-WHERE
-    sessions.id = :sessionId!
-    AND NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low session rating from coach" }')
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+    LEFT JOIN users ON users.id = sessions.volunteer_id
+WHERE (sessions.id::uuid = :sessionId
+    OR sessions.mongo_id::text = :mongoSessionId)
+AND (session_flags.name IS NULL
+    OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
+AND users.deactivated IS FALSE
+AND users.test_user IS FALSE;
 
 
 /* @name getSessionsForAdminFilter */
 SELECT
+    sessions.id,
     sessions.created_at,
     sessions.ended_at,
     message_count.total AS total_messages,
@@ -724,11 +754,20 @@ SELECT
     volunteers.test_user AS volunteer_test_user,
     volunteer_sessions.total AS volunteer_total_past_sessions,
     student_feedback.student_counseling_feedback,
-    volunteer_feedback.volunteer_feedback
+    volunteer_feedback.volunteer_feedback,
+    review_reasons.review_reasons
 FROM
     sessions
     LEFT JOIN subjects ON subjects.id = sessions.subject_id
     LEFT JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(session_flags.name) AS review_reasons
+        FROM
+            session_review_reasons
+            LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id
+        WHERE
+            session_id = sessions.id) AS review_reasons ON TRUE
     LEFT JOIN LATERAL (
         SELECT
             first_name,
@@ -753,7 +792,7 @@ FROM
             users.id = sessions.volunteer_id) AS volunteers ON TRUE
     LEFT JOIN LATERAL (
         SELECT
-            COUNT(id)::int AS total
+            COUNT(*)::int AS total
         FROM
             session_messages
         WHERE
@@ -779,10 +818,10 @@ FROM
             sessions
         WHERE
             sessions.volunteer_id = volunteers.id) AS volunteer_sessions ON TRUE
-    LEFT JOIN feedbacks student_feedback ON student_feedback.session_id = sessions.id
-        AND student_feedback.user_id = sessions.student_id
-    LEFT JOIN feedbacks volunteer_feedback ON volunteer_feedback.session_id = sessions.id
-        AND volunteer_feedback.user_id = sessions.volunteer_id
+    LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id
+            AND student_feedback.user_id = sessions.student_id)
+    LEFT JOIN feedbacks volunteer_feedback ON (volunteer_feedback.session_id = sessions.id
+            AND volunteer_feedback.volunteer_feedback IS NOT NULL)
     LEFT JOIN LATERAL (
         SELECT
             MAX(created_at) AS last_banned_at
@@ -798,19 +837,31 @@ WHERE
     AND ((:messageCount)::int IS NULL
         OR message_count.total >= (:messageCount)::int)
     AND ((:sessionLength)::int IS NULL
-        OR EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at)) > (:sessionLength)::int)
-    AND ((:reported)::boolean IS FALSE
+        OR (EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at)) / 60) > (:sessionLength)::int)
+    AND ((:reported)::boolean IS NULL
+        OR (:reported)::boolean IS FALSE
         OR session_reported_count.total > 0)
     AND (student_banned.last_banned_at IS NULL
         OR sessions.created_at < student_banned.last_banned_at
         OR sessions.student_banned IS FALSE
         OR (:showBannedUsers)::boolean IS TRUE)
-    AND ((:showTestUsers)::boolean IS TRUE
+    AND ((:showTestUsers)::boolean IS NULL
+        OR (:showTestUsers)::boolean IS TRUE
         OR students.test_user IS FALSE)
-    AND ((:firstTimeStudent)::boolean IS FALSE
+    AND ((:firstTimeStudent)::boolean IS NULL
+        OR (:firstTimeStudent)::boolean IS FALSE
         OR student_sessions.total = 1)
-    AND ((:firstTimeVolunteer)::boolean IS FALSE
+    AND ((:firstTimeVolunteer)::boolean IS NULL
+        OR (:firstTimeVolunteer)::boolean IS FALSE
         OR volunteer_sessions.total = 1)
+    AND ((:studentRating)::int IS NULL
+        OR (student_feedback.student_counseling_feedback IS NOT NULL
+            AND (student_feedback.student_counseling_feedback -> 'rate-session' -> 'rating' ->> '$numberInt')::int = (:studentRating)::int))
+    AND ((:volunteerRating)::int IS NULL
+        OR (volunteer_feedback.volunteer_feedback IS NOT NULL
+            AND (volunteer_feedback.volunteer_feedback -> 'session-enjoyable' ->> '$numberInt')::int = (:volunteerRating)::int))
+ORDER BY
+    (sessions.created_at) DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
@@ -878,26 +929,4 @@ WHERE
     AND sessions.created_at <= :end!
     AND sessions.volunteer_id = :volunteerId!
     AND users.test_user = FALSE;
-
-/* @name getSessionHistory */
-SELECT
-    sessions.id,
-    sessions.created_at AS created_at,
-    sessions.time_tutored::int AS time_tutored,
-    subjects.name AS subject,
-    topics.name AS topic,
-    volunteers.first_name AS volunteer_first_name,
-    volunteers.id AS volunteer_id,
-    students.id AS student_id,
-    students.first_name AS student_first_name
-FROM
-    sessions
-    JOIN subjects ON subjects.id = sessions.subject_id
-    JOIN topics ON topics.id = subjects.topic_id
-    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id
-    LEFT JOIN users students ON students.id = sessions.student_id
-WHERE sessions.time_tutored > :minSessionLength!::int
-AND students.id = :studentId!
-LIMIT (:limit!)::int OFFSET (:offset!)::int;
-
 

@@ -1,6 +1,6 @@
 import { PushToken } from './types'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
 

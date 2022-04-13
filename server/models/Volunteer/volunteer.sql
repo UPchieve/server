@@ -67,12 +67,12 @@ FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-WHERE
-    users.id = :userId!
-    AND volunteer_profiles.onboarded IS TRUE
-    AND users.banned IS FALSE
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+WHERE (users.id::uuid = :userId
+    OR users.mongo_id::text = :mongoUserId)
+AND volunteer_profiles.onboarded IS TRUE
+AND users.banned IS FALSE
+AND users.deactivated IS FALSE
+AND users.test_user IS FALSE;
 
 
 /* @name getPartnerVolunteerForLowHours */
@@ -93,15 +93,15 @@ FROM
         FROM
             sessions
         WHERE
-            sessions.volunteer_id = :userId!) AS total_sessions ON TRUE
-WHERE
-    users.id = :userId!
-    AND volunteer_profiles.onboarded IS TRUE
-    AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
-    AND users.banned IS FALSE
-    AND users.deactivated IS FALSE
-    AND total_sessions.total > 0
-    AND users.test_user IS FALSE;
+            sessions.volunteer_id = :userId) AS total_sessions ON TRUE
+WHERE (users.id::uuid = :userId
+    OR users.mongo_id::text = :mongoUserId)
+AND volunteer_profiles.onboarded IS TRUE
+AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
+AND users.banned IS FALSE
+AND users.deactivated IS FALSE
+AND total_sessions.total > 0
+AND users.test_user IS FALSE;
 
 
 /* @name getPartnerVolunteerForCollege */
@@ -141,15 +141,16 @@ FROM
                 JOIN topics ON topics.id = subjects.topic_id
                 JOIN CTE ON CTE.name = subjects.name
             WHERE
-                users.id = :userId!
+                users.id::uuid = :userId
+                OR users.mongo_id::text = :mongoUserId
             GROUP BY
                 subjects.name, CTE.total, topics.name
             HAVING
                 COUNT(*)::int >= CTE.total) AS subjects_unlocked) AS topics_unlocked ON TRUE
-WHERE
-    users.id = :userId!
-    AND volunteer_profiles.onboarded IS TRUE
-    AND array_length(topics_unlocked.topics, 1) = 1
+WHERE (users.id::uuid = :userId
+    OR users.mongo_id::text = :mongoUserId)
+AND volunteer_profiles.onboarded IS TRUE
+AND array_length(topics_unlocked.topics, 1) = 1
     AND topics_unlocked.topics = ARRAY['college']
     AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
     AND users.banned IS FALSE
@@ -215,7 +216,9 @@ FROM
     LEFT JOIN users ON volunteer_profiles.user_id = users.id
 WHERE
     users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+    AND users.test_user IS FALSE
+    AND volunteer_profiles.onboarded IS TRUE
+    AND volunteer_profiles.approved IS TRUE;
 
 
 /* @name getVolunteersForTotalHours */
@@ -253,7 +256,7 @@ SELECT
     email,
     first_name,
     volunteer_profiles.onboarded,
-    array_agg(subjects_unlocked.subject) AS subjects,
+    COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,
     country,
     MAX(availabilities.updated_at) AS availability_last_modified_at
 FROM
@@ -270,7 +273,8 @@ FROM
             JOIN users ON users.id = users_certifications.user_id
             JOIN CTE ON CTE.name = subjects.name
         WHERE
-            users.id = :userId!
+            users.id::uuid = :userId
+            OR users.mongo_id::text = :mongoUserId
         GROUP BY
             subjects.name, CTE.total
         HAVING
@@ -282,7 +286,8 @@ WHERE
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS FALSE
-    AND users.id = :userId!
+    AND (users.id::uuid = :userId
+        OR users.mongo_id::text = :mongoUserId)
 GROUP BY
     users.id,
     onboarded,
@@ -340,8 +345,10 @@ SELECT
     volunteer_references.email AS reference_email
 FROM
     volunteer_references
+    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
     volunteer_references.id = :referenceId!
+    AND volunteer_reference_statuses.name <> 'removed'
 LIMIT 1;
 
 
@@ -660,7 +667,32 @@ FROM
     volunteer_references
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
-    volunteer_references.user_id = :userId!;
+    volunteer_references.user_id = :userId!
+    AND volunteer_reference_statuses.name != 'removed';
+
+
+/* @name getReferencesByVolunteerForAdminDetail */
+SELECT
+    volunteer_references.id,
+    first_name,
+    last_name,
+    email,
+    volunteer_reference_statuses.name AS status,
+    affiliation,
+    relationship_length,
+    patient,
+    positive_role_model,
+    agreeable_and_approachable,
+    communicates_effectively,
+    rejection_reason,
+    additional_info,
+    trustworthy_with_children
+FROM
+    volunteer_references
+    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+WHERE
+    volunteer_references.user_id = :userId!
+    AND volunteer_reference_statuses.name != 'removed';
 
 
 /* @name getVolunteerForPendingStatus */
@@ -888,21 +920,20 @@ FROM
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     JOIN (
         SELECT
-            users.id,
+            users_certifications.user_id,
             COUNT(*)::int AS earned_certs,
             certs_for_subject.total
         FROM
             users_certifications
             JOIN certification_subject_unlocks USING (certification_id)
             JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-            JOIN users ON users.id = users_certifications.user_id
             JOIN certs_for_subject ON TRUE
         WHERE
             subjects.name = :subject!
         GROUP BY
-            users.id, subjects.name, certs_for_subject.total
+            users_certifications.user_id, subjects.name, certs_for_subject.total
         HAVING
-            COUNT(*)::int >= certs_for_subject.total) user_certs ON user_certs.id = users.id
+            COUNT(*)::int >= certs_for_subject.total) user_certs ON user_certs.user_id = users.id
 WHERE
     users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE
@@ -935,39 +966,41 @@ LIMIT 1;
 /* @name getVolunteersToReview */
 SELECT
     users.id,
-    users.first_name,
-    users.last_name,
+    users.first_name AS first_name,
+    users.last_name AS last_name,
+    users.first_name AS firstname,
+    users.last_name AS lastname,
     users.email,
     users.created_at,
     MAX(user_actions.created_at) AS ready_for_review_at
 FROM
     users
     JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
-    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
-    LEFT JOIN (
+    JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
+    JOIN (
         SELECT
             user_id,
             count(*) AS total_references
         FROM
             volunteer_references
-            LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+            JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
         WHERE
-            NOT volunteer_reference_statuses.name = ANY ('{ "sent", "unsent", "rejected", "removed" }')
+            volunteer_reference_statuses.name = ANY ('{ "submitted", "approved" }')
         GROUP BY
             user_id) AS reference_count ON reference_count.user_id = users.id
-    JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id
-    LEFT JOIN user_actions ON user_actions.user_id = users.id
+    JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id -- user is only ready for review if they submitted background info
+    JOIN user_actions ON user_actions.user_id = users.id
 WHERE
     volunteer_profiles.approved IS FALSE
     AND NOT volunteer_profiles.country IS NULL
     AND NOT volunteer_profiles.photo_id_s3_key IS NULL
     AND photo_id_statuses.name = ANY ('{ "submitted", "approved" }')
-    AND user_actions.action_type = ANY ('{ "added photo id", "submitted reference form", "completed background info" }')
+    AND user_actions.action = ANY ('{ "ADDED PHOTO ID", "SUBMITTED REFERENCE FORM", "COMPLETED BACKGROUND INFO" }')
     AND reference_count.total_references = 2
 GROUP BY
     users.id
 ORDER BY
-    ready_for_review_at
+    ready_for_review_at ASC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
@@ -994,7 +1027,7 @@ WHERE
     AND volunteer_references.sent_at < :end!;
 
 
-/* 
+/*
  @name updateVolunteerBackgroundInfo
  @param occupation -> ((userId, occupation, createdAt, updatedAt)...)
  */
@@ -1059,7 +1092,8 @@ RETURNING
 UPDATE
     volunteer_profiles
 SET
-    volunteer_partner_org_id = :partnerOrgId
+    volunteer_partner_org_id = :partnerOrgId,
+    approved = COALESCE(:approved, approved)
 WHERE
     user_id = :userId!
 RETURNING
@@ -1136,254 +1170,85 @@ FROM (
         COUNT(*)::int >= subject_cert_total.total) AS subjects_unlocked;
 
 
-/* @name getNextAnyVolunteerToNotify */
-SELECT
-    users.id,
-    first_name,
-    last_name,
-    phone,
-    email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    JOIN availabilities ON users.id = availabilities.user_id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(subjects.name) AS subjects
-        FROM (
+/* @name getNextVolunteerToNotify */
+WITH subject_totals AS (
+    SELECT
+        subjects.name,
+        COUNT(*)::int AS total
+    FROM
+        certification_subject_unlocks
+        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
+    GROUP BY
+        subjects.name
+),
+candidates AS (
+    SELECT
+        users.id,
+        first_name,
+        last_name,
+        phone,
+        email,
+        volunteer_partner_orgs.key AS volunteer_partner_org
+    FROM
+        users
+        JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+        JOIN availabilities ON users.id = availabilities.user_id
+        LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+        LEFT JOIN LATERAL (
             SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
-            FROM
-                users_certifications
-                JOIN certification_subject_unlocks USING (certification_id)
-                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
+                array_agg(sub_unlocked.subject)::text[] AS subjects
+            FROM (
+                SELECT
+                    subjects.name AS subject
+                FROM
+                    users_certifications
+                    JOIN certification_subject_unlocks USING (certification_id)
+                    JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
+                    JOIN subject_totals ON subject_totals.name = subjects.name
+                WHERE
+                    users_certifications.user_id = users.id
                 GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
+                    user_id, subjects.name, subject_totals.total
                 HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
-WHERE
-    test_user IS FALSE
-    AND banned IS FALSE
-    AND deactivated IS FALSE
-    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY (subjects_unlocked.subjects)
-    AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY (:disqualifiedVolunteers!)
-    AND NOT EXISTS (
-        SELECT
-            user_id
-        FROM
-            notifications
-        WHERE
-            user_id = users.id
-            AND sent_at >= DATE(:lastNotified!))
-LIMIT 1;
-
-
-/* @name getNextOpenVolunteerToNotify */
-SELECT
-    users.id,
-    first_name,
-    last_name,
-    phone,
-    email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    JOIN availabilities ON users.id = availabilities.user_id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(subjects.name) AS subjects
-        FROM (
+                    COUNT(*)::int >= subject_totals.total) AS sub_unlocked) AS subjects_unlocked ON TRUE
+    WHERE
+        test_user IS FALSE
+        AND banned IS FALSE
+        AND deactivated IS FALSE
+        AND volunteer_profiles.onboarded IS TRUE
+        -- availabilities are all stored in EST so convert server time to EST to be safe
+        AND extract(isodow FROM (NOW() at time zone 'America/New_York')) = availabilities.weekday_id
+        AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start
+        AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
+        AND :subject! = ANY (subjects_unlocked.subjects)
+        AND ( -- user does not have high level subjects if provided
+            (:highLevelSubjects)::text[] IS NULL
+            OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
+        AND ( -- user is not part of disqualified group (like active session volunteers) if provided
+            (:disqualifiedVolunteers)::uuid[] IS NULL
+            OR NOT users.id = ANY (:disqualifiedVolunteers))
+        AND ( -- user is partner or open
+            (:isPartner)::boolean IS NULL
+            OR (:isPartner IS FALSE
+                AND volunteer_profiles.volunteer_partner_org_id IS NULL)
+            OR (:isPartner IS TRUE
+                AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL))
+        AND ((:specificPartner)::text IS NULL
+            OR volunteer_partner_orgs.key = :specificPartner)
+        AND NOT EXISTS (
             SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
+                user_id
             FROM
-                users_certifications
-                JOIN certification_subject_unlocks USING (certification_id)
-                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
-                HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
-WHERE
-    test_user IS FALSE
-    AND banned IS FALSE
-    AND deactivated IS FALSE
-    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY (subjects_unlocked.subjects)
-    AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY (:disqualifiedVolunteers!)
-    AND volunteer_profiles.volunteer_partner_org_id IS NULL
-    AND NOT EXISTS (
-        SELECT
-            user_id
-        FROM
-            notifications
-        WHERE
-            user_id = users.id
-            AND sent_at >= DATE(:lastNotified!))
-LIMIT 1;
-
-
-/* @name getNextAnyPartnerVolunteerToNotify */
+                notifications
+            WHERE
+                user_id = users.id
+                AND sent_at >= :lastNotified!))
 SELECT
-    users.id,
-    first_name,
-    last_name,
-    phone,
-    email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
+    *
 FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    JOIN availabilities ON users.id = availabilities.user_id
-    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(subjects.name) AS subjects
-        FROM (
-            SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
-            FROM
-                users_certifications
-                JOIN certification_subject_unlocks USING (certification_id)
-                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
-                HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
-WHERE
-    test_user IS FALSE
-    AND banned IS FALSE
-    AND deactivated IS FALSE
-    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY (subjects_unlocked.subjects)
-    AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY (:disqualifiedVolunteers!)
-    AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL
-    AND NOT EXISTS (
-        SELECT
-            user_id
-        FROM
-            notifications
-        WHERE
-            user_id = users.id
-            AND sent_at >= DATE(:lastNotified!))
-LIMIT 1;
-
-
-/* @name getNextSpecificPartnerVolunteerToNotify */
-SELECT
-    users.id,
-    first_name,
-    last_name,
-    phone,
-    email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    JOIN availabilities ON users.id = availabilities.user_id
-    JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(subjects.name) AS subjects
-        FROM (
-            SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
-            FROM
-                users_certifications
-                JOIN certification_subject_unlocks USING (certification_id)
-                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
-                HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON TRUE
-WHERE
-    test_user IS FALSE
-    AND banned IS FALSE
-    AND deactivated IS FALSE
-    AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND :subject! = ANY (subjects_unlocked.subjects)
-    AND :highLevelSubjects && subjects_unlocked.subjects
-    AND NOT users.id = ANY (:disqualifiedVolunteers!)
-    AND volunteer_partner_orgs.key = :volunteerPartnerOrg!
-    AND NOT EXISTS (
-        SELECT
-            user_id
-        FROM
-            notifications
-        WHERE
-            user_id = users.id
-            AND sent_at >= DATE(:lastNotified!))
+    candidates
+ORDER BY
+    RANDOM()
 LIMIT 1;
 
 
@@ -1486,257 +1351,176 @@ AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabi
 
 /* @name getUniqueStudentsHelpedForAnalyticsReportSummary */
 SELECT
-  COALESCE(SUM(total_unique_students_helped.total), 0)::int AS total_unique_students_helped,
-  COALESCE(
-    SUM(total_unique_students_helped_within_range.total),
-    0
-  )::int AS total_unique_students_helped_within_range,
-  COALESCE(
-    SUM(total_unique_partner_students_helped.total),
-    0
-  )::int AS total_unique_partner_students_helped,
-  COALESCE(
-    SUM(
-      total_unique_partner_students_helped_within_range.total
-    ),
-    0
-  )::int AS total_unique_partner_students_helped_within_range
+    COALESCE(COUNT(DISTINCT sessions.student_id), 0)::int AS total_unique_students_helped,
+    COALESCE(COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!
+                AND sessions.created_at <= :end! THEN
+                sessions.student_id
+            ELSE
+                NULL
+            END), 0)::int AS total_unique_students_helped_within_range,
+    COALESCE(COUNT(DISTINCT CASE WHEN student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+                OR student_profiles.school_id = ANY (:studentSchoolIds!) THEN
+                sessions.student_id
+            ELSE
+                NULL
+            END), 0)::int AS total_unique_partner_students_helped,
+    COALESCE(COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!
+                AND sessions.created_at <= :end!
+                AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+                    OR student_profiles.school_id = ANY (:studentSchoolIds!)) THEN
+                sessions.student_id
+            ELSE
+                NULL
+            END), 0)::int AS total_unique_partner_students_helped_within_range
 FROM
-  volunteer_partner_orgs
-  LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-  ) AS total_unique_students_helped ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND sessions.created_at >= :start!
-      AND sessions.created_at <= :end!
-  ) AS total_unique_students_helped_within_range ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND (
-        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-        OR student_profiles.school_id = ANY(:studentSchoolIds!)
-      )
-  ) AS total_unique_partner_students_helped ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND (
-        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-        OR student_profiles.school_id = ANY(:studentSchoolIds!)
-      )
-      AND sessions.created_at >= :start!
-      AND sessions.created_at <= :end!
-  ) AS total_unique_partner_students_helped_within_range ON TRUE
+    volunteer_partner_orgs
+    LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+    LEFT JOIN sessions ON volunteer_profiles.user_id = sessions.volunteer_id
+    LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
 WHERE
-  volunteer_partner_orgs.key = :volunteerPartnerOrg!;
+    volunteer_partner_orgs.key = :volunteerPartnerOrg!;
+
 
 /* @name getVolunteersForAnalyticsReport */
 SELECT
-  users.id AS user_id,
-  users.first_name AS first_name,
-  users.last_name AS last_name,
-  users.email AS email,
-  users.created_at AS created_at,
-  users.deactivated AS is_deactivated,
-  users.last_activity_at AS last_activity_at,
-  volunteer_profiles.state AS state,
-  volunteer_profiles.onboarded AS is_onboarded,
-  user_actions.created_at AS date_onboarded,
-  COALESCE(users_quizzes.total, 0) AS total_quizzes_passed,
-  availabilities.updated_at AS availability_last_modified_at,
-  COALESCE(sessions_stats.total_unique_students_helped, 0) AS total_unique_students_helped,
-  COALESCE(
-    total_unique_students_helped_within_range.total,
-    0
-  ) AS total_unique_students_helped_within_range,
-  COALESCE(total_unique_partner_students_helped.total, 0) AS total_unique_partner_students_helped,
-  COALESCE(
-    total_unique_partner_students_helped_within_range.total,
-    0
-  ) AS total_unique_partner_students_helped_within_range,
-  COALESCE(sessions_stats.total_sessions, 0) AS total_sessions,
-  COALESCE(sessions_stats.total_sessions_within_range, 0) AS total_sessions_within_range,
-  COALESCE(sessions_stats.total_partner_sessions, 0) AS total_partner_sessions,
-  COALESCE(
-    sessions_stats.total_partner_sessions_within_range,
-    0
-  ) AS total_partner_sessions_within_range,
-  COALESCE(sessions_stats.total_partner_time_tutored, 0) AS total_partner_time_tutored,
-  COALESCE(
-    sessions_stats.total_partner_time_tutored_within_range,
-    0
-  ) AS total_partner_time_tutored_within_range,
-  COALESCE(notifications_stats.total, 0) AS total_notifications,
-  COALESCE(notifications_stats.total_within_range, 0) AS total_notifications_within_range
+    users.id AS user_id,
+    users.first_name AS first_name,
+    users.last_name AS last_name,
+    users.email AS email,
+    users.created_at AS created_at,
+    users.deactivated AS is_deactivated,
+    users.last_activity_at AS last_activity_at,
+    volunteer_profiles.state AS state,
+    volunteer_profiles.onboarded AS is_onboarded,
+    user_actions.created_at AS date_onboarded,
+    COALESCE(users_quizzes.total, 0) AS total_quizzes_passed,
+    availabilities.updated_at AS availability_last_modified_at,
+    COALESCE(sessions_stats.total_unique_students_helped, 0) AS total_unique_students_helped,
+    COALESCE(sessions_stats.total_unique_students_helped_within_range, 0) AS total_unique_students_helped_within_range,
+    COALESCE(sessions_stats.total_unique_partner_students_helped, 0) AS total_unique_partner_students_helped,
+    COALESCE(sessions_stats.total_unique_partner_students_helped_within_range, 0) AS total_unique_partner_students_helped_within_range,
+    COALESCE(sessions_stats.total_sessions, 0) AS total_sessions,
+    COALESCE(sessions_stats.total_sessions_within_range, 0) AS total_sessions_within_range,
+    COALESCE(sessions_stats.total_partner_sessions, 0) AS total_partner_sessions,
+    COALESCE(sessions_stats.total_partner_sessions_within_range, 0) AS total_partner_sessions_within_range,
+    COALESCE(sessions_stats.total_partner_time_tutored, 0) AS total_partner_time_tutored,
+    COALESCE(sessions_stats.total_partner_time_tutored_within_range, 0) AS total_partner_time_tutored_within_range,
+    COALESCE(notifications_stats.total, 0) AS total_notifications,
+    COALESCE(notifications_stats.total_within_range, 0) AS total_notifications_within_range
 FROM
-  users
-  JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-  LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
-  LEFT JOIN (
-    SELECT
-        COUNT(*)::int as total,
-        user_id
-    FROM
-      users_quizzes
-    WHERE passed = TRUE
-    GROUP BY user_id
-  ) as users_quizzes ON users_quizzes.user_id = volunteer_profiles.user_id
-  LEFT JOIN(
-    SELECT
-      MAX(updated_at) as updated_at,
-      user_id
-    FROM
-      availabilities
-    GROUP BY
-      user_id
-  ) as availabilities ON availabilities.user_id = users.id
-  LEFT JOIN (
-    SELECT
-      created_at,
-      user_id
-    FROM
-      user_actions
-    WHERE
-      action = 'ONBOARDED'
-  ) as user_actions ON user_actions.user_id = volunteer_profiles.user_id
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(*)::int AS total_sessions,
-      COUNT(DISTINCT student_id):: int AS total_unique_students_helped,
-      SUM(
-        CASE
-          WHEN sessions.created_at >= :start!
-          AND sessions.created_at <= :end! THEN 1
-          ELSE 0
-        END
-      ):: int as total_sessions_within_range,
-      SUM(
-        CASE
-          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-          OR student_profiles.school_id = ANY(
-            :studentSchoolIds!
-          ) THEN 1
-          ELSE 0
-        END
-      ):: int as total_partner_sessions,
-      SUM(
-        CASE
-          WHEN sessions.created_at >= :start!
-          AND sessions.created_at <= :end!
-          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-          OR student_profiles.school_id = ANY(
-            :studentSchoolIds!
-          ) THEN 1
-          ELSE 0
-        END
-      ):: int as total_partner_sessions_within_range,
-      SUM(
-        CASE
-          WHEN student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-          OR student_profiles.school_id = ANY(
-            :studentSchoolIds!
-          ) THEN sessions.time_tutored
-          ELSE 0
-        END
-      ):: int as total_partner_time_tutored,
-      SUM(
-        CASE
-          WHEN sessions.created_at >= :start!
-          AND sessions.created_at <= :end!
-          AND student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-          OR student_profiles.school_id = ANY(
-            :studentSchoolIds!
-          ) THEN sessions.time_tutored
-          ELSE 0
-        END
-      ):: int as total_partner_time_tutored_within_range
-    FROM
-      sessions
-      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-  ) AS sessions_stats ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND created_at >= :start!
-      AND created_at <= :end!
-  ) AS total_unique_students_helped_within_range ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND (
-        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-        OR student_profiles.school_id = ANY(
-          :studentSchoolIds!
-        )
-      )
-  ) AS total_unique_partner_students_helped ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(DISTINCT student_id):: int AS total
-    FROM
-      sessions
-      LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-    WHERE
-      volunteer_profiles.user_id = sessions.volunteer_id
-      AND (
-        student_profiles.student_partner_org_id = ANY(:studentPartnerOrgIds!)
-        OR student_profiles.school_id = ANY(
-          :studentSchoolIds!
-        )
-      )
-      AND sessions.created_at >= :start!
-      AND sessions.created_at <= :end!
-  ) AS total_unique_partner_students_helped_within_range ON TRUE
-  LEFT JOIN LATERAL (
-    SELECT
-      COUNT(*):: int AS total,
-      SUM(
-        CASE
-          WHEN sent_at >= :start!
-          AND sent_at <= :end! THEN 1
-          ELSE 0
-        END
-      ):: int as total_within_range
-    FROM
-      notifications
-    WHERE
-      volunteer_profiles.user_id = notifications.user_id
-  ) AS notifications_stats ON TRUE
+    users
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
+    LEFT JOIN (
+        SELECT
+            COUNT(*)::int AS total,
+            user_id
+        FROM
+            users_quizzes
+        WHERE
+            passed = TRUE
+        GROUP BY
+            user_id) AS users_quizzes ON users_quizzes.user_id = volunteer_profiles.user_id
+    LEFT JOIN (
+        SELECT
+            MAX(updated_at) AS updated_at,
+            user_id
+        FROM
+            availabilities
+        GROUP BY
+            user_id) AS availabilities ON availabilities.user_id = users.id
+    LEFT JOIN (
+        SELECT
+            created_at,
+            user_id
+        FROM
+            user_actions
+        WHERE
+            action = 'ONBOARDED') AS user_actions ON user_actions.user_id = volunteer_profiles.user_id
+    LEFT JOIN LATERAL (
+        SELECT
+            COUNT(*)::int AS total_sessions,
+            COUNT(DISTINCT student_id)::int AS total_unique_students_helped,
+            COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!
+                    AND sessions.created_at <= :end! THEN
+                    student_id
+                ELSE
+                    NULL
+                END)::int AS total_unique_students_helped_within_range,
+            COUNT(DISTINCT CASE WHEN student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+                    OR student_profiles.school_id = ANY (:studentSchoolIds!) THEN
+                    sessions.student_id
+                ELSE
+                    NULL
+                END)::int AS total_unique_partner_students_helped,
+            COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!
+                    AND sessions.created_at <= :end!
+                    AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+                        OR student_profiles.school_id = ANY (:studentSchoolIds!)) THEN
+                    sessions.student_id
+                ELSE
+                    NULL
+                END)::int AS total_unique_partner_students_helped_within_range,
+            SUM(
+                CASE WHEN sessions.created_at >= :start!
+                    AND sessions.created_at <= :end! THEN
+                    1
+                ELSE
+                    0
+                END)::int AS total_sessions_within_range,
+            SUM(
+                CASE WHEN student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+                    OR student_profiles.school_id = ANY (:studentSchoolIds!) THEN
+                    1
+                ELSE
+                    0
+                END)::int AS total_partner_sessions,
+            SUM(
+                CASE WHEN sessions.created_at >= :start!
+                    AND sessions.created_at <= :end!
+                    AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+                        OR student_profiles.school_id = ANY (:studentSchoolIds!)) THEN
+                    1
+                ELSE
+                    0
+                END)::int AS total_partner_sessions_within_range,
+            SUM(
+                CASE WHEN student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+                    OR student_profiles.school_id = ANY (:studentSchoolIds!) THEN
+                    sessions.time_tutored
+                ELSE
+                    0
+                END)::bigint AS total_partner_time_tutored,
+            SUM(
+                CASE WHEN sessions.created_at >= :start!
+                    AND sessions.created_at <= :end!
+                    AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+                        OR student_profiles.school_id = ANY (:studentSchoolIds!)) THEN
+                    sessions.time_tutored
+                ELSE
+                    0
+                END)::bigint AS total_partner_time_tutored_within_range
+        FROM
+            sessions
+    LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
 WHERE
-  volunteer_partner_orgs.key = :volunteerPartnerOrg!
+    volunteer_profiles.user_id = sessions.volunteer_id) AS sessions_stats ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            COUNT(*)::int AS total,
+            SUM(
+                CASE WHEN sent_at >= :start!
+                    AND sent_at <= :end! THEN
+                    1
+                ELSE
+                    0
+                END)::int AS total_within_range
+        FROM
+            notifications
+    WHERE
+        volunteer_profiles.user_id = notifications.user_id) AS notifications_stats ON TRUE
+WHERE
+    volunteer_partner_orgs.key = :volunteerPartnerOrg!
 ORDER BY
-  users.created_at DESC;
+    users.created_at DESC;
+

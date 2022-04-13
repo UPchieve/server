@@ -1,4 +1,5 @@
-import { mocked } from 'ts-jest/utils'
+test.skip('postgres migration', () => 1)
+/*import { mocked } from 'ts-jest/utils'
 import mongoose from 'mongoose'
 import emailWaitingOnReferences from '../../worker/jobs/emailWaitingOnReferences'
 import { insertVolunteer, resetDb } from '../db-utils'
@@ -126,3 +127,4 @@ describe('Email waiting on references to volunteer', () => {
     )
   })
 })
+*/

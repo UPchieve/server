@@ -311,17 +311,17 @@ FROM
 WHERE ((:userId)::uuid IS NULL
     OR users.id = :userId)
 AND ((:email)::text IS NULL
-    OR users.email LIKE :email)
+    OR users.email ILIKE ('%' || :email || '%'))
 AND ((:firstName)::text IS NULL
-    OR users.first_name LIKE :firstName)
+    OR users.first_name ILIKE ('%' || :firstName || '%'))
 AND ((:lastName)::text IS NULL
-    OR users.last_name LIKE :lastName)
+    OR users.last_name ILIKE ('%' || :lastName || '%'))
 AND ((:partnerOrg)::text IS NULL
-    OR volunteer_partner_orgs.name LIKE :partnerOrg
-    OR student_partner_orgs.name LIKE :partnerOrg)
+    OR volunteer_partner_orgs.key = :partnerOrg
+    OR student_partner_orgs.key = :partnerOrg)
 AND ((:highSchool)::text IS NULL
-    OR schools.name LIKE :highSchool
-    OR school_nces_metadata.sch_name LIKE :highSchool)
+    OR schools.name ILIKE ('%' || :highSchool || '%')
+    OR school_nces_metadata.sch_name ILIKE ('%' || :highSchool || '%'))
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
@@ -355,6 +355,7 @@ SELECT
     photo_id_statuses.name AS photo_id_status,
     volunteer_profiles.country,
     users.verified,
+    users.banned AS is_banned,
     user_product_flags.gates_qualified AS in_gates_study,
     grade_levels.name AS current_grade,
     student_partner_org_sites.name AS partner_site,
@@ -443,16 +444,18 @@ SELECT
     recent_availability.updated_at AS availability_last_modified_at,
     occupations.occupations AS occupation,
     student_partner_org_sites.name AS partner_site,
-    student_partner_orgs.name AS student_partner_org
+    student_partner_orgs.name AS student_partner_org,
+    COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,
+    volunteer_profiles.total_volunteer_hours
 FROM
     users
     LEFT JOIN (
         SELECT
             updated_at
         FROM
-            availability_histories
+            availabilities
         WHERE
-            availability_histories.user_id = :userId!
+            availabilities.user_id = :userId!
         ORDER BY
             updated_at
         LIMIT 1) AS recent_availability ON TRUE
@@ -502,7 +505,7 @@ FROM
     LEFT JOIN (
         SELECT
             array_agg(id) AS sessions,
-            sum(time_tutored)::int AS time_tutored
+            sum(time_tutored)::bigint AS time_tutored
         FROM
             sessions
         WHERE
@@ -590,9 +593,15 @@ FROM
             session_id = sessions.id) AS messages ON TRUE
 WHERE
     sessions.volunteer_id = :userId!
-    OR sessions.student_id = :userId!;
+    OR sessions.student_id = :userId!
+ORDER BY
+    sessions.created_at DESC
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
+
 
 /* @name getLegacyCertifications */
 SELECT
     name
-FROM quizzes;
+FROM
+    quizzes;
+

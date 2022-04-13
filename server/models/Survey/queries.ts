@@ -1,8 +1,9 @@
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { Survey } from './types'
+import { fixNumberInt } from '../../utils/fix-number-int'
 
 export type SurveyQueryResult = Omit<Survey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -15,7 +16,7 @@ export function parseQueryResult(result: SurveyQueryResult): Survey {
       ? JSON.parse(result.responseData)
       : result.responseData
 
-  return { ...result, responseData }
+  return { ...result, responseData: fixNumberInt(responseData) }
 }
 
 export async function savePresessionSurvey(
@@ -34,8 +35,8 @@ export async function savePresessionSurvey(
       getClient()
     )
     if (result.length) {
-      const parsedResult = parseQueryResult(result[0])
-      return makeRequired(parsedResult)
+      const survey = makeRequired(result[0])
+      return parseQueryResult(survey)
     }
     throw new RepoCreateError('Error upserting presession survey')
   } catch (err) {
@@ -58,8 +59,8 @@ export async function getPresessionSurvey(
       getClient()
     )
     if (result.length) {
-      const parsedResult = parseQueryResult(result[0])
-      return makeRequired(parsedResult)
+      const survey = makeRequired(result[0])
+      return parseQueryResult(survey)
     }
   } catch (err) {
     throw new RepoReadError(err)

@@ -7,9 +7,7 @@ import exceljs from 'exceljs'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomError } from 'ts-custom-error'
 import logger from '../logger'
-import {
-  REPORT_FILE_NAMES,
-} from '../constants'
+import { REPORT_FILE_NAMES } from '../constants'
 import config from '../config'
 import {
   generateTelecomReport,
@@ -66,7 +64,7 @@ type UsageReport = {
   'High school name': string
   'Partner site': string
   'HS/College': string
-  'Sponsor Org': string
+  'Sponsor Org': string | undefined
   'Partner Org': string
 }
 
@@ -151,7 +149,7 @@ export const sessionReport = async (
           ? formatDate(row.volunteerJoinedAt)
           : '',
         'Ended at': formatDate(row.endedAt),
-        'Wait time': row.waitTimeMins ? `${row.waitTimeMins}mins` : undefined,
+        'Wait time': row.waitTimeMins ? `${row.waitTimeMins}mins` : '',
         'Session rating': row.sessionRating ? String(row.sessionRating) : '',
       }
     })
@@ -201,7 +199,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
         'High school name': student.school ? student.school : '',
         'Partner site': student.partnerSite ? student.partnerSite : '-',
         'HS/College': student.school ? 'High school' : 'College',
-        'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : '',
+        'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : undefined,
         'Partner Org': student.studentPartnerOrg
           ? student.studentPartnerOrg
           : '',
@@ -263,8 +261,13 @@ export async function generatePartnerAnalyticsReport(
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
 
-  const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(partnerOrg, start, end)
-  if (!volunteers) throw new Error(`no volunteer partner org found with key ${partnerOrg}`)
+  const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(
+    partnerOrg,
+    start,
+    end
+  )
+  if (!volunteers)
+    throw new Error(`no volunteer partner org found with key ${partnerOrg}`)
 
   const report: AnalyticsReportRow[] = []
   for (const volunteer of volunteers) {
@@ -319,7 +322,9 @@ export async function writeAnalyticsReport(
   const dataSheet = workbook.addWorksheet('Data', sheetOptions)
   const formattedStartDate = moment(startDate, 'MM-DD-YYYY').format('MM/DD/YY')
   const formattedEndDate = moment(endDate, 'MM-DD-YYYY').format('MM/DD/YY')
-  const partner = await VolunteerPartnerOrgRepo.getFullVolunteerPartnerOrgByKey(partnerOrg)
+  const partner = await VolunteerPartnerOrgRepo.getFullVolunteerPartnerOrgByKey(
+    partnerOrg
+  )
   const partnerName = partner.name
   processAnalyticsReportSummarySheet(
     data.summary,

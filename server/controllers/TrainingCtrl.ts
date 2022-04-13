@@ -13,17 +13,11 @@ import {
   ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
   EVENTS,
-  SUBJECTS,
-  FEATURE_FLAGS,
 } from '../constants'
-import { isEnabled } from 'unleash-client'
 import { getSubjectType } from '../utils/getSubjectType'
-
 import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
-import {
-  Certifications,
-} from '../models/Volunteer'
+import { Certifications } from '../models/Volunteer'
 import {
   queueOnboardingEventEmails,
   queuePartnerOnboardingEventEmails,
@@ -35,8 +29,6 @@ import * as VolunteerModel from '../models/Volunteer'
 // change depending on how many of each subcategory are wanted
 const numQuestions = {
   [MATH_CERTS.PREALGREBA]: 2,
-  // TODO: remove `algebra` in the algebra 2 launch cleanup
-  [MATH_CERTS.ALGEBRA]: 2,
   [MATH_CERTS.ALGEBRA_ONE]: 2,
   [MATH_CERTS.ALGEBRA_TWO]: 1,
   [MATH_CERTS.GEOMETRY]: 2,
@@ -66,7 +58,7 @@ const TRAINING_THRESHOLD = 0.9
 function isCertifiedIn(givenCerts: any, userCerts: Certifications): boolean {
   for (const cert in givenCerts) {
     const subject = givenCerts[cert] as keyof Certifications
-    if (userCerts[subject].passed) return true
+    if (userCerts[subject]?.passed) return true
   }
 
   return false
@@ -81,8 +73,10 @@ export async function getQuestions(
     throw new Error('No subcategories defined for category: ' + category)
   }
 
-  const questions = await QuestionModel.listQuestions({category, subcategory: null})
-  console.log(`QUESTIONS: ${JSON.stringify(questions)}`)
+  const questions = await QuestionModel.listQuestions({
+    category,
+    subcategory: null,
+  })
   const questionsBySubcategory = _.groupBy(
     questions,
     question => question.subcategory
@@ -166,9 +160,6 @@ export function getUnlockedSubjects(
     [TRAINING.COLLEGE_COUNSELING]: { passed: true },
     [TRAINING.SAT_STRATEGIES]: { passed: true },
   })
-
-  // UPchieve 101 must be completed before a volunteer can be onboarded
-  if (!userCertifications[TRAINING.UPCHIEVE_101].passed) return []
 
   const certType = getSubjectType(cert as string)
 
@@ -262,12 +253,18 @@ export async function getQuizScore(
       : SUBJECT_THRESHOLD
   const passed = percent >= threshold
 
-  const certificationMap = await VolunteerModel.getCertificationsForVolunteers([user.id])
+  const certificationMap = await VolunteerModel.getCertificationsForVolunteers([
+    user.id,
+  ])
   const certifications = certificationMap[user.id]
 
   const tries = certifications[cert] ? certifications[cert].tries : 1
-  
-  await VolunteerModel.updateVolunteerQuiz(user.id, options.category as string, passed)
+
+  await VolunteerModel.updateVolunteerQuiz(
+    user.id,
+    options.category as string,
+    passed
+  )
 
   if (passed) {
     let unlockedSubjects = getUnlockedSubjects(cert, certifications)
@@ -277,9 +274,15 @@ export async function getQuizScore(
 
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
-      const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(user.id)
+      const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(
+        user.id
+      )
       if (!currentSubjects.includes(subject)) {
-        await createQuizAction({action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT, userId: user.id, quizSubcategory: (options.category as string)})
+        await createQuizAction({
+          action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+          userId: user.id,
+          quizSubcategory: options.category as string,
+        })
         captureEvent(user.id, EVENTS.SUBJECT_UNLOCKED, {
           event: EVENTS.SUBJECT_UNLOCKED,
           subject,
@@ -287,41 +290,29 @@ export async function getQuizScore(
         await VolunteerModel.addVolunteerCertification(user.id, subject)
       }
     }
-    /**
-     *
-     * algebra certs no longer unlock algebraOne and algebraTwo.
-     * When a user takes an algebra quiz, add algebraTwo-temporary
-     * instead of algebraTwo to their subjects. This allows for backwards
-     * compatibility when the algebra 2 launch feature flag is off
-     *
-     */
-    // TODO: remove this condition in algebra 2 launch cleanup
+    // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz
+    const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(
+      user.id
+    )
     if (
-      cert === MATH_CERTS.ALGEBRA &&
-      !isEnabled(FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH)
-    ) {
-      unlockedSubjects = unlockedSubjects.filter(
-        subject => subject !== MATH_CERTS.ALGEBRA_TWO
-      )
-      unlockedSubjects.push(SUBJECTS.ALGEBRA_TWO_TEMP)
-    }
-    const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(user.id)
-    if (!volunteerProfile) throw new Error(`user ${user.id} has no volunteer profile, cannot process quiz score`)
-    if (
+      volunteerProfile &&
       !volunteerProfile.onboarded &&
       volunteerProfile.availabilityLastModifiedAt &&
       unlockedSubjects.length > 0
     ) {
       await VolunteerModel.updateVolunteerOnboarded(user.id)
       await queueOnboardingEventEmails(user.id)
-      if (user.volunteerPartnerOrg) await queuePartnerOnboardingEventEmails(user.id)
-      await createAccountAction({action: ACCOUNT_USER_ACTIONS.ONBOARDED, userId: user.id, ipAddress: ip})
+      // TODO: this should just be done by the generic onboarding email handler above
+      if (user.volunteerPartnerOrg)
+        await queuePartnerOnboardingEventEmails(user.id)
+      await createAccountAction({
+        action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+        userId: user.id,
+        ipAddress: ip,
+      })
       captureEvent(user.id, EVENTS.ACCOUNT_ONBOARDED, {
         event: EVENTS.ACCOUNT_ONBOARDED,
       })
-    } else {
-      console.log(`AVAILABILITY LAST MODIFIED: ${volunteerProfile.availabilityLastModifiedAt}`)
-      console.log(`UNLOCKED SUBJECTS: ${unlockedSubjects}`)
     }
   }
 

@@ -1,8 +1,14 @@
 import { IneligibleStudent } from './types'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeSomeRequired, getDbUlid, makeRequired } from '../pgUtils'
+import {
+  Ulid,
+  makeSomeRequired,
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+} from '../pgUtils'
 
 export async function getIneligibleStudentByEmail(
   email: string
@@ -28,15 +34,15 @@ export type IneligibleStudentsWithSchoolInfo = {
   updatedAt: Date
   createdAt: Date
   email: string
-  zipCode: string
-  medianIncome: number
-  schoolId: Ulid
-  schoolName: string
-  schoolState: string
-  schoolCity: string
-  schoolZipCode: string
-  isApproved: boolean
-  ipAddress: string
+  zipCode?: string
+  medianIncome?: number
+  schoolId?: Ulid
+  schoolName?: string
+  schoolState?: string
+  schoolCity?: string
+  schoolZipCode?: string
+  isApproved?: boolean
+  ipAddress?: string
 }
 
 export async function getIneligibleStudentsPaginated(
@@ -48,7 +54,9 @@ export async function getIneligibleStudentsPaginated(
       { limit, offset },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v =>
+      makeSomeOptional(v, ['createdAt', 'email', 'updatedAt'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -64,7 +72,15 @@ export async function insertIneligibleStudent(
 ): Promise<void> {
   try {
     const result = await pgQueries.insertIneligibleStudent.run(
-      { id: getDbUlid(), email, schoolId, postalCode, gradeLevel, referredBy, ip },
+      {
+        id: getDbUlid(),
+        email,
+        schoolId,
+        postalCode,
+        gradeLevel,
+        referredBy,
+        ip,
+      },
       getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))

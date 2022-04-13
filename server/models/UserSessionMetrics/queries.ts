@@ -1,5 +1,5 @@
 import { merge } from 'lodash'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
@@ -66,8 +66,7 @@ export async function executeUSMUpdatesByUserId(
         absentStudent: update['absentStudent'],
         absentVolunteer: update['absentVolunteer'],
         lowSessionRatingFromCoach: update['lowSessionRatingFromCoach'],
-        lowSessionRatingFromStudent:
-          update['lowSessionRatingFromStudent'],
+        lowSessionRatingFromStudent: update['lowSessionRatingFromStudent'],
         lowCoachRatingFromStudent: update['lowCoachRatingFromStudent'],
         reported: update['reported'],
         onlyLookingForAnswers: update['onlyLookingForAnswers'],

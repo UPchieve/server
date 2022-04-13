@@ -26,7 +26,8 @@ class AbsentStudent extends CounterMetricProcessor {
       if (moment(uvd.session.endedAt).isSameOrBefore(volunteerMaxWait)) return 0
 
       for (const msg of uvd.messages) {
-        if (msg.user === uvd.session.studentId &&
+        if (
+          msg.user === uvd.session.studentId &&
           // if student sends message after volunteer joined, then don't flag student
           moment(msg.createdAt).isAfter(uvd.session.volunteerJoinedAt)
         )
@@ -40,8 +41,7 @@ class AbsentStudent extends CounterMetricProcessor {
     pd.value && this.computeFinalValue(pd.studentUSM, pd.value) >= 4
       ? [this.key]
       : NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = (pd: ProcessorData) => {
     const actions: Promise<any>[] = []
     if (!pd.value) return actions
@@ -92,7 +92,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
       for (const msg of uvd.messages) {
         if (
           // if volunteer sends message, then don't flag volunteer
-          msg.user === uvd.session.volunteerId 
+          msg.user === uvd.session.volunteerId
         )
           return 0
       }
@@ -106,8 +106,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
     this.computeFinalValue(pd.volunteerUSM, pd.value) >= 2
       ? [this.key]
       : NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = (pd: ProcessorData) => {
     const actions: Promise<any>[] = []
     if (!pd.value) return actions
@@ -167,8 +166,7 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
   }
   public computeReviewReason = (pd: ProcessorData) =>
     pd.value ? [this.key] : NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
 
@@ -195,8 +193,7 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
   }
   public computeReviewReason = (pd: ProcessorData) =>
     pd.value ? [this.key] : NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
 
@@ -217,8 +214,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
   }
   public computeReviewReason = (pd: ProcessorData) =>
     pd.value ? [this.key] : NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
 
@@ -230,8 +226,7 @@ class Reported extends CounterMetricProcessor {
     uvd.session.reported ? 1 : 0
   public computeReviewReason = (pd: ProcessorData) =>
     pd.value ? [this.key] : NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
 
@@ -259,8 +254,7 @@ class RudeOrInappropriate extends CounterMetricProcessor {
     pd.value && this.computeFinalValue(pd.studentUSM, pd.value) >= 2
       ? [this.key]
       : NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
 
@@ -288,8 +282,7 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
     pd.value && this.computeFinalValue(pd.studentUSM, pd.value) >= 2
       ? [this.key]
       : NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = (pd: ProcessorData) => {
     if (pd.value && this.computeFinalValue(pd.studentUSM, pd.value) === 1)
       return [
@@ -318,8 +311,7 @@ class CommentFromStudent extends CounterMetricProcessor {
     return 0
   }
   public computeReviewReason = () => NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
 
@@ -335,8 +327,7 @@ class CommentFromVolunteer extends CounterMetricProcessor {
     return 0
   }
   public computeReviewReason = () => NO_FLAGS
-  public computeFlag = (pd: ProcessorData) =>
-    pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
 

@@ -5,13 +5,15 @@ import exceljs from 'exceljs'
 import {
   HOUR_TO_UTC_MAPPING,
   ONBOARDING_STATUS,
+  DAYS,
+  HOURS,
 } from '../constants'
 import * as UserActionRepo from '../models/UserAction/queries'
 import * as SessionRepo from '../models/Session/queries'
 import logger from '../logger'
 import { VolunteersForAnalyticsReport } from '../models/Volunteer'
 import {
-  VolunteerForWeeklyHourSummary,
+  VolunteerForTotalHours,
   VolunteerForTelecomReport,
 } from '../models/Volunteer/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
@@ -22,11 +24,7 @@ import roundUpToNearestInterval from './round-up-to-nearest-interval'
 import { asFactory, asOptional, asString } from './type-utils'
 import config from '../config'
 import { QuizzesPassedForDateRange } from '../models/UserAction/types'
-import {
-  AvailabilityHistory,
-  DAYS,
-  HOURS,
-} from '../models/Availability/types'
+import { AvailabilityHistory } from '../models/Availability/types'
 import { getElapsedAvailabilityForTelecomReport } from '../services/AvailabilityService'
 
 /**
@@ -115,8 +113,9 @@ function telecomTutorTime(
   for (const availabilityHistory of availabilityForDateRange) {
     const availability = availabilityHistory.availability
     const day = DAYS[moment(availabilityHistory.recordedAt).day()]
-      if (availability[day]) {
-        for (const hourA of Object.keys(availability[day]) as HOURS[]) {
+    if (availability[day]) {
+      for (const hourA of Object.keys(availability[day]) as HOURS[]) {
+        if (availability[day][hourA]) {
           const temp = moment(availabilityHistory.recordedAt)
           const { day, hour } = formatStamp(
             temp.hour(HOUR_TO_UTC_MAPPING[hourA])
@@ -128,10 +127,11 @@ function telecomTutorTime(
             if (day in availabilityAcc) availabilityAcc[day][hour] = 60
             else availabilityAcc[day] = { hour: 60 }
           }
+        }
       }
     }
   }
-  
+
   // Add time spent in tutoring sessions
   for (const session of sessions) {
     if (session.timeTutored === 0) continue
@@ -187,7 +187,7 @@ interface TelecomRow {
   hours: number
 }
 
-async function getVolunteerData<V extends VolunteerRepo.VolunteerForTelecomReport>(
+async function getVolunteerData<V extends VolunteerForTotalHours>(
   volunteer: V,
   start: Date,
   end: Date
@@ -291,9 +291,11 @@ export function emptyHours(): HourSummaryStats {
 }
 
 // To be used by email/update job(s) for generating telecom volunteer hours
-export async function telecomHourSummaryStats<
-  V extends VolunteerForWeeklyHourSummary
->(volunteer: V, start: Date, end: Date): Promise<HourSummaryStats> {
+export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
+  volunteer: V,
+  start: Date,
+  end: Date
+): Promise<HourSummaryStats> {
   try {
     const totalCerts = countCerts(volunteer.certifications)
     if (totalCerts === 0) return emptyHours()
@@ -424,9 +426,12 @@ export function getAnalyticsReportRow(
   row.totalSessionsCompleted = volunteer.totalSessions
   row.totalPartnerSessionsCompleted = volunteer.totalPartnerSessions
   row.totalUniqueStudentsHelped = volunteer.totalUniqueStudentsHelped
-  row.totalUniquePartnerStudentsHelped = volunteer.totalUniquePartnerStudentsHelped
+  row.totalUniquePartnerStudentsHelped =
+    volunteer.totalUniquePartnerStudentsHelped
   row.totalTutoringHours = volunteer.hourSummaryTotal.totalCoachingHours
-  row.totalPartnerStudentsTutoringHours = Number((volunteer.totalPartnerTimeTutored / 3600000).toFixed(2))
+  row.totalPartnerStudentsTutoringHours = Number(
+    (volunteer.totalPartnerTimeTutored / 3600000).toFixed(2)
+  )
   row.totalTrainingHours = volunteer.hourSummaryTotal.totalQuizzesPassed
   row.totalElapsedAvailabilityHours = Number(
     (volunteer.hourSummaryTotal.totalElapsedAvailability * 0.1).toFixed(1)
@@ -436,15 +441,16 @@ export function getAnalyticsReportRow(
   // Volunteer impact within date range
   row.dateRangeTextsReceived = volunteer.totalNotificationsWithinRange
   row.dateRangeSessionsCompleted = volunteer.totalSessionsWithinRange
-  row.dateRangePartnerSessionsCompleted = volunteer.totalPartnerSessionsWithinRange
-  row.dateRangeUniqueStudentsHelped = volunteer.totalUniqueStudentsHelpedWithinRange
-  row.dateRangeUniquePartnerStudentsHelped = volunteer.totalUniquePartnerStudentsHelped
+  row.dateRangePartnerSessionsCompleted =
+    volunteer.totalPartnerSessionsWithinRange
+  row.dateRangeUniqueStudentsHelped =
+    volunteer.totalUniqueStudentsHelpedWithinRange
+  row.dateRangeUniquePartnerStudentsHelped =
+    volunteer.totalUniquePartnerStudentsHelpedWithinRange
   row.dateRangeTutoringHours = volunteer.hourSummaryDateRange.totalCoachingHours
   row.dateRangePartnerStudentsTutoringHours = Number(
-       (
-          volunteer.totalPartnerTimeTutoredWithinRange / 3600000
-        ).toFixed(2)
-      )
+    (volunteer.totalPartnerTimeTutoredWithinRange / 3600000).toFixed(2)
+  )
   row.dateRangeTrainingHours = volunteer.hourSummaryDateRange.totalQuizzesPassed
   row.dateRangeElapsedAvailabilityHours = Number(
     (volunteer.hourSummaryDateRange.totalElapsedAvailability * 0.1).toFixed(1)
@@ -457,7 +463,6 @@ export function getAnalyticsReportRow(
 
   return row
 }
-
 
 export type AnalyticsReportSummaryData = {
   total: number
@@ -561,13 +566,25 @@ export async function getAnalyticsReportSummary(
     ).toFixed(2)
   )
 
-  const uniqueStudentSummary = await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(partnerOrg, startDate, endDate)
-  
-  summary.uniqueStudentsHelped.total = uniqueStudentSummary ? uniqueStudentSummary.totalUniqueStudentsHelped : 0
-  summary.uniqueStudentsHelped.totalWithinDateRange = uniqueStudentSummary ? uniqueStudentSummary.totalUniqueStudentsHelpedWithinRange : 0
+  const uniqueStudentSummary = await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(
+    partnerOrg,
+    startDate,
+    endDate
+  )
 
-  summary.uniquePartnerStudentsHelped.total = uniqueStudentSummary ? uniqueStudentSummary.totalUniquePartnerStudentsHelped : 0
-  summary.uniquePartnerStudentsHelped.totalWithinDateRange = uniqueStudentSummary ? uniqueStudentSummary.totalUniquePartnerStudentsHelpedWithinRange : 0
+  summary.uniqueStudentsHelped.total = uniqueStudentSummary
+    ? uniqueStudentSummary.totalUniqueStudentsHelped
+    : 0
+  summary.uniqueStudentsHelped.totalWithinDateRange = uniqueStudentSummary
+    ? uniqueStudentSummary.totalUniqueStudentsHelpedWithinRange
+    : 0
+
+  summary.uniquePartnerStudentsHelped.total = uniqueStudentSummary
+    ? uniqueStudentSummary.totalUniquePartnerStudentsHelped
+    : 0
+  summary.uniquePartnerStudentsHelped.totalWithinDateRange = uniqueStudentSummary
+    ? uniqueStudentSummary.totalUniquePartnerStudentsHelpedWithinRange
+    : 0
   return summary
 }
 
@@ -823,7 +840,7 @@ export function processAnalyticsReportSummarySheet(
       continue
     else if (key === 'uniquePartnerStudentsHelped')
       description = `Unique ${partnerName} students helped`
-    
+
     worksheet.addRow({ description, total, totalWithinDateRange }, 'i')
   }
   worksheet.properties.defaultRowHeight = 30

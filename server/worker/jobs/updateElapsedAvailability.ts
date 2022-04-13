@@ -5,7 +5,7 @@ import {
   updateVolunteerElapsedAvailabilityById,
 } from '../../models/Volunteer/queries'
 import { log } from '../logger'
-import { DAYS } from '../../models/Availability/types'
+import { DAYS } from '../../constants'
 import { getElapsedAvailabilityForDay } from '../../services/AvailabilityService'
 import {
   getAvailabilityForVolunteer,

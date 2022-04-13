@@ -5,10 +5,7 @@ import * as VolunteerService from '../../services/VolunteerService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
 import { Router } from 'express'
-import {
-  asNumber,
-  asString
-} from '../../utils/type-utils'
+import { asNumber, asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
 
 export function routeVolunteers(router: Router): void {
@@ -42,7 +39,15 @@ export function routeVolunteers(router: Router): void {
         volunteers,
         isLastPage,
       } = await VolunteerService.getVolunteersToReview(pageNum)
-      res.json({ volunteers, isLastPage })
+      res.json({
+        volunteers: volunteers.map(vol => ({
+          ...vol,
+          _id: vol.id,
+          firstname: vol.firstName,
+          lastname: vol.lastName,
+        })),
+        isLastPage,
+      })
     } catch (error) {
       res
         .status(500)
@@ -56,16 +61,18 @@ export function routeVolunteers(router: Router): void {
   ) {
     try {
       const volunteerId = asString(req.params.id)
-      const { photoIdStatus, referencesStatus } = req.body
-      const referenceIds = Object.keys(referencesStatus)
+      const { photoIdStatus, referencesStatusMap } = req.body
+      const referenceIds = Object.keys(referencesStatusMap)
       // TODO: better type validation
       const validStatus: any = {}
       for (const referenceId of referenceIds) {
-        validStatus[referenceId] = referencesStatus[referenceId]
+        validStatus[referenceId] = referencesStatusMap[
+          referenceId
+        ].toLowerCase()
       }
       await VolunteerService.updatePendingVolunteerStatus(
         volunteerId,
-        asString(photoIdStatus),
+        asString(photoIdStatus).toLowerCase(),
         validStatus
       )
       res.sendStatus(200)

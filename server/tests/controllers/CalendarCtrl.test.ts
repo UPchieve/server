@@ -1,12 +1,17 @@
 import { mocked } from 'ts-jest/utils'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
+import faker from 'faker'
 
 import * as CalendarCtrl from '../../controllers/CalendarCtrl'
 import * as VolunteerRepo from '../../models/Volunteer'
 import * as AvailabilityRepo from '../../models/Availability'
-import { getDbUlid } from '../../../database/seeds/scripts/utils'
+import { getDbUlid } from '../../models/pgUtils'
 import { Ulid } from '../../models/pgUtils'
-import { buildUserContactInfo, buildAvailability, getIpAddress } from '../pg-generate'
+import {
+  buildUserContactInfo,
+  buildAvailability,
+  getIpAddress,
+} from '../pg-generate'
 import * as UserActionRepo from '../../models/UserAction'
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
@@ -49,17 +54,21 @@ export type VolunteerForScheduleUpdate = {
   id: Ulid
   volunteerPartnerOrg?: string
   onboarded: boolean
-  availability: AvailabilityRepo.Availability,
+  availability: AvailabilityRepo.Availability
   subjects?: string[]
 }
 
-function buildVolunteerForScheduleUpdate(userId?: Ulid, subjects?: string[]): VolunteerRepo.VolunteerForScheduleUpdate {
+function buildVolunteerForScheduleUpdate(
+  userId?: Ulid,
+  subjects?: string[],
+  onboarded = true
+): VolunteerRepo.VolunteerForScheduleUpdate {
   return {
     id: userId || getDbUlid(),
-    volunteerPartnerOrg: fakerStatic.company.companyName(),
-    onboarded: true,
+    volunteerPartnerOrg: faker.company.companyName(),
+    onboarded: onboarded,
     availability: buildAvailability(),
-    subjects: subjects || []
+    subjects: subjects || ['algebraOne'],
   }
 }
 
@@ -73,6 +82,10 @@ describe('Save availability and time zone', () => {
   })
 
   test('Should throw error when not provided an availability', async () => {
+    mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(
+      buildVolunteerForScheduleUpdate(user.id)
+    )
+
     const input = { user, tz, ip }
 
     await expect(CalendarCtrl.updateSchedule(input)).rejects.toThrow(
@@ -81,12 +94,18 @@ describe('Save availability and time zone', () => {
   })
 
   test('Should throw error when provided availability with missing keys', async () => {
+    mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(
+      buildVolunteerForScheduleUpdate(user.id)
+    )
+
     const availability: any = buildAvailability()
-    availability.Saturday = undefined
     const input = {
       user,
       tz,
-      availability,
+      availability: {
+        ...availability,
+        Saturday: undefined,
+      },
       ip,
     }
 
@@ -96,7 +115,10 @@ describe('Save availability and time zone', () => {
   })
 
   test('Should update availability (and user action fires) not onboarded', async () => {
-    mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(buildVolunteerForScheduleUpdate(user.id))
+    const volunteer = buildVolunteerForScheduleUpdate(user.id)
+    mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(
+      volunteer
+    )
 
     const availability = buildAvailability({
       Saturday: mockSaturdayAvailability,
@@ -111,23 +133,31 @@ describe('Save availability and time zone', () => {
 
     /**
      * expect
-     * 1. user action for updating availability
-     * 2. save old availability as history
-     * 3. update availability
-     * 4/ update onboarded status - FALSE
+     * 1. save old availability as history
+     * 2. update availability
+     * 3. update onboarded status - FALSE
      */
-    expect(UserActionRepo.createAccountAction).toHaveBeenLastCalledWith({
-      userId: user.id,
-      action: ACCOUNT_USER_ACTIONS.UPDATED_AVAILABILITY,
-      ipAddress: ''
-    })
-    expect(AvailabilityRepo.saveCurrentAvailabilityAsHistory).toHaveBeenLastCalledWith(user.id)
-    expect(AvailabilityRepo.updateAvailabilityByVolunteerId).toHaveBeenLastCalledWith(user.id, availability, ip)
-    expect(VolunteerRepo.updateVolunteerThroughAvailability).toHaveBeenLastCalledWith(user.id, tz, false)
+    expect(UserActionRepo.createAccountAction).toHaveBeenCalledTimes(0)
+    expect(
+      AvailabilityRepo.saveCurrentAvailabilityAsHistory
+    ).toHaveBeenLastCalledWith(user.id)
+    expect(
+      AvailabilityRepo.updateAvailabilityByVolunteerId
+    ).toHaveBeenLastCalledWith(user.id, availability, tz)
+    expect(
+      VolunteerRepo.updateVolunteerThroughAvailability
+    ).toHaveBeenLastCalledWith(user.id, tz, volunteer.onboarded)
   })
 
   test('Should update availability (and user action) and becomes onboarded - with user action', async () => {
-    mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(buildVolunteerForScheduleUpdate(user.id, ['algebraOne']))
+    const volunteer = buildVolunteerForScheduleUpdate(
+      user.id,
+      ['algebraOne'],
+      false
+    )
+    mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(
+      volunteer
+    )
 
     const availability = buildAvailability({
       Saturday: mockSaturdayAvailability,
@@ -142,25 +172,25 @@ describe('Save availability and time zone', () => {
 
     /**
      * expect
-     * 1. user action for updating availability
-     * 2. user action for becoming onboarded
-     * 3. save old availability as history
-     * 4. update availability
-     * 5/ update onboarded status - TRUE
+     * 1. user action for becoming onboarded
+     * 2. save old availability as history
+     * 3. update availability
+     * 4. update onboarded status - TRUE
      */
     expect(UserActionRepo.createAccountAction).toHaveBeenCalledWith({
       userId: user.id,
-      action: ACCOUNT_USER_ACTIONS.UPDATED_AVAILABILITY,
-      ipAddress: ''
-    })
-    expect(UserActionRepo.createAccountAction).toHaveBeenCalledWith({
-      userId: user.id,
       action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      ipAddress: ''
+      ipAddress: ip,
     })
-    expect(AvailabilityRepo.saveCurrentAvailabilityAsHistory).toHaveBeenLastCalledWith(user.id)
-    expect(AvailabilityRepo.updateAvailabilityByVolunteerId).toHaveBeenLastCalledWith(user.id, availability, ip)
-    expect(VolunteerRepo.updateVolunteerThroughAvailability).toHaveBeenLastCalledWith(user.id, tz, true)
+    expect(
+      AvailabilityRepo.saveCurrentAvailabilityAsHistory
+    ).toHaveBeenLastCalledWith(user.id)
+    expect(
+      AvailabilityRepo.updateAvailabilityByVolunteerId
+    ).toHaveBeenLastCalledWith(user.id, availability, tz)
+    expect(
+      VolunteerRepo.updateVolunteerThroughAvailability
+    ).toHaveBeenLastCalledWith(user.id, tz, true)
   })
 })
 
@@ -171,8 +201,14 @@ describe('Clear schedule', () => {
   test('Should clear schedule and save history', async () => {
     await CalendarCtrl.clearSchedule(user, tz)
 
-    expect(AvailabilityRepo.saveCurrentAvailabilityAsHistory).toHaveBeenLastCalledWith(user.id)
-    expect(AvailabilityRepo.clearAvailabilityForVolunteer).toHaveBeenLastCalledWith(user.id)
-    expect(VolunteerRepo.updateVolunteerThroughAvailability).toHaveBeenLastCalledWith(user.id, tz)
+    expect(
+      AvailabilityRepo.saveCurrentAvailabilityAsHistory
+    ).toHaveBeenLastCalledWith(user.id)
+    expect(
+      AvailabilityRepo.clearAvailabilityForVolunteer
+    ).toHaveBeenLastCalledWith(user.id)
+    expect(
+      VolunteerRepo.updateVolunteerThroughAvailability
+    ).toHaveBeenLastCalledWith(user.id, tz)
   })
 })

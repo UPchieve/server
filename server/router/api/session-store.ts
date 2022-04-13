@@ -1,19 +1,23 @@
 import session from 'express-session'
-import CreateRedisStore from 'connect-redis'
+import CreatePgStore from 'connect-pg-simple'
 import config from '../../config'
 import { Express } from 'express'
-import { redisClient } from '../../services/RedisService'
+import { getClient } from '../../db'
 
-const RedisStore = CreateRedisStore(session)
+const PgStore = CreatePgStore(session)
 
 export const sessionStoreCollectionName = 'auth-sessions'
 
 export default function(app: Express) {
-  const store = new RedisStore({ client: redisClient })
+  const store = new PgStore({
+    pool: getClient(),
+    schemaName: 'auth',
+    tableName: 'session',
+  })
   app.use(
     session({
-      resave: true,
-      saveUninitialized: true,
+      resave: false,
+      saveUninitialized: false,
       secret: config.sessionSecret,
       store: store,
       cookie: {

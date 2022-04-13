@@ -1,7 +1,4 @@
-import {
-  REFERENCE_STATUS,
-  TRAINING
-} from '../../constants'
+import { REFERENCE_STATUS, TRAINING } from '../../constants'
 import { Ulid } from '../pgUtils'
 
 export interface Reference {

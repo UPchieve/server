@@ -1,8 +1,8 @@
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { School } from './types'
-import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
+import { AdminSchool, School } from './types'
+import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
 
 export async function findSchoolByUpchieveId(
@@ -15,14 +15,36 @@ export async function findSchoolByUpchieveId(
     )
 
     if (result.length) {
-      return makeRequired(result[0])
+      // pgTyped does not camelCase a letter preceding a number, like g_10Offered
+      return makeSomeRequired(result[0], [
+        'fipst',
+        'schoolYear',
+        'schName',
+        'leaName',
+        'st',
+        'stSchid',
+        'mcity',
+        'mzip',
+        'lcity',
+        'lzip',
+        // @ts-expect-error
+        'g9Offered',
+        // @ts-expect-error
+        'g10Offered',
+        // @ts-expect-error
+        'g11Offered',
+        // @ts-expect-error
+        'g12Offered',
+      ])
     }
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function getSchool(schoolId: Ulid): Promise<School | undefined> {
+export async function getSchool(
+  schoolId: Ulid
+): Promise<AdminSchool | undefined> {
   try {
     const result = await pgQueries.getSchool.run({ schoolId }, getClient())
 
@@ -36,22 +58,29 @@ export async function getSchool(schoolId: Ulid): Promise<School | undefined> {
 }
 
 export type GetSchoolsPayload = {
-  name: string
-  state: string
-  city: string
+  name?: string
+  state?: string
+  city?: string
 }
 
 export async function getSchools(
   data: GetSchoolsPayload,
   limit: number,
   offset: number
-): Promise<School[]> {
+): Promise<AdminSchool[]> {
   try {
     const { name, state, city } = data
     const result = await pgQueries.getSchools.run(
-      { name, state, city, limit: limit, offset: offset },
+      {
+        name: name || null,
+        state: state || null,
+        city: city || null,
+        limit: limit,
+        offset: offset,
+      },
       getClient()
     )
+    const schools = result.map(v => makeRequired(v))
 
     return result.map(v => makeRequired(v))
   } catch (err) {
@@ -67,16 +96,14 @@ export type CreateSchoolPayload = {
   isApproved: boolean
 }
 
-export async function createSchool(
-  data: CreateSchoolPayload
-): Promise<School> {
+export async function createSchool(data: CreateSchoolPayload): Promise<School> {
   const client = await getClient().connect()
   try {
     await pgQueries.createSchoolMetaData.run({ zipCode: data.zipCode }, client)
 
     // we need to find the city's id, or if it doesn't exist, create it
     const upsertCityResult = await geoQueries.upsertCity.run(
-      { name: data.city },
+      { name: data.city, state: data.state },
       client
     )
     const cityId = makeRequired(upsertCityResult[0]).id
@@ -87,14 +114,16 @@ export async function createSchool(
         id: getDbUlid(),
         isApproved: data.isApproved,
         name: data.name,
-        state: data.state,
       },
       client
     )
     if (result.length) {
       const school = makeRequired(result[0])
       await client.query('COMMIT')
-      return school
+      return {
+        ...school,
+        stateStored: data.state,
+      }
     } else {
       throw new Error('inserting new school did not return a result')
     }
@@ -140,11 +169,11 @@ export async function updateIsPartner(
 
 export type AdminUpdate = {
   schoolId: Ulid
-  name?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  isApproved?: boolean
+  name: string
+  city: string
+  state: string
+  zipCode: string
+  isApproved: boolean
 }
 
 export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
@@ -158,12 +187,15 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
     // we need to find the city's id, or if it doesn't exist, create it
     let cityId: number | undefined
     if (city) {
-      const result = await geoQueries.upsertCity.run({ name: city }, client)
+      const result = await geoQueries.upsertCity.run(
+        { name: city, state },
+        client
+      )
       cityId = makeRequired(result[0]).id
     }
 
     await pgQueries.adminUpdateSchool.run(
-      { schoolId, name, state, cityId, isApproved },
+      { schoolId, name, cityId, isApproved },
       client
     )
     await client.query('COMMIT')
@@ -175,11 +207,13 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
   }
 }
 
-export async function schoolSearch(query: any): Promise<School[] | undefined> {
-  try{
+export async function schoolSearch(
+  query: string
+): Promise<School[] | undefined> {
+  try {
     const results = await pgQueries.schoolSearch.run({ query }, getClient())
-    if(results.length)
-      return results.map(v => makeRequired(v))
+    if (results.length)
+      return results.map(v => makeSomeRequired(v, ['districtNameStored']))
   } catch (err) {
     throw new RepoReadError(err)
   }

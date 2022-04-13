@@ -1,10 +1,9 @@
 // Db imports
-// import mongoose from 'mongoose'
 // import * as db from '../db'
+// import { getClient } from '../pg
 /*
 await db.connect()
-await FooModel.FindOne(...).lean().exec()
-mongoose.disconnect()
+const client = getClient()
 */
 
 // queue imports

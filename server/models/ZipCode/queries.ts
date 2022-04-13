@@ -1,7 +1,7 @@
 import { RepoReadError } from '../Errors'
 import { ZipCode } from './types'
 import { makeRequired } from '../pgUtils'
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import config from '../../config'
 

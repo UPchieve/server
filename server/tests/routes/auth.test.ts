@@ -1,4 +1,5 @@
-import request, { Test } from 'supertest'
+test.skip('postgres migration', () => 1)
+/*import request, { Test } from 'supertest'
 import { mocked } from 'ts-jest/utils'
 import { Student } from '../../models/Student'
 import { Volunteer } from '../../models/Volunteer'
@@ -8,7 +9,7 @@ import {
 } from '../../partnerManifests'
 import * as AuthRouter from '../../router/auth'
 import * as AuthService from '../../services/AuthService'
-import { buildUser } from '../pg-generate'
+import { buildUser, buildUserContactInfo } from '../pg-generate'
 import { mockApp, mockPassportMiddleware } from '../mock-app'
 
 jest.mock('../../services/AuthService')
@@ -29,7 +30,7 @@ const AUTH_ROUTE = '/auth'
 
 const app = mockApp()
 
-const mockGetUser = () => buildUser()
+const mockGetUser = () => buildUserContactInfo()
 const mockLogin = jest.fn()
 const mockLogout = jest.fn()
 const mockDestroy = jest.fn()
@@ -291,3 +292,4 @@ describe('Test simple routes hit AuthService', () => {
     expect(response.status).toEqual(200)
   })
 })
+*/

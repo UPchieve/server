@@ -2,16 +2,13 @@ import { ONBOARDING_STATUS } from '../../constants'
 import {
   asDate,
   asFunction,
-  asObjectId,
   asArray,
   asBoolean,
   asNumber,
   asString,
   asEnum,
   asUnion,
-  asStringObjectId,
 } from '../../utils/type-utils'
-import { getObjectId, getStringObjectId } from '../generate'
 
 describe('asNumber', () => {
   test('Should pass if given a type Date', () => {
@@ -39,7 +36,7 @@ describe('asArray', () => {
     expect(() => asArray(asNumber)([1, 2, 3] as unknown)).not.toThrow()
     expect(() => asArray(asString)(['1', '2', '3'] as unknown)).not.toThrow()
     expect(() =>
-      asArray(asObjectId)([getObjectId(), getObjectId()] as unknown)
+      asArray(asBoolean)([true, false, true] as unknown)
     ).not.toThrow()
   })
 
@@ -47,44 +44,6 @@ describe('asArray', () => {
     expect(() => asArray(asBoolean)([1, 2, 3] as unknown)).toThrow()
     expect(() => asArray(asString)([1, 2, 3] as unknown)).toThrow()
     expect(() => asArray(asNumber)(['hey', 'hello', 'hi'] as unknown)).toThrow()
-  })
-})
-
-describe('asObjectId', () => {
-  test('Should pass if given an ObjectId', () => {
-    const id = getObjectId() as unknown
-    expect(() => asObjectId(id)).not.toThrow()
-  })
-
-  test('Should pass if given a string coercible to an ObjectId', () => {
-    const id = getStringObjectId() as unknown
-    expect(() => asObjectId(id)).not.toThrow()
-  })
-
-  test('Should throw error if not given an ObjectId', () => {
-    expect(() => asObjectId({} as unknown)).toThrow()
-    expect(() => asObjectId(1 as unknown)).toThrow()
-    expect(() => asObjectId('hello' as unknown)).toThrow()
-    expect(() => asObjectId(null as unknown)).toThrow()
-    expect(() => asObjectId(undefined as unknown)).toThrow()
-    expect(() => asObjectId([] as unknown)).toThrow()
-  })
-})
-
-describe('asStringObjectId', () => {
-  test('Should pass if given an string formatted ObjectId', () => {
-    const id = getStringObjectId() as unknown
-    expect(() => asStringObjectId(id)).not.toThrow()
-  })
-
-  test('Should throw error if not given a string formatted ObjectId', () => {
-    expect(() => asStringObjectId({} as unknown)).toThrow()
-    expect(() => asStringObjectId(1 as unknown)).toThrow()
-    expect(() => asStringObjectId('hello' as unknown)).toThrow()
-    expect(() => asStringObjectId(null as unknown)).toThrow()
-    expect(() => asStringObjectId(undefined as unknown)).toThrow()
-    expect(() => asStringObjectId([] as unknown)).toThrow()
-    expect(() => asStringObjectId(getObjectId() as unknown)).toThrow()
   })
 })
 

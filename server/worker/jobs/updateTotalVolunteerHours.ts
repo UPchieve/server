@@ -20,15 +20,17 @@ async function updateTotalVolunteerHours(): Promise<void> {
     await cache.get(config.cacheKeys.updateTotalVolunteerHoursLastRun)
   )
   const endDate = moment()
-
-  const dateQuery = { $gt: startDate.toDate(), $lte: endDate.toDate() }
   const volunteers = await getVolunteersForTotalHours()
 
   let totalUpdated = 0
   const errors: string[] = []
   for (const volunteer of volunteers) {
     try {
-      const stats = await telecomHourSummaryStats(volunteer, dateQuery)
+      const stats = await telecomHourSummaryStats(
+        volunteer,
+        startDate.toDate(),
+        endDate.toDate()
+      )
       await updateVolunteerTotalHoursById(
         volunteer.id,
         stats.totalVolunteerHours

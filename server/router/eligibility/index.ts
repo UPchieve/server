@@ -8,7 +8,7 @@ import { getZipCodeByZipCode } from '../../models/ZipCode/queries'
 import {
   getIneligibleStudentByEmail,
   getIneligibleStudentsPaginated,
-  insertIneligibleStudent
+  insertIneligibleStudent,
 } from '../../models/IneligibleStudent/queries'
 import { resError } from '../res-error'
 import * as IpAddressService from '../../services/IpAddressService'
@@ -76,7 +76,7 @@ export function routes(app: Express) {
           zipCodeInput,
           currentGrade,
           referredBy,
-          req.ip,
+          req.ip
         )
       }
 
@@ -90,7 +90,7 @@ export function routes(app: Express) {
     const { q } = req.query
 
     try {
-      const results = await SchoolService.search(q)
+      const results = await SchoolService.search(q as string)
       res.json({
         results: results,
       })
@@ -106,7 +106,12 @@ export function routes(app: Express) {
     try {
       const schoolId = asUlid(req.params.schoolId)
       const school = await SchoolService.getSchool(schoolId)
-      res.json({ school })
+      res.json({
+        school: {
+          _id: school.id,
+          ...school,
+        },
+      })
     } catch (err) {
       resError(res, err)
     }
@@ -183,10 +188,13 @@ export function routes(app: Express) {
   ) {
     try {
       const PER_PAGE = 15
-    
+
       const page = req.query.page ? parseInt(req.query.page as string) : 1
       const skip = (page - 1) * PER_PAGE
-      const ineligibleStudents = await getIneligibleStudentsPaginated(PER_PAGE, skip)
+      const ineligibleStudents = await getIneligibleStudentsPaginated(
+        PER_PAGE,
+        skip
+      )
       const isLastPage = ineligibleStudents.length < PER_PAGE
 
       res.json({ ineligibleStudents, isLastPage })

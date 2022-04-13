@@ -1,14 +1,18 @@
 /* @name getVolunteerPartnerOrgForRegistrationByKey */
 SELECT
     KEY,
-    ARRAY_AGG(DOMAIN) AS domains
+    COALESCE(domains.domains, '{}'::text[]) AS domains
 FROM
     volunteer_partner_orgs vpo
-    JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
+    LEFT JOIN LATERAL (
+        SELECT
+            ARRAY_AGG(DOMAIN) AS domains
+        FROM
+            required_email_domains
+        WHERE
+            required_email_domains.volunteer_partner_org_id = vpo.id) AS domains ON TRUE
 WHERE
-    KEY = :key!
-GROUP BY
-    KEY;
+    KEY = :key!;
 
 
 /* @name getFullVolunteerPartnerOrgByKey */
@@ -19,7 +23,7 @@ SELECT
     array_agg(DOMAIN) AS domains
 FROM
     volunteer_partner_orgs vpo
-    JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
+    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
 WHERE
     KEY = :key!
 GROUP BY
@@ -34,7 +38,7 @@ SELECT
     array_agg(DOMAIN) AS domains
 FROM
     volunteer_partner_orgs vpo
-    JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
+    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
 GROUP BY
     vpo.key;
 

@@ -66,10 +66,11 @@ export function routes(app: Express): void {
          * 2. Populate their most recent notification
          * 3. Populate that notification's session
          */
-        // Replaced with VolunteerRepo.getVolunteerForTextResponse
         session = await getVolunteerForTextResponse(incomingPhoneNumber)
         if (!session) {
-          logger.error(`User not found for phone number: ${incomingMessage}. Not acknologing phone reply`)
+          logger.error(
+            `User not found for phone number: ${incomingMessage}. Not acknologing phone reply`
+          )
           return
         }
 
@@ -89,7 +90,7 @@ export function routes(app: Express): void {
           const sessionUrl = twilioService.getSessionUrl({
             subject: session.subject,
             topic: session.topic,
-            id: session.sessionId
+            id: session.sessionId,
           })
           twiml.message(sessionUrl)
         }
@@ -110,7 +111,7 @@ export function routes(app: Express): void {
       await createSessionAction({
         userId: session.volunteerId,
         sessionId: session.sessionId,
-        action: SESSION_USER_ACTIONS.REPLIED_YES
+        action: SESSION_USER_ACTIONS.REPLIED_YES,
       })
     }
   })

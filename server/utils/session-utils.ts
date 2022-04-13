@@ -3,7 +3,7 @@ import { Ulid } from '../models/pgUtils'
 import { Socket } from 'socket.io'
 import { CustomError } from 'ts-custom-error'
 import { SUBJECTS, SUBJECT_TYPES } from '../constants'
-import { DAYS, HOURS } from '../models/Availability/types'
+import { DAYS, HOURS } from '../constants'
 import { InputError } from '../models/Errors'
 import { getMessagesForFrontend, Session } from '../models/Session'
 import { MessageForFrontend } from '../models/Session'
@@ -67,8 +67,13 @@ export function isSessionParticipant(
   )
 }
 
-export type SessionForTimeTutored = Pick<Session, 'volunteerId' | 'volunteerJoinedAt' | 'endedAt' | 'id'>
-export async function calculateTimeTutored(session: SessionForTimeTutored): Promise<number> {
+export type SessionForTimeTutored = Pick<
+  Session,
+  'volunteerId' | 'volunteerJoinedAt' | 'endedAt' | 'id'
+>
+export async function calculateTimeTutored(
+  session: SessionForTimeTutored
+): Promise<number> {
   const threeHoursMs = 1000 * 60 * 60 * 3
   const fifteenMinsMs = 1000 * 60 * 15
 

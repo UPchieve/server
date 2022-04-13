@@ -2,8 +2,11 @@ import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
-import { updateVolunteerProfileById } from '../../models/Volunteer/queries'
-import { countUsersReferredByOtherId } from '../../models/User/queries'
+import { updateVolunteerProfileById } from '../../models/Volunteer/'
+import {
+  countUsersReferredByOtherId,
+  getUserForAdminDetail,
+} from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { Router } from 'express'
 import { resError } from '../res-error'
@@ -34,7 +37,11 @@ export function routeUser(router: Router): void {
         await MailService.createContact(user.id)
 
         if (isDeactivated)
-          await createAccountAction({action: ACCOUNT_USER_ACTIONS.DEACTIVATED, userId: user.id, ipAddress: ip})
+          await createAccountAction({
+            action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
+            userId: user.id,
+            ipAddress: ip,
+          })
       }
       res.sendStatus(200)
     } catch (err) {
@@ -164,7 +171,7 @@ export function routeUser(router: Router): void {
       const user = extractUser(req)
       const referredFriends = await countUsersReferredByOtherId(user.id)
       // the frontend is expecting to look at the length of an array, not a #
-      const referredFriendsArr = Array(referredFriends) 
+      const referredFriendsArr = Array(referredFriends)
       res.json({ referredFriendsArr })
     } catch (err) {
       resError(res, err)
@@ -173,17 +180,18 @@ export function routeUser(router: Router): void {
 
   router.get('/user/:userId', authPassport.isAdmin, async function(req, res) {
     const { userId } = req.params
-    const { page } = req.query
+    const page = Number(req.query.page || '1')
+
+    const PAGE_SIZE = 10
+    const skip = PAGE_SIZE * (page - 1)
 
     try {
-      const user = await UserService.adminGetUser(
-        asUlid(userId)
-      )
+      const user = await getUserForAdminDetail(asUlid(userId), PAGE_SIZE, skip)
 
       let resUser: any = user
       if (user.isVolunteer && user.photoIdS3Key) {
-        const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key) 
-        resUser = Object.assign(resUser, {photoUrl})
+        const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
+        resUser = Object.assign(resUser, { photoUrl })
       }
 
       res.json({ user })

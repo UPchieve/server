@@ -1,10 +1,8 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getVolunteersForGentleWarning } from '../../../models/Session'
 import { asString } from '../../../utils/type-utils'
-
 
 interface EmailGentleWarningJobData {
   sessionId: string
@@ -20,7 +18,9 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
   const { name: currentJob } = job
   const sessionId = asString(job.data.sessionId)
   // replaced by getVolunteersForGentleWarning
-  const volunteerWithNotifications = await getVolunteersForGentleWarning(sessionId)
+  const volunteerWithNotifications = await getVolunteersForGentleWarning(
+    sessionId
+  )
 
   if (volunteerWithNotifications.length === 0) return
 

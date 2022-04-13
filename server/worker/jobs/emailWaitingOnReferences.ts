@@ -9,7 +9,10 @@ export default async (): Promise<void> => {
   const fiveDaysAgo = Date.now() - oneDay * 5
   const sixDaysAgo = fiveDaysAgo - oneDay
 
-  const volunteers = await getVolunteersForWaitingReferences(new Date(sixDaysAgo), new Date(fiveDaysAgo))
+  const volunteers = await getVolunteersForWaitingReferences(
+    new Date(sixDaysAgo),
+    new Date(fiveDaysAgo)
+  )
 
   let totalEmailed = 0
   const errors: string[] = []

@@ -25,7 +25,7 @@
         <div>{{ volunteer.email }}</div>
       </div>
       <div class="user-detail__section">
-        <div class="user-detail__section-title ">
+        <div class="user-detail__section-title">
           Photo Id
           <span
             class="user-detail__account-notice user-detail__status"
@@ -52,7 +52,7 @@
       <div class="user-detail__section">
         <div class="user-detail__section-title">References</div>
         <div
-          v-for="(reference, index) in volunteer.references"
+          v-for="reference in volunteer.references"
           :key="reference._id"
           class="reference"
         >
@@ -65,8 +65,8 @@
             {{ ' ' }}
             <span
               class="user-detail__account-notice user-detail__status"
-              :class="statusColor(referencesStatus[index])"
-              >{{ statusText(referencesStatus[index]) }}</span
+              :class="statusColor(referencesStatusMap[reference.id])"
+              >{{ statusText(referencesStatusMap[reference.id]) }}</span
             >
           </p>
           <p class="reference__email">
@@ -75,7 +75,7 @@
         </div>
       </div>
       <div class="user-detail__section">
-        <div class="user-detail__section-title ">
+        <div class="user-detail__section-title">
           Background Information
           <span
             class="user-detail__account-notice user-detail__status"
@@ -117,13 +117,13 @@ export default {
       photoIdStatus: '',
       showReferenceForm: false,
       chosenReference: undefined,
-      referenceStatusMap: {}
+      referencesStatusMap: {}
     }
   },
   async created() {
     this.photoIdStatus = this.volunteer.photoIdStatus
     for (const reference of this.volunteer.references) {
-      this.referenceStatusMap[reference._id] = reference.status
+      this.referencesStatusMap[reference._id] = reference.status
     }
   },
   methods: {
@@ -152,7 +152,7 @@ export default {
       const {
         target: { value }
       } = event
-      this.referenceStatusMap[this.chosenReference._id] = value
+      this.referencesStatusMap[this.chosenReference._id] = value
     },
     statusText(status) {
       if (status === 'SUBMITTED') return 'WAITING FOR REVIEW'

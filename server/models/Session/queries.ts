@@ -1,4 +1,4 @@
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -8,19 +8,17 @@ import {
   makeSomeOptional,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { Notification } from '../Notification'
 import moment from 'moment'
 import { Session } from './types'
 import 'moment-timezone'
 import { USER_SESSION_METRICS } from '../../constants'
 import { UserActionAgent } from '../UserAction'
 import { getFeedbackBySessionId } from '../Feedback/queries'
-import {
-  ResponseData,
-  StudentCounselingFeedback,
-} from '../Feedback'
+import { ResponseData, StudentCounselingFeedback } from '../Feedback'
 import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
+import { fixNumberInt } from '../../utils/fix-number-int'
+import { isPgId } from '../../utils/type-utils'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -28,35 +26,26 @@ export type NotificationData = {
   type: string
   method: string
   wasSuccessful: boolean
-  messageId?: string 
+  messageId?: string
   priorityGroup: string
 }
-export async function addSessionNotifications(
+export async function addSessionNotification(
   sessionId: Ulid,
-  notifications: NotificationData[]
+  notification: NotificationData
 ): Promise<void> {
-  const client = await getClient().connect()
   try {
-    await client.query('BEGIN')
-    for (const notification of notifications) {
-      const result = await pgQueries.addNotification.run(
-        {
-          ...notification,
-          sessionId,
-          id: getDbUlid()
-        },
-        getClient()
-      )
-      // TODO: better error handling - this drops all sessions from saving if any fail
-      if (!result.length && makeRequired(result[0]).ok)
-        throw new RepoCreateError('Insert query did not return ok')
-    }
-    await client.query('COMMIT')
+    const result = await pgQueries.addNotification.run(
+      {
+        ...notification,
+        sessionId,
+        id: getDbUlid(),
+      },
+      getClient()
+    )
+    if (!result.length && makeRequired(result[0]).ok)
+      throw new RepoCreateError('Insert notification did not return ok')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 
@@ -122,7 +111,7 @@ export async function getSessionById(sessionId: Ulid): Promise<Session> {
       'volunteerJoinedAt',
       'endedAt',
       'endedByRole',
-      'studentBanned'
+      'studentBanned',
     ])
   } catch (err) {
     throw new RepoReadError(err)
@@ -206,7 +195,15 @@ export async function getSessionToEndById(
       getClient()
     )
     if (!result.length) throw new RepoReadError('Session not found')
-    const rawSession = makeSomeRequired(result[0], ['volunteerJoinedAt', 'endedAt', 'volunteerEmail', 'volunteerId', 'volunteerFirstName', 'volunteerNumPastSessions', 'volunteerPartnerOrg'])
+    const rawSession = makeSomeRequired(result[0], [
+      'volunteerJoinedAt',
+      'endedAt',
+      'volunteerEmail',
+      'volunteerId',
+      'volunteerFirstName',
+      'volunteerNumPastSessions',
+      'volunteerPartnerOrg',
+    ])
     return {
       ...rawSession,
       student: {
@@ -229,6 +226,8 @@ export async function getSessionToEndById(
 }
 
 export type SessionsToReview = {
+  id: Ulid
+  _id: Ulid
   createdAt: Date
   endedAt: Date
   volunteer?: Ulid
@@ -239,6 +238,8 @@ export type SessionsToReview = {
   isReported: boolean
   flags: string[]
   reviewReasons?: string[]
+  toReview: boolean
+  studentRating?: number
 }
 
 export async function getSessionsToReview(
@@ -250,7 +251,21 @@ export async function getSessionsToReview(
       { limit, offset },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteer', 'reviewReasons']))
+    return result.map(v => {
+      const temp = makeSomeRequired(v, [
+        'volunteer',
+        'reviewReasons',
+        'studentCounselingFeedback',
+      ])
+      const studentRating = extractStudentRating(
+        fixNumberInt(temp.studentCounselingFeedback)
+      )
+      return {
+        ...temp,
+        studentRating,
+        _id: temp.id,
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -267,7 +282,8 @@ export async function getTotalTimeTutoredForDateRange(
       getClient()
     )
     if (!(result.length && result[0].total)) return 0
-    return makeRequired(result[0]).total
+    // manually parse out incoming bigint to number
+    return Number(makeRequired(result[0]).total)
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -291,12 +307,10 @@ export async function updateSessionReported(
   reportMessage: string
 ): Promise<void> {
   try {
-    console.log(`Inserting session_reports row`)
     const result = await pgQueries.updateSessionReported.run(
       { id: getDbUlid(), sessionId, reportReason, reportMessage },
       getClient()
     )
-    console.log(`Insert session report result: ${JSON.stringify(result)}`)
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
@@ -386,7 +400,7 @@ export async function getLongRunningSessions(
 
 export type PublicSessionUser = {
   _id: Ulid
-  firstname: string
+  firstName: string
 }
 export type PublicSession = {
   _id: Ulid
@@ -413,11 +427,11 @@ export async function getPublicSessionById(
       _id: rawRow.id,
       student: {
         _id: rawRow.studentId,
-        firstname: rawRow.studentFirstName,
+        firstName: rawRow.studentFirstName,
       },
       volunteer: {
         _id: rawRow.volunteerId,
-        firstname: rawRow.volunteerFirstName,
+        firstName: rawRow.volunteerFirstName,
       },
     }
   } catch (error) {
@@ -457,6 +471,7 @@ export type SessionByIdWithStudentAndVolunteer = {
   student: UserForAdmin
   volunteer?: UserForAdmin
   messages: MessageForFrontend[]
+  toReview: boolean
 }
 
 export async function getMessagesForFrontend(
@@ -571,7 +586,9 @@ export async function getCurrentSessionByUserId(
     )
     if (!result.length) return
     const session = makeSomeRequired(result[0], [
-      'volunteerId', 'endedAt', 'volunteerJoinedAt'
+      'volunteerId',
+      'endedAt',
+      'volunteerJoinedAt',
     ])
     const messages = await getMessagesForFrontend(session.id, client)
     const userResult = await pgQueries.getCurrentSessionUser.run(
@@ -607,7 +624,11 @@ export async function getCurrentSessionBySessionId(
       { sessionId },
       client
     )
-    const session = makeRequired(result[0])
+    const session = makeSomeRequired(result[0], [
+      'volunteerJoinedAt',
+      'volunteerId',
+      'endedAt',
+    ])
     const messages = await getMessagesForFrontend(session.id, client)
     const userResult = await pgQueries.getCurrentSessionUser.run(
       { sessionId: session.id },
@@ -645,7 +666,7 @@ export async function getLatestSessionByStudentId(
       { studentId },
       getClient()
     )
-    if (!result) return
+    if (!result.length) return
     const session = makeRequired(result[0])
     return {
       _id: session.id,
@@ -677,7 +698,7 @@ export type SessionForChatbot = {
   messages: MessageForFrontend[]
   topic: string
   subject: string
-  volunteerJoinedAt: Date
+  volunteerJoinedAt?: Date
   createdAt: Date
   endedAt?: Date
   student: Ulid
@@ -692,7 +713,10 @@ export async function getSessionForChatbot(
       { sessionId },
       client
     )
-    const session = makeSomeRequired(result[0], ['endedAt'])
+    const session = makeSomeRequired(result[0], [
+      'endedAt',
+      'volunteerJoinedAt',
+    ])
     const messages = await getMessagesForFrontend(sessionId, client)
     return {
       ...session,
@@ -743,7 +767,8 @@ export async function getSessionsWithAvgWaitTimePerDayAndHour(
 }
 
 export type SessionVolunteerRating = {
-  sessionRating: number | undefined
+  id: Ulid
+  sessionRating?: number
 }
 export async function getSessionsVolunteerRating(
   volunteerId: Ulid
@@ -753,12 +778,19 @@ export async function getSessionsVolunteerRating(
       { volunteerId },
       getClient()
     )
-    const feedbacks = result.map(
-      v => makeRequired(v).volunteerFeedback as VolunteerFeedback | ResponseData
-    )
-    return feedbacks.map(v => {
-      const rating = extractVolunteerRating(v)
-      return { sessionRating: rating }
+    return result.map(row => {
+      const session = makeSomeRequired(row, ['volunteerFeedback'])
+      const sessionVolunteerRating: SessionVolunteerRating = {
+        id: session.id,
+      }
+      if (session.volunteerFeedback) {
+        const rating = extractVolunteerRating(
+          session.volunteerFeedback as VolunteerFeedback
+        )
+        sessionVolunteerRating.sessionRating = rating
+      }
+
+      return sessionVolunteerRating
     })
   } catch (err) {
     throw new RepoReadError(err)
@@ -776,7 +808,10 @@ export async function getVolunteersForGentleWarning(
 ): Promise<VolunteerForGentleWarning[]> {
   try {
     const result = await pgQueries.getVolunteersForGentleWarning.run(
-      { sessionId },
+      {
+        sessionId: isPgId(sessionId) ? sessionId : undefined,
+        mongoSessionId: isPgId(sessionId) ? undefined : sessionId,
+      },
       getClient()
     )
     return result.map(v => makeRequired(v))
@@ -795,7 +830,10 @@ export async function getStudentForEmailFirstSession(
 ): Promise<UserForFirstSession | undefined> {
   try {
     const result = await pgQueries.getStudentForEmailFirstSession.run(
-      { sessionId },
+      {
+        sessionId: isPgId(sessionId) ? sessionId : undefined,
+        mongoSessionId: isPgId(sessionId) ? undefined : sessionId,
+      },
       getClient()
     )
     if (!result.length) return
@@ -810,7 +848,10 @@ export async function getVolunteerForEmailFirstSession(
 ): Promise<UserForFirstSession | undefined> {
   try {
     const result = await pgQueries.getVolunteerForEmailFirstSession.run(
-      { sessionId },
+      {
+        sessionId: isPgId(sessionId) ? sessionId : undefined,
+        mongoSessionId: isPgId(sessionId) ? undefined : sessionId,
+      },
       getClient()
     )
     if (!result.length) return
@@ -827,6 +868,8 @@ export type AdminFilterUser = {
   totalPastSessions: number
 }
 export type AdminFilteredSessions = {
+  id: Ulid
+  _id: Ulid
   createdAt: Date
   endedAt: Date
   volunteer?: AdminFilterUser
@@ -836,6 +879,7 @@ export type AdminFilteredSessions = {
   student: AdminFilterUser
   studentFirstName: string
   studentRating?: number
+  reviewReasons: string[]
 }
 export type AdminFilterOptions = {
   messageCount: number | undefined
@@ -850,26 +894,25 @@ export type AdminFilterOptions = {
 }
 
 function extractVolunteerRating(
-  feedback: VolunteerFeedback | ResponseData | undefined
+  rawFeedback: VolunteerFeedback | ResponseData | undefined
 ): number | undefined {
-  if (!feedback) return undefined
+  if (!rawFeedback) return undefined
+  const feedback = fixNumberInt(rawFeedback)
   let rating: number | undefined
   if ((feedback as VolunteerFeedback)['session-enjoyable'])
     rating = (feedback as VolunteerFeedback)['session-enjoyable'] as number
-  else if ((feedback as ResponseData)['rate-session'].rating)
+  else if ((feedback as ResponseData)['rate-session'])
     rating = (feedback as ResponseData)['rate-session'].rating as number
   return rating
 }
 function extractStudentRating(
-  feedback: StudentCounselingFeedback | ResponseData | undefined
+  rawFeedback: StudentCounselingFeedback | ResponseData | undefined
 ): number | undefined {
-  if (!feedback) return undefined
-  let rating: number | undefined
+  if (!rawFeedback) return undefined
+  const feedback = fixNumberInt(rawFeedback)
   if ((feedback as StudentCounselingFeedback)['rate-session'])
-    rating = (feedback as StudentCounselingFeedback)['rate-session'] as number
-  else if ((feedback as ResponseData)['rate-session'].rating)
-    rating = (feedback as ResponseData)['rate-session'].rating as number
-  return rating
+    return (feedback as StudentCounselingFeedback)['rate-session']
+      ?.rating as number
 }
 export async function getSessionsForAdminFilter(
   start: Date,
@@ -878,14 +921,24 @@ export async function getSessionsForAdminFilter(
   offset: number,
   options: AdminFilterOptions
 ): Promise<AdminFilteredSessions[]> {
-  const client = await getClient().connect()
   try {
     const sessionResult = await pgQueries.getSessionsForAdminFilter.run(
       { start, end, limit, offset, ...options },
-      client
+      getClient()
     )
-    const sessions = sessionResult.map(v => makeRequired(v))
-    const temp = sessions.map(session => {
+    const sessions = sessionResult.map(v =>
+      makeSomeRequired(v, [
+        'volunteerFeedback',
+        'studentCounselingFeedback',
+        'volunteerEmail',
+        'volunteerFirstName',
+        'volunteerIsBanned',
+        'volunteerTestUser',
+        'volunteerTotalPastSessions',
+        'reviewReasons',
+      ])
+    )
+    return sessions.map(session => {
       const studentRating = extractStudentRating(
         session.studentCounselingFeedback as any
       )
@@ -912,22 +965,9 @@ export async function getSessionsForAdminFilter(
         volunteerRating,
         student,
         volunteer,
+        reviewReasons: session.reviewReasons || [],
+        _id: session.id,
       }
-    })
-    return temp.filter(session => {
-      if (
-        options.studentRating &&
-        session.studentRating &&
-        session.studentRating < options.studentRating
-      )
-        return false
-      else if (
-        options.volunteerRating &&
-        session.volunteerRating &&
-        session.volunteerRating < options.volunteerRating
-      )
-        return false
-      return true
     })
   } catch (err) {
     throw new RepoReadError(err)
@@ -1014,33 +1054,5 @@ export async function getSessionsForVolunteerHourSummary(
     return []
   } catch (err) {
     throw new RepoReadError(err)
-  }
-}
-
-export type SessionForSessionHistory = {
-  id: Ulid,
-  topic: string,
-  subject: string,
-  createdAt: Date,
-  timeTutored: number,
-  isFavorited: boolean,
-  studentId: Ulid,
-  studentFirstName: string,
-  volunteerId: Ulid,
-  volunteerFirstName: string,
-}
-
-export async function getSessionHistory(studentId: Ulid, limit: number, offset: number): Promise<SessionForSessionHistory[] | undefined> {
-  try {
-    const minSessionLength = 60000;
-    const result = await pgQueries.getSessionHistory.run({studentId, minSessionLength, limit, offset}, getClient());
-
-    const isFavorited = await pgQueries.
-
-    // if(result.length && result.map(v => makeRequired(v)))      
-    
-
-  } catch (err) {
-    throw new RepoReadError(err);
   }
 }

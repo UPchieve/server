@@ -31,10 +31,7 @@ export type IdentifyProperties = {
   userType?: string
 }
 
-export function identify(
-  userId: Ulid,
-  properties: IdentifyProperties
-) {
+export function identify(userId: Ulid, properties: IdentifyProperties) {
   client.identify({
     distinctId: userId.toString(),
     properties,

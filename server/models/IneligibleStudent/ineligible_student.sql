@@ -46,7 +46,7 @@ SELECT
     ip_addresses.ip AS ip_address,
     school_id,
     schools.name AS school_name,
-    schools.us_state_code AS school_state,
+    cities.us_state_code AS school_state,
     cities.name AS school_city,
     postal_code AS school_zip_code,
     schools.approved AS is_approved,
@@ -59,5 +59,7 @@ FROM
     LEFT JOIN postal_codes ON ineligible_students.postal_code = postal_codes.code
     LEFT JOIN schools ON ineligible_students.school_id = schools.id
     LEFT JOIN cities ON schools.city_id = cities.id
+ORDER BY
+    ineligible_students.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 

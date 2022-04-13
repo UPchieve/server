@@ -6,12 +6,12 @@ import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
 
 export interface EmailSessionReportedJobData {
-  studentId: string // mongoose.Types.ObjectID is serialized to string on queue
+  studentId: string
   reportedBy: string
   reportReason: string
   reportMessage: string
   isBanReason: boolean
-  sessionId: string // mongoose.Types.ObjectID is serialized to string on queue
+  sessionId: string
 }
 
 async function emailReportedSession(
@@ -42,7 +42,9 @@ async function emailReportedSession(
       )
       if (banAlert.error)
         errors.push(`Failed to send ban alert email: ${banAlert.error.message}`)
-      const studentContact = await safeAsync(MailService.createContact(student.id))
+      const studentContact = await safeAsync(
+        MailService.createContact(student.id)
+      )
       if (studentContact.error)
         errors.push(
           `Failed to add student ${studentId} to ban email group: ${studentContact.error.message}`

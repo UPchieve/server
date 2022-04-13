@@ -1,4 +1,4 @@
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import {
   RepoCreateError,
   RepoDeleteError,
@@ -17,6 +17,7 @@ import {
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import * as FeedbackRepo from '../../models/Feedback/queries'
+import { isPgId } from '../../utils/type-utils'
 
 export type ReportedStudent = {
   id: Ulid
@@ -28,7 +29,7 @@ export type ReportedStudent = {
   isBanned: boolean
   isDeactivated: boolean
   isVolunteer: boolean
-  studentPartnerOrg: string
+  studentPartnerOrg?: string
 }
 
 export async function getReportedStudent(
@@ -41,7 +42,7 @@ export async function getReportedStudent(
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['studentPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -86,18 +87,20 @@ export async function getStudentContactInfoById(
   try {
     const result = await pgQueries.getStudentContactInfoById.run(
       {
-        userId: studentId,
+        userId: isPgId(studentId) ? studentId : undefined,
+        mongoUserId: isPgId(studentId) ? undefined : studentId,
       },
       getClient()
     )
-    if (result.length) return makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg'])
+    if (result.length)
+      return makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
 // NOTE: duplicate of `isTestUser` query function in this file
-// remove once there are no more callers of this function
+// TODO: remove once there are no more callers of this function
 export async function getTestStudentExistsById(
   studentId: Ulid
 ): Promise<boolean> {
@@ -108,7 +111,7 @@ export async function getTestStudentExistsById(
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0].testUser)
+    if (result.length) return makeRequired(result[0]).testUser
     return false
   } catch (err) {
     throw new RepoReadError(err)
@@ -123,7 +126,7 @@ export async function isTestUser(studentId: Ulid): Promise<boolean> {
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0].testUser)
+    if (result.length) return makeRequired(result[0]).testUser
     return false
   } catch (err) {
     throw new RepoReadError(err)
@@ -294,7 +297,9 @@ export async function adminUpdateStudent(
       },
       getClient()
     )
-    const partnerOrg = partnerOrgResult.length ? makeRequired(partnerOrgResult[0]) : undefined
+    const partnerOrg = partnerOrgResult.length
+      ? makeRequired(partnerOrgResult[0])
+      : undefined
     await transactionClient.query('BEGIN')
 
     const updateStudentResult = await pgQueries.adminUpdateStudent.run(
@@ -317,15 +322,20 @@ export async function adminUpdateStudent(
       },
       transactionClient
     )
-    const updateProductFlagsResult = await pgQueries.updateStudentInGatesStudy.run({ userId: studentId, inGatesStudy: update.inGatesStudy }, transactionClient)
-    if (!(
-      updateStudentResult.length &&
-      updateStudentProfileResult.length &&
-      updateProductFlagsResult.length &&
-      makeRequired(updateStudentResult[0]).ok &&
-      makeRequired(updateStudentProfileResult[0]).ok &&
-      makeRequired(updateProductFlagsResult[0]).ok
-    ))
+    const updateProductFlagsResult = await pgQueries.updateStudentInGatesStudy.run(
+      { userId: studentId, inGatesStudy: update.inGatesStudy },
+      transactionClient
+    )
+    if (
+      !(
+        updateStudentResult.length &&
+        updateStudentProfileResult.length &&
+        updateProductFlagsResult.length &&
+        makeRequired(updateStudentResult[0]).ok &&
+        makeRequired(updateStudentProfileResult[0]).ok &&
+        makeRequired(updateProductFlagsResult[0]).ok
+      )
+    )
       throw new RepoUpdateError('Update query did not update the student')
     await transactionClient.query('COMMIT')
   } catch (err) {
@@ -346,7 +356,7 @@ export type CreateStudentPayload = {
   studentPartnerOrg?: string | undefined
   zipCode: string | undefined
   approvedHighschool: Ulid | undefined
-  currentGrade: string
+  currentGrade?: string
   partnerSite?: string
   partnerUserId?: string
   college?: string
@@ -392,17 +402,21 @@ export async function createStudent(
         partnerSite: studentData.partnerSite,
         postalCode: studentData.zipCode,
         gradeLevel: studentData.currentGrade,
-        highSchool: studentData.approvedHighschool,
+        schoolId: studentData.approvedHighschool,
       },
       transactionClient
     )
-
     if (userResult.length && profileResult.length) {
-      const profile = makeRequired(profileResult[0])
+      const profile = makeSomeRequired(profileResult[0], [
+        'studentPartnerOrg',
+        'partnerSite',
+        'college',
+        'postalCode',
+        'gradeLevel',
+      ])
       const user = makeRequired(userResult[0])
 
       await transactionClient.query('COMMIT')
-
       return {
         id: user.id,
         firstname: user.firstName,
@@ -420,7 +434,9 @@ export async function createStudent(
         zipCode: profile.postalCode,
       }
     }
-    throw new RepoCreateError('Insert did not return new row')
+    throw new RepoCreateError(
+      'could not create student, profile or user came back with 0 rows'
+    )
   } catch (err) {
     await transactionClient.query('ROLLBACK')
     if (err instanceof RepoCreateError) throw err
@@ -473,10 +489,14 @@ export async function getSessionReport(
   try {
     const result = await pgQueries.getSessionReport.run(
       {
-        highSchoolId: query?.highSchoolId,
-        studentPartnerOrg: query?.studentPartnerOrg,
-        studentPartnerSite: query?.studentPartnerSite,
-        sponsorOrg: query?.sponsorOrg,
+        highSchoolId: query.highSchoolId ? query.highSchoolId : undefined,
+        studentPartnerOrg: query.studentPartnerOrg
+          ? query.studentPartnerOrg
+          : undefined,
+        studentPartnerSite: query.studentPartnerSite
+          ? query.studentPartnerSite
+          : undefined,
+        sponsorOrg: query.sponsorOrg ? query.sponsorOrg : undefined,
         start: query.start,
         end: query.end,
       },
@@ -557,10 +577,14 @@ export async function getUsageReport(
   try {
     const result = await pgQueries.getUsageReport.run(
       {
-        highSchoolId: query?.highSchoolId,
-        studentPartnerOrg: query?.studentPartnerOrg,
-        studentPartnerSite: query?.studentPartnerSite,
-        sponsorOrg: query?.sponsorOrg,
+        highSchoolId: query.highSchoolId ? query.highSchoolId : undefined,
+        studentPartnerOrg: query.studentPartnerOrg
+          ? query.studentPartnerOrg
+          : undefined,
+        studentPartnerSite: query.studentPartnerSite
+          ? query.studentPartnerSite
+          : undefined,
+        sponsorOrg: query.sponsorOrg ? query.sponsorOrg : undefined,
         joinedStart: query.joinedStart,
         joinedEnd: query.joinedEnd,
         sessionStart: query.sessionStart,

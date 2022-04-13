@@ -2,6 +2,7 @@ import { mocked } from 'ts-jest/utils'
 import generateAndStoreWaitTimeHeatMap from '../../worker/jobs/generateAndStoreWaitTimeHeatMap'
 import * as SessionService from '../../services/SessionService'
 import { Jobs } from '../../worker/jobs'
+import * as SessionUtils from '../../utils/session-utils'
 jest.mock('../../services/SessionService')
 
 const mockedSessionService = mocked(SessionService, true)
@@ -12,10 +13,8 @@ describe(Jobs.GenerateAndStoreWaitTimeHeatMap, () => {
   })
 
   test('Should not throw an error if successfully generated and stored the heat map', () => {
-    mockedSessionService.generateAndStoreWaitTimeHeatMap.mockImplementationOnce(
-      async () => {
-        return undefined
-      }
+    mockedSessionService.generateAndStoreWaitTimeHeatMap.mockResolvedValueOnce(
+      SessionUtils.createEmptyHeatMap()
     )
     expect(() => generateAndStoreWaitTimeHeatMap()).not.toThrow()
   })

@@ -2,7 +2,7 @@
 SELECT
     schools.id,
     schools.name AS name_stored,
-    schools.us_state_code AS state_stored,
+    cities.us_state_code AS state_stored,
     approved AS is_approved,
     partner AS is_partner,
     schools.created_at,
@@ -35,9 +35,9 @@ SELECT
     approved AS is_approved,
     partner AS is_partner,
     meta.mzip AS zip_code,
-    COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, schools.us_state_code) AS state_stored,
-    COALESCE(meta.lcity, cities.name) AS city_name_stored,
+    COALESCE(meta.sch_name, schools.name) AS name,
+    COALESCE(meta.st, cities.us_state_code) AS state,
+    COALESCE(meta.lcity, cities.name) AS city,
     schools.id,
     schools.created_at,
     schools.updated_at
@@ -54,23 +54,26 @@ SELECT
     approved AS is_approved,
     partner AS is_partner,
     meta.mzip AS zip_code,
-    COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, schools.us_state_code) AS state_stored,
-    COALESCE(meta.lcity, cities.name) AS city_name_stored,
-    schools.id,
+    COALESCE(meta.sch_name, schools.name) AS name,
+    COALESCE(meta.st, cities.us_state_code) AS state,
+    COALESCE(meta.lcity, cities.name) AS city,
+    schools.id AS id,
     schools.created_at,
     schools.updated_at
 FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
-WHERE (schools.name = :name!
-    OR meta.sch_name = :name!)
-AND (meta.st = :state!
-    OR schools.us_state_code = :state!)
-AND (meta.mcity = :city!
-    OR meta.lcity = :city!
-    OR cities.name = :city!)
+WHERE (:name::text IS NULL
+    OR schools.name ILIKE '%' || :name || '%'
+    OR meta.sch_name ILIKE '%' || :name || '%')
+AND (:state::text IS NULL
+    OR meta.st ILIKE :state
+    OR cities.us_state_code ILIKE :state)
+AND (:city::text IS NULL
+    OR meta.mcity ILIKE '%' || :city || '%'
+    OR meta.lcity ILIKE '%' || :city || '%'
+    OR cities.name ILIKE '%' || :city || '%')
 LIMIT :limit!::int OFFSET :offset!::int;
 
 
@@ -87,10 +90,10 @@ ON CONFLICT
 
 
 /* @name createSchool */
-INSERT INTO schools (id, name, approved, us_state_code, city_id, created_at, updated_at)
-    VALUES (:id!, :name!, :isApproved!, :state!, :cityId!, NOW(), NOW())
+INSERT INTO schools (id, name, approved, city_id, created_at, updated_at)
+    VALUES (:id!, :name!, :isApproved!, :cityId!, NOW(), NOW())
 RETURNING
-    id, approved AS is_approved, partner AS is_partner, name AS name_stored, updated_at, created_at, us_state_code AS state_stored;
+    id, approved AS is_approved, partner AS is_partner, name AS name_stored, updated_at, created_at;
 
 
 /* @name updateApproval */
@@ -119,7 +122,6 @@ UPDATE
 SET
     name = COALESCE(:name, schools.name),
     approved = COALESCE(:isApproved, schools.approved),
-    us_state_code = COALESCE(:state, schools.us_state_code),
     updated_at = NOW(),
     city_id = COALESCE(:cityId, schools.city_id)
 WHERE
@@ -141,7 +143,7 @@ WHERE
 SELECT
     schools.id,
     COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, schools.us_state_code) AS state_stored,
+    COALESCE(meta.st, cities.us_state_code) AS state_stored,
     COALESCE(meta.lcity, cities.name) AS city_name_stored,
     meta.lea_name AS district_name_stored,
     schools.created_at,
@@ -153,6 +155,6 @@ FROM
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
     LEFT JOIN cities ON schools.city_id = cities.id
 WHERE
-    schools.name LIKE '%' || :query! || '%'
+    schools.name ILIKE '%' || :query! || '%'
 LIMIT 100;
 

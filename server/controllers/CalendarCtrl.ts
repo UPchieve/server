@@ -1,17 +1,24 @@
 import _ from 'lodash'
-import { ACCOUNT_USER_ACTIONS, EVENTS } from '../constants'
+import { ACCOUNT_USER_ACTIONS, EVENTS, DAYS, HOURS } from '../constants'
 
 import { captureEvent } from '../services/AnalyticsService'
 import {
   queueOnboardingEventEmails,
   queuePartnerOnboardingEventEmails,
 } from '../services/VolunteerService'
-import { clearAvailabilityForVolunteer, saveCurrentAvailabilityAsHistory, updateAvailabilityByVolunteerId, DAYS,
-  HOURS,
-  Availability, } from '../models/Availability'
+import {
+  clearAvailabilityForVolunteer,
+  saveCurrentAvailabilityAsHistory,
+  updateAvailabilityByVolunteerId,
+  Availability,
+} from '../models/Availability'
 import { createAccountAction } from '../models/UserAction'
 import { UserContactInfo } from '../models/User'
-import { getVolunteerForScheduleUpdate, VolunteerForScheduleUpdate, updateVolunteerThroughAvailability } from '../models/Volunteer'
+import {
+  getVolunteerForScheduleUpdate,
+  VolunteerForScheduleUpdate,
+  updateVolunteerThroughAvailability,
+} from '../models/Volunteer'
 
 // TODO: duck type validation
 export interface UpdateScheduleOptions {
@@ -32,15 +39,20 @@ export async function updateSchedule(
 
   const volunteer = await getVolunteerForScheduleUpdate(user.id)
   // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
-  let onboarded = false
-  if (!volunteer.onboarded && volunteer.subjects && volunteer.subjects.length > 0) {
+  let onboarded = volunteer.onboarded
+  if (
+    !volunteer.onboarded &&
+    volunteer.subjects &&
+    volunteer.subjects.length > 0
+  ) {
     onboarded = true
-    queueOnboardingEventEmails(volunteer.id)
-    if (volunteer.volunteerPartnerOrg) queuePartnerOnboardingEventEmails(volunteer.id)
+    await queueOnboardingEventEmails(volunteer.id)
+    if (volunteer.volunteerPartnerOrg)
+      await queuePartnerOnboardingEventEmails(volunteer.id)
     await createAccountAction({
       userId: volunteer.id,
-      action: ACCOUNT_USER_ACTIONS.UPDATED_AVAILABILITY,
-      ipAddress: ip
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      ipAddress: ip,
     })
     captureEvent(volunteer.id, EVENTS.ACCOUNT_ONBOARDED, {
       event: EVENTS.ACCOUNT_ONBOARDED,

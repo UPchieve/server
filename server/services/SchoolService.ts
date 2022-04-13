@@ -4,7 +4,7 @@ import {
   asBoolean,
   asFactory,
   asNumber,
-  asOptional
+  asOptional,
 } from '../utils/type-utils'
 import { Ulid } from '../models/pgUtils'
 
@@ -13,19 +13,13 @@ function escapeRegex(str: string) {
   return str.replace(/[.*|\\+?{}()[^$]/g, c => '\\' + c)
 }
 
-// TODO: repo pattern - once we have stronger school type
-// search for schools by name or ID
-// TODO: duck type validation
-export async function search(query: any): Promise<any> {
-  // @note: Atlas Search is unavailable for local development. This is a
-  // fallback query to be able to search for schools in local development
-  // if (config.NODE_ENV === 'dev') {
-    const regex = new RegExp(escapeRegex(query), 'i')
-    const results = await SchoolRepo.schoolSearch(regex)
-   
-    if(results)
+// search for schools by name
+export async function search(query: string): Promise<any> {
+  const results = await SchoolRepo.schoolSearch(query)
+
+  if (results)
     return results
-      .sort((s1: SchoolRepo.School , s2: SchoolRepo.School) => {
+      .sort((s1: SchoolRepo.School, s2: SchoolRepo.School) => {
         if (s1.name && s2.name) {
           return s1.name.localeCompare(s2.name)
         }
@@ -45,26 +39,28 @@ export async function search(query: any): Promise<any> {
 
 export async function getSchool(
   schoolId: Ulid
-): Promise<SchoolRepo.School | undefined> {
+): Promise<SchoolRepo.AdminSchool> {
   try {
     const school = await SchoolRepo.getSchool(schoolId)
 
-    if (school) return school
+    if (!school) throw new Error(`no school found with id ${schoolId}`)
+
+    return school
   } catch (error) {
     throw new Error((error as Error).message)
   }
 }
 
 interface GetSchoolsPayload {
-  name: string
-  state: string
-  city: string
+  name?: string
+  state?: string
+  city?: string
   page?: number
 }
 const asGetSchoolsPayload = asFactory<GetSchoolsPayload>({
-  name: asString,
-  state: asString,
-  city: asString,
+  name: asOptional(asString),
+  state: asOptional(asString),
+  city: asOptional(asString),
   page: asOptional(asNumber),
 })
 // TODO: clean up return type
@@ -75,12 +71,24 @@ export async function getSchools(data: unknown) {
   const skip = (pageNum - 1) * PER_PAGE
 
   try {
-    const schools = await SchoolRepo.getSchools({
-      name, state, city, page
-    } as GetSchoolsPayload, PER_PAGE, skip)
-    
+    const schools = await SchoolRepo.getSchools(
+      {
+        name,
+        state,
+        city,
+        page,
+      } as GetSchoolsPayload,
+      PER_PAGE,
+      skip
+    )
+
     const isLastPage = schools.length < PER_PAGE
-    return { schools, isLastPage }
+    return {
+      schools: schools.map(s => {
+        return { ...s, _id: s.id }
+      }),
+      isLastPage,
+    }
   } catch (error) {
     throw new Error((error as Error).message)
   }
@@ -113,7 +121,11 @@ export async function createSchool(data: unknown) {
   const { name, city, state, zipCode, isApproved } = asCreateSchoolPayload(data)
 
   const school = await SchoolRepo.createSchool({
-    name, city, state, zipCode, isApproved
+    name,
+    city,
+    state,
+    zipCode,
+    isApproved,
   } as CreateSchoolPayload)
 
   return school
@@ -121,19 +133,19 @@ export async function createSchool(data: unknown) {
 
 interface AdminUpdate {
   schoolId: Ulid
-  name?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  isApproved?: boolean
+  name: string
+  city: string
+  state: string
+  zipCode: string
+  isApproved: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
   schoolId: asString,
-  name: asOptional(asString),
-  city: asOptional(asString),
-  state: asOptional(asString),
-  zipCode: asOptional(asString),
-  isApproved: asOptional(asBoolean),
+  name: asString,
+  city: asString,
+  state: asString,
+  zipCode: asString,
+  isApproved: asBoolean,
 })
 
 export async function adminUpdateSchool(data: unknown) {
@@ -146,8 +158,8 @@ export async function adminUpdateSchool(data: unknown) {
     city,
     state,
     zipCode,
-    schoolId
+    schoolId,
   }
 
-  return SchoolRepo.adminUpdateSchool(data as AdminUpdate)
+  return SchoolRepo.adminUpdateSchool(schoolData as AdminUpdate)
 }

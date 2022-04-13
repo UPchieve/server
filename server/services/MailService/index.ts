@@ -1,7 +1,7 @@
 import config from '../../config'
 import { Ulid } from '../../models/pgUtils'
-// import sgMail from '@sendgrid/mail'
-// import axios from 'axios'
+import sgMail from '@sendgrid/mail'
+import axios from 'axios'
 import { capitalize } from 'lodash'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
 import {
@@ -13,23 +13,6 @@ import { getUserToCreateSendGridContact } from '../../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
-import logger from '../../logger'
-
-// TODO: undo this
-const sgMail = {
-  setApiKey: (key: string) => {},
-  send: (msg: any) => { logger.info(`Sending email ${JSON.stringify(msg)}`) }
-}
-
-const axios = {
-  put: (...params: any[]) => { logger.info(`Sending axios put request ${JSON.stringify(params)}`) },
-  post: (...params: any[]) => { 
-    logger.info(`Sending axios post request ${JSON.stringify(params)}`)
-    return { data: { result: [] } }
-  },
-  delete: (...params: any[]) => { logger.info(`Sending axios delete request ${JSON.stringify(params)}`) }
-
-}
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -172,8 +155,17 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
   )
 }
 
-export async function sendReset(email: string, token: string): Promise<void> {
-  const url = 'http://' + config.client.host + '/setpassword?token=' + token
+export async function sendReset(
+  email: string,
+  sendToMobile: boolean,
+  token: string
+): Promise<void> {
+  let url: string
+  if (sendToMobile) {
+    url = `com.upchieve.app://setpassword/${token}`
+  } else {
+    url = `https://${config.client.host}/setpassword?token=${token}`
+  }
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
@@ -1182,9 +1174,7 @@ export async function sendOnlyLookingForAnswersWarning(
   await sendEmail(email, sender, from, template, { firstName }, overrides)
 }
 
-export async function createContact(
-  userId: Ulid
-): Promise<any> {
+export async function createContact(userId: Ulid): Promise<any> {
   const user = await getUserToCreateSendGridContact(userId)
   const customFields = {
     [SG_CUSTOM_FIELDS.isBanned]: String(user.banned),
@@ -1208,16 +1198,18 @@ export async function createContact(
     if (volunteer.volunteerPartnerOrg) {
       customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrg] =
         volunteer.volunteerPartnerOrg
-      customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] =
-        (await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)).key
+      customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] = (
+        await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
+      ).key
     }
   } else {
     const student = user
     if (student.studentPartnerOrg) {
       customFields[SG_CUSTOM_FIELDS.studentPartnerOrg] =
         student.studentPartnerOrg
-      customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] =
-      (await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)).key
+      customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] = (
+        await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)
+      ).key
     }
   }
 

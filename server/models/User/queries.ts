@@ -1,4 +1,4 @@
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -10,7 +10,7 @@ import {
 } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS } from '../../constants'
-import { getReferencesByVolunteer } from '../Volunteer/queries'
+import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { PoolClient } from 'pg'
 
 export async function getUserIdByPhone(
@@ -57,9 +57,9 @@ export type UserContactInfo = {
   isAdmin: boolean
   volunteerPartnerOrg?: string
   studentPartnerOrg?: string
-  lastActivityAt: Date,
-  banned: boolean,
-  deactivated: boolean,
+  lastActivityAt?: Date
+  banned: boolean
+  deactivated: boolean
   approved?: boolean
 }
 
@@ -72,7 +72,12 @@ export async function getUserContactInfoById(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved'])
+      return makeSomeRequired(result[0], [
+        'volunteerPartnerOrg',
+        'studentPartnerOrg',
+        'approved',
+        'lastActivityAt',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -88,7 +93,12 @@ export async function getUserContactInfoByReferralCode(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved'])
+      return makeSomeRequired(result[0], [
+        'volunteerPartnerOrg',
+        'studentPartnerOrg',
+        'approved',
+        'lastActivityAt',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -124,7 +134,12 @@ export async function getUserContactInfoByResetToken(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'studentPartnerOrg', 'approved'])
+      return makeSomeRequired(result[0], [
+        'volunteerPartnerOrg',
+        'studentPartnerOrg',
+        'approved',
+        'lastActivityAt',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -147,8 +162,8 @@ export async function countUsersReferredByOtherId(
 }
 
 export async function updateUserResetTokenById(
-  token: string,
-  userId: Ulid
+  userId: Ulid,
+  token: string
 ): Promise<void> {
   try {
     const result = await pgQueries.updateUserResetTokenById.run(
@@ -158,7 +173,6 @@ export async function updateUserResetTokenById(
     if (result.length && result[0].id) return
     throw new RepoUpdateError('Update query did not return updated id')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -175,7 +189,6 @@ export async function updateUserPasswordById(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -193,7 +206,6 @@ export async function insertUserIpById(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Insert query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -217,7 +229,6 @@ export async function updateUserVerifiedInfoById(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -234,7 +245,6 @@ export async function updateUserLastActivityById(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -248,7 +258,6 @@ export async function banUserById(userId: Ulid, banReason: USER_BAN_REASONS) {
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }
@@ -265,6 +274,9 @@ type AdminUser = {
   id: Ulid
   _id: Ulid
   firstName: string
+  // TODO: remove old firstnames from frontend
+  firstname: string
+  lastname: string
   lastName: string
   email: string
   isVolunteer: boolean
@@ -291,6 +303,8 @@ export async function getUsersForAdminSearch(
       const user = makeRequired(v)
       return {
         _id: user.id,
+        firstname: user.firstName,
+        lastname: user.lastName,
         ...user,
       }
     })
@@ -300,6 +314,8 @@ export async function getUsersForAdminSearch(
 }
 
 export type PastSessionForAdmin = {
+  id: Ulid
+  _id: Ulid
   type: string
   subTopic: string
   totalMessages: number
@@ -310,18 +326,43 @@ export type PastSessionForAdmin = {
   endedAt?: Date
 }
 
-export async function getPastSessionsForAdminDetail(userId: Ulid, poolClient?: PoolClient): Promise<PastSessionForAdmin[]> {
+export async function getPastSessionsForAdminDetail(
+  userId: Ulid,
+  limit: number,
+  offset: number,
+  poolClient?: PoolClient
+): Promise<PastSessionForAdmin[]> {
   const client = poolClient ? poolClient : getClient()
   try {
-    const result = await pgQueries.getPastSessionsForAdminDetail.run({userId}, client)
-    return result.map(v => makeSomeRequired(v, ['volunteer', 'volunteerJoinedAt', 'endedAt']))
+    const result = await pgQueries.getPastSessionsForAdminDetail.run(
+      { userId, limit, offset },
+      client
+    )
+    return result.map(v => {
+      const temp = makeSomeRequired(v, [
+        'volunteer',
+        'volunteerJoinedAt',
+        'endedAt',
+      ])
+      return {
+        ...temp,
+        _id: temp.id,
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
 // TODO: needs formal return type which is huge due to frontend
-export async function getUserForAdminDetail(userId: Ulid) {
+// TODO: this query is making a request for user data on every page transition
+//        for new pastSessions to display. May be better served as a separate
+//        service method for getting the user's past sessions
+export async function getUserForAdminDetail(
+  userId: Ulid,
+  limit: number,
+  offset: number
+) {
   const client = await getClient().connect()
   try {
     const userResult = await pgQueries.getUserForAdminDetail.run(
@@ -341,13 +382,28 @@ export async function getUserForAdminDetail(userId: Ulid) {
       'verified',
       'numPastSessions',
     ])
-    const references = await getReferencesByVolunteer(user.id, client)
-    const sessions = await getPastSessionsForAdminDetail(user.id, client)
+    const references = await getReferencesByVolunteerForAdminDetail(
+      user.id,
+      client
+    )
+    const sessions = await getPastSessionsForAdminDetail(
+      user.id,
+      limit,
+      offset,
+      client
+    )
     return {
       ...user,
-      references,
-      pastSessions: sessions,
+      references: references.map(ref => ({
+        ...ref,
+        _id: ref.id,
+        status: ref.status.toUpperCase(),
+      })),
+      pastSessions: sessions.sort((a, b) =>
+        a.createdAt > b.createdAt ? 1 : -1
+      ),
       _id: user.id,
+      photoIdStatus: user.photoIdStatus?.toUpperCase(),
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -370,11 +426,23 @@ export type UserForCreateSendGridContact = UserContactInfo & {
   studentPartnerOrgDisplay?: string
   volunteerPartnerOrgDisplay?: string
 }
-export async function getUserToCreateSendGridContact(userId: Ulid): Promise<UserForCreateSendGridContact> {
+export async function getUserToCreateSendGridContact(
+  userId: Ulid
+): Promise<UserForCreateSendGridContact> {
   try {
-    const result = await pgQueries.getUserToCreateSendGridContact.run({ userId }, getClient())
+    const result = await pgQueries.getUserToCreateSendGridContact.run(
+      { userId },
+      getClient()
+    )
     if (!result.length) throw new RepoReadError('User not found')
-    return makeSomeRequired(result[0], ['studentPartnerOrg', 'volunteerPartnerOrg', 'studentPartnerOrgDisplay', 'volunteerPartnerOrgDisplay', 'passedUpchieve101'])
+    return makeSomeRequired(result[0], [
+      'studentPartnerOrg',
+      'volunteerPartnerOrg',
+      'studentPartnerOrgDisplay',
+      'volunteerPartnerOrgDisplay',
+      'passedUpchieve101',
+      'lastActivityAt',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }

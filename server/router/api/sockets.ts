@@ -4,7 +4,7 @@
 // TODO: types for passport
 const passportSocketIo = require('passport.socketio')
 import Sentry from '@sentry/node'
-import ConnectRedis from 'connect-redis'
+import { PGStore } from 'connect-pg-simple'
 import cookieParser from 'cookie-parser'
 import newrelic from 'newrelic'
 import { Server, Socket } from 'socket.io'
@@ -52,10 +52,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 }
 
 // TODO: upgrade socketio and adapter so we can async this whole file
-export function routeSockets(
-  io: Server,
-  sessionStore: ConnectRedis.RedisStore
-): void {
+export function routeSockets(io: Server, sessionStore: PGStore): void {
   const socketService = new SocketService(io)
 
   async function getSocketIdsFromRoom(room: string): Promise<string[]> {
@@ -210,7 +207,6 @@ export function routeSockets(
 
             try {
               // TODO: correctly type User from passport
-              console.log(`Attempting to join session ${sessionId}`)
               await SessionService.joinSession(user, session, {
                 socket,
                 joinedFrom,
@@ -226,7 +222,6 @@ export function routeSockets(
               socketService.emitSessionChange(sessionId)
               resolve()
             } catch (error) {
-              console.log(`Caught join session error to bump ${error}`)
               socketService.bump(
                 socket,
                 {
