@@ -96,7 +96,7 @@ SELECT
 FROM
     users
 WHERE
-    email = :email!
+    email = LOWER(:email!)
 LIMIT 1;
 
 
