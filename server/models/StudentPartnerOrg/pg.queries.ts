@@ -20,21 +20,25 @@ export interface IGetStudentPartnerOrgForRegistrationByKeyQuery {
   result: IGetStudentPartnerOrgForRegistrationByKeyResult;
 }
 
-const getStudentPartnerOrgForRegistrationByKeyIR: any = {"name":"getStudentPartnerOrgForRegistrationByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":243,"b":246,"line":9,"col":15}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    KEY,\n    ARRAY_AGG(spos.name) AS sites\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\nWHERE\n    spo.key = :key!\nGROUP BY\n    spo.key","loc":{"a":53,"b":267,"line":2,"col":0}}};
+const getStudentPartnerOrgForRegistrationByKeyIR: any = {"name":"getStudentPartnerOrgForRegistrationByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":353,"b":356,"line":15,"col":15}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    KEY,\n    sites.sites\nFROM\n    student_partner_orgs spo\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS sites\n        FROM\n            student_partner_org_sites spos\n        WHERE\n            spo.id = spos.student_partner_org_id) AS sites ON TRUE\nWHERE\n    spo.key = :key!","loc":{"a":53,"b":356,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     KEY,
- *     ARRAY_AGG(spos.name) AS sites
+ *     sites.sites
  * FROM
  *     student_partner_orgs spo
- *     LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             array_agg(name) AS sites
+ *         FROM
+ *             student_partner_org_sites spos
+ *         WHERE
+ *             spo.id = spos.student_partner_org_id) AS sites ON TRUE
  * WHERE
  *     spo.key = :key!
- * GROUP BY
- *     spo.key
  * ```
  */
 export const getStudentPartnerOrgForRegistrationByKey = new PreparedQuery<IGetStudentPartnerOrgForRegistrationByKeyParams,IGetStudentPartnerOrgForRegistrationByKeyResult>(getStudentPartnerOrgForRegistrationByKeyIR);
@@ -47,10 +51,10 @@ export interface IGetFullStudentPartnerOrgByKeyParams {
 
 /** 'GetFullStudentPartnerOrgByKey' return type */
 export interface IGetFullStudentPartnerOrgByKeyResult {
-  collegeSignup: boolean | null;
-  highSchoolSignup: boolean | null;
+  collegeSignup: boolean;
+  highSchoolSignup: boolean;
   key: string;
-  schoolSignupRequired: boolean | null;
+  schoolSignupRequired: boolean;
   signupCode: string | null;
   sites: stringArray | null;
 }
@@ -61,25 +65,29 @@ export interface IGetFullStudentPartnerOrgByKeyQuery {
   result: IGetFullStudentPartnerOrgByKeyResult;
 }
 
-const getFullStudentPartnerOrgByKeyIR: any = {"name":"getFullStudentPartnerOrgByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":715,"b":718,"line":26,"col":11}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    KEY,\n    string_agg(signup_code, NULL) AS signup_code,\n    bool_or(high_school_signup) AS high_school_signup,\n    bool_or(college_signup) AS college_signup,\n    bool_or(school_signup_required) AS school_signup_required,\n    array_agg(spos.name) AS sites\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\nWHERE\n    KEY = :key!\nGROUP BY\n    spo.key","loc":{"a":314,"b":739,"line":15,"col":0}}};
+const getFullStudentPartnerOrgByKeyIR: any = {"name":"getFullStudentPartnerOrgByKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":788,"b":791,"line":36,"col":11}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    KEY,\n    signup_code,\n    high_school_signup,\n    college_signup,\n    school_signup_required,\n    sites.sites\nFROM\n    student_partner_orgs spo\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS sites\n        FROM\n            student_partner_org_sites spos\n        WHERE\n            spo.id = spos.student_partner_org_id) AS sites ON TRUE\nWHERE\n    KEY = :key!","loc":{"a":403,"b":791,"line":19,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     KEY,
- *     string_agg(signup_code, NULL) AS signup_code,
- *     bool_or(high_school_signup) AS high_school_signup,
- *     bool_or(college_signup) AS college_signup,
- *     bool_or(school_signup_required) AS school_signup_required,
- *     array_agg(spos.name) AS sites
+ *     signup_code,
+ *     high_school_signup,
+ *     college_signup,
+ *     school_signup_required,
+ *     sites.sites
  * FROM
  *     student_partner_orgs spo
- *     LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             array_agg(name) AS sites
+ *         FROM
+ *             student_partner_org_sites spos
+ *         WHERE
+ *             spo.id = spos.student_partner_org_id) AS sites ON TRUE
  * WHERE
  *     KEY = :key!
- * GROUP BY
- *     spo.key
  * ```
  */
 export const getFullStudentPartnerOrgByKey = new PreparedQuery<IGetFullStudentPartnerOrgByKeyParams,IGetFullStudentPartnerOrgByKeyResult>(getFullStudentPartnerOrgByKeyIR);
@@ -90,11 +98,11 @@ export type IGetStudentPartnerOrgsParams = void;
 
 /** 'GetStudentPartnerOrgs' return type */
 export interface IGetStudentPartnerOrgsResult {
-  collegeSignup: boolean | null;
-  highSchoolSignup: boolean | null;
+  collegeSignup: boolean;
+  highSchoolSignup: boolean;
   key: string;
   name: string;
-  schoolSignupRequired: boolean | null;
+  schoolSignupRequired: boolean;
   signupCode: string | null;
   sites: stringArray | null;
 }
@@ -105,7 +113,7 @@ export interface IGetStudentPartnerOrgsQuery {
   result: IGetStudentPartnerOrgsResult;
 }
 
-const getStudentPartnerOrgsIR: any = {"name":"getStudentPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    KEY,\n    spo.name AS name,\n    max(signup_code) AS signup_code,\n    bool_or(high_school_signup) AS high_school_signup,\n    bool_or(college_signup) AS college_signup,\n    bool_or(school_signup_required) AS school_signup_required,\n    array_agg(spos.name) AS sites\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\nGROUP BY\n    spo.key,\n    spo.name","loc":{"a":778,"b":1204,"line":32,"col":0}}};
+const getStudentPartnerOrgsIR: any = {"name":"getStudentPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    KEY,\n    spo.name AS name,\n    signup_code,\n    high_school_signup,\n    college_signup,\n    school_signup_required,\n    sites.sites\nFROM\n    student_partner_orgs spo\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS sites\n        FROM\n            student_partner_org_sites spos\n        WHERE\n            spo.id = spos.student_partner_org_id) AS sites ON TRUE","loc":{"a":830,"b":1218,"line":40,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -113,17 +121,20 @@ const getStudentPartnerOrgsIR: any = {"name":"getStudentPartnerOrgs","params":[]
  * SELECT
  *     KEY,
  *     spo.name AS name,
- *     max(signup_code) AS signup_code,
- *     bool_or(high_school_signup) AS high_school_signup,
- *     bool_or(college_signup) AS college_signup,
- *     bool_or(school_signup_required) AS school_signup_required,
- *     array_agg(spos.name) AS sites
+ *     signup_code,
+ *     high_school_signup,
+ *     college_signup,
+ *     school_signup_required,
+ *     sites.sites
  * FROM
  *     student_partner_orgs spo
- *     LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
- * GROUP BY
- *     spo.key,
- *     spo.name
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             array_agg(name) AS sites
+ *         FROM
+ *             student_partner_org_sites spos
+ *         WHERE
+ *             spo.id = spos.student_partner_org_id) AS sites ON TRUE
  * ```
  */
 export const getStudentPartnerOrgs = new PreparedQuery<IGetStudentPartnerOrgsParams,IGetStudentPartnerOrgsResult>(getStudentPartnerOrgsIR);
@@ -145,7 +156,7 @@ export interface IGetStudentPartnerOrgKeyByCodeQuery {
   result: IGetStudentPartnerOrgKeyByCodeResult;
 }
 
-const getStudentPartnerOrgKeyByCodeIR: any = {"name":"getStudentPartnerOrgKeyByCode","params":[{"name":"signupCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1321,"b":1331,"line":54,"col":19}]}}],"usedParamSet":{"signupCode":true},"statement":{"body":"SELECT\n    KEY\nFROM\n    student_partner_orgs\nWHERE\n    signup_code = :signupCode!","loc":{"a":1251,"b":1331,"line":49,"col":0}}};
+const getStudentPartnerOrgKeyByCodeIR: any = {"name":"getStudentPartnerOrgKeyByCode","params":[{"name":"signupCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1335,"b":1345,"line":65,"col":19}]}}],"usedParamSet":{"signupCode":true},"statement":{"body":"SELECT\n    KEY\nFROM\n    student_partner_orgs\nWHERE\n    signup_code = :signupCode!","loc":{"a":1265,"b":1345,"line":60,"col":0}}};
 
 /**
  * Query generated from SQL:

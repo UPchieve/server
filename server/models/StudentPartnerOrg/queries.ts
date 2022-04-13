@@ -26,7 +26,7 @@ export async function getFullStudentPartnerOrgByKey(key: string) {
     )
     if (!result.length)
       throw new Error(`no student partner org found with key ${key}`)
-    return makeRequired(result[0])
+    return makeSomeRequired(result[0], ['sites'])
   } catch (err) {
     throw new RepoReadError(err)
   }
