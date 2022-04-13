@@ -14,6 +14,7 @@ import {
 } from './types'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { PoolClient } from 'pg'
+import { isPgId } from '../../utils/type-utils'
 
 function createNewAvailability(): Availability {
   const availability: Partial<Availability> = {}
@@ -92,7 +93,10 @@ export async function getAvailabilityForVolunteer(
   const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getAvailabilityForVolunteer.run(
-      { userId },
+      {
+        userId: isPgId(userId) ? userId : undefined,
+        mongoUserId: isPgId(userId) ? undefined : userId,
+      },
       client
     )
     return buildAvailabilityModel(result.map(v => makeRequired(v)))
