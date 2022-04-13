@@ -656,6 +656,23 @@ WHERE
     volunteer_reference_statuses.name = 'unsent';
 
 
+/* @name getReferencesForReferenceFormApology */
+SELECT
+    volunteer_references.id,
+    user_id,
+    first_name,
+    last_name,
+    email,
+    volunteer_reference_statuses.name AS status
+FROM
+    volunteer_references
+    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+WHERE
+    volunteer_reference_statuses.name = 'sent'
+    AND volunteer_references.sent_at <= '2022-04-12 18:00:00.000'
+    AND volunteer_references.sent_at >= '2022-02-26 00:00:00.000';
+
+
 /* @name getReferencesByVolunteer */
 SELECT
     volunteer_references.id,
