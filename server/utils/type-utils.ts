@@ -144,12 +144,12 @@ export function asUnion<T>(fns: ((s: unknown, errMsg?: string) => T)[]) {
 
 // helper to check if the incoming ID is a PG id or mongo id
 // TODO: remove once mongo ids are no longer stored in cached jobs
-export function asPgId(id: string): string | undefined {
+export function isPgId(id: string): boolean {
   try {
     Uuid4.fromCanonical(id)
-    return id
+    return true
   } catch (err) {
-    if (err instanceof Exception.InvalidEncoding) return undefined
+    if (err instanceof Exception.InvalidEncoding) return false
     throw err
   }
 }

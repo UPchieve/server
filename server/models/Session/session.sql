@@ -249,7 +249,7 @@ LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 /* @name getTotalTimeTutoredForDateRange */
 SELECT
-    SUM(time_tutored)::int AS total
+    SUM(time_tutored)::bigint AS total
 FROM
     sessions
 WHERE

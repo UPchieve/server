@@ -1490,7 +1490,7 @@ FROM
                     sessions.time_tutored
                 ELSE
                     0
-                END)::int AS total_partner_time_tutored,
+                END)::bigint AS total_partner_time_tutored,
             SUM(
                 CASE WHEN sessions.created_at >= :start!
                     AND sessions.created_at <= :end!
@@ -1499,7 +1499,7 @@ FROM
                     sessions.time_tutored
                 ELSE
                     0
-                END)::int AS total_partner_time_tutored_within_range
+                END)::bigint AS total_partner_time_tutored_within_range
         FROM
             sessions
     LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id

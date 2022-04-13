@@ -83,6 +83,9 @@ export async function getLegacyUserObject(
       'referralCode',
       'type',
     ])
+    // manually parse out incoming bigint to number
+    baseUser.hoursTutored =
+      baseUser.hoursTutored || Number(baseUser.hoursTutored)
     // The frontend still expects ALL possible certification objects on the legacy user
     // So we get all quizzes and map their name to a fresh CertificationInfo object
     const legacyCertificationsResult = await pgQueries.getLegacyCertifications.run(
