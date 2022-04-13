@@ -1029,14 +1029,15 @@ export type SessionForSessionHistory = {
   volunteerId: Ulid,
   volunteerFirstName: string,
 }
+
 export async function getSessionHistory(studentId: Ulid, limit: number, offset: number): Promise<SessionForSessionHistory[] | undefined> {
   try {
     const minSessionLength = 60000;
     const result = await pgQueries.getSessionHistory.run({studentId, minSessionLength, limit, offset}, getClient());
 
-     const isFavorited = await pgQueries.
+    const isFavorited = await pgQueries.
 
-    if(result.length && result.map(v => makeRequired(v)))      
+    // if(result.length && result.map(v => makeRequired(v)))      
     
 
   } catch (err) {
