@@ -8,7 +8,7 @@ const main = async (): Promise<void> => {
     await db.connect()
     await generateAndStoreWaitTimeHeatMap()
   } catch (error) {
-    logger.error(error)
+    logger.error(error as Error)
     process.exit(1)
   } finally {
     mongoose.disconnect()

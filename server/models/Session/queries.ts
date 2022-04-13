@@ -989,6 +989,12 @@ export async function updateSessionReviewReasonsById(
       if (!result.length && makeRequired(result[0]).ok)
         throw new Error('Insert did not return ok')
     }
+    const result = await pgQueries.updateSessionToReview.run(
+      { sessionId },
+      client
+    )
+    if (!result.length && makeRequired(result[0]).ok)
+      throw new Error('Updating to_review did not return ok')
     await client.query('COMMIT')
   } catch (err) {
     await client.query('ROLLBACK')
