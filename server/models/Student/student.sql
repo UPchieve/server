@@ -75,6 +75,8 @@ FROM
             sessions.volunteer_id
         FROM
             sessions
+        WHERE
+            sessions.student_id = :userId!
         GROUP BY
             sessions.student_id,
             sessions.volunteer_id) AS sessions ON sessions.volunteer_id = student_favorite_volunteers.volunteer_id
