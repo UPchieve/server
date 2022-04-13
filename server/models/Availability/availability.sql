@@ -8,8 +8,10 @@ SELECT
 FROM
     availabilities
     LEFT JOIN weekdays ON availabilities.weekday_id = weekdays.id
+    LEFT JOIN users ON availabilities.user_id = users.id
 WHERE
-    user_id = :userId!;
+    availabilities.user_id::uuid = :userId
+    OR users.mongo_id::text = :mongoUserId;
 
 
 /* 
