@@ -75,7 +75,7 @@ export enum Jobs {
   EmailVolunteerAbsentStudentApology = 'EmailVolunteerAbsentStudentApology',
   EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
   EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
-  SendAssistmentsData = ' SendAssistmentsData',
+  SendAssistmentsData = 'SendAssistmentsData',
   EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
   SendFollowupText = 'SendFollowupText',
   // TODO: add the tech issue apology job to the job processor once it is ready to be released

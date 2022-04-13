@@ -1,31 +1,59 @@
-import { Types } from 'mongoose'
-import { AvailabilityDay } from '../models/Availability/types'
-import { getHistoryForDatesByVolunteerId } from '../models/Availability/queries'
+import {
+  AvailabilityDay,
+  AvailabilityHistory,
+  getAvailabilityHistoryForDatesByVolunteerId,
+  getLegacyAvailabilityHistoryForDatesByVolunteerId,
+} from '../models/Availability'
+import { Ulid } from '../models/pgUtils'
 
-export function getElapsedAvailability(day: AvailabilityDay): number {
+export function getElapsedAvailabilityForDay(day: AvailabilityDay): number {
   let elapsedAvailability = 0
   const availabileTimes = Object.values(day)
   for (const time of availabileTimes) {
     if (time) elapsedAvailability++
   }
-
   return elapsedAvailability
 }
 
-export async function getElapsedAvailabilityForDateRange(
-  volunteerId: Types.ObjectId,
+export async function getElapsedAvailabilityForTelecomReport(
+  volunteerId: Ulid,
+  fromDate: Date,
+  toDate: Date
+): Promise<AvailabilityHistory[]> {
+  const historyDocs = await getAvailabilityHistoryForDatesByVolunteerId(
+    volunteerId,
+    fromDate,
+    toDate
+  )
+  const legacyDocs = await getLegacyAvailabilityHistoryForDatesByVolunteerId(
+    volunteerId,
+    fromDate,
+    toDate
+  )
+
+  return historyDocs.concat(legacyDocs)
+}
+
+export async function getTotalElapsedAvailabilityForDateRange(
+  volunteerId: Ulid,
   fromDate: Date,
   toDate: Date
 ): Promise<number> {
-  const historyDocs = await getHistoryForDatesByVolunteerId(
+  const historyDocs = await getAvailabilityHistoryForDatesByVolunteerId(
+    volunteerId,
+    fromDate,
+    toDate
+  )
+  const legacyDocs = await getLegacyAvailabilityHistoryForDatesByVolunteerId(
     volunteerId,
     fromDate,
     toDate
   )
 
   let totalElapsedAvailability = 0
-  for (const doc of historyDocs) {
-    totalElapsedAvailability += getElapsedAvailability(doc.availability)
+  for (const doc of historyDocs.concat(legacyDocs)) {
+    for (const [day, avail] of Object.entries(doc.availability))
+      totalElapsedAvailability += getElapsedAvailabilityForDay(avail)
   }
 
   return totalElapsedAvailability

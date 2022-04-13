@@ -2,7 +2,6 @@ import { CustomError } from 'ts-custom-error'
 import { Response } from 'express'
 import * as Sentry from '@sentry/node'
 import {
-  DocUpdateError,
   NotAllowedError,
   InputError,
   LookupError,
@@ -37,8 +36,6 @@ export function resError(
     else if (err instanceof ReportNoDataFoundError) status = 422
     // bad input
     else if (err instanceof InputError) status = 422
-    // database update error
-    else if (err instanceof DocUpdateError) status = 500
     // unknown error
     else status = 500
 

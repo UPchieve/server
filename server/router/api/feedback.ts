@@ -2,15 +2,15 @@ import expressWs from 'express-ws'
 import * as FeedbackService from '../../services/FeedbackService'
 import { getFeedbackBySessionIdUserType } from '../../models/Feedback/queries'
 import { InputError } from '../../models/Errors'
-import { asString, asObjectId } from '../../utils/type-utils'
+import { asString, asUlid } from '../../utils/type-utils'
 import { resError } from '../res-error'
 
 export function routeFeedback(router: expressWs.Router): void {
   router.post('/feedback', async (req, res) => {
     try {
-      const feedback = await FeedbackService.saveFeedback(req.body)
+      const feedbackId = await FeedbackService.saveFeedback(req.body)
       res.json({
-        feedback: feedback._id,
+        feedback: feedbackId,
       })
     } catch (error) {
       resError(res, error)
@@ -26,12 +26,12 @@ export function routeFeedback(router: expressWs.Router): void {
     const { sessionId, userType } = req.query
     try {
       const feedback = await getFeedbackBySessionIdUserType(
-        asObjectId(sessionId),
+        asUlid(sessionId),
         asString(userType)
       )
 
       res.json({
-        feedback: feedback ? feedback._id : null,
+        feedback: feedback ? feedback.id : null,
       })
     } catch (error) {
       resError(res, error)

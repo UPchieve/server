@@ -1,18 +1,8 @@
 import { Job } from 'bull'
-import { Types } from 'mongoose'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
-import { getNotificationsWithPipeline } from '../../../models/Notification/queries'
-import { getSessionsWithPipeline } from '../../../models/Session/queries'
-import { emailRecipientPrefixed } from '../../../utils/aggregation-snippets'
-import { asObjectId } from '../../../utils/type-utils'
-
-interface GentleWarningAggregation {
-  _id: Types.ObjectId
-  totalNotifications: number
-  firstName: string
-  email: string
-}
+import { getVolunteersForGentleWarning } from '../../../models/Session'
+import { asString } from '../../../utils/type-utils'
 
 interface EmailGentleWarningJobData {
   sessionId: string
@@ -26,93 +16,23 @@ interface EmailGentleWarningJobData {
  */
 export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
   const { name: currentJob } = job
-  const sessionId = asObjectId(job.data.sessionId)
-  const documentsWithVolunteerIds = await getSessionsWithPipeline([
-    {
-      $match: {
-        _id:
-          typeof sessionId === 'string'
-            ? new Types.ObjectId(sessionId)
-            : sessionId,
-      },
-    },
-    {
-      $lookup: {
-        from: 'notifications',
-        foreignField: '_id',
-        localField: 'notifications',
-        as: 'notifications',
-      },
-    },
-    { $unwind: '$notifications' },
-    {
-      $project: {
-        isSessionsVolunteer: {
-          $eq: ['$volunteer', '$notifications.volunteer'],
-        },
-        volunteerId: '$notifications.volunteer',
-      },
-    },
-    {
-      $match: {
-        // Exclude from sending the email to the volunteer who joined this session
-        isSessionsVolunteer: false,
-      },
-    },
-    {
-      $group: {
-        _id: '$volunteerId',
-      },
-    },
-  ])
+  const sessionId = asString(job.data.sessionId)
+  // replaced by getVolunteersForGentleWarning
+  const volunteerWithNotifications = await getVolunteersForGentleWarning(
+    sessionId
+  )
 
-  if (documentsWithVolunteerIds.length === 0) return
-
-  const volunteerIds = documentsWithVolunteerIds.map(doc => doc._id)
-
-  const volunteerNotifications: GentleWarningAggregation[] = ((await getNotificationsWithPipeline(
-    [
-      {
-        $match: {
-          volunteer: { $in: volunteerIds },
-          priorityGroup: { $ne: 'follow-up' },
-        },
-      },
-      {
-        $lookup: {
-          from: 'users',
-          foreignField: '_id',
-          localField: 'volunteer',
-          as: 'volunteer',
-        },
-      },
-      { $unwind: '$volunteer' },
-      {
-        $match: {
-          'volunteer.pastSessions': { $size: 0 },
-          ...emailRecipientPrefixed('volunteer'),
-        },
-      },
-      {
-        $group: {
-          _id: '$volunteer._id',
-          totalNotifications: { $sum: 1 },
-          firstName: { $first: '$volunteer.firstname' },
-          email: { $first: '$volunteer.email' },
-        },
-      },
-    ]
-  )) as any) as GentleWarningAggregation[]
+  if (volunteerWithNotifications.length === 0) return
 
   const errors = []
-  for (const volunteer of volunteerNotifications) {
+  for (const volunteer of volunteerWithNotifications) {
     if (volunteer.totalNotifications === 5) {
-      const { firstName, email, _id } = volunteer
+      const { firstName, email, id } = volunteer
       try {
         await MailService.sendVolunteerGentleWarning(email, firstName)
-        log(`Sent ${currentJob} to volunteer ${_id}`)
+        log(`Sent ${currentJob} to volunteer ${id}`)
       } catch (error) {
-        errors.push(`volunteer ${_id}: ${error}`)
+        errors.push(`volunteer ${id}: ${error}`)
       }
     }
   }

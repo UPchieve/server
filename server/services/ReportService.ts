@@ -2,48 +2,32 @@ import path from 'path'
 import fs from 'fs'
 import moment from 'moment'
 import 'moment-timezone'
-import mongoose, { Types } from 'mongoose'
 import _ from 'lodash'
 import exceljs from 'exceljs'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomError } from 'ts-custom-error'
-import User from '../models/User'
-import {
-  SponsorOrgManifest,
-  studentPartnerManifests,
-} from '../partnerManifests'
 import logger from '../logger'
-import {
-  FEEDBACK_VERSIONS,
-  DATE_RANGE_COMPARISON_FIELDS,
-  REPORT_FILE_NAMES,
-} from '../constants'
+import { REPORT_FILE_NAMES } from '../constants'
 import config from '../config'
 import {
   generateTelecomReport,
   getAnalyticsReportRow,
-  getSumOperatorForDateRange,
-  getSumOperatorForTimeTutoredDateRange,
   AnalyticsReportRow,
   AnalyticsReportSummary,
-  PartnerVolunteerAnalytics,
   getAnalyticsReportSummary,
   processAnalyticsReportSummarySheet,
   processAnalyticsReportDataSheet,
   validateVolunteerReportQuery,
   validateStudentSessionReportQuery,
   validateStudentUsageReportQuery,
-  getPartnerStudentsFilter,
 } from '../utils/reportUtils'
 import { InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
-import { AnyFeedback } from '../models/Feedback/queries'
-import {
-  getVolunteersForTelecomReport,
-  getVolunteersWithPipeline,
-} from '../models/Volunteer/queries'
 import { asFactory, asString } from '../utils/type-utils'
-import { asSponsorOrg } from '../utils/validators'
+import * as StudentRepo from '../models/Student/queries'
+import * as VolunteerRepo from '../models/Volunteer/queries'
+import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
+import { SingleFeedback } from '../models/Feedback/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -52,9 +36,7 @@ const fsPromises = fs.promises
 const getReportFilePath = (fileName: string) =>
   `${config.fileWorkRootPath}/${uuidv4()}/${fileName}.xlsx`
 
-const ObjectId = mongoose.Types.ObjectId
-
-interface SessionReport {
+type SessionReport = {
   Topic: string
   Subtopic: string
   'Created at': string | Date
@@ -65,11 +47,11 @@ interface SessionReport {
   Volunteer: string
   'Volunteer join date': string | Date
   'Ended at': string | Date
-  'Wait time': string
-  'Session rating': string
+  'Wait time'?: string
+  'Session rating'?: string
 }
 
-interface UsageReport {
+type UsageReport = {
   'First name': string
   'Last name': string
   Email: string
@@ -79,30 +61,32 @@ interface UsageReport {
   'Total sessions': number
   'Sessions over date range': number
   'Average session rating': number
+  'High school name': string
+  'Partner site': string
+  'HS/College': string
+  'Sponsor Org': string | undefined
+  'Partner Org': string
 }
 
-type approvedHighschoolQuery = Types.ObjectId | { $in: Types.ObjectId[] }
-type studentPartnerOrgQuery = string | { $in: string[] }
-
-const formatDate = (date: string): Date | string => {
+const formatDate = (date: string | Date): Date | string => {
   if (!date) return '--'
   return moment(date)
     .tz('America/New_York')
     .format('l h:mm a')
 }
 
-function calcAverageRating(allFeedback: AnyFeedback[]): number {
+function calcAverageRating(allFeedback: SingleFeedback[]): number {
   let ratingsSum = 0
   let ratingsCount = 0
 
   for (let i = 0; i < allFeedback.length; i++) {
     const feedback = allFeedback[i]
-    let sessionRatingKey = ''
+    let sessionRatingKey = 'studentCounselingFeedback.rate-session.rating'
 
-    if (feedback.versionNumber === FEEDBACK_VERSIONS.ONE)
-      sessionRatingKey = 'responseData.rate-session.rating'
-    else if (feedback.versionNumber === FEEDBACK_VERSIONS.TWO)
+    if (feedback.studentCounselingFeedback)
       sessionRatingKey = 'studentCounselingFeedback.rate-session.rating'
+    else if (feedback.responseData)
+      sessionRatingKey = 'responseData.rate-session.rating'
     const sessionRating = _.get(feedback, sessionRatingKey, null)
     if (sessionRating) {
       ratingsSum += sessionRating
@@ -138,209 +122,41 @@ export const sessionReport = async (
     studentPartnerSite,
     sponsorOrg,
   } = validateStudentSessionReportQuery(data)
-  const query: {
-    approvedHighschool?: approvedHighschoolQuery
-    studentPartnerOrg?: studentPartnerOrgQuery
-    partnerSite?: string
-    $or?: any[]
-  } = {}
 
-  if (highSchoolId) query.approvedHighschool = new ObjectId(highSchoolId)
-  if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg
-  if (studentPartnerSite) query.partnerSite = studentPartnerSite
-  let sponsor: SponsorOrgManifest
-  if (sponsorOrg) {
-    sponsor = asSponsorOrg(sponsorOrg)
-    if (sponsor.schools && sponsor.partnerOrgs)
-      query.$or = [
-        { approvedHighschool: { $in: sponsor.schools } },
-        { studentPartnerOrg: { $in: sponsor.partnerOrgs } },
-      ]
-    else if (sponsor.schools)
-      query.approvedHighschool = { $in: sponsor.schools }
-    else if (sponsor.partnerOrgs)
-      query.studentPartnerOrg = { $in: sponsor.partnerOrgs }
-  }
-
-  const oneMinuteInMs = 1000 * 60
-  const roundDecimalPlace = 1
-
-  const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
-  const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
-
-  // TODO: repo pattern
-  const sessions = await User.aggregate([
-    {
-      $match: query,
-    },
-    {
-      $project: {
-        firstname: 1,
-        lastname: 1,
-        email: 1,
-        pastSessions: 1,
-        partnerSite: 1,
-      },
-    },
-    {
-      $lookup: {
-        from: 'sessions',
-        localField: 'pastSessions',
-        foreignField: '_id',
-        as: 'session',
-      },
-    },
-    {
-      $unwind: '$session',
-    },
-    {
-      $match: {
-        'session.createdAt': {
-          $gte: sessionRangeStart,
-          $lte: sessionRangeEnd,
-        },
-      },
-    },
-    {
-      $addFields: {
-        sessionId: '$session._id',
-      },
-    },
-    {
-      $lookup: {
-        from: 'feedbacks',
-        localField: 'sessionId',
-        foreignField: 'sessionId',
-        as: 'feedbacks',
-      },
-    },
-    {
-      $addFields: {
-        studentFeedback: {
-          $filter: {
-            input: '$feedbacks',
-            as: 'feedback',
-            cond: { $eq: ['$$feedback.userType', 'student'] },
-          },
-        },
-      },
-    },
-    {
-      $unwind: {
-        path: '$studentFeedback',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        filteredStuff: 1,
-        createdAt: '$session.createdAt',
-        topic: '$session.type',
-        subtopic: '$session.subTopic',
-        messages: { $size: '$session.messages' },
-        student: {
-          firstName: '$firstname',
-          lastName: '$lastname',
-          email: '$email',
-          partnerSite: '$partnerSite',
-        },
-        volunteer: {
-          $cond: {
-            if: '$session.volunteer',
-            then: 'YES',
-            else: 'NO',
-          },
-        },
-        volunteerJoinedAt: '$session.volunteerJoinedAt',
-        endedAt: '$session.endedAt',
-        waitTime: {
-          $cond: {
-            if: '$session.volunteerJoinedAt',
-            then: {
-              $round: [
-                {
-                  $divide: [
-                    {
-                      $subtract: [
-                        '$session.volunteerJoinedAt',
-                        '$session.createdAt',
-                      ],
-                    },
-                    oneMinuteInMs,
-                  ],
-                },
-                roundDecimalPlace,
-              ],
-            },
-            else: null,
-          },
-        },
-        sessionRating: {
-          $switch: {
-            branches: [
-              {
-                case: {
-                  $and: [
-                    {
-                      $eq: [
-                        '$studentFeedback.versionNumber',
-                        FEEDBACK_VERSIONS.ONE,
-                      ],
-                    },
-                    '$studentFeedback.responseData.rate-session.rating',
-                  ],
-                },
-                then: '$studentFeedback.responseData.rate-session.rating',
-              },
-              {
-                case: {
-                  $and: [
-                    {
-                      $eq: [
-                        '$studentFeedback.versionNumber',
-                        FEEDBACK_VERSIONS.TWO,
-                      ],
-                    },
-                    '$studentFeedback.studentCounselingFeedback.rate-session.rating',
-                  ],
-                },
-                then:
-                  '$studentFeedback.studentCounselingFeedback.rate-session.rating',
-              },
-            ],
-            default: null,
-          },
-        },
-      },
-    },
-    {
-      $sort: { createdAt: 1 },
-    },
-  ]).read('secondaryPreferred')
-
-  const formattedSessions = sessions.map(session => {
-    return {
-      Topic: session.topic,
-      Subtopic: session.subtopic,
-      'Created at': formatDate(session.createdAt),
-      Messages: session.messages,
-      'First name': session.student.firstName,
-      'Last name': session.student.lastName,
-      Email: session.student.email,
-      'Partner site': session.student.partnerSite
-        ? session.student.partnerSite
-        : '-',
-      'Sponsor org': sponsor ? sponsor.name : '-',
-      Volunteer: session.volunteer,
-      'Volunteer join date': formatDate(session.volunteerJoinedAt),
-      'Ended at': formatDate(session.endedAt),
-      'Wait time': session.waitTime && `${session.waitTime}mins`,
-      'Session rating': session.sessionRating,
-    }
+  const report = await StudentRepo.getSessionReport({
+    highSchoolId,
+    studentPartnerOrg,
+    studentPartnerSite,
+    sponsorOrg,
+    start: dateStringToDateEST(sessionRangeFrom),
+    end: dateStringToDateEST(sessionRangeTo),
   })
 
-  return formattedSessions
+  if (report && report.length) {
+    const formattedSessions = report.map(row => {
+      return {
+        Topic: row.topic,
+        Subtopic: row.subject,
+        'Created at': formatDate(row.createdAt),
+        Messages: String(row.totalMessages),
+        'First name': row.firstName,
+        'Last name': row.lastName,
+        Email: row.email,
+        'Partner site': row.partnerSite ? row.partnerSite : '-',
+        'Sponsor org': row.sponsorOrg ? row.sponsorOrg : '-',
+        Volunteer: row.volunteerJoined,
+        'Volunteer join date': row.volunteerJoinedAt
+          ? formatDate(row.volunteerJoinedAt)
+          : '',
+        'Ended at': formatDate(row.endedAt),
+        'Wait time': row.waitTimeMins ? `${row.waitTimeMins}mins` : '',
+        'Session rating': row.sessionRating ? String(row.sessionRating) : '',
+      }
+    })
+
+    return formattedSessions
+  }
+  return []
 }
 
 export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
@@ -354,268 +170,47 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
     studentPartnerSite,
     sponsorOrg,
   } = validateStudentUsageReportQuery(data)
-  const query: {
-    createdAt?: {}
-    approvedHighschool?: approvedHighschoolQuery
-    studentPartnerOrg?: studentPartnerOrgQuery
-    partnerSite?: string
-    $or?: any[]
-  } = {
-    createdAt: {
-      $gte: dateStringToDateEST(joinedAfter),
-      $lte: dateStringToDateEST(joinedBefore),
-    },
-  }
-  if (highSchoolId) query.approvedHighschool = new ObjectId(highSchoolId)
-  if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg
-  if (studentPartnerSite) query.partnerSite = studentPartnerSite
-  let sponsor: SponsorOrgManifest
-  if (sponsorOrg) {
-    sponsor = asSponsorOrg(sponsorOrg)
-    if (sponsor.schools && sponsor.partnerOrgs)
-      query.$or = [
-        { approvedHighschool: { $in: sponsor.schools } },
-        { studentPartnerOrg: { $in: sponsor.partnerOrgs } },
-      ]
-    else if (sponsor.schools)
-      query.approvedHighschool = { $in: sponsor.schools }
-    else if (sponsor.partnerOrgs)
-      query.studentPartnerOrg = { $in: sponsor.partnerOrgs }
-  }
 
-  const sessionRangeStart: Date = dateStringToDateEST(sessionRangeFrom)
-  const sessionRangeEnd: Date = dateStringToDateEST(sessionRangeTo)
-
-  // TODO: repo pattern
-  const students = await User.aggregate([
-    {
-      $match: query,
-    },
-    {
-      $project: {
-        email: 1,
-        pastSessions: 1,
-        firstName: '$firstname',
-        lastName: '$lastname',
-        createdAt: 1,
-        totalSessions: { $size: '$pastSessions' },
-        studentPartnerOrg: 1,
-        partnerSite: 1,
-        approvedHighschool: 1,
-      },
-    },
-    {
-      $lookup: {
-        from: 'sessions',
-        localField: 'pastSessions',
-        foreignField: '_id',
-        as: 'session',
-      },
-    },
-    {
-      $unwind: {
-        path: '$session',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: 'feedbacks',
-        let: { studentId: '$_id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$userType', 'student'] },
-                  { $eq: ['$studentId', '$$studentId'] },
-                ],
-              },
-            },
-          },
-        ],
-        as: 'feedback',
-      },
-    },
-    {
-      $addFields: {
-        lastMessage: { $arrayElemAt: ['$session.messages', -1] },
-        sessionLength: {
-          $cond: [
-            { $ifNull: ['$session.volunteerJoinedAt', false] },
-            { $subtract: ['$session.endedAt', '$session.volunteerJoinedAt'] },
-            0,
-          ],
-        },
-      },
-    },
-    {
-      $addFields: {
-        isWithinDateRange: {
-          $cond: [
-            {
-              $and: [
-                {
-                  $gte: ['$session.createdAt', sessionRangeStart],
-                },
-                {
-                  $lte: ['$session.createdAt', sessionRangeEnd],
-                },
-              ],
-            },
-            true,
-            false,
-          ],
-        },
-        sessionLength: {
-          $switch: {
-            branches: [
-              {
-                case: {
-                  $lt: ['$sessionLength', 0],
-                },
-                then: 0,
-              },
-              {
-                case: {
-                  $gte: ['$sessionLength', 60 * (1000 * 60)],
-                },
-                then: {
-                  $cond: [
-                    {
-                      $ifNull: ['$lastMessage', false],
-                    },
-                    {
-                      $subtract: [
-                        '$lastMessage.createdAt',
-                        '$session.volunteerJoinedAt',
-                      ],
-                    },
-                    0,
-                  ],
-                },
-              },
-            ],
-            default: '$sessionLength',
-          },
-        },
-      },
-    },
-    {
-      $group: {
-        _id: '$_id',
-        firstName: { $first: '$firstName' },
-        lastName: { $first: '$lastName' },
-        createdAt: { $first: '$createdAt' },
-        email: { $first: '$email' },
-        feedback: { $first: '$feedback' },
-        sessionLength: { $sum: '$sessionLength' },
-        totalSessions: { $first: '$totalSessions' },
-        range: {
-          $sum: {
-            $cond: [
-              { $ifNull: ['$isWithinDateRange', false] },
-              '$sessionLength',
-              0,
-            ],
-          },
-        },
-        sessionsOverRange: {
-          $sum: {
-            $cond: [{ $ifNull: ['$isWithinDateRange', false] }, 1, 0],
-          },
-        },
-        partnerSite: { $first: '$partnerSite' },
-        studentPartnerOrg: { $first: '$studentPartnerOrg' },
-        approvedHighschool: { $max: '$approvedHighschool' },
-      },
-    },
-    {
-      $lookup: {
-        from: 'schools',
-        localField: 'approvedHighschool',
-        foreignField: '_id',
-        as: 'highschool',
-      },
-    },
-    {
-      $unwind: {
-        path: '$highschool',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $project: {
-        firstName: 1,
-        lastName: 1,
-        email: 1,
-        joinDate: '$createdAt',
-        totalSessions: 1,
-        totalMinutes: {
-          $round: [{ $divide: ['$sessionLength', 60000] }, 2],
-        },
-        sessionsOverDateRange: '$sessionsOverRange',
-        minsOverDateRange: {
-          $round: [{ $divide: ['$range', 60000] }, 2],
-        },
-        feedback: 1,
-        partnerSite: 1,
-        approvedHighschool: {
-          $ifNull: ['$highschool.nameStored', '$highschool.SCH_NAME'],
-        },
-        studentPartnerOrg: 1,
-        _id: 0,
-      },
-    },
-    {
-      $sort: {
-        joinDate: 1,
-      },
-    },
-  ]).read('secondaryPreferred')
-
-  const partnerSites =
-    studentPartnerOrg &&
-    studentPartnerManifests[studentPartnerOrg] &&
-    studentPartnerManifests[studentPartnerOrg].sites
-
-  const studentUsage = students.map(student => {
-    const feedback = Array.from(student.feedback)
-
-    const dataFormat: any = {
-      'First name': student.firstName,
-      'Last name': student.lastName,
-      Email: student.email,
-      'Join date': formatDate(student.joinDate),
-      'Total sessions': student.totalSessions,
-      'Total minutes': student.totalMinutes,
-      'Average session rating': calcAverageRating(feedback as AnyFeedback[]),
-      'Sessions over date range': student.sessionsOverDateRange,
-      'Minutes over date range': student.minsOverDateRange,
-      'High school name': student.approvedHighschool,
-    }
-
-    if (partnerSites)
-      dataFormat['Partner site'] = student.partnerSite
-        ? student.partnerSite
-        : '-'
-
-    if (studentPartnerOrg) {
-      if (student.approvedHighschool) dataFormat['HS/College'] = 'High school'
-      else dataFormat['HS/College'] = 'College'
-    }
-
-    if (sponsor) {
-      dataFormat['Sponsor Org'] = sponsor.name || '-'
-      if (student.studentPartnerOrg)
-        dataFormat['Partner org'] =
-          studentPartnerManifests[student.studentPartnerOrg].name
-    }
-
-    return dataFormat
+  const report = await StudentRepo.getUsageReport({
+    highSchoolId,
+    studentPartnerOrg,
+    studentPartnerSite,
+    sponsorOrg,
+    joinedStart: dateStringToDateEST(joinedAfter),
+    joinedEnd: dateStringToDateEST(joinedBefore),
+    sessionStart: dateStringToDateEST(sessionRangeFrom),
+    sessionEnd: dateStringToDateEST(sessionRangeTo),
   })
 
-  return studentUsage
+  if (report && report.length) {
+    const studentUsage = report.map(student => {
+      const feedback = Array.from(student.feedbacks)
+
+      const dataFormat: UsageReport = {
+        'First name': student.firstName,
+        'Last name': student.lastName,
+        Email: student.email,
+        'Join date': formatDate(student.joinDate),
+        'Total sessions': student.totalSessions,
+        'Total minutes': student.totalSessionLengthMins,
+        'Average session rating': calcAverageRating(feedback),
+        'Sessions over date range': student.rangeTotalSessions,
+        'Minutes over date range': student.rangeSessionLengthMins,
+        'High school name': student.school ? student.school : '',
+        'Partner site': student.partnerSite ? student.partnerSite : '-',
+        'HS/College': student.school ? 'High school' : 'College',
+        'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : undefined,
+        'Partner Org': student.studentPartnerOrg
+          ? student.studentPartnerOrg
+          : '',
+      }
+
+      return dataFormat
+    })
+
+    return studentUsage
+  }
+  return []
 }
 
 interface TelecomReportPayload {
@@ -636,10 +231,15 @@ export async function getTelecomReport(data: unknown) {
   if (!config.customVolunteerPartnerOrgs.some(org => org === partnerOrg))
     return []
   try {
-    const dateQuery = { $gt: new Date(startDate), $lte: new Date(endDate) }
-    const volunteers = await getVolunteersForTelecomReport(partnerOrg)
+    const volunteers = await VolunteerRepo.getVolunteersForTelecomReport(
+      partnerOrg
+    )
 
-    return await generateTelecomReport(volunteers, dateQuery)
+    return await generateTelecomReport(
+      volunteers,
+      new Date(startDate),
+      new Date(endDate)
+    )
   } catch (error) {
     logger.error(error as Error)
     throw new Error((error as Error).message)
@@ -661,241 +261,26 @@ export async function generatePartnerAnalyticsReport(
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
 
-  const partnerStudentsFilter = getPartnerStudentsFilter(partnerOrg)
-
-  // get volunteers for analytics
-  const volunteers = ((await getVolunteersWithPipeline([
-    {
-      $match: {
-        volunteerPartnerOrg: partnerOrg,
-      },
-    },
-    // Get the volunteer's user action "ONBOARDED"
-    {
-      $lookup: {
-        from: 'useractions',
-        let: { userId: '$_id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$action', 'ONBOARDED'] },
-                  { $eq: ['$user', '$$userId'] },
-                ],
-              },
-            },
-          },
-        ],
-        as: 'actionOnboarded',
-      },
-    },
-    {
-      $unwind: {
-        path: '$actionOnboarded',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-
-    /**
-     *
-     * Get analytics for a user's sessions
-     * - How many unique students were helped
-     * - Total amount of sessions they have had
-     * - Amount of sessions that they have had within the date range
-     *
-     */
-    {
-      $lookup: {
-        from: 'sessions',
-        let: { userId: '$_id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ['$volunteer', '$$userId'],
-              },
-            },
-          },
-          {
-            $lookup: {
-              from: 'users',
-              localField: 'student',
-              foreignField: '_id',
-              as: 'student',
-            },
-          },
-          {
-            $unwind: '$student',
-          },
-          {
-            $facet: {
-              uniqueStudentsHelped: [
-                {
-                  $group: {
-                    _id: '$student._id',
-                    frequency: { $sum: 1 },
-                    frequencyWithinDateRange: getSumOperatorForDateRange(
-                      start,
-                      end
-                    ),
-                  },
-                },
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: 1 },
-                    totalWithinDateRange: {
-                      $sum: {
-                        $cond: [
-                          { $gte: ['$frequencyWithinDateRange', 1] },
-                          1,
-                          0,
-                        ],
-                      },
-                    },
-                  },
-                },
-              ],
-              sessionStats: [
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: 1 },
-                    totalWithinDateRange: getSumOperatorForDateRange(
-                      start,
-                      end
-                    ),
-                  },
-                },
-              ],
-              uniquePartnerStudentsHelped: [
-                partnerStudentsFilter,
-                {
-                  $group: {
-                    _id: '$student._id',
-                    frequency: { $sum: 1 },
-                    frequencyWithinDateRange: getSumOperatorForDateRange(
-                      start,
-                      end
-                    ),
-                  },
-                },
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: 1 },
-                    totalWithinDateRange: {
-                      $sum: {
-                        $cond: [
-                          { $gte: ['$frequencyWithinDateRange', 1] },
-                          1,
-                          0,
-                        ],
-                      },
-                    },
-                  },
-                },
-              ],
-              sessionPartnerStats: [
-                partnerStudentsFilter,
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: 1 },
-                    totalWithinDateRange: getSumOperatorForDateRange(
-                      start,
-                      end
-                    ),
-                  },
-                },
-              ],
-              timeTutoredPartnerStats: [
-                partnerStudentsFilter,
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: '$timeTutored' },
-                    totalWithinDateRange: getSumOperatorForTimeTutoredDateRange(
-                      start,
-                      end
-                    ),
-                  },
-                },
-              ],
-            },
-          },
-        ],
-        as: 'sessionAnalytics',
-      },
-    },
-    {
-      $unwind: {
-        path: '$sessionAnalytics',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    // Get the total amount of text messages that were sent to a volunteer
-    // and the total amount sent within startDate - endDate
-    {
-      $lookup: {
-        from: 'notifications',
-        let: { userId: '$_id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ['$volunteer', '$$userId'],
-              },
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              total: { $sum: 1 },
-              totalWithinDateRange: getSumOperatorForDateRange(
-                start,
-                end,
-                DATE_RANGE_COMPARISON_FIELDS.SENT_AT
-              ),
-            },
-          },
-        ],
-        as: 'textNotifications',
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-        firstName: '$firstname',
-        lastName: '$lastname',
-        email: 1,
-        state: 1,
-        isOnboarded: 1,
-        createdAt: 1,
-        dateOnboarded: '$actionOnboarded.createdAt',
-        certifications: 1,
-        availabilityLastModifiedAt: 1,
-        sessionAnalytics: 1,
-        textNotifications: { $arrayElemAt: ['$textNotifications', 0] },
-        isDeactivated: 1,
-        activityLastAt: 1,
-      },
-    },
-  ])) as unknown) as PartnerVolunteerAnalytics[]
+  const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(
+    partnerOrg,
+    start,
+    end
+  )
+  if (!volunteers)
+    throw new Error(`no volunteer partner org found with key ${partnerOrg}`)
 
   const report: AnalyticsReportRow[] = []
   for (const volunteer of volunteers) {
     // Get all hour summary data for the volunteer
     const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
-      volunteer._id,
+      volunteer.userId,
       new Date(volunteer.createdAt),
       moment()
         .utc()
         .toDate()
     )
     const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
-      volunteer._id,
+      volunteer.userId,
       start,
       end
     )
@@ -937,19 +322,25 @@ export async function writeAnalyticsReport(
   const dataSheet = workbook.addWorksheet('Data', sheetOptions)
   const formattedStartDate = moment(startDate, 'MM-DD-YYYY').format('MM/DD/YY')
   const formattedEndDate = moment(endDate, 'MM-DD-YYYY').format('MM/DD/YY')
+  const partner = await VolunteerPartnerOrgRepo.getFullVolunteerPartnerOrgByKey(
+    partnerOrg
+  )
+  const partnerName = partner.name
   processAnalyticsReportSummarySheet(
     data.summary,
     summarySheet,
     formattedStartDate,
     formattedEndDate,
-    partnerOrg
+    partnerOrg,
+    partnerName
   )
   processAnalyticsReportDataSheet(
     data.report,
     dataSheet,
     formattedStartDate,
     formattedEndDate,
-    partnerOrg
+    partnerOrg,
+    partnerName
   )
   summarySheet.commit()
   dataSheet.commit()

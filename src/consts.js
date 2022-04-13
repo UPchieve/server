@@ -431,7 +431,7 @@ export const FEATURE_FLAGS = {
   DASHBOARD_REDESIGN: 'dashboard-redesign',
   GATES_STUDY: 'gates-study',
   ALGEBRA_TWO_LAUNCH: 'algebra-two-launch',
-  DOWNTIME_BANNER: 'downtime-banner-4-10',
+  DOWNTIME_BANNER: 'downtime-banner',
   CHATBOT: 'chatbot',
   COACH_FAVORITING: 'coach-favoriting',
   SESSION_HISTORY: 'session-history',

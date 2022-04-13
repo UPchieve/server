@@ -1,6 +1,9 @@
-import VolunteerModel from '../models/Volunteer'
-import { DAYS, HOURS, Availability } from '../models/Availability/types'
-import { getSnapshotsByVolunteerIds } from '../models/Availability/queries'
+import * as VolunteerRepo from '../models/Volunteer'
+import { DAYS, HOURS } from '../constants'
+import {
+  Availability,
+  getAvailabilityForVolunteerHeatmap,
+} from '../models/Availability'
 
 // TODO: refactor this to be more functional (testable)
 interface AvailabilityAggregation {
@@ -67,26 +70,10 @@ function findMinAndMax(
 export async function getVolunteersAvailability(
   certifiedSubject: string
 ): Promise<AvailabilityAggregation> {
-  const certifiedSubjectQuery = `certifications.${certifiedSubject}.passed`
-
-  const volunteerQuery = {
-    [certifiedSubjectQuery]: true,
-    isFakeUser: false,
-    isTestUser: false,
-    isFailsafeVolunteer: false,
-    isOnboarded: true,
-    isDeactivated: false,
-    isBanned: false,
-  }
-
-  // TODO: repo pattern
-  // the projection returns { _id: 1, type: 1}
-  const volunteers = await VolunteerModel.find(volunteerQuery)
-    .select({ _id: 1 })
-    .lean()
-    .exec()
-  const volunteerIds = volunteers.map(vol => vol._id)
-  const availabilityDocs = await getSnapshotsByVolunteerIds(volunteerIds)
+  const availabilities = await getAvailabilityForVolunteerHeatmap(
+    certifiedSubject
+  )
+  const check = availabilities.find(v => v.availability.Sunday['12a'] === true)
 
   let aggAvailabilities: AvailabilityAggregation = {
     table: Array(7)
@@ -96,8 +83,8 @@ export async function getVolunteersAvailability(
   aggAvailabilities.min = undefined
   aggAvailabilities.max = 0
 
-  aggAvailabilities = availabilityDocs.reduce((aggAvailabilities, doc) => {
-    return aggregateAvailabilities(doc.onCallAvailability, aggAvailabilities)
+  aggAvailabilities = availabilities.reduce((aggAvailabilities, doc) => {
+    return aggregateAvailabilities(doc.availability, aggAvailabilities)
   }, aggAvailabilities)
   aggAvailabilities = findMinAndMax(aggAvailabilities)
   return aggAvailabilities

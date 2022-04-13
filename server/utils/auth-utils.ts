@@ -2,12 +2,11 @@ import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
 import passportLocal from 'passport-local'
-import { Types } from 'mongoose'
+import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
-
 import config from '../config'
 import {
-  getUserById,
+  getUserContactInfoById,
   getUserForPassport,
   getUserIdByPhone,
 } from '../models/User/queries'
@@ -65,7 +64,7 @@ export interface StudentRegData extends UserRegData {
 }
 
 export interface OpenStudentRegData extends StudentRegData {
-  currentGrade?: GRADES
+  currentGrade: GRADES
 }
 export const asOpenStudentRegData = asFactory<OpenStudentRegData>({
   ...userRegDataValidators,
@@ -79,6 +78,7 @@ export interface PartnerStudentRegData extends StudentRegData {
   partnerUserId?: string
   partnerSite?: string
   college?: string
+  currentGrade?: GRADES
 }
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   ...userRegDataValidators,
@@ -88,23 +88,28 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   partnerUserId: asOptional(asString),
   partnerSite: asOptional(asString),
   college: asOptional(asString),
+  currentGrade: asOptional(asEnum(GRADES)),
 })
 
 export interface VolunteerRegData extends UserRegData {
   phone: string
+  timezone?: string
 }
 export const asVolunteerRegData = asFactory<VolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
+  timezone: asOptional(asString),
 })
 
 export interface PartnerVolunteerRegData extends VolunteerRegData {
   volunteerPartnerOrg: string
+  timezone?: string
 }
 export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
   volunteerPartnerOrg: asString,
+  timezone: asOptional(asString),
 })
 
 export interface ResetConfirmData {
@@ -180,7 +185,7 @@ export async function checkEmail(email: string) {
 
 export async function getReferredBy(
   referredByCode: string
-): Promise<Types.ObjectId | undefined> {
+): Promise<Ulid | undefined> {
   const referredBy = await checkReferral(referredByCode)
   if (referredBy) {
     captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
@@ -220,12 +225,13 @@ export function verifyPassword(
 const LocalStrategy = passportLocal.Strategy
 function setupPassport() {
   passport.serializeUser(function(user: Express.User, done: Function) {
-    done(null, user._id)
+    done(null, user.id)
   })
 
-  passport.deserializeUser(async function(id: Types.ObjectId, done: Function) {
+  passport.deserializeUser(async function(id: Ulid, done: Function) {
     try {
-      const user = await getUserById(id)
+      const user = await getUserContactInfoById(id)
+      if (!user) throw new Error('User not found for authenticated session')
       return done(null, user)
     } catch (error) {
       return done(error)

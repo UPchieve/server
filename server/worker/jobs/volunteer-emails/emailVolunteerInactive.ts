@@ -2,15 +2,18 @@ import moment from 'moment'
 import 'moment-timezone'
 import { Jobs } from '..'
 import { log } from '../../logger'
-import { Volunteer } from '../../../models/Volunteer'
-import { updateSnapshotOnCallByVolunteerId } from '../../../models/Availability/queries'
-import * as MailService from '../../../services/MailService'
 import {
-  updateVolunteerInactiveAvailability,
-  updateVolunteerSentInactiveEmail,
-  getInactiveVolunteers,
-} from '../../../models/Volunteer/queries'
-import createNewAvailability from '../../../utils/create-new-availability'
+  VolunteerContactInfo,
+  updateVolunteerSentInactive30DayEmail,
+  updateVolunteerSentInactive60DayEmail,
+  updateVolunteerSentInactive90DayEmail,
+} from '../../../models/Volunteer'
+import {
+  clearAvailabilityForVolunteer,
+  saveCurrentAvailabilityAsHistory,
+} from '../../../models/Availability'
+import * as MailService from '../../../services/MailService'
+import { getInactiveVolunteers } from '../../../models/Volunteer/queries'
 import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../../../constants'
 
 enum InactiveGroup {
@@ -20,29 +23,29 @@ enum InactiveGroup {
 }
 
 async function sendEmailToInactiveVolunteers(
-  volunteers: Volunteer[],
+  volunteers: VolunteerContactInfo[],
   currentJob: Jobs,
   mailHandler: Function,
   group: InactiveGroup
 ) {
   for (const volunteer of volunteers) {
-    const { email, firstname: firstName, _id } = volunteer
+    const { email, firstName, id } = volunteer
     const errors = []
     try {
       const contactInfo = { email, firstName }
       await mailHandler(contactInfo)
       if (group === InactiveGroup.inactiveThirtyDays)
-        await updateVolunteerSentInactiveEmail(_id, true, false)
+        await updateVolunteerSentInactive30DayEmail(id)
       if (group === InactiveGroup.inactiveSixtyDays)
-        await updateVolunteerSentInactiveEmail(_id, true, true)
+        await updateVolunteerSentInactive60DayEmail(id)
       if (group === InactiveGroup.inactiveNinetyDays) {
-        const clearedAvailability = createNewAvailability()
-        await updateVolunteerInactiveAvailability(_id, clearedAvailability)
-        await updateSnapshotOnCallByVolunteerId(_id, clearedAvailability)
+        await updateVolunteerSentInactive90DayEmail(id)
+        await saveCurrentAvailabilityAsHistory(id)
+        await clearAvailabilityForVolunteer(id)
       }
-      log(`Sent ${currentJob} to volunteer ${_id}`)
+      log(`Sent ${currentJob} to volunteer ${id}`)
     } catch (error) {
-      errors.push(`${currentJob} to volunteer ${_id}: ${error}`)
+      errors.push(`${currentJob} to volunteer ${id}: ${error}`)
     }
     if (errors.length) {
       throw errors

@@ -1,46 +1,49 @@
-import { Types } from 'mongoose'
-import ContactFormSubmissionModel, { ContactFormSubmission } from './index'
-import { getUserById } from '../User/queries'
+import { ContactFormSubmission } from './types'
 import { RepoCreateError } from '../Errors'
+import { getClient } from '../../db'
+import * as pgQueries from './pg.queries'
+import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
 
 export async function createContactFormByUser(
+  userId: Ulid,
   message: string,
-  topic: string,
-  userId: Types.ObjectId
+  topic: string
 ): Promise<ContactFormSubmission> {
-  // validate that the user exists
-  const user = await getUserById(userId)
-  if (!user) throw new RepoCreateError(`User ${userId} does not exist`)
   try {
-    const data = await ContactFormSubmissionModel.create({
-      message,
-      topic,
-      userId: user._id,
-      userEmail: user.email,
-    })
-    if (data) return data.toObject() as ContactFormSubmission
-    else throw new RepoCreateError('Create query did not return created object')
+    const result = await pgQueries.insertContactFormSubmissionByUser.run(
+      {
+        id: getDbUlid(),
+        userId,
+        message,
+        topic,
+      },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+    throw new RepoCreateError('Insert query did not return new row')
   } catch (err) {
-    if (err instanceof RepoCreateError) throw err
     throw new RepoCreateError(err)
   }
 }
 
 export async function createContactFormByEmail(
+  userEmail: string,
   message: string,
-  topic: string,
-  userEmail: string
+  topic: string
 ): Promise<ContactFormSubmission> {
   try {
-    const data = await ContactFormSubmissionModel.create({
-      message,
-      topic,
-      userEmail,
-    })
-    if (data) return data.toObject() as ContactFormSubmission
-    else throw new RepoCreateError('Create query did not return created object')
+    const result = await pgQueries.insertContactFormSubmissionByEmail.run(
+      {
+        id: getDbUlid(),
+        userEmail,
+        message,
+        topic,
+      },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+    throw new RepoCreateError('Insert query did not return new row')
   } catch (err) {
-    if (err instanceof RepoCreateError) throw err
     throw new RepoCreateError(err)
   }
 }

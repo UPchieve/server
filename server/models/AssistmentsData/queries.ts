@@ -1,105 +1,62 @@
-import { Types } from 'mongoose'
-import {
-  AssistmentsDataModel,
-  validSession,
-  AssistmentsData,
-  AssistmentsDataDocument,
-} from './types'
+import { AssistmentsData } from './types'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
+import { getClient } from '../../db'
+import * as pgQueries from './pg.queries'
+import { makeSomeRequired, Ulid, getDbUlid } from '../pgUtils'
 
-// Create functions
-export async function createAssistmentsDataBySession(
-  problemId: number,
-  assignmentId: string,
-  studentId: string,
-  session: Types.ObjectId
-): Promise<AssistmentsData> {
-  const ad = await getAssistmentsDataBySession(session)
-  if (ad)
-    throw new RepoCreateError(
-      `AssistmentsData document for session ${session} already exists`
-    )
-  if (!(await validSession(session)))
-    throw new RepoCreateError(`Session ${session} does not exist`)
-
-  try {
-    const data = (await AssistmentsDataModel.create({
-      problemId,
-      assignmentId,
-      studentId,
-      session,
-    })) as AssistmentsDataDocument
-    return data.toObject()
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
-// Read functions
-export async function getAssistmentsDataByObjectId(
-  id: Types.ObjectId
-): Promise<AssistmentsData | undefined> {
-  try {
-    const ad = await AssistmentsDataModel.findById(id)
-      .lean()
-      .exec()
-    if (ad) return ad as AssistmentsData
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
-export async function getAllAssistmentsData(): Promise<AssistmentsData[]> {
-  try {
-    return (await AssistmentsDataModel.find()
-      .lean()
-      .exec()) as AssistmentsData[]
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
+// When we big bang to pg this file will replace the existing ./queries
 
 export async function getAssistmentsDataBySession(
-  sessionId: Types.ObjectId
+  sessionId: Ulid
 ): Promise<AssistmentsData | undefined> {
   try {
-    const ad = await AssistmentsDataModel.findOne({
-      session: sessionId,
-    })
-      .lean()
-      .exec()
-    if (ad) return ad as AssistmentsData
+    const result = await pgQueries.getAssistmentsDataBySession.run(
+      { sessionId },
+      getClient()
+    )
+    if (result.length) {
+      return makeSomeRequired(result[0], ['sentAt'])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-// TODO: this should not be used - make a specific getter if you need a pipeline
-export function getAssistmentsDataWithPipeline(
-  pipeline: any[]
-): Promise<any[]> {
-  return (AssistmentsDataModel.aggregate(pipeline) as unknown) as Promise<any[]>
-}
-
-// Update functions
-export async function updateAssistmentsDataSentAtById(
-  id: Types.ObjectId,
-  sentAt: Date
+export async function updateAssistmentsDataSentById(
+  assistmentsDataId: Ulid
 ): Promise<void> {
   try {
-    const result = await AssistmentsDataModel.updateOne(
-      {
-        _id: id,
-      },
-      {
-        sent: true,
-        sentAt: sentAt,
-      }
+    const result = await pgQueries.updateAssistmentsDataSentById.run(
+      { assistmentsDataId },
+      getClient()
     )
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
+    if (result.length && result[0].id) return
+    throw new RepoUpdateError('Update query did not return id')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function createAssistmentsDataBySessionId(
+  problemId: number,
+  assignmentId: Ulid,
+  studentId: Ulid,
+  sessionId: Ulid
+): Promise<AssistmentsData> {
+  try {
+    const result = await pgQueries.createAssistmentsDataBySessionId.run(
+      {
+        id: getDbUlid(),
+        problemId,
+        assignmentId,
+        studentId,
+        sessionId,
+      },
+      getClient()
+    )
+    if (result.length) return makeSomeRequired(result[0], ['sentAt'])
+    throw new RepoCreateError('Insert did not return new row')
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

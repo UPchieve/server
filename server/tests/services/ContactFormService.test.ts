@@ -2,16 +2,21 @@ import { mocked } from 'ts-jest/utils'
 import * as ContactFormSubmissionRepo from '../../models/ContactFormSubmission/queries'
 import { ContactFormSubmission } from '../../models/ContactFormSubmission'
 import * as ContactFormService from '../../services/ContactFormService'
-import { getObjectId, hugeText } from '../generate'
+import { getDbUlid } from '../../models/pgUtils'
 import * as MailService from '../../services/MailService'
 import { InputError } from '../../models/Errors'
+import faker from 'faker'
 jest.mock('../../models/ContactFormSubmission/queries')
 jest.mock('../../services/MailService')
 
 const mockedContactFormSubmissionRepo = mocked(ContactFormSubmissionRepo, true)
 const mockedMailService = mocked(MailService, true)
 
-const userId = getObjectId()
+function hugeText() {
+  return faker.lorem.words(300)
+}
+
+const userId = getDbUlid()
 const validEmailData = {
   userEmail: 'test@test.com',
   message: 'This is some feedback for you.',
@@ -64,13 +69,14 @@ test('contact form service saves form submission with email', async () => {
   mockedContactFormSubmissionRepo.createContactFormByEmail.mockImplementationOnce(
     () => {
       return new Promise(resolve => {
-        const id = getObjectId()
+        const id = getDbUlid()
         const doc: ContactFormSubmission = {
-          _id: id,
+          id: id,
           userEmail: 'test@test.com',
           message: 'This is some feedback for you.',
           topic: 'General feedback',
           createdAt: new Date(),
+          updatedAt: new Date(),
         }
         resolve(doc)
       })
@@ -93,12 +99,13 @@ test('contact form service saves form submission with user id', async () => {
     () => {
       return new Promise(resolve => {
         const doc: ContactFormSubmission = {
-          _id: getObjectId(),
-          userId: getObjectId(),
+          id: getDbUlid(),
+          userId: getDbUlid(),
           userEmail: 'test@test.com',
           message: 'This is some feedback for you.',
           topic: 'General feedback',
           createdAt: new Date(),
+          updatedAt: new Date(),
         }
         resolve(doc)
       })

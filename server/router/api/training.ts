@@ -1,18 +1,16 @@
-import Sentry from '@sentry/node'
 import * as TrainingCtrl from '../../controllers/TrainingCtrl'
-import * as UserActionCtrl from '../../controllers/UserActionCtrl'
 import * as TrainingCourseService from '../../services/TrainingCourseService'
 import * as VolunteerService from '../../services/VolunteerService'
 import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
+import { Certifications, TrainingCourses } from '../../models/Volunteer'
 import {
-  Volunteer,
-  Certifications,
-  TrainingCourses,
-} from '../../models/Volunteer'
-import { userHasTakenQuiz } from '../../models/UserAction/queries'
+  userHasTakenQuiz,
+  createQuizAction,
+} from '../../models/UserAction/queries'
+import { QUIZ_USER_ACTIONS } from '../../constants'
 
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function(req, res) {
@@ -43,37 +41,38 @@ export function routeTraining(router: Router): void {
         score,
         idCorrectAnswerMap,
       } = await TrainingCtrl.getQuizScore({
-        user: user as Volunteer,
+        user: user,
         ip,
         category: category as keyof Certifications,
         idAnswerMap,
       })
 
-      const quizActionCreator = new UserActionCtrl.QuizActionCreator(
-        user._id,
-        category as keyof Certifications,
-        ip
-      )
       if (passed) {
-        await quizActionCreator
-          .passedQuiz()
-          .catch(error => Sentry.captureException(error))
+        await createQuizAction({
+          userId: user.id,
+          action: QUIZ_USER_ACTIONS.PASSED,
+          quizSubcategory: category,
+          ipAddress: ip,
+        })
       } else {
         // we want to queue a job to send this email only if this is the first time
         // a volunteer has taken a quiz ever, and they failed it
         // must come before th quizActionCreator call or will never fire
         // because there would always be a failed quiz
-        const takenQuizBefore = await userHasTakenQuiz(user._id)
+        const takenQuizBefore = await userHasTakenQuiz(user.id)
         if (!takenQuizBefore)
           await VolunteerService.queueFailedFirstAttemptedQuizEmail(
             category,
             user.email,
-            user.firstname,
-            user._id
+            user.firstName,
+            user.id
           )
-        await quizActionCreator
-          .failedQuiz()
-          .catch(error => Sentry.captureException(error))
+        await createQuizAction({
+          userId: user.id,
+          action: QUIZ_USER_ACTIONS.FAILED,
+          quizSubcategory: category,
+          ipAddress: ip,
+        })
       }
 
       res.json({
@@ -94,13 +93,12 @@ export function routeTraining(router: Router): void {
       const category = asString(req.params.category)
       const { ip: ipAddress } = req
 
-      new UserActionCtrl.QuizActionCreator(
-        user._id,
-        category as keyof Certifications,
-        ipAddress
-      )
-        .viewedMaterials()
-        .catch(error => Sentry.captureException(error))
+      createQuizAction({
+        userId: user.id,
+        action: QUIZ_USER_ACTIONS.VIEWED_MATERIALS,
+        quizSubcategory: category,
+        ipAddress: ipAddress,
+      })
 
       res.sendStatus(204)
     } catch (err) {
@@ -108,12 +106,12 @@ export function routeTraining(router: Router): void {
     }
   })
 
-  router.get('/training/course/:courseKey', function(req, res) {
+  router.get('/training/course/:courseKey', async function(req, res) {
     try {
       const user = extractUser(req)
       const courseKey = asString(req.params.courseKey)
-      const course = TrainingCourseService.getCourse(
-        user as Volunteer,
+      const course = await TrainingCourseService.getCourse(
+        user,
         courseKey as keyof TrainingCourses
       )
       if (!course) return res.sendStatus(404)
@@ -129,7 +127,7 @@ export function routeTraining(router: Router): void {
       const courseKey = asString(req.params.courseKey)
       const materialKey = asString(req.body.materialKey)
       const result = await TrainingCourseService.recordProgress(
-        user as Volunteer,
+        user,
         courseKey as keyof TrainingCourses,
         materialKey
       )

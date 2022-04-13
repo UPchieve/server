@@ -1,11 +1,10 @@
 import { Job } from 'bull'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
-import { getSessionsWithPipeline } from '../../../models/Session/queries'
-import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
-import { volunteerPartnerManifests } from '../../../partnerManifests'
-import { USER_SESSION_METRICS, FEEDBACK_VERSIONS } from '../../../constants'
-import { asObjectId } from '../../../utils/type-utils'
+import { getSessionsVolunteerRating } from '../../../models/Session'
+import { getVolunteerContactInfoById } from '../../../models/Volunteer'
+import { asString } from '../../../utils/type-utils'
+import { getFullVolunteerPartnerOrgByKey } from '../../../models/VolunteerPartnerOrg'
 
 /**
  *
@@ -18,108 +17,16 @@ import { asObjectId } from '../../../utils/type-utils'
 
 interface EmailReferCoworkerJobData {
   volunteerId: string
-  firstName: string
-  email: string
-  partnerOrg: string
 }
 
 export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
-  const {
-    data: { firstName, email, partnerOrg },
-    name: currentJob,
-  } = job
-
-  const volunteerId = asObjectId(job.data.volunteerId)
+  const currentJob = job.name
+  const volunteerId = asString(job.data.volunteerId)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
   // Do not send email if volunteer does not match email recipient spec
-  if (!volunteer) return
+  if (!volunteer || !volunteer.volunteerPartnerOrg) return
 
-  const fifteenMins = 1000 * 60 * 15
-  // TODO: repo pattern
-  const sessions = await getSessionsWithPipeline([
-    {
-      $match: {
-        volunteer: volunteerId,
-        timeTutored: { $gte: fifteenMins },
-        flags: {
-          $nin: [
-            USER_SESSION_METRICS.absentStudent,
-            USER_SESSION_METRICS.absentVolunteer,
-          ],
-        },
-      },
-    },
-    {
-      $lookup: {
-        from: 'feedbacks',
-        localField: 'volunteer',
-        foreignField: 'volunteerId',
-        as: 'feedbacks',
-      },
-    },
-    {
-      $lookup: {
-        from: 'feedbacks',
-        let: {
-          volunteerId: '$volunteer',
-          sessionId: '$_id',
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$sessionId', '$$sessionId'] },
-                  { $eq: ['$volunteerId', '$$volunteerId'] },
-                ],
-              },
-            },
-          },
-        ],
-        as: 'feedback',
-      },
-    },
-    {
-      $unwind: {
-        path: '$feedback',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-        sessionRating: {
-          $switch: {
-            branches: [
-              {
-                case: {
-                  $and: [
-                    {
-                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.ONE],
-                    },
-                    '$feedback.responseData.session-rating.rating',
-                  ],
-                },
-                then: '$feedback.responseData.session-rating.rating',
-              },
-              {
-                case: {
-                  $and: [
-                    {
-                      $eq: ['$feedback.versionNumber', FEEDBACK_VERSIONS.TWO],
-                    },
-                    '$feedback.volunteerFeedback.session-enjoyable',
-                  ],
-                },
-                then: '$feedback.volunteerFeedback.session-enjoyable',
-              },
-            ],
-            default: null,
-          },
-        },
-      },
-    },
-  ])
+  const sessions = await getSessionsVolunteerRating(volunteerId)
 
   if (sessions.length === 5) {
     let totalLowSessionRatings = 0
@@ -137,10 +44,11 @@ export default async (job: Job<EmailReferCoworkerJobData>): Promise<void> => {
 
     try {
       await MailService.sendPartnerVolunteerReferACoworker(
-        email,
-        firstName,
-        partnerOrg,
-        volunteerPartnerManifests[partnerOrg].name
+        volunteer.email,
+        volunteer.firstName,
+        volunteer.volunteerPartnerOrg,
+        (await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg))
+          .name
       )
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
