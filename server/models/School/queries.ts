@@ -50,7 +50,7 @@ export async function getSchool(
 
     // TODO: fix return type to upper case
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['zipCode'])
     }
   } catch (err) {
     throw new RepoReadError(err)

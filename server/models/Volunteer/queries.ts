@@ -493,8 +493,7 @@ export async function getInactiveVolunteers(
       inactiveNinetyDays: nineties,
     }
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
+    throw new RepoReadError(err)
   }
 }
 
@@ -810,6 +809,43 @@ export async function getVolunteersForEmailReference(): Promise<
 > {
   try {
     const result = await pgQueries.getVolunteerUnsentReferences.run(
+      undefined,
+      getClient()
+    )
+    const references = result.map(v => makeRequired(v))
+    const volunteers = await getVolunteerContactInfoByIds(
+      references.map(v => v.userId)
+    )
+    const map: VolunteerTypeMap<typeof references[number][]> = _.groupBy(
+      references,
+      v => v.userId
+    )
+    return volunteers.map(v => {
+      const references = []
+      for (const ref of map[v.id]) {
+        references.push({
+          id: ref.id,
+          firstName: ref.firstName,
+          lastName: ref.lastName,
+          email: ref.email,
+        })
+      }
+      return {
+        ...v,
+        references: references,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+// TODO: remove once job is executed
+export async function getVolunteersForEmailReferenceApology(): Promise<
+  VolunteersForEmailReference[]
+> {
+  try {
+    const result = await pgQueries.getReferencesForReferenceFormApology.run(
       undefined,
       getClient()
     )

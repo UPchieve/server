@@ -8,6 +8,7 @@ import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
 import { asBoolean, asString } from '../../utils/type-utils'
 import { Ulid } from '../../models/pgUtils'
+import logger from '../../logger'
 
 export function routes(app: Express) {
   const router = Router()
@@ -175,7 +176,8 @@ export function routes(app: Express) {
 
   router.route('/reset/send').post(async function(req, res) {
     try {
-      const email = asString(req.body.email)
+      const reqEmail = asString(req.body.email)
+      const email = reqEmail.toLowerCase()
       let mobile: boolean | undefined
       if (req.body.mobile) mobile = asBoolean(req.body.mobile)
       try {
@@ -183,6 +185,7 @@ export function routes(app: Express) {
       } catch (err) {
         // do not respond with info about no email match
         if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
+        logger.info(err) // log expected lookup errors
       }
       let userId: Ulid | undefined
       if (!req.user) {
