@@ -1,18 +1,18 @@
 import config from '../../config'
-import { Types } from 'mongoose'
+import { Ulid } from '../../models/pgUtils'
 import sgMail from '@sendgrid/mail'
 import axios from 'axios'
 import { capitalize } from 'lodash'
-import {
-  volunteerPartnerManifests,
-  studentPartnerManifests,
-} from '../../partnerManifests'
 import formatMultiWordSubject from '../../utils/format-multi-word-subject'
-import { SESSION_REPORT_REASON, TRAINING } from '../../constants'
-import { User } from '../../models/User'
-import { VolunteerContactInfo } from '../../models/Volunteer/queries'
-import { Reference, Volunteer } from '../../models/Volunteer'
-import { Student } from '../../models/Student'
+import {
+  SESSION_REPORT_REASON,
+  USER_BAN_REASONS,
+  TRAINING,
+} from '../../constants'
+import { getUserToCreateSendGridContact } from '../../models/User'
+import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
+import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
+import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -155,8 +155,17 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
   )
 }
 
-export async function sendReset(email: string, token: string): Promise<void> {
-  const url = 'http://' + config.client.host + '/setpassword?token=' + token
+export async function sendReset(
+  email: string,
+  sendToMobile: boolean,
+  token: string
+): Promise<void> {
+  let url: string
+  if (sendToMobile) {
+    url = `com.upchieve.app://setpassword/${token}`
+  } else {
+    url = `https://${config.client.host}/setpassword?token=${token}`
+  }
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
@@ -335,7 +344,7 @@ export async function sendStudentFirstSessionCongrats(
 }
 
 export async function sendReportedSessionAlert(
-  sessionId: Types.ObjectId,
+  sessionId: Ulid,
   reportedByEmail: string,
   reportReason: string,
   reportMessage: string
@@ -361,13 +370,13 @@ export async function sendReportedSessionAlert(
 }
 
 export async function sendReferenceForm(
-  reference: Reference,
-  volunteer: Volunteer
+  reference: UnsentReference,
+  volunteer: VolunteerContactInfo
 ): Promise<void> {
   const emailData = {
-    referenceUrl: buildLink(`reference-form/${reference._id}`),
+    referenceUrl: buildLink(`reference-form/${reference.id}`),
     referenceName: reference.firstName,
-    volunteerName: `${volunteer.firstname} ${volunteer.lastname}`,
+    volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
   }
   const overrides = {
     categories: ['reference form email'],
@@ -395,7 +404,7 @@ export async function sendApprovedNotOnboardedEmail<
     config.mail.senders.support,
     'UPchieve',
     config.sendgrid.approvedNotOnboardedTemplate,
-    { volunteerName: volunteer.firstname },
+    { volunteerName: volunteer.firstName },
     overrides
   )
 }
@@ -419,15 +428,15 @@ export async function sendReadyToCoachEmail<V extends VolunteerContactInfo>(
     config.mail.senders.support,
     'UPchieve',
     readyToCoachTemplate,
-    { volunteerName: volunteer.firstname },
+    { volunteerName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendBannedUserAlert(
-  userId: Types.ObjectId,
-  banReason: string,
-  sessionId?: Types.ObjectId
+  userId: Ulid,
+  banReason: USER_BAN_REASONS,
+  sessionId?: Ulid
 ): Promise<void> {
   const userAdminLink = buildLink(`admin/users/${userId}`)
   const sessionAdminLink = buildLink(`admin/sessions/${sessionId}`)
@@ -462,16 +471,16 @@ export async function sendRejectedPhotoSubmission<
     config.mail.senders.support,
     'The UPchieve Team',
     config.sendgrid.rejectedPhotoSubmissionTemplate,
-    { firstName: volunteer.firstname },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendRejectedReference<V extends VolunteerContactInfo>(
-  reference: Reference,
+  reference: UnsentReference,
   volunteer: V
 ): Promise<void> {
-  const firstName = capitalize(volunteer.firstname)
+  const firstName = capitalize(volunteer.firstName)
   const emailData = {
     referenceName: `${capitalize(reference.firstName)} ${capitalize(
       reference.lastName
@@ -494,13 +503,13 @@ export async function sendRejectedReference<V extends VolunteerContactInfo>(
 
 // TODO: test this thoroughly
 export async function sendReferenceFollowup(
-  reference: Reference,
-  volunteer: Volunteer
+  reference: UnsentReference,
+  volunteer: VolunteerContactInfo
 ): Promise<void> {
-  const volunteerFirstName = capitalize(volunteer.firstname)
-  const volunteerLastName = capitalize(volunteer.lastname)
+  const volunteerFirstName = capitalize(volunteer.firstName)
+  const volunteerLastName = capitalize(volunteer.lastName)
   const emailData = {
-    referenceUrl: buildLink(`reference-form/${reference._id}`),
+    referenceUrl: buildLink(`reference-form/${reference.id}`),
     referenceName: reference.firstName,
     volunteerName: `${volunteerFirstName} ${volunteerLastName}`,
     volunteerFirstName,
@@ -536,7 +545,7 @@ export async function sendWaitingOnReferences<V extends VolunteerContactInfo>(
     'The UPchieve Team',
     config.sendgrid.waitingOnReferencesTemplate,
     {
-      firstName: capitalize(volunteer.firstname),
+      firstName: capitalize(volunteer.firstName),
     },
     overrides
   )
@@ -559,7 +568,7 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.niceToMeetYouTemplate,
     {
-      firstName: capitalize(volunteer.firstname),
+      firstName: capitalize(volunteer.firstName),
     },
     overrides
   )
@@ -1165,16 +1174,14 @@ export async function sendOnlyLookingForAnswersWarning(
   await sendEmail(email, sender, from, template, { firstName }, overrides)
 }
 
-export async function createContact(
-  user: User | Student | Volunteer
-): Promise<any> {
+export async function createContact(userId: Ulid): Promise<any> {
+  const user = await getUserToCreateSendGridContact(userId)
   const customFields = {
-    [SG_CUSTOM_FIELDS.isBanned]: String(user.isBanned),
-    [SG_CUSTOM_FIELDS.isTestUser]: String(user.isTestUser),
+    [SG_CUSTOM_FIELDS.isBanned]: String(user.banned),
+    [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
     [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
     [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
-    [SG_CUSTOM_FIELDS.isFakeUser]: String(user.isFakeUser),
-    [SG_CUSTOM_FIELDS.isDeactivated]: String(user.isDeactivated),
+    [SG_CUSTOM_FIELDS.isDeactivated]: String(user.deactivated),
     [SG_CUSTOM_FIELDS.joined]: user.createdAt,
   }
 
@@ -1183,24 +1190,26 @@ export async function createContact(
     : config.sendgrid.contactList.students
 
   if (user.isVolunteer) {
-    const volunteer = user as Volunteer
+    const volunteer = user
     customFields[SG_CUSTOM_FIELDS.passedUpchieve101] = String(
-      volunteer.certifications.upchieve101.passed
+      volunteer.passedUpchieve101
     )
 
     if (volunteer.volunteerPartnerOrg) {
       customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrg] =
         volunteer.volunteerPartnerOrg
-      customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] =
-        volunteerPartnerManifests[volunteer.volunteerPartnerOrg].name
+      customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] = (
+        await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
+      ).key
     }
   } else {
-    const student = user as Student
+    const student = user
     if (student.studentPartnerOrg) {
       customFields[SG_CUSTOM_FIELDS.studentPartnerOrg] =
         student.studentPartnerOrg
-      customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] =
-        studentPartnerManifests[student.studentPartnerOrg].name
+      customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] = (
+        await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)
+      ).key
     }
   }
 
@@ -1208,8 +1217,8 @@ export async function createContact(
     list_ids: [contactListId],
     contacts: [
       {
-        first_name: user.firstname,
-        last_name: user.lastname,
+        first_name: user.firstName,
+        last_name: user.lastName,
         email: user.email,
         custom_fields: customFields,
       },

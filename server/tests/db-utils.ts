@@ -1,3 +1,4 @@
+/*
 import bcrypt from 'bcrypt'
 import UserModel from '../models/User'
 import VolunteerModel, { Volunteer } from '../models/Volunteer'
@@ -219,3 +220,4 @@ export const insertFeedbackMany = async (
 ): Promise<any> => {
   return FeedbackModel.collection.insertMany(feedback)
 }
+*/

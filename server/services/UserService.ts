@@ -1,41 +1,52 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
-import { Types } from 'mongoose'
-import { EVENTS, REFERENCE_STATUS, USER_BAN_REASON } from '../constants'
-import * as UserActionCtrl from '../controllers/UserActionCtrl'
+import { Ulid } from '../models/pgUtils'
+import {
+  ACCOUNT_USER_ACTIONS,
+  EVENTS,
+  IP_ADDRESS_STATUS,
+  PHOTO_ID_STATUS,
+} from '../constants'
 import { UserNotFoundError } from '../models/Errors'
-import { unbanIpsByUser } from '../models/IpAddress/queries'
-import StudentModel, { Student } from '../models/Student'
-import UserModel, { User } from '../models/User'
-import { getUserById } from '../models/User/queries'
-import VolunteerModel, { Reference, Volunteer } from '../models/Volunteer'
+import { updateIpStatusByUserId } from '../models/IpAddress'
+import { adminUpdateStudent } from '../models/Student'
 import {
+  UserContactInfo,
+  getUserContactInfoById,
+  getUsersForAdminSearch,
+  getUserForAdminDetail,
+  deleteUser,
+} from '../models/User'
+import {
+  UnsentReference,
+  VolunteerContactInfo,
   addVolunteerReferenceById,
-  deleteVolunteerReferenceById,
   updateVolunteerPhotoIdById,
-  updateVolunteerReferenceStatusById,
-} from '../models/Volunteer/queries'
-import {
-  studentPartnerManifests,
-  volunteerPartnerManifests,
-} from '../partnerManifests'
+  updateVolunteerReferenceSentById,
+  deleteVolunteerReferenceByEmail,
+  updateVolunteerForAdmin,
+  updateVolunteerReferenceSubmission,
+} from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
   asBoolean,
   asFactory,
   asNumber,
-  asObjectId,
   asOptional,
   asString,
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
 import logger from '../logger'
+import { createAccountAction } from '../models/UserAction'
+import { getLegacyUserObject } from '../models/User/legacy-user'
 
-export function parseUser(user: User | Student | Volunteer) {
+export async function parseUser(baseUser: UserContactInfo) {
+  const user = await getLegacyUserObject(baseUser.id)
+
   // Approved volunteer
-  if (user.isVolunteer && (user as Volunteer).isApproved) {
-    ;(user as Volunteer).hoursTutored = Number((user as Volunteer).hoursTutored)
+  if (user.isVolunteer && user.isApproved) {
+    user.hoursTutored = Number(user.hoursTutored)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
 
@@ -43,25 +54,30 @@ export function parseUser(user: User | Student | Volunteer) {
   return user
 }
 
-export async function addPhotoId(
-  userId: Types.ObjectId,
-  ip: string
-): Promise<string> {
+export async function addPhotoId(userId: Ulid, ip: string): Promise<string> {
   const photoIdS3Key = crypto.randomBytes(32).toString('hex')
-  await new UserActionCtrl.AccountActionCreator(userId, ip).addedPhotoId()
-  await updateVolunteerPhotoIdById(userId, photoIdS3Key)
+  await createAccountAction({
+    userId,
+    ipAddress: ip,
+    action: ACCOUNT_USER_ACTIONS.ADDED_PHOTO_ID,
+  })
+  await updateVolunteerPhotoIdById(
+    userId,
+    photoIdS3Key,
+    PHOTO_ID_STATUS.SUBMITTED
+  )
   return photoIdS3Key
 }
 
 interface AddReferencePayload {
-  userId: Types.ObjectId
+  userId: Ulid
   referenceFirstName: string
   referenceLastName: string
   referenceEmail: string
   ip: string
 }
 const asAddReferencePayload = asFactory<AddReferencePayload>({
-  userId: asObjectId,
+  userId: asString,
   referenceFirstName: asString,
   referenceLastName: asString,
   referenceEmail: asString,
@@ -82,14 +98,17 @@ export async function addReference(data: unknown) {
     email: referenceEmail,
   }
   await addVolunteerReferenceById(userId, referenceData)
-  await new UserActionCtrl.AccountActionCreator(userId, ip, {
+  await createAccountAction({
+    userId,
+    ipAddress: ip,
+    action: ACCOUNT_USER_ACTIONS.ADDED_REFERENCE,
     referenceEmail,
-  }).addedReference()
+  })
 }
 
 export async function saveReferenceForm(
-  userId: Types.ObjectId,
-  referenceId: Types.ObjectId,
+  userId: Ulid,
+  referenceId: Ulid,
   referenceEmail: string,
   referenceFormData: unknown,
   ip: string
@@ -106,83 +125,81 @@ export async function saveReferenceForm(
     additionalInfo,
   } = asReferenceFormData(referenceFormData)
 
-  await new UserActionCtrl.AccountActionCreator(userId, ip, {
+  await createAccountAction({
+    userId,
+    ipAddress: ip,
+    action: ACCOUNT_USER_ACTIONS.SUBMITTED_REFERENCE_FORM,
     referenceEmail,
-  }).submittedReferenceForm()
+  })
 
-  // See: https://docs.mongodb.com/manual/reference/operator/update/positional/#up._S_
-  // TODO: repo pattern
-  return VolunteerModel.updateOne(
-    { 'references._id': referenceId },
-    {
-      $set: {
-        'references.$.status': REFERENCE_STATUS.SUBMITTED,
-        'references.$.affiliation': affiliation,
-        'references.$.relationshipLength': relationshipLength,
-        'references.$.rejectionReason': rejectionReason,
-        'references.$.additionalInfo': additionalInfo,
-        'references.$.patient': patient,
-        'references.$.positiveRoleModel': positiveRoleModel,
-        'references.$.agreeableAndApproachable': agreeableAndApproachable,
-        'references.$.communicatesEffectively': communicatesEffectively,
-        'references.$.trustworthyWithChildren': trustworthyWithChildren,
-      },
-    }
-  )
+  await updateVolunteerReferenceSubmission(referenceId, {
+    affiliation,
+    relationshipLength,
+    patient,
+    positiveRoleModel,
+    agreeableAndApproachable,
+    communicatesEffectively,
+    trustworthyWithChildren,
+    rejectionReason,
+    additionalInfo,
+  })
 }
 
 export async function notifyReference(
-  reference: Reference,
-  volunteer: Volunteer
+  reference: UnsentReference,
+  volunteer: VolunteerContactInfo
 ) {
   // TODO: error handling - these need to be 'atomic'
   await MailService.sendReferenceForm(reference, volunteer)
-  await updateVolunteerReferenceStatusById(reference._id, new Date())
+  await updateVolunteerReferenceSentById(reference.id)
 }
 
 export async function deleteReference(
-  userId: Types.ObjectId,
+  userId: Ulid,
   referenceEmail: string,
   ip: string
 ) {
-  await new UserActionCtrl.AccountActionCreator(userId, ip, {
+  await createAccountAction({
+    userId,
+    ipAddress: ip,
+    action: ACCOUNT_USER_ACTIONS.DELETED_REFERENCE,
     referenceEmail,
-  }).deletedReference()
+  })
   AnalyticsService.captureEvent(userId, EVENTS.REFERENCE_DELETED, {
     event: EVENTS.REFERENCE_DELETED,
     referenceEmail,
   })
-  await deleteVolunteerReferenceById(userId, referenceEmail)
+  await deleteVolunteerReferenceByEmail(userId, referenceEmail)
 }
 
 interface AdminUpdate {
-  userId: Types.ObjectId
-  firstName?: string
-  lastName?: string
-  email?: string
+  userId: Ulid
+  firstName: string
+  lastName: string
+  email: string
   partnerOrg?: string
   partnerSite?: string
-  isVerified?: boolean
-  isBanned?: boolean
-  isDeactivated?: boolean
+  isVerified: boolean
+  isBanned: boolean
+  isDeactivated: boolean
   isApproved?: boolean
   inGatesStudy?: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
-  userId: asObjectId,
-  firstName: asOptional(asString),
-  lastName: asOptional(asString),
-  email: asOptional(asString),
+  userId: asString,
+  firstName: asString,
+  lastName: asString,
+  email: asString,
   partnerOrg: asOptional(asString),
   partnerSite: asOptional(asString),
-  isVerified: asOptional(asBoolean),
-  isBanned: asOptional(asBoolean),
-  isDeactivated: asOptional(asBoolean),
+  isVerified: asBoolean,
+  isBanned: asBoolean,
+  isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
 })
 
-export async function flagForDeletion(user: User) {
+export async function flagForDeletion(user: UserContactInfo) {
   try {
     // if a user is requesting deletion, we should remove them from automatic emails
     const contact = await MailService.searchContact(user.email)
@@ -192,17 +209,7 @@ export async function flagForDeletion(user: User) {
       `Error searching for or deleting contact in user deletion process: ${err}`
     )
   }
-
-  const update: any = {
-    email: `${user.email}deactivated`,
-  }
-
-  if (user.isVolunteer) {
-    // TODO: repo pattern
-    return VolunteerModel.updateOne({ _id: user._id }, update)
-  } else {
-    return StudentModel.updateOne({ _id: user._id }, update)
-  }
+  await deleteUser(user.id, `${user.email}deactivated`)
 }
 
 export async function adminUpdateUser(data: unknown) {
@@ -219,9 +226,10 @@ export async function adminUpdateUser(data: unknown) {
     isApproved,
     inGatesStudy,
   } = asAdminUpdate(data)
-  const userBeforeUpdate = await getUserById(userId)
+  // replaced by UserRepo.getUserForAdminUpdate
+  const userBeforeUpdate = await getUserContactInfoById(userId)
   if (!userBeforeUpdate) {
-    throw new UserNotFoundError('_id', userId.toString())
+    throw new UserNotFoundError('id', userId)
   }
   const { isVolunteer } = userBeforeUpdate
   const isUpdatedEmail = userBeforeUpdate.email !== email
@@ -233,65 +241,50 @@ export async function adminUpdateUser(data: unknown) {
   }
 
   // if unbanning student, also unban their IP addresses
-  if (!isVolunteer && userBeforeUpdate.isBanned && !isBanned)
-    await unbanIpsByUser(userBeforeUpdate._id)
+  if (!isVolunteer && userBeforeUpdate.banned && !isBanned)
+    await updateIpStatusByUserId(userBeforeUpdate.id, IP_ADDRESS_STATUS.OK)
 
-  if (!userBeforeUpdate.isBanned && isBanned)
+  if (!userBeforeUpdate.banned && isBanned)
     // TODO: queue email
-    await MailService.sendBannedUserAlert(userId, USER_BAN_REASON.ADMIN)
+    await MailService.sendBannedUserAlert(userId, 'admin')
 
-  const update: any = {
-    firstname: firstName,
-    lastname: lastName,
+  const update = {
+    firstName,
+    lastName,
     email,
-    verified: isVerified,
+    isVerified,
     isBanned,
     isDeactivated,
     isApproved,
-    $unset: {},
-  }
-
-  if (isVolunteer) {
-    if (partnerOrg) update.volunteerPartnerOrg = partnerOrg
-    else update.$unset.volunteerPartnerOrg = ''
+    volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
+    studentPartnerOrg: !isVolunteer && partnerOrg ? partnerOrg : undefined,
+    partnerSite: !isVolunteer && partnerSite ? partnerSite : undefined,
+    inGatesStudy: !isVolunteer && inGatesStudy ? inGatesStudy : undefined,
+    banReason: isBanned ? 'admin' : undefined,
   }
 
   if (!isVolunteer) {
-    if (partnerOrg) update.studentPartnerOrg = partnerOrg
-    else update.$unset.studentPartnerOrg = ''
-
-    if (partnerSite) update.partnerSite = partnerSite
-    else update.$unset.partnerSite = ''
-
-    if (inGatesStudy !== undefined) update.inGatesStudy = inGatesStudy
-
     // tracking organic/partner students for posthog if there is a change in partner status
-    if ((userBeforeUpdate as Student).studentPartnerOrg !== partnerOrg) {
+    if (userBeforeUpdate.studentPartnerOrg !== partnerOrg) {
       AnalyticsService.identify(userId, {
         partner: partnerOrg,
       })
     }
   }
 
-  if (isBanned) update.banReason = USER_BAN_REASON.ADMIN
-  if (isDeactivated && !userBeforeUpdate.isDeactivated)
-    await new UserActionCtrl.AdminActionCreator(
-      userId.toString()
-    ).adminDeactivatedAccount()
-
-  // Remove $unset property if it has no properties to remove
-  if (Object.keys(update.$unset).length === 0) delete update.$unset
-
-  // TODO: shouldn't this totally fuck up the objects????
-  const updatedUser = Object.assign(userBeforeUpdate, update)
-  MailService.createContact(updatedUser)
+  if (isDeactivated && !userBeforeUpdate.deactivated)
+    await createAccountAction({
+      userId,
+      action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
+    })
 
   if (isVolunteer) {
-    // TODO: repo pattern
-    return VolunteerModel.updateOne({ _id: userId }, update)
+    await updateVolunteerForAdmin(userId, update)
   } else {
-    return StudentModel.updateOne({ _id: userId }, update)
+    await adminUpdateStudent(userId, update)
   }
+
+  await MailService.createContact(userId)
 }
 
 interface UserQuery {
@@ -325,182 +318,27 @@ export async function getUsers(data: unknown) {
     highSchool,
     page,
   } = asUserQuery(data)
-  const query: any = {}
   const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
 
-  if (userId) query._id = asObjectId(userId)
-  if (firstName) query.firstname = { $regex: firstName, $options: 'i' }
-  if (lastName) query.lastname = { $regex: lastName, $options: 'i' }
-  if (email) query.email = { $regex: email, $options: 'i' }
-  if (partnerOrg) {
-    if (studentPartnerManifests[partnerOrg])
-      query.studentPartnerOrg = { $regex: partnerOrg, $options: 'i' }
-
-    if (volunteerPartnerManifests[partnerOrg])
-      query.volunteerPartnerOrg = { $regex: partnerOrg, $options: 'i' }
-  }
-
-  let highSchoolQuery = [
-    {
-      $lookup: {
-        from: 'schools',
-        localField: 'approvedHighschool',
-        foreignField: '_id',
-        as: 'highSchool',
-      },
-    },
-    {
-      $unwind: '$highSchool',
-    },
-    {
-      $match: {
-        $or: [
-          { 'highSchool.nameStored': { $regex: highSchool, $options: 'i' } },
-          { 'highSchool.SCH_NAME': { $regex: highSchool, $options: 'i' } },
-        ],
-      },
-    },
-  ]
-
-  const aggregateQuery: any[] = [
-    { $match: query },
-    { $project: { password: 0 } },
-  ]
-  if (highSchool) aggregateQuery.push(...highSchoolQuery)
-
   try {
-    // TODO: repo pattern
-    const users = await UserModel.aggregate(aggregateQuery)
-      .skip(skip)
-      .limit(PER_PAGE)
-      .exec()
+    const users = await getUsersForAdminSearch(
+      {
+        userId,
+        firstName,
+        lastName,
+        email,
+        partnerOrg,
+        highSchool,
+      },
+      PER_PAGE,
+      skip
+    )
 
     const isLastPage = users.length < PER_PAGE
     return { users, isLastPage }
   } catch (error) {
     throw new Error((error as Error).message)
   }
-}
-
-// @note: this query is making a request for user data on every page transition
-//        for new pastSessions to display. May be better served as a separate
-//        service method for getting the user's past sessions
-export async function adminGetUser(userId: Types.ObjectId, page: number = 1) {
-  // TODO: repo pattern
-  const [results] = await UserModel.aggregate([
-    {
-      $match: {
-        _id: userId,
-      },
-    },
-    {
-      $project: {
-        firstname: 1,
-        lastname: 1,
-        email: 1,
-        createdAt: 1,
-        isVolunteer: 1,
-        isApproved: 1,
-        isAdmin: 1,
-        isBanned: 1,
-        isDeactivated: 1,
-        isTestUser: 1,
-        isFakeUser: 1,
-        partnerSite: 1,
-        zipCode: 1,
-        background: 1,
-        studentPartnerOrg: 1,
-        volunteerPartnerOrg: 1,
-        approvedHighschool: 1,
-        photoIdS3Key: 1,
-        photoIdStatus: 1,
-        references: 1,
-        occupation: 1,
-        country: 1,
-        verified: 1,
-        numPastSessions: { $size: '$pastSessions' },
-        pastSessions: { $slice: ['$pastSessions', -10 * page, 10] },
-        inGatesStudy: 1,
-        currentGrade: 1,
-      },
-    },
-    {
-      $facet: {
-        user: [
-          {
-            $lookup: {
-              from: 'schools',
-              localField: 'approvedHighschool',
-              foreignField: '_id',
-              as: 'approvedHighschool',
-            },
-          },
-          {
-            $unwind: {
-              path: '$approvedHighschool',
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-        ],
-        pastSessions: [
-          {
-            $unwind: {
-              path: '$pastSessions',
-            },
-          },
-          {
-            $lookup: {
-              from: 'sessions',
-              let: {
-                sessionId: '$pastSessions',
-              },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $eq: ['$_id', '$$sessionId'],
-                    },
-                  },
-                },
-                {
-                  $project: {
-                    type: 1,
-                    subTopic: 1,
-                    totalMessages: {
-                      $size: '$messages',
-                    },
-                    volunteer: 1,
-                    student: 1,
-                    volunteerJoinedAt: 1,
-                    createdAt: 1,
-                    endedAt: 1,
-                  },
-                },
-              ],
-              as: 'pastSessions',
-            },
-          },
-          {
-            $unwind: {
-              path: '$pastSessions',
-            },
-          },
-          {
-            $replaceRoot: {
-              newRoot: '$pastSessions',
-            },
-          },
-        ],
-      },
-    },
-  ])
-
-  const user = {
-    ...results.user[0],
-    pastSessions: results.pastSessions,
-  }
-
-  return user
 }

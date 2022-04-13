@@ -1,16 +1,14 @@
-import { Types } from 'mongoose'
+import { Ulid } from '../models/pgUtils'
 
 import * as cache from '../cache'
 import * as UserRepo from '../models/User/queries'
 import { CHATBOT_CACHE_KEY, CHATBOT_EMAIL } from '../constants'
 import logger from '../logger'
-import { asObjectId } from './type-utils'
+import { asString } from './type-utils'
 
-export async function lookupChatbotFromCache(): Promise<
-  Types.ObjectId | undefined
-> {
+export async function lookupChatbotFromCache(): Promise<Ulid | undefined> {
   try {
-    return asObjectId(await cache.get(CHATBOT_CACHE_KEY))
+    return asString(await cache.get(CHATBOT_CACHE_KEY))
   } catch (err) {
     if (err instanceof cache.KeyNotFoundError) {
       try {

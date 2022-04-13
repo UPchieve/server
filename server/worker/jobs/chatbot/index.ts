@@ -1,30 +1,30 @@
-import { Types } from 'mongoose'
+import { Ulid } from '../../../models/pgUtils'
 import { Job } from 'bull'
 import {
-  getSessionMessagesById,
+  getSessionForChatbot,
   SessionForChatbot,
 } from '../../../models/Session/queries'
 import socket from '../../sockets'
 import { log } from '../../logger'
 import { safeAsync } from '../../../utils/safe-async'
 import { MESSAGES, ChatbotMessage } from './messages'
-import { asObjectId } from '../../../utils/type-utils'
+import { asString } from '../../../utils/type-utils'
 import { setTimeout } from 'timers/promises'
 import { lookupChatbotFromCache } from '../../../utils/chatbot-lookup'
 
 export const MESSAGE_TYPING_DELAY = 3 * 1000
 
 async function sendMessage(
-  sessionId: Types.ObjectId,
+  sessionId: Ulid,
   content: string,
-  chatbot: Types.ObjectId,
+  chatbot: Ulid,
   delay: number
 ): Promise<void> {
   socket.emit('typing', { sessionId })
   await setTimeout(delay)
   socket.emit('notTyping', { sessionId })
   socket.emit('message', {
-    // socket message handler expects a user-like object
+    // socket message handler expects a FRONTEND user-like object
     user: { _id: chatbot, isVolunteer: true },
     sessionId,
     message: content,
@@ -34,7 +34,7 @@ async function sendMessage(
 // Param 'messageDelay' included so test can provide a shorter delay to improve their runtime
 export async function messageControlFlow(
   session: SessionForChatbot,
-  chatbot: Types.ObjectId,
+  chatbot: Ulid,
   chatbotMessages: ChatbotMessage[],
   messageDelay: number
 ): Promise<void> {
@@ -46,14 +46,14 @@ export async function messageControlFlow(
     if (result.result) {
       messagesToSend.push(msg.content(session))
       if (msg.action) actions.push(async () => await msg.action!(session))
-      log(`Planning to send message ${msg.key} to session ${session._id}`)
+      log(`Planning to send message ${msg.key} to session ${session.id}`)
     } else if (result.error) errors.push(result.error.message)
   }
 
   // TODO: should sending these be more transactional? Messages should still be sent in order
   for (const msg of messagesToSend) {
     const result = await safeAsync(
-      sendMessage(session._id, msg, chatbot, messageDelay)
+      sendMessage(session.id, msg, chatbot, messageDelay)
     )
     if (result.error) errors.push(result.error.message)
   }
@@ -71,14 +71,15 @@ export async function messageControlFlow(
 }
 
 interface ChatbotPayload {
-  sessionId: Types.ObjectId
+  sessionId: Ulid
 }
 
 async function chatbot(job: Job<ChatbotPayload>): Promise<void> {
-  const sessionId = asObjectId(job.data.sessionId)
+  const sessionId = asString(job.data.sessionId)
   const chatbotId = await lookupChatbotFromCache()
   if (!chatbot) throw new Error('Chatbot user not found!')
-  const session = await getSessionMessagesById(sessionId)
+  // replaced by getSessionForChatbot
+  const session = await getSessionForChatbot(sessionId)
   if (!session) throw new Error(`Session ${sessionId} not found`)
   await messageControlFlow(session, chatbotId!, MESSAGES, MESSAGE_TYPING_DELAY)
 }

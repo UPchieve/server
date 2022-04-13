@@ -125,14 +125,10 @@ export const Config = Record({
   socketsPort: Number,
   featureFlagPort: Number,
   socketApiKey: String,
-  volunteerPartnerManifestPath: String,
   customVolunteerPartnerOrgs: Array(String),
   priorityMatchingPartnerOrgs: Array(String),
   priorityMatchingSponsorOrgs: Array(String),
   customAnalyticsReportPartnerOrgs: Array(String),
-  studentPartnerManifestPath: String,
-  sponsorOrgManifestPath: String,
-  associatedPartnerManifestPath: String,
 
   clusterServerAddress: String,
 
@@ -168,6 +164,7 @@ export const Config = Record({
   postgresUser: String,
   postgresPassword: String,
   postgresDatabase: String,
+  postgresRequireSSL: Boolean,
   firebase: Record({
     projectId: String,
   }),
@@ -213,4 +210,5 @@ export const Config = Record({
   fileWorkRootPath: String,
   ipWhoIsApiKey: String,
   favoriteVolunteerLimit: Number,
+  eligibleIncomeThreshold: Number,
 })

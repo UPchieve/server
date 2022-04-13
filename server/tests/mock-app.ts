@@ -1,8 +1,7 @@
 import bodyParser from 'body-parser'
 import express from 'express'
 import { Server } from 'socket.io'
-import { Student } from '../models/Student'
-import { Volunteer } from '../models/Volunteer'
+import { UserContactInfo } from '../models/User'
 import socketServer from '../socket-server'
 
 export function defaultErrorHandler(
@@ -25,7 +24,7 @@ export function mockApp(): express.Express {
 }
 
 export function mockPassportMiddleware(
-  getUser: () => Student | Volunteer,
+  getUser: () => UserContactInfo,
   login?: (arg1: Express.User, arg2?: any) => Promise<unknown>,
   logout?: () => void,
   destroy?: Function

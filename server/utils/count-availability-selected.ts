@@ -1,4 +1,5 @@
-import { DAYS, HOURS, Availability } from '../models/Availability/types'
+import { Availability } from '../models/Availability'
+import { DAYS, HOURS } from '../constants'
 
 const countAvailabilitySelected = (availability: Availability): number => {
   let selectedHours = 0

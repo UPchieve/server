@@ -1,10 +1,6 @@
 import expressWs from 'express-ws'
-import { SURVEY_TYPES } from '../../constants'
-import {
-  savePresessionSurvey,
-  getPresessionSurvey,
-} from '../../models/Survey/queries'
-import { asObjectId } from '../../utils/type-utils'
+import { savePresessionSurvey, getPresessionSurvey } from '../../models/Survey'
+import { asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 
 export function routeSurvey(router: expressWs.Router): void {
@@ -14,8 +10,8 @@ export function routeSurvey(router: expressWs.Router): void {
     const { responseData } = req.body
     try {
       await savePresessionSurvey(
-        user._id,
-        asObjectId(sessionId),
+        user.id,
+        asUlid(sessionId),
         responseData // TODO: duck type validation
       )
       res.sendStatus(200)
@@ -29,11 +25,7 @@ export function routeSurvey(router: expressWs.Router): void {
     const { sessionId } = req.params
 
     try {
-      const survey = await getPresessionSurvey(
-        user._id,
-        asObjectId(sessionId),
-        SURVEY_TYPES.STUDENT_PRESESSION
-      )
+      const survey = await getPresessionSurvey(user.id, asUlid(sessionId))
       res.json({ survey })
     } catch (error) {
       next(error)

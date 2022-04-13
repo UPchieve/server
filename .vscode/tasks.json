@@ -23,6 +23,15 @@
 			"problemMatcher": [],
 			"label": "npm: lint:backend:write",
 			"detail": "npx prettier --write server/**/*.ts"
+		},
+		{
+			"type": "typescript",
+			"tsconfig": "tsconfig.server.json",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build",
+			"label": "tsc: build - tsconfig.server.json"
 		}
 	]
 }

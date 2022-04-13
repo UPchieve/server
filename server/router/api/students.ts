@@ -1,12 +1,7 @@
 import { Router } from 'express'
 import config from '../../config'
 import * as StudentRepo from '../../models/Student/queries'
-import {
-  asBoolean,
-  asNumber,
-  asObjectId,
-  asString,
-} from '../../utils/type-utils'
+import { asBoolean, asNumber, asUlid, asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as StudentService from '../../services/StudentService'
@@ -20,7 +15,7 @@ export function routeStudents(router: Router): void {
     try {
       const user = extractUser(req)
       const totalFavoriteVolunteers: number = (await StudentRepo.getTotalFavoriteVolunteers(
-        String(user._id)
+        String(user.id)
       )) as number
       res.json({
         remaining: config.favoriteVolunteerLimit - totalFavoriteVolunteers,
@@ -38,7 +33,7 @@ export function routeStudents(router: Router): void {
       const volunteerId = asString(req.params.volunteerId)
       const user = extractUser(req)
       const isFavorite = await StudentRepo.isFavoriteVolunteer(
-        String(user._id),
+        String(user.id),
         volunteerId
       )
       res.json({
@@ -54,7 +49,7 @@ export function routeStudents(router: Router): void {
       const user = extractUser(req)
       const page = asNumber(req.query.page)
       const result = await StudentService.getFavoriteVolunteersPaginated(
-        String(user._id),
+        String(user.id),
         page
       )
       res.json(result)
@@ -68,16 +63,16 @@ export function routeStudents(router: Router): void {
     res
   ) {
     try {
-      const volunteerId = asObjectId(req.params.volunteerId)
+      const volunteerId = asUlid(req.params.volunteerId)
       const user = extractUser(req)
       const isFavorite = asBoolean(req.body.isFavorite)
       const sessionId = req.body.sessionId
-        ? asObjectId(req.body.sessionId)
+        ? asUlid(req.body.sessionId)
         : undefined
 
       const result = await StudentService.checkAndUpdateVolunteerFavoriting(
         isFavorite,
-        user._id,
+        user.id,
         volunteerId,
         sessionId,
         asString(req.ip)

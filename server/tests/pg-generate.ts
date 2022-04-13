@@ -1,16 +1,20 @@
 import { getDbUlid, getUuid, Pgid, Ulid } from '../models/pgUtils'
-import { PgAssistmentsData } from '../models/AssistmentsData'
-import { PgSession } from '../models/Session'
-import { PgStudent } from '../models/Student'
-import { PgUser } from '../models/User'
+import { AssistmentsData } from '../models/AssistmentsData'
+import { Session } from '../models/Session'
+import { Student } from '../models/Student'
+import { Availability } from '../models/Availability'
+import { User, UserContactInfo } from '../models/User'
 import { Pool } from 'pg'
 import faker from 'faker'
 import _ from 'lodash'
 import { CamelCasedProperties } from 'type-fest'
+import createNewAvailability from '../utils/create-new-availability'
 
-const getEmail = faker.internet.email
-const getFirstName = faker.name.firstName
-const getLastName = faker.name.lastName
+export const getEmail = faker.internet.email
+export const getPhone = faker.phone.phoneNumber
+export const getFirstName = faker.name.firstName
+export const getLastName = faker.name.lastName
+export const getIpAddress = faker.internet.ip
 
 async function getSubjectIdByName(name: string, client: Pool): Promise<Pgid> {
   const result = await client.query('SELECT id FROM subjects WHERE name = $1', [
@@ -20,7 +24,34 @@ async function getSubjectIdByName(name: string, client: Pool): Promise<Pgid> {
   throw new Error(`Subject ${name} not found`)
 }
 
-export function buildUser(overrides: Partial<PgUser> = {}): PgUser {
+export const buildAvailability = (overrides = {}): Availability => {
+  const availability = createNewAvailability()
+
+  const mergedAvailability = _.merge(availability, overrides)
+
+  return mergedAvailability
+}
+
+export function buildUserContactInfo(
+  overrides: Partial<UserContactInfo> = {}
+): UserContactInfo {
+  return {
+    id: getDbUlid(),
+    email: getEmail(),
+    phone: getPhone(),
+    firstName: getFirstName(),
+    isVolunteer: false,
+    isAdmin: false,
+    volunteerPartnerOrg: undefined,
+    studentPartnerOrg: undefined,
+    lastActivityAt: new Date(),
+    banned: false,
+    deactivated: false,
+    ...overrides,
+  }
+}
+
+export function buildUser(overrides: Partial<User> = {}): User {
   return {
     id: getDbUlid(),
     verified: true,
@@ -40,7 +71,7 @@ export function buildUser(overrides: Partial<PgUser> = {}): PgUser {
   }
 }
 
-export function buildStudent(overrides: Partial<PgStudent> = {}): PgStudent {
+export function buildStudent(overrides: Partial<Student> = {}): Student {
   const userId = buildUser().id
   return {
     userId,
@@ -51,8 +82,8 @@ export function buildStudent(overrides: Partial<PgStudent> = {}): PgStudent {
 }
 
 export function buildAssistmentsData(
-  overrides: Partial<PgAssistmentsData> & { sessionId: Ulid }
-): PgAssistmentsData {
+  overrides: Partial<AssistmentsData> & { sessionId: Ulid }
+): AssistmentsData {
   return {
     id: getDbUlid(),
     problemId: Math.floor(Math.random() * 100),
@@ -65,10 +96,11 @@ export function buildAssistmentsData(
   }
 }
 
+type SessionRow = any
 export async function buildSession(
-  overrides: Partial<PgSession> & { studentId: Ulid },
+  overrides: Partial<SessionRow> & { studentId: Ulid },
   client: Pool
-): Promise<PgSession> {
+): Promise<SessionRow> {
   return {
     id: getDbUlid(),
     subjectId: await getSubjectIdByName('algebraOne', client),
@@ -85,7 +117,7 @@ export async function buildSession(
 /**
  * The following functions are VERY DANGEROUS and their patterns should not be used
  * anywhere else in the ap outside testing. We need to convert incoming camelCase
- * javascript object keys into PG snake_case and back.
+ * javascript object keys into  snake_case and back.
  *
  * We provide quick and dirty utility functions for inserting a single row,
  * dropping tables, and making a simple SELECT query for the purposes of writing

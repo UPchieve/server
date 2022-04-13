@@ -1,99 +1,85 @@
 import { merge } from 'lodash'
-import { Types, UpdateQuery } from 'mongoose'
-import {
-  UserSessionMetrics,
-  UserSessionMetricsDocument,
-  UserSessionMetricsModel,
-} from './index'
+import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { validUser } from '../../utils/validators'
+import { makeRequired, Ulid } from '../pgUtils'
+import * as pgQueries from './pg.queries'
+import { UserSessionMetrics } from './types'
 
-// Create functions
 export async function createUSMByUserId(
-  userId: Types.ObjectId
+  userId: Ulid
 ): Promise<UserSessionMetrics> {
-  const usm = await getUSMByUserId(userId)
-  if (usm)
-    throw new RepoCreateError(
-      `UserSessionMetrics document for user ${userId} already exists`
-    )
-  if (!(await validUser(userId)))
-    throw new RepoCreateError(`User ${userId} does not exist`)
-
   try {
-    const data = (await UserSessionMetricsModel.create({
-      user: userId,
-    })) as UserSessionMetricsDocument
-    if (data) return data.toObject() as UserSessionMetrics
-    else throw new RepoCreateError('Create query did not return created object')
+    const result = await pgQueries.createUsmByUserId.run(
+      {
+        userId,
+      },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+    throw new RepoCreateError('Insert did not return new row')
   } catch (err) {
-    if (err instanceof RepoCreateError) throw err
     throw new RepoCreateError(err)
   }
 }
 
-// Read functions
-export async function getUSMById(
-  id: Types.ObjectId
-): Promise<UserSessionMetrics | undefined> {
-  try {
-    const usm = await UserSessionMetricsModel.findOne({ _id: id })
-      .lean()
-      .exec()
-    if (usm) return usm as UserSessionMetrics
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getAllUSM(): Promise<UserSessionMetrics[]> {
-  try {
-    return (await UserSessionMetricsModel.find()
-      .lean()
-      .exec()) as UserSessionMetrics[]
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function getUSMByUserId(
-  userId: Types.ObjectId
+  userId: Ulid
 ): Promise<UserSessionMetrics | undefined> {
   try {
-    const usm = await UserSessionMetricsModel.findOne({
-      user: userId,
-    })
-      .lean()
-      .exec()
-    if (usm) return usm as UserSessionMetrics
+    const result = await pgQueries.getUsmByUserId.run(
+      {
+        userId,
+      },
+      getClient()
+    )
+
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-// Update functions
-export type UserSessionMetricsUpdateQuery = UpdateQuery<
-  UserSessionMetricsDocument
->
+export type UserSessionMetricsUpdateQuery = { [key: string]: number }
 
 // NOTE: when queries are merged conflicting scalar values will be overwritten
 // ex: a = { a: { aa: 1, bb: 2 } }, b = { a: { aa: 3, cc: 4 } }
 // merge(a,b) => a = { a: { aa: 3, bb: 2, cc: 4 } }
 export async function executeUSMUpdatesByUserId(
-  userId: Types.ObjectId,
+  userId: Ulid,
   queries: UserSessionMetricsUpdateQuery[]
 ): Promise<void> {
-  const update = {}
+  // NOTE: `queries` has an example shape similar to below after `merge()`
+  // {
+  //   hasBeenUnmatched': 109,
+  //   absentStudent': 22,
+  //   absentVolunteer': 27
+  //   ...
+  // }
+  const update: any = {}
   for (const q of queries) {
     merge(update, q)
   }
   try {
-    const result = await UserSessionMetricsModel.updateOne(
-      { user: userId },
-      update
+    const result = await pgQueries.executeUsmUpdatesByUserId.run(
+      {
+        userId,
+        absentStudent: update['absentStudent'],
+        absentVolunteer: update['absentVolunteer'],
+        lowSessionRatingFromCoach: update['lowSessionRatingFromCoach'],
+        lowSessionRatingFromStudent: update['lowSessionRatingFromStudent'],
+        lowCoachRatingFromStudent: update['lowCoachRatingFromStudent'],
+        reported: update['reported'],
+        onlyLookingForAnswers: update['onlyLookingForAnswers'],
+        rudeOrInappropriate: update['rudeOrInappropriate'],
+        commentFromStudent: update['commentFromStudent'],
+        commentFromVolunteer: update['commentFromVolunteer'],
+        hasBeenUnmatched: update['hasBeenUnmatched'],
+        hasHadTechnicalIssues: update['hasHadTechnicalIssues'],
+      },
+      getClient()
     )
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query did not return id')
   } catch (err) {
     throw new RepoUpdateError(
       `Failed to execute merged update ${update} for user ${userId}: ${

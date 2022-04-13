@@ -1,14 +1,13 @@
 import 'newrelic'
-import { connect } from './db'
 import rawConfig from './config'
 import { Config } from './config-type'
 import app, { io } from './app'
 import logger from './logger'
 import { registerListeners } from './services/listeners'
-import { Mongoose } from 'mongoose'
 import { serverSetup } from './server-setup'
 import { registerGracefulShutdownListeners } from './graceful-shutdown'
 import { unleashProxy, initializeUnleash } from './services/FeatureFlagService'
+import { getClient } from './db'
 
 async function main() {
   try {
@@ -24,14 +23,7 @@ async function main() {
     )
   })
 
-  let dbConn: Mongoose
-  try {
-    dbConn = await connect()
-  } catch (err) {
-    throw new Error(
-      `db connection failed after backoff attempts, exiting: ${err}`
-    )
-  }
+  const pool = getClient()
 
   registerListeners()
 
@@ -43,7 +35,7 @@ async function main() {
   // avoid conflict with development tools that allow for restarts when a file changes
   if (rawConfig.NODE_ENV !== 'dev') {
     serverSetup(server)
-    registerGracefulShutdownListeners(server, dbConn, io)
+    registerGracefulShutdownListeners(server, pool, io)
   }
 }
 

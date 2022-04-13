@@ -14,8 +14,8 @@ export function routeVerify(router: Router) {
   router.route('/verify/send').post(async function(req, res) {
     const user = extractUser(req)
     const payload = {
-      userId: user._id,
-      firstName: user.firstname,
+      userId: user.id,
+      firstName: user.firstName,
       ...req.body,
     }
 
@@ -47,7 +47,7 @@ export function routeVerify(router: Router) {
   router.route('/verify/confirm').post(async function(req, res) {
     const user = extractUser(req)
     const payload = {
-      userId: user._id,
+      userId: user.id,
       ...req.body,
     } as unknown
 

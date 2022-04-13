@@ -1,16 +1,24 @@
-import { Types } from 'mongoose'
-import UserModel, { User } from './types'
-import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
-import { USER_BAN_REASON } from '../../constants'
+import { getClient } from '../../db'
+import * as pgQueries from './pg.queries'
+import {
+  makeRequired,
+  makeSomeRequired,
+  makeSomeOptional,
+  Ulid,
+  Pgid,
+  getDbUlid,
+} from '../pgUtils'
+import { RepoReadError, RepoUpdateError } from '../Errors'
+import { USER_BAN_REASONS } from '../../constants'
+import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
+import { PoolClient } from 'pg'
 
 export async function getUserIdByPhone(
   phone: string
-): Promise<Types.ObjectId | undefined> {
+): Promise<Ulid | undefined> {
   try {
-    const user = await UserModel.findOne({ phone }, { _id: 1 })
-      .lean()
-      .exec()
-    if (user) return user._id
+    const result = await pgQueries.getUserIdByPhone.run({ phone }, getClient())
+    if (result.length) return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -18,249 +26,25 @@ export async function getUserIdByPhone(
 
 export async function getUserIdByEmail(
   email: string
-): Promise<Types.ObjectId | undefined> {
-  try {
-    const user = await UserModel.findOne({ email }, { _id: 1 })
-      .lean()
-      .exec()
-    if (user) return user._id
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getUserByReferralCode(
-  referralCode: string
-): Promise<User | undefined> {
-  try {
-    const user = await UserModel.findOne({ referralCode })
-      .lean()
-      .exec()
-    if (user) return user
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getUserById(
-  userId: Types.ObjectId
-): Promise<User | undefined> {
-  try {
-    const user = await UserModel.findOne({ _id: userId })
-      .lean()
-      .exec()
-    if (user) return user as User
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getUserForPassport(
-  email: string
-): Promise<User | undefined> {
-  try {
-    const user = await UserModel.findOne({ email: email }, '+password')
-      .lean()
-      .exec()
-    if (user) return user as User
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getUserByEmail(email: string): Promise<User | undefined> {
-  try {
-    const user = await UserModel.findOne({ email: email })
-      .lean()
-      .exec()
-    if (user) return user as User
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getUserByResetToken(
-  token: string
-): Promise<User | undefined> {
-  try {
-    const user = await UserModel.findOne({ passwordResetToken: token })
-      .lean()
-      .exec()
-    if (user) return user as User
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getUsersReferredByOtherId(
-  otherId: Types.ObjectId
-): Promise<User[]> {
-  try {
-    return UserModel.find({ referredBy: otherId, verified: true })
-      .lean()
-      .exec()
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function updateUserResetTokenById(
-  userId: Types.ObjectId,
-  token: string
-): Promise<void> {
-  try {
-    const result = await UserModel.updateOne(
-      { _id: userId },
-      { passwordResetToken: token }
-    ).exec()
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function updateUserPasswordById(
-  userId: Types.ObjectId,
-  password: string
-): Promise<void> {
-  try {
-    const result = await UserModel.updateOne(
-      { _id: userId },
-      { $unset: { passwordResetToken: '' }, password }
-    ).exec()
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function updateUserIpById(
-  userId: Types.ObjectId,
-  ipId: Types.ObjectId
-): Promise<void> {
-  try {
-    const result = await UserModel.updateOne(
-      { _id: userId },
-      { $addToSet: { ipAddresses: ipId } }
-    ).exec()
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function updateUserVerifiedInfoById(
-  userId: Types.ObjectId,
-  sendTo: string,
-  isPhoneVerification: boolean
-): Promise<void> {
-  const update: {
-    verified: boolean
-    phone?: string
-    verifiedPhone?: boolean
-    email?: string
-    verifiedEmail?: boolean
-  } = { verified: true }
-  if (isPhoneVerification) {
-    update.verifiedPhone = true
-    update.phone = sendTo
-  } else {
-    update.verifiedEmail = true
-    update.email = sendTo
-  }
-  try {
-    const result = await UserModel.updateOne({ _id: userId }, update).exec()
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function addUserPastSessionById(
-  userId: Types.ObjectId,
-  sessionId: Types.ObjectId
-): Promise<void> {
-  try {
-    const result = await UserModel.updateOne(
-      { _id: userId },
-      { $addToSet: { pastSessions: sessionId } }
-    )
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function updateUserLastActivityById(
-  userId: Types.ObjectId,
-  lastActivityAt: Date
-) {
-  try {
-    const result = await UserModel.updateOne(
-      { _id: userId },
-      { lastActivityAt }
-    )
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function banUserById(
-  userId: Types.ObjectId,
-  banReason: USER_BAN_REASON
-) {
-  try {
-    const result = await UserModel.updateOne(
-      { _id: userId },
-      { $set: { isBanned: true, banReason } }
-    ).exec()
-    if (!result.acknowledged)
-      throw new RepoUpdateError('Update query was not acknowledged')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function deleteUserByEmail(userEmail: string): Promise<void> {
-  try {
-    const result = await UserModel.deleteOne({ email: userEmail }).exec()
-    if (!result.deletedCount)
-      throw new RepoDeleteError(
-        'Deletion operation returned 0 deleted documents'
-      )
-  } catch (err) {
-    if (err instanceof RepoDeleteError) throw err
-    else throw new RepoDeleteError(err)
-  }
-}
-
-// pg wrappers
-import { getClient } from '../../pg'
-import * as pgQueries from './pg.queries'
-import { Ulid } from '../pgUtils'
-
-export async function IgetUserIdByEmail(
-  email: string
 ): Promise<Ulid | undefined> {
   try {
     const result = await pgQueries.getUserIdByEmail.run({ email }, getClient())
-    if (result.length) return result[0].id
+    if (result.length) return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function deleteUser(userId: Ulid, email: string) {
+  try {
+    const result = await pgQueries.deleteUser.run(
+      { userId: userId, email },
+      getClient()
+    )
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query did not delete student')
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }
 
@@ -269,9 +53,17 @@ export type UserContactInfo = {
   email: string
   phone?: string
   firstName: string
+  isVolunteer: boolean
+  isAdmin: boolean
+  volunteerPartnerOrg?: string
+  studentPartnerOrg?: string
+  lastActivityAt?: Date
+  banned: boolean
+  deactivated: boolean
+  approved?: boolean
 }
 
-export async function IgetUserContactInfoById(
+export async function getUserContactInfoById(
   id: Ulid
 ): Promise<UserContactInfo | undefined> {
   try {
@@ -279,13 +71,20 @@ export async function IgetUserContactInfoById(
       { id },
       getClient()
     )
-    if (result.length) return result[0]
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'volunteerPartnerOrg',
+        'studentPartnerOrg',
+        'approved',
+        'lastActivityAt',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function IgetUserContactInfoByReferralCode(
+// getUserByReferralCode
+export async function getUserContactInfoByReferralCode(
   referralCode: string
 ): Promise<UserContactInfo | undefined> {
   try {
@@ -293,13 +92,40 @@ export async function IgetUserContactInfoByReferralCode(
       { referralCode },
       getClient()
     )
-    if (result.length) return result[0]
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'volunteerPartnerOrg',
+        'studentPartnerOrg',
+        'approved',
+        'lastActivityAt',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function IgetUserContactInfoByResetToken(
+export type PassportUser = {
+  id: Ulid
+  email: string
+  password: string
+}
+
+export async function getUserForPassport(
+  email: string
+): Promise<PassportUser | undefined> {
+  try {
+    const result = await pgQueries.getUserForPassport.run(
+      { email },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+// getUserByResetToken
+export async function getUserContactInfoByResetToken(
   resetToken: string
 ): Promise<UserContactInfo | undefined> {
   try {
@@ -307,12 +133,19 @@ export async function IgetUserContactInfoByResetToken(
       { resetToken },
       getClient()
     )
-    if (result.length) return result[0]
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'volunteerPartnerOrg',
+        'studentPartnerOrg',
+        'approved',
+        'lastActivityAt',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
+// getUsersReferredByOtherId
 export async function countUsersReferredByOtherId(
   userId: Ulid
 ): Promise<number> {
@@ -321,16 +154,16 @@ export async function countUsersReferredByOtherId(
       { userId },
       getClient()
     )
-    if (result.length && result[0].total) return result[0].total
+    if (result.length && result[0].total) return makeRequired(result[0]).total
     return 0
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function IupdateUserResetTokenById(
-  token: string,
-  userId: Ulid
+export async function updateUserResetTokenById(
+  userId: Ulid,
+  token: string
 ): Promise<void> {
   try {
     const result = await pgQueries.updateUserResetTokenById.run(
@@ -340,7 +173,277 @@ export async function IupdateUserResetTokenById(
     if (result.length && result[0].id) return
     throw new RepoUpdateError('Update query did not return updated id')
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateUserPasswordById(
+  userId: Ulid,
+  password: string
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateUserPasswordById.run(
+      { userId, password },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+// updateUserIpById
+export async function insertUserIpById(
+  userId: Ulid,
+  ipId: Pgid
+): Promise<void> {
+  try {
+    const result = await pgQueries.insertUserIpById.run(
+      { id: getDbUlid(), userId, ipId },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Insert query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateUserVerifiedInfoById(
+  userId: Ulid,
+  sendTo: string,
+  isPhoneVerification: boolean
+): Promise<void> {
+  const update = isPhoneVerification
+    ? pgQueries.updateUserVerifiedPhoneById.run(
+        { userId, phone: sendTo },
+        getClient()
+      )
+    : pgQueries.updateUserVerifiedEmailById.run(
+        { userId, email: sendTo },
+        getClient()
+      )
+  try {
+    const result = await update
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateUserLastActivityById(
+  userId: Ulid,
+  lastActivityAt: Date
+) {
+  try {
+    const result = await pgQueries.updateUserLastActivityById.run(
+      { userId, lastActivityAt },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function banUserById(userId: Ulid, banReason: USER_BAN_REASONS) {
+  try {
+    const result = await pgQueries.updateUserBanById.run(
+      { userId, banReason },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+type UserQuery = {
+  userId: string | undefined
+  firstName: string | undefined
+  lastName: string | undefined
+  email: string | undefined
+  partnerOrg: string | undefined
+  highSchool: string | undefined
+}
+type AdminUser = {
+  id: Ulid
+  _id: Ulid
+  firstName: string
+  // TODO: remove old firstnames from frontend
+  firstname: string
+  lastname: string
+  lastName: string
+  email: string
+  isVolunteer: boolean
+  createdAt: Date
+}
+function cleanPayload(payload: UserQuery): UserQuery {
+  const temp: any = {}
+  for (const [key, value] of Object.entries(payload)) {
+    temp[key] = value === '' ? undefined : value
+  }
+  return temp as UserQuery
+}
+export async function getUsersForAdminSearch(
+  payload: UserQuery,
+  limit: number,
+  offset: number
+): Promise<AdminUser[]> {
+  try {
+    const result = await pgQueries.getUsersForAdminSearch.run(
+      { ...cleanPayload(payload), limit, offset },
+      getClient()
+    )
+    return result.map(v => {
+      const user = makeRequired(v)
+      return {
+        _id: user.id,
+        firstname: user.firstName,
+        lastname: user.lastName,
+        ...user,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export type PastSessionForAdmin = {
+  id: Ulid
+  _id: Ulid
+  type: string
+  subTopic: string
+  totalMessages: number
+  volunteer?: Ulid
+  student: Ulid
+  volunteerJoinedAt?: Date
+  createdAt: Date
+  endedAt?: Date
+}
+
+export async function getPastSessionsForAdminDetail(
+  userId: Ulid,
+  limit: number,
+  offset: number,
+  poolClient?: PoolClient
+): Promise<PastSessionForAdmin[]> {
+  const client = poolClient ? poolClient : getClient()
+  try {
+    const result = await pgQueries.getPastSessionsForAdminDetail.run(
+      { userId, limit, offset },
+      client
+    )
+    return result.map(v => {
+      const temp = makeSomeRequired(v, [
+        'volunteer',
+        'volunteerJoinedAt',
+        'endedAt',
+      ])
+      return {
+        ...temp,
+        _id: temp.id,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+// TODO: needs formal return type which is huge due to frontend
+// TODO: this query is making a request for user data on every page transition
+//        for new pastSessions to display. May be better served as a separate
+//        service method for getting the user's past sessions
+export async function getUserForAdminDetail(
+  userId: Ulid,
+  limit: number,
+  offset: number
+) {
+  const client = await getClient().connect()
+  try {
+    const userResult = await pgQueries.getUserForAdminDetail.run(
+      { userId },
+      client
+    )
+    const user = makeSomeOptional(userResult[0], [
+      'id',
+      'createdAt',
+      'email',
+      'firstname',
+      'lastname',
+      'isAdmin',
+      'isDeactivated',
+      'isTestUser',
+      'isVolunteer',
+      'verified',
+      'numPastSessions',
+    ])
+    const references = await getReferencesByVolunteerForAdminDetail(
+      user.id,
+      client
+    )
+    const sessions = await getPastSessionsForAdminDetail(
+      user.id,
+      limit,
+      offset,
+      client
+    )
+    return {
+      ...user,
+      references: references.map(ref => ({
+        ...ref,
+        _id: ref.id,
+        status: ref.status.toUpperCase(),
+      })),
+      pastSessions: sessions.sort((a, b) =>
+        a.createdAt > b.createdAt ? 1 : -1
+      ),
+      _id: user.id,
+      photoIdStatus: user.photoIdStatus?.toUpperCase(),
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  } finally {
+    client.release()
+  }
+}
+
+export type UserForCreateSendGridContact = UserContactInfo & {
+  lastName: string
+  banned: boolean
+  testUser: boolean
+  isVolunteer: boolean
+  isAdmin: boolean
+  deactivated: boolean
+  createdAt: Date
+  passedUpchieve101?: boolean
+  studentPartnerOrg?: string
+  volunteerPartnerOrg?: string
+  studentPartnerOrgDisplay?: string
+  volunteerPartnerOrgDisplay?: string
+}
+export async function getUserToCreateSendGridContact(
+  userId: Ulid
+): Promise<UserForCreateSendGridContact> {
+  try {
+    const result = await pgQueries.getUserToCreateSendGridContact.run(
+      { userId },
+      getClient()
+    )
+    if (!result.length) throw new RepoReadError('User not found')
+    return makeSomeRequired(result[0], [
+      'studentPartnerOrg',
+      'volunteerPartnerOrg',
+      'studentPartnerOrgDisplay',
+      'volunteerPartnerOrgDisplay',
+      'passedUpchieve101',
+      'lastActivityAt',
+    ])
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

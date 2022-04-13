@@ -4,7 +4,7 @@ import * as MailService from '../../../services/MailService'
 import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getPartnerVolunteerForLowHours } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
-import { asObjectId } from '../../../utils/type-utils'
+import { asString } from '../../../utils/type-utils'
 
 /**
  *
@@ -25,18 +25,16 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
     data: { volunteerId },
     name: currentJob,
   } = job
-  const volunteer = await getPartnerVolunteerForLowHours(
-    asObjectId(volunteerId)
-  )
+  const volunteer = await getPartnerVolunteerForLowHours(asString(volunteerId))
 
   if (volunteer) {
-    const { _id, firstname, email, availability } = volunteer
-    const textNotifications = await getNotificationsByVolunteerId(_id)
+    const { id, firstName, email, availability } = volunteer
+    const textNotifications = await getNotificationsByVolunteerId(id)
     const totalHoursSelected = countAvailabilitySelected(availability)
 
     if (textNotifications.length < 2 && totalHoursSelected < 5) {
       try {
-        await MailService.sendPartnerVolunteerLowHoursSelected(email, firstname)
+        await MailService.sendPartnerVolunteerLowHoursSelected(email, firstName)
         log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(
