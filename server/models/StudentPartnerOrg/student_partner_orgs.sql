@@ -1,48 +1,59 @@
 /* @name getStudentPartnerOrgForRegistrationByKey */
 SELECT
     KEY,
-    ARRAY_AGG(spos.name) AS sites
+    sites.sites
 FROM
     student_partner_orgs spo
-    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(name) AS sites
+        FROM
+            student_partner_org_sites spos
+        WHERE
+            spo.id = spos.student_partner_org_id) AS sites ON TRUE
 WHERE
-    spo.key = :key!
-GROUP BY
-    spo.key;
+    spo.key = :key!;
 
 
 /* @name getFullStudentPartnerOrgByKey */
 SELECT
     KEY,
-    string_agg(signup_code, NULL) AS signup_code,
-    bool_or(high_school_signup) AS high_school_signup,
-    bool_or(college_signup) AS college_signup,
-    bool_or(school_signup_required) AS school_signup_required,
-    array_agg(spos.name) AS sites
+    signup_code,
+    high_school_signup,
+    college_signup,
+    school_signup_required,
+    sites.sites
 FROM
     student_partner_orgs spo
-    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(name) AS sites
+        FROM
+            student_partner_org_sites spos
+        WHERE
+            spo.id = spos.student_partner_org_id) AS sites ON TRUE
 WHERE
-    KEY = :key!
-GROUP BY
-    spo.key;
+    KEY = :key!;
 
 
 /* @name getStudentPartnerOrgs */
 SELECT
     KEY,
     spo.name AS name,
-    max(signup_code) AS signup_code,
-    bool_or(high_school_signup) AS high_school_signup,
-    bool_or(college_signup) AS college_signup,
-    bool_or(school_signup_required) AS school_signup_required,
-    array_agg(spos.name) AS sites
+    signup_code,
+    high_school_signup,
+    college_signup,
+    school_signup_required,
+    sites.sites
 FROM
     student_partner_orgs spo
-    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
-GROUP BY
-    spo.key,
-    spo.name;
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(name) AS sites
+        FROM
+            student_partner_org_sites spos
+        WHERE
+            spo.id = spos.student_partner_org_id) AS sites ON TRUE;
 
 
 /* @name getStudentPartnerOrgKeyByCode */
