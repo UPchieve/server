@@ -6,8 +6,6 @@ import { getClient } from '../../db'
 
 const PgStore = CreatePgStore(session)
 
-export const sessionStoreCollectionName = 'auth-sessions'
-
 export default function(app: Express) {
   const store = new PgStore({
     pool: getClient(),
