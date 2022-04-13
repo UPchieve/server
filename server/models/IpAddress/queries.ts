@@ -76,7 +76,9 @@ export async function updateIpStatusByUserId(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
+    // We're ok not unbanning an IP if none are recorded for the user
+    if (!result.length) return
+    if (!makeRequired(result[0]).ok)
       throw new Error('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
