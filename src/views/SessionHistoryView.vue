@@ -411,6 +411,10 @@ ul {
       margin-right: 1em;
       color: $c-disabled-grey;
 
+      &:hover{
+        cursor: not-allowed;
+      }
+      
       & .caret path {
         fill: $c-disabled-grey;
       }
@@ -517,9 +521,9 @@ ul {
   }
 
   &-time-tutored {
-    @include font-category('helper-text');
     color: $c-secondary-grey;
     font-size: 12px;
+    font-weight: 400;
   }
 }
 
