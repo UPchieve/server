@@ -27,6 +27,7 @@ export const Config = Record({
     studentOnboardingWelcomeTemplate: String,
     reportedSessionAlertTemplate: String,
     referenceFormTemplate: String,
+    referenceFormApologyTemplate: String,
     approvedNotOnboardedTemplate: String,
     openReadyToCoachTemplate: String,
     partnerReadyToCoachTemplate: String,

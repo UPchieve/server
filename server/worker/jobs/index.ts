@@ -10,6 +10,7 @@ import endStaleSessions from './endStaleSessions'
 import endUnmatchedSession from './endUnmatchedSession'
 import generateAndStoreWaitTimeHeatMap from './generateAndStoreWaitTimeHeatMap'
 import emailReferences from './emailReferences'
+import emailReferencesFormApology from './emailReferencesFormApology'
 import emailReadyToCoach from './emailReadyToCoach'
 import emailReferenceFollowup from './emailReferenceFollowup'
 import emailWaitingOnReferences from './emailWaitingOnReferences'
@@ -43,6 +44,7 @@ export enum Jobs {
   EndUnmatchedSession = 'EndUnmatchedSession',
   GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
   EmailReferences = 'EmailReferences',
+  EmailReferencesFormApology = 'EmailReferencesFormApology',
   EmailReadyToCoach = 'EmailReadyToCoach',
   EmailReferenceFollowup = 'EmailReferenceFollowup',
   EmailWaitingOnReferences = 'EmailWaitingOnReferences',
@@ -122,6 +124,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailReferences,
     processor: emailReferences,
+  },
+  {
+    name: Jobs.EmailReferencesFormApology,
+    processor: emailReferencesFormApology,
   },
   {
     name: Jobs.EmailReadyToCoach,
