@@ -670,7 +670,7 @@ FROM
 WHERE
     volunteer_reference_statuses.name = 'sent'
     AND volunteer_references.sent_at <= '2022-04-12 18:00:00.000'
-    AND volunteer_references.sent_at >= '2022-01-12 06:00:00.000';
+    AND volunteer_references.sent_at >= '2022-02-26 00:00:00.000';
 
 
 /* @name getReferencesByVolunteer */
