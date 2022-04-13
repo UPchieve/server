@@ -120,6 +120,17 @@ ON CONFLICT (session_id,
         session_id AS ok;
 
 
+/* @name updateSessionToReview */
+UPDATE
+    sessions
+SET
+    to_review = TRUE
+WHERE
+    id = :sessionId!
+RETURNING
+    id AS ok;
+
+
 /* @name updateSessionReviewedStatusById */
 UPDATE
     sessions

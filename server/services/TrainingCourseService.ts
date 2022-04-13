@@ -16,18 +16,25 @@ export async function getCourse(
     volunteer.id
   )
   const foundCourse = volunteerTrainingCourses[courseKey]
-  if (!foundCourse) return
+  // if the volunteer has no progress so far make a blank
+  const volunteerCourse = foundCourse || {
+    complete: false,
+    completedMaterials: [],
+    progress: 0,
+  }
 
   const course = Object.assign({}, TrainingUtils.getCourse(courseKey))
   course.modules.forEach((mod: any) => {
     mod.materials.forEach((mat: any) => {
-      mat.isCompleted = foundCourse.completedMaterials.includes(mat.materialKey)
+      mat.isCompleted = volunteerCourse.completedMaterials.includes(
+        mat.materialKey
+      )
     })
   })
   return {
     ...course,
-    isComplete: foundCourse.complete,
-    progress: foundCourse.progress,
+    isComplete: volunteerCourse.complete,
+    progress: volunteerCourse.progress,
     quizKey: courseKey,
   }
 }
@@ -42,13 +49,18 @@ export async function recordProgress(
     volunteer.id
   )
   const foundCourse = volunteerTrainingCourses[courseKey]
-  if (!foundCourse) return
+  // if the volunteer has no progress so far make a blank
+  const volunteerCourse = foundCourse || {
+    complete: false,
+    completedMaterials: [],
+    progress: 0,
+  }
 
   // Early exit if already saved progress
-  if (foundCourse.completedMaterials.includes(materialKey)) return
+  if (volunteerCourse.completedMaterials.includes(materialKey)) return
 
   // Mutate user object's completedMaterials
-  const completedMaterials = [...foundCourse.completedMaterials]
+  const completedMaterials = [...volunteerCourse.completedMaterials]
   completedMaterials.push(materialKey)
 
   const progress = TrainingUtils.getProgress(courseKey, completedMaterials)
