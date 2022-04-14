@@ -1233,6 +1233,7 @@ candidates AS (
         AND banned IS FALSE
         AND deactivated IS FALSE
         AND volunteer_profiles.onboarded IS TRUE
+        AND volunteer_profiles.approved IS TRUE
         -- availabilities are all stored in EST so convert server time to EST to be safe
         AND extract(isodow FROM (NOW() at time zone 'America/New_York')) = availabilities.weekday_id
         AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start
