@@ -202,13 +202,27 @@ export type UpdateFavoriteVolunteer = {
   volunteerId: Ulid
 }
 
-export async function getFavoriteVolunteers(
+export async function getFavoriteVolunteersByStudentId(
+  userId: Ulid
+): Promise<Ulid[]> {
+  try {
+    const result = await pgQueries.getFavoriteVolunteersByStudentId.run(
+      { userId },
+      getClient()
+    )
+    return result.map(row => makeRequired(row.id))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getFavoriteVolunteersPaginated(
   userId: Ulid,
   limit: number,
   offset: number
 ): Promise<FavoriteVolunteersResponse> {
   try {
-    const result = await pgQueries.getFavoriteVolunteers.run(
+    const result = await pgQueries.getFavoriteVolunteersPaginated.run(
       { userId, limit, offset },
       getClient()
     )
