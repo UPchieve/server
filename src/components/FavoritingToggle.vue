@@ -119,6 +119,10 @@ export default {
     &:active {
     transform: scale(0.9);
     }  
+
+    &:hover {
+      cursor: pointer;
+    }
   
     &:hover path{
       stroke: $c-active-heart;
