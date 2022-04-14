@@ -807,7 +807,7 @@ export async function getSessionHistory(studentId: Ulid, page: string) {
   const skip = (pageNum - 1) * PER_PAGE
   const pastSessions = await SessionRepo.getSessionHistory(
     studentId,
-    pageNum,
+    PER_PAGE,
     skip
   )
   const isLastPage = pastSessions ? pastSessions.length < PER_PAGE : false
