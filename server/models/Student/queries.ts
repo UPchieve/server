@@ -203,11 +203,11 @@ export type UpdateFavoriteVolunteer = {
 }
 
 export async function getFavoriteVolunteersByStudentId(
-  userId: Ulid
+  studentId: Ulid
 ): Promise<Ulid[]> {
   try {
     const result = await pgQueries.getFavoriteVolunteersByStudentId.run(
-      { userId },
+      { studentId },
       getClient()
     )
     return result.map(row => makeRequired(row.id))
