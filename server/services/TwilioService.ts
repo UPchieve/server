@@ -248,7 +248,7 @@ export async function notifyVolunteer(
   if (!student) return
 
   const favoriteVolunteers = await getFavoriteVolunteersByStudentId(student.id)
-  
+
   const associatedPartner = student.studentPartnerOrg
     ? await getAssociatedPartner(student.studentPartnerOrg, student.schoolId)
     : undefined
@@ -294,7 +294,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers
+          favoriteVolunteers,
         }),
     },
     {
@@ -311,7 +311,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -327,7 +327,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -344,7 +344,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -360,7 +360,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -375,7 +375,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -390,7 +390,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -405,7 +405,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
   ]

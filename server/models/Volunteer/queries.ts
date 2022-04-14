@@ -1364,7 +1364,7 @@ export async function getNextVolunteerToNotify(options: {
   isPartner: boolean | undefined
   highLevelSubjects: string[] | undefined
   disqualifiedVolunteers: Ulid[] | undefined
-  specificPartner: string | undefined,
+  specificPartner: string | undefined
   favoriteVolunteers: Ulid[] | undefined
 }): Promise<VolunteerContactInfo | undefined> {
   try {

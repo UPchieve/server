@@ -72,6 +72,7 @@ WHERE
 ORDER BY
     student_favorite_volunteers.created_at DESC;
 
+
 /* @name getFavoriteVolunteersPaginated */
 SELECT
     student_favorite_volunteers.volunteer_id AS volunteer_id,
