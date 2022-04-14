@@ -209,7 +209,7 @@ export async function getFavoriteVolunteers(
 ): Promise<FavoriteVolunteersResponse> {
   try {
     const result = await pgQueries.getFavoriteVolunteers.run(
-      { studentId , limit, offset },
+      { studentId, limit, offset },
       getClient()
     )
     return {
