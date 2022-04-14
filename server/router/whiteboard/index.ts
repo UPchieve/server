@@ -5,7 +5,7 @@ import logger from '../../logger'
 import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
 import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
 import * as WhiteboardService from '../../services/WhiteboardService'
-import { asObjectId, asStringObjectId } from '../../utils/type-utils'
+import { asUlid } from '../../utils/type-utils'
 import {
   CreationMode,
   decode,
@@ -36,7 +36,7 @@ const messageHandlers: {
   }) => void
 } = {
   [MessageType.INIT]: async ({ message, sessionId, wsClient }) => {
-    const sessionObjectId = asObjectId(sessionId)
+    const sessionObjectId = asUlid(sessionId)
     let document
     try {
       document = await WhiteboardService.getDoc(sessionObjectId)
@@ -91,7 +91,7 @@ const messageHandlers: {
     )
   },
   [MessageType.APPEND]: async ({ message, sessionId, wsClient }) => {
-    const sessionObjectId = asObjectId(sessionId)
+    const sessionObjectId = asUlid(sessionId)
     const documentLength = await WhiteboardService.getDocLength(sessionObjectId)
     if (message.offset !== documentLength) {
       return wsClient.send(
@@ -195,7 +195,7 @@ const messageHandlers: {
     )
   },
   [MessageType.CONTINUATION]: async ({ message, wsClient, sessionId }) => {
-    const sessionObjectId = asObjectId(sessionId)
+    const sessionObjectId = asUlid(sessionId)
     await WhiteboardService.appendToDoc(sessionObjectId, message.data)
     const newDocLength = await WhiteboardService.getDocLength(sessionObjectId)
     const packet = {
@@ -231,7 +231,7 @@ export function routes(app: Express): void {
 
     try {
       // use string here for socket room
-      sessionId = asStringObjectId(req.params.sessionId)
+      sessionId = asUlid(req.params.sessionId)
     } catch (error) {
       logger.error(error as Error)
       return
@@ -280,25 +280,29 @@ export function routes(app: Express): void {
   })
 
   router.ws('/admin/:sessionId', function(wsClient, req) {
-    const sessionId = asObjectId(req.params.sessionId)
+    const sessionId = asUlid(req.params.sessionId)
 
     wsClient.on('message', async rawMessage => {
       const message = decode(rawMessage as Uint8Array)
 
       if (message.messageType === MessageType.INIT) {
-        // Active session's document
-        let document = await WhiteboardService.getDoc(asObjectId(sessionId))
-        // Get the completed session's whiteboard document from storage
-        if (!document)
-          document = await WhiteboardService.getDocFromStorage(sessionId)
-        return wsClient.send(
-          encode({
-            messageType: MessageType.APPEND,
-            offset: 0,
-            data: document,
-            more: 0,
-          })
-        )
+        try {
+          // Active session's document
+          let document = await WhiteboardService.getDoc(asUlid(sessionId))
+          // Get the completed session's whiteboard document from storage
+          if (!document)
+            document = await WhiteboardService.getDocFromStorage(sessionId)
+          return wsClient.send(
+            encode({
+              messageType: MessageType.APPEND,
+              offset: 0,
+              data: document,
+              more: 0,
+            })
+          )
+        } catch (error) {
+          if (!(error instanceof KeyNotFoundError)) throw error
+        }
       }
     })
   })

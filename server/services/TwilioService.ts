@@ -1,37 +1,31 @@
 import twilio from 'twilio'
 import { getCurrentNewYorkTime } from '../utils/get-times'
 import config from '../config'
+import moment from 'moment'
 import {
-  getStudentById,
+  getStudentContactInfoById,
   getTestStudentExistsById,
-} from '../models/Student/queries'
+} from '../models/Student'
 import {
   VolunteerContactInfo,
-  getVolunteersFailsafe,
-  getVolunteersNotifiedSinceDate,
   getVolunteersNotifiedBySessionId,
-  getNextVolunteerToNotify,
-} from '../models/Volunteer/queries'
-import { Session } from '../models/Session'
-import queue from './QueueService'
-import * as SessionRepo from '../models/Session/queries'
-import NotificationModel, {
-  Notification,
-  NotificationDocument,
-} from '../models/Notification'
+} from '../models/Volunteer'
+import QueueService from './QueueService'
+import * as SessionRepo from '../models/Session'
+import * as VolunteerRepo from '../models/Volunteer'
 import formatMultiWordSubject from '../utils/format-multi-word-subject'
 import Case from 'case'
 import logger from '../logger'
-import { Types } from 'mongoose'
-import { MATH_CERTS, VERIFICATION_METHOD, SUBJECTS } from '../constants'
-import { getIdFromModelReference } from '../utils/model-reference'
-import {
-  AssociatedPartnerManifest,
-  associatedPartnerManifests,
-  sponsorOrgManifests,
-} from '../partnerManifests'
-import { Student } from '../models/Student'
+import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import startsWithVowel from '../utils/starts-with-vowel'
+import { Ulid } from '../models/pgUtils'
+import { getSessionById, NotificationData } from '../models/Session'
+import {
+  AssociatedPartner,
+  getAssociatedPartnerByKey,
+} from '../models/AssociatedPartner'
+import { getSponsorOrgs } from '../models/SponsorOrg'
+import { Jobs } from '../worker/jobs'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -76,26 +70,6 @@ export function getCurrentAvailabilityPath(): string {
   return `availability.${days[day]}.${hour}`
 }
 
-export async function getNextVolunteer(
-  priorityFilter = {}
-): Promise<VolunteerContactInfo | undefined> {
-  const availabilityPath = getCurrentAvailabilityPath()
-
-  const filter = {
-    isApproved: true,
-    [availabilityPath]: true,
-    phone: { $exists: true },
-    isTestUser: false,
-    isFakeUser: false,
-    isDeactivated: false,
-    isFailsafeVolunteer: false,
-    isBanned: false,
-    ...priorityFilter,
-  }
-
-  return getNextVolunteerToNotify(filter)
-}
-
 export async function sendTextMessage(
   phoneNumber: string,
   messageText: string
@@ -117,10 +91,15 @@ export async function sendTextMessage(
     from: config.sendingNumber,
     body: messageText,
   })
-  logger.info(
-    `Message sent to ${phoneNumber} with message id \n ${message.sid}`
+  if (message.sid) {
+    logger.info(
+      `Message sent to ${phoneNumber} with message id \n ${message.sid}`
+    )
+    return message.sid
+  }
+  throw new Error(
+    `Failed to send text message ${messageText} to ${phoneNumber}`
   )
-  return message.sid
 }
 
 export async function sendVoiceMessage(
@@ -154,15 +133,16 @@ export async function sendVoiceMessage(
 }
 
 // the URL that the volunteer can use to join the session on the client
-export function getSessionUrl(session: Session): string {
+type SessionForUrl = Pick<SessionRepo.Session, 'subject' | 'topic' | 'id'>
+export function getSessionUrl(session: SessionForUrl): string {
   return `${protocol}://${config.client.host}/session/${Case.kebab(
-    session.type
-  )}/${Case.kebab(session.subTopic)}/${session._id}`
+    session.topic
+  )}/${Case.kebab(session.subject)}/${session.id}`
 }
 
-export async function getActiveSessionVolunteers(): Promise<Types.ObjectId[]> {
-  const activeSessions = await SessionRepo.getActiveSessionsWithVolunteers()
-  return activeSessions.map(session => session.volunteer as Types.ObjectId)
+export async function getActiveSessionVolunteers(): Promise<Ulid[]> {
+  const volunteerIds = await SessionRepo.getActiveSessionsWithVolunteers()
+  return volunteerIds
 }
 
 export function relativeDate(msAgo: number): Date {
@@ -170,119 +150,115 @@ export function relativeDate(msAgo: number): Date {
 }
 
 export async function sendFollowupText(
-  sessionId: Types.ObjectId,
-  volunteerId: Types.ObjectId,
+  sessionId: Ulid,
+  volunteerId: Ulid,
   volunteerPhone: string
 ): Promise<void> {
   const messageText = 'Heads up: this student is still waiting for help!'
-  const sidPromise = sendTextMessage(volunteerPhone, messageText)
-  // TODO: repo pattern
-  const notification = new NotificationModel({
-    volunteer: volunteerId,
-    type: 'REGULAR',
-    method: 'SMS',
-    priorityGroup: 'follow-up',
-    sessionId,
-  })
 
-  await recordNotification(sidPromise, notification)
-  await SessionRepo.addSessionNotifications(sessionId, [
-    notification.toObject(),
-  ])
+  let notification: NotificationData = {
+    wasSuccessful: false,
+    messageId: undefined,
+    volunteer: volunteerId,
+    type: 'followup',
+    method: 'sms',
+    priorityGroup: 'follow-up',
+  }
+  try {
+    const messageId = await sendTextMessage(volunteerPhone, messageText)
+    notification.wasSuccessful = true
+    notification.messageId = messageId
+  } catch (err) {
+    logger.error(err as Error)
+  }
+
+  await SessionRepo.addSessionNotification(sessionId, notification)
 }
 
 export function buildTargetStudentContent(
   volunteer: VolunteerContactInfo,
-  associatedPartner: AssociatedPartnerManifest | undefined
+  associatedPartner: AssociatedPartner | undefined
 ) {
   return associatedPartner &&
+    associatedPartner.studentOrgDisplay &&
     volunteer.volunteerPartnerOrg === associatedPartner.volunteerPartnerOrg
-    ? startsWithVowel(associatedPartner.studentOrgDisplay)
-      ? `an ${associatedPartner.studentOrgDisplay} student`
-      : `a ${associatedPartner.studentOrgDisplay} student`
+    ? startsWithVowel(associatedPartner.studentOrgDisplay!)
+      ? `an ${associatedPartner.studentOrgDisplay!} student`
+      : `a ${associatedPartner.studentOrgDisplay!} student`
     : 'a student'
 }
 
 export function buildNotificationContent(
-  session: Session,
+  session: SessionRepo.Session,
   volunteer: VolunteerContactInfo,
-  associatedPartner: AssociatedPartnerManifest | undefined
+  associatedPartner: AssociatedPartner | undefined
 ) {
   // Format multi-word subtopics from a key name to a display name
   // ex: physicsOne -> Physics 1
-  const subtopic = formatMultiWordSubject(session.subTopic)
+  const subtopic = formatMultiWordSubject(session.subject)
   const sessionUrl = getSessionUrl(session)
-  return `Hi ${volunteer.firstname}, ${buildTargetStudentContent(
+  return `Hi ${volunteer.firstName}, ${buildTargetStudentContent(
     volunteer,
     associatedPartner
   )} needs help in ${subtopic} on UPchieve! ${sessionUrl}`
 }
 
-export function getAssociatedPartner(
+export async function getAssociatedPartner(
   partnerOrg: string,
-  highSchool: Types.ObjectId | undefined
-): AssociatedPartnerManifest | undefined {
+  highSchoolId: Ulid | undefined
+): Promise<AssociatedPartner | undefined> {
   // Determine if the student's partner org is one of the orgs that
   // should have priority matching with its partner volunteer org counterpart
   if (config.priorityMatchingPartnerOrgs.some(org => partnerOrg === org))
-    return associatedPartnerManifests[partnerOrg]
+    return getAssociatedPartnerByKey(partnerOrg)
 
   for (const sponsorOrg of config.priorityMatchingSponsorOrgs) {
     // Determine if the student's school belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
+    const sponsorOrgs = await getSponsorOrgs()
+    const matchingOrgs = sponsorOrgs.filter(org => {
+      org.key === sponsorOrg
+    })
     if (
-      highSchool &&
-      sponsorOrgManifests[sponsorOrg] &&
-      Array.isArray(sponsorOrgManifests[sponsorOrg].schools) &&
-      sponsorOrgManifests[sponsorOrg].schools.some(school =>
-        school.equals(highSchool)
-      )
+      highSchoolId &&
+      matchingOrgs.length > 0 &&
+      Array.isArray(matchingOrgs[0].schoolIds) &&
+      matchingOrgs[0].schoolIds.some(schoolId => schoolId === highSchoolId)
     )
-      return associatedPartnerManifests[sponsorOrg]
+      return getAssociatedPartnerByKey(sponsorOrg)
 
     // Determine if the student's partner org belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
     if (
-      sponsorOrgManifests[sponsorOrg] &&
-      Array.isArray(sponsorOrgManifests[sponsorOrg].partnerOrgs) &&
-      sponsorOrgManifests[sponsorOrg].partnerOrgs.includes(partnerOrg)
+      matchingOrgs.length > 0 &&
+      Array.isArray(matchingOrgs[0].studentPartnerOrgKeys) &&
+      matchingOrgs[0].studentPartnerOrgKeys.includes(partnerOrg)
     )
-      return associatedPartnerManifests[sponsorOrg]
+      return getAssociatedPartnerByKey(sponsorOrg)
   }
 
   return undefined
 }
 
 export async function notifyVolunteer(
-  session: Session
-): Promise<Types.ObjectId | undefined> {
-  const student = await getStudentById(getIdFromModelReference(session.student))
+  session: SessionRepo.Session
+): Promise<Ulid | undefined> {
+  // Replace with getStudentPartnerInfoById from Student Repo
+  const student = await getStudentContactInfoById(session.studentId)
   if (!student) return
-  const associatedPartner = getAssociatedPartner(
-    student.studentPartnerOrg,
-    student.approvedHighschool &&
-      getIdFromModelReference(student.approvedHighschool)
-  )
+  const associatedPartner = student.studentPartnerOrg
+    ? await getAssociatedPartner(student.studentPartnerOrg, student.schoolId)
+    : undefined
 
-  // typed as `any` because `subtopic` gets reassigned as a regex query object if `subtopic` is algebraTwo
-  let subtopic: any = session.subTopic
+  let subtopic: string = session.subject
   const activeSessionVolunteers = await getActiveSessionVolunteers()
-  const notifiedLastFifteenMins = await getVolunteersNotifiedSinceDate(
-    relativeDate(15 * 60 * 1000)
-  )
-  const notifiedLastSixtyMins = await getVolunteersNotifiedSinceDate(
-    relativeDate(60 * 60 * 1000)
-  )
-  const notifiedLastTwentyFourHours = await getVolunteersNotifiedSinceDate(
-    relativeDate(24 * 60 * 60 * 1000)
-  )
-  const notifiedLastThreeDays = await getVolunteersNotifiedSinceDate(
-    relativeDate(3 * 24 * 60 * 60 * 1000)
-  )
-
   const notifiedForThisSessionId = await getVolunteersNotifiedBySessionId(
-    session._id
+    session.id
   )
+  const disqualifiedVolunteers = [
+    ...activeSessionVolunteers,
+    ...notifiedForThisSessionId,
+  ]
 
   // Prioritize volunteers who do not have high-level subjects to avoid
   // lack of volunteers when high-level subjects are requested
@@ -291,17 +267,6 @@ export async function notifyVolunteer(
     SUBJECTS.CHEMISTRY,
     SUBJECTS.STATISTICS,
   ]
-  const isHighLevelSubject = highLevelSubjects.includes(subtopic)
-  let subjectsFilter: any = { $eq: subtopic }
-  // Temporarily notify tutors with algebraTwo-temporary as subject
-  // TODO: remove regex check for algebraTwo in algebra 2 launch cleanup
-  if (subtopic === MATH_CERTS.ALGEBRA_TWO) {
-    subjectsFilter = { $regex: MATH_CERTS.ALGEBRA_TWO }
-    subtopic = { $regex: MATH_CERTS.ALGEBRA_TWO }
-  }
-  // If the current subject is not a high level subject,
-  // filter out volunteers who have high level subjects
-  if (!isHighLevelSubject) subjectsFilter['$nin'] = highLevelSubjects
 
   /**
    * 1. Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
@@ -317,109 +282,113 @@ export async function notifyVolunteer(
     {
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
-      } volunteers - not notified in the last 3 days AND they don’t have "high level subjects"`,
-      filter: {
-        volunteerPartnerOrg: associatedPartner
-          ? associatedPartner.volunteerPartnerOrg
-          : { $exists: true },
-        subjects: subjectsFilter,
-        _id: {
-          $nin: activeSessionVolunteers.concat(
-            notifiedLastThreeDays,
-            notifiedForThisSessionId
-          ),
-        },
-      },
+      } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(3, 'days')
+            .toDate(),
+          isPartner: true,
+          highLevelSubjects,
+          disqualifiedVolunteers,
+          specificPartner: associatedPartner?.volunteerPartnerOrg,
+        }),
     },
     {
       groupName:
-        'Regular volunteers - not notified in the last 3 days AND they don’t have "high level subjects"',
-      filter: {
-        volunteerPartnerOrg: { $exists: false },
-        subjects: subjectsFilter,
-        _id: {
-          $nin: activeSessionVolunteers.concat(
-            notifiedLastThreeDays,
-            notifiedForThisSessionId
-          ),
-        },
-      },
+        'Regular volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(3, 'days')
+            .toDate(),
+          isPartner: false,
+          highLevelSubjects,
+          disqualifiedVolunteers,
+          specificPartner: undefined,
+        }),
     },
     {
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
-      } volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"`,
-      filter: {
-        volunteerPartnerOrg: associatedPartner
-          ? associatedPartner.volunteerPartnerOrg
-          : { $exists: true },
-        subjects: subjectsFilter,
-        _id: {
-          $nin: activeSessionVolunteers.concat(
-            notifiedLastTwentyFourHours,
-            notifiedForThisSessionId
-          ),
-        },
-      },
+      } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(1, 'day')
+            .toDate(),
+          isPartner: true,
+          highLevelSubjects,
+          disqualifiedVolunteers,
+          specificPartner: associatedPartner?.volunteerPartnerOrg,
+        }),
     },
     {
       groupName:
-        'Regular volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"',
-      filter: {
-        volunteerPartnerOrg: {
-          $exists: false,
-        },
-        subjects: subjectsFilter,
-        _id: {
-          $nin: activeSessionVolunteers.concat(
-            notifiedLastTwentyFourHours,
-            notifiedForThisSessionId
-          ),
-        },
-      },
+        'Regular volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(1, 'day')
+            .toDate(),
+          isPartner: false,
+          highLevelSubjects,
+          disqualifiedVolunteers,
+          specificPartner: undefined,
+        }),
     },
     {
       groupName: 'All volunteers - not notified in the last 24 hours',
-      filter: {
-        subjects: subtopic,
-        _id: {
-          $nin: activeSessionVolunteers.concat(
-            notifiedLastTwentyFourHours,
-            notifiedForThisSessionId
-          ),
-        },
-      },
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(1, 'day')
+            .toDate(),
+          isPartner: undefined,
+          highLevelSubjects: undefined,
+          disqualifiedVolunteers,
+          specificPartner: undefined,
+        }),
     },
     {
       groupName: 'All volunteers - not notified in the last 60 mins',
-      filter: {
-        subjects: subtopic,
-        _id: {
-          $nin: activeSessionVolunteers.concat(
-            notifiedLastSixtyMins,
-            notifiedForThisSessionId
-          ),
-        },
-      },
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(1, 'hour')
+            .toDate(),
+          isPartner: undefined,
+          highLevelSubjects: undefined,
+          disqualifiedVolunteers,
+          specificPartner: undefined,
+        }),
     },
     {
       groupName: 'All volunteers - not notified in the last 15 mins',
-      filter: {
-        subjects: subtopic,
-        _id: {
-          $nin: activeSessionVolunteers.concat(
-            notifiedLastFifteenMins,
-            notifiedForThisSessionId
-          ),
-        },
-      },
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(15, 'minutes')
+            .toDate(),
+          isPartner: undefined,
+          highLevelSubjects: undefined,
+          disqualifiedVolunteers,
+          specificPartner: undefined,
+        }),
     },
   ]
 
   let volunteer: VolunteerContactInfo | undefined, priorityGroup: any
 
   for (const priorityFilter of volunteerPriority) {
-    volunteer = await getNextVolunteer(priorityFilter.filter)
+    volunteer = await priorityFilter.query()
 
     if (volunteer) {
       priorityGroup = priorityFilter.groupName
@@ -434,96 +403,26 @@ export async function notifyVolunteer(
     volunteer,
     associatedPartner
   )
-  const sidPromise = sendTextMessage(volunteer.phone as string, messageText)
 
-  // TODO: repo pattern
-  const notification = new NotificationModel({
-    volunteer,
-    type: 'REGULAR',
-    method: 'SMS',
+  let notification: NotificationData = {
+    wasSuccessful: false,
+    messageId: undefined,
+    volunteer: volunteer.id,
+    type: 'initial',
+    method: 'sms',
     priorityGroup,
-    sessionId: session._id,
-  })
-
-  await recordNotification(sidPromise, notification)
-  await SessionRepo.addSessionNotifications(session._id, [
-    notification.toObject(),
-  ])
-
-  return volunteer._id
-}
-
-export async function notifyFailsafe(
-  session: Session,
-  voice: boolean = false
-): Promise<void> {
-  const subtopic = session.subTopic
-  const sessionUrl = getSessionUrl(session)
-  const volunteersToNotify = await getVolunteersFailsafe()
-  const isTestUser = await getTestStudentExistsById(
-    getIdFromModelReference(session.student)
-  )
-
-  const notifications = []
-
-  for (const volunteer of volunteersToNotify) {
-    const phoneNumber = volunteer.phone as string
-
-    let messageText = `UPchieve failsafe alert: new ${subtopic} request`
-
-    if (isTestUser) messageText = '[TEST USER] ' + messageText
-    if (!voice) messageText = messageText + `\n${sessionUrl}`
-
-    let sidPromise: Promise<string>
-    if (voice) sidPromise = sendVoiceMessage(phoneNumber, messageText)
-    else sidPromise = sendTextMessage(phoneNumber, messageText)
-
-    // record notification to database
-    // TODO: repo pattern
-    const notification = new NotificationModel({
-      volunteer: volunteer,
-      type: 'FAILSAFE',
-      method: voice ? 'VOICE' : 'SMS',
-      sessionId: session._id,
-    })
-
-    try {
-      notifications.push(await recordNotification(sidPromise, notification))
-    } catch (err) {
-      logger.error(err as Error)
-    }
   }
-
-  // save notifications to session object
-  await SessionRepo.addSessionNotifications(session._id, notifications)
-}
-
-/**
- * Helper function to record notifications, whether successful or
- * failed, to the database
- * @param {sendPromise} a Promise that resolves to the message SID
- * @param {notification} the notification object to save
- * after the message is sent to Twilio
- * @returns a Promise that resolves to the saved notification
- * object
- */
-export async function recordNotification(
-  sidPromise: Promise<string>,
-  notification: NotificationDocument
-): Promise<Notification> {
   try {
-    const sid = await sidPromise
-    // record notification in database
+    const messageId = await sendTextMessage(volunteer.phone, messageText)
     notification.wasSuccessful = true
-    notification.messageId = sid
+    notification.messageId = messageId
   } catch (err) {
-    // record notification failure in database
     logger.error(err as Error)
-    notification.wasSuccessful = false
-  } finally {
-    await notification.save()
-    return notification.toObject()
   }
+
+  await SessionRepo.addSessionNotification(session.id, notification)
+
+  return volunteer.id
 }
 
 export async function sendVerification(
@@ -556,7 +455,7 @@ export async function confirmVerification(
 ): Promise<boolean> {
   if (!twilioClient) {
     logger.warn('Twilio client not loaded.')
-    return false
+    return true
   }
   const result = await twilioClient.verify
     .services(config.twilioAccountVerificationServiceSid)
@@ -565,27 +464,19 @@ export async function confirmVerification(
 }
 
 export async function beginRegularNotifications(
-  session: Session
+  sessionId: Ulid
 ): Promise<void> {
-  const isTestUser = await getTestStudentExistsById(
-    getIdFromModelReference(session.student)
-  )
+  const session = await getSessionById(sessionId)
+  const isTestUser = await getTestStudentExistsById(session.studentId)
 
   if (isTestUser) return
-
   // Delay initial wave of notifications by 1 min to give
   // volunteers on the dashboard time to pick up the request
   const notificationSchedule = config.notificationSchedule.slice()
   const delay = notificationSchedule.shift()
-  await queue.add(
-    'NotifyTutors',
-    { sessionId: session._id, notificationSchedule },
+  await QueueService.add(
+    Jobs.NotifyTutors,
+    { sessionId, notificationSchedule },
     { delay }
   )
-}
-
-export async function beginFailsafeNotifications(
-  session: Session
-): Promise<void> {
-  await notifyFailsafe(session, false)
 }

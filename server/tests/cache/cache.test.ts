@@ -47,7 +47,6 @@ test('Should retrieve parse-able json stringified content from the cache', async
 
 test('Should throw KeyNotFoundError if non-existent key is passed', async () => {
   const badKey = uuid()
-
   await expect(Cache.get(badKey)).rejects.toBeInstanceOf(KeyNotFoundError)
 })
 

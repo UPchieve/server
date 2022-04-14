@@ -51,11 +51,11 @@ export async function sendVolunteerJoined(
   session: Session,
   tokens: string[]
 ): Promise<void> {
-  const { type, subTopic, _id } = session
+  const { topic, subject, id } = session
   const title = 'We found a volunteer!'
   const text = 'Start chatting with your coach now.'
   const data = {
-    path: `/session/${Case.kebab(type)}/${Case.kebab(subTopic)}/${_id}`,
+    path: `/session/${Case.kebab(topic)}/${Case.kebab(subject)}/${id}`,
   }
 
   await sendToUser(title, text, data, tokens)

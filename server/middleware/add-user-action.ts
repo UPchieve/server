@@ -1,11 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
 import { captureException } from '@sentry/node'
-import { Volunteer } from '../models/Volunteer'
-import { Student } from '../models/Student'
-import {
-  AccountActionCreator,
-  QuizActionCreator,
-} from '../controllers/UserActionCtrl'
+import { extractUser } from '../router/extract-user'
+import * as UserActionRepo from '../models/UserAction'
+import { ACCOUNT_USER_ACTIONS, QUIZ_USER_ACTIONS } from '../constants'
 
 export async function addUserAction(
   req: Request,
@@ -13,26 +10,45 @@ export async function addUserAction(
   next: NextFunction
 ): Promise<void> {
   if (Object.prototype.hasOwnProperty.call(req, 'user')) {
-    const { _id } = req.user as Volunteer | Student
+    const { id } = extractUser(req)
     const { ip: ipAddress } = req
 
     if (req.url === '/api/calendar/save') {
-      await new AccountActionCreator(_id, ipAddress)
-        .updatedAvailability()
-        .catch(error => captureException(error))
+      try {
+        await UserActionRepo.createAccountAction({
+          action: ACCOUNT_USER_ACTIONS.UPDATED_AVAILABILITY,
+          userId: id,
+          ipAddress,
+        })
+      } catch (err) {
+        captureException(err)
+      }
     }
 
     if (req.url === '/api/training/questions') {
       const { category } = req.body
-      await new QuizActionCreator(_id, category, ipAddress)
-        .startedQuiz()
-        .catch(error => captureException(error))
+      try {
+        await UserActionRepo.createQuizAction({
+          action: QUIZ_USER_ACTIONS.STARTED,
+          quizSubcategory: category,
+          userId: id,
+          ipAddress,
+        })
+      } catch (err) {
+        captureException(err)
+      }
     }
 
     if (req.url === '/api/user' && req.method === 'PUT') {
-      await new AccountActionCreator(_id, ipAddress)
-        .updatedProfile()
-        .catch(error => captureException(error))
+      try {
+        await UserActionRepo.createAccountAction({
+          action: ACCOUNT_USER_ACTIONS.UPDATED_PROFILE,
+          userId: id,
+          ipAddress,
+        })
+      } catch (err) {
+        captureException(err)
+      }
     }
   }
 

@@ -3,11 +3,11 @@
  */
 
 import { metaSetup } from '../postgres-test-hook'
-import { IgetUserIdByEmail } from '../../models/User/queries'
+import { getUserIdByEmail } from '../../models/User'
 
 metaSetup()
 
 test('Make a connection', async () => {
-  const result = await IgetUserIdByEmail('student@upchieve.org')
+  const result = await getUserIdByEmail('student@upchieve.org')
   expect(result).toBeUndefined()
 })

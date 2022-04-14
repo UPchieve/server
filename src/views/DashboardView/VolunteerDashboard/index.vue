@@ -16,7 +16,7 @@
       class="dashboard-notice"
       :class="'dashboard-notice--info'"
     >
-      {{ downtimeMessage }}
+      <a href="https://upchieve.statuspage.io" target="_blank">{{ downtimeMessage }}</a>
     </div>
 
     <div class="volunteer-dashboard__body">
@@ -68,7 +68,7 @@
 
           <a
             class="track-hours-link"
-            href="https://upc-training-materials.s3.us-east-2.amazonaws.com/volunteer-hour-tracking-guide.pdf"
+            :href="hourTrackingGuide"
             target="_blank"
             rel="noopener noreferrer"
             >How to track your volunteer hours <arrow-icon class="arrow-icon" />
@@ -207,7 +207,7 @@ export default {
   async created() {
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
-    } 
+    }
 
     if (this.isFirstDashboardVisit) {
       this.toggleWelcomeModal()
@@ -258,7 +258,7 @@ export default {
 
     downtimeMessage() {
       if (this.isDowntimeBannerActive) {
-        return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
+        return 'UPchieve will be down for maintenance 7:30 AM to 2:30 PM ET on Tuesday, April 12.'
       } else {
         return ''
       }
@@ -493,6 +493,12 @@ export default {
         }
       ]
       return onboaringActions.sort((a, b) => a.priority - b.priority)
+    },
+
+    hourTrackingGuide() {
+      if (this.isCustomVolunteerPartner)
+        return 'https://cdn.upchieve.org/docs/Verizon-Volunteer-Hour-Tracking-Resource.pdf'
+      return 'https://upc-training-materials.s3.us-east-2.amazonaws.com/volunteer-hour-tracking-guide.pdf'
     },
   },
   methods: {

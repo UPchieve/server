@@ -1,27 +1,27 @@
-import { Types } from 'mongoose'
-
-import { Session } from '../../models/Session'
+import { Ulid } from '../../models/pgUtils'
 import {
+  Session,
+  getMessagesForFrontend,
   getSessionById,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
-} from '../../models/Session/queries'
-import { UserSessionMetrics, MetricType } from '../../models/UserSessionMetrics'
+} from '../../models/Session'
 import {
+  UserSessionMetrics,
   UserSessionMetricsUpdateQuery,
   getUSMByUserId,
   executeUSMUpdatesByUserId,
-} from '../../models/UserSessionMetrics/queries'
+} from '../../models/UserSessionMetrics'
 import {
   USER_SESSION_METRICS,
   SESSION_EVENTS,
   USM_EVENTS,
 } from '../../constants'
-import { FeedbackVersionTwo } from '../../models/Feedback'
+import { Feedback } from '../../models/Feedback'
 import { emitter } from '../EventsService'
 import logger from '../../logger'
 import { safeAsync } from '../../utils/safe-async'
-import { getFeedbackById } from '../../models/Feedback/queries'
+import { getFeedbackById } from '../../models/Feedback'
 import { METRIC_PROCESSORS, MetricProcessorOutputs } from './metrics'
 import {
   UpdateValueData,
@@ -29,7 +29,7 @@ import {
   MetricProcessor,
   CounterMetricProcessor,
 } from './types'
-import { asObjectId } from '../../utils/type-utils'
+import { asString } from '../../utils/type-utils'
 
 export interface MetricProcessorPayload {
   session: Session
@@ -49,9 +49,7 @@ for (const metric of Object.values(METRIC_PROCESSORS)) {
 }
 
 // registered as listener on session-ended
-export async function prepareSessionProcessors(
-  sessionId: Types.ObjectId
-): Promise<void> {
+export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
   const {
     session,
     feedback,
@@ -70,8 +68,8 @@ export async function prepareSessionProcessors(
 
 // registered as listener on feedback-saved
 export async function prepareFeedbackProcessors(
-  sessionId: Types.ObjectId,
-  feedbackId: Types.ObjectId
+  sessionId: Ulid,
+  feedbackId: Ulid
 ): Promise<void> {
   const {
     session,
@@ -90,15 +88,13 @@ export async function prepareFeedbackProcessors(
 }
 
 // registered as listener on session-reported
-export async function prepareReportProcessors(
-  sessionId: Types.ObjectId
-): Promise<void> {
+export async function prepareReportProcessors(sessionId: Ulid): Promise<void> {
   const {
     session,
     feedback,
     studentUSM,
     volunteerUSM,
-  } = await getValuesToPrepareMetrics(asObjectId(sessionId))
+  } = await getValuesToPrepareMetrics(asString(sessionId))
   const payload = await prepareMetrics(
     REPORT_METRICS_PROCESSORS,
     session,
@@ -110,29 +106,29 @@ export async function prepareReportProcessors(
 }
 
 export async function getValuesToPrepareMetrics(
-  sessionId: Types.ObjectId,
-  feedbackId?: Types.ObjectId
+  sessionId: Ulid,
+  feedbackId?: Ulid
 ): Promise<{
   session: Session
-  feedback?: FeedbackVersionTwo
+  feedback?: Feedback
   studentUSM: UserSessionMetrics
   volunteerUSM?: UserSessionMetrics
 }> {
   const session = await getSessionById(sessionId)
   const feedback = feedbackId
-    ? ((await getFeedbackById(feedbackId)) as FeedbackVersionTwo)
+    ? ((await getFeedbackById(feedbackId)) as Feedback)
     : undefined
   const uvd = { session, feedback } as UpdateValueData
 
-  const studentUSM = await getUSMByUserId(uvd.session.student as Types.ObjectId)
+  const studentUSM = await getUSMByUserId(uvd.session.studentId)
   if (!studentUSM)
-    throw new Error(`Could not find USM for student ${uvd.session.student}`)
+    throw new Error(`Could not find USM for student ${uvd.session.studentId}`)
   let volunteerUSM: UserSessionMetrics | undefined
-  if (uvd.session.volunteer) {
-    volunteerUSM = await getUSMByUserId(uvd.session.volunteer as Types.ObjectId)
+  if (uvd.session.volunteerId) {
+    volunteerUSM = await getUSMByUserId(uvd.session.volunteerId)
     if (!volunteerUSM)
       throw new Error(
-        `Could not find USM for volunteer ${uvd.session.volunteer}`
+        `Could not find USM for volunteer ${uvd.session.volunteerId}`
       )
   }
 
@@ -145,13 +141,14 @@ export async function getValuesToPrepareMetrics(
 }
 
 export async function prepareMetrics(
-  metrics: MetricProcessor<MetricType>[],
+  metrics: MetricProcessor[],
   session: Session,
   studentUSM: UserSessionMetrics,
-  feedback?: FeedbackVersionTwo,
+  feedback?: Feedback,
   volunteerUSM?: UserSessionMetrics
 ): Promise<MetricProcessorPayload> {
-  const uvd = { session, feedback }
+  const messages = await getMessagesForFrontend(session.id)
+  const uvd = { session, feedback, messages }
 
   const outputs: MetricProcessorOutputs = {}
   for (const metric of metrics) {
@@ -186,8 +183,8 @@ export async function prepareMetrics(
  * @returns {function} metric processor event handler function
  */
 export function metricProcessorFactory<T>(
-  processors: { [key: string]: MetricProcessor<MetricType> },
-  opName: keyof MetricProcessor<MetricType>,
+  processors: { [key: string]: MetricProcessor },
+  opName: keyof MetricProcessor,
   reduce: (acc: any[]) => T,
   fn: (val: T, session: Session) => Promise<void>
 ): (payload: MetricProcessorPayload) => Promise<void> {
@@ -208,7 +205,7 @@ export function metricProcessorFactory<T>(
           studentUSM,
           volunteerUSM,
           value: outputs[key as keyof MetricProcessorOutputs],
-        } as ProcessorData<MetricType>
+        } as ProcessorData
         try {
           acc.push(await (processor[opName] as Function)(processorData))
         } catch (err) {
@@ -233,10 +230,10 @@ export const processSessionFlags = metricProcessorFactory(
   (acc: USER_SESSION_METRICS[]): USER_SESSION_METRICS[] => acc.flat(),
   async (flags: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
-      await updateSessionFlagsById(session._id as Types.ObjectId, flags)
-      emitter.emit(SESSION_EVENTS.SESSION_FLAGS_SET, session._id.toString())
+      await updateSessionFlagsById(session.id, flags)
+      emitter.emit(SESSION_EVENTS.SESSION_FLAGS_SET, session.id)
     } catch (err) {
-      throw new Error(`failed to set flags for session ${session._id} - ${err}`)
+      throw new Error(`failed to set flags for session ${session.id} - ${err}`)
     }
   }
 )
@@ -248,10 +245,10 @@ export const processFeedbackFlags = metricProcessorFactory(
   (acc: USER_SESSION_METRICS[]): USER_SESSION_METRICS[] => acc.flat(),
   async (flags: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
-      await updateSessionFlagsById(session._id as Types.ObjectId, flags)
-      emitter.emit(SESSION_EVENTS.FEEDBACK_FLAGS_SET, session._id.toString())
+      await updateSessionFlagsById(session.id, flags)
+      emitter.emit(SESSION_EVENTS.FEEDBACK_FLAGS_SET, session.id)
     } catch (err) {
-      throw new Error(`failed to set flags for session ${session._id} - ${err}`)
+      throw new Error(`failed to set flags for session ${session.id} - ${err}`)
     }
   }
 )
@@ -263,10 +260,10 @@ export const processReportFlags = metricProcessorFactory(
   (acc: USER_SESSION_METRICS[]): USER_SESSION_METRICS[] => acc.flat(),
   async (flags: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
-      await updateSessionFlagsById(session._id as Types.ObjectId, flags)
-      emitter.emit(SESSION_EVENTS.REPORT_FLAGS_SET, session._id.toString())
+      await updateSessionFlagsById(session.id, flags)
+      emitter.emit(SESSION_EVENTS.REPORT_FLAGS_SET, session.id)
     } catch (err) {
-      throw new Error(`failed to set flags for session ${session._id} - ${err}`)
+      throw new Error(`failed to set flags for session ${session.id} - ${err}`)
     }
   }
 )
@@ -279,18 +276,15 @@ export const processSessionReviewReasons = metricProcessorFactory(
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
       if (reasons.length) {
-        await updateSessionReviewReasonsById(
-          session._id as Types.ObjectId,
-          reasons
-        )
+        await updateSessionReviewReasonsById(session.id, reasons)
         emitter.emit(
           SESSION_EVENTS.SESSION_REVIEW_REASONS_SET,
-          session._id.toString()
+          session.id.toString()
         )
       }
     } catch (err) {
       throw new Error(
-        `failed to set review reason for session ${session._id} - ${err}`
+        `failed to set review reason for session ${session.id} - ${err}`
       )
     }
   }
@@ -304,18 +298,15 @@ export const processFeedbackReviewReasons = metricProcessorFactory(
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
       if (reasons.length) {
-        await updateSessionReviewReasonsById(
-          session._id as Types.ObjectId,
-          reasons
-        )
+        await updateSessionReviewReasonsById(session.id, reasons)
         emitter.emit(
           SESSION_EVENTS.FEEDBACK_REVIEW_REASONS_SET,
-          session._id.toString()
+          session.id.toString()
         )
       }
     } catch (err) {
       throw new Error(
-        `failed to set review reason for session ${session._id} - ${err}`
+        `failed to set review reason for session ${session.id} - ${err}`
       )
     }
   }
@@ -329,18 +320,15 @@ export const processReportReviewReasons = metricProcessorFactory(
   async (reasons: USER_SESSION_METRICS[], session: Session): Promise<void> => {
     try {
       if (reasons.length) {
-        await updateSessionReviewReasonsById(
-          session._id as Types.ObjectId,
-          reasons
-        )
+        await updateSessionReviewReasonsById(session.id, reasons)
         emitter.emit(
           SESSION_EVENTS.REPORT_REVIEW_REASONS_SET,
-          session._id.toString()
+          session.id.toString()
         )
       }
     } catch (err) {
       throw new Error(
-        `failed to set review reason for session ${session._id} - ${err}`
+        `failed to set review reason for session ${session.id} - ${err}`
       )
     }
   }
@@ -357,13 +345,10 @@ export const processStudentUpdateQuery = metricProcessorFactory(
     session: Session
   ): Promise<void> => {
     try {
-      await executeUSMUpdatesByUserId(
-        session.student as Types.ObjectId,
-        updates
-      )
+      await executeUSMUpdatesByUserId(session.studentId, updates)
     } catch (err) {
       throw new Error(
-        `failed to update USM for user ${session.student as Types.ObjectId} - ${err}`
+        `failed to update USM for user ${session.studentId} - ${err}`
       )
     }
   }
@@ -380,14 +365,11 @@ export const processVolunteerUpdateQuery = metricProcessorFactory(
     session: Session
   ): Promise<void> => {
     try {
-      if (session.volunteer)
-        await executeUSMUpdatesByUserId(
-          session.volunteer as Types.ObjectId,
-          updates
-        )
+      if (session.volunteerId)
+        await executeUSMUpdatesByUserId(session.volunteerId, updates)
     } catch (err) {
       throw new Error(
-        `failed to update USM for user ${session.volunteer as Types.ObjectId} - ${err}`
+        `failed to update USM for user ${session.volunteerId} - ${err}`
       )
     }
   }
@@ -403,7 +385,7 @@ export const processTriggerMetricActions = metricProcessorFactory(
     results.forEach(result => {
       if (result.status === 'rejected')
         logger.error(
-          `failed to trigger side effect action for session: ${session._id} - error: ${result.reason}`
+          `failed to trigger side effect action for session: ${session.id} - error: ${result.reason}`
         )
     })
   }

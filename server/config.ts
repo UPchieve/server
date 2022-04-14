@@ -65,6 +65,7 @@ const config: Static<typeof Config> = {
     studentOnboardingWelcomeTemplate: 'd-dba390e0c99545d4b18135d869046f50',
     reportedSessionAlertTemplate: 'd-fe338f96339445279c3fa6580fabc286',
     referenceFormTemplate: 'd-122f9c9953144e62b1f66411b8e85723',
+    referenceFormApologyTemplate: 'd-c58366cf25364feb8ac734da60fa298c',
     approvedNotOnboardedTemplate: 'd-2c7a974fc7084a9eaaa152f3498cc99d',
     openReadyToCoachTemplate: 'd-09ec01c51be54c108b7fae4481acfd38',
     partnerReadyToCoachTemplate: 'd-d2ba9920683b4bd4a159f496a2346583',
@@ -112,7 +113,8 @@ const config: Static<typeof Config> = {
     volunteerAbsentWarningTemplate: 'd-7458c9322ae747c78b90bd93e27b9269',
     volunteerAbsentStudentApologyTemplate: 'd-e45797aba9d04bb29a9745988a52fc1f',
     failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
-    // @\TODO: get template id
+    failedFirstAttemptedTrainingTemplate: 'd-5bf050b4faed477fb84c11557532027f',
+    // TODO: get template id
     techIssueApologyTemplate: '',
     unsubscribeGroup: {
       newsletter: 12567,
@@ -186,7 +188,7 @@ const config: Static<typeof Config> = {
     },
   },
   client: {
-    host: process.env.SUBWAY_CLIENT_HOST || 'localhost:8080',
+    host: process.env.SUBWAY_CLIENT_HOST || 'localhost:3000',
   },
   apiPort: Number(process.env.SUBWAY_API_PORT) || 3000,
   socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3001,
@@ -194,12 +196,8 @@ const config: Static<typeof Config> = {
 
   socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
 
-  volunteerPartnerManifestPath:
-    process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFEST_PATH ||
-    'localManifests/volunteer.yaml',
-
   customVolunteerPartnerOrgs: (
-    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'bogus'
+    process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'big-telecom'
   ).split(','),
   priorityMatchingPartnerOrgs: (
     process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus'
@@ -208,20 +206,8 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus'
   ).split(','),
   customAnalyticsReportPartnerOrgs: (
-    process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'bogus'
+    process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'big-telecom'
   ).split(','),
-
-  studentPartnerManifestPath:
-    process.env.SUBWAY_STUDENT_PARTNER_MANIFEST_PATH ||
-    'localManifests/student.yaml',
-
-  sponsorOrgManifestPath:
-    process.env.SUBWAY_SPONSOR_ORG_MANIFEST_PATH ||
-    'localManifests/sponsor-orgs.yaml',
-
-  associatedPartnerManifestPath:
-    process.env.SUBWAY_ASSOCIATED_PARTNER_MANIFESTS ||
-    'localManifests/associated-partners.yaml',
 
   clusterServerAddress:
     process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',
@@ -277,11 +263,12 @@ const config: Static<typeof Config> = {
   redisHost,
   redisPort,
   redisPassword,
-  postgresHost: process.env.SUBWAY_PORTGRES_HOST || 'localhost',
-  postgresPort: Number(process.env.SUBWAY_PORTGRES_PORT || 5432),
-  postgresUser: process.env.SUBWAY_PORTGRES_USER || 'subway',
-  postgresPassword: process.env.SUBWAY_PORTGRES_PASSWORD || 'bogus',
-  postgresDatabase: process.env.SUBWAY_PORTGRES_DB || 'upchieve',
+  postgresHost: process.env.SUBWAY_POSTGRES_HOST || 'localhost',
+  postgresPort: Number(process.env.SUBWAY_POSTGRES_PORT || 5432),
+  postgresUser: process.env.SUBWAY_POSTGRES_USER || 'subway',
+  postgresPassword: process.env.SUBWAY_POSTGRES_PASSWORD || 'Password123',
+  postgresDatabase: process.env.SUBWAY_POSTGRES_DB || 'upchieve',
+  postgresRequireSSL: Boolean(process.env.SUBWAY_POSTGRES_REQUIRE_SSL || false),
   firebase: {
     projectId: process.env.SUBWAY_FIREBASE_PROJECT_ID || '123456789012',
   },
@@ -352,6 +339,8 @@ const config: Static<typeof Config> = {
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
   favoriteVolunteerLimit:
     Number(process.env.SUBWAY_FAVORITE_VOLUNTEER_LIMIT) || 20,
+  eligibleIncomeThreshold:
+    Number(process.env.SUBWAY_ELIGIBLE_INCOME_THRESHOLD) || 60000,
 }
 
 module.exports = config

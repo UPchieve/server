@@ -1,17 +1,13 @@
 import 'newrelic'
 import logger from './logger'
 import { setTimeout } from 'timers/promises'
-import { Mongoose } from 'mongoose'
 import { promisify } from 'util'
 import { getConnections } from './server-setup'
 import { Server } from 'http'
 import { Server as SocketServer } from 'socket.io'
+import { Pool } from 'pg'
 
-function gracefulShutdown(
-  server: Server,
-  dbConn: Mongoose,
-  ioServer: SocketServer
-) {
+function gracefulShutdown(server: Server, pool: Pool, ioServer: SocketServer) {
   const shutDownSocketServer = promisify(ioServer.close).bind(ioServer)
 
   return async function(signal: string) {
@@ -29,7 +25,7 @@ function gracefulShutdown(
 
       // allow time for events to finish processing and making db calls before exiting
       await setTimeout(5000)
-      await dbConn.disconnect()
+      await pool.end()
       process.exit(0)
     })
 
@@ -53,10 +49,10 @@ function gracefulShutdown(
 
 export function registerGracefulShutdownListeners(
   server: Server,
-  dbConn: Mongoose,
+  pool: Pool,
   ioServer: SocketServer
 ) {
-  const shutdown = gracefulShutdown(server, dbConn, ioServer)
+  const shutdown = gracefulShutdown(server, pool, ioServer)
   process.on('SIGTERM', shutdown)
   process.on('SIGINT', shutdown)
   process.on('SIGQUIT', shutdown)

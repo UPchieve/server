@@ -1,29 +1,26 @@
-import { Types } from 'mongoose'
+import { Ulid } from '../models/pgUtils'
 import { captureException } from '@sentry/node'
-import base64url from 'base64url'
-import { getUserByReferralCode } from '../models/User/queries'
-import StudentModel, { Student } from '../models/Student'
-import VolunteerModel, { Certifications, Volunteer } from '../models/Volunteer'
+import * as USMRepo from '../models/UserSessionMetrics'
+import * as UPFRepo from '../models/UserProductFlags'
+import * as UserRepo from '../models/User'
+import * as StudentRepo from '../models/Student'
+import * as VolunteerRepo from '../models/Volunteer'
+import * as UserActionRepo from '../models/UserAction'
+import { Certifications } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
-import { createUSMByUserId } from '../models/UserSessionMetrics/queries'
-import { createUPFByUserId } from '../models/UserProductFlags/queries'
-import { AccountActionCreator } from './UserActionCtrl'
-import { createSnapshotByVolunteerId } from '../models/Availability/queries'
 import { hashPassword } from '../utils/auth-utils'
 import { emitter } from '../services/EventsService'
-import { STUDENT_EVENTS } from '../constants'
-
-function generateReferralCode(userId: Types.ObjectId) {
-  return base64url(Buffer.from(userId.toString(), 'hex'))
-}
+import { ACCOUNT_USER_ACTIONS, STUDENT_EVENTS } from '../constants'
 
 export async function checkReferral(
   referredByCode: string | undefined
-): Promise<Types.ObjectId | undefined> {
+): Promise<Ulid | undefined> {
   if (referredByCode) {
     try {
-      const user = await getUserByReferralCode(referredByCode)
-      if (user) return user._id
+      const user = await UserRepo.getUserContactInfoByReferralCode(
+        referredByCode
+      )
+      if (user) return user.id
     } catch (error) {
       captureException(error)
     }
@@ -32,91 +29,93 @@ export async function checkReferral(
 
 // TODO: duck type validation - studentData payload
 export async function createStudent(
-  studentData: Partial<Student> & Pick<Student, 'email' | 'password'>,
+  studentData: StudentRepo.CreateStudentPayload,
   ip: string
-): Promise<Student> {
+): Promise<StudentRepo.CreatedStudent> {
   studentData.password = await hashPassword(studentData.password)
-  // TODO: repo pattern
-  const student = new StudentModel(studentData)
-  student.referralCode = generateReferralCode(student._id)
-
-  await student.save()
+  // replace with createStudent
+  const student = await StudentRepo.createStudent(studentData)
 
   // Create a USM object for this new user
   try {
-    await createUSMByUserId(student._id)
+    await USMRepo.createUSMByUserId(student.id)
   } catch (err) {
     captureException(err)
   }
 
   // Create a UPF object for this new user
   try {
-    await createUPFByUserId(student._id)
+    await UPFRepo.createUPFByUserId(student.id)
   } catch (err) {
     captureException(err)
   }
 
   try {
-    await new AccountActionCreator(student._id, ip).createdAccount()
+    await UserActionRepo.createAccountAction({
+      action: ACCOUNT_USER_ACTIONS.CREATED,
+      userId: student.id,
+      ipAddress: ip,
+    })
   } catch (err) {
     captureException(err)
   }
 
   try {
-    await createContact(student)
+    await createContact(student.id)
   } catch (err) {
     captureException(err)
   }
 
-  emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, student._id)
+  emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, student.id)
 
-  return student.toObject()
+  return student
 }
 
 // TODO: duck type validation - volunteerData payload
 export async function createVolunteer(
-  volunteerData: Partial<Volunteer> & Pick<Volunteer, 'email' | 'password'>,
+  volunteerData: VolunteerRepo.CreateVolunteerPayload,
   ip: string
-): Promise<Volunteer> {
+): Promise<VolunteerRepo.CreatedVolunteer> {
   volunteerData.password = await hashPassword(volunteerData.password)
-  // TODO: repo pattern
-  const volunteer = new VolunteerModel(volunteerData)
-  volunteer.referralCode = generateReferralCode(volunteer.id)
-
-  await Promise.all([
-    volunteer.save(),
-    createSnapshotByVolunteerId(volunteer._id),
-  ])
+  // Replaced by VolunteerRepo.createVolunteer
+  const volunteer = await VolunteerRepo.createVolunteer(volunteerData)
 
   // Create a USM object for this new user
   try {
-    await createUSMByUserId(volunteer._id)
+    await USMRepo.createUSMByUserId(volunteer.id)
   } catch (err) {
     captureException(err)
   }
 
   // Create a UPF object for this new user
   try {
-    await createUPFByUserId(volunteer._id)
+    await UPFRepo.createUPFByUserId(volunteer.id)
   } catch (err) {
     captureException(err)
   }
 
   try {
-    await new AccountActionCreator(volunteer._id, ip).createdAccount()
+    await UserActionRepo.createAccountAction({
+      action: ACCOUNT_USER_ACTIONS.CREATED,
+      userId: volunteer.id,
+      ipAddress: ip,
+    })
   } catch (err) {
     captureException(err)
   }
 
   try {
-    await createContact(volunteer)
+    // needs id, firstname, lastname, email, isvolunteer, banned, testuser, admin, deactivated, createdat
+    await createContact(volunteer.id)
   } catch (err) {
     captureException(err)
   }
 
-  return volunteer.toObject()
+  // needs to return id and partner org for frontend
+  return volunteer
 }
 
+// TODO: I think we can nuke this pending reportutils finalization
 export function isCertified(certifications: Certifications): boolean {
   let isCertified = false
 

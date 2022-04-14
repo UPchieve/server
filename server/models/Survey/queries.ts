@@ -1,51 +1,67 @@
-import { Types } from 'mongoose'
-import SurveyModel, { Survey } from './index'
-import { SURVEY_TYPES } from '../../constants'
-import { RepoReadError, RepoCreateError } from '../Errors'
+import { getClient } from '../../db'
+import { RepoCreateError, RepoReadError } from '../Errors'
+import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
+import * as pgQueries from './pg.queries'
+import { Survey } from './types'
+import { fixNumberInt } from '../../utils/fix-number-int'
+
+export type SurveyQueryResult = Omit<Survey, 'responseData'> & {
+  responseData: pgQueries.Json
+}
+
+// parse a query result containing `responseData` from JSON to an object
+export function parseQueryResult(result: SurveyQueryResult): Survey {
+  const responseData =
+    typeof result.responseData === 'string'
+      ? JSON.parse(result.responseData)
+      : result.responseData
+
+  return { ...result, responseData: fixNumberInt(responseData) }
+}
 
 export async function savePresessionSurvey(
-  userId: Types.ObjectId,
-  sessionId: Types.ObjectId,
+  userId: Ulid,
+  sessionId: Ulid,
   responseData: object
 ): Promise<Survey> {
   try {
-    const survey = await SurveyModel.findOneAndUpdate(
+    const result = await pgQueries.savePresessionSurvey.run(
       {
-        session: sessionId,
-        user: userId,
-        surveyType: SURVEY_TYPES.STUDENT_PRESESSION,
+        id: getDbUlid(),
+        userId,
+        sessionId,
+        responseData: JSON.stringify(responseData),
       },
-      {
-        session: sessionId,
-        user: userId,
-        surveyType: SURVEY_TYPES.STUDENT_PRESESSION,
-        responseData: responseData,
-      },
-      { new: true, upsert: true }
+      getClient()
     )
-      .lean()
-      .exec()
-    if (!survey) throw new RepoCreateError('Error upserting presession survey')
-    return survey as Survey
+    if (result.length) {
+      const survey = makeRequired(result[0])
+      return parseQueryResult(survey)
+    }
+    throw new RepoCreateError('Error upserting presession survey')
   } catch (err) {
     throw new RepoCreateError(err)
   }
 }
 
+// NOTE: this query can be replaced by a JOIN that happens when we fetch
+// the session on the feedback page
 export async function getPresessionSurvey(
-  session: Types.ObjectId,
-  user: Types.ObjectId,
-  surveyType?: SURVEY_TYPES
+  userId: Ulid,
+  sessionId: Ulid
 ): Promise<Survey | undefined> {
   try {
-    const survey = await SurveyModel.findOne({
-      session,
-      user,
-      surveyType,
-    })
-      .lean()
-      .exec()
-    if (survey) return survey as Survey
+    const result = await pgQueries.getPresessionSurvey.run(
+      {
+        userId,
+        sessionId,
+      },
+      getClient()
+    )
+    if (result.length) {
+      const survey = makeRequired(result[0])
+      return parseQueryResult(survey)
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }

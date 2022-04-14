@@ -27,6 +27,7 @@ export const Config = Record({
     studentOnboardingWelcomeTemplate: String,
     reportedSessionAlertTemplate: String,
     referenceFormTemplate: String,
+    referenceFormApologyTemplate: String,
     approvedNotOnboardedTemplate: String,
     openReadyToCoachTemplate: String,
     partnerReadyToCoachTemplate: String,
@@ -69,6 +70,7 @@ export const Config = Record({
     volunteerAbsentWarningTemplate: String,
     volunteerAbsentStudentApologyTemplate: String,
     failedFirstAttemptedQuizTemplate: String,
+    failedFirstAttemptedTrainingTemplate: String,
     techIssueApologyTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
@@ -124,14 +126,10 @@ export const Config = Record({
   socketsPort: Number,
   featureFlagPort: Number,
   socketApiKey: String,
-  volunteerPartnerManifestPath: String,
   customVolunteerPartnerOrgs: Array(String),
   priorityMatchingPartnerOrgs: Array(String),
   priorityMatchingSponsorOrgs: Array(String),
   customAnalyticsReportPartnerOrgs: Array(String),
-  studentPartnerManifestPath: String,
-  sponsorOrgManifestPath: String,
-  associatedPartnerManifestPath: String,
 
   clusterServerAddress: String,
 
@@ -167,6 +165,7 @@ export const Config = Record({
   postgresUser: String,
   postgresPassword: String,
   postgresDatabase: String,
+  postgresRequireSSL: Boolean,
   firebase: Record({
     projectId: String,
   }),
@@ -212,4 +211,5 @@ export const Config = Record({
   fileWorkRootPath: String,
   ipWhoIsApiKey: String,
   favoriteVolunteerLimit: Number,
+  eligibleIncomeThreshold: Number,
 })

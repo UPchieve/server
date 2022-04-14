@@ -7,8 +7,8 @@ import { findSchoolByUpchieveId } from '../../models/School/queries'
 import { getZipCodeByZipCode } from '../../models/ZipCode/queries'
 import {
   getIneligibleStudentByEmail,
-  createIneligibleStudent,
   getIneligibleStudentsPaginated,
+  insertIneligibleStudent,
 } from '../../models/IneligibleStudent/queries'
 import { resError } from '../res-error'
 import * as IpAddressService from '../../services/IpAddressService'
@@ -18,11 +18,10 @@ import {
   asString,
   asEnum,
   asOptional,
-  asObjectId,
+  asUlid,
   asBoolean,
 } from '../../utils/type-utils'
 import { GRADES } from '../../constants'
-import SchoolModel from '../../models/School'
 
 interface CheckEligibilityPayload {
   schoolUpchieveId: string
@@ -73,13 +72,13 @@ export function routes(app: Express) {
 
       if (!isStudentEligible) {
         const referredBy = await UserCtrl.checkReferral(referredByCode)
-        await createIneligibleStudent(
+        await insertIneligibleStudent(
           email,
+          school?.id,
           zipCodeInput,
-          school?._id,
-          req.ip,
+          currentGrade,
           referredBy,
-          currentGrade
+          req.ip
         )
       }
 
@@ -98,7 +97,7 @@ export function routes(app: Express) {
     const { q } = req.query
 
     try {
-      const results = await SchoolService.search(q)
+      const results = await SchoolService.search(q as string)
       res.json({
         results: results,
       })
@@ -107,39 +106,19 @@ export function routes(app: Express) {
     }
   })
 
-  // Paginate eligible high schools (admins only)
-  router
-    .route('/school/findeligible')
-    .all(authPassport.isAdmin)
-    .get(async function(req, res) {
-      try {
-        // TODO: repo pattern
-        const eligibleSchools = await SchoolModel.find(
-          {
-            isApproved: true,
-          },
-          null,
-          {
-            limit: req.query.limit ? parseInt(req.query.limit as string) : 0,
-            skip: req.query.skip ? parseInt(req.query.skip as string) : 0,
-          }
-        )
-          .lean()
-          .exec()
-        res.json({ eligibleSchools })
-      } catch (err) {
-        resError(res, err)
-      }
-    })
-
   router.get('/school/:schoolId', authPassport.isAdmin, async function(
     req,
     res
   ) {
     try {
-      const schoolId = asObjectId(req.params.schoolId)
+      const schoolId = asUlid(req.params.schoolId)
       const school = await SchoolService.getSchool(schoolId)
-      res.json({ school })
+      res.json({
+        school: {
+          _id: school.id,
+          ...school,
+        },
+      })
     } catch (err) {
       resError(res, err)
     }
@@ -149,7 +128,7 @@ export function routes(app: Express) {
     res
   ) {
     try {
-      const schoolId = asObjectId(req.params.schoolId)
+      const schoolId = asUlid(req.params.schoolId)
       await SchoolService.adminUpdateSchool({
         schoolId,
         ...req.body,
@@ -174,7 +153,7 @@ export function routes(app: Express) {
   router.post('/school/new', authPassport.isAdmin, async function(req, res) {
     try {
       const school = await SchoolService.createSchool(req.body as unknown)
-      res.json({ schoolId: school._id })
+      res.json({ schoolId: school.id })
     } catch (err) {
       resError(res, err)
     }
@@ -185,7 +164,7 @@ export function routes(app: Express) {
     res
   ) {
     try {
-      const schoolId = asObjectId(req.body.schoolId)
+      const schoolId = asUlid(req.body.schoolId)
       const isApproved = asBoolean(req.body.isApproved)
       await SchoolService.updateApproval(schoolId, isApproved)
       res.sendStatus(200)
@@ -200,7 +179,7 @@ export function routes(app: Express) {
     res
   ) {
     try {
-      const schoolId = asObjectId(req.body.schoolId)
+      const schoolId = asUlid(req.body.schoolId)
       const isPartner = asBoolean(req.body.isPartner)
       await SchoolService.updateIsPartner(schoolId, isPartner)
       res.sendStatus(200)
@@ -215,11 +194,15 @@ export function routes(app: Express) {
     res
   ) {
     try {
+      const PER_PAGE = 15
+
       const page = req.query.page ? parseInt(req.query.page as string) : 1
-      const {
-        ineligibleStudents,
-        isLastPage,
-      } = await getIneligibleStudentsPaginated(page)
+      const skip = (page - 1) * PER_PAGE
+      const ineligibleStudents = await getIneligibleStudentsPaginated(
+        PER_PAGE,
+        skip
+      )
+      const isLastPage = ineligibleStudents.length < PER_PAGE
 
       res.json({ ineligibleStudents, isLastPage })
     } catch (err) {

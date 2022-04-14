@@ -1,7 +1,7 @@
 import { Express, Router } from 'express'
 import * as UserService from '../../services/UserService'
 import { getVolunteerByReference } from '../../models/Volunteer/queries'
-import { asObjectId } from '../../utils/type-utils'
+import { asUlid } from '../../utils/type-utils'
 import { resError } from '../res-error'
 
 export function routes(app: Express): void {
@@ -9,25 +9,14 @@ export function routes(app: Express): void {
 
   router.post('/:referenceId/submit', async (req, res) => {
     try {
-      const referenceId = asObjectId(req.params.referenceId)
+      const referenceId = asUlid(req.params.referenceId)
       const { body: referenceFormData, ip } = req
-      const volunteer = await getVolunteerByReference(referenceId)
-      if (!volunteer) return res.sendStatus(404)
+      const result = await getVolunteerByReference(referenceId)
+      if (!result) return res.sendStatus(404)
+      const { volunteerId, referenceEmail } = result
 
-      const { references, _id: userId } = volunteer
-      let referenceEmail: string | undefined
-      for (const reference of references) {
-        // Some reference objects in database are broken/null so we must verify these fields exist
-        if (
-          reference._id &&
-          reference.email &&
-          reference._id.equals(referenceId)
-        )
-          referenceEmail = reference.email
-      }
-      if (!referenceEmail) return res.sendStatus(404)
       await UserService.saveReferenceForm(
-        userId,
+        volunteerId,
         referenceId,
         referenceEmail,
         referenceFormData as unknown,
@@ -41,9 +30,9 @@ export function routes(app: Express): void {
 
   router.get('/:referenceId', async (req, res) => {
     try {
-      const referenceId = asObjectId(req.params.referenceId)
-      const volunteer = await getVolunteerByReference(referenceId)
-      if (!volunteer) return res.sendStatus(404)
+      const referenceId = asUlid(req.params.referenceId)
+      const result = await getVolunteerByReference(referenceId)
+      if (!result) return res.sendStatus(404)
       res.sendStatus(200)
     } catch (err) {
       resError(res, err)

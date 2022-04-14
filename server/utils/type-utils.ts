@@ -1,5 +1,6 @@
-import { Types } from 'mongoose'
 import { InputError } from '../models/Errors'
+import { Ulid } from '../models/pgUtils'
+import { Uuid4, Exception } from 'id128'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
 
@@ -9,6 +10,11 @@ export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {
     if (s === undefined || s === null) return undefined
     return as(s, errMsg)
   }
+}
+
+export function asUlid(s: unknown, errMsg = ''): Ulid {
+  if (typeof s === 'string') return s as string
+  throw new InputError(`${errMsg} ${s} is not a string`)
 }
 
 // Primitive typechecks
@@ -38,7 +44,13 @@ export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
   return function(s: unknown, errMsg?: string): T[] {
     if (Array.isArray(s)) {
       const maybeT = s as T[]
-      if (maybeT.every(item => as(item, errMsg))) return maybeT as T[]
+      if (
+        maybeT.every(item => {
+          as(item, errMsg) // running `asFoo` validator will throw if it fails
+          return true
+        })
+      )
+        return maybeT as T[]
     }
     throw new InputError(`${errMsg} : ${s} is not an array of the given type`)
   }
@@ -52,26 +64,6 @@ export function asDate(s: unknown, errMsg?: string): Date {
 export function asFunction(s: unknown, errMsg?: string): Function {
   if (typeof s === 'function') return s as Function
   throw new InputError(`${errMsg} : ${s} is not a function`)
-}
-
-// Checks if arg is actual ObjectId OR coerces into objectId if possible
-export function asObjectId(s: unknown, errMsg?: string): Types.ObjectId {
-  if (s instanceof Types.ObjectId) return s as Types.ObjectId
-  else if (typeof s === 'string') {
-    try {
-      const x = new Types.ObjectId(s as string)
-      return x
-    } catch (err) {
-      throw new InputError(`${errMsg} : ${s} is not an ObjectId`)
-    }
-  }
-  throw new InputError(`${errMsg} : ${s} is not an ObjectId`)
-}
-
-export function asStringObjectId(s: unknown, errMsg?: string): string {
-  if (typeof s === 'string' && Types.ObjectId.isValid(s)) return s as string
-  else
-    throw new InputError(`${errMsg} : ${s} is not a string formatted ObjectId`)
 }
 
 export function asAny(s: unknown): any {
@@ -147,5 +139,17 @@ export function asUnion<T>(fns: ((s: unknown, errMsg?: string) => T)[]) {
       if (!isUnion) throw new Error(errors.join(', '))
     } else
       throw new InputError(`${errMsg} : ${fns} is not an array of validators`)
+  }
+}
+
+// helper to check if the incoming ID is a PG id or mongo id
+// TODO: remove once mongo ids are no longer stored in cached jobs
+export function isPgId(id: string): boolean {
+  try {
+    Uuid4.fromCanonical(id)
+    return true
+  } catch (err) {
+    if (err instanceof Exception.InvalidEncoding) return false
+    throw err
   }
 }

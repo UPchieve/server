@@ -72,6 +72,10 @@
           <div class="user-detail__section-title">School</div>
           <div>{{ schoolName }}</div>
         </div>
+        <div v-if="user.currentGrade" class="user-detail__section">
+          <div class="user-detail__section-title">Grade level</div>
+          <div>{{ user.currentGrade }}</div>
+        </div>
         <div v-if="user.zipCode" class="user-detail__section">
           <div class="user-detail__section-title">Zip code</div>
           <div>{{ user.zipCode }}</div>

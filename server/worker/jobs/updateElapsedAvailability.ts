@@ -5,12 +5,12 @@ import {
   updateVolunteerElapsedAvailabilityById,
 } from '../../models/Volunteer/queries'
 import { log } from '../logger'
-import { DAYS } from '../../models/Availability/types'
-import { getElapsedAvailability } from '../../services/AvailabilityService'
+import { DAYS } from '../../constants'
+import { getElapsedAvailabilityForDay } from '../../services/AvailabilityService'
 import {
-  getSnapshotByVolunteerId,
-  createHistoryFromBaseHistory,
-} from '../../models/Availability/queries'
+  getAvailabilityForVolunteer,
+  saveCurrentAvailabilityAsHistory,
+} from '../../models/Availability'
 import { Jobs } from '.'
 
 export default async (): Promise<void> => {
@@ -20,20 +20,15 @@ export default async (): Promise<void> => {
   const errors: string[] = []
 
   for (const volunteerId of volunteerIds) {
-    const availability = await getSnapshotByVolunteerId(volunteerId)
+    const availability = await getAvailabilityForVolunteer(volunteerId)
     if (!availability) return
 
-    const endOfYesterday = moment()
-      .utc()
-      .subtract(1, 'days')
-      .endOf('day')
-      .toDate()
     const yesterday = moment()
       .utc()
       .subtract(1, 'days')
       .format('dddd')
-    const availabilityDay = availability.onCallAvailability[yesterday as DAYS]
-    const elapsedAvailability = getElapsedAvailability(availabilityDay)
+    const availabilityDay = availability[yesterday as DAYS]
+    const elapsedAvailability = getElapsedAvailabilityForDay(availabilityDay)
 
     try {
       await updateVolunteerElapsedAvailabilityById(
@@ -47,14 +42,8 @@ export default async (): Promise<void> => {
       continue
     }
 
-    const newAvailabilityHistory = {
-      availability: availabilityDay,
-      volunteerId,
-      timezone: availability.timezone,
-      date: endOfYesterday,
-    }
     try {
-      await createHistoryFromBaseHistory(newAvailabilityHistory)
+      await saveCurrentAvailabilityAsHistory(volunteerId)
     } catch (error) {
       errors.push(
         `Volunteer ${volunteerId} updated availability but failed to create availability history: ${error}`

@@ -1,97 +1,16 @@
-import { Types } from 'mongoose'
-import { RepoReadError } from '../Errors'
-import UserActionModel, { UserAction, UserActionAgent } from '../UserAction'
-import { USER_ACTION } from '../../constants'
-
-// TODO: this should not be used - make a custom getter if pipeline is needed
-export async function getActionsWithPipeline(
-  pipeline: any
-): Promise<UserAction[]> {
-  return (await UserActionModel.aggregate(pipeline)) as UserAction[]
-}
-
-export async function getQuizzesPassedForDateRange(
-  volunteerId: Types.ObjectId,
-  fromDate: Date,
-  toDate: Date
-): Promise<UserAction[]> {
-  try {
-    return (await UserActionModel.find({
-      user: volunteerId,
-      createdAt: {
-        $gte: new Date(fromDate),
-        $lte: new Date(toDate),
-      },
-      action: USER_ACTION.QUIZ.PASSED,
-    })
-      .lean()
-      .exec()) as UserAction[]
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getSessionRequestedUserAgentFromSessionId(
-  sessionId: Types.ObjectId
-): Promise<UserActionAgent | undefined> {
-  try {
-    const doc = await UserActionModel.findOne({
-      session: sessionId,
-      action: USER_ACTION.SESSION.REQUESTED,
-    })
-      .select(
-        '-_id device browser browserVersion operatingSystem operatingSystemVersion'
-      )
-      .lean()
-      .exec()
-    if (!doc) return undefined
-    return {
-      device: doc.device,
-      browser: doc.browser,
-      browserVersion: doc.browserVersion,
-      operatingSystem: doc.operatingSystem,
-      operatingSystemVersion: doc.operatingSystemVersion,
-    } as UserActionAgent
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-// if a user has completed any quizzes they would have had to either pass or fail
-// so checking an or on that should tell us if they've ever finished a quiz before
-// this is used to determine if we should send them an email when they fail
-// which we only want to do if they've failed the first quiz they've ever attempted
-export async function userHasTakenQuiz(
-  userId: Types.ObjectId
-): Promise<boolean> {
-  try {
-    const docs: any[] = await UserActionModel.aggregate([
-      {
-        $match: {
-          $and: [
-            { user: userId },
-            {
-              $or: [
-                { action: USER_ACTION.QUIZ.PASSED },
-                { action: USER_ACTION.QUIZ.FAILED },
-              ],
-            },
-          ],
-        },
-      },
-    ]).exec()
-    return docs.length !== 0
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-// pg wrappers
-import { getClient } from '../../pg'
+import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeRequired } from '../pgUtils'
-
-const client = getClient()
+import { RepoReadError, RepoCreateError, RepoUpdateError } from '../Errors'
+import { UserActionAgent, QuizzesPassedForDateRange } from './types'
+import {
+  ACCOUNT_USER_ACTIONS,
+  QUIZ_USER_ACTIONS,
+  SESSION_USER_ACTIONS,
+  USER_ACTION_TYPES,
+} from '../../constants'
+import { getSubjectType } from '../../utils/getSubjectType'
+import { PoolClient } from 'pg'
 
 export async function getQuizzesPassedForDateRangeById(
   userId: Ulid,
@@ -99,9 +18,9 @@ export async function getQuizzesPassedForDateRangeById(
   end: Date
 ): Promise<number> {
   try {
-    const result = await pgQueries.getQuizzesPassedForDateRangeById.run(
+    const result = await pgQueries.getQuizzesPassedForDateRangeByVolunteerId.run(
       { userId, start, end },
-      client
+      getClient()
     )
     if (result.length) return makeRequired(result[0]).total
     return 0
@@ -110,13 +29,30 @@ export async function getQuizzesPassedForDateRangeById(
   }
 }
 
-export async function IgetSessionRequestedUserAgentFromSessionId(
+export async function getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
+  userId: Ulid,
+  start: Date,
+  end: Date
+): Promise<QuizzesPassedForDateRange[]> {
+  try {
+    const result = await pgQueries.getQuizzesPassedForDateRangeForTelecomReportByVolunteerId.run(
+      { userId, start, end },
+      getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSessionRequestedUserAgentFromSessionId(
   sessionId: Ulid
 ): Promise<UserActionAgent | undefined> {
   try {
     const result = await pgQueries.getSessionRequestedUserAgentFromSessionId.run(
       { sessionId },
-      client
+      getClient()
     )
     if (result.length) return makeRequired(result[0])
   } catch (err) {
@@ -124,12 +60,164 @@ export async function IgetSessionRequestedUserAgentFromSessionId(
   }
 }
 
-export async function IuserHasTakeQuiz(userId: Ulid): Promise<boolean> {
+export async function userHasTakenQuiz(userId: Ulid): Promise<boolean> {
   try {
-    const result = await pgQueries.userHasTakenQuiz.run({ userId }, client)
+    const result = await pgQueries.userHasTakenQuiz.run({ userId }, getClient())
     if (result.length) return makeRequired(result[0]).exists
     return false
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function upsertIpAddress(
+  ip: string,
+  poolClient?: PoolClient
+): Promise<Ulid> {
+  const client = poolClient ? poolClient : getClient()
+  try {
+    const result = await pgQueries.upsertIpAddress.run({ ip }, client)
+    if (!result.length) throw new Error('Error upserting IP address')
+    return makeRequired(result[0]).id
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+/*
+The following functions are differentiated, rather than having
+one "createUserAction" function because they take different,
+but consistent, arguments, per type of user action created.
+*/
+
+interface QuizActionParams {
+  action: QUIZ_USER_ACTIONS
+  quizSubcategory: string
+  userId: Ulid
+  ipAddress?: string
+}
+
+export async function createQuizAction(params: QuizActionParams) {
+  const client = await getClient().connect()
+  try {
+    let ip = undefined
+    if (params.ipAddress) ip = await upsertIpAddress(params.ipAddress, client)
+    const result = await pgQueries.createQuizAction.run(
+      {
+        action: params.action,
+        actionType: USER_ACTION_TYPES.QUIZ,
+        ipAddressId: ip,
+        quizCategory: getSubjectType(params.quizSubcategory).toUpperCase(),
+        quizSubcategory: (params.quizSubcategory as string).toUpperCase(),
+        userId: params.userId,
+      },
+      client
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of quiz user action did not return ok')
+  } catch (err) {
+    throw new RepoCreateError(err)
+  } finally {
+    client.release()
+  }
+}
+
+interface SessionActionParams {
+  action: SESSION_USER_ACTIONS
+  sessionId: Ulid
+  userId: Ulid
+  browser?: string
+  browserVersion?: string
+  device?: string
+  ipAddress?: string
+  operatingSystem?: string
+  operatingSystemVersion?: string
+}
+
+export async function createSessionAction(params: SessionActionParams) {
+  const client = await getClient().connect()
+  try {
+    let ip = undefined
+    if (params.ipAddress) ip = await upsertIpAddress(params.ipAddress, client)
+    const result = await pgQueries.createSessionAction.run(
+      {
+        action: params.action,
+        actionType: USER_ACTION_TYPES.SESSION,
+        browser: params.browser ? params.browser : null,
+        browserVersion: params.browserVersion ? params.browserVersion : null,
+        device: params.device ? params.device : null,
+        ipAddressId: ip,
+        operatingSystem: params.operatingSystem ? params.operatingSystem : null,
+        operatingSystemVersion: params.operatingSystemVersion
+          ? params.operatingSystemVersion
+          : null,
+        sessionId: params.sessionId,
+        userId: params.userId,
+      },
+      client
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of session user action did not return ok')
+  } catch (err) {
+    throw new RepoCreateError(err)
+  } finally {
+    client.release()
+  }
+}
+
+interface AccountActionParams {
+  action: ACCOUNT_USER_ACTIONS
+  userId: Ulid
+  ipAddress?: string
+  referenceEmail?: string
+  sessionId?: Ulid
+  volunteerId?: Ulid
+  banReason?: string
+}
+
+export async function createAccountAction(params: AccountActionParams) {
+  const client = await getClient().connect()
+  try {
+    let ip = undefined
+    if (params.ipAddress) ip = await upsertIpAddress(params.ipAddress, client)
+    const result = await pgQueries.createAccountAction.run(
+      {
+        action: params.action,
+        actionType: USER_ACTION_TYPES.ACCOUNT,
+        ipAddressId: ip,
+        referenceEmail: params.referenceEmail ? params.referenceEmail : null,
+        sessionId: params.sessionId ? params.sessionId : null,
+        userId: params.userId,
+        volunteerId: params.volunteerId ? params.volunteerId : null,
+        banReason: params.banReason ? params.banReason : null,
+      },
+      client
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of account user action did not return ok')
+  } catch (err) {
+    throw new RepoCreateError(err)
+  } finally {
+    client.release()
+  }
+}
+
+export async function createAdminAction(
+  action: ACCOUNT_USER_ACTIONS,
+  userId: Ulid
+) {
+  try {
+    const result = await pgQueries.createAdminAction.run(
+      {
+        action,
+        actionType: USER_ACTION_TYPES.ADMIN,
+        userId: userId,
+      },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('insertion of admin user action did not return ok')
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

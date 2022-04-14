@@ -1,5 +1,5 @@
 import { Express, Router } from 'express'
-import { MongoStore } from 'connect-mongo'
+import { PGStore } from 'connect-pg-simple'
 import expressWs from 'express-ws'
 import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
@@ -21,11 +21,7 @@ import { routeUser } from './user'
 import { routeProductFlags } from './product-flags'
 import { routeStudents } from './students'
 
-export function routes(
-  app: Express,
-  sessionStore: MongoStore,
-  io: Server
-): void {
+export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
 
   routeVolunteers(router)

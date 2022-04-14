@@ -4,12 +4,12 @@ const expressLayouts = require('express-ejs-layouts')
 
 import config from '../../config'
 import { authPassport } from '../../utils/auth-utils'
-import QuestionModel from '../../models/Question'
 import * as QuestionCtrl from '../../controllers/QuestionCtrl'
 import { questionsPath, isActivePage, frontEndPath } from './helpers'
 import logger from '../../logger'
 import path from 'path'
 import { asString } from '../../utils/type-utils'
+import * as QuestionRepo from '../../models/Question'
 
 const edu = express()
 edu.set('view engine', 'ejs')
@@ -57,14 +57,19 @@ edu.route('/questions').get(async (req, res) => {
 
     // question._id --> URL
     const imagePaths = questions.reduce((map: any, question) => {
-      map[question._id] = frontEndPath(
-        question.imageSrc,
+      map[question.id] = frontEndPath(
+        question.imageSrc || '',
         edu.locals.frontEndRoot
       )
       return map
     }, {})
 
-    res.render('edu/questions/index', { questions, isActive, imagePaths })
+    res.render('edu/questions/index', {
+      questions,
+      isActive,
+      imagePaths,
+      csrfToken: req.csrfToken(),
+    })
   } catch (error) {
     res.status(500).send(`<h1>Internal Server Error</h1> <pre>${error}</pre>`)
   }
@@ -76,7 +81,11 @@ edu.route('/questions/new').get((req, res) => {
     possibleAnswers: [{ val: 'a' }, { val: 'b' }, { val: 'c' }, { val: 'd' }],
   }
   const isActive = isActivePage(req)
-  res.render('edu/questions/new', { question, isActive })
+  res.render('edu/questions/new', {
+    question,
+    isActive,
+    csrfToken: req.csrfToken(),
+  })
 })
 
 const eduApi = express()
@@ -91,10 +100,11 @@ eduApi.post('/categoryquestions', async (req, res) => {
   const limit = req.body.limit
 
   try {
-    const questions = await QuestionModel.find({ category }, null, {
-      skip,
+    const questions = await QuestionRepo.getQuestionsByCategory(
+      category,
       limit,
-    }).exec()
+      skip
+    )
     res.status(200).json({ questions: questions })
   } catch (error) {
     res.status(422).json({ error: (error as Error).toString() })
@@ -115,7 +125,7 @@ eduApi.post('/questions', async (req, res) => {
 eduApi.put('/questions/:id', async (req, res) => {
   try {
     const updatedQuestion = await QuestionCtrl.update({
-      id: req.params.id,
+      id: Number(req.params.id),
       question: req.body.question,
     })
     res.status(200).json({ question: updatedQuestion })
@@ -127,8 +137,8 @@ eduApi.put('/questions/:id', async (req, res) => {
 // DELETE[JSON] /edu/questions/:id
 eduApi.delete('/questions/:id', async (req, res) => {
   try {
-    const question = await QuestionCtrl.destroy(asString(req.params.id))
-    res.status(200).json({ question: question })
+    await QuestionCtrl.destroyQuestion(Number(req.params.id))
+    res.status(200).json({ id: req.params.id })
   } catch (error) {
     res.status(422).json({ error })
   }

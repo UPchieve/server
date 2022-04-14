@@ -1,88 +1,113 @@
-import { Types } from 'mongoose'
 import _ from 'lodash'
 import { Ulid as ULID } from 'id128'
+import { v4 as UUID } from 'uuid'
 import { CustomError } from 'ts-custom-error'
+import base64url from 'base64url'
 
-type SingleNullToUndefined<T> = T extends null ? undefined : T
-type NullToUndefined<T> = { [K in keyof T]: SingleNullToUndefined<T[K]> }
-// only works for flat objects (no arrays/nesting)
-export function nullToUndefined<T>(obj: T): NullToUndefined<T> {
-  const r: any = {}
-  for (const key in obj) {
-    r[key] = obj[key] === null ? undefined : obj[key]
-  }
-  return r
+export function generateReferralCode(userId: Ulid): string {
+  return base64url(Buffer.from(userId, 'hex'))
 }
 
-type SingleOptional<T> = T | undefined
-// only works for flat objects (no arrays/nesting)
-export type Optional<T> = { [K in keyof T]: SingleOptional<T[K]> }
+/**
+ * pgTyped DOES NOT actually modify the incoming data to use camelCase keys even
+ * though it does do so for the return type. As such we must manually convert the
+ * keys to camelCase at runtime. This function is invoked at the start of
+ * makeRequired and makeSomeRequired which themselves are necessary for parsing
+ * incoming postgres data to convert null->undefined and, with the inclusion of
+ * this function, convert snake_case keys to camelCase keys.
+ *
+ * Note that the below types/functions only work for flat objects, i.e. no
+ * arrays or nesting. With SQL queries this should fit the return type anyways
+ */
+function camelCaseKeys(obj: any): any {
+  const temp: any = {}
+  for (const key in obj) {
+    temp[_.camelCase(key)] = obj[key]
+  }
+  return temp
+}
+
+export type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends <
+  T
+>() => T extends Y ? 1 : 2
+  ? true
+  : false
+type Filter<KeyType, ExcludeType> = Equals<KeyType, ExcludeType> extends true
+  ? never
+  : KeyType extends ExcludeType
+  ? never
+  : KeyType
+
+type Required<T> = T extends null ? never : T extends undefined ? never : T
+type SetRequired<BaseType, Keys extends keyof BaseType> = BaseType &
+  { [K in Keys]: Required<BaseType[K]> }
+
+type Optional<T> = T extends null ? undefined : T
+type SetOptional<BaseType, Keys extends keyof BaseType> = {
+  [K in Filter<keyof BaseType, Keys>]: Optional<BaseType[K]>
+} &
+  { [K in Keys]: Optional<BaseType[K]> }
 
 class UnexpectedNullError extends CustomError {}
-
-type SingleRequired<T> = T extends null
-  ? never
-  : T extends undefined
-  ? never
-  : T
-type OptionalToRequired<T> = { [K in keyof T]: SingleRequired<T[K]> }
-// only works for flat objects (no arrays/nesting)
-export function makeRequired<T>(obj: T): OptionalToRequired<T> {
-  for (const [key, value] of Object.entries(obj)) {
+export function makeRequired<T>(obj: T): SetRequired<T, keyof T> {
+  const temp = camelCaseKeys(obj)
+  for (const [key, value] of Object.entries(temp)) {
     if (value === null || value === undefined) {
       throw new UnexpectedNullError(
         `Key ${key} was unexpectedly null or undefined`
       )
     }
   }
-  return obj as OptionalToRequired<T>
+  return temp as SetRequired<T, keyof T>
 }
 
-type LValue = string | number | symbol
-type Remove<T extends LValue, U extends LValue> = ({ [P in T]: P } &
-  { [P in U]: never } & { [x: string]: never })[T]
-type ReplaceProperty<T, U> = { [P in Remove<keyof T, keyof U>]: T[P] } & U
-
-export function makeSomeRequired<T, U>(
+type ObjectLike = { [k: string]: any }
+export function makeSomeRequired<T extends ObjectLike, U extends keyof T>(
   obj: T,
-  optionals: U
-): ReplaceProperty<OptionalToRequired<T>, U> {
-  const temp: any = {}
-  for (const [key, value] of Object.entries(obj)) {
+  optionals: U[]
+): SetOptional<SetRequired<T, keyof T>, U> {
+  const temp = camelCaseKeys(obj)
+  for (const [key, value] of Object.entries(temp) as [keyof T, any]) {
     if (value === null || value === undefined) {
-      if (key in optionals) temp[key] = undefined
+      if (optionals.includes(key)) temp[key] = undefined
       else
         throw new UnexpectedNullError(
           `Key ${key} was unexpectedly null or undefined`
         )
     }
-    temp[key] = value
   }
-  return temp as ReplaceProperty<OptionalToRequired<T>, U>
+  return temp as SetOptional<SetRequired<T, keyof T>, U>
 }
 
-export function getDbUlid() {
+export function makeSomeOptional<T extends ObjectLike, U extends keyof T>(
+  obj: T,
+  requireds: U[]
+): SetRequired<SetOptional<T, keyof T>, U> {
+  const temp = camelCaseKeys(obj)
+  for (const [key, value] of Object.entries(temp) as [keyof T, any]) {
+    if (value === null || value === undefined) {
+      if (requireds.includes(key))
+        throw new UnexpectedNullError(
+          `Key ${key} was unexpectedly null or undefined`
+        )
+      temp[key] = undefined
+    }
+  }
+  return temp as SetRequired<SetOptional<T, keyof T>, U>
+}
+
+export function getDbUlid(): Ulid {
   return ULID.generate().toRaw()
 }
-//     type Mgid = Types.ObjectId  // mongoId
-export type Uuid = string // UUID
-export type Ulid = string // ULID
-export type Pgid = number // int4
-export type ObjectId = Types.ObjectId | Ulid | Pgid
-
-export function mongoId<T extends ObjectId>(id: T): Types.ObjectId {
-  if (Types.ObjectId.isValid(id)) return id as Types.ObjectId
-  else throw TypeError(`ObjectId ${id} is not a valid MongoId`)
+export function getUuid(): Uuid {
+  return UUID().toString()
+}
+export function getPgid(): Pgid {
+  return Math.floor(Math.random() * 8 ** 4) // int4
 }
 
-export type UlidOrPgid<T> = T extends Ulid
-  ? Ulid
-  : T extends Pgid
-  ? Pgid
-  : never
-
-export type AnyObjectId<T> = T extends Types.ObjectId
-  ? Types.ObjectId
-  : UlidOrPgid<T>
+export type Uuid = string // UUID
+export type Ulid = string // ULID
+export type Pgid = number // int4/8
 
 export type Subject = string

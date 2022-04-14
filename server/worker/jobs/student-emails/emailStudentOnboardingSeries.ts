@@ -3,7 +3,7 @@ import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { Jobs } from '../index'
-import { asObjectId } from '../../../utils/type-utils'
+import { asString } from '../../../utils/type-utils'
 
 interface WelcomeEmail {
   studentId: string
@@ -14,28 +14,28 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
     data: { studentId },
     name: currentJob,
   } = job
-  const student = await getStudentContactInfoById(asObjectId(studentId))
+  const student = await getStudentContactInfoById(asString(studentId))
 
   if (student) {
     try {
-      const { firstname, email } = student
+      const { firstName, email } = student
       if (
         currentJob === Jobs.EmailStudentOnboardingHowItWorks ||
         currentJob === Jobs.EmailStudentUseCases
       )
-        await MailService.sendStudentOnboardingHowItWorks(email, firstname)
+        await MailService.sendStudentOnboardingHowItWorks(email, firstName)
       if (currentJob === Jobs.EmailMeetOurVolunteers)
-        await MailService.sendMeetOurVolunteers(email, firstname)
+        await MailService.sendMeetOurVolunteers(email, firstName)
       if (
         currentJob === Jobs.EmailStudentOnboardingMission ||
         currentJob === Jobs.EmailIndependentLearning
       )
-        await MailService.sendStudentOnboardingMission(email, firstname)
+        await MailService.sendStudentOnboardingMission(email, firstName)
       if (
         currentJob === Jobs.EmailStudentOnboardingSurvey ||
         currentJob === Jobs.EmailStudentGoalSetting
       )
-        await MailService.sendStudentOnboardingSurvey(email, firstname)
+        await MailService.sendStudentOnboardingSurvey(email, firstName)
 
       log(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {
