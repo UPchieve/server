@@ -1221,7 +1221,12 @@ export async function updateVolunteerForAdmin(
     const userResult = await pgQueries.updateVolunteerUserForAdmin.run(
       {
         userId,
-        ...update,
+        firstName: update.firstName,
+        lastName: update.lastName,
+        email: update.email,
+        isVerified: update.isVerified,
+        isBanned: update.isBanned,
+        isDeactivated: update.isDeactivated
       },
       client
     )
@@ -1234,15 +1239,15 @@ export async function updateVolunteerForAdmin(
       client
     )
     if (
-      userResult.length &&
+      !(userResult.length &&
       profileResult.length &&
       makeRequired(userResult[0]).ok &&
-      makeRequired(profileResult[0]).ok
+      makeRequired(profileResult[0]).ok)
     )
       throw new RepoUpdateError('update query did not return ok')
     await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLlBACK')
+    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
   } finally {
     client.release()
