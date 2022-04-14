@@ -13,6 +13,7 @@ import { getDbUlid, NameToId } from '../utils'
 
 export const getFirstName = faker.name.firstName
 export const getEmail = faker.internet.email
+export const getPhone = faker.phone.phoneNumber
 
 export function buildUserIds(total: number) {
   const ids = []
@@ -40,7 +41,9 @@ export function buildStudent(
 }
 
 type StudentProfileOverrides = {
-  userId: string
+  userId: string,
+  studentPartnerOrgId?: string,
+  schoolId?: string
 } & Partial<IInsertStudentProfileParams>
 
 export function buildStudentProfile(
@@ -50,6 +53,7 @@ export function buildStudentProfile(
     {
       userId: overrides.userId,
       studentPartnerOrgId: undefined,
+      schoolId: undefined
     },
     overrides
   )
@@ -67,7 +71,7 @@ export function buildVolunteer(
       lastName: 'UPchieve',
       referralCode: getDbUlid(),
       verified: true,
-      // phone: '+12125551212',
+      phone: getPhone(),
       testUser: false,
       timeTutored: (7 * 60 * 60 * 1000).toString(),
     },
