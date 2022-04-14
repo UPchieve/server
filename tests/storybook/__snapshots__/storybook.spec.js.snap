@@ -1206,6 +1206,16 @@ exports[`Storyshots Example/Button Small 1`] = `
 </button>
 `;
 
+exports[`Storyshots Example/FavoritingToggle Vanilla 1`] = `
+<div>
+  <!---->
+   
+  <!---->
+   
+  <!---->
+</div>
+`;
+
 exports[`Storyshots Example/Header Logged In 1`] = `
 <header>
   <div

@@ -65,6 +65,7 @@ const config: Static<typeof Config> = {
     studentOnboardingWelcomeTemplate: 'd-dba390e0c99545d4b18135d869046f50',
     reportedSessionAlertTemplate: 'd-fe338f96339445279c3fa6580fabc286',
     referenceFormTemplate: 'd-122f9c9953144e62b1f66411b8e85723',
+    referenceFormApologyTemplate: 'd-c58366cf25364feb8ac734da60fa298c',
     approvedNotOnboardedTemplate: 'd-2c7a974fc7084a9eaaa152f3498cc99d',
     openReadyToCoachTemplate: 'd-09ec01c51be54c108b7fae4481acfd38',
     partnerReadyToCoachTemplate: 'd-d2ba9920683b4bd4a159f496a2346583',

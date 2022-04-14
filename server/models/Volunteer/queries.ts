@@ -493,8 +493,7 @@ export async function getInactiveVolunteers(
       inactiveNinetyDays: nineties,
     }
   } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
+    throw new RepoReadError(err)
   }
 }
 
@@ -810,6 +809,43 @@ export async function getVolunteersForEmailReference(): Promise<
 > {
   try {
     const result = await pgQueries.getVolunteerUnsentReferences.run(
+      undefined,
+      getClient()
+    )
+    const references = result.map(v => makeRequired(v))
+    const volunteers = await getVolunteerContactInfoByIds(
+      references.map(v => v.userId)
+    )
+    const map: VolunteerTypeMap<typeof references[number][]> = _.groupBy(
+      references,
+      v => v.userId
+    )
+    return volunteers.map(v => {
+      const references = []
+      for (const ref of map[v.id]) {
+        references.push({
+          id: ref.id,
+          firstName: ref.firstName,
+          lastName: ref.lastName,
+          email: ref.email,
+        })
+      }
+      return {
+        ...v,
+        references: references,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+// TODO: remove once job is executed
+export async function getVolunteersForEmailReferenceApology(): Promise<
+  VolunteersForEmailReference[]
+> {
+  try {
+    const result = await pgQueries.getReferencesForReferenceFormApology.run(
       undefined,
       getClient()
     )
@@ -1185,7 +1221,12 @@ export async function updateVolunteerForAdmin(
     const userResult = await pgQueries.updateVolunteerUserForAdmin.run(
       {
         userId,
-        ...update,
+        firstName: update.firstName,
+        lastName: update.lastName,
+        email: update.email,
+        isVerified: update.isVerified,
+        isBanned: update.isBanned,
+        isDeactivated: update.isDeactivated,
       },
       client
     )
@@ -1198,15 +1239,17 @@ export async function updateVolunteerForAdmin(
       client
     )
     if (
-      userResult.length &&
-      profileResult.length &&
-      makeRequired(userResult[0]).ok &&
-      makeRequired(profileResult[0]).ok
+      !(
+        userResult.length &&
+        profileResult.length &&
+        makeRequired(userResult[0]).ok &&
+        makeRequired(profileResult[0]).ok
+      )
     )
       throw new RepoUpdateError('update query did not return ok')
     await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLlBACK')
+    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
   } finally {
     client.release()

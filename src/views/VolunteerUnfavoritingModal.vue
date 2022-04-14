@@ -3,7 +3,7 @@
     <div class="unfavoriting-modal">
     <header>
       <h1 class="unfavoriting-modal-title">
-        Do you want to unfavorite <p class="unfavoriting-modal-coach">Coach {{ volunteerName }}?<p>
+        Do you want to unfavorite <p class="unfavoriting-modal-coach">Coach {{ volunteerName }}?</p>
       </h1>
     </header>   
     <footer>
@@ -25,7 +25,7 @@ export default {
   components: {Modal, LargeButton},
   props: {
     closeModal: { type: Function, required: true },
-    volunteerName: {type: String, required: true, default: 'Test'}
+    volunteerName: { type: String, required: true, default: '' }
   },
   methods: {
     unfavorite() {

@@ -203,16 +203,19 @@ export type UpdateFavoriteVolunteer = {
 }
 
 export async function getFavoriteVolunteers(
-  userId: Ulid,
+  studentId: Ulid,
   limit: number,
   offset: number
 ): Promise<FavoriteVolunteersResponse> {
   try {
-    const result = (await pgQueries.getFavoriteVolunteers.run(
-      { userId, limit, offset },
+    const result = await pgQueries.getFavoriteVolunteers.run(
+      { studentId, limit, offset },
       getClient()
-    )) as FavoriteVolunteer[]
-    return { favoriteVolunteers: result, isLastPage: result.length < limit }
+    )
+    return {
+      favoriteVolunteers: result.map(row => makeRequired(row)),
+      isLastPage: result.length < limit,
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }

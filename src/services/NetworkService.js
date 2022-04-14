@@ -662,4 +662,9 @@ export default {
       .get(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`)
       .then(this._successHandler, this._errorHandler)
   },
+  getFavoriteVolunteers(page) {
+    return Vue.http
+      .get(`${API_ROOT}/students/favorite-volunteers?page=${page}`)
+      .then(this._successHandler, this._errorHandler)
+  },
 }

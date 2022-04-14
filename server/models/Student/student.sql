@@ -7,9 +7,9 @@ SELECT
     student_profiles.school_id AS approved_highschool
 FROM
     student_profiles
-    JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
+    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
     JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
-    JOIN schools ON student_profiles.school_id = schools.id
+    LEFT JOIN schools ON student_profiles.school_id = schools.id
 WHERE
     student_profiles.user_id = :userId!;
 
@@ -75,11 +75,13 @@ FROM
             sessions.volunteer_id
         FROM
             sessions
+        WHERE
+            sessions.student_id = :studentId!
         GROUP BY
             sessions.student_id,
             sessions.volunteer_id) AS sessions ON sessions.volunteer_id = student_favorite_volunteers.volunteer_id
 WHERE
-    student_favorite_volunteers.student_id = :userId!
+    student_favorite_volunteers.student_id = :studentId!
 ORDER BY
     student_favorite_volunteers.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;

@@ -154,6 +154,15 @@ export async function notifyReference(
   await updateVolunteerReferenceSentById(reference.id)
 }
 
+// TODO: remove once job is executed
+export async function notifyReferenceApology(
+  reference: UnsentReference,
+  volunteer: VolunteerContactInfo
+) {
+  await MailService.sendReferenceFormApology(reference, volunteer)
+  await updateVolunteerReferenceSentById(reference.id)
+}
+
 export async function deleteReference(
   userId: Ulid,
   referenceEmail: string,

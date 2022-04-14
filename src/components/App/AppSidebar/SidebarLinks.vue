@@ -32,6 +32,14 @@
       </sidebar-link>
 
       <sidebar-link
+        v-if="isCoachFavoritingActive && !isVolunteer"
+        to="/favorite-coaches"
+        text="Favorite Coaches"
+      >
+        <heart-icon class="icon" />
+      </sidebar-link>
+
+      <sidebar-link
         v-if="!isVolunteer && isReferFriendsActive"
         to="/refer-friends"
         text="Refer friends"
@@ -60,7 +68,8 @@ import WordBubblesIcon from '@/assets/sidebar_icons/word-bubbles.svg'
 import EnvelopeIcon from '@/assets/sidebar_icons/envelope.svg'
 import ExclamationIcon from '@/assets/sidebar_icons/exclamation.svg'
 import PortraitIcon from '@/assets/sidebar_icons/portrait.svg'
-import {mapGetters} from "vuex";
+import HeartIcon from '@/assets/heart.svg'
+import { mapGetters } from 'vuex'
 
 export default {
   components: {
@@ -72,20 +81,22 @@ export default {
     WordBubblesIcon,
     EnvelopeIcon,
     ExclamationIcon,
-    PortraitIcon
+    PortraitIcon,
+    HeartIcon,
   },
   props: {
     authenticated: Boolean,
     isVolunteer: Boolean,
     isAdmin: Boolean,
-    mobileMode: Boolean
+    mobileMode: Boolean,
   },
   computed: {
     ...mapGetters({
       isReferFriendsActive: 'featureFlags/isReferFriendsActive',
-      isSessionHistoryActive: 'featureFlags/isSessionHistoryActive'
-    })
-  }
+      isSessionHistoryActive: 'featureFlags/isSessionHistoryActive',
+      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
+    }),
+  },
 }
 </script>
 
