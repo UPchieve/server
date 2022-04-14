@@ -810,7 +810,7 @@ export async function getSessionHistory(studentId: Ulid, page: string) {
     PER_PAGE,
     skip
   )
-  const isLastPage = pastSessions ? pastSessions.length < PER_PAGE : false
+  const isLastPage = pastSessions.length < PER_PAGE
 
   return { pastSessions, page: pageNum, isLastPage }
 }

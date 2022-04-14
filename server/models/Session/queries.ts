@@ -1068,8 +1068,8 @@ export type SessionForSessionHistory = {
   topic: string
   subject: string
   createdAt: Date
-  timeTutored: number | null // @todo: shouldn't be null
-  isFavorited: boolean | null
+  timeTutored: number
+  isFavorited: boolean
   studentId: Ulid
   studentFirstName: string
   volunteerId: Ulid
@@ -1080,7 +1080,7 @@ export async function getSessionHistory(
   studentId: Ulid,
   limit: number,
   offset: number
-): Promise<SessionForSessionHistory[] | undefined> {
+): Promise<SessionForSessionHistory[]> {
   try {
     const minSessionLength = 60000
     const result = await pgQueries.getSessionHistory.run(
@@ -1088,7 +1088,8 @@ export async function getSessionHistory(
       getClient()
     )
 
-    if (result.length && result.map(v => makeRequired(v))) return result
+    if (result.length) return result.map(v => makeRequired(v))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }
