@@ -2034,3 +2034,66 @@ const getSessionsForVolunteerHourSummaryIR: any = {"name":"getSessionsForVolunte
 export const getSessionsForVolunteerHourSummary = new PreparedQuery<IGetSessionsForVolunteerHourSummaryParams,IGetSessionsForVolunteerHourSummaryResult>(getSessionsForVolunteerHourSummaryIR);
 
 
+/** 'GetSessionHistory' parameters type */
+export interface IGetSessionHistoryParams {
+  limit: number;
+  minSessionLength: number;
+  offset: number;
+  studentId: string;
+}
+
+/** 'GetSessionHistory' return type */
+export interface IGetSessionHistoryResult {
+  createdAt: Date;
+  id: string;
+  isFavorited: boolean | null;
+  studentFirstName: string;
+  studentId: string;
+  subject: string;
+  timeTutored: number | null;
+  topic: string;
+  volunteerFirstName: string;
+  volunteerId: string;
+}
+
+/** 'GetSessionHistory' query type */
+export interface IGetSessionHistoryQuery {
+  params: IGetSessionHistoryParams;
+  result: IGetSessionHistoryResult;
+}
+
+const getSessionHistoryIR: any = {"name":"getSessionHistory","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":26990,"b":26999,"line":963,"col":21}]}},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27068,"b":27084,"line":965,"col":29}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27203,"b":27208,"line":969,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27225,"b":27231,"line":969,"col":30}]}}],"usedParamSet":{"studentId":true,"minSessionLength":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    sessions.time_tutored::int AS time_tutored,\n    subjects.name AS subject,\n    topics.name AS topic,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.id AS volunteer_id,\n    students.id AS student_id,\n    students.first_name AS student_first_name,\n    (CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN true ELSE false END) as is_favorited\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited on students.id = favorited.student_id\nWHERE students.id = :studentId!\nAND sessions.time_tutored is not null\nAND sessions.time_tutored > :minSessionLength!::int\nAND sessions.volunteer_id is not null\nAND volunteers.test_user is false\nAND students.test_user is false\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":26184,"b":27237,"line":945,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     sessions.created_at AS created_at,
+ *     sessions.time_tutored::int AS time_tutored,
+ *     subjects.name AS subject,
+ *     topics.name AS topic,
+ *     volunteers.first_name AS volunteer_first_name,
+ *     volunteers.id AS volunteer_id,
+ *     students.id AS student_id,
+ *     students.first_name AS student_first_name,
+ *     (CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN true ELSE false END) as is_favorited
+ * FROM
+ *     sessions
+ *     JOIN subjects ON subjects.id = sessions.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ *     LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
+ *     LEFT JOIN users students ON sessions.student_id = students.id
+ *     LEFT JOIN student_favorite_volunteers favorited on students.id = favorited.student_id
+ * WHERE students.id = :studentId!
+ * AND sessions.time_tutored is not null
+ * AND sessions.time_tutored > :minSessionLength!::int
+ * AND sessions.volunteer_id is not null
+ * AND volunteers.test_user is false
+ * AND students.test_user is false
+ * LIMIT (:limit!)::int OFFSET (:offset!)::int
+ * ```
+ */
+export const getSessionHistory = new PreparedQuery<IGetSessionHistoryParams,IGetSessionHistoryResult>(getSessionHistoryIR);
+
+
