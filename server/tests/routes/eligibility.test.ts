@@ -6,17 +6,13 @@ import { routes as EligibilityRouter } from '../../router/eligibility'
 import { NotAllowedError } from '../../models/Errors'
 import { mockApp } from '../mock-app'
 import { GRADES } from '../../constants'
-import {
-  buildStudent,
-  buildSchool,
-  getIpAddress,
-  getObjectId,
-} from '../generate'
+import { buildUser, getIpAddress } from '../pg-generate'
 import * as IneligibleStudentRepo from '../../models/IneligibleStudent/queries'
 import * as SchoolRepo from '../../models/School/queries'
 import * as UserCtrl from '../../controllers/UserCtrl'
 import * as UserRepo from '../../models/User/queries'
 import * as ZipCodeRepo from '../../models/ZipCode/queries'
+import { getDbUlid } from '../../models/pgUtils'
 
 jest.mock('../../services/IpAddressService')
 jest.mock('../../models/IneligibleStudent/queries')
@@ -76,31 +72,35 @@ describe(IP_CHECK_PATH, () => {
   })
 })
 
+function buildEligibilitySchool() {
+  return {
+    id: getDbUlid(),
+    isApproved: true,
+    upchieveId: getDbUlid(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    nameStored: 'UPchieve highschool',
+    stateStored: 'NY',
+    isPartner: false,
+  }
+}
 const ELIGIBILITY_CHECK_PATH = '/check'
 describe(ELIGIBILITY_CHECK_PATH, () => {
   test('Should send error message when college students sign up', async () => {
-    const student = buildStudent()
-    const referredBy = getObjectId()
-    const school = buildSchool({
-      isApproved: true,
-    })
+    const student = buildUser()
+    const referredBy = getDbUlid()
+    const school = buildEligibilitySchool()
     const mockZipCode = {
-      _id: getObjectId(),
+      _id: getDbUlid(),
       zipCode: '11201',
       isEligible: true,
       medianIncome: 20000,
     }
     const payload = {
-      schoolUpchieveId: school.upchieveId ? school.upchieveId : getObjectId(),
+      schoolUpchieveId: school.upchieveId ? school.upchieveId : getDbUlid(),
       zipCode: '11201',
       email: student.email,
       currentGrade: GRADES.COLLEGE,
-    }
-    const mockIneligibleStudent = {
-      ...student,
-      school: school._id,
-      referredBy: student.referredBy ? student.referredBy : referredBy,
-      ipAddress: getIpAddress(),
     }
 
     mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined)
@@ -110,9 +110,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(mockZipCode)
     mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
-    mockedIneligibleStudentRepo.createIneligibleStudent.mockResolvedValue(
-      mockIneligibleStudent
-    )
+    mockedIneligibleStudentRepo.insertIneligibleStudent.mockResolvedValue()
 
     const response = await sendPost(ELIGIBILITY_CHECK_PATH, payload)
 
