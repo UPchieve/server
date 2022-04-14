@@ -66,7 +66,7 @@ export function routes(app: Express) {
 
       const isSchoolApproved = !!school && school.isApproved
       const isZipCodeEligible = !!zipCode && zipCode.isEligible
-      const isCollegeStudent = currentGrade === 'College' ? true : false
+      const isCollegeStudent = currentGrade === GRADES.COLLEGE ? true : false
       const isStudentEligible =
         (isSchoolApproved || isZipCodeEligible) && !isCollegeStudent
 

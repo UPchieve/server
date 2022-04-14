@@ -103,10 +103,6 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
       currentGrade: GRADES.COLLEGE,
     }
 
-    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined)
-    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValueOnce(
-      undefined
-    )
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(mockZipCode)
     mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
