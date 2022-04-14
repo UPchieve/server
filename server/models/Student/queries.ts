@@ -217,13 +217,13 @@ export async function getFavoriteVolunteersByStudentId(
 }
 
 export async function getFavoriteVolunteersPaginated(
-  userId: Ulid,
+  studentId: Ulid,
   limit: number,
   offset: number
 ): Promise<FavoriteVolunteersResponse> {
   try {
     const result = await pgQueries.getFavoriteVolunteersPaginated.run(
-      { userId, limit, offset },
+      { studentId, limit, offset },
       getClient()
     )
     return {

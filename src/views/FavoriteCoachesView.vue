@@ -28,12 +28,12 @@
                   coach.firstName
                 }}</span>
                 <span
-                  >{{ coach.numSessions }} {{getSessionsTextDisplay(coach.numSessions)}}</span>
+                  >{{getSessionTotalTextDisplay(coach.numSessions)}}</span>
               </div>
             </div>
 
             <span v-if="!mobileMode"
-              >{{ coach.numSessions }} {{getSessionsTextDisplay(coach.numSessions)}}</span>
+              >{{getSessionTotalTextDisplay(coach.numSessions)}}</span>
             <favoriting-toggle
               :initialIsFavorite="true"
               :volunteerName="coach.firstName"
@@ -156,8 +156,8 @@ export default {
       if (this.page === page) return
       await this.getFavoriteCoaches(page)
     },
-    getSessionsTextDisplay(numSessions){
-      return numSessions > 1 ? 'Sessions' : 'Session'
+    getSessionTotalTextDisplay(numSessions){
+      return `${numSessions} Session${numSessions > 1 ? 's' : ''}`
     }
   },
 }
