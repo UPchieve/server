@@ -1226,7 +1226,7 @@ export async function updateVolunteerForAdmin(
         email: update.email,
         isVerified: update.isVerified,
         isBanned: update.isBanned,
-        isDeactivated: update.isDeactivated
+        isDeactivated: update.isDeactivated,
       },
       client
     )
@@ -1239,10 +1239,12 @@ export async function updateVolunteerForAdmin(
       client
     )
     if (
-      !(userResult.length &&
-      profileResult.length &&
-      makeRequired(userResult[0]).ok &&
-      makeRequired(profileResult[0]).ok)
+      !(
+        userResult.length &&
+        profileResult.length &&
+        makeRequired(userResult[0]).ok &&
+        makeRequired(profileResult[0]).ok
+      )
     )
       throw new RepoUpdateError('update query did not return ok')
     await client.query('COMMIT')
