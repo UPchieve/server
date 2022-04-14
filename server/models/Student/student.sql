@@ -68,9 +68,7 @@ FROM
     student_favorite_volunteers
     LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
 WHERE
-    student_favorite_volunteers.student_id = :studentId!
-ORDER BY
-    student_favorite_volunteers.created_at DESC;
+    student_favorite_volunteers.student_id = :studentId!;
 
 
 /* @name getFavoriteVolunteersPaginated */

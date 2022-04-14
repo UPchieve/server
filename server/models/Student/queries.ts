@@ -210,7 +210,7 @@ export async function getFavoriteVolunteersByStudentId(
       { studentId },
       getClient()
     )
-    return result.map(row => makeRequired(row.id))
+    return result.map(row => makeRequired(row).id)
   } catch (err) {
     throw new RepoReadError(err)
   }
