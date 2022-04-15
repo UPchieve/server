@@ -135,7 +135,7 @@ export async function isTestUser(studentId: Ulid): Promise<boolean> {
 
 export type GatesStudent = {
   id: Ulid
-  studentPartnerOrg: string
+  studentPartnerOrg?: string
   currentGrade: string
   isPartnerSchool: boolean
   approvedHighschool: Ulid
@@ -149,7 +149,7 @@ export async function getGatesStudentById(
       { userId },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['studentPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
