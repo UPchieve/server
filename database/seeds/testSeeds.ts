@@ -20,7 +20,7 @@ async function seedData(): Promise<void> {
     await students(spoIds, schoolIds)
     // await studentFavoriteVolunteers(certIds, quizIds)
 
-    console.log('All data is seeded!')
+    console.log('All test data is seeded!')
     if (ExpectedErrors.length)
       console.log(
         `Tried to re-seed ${ExpectedErrors.length} objects already in database`
