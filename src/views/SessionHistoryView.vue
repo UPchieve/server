@@ -16,8 +16,7 @@
         <span>COACH</span>
       </div>
       <div v-if="hasNoPastSessions()">
-          <h1 class="title title-no-sessions"> Past sessions will appear here. </h1>
-          <p class="subtitle subtitle-no-sessions"> Get help now by clicking on the dashboard </p>
+          <h1 class="title title-no-sessions"> Looks like you haven't had any sessions in the past 12 months. </h1>
       </div>
       <ul class="session-list">
         <li v-for="(session, index) in sessions" :key="session._id">
@@ -37,7 +36,7 @@
             >
             <div class="session-list__coach-name-container">
             <favoriting-toggle
-              :initialIsFavorite="session.isFavorite"
+              :initialIsFavorite="session.isFavorited"
               :volunteerName="session.volunteerFirstName"
               :volunteerId="session.volunteerId"
             />
@@ -81,8 +80,7 @@
     <div class="mobile-container">
     <section>
       <div v-if="hasNoPastSessions()">
-          <h1 class="title title-no-sessions"> Past sessions will appear here. </h1>
-          <p class="subtitle subtitle-no-sessions"> Get help now by clicking on the dashboard </p>
+          <h1 class="title title-no-sessions"> Looks like you haven't had any sessions in the past 12 months. </h1>
       </div>
       <ul class="mobile-session-list">
         <li v-for="(session, index) in sessions" :key="session._id">
@@ -158,22 +156,14 @@ import moment from 'moment'
 
 export default {
   name: 'session-history-view',
-  components: { MathSVG, CollegeSVG, ScienceSVG, SATSVG, ReadingWritingSVG, CaretIcon, FavoritingToggle},
+  components: { CaretIcon, FavoritingToggle},
   data() {
-     const svgs = {
-        math: MathSVG,
-        college: CollegeSVG,
-        science: ScienceSVG,
-        readingWriting: ReadingWritingSVG,
-        sat: SATSVG
-      }
     return {
       sessions: [],
       isLastPage: true,
       page: 1,
       hasNext: false,
-      total: 0,
-      svgs
+      total: 0
     }
   },
   computed: {
@@ -191,20 +181,29 @@ export default {
       const totalPages = Math.ceil(this.total / sessionLimitPerPage)
       return totalPages === 0 ? 1 : totalPages
     },
+    svgs() {
+      return {
+        math: MathSVG,
+        college: CollegeSVG,
+        science: ScienceSVG,
+        readingWriting: ReadingWritingSVG,
+        sat: SATSVG
+      }
+    }
   },
   methods: {
     async getSessionHistory(page) {
       if (page < 1 || page > this.totalPages) return
-      const response = await NetworkService.mockGetSessionHistory(page)
-      this.sessions = response.body.sessions
-      if(this.sessions){
+      const response = await NetworkService.getSessionHistory(page)
+      this.sessions = response.body.pastSessions
+      if(this.sessions.length){
         this.getSessionTopicIcons()
       }
       this.isLastPage = response.body.isLastPage
       this.page = page
     },
     async getTotalSessions() {
-      const response = await NetworkService.mockGetTotalSessions()
+      const response = await NetworkService.getTotalSessionHistory()
       this.total = response.body.total
     },
     // @todo: to be revisited to implement new design for page actions
@@ -412,7 +411,7 @@ ul {
       color: $c-disabled-grey;
 
       &:hover{
-        cursor: not-allowed;
+        cursor: default;
       }
       
       & .caret path {

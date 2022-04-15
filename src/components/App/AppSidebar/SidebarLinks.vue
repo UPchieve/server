@@ -15,6 +15,14 @@
         <calendar-icon class="icon" />
       </sidebar-link>
 
+       <sidebar-link
+        v-if="isCoachFavoritingActive && !isVolunteer"
+        to="/favorite-coaches"
+        text="Favorite Coaches"
+      >
+        <heart-icon class="icon" />
+      </sidebar-link>
+
       <sidebar-link v-if="isVolunteer" to="/training" text="Training">
         <graduation-cap-icon class="icon" />
       </sidebar-link>
@@ -29,14 +37,6 @@
 
       <sidebar-link to="/profile" text="Profile">
         <portrait-icon class="icon" />
-      </sidebar-link>
-
-      <sidebar-link
-        v-if="isCoachFavoritingActive && !isVolunteer"
-        to="/favorite-coaches"
-        text="Favorite Coaches"
-      >
-        <heart-icon class="icon" />
       </sidebar-link>
 
       <sidebar-link

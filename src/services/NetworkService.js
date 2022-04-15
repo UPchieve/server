@@ -667,79 +667,10 @@ export default {
       .get(`${API_ROOT}/sessions/history?page=${page}`)
       .then(this._successHandler, this._errorHandler)
   },
-  mockGetSessionHistory(page) {
-    return Promise.resolve({
-      body: {
-        page: page,
-        isLastPage: true,
-        sessions:
-          [
-            {
-              subject: 'Algebra 1',
-              createdAt: new Date('2021-05-30T06:00:00.000+00:00'),
-              timeTutored: 3916379,
-              volunteerFirstName: 'Susan',
-              volunteerId: '6228f23d3cf2cabeb0a82702',
-              isFavorited: true,
-              studentFirstName: 'Victoria',
-              studentId: '6228f23d3cf2cabeb0a825bf',
-              id: '62293b971d33b47d70196980',
-              topic: 'math'
-            },
-            {
-              subject: 'Statistics',
-              createdAt: new Date('2021-04-23T12:00:00.000+00:00'),
-              timeTutored: 5713828,
-              volunteerFirstName: 'Derek',
-              volunteerId: '6228f23d3cf2cabeb0a82702',
-              isFavorited: false,
-              studentFirstName: 'Victoria',
-              studentId: '6228f23d3cf2cabeb0a825bf',
-              id: '62293b971d33b47d70196989',
-              topic: 'math'
-            },
-            {
-              subject: 'Essays',
-              createdAt: new Date('2021-04-20T10:00:00.000+00:00'),
-              timeTutored: 1835868,
-              volunteerFirstName: 'Kiera',
-              volunteerId: '6228f23d3cf2cabeb0a82702',
-              isFavorited: true,
-              studentFirstName: 'Victoria',
-              studentId: '6228f23d3cf2cabeb0a825bf',
-              id: '62293b971d33b47d701960',
-              topic: 'college'
-            },
-            {
-              subject: 'Critical Reading',
-              createdAt: new Date('2021-04-20T06:00:00.000+00:00'),
-              timeTutored: 2903063,
-              volunteerFirstName: 'Susan',
-              volunteerId: '6228f23d3cf2cabeb0a82702',
-              isFavorited: true,
-              studentFirstName: 'Victoria',
-              studentId: '6228f23d3cf2cabeb0a825bf',
-              id: '62293b971d33b47d70176980',
-              topic: 'sat'
-            },
-            {
-              subject: 'Biology',
-              createdAt: new Date('2021-04-14T20:00:00.000+00:00'),
-              timeTutored: 1492482,
-              volunteerFirstName: 'Adam',
-              volunteerId: '6228f23d3cf2cabeb0a82702',
-              isFavorited: false,
-              studentFirstName: 'Victoria',
-              studentId: '6228f23d3cf2cabeb0a825bf',
-              id: '62293b971d33b47d7496989',
-              topic: 'science'
-            },
-          ]
-      }
-    })
-  },
-  mockGetTotalSessions() {
-    return Promise.resolve({ body: { total: 35 }})
+  getTotalSessionHistory() {
+    return Vue.http
+      .get(`${API_ROOT}/sessions/history/total`)
+      .then(this._successHandler, this._errorHandler)
   },
   getFavoriteVolunteers(page) {
     return Vue.http

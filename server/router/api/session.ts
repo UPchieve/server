@@ -231,17 +231,28 @@ export function routeSession(router: Router, io: Server) {
 
   router.get('/sessions/history', async function(req, res) {
     try {
-      const { studentId } = req.params
+      const user = extractUser(req)
       const {
         pastSessions,
         page,
         isLastPage,
       } = await SessionService.getSessionHistory(
-        studentId,
+        user.id,
         asString(req.query.page)
       )
 
       res.json({ page, isLastPage, pastSessions })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/sessions/history/total', async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const total = await SessionService.getTotalSessionHistory(user.id)
+
+      res.json({ total })
     } catch (err) {
       resError(res, err)
     }
