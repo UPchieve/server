@@ -11,13 +11,13 @@ interface csvPostalCodeRecord {
   latitude: number
 }
 
-export async function postalCodes() {
+export async function postalCodes(numZipCodes: number | undefined) {
   const zipFile = fs.readFileSync(`${__dirname}/aggregated_data.csv`)
   const zipRecords: csvPostalCodeRecord[] = await parse(zipFile, {
     delimiter: ',',
     columns: true,
   })
-  const recordInsertions = zipRecords.map((record: csvPostalCodeRecord) => {
+  const recordInsertions = zipRecords.slice(0, numZipCodes).map((record: csvPostalCodeRecord) => {
     const typedRecord = record as csvPostalCodeRecord
     const excludedTerritories = [
       'VI',
