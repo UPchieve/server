@@ -39,6 +39,7 @@
               :initialIsFavorite="session.isFavorited"
               :volunteerName="session.volunteerFirstName"
               :volunteerId="session.volunteerId"
+              v-on:change-favorited="updateFavoritedVolunteers"
             />
             <span class="session-list__coach-name"> {{ session.volunteerFirstName }} </span>
             </div>
@@ -102,6 +103,7 @@
               :initialIsFavorite="session.isFavorited"
               :volunteerName="session.volunteerFirstName"
               :volunteerId="session.volunteerId"
+              v-on:change-favorited="updateFavoritedVolunteers"
               />
               <span class="mobile-session-list__coach-name"> {{ session.volunteerFirstName }} </span>
             </div>
@@ -229,6 +231,13 @@ export default {
     },
     hasNoPastSessions() {
       return this.total === 0
+    },
+    updateFavoritedVolunteers(volunteerId, isFavorited) {
+      console.log("event called", volunteerId, isFavorited)
+      this.sessions = this.sessions.map(session => ({
+        ...session, 
+        isFavorited: session.volunteerId === volunteerId ? isFavorited : session.isFavorited
+      }))
     }
    },
   async created() {
@@ -372,18 +381,16 @@ ul {
 }
 
 .page-actions-container {
-  padding: 1.2em 1.75em 1.4em ;
+  padding: 0 2em;
 }
 
 .page-numbers {
-  @include flex-container(row, center, center)
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .page-actions {
-  @include flex-container(row, flex-end);
-  @include breakpoint-below('small') {
-    @include flex-container(row, space-between);
-  }
   &__stepper {
     display: flex;
     align-items: center;
@@ -402,18 +409,15 @@ ul {
     @include breakpoint-above('medium') {
       margin-right: 2em;
     }
-    @include breakpoint-below('small') {
-        margin: 0;
-      }
 
     &--disabled {
       margin-right: 1em;
       color: $c-disabled-grey;
 
-      &:hover{
+      &:hover {
         cursor: default;
       }
-      
+
       & .caret path {
         fill: $c-disabled-grey;
       }
@@ -421,15 +425,12 @@ ul {
       @include breakpoint-above('medium') {
         margin-right: 2em;
       }
-
-      @include breakpoint-below('small') {
-        margin: 0;
-      }
     }
   }
 }
 
 .page-num {
+  margin-right: 1em;
   @include breakpoint-above('medium') {
     margin-right: 2em;
   }
@@ -440,12 +441,14 @@ ul {
 
   &--active {
     color: $c-information-blue;
+
+    &:hover {
+      cursor: default;
+    }
   }
 }
 
 .caret {
-  width: 20px;
-  height: 12px;
   &--previous {
     transform: rotate(90deg);
     margin-right: 0.4em;
