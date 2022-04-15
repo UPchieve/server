@@ -2,7 +2,7 @@
 UPDATE
     upchieve.notification_priority_groups
 SET
-    priority = 2,
+    priority = 20,
     updated_at = NOW()
 WHERE
     name = 'Partner volunteers - not notified in the last 3 days AND they don''t have "high level subjects"';
@@ -10,7 +10,7 @@ WHERE
 UPDATE
     upchieve.notification_priority_groups
 SET
-    priority = 3,
+    priority = 30,
     updated_at = NOW()
 WHERE
     name = 'Regular volunteers - not notified in the last 3 days AND they don''t have "high level subjects"';
@@ -18,7 +18,7 @@ WHERE
 UPDATE
     upchieve.notification_priority_groups
 SET
-    priority = 4,
+    priority = 40,
     updated_at = NOW()
 WHERE
     name = 'Partner volunteers - not notified in the last 24 hours AND they don''t have "high level subjects"';
@@ -26,7 +26,7 @@ WHERE
 UPDATE
     upchieve.notification_priority_groups
 SET
-    priority = 5,
+    priority = 50,
     updated_at = NOW()
 WHERE
     name = 'Regular volunteers - not notified in the last 24 hours AND they don''t have "high level subjects"';
@@ -34,7 +34,7 @@ WHERE
 UPDATE
     upchieve.notification_priority_groups
 SET
-    priority = 6,
+    priority = 60,
     updated_at = NOW()
 WHERE
     name = 'All volunteers - not notified in the last 24 hours';
@@ -42,7 +42,7 @@ WHERE
 UPDATE
     upchieve.notification_priority_groups
 SET
-    priority = 7,
+    priority = 70,
     updated_at = NOW()
 WHERE
     name = 'All volunteers - not notified in the last 60 mins';
@@ -50,7 +50,7 @@ WHERE
 UPDATE
     upchieve.notification_priority_groups
 SET
-    priority = 8,
+    priority = 80,
     updated_at = NOW()
 WHERE
     name = 'All volunteers - not notified in the last 15 mins';
@@ -58,7 +58,7 @@ WHERE
 UPDATE
     upchieve.notification_priority_groups
 SET
-    priority = 9,
+    priority = 90,
     updated_at = NOW()
 WHERE
     name = 'Verizon volunteers - not notified in the last 24 hours AND they don''t have "high level subjects"';
@@ -66,13 +66,13 @@ WHERE
 UPDATE
     upchieve.notification_priority_groups
 SET
-    priority = 10,
+    priority = 100,
     updated_at = NOW()
 WHERE
     name = 'Verizon volunteers - not notified in the last 3 days AND they don''t have "high level subjects"';
 
 INSERT INTO upchieve.notification_priority_groups (name, priority, created_at, updated_at)
-    VALUES ('Favorite volunteers - not notified in the last 15 mins', 1, NOW(), NOW());
+    VALUES ('Favorite volunteers - not notified in the last 15 mins', 10, NOW(), NOW());
 
 
 -- migrate:down
