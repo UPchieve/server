@@ -3,6 +3,7 @@ import { getCurrentNewYorkTime } from '../utils/get-times'
 import config from '../config'
 import moment from 'moment'
 import {
+  getFavoriteVolunteersByStudentId,
   getStudentContactInfoById,
   getTestStudentExistsById,
 } from '../models/Student'
@@ -243,14 +244,15 @@ export async function getAssociatedPartner(
 export async function notifyVolunteer(
   session: SessionRepo.Session
 ): Promise<Ulid | undefined> {
-  // Replace with getStudentPartnerInfoById from Student Repo
   const student = await getStudentContactInfoById(session.studentId)
   if (!student) return
+
+  const favoriteVolunteers = await getFavoriteVolunteersByStudentId(student.id)
+
   const associatedPartner = student.studentPartnerOrg
     ? await getAssociatedPartner(student.studentPartnerOrg, student.schoolId)
     : undefined
 
-  let subtopic: string = session.subject
   const activeSessionVolunteers = await getActiveSessionVolunteers()
   const notifiedForThisSessionId = await getVolunteersNotifiedBySessionId(
     session.id
@@ -269,16 +271,32 @@ export async function notifyVolunteer(
   ]
 
   /**
-   * 1. Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
-   * 2. Regular volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
-   * 3. Partner volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"
-   * 4. Regular volunteers - not notified in the last 24 hours AND they don’t have " high level subjects"
-   * 5. All volunteers - not notified in the last 24 hours
-   * 6. All volunteers - not notified in the last 60 mins
-   * 7. All volunteers - not notified in the last 15 mins
+   * 1. Favorite volunteers - not notified in the last 15 mins
+   * 2. Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
+   * 3. Regular volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
+   * 4. Partner volunteers - not notified in the last 24 hours AND they don’t have "high level subjects"
+   * 5. Regular volunteers - not notified in the last 24 hours AND they don’t have " high level subjects"
+   * 6. All volunteers - not notified in the last 24 hours
+   * 7. All volunteers - not notified in the last 60 mins
+   * 8. All volunteers - not notified in the last 15 mins
    */
 
   const volunteerPriority = [
+    {
+      groupName: `Favorite volunteers - not notified in the last 15 mins`,
+      query: () =>
+        VolunteerRepo.getNextVolunteerToNotify({
+          subject: session.subject,
+          lastNotified: moment()
+            .subtract(15, 'minutes')
+            .toDate(),
+          isPartner: undefined,
+          highLevelSubjects: undefined,
+          disqualifiedVolunteers,
+          specificPartner: undefined,
+          favoriteVolunteers,
+        }),
+    },
     {
       groupName: `${
         associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
@@ -293,6 +311,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -308,6 +327,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: undefined,
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -324,6 +344,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -339,6 +360,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: undefined,
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -353,6 +375,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -367,6 +390,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -381,6 +405,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
+          favoriteVolunteers: undefined,
         }),
     },
   ]
