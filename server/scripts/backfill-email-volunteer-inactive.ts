@@ -1,4 +1,3 @@
-import * as db from '../db'
 import moment from 'moment'
 import 'moment-timezone'
 import { Jobs } from '../worker/jobs'
@@ -15,64 +14,19 @@ import {
 import * as MailService from '../services/MailService'
 import { getInactiveVolunteers } from '../models/Volunteer/queries'
 import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../constants'
+import { Job } from 'bull'
+import { asString } from '../utils/type-utils'
+import { log } from '../worker/logger'
 
-enum InactiveGroup {
-  inactiveThirtyDays = 'inactiveThirtyDays',
-  inactiveSixtyDays = 'inactiveSixtyDays',
-  inactiveNinetyDays = 'inactiveNinetyDays',
+type BackfillEmailVolunteersInactiveData = {
+  startDate: string
 }
 
-async function sendEmailToInactiveVolunteers(
-  volunteers: VolunteerContactInfo[],
-  currentJob: Jobs,
-  mailHandler: Function,
-  group: InactiveGroup
-) {
-  let successes = 0
-  for (const volunteer of volunteers) {
-    const { email, firstName, id } = volunteer
-    const errors = []
-    try {
-      const contactInfo = { email, firstName }
-      await mailHandler(contactInfo)
-      if (group === InactiveGroup.inactiveThirtyDays)
-        await updateVolunteerSentInactive30DayEmail(id)
-      if (group === InactiveGroup.inactiveSixtyDays)
-        await updateVolunteerSentInactive60DayEmail(id)
-      if (group === InactiveGroup.inactiveNinetyDays) {
-        await updateVolunteerSentInactive90DayEmail(id)
-        await saveCurrentAvailabilityAsHistory(id)
-        await clearAvailabilityForVolunteer(id)
-      }
-      console.log(`Sent ${currentJob} to volunteer ${id}`)
-      successes += 1
-    } catch (error) {
-      errors.push(`${currentJob} to volunteer ${id}: ${error}`)
-    }
-    if (errors.length) {
-      throw errors
-    }
-  }
-  console.log(`Sent ${group} email to ${successes} volunteers`)
-}
+export default async function BackfillEmailVolunteerInactive(
+  job: Job<BackfillEmailVolunteersInactiveData>
+): Promise<void> {
+  const start = new Date(asString(job.data.startDate))
 
-function getStartOfDayFromDaysAgo(daysAgo: number): Date {
-  return moment()
-    .utc()
-    .subtract(daysAgo, 'days')
-    .startOf('day')
-    .toDate()
-}
-
-function getEndOfDayFromDaysAgo(daysAgo: number): Date {
-  return moment()
-    .utc()
-    .subtract(daysAgo, 'days')
-    .endOf('day')
-    .toDate()
-}
-
-async function EmailVolunteerInactive(start: Date): Promise<void> {
   const blackoutPeriodStart = BLACKOUT_PERIOD_START.getTime()
   const blackoutPeriodEnd = BLACKOUT_PERIOD_END.getTime()
 
@@ -88,12 +42,12 @@ async function EmailVolunteerInactive(start: Date): Promise<void> {
     return
   }
 
-  const thirtyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(30)
-  const thirtyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(30)
-  const sixtyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(60)
-  const sixtyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(60)
-  const ninetyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(90)
-  const ninetyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(90)
+  const thirtyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(start, 30)
+  const thirtyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(start, 30)
+  const sixtyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(start, 60)
+  const sixtyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(start, 60)
+  const ninetyDaysAgoStartOfDay = getStartOfDayFromDaysAgo(start, 90)
+  const ninetyDaysAgoEndOfDay = getEndOfDayFromDaysAgo(start, 90)
 
   const volunteers = await getInactiveVolunteers(
     thirtyDaysAgoStartOfDay,
@@ -147,25 +101,55 @@ async function EmailVolunteerInactive(start: Date): Promise<void> {
   }
 }
 
-async function main() {
-  let exitCode = 0
-  try {
-    await db.connect()
+enum InactiveGroup {
+  inactiveThirtyDays = 'inactiveThirtyDays',
+  inactiveSixtyDays = 'inactiveSixtyDays',
+  inactiveNinetyDays = 'inactiveNinetyDays',
+}
 
-    const args = process.argv.slice(2)
-    if (!args.length) throw new Error('Provide argument of date to run as')
-    if (args.length > 1) throw new Error('More than one argument provided')
-    const start = new Date(args[0])
-    console.log(`Running ${Jobs.EmailVolunteerInactive} from date ${start}`)
-
-    await EmailVolunteerInactive(start)
-  } catch (error) {
-    console.log(`Uncaught error: ${error}`)
-    exitCode = 1
-  } finally {
-    await db.closeClient()
-    process.exit(exitCode)
+async function sendEmailToInactiveVolunteers(
+  volunteers: VolunteerContactInfo[],
+  currentJob: Jobs,
+  mailHandler: Function,
+  group: InactiveGroup
+) {
+  for (const volunteer of volunteers) {
+    const { email, firstName, id } = volunteer
+    const errors = []
+    try {
+      const contactInfo = { email, firstName }
+      await mailHandler(contactInfo)
+      if (group === InactiveGroup.inactiveThirtyDays)
+        await updateVolunteerSentInactive30DayEmail(id)
+      if (group === InactiveGroup.inactiveSixtyDays)
+        await updateVolunteerSentInactive60DayEmail(id)
+      if (group === InactiveGroup.inactiveNinetyDays) {
+        await updateVolunteerSentInactive90DayEmail(id)
+        await saveCurrentAvailabilityAsHistory(id)
+        await clearAvailabilityForVolunteer(id)
+      }
+      log(`Sent ${currentJob} to volunteer ${id}`)
+    } catch (error) {
+      errors.push(`${currentJob} to volunteer ${id}: ${error}`)
+    }
+    if (errors.length) {
+      throw errors
+    }
   }
 }
 
-main()
+function getStartOfDayFromDaysAgo(start: Date, daysAgo: number): Date {
+  return moment(start)
+    .utc()
+    .subtract(daysAgo, 'days')
+    .startOf('day')
+    .toDate()
+}
+
+function getEndOfDayFromDaysAgo(start: Date, daysAgo: number): Date {
+  return moment(start)
+    .utc()
+    .subtract(daysAgo, 'days')
+    .endOf('day')
+    .toDate()
+}
