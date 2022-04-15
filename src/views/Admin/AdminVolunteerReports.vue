@@ -23,7 +23,7 @@
               id="volunteer-partner-org"
               class="filter-panel__partner-select"
               :options="volunteerPartnerOrgs"
-              label="displayName"
+              label="name"
               v-model="volunteerPartnerOrg"
             />
           </label>
@@ -96,7 +96,7 @@ export default {
         )
         fileDownload(
           response.data,
-          `${this.volunteerPartnerOrg.displayName}-analytics-report.xlsx`
+          `${this.volunteerPartnerOrg.name}-analytics-report.xlsx`
         )
         this.isGeneratingReport = false
       } catch (error) {
@@ -120,7 +120,7 @@ export default {
           this.error = 'Unable to find any data that meets your request'
         else {
           exportToCsv(
-            `${this.volunteerPartnerOrg.displayName}_Telecom_Report_${this.todaysDate}`,
+            `${this.volunteerPartnerOrg.name}_Telecom_Report_${this.todaysDate}`,
             data
           )
         }

@@ -740,5 +740,10 @@ export default {
   },
   mockGetTotalSessions() {
     return Promise.resolve({ body: { total: 35 }})
-  }
+  },
+  getFavoriteVolunteers(page) {
+    return Vue.http
+      .get(`${API_ROOT}/students/favorite-volunteers?page=${page}`)
+      .then(this._successHandler, this._errorHandler)
+  },
 }

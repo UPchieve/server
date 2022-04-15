@@ -16,7 +16,7 @@
       class="dashboard-notice"
       :class="'dashboard-notice--info'"
     >
-      {{ downtimeMessage }}
+      <a href="https://upchieve.statuspage.io" target="_blank">{{ downtimeMessage }}</a>
     </div>
 
     <div class="volunteer-dashboard__body">
@@ -207,7 +207,7 @@ export default {
   async created() {
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
-    } 
+    }
 
     if (this.isFirstDashboardVisit) {
       this.toggleWelcomeModal()
@@ -258,7 +258,7 @@ export default {
 
     downtimeMessage() {
       if (this.isDowntimeBannerActive) {
-        return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
+        return 'UPchieve will be down for maintenance 7:30 AM to 2:30 PM ET on Tuesday, April 12.'
       } else {
         return ''
       }

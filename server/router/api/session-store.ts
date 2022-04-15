@@ -1,24 +1,23 @@
 import session from 'express-session'
-import connectMongo from 'connect-mongo'
+import CreatePgStore from 'connect-pg-simple'
 import config from '../../config'
 import { Express } from 'express'
+import { getClient } from '../../db'
 
-const MongoStore = connectMongo(session)
+const PgStore = CreatePgStore(session)
 
-export const sessionStoreCollectionName = 'auth-sessions'
-
-export default function(app: Express): connectMongo.MongoStore {
-  const sessionStore = new MongoStore({
-    url: config.database,
-    collection: sessionStoreCollectionName,
+export default function(app: Express) {
+  const store = new PgStore({
+    pool: getClient(),
+    schemaName: 'auth',
+    tableName: 'session',
   })
-
   app.use(
     session({
-      resave: true,
-      saveUninitialized: true,
+      resave: false,
+      saveUninitialized: false,
       secret: config.sessionSecret,
-      store: sessionStore,
+      store: store,
       cookie: {
         httpOnly: false,
         maxAge: config.sessionCookieMaxAge,
@@ -26,5 +25,5 @@ export default function(app: Express): connectMongo.MongoStore {
     })
   )
 
-  return sessionStore
+  return store
 }

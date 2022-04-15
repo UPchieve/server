@@ -1,4 +1,4 @@
-import { getUUID } from '../generate'
+import { getUuid } from '../../models/pgUtils'
 import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
 import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
 
@@ -25,7 +25,7 @@ describe('WebSocketEmitterService public methods', () => {
   const channel = 'test-channel'
   let roomId: string
   beforeEach(() => {
-    roomId = getUUID()
+    roomId = getUuid()
   })
 
   test('Adds a websocket client to a given room', () => {

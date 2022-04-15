@@ -1,13 +1,14 @@
 import { Express, Router } from 'express'
 import passport from 'passport'
 
-import { Types } from 'mongoose'
 import * as AuthService from '../../services/AuthService'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
-import { asString } from '../../utils/type-utils'
+import { asBoolean, asString } from '../../utils/type-utils'
+import { Ulid } from '../../models/pgUtils'
+import logger from '../../logger'
 
 export function routes(app: Express) {
   const router = Router()
@@ -175,25 +176,29 @@ export function routes(app: Express) {
 
   router.route('/reset/send').post(async function(req, res) {
     try {
-      const email = asString(req.body.email)
+      const reqEmail = asString(req.body.email)
+      const email = reqEmail.toLowerCase()
+      let mobile: boolean | undefined
+      if (req.body.mobile) mobile = asBoolean(req.body.mobile)
       try {
-        await AuthService.sendReset(email as unknown)
+        await AuthService.sendReset(email as unknown, mobile as unknown)
       } catch (err) {
         // do not respond with info about no email match
         if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
+        logger.info(err) // log expected lookup errors
       }
-      let userId: Types.ObjectId | undefined
+      let userId: Ulid | undefined
       if (!req.user) {
         // user not logged in
         userId = await getUserIdByEmail(email)
       } // logged in
-      else userId = req.user._id
+      else userId = req.user.id
       req.session.destroy(() => {
         /* do nothing */
       })
       // if account with given email exists then try to destroy its sessions
       if (userId) {
-        await AuthService.deleteAllUserSessions(userId.toString())
+        await AuthService.deleteAllUserSessions(userId)
         req.logout()
       }
       res.status(200).json({

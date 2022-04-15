@@ -10,7 +10,7 @@ import {
   getVolunteerContactInfoById,
   VolunteerContactInfo,
 } from '../../models/Volunteer/queries'
-import { asObjectId } from '../../utils/type-utils'
+import { asString } from '../../utils/type-utils'
 
 interface TechIssueApology {
   sessionId: string // TODO: we don't need this?
@@ -21,14 +21,14 @@ interface TechIssueApology {
 async function sendEmailToUser(
   user: StudentContactInfo | VolunteerContactInfo
 ): Promise<void> {
-  const { firstname, email } = user
+  const { firstName, email } = user
 
-  await MailService.sendTechIssueApology(email, firstname)
+  await MailService.sendTechIssueApology(email, firstName)
 }
 
 export default async (job: Job<TechIssueApology>): Promise<void> => {
-  const studentId = asObjectId(job.data.studentId)
-  const volunteerId = asObjectId(job.data.volunteerId)
+  const studentId = asString(job.data.studentId)
+  const volunteerId = asString(job.data.volunteerId)
   const student = await getStudentContactInfoById(studentId)
   const volunteer = await getVolunteerContactInfoById(volunteerId)
   const errors: string[] = []
@@ -36,13 +36,13 @@ export default async (job: Job<TechIssueApology>): Promise<void> => {
   if (student) {
     const emailResult = await safeAsync(sendEmailToUser(student))
     if (emailResult.error)
-      errors.push(`student ${student._id}: ${emailResult.error}`)
+      errors.push(`student ${student.id}: ${emailResult.error}`)
   }
 
   if (volunteer) {
     const emailResult = await safeAsync(sendEmailToUser(volunteer))
     if (emailResult.error)
-      errors.push(`volunteer ${volunteer._id}: ${emailResult.error}`)
+      errors.push(`volunteer ${volunteer.id}: ${emailResult.error}`)
   }
 
   if (errors.length) {

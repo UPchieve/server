@@ -7,19 +7,19 @@ import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { ISOString } from '../../../constants'
 import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
-import { asFactory, asObjectId, asString } from '../../../utils/type-utils'
-import { Types } from 'mongoose'
+import { asFactory, asString } from '../../../utils/type-utils'
+import { Ulid } from '../../../models/pgUtils'
 
 interface VolunteerSessionActionsJobData {
-  volunteerId: Types.ObjectId
-  studentId: Types.ObjectId
+  volunteerId: Ulid
+  studentId: Ulid
   sessionSubtopic: string
   sessionDate: ISOString
 }
 
 const asVolunteerActionsData = asFactory<VolunteerSessionActionsJobData>({
-  studentId: asObjectId,
-  volunteerId: asObjectId,
+  studentId: asString,
+  volunteerId: asString,
   sessionSubtopic: asString,
   sessionDate: asString,
 })
@@ -39,20 +39,20 @@ export default async (
 
   if (student && volunteer) {
     try {
-      const { firstname, email } = volunteer
+      const { firstName, email } = volunteer
       if (currentJob === Jobs.EmailVolunteerAbsentWarning)
         await MailService.sendVolunteerAbsentWarning(
-          firstname,
+          firstName,
           email,
-          student.firstname,
+          student.firstName,
           formatMultiWordSubject(sessionSubtopic),
           moment(sessionDate).format('MMMM Do')
         )
       if (currentJob === Jobs.EmailVolunteerAbsentStudentApology)
         await MailService.sendVolunteerAbsentStudentApology(
-          firstname,
+          firstName,
           email,
-          student.firstname,
+          student.firstName,
           formatMultiWordSubject(sessionSubtopic),
           moment(sessionDate).format('MMMM Do')
         )

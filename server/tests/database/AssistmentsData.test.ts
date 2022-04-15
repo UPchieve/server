@@ -7,8 +7,7 @@ import {
   getAssistmentsDataBySession,
   updateAssistmentsDataSentById,
   createAssistmentsDataBySessionId,
-} from '../../models/AssistmentsData/pgqueries'
-import { Ulid } from '../../models/pgUtils'
+} from '../../models/AssistmentsData/queries'
 import { Pool } from 'pg'
 import {
   buildSession,
@@ -19,9 +18,9 @@ import {
   dropTables,
   executeQuery,
 } from '../pg-generate'
-import { PgAssistmentsData } from '../../models/AssistmentsData'
-import { PgStudent } from '../../models/Student'
-import { PgSession } from '../../models/Session'
+import { AssistmentsData } from '../../models/AssistmentsData'
+import { Student } from '../../models/Student'
+import { Session } from '../../models/Session'
 import { RepoCreateError } from '../../models/Errors'
 
 /**
@@ -34,9 +33,9 @@ metaSetup()
 
 describe('Assistments data queries', () => {
   let client: Pool
-  let student: PgStudent
-  let session: PgSession
-  let ad: PgAssistmentsData
+  let student: Student
+  let session: Session
+  let ad: AssistmentsData
   beforeAll(async () => {
     client = buildTestClient()
     const user = await insertSingleRow('users', buildUser(), client)

@@ -1,11 +1,10 @@
 import { Job } from 'bull'
 import { Jobs } from '.'
-import { getSessionById } from '../../models/Session/queries'
-import { Volunteer } from '../../models/Volunteer'
-import { getVolunteerContactInfoById } from '../../models/Volunteer/queries'
+import { getSessionById } from '../../models/Session'
+import { getVolunteerContactInfoById } from '../../models/Volunteer'
 import * as TwilioService from '../../services/TwilioService'
 import * as sessionUtils from '../../utils/session-utils'
-import { asObjectId } from '../../utils/type-utils'
+import { asString } from '../../utils/type-utils'
 import { log } from '../logger'
 
 interface SendFollowupTextData {
@@ -14,8 +13,8 @@ interface SendFollowupTextData {
 }
 
 export default async (job: Job<SendFollowupTextData>): Promise<void> => {
-  const sessionId = asObjectId(job.data.sessionId)
-  const volunteerId = asObjectId(job.data.volunteerId)
+  const sessionId = asString(job.data.sessionId)
+  const volunteerId = asString(job.data.volunteerId)
   const session = await getSessionById(sessionId)
   if (!session) return
   const fulfilled = sessionUtils.isSessionFulfilled(session)
@@ -33,11 +32,11 @@ export default async (job: Job<SendFollowupTextData>): Promise<void> => {
       volunteer.phone as string
     )
     log(
-      `Successfully sent followup for session ${session._id} to volunteer ${volunteer._id}`
+      `Successfully sent followup for session ${session.id} to volunteer ${volunteer.id}`
     )
   } catch (error) {
     throw new Error(
-      `Failed to send followup for session ${session._id} to volunteer ${volunteer._id}: ${error}`
+      `Failed to send followup for session ${session.id} to volunteer ${volunteer.id}: ${error}`
     )
   }
 }

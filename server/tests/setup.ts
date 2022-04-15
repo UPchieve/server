@@ -149,7 +149,6 @@ jest.mock('unleash-client', () => {
   }
 })
 
-// initialize global mongoURI for use with @shelf/jest-mongodb
-var __MONGO_URI__: string
+// initialize global postgres connection vars
 var __PG_HOST__: string
 var __PG_PORT__: number

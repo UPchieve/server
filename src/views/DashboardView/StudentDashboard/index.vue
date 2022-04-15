@@ -15,7 +15,7 @@
         class="dashboard-notice"
         :class="'dashboard-notice--downtime'"
       >
-        {{ downtimeMessage }}
+        <a href="https://upchieve.statuspage.io" target="_blank">{{ downtimeMessage }}</a>
       </div>
     </div>
 
@@ -115,7 +115,7 @@ export default {
     },
     downtimeMessage() {
       if (this.isDowntimeBannerActive) {
-        return 'UPchieve will be down for maintenance 9-10 AM ET on Saturday, April 10.'
+        return 'UPchieve will be down for maintenance 7:30 AM to 2:30 PM ET on Tuesday, April 12.'
       } else {
         return ''
       }
@@ -172,6 +172,15 @@ export default {
   font-size: 16px;
   color: #fff;
 
+  a {
+    color: #fff;
+
+    &:hover {
+      color: #f3f3f3;
+      text-decoration: none;
+    }
+  }
+
   &:last-child {
     // TODO: a cleaner way to handle spacing issues with class SubjectSelection
     margin-bottom: -20px;
@@ -186,7 +195,8 @@ export default {
   }
 
   &--downtime {
-    background-color: $c-error-red;
+    color: #fff;
+    background-color: $c-information-blue;
   }
 }
 </style>

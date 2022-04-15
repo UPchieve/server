@@ -52,7 +52,7 @@ After switching npm versions using nvm, you will need to run `$ npm install`. Ne
 
 ### App Dependencies
 On Linux systems you may need to install [`docker-compose` manually](https://docs.docker.com/compose/install/); on Windows and MacOS it ships with base docker. A docker-compose yaml specifies how to spin up Mongo, Redis, PostgreSQL, and PGAdmin containers to support the server.
- 
+
 1. Run the following command to start the containers
 ```shell
 $ docker-compose up -d
@@ -99,15 +99,18 @@ Even though the frontend is doing a production build, Vue dev tools should still
 
 The database is populated with the following users for local development:
 
-| email                     | password      |
-|:--------------------------|:--------------|
-| `student1@upchieve.org`   | `Password123` |
-| `student2@upchieve.org`   | `Password123` |
-| `volunteer1@upchieve.org` | `Password123` |
-| `volunteer2@upchieve.org` | `Password123` |
-| `volunteer3@upchieve.org` | `Password123` |
+| email                     | password      | properties                                             |
+|:--------------------------|:--------------|--------------------------------------------------------|
+| `student1@upchieve.org`   | `Password123` | approved school                                        |
+| `student2@upchieve.org`   | `Password123` | partner student, approved school                       |
+| `student3@upchieve.org`   | `Password123` | partner student, no school                             |
+| `volunteer1@upchieve.org` | `Password123` | approved, onboarded, partner volunteer                 |
+| `volunteer2@upchieve.org` | `Password123` | approved, onboarded, gets special reporting            |
+| `volunteer3@upchieve.org` | `Password123` | approved, onboarded, open sign up, different time zone |
+| `volunteer4@upchieve.org` | `Password123` | approved, not onboarded                                |
+| `volunteer5@upchieve.org` | `Password123` | not approved, not onboarded                            |
+| `volunteer6@upchieve.org` | `Password123` | admin                                                  |
 
-By default, none of the test users have an `approvedHighschool` set. The volunteers are all admins by default, and `volunteer1@upchieve.org` and `volunteer2@upchieve.org` have also passed all of their certifications. `volunteer3@upchieve.org` has not passed any quizzes.
 
 Structure
 ---------

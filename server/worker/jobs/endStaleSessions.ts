@@ -6,10 +6,10 @@ export default async (): Promise<void> => {
   const staleSessions = await SessionService.getStaleSessions()
   let totalEnded = 0
   const errors: string[] = []
-  for (const session of staleSessions) {
+  for (const sessionId of staleSessions) {
     try {
       await SessionService.endSession(
-        session._id,
+        sessionId,
         null,
         true,
         undefined,
@@ -17,7 +17,7 @@ export default async (): Promise<void> => {
       )
       totalEnded += 1
     } catch (error) {
-      errors.push(`session ${session._id}: ${error}`)
+      errors.push(`session ${sessionId}: ${error}`)
     }
   }
   log(`Successfuly ${Jobs.EndStaleSessions} for ${totalEnded} sessions.`)

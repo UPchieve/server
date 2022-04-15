@@ -3,22 +3,20 @@
  */
 // TODO: types for passport
 const passportSocketIo = require('passport.socketio')
-import { Types } from 'mongoose'
 import Sentry from '@sentry/node'
-import connectMongo from 'connect-mongo'
+import { PGStore } from 'connect-pg-simple'
 import cookieParser from 'cookie-parser'
 import newrelic from 'newrelic'
 import { Server, Socket } from 'socket.io'
 import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import { Session } from '../../models/Session'
-import { User } from '../../models/User'
+import { UserContactInfo } from '../../models/User'
 import * as SessionRepo from '../../models/Session/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
-import { getIdFromModelReference } from '../../utils/model-reference'
 import logger from '../../logger'
 import * as cache from '../../cache'
 import { FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
@@ -26,6 +24,7 @@ import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import { isEnabled } from 'unleash-client'
 import { v4 as uuidv4 } from 'uuid'
 import { LockError } from 'redlock'
+import { Ulid } from '../../models/pgUtils'
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -34,13 +33,13 @@ async function handleChatBot(socket: Socket, key: string) {
   logger.debug('Chatbot connected to socket!')
 }
 
-async function handleUser(socket: Socket, user: User) {
+async function handleUser(socket: Socket, user: UserContactInfo) {
   // Join a user to their own room to handle the event where a user might have
   // multiple socket connections open
-  socket.join(user._id.toString())
+  socket.join(user.id.toString())
   logger.debug('User connected to socket!')
 
-  const latestSession = await SessionService.currentSession(user._id)
+  const latestSession = await SessionService.currentSession(user.id)
 
   // @note: students don't join the room by default until they are in the session view
   // Join user to their latest session if it has not ended
@@ -53,10 +52,7 @@ async function handleUser(socket: Socket, user: User) {
 }
 
 // TODO: upgrade socketio and adapter so we can async this whole file
-export function routeSockets(
-  io: Server,
-  sessionStore: connectMongo.MongoStore
-): void {
+export function routeSockets(io: Server, sessionStore: PGStore): void {
   const socketService = new SocketService(io)
 
   async function getSocketIdsFromRoom(room: string): Promise<string[]> {
@@ -81,7 +77,7 @@ export function routeSockets(
     })
   }
 
-  let chatbot: Types.ObjectId | undefined
+  let chatbot: Ulid | undefined
 
   // Authentication for sockets
   io.use(
@@ -191,14 +187,16 @@ export function routeSockets(
 
             const { sessionId, joinedFrom } = data
             const {
-              request: { user },
+              request: { user: socketUser },
             } = socket
             let session: Session
+
+            const user = socketUser as UserContactInfo
 
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (user.isVolunteer && !user.isApproved)
+              if (user.isVolunteer && !user.approved)
                 throw new Error('Volunteer not approved')
               session = await SessionRepo.getSessionById(sessionId)
             } catch (error) {
@@ -209,14 +207,13 @@ export function routeSockets(
 
             try {
               // TODO: correctly type User from passport
-              await SessionService.joinSession(user, {
+              await SessionService.joinSession(user, session, {
                 socket,
-                session,
                 joinedFrom,
               })
 
               const sessionRoom = getSessionRoom(sessionId)
-              const socketIds = await getSocketIdsFromRoom(user._id.toString())
+              const socketIds = await getSocketIdsFromRoom(user.id)
               // Have all of the user's socket connections join the tutoring session room
               for (const id of socketIds) {
                 await remoteJoinRoom(id, sessionRoom)
@@ -229,14 +226,12 @@ export function routeSockets(
                 socket,
                 {
                   endedAt: session.endedAt,
-                  volunteer: session.volunteer
-                    ? getIdFromModelReference(session.volunteer)
-                    : undefined,
-                  student: getIdFromModelReference(session.student),
+                  volunteer: session.volunteerId,
+                  student: session.studentId,
                 },
                 error as Error
               )
-              reject(error)
+              resolve()
             }
           })
       )
@@ -286,7 +281,7 @@ export function routeSockets(
             const createdAt = new Date()
 
             try {
-              // TODO: correctly type user from passport
+              // TODO: correctly type user from payload
               await SessionService.saveMessage(
                 user,
                 createdAt,
@@ -296,7 +291,7 @@ export function routeSockets(
                 },
                 chatbot
               )
-              if (chatbot && !chatbot.equals(user._id))
+              if (chatbot && !(chatbot === user._id))
                 await SessionService.handleMessageActivity(sessionId)
 
               const messageData = {

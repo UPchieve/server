@@ -1,32 +1,35 @@
-import { Types } from 'mongoose'
-import PushTokenModel, { PushToken } from './index'
-import { RepoReadError, RepoCreateError } from '../Errors'
+import { PushToken } from './types'
+import { RepoCreateError, RepoReadError } from '../Errors'
+import { getClient } from '../../db'
+import * as pgQueries from './pg.queries'
+import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
 
 export async function getPushTokensByUserId(
-  userId: Types.ObjectId
+  userId: Ulid
 ): Promise<PushToken[]> {
   try {
-    return await PushTokenModel.find({ user: userId })
-      .lean()
-      .exec()
+    const result = await pgQueries.getPushTokensByUserId.run(
+      { userId },
+      getClient()
+    )
+    return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function createPushTokenByUserIdToken(
-  userId: Types.ObjectId,
+export async function createPushTokenByUserId(
+  userId: Ulid,
   token: string
 ): Promise<PushToken> {
   try {
-    const data = await PushTokenModel.create({
-      user: userId,
-      token,
-    })
-    if (data) return data.toObject() as PushToken
-    else throw new RepoCreateError('Create query did not return created object')
+    const result = await pgQueries.createPushTokenByUserId.run(
+      { id: getDbUlid(), userId, token },
+      getClient()
+    )
+    if (!result.length) throw new Error('Insert query did not return new row')
+    return makeRequired(result[0])
   } catch (err) {
-    if (err instanceof RepoCreateError) throw err
     throw new RepoCreateError(err)
   }
 }

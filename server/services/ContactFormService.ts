@@ -1,29 +1,24 @@
 import { CustomError } from 'ts-custom-error'
-import { Types } from 'mongoose'
+import { Ulid } from '../models/pgUtils'
 import isEmail from 'validator/lib/isEmail'
 import isLength from 'validator/lib/isLength'
 import nr from 'newrelic'
 import * as ContactFormSubmissionRepo from '../models/ContactFormSubmission/queries'
 import * as MailService from './MailService'
-import {
-  asString,
-  asFactory,
-  asOptional,
-  asObjectId,
-} from '../utils/type-utils'
+import { asString, asFactory, asOptional } from '../utils/type-utils'
 import { InputError } from '../models/Errors'
 
 interface ContactFormSubmissionData {
   message: string
   topic: string
   userEmail: string
-  userId?: Types.ObjectId
+  userId?: Ulid
 }
 const asContactFormSubmissionData = asFactory<ContactFormSubmissionData>({
   message: asString,
   topic: asString,
   userEmail: asString,
-  userId: asOptional(asObjectId),
+  userId: asOptional(asString),
 })
 
 export class MailSendError extends CustomError {
@@ -84,9 +79,9 @@ export async function saveContactFormSubmission(data: unknown) {
           )
         } else {
           await ContactFormSubmissionRepo.createContactFormByUser(
+            userId,
             message,
-            topic,
-            userId
+            topic
           )
         }
       } catch (err) {
