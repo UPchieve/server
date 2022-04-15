@@ -1062,3 +1062,35 @@ export async function getSessionsForVolunteerHourSummary(
     throw new RepoReadError(err)
   }
 }
+
+export type SessionForSessionHistory = {
+  id: Ulid
+  topic: string
+  subject: string
+  createdAt: Date
+  timeTutored: number
+  isFavorited: boolean
+  studentId: Ulid
+  studentFirstName: string
+  volunteerId: Ulid
+  volunteerFirstName: string
+}
+
+export async function getSessionHistory(
+  studentId: Ulid,
+  limit: number,
+  offset: number
+): Promise<SessionForSessionHistory[]> {
+  try {
+    const minSessionLength = 60000
+    const result = await pgQueries.getSessionHistory.run(
+      { studentId, minSessionLength, limit, offset },
+      getClient()
+    )
+
+    if (result.length) return result.map(v => makeRequired(v))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
