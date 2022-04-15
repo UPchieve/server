@@ -233,7 +233,6 @@ export default {
       return this.total === 0
     },
     updateFavoritedVolunteers(volunteerId, isFavorited) {
-      console.log("event called", volunteerId, isFavorited)
       this.sessions = this.sessions.map(session => ({
         ...session, 
         isFavorited: session.volunteerId === volunteerId ? isFavorited : session.isFavorited
@@ -328,9 +327,13 @@ ul {
   &__coach-name {
       @include font-category('subheading');
       margin: 0.8em;
+      @include breakpoint-below('large') {
+        font-size: 14px;
+      }
+
       &-container {
         @include flex-container(row, center, center);
-  }
+      }
     }
   
   &__session {
@@ -349,17 +352,24 @@ ul {
   &__created-at {
     @include font-category('subheading');
     color: $c-secondary-grey;
+    @include breakpoint-below('large') {
+      font-size: 14px;
+    }
   }    
 }
 
 .subject {
   text-align: left;
+
   @include font-category('heading');
+  @include breakpoint-below('large') {
+    font-size: 16px;
+  }
 
   &-icon {
-  height: 50px;
-  width: 50px;
-  margin-left: 1.375em;
+    height: 50px;
+    min-width: 50px;
+    margin-left: 1.375em;
   }
 
   &-name-container {
@@ -370,14 +380,23 @@ ul {
   &-time-tutored {
     @include font-category('helper-text');
     color: $c-secondary-grey;
+    text-align: left;
   }
-
 }
 
 .border--thin {
   width: 100%;
   border-bottom: 2px solid $c-background-grey;
   margin: 0 auto;
+}
+
+.page-actions {
+  @include flex-container(row, space-around);
+  padding: 1em 0;
+
+  @include breakpoint-above('large') {
+    justify-content: flex-end;
+  }
 }
 
 .page-actions-container {
