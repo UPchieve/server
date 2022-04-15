@@ -7,7 +7,7 @@ import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
-import { asUlid } from '../../utils/type-utils'
+import { asString, asUlid } from '../../utils/type-utils'
 
 // TODO: figure out a better way to expose SocketService
 export function routeSession(router: Router, io: Server) {
@@ -228,4 +228,22 @@ export function routeSession(router: Router, io: Server) {
       }
     }
   )
+
+  router.get('/sessions/history', async function(req, res) {
+    try {
+      const { studentId } = req.params
+      const {
+        pastSessions,
+        page,
+        isLastPage,
+      } = await SessionService.getSessionHistory(
+        studentId,
+        asString(req.query.page)
+      )
+
+      res.json({ page, isLastPage, pastSessions })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

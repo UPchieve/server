@@ -38,7 +38,7 @@ import {
 } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as sessionUtils from '../utils/session-utils'
-import { asString } from '../utils/type-utils'
+import { asNumber, asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import { captureEvent } from './AnalyticsService'
@@ -799,4 +799,18 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
     // TODO: cancel chatbot jobs here
     logger.error(`Could not process message acitvity state, cancelling chatbot`)
   }
+}
+
+export async function getSessionHistory(studentId: Ulid, page: string) {
+  const pageNum = parseInt(page)
+  const PER_PAGE = 5
+  const skip = (pageNum - 1) * PER_PAGE
+  const pastSessions = await SessionRepo.getSessionHistory(
+    studentId,
+    PER_PAGE,
+    skip
+  )
+  const isLastPage = pastSessions.length < PER_PAGE
+
+  return { pastSessions, page: pageNum, isLastPage }
 }
