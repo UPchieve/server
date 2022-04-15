@@ -35,6 +35,9 @@ import emailSessionReported from './student-emails/emailSessionReported'
 import sendAssistmentsData from './sendAssistmentsData'
 import chatbot from './chatbot'
 import sendFollowupText from './sendFollowupText'
+import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
+import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
+import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -88,6 +91,11 @@ export enum Jobs {
   EmailStudentUseCases = 'EmailStudentUseCases',
   EmailIndependentLearning = 'EmailIndependentLearning',
   EmailStudentGoalSetting = 'EmailStudentGoalSetting',
+
+  // Backfill scripts
+  BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
+  BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
+  BackfillStudentPosthog = 'BackfillStudentPosthog',
 }
 
 // register new job processors here
@@ -274,6 +282,20 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailStudentGoalSetting,
     processor: emailStudentOnboardingSeries,
+  },
+
+  // Backfill scripts
+  {
+    name: Jobs.BackfillEmailNiceToMeetYou,
+    processor: backfillEmailNiceToMeetYou,
+  },
+  {
+    name: Jobs.BackfillEmailVolunteersInactive,
+    processor: backfillEmailVolunteerInactive,
+  },
+  {
+    name: Jobs.BackfillStudentPosthog,
+    processor: backfillStudentPosthog,
   },
 ]
 

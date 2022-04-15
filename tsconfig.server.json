@@ -27,11 +27,7 @@
     "./*.json",
     "bin/",
     ".*/",
-    "server/tests/",
-    "server/utils/reportUtils",
-    "server/services/ReportService",
-    "server/scripts",
-    "server/router/api/reports"
+    "server/tests/"
   ],
   "ts-node": {
     "files": true
