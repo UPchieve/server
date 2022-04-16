@@ -59,7 +59,6 @@ export async function getStudentPartnerOrgKeyByCode(
       { signupCode },
       getClient()
     )
-    console.log(result)
     if (!(result.length && makeRequired(result[0])))
       throw new Error(
         `no student partner org found with signup code ${signupCode}`
