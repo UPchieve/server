@@ -1,6 +1,7 @@
 /* @name getStudentPartnerOrgForRegistrationByKey */
 SELECT
     KEY,
+    spo.name,
     sites.sites
 FROM
     student_partner_orgs spo
@@ -18,6 +19,7 @@ WHERE
 /* @name getFullStudentPartnerOrgByKey */
 SELECT
     KEY,
+    spo.name,
     signup_code,
     high_school_signup,
     college_signup,

@@ -10,7 +10,7 @@ export async function getStudentPartnerOrgForRegistrationByKey(key: string) {
       { key },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0])))
+    if (!result.length)
       throw new Error(`no student partner org found with key ${key}`)
     return makeSomeRequired(result[0], ['sites'])
   } catch (err) {
@@ -59,11 +59,12 @@ export async function getStudentPartnerOrgKeyByCode(
       { signupCode },
       getClient()
     )
+    console.log(result)
     if (!(result.length && makeRequired(result[0])))
       throw new Error(
         `no student partner org found with signup code ${signupCode}`
       )
-    return makeRequired(result[0].key)
+    return makeRequired(result[0]).key
   } catch (err) {
     throw new RepoReadError(err)
   }
