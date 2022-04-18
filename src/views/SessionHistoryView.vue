@@ -99,7 +99,6 @@
             <div class="mobile-session-list__createdAt-container">
             <div class="mobile-session-list__coach-name-container">
               <favoriting-toggle class="heart"
-              v-if="session.isFavorited"
               :initialIsFavorite="session.isFavorited"
               :volunteerName="session.volunteerFirstName"
               :volunteerId="session.volunteerId"
