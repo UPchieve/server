@@ -204,6 +204,10 @@ export async function volunteers(
       certificationId: certIds['humanitiesEssays'] as number,
     },
     {
+      userId: userMap[volunteer1] as string,
+      certificationId: certIds['reading'] as number,
+    },
+    {
       userId: userMap[volunteer2] as string,
       certificationId: certIds['prealgebra'] as number,
     },
@@ -391,6 +395,12 @@ export async function volunteers(
     {
       userId: userMap[volunteer1] as string,
       quizId: quizIds['humanitiesEssays'] as number,
+      attempts: 1,
+      passed: true,
+    },
+    {
+      userId: userMap[volunteer1] as string,
+      quizId: quizIds['reading'] as number,
       attempts: 1,
       passed: true,
     },

@@ -88,8 +88,17 @@ export enum READING_WRITING_CERTS {
   HUMANITIES_ESSAYS = 'humanitiesEssays',
 }
 
+export enum READING_WRITING_CERTS {
+  READING = 'reading',
+}
+
+
 export enum READING_WRITING_SUBJECTS {
   HUMANITIES_ESSAYS = 'humanitiesEssays',
+}
+
+export enum READING_WRITING_SUBJECTS {
+  READING = 'reading',
 }
 
 export const SUBJECTS = {
@@ -167,6 +176,9 @@ export const CERT_UNLOCKING = {
   [TRAINING.COLLEGE_COUNSELING]: [SUBJECTS.PLANNING, SUBJECTS.APPLICATIONS],
   [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: [
     READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS,
+  ],
+  [READING_WRITING_CERTS.READING]: [
+    READING_WRITING_SUBJECTS.READING,
   ],
 }
 
@@ -492,6 +504,9 @@ export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
     'grammatical_errors',
     'common_requests',
   ],
+  [READING_WRITING_CERTS.READING]: [
+    'tbd-reading',
+  ],
 }
 
 export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
@@ -508,4 +523,5 @@ export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
   [SAT_SUBJECTS.SAT_MATH]: 'SAT Math',
   [SAT_SUBJECTS.SAT_READING]: 'SAT Reading',
   [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays',
+  [READING_WRITING_SUBJECTS.READING]: 'Reading',
 }

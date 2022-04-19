@@ -19,6 +19,7 @@ export async function certifications(): Promise<NameToId> {
     'satReading',
     'collegeCounseling',
     'humanitiesEssays',
+    'reading',
     'algebraOne',
     'algebraTwo',
     'trigonometry',
