@@ -2034,3 +2034,74 @@ const getSessionsForVolunteerHourSummaryIR: any = {"name":"getSessionsForVolunte
 export const getSessionsForVolunteerHourSummary = new PreparedQuery<IGetSessionsForVolunteerHourSummaryParams,IGetSessionsForVolunteerHourSummaryResult>(getSessionsForVolunteerHourSummaryIR);
 
 
+/** 'GetSessionHistory' parameters type */
+export interface IGetSessionHistoryParams {
+  limit: number;
+  minSessionLength: number;
+  offset: number;
+  studentId: string;
+}
+
+/** 'GetSessionHistory' return type */
+export interface IGetSessionHistoryResult {
+  createdAt: Date;
+  id: string;
+  isFavorited: boolean | null;
+  studentFirstName: string;
+  studentId: string;
+  subject: string;
+  timeTutored: number | null;
+  topic: string;
+  volunteerFirstName: string;
+  volunteerId: string;
+}
+
+/** 'GetSessionHistory' query type */
+export interface IGetSessionHistoryQuery {
+  params: IGetSessionHistoryParams;
+  result: IGetSessionHistoryResult;
+}
+
+const getSessionHistoryIR: any = {"name":"getSessionHistory","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27044,"b":27053,"line":970,"col":19}]}},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27208,"b":27224,"line":974,"col":33}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27355,"b":27360,"line":978,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27377,"b":27383,"line":978,"col":30}]}}],"usedParamSet":{"studentId":true,"minSessionLength":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    sessions.time_tutored::int AS time_tutored,\n    subjects.name AS subject,\n    topics.name AS topic,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.id AS volunteer_id,\n    students.id AS student_id,\n    students.first_name AS student_first_name,\n    (\n        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_favorited\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id\nWHERE\n    students.id = :studentId!\n    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')\n    AND NOW()\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND volunteers.test_user IS FALSE\n    AND students.test_user IS FALSE\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":26185,"b":27389,"line":946,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     sessions.created_at AS created_at,
+ *     sessions.time_tutored::int AS time_tutored,
+ *     subjects.name AS subject,
+ *     topics.name AS topic,
+ *     volunteers.first_name AS volunteer_first_name,
+ *     volunteers.id AS volunteer_id,
+ *     students.id AS student_id,
+ *     students.first_name AS student_first_name,
+ *     (
+ *         CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN
+ *             TRUE
+ *         ELSE
+ *             FALSE
+ *         END) AS is_favorited
+ * FROM
+ *     sessions
+ *     JOIN subjects ON subjects.id = sessions.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ *     LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
+ *     LEFT JOIN users students ON sessions.student_id = students.id
+ *     LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
+ * WHERE
+ *     students.id = :studentId!
+ *     AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
+ *     AND NOW()
+ *     AND sessions.time_tutored IS NOT NULL
+ *     AND sessions.time_tutored > :minSessionLength!::int
+ *     AND sessions.volunteer_id IS NOT NULL
+ *     AND volunteers.test_user IS FALSE
+ *     AND students.test_user IS FALSE
+ * LIMIT (:limit!)::int OFFSET (:offset!)::int
+ * ```
+ */
+export const getSessionHistory = new PreparedQuery<IGetSessionHistoryParams,IGetSessionHistoryResult>(getSessionHistoryIR);
+
+

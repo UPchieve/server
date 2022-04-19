@@ -941,3 +941,39 @@ WHERE
     AND sessions.volunteer_id = :volunteerId!
     AND users.test_user = FALSE;
 
+
+/* @name getSessionHistory */
+SELECT
+    sessions.id,
+    sessions.created_at AS created_at,
+    sessions.time_tutored::int AS time_tutored,
+    subjects.name AS subject,
+    topics.name AS topic,
+    volunteers.first_name AS volunteer_first_name,
+    volunteers.id AS volunteer_id,
+    students.id AS student_id,
+    students.first_name AS student_first_name,
+    (
+        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_favorited
+FROM
+    sessions
+    JOIN subjects ON subjects.id = sessions.subject_id
+    JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
+    LEFT JOIN users students ON sessions.student_id = students.id
+    LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
+WHERE
+    students.id = :studentId!
+    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
+    AND NOW()
+    AND sessions.time_tutored IS NOT NULL
+    AND sessions.time_tutored > :minSessionLength!::int
+    AND sessions.volunteer_id IS NOT NULL
+    AND volunteers.test_user IS FALSE
+    AND students.test_user IS FALSE
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
+

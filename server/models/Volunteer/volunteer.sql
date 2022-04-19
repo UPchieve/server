@@ -1210,6 +1210,7 @@ candidates AS (
         users
         JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
         JOIN availabilities ON users.id = availabilities.user_id
+        JOIN weekdays ON weekdays.id = availabilities.weekday_id
         LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
         LEFT JOIN LATERAL (
             SELECT
@@ -1235,7 +1236,7 @@ candidates AS (
         AND volunteer_profiles.onboarded IS TRUE
         AND volunteer_profiles.approved IS TRUE
         -- availabilities are all stored in EST so convert server time to EST to be safe
-        AND extract(isodow FROM (NOW() at time zone 'America/New_York')) = availabilities.weekday_id
+        AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
         AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start
         AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
         AND :subject! = ANY (subjects_unlocked.subjects)
@@ -1245,6 +1246,9 @@ candidates AS (
         AND ( -- user is not part of disqualified group (like active session volunteers) if provided
             (:disqualifiedVolunteers)::uuid[] IS NULL
             OR NOT users.id = ANY (:disqualifiedVolunteers))
+        AND ( -- user is a favorite volunteer
+            (:favoriteVolunteers)::uuid[] IS NULL
+            OR users.id = ANY (:favoriteVolunteers))
         AND ( -- user is partner or open
             (:isPartner)::boolean IS NULL
             OR (:isPartner IS FALSE
@@ -1326,6 +1330,7 @@ FROM
     users
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     JOIN availabilities ON users.id = availabilities.user_id
+    JOIN weekdays ON weekdays.id = availabilities.weekday_id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     JOIN (
         SELECT
@@ -1361,7 +1366,7 @@ WHERE
     AND banned IS FALSE
     AND deactivated IS FALSE
     AND NOT users.id = ANY (:excludedIds!)
-AND extract(isodow FROM (now() at time zone availabilities.timezone)) = availabilities.weekday_id
+AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
     AND subjects_unlocked.subject = :subject!;

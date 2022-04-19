@@ -101,7 +101,7 @@ export async function getFavoriteVolunteersPaginated(
   userId: Ulid,
   page: number
 ) {
-  const limit = 10
+  const limit = 5
   const offset = limit * (page - 1)
-  return await StudentRepo.getFavoriteVolunteers(userId, limit, offset)
+  return await StudentRepo.getFavoriteVolunteersPaginated(userId, limit, offset)
 }

@@ -61,7 +61,17 @@ WHERE
     AND volunteer_id = :volunteerId!;
 
 
-/* @name getFavoriteVolunteers */
+/* @name getFavoriteVolunteersByStudentId */
+SELECT
+    student_favorite_volunteers.volunteer_id AS id
+FROM
+    student_favorite_volunteers
+    LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
+WHERE
+    student_favorite_volunteers.student_id = :studentId!;
+
+
+/* @name getFavoriteVolunteersPaginated */
 SELECT
     student_favorite_volunteers.volunteer_id AS volunteer_id,
     users.first_name AS first_name,
@@ -75,11 +85,13 @@ FROM
             sessions.volunteer_id
         FROM
             sessions
+        WHERE
+            sessions.student_id = :studentId!
         GROUP BY
             sessions.student_id,
             sessions.volunteer_id) AS sessions ON sessions.volunteer_id = student_favorite_volunteers.volunteer_id
 WHERE
-    student_favorite_volunteers.student_id = :userId!
+    student_favorite_volunteers.student_id = :studentId!
 ORDER BY
     student_favorite_volunteers.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;

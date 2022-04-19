@@ -15,6 +15,7 @@ test('Make a connection', async () => {
     highLevelSubjects: undefined,
     disqualifiedVolunteers: undefined,
     specificPartner: undefined,
+    favoriteVolunteers: undefined,
   })
   expect(result).toBeUndefined()
 })
