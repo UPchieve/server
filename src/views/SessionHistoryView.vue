@@ -161,7 +161,6 @@ export default {
   data() {
     return {
       sessions: [],
-      isLastPage: true,
       page: 1,
       hasNext: false,
       total: 0
@@ -181,6 +180,9 @@ export default {
       const sessionLimitPerPage = 5
       const totalPages = Math.ceil(this.total / sessionLimitPerPage)
       return totalPages === 0 ? 1 : totalPages
+    },
+    isLastPage(){
+      return this.page === this.totalPages
     },
     svgs() {
       return {
