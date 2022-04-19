@@ -347,7 +347,7 @@ ul {
   }
   
   &__subject-container {
-    @include flex-container(row, initial, center);
+    @include flex-container(row, center, center);
   }
 
   &__created-at {
@@ -370,12 +370,22 @@ ul {
   &-icon {
     height: 50px;
     min-width: 50px;
-    margin-left: 1.375em;
+    width: 50px;
+
+    @include breakpoint-below('large') {
+      min-width: initial;
+      width: 30px;
+    }
   }
 
   &-name-container {
     @include flex-container(column, center, flex-start);
-    margin: 1.375em;
+    margin: 1.375em 0 1.375em 1em;
+    width: 100px;
+
+    @include breakpoint-below('large') {
+      margin-left: 0.4em;
+    }
   }
 
   &-time-tutored {
