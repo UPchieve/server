@@ -61,7 +61,17 @@ WHERE
     AND volunteer_id = :volunteerId!;
 
 
-/* @name getFavoriteVolunteers */
+/* @name getFavoriteVolunteersByStudentId */
+SELECT
+    student_favorite_volunteers.volunteer_id AS id
+FROM
+    student_favorite_volunteers
+    LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
+WHERE
+    student_favorite_volunteers.student_id = :studentId!;
+
+
+/* @name getFavoriteVolunteersPaginated */
 SELECT
     student_favorite_volunteers.volunteer_id AS volunteer_id,
     users.first_name AS first_name,

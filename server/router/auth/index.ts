@@ -9,6 +9,8 @@ import { getUserIdByEmail } from '../../models/User/queries'
 import { asBoolean, asString } from '../../utils/type-utils'
 import { Ulid } from '../../models/pgUtils'
 import logger from '../../logger'
+import { getLegacyUserObject } from '../../models/User/legacy-user'
+import { extractUser } from '../extract-user'
 
 export function routes(app: Express) {
   const router = Router()
@@ -33,8 +35,9 @@ export function routes(app: Express) {
     // Delegate auth logic to passport middleware
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
-    function(req, res) {
-      res.json({ user: req.user })
+    async function(req, res) {
+      const legagacyUser = await getLegacyUserObject(extractUser(req).id)
+      res.json({ user: legagacyUser })
     }
   )
 

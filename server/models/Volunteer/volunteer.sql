@@ -1246,6 +1246,9 @@ candidates AS (
         AND ( -- user is not part of disqualified group (like active session volunteers) if provided
             (:disqualifiedVolunteers)::uuid[] IS NULL
             OR NOT users.id = ANY (:disqualifiedVolunteers))
+        AND ( -- user is a favorite volunteer
+            (:favoriteVolunteers)::uuid[] IS NULL
+            OR users.id = ANY (:favoriteVolunteers))
         AND ( -- user is partner or open
             (:isPartner)::boolean IS NULL
             OR (:isPartner IS FALSE

@@ -1,9 +1,19 @@
-import * as db from '../db'
-import { getVolunteersForNiceToMeetYou } from '../models/Volunteer/queries'
+import { getVolunteersForNiceToMeetYou } from '../models/Volunteer'
 import * as MailService from '../services/MailService'
 import { Jobs } from '../worker/jobs'
+import { Job } from 'bull'
+import { asString } from '../utils/type-utils'
+import { log } from '../worker/logger'
 
-async function EmailNiceToMeetYou(start: Date): Promise<void> {
+type BackfillEmailNiceToMeetYouData = {
+  startDate: string
+}
+
+export default async function BackfillEmailNiceToMeetYou(
+  job: Job<BackfillEmailNiceToMeetYouData>
+): Promise<void> {
+  const start = new Date(asString(job.data.startDate))
+
   const oneDay = 1000 * 60 * 60 * 24 * 1
   const oneDayAgo = new Date(start.getTime() - oneDay).setHours(0, 0, 0, 0)
   const todaysDate = new Date(start)
@@ -26,31 +36,8 @@ async function EmailNiceToMeetYou(start: Date): Promise<void> {
       errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
   }
-  console.log(`Sent ${Jobs.EmailNiceToMeetYou} to ${totalEmailed} volunteers`)
+  log(`Sent ${Jobs.EmailNiceToMeetYou} to ${totalEmailed} volunteers`)
   if (errors.length) {
     throw new Error(`Failed to send ${Jobs.EmailNiceToMeetYou} to: ${errors}`)
   }
 }
-
-async function main() {
-  let exitCode = 0
-  try {
-    await db.connect()
-
-    const args = process.argv.slice(2)
-    if (!args.length) throw new Error('Provide argument of date to run as')
-    if (args.length > 1) throw new Error('More than one argument provided')
-    const start = new Date(args[0])
-    console.log(`Running ${Jobs.EmailNiceToMeetYou} from date ${start}`)
-
-    await EmailNiceToMeetYou(start)
-  } catch (error) {
-    console.log(`Uncaught error: ${error}`)
-    exitCode = 1
-  } finally {
-    await db.closeClient()
-    process.exit(exitCode)
-  }
-}
-
-main()
