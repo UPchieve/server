@@ -546,8 +546,4 @@ ul {
     font-weight: 400;
   }
 }
-
-.heart {
-  transform: scale(0.6);
-}
 </style>
