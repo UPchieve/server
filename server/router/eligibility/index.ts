@@ -85,7 +85,7 @@ export function routes(app: Express) {
       if (isCollegeStudent)
         return res.json({
           isEligible: isStudentEligible,
-          message: 'Student is not a high school student.',
+          isCollegeStudent: isCollegeStudent,
         })
       else return res.json({ isEligible: isStudentEligible })
     } catch (err) {

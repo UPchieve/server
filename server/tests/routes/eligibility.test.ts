@@ -111,6 +111,6 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     const response = await sendPost(ELIGIBILITY_CHECK_PATH, payload)
 
     expect(response.body.isEligible).toBe(false)
-    expect(response.body.message).toBe('Student is not a high school student.')
+    expect(response.body.isCollegeStudent).toBe(true)
   })
 })

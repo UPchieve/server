@@ -212,8 +212,8 @@
     </div>
     <h3>{{ title }}</h3>
 
-    <p v-if="isCollegeStudent" class="small-paragraph">
-      We don't have the capacity to help college students right now, but did you know that many UPchieve students dream of going to college just like you? Give back by <a href="https://upchieve.org/volunteer">becoming an Academic Coach.</a>
+    <p v-if="isCollegeStudent" class="small-paragraph college-ineligibility">
+      We don't have the capacity to help college students right now, but did you know that many UPchieve students dream of going to college just like you? Give back by <a href="https://upchieve.org/volunteer" target="_blank">becoming an Academic Coach.</a>
     </p>
     <p v-else class="small-paragraph">
       We weren’t able to verify your eligibility based on the information you’ve
@@ -222,8 +222,8 @@
       parent/guardian to answer some more questions first!
     </p>
 
-    <p v-if="isCollegeStudent" class="small-paragraph">
-      <i>Still need help? <a href="https://upchieve.org/resources-for-college-students"> Find college resources here. </a></i>
+    <p v-if="isCollegeStudent" class="small-paragraph college-ineligibility">
+      <i>Still need help? <a href="https://upchieve.org/resources-for-college-students" target="_blank"> Find college resources here. </a></i>
     </p>
 
     <button
@@ -724,7 +724,7 @@ export default {
             this.credentials.email = this.eligibility.email
           } else {
             this.step = 'ineligible'
-           if(response.body.message === 'Student is not a high school student.')
+           if(response.body.isCollegeStudent)
               this.isCollegeStudent = true
             this.$router.push('/sign-up/student/ineligible')
             AnalyticsService.captureEvent(EVENTS.ELIGIBILITY_INELIGIBLE, {
@@ -881,11 +881,14 @@ export default {
   }
 }
 
-a {
+.college-ineligibility {
+  a {
     color: $c-success-green;
     font-weight: 500;
     text-decoration: underline;
   }
+}
+
 
 .name-fields {
   @include child-spacing(right, 15px);
