@@ -240,8 +240,8 @@ RETURNING
 
 
 /* @name createStudentUser */
-INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, referred_by, referral_code, created_at, updated_at)
-    VALUES (:userId!, :firstName!, :lastName!, :email!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())
+INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, referred_by, referral_code, last_activity_at, created_at, updated_at)
+    VALUES (:userId!, :firstName!, :lastName!, :email!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW(), NOW())
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
