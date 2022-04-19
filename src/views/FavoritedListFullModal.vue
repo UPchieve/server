@@ -1,5 +1,9 @@
 <template>
-  <modal :closeModal="closeModal" class="list-full-modal-wrapper">
+  <modal 
+    :closeModal="closeModal" 
+    class="list-full-modal-wrapper"
+    :disableModalMobileMode="true"
+  >
     <div class="list-full-modal">
       <header>
         <h1 class="list-full-modal-title">
@@ -41,13 +45,21 @@ export default {
 .list-full-modal-wrapper .upc-modal-form {
   @include flex-container(column,center);
   height: 261px;
-  width: 463px;
   border-radius: 16px;
   padding-top: 36px;
 
   &:hover {
     box-shadow: 0px 2px 5px 3px rgba(0, 0, 0, 0.15);
   }
+
+  @include breakpoint-below("medium") {
+    padding: 40px 40px 0 40px;
+  }
+
+  @include breakpoint-above("small") {
+    width: 463px;
+  }
+
 }
 </style>
 

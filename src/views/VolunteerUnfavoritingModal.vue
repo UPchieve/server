@@ -1,5 +1,9 @@
 <template>
-  <modal :closeModal="closeModal" class="unfavoriting-modal-wrapper">
+  <modal
+    :closeModal="closeModal"
+    class="unfavoriting-modal-wrapper"
+    :disableModalMobileMode="true"
+  >
     <div class="unfavoriting-modal">
     <header>
       <h1 class="unfavoriting-modal-title">
@@ -39,12 +43,19 @@ export default {
 .unfavoriting-modal-wrapper .upc-modal-form {
   @include flex-container(column,center);
   height: 190px;
-  width: 393px;
   border-radius: 16px;
   min-height: 190px;
 
   &:hover {
     box-shadow: 0px 2px 5px 3px rgba(0, 0, 0, 0.15);
+  }
+
+  @include breakpoint-below("medium") {
+    padding: 40px 40px 0 40px;
+  }
+
+  @include breakpoint-above("tiny") {
+    width: 393px;
   }
 }
 </style>

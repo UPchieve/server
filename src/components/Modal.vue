@@ -1,10 +1,10 @@
 <template>
   <div
     class="upc-modal"
-    :class="{ 'modal--important': important }"
+    :class="{ 'modal--important': important, 'upc-modal--disable-mobile': disableModalMobileMode }"
     @click="handleClose"
   >
-    <div v-if="mobileMode" class="upc-modal-header">
+    <div v-if="mobileMode && !disableModalMobileMode" class="upc-modal-header">
       <div
         v-if="backText"
         class="upc-modal-header-close-button"
@@ -33,7 +33,8 @@ export default {
     closeModal: { type: Function, required: true },
     important: Boolean,
     backText: { type: String, default: 'Back' },
-    useDefaultPadding: { type: Boolean, default: true, required: false }
+    useDefaultPadding: { type: Boolean, default: true, required: false },
+    disableModalMobileMode: { type: Boolean, default: false, required: false }
   },
   mounted() {
     const body = document.querySelector('body')

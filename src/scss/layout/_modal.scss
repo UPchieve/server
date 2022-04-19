@@ -29,6 +29,14 @@ $header-height: 80px;
     display: flex;
     align-items: center;
   }
+
+  &--disable-mobile {
+    animation: none;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 .upc-modal-header {

@@ -46,6 +46,7 @@ import TrainingCourseView from './views/TrainingCourseView'
 import TrainingView from './views/TrainingView'
 import VerificationView from './views/VerificationView'
 import VolunteerPartnerSignupView from './views/VolunteerPartnerSignupView'
+import SessionHistoryView from './views/SessionHistoryView'
 
 Vue.use(VueResource)
 Vue.http.options.credentials = true
@@ -129,6 +130,12 @@ const routes = [
     name: 'VolunteerPartnerSignupView',
     component: VolunteerPartnerSignupView,
     meta: { loggedOutOnly: true }
+  },
+  { 
+    path: '/sessions/history',
+    name: 'SessionHistoryView',
+    component: SessionHistoryView,
+    meta: { protected: true }
   },
   {
     path: '/referral/:referredByCode',
