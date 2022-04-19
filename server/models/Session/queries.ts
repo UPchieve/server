@@ -1094,3 +1094,20 @@ export async function getSessionHistory(
     throw new RepoReadError(err)
   }
 }
+
+export async function getTotalSessionHistory(
+  studentId: Ulid,
+  minSessionLength: number
+): Promise<number> {
+  try {
+    const result = await pgQueries.getTotalSessionHistory.run(
+      { studentId, minSessionLength },
+      getClient()
+    )
+
+    if (result.length) return makeRequired(result[0]).total
+    return 0
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
