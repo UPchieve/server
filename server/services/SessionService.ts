@@ -814,3 +814,8 @@ export async function getSessionHistory(studentId: Ulid, page: string) {
 
   return { pastSessions, page: pageNum, isLastPage }
 }
+
+export async function getTotalSessionHistory(studentId: Ulid) {
+  const minSessionLength = 60000
+  return SessionRepo.getTotalSessionHistory(studentId, minSessionLength)
+}

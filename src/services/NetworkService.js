@@ -647,7 +647,7 @@ export default {
       .get(`${API_ROOT}/product-flags`)
       .then(this._successHandler, this._errorHandler)
   },
-  updateFavoriteVolunteerStatus(volunteerId, data){
+  updateFavoriteVolunteerStatus(volunteerId, data) {
     return Vue.http
     .post(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`, data)
     .then(this._successHandler, this._errorHandler)
@@ -660,6 +660,16 @@ export default {
   checkIsFavoriteVolunteer(volunteerId) {
     return Vue.http
       .get(`${API_ROOT}/students/favorite-volunteers/${volunteerId}`)
+      .then(this._successHandler, this._errorHandler)
+  },
+  getSessionHistory(page) {
+    return Vue.http
+      .get(`${API_ROOT}/sessions/history?page=${page}`)
+      .then(this._successHandler, this._errorHandler)
+  },
+  getTotalSessionHistory() {
+    return Vue.http
+      .get(`${API_ROOT}/sessions/history/total`)
       .then(this._successHandler, this._errorHandler)
   },
   getFavoriteVolunteers(page) {

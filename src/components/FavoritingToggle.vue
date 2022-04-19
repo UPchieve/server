@@ -45,6 +45,11 @@ export default {
   created() {
     this.isFavorite = this.initialIsFavorite
   },
+  watch: {
+    initialIsFavorite(newIsFavorite) {
+      this.isFavorite = newIsFavorite
+    }
+  },
   data() {
     return {
       showVolunteerUnfavoritingModal: false,
@@ -61,6 +66,7 @@ export default {
      try {
         const response = await NetworkService.updateFavoriteVolunteerStatus(this.volunteerId, { isFavorite: value })
         this.isFavorite = response.body.isFavorite
+        this.$emit('change-favorited', this.volunteerId, this.isFavorite)
       } catch (error) {
         if (error.body.success === false)
           this.showFavoritedListFullModal = true
