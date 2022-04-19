@@ -293,6 +293,10 @@ ul {
 .session-history {
   padding: 53px;
 
+  @include breakpoint-below('large') {
+    padding: 1em;
+  }
+
   @include breakpoint-below('small') {
     padding: 0;
   }

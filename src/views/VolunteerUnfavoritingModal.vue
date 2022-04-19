@@ -49,7 +49,10 @@ export default {
   &:hover {
     box-shadow: 0px 2px 5px 3px rgba(0, 0, 0, 0.15);
   }
-  padding: initial;
+
+  @include breakpoint-below("medium") {
+    padding: 40px 40px 0 40px;
+  }
 
   @include breakpoint-above("tiny") {
     width: 393px;
