@@ -19,7 +19,6 @@ export async function quizzes(): Promise<NameToId> {
     'satReading',
     'collegeCounseling',
     'humanitiesEssays',
-    'reading',
     'algebraOne',
     'algebraTwo',
     'trigonometry',
@@ -1163,10 +1162,6 @@ export async function quizSubcategories(quizIds: NameToId) {
     {
       name: 'common_requests',
       quizId: quizIds['humanitiesEssays'] as number,
-    },
-    {
-      name: 'tbd-reading',
-      quizId: quizIds['reading'] as number,
     },
     { name: 'inference',
       quizId: quizIds['satReading'] as number },

@@ -505,7 +505,16 @@ export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
     'common_requests',
   ],
   [READING_WRITING_CERTS.READING]: [
-    'tbd-reading',
+    'probingqs',
+    'questions',
+    'texttype',
+    'vocabulary',
+    'activatebk',
+    'backgroundknowledge',
+    'comprehensionsupport',
+    'context',
+    'corrections',
+    'editing'
   ],
 }
 
