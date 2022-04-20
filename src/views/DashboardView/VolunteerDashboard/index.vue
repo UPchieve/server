@@ -215,7 +215,7 @@ export default {
 
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
-    } else if(isEnabled(FEATURE_FLAGS.READING_LAUNCH) && !hasUnlockedReading) {
+    } else if(FEATURE_FLAGS.READING_LAUNCH && !hasUnlockedReading) {
       this.$store.dispatch('app/header/show', readingLaunchHeaderData)
     }
 
