@@ -121,7 +121,6 @@ COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_ty
 22	integratedMathTwo	Integrated Math Two	9	1	1	2022-04-15 21:44:29.931667+00	2022-04-15 21:44:29.931667+00
 23	integratedMathThree	Integrated Math Three	9	1	1	2022-04-15 21:44:29.935533+00	2022-04-15 21:44:29.935533+00
 24	integratedMathFour	Integrated Math Four	9	1	1	2022-04-15 21:44:29.937524+00	2022-04-15 21:44:29.937524+00
-25	reading	Reading	2	5	2	2022-04-15 21:44:29.927643+00	2022-04-15 21:44:29.927643+00
 \.
 
 

@@ -111,7 +111,6 @@ COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_ty
 22	integratedMathTwo	Integrated Math Two	9	1	1	2022-04-15 21:47:34.604714+00	2022-04-15 21:47:34.604714+00
 23	integratedMathThree	Integrated Math Three	9	1	1	2022-04-15 21:47:34.607318+00	2022-04-15 21:47:34.607318+00
 24	integratedMathFour	Integrated Math Four	9	1	1	2022-04-15 21:47:34.61005+00	2022-04-15 21:47:34.61005+00
-25	reading	Reading	2	5	2	2022-04-15 21:47:34.593851+00	2022-04-15 21:47:34.593851+00
 \.
 
 
@@ -236,7 +235,6 @@ COPY upchieve.certifications (id, name, created_at, updated_at) FROM stdin;
 19	precalculus	2022-04-15 21:47:35.607055+00	2022-04-15 21:47:35.607055+00
 20	calculusAB	2022-04-15 21:47:35.60951+00	2022-04-15 21:47:35.60951+00
 21	calculusBC	2022-04-15 21:47:35.611712+00	2022-04-15 21:47:35.611712+00
-22	reading	2022-04-15 21:47:35.594019+00	2022-04-15 21:47:35.594019+00
 \.
 
 
