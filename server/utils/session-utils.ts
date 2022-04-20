@@ -139,7 +139,7 @@ export function isSubjectUsingDocumentEditor(subject: string) {
     case SUBJECTS.PLANNING:
     case SUBJECTS.APPLICATIONS:
     case SUBJECTS.HUMANITIES_ESSAYS:
-    case SUBJECTS.READING:  
+    case SUBJECTS.READING:
       return true
     default:
       return false

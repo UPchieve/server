@@ -92,7 +92,6 @@ export enum READING_WRITING_CERTS {
   READING = 'reading',
 }
 
-
 export enum READING_WRITING_SUBJECTS {
   HUMANITIES_ESSAYS = 'humanitiesEssays',
 }
@@ -177,9 +176,7 @@ export const CERT_UNLOCKING = {
   [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: [
     READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS,
   ],
-  [READING_WRITING_CERTS.READING]: [
-    READING_WRITING_SUBJECTS.READING,
-  ],
+  [READING_WRITING_CERTS.READING]: [READING_WRITING_SUBJECTS.READING],
 }
 
 export const COMPUTED_CERTS = {
@@ -514,7 +511,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
     'comprehensionsupport',
     'context',
     'corrections',
-    'editing'
+    'editing',
   ],
 }
 
