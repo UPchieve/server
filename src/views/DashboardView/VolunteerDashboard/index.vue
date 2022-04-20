@@ -169,6 +169,7 @@ import WebNotificationsButton from '@/components/WebNotificationsButton.vue'
 import ArrowIcon from '@/assets/arrow.svg'
 import NetworkService from '../../../services/NetworkService'
 import config from '../../../config'
+import { FEATURE_FLAGS } from '@/consts'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -176,6 +177,10 @@ const defaultHeaderData = {
 
 const rejoinHeaderData = {
   component: 'RejoinSessionHeader'
+}
+
+const readingLaunchHeaderData = {
+  component: 'ReadingLaunchHeader'
 }
 
 const upchieveTopics = allSubtopicNames()
@@ -205,8 +210,13 @@ export default {
     },
   },
   async created() {
+    const unlockReadingCerts = ['reading']
+    const hasUnlockedReading = unlockReadingCerts.some(cert => this.user.certifications[cert].passed)
+
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
+    } else if(isEnabled(FEATURE_FLAGS.READING_LAUNCH) && !hasUnlockedReading) {
+      this.$store.dispatch('app/header/show', readingLaunchHeaderData)
     }
 
     if (this.isFirstDashboardVisit) {
