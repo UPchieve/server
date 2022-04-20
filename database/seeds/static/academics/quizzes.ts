@@ -119,10 +119,6 @@ export async function quizCertificationGrants(
       certificationId: certIds['humanitiesEssays'] as number,
     },
     {
-      quizId: quizIds['reading'] as number,
-      certificationId: certIds['reading'] as number,
-    },
-    {
       quizId: quizIds['algebraTwo'] as number,
       certificationId: certIds['algebraOne'] as number,
     },

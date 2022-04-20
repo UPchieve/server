@@ -147,13 +147,6 @@ export async function subjects(
       displayOrder: 1,
     },
     {
-      name: 'reading',
-      displayName: 'Reading',
-      topicId: topicIds['readingWriting'] as number,
-      toolTypeId: toolIds['documenteditor'] as number,
-      displayOrder: 2,
-    },
-    {
       name: 'integratedMathOne',
       displayName: 'Integrated Math One',
       topicId: topicIds['math'] as number,
@@ -297,10 +290,6 @@ export async function certificationSubjectUnlocks(
     {
       subjectId: subIds['humanitiesEssays'] as number,
       certificationId: certIds['humanitiesEssays'] as number,
-    },
-    {
-      subjectId: subIds['reading'] as number,
-      certificationId: certIds['reading'] as number,
     },
     {
       subjectId: subIds['algebraOne'] as number,
