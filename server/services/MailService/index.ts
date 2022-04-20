@@ -657,7 +657,7 @@ export async function sendWeeklyHourApologyEmail(
   firstName: string,
   email: string,
   fromDate: string,
-  toDate: string,
+  toDate: string
 ): Promise<void> {
   const overrides = {
     categories: ['weekly hour summary apology email'],
@@ -671,7 +671,7 @@ export async function sendWeeklyHourApologyEmail(
     {
       firstName: capitalize(firstName),
       fromDate,
-      toDate
+      toDate,
     },
     overrides
   )
