@@ -1,8 +1,10 @@
+import moment from 'moment'
 import {
   AvailabilityDay,
   AvailabilityHistory,
+  getAvailabilityDay,
   getAvailabilityHistoryForDatesByVolunteerId,
-  getLegacyAvailabilityHistoryForDatesByVolunteerId,
+  getLegacyAvailabilityHistoryForDatesByVolunteerId
 } from '../models/Availability'
 import { Ulid } from '../models/pgUtils'
 
@@ -52,8 +54,8 @@ export async function getTotalElapsedAvailabilityForDateRange(
 
   let totalElapsedAvailability = 0
   for (const doc of historyDocs.concat(legacyDocs)) {
-    for (const [day, avail] of Object.entries(doc.availability))
-      totalElapsedAvailability += getElapsedAvailabilityForDay(avail)
+    const dayOfWeek = getAvailabilityDay(moment(doc.recordedAt).day())
+    totalElapsedAvailability += getElapsedAvailabilityForDay(doc.availability[dayOfWeek])
   }
 
   return totalElapsedAvailability
