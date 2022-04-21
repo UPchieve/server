@@ -653,6 +653,30 @@ export async function sendHourSummaryEmail(
   )
 }
 
+export async function sendWeeklyHourApologyEmail(
+  firstName: string,
+  email: string,
+  fromDate: string,
+  toDate: string
+): Promise<void> {
+  const overrides = {
+    categories: ['weekly hour summary apology email'],
+  }
+
+  await sendEmail(
+    email,
+    config.mail.senders.support,
+    'UPchieve',
+    config.sendgrid.weeklyHourSummaryApologyEmailTemplate,
+    {
+      firstName: capitalize(firstName),
+      fromDate,
+      toDate,
+    },
+    overrides
+  )
+}
+
 export async function sendOnboardingReminderOne(
   firstName: string,
   email: string,
