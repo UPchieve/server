@@ -101,8 +101,9 @@ export default async function sendWeeklyHourSummaryApology(): Promise<void> {
         lastMonday.toDate(),
         lastSunday.toDate()
       )
-
-      if (!incorrectSummaryStats || !summaryStats) continue
+      // skip sending the email if the incorrect stats were 0 because these users did
+      // not receive a weekly summary email from us
+      if (!incorrectSummaryStats || !summaryStats || incorrectSummaryStats.totalVolunteerHours <= 0.01) continue
 
       // send apology email to those who had no tutoring hours in the past week, but received incorrect stats
       if (
