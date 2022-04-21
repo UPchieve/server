@@ -86,9 +86,6 @@ export enum SAT_SUBJECTS {
 
 export enum READING_WRITING_CERTS {
   HUMANITIES_ESSAYS = 'humanitiesEssays',
-}
-
-export enum READING_WRITING_CERTS {
   READING = 'reading',
 }
 

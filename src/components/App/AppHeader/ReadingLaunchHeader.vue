@@ -8,7 +8,7 @@
 <script>
 
 export default {
-  name: 'algebra-two-launch-header',
+  name: 'reading-launch-header',
 }
 </script>
 

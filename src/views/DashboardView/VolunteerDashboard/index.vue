@@ -169,7 +169,6 @@ import WebNotificationsButton from '@/components/WebNotificationsButton.vue'
 import ArrowIcon from '@/assets/arrow.svg'
 import NetworkService from '../../../services/NetworkService'
 import config from '../../../config'
-import { FEATURE_FLAGS } from '@/consts'
 
 const defaultHeaderData = {
   component: 'DefaultHeader'
@@ -210,12 +209,11 @@ export default {
     },
   },
   async created() {
-    const unlockReadingCerts = ['reading']
-    const hasUnlockedReading = unlockReadingCerts.some(cert => this.user.certifications[cert].passed)
+    const hasUnlockedReading = this.user.certifications.reading.passed
 
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
-    } else if(FEATURE_FLAGS.READING_LAUNCH && !hasUnlockedReading) {
+    } else if (this.isReadingLaunchActive && !hasUnlockedReading){
       this.$store.dispatch('app/header/show', readingLaunchHeaderData)
     }
 
@@ -247,7 +245,8 @@ export default {
       sessionPath: 'user/sessionPath',
       hasCertification: 'user/hasCertification',
       hasSelectedAvailability: 'user/hasSelectedAvailability',
-      isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive'
+      isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
+      isReadingLaunchActive: 'featureFlags/isReadingLaunchActive'
     }),
 
     isCustomVolunteerPartner() {
