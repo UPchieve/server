@@ -15,6 +15,7 @@ import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
 import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
+import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -34,7 +35,7 @@ export async function getHourSummaryStats(
     elapsedAvailability,
     timeTutoredMS,
   ] = await Promise.all([
-    VolunteerRepo.getQuizzesPassedForDateRange(volunteerId, fromDate, toDate),
+    getQuizzesPassedForDateRangeById(volunteerId, fromDate, toDate),
     getTotalElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
     getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
   ])
