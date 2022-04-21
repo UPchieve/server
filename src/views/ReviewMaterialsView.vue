@@ -166,8 +166,8 @@ export default {
           this.reviewMaterials = [
             {
               title: 'Reading Review Guide',
-              pdf: `${this.hostPath}/reading-review-guide.pdf`,
-              image: `${this.hostPath}/reading-review-guide.png`
+              pdf: `${this.hostPath}/reading-review.pdf`,
+              image: `${this.hostPath}/reading-review.png`
             }
           ]
           break
