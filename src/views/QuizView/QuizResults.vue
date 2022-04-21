@@ -99,6 +99,7 @@ h2 {
 .btn {
   background: #f6f6f6;
   border-radius: 20px;
+  min-width: 140px;
   box-sizing: content-box;
   height: 26px;
   line-height: 26px;
