@@ -91,9 +91,6 @@ export enum READING_WRITING_CERTS {
 
 export enum READING_WRITING_SUBJECTS {
   HUMANITIES_ESSAYS = 'humanitiesEssays',
-}
-
-export enum READING_WRITING_SUBJECTS {
   READING = 'reading',
 }
 
