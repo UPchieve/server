@@ -49,8 +49,7 @@
         <p class="favorite-coaches__no-coaches-description">
           Favoriting a coach will increase your chances of matching with them in
           the future. To favorite a coach you really like, fill out the form
-          after your tutoring session or go to Session History on the navigation
-          bar to the left.
+          after your tutoring session.
         </p>
       </div>
       <footer class="page-actions-container">
