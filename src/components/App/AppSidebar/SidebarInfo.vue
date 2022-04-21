@@ -94,6 +94,7 @@ export default {
   &-name {
     @include font-category('display-small');
     margin-top: $spacing * 2;
+    text-align: left;
   }
 
   &-type {
