@@ -38,6 +38,7 @@ import sendFollowupText from './sendFollowupText'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
+import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -96,6 +97,7 @@ export enum Jobs {
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
+  SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
 }
 
 // register new job processors here
@@ -296,6 +298,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillStudentPosthog,
     processor: backfillStudentPosthog,
+  },
+  {
+    name: Jobs.SendWeeklyHourSummaryApology,
+    processor: sendWeeklyHourSummaryApology,
   },
 ]
 
