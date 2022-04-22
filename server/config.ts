@@ -81,6 +81,7 @@ const config: Static<typeof Config> = {
     customWeeklyHourSummaryEmailTemplate: 'd-c07f4bcfed5f4acbba8038edb353866d',
     customWeeklyHourSummaryIntroEmailTemplate:
       'd-ada36745cc724549833b867f514435a6',
+    weeklyHourSummaryApologyEmailTemplate: 'd-7def05ac77ad48269cb11f050dca4dc2',
     onboardingReminderOneTemplate: 'd-9af291b6d0e94f7ebf0133be2c7176e3',
     onboardingReminderTwoTemplate: 'd-23681dc2dc0647e0bd7a57a6f328e00b',
     onboardingReminderThreeTemplate: 'd-d7ff9f33620842508de0030c84da9425',

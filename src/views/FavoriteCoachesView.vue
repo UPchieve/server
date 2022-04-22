@@ -12,7 +12,7 @@
     <section class="favorite-coaches">
       <div class="spacing--grid coach-list__headers">
         <span>Favorite Coach</span>
-        <span v-if="!mobileMode">Total Session</span>
+        <span v-if="!mobileMode">Total Sessions</span>
         <span>Favorite</span>
       </div>
       <ul class="coach-list" v-if="total > 0">
@@ -49,8 +49,7 @@
         <p class="favorite-coaches__no-coaches-description">
           Favoriting a coach will increase your chances of matching with them in
           the future. To favorite a coach you really like, fill out the form
-          after your tutoring session or go to Session History on the navigation
-          bar to the left.
+          after your tutoring session.
         </p>
       </div>
       <footer class="page-actions-container">
