@@ -1412,7 +1412,6 @@ SELECT
     users.email AS email,
     users.created_at AS created_at,
     users.deactivated AS is_deactivated,
-    users.last_activity_at AS last_activity_at,
     volunteer_profiles.state AS state,
     volunteer_profiles.onboarded AS is_onboarded,
     user_actions.created_at AS date_onboarded,

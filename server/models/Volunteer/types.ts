@@ -61,7 +61,6 @@ export type VolunteersForAnalyticsReport = {
   isDeactivated: boolean
   createdAt: Date
   dateOnboarded?: Date
-  lastActivityAt: Date
   availabilityLastModifiedAt?: Date
   totalQuizzesPassed: number
   totalNotifications: number
