@@ -435,6 +435,7 @@ export const FEATURE_FLAGS = {
   CHATBOT: 'chatbot',
   COACH_FAVORITING: 'coach-favoriting',
   SESSION_HISTORY: 'session-history',
+  READING_LAUNCH: 'reading-launch',
 }
 
 export const ANALYTICS_REPORT_ROW = {

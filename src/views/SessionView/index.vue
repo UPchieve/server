@@ -158,7 +158,8 @@ export default {
         'essays',
         'applications',
         'satReading',
-        'humanitiesEssays'
+        'humanitiesEssays',
+        'reading'
       ]
       if (documentEditorSubTopics.includes(this.session.subTopic))
         return 'DOCUMENT'

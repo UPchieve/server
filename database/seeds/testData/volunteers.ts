@@ -395,6 +395,12 @@ export async function volunteers(
       passed: true,
     },
     {
+      userId: userMap[volunteer1] as string,
+      quizId: quizIds['reading'] as number,
+      attempts: 1,
+      passed: true,
+    },
+    {
       userId: userMap[volunteer2] as string,
       quizId: quizIds['prealgebra'] as number,
       attempts: 1,

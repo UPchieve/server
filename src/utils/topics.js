@@ -29,7 +29,8 @@ export const topics = {
   },
   readingWriting: {
     subtopics: {
-      humanitiesEssays: { displayName: 'Humanities Essays' }
+      humanitiesEssays: { displayName: 'Humanities Essays' },
+      reading: {displayName: 'Reading'}
     },
     displayName: 'Reading and Writing Tutoring'
   },

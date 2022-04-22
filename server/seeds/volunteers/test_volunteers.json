@@ -60,6 +60,10 @@
       "humanitiesEssays": {
         "passed": true,
         "tries": 1
+      },
+      "reading": {
+        "passed": true,
+        "tries": 1
       }
     },
     "college": "Volunteer College",

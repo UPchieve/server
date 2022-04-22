@@ -29,6 +29,11 @@ describe('Get subject type', () => {
       SUBJECT_TYPES.READING_WRITING
     )
   })
+  test('Reading and writing', () => {
+    expect(getSubjectType(READING_WRITING_CERTS.READING)).toEqual(
+      SUBJECT_TYPES.READING_WRITING
+    )
+  })
   test('Training', () => {
     expect(getSubjectType(TRAINING.UPCHIEVE_101)).toEqual(
       SUBJECT_TYPES.TRAINING
