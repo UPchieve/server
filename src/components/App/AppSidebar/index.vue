@@ -116,8 +116,7 @@ $transition: transform 700ms;
 .AppSidebar-final-link {
   @include font-category('display-small');
   cursor: pointer;
-  margin: 40px 0 20px;
-  bottom: 40px;
+  padding: 40px 0 20px;
   text-align: left;
 
   &--desktop {
