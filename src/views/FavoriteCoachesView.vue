@@ -12,7 +12,7 @@
     <section class="favorite-coaches">
       <div class="spacing--grid coach-list__headers">
         <span>Favorite Coach</span>
-        <span v-if="!mobileMode">Total Session</span>
+        <span v-if="!mobileMode">Total Sessions</span>
         <span>Favorite</span>
       </div>
       <ul class="coach-list" v-if="total > 0">
