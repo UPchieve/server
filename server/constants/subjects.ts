@@ -86,10 +86,12 @@ export enum SAT_SUBJECTS {
 
 export enum READING_WRITING_CERTS {
   HUMANITIES_ESSAYS = 'humanitiesEssays',
+  READING = 'reading',
 }
 
 export enum READING_WRITING_SUBJECTS {
   HUMANITIES_ESSAYS = 'humanitiesEssays',
+  READING = 'reading',
 }
 
 export const SUBJECTS = {
@@ -168,6 +170,7 @@ export const CERT_UNLOCKING = {
   [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: [
     READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS,
   ],
+  [READING_WRITING_CERTS.READING]: [READING_WRITING_SUBJECTS.READING],
 }
 
 export const COMPUTED_CERTS = {
@@ -492,6 +495,18 @@ export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
     'grammatical_errors',
     'common_requests',
   ],
+  [READING_WRITING_CERTS.READING]: [
+    'probingqs',
+    'questions',
+    'texttype',
+    'vocabulary',
+    'activatebk',
+    'backgroundknowledge',
+    'comprehensionsupport',
+    'context',
+    'corrections',
+    'editing',
+  ],
 }
 
 export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
@@ -508,4 +523,5 @@ export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
   [SAT_SUBJECTS.SAT_MATH]: 'SAT Math',
   [SAT_SUBJECTS.SAT_READING]: 'SAT Reading',
   [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays',
+  [READING_WRITING_SUBJECTS.READING]: 'Reading',
 }

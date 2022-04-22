@@ -436,6 +436,16 @@ export default {
               }
             ],
             key: 'humanitiesEssays'
+          },
+          {
+            displayName: 'Reading',
+            subjectsIncluded: [
+              {
+                displayName: 'Reading',
+                key: 'reading'
+              }
+            ],
+            key: 'reading'
           }
         ],
         additionalSubjects: []

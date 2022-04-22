@@ -162,6 +162,15 @@ export default {
             }
           ]
           break
+        case 'reading':
+          this.reviewMaterials = [
+            {
+              title: 'Reading Review Guide',
+              pdf: `${this.hostPath}/reading-review.pdf`,
+              image: `${this.hostPath}/reading-review.png`
+            }
+          ]
+          break
         // case for a user entering a subject that we do not support
         default:
           this.error = true

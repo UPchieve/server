@@ -178,6 +178,10 @@ const rejoinHeaderData = {
   component: 'RejoinSessionHeader'
 }
 
+const readingLaunchHeaderData = {
+  component: 'ReadingLaunchHeader'
+}
+
 const upchieveTopics = allSubtopicNames()
 
 export default {
@@ -205,8 +209,12 @@ export default {
     },
   },
   async created() {
+    const hasUnlockedReading = this.user.certifications.reading.passed
+
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
+    } else if (this.isReadingLaunchActive && !hasUnlockedReading){
+      this.$store.dispatch('app/header/show', readingLaunchHeaderData)
     }
 
     if (this.isFirstDashboardVisit) {
@@ -237,7 +245,8 @@ export default {
       sessionPath: 'user/sessionPath',
       hasCertification: 'user/hasCertification',
       hasSelectedAvailability: 'user/hasSelectedAvailability',
-      isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive'
+      isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
+      isReadingLaunchActive: 'featureFlags/isReadingLaunchActive'
     }),
 
     isCustomVolunteerPartner() {

@@ -58,6 +58,7 @@ export default {
       [FEATURE_FLAGS.CHATBOT]: false,
       [FEATURE_FLAGS.COACH_FAVORITING]: false,
       [FEATURE_FLAGS.SESSION_HISTORY]: false,
+      [FEATURE_FLAGS.READING_LAUNCH]: false,
     },
   },
   mutations: {
@@ -92,6 +93,7 @@ export default {
       state.flags[FEATURE_FLAGS.ALGEBRA_TWO_LAUNCH],
     isChatbotActive: state => state.flags[FEATURE_FLAGS.CHATBOT],
     isCoachFavoritingActive: state => state.flags[FEATURE_FLAGS.COACH_FAVORITING],
-    isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY]
+    isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY],
+    isReadingLaunchActive: state => state.flags[FEATURE_FLAGS.READING_LAUNCH]
   },
 }
