@@ -1,6 +1,6 @@
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeRequired } from '../pgUtils'
+import { Ulid, makeRequired, makeSomeRequired } from '../pgUtils'
 import { RepoReadError, RepoCreateError, RepoUpdateError } from '../Errors'
 import { UserActionAgent, QuizzesPassedForDateRange } from './types'
 import {
@@ -54,7 +54,14 @@ export async function getSessionRequestedUserAgentFromSessionId(
       { sessionId },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'device',
+        'browser',
+        'browserVersion',
+        'operatingSystem',
+        'operatingSystemVersion',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
