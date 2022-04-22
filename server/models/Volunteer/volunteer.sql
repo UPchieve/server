@@ -1118,8 +1118,8 @@ RETURNING
 
 
 /* @name createVolunteerUser */
-INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, created_at, updated_at)
-    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW())
+INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, last_activity_at, created_at, updated_at)
+    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, NOW(), NOW(), NOW())
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
@@ -1412,7 +1412,6 @@ SELECT
     users.email AS email,
     users.created_at AS created_at,
     users.deactivated AS is_deactivated,
-    users.last_activity_at AS last_activity_at,
     volunteer_profiles.state AS state,
     volunteer_profiles.onboarded AS is_onboarded,
     user_actions.created_at AS date_onboarded,
