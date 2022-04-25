@@ -1,11 +1,6 @@
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import {
-  Ulid,
-  makeRequired,
-  makeSomeOptional,
-  makeSomeRequired,
-} from '../pgUtils'
+import { Ulid, makeRequired, makeSomeRequired } from '../pgUtils'
 import { RepoReadError, RepoCreateError, RepoUpdateError } from '../Errors'
 import { UserActionAgent, QuizzesPassedForDateRange } from './types'
 import {
