@@ -60,7 +60,11 @@ export async function getSessionRequestedUserAgentFromSessionId(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['browser', 'browserVersion'])
+      return makeSomeRequired(result[0], [
+        'browser',
+        'browserVersion',
+        'operatingSystemVersion',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }

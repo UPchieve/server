@@ -3,7 +3,7 @@ export interface UserActionAgent {
   browser?: string
   browserVersion?: string
   operatingSystem: string
-  operatingSystemVersion: string
+  operatingSystemVersion?: string
 }
 
 export type QuizzesPassedForDateRange = {
