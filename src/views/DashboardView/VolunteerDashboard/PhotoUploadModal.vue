@@ -12,8 +12,9 @@
       </div>
       <div v-else>
         <p class="subtitle">
-          Upload a picture of a valid photo ID (such as your driver's license,
-          passport, or student ID) so we can verify your identity.
+          In order to keep our students safe, we confirm your identity
+          by requesting a picture of your photo ID (such as your driver's
+          license, passport, or student ID). Acceptable formats: jpeg, png
         </p>
 
         <div v-if="photo" class="photo-id-container">
