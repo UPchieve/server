@@ -265,6 +265,7 @@ const config: Static<typeof Config> = {
   redisPort,
   redisPassword,
   postgresHost: process.env.SUBWAY_POSTGRES_HOST || 'localhost',
+  postgresRoHost: process.env.SUBWAY_POSTGRES_RO_HOST || 'localhost',
   postgresPort: Number(process.env.SUBWAY_POSTGRES_PORT || 5432),
   postgresUser: process.env.SUBWAY_POSTGRES_USER || 'subway',
   postgresPassword: process.env.SUBWAY_POSTGRES_PASSWORD || 'Password123',
