@@ -622,7 +622,7 @@ export async function joinSession(
     session.volunteerId &&
     session.volunteerId !== user.id
   ) {
-    SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error('A volunteer has already joined the session')
   }
 

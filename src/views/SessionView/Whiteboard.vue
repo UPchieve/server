@@ -255,6 +255,7 @@ import ResetWhiteboardModal from './ResetWhiteboardModal'
 import LoadingMessage from '@/components/LoadingMessage'
 import * as Sentry from '@sentry/browser'
 import config from '../../config'
+import { validatePhoto } from '../../utils/photo-upload'
 
 export default {
   components: {
@@ -449,16 +450,10 @@ export default {
     },
     async uploadPhoto(uploadEvents) {
       const { files } = uploadEvents.fileSelectionEvent.target
-      const file = files[0]
-      const tenMegabytes = 10 * 1000000
 
       if (!this.isWhiteboardOpen && this.mobileMode) this.toggleWhiteboard()
 
-      if (file.size > tenMegabytes) {
-        this.error =
-          'The photo is too large. Please upload a photo less than 10mb.'
-        return
-      }
+      const file = validatePhoto(files[0])
 
       this.usePickTool(uploadEvents.dialogOpeningEvent)
 
@@ -479,9 +474,6 @@ export default {
 
         this.insertPhoto(imageUrl)
       }
-
-      // Reset the file input
-      event.target.value = ''
     },
     insertPhoto(imageUrl) {
       const nodeId = this.zwibblerCtx.createNode('ImageNode', {

@@ -157,7 +157,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                   if (!sessionId)
                     throw new Error('SessionId not included in payload')
                   logger.debug('Chatbot ending session ', sessionId)
-                  SessionService.endSession(
+                  await SessionService.endSession(
                     sessionId,
                     null,
                     true,
@@ -219,7 +219,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 await remoteJoinRoom(id, sessionRoom)
               }
 
-              socketService.emitSessionChange(sessionId)
+              await socketService.emitSessionChange(sessionId)
               resolve()
             } catch (error) {
               socketService.bump(
