@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, getRoClient } from '../../db'
 import {
   RepoCreateError,
   RepoDeleteError,
@@ -517,7 +517,7 @@ export async function getSessionReport(
         start: query.start,
         end: query.end,
       },
-      getClient()
+      getRoClient()
     )
 
     const report = []
@@ -607,7 +607,7 @@ export async function getUsageReport(
         sessionStart: query.sessionStart,
         sessionEnd: query.sessionEnd,
       },
-      getClient()
+      getRoClient()
     )
 
     const report = []

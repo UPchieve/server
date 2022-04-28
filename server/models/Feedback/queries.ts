@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, getRoClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
@@ -155,7 +155,7 @@ export async function getFeedbackByUserId(
   try {
     const result = await pgQueries.getFeedbackByUserId.run(
       { userId },
-      getClient()
+      getRoClient()
     )
     if (!result.length) return
     return result.map(row => {
