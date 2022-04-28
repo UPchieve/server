@@ -500,6 +500,7 @@ function toObject<T>(obj: unknown): T {
   return thing
 }
 
+// TODO: break out anything that uses RO client into their own repo
 export async function getSessionReport(
   query: StudentSessionReportQuery
 ): Promise<SessionReportRow[] | undefined> {
@@ -588,6 +589,7 @@ export type UsageReportRow = {
   feedbacks: SingleFeedback[]
 }
 
+// TODO: break out anything that uses RO client into their own repo
 export async function getUsageReport(
   query: StudentUsageReportQuery
 ): Promise<UsageReportRow[] | undefined> {

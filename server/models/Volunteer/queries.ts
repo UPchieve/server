@@ -329,6 +329,7 @@ export type VolunteerForTelecomReport = Omit<
   VolunteerForWeeklyHourSummary,
   'sentHourSummaryIntroEmail' | 'phone'
 >
+// TODO: break out anything that uses RO client into their own repo
 export async function getVolunteersForTelecomReport(
   partnerOrg: string
 ): Promise<VolunteerForTelecomReport[]> {
@@ -1434,6 +1435,7 @@ export async function getVolunteersOnDeck(
   }
 }
 
+// TODO: break out anything that uses RO client into their own repo
 export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   volunteerPartnerOrg: string,
   start: Date,
@@ -1463,6 +1465,7 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   }
 }
 
+// TODO: break out anything that uses RO client into their own repo
 export async function getVolunteersForAnalyticsReport(
   volunteerPartnerOrg: string,
   start: Date,
