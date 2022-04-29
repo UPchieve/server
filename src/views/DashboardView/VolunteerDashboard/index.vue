@@ -418,9 +418,7 @@ export default {
       if (this.user.volunteerPartnerOrg)
         return 'Just one step left to get approved to volunteer with UPchieve!'
 
-      return 'Student safety is our top priority!
-      Please complete our screening process before
-      you can start working with students.'
+      return 'Student safety is our top priority! Please complete our screening process before you can start working with students.'
     },
     openVolunteerApprovalAccountActions() {
       const accountActions = [
