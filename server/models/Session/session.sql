@@ -998,3 +998,35 @@ WHERE
     AND volunteers.test_user IS FALSE
     AND students.test_user IS FALSE;
 
+
+/* @name getSessionRecap */
+SELECT
+    sessions.id,
+    sessions.created_at AS created_at,
+    sessions.ended_at AS ended_at,
+    sessions.time_tutored::int AS time_tutored,
+    subjects.display_name AS subject,
+    subjects.name AS subject_key,
+    topics.name AS topic,
+    volunteers.first_name AS volunteer_first_name,
+    volunteers.id AS volunteer_id,
+    students.id AS student_id,
+    students.first_name AS student_first_name,
+    (
+        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_favorited,
+    sessions.quill_doc AS quill_doc
+FROM
+    sessions
+    JOIN subjects ON subjects.id = sessions.subject_id
+    JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
+    LEFT JOIN users students ON sessions.student_id = students.id
+    LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
+        AND volunteers.id = favorited.volunteer_id
+WHERE
+    sessions.id = :sessionId!;
+

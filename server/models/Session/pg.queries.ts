@@ -2150,3 +2150,70 @@ const getTotalSessionHistoryIR: any = {"name":"getTotalSessionHistory","params":
 export const getTotalSessionHistory = new PreparedQuery<IGetTotalSessionHistoryParams,IGetTotalSessionHistoryResult>(getTotalSessionHistoryIR);
 
 
+/** 'GetSessionRecap' parameters type */
+export interface IGetSessionRecapParams {
+  sessionId: string;
+}
+
+/** 'GetSessionRecap' return type */
+export interface IGetSessionRecapResult {
+  createdAt: Date;
+  endedAt: Date | null;
+  id: string;
+  isFavorited: boolean | null;
+  quillDoc: string | null;
+  studentFirstName: string;
+  studentId: string;
+  subject: string;
+  subjectKey: string;
+  timeTutored: number | null;
+  topic: string;
+  volunteerFirstName: string;
+  volunteerId: string;
+}
+
+/** 'GetSessionRecap' query type */
+export interface IGetSessionRecapQuery {
+  params: IGetSessionRecapParams;
+  result: IGetSessionRecapResult;
+}
+
+const getSessionRecapIR: any = {"name":"getSessionRecap","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":29099,"b":29108,"line":1031,"col":19}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    sessions.ended_at AS ended_at,\n    sessions.time_tutored::int AS time_tutored,\n    subjects.display_name AS subject,\n    subjects.name AS subject_key,\n    topics.name AS topic,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.id AS volunteer_id,\n    students.id AS student_id,\n    students.first_name AS student_first_name,\n    (\n        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_favorited,\n    sessions.quill_doc AS quill_doc\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id\n        AND volunteers.id = favorited.volunteer_id\nWHERE\n    sessions.id = :sessionId!","loc":{"a":28075,"b":29108,"line":1003,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     sessions.created_at AS created_at,
+ *     sessions.ended_at AS ended_at,
+ *     sessions.time_tutored::int AS time_tutored,
+ *     subjects.display_name AS subject,
+ *     subjects.name AS subject_key,
+ *     topics.name AS topic,
+ *     volunteers.first_name AS volunteer_first_name,
+ *     volunteers.id AS volunteer_id,
+ *     students.id AS student_id,
+ *     students.first_name AS student_first_name,
+ *     (
+ *         CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN
+ *             TRUE
+ *         ELSE
+ *             FALSE
+ *         END) AS is_favorited,
+ *     sessions.quill_doc AS quill_doc
+ * FROM
+ *     sessions
+ *     JOIN subjects ON subjects.id = sessions.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ *     LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
+ *     LEFT JOIN users students ON sessions.student_id = students.id
+ *     LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
+ *         AND volunteers.id = favorited.volunteer_id
+ * WHERE
+ *     sessions.id = :sessionId!
+ * ```
+ */
+export const getSessionRecap = new PreparedQuery<IGetSessionRecapParams,IGetSessionRecapResult>(getSessionRecapIR);
+
+
