@@ -1126,6 +1126,7 @@ export type SessionForSessionRecap = {
   volunteerId: Ulid
   volunteerFirstName: string
   quillDoc: string
+  hasWhiteboardDoc: boolean
 }
 
 export async function getSessionRecap(

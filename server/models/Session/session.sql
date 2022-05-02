@@ -1018,7 +1018,8 @@ SELECT
         ELSE
             FALSE
         END) AS is_favorited,
-    sessions.quill_doc AS quill_doc
+    sessions.quill_doc,
+    sessions.has_whiteboard_doc
 FROM
     sessions
     JOIN subjects ON subjects.id = sessions.subject_id
