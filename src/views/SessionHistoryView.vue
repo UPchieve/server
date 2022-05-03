@@ -376,6 +376,7 @@ ul {
     color: $c-secondary-grey;
     @include breakpoint-below('large') {
       font-size: 14px;
+      margin: 0.7em;
     }
   }  
   
@@ -401,7 +402,7 @@ ul {
       }
 
       @include breakpoint-below('large') {
-        transform: scale(0.7, 0.7);
+        transform: scale(0.8, 0.8);
       }
     }
   }
