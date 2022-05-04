@@ -208,6 +208,8 @@ paths:
                     type: string
                   lastName:
                     type: string
+                  signupSourceId:
+                    type: number
                   terms:
                     type: boolean
       responses:
@@ -261,6 +263,8 @@ paths:
                   type: string
                 college:
                   type: string
+                signupSourceId:
+                  type: number
                 terms:
                   type: boolean
               required:
