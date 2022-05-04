@@ -12,10 +12,15 @@ import createNewAvailability from '../utils/create-new-availability'
 import { VolunteerPartnerOrg } from '../models/VolunteerPartnerOrg'
 import { StudentPartnerOrg } from '../models/StudentPartnerOrg'
 import { School } from '../models/School'
-import { OpenStudentRegData, PartnerStudentRegData, PartnerVolunteerRegData, VolunteerRegData } from '../utils/auth-utils'
+import {
+  OpenStudentRegData,
+  PartnerStudentRegData,
+  PartnerVolunteerRegData,
+  VolunteerRegData,
+} from '../utils/auth-utils'
 import { GRADES } from '../constants'
 
-export function getEmail(): string{
+export function getEmail(): string {
   return faker.internet.email().toLowerCase()
 }
 export function getPhoneNumber(): string {
@@ -153,9 +158,7 @@ export function buildStudentPartnerOrg(
   }
 }
 
-export function buildSchool(
-  overrides: Partial<School> = {}
-): School {
+export function buildSchool(overrides: Partial<School> = {}): School {
   return {
     id: getDbUlid(),
     nameStored: 'Approved School',

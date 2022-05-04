@@ -409,7 +409,7 @@ export async function createStudent(
         lastName: studentData.lastName,
         password: studentData.password,
         referredBy: studentData.referredBy,
-        signupSourceId: studentData.signupSourceId
+        signupSourceId: studentData.signupSourceId,
       },
       transactionClient
     )
