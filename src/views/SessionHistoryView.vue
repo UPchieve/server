@@ -14,6 +14,7 @@
         <span>SUBJECT</span>
         <span>DATE</span>
         <span>COACH</span>
+        <span>SESSION RECAP</span>
       </div>
       <div v-if="hasNoPastSessions()">
           <h1 class="title title-no-sessions"> Looks like you haven't had any sessions in the past 12 months. </h1>
@@ -42,6 +43,11 @@
               v-on:change-favorited="updateFavoritedVolunteers"
             />
             <span class="session-list__coach-name"> {{ session.volunteerFirstName }} </span>
+            </div>
+            <div class="session-list__session-recap">
+              <a :href="sessionRecapURL(session.id)">
+               <large-button primary="true" class="session-list__session-recap__button">Session Recap</large-button>
+              </a>
             </div>
           </div>
           <div class="border--thin" v-if="index !== 5"></div>
@@ -108,6 +114,9 @@
             </div>
             <span class="mobile-session-list__created-at"> {{ getSessionTimeForMobile(session.createdAt) }}</span>
             </div>
+            <a :href="sessionRecapURL(session.id)">
+              <caret-icon class="caret--next" />
+            </a>
           </div>
           <div class="border--thin" v-if="index !== 5"></div>
         </li>
@@ -152,12 +161,13 @@ import ReadingWritingSVG from '@/assets/subject_icons/more-resources.svg'
 import NetworkService from '../services/NetworkService'
 import CaretIcon from '@/assets/caret.svg'
 import FavoritingToggle from '../components/FavoritingToggle.vue'
+import LargeButton from '../components/LargeButton'
 import { mapState, mapGetters } from 'vuex'
 import moment from 'moment'
 
 export default {
   name: 'session-history-view',
-  components: { CaretIcon, FavoritingToggle},
+  components: { CaretIcon, FavoritingToggle, LargeButton },
   data() {
     return {
       sessions: [],
@@ -238,6 +248,9 @@ export default {
         ...session, 
         isFavorited: session.volunteerId === volunteerId ? isFavorited : session.isFavorited
       }))
+    },
+    sessionRecapURL(sessionId){
+      return `${sessionId}\recap`
     }
    },
   async created() {
@@ -250,6 +263,10 @@ export default {
 </script>
 
 <style lang="scss" scoped> 
+a {
+  text-decoration: none;
+}
+
 ul {
   padding: 0px;
   height: 100%;
@@ -314,13 +331,17 @@ ul {
 .spacing--grid {
   display: grid;
   @include breakpoint-above('small') {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
   }
 }
 
 .session-list {
   padding: 0 2em;
   min-height: 600px;
+
+  @include breakpoint-below('large') {
+    padding-right: 1.5em;
+  }
 
   &__headers {
     @include font-category('subheading');
@@ -338,6 +359,10 @@ ul {
 
       &-container {
         @include flex-container(row, center, center);
+
+        @include breakpoint-below('medium') {
+        width: 100px;
+        }
       }
     }
   
@@ -345,7 +370,7 @@ ul {
     @include flex-container(row, space-around, center);
     display: grid;
     @include breakpoint-above('tiny') {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
   }
     padding: 1em 0;
   }
@@ -359,8 +384,36 @@ ul {
     color: $c-secondary-grey;
     @include breakpoint-below('large') {
       font-size: 14px;
+      margin: 0.7em;
     }
-  }    
+  }  
+  
+  &__session-recap {
+    @include flex-container(row, center, center);
+
+    &__button {
+      border-color: $c-information-blue;
+      background: #fff;
+      color: $c-information-blue;
+      fill: $c-information-blue;
+
+      &:hover {
+        background-color: rgba(24, 85, 209, 0.1);
+        color: $c-information-blue;
+        fill: $c-information-blue;
+      }
+
+      &:active {
+        background-color: $c-information-blue;
+        color: #fff;
+        fill: #fff;
+      }
+
+      @include breakpoint-below('large') {
+        transform: scale(0.8, 0.8);
+      }
+    }
+  }
 }
 
 .subject {
@@ -537,7 +590,8 @@ ul {
   }    
 
   &__createdAt-container {
-    @include flex-container(column, center, flex-end)
+    @include flex-container(column, center, flex-end);
+    margin-left: auto;
   } 
 }
 
