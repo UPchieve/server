@@ -343,7 +343,7 @@ const config: Static<typeof Config> = {
   eligibleIncomeThreshold:
     Number(process.env.SUBWAY_ELIGIBLE_INCOME_THRESHOLD) || 60000,
   customManualStudentPartnerOrg:
-    process.env.SUBWAY_CUSSTOM_MANUAL_STUDENT_PARTNER_ORG || 'community-org',
+    process.env.SUBWAY_CUSTOM_MANUAL_STUDENT_PARTNER_ORG || 'bogus',
 }
 
 module.exports = config
