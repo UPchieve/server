@@ -436,6 +436,7 @@ export const FEATURE_FLAGS = {
   COACH_FAVORITING: 'coach-favoriting',
   SESSION_HISTORY: 'session-history',
   READING_LAUNCH: 'reading-launch',
+  ZIP_CODE_CHECK: 'zip-code-check'
 }
 
 export const ANALYTICS_REPORT_ROW = {
