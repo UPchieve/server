@@ -173,7 +173,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.post('/check-zip-code/:zipCode', async function(req, res) {
+  router.get('/check-zip-code/:zipCode', async function(req, res) {
     try {
       const zipCode = asString(req.params.zipCode)
       const result = await checkZipCode(zipCode)
