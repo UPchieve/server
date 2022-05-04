@@ -1002,9 +1002,9 @@ WHERE
 /* @name getSessionRecap */
 SELECT
     sessions.id,
-    sessions.created_at AS created_at,
-    sessions.ended_at AS ended_at,
-    sessions.time_tutored::int AS time_tutored,
+    sessions.created_at,
+    sessions.ended_at,
+    sessions.time_tutored::int,
     subjects.display_name AS subject,
     subjects.name AS subject_key,
     topics.name AS topic,
