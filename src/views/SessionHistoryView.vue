@@ -339,6 +339,10 @@ ul {
   padding: 0 2em;
   min-height: 600px;
 
+  @include breakpoint-below('large') {
+    padding-right: 1.5em;
+  }
+
   &__headers {
     @include font-category('subheading');
     background-color: $c-background-blue;
@@ -355,6 +359,10 @@ ul {
 
       &-container {
         @include flex-container(row, center, center);
+
+        @include breakpoint-below('medium') {
+        width: 100px;
+        }
       }
     }
   
