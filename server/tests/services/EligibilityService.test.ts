@@ -138,10 +138,58 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     expect(response.isEligible).toBe(false)
   })
 
-  test('Should send false when fresh email with unapproved zip/school signs up', async () => {
+  test('Should send true when a fresh student with approved zip but unapproved HS signs up', async () => {
+    const payload = {
+      schoolUpchieveId: unapprovedSchool.id,
+      zipCode: '11201',
+      email: student.email,
+      currentGrade: GRADES.TENTH,
+      referredBy,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(
+      unapprovedSchool
+    )
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(true)
+  })
+
+  test('Should send true when a fresh student with unapproved zip but approved HS signs up', async () => {
     const payload = {
       schoolUpchieveId: school.id,
-      zipCode: '11201',
+      zipCode: '00000',
+      email: student.email,
+      currentGrade: GRADES.TENTH,
+      referredBy,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
+      unapprovedZipCode
+    )
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(true)
+  })
+
+  test('Should send false when fresh email with unapproved zip and school signs up', async () => {
+    const payload = {
+      schoolUpchieveId: unapprovedSchool.id,
+      zipCode: '00000',
       email: student.email,
       currentGrade: GRADES.TENTH,
       referredBy,
