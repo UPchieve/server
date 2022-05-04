@@ -9,9 +9,20 @@ import faker from 'faker'
 import _ from 'lodash'
 import { CamelCasedProperties } from 'type-fest'
 import createNewAvailability from '../utils/create-new-availability'
+import { VolunteerPartnerOrg } from '../models/VolunteerPartnerOrg'
+import { StudentPartnerOrg } from '../models/StudentPartnerOrg'
+import { School } from '../models/School'
+import { OpenStudentRegData, PartnerStudentRegData, PartnerVolunteerRegData, VolunteerRegData } from '../utils/auth-utils'
+import { GRADES } from '../constants'
 
-export const getEmail = faker.internet.email
-export const getPhone = faker.phone.phoneNumber
+export function getEmail(): string{
+  return faker.internet.email().toLowerCase()
+}
+export function getPhoneNumber(): string {
+  const phoneNumber = faker.phone.phoneNumberFormat(0)
+  const formattedPhoneNumber = phoneNumber.replace(/-/g, '')
+  return `+1${formattedPhoneNumber}`
+}
 export const getFirstName = faker.name.firstName
 export const getLastName = faker.name.lastName
 export const getIpAddress = faker.internet.ip
@@ -38,7 +49,7 @@ export function buildUserContactInfo(
   return {
     id: getDbUlid(),
     email: getEmail(),
-    phone: getPhone(),
+    phone: getPhoneNumber(),
     firstName: getFirstName(),
     isVolunteer: false,
     isAdmin: false,
@@ -58,6 +69,7 @@ export function buildUser(overrides: Partial<User> = {}): User {
     emailVerified: true,
     phoneVerified: false,
     email: getEmail().toLowerCase(),
+    phone: getPhoneNumber(),
     password: 'Password123',
     firstName: getFirstName(),
     lastName: getLastName(),
@@ -112,6 +124,143 @@ export async function buildSession(
     updatedAt: new Date(),
     ...overrides,
   }
+}
+
+export function buildVolunteerPartnerOrg(
+  overrides: Partial<VolunteerPartnerOrg> = {}
+): VolunteerPartnerOrg {
+  return {
+    key: 'health-co',
+    name: 'Health Co',
+    receiveWeeklyHourSummaryEmail: false,
+    domains: [],
+    ...overrides,
+  }
+}
+
+export function buildStudentPartnerOrg(
+  overrides: Partial<StudentPartnerOrg> = {}
+): StudentPartnerOrg {
+  return {
+    key: 'school-helpers',
+    name: 'School Helpers',
+    highSchoolSignup: false,
+    schoolSignupRequired: false,
+    collegeSignup: false,
+    signupCode: 'SCHOOLHELPERS',
+    sites: [],
+    ...overrides,
+  }
+}
+
+export function buildSchool(
+  overrides: Partial<School> = {}
+): School {
+  return {
+    id: getDbUlid(),
+    nameStored: 'Approved School',
+    stateStored: 'NY',
+    isApproved: true,
+    isPartner: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    cityNameStored: 'Brooklyn',
+    districtNameStored: undefined,
+    SCHOOL_YEAR: undefined,
+    FIPST: undefined,
+    ST: undefined,
+    SCH_NAME: undefined,
+    LEA_NAME: undefined,
+    ST_SCHID: undefined,
+    MCITY: undefined,
+    MZIP: undefined,
+    LCITY: undefined,
+    LZIP: undefined,
+    G_9_OFFERED: undefined,
+    G_10_OFFERED: undefined,
+    G_11_OFFERED: undefined,
+    G_12_OFFERED: undefined,
+    ...overrides,
+  }
+}
+
+export const buildStudentRegistrationForm = (
+  overrides: Partial<OpenStudentRegData> = {}
+): OpenStudentRegData => {
+  const student = buildUser()
+  const form = {
+    ip: '0.0.0.0',
+    firstName: student.firstName,
+    lastName: student.lastName,
+    email: student.email,
+    password: student.password,
+    terms: true,
+    zipCode: '11201',
+    highSchoolId: '111111111111',
+    currentGrade: GRADES.EIGHTH,
+    ...overrides,
+  } as OpenStudentRegData
+
+  return form
+}
+
+export const buildPartnerStudentRegistrationForm = (
+  overrides: Partial<PartnerStudentRegData> = {}
+): PartnerStudentRegData => {
+  const student = buildUser()
+  const partnerOrg = buildStudentPartnerOrg()
+  const form = {
+    ip: '0.0.0.0',
+    firstName: student.firstName,
+    lastName: student.lastName,
+    email: student.email,
+    password: student.password,
+    terms: true,
+    studentPartnerOrg: partnerOrg.name,
+    studentPartnerSite: undefined,
+    partnerUserId: partnerOrg.key,
+    college: 'UPchieve University',
+    ...overrides,
+  } as PartnerStudentRegData
+
+  return form
+}
+
+export const buildVolunteerRegistrationForm = (
+  overrides: Partial<VolunteerRegData> = {}
+): VolunteerRegData => {
+  const volunteer = buildUser()
+  const form = {
+    ip: '0.0.0.0',
+    firstName: volunteer.firstName,
+    lastName: volunteer.lastName,
+    email: volunteer.email,
+    password: volunteer.password,
+    phone: volunteer.phone,
+    terms: true,
+    ...overrides,
+  } as VolunteerRegData
+
+  return form
+}
+
+export const buildPartnerVolunteerRegistrationForm = (
+  overrides: Partial<PartnerVolunteerRegData> = {}
+): PartnerVolunteerRegData => {
+  const volunteer = buildUser()
+  const form = {
+    ip: '0.0.0.0',
+    volunteerPartnerOrg: 'example',
+    firstName: volunteer.firstName,
+    lastName: volunteer.lastName,
+    email: volunteer.email,
+    password: volunteer.password,
+    phone: volunteer.phone,
+    terms: true,
+    ...overrides,
+  } as PartnerVolunteerRegData
+
+  return form
 }
 
 /**
