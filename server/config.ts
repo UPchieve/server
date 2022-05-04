@@ -342,6 +342,7 @@ const config: Static<typeof Config> = {
     Number(process.env.SUBWAY_FAVORITE_VOLUNTEER_LIMIT) || 20,
   eligibleIncomeThreshold:
     Number(process.env.SUBWAY_ELIGIBLE_INCOME_THRESHOLD) || 60000,
+  customManualStudentPartnerOrg: process.env.SUBWAY_CUSSTOM_MANUAL_STUDENT_PARTNER_ORG || 'community-org'
 }
 
 module.exports = config
