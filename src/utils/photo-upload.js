@@ -16,7 +16,7 @@ function checkIfPhotoIsAllowedSize(file) {
   }
 }
 
-export async function validatePhoto(file) {
+export function validatePhoto(file) {
   checkIfPhotoIsAllowedType(file)
 
   checkIfPhotoIsAllowedSize(file)
