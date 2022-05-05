@@ -120,6 +120,15 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: seed_migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.seed_migrations (
+    version character varying(255) NOT NULL
+);
+
+
+--
 -- Name: admin_profiles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3696,4 +3705,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220405223056'),
     ('20220405223145'),
     ('20220405224635'),
-    ('20220405232100');
+    ('20220405232100'),
+    ('20220504152804');
