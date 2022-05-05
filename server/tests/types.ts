@@ -1,6 +1,6 @@
-import { GRADES } from "../constants";
-import { Ulid } from "../models/pgUtils";
-import { User } from "../models/User";
+import { GRADES } from '../constants'
+import { Ulid } from '../models/pgUtils'
+import { User } from '../models/User'
 
 export interface RegistrationForm {
   firstName: string
@@ -36,18 +36,17 @@ export type AppUser = {
 } & User
 
 export type AppStudent = {
-  zipCode: string,
-  schoolId: Ulid,
-  currentGrade: GRADES,
-  signupSourceId: number,
-  studentPartnerOrg: string,
-  studentPartnerSite: string,
-  partnerUserId: string,
-  college: string,
+  zipCode: string
+  schoolId: Ulid
+  currentGrade: GRADES
+  signupSourceId: number
+  studentPartnerOrg: string
+  studentPartnerSite: string
+  partnerUserId: string
+  college: string
 } & AppUser
 
-
 export type AppVolunteer = {
-  volunteerPartnerOrg: string,
-  phone: string,
+  volunteerPartnerOrg: string
+  phone: string
 } & AppUser

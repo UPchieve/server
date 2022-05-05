@@ -131,13 +131,15 @@ export function buildStudent(overrides: Partial<AppStudent> = {}): AppStudent {
   return student
 }
 
-export function buildVolunteer(overrides: Partial<AppVolunteer> = {}): AppVolunteer {
+export function buildVolunteer(
+  overrides: Partial<AppVolunteer> = {}
+): AppVolunteer {
   return {
     ...buildUser({ isVolunteer: true }),
     volunteerPartnerOrg: '',
     phone: getPhoneNumber(),
-    
-    ...overrides
+
+    ...overrides,
   }
 }
 
