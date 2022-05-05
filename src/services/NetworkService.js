@@ -553,6 +553,11 @@ export default {
       )
       .then(this._successHandler, this._errorHandler)
   },
+  checkZipCode(context, { zipCode }) {
+    return context.$http
+      .get(`${ELIGIBILITY_API_ROOT}/check-zip-code/${zipCode}`)
+      .then(this._successHandler, this._errorHandler)
+  },
   checkStudentEligibility(
     context,
     { schoolUpchieveId, zipCode, email, referredByCode, currentGrade }
