@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, getRoClient } from '../../db'
 import {
   RepoCreateError,
   RepoDeleteError,
@@ -502,6 +502,7 @@ function toObject<T>(obj: unknown): T {
   return thing
 }
 
+// TODO: break out anything that uses RO client into their own repo
 export async function getSessionReport(
   query: StudentSessionReportQuery
 ): Promise<SessionReportRow[] | undefined> {
@@ -519,7 +520,7 @@ export async function getSessionReport(
         start: query.start,
         end: query.end,
       },
-      getClient()
+      getRoClient()
     )
 
     const report = []
@@ -590,6 +591,7 @@ export type UsageReportRow = {
   feedbacks: SingleFeedback[]
 }
 
+// TODO: break out anything that uses RO client into their own repo
 export async function getUsageReport(
   query: StudentUsageReportQuery
 ): Promise<UsageReportRow[] | undefined> {
@@ -609,7 +611,7 @@ export async function getUsageReport(
         sessionStart: query.sessionStart,
         sessionEnd: query.sessionEnd,
       },
-      getClient()
+      getRoClient()
     )
 
     const report = []

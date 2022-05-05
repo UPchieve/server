@@ -162,6 +162,7 @@ export const Config = Record({
   redisPort: String,
   redisPassword: String,
   postgresHost: String,
+  postgresRoHost: String,
   postgresPort: Number,
   postgresUser: String,
   postgresPassword: String,

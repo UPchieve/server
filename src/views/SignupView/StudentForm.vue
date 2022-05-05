@@ -470,7 +470,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import validator from 'validator'
 import Autocomplete from '@trevoreyre/autocomplete-vue'
 import * as Sentry from '@sentry/browser'
@@ -543,6 +543,9 @@ export default {
   computed: {
     ...mapState({
       isMobileApp: state => state.app.isMobileApp
+    }),
+    ...mapGetters({
+      isZipCodeCheckActive: 'featureFlags/isZipCodeCheckActive'
     }),
     trimCurrentGrade() {
       // extracting the first word out of the gradeLevels
@@ -646,7 +649,7 @@ export default {
         })
     },
 
-    checkEligibilityErrors() {
+    async checkEligibilityErrors() {
       // validate input
       this.errors = []
       this.invalidInputs = []
@@ -659,8 +662,14 @@ export default {
       const zipCode = this.eligibility.zipCode
 
       if (!zipCode || !zipCodeRegex.test(zipCode)) {
-        this.errors.push('You must enter a valid zip code')
+        this.errors.push('You must enter a properly formatted zip code')
         this.invalidInputs.push('inputZipCode')
+      } else if (this.isZipCodeCheckActive) {
+        const { body: { isValidZipCode } } = await NetworkService.checkZipCode(this, { zipCode })
+        if (!isValidZipCode) {
+          this.errors.push('You must enter a valid United States zip code')
+          this.invalidInputs.push('inputZipCode')
+        }
       }
 
       if (!this.eligibility.email) {
@@ -702,7 +711,7 @@ export default {
       // reset error msg from server
       this.msg = ''
 
-      this.checkEligibilityErrors()
+      await this.checkEligibilityErrors()
       if (this.errors.length) return
 
       NetworkService.checkStudentEligibility(this, {
