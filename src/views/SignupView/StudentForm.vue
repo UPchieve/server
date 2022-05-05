@@ -665,7 +665,7 @@ export default {
         this.errors.push('You must enter a properly formatted zip code')
         this.invalidInputs.push('inputZipCode')
       } else if (this.isZipCodeCheckActive) {
-        const { isValidZipCode } = await NetworkService.checkZipCode(this, { zipCode })
+        const { body: { isValidZipCode } } = await NetworkService.checkZipCode(this, { zipCode })
         if (!isValidZipCode) {
           this.errors.push('You must enter a valid United States zip code')
           this.invalidInputs.push('inputZipCode')
