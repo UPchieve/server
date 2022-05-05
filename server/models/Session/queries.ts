@@ -1125,7 +1125,7 @@ export type SessionForSessionRecap = {
   studentFirstName: string
   volunteerId: Ulid
   volunteerFirstName: string
-  quillDoc: string
+  quillDoc?: string
   hasWhiteboardDoc: boolean
 }
 
