@@ -19,6 +19,7 @@ import {
   VolunteerRegData,
 } from '../utils/auth-utils'
 import { GRADES } from '../constants'
+import { AppStudent, AppUser, AppVolunteer } from './types'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -67,7 +68,7 @@ export function buildUserContactInfo(
   }
 }
 
-export function buildUser(overrides: Partial<User> = {}): User {
+export function buildUserRow(overrides: Partial<User> = {}): User {
   return {
     id: getDbUlid(),
     verified: true,
@@ -88,8 +89,60 @@ export function buildUser(overrides: Partial<User> = {}): User {
   }
 }
 
-export function buildStudent(overrides: Partial<Student> = {}): Student {
+export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
+  const userRow = buildUserRow()
+  return {
+    ...userRow,
+    firstname: userRow.firstName,
+    lastname: userRow.lastName,
+    isBanned: userRow.banned,
+    isDeactivated: userRow.deactivated,
+    isTestUser: userRow.testUser,
+    isAdmin: false,
+    isVolunteer: false,
+    ...overrides,
+  }
+}
+
+export function buildStudentProfile(overrides: Partial<Student> = {}): Student {
   const userId = buildUser().id
+  return {
+    userId,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
+}
+
+export function buildStudent(overrides: Partial<AppStudent> = {}): AppStudent {
+  const student = {
+    ...buildUser({ isVolunteer: false }),
+    zipCode: '11201',
+    schoolId: getDbUlid(),
+    currentGrade: GRADES.EIGHTH,
+    signupSourceId: 1,
+    studentPartnerOrg: '',
+    studentPartnerSite: '',
+    partnerUserId: '',
+    college: 'UPchieve University',
+    ...overrides,
+  }
+
+  return student
+}
+
+export function buildVolunteer(overrides: Partial<AppVolunteer> = {}): AppVolunteer {
+  return {
+    ...buildUser({ isVolunteer: true }),
+    volunteerPartnerOrg: '',
+    phone: getPhoneNumber(),
+    
+    ...overrides
+  }
+}
+
+export function buildStudentRow(overrides: Partial<Student> = {}): Student {
+  const userId = buildUserRow().id
   return {
     userId,
     createdAt: new Date(),
@@ -168,21 +221,6 @@ export function buildSchool(overrides: Partial<School> = {}): School {
     createdAt: new Date(),
     updatedAt: new Date(),
     cityNameStored: 'Brooklyn',
-    districtNameStored: undefined,
-    SCHOOL_YEAR: undefined,
-    FIPST: undefined,
-    ST: undefined,
-    SCH_NAME: undefined,
-    LEA_NAME: undefined,
-    ST_SCHID: undefined,
-    MCITY: undefined,
-    MZIP: undefined,
-    LCITY: undefined,
-    LZIP: undefined,
-    G_9_OFFERED: undefined,
-    G_10_OFFERED: undefined,
-    G_11_OFFERED: undefined,
-    G_12_OFFERED: undefined,
     ...overrides,
   }
 }
@@ -190,9 +228,9 @@ export function buildSchool(overrides: Partial<School> = {}): School {
 export const buildStudentRegistrationForm = (
   overrides: Partial<OpenStudentRegData> = {}
 ): OpenStudentRegData => {
-  const student = buildUser()
+  const student = buildUserRow()
   const form = {
-    ip: '0.0.0.0',
+    ip: getIpAddress(),
     firstName: student.firstName,
     lastName: student.lastName,
     email: student.email,
@@ -210,10 +248,10 @@ export const buildStudentRegistrationForm = (
 export const buildPartnerStudentRegistrationForm = (
   overrides: Partial<PartnerStudentRegData> = {}
 ): PartnerStudentRegData => {
-  const student = buildUser()
+  const student = buildUserRow()
   const partnerOrg = buildStudentPartnerOrg()
   const form = {
-    ip: '0.0.0.0',
+    ip: getIpAddress(),
     firstName: student.firstName,
     lastName: student.lastName,
     email: student.email,
@@ -232,9 +270,9 @@ export const buildPartnerStudentRegistrationForm = (
 export const buildVolunteerRegistrationForm = (
   overrides: Partial<VolunteerRegData> = {}
 ): VolunteerRegData => {
-  const volunteer = buildUser()
+  const volunteer = buildUserRow()
   const form = {
-    ip: '0.0.0.0',
+    ip: getIpAddress(),
     firstName: volunteer.firstName,
     lastName: volunteer.lastName,
     email: volunteer.email,
@@ -250,9 +288,9 @@ export const buildVolunteerRegistrationForm = (
 export const buildPartnerVolunteerRegistrationForm = (
   overrides: Partial<PartnerVolunteerRegData> = {}
 ): PartnerVolunteerRegData => {
-  const volunteer = buildUser()
+  const volunteer = buildUserRow()
   const form = {
-    ip: '0.0.0.0',
+    ip: getIpAddress(),
     volunteerPartnerOrg: 'example',
     firstName: volunteer.firstName,
     lastName: volunteer.lastName,

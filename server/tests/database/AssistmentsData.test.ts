@@ -12,8 +12,8 @@ import { Pool } from 'pg'
 import {
   buildSession,
   insertSingleRow,
-  buildUser,
-  buildStudent,
+  buildUserRow,
+  buildStudentProfile,
   buildAssistmentsData,
   dropTables,
   executeQuery,
@@ -38,10 +38,10 @@ describe('Assistments data queries', () => {
   let ad: AssistmentsData
   beforeAll(async () => {
     client = buildTestClient()
-    const user = await insertSingleRow('users', buildUser(), client)
+    const user = await insertSingleRow('users', buildUserRow(), client)
     student = await insertSingleRow(
       'student_profiles',
-      buildStudent({ userId: user.id }),
+      buildStudentProfile({ userId: user.id }),
       client
     )
   })

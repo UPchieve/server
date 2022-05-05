@@ -18,7 +18,7 @@ import {
 } from '../../utils/auth-utils'
 import { NotAllowedError, InputError, LookupError } from '../../models/Errors'
 import {
-  buildUser,
+  buildUserRow,
   buildUserContactInfo,
   buildStudent,
   buildSchool,
@@ -28,7 +28,7 @@ import {
   buildPartnerVolunteerRegistrationForm,
   buildVolunteerPartnerOrg,
   buildStudentPartnerOrg,
-  getPhoneNumber,
+  buildVolunteer,
 } from '../pg-generate'
 import { getDbUlid } from '../../models/pgUtils'
 
@@ -108,10 +108,7 @@ describe('Registration tests', () => {
   const ip = { country_code: 'US', org: 'example' }
   const highSchool = buildSchool()
   const mockedStudentPartnerOrg = buildStudentPartnerOrg({ sites: undefined })
-  const mockedVolunteerPartnerOrg = {
-    ...buildVolunteerPartnerOrg(),
-    domains: [],
-  }
+  const mockedVolunteerPartnerOrg = buildVolunteerPartnerOrg()
   const studentOpenOverrides = {
     zipCode: '11201',
     highSchoolId: highSchool.id,
@@ -125,37 +122,15 @@ describe('Registration tests', () => {
     college: 'UPchieve University',
   }
 
-  const plainUser = buildUser()
-  const studentOpen = {
-    ...plainUser,
-    ...studentOpenOverrides,
-    schoolId: highSchool.id,
-    firstname: plainUser.firstName,
-    lastname: plainUser.lastName,
-    isBanned: plainUser.banned,
-    isDeactivated: plainUser.deactivated,
-    isTestUser: plainUser.testUser,
-    isAdmin: false,
-    isVolunteer: false,
-  }
-  const studentPartner = {
-    ...studentOpen,
-    ...buildStudent(studentPartnerOverrides),
-  }
+  const plainUser = buildUserRow()
+  const studentOpen = buildStudent(studentOpenOverrides)
+  const studentPartner = buildStudent(studentPartnerOverrides)
 
   const volunteerPartnerOverrides = {
-    volunteerPartnerOrg: 'example',
+    volunteerPartnerOrg: mockedVolunteerPartnerOrg.key,
   }
-  const volunteerOpen = {
-    ...plainUser,
-    isVolunteer: true,
-    isAdmin: false,
-    phone: getPhoneNumber(),
-  }
-  const volunteerPartner = {
-    ...volunteerOpen,
-    volunteerPartnerOrg: buildVolunteerPartnerOrg().key,
-  }
+  const volunteerOpen = buildVolunteer()
+  const volunteerPartner = buildVolunteer(volunteerPartnerOverrides)
 
   test('Check valid credentials', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined)
@@ -327,21 +302,8 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedIpAddressService.getIpWhoIs.mockResolvedValue(ip)
     mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValue(highSchool)
-    const referrer = buildUser()
-    const referreeBaseUser = buildUser()
-    const referree = {
-      ...referreeBaseUser,
-      schoolId: highSchool.id,
-      firstname: plainUser.firstName,
-      lastname: plainUser.lastName,
-      isBanned: plainUser.banned,
-      isDeactivated: plainUser.deactivated,
-      isTestUser: plainUser.testUser,
-      isAdmin: false,
-      isVolunteer: false,
-      zipCode: '11201',
-      currentGrade: GRADES.NINTH,
-    }
+    const referrer = buildStudent()
+    const referree = buildStudent({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
     mockedUserCtrl.createStudent.mockResolvedValue(referree)
 
@@ -455,18 +417,8 @@ describe('Registration tests', () => {
   test('Register valid open volunteer via working referral', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
-    const referrer = buildUser()
-    const referreeBaseUser = buildUser()
-    const referree = {
-      ...referreeBaseUser,
-      referredBy: referrer.id,
-      phone: getPhoneNumber(),
-      isBanned: referreeBaseUser.banned,
-      isDeactivated: referreeBaseUser.deactivated,
-      isTestUser: referreeBaseUser.testUser,
-      isAdmin: false,
-      isVolunteer: true,
-    }
+    const referrer = buildVolunteer()
+    const referree = buildVolunteer({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
     mockedUserCtrl.createVolunteer.mockResolvedValue(referree)
 
@@ -500,18 +452,8 @@ describe('Registration tests', () => {
     mockedVolunteerPartnerOrgRepo.getVolunteerPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
       mockedVolunteerPartnerOrg
     )
-    const referrer = buildUser()
-    const referreeBaseUser = buildUser()
-    const referree = {
-      ...referreeBaseUser,
-      referredBy: referrer.id,
-      phone: getPhoneNumber(),
-      isBanned: referreeBaseUser.banned,
-      isDeactivated: referreeBaseUser.deactivated,
-      isTestUser: referreeBaseUser.testUser,
-      isAdmin: false,
-      isVolunteer: true,
-    }
+    const referrer = buildVolunteer()
+    const referree = buildVolunteer({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
     mockedUserCtrl.createVolunteer.mockResolvedValue(referree)
 
@@ -532,13 +474,13 @@ describe('Password reset tests', () => {
   })
 
   // test objects
-  const user = buildUser()
+  const user = buildUserRow()
   const userContactInfo = buildUserContactInfo()
 
   test('Initiate valid reset for email', async () => {
     mockedUserRepo.getUserForPassport.mockResolvedValue(user)
 
-    await AuthService.sendReset(user.email, undefined)
+    await AuthService.sendReset(user.email, false)
 
     expect(MailService.sendReset).toHaveBeenCalledWith(
       user.email,
@@ -595,7 +537,7 @@ describe('Password reset tests', () => {
     mockedUserRepo.getUserForPassport.mockResolvedValue(undefined)
 
     const badEmail = 'email@baddomain.bad'
-    const t = async <T>(p: T) => await AuthService.sendReset(p, undefined)
+    const t = async <T>(p: T) => await AuthService.sendReset(p, false)
 
     await expect(t(badEmail)).rejects.toThrow(
       new LookupError(`No account with ${badEmail} found`)
@@ -608,7 +550,7 @@ describe('Password reset tests', () => {
     mockedUserRepo.getUserForPassport.mockResolvedValue(undefined)
 
     const badEmail = ['victim@email.com', 'attacker@blackhat.bad']
-    const t = async <T>(p: T) => await AuthService.sendReset(p, undefined)
+    const t = async <T>(p: T) => await AuthService.sendReset(p, false)
 
     await expect(t(badEmail)).rejects.toThrow(InputError)
   })
