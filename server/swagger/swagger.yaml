@@ -2148,6 +2148,20 @@ paths:
           description: Returns an object with boolean `isEligible`
         '422':
           description: Returned if email already in use
+  /api-public/eligibility/check-zip-code/{zipCode}:
+    get:
+      tags:
+        - eligibility
+      summary: Checks is zip code is valid US postal code
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: zipCode
+          required: true
+          in: path
+      responses:
+        '200':
+          description: Returns an isValidZipCode boolean indicating if a provided zip code is valid
   /api-public/eligibility/school/search:
     get:
       tags:
