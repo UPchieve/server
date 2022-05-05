@@ -75,9 +75,7 @@ export const asOpenStudentRegData = asFactory<OpenStudentRegData>({
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
   currentGrade: asEnum(GRADES),
-  signupSourceId: isEnabled(FEATURE_FLAGS.DISCOVERY_SOURCE)
-    ? asNumber
-    : asOptional(asNumber),
+  signupSourceId: asOptional(asNumber),
 })
 
 export interface PartnerStudentRegData extends StudentRegData {
