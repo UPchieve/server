@@ -107,7 +107,8 @@ export async function getFavoriteVolunteersPaginated(
   return await StudentRepo.getFavoriteVolunteersPaginated(userId, limit, offset)
 }
 
-export async function getStudentSignupSources(
-): Promise<StudentSignupSources[] | undefined> {
+export async function getStudentSignupSources(): Promise<
+  StudentSignupSources[] | undefined
+> {
   return await StudentRepo.getStudentSignupSources()
 }

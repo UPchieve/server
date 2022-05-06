@@ -643,7 +643,9 @@ export type StudentSignupSources = {
   name: string
 }
 
-export async function getStudentSignupSources(): Promise<StudentSignupSources[] | undefined> {
+export async function getStudentSignupSources(): Promise<
+  StudentSignupSources[] | undefined
+> {
   try {
     const result = await pgQueries.getStudentSignupSources.run(
       undefined,
