@@ -481,6 +481,7 @@ export default {
         .then(() => {
           this.formStep = 'step-2'
           this.serverErrorMsg = ''
+          this.getSignupSources()
         })
         .catch(err => {
           this.serverErrorMsg = err.message
