@@ -464,3 +464,13 @@ AND ((:sponsorOrg)::text IS NULL
 ORDER BY
     users.created_at ASC;
 
+
+/* @name getStudentSignupSources */
+SELECT
+    id,
+    name
+FROM
+    signup_sources
+ORDER BY
+    RANDOM();
+

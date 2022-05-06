@@ -637,3 +637,23 @@ export async function getUsageReport(
     throw new RepoReadError(err)
   }
 }
+
+export type StudentSignupSources = {
+  id: number
+  name: string
+}
+
+export async function getStudentSignupSources(): Promise<
+  StudentSignupSources[] | undefined
+> {
+  try {
+    const result = await pgQueries.getStudentSignupSources.run(
+      undefined,
+      getClient()
+    )
+
+    if (result.length) return result.map(row => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

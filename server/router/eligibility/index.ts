@@ -12,6 +12,7 @@ import {
   ExistingUserError,
   checkZipCode,
 } from '../../services/EligibilityService'
+import { getStudentSignupSources } from '../../services/StudentService'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
@@ -178,6 +179,15 @@ export function routes(app: Express) {
       const zipCode = asString(req.params.zipCode)
       const result = await checkZipCode(zipCode)
       res.json({ isValidZipCode: result })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/signup-sources/students', async function(req, res) {
+    try {
+      const signupSources = await getStudentSignupSources()
+      res.json({ signupSources })
     } catch (err) {
       resError(res, err)
     }

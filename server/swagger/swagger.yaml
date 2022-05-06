@@ -2381,6 +2381,18 @@ paths:
       responses:
         '200':
           description: Returns an object with a paginated list of ineligible students
+  /api-public/eligibility/signup-sources/students:
+    get:
+      tags:
+        - eligibility
+      summary: Gets student signup sources
+      description:
+        - Gets a list of student signup sources
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns an list of student signup sources
   /api-public/eligibility/zip-codes/{zipCode}:
     get:
       tags:

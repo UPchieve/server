@@ -682,4 +682,9 @@ export default {
       .get(`${API_ROOT}/students/favorite-volunteers?page=${page}`)
       .then(this._successHandler, this._errorHandler)
   },
+  getStudentSignupSources() {
+    return Vue.http
+      .get(`${ELIGIBILITY_API_ROOT}/signup-sources/students`)
+      .then(this._successHandler, this._errorHandler)
+  },
 }
