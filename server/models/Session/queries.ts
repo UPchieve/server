@@ -1111,3 +1111,36 @@ export async function getTotalSessionHistory(
     throw new RepoReadError(err)
   }
 }
+
+export type SessionForSessionRecap = {
+  id: Ulid
+  topic: string
+  subject: string
+  subjectKey: string
+  createdAt: Date
+  endedAt: Date
+  timeTutored: number
+  isFavorited: boolean
+  studentId: Ulid
+  studentFirstName: string
+  volunteerId: Ulid
+  volunteerFirstName: string
+  quillDoc?: string
+  hasWhiteboardDoc: boolean
+}
+
+export async function getSessionRecap(
+  sessionId: Ulid
+): Promise<SessionForSessionRecap> {
+  try {
+    const result = await pgQueries.getSessionRecap.run(
+      { sessionId },
+      getClient()
+    )
+
+    if (!result.length) throw new RepoReadError('Session not found')
+    return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
