@@ -12,6 +12,7 @@ import {
   ExistingUserError,
   checkZipCode,
 } from '../../services/EligibilityService'
+import { getStudentSignupSources } from '../../services/StudentService'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
@@ -183,5 +184,26 @@ export function routes(app: Express) {
     }
   })
 
+  router.get('/signup-sources/students', async function(req, res) {
+    try {
+      const signupSources = await getStudentSignupSources()
+      res.json({ signupSources })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   app.use('/api-public/eligibility', router)
 }
+
+
+/**
+ * 
+ * TODO
+ * 1. How to handle custom manual approved partner org?
+ * 2. Adding the component to the frontend as well
+ * 
+ * 
+ * 
+ * 
+ */
