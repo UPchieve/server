@@ -79,10 +79,7 @@ function renderIndexHtml() {
   }
 
   const rendered = Mustache.render(template, frontendConfig)
-  console.log(rendered)
   return rendered
-
-  // return Mustache.render(template, frontendConfig)
 }
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {

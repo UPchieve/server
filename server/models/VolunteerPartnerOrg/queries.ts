@@ -2,9 +2,14 @@ import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 import { makeRequired, makeSomeRequired } from '../pgUtils'
 import { RepoReadError } from '../Errors'
-import { VolunteerPartnerOrg } from './types'
+import {
+  VolunteerPartnerOrg,
+  VolunteerPartnerOrgForRegistration,
+} from './types'
 
-export async function getVolunteerPartnerOrgForRegistrationByKey(key: string) {
+export async function getVolunteerPartnerOrgForRegistrationByKey(
+  key: string
+): Promise<VolunteerPartnerOrgForRegistration> {
   try {
     const result = await pgQueries.getVolunteerPartnerOrgForRegistrationByKey.run(
       { key },

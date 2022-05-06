@@ -214,4 +214,5 @@ export const Config = Record({
   ipWhoIsApiKey: String,
   favoriteVolunteerLimit: Number,
   eligibleIncomeThreshold: Number,
+  customManualStudentPartnerOrg: String,
 })

@@ -2,9 +2,11 @@ import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 import { makeRequired, makeSomeRequired } from '../pgUtils'
 import { RepoReadError } from '../Errors'
-import { StudentPartnerOrg } from './types'
+import { StudentPartnerOrg, StudentPartnerOrgForRegistration } from './types'
 
-export async function getStudentPartnerOrgForRegistrationByKey(key: string) {
+export async function getStudentPartnerOrgForRegistrationByKey(
+  key: string
+): Promise<StudentPartnerOrgForRegistration> {
   try {
     const result = await pgQueries.getStudentPartnerOrgForRegistrationByKey.run(
       { key },

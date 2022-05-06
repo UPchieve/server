@@ -54,6 +54,7 @@ import { getIpWhoIs } from './IpAddressService'
 import * as MailService from './MailService'
 import { Ulid } from '../models/pgUtils'
 import * as AuthRepo from '../models/Auth'
+import config from '../config'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -111,6 +112,7 @@ export async function registerOpenStudent(
     firstName,
     lastName,
     currentGrade,
+    signupSourceId,
   } = asOpenStudentRegData(data)
 
   await Promise.all([
@@ -149,6 +151,7 @@ export async function registerOpenStudent(
     referredBy,
     password,
     currentGrade,
+    signupSourceId,
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
@@ -174,6 +177,7 @@ export async function registerPartnerStudent(
     college,
     partnerSite,
     currentGrade,
+    signupSourceId,
   } = asPartnerStudentRegData(data)
 
   await Promise.all([
@@ -217,6 +221,10 @@ export async function registerPartnerStudent(
     referredBy,
     password,
     currentGrade,
+    signupSourceId:
+      studentPartnerOrg === config.customManualStudentPartnerOrg
+        ? signupSourceId
+        : undefined,
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
@@ -415,15 +423,9 @@ export async function lookupSponsorOrgs(): Promise<SponsorOrg[]> {
 // Handles /reset/send route
 export async function sendReset(
   email: unknown,
-  mobile: unknown
+  mobile: boolean
 ): Promise<void> {
   const userEmail = asString(email)
-  let sendToMobile
-  if (sendToMobile) {
-    sendToMobile = asBoolean(mobile)
-  } else {
-    sendToMobile = false
-  }
   const user = await getUserForPassport(userEmail)
   if (!user) throw new LookupError(`No account with ${userEmail} found`)
 
@@ -431,7 +433,7 @@ export async function sendReset(
   const token = buffer.toString('hex')
   await updateUserResetTokenById(user.id, token)
 
-  await MailService.sendReset(userEmail, sendToMobile, token)
+  await MailService.sendReset(userEmail, mobile, token)
 }
 
 export async function confirmReset(data: unknown): Promise<void> {
@@ -448,7 +450,7 @@ export async function confirmReset(data: unknown): Promise<void> {
     throw new LookupError('No account found with provided password reset token')
 
   // case match strings
-  if (user.email !== email.toLowerCase())
+  if (user.email.toLowerCase() !== email.toLowerCase())
     throw new ResetError('Email did not match the password reset token')
 
   checkPassword(password)
