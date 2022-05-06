@@ -257,4 +257,15 @@ export function routeSession(router: Router, io: Server) {
       resError(res, err)
     }
   })
+
+  router.get('/sessions/:sessionId/recap', async function(req, res) {
+    try {
+      const { sessionId } = req.params
+      const session = await SessionService.getSessionRecap(asUlid(sessionId))
+
+      res.json({ session })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

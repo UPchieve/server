@@ -2062,7 +2062,7 @@ export interface IGetSessionHistoryQuery {
   result: IGetSessionHistoryResult;
 }
 
-const getSessionHistoryIR: any = {"name":"getSessionHistory","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27103,"b":27112,"line":971,"col":19}]}},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27267,"b":27283,"line":975,"col":33}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27452,"b":27457,"line":981,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27474,"b":27480,"line":981,"col":30}]}}],"usedParamSet":{"studentId":true,"minSessionLength":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    sessions.time_tutored::int AS time_tutored,\n    subjects.display_name AS subject,\n    topics.name AS topic,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.id AS volunteer_id,\n    students.id AS student_id,\n    students.first_name AS student_first_name,\n    (\n        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_favorited\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id\n        AND volunteers.id = favorited.volunteer_id\nWHERE\n    students.id = :studentId!\n    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')\n    AND NOW()\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND volunteers.test_user IS FALSE\n    AND students.test_user IS FALSE\nORDER BY\n    sessions.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":26185,"b":27486,"line":946,"col":0}}};
+const getSessionHistoryIR: any = {"name":"getSessionHistory","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27103,"b":27112,"line":971,"col":19}]}},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27267,"b":27283,"line":975,"col":33}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27490,"b":27495,"line":982,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27512,"b":27518,"line":982,"col":30}]}}],"usedParamSet":{"studentId":true,"minSessionLength":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    sessions.time_tutored::int AS time_tutored,\n    subjects.display_name AS subject,\n    topics.name AS topic,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.id AS volunteer_id,\n    students.id AS student_id,\n    students.first_name AS student_first_name,\n    (\n        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_favorited\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id\n        AND volunteers.id = favorited.volunteer_id\nWHERE\n    students.id = :studentId!\n    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')\n    AND NOW()\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND volunteers.test_user IS FALSE\n    AND students.test_user IS FALSE\n    AND sessions.ended_at IS NOT NULL\nORDER BY\n    sessions.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":26185,"b":27524,"line":946,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2100,6 +2100,7 @@ const getSessionHistoryIR: any = {"name":"getSessionHistory","params":[{"name":"
  *     AND sessions.volunteer_id IS NOT NULL
  *     AND volunteers.test_user IS FALSE
  *     AND students.test_user IS FALSE
+ *     AND sessions.ended_at IS NOT NULL
  * ORDER BY
  *     sessions.created_at DESC
  * LIMIT (:limit!)::int OFFSET (:offset!)::int
@@ -2125,7 +2126,7 @@ export interface IGetTotalSessionHistoryQuery {
   result: IGetTotalSessionHistoryResult;
 }
 
-const getTotalSessionHistoryIR: any = {"name":"getTotalSessionHistory","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27741,"b":27750,"line":992,"col":19}]}},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27905,"b":27921,"line":996,"col":33}]}}],"usedParamSet":{"studentId":true,"minSessionLength":true},"statement":{"body":"SELECT\n    count(*)::int AS total\nFROM\n    sessions\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\nWHERE\n    students.id = :studentId!\n    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')\n    AND NOW()\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND volunteers.test_user IS FALSE\n    AND students.test_user IS FALSE","loc":{"a":27526,"b":28042,"line":985,"col":0}}};
+const getTotalSessionHistoryIR: any = {"name":"getTotalSessionHistory","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27779,"b":27788,"line":993,"col":19}]}},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":27943,"b":27959,"line":997,"col":33}]}}],"usedParamSet":{"studentId":true,"minSessionLength":true},"statement":{"body":"SELECT\n    count(*)::int AS total\nFROM\n    sessions\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\nWHERE\n    students.id = :studentId!\n    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')\n    AND NOW()\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND volunteers.test_user IS FALSE\n    AND students.test_user IS FALSE","loc":{"a":27564,"b":28080,"line":986,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2148,5 +2149,74 @@ const getTotalSessionHistoryIR: any = {"name":"getTotalSessionHistory","params":
  * ```
  */
 export const getTotalSessionHistory = new PreparedQuery<IGetTotalSessionHistoryParams,IGetTotalSessionHistoryResult>(getTotalSessionHistoryIR);
+
+
+/** 'GetSessionRecap' parameters type */
+export interface IGetSessionRecapParams {
+  sessionId: string;
+}
+
+/** 'GetSessionRecap' return type */
+export interface IGetSessionRecapResult {
+  createdAt: Date;
+  endedAt: Date | null;
+  hasWhiteboardDoc: boolean;
+  id: string;
+  isFavorited: boolean | null;
+  quillDoc: string | null;
+  studentFirstName: string;
+  studentId: string;
+  subject: string;
+  subjectKey: string;
+  timeTutored: number | null;
+  topic: string;
+  volunteerFirstName: string;
+  volunteerId: string;
+}
+
+/** 'GetSessionRecap' query type */
+export interface IGetSessionRecapQuery {
+  params: IGetSessionRecapParams;
+  result: IGetSessionRecapResult;
+}
+
+const getSessionRecapIR: any = {"name":"getSessionRecap","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":29115,"b":29124,"line":1033,"col":19}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.time_tutored::int,\n    subjects.display_name AS subject,\n    subjects.name AS subject_key,\n    topics.name AS topic,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.id AS volunteer_id,\n    students.id AS student_id,\n    students.first_name AS student_first_name,\n    (\n        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_favorited,\n    sessions.quill_doc,\n    sessions.has_whiteboard_doc\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id\n        AND volunteers.id = favorited.volunteer_id\nWHERE\n    sessions.id = :sessionId!","loc":{"a":28113,"b":29124,"line":1004,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     sessions.created_at,
+ *     sessions.ended_at,
+ *     sessions.time_tutored::int,
+ *     subjects.display_name AS subject,
+ *     subjects.name AS subject_key,
+ *     topics.name AS topic,
+ *     volunteers.first_name AS volunteer_first_name,
+ *     volunteers.id AS volunteer_id,
+ *     students.id AS student_id,
+ *     students.first_name AS student_first_name,
+ *     (
+ *         CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN
+ *             TRUE
+ *         ELSE
+ *             FALSE
+ *         END) AS is_favorited,
+ *     sessions.quill_doc,
+ *     sessions.has_whiteboard_doc
+ * FROM
+ *     sessions
+ *     JOIN subjects ON subjects.id = sessions.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ *     LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
+ *     LEFT JOIN users students ON sessions.student_id = students.id
+ *     LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
+ *         AND volunteers.id = favorited.volunteer_id
+ * WHERE
+ *     sessions.id = :sessionId!
+ * ```
+ */
+export const getSessionRecap = new PreparedQuery<IGetSessionRecapParams,IGetSessionRecapResult>(getSessionRecapIR);
 
 

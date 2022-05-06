@@ -819,3 +819,17 @@ export async function getTotalSessionHistory(studentId: Ulid) {
   const minSessionLength = 60000
   return SessionRepo.getTotalSessionHistory(studentId, minSessionLength)
 }
+
+export async function getSessionRecap(
+  sessionId: Ulid
+): Promise<SessionRepo.SessionForSessionRecap> {
+  const session = await SessionRepo.getSessionRecap(sessionId)
+  if (
+    sessionUtils.isSubjectUsingDocumentEditor(session.subjectKey) &&
+    !session.endedAt
+  ) {
+    const quillDoc = await QuillDocService.getDoc(sessionId)
+    return { ...session, quillDoc: JSON.stringify(quillDoc) }
+  }
+  return session
+}
