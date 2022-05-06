@@ -393,6 +393,12 @@ const routes = [
     meta: { protected: true }
   },
   {
+    path: '/sessions/:sessionId/recap',
+    name: 'SessionRecapView',
+    component: SessionRecapView,
+    meta: { protected: true }
+  },
+  {
     path: '/edu', // TODO: make this be "/admin/edu"
     component: () => {
       window.location.href = '/edu'

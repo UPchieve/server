@@ -682,4 +682,9 @@ export default {
       .get(`${API_ROOT}/students/favorite-volunteers?page=${page}`)
       .then(this._successHandler, this._errorHandler)
   },
+  getSessionRecap(sessionId) {
+    return Vue.http
+      .get(`${API_ROOT}/session/${sessionId}/recap`)
+      .then(this._successHandler, this._errorHandler)
+  }
 }
