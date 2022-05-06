@@ -684,7 +684,7 @@ export default {
   },
   getSessionRecap(sessionId) {
     return Vue.http
-      .get(`${API_ROOT}/session/${sessionId}/recap`)
+      .get(`${API_ROOT}/sessions/${sessionId}/recap`)
       .then(this._successHandler, this._errorHandler)
   }
 }

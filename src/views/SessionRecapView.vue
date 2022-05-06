@@ -11,13 +11,13 @@
       />
     </div>
     <div class="whiteboard">
-
     </div>
   </div>
 </template>
 
 <script>
 import ChatLog from '@/components/Admin/ChatLog'
+import NetworkService from '@/services/NetworkService'
 
 export default {
   components: {
@@ -27,6 +27,22 @@ export default {
     ...mapState({
       user: state => state.user.user,
     }),
+  },
+  props: {
+    sessionId: {
+      type: Number
+    }
+  },
+  data() {
+    return {
+      session: {}
+    }
+  },
+  async created() {
+    const {
+      body: { session }
+    } = await NetworkService.getSessionRecap()
+    this.session = session
   }
 }
 </script>
