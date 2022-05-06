@@ -59,7 +59,8 @@ export default {
       [FEATURE_FLAGS.COACH_FAVORITING]: false,
       [FEATURE_FLAGS.SESSION_HISTORY]: false,
       [FEATURE_FLAGS.READING_LAUNCH]: false,
-      [FEATURE_FLAGS.ZIP_CODE_CHECK]: false
+      [FEATURE_FLAGS.ZIP_CODE_CHECK]: false,
+      [FEATURE_FLAGS.DISCOVERY_SOURCE]: false,
     },
   },
   mutations: {
@@ -96,6 +97,7 @@ export default {
     isCoachFavoritingActive: state => state.flags[FEATURE_FLAGS.COACH_FAVORITING],
     isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY],
     isReadingLaunchActive: state => state.flags[FEATURE_FLAGS.READING_LAUNCH],
-    isZipCodeCheckActive: state => state.flags[FEATURE_FLAGS.ZIP_CODE_CHECK]
+    isZipCodeCheckActive: state => state.flags[FEATURE_FLAGS.ZIP_CODE_CHECK],
+    isDiscoverySourceActive: state => state.flags[FEATURE_FLAGS.DISCOVERY_SOURCE],
   },
 }
