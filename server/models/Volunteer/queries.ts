@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, getRoClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -329,13 +329,14 @@ export type VolunteerForTelecomReport = Omit<
   VolunteerForWeeklyHourSummary,
   'sentHourSummaryIntroEmail' | 'phone'
 >
+// TODO: break out anything that uses RO client into their own repo
 export async function getVolunteersForTelecomReport(
   partnerOrg: string
 ): Promise<VolunteerForTelecomReport[]> {
   try {
     const result = await pgQueries.getVolunteersForTelecomReport.run(
       { partnerOrg },
-      getClient()
+      getRoClient()
     )
     const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
     const certifications = await getCertificationsForVolunteers(
@@ -1434,6 +1435,7 @@ export async function getVolunteersOnDeck(
   }
 }
 
+// TODO: break out anything that uses RO client into their own repo
 export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   volunteerPartnerOrg: string,
   start: Date,
@@ -1451,7 +1453,7 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
       },
-      getClient()
+      getRoClient()
     )
     if (!(result.length && makeRequired(result[0])))
       throw new Error(
@@ -1463,6 +1465,7 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   }
 }
 
+// TODO: break out anything that uses RO client into their own repo
 export async function getVolunteersForAnalyticsReport(
   volunteerPartnerOrg: string,
   start: Date,
@@ -1480,7 +1483,7 @@ export async function getVolunteersForAnalyticsReport(
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
       },
-      getClient()
+      getRoClient()
     )
 
     if (!result.length)

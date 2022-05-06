@@ -80,7 +80,7 @@
           <div class="dashboard-card__icon">
             <verification-icon />
           </div>
-          <div class="dashboard-card__title">Approval process</div>
+          <div class="dashboard-card__title">Safety Screening</div>
           <div class="dashboard-card__subtitle">
             {{ approvalCardSubheader }}
           </div>
@@ -111,10 +111,11 @@
           <div class="dashboard-card__icon">
             <onboarding-icon />
           </div>
-          <div class="dashboard-card__title">Onboarding process</div>
+          <div class="dashboard-card__title">Onboarding Process</div>
           <div class="dashboard-card__subtitle">
-            Before you can begin helping students, you’ll need to complete our
-            volunteer onboarding process.
+            While waiting for your safety screening to process,
+            complete our quick onboarding so you're ready to start
+            helping students as soon as possible.
           </div>
 
           <account-action
@@ -417,12 +418,12 @@ export default {
       if (this.user.volunteerPartnerOrg)
         return 'Just one step left to get approved to volunteer with UPchieve!'
 
-      return 'Complete our screening process to get approved to volunteer with UPchieve.'
+      return 'Student safety is our top priority! Please complete our screening process before you can start working with students.'
     },
     openVolunteerApprovalAccountActions() {
       const accountActions = [
         {
-          title: 'Background information',
+          title: 'Background information (3 mins)',
           subtitle: this.backgroundInfoAction.subtitle,
           status: this.backgroundInfoAction.status,
           clickFn: this.goToBackgroundInfo,
@@ -430,7 +431,7 @@ export default {
           priority: this.addSortPriorityNum(this.backgroundInfoAction.status)
         },
         {
-          title: 'Proof of identity',
+          title: 'Proof of identity (2 mins)',
           subtitle: this.photoIdAction.subtitle,
           status: this.photoIdAction.status,
           clickFn: this.togglePhotoUploadModal,
@@ -438,7 +439,7 @@ export default {
           priority: this.addSortPriorityNum(this.photoIdAction.status)
         },
         {
-          title: 'Reference check',
+          title: 'Reference check (5 mins)',
           subtitle: this.referenceAction.subtitle,
           status: this.referenceAction.status,
           clickFn: this.toggleReferencesModal,
@@ -477,7 +478,7 @@ export default {
     onboaringAccountActions() {
       const onboaringActions = [
         {
-          title: 'Complete UPchieve 101',
+          title: 'Complete UPchieve 101 (45 mins)',
           subtitle: this.trainingAction.subtitle,
           status: this.trainingAction.status,
           clickFn: this.clickUpchieve101Action,
@@ -485,7 +486,7 @@ export default {
           priority: this.addSortPriorityNum(this.trainingAction.status)
         },
         {
-          title: 'Select availability',
+          title: 'Select availability (5 mins)',
           subtitle: this.availabilityAction.subtitle,
           status: this.availabilityAction.status,
           clickFn: this.clickAvailabilityAction,
@@ -493,7 +494,7 @@ export default {
           priority: this.addSortPriorityNum(this.availabilityAction.status)
         },
         {
-          title: 'Unlock a subject',
+          title: 'Unlock a subject (15 mins)',
           subtitle: this.certificationAction.subtitle,
           status: this.certificationAction.status,
           clickFn: this.clickCertificationAction,
