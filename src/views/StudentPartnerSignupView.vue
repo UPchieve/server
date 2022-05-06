@@ -345,7 +345,7 @@ export default {
   },
   computed: {
     ...mapGetters({
-      isDicoverySourceActive: 'featureFlags/isDiscoverySourceActive'
+      isDiscoverySourceActive: 'featureFlags/isDiscoverySourceActive'
     }),
     showHighSchoolCheckbox() {
       // Don't show if high school input is disabled

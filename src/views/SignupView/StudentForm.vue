@@ -568,7 +568,7 @@ export default {
     }),
     ...mapGetters({
       isZipCodeCheckActive: 'featureFlags/isZipCodeCheckActive',
-      isDicoverySourceActive: 'featureFlags/isDiscoverySourceActive'
+      isDiscoverySourceActive: 'featureFlags/isDiscoverySourceActive'
     }),
     trimCurrentGrade() {
       // extracting the first word out of the gradeLevels
@@ -832,7 +832,7 @@ export default {
         this.errors.push('A password is required.')
         this.invalidInputs.push('inputPassword')
       }
-      if (this.isDicoverySourceActive && !this.signupSourceId) {
+      if (this.isDiscoverySourceActive && !this.signupSourceId) {
         this.errors.push('Please select an option for how you heard about us.')
       }
       if (!this.errors.length) this.submit()
@@ -869,7 +869,7 @@ export default {
       AnalyticsService.captureEvent(EVENTS.STUDENT_CLICKED_CANT_FIND_SCHOOL)
     },
     async getSignupSources() {
-      if (!this.isDicoverySourceActive) return
+      if (!this.isDiscoverySourceActive) return
       this.isLoadingSignupSource = true
       try {
         const data = await backOff(() => NetworkService.getStudentSignupSources())
