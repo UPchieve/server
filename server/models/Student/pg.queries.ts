@@ -1038,3 +1038,35 @@ const getUsageReportIR: any = {"name":"getUsageReport","params":[{"name":"sessio
 export const getUsageReport = new PreparedQuery<IGetUsageReportParams,IGetUsageReportResult>(getUsageReportIR);
 
 
+/** 'GetStudentSignupSources' parameters type */
+export type IGetStudentSignupSourcesParams = void;
+
+/** 'GetStudentSignupSources' return type */
+export interface IGetStudentSignupSourcesResult {
+  id: number;
+  name: string;
+}
+
+/** 'GetStudentSignupSources' query type */
+export interface IGetStudentSignupSourcesQuery {
+  params: IGetStudentSignupSourcesParams;
+  result: IGetStudentSignupSourcesResult;
+}
+
+const getStudentSignupSourcesIR: any = {"name":"getStudentSignupSources","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name\nFROM\n    signup_sources\nORDER BY\n    RANDOM()","loc":{"a":15547,"b":15615,"line":469,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     name
+ * FROM
+ *     signup_sources
+ * ORDER BY
+ *     RANDOM()
+ * ```
+ */
+export const getStudentSignupSources = new PreparedQuery<IGetStudentSignupSourcesParams,IGetStudentSignupSourcesResult>(getStudentSignupSourcesIR);
+
+

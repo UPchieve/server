@@ -233,6 +233,24 @@
           />
         </div>
 
+        <div class="uc-column" v-if="isDiscoverySourceActive && studentPartner.isManuallyApproved">
+          <label for="signup-source" class="uc-form-label"
+            >How did you hear about us?</label
+          >
+          <v-select
+            id="signup-source"
+            class="uc-form-select"
+            v-model="signupSourceId"
+            :options="signupSourcesOptions"
+            label="name"
+            :reduce="(option) => option.id"
+            :searchable="false"
+            :clearable="false"
+            required
+            :loading="isLoadingSignupSources"
+          />
+        </div>
+
         <div class="uc-form-checkbox">
           <input
             id="userAgreement"
@@ -264,6 +282,8 @@ import Autocomplete from '@trevoreyre/autocomplete-vue'
 import FormPageTemplate from '@/components/FormPageTemplate'
 import AuthService from '@/services/AuthService'
 import NetworkService from '@/services/NetworkService'
+import { backOff } from 'exponential-backoff'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'student-partner-signup-view',
@@ -317,10 +337,16 @@ export default {
       },
       errors: [],
       invalidInputs: [],
-      serverErrorMsg: ''
+      serverErrorMsg: '',
+      signupSourcesOptions: [],
+      signupSourceId: null,
+      isLoadingSignupSource: false
     }
   },
   computed: {
+    ...mapGetters({
+      isDiscoverySourceActive: 'featureFlags/isDiscoverySourceActive'
+    }),
     showHighSchoolCheckbox() {
       // Don't show if high school input is disabled
       if (!this.studentPartner.highSchoolSignup) return false
@@ -455,6 +481,7 @@ export default {
         .then(() => {
           this.formStep = 'step-2'
           this.serverErrorMsg = ''
+          this.getSignupSources()
         })
         .catch(err => {
           this.serverErrorMsg = err.message
@@ -509,6 +536,10 @@ export default {
         this.invalidInputs.push('college')
       }
 
+      if (this.isDiscoverySourceActive && this.studentPartner.isManuallyApproved && !this.signupSourceId) {
+        this.errors.push('Please select an option for how you heard about us.')
+      }
+
       if (!this.formData.terms) {
         this.errors.push('You must read and accept the user agreement.')
       }
@@ -529,7 +560,8 @@ export default {
         lastName: this.formData.lastName,
         highSchoolId: this.formData.highSchoolUpchieveId,
         college: this.formData.college,
-        terms: this.formData.terms
+        terms: this.formData.terms,
+        signupSourceId: this.signupSourceId
       })
         .then(() => {
           this.$router.push('/verify')
@@ -540,6 +572,19 @@ export default {
             Sentry.captureException(err)
           }
         })
+    },
+
+    async getSignupSources() {
+      if (!this.isDiscoverySourceActive) return
+      this.isLoadingSignupSource = true
+      try {
+        const data = await backOff(() => NetworkService.getStudentSignupSources())
+        this.signupSourcesOptions = data.body.signupSources 
+      } catch (err) {
+        Sentry.captureException(err)
+      } finally {
+        this.isLoadingSignupSource = false
+      }
     }
   }
 }

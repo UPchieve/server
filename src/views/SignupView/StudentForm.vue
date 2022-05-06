@@ -427,6 +427,24 @@
       </p>
     </div>
 
+     <div class="uc-column" v-if="isDiscoverySourceActive">
+        <label for="signup-source" class="uc-form-label"
+          >How did you hear about us?</label
+        >
+        <v-select
+          id="signup-source"
+          class="uc-form-select"
+          v-model="signupSourceId"
+          :options="signupSourcesOptions"
+          label="name"
+          :reduce="(option) => option.id"
+          :searchable="false"
+          :clearable="false"
+          required
+          :loading="isLoadingSignupSources"
+        />
+      </div>
+
     <div class="uc-form-checkbox">
       <input
         id="userAgreement"
@@ -480,6 +498,7 @@ import AnalyticsService from '@/services/AnalyticsService'
 import VerificationBadge from '@/assets/verification.svg'
 import ErrorBadge from '@/assets/error_badge.svg'
 import { EVENTS } from '@/consts'
+import { backOff } from 'exponential-backoff'
 
 export default {
   components: {
@@ -528,7 +547,10 @@ export default {
       hasEnteredFirstName: false,
       hasEnteredLastName: false,
       hasEnteredPassword: false,
-      isCollegeStudent: false
+      isCollegeStudent: false,
+      signupSourcesOptions: [],
+      signupSourceId: null,
+      isLoadingSignupSource: false
     }
   },
   async mounted() {
@@ -545,7 +567,8 @@ export default {
       isMobileApp: state => state.app.isMobileApp
     }),
     ...mapGetters({
-      isZipCodeCheckActive: 'featureFlags/isZipCodeCheckActive'
+      isZipCodeCheckActive: 'featureFlags/isZipCodeCheckActive',
+      isDiscoverySourceActive: 'featureFlags/isDiscoverySourceActive'
     }),
     trimCurrentGrade() {
       // extracting the first word out of the gradeLevels
@@ -687,7 +710,8 @@ export default {
       }
     },
 
-    continueToAccountPage() {
+    // transitions from the referred sign up view to account view
+    async continueToAccountPage() {
       this.checkEligibilityErrors()
       if (this.errors.length) return
 
@@ -695,6 +719,7 @@ export default {
       this.credentials.email = this.eligibility.email
       this.step = 'account'
       this.$router.push('/sign-up/student/account')
+      await this.getSignupSources()
     },
 
     async submitEligibility() {
@@ -752,6 +777,7 @@ export default {
       this.$router.push('/sign-up/student/account')
       const isDomesticIpAddress = await this.isDomesticIpAddress()
       if (!isDomesticIpAddress) return this.internationalPage()
+      await this.getSignupSources()
     },
     ineligibleContinue() {
       AnalyticsService.captureEvent(EVENTS.STUDENT_CLICKED_STUDENT_ACCESS_PAGE)
@@ -806,6 +832,9 @@ export default {
         this.errors.push('A password is required.')
         this.invalidInputs.push('inputPassword')
       }
+      if (this.isDiscoverySourceActive && !this.signupSourceId) {
+        this.errors.push('Please select an option for how you heard about us.')
+      }
       if (!this.errors.length) this.submit()
     },
     submit() {
@@ -818,7 +847,8 @@ export default {
         highSchoolId: this.eligibility.highSchool.upchieveId,
         zipCode: this.eligibility.zipCode,
         currentGrade: this.trimCurrentGrade,
-        referredByCode: window.localStorage.getItem('upcReferredByCode')
+        referredByCode: window.localStorage.getItem('upcReferredByCode'),
+        signupSourceId: this.signupSourceId
       })
         .then(() => {
           window.localStorage.removeItem('upcReferredByCode')
@@ -837,6 +867,18 @@ export default {
     },
     cantFindSchool() {
       AnalyticsService.captureEvent(EVENTS.STUDENT_CLICKED_CANT_FIND_SCHOOL)
+    },
+    async getSignupSources() {
+      if (!this.isDiscoverySourceActive) return
+      this.isLoadingSignupSource = true
+      try {
+        const data = await backOff(() => NetworkService.getStudentSignupSources())
+        this.signupSourcesOptions = data.body.signupSources 
+      } catch (err) {
+        Sentry.captureException(err)
+      } finally {
+        this.isLoadingSignupSource = false
+      }
     }
   }
 }
