@@ -250,7 +250,7 @@ export default {
       }))
     },
     sessionRecapURL(sessionId){
-      return `${sessionId}\recap`
+      return `${sessionId}/recap`
     }
    },
   async created() {
