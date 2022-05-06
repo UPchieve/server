@@ -976,6 +976,7 @@ WHERE
     AND sessions.volunteer_id IS NOT NULL
     AND volunteers.test_user IS FALSE
     AND students.test_user IS FALSE
+    AND sessions.ended_at IS NOT NULL
 ORDER BY
     sessions.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
