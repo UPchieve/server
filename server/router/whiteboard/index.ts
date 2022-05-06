@@ -307,6 +307,31 @@ export function routes(app: Express): void {
     })
   })
 
+  router.ws('/recap/:sessionId', function(wsClient, req) {
+    const sessionId = asUlid(req.params.sessionId)
+
+    wsClient.on('message', async rawMessage => {
+      const message = decode(rawMessage as Uint8Array)
+
+      if (message.messageType === MessageType.INIT) {
+        try {
+          // Get the completed session's whiteboard document from storage for session recap
+          const document = await WhiteboardService.getDocFromStorage(sessionId)
+          return wsClient.send(
+            encode({
+              messageType: MessageType.APPEND,
+              offset: 0,
+              data: document,
+              more: 0,
+            })
+          )
+        } catch (error) {
+          if (!(error instanceof KeyNotFoundError)) throw error
+        }
+      }
+    })
+  })
+
   router.route('/reset').post(async function(req, res, next) {
     const {
       body: { sessionId },

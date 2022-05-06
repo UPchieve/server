@@ -1381,6 +1381,22 @@ paths:
       responses:
         '200':
           description: Returns an object with a paginated list of sessions for session history
+  /api/sessions/{:sessionId}/recap:
+    get:
+      tags: session
+      summary: gets session recap
+      description: gets details of a session for session recap
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns an object with the session's details for session recap
   /api/students/favorite-volunteers/{:volunteerId}:
     get:
       tags:
