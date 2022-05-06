@@ -184,7 +184,7 @@ export function routes(app: Express) {
       let mobile: boolean | undefined
       if (req.body.mobile) mobile = asBoolean(req.body.mobile)
       try {
-        await AuthService.sendReset(email as unknown, mobile as unknown)
+        await AuthService.sendReset(email as unknown, !!mobile)
       } catch (err) {
         // do not respond with info about no email match
         if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error

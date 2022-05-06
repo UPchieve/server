@@ -1,21 +1,10 @@
-test.skip('postgres migration', () => 1)
-/*import { mocked } from 'ts-jest/utils'
+import { mocked } from 'ts-jest/utils'
 import { GRADES } from '../../constants'
 
-import {
-  buildStudent,
-  buildStudentRegistrationForm,
-  buildPartnerStudentRegistrationForm,
-  buildVolunteer,
-  buildVolunteerRegistrationForm,
-  buildPartnerVolunteerRegistrationForm,
-  buildSchool,
-  getObjectId,
-} from '../generate'
-
-import { User } from '../../models/User'
 import * as UserRepo from '../../models/User/queries'
 import * as SchoolRepo from '../../models/School/queries'
+import * as StudentPartnerOrgRepo from '../../models/StudentPartnerOrg/queries'
+import * as VolunteerPartnerOrgRepo from '../../models/VolunteerPartnerOrg/queries'
 import * as MailService from '../../services/MailService'
 import * as IpAddressService from '../../services/IpAddressService'
 import * as UserCtrl from '../../controllers/UserCtrl'
@@ -25,16 +14,33 @@ import {
   RegistrationError,
   ResetError,
   checkPassword,
-  hashPassword,
   verifyPassword,
 } from '../../utils/auth-utils'
 import { NotAllowedError, InputError, LookupError } from '../../models/Errors'
+import {
+  buildUserRow,
+  buildUserContactInfo,
+  buildStudent,
+  buildSchool,
+  buildStudentRegistrationForm,
+  buildPartnerStudentRegistrationForm,
+  buildVolunteerRegistrationForm,
+  buildPartnerVolunteerRegistrationForm,
+  buildVolunteerPartnerOrg,
+  buildStudentPartnerOrg,
+  buildVolunteer,
+} from '../pg-generate'
+import { getDbUlid } from '../../models/pgUtils'
 
 // Mocks
 jest.mock('../../models/User/queries')
 const mockedUserRepo = mocked(UserRepo, true)
 jest.mock('../../models/School/queries')
 const mockedSchoolRepo = mocked(SchoolRepo, true)
+jest.mock('../../models/StudentPartnerOrg/queries')
+const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo, true)
+jest.mock('../../models/VolunteerPartnerOrg/queries')
+const mockedVolunteerPartnerOrgRepo = mocked(VolunteerPartnerOrgRepo, true)
 jest.mock('../../controllers/UserCtrl')
 const mockedUserCtrl = mocked(UserCtrl, true)
 jest.mock('../../services/IpAddressService')
@@ -101,10 +107,13 @@ describe('Registration tests', () => {
   // Test objects
   const ip = { country_code: 'US', org: 'example' }
   const highSchool = buildSchool()
+  const mockedStudentPartnerOrg = buildStudentPartnerOrg({ sites: undefined })
+  const mockedVolunteerPartnerOrg = buildVolunteerPartnerOrg()
   const studentOpenOverrides = {
     zipCode: '11201',
-    highSchoolId: '111111111111',
+    highSchoolId: highSchool.id,
     currentGrade: GRADES.EIGHTH,
+    signupSourceId: 1,
   }
   const studentPartnerOverrides = {
     studentPartnerOrg: 'example',
@@ -112,15 +121,13 @@ describe('Registration tests', () => {
     partnerUserId: '123',
     college: 'UPchieve University',
   }
-  const studentOpen = buildStudent({
-    ...studentOpenOverrides,
-    approvedHighSchool: highSchool._id,
-    highSchoolId: undefined,
-  })
+
+  const plainUser = buildUserRow()
+  const studentOpen = buildStudent(studentOpenOverrides)
   const studentPartner = buildStudent(studentPartnerOverrides)
 
   const volunteerPartnerOverrides = {
-    volunteerPartnerOrg: 'example',
+    volunteerPartnerOrg: mockedVolunteerPartnerOrg.key,
   }
   const volunteerOpen = buildVolunteer()
   const volunteerPartner = buildVolunteer(volunteerPartnerOverrides)
@@ -128,8 +135,8 @@ describe('Registration tests', () => {
   test('Check valid credentials', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined)
     const payload = {
-      email: studentOpen.email,
-      password: studentOpen.password,
+      email: plainUser.email,
+      password: plainUser.password,
     }
 
     const result = await AuthService.checkCredential(payload)
@@ -139,7 +146,7 @@ describe('Registration tests', () => {
   test('Check invalid credentials via no email', async () => {
     const payload = {
       email: '',
-      password: studentOpen.password,
+      password: plainUser.password,
     }
 
     const t = async <T>(p: T) => await AuthService.checkCredential(p)
@@ -151,7 +158,7 @@ describe('Registration tests', () => {
 
   test('Check invalid credentials via no password', async () => {
     const payload = {
-      email: studentOpen.email,
+      email: plainUser.email,
       password: '',
     }
 
@@ -165,7 +172,7 @@ describe('Registration tests', () => {
   test('Check invalid credentials via bad email', async () => {
     const payload = {
       email: 'bad email',
-      password: studentOpen.password,
+      password: plainUser.password,
     }
 
     const t = async <T>(p: T) => await AuthService.checkCredential(p)
@@ -194,6 +201,9 @@ describe('Registration tests', () => {
     mockedIpAddressService.getIpWhoIs.mockResolvedValue(ip)
     mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValue(highSchool)
     mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
+    mockedStudentPartnerOrgRepo.getStudentPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
+      { ...mockedStudentPartnerOrg, sites: [] }
+    )
     mockedUserCtrl.createStudent.mockResolvedValue(studentPartner)
 
     const serviceStudent = await AuthService.registerPartnerStudent(
@@ -204,7 +214,7 @@ describe('Registration tests', () => {
   })
 
   test('Register invalid open student via existing email', async () => {
-    mockedUserRepo.getUserIdByEmail.mockResolvedValue(getObjectId())
+    mockedUserRepo.getUserIdByEmail.mockResolvedValue(getDbUlid())
 
     const payload = buildStudentRegistrationForm({
       ...studentOpenOverrides,
@@ -238,11 +248,16 @@ describe('Registration tests', () => {
   })
 
   test('Register invalid partner student via bad org', async () => {
+    const badPartnerOrg = 'bad-org'
+    const errorMsg = `no student partner org found with key ${badPartnerOrg}`
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
+    mockedStudentPartnerOrgRepo.getStudentPartnerOrgForRegistrationByKey.mockRejectedValueOnce(
+      errorMsg
+    )
 
     const payload = buildPartnerStudentRegistrationForm({
       ...studentPartnerOverrides,
-      studentPartnerOrg: 'bad org',
+      studentPartnerOrg: badPartnerOrg,
     })
     const t = async <T>(p: T) => await AuthService.registerPartnerStudent(p)
 
@@ -287,21 +302,15 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedIpAddressService.getIpWhoIs.mockResolvedValue(ip)
     mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValue(highSchool)
-    const referrer = buildStudent({})
-    const referree = buildStudent({
-      ...studentOpenOverrides,
-      referredBy: referrer._id,
-      referredByCode: referrer._id.toString(),
-      approvedHighSchool: highSchool._id,
-      highSchoolId: undefined,
-    })
-    mockedUserCtrl.checkReferral.mockResolvedValue(referrer._id)
+    const referrer = buildStudent()
+    const referree = buildStudent({ referredBy: referrer.id })
+    mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
     mockedUserCtrl.createStudent.mockResolvedValue(referree)
 
     const serviceStudent = await AuthService.registerOpenStudent(
       buildStudentRegistrationForm({
         ...studentOpenOverrides,
-        referredByCode: referrer._id.toString(),
+        referredByCode: referrer.id,
       })
     )
 
@@ -325,6 +334,9 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
     mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
     mockedUserCtrl.createVolunteer.mockResolvedValue(volunteerPartner)
+    mockedVolunteerPartnerOrgRepo.getVolunteerPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
+      mockedVolunteerPartnerOrg
+    )
 
     const serviceVolunteer = await AuthService.registerPartnerVolunteer(
       buildPartnerVolunteerRegistrationForm(volunteerPartnerOverrides)
@@ -335,7 +347,7 @@ describe('Registration tests', () => {
 
   test('Register invalid open volunteer via existing phone', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
-    mockedUserRepo.getUserIdByPhone.mockResolvedValue(getObjectId())
+    mockedUserRepo.getUserIdByPhone.mockResolvedValue(getDbUlid())
 
     const payload = buildVolunteerRegistrationForm({
       phone: volunteerOpen.phone,
@@ -350,10 +362,15 @@ describe('Registration tests', () => {
   test('Register invalid partner volunteer via bad org', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
+    const badPartnerOrg = 'bad-org'
+    const errorMsg = `no volunteer partner org found with key ${badPartnerOrg}`
+    mockedVolunteerPartnerOrgRepo.getVolunteerPartnerOrgForRegistrationByKey.mockRejectedValueOnce(
+      errorMsg
+    )
 
     const payload = buildPartnerVolunteerRegistrationForm({
       ...volunteerPartnerOverrides,
-      volunteerPartnerOrg: 'bad org',
+      volunteerPartnerOrg: badPartnerOrg,
     })
     const t = async <T>(p: T) => await AuthService.registerPartnerVolunteer(p)
 
@@ -365,10 +382,13 @@ describe('Registration tests', () => {
   test('Register invalid partner volunteer via bad email domain', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
+    mockedVolunteerPartnerOrgRepo.getVolunteerPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
+      { ...mockedVolunteerPartnerOrg, domains: ['bogus'] }
+    )
 
     const payload = buildPartnerVolunteerRegistrationForm({
       ...volunteerPartnerOverrides,
-      volunteerPartnerOrg: 'example2',
+      volunteerPartnerOrg: mockedVolunteerPartnerOrg.key,
       email: 'email@baddomain.bad',
     })
     const t = async <T>(p: T) => await AuthService.registerPartnerVolunteer(p)
@@ -397,17 +417,14 @@ describe('Registration tests', () => {
   test('Register valid open volunteer via working referral', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
-    const referrer = buildVolunteer({})
-    const referree = buildVolunteer({
-      referredBy: referrer._id,
-      referredByCode: referrer._id.toString(),
-    })
-    mockedUserCtrl.checkReferral.mockResolvedValue(referrer._id)
+    const referrer = buildVolunteer()
+    const referree = buildVolunteer({ referredBy: referrer.id })
+    mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
     mockedUserCtrl.createVolunteer.mockResolvedValue(referree)
 
     const serviceVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm({
-        referredByCode: referrer._id.toString(),
+        referredByCode: referrer.id,
       })
     )
 
@@ -432,19 +449,18 @@ describe('Registration tests', () => {
   test('Register valid partner volunteer via working referral', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
-    const referrer = buildVolunteer({})
-    const referree = buildVolunteer({
-      ...volunteerPartnerOverrides,
-      referredBy: referrer._id,
-      referredByCode: referrer._id.toString(),
-    })
-    mockedUserCtrl.checkReferral.mockResolvedValue(referrer._id)
+    mockedVolunteerPartnerOrgRepo.getVolunteerPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
+      mockedVolunteerPartnerOrg
+    )
+    const referrer = buildVolunteer()
+    const referree = buildVolunteer({ referredBy: referrer.id })
+    mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
     mockedUserCtrl.createVolunteer.mockResolvedValue(referree)
 
     const serviceVolunteer = await AuthService.registerPartnerVolunteer(
       buildPartnerVolunteerRegistrationForm({
         ...volunteerPartnerOverrides,
-        referredByCode: referrer._id.toString(),
+        referredByCode: referrer.id,
       })
     )
 
@@ -458,36 +474,57 @@ describe('Password reset tests', () => {
   })
 
   // test objects
-  const user = buildStudent()
+  const user = buildUserRow()
+  const userContactInfo = buildUserContactInfo()
 
-  test('Initiate valid reset', async () => {
-    mockedUserRepo.getUserByEmail.mockResolvedValue(user as User)
+  test('Initiate valid reset for email', async () => {
+    mockedUserRepo.getUserForPassport.mockResolvedValue(user)
 
-    await AuthService.sendReset(user.email)
+    await AuthService.sendReset(user.email, false)
 
     expect(MailService.sendReset).toHaveBeenCalledWith(
       user.email,
+      false,
       expect.anything()
     )
     expect(UserRepo.updateUserResetTokenById).toHaveBeenCalledWith(
-      user._id,
+      user.id,
+      expect.anything()
+    )
+  })
+
+  test('Initiate valid reset for mobile', async () => {
+    mockedUserRepo.getUserForPassport.mockResolvedValue(user)
+    const sendToMobile = true
+
+    await AuthService.sendReset(user.email, sendToMobile)
+
+    expect(MailService.sendReset).toHaveBeenCalledWith(
+      user.email,
+      sendToMobile,
+      expect.anything()
+    )
+    expect(UserRepo.updateUserResetTokenById).toHaveBeenCalledWith(
+      user.id,
       expect.anything()
     )
   })
 
   test('Confirm valid reset', async () => {
-    mockedUserRepo.getUserByResetToken.mockResolvedValue(user as User)
+    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
+      userContactInfo
+    )
     const token = '0123456789abcdef0123456789abcdef'
     const newPassword = 'Password456'
 
     await AuthService.confirmReset({
-      email: user.email,
+      email: userContactInfo.email,
       password: newPassword,
       token: token,
     })
 
     expect(UserRepo.updateUserPasswordById).toHaveBeenCalledWith(
-      user._id,
+      userContactInfo.id,
       expect.anything()
     )
     const computedHash = mockedUserRepo.updateUserPasswordById.mock.calls[0][1]
@@ -497,10 +534,10 @@ describe('Password reset tests', () => {
   })
 
   test('Initiate invalid reset via bad email', async () => {
-    mockedUserRepo.getUserByEmail.mockResolvedValue(undefined)
+    mockedUserRepo.getUserForPassport.mockResolvedValue(undefined)
 
     const badEmail = 'email@baddomain.bad'
-    const t = async <T>(p: T) => await AuthService.sendReset(p)
+    const t = async <T>(p: T) => await AuthService.sendReset(p, false)
 
     await expect(t(badEmail)).rejects.toThrow(
       new LookupError(`No account with ${badEmail} found`)
@@ -510,16 +547,18 @@ describe('Password reset tests', () => {
   // Redundant test of email typecheck due to a previous security vulnerability
   // that used an array of emails to have reset tokens sent to the attacker's email
   test('Initiate invalid reset via malformed email as array', async () => {
-    mockedUserRepo.getUserByEmail.mockResolvedValue(undefined)
+    mockedUserRepo.getUserForPassport.mockResolvedValue(undefined)
 
     const badEmail = ['victim@email.com', 'attacker@blackhat.bad']
-    const t = async <T>(p: T) => await AuthService.sendReset(p)
+    const t = async <T>(p: T) => await AuthService.sendReset(p, false)
 
     await expect(t(badEmail)).rejects.toThrow(InputError)
   })
 
   test('Confirm invalid reset via bad token', async () => {
-    mockedUserRepo.getUserByResetToken.mockResolvedValue(user as User)
+    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
+      userContactInfo
+    )
 
     const payload = {
       email: user.email,
@@ -535,7 +574,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm invalid reset via unlisted token', async () => {
-    mockedUserRepo.getUserByResetToken.mockResolvedValue(undefined)
+    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(undefined)
 
     const payload = {
       email: user.email,
@@ -551,7 +590,9 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm invalid reset via unmatched token', async () => {
-    mockedUserRepo.getUserByResetToken.mockResolvedValue(user as User)
+    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
+      userContactInfo
+    )
 
     const payload = {
       email: 'different email',
@@ -566,4 +607,3 @@ describe('Password reset tests', () => {
     )
   })
 })
-*/
