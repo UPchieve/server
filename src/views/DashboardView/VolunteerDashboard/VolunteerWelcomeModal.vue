@@ -49,9 +49,9 @@ export default {
     }),
     message() {
       if (this.user.isApproved)
-        return 'We’re so glad you’re joining our movement to democratize access to educational support. Before you can start making an impact in a student’s life, you'll need to complete a few quick steps.'
+        return 'We\'re so glad you\’re joining our movement to democratize access to educational support. Before you can start making an impact in a student’s life, you\'ll need to complete a few quick steps.'
       else
-        return 'We’re so glad you’re joining our movement to democratize access to educational support. Before you can start making an impact in a student’s life, you'll need to complete a few quick steps.'
+        return 'We\'re so glad you\’re joining our movement to democratize access to educational support. Before you can start making an impact in a student’s life, you\'ll need to complete a few quick steps.'
     }
   },
   methods: {
