@@ -104,8 +104,9 @@ export default {
           return !temporarilyHiddenSubjects.includes(subject)
         })
 
+
       // Temporarily hide Reading subject from students
-      if (card.topic === 'readingWriting')
+      if (card.topic === 'readingWriting' && !this.isReadingStudentLaunchActive)
         card.subtopics = card.subtopics.filter(subject => {
           const temporarilyHiddenSubjects = [
             'reading'
@@ -144,7 +145,8 @@ export default {
     }),
     ...mapGetters({
       mobileMode: 'app/mobileMode',
-      isSessionAlive: 'user/isSessionAlive'
+      isSessionAlive: 'user/isSessionAlive',
+      isReadingStudentLaunchActive: 'featureFlags/isReadingStudentLaunchActive'
     }),
     waitingPeriodMessage() {
       const countdown = calculateWaitingPeriodCountdown(
