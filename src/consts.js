@@ -438,6 +438,7 @@ export const FEATURE_FLAGS = {
   READING_LAUNCH: 'reading-launch',
   ZIP_CODE_CHECK: 'zip-code-check',
   DISCOVERY_SOURCE: 'discovery-source',
+  READING_STUDENT_LAUNCH: 'reading-student-launch',
 }
 
 export const ANALYTICS_REPORT_ROW = {

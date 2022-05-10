@@ -61,6 +61,7 @@ export default {
       [FEATURE_FLAGS.READING_LAUNCH]: false,
       [FEATURE_FLAGS.ZIP_CODE_CHECK]: false,
       [FEATURE_FLAGS.DISCOVERY_SOURCE]: false,
+      [FEATURE_FLAGS.READING_STUDENT_LAUNCH]: false,
     },
   },
   mutations: {
@@ -99,5 +100,6 @@ export default {
     isReadingLaunchActive: state => state.flags[FEATURE_FLAGS.READING_LAUNCH],
     isZipCodeCheckActive: state => state.flags[FEATURE_FLAGS.ZIP_CODE_CHECK],
     isDiscoverySourceActive: state => state.flags[FEATURE_FLAGS.DISCOVERY_SOURCE],
+    isReadingStudentLaunchActive: state => state.flags[FEATURE_FLAGS.READING_STUDENT_LAUNCH],
   },
 }
