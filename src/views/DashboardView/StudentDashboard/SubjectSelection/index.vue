@@ -6,19 +6,19 @@
     <h2 v-if="mobileMode">
       Explore our subjects
     </h2>
-    <subject-card
-      v-for="(card, index) in cards"
-      v-bind:key="index"
-      :title="card.title"
-      :subtitle="card.subtitle"
-      :svg="card.svg"
-      :topic="card.topic"
-      :subtopics="card.subtopics"
-      :subtopicDisplayNames="card.subtopicDisplayNames"
-      :button-text="card.buttonText"
-      :routeTo="card.routeTo"
-      :disableSubjectCard="isCardDisabled(card)"
-    />
+      <subject-card
+        v-for="(card, index) in filteredCards"
+        v-bind:key="index"
+        :title="card.title"
+        :subtitle="card.subtitle"
+        :svg="card.svg"
+        :topic="card.topic"
+        :subtopics="card.subtopics"
+        :subtopicDisplayNames="card.subtopicDisplayNames"
+        :button-text="card.buttonText"
+        :routeTo="card.routeTo"
+        :disableSubjectCard="isCardDisabled(card)"
+      />
   </div>
 </template>
 
@@ -86,34 +86,6 @@ export default {
       })
       .sort((a, b) => a.order - b.order)
 
-    for (const card of cards) {
-      // Temporarily hide Statistics and Calculus BC from students
-      if (card.topic === 'math')
-        card.subtopics = card.subtopics.filter(subject => {
-          const temporarilyHiddenSubjects = ['calculusBC']
-          return !temporarilyHiddenSubjects.includes(subject)
-        })
-
-      // Temporarily hide Physics subjects and Environmental Science from students
-      if (card.topic === 'science')
-        card.subtopics = card.subtopics.filter(subject => {
-          const temporarilyHiddenSubjects = [
-            'physicsTwo',
-            'environmentalScience'
-          ]
-          return !temporarilyHiddenSubjects.includes(subject)
-        })
-
-      // Temporarily hide Reading subject from students
-      if (card.topic === 'readingWriting')
-        card.subtopics = card.subtopics.filter(subject => {
-          const temporarilyHiddenSubjects = [
-            'reading'
-          ]
-          return !temporarilyHiddenSubjects.includes(subject)
-        })
-    }
-
     cards.push({
       title: 'Give Feedback',
       subtitle:
@@ -144,7 +116,8 @@ export default {
     }),
     ...mapGetters({
       mobileMode: 'app/mobileMode',
-      isSessionAlive: 'user/isSessionAlive'
+      isSessionAlive: 'user/isSessionAlive',
+      isReadingStudentLaunchActive: 'featureFlags/isReadingStudentLaunchActive'
     }),
     waitingPeriodMessage() {
       const countdown = calculateWaitingPeriodCountdown(
@@ -153,6 +126,38 @@ export default {
       const minuteTextFormat = countdown === 1 ? 'minute' : 'minutes'
 
       return `You must wait at least ${countdown} ${minuteTextFormat} before requesting a new session.`
+    },
+
+    filteredCards(){
+      const cards = [...this.cards]
+     for (const card of cards) {
+        // Temporarily hide Statistics and Calculus BC from students
+        if (card.topic === 'math')
+          card.subtopics = card.subtopics.filter(subject => {
+            const temporarilyHiddenSubjects = ['calculusBC']
+            return !temporarilyHiddenSubjects.includes(subject)
+          })
+
+        // Temporarily hide Physics subjects and Environmental Science from students
+        if (card.topic === 'science')
+          card.subtopics = card.subtopics.filter(subject => {
+            const temporarilyHiddenSubjects = [
+              'physicsTwo',
+              'environmentalScience'
+            ]
+            return !temporarilyHiddenSubjects.includes(subject)
+          })
+
+        // Temporarily hide Reading subject from students
+        if (card.topic === 'readingWriting' && !this.isReadingStudentLaunchActive)
+          card.subtopics = card.subtopics.filter(subject => {
+            const temporarilyHiddenSubjects = [
+              'reading'
+            ]
+            return !temporarilyHiddenSubjects.includes(subject)
+          })
+     }   
+      return cards;
     }
   },
   watch: {
