@@ -149,7 +149,6 @@ export default {
           })
 
         // Temporarily hide Reading subject from students
-        console.log(this.isReadingStudentLaunchActive);
         if (card.topic === 'readingWriting' && !this.isReadingStudentLaunchActive)
           card.subtopics = card.subtopics.filter(subject => {
             const temporarilyHiddenSubjects = [
