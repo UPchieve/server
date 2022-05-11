@@ -33,7 +33,6 @@ export default async function backfillUpdateElapsedAvailability(
     const availability = await getAvailabilityForVolunteer(volunteerId)
     if (!availability) return
 
-    // Job should have run on May 8th at 4 am ET
     const dayBeforeOutage = moment(outageDate)
       .utc()
       .subtract(1, 'days')
