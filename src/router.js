@@ -47,6 +47,7 @@ import TrainingView from './views/TrainingView'
 import VerificationView from './views/VerificationView'
 import VolunteerPartnerSignupView from './views/VolunteerPartnerSignupView'
 import SessionHistoryView from './views/SessionHistoryView'
+import SessionRecapView from './views/SessionRecapView'
 
 Vue.use(VueResource)
 Vue.http.options.credentials = true
