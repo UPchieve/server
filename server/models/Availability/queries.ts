@@ -217,6 +217,26 @@ export async function saveCurrentAvailabilityAsHistory(
   }
 }
 
+export async function saveCurrentAvailabilityAsHistoryBackfill(
+  userId: Ulid,
+  outageDate: Date
+): Promise<void> {
+  try {
+    const result = await pgQueries.saveCurrentAvailabilityAsHistoryBackfill.run(
+      { userId, recordedAt: outageDate },
+      getClient()
+    )
+    const errors = []
+    for (const row of result) {
+      if (!makeRequired(row).ok)
+        errors.push(`AvailabilityHistory row ${row} did not save correctly`)
+    }
+    if (errors.length) throw new Error(errors.join('\n'))
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
 export async function updateAvailabilityByVolunteerId(
   userId: Ulid,
   availability: Availability,

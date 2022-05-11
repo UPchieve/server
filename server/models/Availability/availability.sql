@@ -116,6 +116,26 @@ RETURNING
     id AS ok;
 
 
+/* @name saveCurrentAvailabilityAsHistoryBackfill */
+INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)
+SELECT
+    generate_ulid (),
+    :recordedAt!,
+    user_id,
+    available_start,
+    available_end,
+    timezone,
+    weekday_id,
+    NOW(),
+    NOW()
+FROM
+    availabilities
+WHERE
+    user_id = :userId!
+RETURNING
+    id AS ok;
+
+
 /* @name insertNewAvailability */
 INSERT INTO availabilities (id, user_id, weekday_id, available_start, available_end, timezone, created_at, updated_at)
 SELECT
