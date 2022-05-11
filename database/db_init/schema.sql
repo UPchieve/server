@@ -2160,7 +2160,12 @@ ALTER TABLE ONLY upchieve.pre_session_surveys
 ALTER TABLE ONLY upchieve.push_tokens
     ADD CONSTRAINT push_tokens_pkey PRIMARY KEY (id);
 
+--
+-- Name: push_tokens unique_push_token; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
 
+ALTER TABLE ONLY upchieve.push_tokens
+    ADD CONSTRAINT unique_push_token UNIQUE (user_id, token);
 --
 -- Name: quiz_certification_grants quiz_certification_grants_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
