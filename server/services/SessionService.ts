@@ -824,9 +824,5 @@ export async function getSessionRecap(
   sessionId: Ulid
 ): Promise<SessionRepo.SessionForSessionRecap> {
   const session = await SessionRepo.getSessionRecap(sessionId)
-  if (sessionUtils.isSubjectUsingDocumentEditor(session.subjectKey)) {
-    const quillDoc = await QuillDocService.getDoc(sessionId)
-    return { ...session, quillDoc: JSON.stringify(quillDoc) }
-  }
   return session
 }

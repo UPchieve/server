@@ -1,37 +1,50 @@
 <template>
   <div class="session-recap-page">
     <div class="chat-container">
-      <!-- <div class="card-editor-container"> -->
+      <div class="card-editor-container">
         <div class="recap-card">
           <h2 class="card-title" >Session Recap</h2>
           <div class="border--thin"></div>
           <div class="spacing--grid">
             <span class="card-detail__title">Subject:</span>
-            <div class="card-detail">{{ session.subject }} </div>
+            <div class="card-detail__sub-container">
+              <div class="card-detail" >{{ session.subject }} </div>
+              <component v-bind:is="session.svg" class="subject-icon card-detail" />
+            </div>
             <span class="card-detail__title">Time:</span>
             <div class="card-detail">{{ getSessionTime(session.createdAt) }} </div>
             <span class="card-detail__title">Coach:</span> 
-            <div class="card-detail card-detail__coach-name">
+            <div class="card-detail card-detail__sub-container">
               <div class="card-detail">{{ session.volunteerFirstName }} </div>
               <favoriting-toggle 
               :initialIsFavorite="session.isFavorited"
               :volunteerName="session.volunteerFirstName"
               :volunteerId="session.volunteerId"
+              class="heart"
               />
             </div>
+          </div>
         </div>
-        </div>
-        <!-- <h2 class="document__title">Doc Editor</h2>
-        <div class="border--thin"></div>
         <div
           v-if="session.quillDoc"
           class="document"
         >
+          <h2 class="document__title">Doc Editor</h2>
+          <div class="border--thin"></div>
           <div class="quill-container"></div>
         </div>
-        <div class="whiteboard">
-        </div> -->
-      <!-- </div> -->
+        <div
+          v-if="session.hasWhiteboardDoc"
+          class="document"
+        >
+          <h2 class="document__title">Whiteboard</h2>
+          <div class="border--thin"></div>
+          <p v-if="loadingWhiteboardError" class="error">
+            {{ loadingWhiteboardError }}
+          </p>
+          <div id="zwibbler-container"></div>
+        </div>
+      </div>
       <div>
       <div class="chat-header">
         <component class="chat-header__avatar" :is="studentAvatar"/>
@@ -68,6 +81,12 @@ import moment from 'moment'
 import Quill from 'quill'
 import getChatAvatar from '@/utils/get-chat-avatar'
 import StudentIcon from '@/assets/student-icon.svg'
+import config from '../config'
+import MathSVG from '@/assets/subject_icons/math.svg'
+import CollegeSVG from '@/assets/subject_icons/college-counseling.svg'
+import ScienceSVG from '@/assets/subject_icons/science.svg'
+import SATSVG from '@/assets/subject_icons/sat.svg'
+import ReadingWritingSVG from '@/assets/subject_icons/more-resources.svg'
 
 const MESSAGE_ALIGNMENT = {
   LEFT: 'left',
@@ -83,17 +102,28 @@ export default {
     ...mapState({
       user: state => state.user.user,
     }),
+    svgs() {
+      return {
+        math: MathSVG,
+        college: CollegeSVG,
+        science: ScienceSVG,
+        readingWriting: ReadingWritingSVG,
+        sat: SATSVG
+      }
+    }
   },
   data() {
     return {
       session: {},
       quillEditor: null,
-      studentAvatar: StudentIcon
+      studentAvatar: StudentIcon,
+      loadingWhiteboardError: ''
     }
   },
   async created() {
     const response = await NetworkService.getSessionRecap(this.$route.params.sessionId)
     this.session = response.body.session
+    this.session.svg = this.svgs[this.session.topic]
     
     // Set quill document after the DOM has been updated to show session div
     this.$nextTick(async () => {
@@ -103,6 +133,39 @@ export default {
         this.quillEditor.enable(false)
         this.quillEditor.setContents(JSON.parse(this.session.quillDoc))
         console.log('quill doc', this.quillEditor)
+      }
+
+      if (this.session.hasWhiteboardDoc) {
+        this.zwibblerCtx = window.Zwibbler.create('zwibbler-container', {
+          showToolbar: false,
+          showColourPanel: false,
+          collaborationServer: `${config.websocketRoot}/whiteboard/admin/{name}`,
+          readOnly: true
+        })
+
+        try {
+          await this.zwibblerCtx.joinSharedSession(this.session._id, false)
+        } catch (error) {
+          this.loadingWhiteboardError = 'Failed to load the whiteboard.'
+        }
+
+        this.zwibblerCtx.on('connected', () => {
+          this.zwibblerCtx.usePanTool()
+          try {
+            this.zwibblerCtx.setViewRectangle(
+              this.zwibblerCtx.getBoundingRectangle(
+                this.zwibblerCtx.getAllNodes()
+              )
+            )
+          } catch (error) {
+            this.zwibblerCtx.setViewRectangle({
+              x: 0,
+              y: 0,
+              width: 1,
+              height: 1
+            })
+          }
+        })
       }
     })
   },
@@ -134,7 +197,7 @@ export default {
 }
 
 .card-editor-container {
-  @include flex-container(column, center, center);
+  @include flex-container(column, flex-start, flex-start);
 }
 
 .chat-container {
@@ -152,6 +215,7 @@ export default {
   border-radius: 8px 8px 16px 16px;
   padding: 22px;
   margin-right: 1.8em;
+  margin-bottom: 1.8em;
 }
 
 .spacing--grid {
@@ -171,21 +235,25 @@ export default {
     margin: 1em 0.5em 0.5em 0.5em;
   }
 
-  &__coach-name {
+  &__sub-container {
     @include flex-container(row,normal,center);
     margin: 0;
   }
 }
 
 .document {
-  width: 100%;
+  width: 702px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin: 10px 0;
+  margin-right: 1.8em;
+  margin-bottom: 1.8em;
   font-size: 20px;
   height: 500px;
   overflow-y: auto;
+  background-color: $upchieve-white;
+  padding: 22px;
+  border-radius: 8px 8px 16px 16px;
 
   &__title {
     @include font-category('display-small');
@@ -212,6 +280,7 @@ export default {
   flex: 1;
   overflow-y: auto;
   max-height: 858px;
+  min-height: 700px;
   width: 392px;
   border-radius: 0px 0px 8px 8px;
 }
@@ -299,5 +368,21 @@ export default {
   &--chat-bot {
     background-color: $upchieve-chat-bot-green;
   }
+}
+
+.error {
+  color: $c-error-red;
+  margin: 1em 0;
+}
+
+.subject-icon {
+  height: 24px;
+  width: 24px;
+}
+
+.heart {
+  width: 18.46px;
+  height: 17.14px;
+  padding-left: 4px;
 }
 </style>
