@@ -311,7 +311,7 @@ export async function notifyVolunteer(
             .subtract(3, 'days')
             .toDate(),
           isPartner: true,
-          highLevelSubjects: undefined,
+          highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
           favoriteVolunteers: undefined,
