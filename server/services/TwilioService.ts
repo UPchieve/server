@@ -205,37 +205,40 @@ export function buildNotificationContent(
 }
 
 export async function getAssociatedPartner(
-  partnerOrg: string,
+  partnerOrg: string | undefined,
   highSchoolId: Ulid | undefined
 ): Promise<AssociatedPartner | undefined> {
   // Determine if the student's partner org is one of the orgs that
   // should have priority matching with its partner volunteer org counterpart
-  if (config.priorityMatchingPartnerOrgs.some(org => partnerOrg === org))
-    return getAssociatedPartnerByKey(partnerOrg)
+  if (
+    partnerOrg &&
+    config.priorityMatchingPartnerOrgs.some(org => partnerOrg === org)
+  )
+    return await getAssociatedPartnerByKey(partnerOrg)
 
   for (const sponsorOrg of config.priorityMatchingSponsorOrgs) {
     // Determine if the student's school belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
     const sponsorOrgs = await getSponsorOrgs()
-    const matchingOrgs = sponsorOrgs.filter(org => {
-      org.key === sponsorOrg
-    })
+    // TODO: shouldnt be a filter - this hsould be at most one match
+    const matchingOrg = sponsorOrgs.find(org => org.key === sponsorOrg)
     if (
       highSchoolId &&
-      matchingOrgs.length > 0 &&
-      Array.isArray(matchingOrgs[0].schoolIds) &&
-      matchingOrgs[0].schoolIds.some(schoolId => schoolId === highSchoolId)
+      matchingOrg &&
+      Array.isArray(matchingOrg.schoolIds) &&
+      matchingOrg.schoolIds.some(schoolId => schoolId === highSchoolId)
     )
-      return getAssociatedPartnerByKey(sponsorOrg)
+      return await getAssociatedPartnerByKey(sponsorOrg)
 
     // Determine if the student's partner org belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
     if (
-      matchingOrgs.length > 0 &&
-      Array.isArray(matchingOrgs[0].studentPartnerOrgKeys) &&
-      matchingOrgs[0].studentPartnerOrgKeys.includes(partnerOrg)
+      partnerOrg &&
+      matchingOrg &&
+      Array.isArray(matchingOrg.studentPartnerOrgKeys) &&
+      matchingOrg.studentPartnerOrgKeys.includes(partnerOrg)
     )
-      return getAssociatedPartnerByKey(sponsorOrg)
+      return await getAssociatedPartnerByKey(sponsorOrg)
   }
 
   return undefined
