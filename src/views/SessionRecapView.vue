@@ -190,6 +190,12 @@ export default {
 }
 </script>
 
+<style lang="scss">
+.quill-container {
+  width: auto !important;
+}
+</style>
+
 <style lang="scss" scoped>
 .card-title{
   @include font-category('display-small');
@@ -197,12 +203,18 @@ export default {
 }
 
 .card-editor-container {
-  @include flex-container(column, flex-start, flex-start);
+  @include flex-container(column, flex-start, normal);
+  flex-grow: 2;
+  max-width: 900px;
 }
 
 .chat-container {
-  @include flex-container(row, center, flex-start);
+  @include flex-container(row, flex-start, flex-start);
   padding: 0;
+
+  @include breakpoint-below('large') {
+    @include flex-container(column, flex-start, flex-start)
+  }
 }
 .session-recap-page {
   padding: 35px;
@@ -210,7 +222,6 @@ export default {
 
 .recap-card {
   // @include flex-container(row, center, center);
-  width: 702px;
   background-color: $upchieve-white;
   border-radius: 8px 8px 16px 16px;
   padding: 22px;
@@ -242,7 +253,6 @@ export default {
 }
 
 .document {
-  width: 702px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -259,7 +269,6 @@ export default {
     @include font-category('display-small');
     text-align: left;
   }
-
 }
 .border--thin {
   width: 100%;
@@ -284,7 +293,8 @@ export default {
 }
 
 .chat {
-  width: 392px;
+  max-width: 500px;
+  flex-grow: 1;
 }
 
 .chat-header {
@@ -310,11 +320,6 @@ export default {
     color: #fff;
     margin-left: 1em;
   }
-
-  // @include breakpoint-below('medium') {
-  //   border-radius: 0px 0px 20px 20px;
-  //   height: 69px;
-  // }
 }
 
 .message {
