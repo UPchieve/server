@@ -45,28 +45,28 @@
           <div id="zwibbler-container"></div>
         </div>
       </div>
-      <div>
-      <div class="chat-header">
-        <component class="chat-header__avatar" :is="studentAvatar"/>
-        <div class="chat-header__title">Session Chat</div>
-      </div>
-      <div class="chat-contents">
-        <template v-for="(message, index) in session.messages">
-          <div
-            :key="`message-${index}`"
-            :class="messageAlignment(message)"
-            class="message"
-          >
-            <component class="avatar" :is="avatar(message)" v-if="message.user !== user._id"/>
-              <div class="contents" :class="chatBotContents(message)">
-                <span>{{ message.contents }}</span>
-              </div>
-              <div class="time">
-                {{ message.createdAt | formatTime }}
-              </div>
-          </div>
-        </template>
-      </div>
+      <div class="chat">
+        <div class="chat-header">
+          <component class="chat-header__avatar" :is="studentAvatar"/>
+          <div class="chat-header__title">Session Chat</div>
+        </div>
+        <div class="chat-contents">
+          <template v-for="(message, index) in session.messages">
+            <div
+              :key="`message-${index}`"
+              :class="messageAlignment(message)"
+              class="message"
+            >
+              <component class="avatar" :is="avatar(message)" v-if="message.user !== user._id"/>
+                <div class="contents" :class="chatBotContents(message)">
+                  <span>{{ message.contents }}</span>
+                </div>
+                <div class="time">
+                  {{ message.createdAt | formatTime }}
+                </div>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -110,14 +110,15 @@ export default {
         readingWriting: ReadingWritingSVG,
         sat: SATSVG
       }
-    }
+    },
   },
   data() {
     return {
       session: {},
       quillEditor: null,
       studentAvatar: StudentIcon,
-      loadingWhiteboardError: ''
+      loadingWhiteboardError: '',
+      zwibblerCtx: null,
     }
   },
   async created() {
@@ -144,7 +145,7 @@ export default {
         })
 
         try {
-          await this.zwibblerCtx.joinSharedSession(this.session._id, false)
+          await this.zwibblerCtx.joinSharedSession(this.session.id, false)
         } catch (error) {
           this.loadingWhiteboardError = 'Failed to load the whiteboard.'
         }
@@ -279,14 +280,16 @@ export default {
   flex-direction: column;
   flex: 1;
   overflow-y: auto;
-  max-height: 858px;
   min-height: 700px;
-  width: 392px;
   border-radius: 0px 0px 8px 8px;
 }
 
+.chat {
+  width: 392px;
+}
+
 .chat-header {
-  position: relative;
+  // position: relative;
   height: 100%;
   background-color: $c-information-blue;
   padding: 21px;
@@ -296,7 +299,6 @@ export default {
   justify-content: flex-start;
   align-items: center;
   border-radius: 8px 8px 0px 0px;
-  width: 392px;
 
   &__avatar {
     width: 40px;
