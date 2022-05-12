@@ -23,7 +23,8 @@ import { Ulid } from '../models/pgUtils'
 import { getSessionById, NotificationData } from '../models/Session'
 import {
   AssociatedPartner,
-  getAssociatedPartnerByKey,
+  getAssociatedPartnerBySponsorOrg,
+  getAssociatedPartnerByPartnerOrg
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
@@ -180,6 +181,7 @@ export function buildTargetStudentContent(
   volunteer: VolunteerContactInfo,
   associatedPartner: AssociatedPartner | undefined
 ) {
+  console.log(`ASSOCIATED PARTNER FOR MESSAGE: ${JSON.stringify(associatedPartner)}`)
   return associatedPartner &&
     associatedPartner.studentOrgDisplay &&
     volunteer.volunteerPartnerOrg === associatedPartner.volunteerPartnerOrg
@@ -214,13 +216,12 @@ export async function getAssociatedPartner(
     partnerOrg &&
     config.priorityMatchingPartnerOrgs.some(org => partnerOrg === org)
   )
-    return await getAssociatedPartnerByKey(partnerOrg)
+    return await getAssociatedPartnerByPartnerOrg(partnerOrg)
 
   for (const sponsorOrg of config.priorityMatchingSponsorOrgs) {
     // Determine if the student's school belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
     const sponsorOrgs = await getSponsorOrgs()
-    // TODO: shouldnt be a filter - this hsould be at most one match
     const matchingOrg = sponsorOrgs.find(org => org.key === sponsorOrg)
     if (
       highSchoolId &&
@@ -228,7 +229,7 @@ export async function getAssociatedPartner(
       Array.isArray(matchingOrg.schoolIds) &&
       matchingOrg.schoolIds.some(schoolId => schoolId === highSchoolId)
     )
-      return await getAssociatedPartnerByKey(sponsorOrg)
+      return await getAssociatedPartnerBySponsorOrg(sponsorOrg)
 
     // Determine if the student's partner org belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
@@ -238,7 +239,7 @@ export async function getAssociatedPartner(
       Array.isArray(matchingOrg.studentPartnerOrgKeys) &&
       matchingOrg.studentPartnerOrgKeys.includes(partnerOrg)
     )
-      return await getAssociatedPartnerByKey(sponsorOrg)
+      return await getAssociatedPartnerBySponsorOrg(sponsorOrg)
   }
 
   return undefined
@@ -302,7 +303,7 @@ export async function notifyVolunteer(
     },
     {
       groupName: `${
-        associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
+        associatedPartner ? 'Associated partner' : 'Partner'
       } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
@@ -311,7 +312,7 @@ export async function notifyVolunteer(
             .subtract(3, 'days')
             .toDate(),
           isPartner: true,
-          highLevelSubjects,
+          highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
           favoriteVolunteers: undefined,
@@ -335,7 +336,7 @@ export async function notifyVolunteer(
     },
     {
       groupName: `${
-        associatedPartner ? associatedPartner.volunteerOrgDisplay : 'Partner'
+        associatedPartner ? 'Associated partner' : 'Partner'
       } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
@@ -440,6 +441,7 @@ export async function notifyVolunteer(
     method: 'sms',
     priorityGroup,
   }
+  console.log(`PRIORITY GROUP: ${priorityGroup}`)
   try {
     const messageId = await sendTextMessage(volunteer.phone, messageText)
     notification.wasSuccessful = true
