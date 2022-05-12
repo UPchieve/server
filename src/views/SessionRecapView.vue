@@ -133,7 +133,6 @@ export default {
         this.quillEditor = new Quill(container)
         this.quillEditor.enable(false)
         this.quillEditor.setContents(JSON.parse(this.session.quillDoc))
-        console.log('quill doc', this.quillEditor)
       }
 
       if (this.session.hasWhiteboardDoc) {
