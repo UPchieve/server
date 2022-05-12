@@ -24,7 +24,7 @@ import { getSessionById, NotificationData } from '../models/Session'
 import {
   AssociatedPartner,
   getAssociatedPartnerBySponsorOrg,
-  getAssociatedPartnerByPartnerOrg
+  getAssociatedPartnerByPartnerOrg,
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
@@ -181,7 +181,6 @@ export function buildTargetStudentContent(
   volunteer: VolunteerContactInfo,
   associatedPartner: AssociatedPartner | undefined
 ) {
-  console.log(`ASSOCIATED PARTNER FOR MESSAGE: ${JSON.stringify(associatedPartner)}`)
   return associatedPartner &&
     associatedPartner.studentOrgDisplay &&
     volunteer.volunteerPartnerOrg === associatedPartner.volunteerPartnerOrg
@@ -441,7 +440,6 @@ export async function notifyVolunteer(
     method: 'sms',
     priorityGroup,
   }
-  console.log(`PRIORITY GROUP: ${priorityGroup}`)
   try {
     const messageId = await sendTextMessage(volunteer.phone, messageText)
     notification.wasSuccessful = true
