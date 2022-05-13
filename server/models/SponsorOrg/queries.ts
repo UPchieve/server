@@ -1,6 +1,6 @@
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
-import { makeRequired, makeSomeRequired } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import { RepoReadError } from '../Errors'
 import { SponsorOrg } from './types'
 
@@ -8,7 +8,11 @@ export async function getSponsorOrgs() {
   try {
     const result = await pgQueries.getSponsorOrgs.run(undefined, getClient())
     const orgs: SponsorOrg[] = result.map(org =>
-      makeSomeRequired(org, ['schoolIds', 'studentPartnerOrgKeys'])
+      makeSomeRequired(org, [
+        'schoolIds',
+        'studentPartnerOrgKeys',
+        'studentPartnerOrgIds',
+      ])
     )
     return orgs
   } catch (err) {

@@ -24,6 +24,13 @@ export async function schools(cityIds: NameToId): Promise<NameToId> {
       partner: true,
       cityId: cityIds['Brooklyn'] as number,
     },
+    {
+      id: getDbUlid(),
+      name: 'Another Approved Partner School',
+      approved: true,
+      partner: true,
+      cityId: cityIds['Brooklyn'] as number,
+    },
   ]
   const temp: NameToId = {}
   for (const school of schools) {

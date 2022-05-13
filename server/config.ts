@@ -204,7 +204,7 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus'
   ).split(','),
   priorityMatchingSponsorOrgs: (
-    process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus'
+    process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'onlySponsorsSchools'
   ).split(','),
   customAnalyticsReportPartnerOrgs: (
     process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'big-telecom'
