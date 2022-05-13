@@ -687,4 +687,9 @@ export default {
       .get(`${ELIGIBILITY_API_ROOT}/signup-sources/students`)
       .then(this._successHandler, this._errorHandler)
   },
+  getSessionRecap(sessionId) {
+    return Vue.http
+      .get(`${API_ROOT}/sessions/${sessionId}/recap`)
+      .then(this._successHandler, this._errorHandler)
+  }
 }

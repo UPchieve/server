@@ -1127,20 +1127,27 @@ export type SessionForSessionRecap = {
   volunteerFirstName: string
   quillDoc?: string
   hasWhiteboardDoc: boolean
+  messages?: MessageForFrontend[]
 }
 
 export async function getSessionRecap(
   sessionId: Ulid
 ): Promise<SessionForSessionRecap> {
+  const client = await getClient().connect()
   try {
-    const result = await pgQueries.getSessionRecap.run(
+    const sessionResult = await pgQueries.getSessionRecap.run(
       { sessionId },
-      getClient()
+      client
     )
+    if (!sessionResult.length) throw new RepoReadError('Session not found')
 
-    if (!result.length) throw new RepoReadError('Session not found')
-    return makeRequired(result[0])
+    const session = makeSomeRequired(sessionResult[0], ['quillDoc'])
+    const messages = await getMessagesForFrontend(sessionId, client)
+
+    return { ...session, messages }
   } catch (err) {
     throw new RepoReadError(err)
+  } finally {
+    client.release()
   }
 }
