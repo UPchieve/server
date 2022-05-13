@@ -6,10 +6,6 @@ import { signupSources } from './static/users/signup-sources'
 import { gradeLevels } from './static/users/grade-levels'
 import { photoIdStatuses } from './static/users/photo-id-statuses'
 import { volunteerReferenceStatuses } from './static/users/volunteer-reference-statuses'
-import { studentPartnerOrgsTest } from './static/partners/student-partner-orgs-test'
-import { studentPartnerOrgSitesTest } from './static/partners/student-partner-org-sites-test'
-import { volunteerPartnerOrgsTest } from './static/partners/volunteer-partner-orgs-test'
-import { requiredEmailDomainsTest } from './static/partners/required-email-domains-test'
 import { trainingCourses } from './static/academics/training-courses'
 import { topics } from './static/academics/topics'
 import {
@@ -41,11 +37,6 @@ export async function initStaticSeedData(numZipCodes: number | undefined): Promi
   await banReasons()
   await signupSources()
   await gradeLevels()
-
-  const spoIds = await studentPartnerOrgsTest()
-  await studentPartnerOrgSitesTest(spoIds)
-  const vpoIds = await volunteerPartnerOrgsTest()
-  await requiredEmailDomainsTest(vpoIds)
 
   await photoIdStatuses()
   await trainingCourses()
