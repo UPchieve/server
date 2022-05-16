@@ -686,5 +686,10 @@ export default {
     return Vue.http
       .get(`${API_ROOT}/sessions/${sessionId}/recap`)
       .then(this._successHandler, this._errorHandler)
-  }
+  },
+  getStudentSignupSources() {
+    return Vue.http
+      .get(`${ELIGIBILITY_API_ROOT}/signup-sources/students`)
+      .then(this._successHandler, this._errorHandler)
+  },
 }

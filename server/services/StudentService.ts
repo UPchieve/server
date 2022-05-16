@@ -9,6 +9,7 @@ import config from '../config'
 import { Ulid } from '../models/pgUtils'
 import { FavoriteLimitReachedError } from './Errors'
 import { createAccountAction } from '../models/UserAction'
+import { StudentSignupSources } from '../models/Student/queries'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
@@ -104,4 +105,10 @@ export async function getFavoriteVolunteersPaginated(
   const limit = 5
   const offset = limit * (page - 1)
   return await StudentRepo.getFavoriteVolunteersPaginated(userId, limit, offset)
+}
+
+export async function getStudentSignupSources(): Promise<
+  StudentSignupSources[] | undefined
+> {
+  return await StudentRepo.getStudentSignupSources()
 }

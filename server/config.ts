@@ -204,7 +204,7 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_PRIORITY_MATCHING_PARTNER_ORGS || 'bogus'
   ).split(','),
   priorityMatchingSponsorOrgs: (
-    process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'bogus'
+    process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'onlySponsorsSchools'
   ).split(','),
   customAnalyticsReportPartnerOrgs: (
     process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'big-telecom'
@@ -343,6 +343,8 @@ const config: Static<typeof Config> = {
     Number(process.env.SUBWAY_FAVORITE_VOLUNTEER_LIMIT) || 20,
   eligibleIncomeThreshold:
     Number(process.env.SUBWAY_ELIGIBLE_INCOME_THRESHOLD) || 60000,
+  customManualStudentPartnerOrg:
+    process.env.SUBWAY_CUSTOM_MANUAL_STUDENT_PARTNER_ORG || 'bogus',
 }
 
 module.exports = config

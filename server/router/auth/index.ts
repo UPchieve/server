@@ -11,6 +11,7 @@ import { Ulid } from '../../models/pgUtils'
 import logger from '../../logger'
 import { getLegacyUserObject } from '../../models/User/legacy-user'
 import { extractUser } from '../extract-user'
+import config from '../../config'
 
 export function routes(app: Express) {
   const router = Router()
@@ -122,7 +123,13 @@ export function routes(app: Express) {
       const partner = await AuthService.lookupPartnerStudent(
         req.query.partnerId as unknown
       )
-      res.json({ studentPartner: partner })
+      res.json({
+        studentPartner: {
+          ...partner,
+          isManuallyApproved:
+            partner.key === config.customManualStudentPartnerOrg,
+        },
+      })
     } catch (err) {
       resError(res, err)
     }
@@ -184,7 +191,7 @@ export function routes(app: Express) {
       let mobile: boolean | undefined
       if (req.body.mobile) mobile = asBoolean(req.body.mobile)
       try {
-        await AuthService.sendReset(email as unknown, mobile as unknown)
+        await AuthService.sendReset(email as unknown, !!mobile)
       } catch (err) {
         // do not respond with info about no email match
         if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error

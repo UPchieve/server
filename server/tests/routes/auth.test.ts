@@ -1,16 +1,15 @@
-test.skip('postgres migration', () => 1)
-/*import request, { Test } from 'supertest'
+import request, { Test } from 'supertest'
 import { mocked } from 'ts-jest/utils'
-import { Student } from '../../models/Student'
-import { Volunteer } from '../../models/Volunteer'
-import {
-  StudentPartnerManifest,
-  VolunteerPartnerManifest,
-} from '../../partnerManifests'
+import { CreatedStudent } from '../../models/Student'
 import * as AuthRouter from '../../router/auth'
 import * as AuthService from '../../services/AuthService'
-import { buildUser, buildUserContactInfo } from '../pg-generate'
+import {
+  buildStudentPartnerOrg,
+  buildUserContactInfo,
+  buildVolunteerPartnerOrg,
+} from '../pg-generate'
 import { mockApp, mockPassportMiddleware } from '../mock-app'
+import { CreatedVolunteer } from '../../models/Volunteer'
 
 jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService, true)
@@ -73,17 +72,16 @@ describe('Test router logic', () => {
 
   const PARTNER_VOLUNTEER = '/partner/volunteer'
   test(`Route ${PARTNER_VOLUNTEER} valid payload`, async () => {
-    const payload = { partnerId: 'test' }
-    mockedAuthService.lookupPartnerVolunteer.mockResolvedValueOnce({
-      name: payload.partnerId,
-    } as VolunteerPartnerManifest)
+    const partner = buildVolunteerPartnerOrg()
+    const payload = { partnerId: partner.key }
+    mockedAuthService.lookupPartnerVolunteer.mockResolvedValueOnce(partner)
     const response = await sendGetQuery(PARTNER_VOLUNTEER, payload)
 
     const {
       body: { volunteerPartner },
     } = response
     expect(AuthService.lookupPartnerVolunteer).toHaveBeenCalledTimes(1)
-    expect(volunteerPartner.name).toEqual(payload.partnerId)
+    expect(volunteerPartner.key).toEqual(payload.partnerId)
   })
 
   test(`Route ${PARTNER_VOLUNTEER} invalid payload`, async () => {
@@ -99,17 +97,17 @@ describe('Test router logic', () => {
 
   const PARTNER_STUDENT = '/partner/student'
   test(`Route ${PARTNER_STUDENT} valid payload`, async () => {
-    const payload = { partnerId: 'test' }
-    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce({
-      name: payload.partnerId,
-    } as StudentPartnerManifest)
+    const partner = buildStudentPartnerOrg()
+    const payload = { partnerId: partner.key }
+    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce(partner)
+
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
 
     const {
       body: { studentPartner },
     } = response
     expect(AuthService.lookupPartnerStudent).toHaveBeenCalledTimes(1)
-    expect(studentPartner.name).toEqual(payload.partnerId)
+    expect(studentPartner.key).toEqual(payload.partnerId)
   })
 
   test(`Route ${PARTNER_STUDENT} invalid payload`, async () => {
@@ -198,7 +196,7 @@ describe('Test simple routes hit AuthService', () => {
 
   test('Route /register/student/open', async () => {
     const payload = {}
-    const result = { id: '123' } as Student
+    const result = { id: '123' } as CreatedStudent
     mockedAuthService.registerOpenStudent.mockResolvedValueOnce(result)
     const response = await sendPost('/register/student/open', payload)
 
@@ -212,7 +210,7 @@ describe('Test simple routes hit AuthService', () => {
 
   test('Route /register/student/partner', async () => {
     const payload = {}
-    const result = { id: '123' } as Student
+    const result = { id: '123' } as CreatedStudent
     mockedAuthService.registerPartnerStudent.mockResolvedValueOnce(result)
     const response = await sendPost('/register/student/partner', payload)
 
@@ -225,7 +223,7 @@ describe('Test simple routes hit AuthService', () => {
   })
 
   test('Route /register/volunteer/open', async () => {
-    const payload = { _id: '123' } as VolunteerDocument
+    const payload = { id: '123' } as CreatedVolunteer
     mockedAuthService.registerVolunteer.mockResolvedValueOnce(payload)
     const response = await sendPost('/register/volunteer/open', {})
 
@@ -238,7 +236,7 @@ describe('Test simple routes hit AuthService', () => {
   })
 
   test('Route /register/volunteer/partner', async () => {
-    const payload = { _id: '123' } as VolunteerDocument
+    const payload = { id: '123' } as CreatedVolunteer
     mockedAuthService.registerPartnerVolunteer.mockResolvedValueOnce(payload)
     const response = await sendPost('/register/volunteer/partner', {})
 
@@ -292,4 +290,3 @@ describe('Test simple routes hit AuthService', () => {
     expect(response.status).toEqual(200)
   })
 })
-*/

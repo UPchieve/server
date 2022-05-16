@@ -51,6 +51,8 @@ build:
 testfrontend:
   stage: test
   image: node:16.8.0-bullseye
+  tags:
+    - upchieve
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
@@ -67,7 +69,7 @@ testbackend:
   tags:
     - upchieve
   variables:
-    NODE_OPTIONS: --max_old_space_size=2048
+    NODE_OPTIONS: --max_old_space_size=5120
   services:
     - redis:latest
   before_script:
@@ -87,7 +89,7 @@ testdatabase:
   tags:
     - upchieve
   variables:
-    NODE_OPTIONS: --max_old_space_size=2048
+    NODE_OPTIONS: --max_old_space_size=5120
     DOCKER_HOST: tcp://docker:2376
     DOCKER_TLS_VERIFY: 1
     DOCKER_CERT_PATH: "/certs/client"
@@ -111,6 +113,8 @@ testdatabase:
 lint:
   stage: test
   image: node:16.8.0-bullseye
+  tags:
+    - upchieve
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
@@ -124,6 +128,8 @@ lint:
 pages:
   stage: deploy
   image: node:16.8.0-bullseye
+  tags:
+    - upchieve
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:

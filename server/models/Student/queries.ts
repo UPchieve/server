@@ -377,6 +377,7 @@ export type CreateStudentPayload = {
   partnerSite?: string
   partnerUserId?: string
   college?: string
+  signupSourceId?: number
 }
 export type CreatedStudent = StudentContactInfo & {
   isDeactivated: boolean
@@ -408,6 +409,7 @@ export async function createStudent(
         lastName: studentData.lastName,
         password: studentData.password,
         referredBy: studentData.referredBy,
+        signupSourceId: studentData.signupSourceId,
       },
       transactionClient
     )
@@ -631,6 +633,26 @@ export async function getUsageReport(
 
       return report
     }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export type StudentSignupSources = {
+  id: number
+  name: string
+}
+
+export async function getStudentSignupSources(): Promise<
+  StudentSignupSources[] | undefined
+> {
+  try {
+    const result = await pgQueries.getStudentSignupSources.run(
+      undefined,
+      getClient()
+    )
+
+    if (result.length) return result.map(row => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }

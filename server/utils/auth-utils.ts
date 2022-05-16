@@ -22,8 +22,11 @@ import {
   asFactory,
   asOptional,
   asEnum,
+  asNumber,
 } from './type-utils'
 import validator from 'validator'
+import { isEnabled } from 'unleash-client'
+import { FEATURE_FLAGS } from '../constants'
 
 // Custom errors
 export class RegistrationError extends CustomError {}
@@ -65,12 +68,14 @@ export interface StudentRegData extends UserRegData {
 
 export interface OpenStudentRegData extends StudentRegData {
   currentGrade: GRADES
+  signupSourceId?: number
 }
 export const asOpenStudentRegData = asFactory<OpenStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
   currentGrade: asEnum(GRADES),
+  signupSourceId: asOptional(asNumber),
 })
 
 export interface PartnerStudentRegData extends StudentRegData {
@@ -79,6 +84,7 @@ export interface PartnerStudentRegData extends StudentRegData {
   partnerSite?: string
   college?: string
   currentGrade?: GRADES
+  signupSourceId?: number
 }
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   ...userRegDataValidators,
@@ -89,6 +95,7 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   partnerSite: asOptional(asString),
   college: asOptional(asString),
   currentGrade: asOptional(asEnum(GRADES)),
+  signupSourceId: asOptional(asNumber),
 })
 
 export interface VolunteerRegData extends UserRegData {
