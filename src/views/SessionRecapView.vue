@@ -1,6 +1,6 @@
 <template>
   <div class="session-recap-page">
-    <div class="chat-container">
+    <div class="chat-card-editor-container">
       <div class="card-editor-container">
         <div class="recap-card">
           <h2 class="card-title" >Session Recap</h2>
@@ -45,53 +45,28 @@
           <div id="zwibbler-container"></div>
         </div>
       </div>
-      <div class="chat">
-        <div class="chat-header">
-          <component class="chat-header__avatar" :is="studentAvatar"/>
-          <div class="chat-header__title">Session Chat</div>
-        </div>
-        <div class="chat-contents">
-          <template v-for="(message, index) in session.messages">
-            <div
-              :key="`message-${index}`"
-              :class="messageAlignment(message)"
-              class="message"
-            >
-              <component class="avatar" :is="avatar(message)" v-if="message.user !== user._id"/>
-                <div class="contents" :class="chatBotContents(message)">
-                  <span>{{ message.contents }}</span>
-                </div>
-                <div class="time">
-                  {{ message.createdAt | formatTime }}
-                </div>
-            </div>
-          </template>
-        </div>
-      </div>
+      <chat-log
+        :messages="session.messages"
+        :studentId="session.studentId"
+        :volunteerId="session.volunteerId"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import ChatLog from '@/components/Admin/ChatLog'
+import ChatLog from '@/components/ChatLog'
 import NetworkService from '@/services/NetworkService'
 import FavoritingToggle from '@/components/FavoritingToggle.vue'
 import { mapState } from 'vuex'
 import moment from 'moment'
 import Quill from 'quill'
-import getChatAvatar from '@/utils/get-chat-avatar'
-import StudentIcon from '@/assets/student-icon.svg'
 import config from '../config'
 import MathSVG from '@/assets/subject_icons/math.svg'
 import CollegeSVG from '@/assets/subject_icons/college-counseling.svg'
 import ScienceSVG from '@/assets/subject_icons/science.svg'
 import SATSVG from '@/assets/subject_icons/sat.svg'
 import ReadingWritingSVG from '@/assets/subject_icons/more-resources.svg'
-
-const MESSAGE_ALIGNMENT = {
-  LEFT: 'left',
-  RIGHT: 'right'
-}
 
 export default {
   components: {
@@ -116,7 +91,6 @@ export default {
     return {
       session: {},
       quillEditor: null,
-      studentAvatar: StudentIcon,
       loadingWhiteboardError: '',
       zwibblerCtx: null,
     }
@@ -139,9 +113,12 @@ export default {
         this.zwibblerCtx = window.Zwibbler.create('zwibbler-container', {
           showToolbar: false,
           showColourPanel: false,
-          collaborationServer: `${config.websocketRoot}/whiteboard/admin/{name}`,
+          collaborationServer: `${config.websocketRoot}/whiteboard/recap/${this.session.id}`,
           readOnly: true
         })
+
+        this.zwibblerCtx.setPaperSize(1000, 2800)
+        this.resizeViewRectangle()
 
         try {
           await this.zwibblerCtx.joinSharedSession(this.session.id, false)
@@ -173,18 +150,13 @@ export default {
     getSessionTime(sessionCreatedAt) {
       return moment(sessionCreatedAt).format('l, h:mm A')
     },
-    messageAlignment(message){
-      return message.user === this.user._id ? MESSAGE_ALIGNMENT.RIGHT : MESSAGE_ALIGNMENT.LEFT
-    },
-    avatar(message){
-      return getChatAvatar(message.user, this.session.studentId, this.session.volunteerId)
-    },
-    chatBotContents(message){
-      const isStudentMessage = message.user === this.session.studentId
-      const isVolunteerMessage = message.user === this.session.volunteerId
-      if (!isStudentMessage && !isVolunteerMessage)
-        return 'contents--chat-bot'
-      return ''
+    resizeViewRectangle() {
+      this.zwibblerCtx.setViewRectangle({
+        x: 0,
+        y: 0,
+        width: 1000,
+        height: 1
+      })
     }
   }
 }
@@ -193,6 +165,10 @@ export default {
 <style lang="scss">
 .quill-container {
   width: auto !important;
+}
+
+.unfavoriting-modal-title {
+  text-align: center;
 }
 </style>
 
@@ -208,7 +184,7 @@ export default {
   max-width: 900px;
 }
 
-.chat-container {
+.chat-card-editor-container {
   @include flex-container(row, flex-start, flex-start);
   padding: 0;
 
@@ -221,7 +197,6 @@ export default {
 }
 
 .recap-card {
-  // @include flex-container(row, center, center);
   background-color: $upchieve-white;
   border-radius: 8px 8px 16px 16px;
   padding: 22px;
@@ -270,110 +245,11 @@ export default {
     text-align: left;
   }
 }
+
 .border--thin {
   width: 100%;
   border-bottom: 2px solid $c-background-grey;
   margin: 0 auto;
-}
-
-.quill-container {
-  width: 702px;
-  height: 535px;
-}
-
-.chat-contents {
-  position: relative;
-  background-color: $upchieve-white;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow-y: auto;
-  min-height: 700px;
-  border-radius: 0px 0px 8px 8px;
-}
-
-.chat {
-  max-width: 500px;
-  flex-grow: 1;
-}
-
-.chat-header {
-  // position: relative;
-  height: 100%;
-  background-color: $c-information-blue;
-  padding: 21px;
-  text-align: left;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  border-radius: 8px 8px 0px 0px;
-
-  &__avatar {
-    width: 40px;
-    height: 40px;
-  }
-
-  &__title {
-    font-weight: 600;
-    font-size: 18px;
-    color: #fff;
-    margin-left: 1em;
-  }
-}
-
-.message {
-  position: relative;
-  padding: 1.5em;
-  display: flex;
-  justify-content: flex-start;
-
-  /* Safari needs this specified to lay out the message divs properly. */
-  flex-shrink: 0;
-}
-
-.left {
-  .time {
-    margin-left: 44px;
-  }
-}
-
-.right {
-  flex-direction: row-reverse;
-
-  .contents {
-    background-color: $c-background-blue;
-  }
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  margin-top: 0.3125em;
-  border-radius: 16px;
-  margin-right: 0.75em;
-}
-
-.time {
-  font-size: 14px;
-  font-weight: 500;
-  color: #73737a;
-  position: absolute;
-  bottom: 0;
-}
-
-.contents {
-  text-align: left;
-  padding: 0.625em 0.875em;
-  overflow-wrap: break-word;
-  background-color: $c-background-grey;
-  border-radius: 20px;
-  max-width: 80%;
-  white-space: pre-line;
-
-  &--chat-bot {
-    background-color: $upchieve-chat-bot-green;
-  }
 }
 
 .error {

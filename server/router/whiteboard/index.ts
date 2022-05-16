@@ -312,7 +312,6 @@ export function routes(app: Express): void {
 
     wsClient.on('message', async rawMessage => {
       const message = decode(rawMessage as Uint8Array)
-
       if (message.messageType === MessageType.INIT) {
         try {
           // Get the completed session's whiteboard document from storage for session recap
@@ -326,7 +325,16 @@ export function routes(app: Express): void {
             })
           )
         } catch (error) {
-          if (!(error instanceof KeyNotFoundError)) throw error
+          Sentry.captureException(error)
+          console.log('sending error message')
+          return wsClient.send(
+            encode({
+              messageType: MessageType.ERROR,
+              errorCode: DecodeError.DOES_NOT_EXIST,
+              more: 0,
+              description: 'does not exist',
+            })
+          )
         }
       }
     })
