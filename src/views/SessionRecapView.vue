@@ -102,6 +102,7 @@ export default {
       quillEditor: null,
       loadingWhiteboardError: '',
       zwibblerCtx: null,
+      initialized: false
     }
   },
   async created() {
@@ -119,6 +120,12 @@ export default {
       }
 
       if (this.session.hasWhiteboardDoc) {
+         setTimeout(() => {
+            if (!this.initialized) {
+            this.loadingWhiteboardError = 'Failed to load the whiteboard.'
+          }   
+        }, 1000)
+
         this.zwibblerCtx = window.Zwibbler.create('zwibbler-container', {
           showToolbar: false,
           showColourPanel: false,
@@ -136,6 +143,7 @@ export default {
         }
 
         this.zwibblerCtx.on('connected', () => {
+          this.initialized = true
           this.zwibblerCtx.usePanTool()
           try {
             this.zwibblerCtx.setViewRectangle(
