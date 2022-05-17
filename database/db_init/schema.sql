@@ -2160,12 +2160,7 @@ ALTER TABLE ONLY upchieve.pre_session_surveys
 ALTER TABLE ONLY upchieve.push_tokens
     ADD CONSTRAINT push_tokens_pkey PRIMARY KEY (id);
 
---
--- Name: push_tokens unique_push_token; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
 
-ALTER TABLE ONLY upchieve.push_tokens
-    ADD CONSTRAINT unique_push_token UNIQUE (user_id, token);
 --
 -- Name: quiz_certification_grants quiz_certification_grants_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
@@ -2580,6 +2575,14 @@ ALTER TABLE ONLY upchieve.user_actions
 
 ALTER TABLE ONLY upchieve.volunteer_references
     ADD CONSTRAINT user_id_ref_email_unique UNIQUE (user_id, email);
+
+
+--
+-- Name: push_tokens user_id_token; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.push_tokens
+    ADD CONSTRAINT user_id_token UNIQUE (user_id, token);
 
 
 --
@@ -3711,4 +3714,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220405223145'),
     ('20220405224635'),
     ('20220405232100'),
-    ('20220504152804');
+    ('20220504152804'),
+    ('20220517154624');
