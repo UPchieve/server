@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <div class="header-message"><span>Introducing our new subject: READING!</span> Take the quiz by May 15th to help us launch to students.</div>
+    <div class="header-message"><span>Introducing our new subject: READING!</span> Take the quiz today.</div>
     <router-link to="/training" tag="button" class="header-button">Get Certified</router-link>
   </div>
 </template>
