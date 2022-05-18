@@ -1,5 +1,5 @@
 import { PushToken } from './types'
-import { RepoCreateError, RepoReadError } from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
@@ -31,5 +31,21 @@ export async function createPushTokenByUserId(
     return makeRequired(result[0])
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function deleteDuplicatePushTokens(
+  userId: Ulid,
+  outageDate: Date
+): Promise<void> {
+  try {
+    const result = await pgQueries.deleteDuplicatePushTokens.run(
+      { id: getDbUlid(), userId, token },
+      getClient()
+    )
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query did not delete duplicate push token')
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }
