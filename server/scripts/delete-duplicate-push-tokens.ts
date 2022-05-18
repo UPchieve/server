@@ -1,8 +1,7 @@
 import { deleteDuplicatePushTokens } from '../models/PushToken'
 import { log } from '../worker/logger'
 
-export default async function DeleteDuplicatePushTokens(
-) {
+export default async function DeleteDuplicatePushTokens() {
   let exitCode = 0
   try {
     await deleteDuplicatePushTokens()
