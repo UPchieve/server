@@ -1,7 +1,6 @@
 <template>
   <div class="session-recap-page">
     <div class="chat-card-editor-container">
-      <div class="card-editor-container">
         <div class="recap-card">
           <h2 class="card-title" >Session Recap</h2>
           <div class="border--thin"></div>
@@ -25,6 +24,13 @@
             </div>
           </div>
         </div>
+        <chat-log
+          v-if="mobileMode"
+          class="chat"
+          :messages="session.messages"
+          :studentId="session.studentId"
+          :volunteerId="session.volunteerId"
+        />
         <div
           v-if="session.quillDoc"
           class="document"
@@ -44,8 +50,8 @@
           </p>
           <div id="zwibbler-container"></div>
         </div>
-      </div>
       <chat-log
+        v-if="!mobileMode"
         :messages="session.messages"
         :studentId="session.studentId"
         :volunteerId="session.volunteerId"
@@ -58,7 +64,7 @@
 import ChatLog from '@/components/ChatLog'
 import NetworkService from '@/services/NetworkService'
 import FavoritingToggle from '@/components/FavoritingToggle.vue'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import moment from 'moment'
 import Quill from 'quill'
 import config from '../config'
@@ -77,6 +83,9 @@ export default {
     ...mapState({
       user: state => state.user.user,
     }),
+    ...mapGetters({
+      mobileMode: 'app/mobileMode'
+    }),
     svgs() {
       return {
         math: MathSVG,
@@ -93,6 +102,7 @@ export default {
       quillEditor: null,
       loadingWhiteboardError: '',
       zwibblerCtx: null,
+      initialized: false
     }
   },
   async created() {
@@ -110,6 +120,12 @@ export default {
       }
 
       if (this.session.hasWhiteboardDoc) {
+         setTimeout(() => {
+            if (!this.initialized) {
+            this.loadingWhiteboardError = 'Failed to load the whiteboard.'
+          }   
+        }, 1000)
+
         this.zwibblerCtx = window.Zwibbler.create('zwibbler-container', {
           showToolbar: false,
           showColourPanel: false,
@@ -127,6 +143,7 @@ export default {
         }
 
         this.zwibblerCtx.on('connected', () => {
+          this.initialized = true
           this.zwibblerCtx.usePanTool()
           try {
             this.zwibblerCtx.setViewRectangle(
@@ -178,18 +195,14 @@ export default {
   text-align: left;
 }
 
-.card-editor-container {
-  @include flex-container(column, flex-start, normal);
-  flex-grow: 2;
-  max-width: 900px;
-}
-
 .chat-card-editor-container {
-  @include flex-container(row, flex-start, flex-start);
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  height: 1300px;
 
   @include breakpoint-below('large') {
-    @include flex-container(column, flex-start, flex-start)
+    height: 100%;
   }
 }
 .session-recap-page {
@@ -225,6 +238,10 @@ export default {
     @include flex-container(row,normal,center);
     margin: 0;
   }
+}
+
+.chat {
+  margin-bottom: 1.8em;
 }
 
 .document {

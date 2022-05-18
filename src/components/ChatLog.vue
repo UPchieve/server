@@ -87,12 +87,9 @@ export default {
 
 .chat {
   max-width: 500px;
-  flex-grow: 1;
 }
 
 .chat-header {
-  // position: relative;
-  height: 100%;
   background-color: $c-information-blue;
   padding: 21px;
   text-align: left;
