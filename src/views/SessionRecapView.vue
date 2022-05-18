@@ -3,7 +3,6 @@
     <div class="chat-card-editor-container">
         <div class="recap-card">
           <h2 class="card-title" >Session Recap</h2>
-          <div class="border--thin"></div>
           <div class="spacing--grid">
             <span class="card-detail__title">Subject:</span>
             <div class="card-detail__sub-container">
@@ -36,7 +35,6 @@
           class="document"
         >
           <h2 class="document__title">Doc Editor</h2>
-          <div class="border--thin"></div>
           <div class="quill-container"></div>
         </div>
         <div
@@ -44,7 +42,6 @@
           class="document"
         >
           <h2 class="document__title">Whiteboard</h2>
-          <div class="border--thin"></div>
           <p v-if="loadingWhiteboardError" class="error">
             {{ loadingWhiteboardError }}
           </p>
@@ -101,8 +98,7 @@ export default {
       session: {},
       quillEditor: null,
       loadingWhiteboardError: '',
-      zwibblerCtx: null,
-      initialized: false
+      zwibblerCtx: null
     }
   },
   async created() {
@@ -120,12 +116,6 @@ export default {
       }
 
       if (this.session.hasWhiteboardDoc) {
-         setTimeout(() => {
-            if (!this.initialized) {
-            this.loadingWhiteboardError = 'Failed to load the whiteboard.'
-          }   
-        }, 1000)
-
         this.zwibblerCtx = window.Zwibbler.create('zwibbler-container', {
           showToolbar: false,
           showColourPanel: false,
@@ -143,7 +133,6 @@ export default {
         }
 
         this.zwibblerCtx.on('connected', () => {
-          this.initialized = true
           this.zwibblerCtx.usePanTool()
           try {
             this.zwibblerCtx.setViewRectangle(
@@ -193,6 +182,7 @@ export default {
 .card-title{
   @include font-category('display-small');
   text-align: left;
+  border-bottom: 2px solid $c-background-grey;
 }
 
 .chat-card-editor-container {
@@ -259,14 +249,10 @@ export default {
 
   &__title {
     @include font-category('display-small');
+    border-bottom: 2px solid $c-background-grey;
     text-align: left;
+    width: 100%;
   }
-}
-
-.border--thin {
-  width: 100%;
-  border-bottom: 2px solid $c-background-grey;
-  margin: 0 auto;
 }
 
 .error {
