@@ -28,3 +28,4 @@ WHERE id IN
         ORDER BY  id ) AS row_num
         FROM push_tokens ) t
         WHERE t.row_num > 1 );
+       
