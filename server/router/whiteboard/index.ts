@@ -326,7 +326,6 @@ export function routes(app: Express): void {
           )
         } catch (error) {
           Sentry.captureException(error)
-          console.log('sending error message')
           return wsClient.send(
             encode({
               messageType: MessageType.ERROR,
