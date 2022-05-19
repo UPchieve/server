@@ -314,8 +314,7 @@ export function routes(app: Express): void {
     // Allow 5 seconds for the server to respond to an INIT message otherwise
     // we'll close the socket connection to allow for Zwibbler to retry connecting
     setTimeout(() => {
-      if (!initialized) 
-        wsClient.close()
+      if (!initialized) wsClient.close()
     }, 5 * 1000)
 
     wsClient.on('message', async rawMessage => {
