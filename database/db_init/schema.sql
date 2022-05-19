@@ -2578,6 +2578,14 @@ ALTER TABLE ONLY upchieve.volunteer_references
 
 
 --
+-- Name: push_tokens user_id_token; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.push_tokens
+    ADD CONSTRAINT user_id_token UNIQUE (user_id, token);
+
+
+--
 -- Name: users_training_courses user_id_training_course_id_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3706,4 +3714,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220405223145'),
     ('20220405224635'),
     ('20220405232100'),
-    ('20220504152804');
+    ('20220504152804'),
+    ('20220517154624');
