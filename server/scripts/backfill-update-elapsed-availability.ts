@@ -30,7 +30,10 @@ export default async function backfillUpdateElapsedAvailability(
   const errors: string[] = []
 
   for (const volunteerId of volunteerIds) {
-    const availability = await getAvailabilityForVolunteerByDate(volunteerId, outageDate)
+    const availability = await getAvailabilityForVolunteerByDate(
+      volunteerId,
+      outageDate
+    )
     if (!availability) return
 
     const dayBeforeOutage = moment(outageDate)
