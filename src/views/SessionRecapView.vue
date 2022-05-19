@@ -45,7 +45,16 @@
           <p v-if="loadingWhiteboardError" class="error">
             {{ loadingWhiteboardError }}
           </p>
-          <div id="zwibbler-container"></div>
+          <div class="whiteboard-wrapper">
+            <transition name="whiteboard-warning">
+              <loading-message
+                message="Loading the whiteboard"
+                class="whiteboard-warning whiteboard-warning--connection"
+                v-show="!isConnectedToWhiteboard && !loadingWhiteboardError"
+              />
+            </transition>
+            <div id="zwibbler-container"></div>
+          </div>
         </div>
       <chat-log
         v-if="!mobileMode"
@@ -70,11 +79,13 @@ import CollegeSVG from '@/assets/subject_icons/college-counseling.svg'
 import ScienceSVG from '@/assets/subject_icons/science.svg'
 import SATSVG from '@/assets/subject_icons/sat.svg'
 import ReadingWritingSVG from '@/assets/subject_icons/more-resources.svg'
+import LoadingMessage from '@/components/LoadingMessage'
 
 export default {
   components: {
     ChatLog,
-    FavoritingToggle
+    FavoritingToggle,
+    LoadingMessage
   },
   computed: {
     ...mapState({
@@ -92,13 +103,20 @@ export default {
         sat: SATSVG
       }
     },
+    whiteboardDimensions(){
+      return {
+        width: 1000,
+        height: 2800
+      }
+    }
   },
   data() {
     return {
       session: {},
       quillEditor: null,
       loadingWhiteboardError: '',
-      zwibblerCtx: null
+      zwibblerCtx: null,
+      isConnectedToWhiteboard: false
     }
   },
   async created() {
@@ -106,7 +124,9 @@ export default {
     this.session = response.body.session
     this.session.svg = this.svgs[this.session.topic]
     
-    // Set quill document after the DOM has been updated to show session div
+    // The divs that contain the editors are not loaded onto the DOM immediately because they
+    // have conditions that must consult the `this.session`. $nextTick allows us to execute
+    // code on the related DOM elements on the next DOM update cycle
     this.$nextTick(async () => {
       if (this.session.quillDoc) {
         const container = document.querySelector('.quill-container')
@@ -120,34 +140,30 @@ export default {
           showToolbar: false,
           showColourPanel: false,
           collaborationServer: `${config.websocketRoot}/whiteboard/recap/${this.session.id}`,
-          readOnly: true
+          readOnly: true,
+          allowZoom: false
         })
 
-        this.zwibblerCtx.setPaperSize(1000, 2800)
-        this.resizeViewRectangle()
+        // Allow 20 seconds for Zwibbler to retry to get the document from the server otherwise,
+        // leave the shared session to have Zwibbler stop connection retries
+        setTimeout(() => {
+          if (!this.isConnectedToWhiteboard) {
+            this.failedLoadingWhiteboard()
+            this.zwibblerCtx.leaveSharedSession()
+
+          }
+        }, 1000 * 20);
 
         try {
           await this.zwibblerCtx.joinSharedSession(this.session.id, false)
         } catch (error) {
-          this.loadingWhiteboardError = 'Failed to load the whiteboard.'
+          this.failedLoadingWhiteboard()
         }
 
         this.zwibblerCtx.on('connected', () => {
-          this.zwibblerCtx.usePanTool()
-          try {
-            this.zwibblerCtx.setViewRectangle(
-              this.zwibblerCtx.getBoundingRectangle(
-                this.zwibblerCtx.getAllNodes()
-              )
-            )
-          } catch (error) {
-            this.zwibblerCtx.setViewRectangle({
-              x: 0,
-              y: 0,
-              width: 1,
-              height: 1
-            })
-          }
+          this.zwibblerCtx.setPaperSize(this.whiteboardDimensions.width, this.whiteboardDimensions.height)
+          this.resizeViewRectangle()
+          this.isConnectedToWhiteboard = true
         })
       }
     })
@@ -160,9 +176,14 @@ export default {
       this.zwibblerCtx.setViewRectangle({
         x: 0,
         y: 0,
+        // this is the width that is set in Whiteboard.vue for when a user is in a session
         width: 1000,
+        // height needs to be non-zero. setViewRectangle seems to properly scale the whiteboard if a width is set
         height: 1
       })
+    },
+    failedLoadingWhiteboard() {
+      this.loadingWhiteboardError = 'Failed to load the whiteboard. Please try refreshing the page.'
     }
   }
 }
@@ -272,4 +293,16 @@ export default {
   height: 17.14px;
   padding-left: 4px;
 }
+
+#zwibbler-container {
+  height: 100%;
+  width: 100%;
+}
+
+.whiteboard-wrapper {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
 </style>
