@@ -2,8 +2,7 @@ import { deleteDuplicatePushTokens } from '../models/PushToken'
 import { log } from '../worker/logger'
 import { Job } from 'bull'
 
-type DeleteDuplicatePushTokensData = {
-}
+type DeleteDuplicatePushTokensData = {}
 
 export default async function DeleteDuplicatePushTokens(
   job: Job<DeleteDuplicatePushTokensData>

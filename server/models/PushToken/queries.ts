@@ -35,10 +35,8 @@ export async function createPushTokenByUserId(
 }
 
 export async function deleteDuplicatePushTokens(): Promise<void> {
-  let id: void
-
   try {
-    await pgQueries.deleteDuplicatePushTokens.run(id, getClient())
+    await pgQueries.deleteDuplicatePushTokens.run(undefined, getClient())
   } catch (err) {
     throw new RepoDeleteError(err)
   }
