@@ -116,7 +116,18 @@ RETURNING
     id AS ok;
 
 
-/* @name saveCurrentAvailabilityAsHistoryBackfill */
+/* @name saveAvailabilityAsHistoryByDate */
+WITH recent_recorded_at_from_date AS (
+    SELECT
+        recorded_at
+    FROM
+        availability_histories
+    WHERE
+        recorded_at <= :recordedAt!
+        AND user_id = :userId!
+    ORDER BY
+        recorded_at DESC
+    LIMIT 1)
 INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)
 SELECT
     generate_ulid (),
@@ -129,11 +140,11 @@ SELECT
     NOW(),
     NOW()
 FROM
-    availabilities
-WHERE
-    user_id = :userId!
-RETURNING
-    id AS ok;
+    recent_recorded_at_from_date
+    LEFT JOIN availability_histories ON recent_recorded_at_from_date.recorded_at = availability_histories.recorded_at
+        AND availability_histories.user_id = :userId!
+    RETURNING
+        id AS ok;
 
 
 /* @name insertNewAvailability */
@@ -179,4 +190,32 @@ WHERE
 LIMIT 1
 RETURNING
     id AS ok;
+
+
+/* @name getAvailabilityForVolunteerByDate */
+WITH recent_recorded_at_from_date AS (
+    SELECT
+        recorded_at
+    FROM
+        availability_histories
+    WHERE
+        recorded_at <= :recordedAt!
+        AND user_id = :userId!
+    ORDER BY
+        recorded_at DESC
+    LIMIT 1
+)
+SELECT
+    availability_histories.id,
+    availability_histories.available_start,
+    availability_histories.available_end,
+    availability_histories.timezone,
+    availability_histories.recorded_at,
+    weekdays.day AS weekday
+FROM
+    recent_recorded_at_from_date
+    LEFT JOIN availability_histories ON recent_recorded_at_from_date.recorded_at = availability_histories.recorded_at
+        AND availability_histories.user_id = :userId!
+    LEFT JOIN weekdays ON availability_histories.weekday_id = weekdays.id
+    LEFT JOIN users ON availability_histories.user_id = users.id;
 

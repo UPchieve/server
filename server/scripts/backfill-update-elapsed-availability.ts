@@ -5,8 +5,8 @@ import { log } from '../worker/logger'
 import { DAYS } from '../constants'
 import { getElapsedAvailabilityForDay } from '../services/AvailabilityService'
 import {
-  getAvailabilityForVolunteer,
-  saveCurrentAvailabilityAsHistoryBackfill,
+  getAvailabilityForVolunteerByDate,
+  saveAvailabilityAsHistoryByDate,
 } from '../models/Availability'
 import {
   getVolunteerIdsForElapsedAvailability,
@@ -16,7 +16,7 @@ import moment from 'moment'
 import 'moment-timezone'
 
 type BackfillUpdateElapsedAvailabilityData = {
-  // example: '2022-05-08 04:00:00.000+00'
+  // example: '2022-05-08 04:00:00.000000+00'
   outageDate: string
 }
 
@@ -30,7 +30,7 @@ export default async function backfillUpdateElapsedAvailability(
   const errors: string[] = []
 
   for (const volunteerId of volunteerIds) {
-    const availability = await getAvailabilityForVolunteer(volunteerId)
+    const availability = await getAvailabilityForVolunteerByDate(volunteerId, outageDate)
     if (!availability) return
 
     const dayBeforeOutage = moment(outageDate)
@@ -53,7 +53,7 @@ export default async function backfillUpdateElapsedAvailability(
     }
 
     try {
-      await saveCurrentAvailabilityAsHistoryBackfill(volunteerId, outageDate)
+      await saveAvailabilityAsHistoryByDate(volunteerId, outageDate)
     } catch (error) {
       errors.push(
         `Volunteer ${volunteerId} updated availability but failed to create availability history: ${error}`
