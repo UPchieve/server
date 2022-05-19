@@ -170,7 +170,7 @@ export default {
 
 <style lang="scss">
 .ql-container {
-  width: 100%;
+  max-width: fit-content;
 }
 
 .ql-editor {
