@@ -99,6 +99,8 @@ export enum Jobs {
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
+
+  // Delete scripts
   DeleteDuplicatePushTokens = 'DeleteDuplicatePushTokens',
 }
 
