@@ -231,6 +231,10 @@ export default {
   padding: 22px;
   margin-right: 1.8em;
   margin-bottom: 1.8em;
+
+  @include breakpoint-below('large') {
+    margin-right: 0;
+  }
 }
 
 .spacing--grid {
@@ -275,6 +279,10 @@ export default {
     border-bottom: 2px solid $c-background-grey;
     text-align: left;
     padding-bottom: 0.5em;
+  }
+
+  @include breakpoint-below('large') {
+    margin: 0;
   }
 }
 
