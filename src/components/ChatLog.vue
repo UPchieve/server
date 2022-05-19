@@ -81,7 +81,7 @@ export default {
   flex-direction: column;
   flex: 1;
   overflow-y: auto;
-  max-height: 700px;
+  height: 700px;
   border-radius: 0px 0px 8px 8px;
 }
 
