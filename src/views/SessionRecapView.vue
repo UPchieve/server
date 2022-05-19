@@ -169,8 +169,12 @@ export default {
 </script>
 
 <style lang="scss">
-.quill-container {
-  width: auto !important;
+.ql-container {
+  width: 100%;
+}
+
+.ql-editor {
+  overflow-y: unset;
 }
 
 .unfavoriting-modal-title {
@@ -183,6 +187,7 @@ export default {
   @include font-category('display-small');
   text-align: left;
   border-bottom: 2px solid $c-background-grey;
+  padding-bottom: 0.5em;
 }
 
 .chat-card-editor-container {
@@ -235,9 +240,6 @@ export default {
 }
 
 .document {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   margin-right: 1.8em;
   margin-bottom: 1.8em;
   font-size: 20px;
@@ -251,7 +253,7 @@ export default {
     @include font-category('display-small');
     border-bottom: 2px solid $c-background-grey;
     text-align: left;
-    width: 100%;
+    padding-bottom: 0.5em;
   }
 }
 
