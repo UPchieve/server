@@ -1,13 +1,13 @@
 import { deleteDuplicatePushTokens } from '../models/PushToken'
 import { log } from '../worker/logger'
+import { Job } from 'bull'
 
-export default async function DeleteDuplicatePushTokens() {
-  let exitCode = 0
-  try {
-    await deleteDuplicatePushTokens()
-    log(`Successfully deleted duplatcate push tokens`)
-  } catch (error) {
-    console.log('Error: ', error)
-    exitCode = 1
-  }
+type DeleteDuplicatePushTokensData = {
+}
+
+export default async function DeleteDuplicatePushTokens(
+  job: Job<DeleteDuplicatePushTokensData>
+): Promise<void> {
+  await deleteDuplicatePushTokens()
+  log(`Successfully deleted duplatcate push tokens`)
 }
