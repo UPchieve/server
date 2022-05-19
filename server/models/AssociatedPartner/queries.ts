@@ -48,6 +48,50 @@ export async function getAssociatedPartnerByKey(
   }
 }
 
+export async function getAssociatedPartnerByPartnerOrg(
+  key: string
+): Promise<AssociatedPartner> {
+  try {
+    const result = await pgQueries.getAssociatedPartnerByPartnerOrgKey.run(
+      { key },
+      getClient()
+    )
+    if (!result.length)
+      throw new Error(`no associated partner found with key ${key}`)
+    return makeSomeRequired(result[0], [
+      'studentPartnerOrg',
+      'studentPartnerOrgId',
+      'studentOrgDisplay',
+      'studentSponsorOrgId',
+      'studentSponsorOrg',
+    ])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getAssociatedPartnerBySponsorOrg(
+  key: string
+): Promise<AssociatedPartner> {
+  try {
+    const result = await pgQueries.getAssociatedPartnerBySponsorOrgKey.run(
+      { key },
+      getClient()
+    )
+    if (!result.length)
+      throw new Error(`no associated partner found with key ${key}`)
+    return makeSomeRequired(result[0], [
+      'studentPartnerOrg',
+      'studentPartnerOrgId',
+      'studentOrgDisplay',
+      'studentSponsorOrgId',
+      'studentSponsorOrg',
+    ])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getAssociatedPartnerByVolunteerPartnerKey(
   key: string
 ): Promise<AssociatedPartner | undefined> {
