@@ -282,7 +282,7 @@ export default {
   }
 
   @include breakpoint-below('large') {
-    margin: 0;
+    margin-right: 0;
   }
 }
 

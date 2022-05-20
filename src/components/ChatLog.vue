@@ -87,6 +87,10 @@ export default {
 
 .chat {
   max-width: 500px;
+
+  @include breakpoint-below('large') {
+    max-width: unset;
+  }
 }
 
 .chat-header {
