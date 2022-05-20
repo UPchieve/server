@@ -309,12 +309,19 @@ export function routes(app: Express): void {
 
   router.ws('/recap/:sessionId', function(wsClient, req) {
     const sessionId = asUlid(req.params.sessionId)
+    let initialized = false
+
+    // Allow 5 seconds for the server to respond to an INIT message otherwise
+    // we'll close the socket connection to allow for Zwibbler to retry connecting
+    setTimeout(() => {
+      if (!initialized) wsClient.close()
+    }, 5 * 1000)
 
     wsClient.on('message', async rawMessage => {
       const message = decode(rawMessage as Uint8Array)
-
       if (message.messageType === MessageType.INIT) {
         try {
+          initialized = true
           // Get the completed session's whiteboard document from storage for session recap
           const document = await WhiteboardService.getDocFromStorage(sessionId)
           return wsClient.send(
@@ -326,7 +333,15 @@ export function routes(app: Express): void {
             })
           )
         } catch (error) {
-          if (!(error instanceof KeyNotFoundError)) throw error
+          Sentry.captureException(error)
+          return wsClient.send(
+            encode({
+              messageType: MessageType.ERROR,
+              errorCode: DecodeError.DOES_NOT_EXIST,
+              more: 0,
+              description: 'does not exist',
+            })
+          )
         }
       }
     })
