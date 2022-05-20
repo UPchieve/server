@@ -14,6 +14,7 @@ import {
 } from '../models/Volunteer/queries'
 import moment from 'moment'
 import 'moment-timezone'
+import countAvailabilitySelected from '../utils/count-availability-selected'
 
 type BackfillUpdateElapsedAvailabilityData = {
   // example: '2022-05-08 04:00:00.000000+00'
@@ -34,7 +35,7 @@ export default async function backfillUpdateElapsedAvailability(
       volunteerId,
       outageDate
     )
-    if (!availability) return
+    if (!availability || countAvailabilitySelected(availability) === 0) continue
 
     const dayBeforeOutage = moment(outageDate)
       .utc()
