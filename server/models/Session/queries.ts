@@ -19,7 +19,6 @@ import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import { isPgId } from '../../utils/type-utils'
-import { getNotificationsByVolunteerId } from '../Notification'
 import { getSessionNotifications } from '../../services/SessionService'
 import { SessionNotification } from '../Notification'
 
