@@ -40,7 +40,7 @@ build:
     - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.26.0/pack-v0.26.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
     - |
       pack build "$image_tagged" \
-        --creation-time now
+        --creation-time now \
         --builder heroku/buildpacks:20 \
         --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
         --buildpack heroku/nodejs \
