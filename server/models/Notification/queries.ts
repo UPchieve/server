@@ -45,7 +45,9 @@ export async function getSessionNotificationsWithSessionId(
       ])
       row.volunteer = {
         firstname: row.firstName,
-        volunteerPartnerOrg: row.volunteerPartnerOrg ? row.volunteerPartnerOrg : '',
+        volunteerPartnerOrg: row.volunteerPartnerOrg
+          ? row.volunteerPartnerOrg
+          : '',
       }
       delete row.firstName
       delete row.volunteerPartnerOrg

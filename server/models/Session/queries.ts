@@ -19,7 +19,10 @@ import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import { isPgId } from '../../utils/type-utils'
-import { getSessionNotificationsWithSessionId, SessionNotification } from '../Notification'
+import {
+  getSessionNotificationsWithSessionId,
+  SessionNotification,
+} from '../Notification'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -530,7 +533,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
     const messages = await getMessagesForFrontend(sessionId, client)
     const feedbacks = await getFeedbackBySessionId(sessionId)
     const notifications = await getSessionNotificationsWithSessionId(sessionId)
-   
+
     return {
       ...session,
       student: { ...student, _id: student.id },
@@ -539,7 +542,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
       feedbacks,
       _id: session.id,
       userAgent,
-     notifications,
+      notifications,
     }
   } catch (err) {
     throw new RepoReadError(err)
