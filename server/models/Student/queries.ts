@@ -432,7 +432,7 @@ export async function createStudent(
         'college',
         'postalCode',
         'gradeLevel',
-        'schoolId'
+        'schoolId',
       ])
       const user = makeRequired(userResult[0])
 

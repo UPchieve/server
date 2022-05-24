@@ -203,7 +203,9 @@ export async function registerPartnerStudent(
   if (highSchoolUpchieveId) {
     school = await findSchoolByUpchieveId(highSchoolUpchieveId)
   } else if (studentPartnerManifest.schoolSignupRequired) {
-    throw new RegistrationError('Student partner organization requires school, but none provided')
+    throw new RegistrationError(
+      'Student partner organization requires school, but none provided'
+    )
   }
 
   let referredBy: Ulid | undefined
