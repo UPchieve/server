@@ -20,7 +20,7 @@ import { VolunteerFeedback, Feedback } from '../Feedback'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import { isPgId } from '../../utils/type-utils'
 import { getSessionNotifications } from '../../services/SessionService'
-import { SessionNotification } from '../Notification'
+import { getSessionNotificationsWithSessionId, SessionNotification } from '../Notification'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -469,6 +469,7 @@ export type SessionByIdWithStudentAndVolunteer = {
   reportMessage?: string
   timeTutored: number
   notifications?: SessionNotification[]
+  //Ulid[]
   photos?: string[]
   student: UserForAdmin
   volunteer?: UserForAdmin
@@ -530,7 +531,8 @@ export async function getSessionByIdWithStudentAndVolunteer(
       throw new RepoReadError(`Did not find student for session ${sessionId}`)
     const messages = await getMessagesForFrontend(sessionId, client)
     const feedbacks = await getFeedbackBySessionId(sessionId)
-    const notifications = await getSessionNotifications(sessionId)
+    const notifications = await getSessionNotificationsWithSessionId(sessionId)
+   
     return {
       ...session,
       student: { ...student, _id: student.id },
@@ -539,7 +541,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
       feedbacks,
       _id: session.id,
       userAgent,
-      notifications,
+     notifications,
     }
   } catch (err) {
     throw new RepoReadError(err)
