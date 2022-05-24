@@ -1258,7 +1258,7 @@ ALTER SEQUENCE upchieve.subjects_id_seq OWNED BY upchieve.subjects.id;
 
 CREATE TABLE upchieve.survey_questions (
     id integer NOT NULL,
-    question_tag_id integer,
+    question_tag_ids integer[],
     question_type_id integer NOT NULL,
     question_text text NOT NULL,
     created_at timestamp with time zone NOT NULL,
@@ -1362,26 +1362,6 @@ CREATE SEQUENCE upchieve.surveys_id_seq
 --
 
 ALTER SEQUENCE upchieve.surveys_id_seq OWNED BY upchieve.surveys.id;
-
-
---
--- Name: surveys_postsession; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.surveys_postsession (
-    survey_id integer NOT NULL,
-    subject_id integer NOT NULL
-);
-
-
---
--- Name: surveys_presession; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.surveys_presession (
-    survey_id integer NOT NULL,
-    subject_id integer NOT NULL
-);
 
 
 --
@@ -1748,7 +1728,6 @@ CREATE TABLE upchieve.users_surveys (
 --
 
 CREATE TABLE upchieve.users_surveys_submissions (
-    id uuid NOT NULL,
     user_survey_id uuid NOT NULL,
     survey_question_id integer NOT NULL,
     survey_response_choice_id integer,
@@ -3042,14 +3021,6 @@ ALTER TABLE ONLY upchieve.users_surveys
 
 
 --
--- Name: users_surveys_submissions users_surveys_submissions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.users_surveys_submissions
-    ADD CONSTRAINT users_surveys_submissions_pkey PRIMARY KEY (id);
-
-
---
 -- Name: users_training_courses users_training_courses_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3782,14 +3753,6 @@ ALTER TABLE ONLY upchieve.subjects
 
 
 --
--- Name: survey_questions survey_questions_question_tag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.survey_questions
-    ADD CONSTRAINT survey_questions_question_tag_id_fkey FOREIGN KEY (question_tag_id) REFERENCES upchieve.question_tags(id);
-
-
---
 -- Name: survey_questions survey_questions_question_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3811,38 +3774,6 @@ ALTER TABLE ONLY upchieve.survey_questions_response_choices
 
 ALTER TABLE ONLY upchieve.survey_questions_response_choices
     ADD CONSTRAINT survey_questions_response_choices_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
-
-
---
--- Name: surveys_postsession surveys_postsession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.surveys_postsession
-    ADD CONSTRAINT surveys_postsession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
-
-
---
--- Name: surveys_postsession surveys_postsession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.surveys_postsession
-    ADD CONSTRAINT surveys_postsession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
-
-
---
--- Name: surveys_presession surveys_presession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.surveys_presession
-    ADD CONSTRAINT surveys_presession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
-
-
---
--- Name: surveys_presession surveys_presession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.surveys_presession
-    ADD CONSTRAINT surveys_presession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
 
 
 --
@@ -4198,8 +4129,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220517213052'),
     ('20220520164318'),
     ('20220520164419'),
-    ('20220520164509'),
-    ('20220520164617'),
     ('20220520214438'),
     ('20220520214552'),
     ('20220520214733'),

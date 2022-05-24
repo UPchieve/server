@@ -1,6 +1,5 @@
 -- migrate:up
 CREATE TABLE IF NOT EXISTS upchieve.users_surveys_submissions (
-    id uuid PRIMARY KEY,
     user_survey_id uuid NOT NULL REFERENCES upchieve.users_surveys (id),
     survey_question_id integer NOT NULL REFERENCES upchieve.survey_questions (id),
     survey_response_choice_id integer REFERENCES upchieve.survey_response_choices (id), 
