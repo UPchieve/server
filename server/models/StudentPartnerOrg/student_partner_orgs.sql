@@ -2,7 +2,7 @@
 SELECT
     KEY,
     spo.name,
-    spo.high_school_signup,
+    spo.school_signup_required,
     sites.sites
 FROM
     student_partner_orgs spo
