@@ -19,7 +19,6 @@ import { PoolClient } from 'pg'
 import { VolunteerFeedback, Feedback } from '../Feedback'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import { isPgId } from '../../utils/type-utils'
-import { getSessionNotifications } from '../../services/SessionService'
 import { getSessionNotificationsWithSessionId, SessionNotification } from '../Notification'
 
 export type NotificationData = {
@@ -469,7 +468,6 @@ export type SessionByIdWithStudentAndVolunteer = {
   reportMessage?: string
   timeTutored: number
   notifications?: SessionNotification[]
-  //Ulid[]
   photos?: string[]
   student: UserForAdmin
   volunteer?: UserForAdmin

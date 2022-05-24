@@ -40,8 +40,7 @@ export async function getSessionNotificationsWithSessionId(
       const row: any = makeSomeRequired(v, [
         'sentAt',
         'messageId',
-        'wasSuccessful',
-        'volunteerPartnerOrg'
+        'wasSuccessful'
       ])
       row.volunteer = {
         firstname: row.firstName,
