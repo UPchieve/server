@@ -456,8 +456,8 @@ h1 {
   border: solid 1px #fff;
   color: #fff;
   font-size: 14px;
-  padding: 5px 10px;
-  border-radius: 5px;
+  padding: 14px 20px;
+  border-radius: 9999px;
 
   &:hover {
     background: rgba(255, 255, 255, 0.2);
