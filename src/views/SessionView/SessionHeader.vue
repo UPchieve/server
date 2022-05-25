@@ -455,8 +455,9 @@ h1 {
   cursor: pointer;
   border: solid 1px #fff;
   color: #fff;
-  font-size: 14px;
-  padding: 14px 20px;
+  font-size: 16px;
+  line-height: 125%;
+  padding: 12px 24px;
   border-radius: 9999px;
 
   &:hover {
