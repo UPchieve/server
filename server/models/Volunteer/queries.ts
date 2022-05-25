@@ -1393,6 +1393,7 @@ export type VolunteerForScheduleUpdate = {
   onboarded: boolean
   availability: Availability
   subjects?: string[]
+  passedRequiredTraining: boolean
 }
 export async function getVolunteerForScheduleUpdate(
   userId: Ulid

@@ -1279,7 +1279,8 @@ SELECT
     users.id,
     volunteer_partner_orgs.key AS volunteer_partner_org,
     volunteer_profiles.onboarded,
-    subjects_unlocked.subjects
+    subjects_unlocked.subjects,
+    COALESCE(training_quizzes.passed, FALSE) AS passed_required_training
 FROM
     users
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -1313,6 +1314,15 @@ FROM
                     subject_total.total
                 HAVING
                     COUNT(*)::int >= subject_total.total) AS sub_unlocked) AS subjects_unlocked ON TRUE
+    LEFT JOIN (
+        SELECT
+            passed,
+            user_id
+        FROM
+            users_quizzes
+            JOIN quizzes ON users_quizzes.quiz_id = quizzes.id
+        WHERE
+            quizzes.name = 'upchieve101') AS training_quizzes ON training_quizzes.user_id = volunteer_profiles.user_id
 WHERE
     users.id = :userId!
 LIMIT 1;
