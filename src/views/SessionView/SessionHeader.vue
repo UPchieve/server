@@ -11,7 +11,10 @@
             <loading-message message="Contacting coaches" />
           </template>
           <template v-else-if="isSessionInProgress">
-            <span class="volunteer-name">{{ sessionPartner.firstname }}</span>
+            <div class="volunteer-info">
+              <span class="volunteer-name">{{ sessionPartner.firstname }}</span><br />
+              <span class="in-session-label">In Session</span>
+            </div>
           </template>
           <template v-else-if="isSessionOver">
             <template v-if="sessionPartner.firstname">
@@ -423,9 +426,19 @@ h1 {
   }
 }
 
+.volunteer-info {
+  display: inline-block;
+  line-height: 1.25;
+}
+
 .volunteer-name {
-  font-weight: 500;
+  font-weight: 600;
   font-size: 18px;
+}
+
+.in-session-label {
+  font-weight: 400;
+  font-size: 12px;
 }
 
 .button-container {
