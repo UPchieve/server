@@ -375,7 +375,7 @@ export default {
 .session-header {
   position: relative;
   height: 100%;
-  background-color: $c-success-green;
+  background-color: $c-information-blue;
   padding: 0 20px;
   text-align: left;
   display: flex;
