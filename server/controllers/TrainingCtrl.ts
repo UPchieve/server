@@ -268,7 +268,7 @@ export async function getQuizScore(
   )
 
   if (passed) {
-    let unlockedSubjects = getUnlockedSubjects(cert, certifications)
+    const unlockedSubjects = getUnlockedSubjects(cert, certifications)
 
     // set custom field passedUpchieve101 in SendGrid
     if (cert === TRAINING.UPCHIEVE_101) await createContact(user.id)
@@ -299,7 +299,8 @@ export async function getQuizScore(
       volunteerProfile &&
       !volunteerProfile.onboarded &&
       volunteerProfile.availabilityLastModifiedAt &&
-      unlockedSubjects.length > 0
+      unlockedSubjects.length > 0 &&
+      certifications.upchieve101?.passed
     ) {
       await VolunteerModel.updateVolunteerOnboarded(user.id)
       await queueOnboardingEventEmails(user.id)
