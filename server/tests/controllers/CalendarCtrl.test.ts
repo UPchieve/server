@@ -70,7 +70,7 @@ function buildVolunteerForScheduleUpdate(
     onboarded: onboarded,
     availability: buildAvailability(),
     subjects: subjects || ['algebraOne'],
-    passedRequiredTraining: passedUpchieve101
+    passedRequiredTraining: passedUpchieve101,
   }
 }
 
