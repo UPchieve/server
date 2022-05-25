@@ -476,6 +476,12 @@ h1 {
   &:hover {
     background: rgba(255, 255, 255, 0.2);
   }
+
+  @include breakpoint-below('large') {
+    line-height: 1;
+    padding: 9px;
+    min-height: 46px;
+  }
 }
 
 .session-header.inactive {
