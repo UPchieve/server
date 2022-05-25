@@ -133,11 +133,6 @@ export async function getLegacyUserObject(
       volunteerUser.trainingCourses = trainingCourses
       volunteerUser.certifications = {
         ...legacyCertifications,
-        upchieve101: {
-          passed: trainingCourses['upchieve101'].complete,
-          tries: 1,
-          lastAttemptedAt: trainingCourses['upchieve101'].updatedAt,
-        },
         ...(await getCertificationsForVolunteers([userId], client))[userId],
       }
     }
