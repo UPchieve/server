@@ -41,10 +41,13 @@ export async function getSessionNotificationsWithSessionId(
         'sentAt',
         'messageId',
         'wasSuccessful',
+        'volunteerPartnerOrg',
       ])
       row.volunteer = {
         firstname: row.firstName,
-        volunteerPartnerOrg: row.volunteerPartnerOrg,
+        volunteerPartnerOrg: row.volunteerPartnerOrg
+          ? row.volunteerPartnerOrg
+          : '',
       }
       delete row.firstName
       delete row.volunteerPartnerOrg
