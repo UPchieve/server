@@ -217,6 +217,41 @@ export async function saveCurrentAvailabilityAsHistory(
   }
 }
 
+export async function saveAvailabilityAsHistoryByDate(
+  userId: Ulid,
+  outageDate: Date
+): Promise<void> {
+  try {
+    const result = await pgQueries.saveAvailabilityAsHistoryByDate.run(
+      { userId, recordedAt: outageDate },
+      getClient()
+    )
+    const errors = []
+    for (const row of result) {
+      if (!makeRequired(row).ok)
+        errors.push(`AvailabilityHistory row ${row} did not save correctly`)
+    }
+    if (errors.length) throw new Error(errors.join('\n'))
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
+export async function getAvailabilityForVolunteerByDate(
+  userId: Ulid,
+  date: Date
+): Promise<Availability> {
+  try {
+    const result = await pgQueries.getAvailabilityForVolunteerByDate.run(
+      { userId, recordedAt: date },
+      getClient()
+    )
+    return buildAvailabilityModel(result.map(v => makeRequired(v)))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function updateAvailabilityByVolunteerId(
   userId: Ulid,
   availability: Availability,
