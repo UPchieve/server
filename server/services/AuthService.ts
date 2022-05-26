@@ -200,9 +200,10 @@ export async function registerPartnerStudent(
   }
 
   let school: School | undefined
+  console.log(college)
   if (highSchoolUpchieveId) {
     school = await findSchoolByUpchieveId(highSchoolUpchieveId)
-  } else if (studentPartnerManifest.schoolSignupRequired) {
+  } else if (studentPartnerManifest.schoolSignupRequired && !college) {
     throw new RegistrationError(
       'Student partner organization requires school, but none provided'
     )
