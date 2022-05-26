@@ -133,15 +133,12 @@ FROM
 WHERE
     recorded_at = (
         SELECT
-            recorded_at
+            MAX(recorded_at)
         FROM
             availability_histories
         WHERE
             recorded_at <= :recordedAt!
-            AND user_id = :userId!
-        ORDER BY
-            recorded_at DESC
-        LIMIT 1)
+            AND user_id = :userId!)
 RETURNING
     id AS ok;
 
@@ -206,14 +203,11 @@ FROM
 WHERE
     recorded_at = (
         SELECT
-            recorded_at
+            MAX(recorded_at)
         FROM
             availability_histories
         WHERE
             recorded_at <= :recordedAt!
-            AND user_id = :userId!
-        ORDER BY
-            recorded_at DESC
-        LIMIT 1)
-AND user_id = :userId!;
+            AND user_id = :userId!)
+    AND user_id = :userId!;
 

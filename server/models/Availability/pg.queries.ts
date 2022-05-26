@@ -273,7 +273,7 @@ export interface ISaveAvailabilityAsHistoryByDateQuery {
   result: ISaveAvailabilityAsHistoryByDateResult;
 }
 
-const saveAvailabilityAsHistoryByDateIR: any = {"name":"saveAvailabilityAsHistoryByDate","params":[{"name":"recordedAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3473,"b":3483,"line":123,"col":5},{"a":3777,"b":3787,"line":140,"col":28}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3816,"b":3822,"line":141,"col":27}]}}],"usedParamSet":{"recordedAt":true,"userId":true},"statement":{"body":"INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    :recordedAt!,\n    user_id,\n    available_start,\n    available_end,\n    timezone,\n    weekday_id,\n    NOW(),\n    NOW()\nFROM\n    availability_histories\nWHERE\n    recorded_at = (\n        SELECT\n            recorded_at\n        FROM\n            availability_histories\n        WHERE\n            recorded_at <= :recordedAt!\n            AND user_id = :userId!\n        ORDER BY\n            recorded_at DESC\n        LIMIT 1)\nRETURNING\n    id AS ok","loc":{"a":3299,"b":3908,"line":120,"col":0}}};
+const saveAvailabilityAsHistoryByDateIR: any = {"name":"saveAvailabilityAsHistoryByDate","params":[{"name":"recordedAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3473,"b":3483,"line":123,"col":5},{"a":3782,"b":3792,"line":140,"col":28}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3821,"b":3827,"line":141,"col":27}]}}],"usedParamSet":{"recordedAt":true,"userId":true},"statement":{"body":"INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    :recordedAt!,\n    user_id,\n    available_start,\n    available_end,\n    timezone,\n    weekday_id,\n    NOW(),\n    NOW()\nFROM\n    availability_histories\nWHERE\n    recorded_at = (\n        SELECT\n            MAX(recorded_at)\n        FROM\n            availability_histories\n        WHERE\n            recorded_at <= :recordedAt!\n            AND user_id = :userId!)\nRETURNING\n    id AS ok","loc":{"a":3299,"b":3851,"line":120,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -294,15 +294,12 @@ const saveAvailabilityAsHistoryByDateIR: any = {"name":"saveAvailabilityAsHistor
  * WHERE
  *     recorded_at = (
  *         SELECT
- *             recorded_at
+ *             MAX(recorded_at)
  *         FROM
  *             availability_histories
  *         WHERE
  *             recorded_at <= :recordedAt!
- *             AND user_id = :userId!
- *         ORDER BY
- *             recorded_at DESC
- *         LIMIT 1)
+ *             AND user_id = :userId!)
  * RETURNING
  *     id AS ok
  * ```
@@ -331,7 +328,7 @@ export interface IInsertNewAvailabilityQuery {
   result: IInsertNewAvailabilityResult;
 }
 
-const insertNewAvailabilityIR: any = {"name":"insertNewAvailability","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4078,"b":4080,"line":152,"col":5}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4088,"b":4094,"line":153,"col":5}]}},{"name":"availableStart","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4110,"b":4124,"line":155,"col":5}]}},{"name":"availableEnd","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4132,"b":4144,"line":156,"col":5}]}},{"name":"timezone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4152,"b":4160,"line":157,"col":5}]}},{"name":"day","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4219,"b":4222,"line":163,"col":11}]}}],"usedParamSet":{"id":true,"userId":true,"availableStart":true,"availableEnd":true,"timezone":true,"day":true},"statement":{"body":"INSERT INTO availabilities (id, user_id, weekday_id, available_start, available_end, timezone, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    id,\n    :availableStart!,\n    :availableEnd!,\n    :timezone!,\n    NOW(),\n    NOW()\nFROM\n    weekdays\nWHERE\n    day = :day!\nRETURNING\n    id AS ok","loc":{"a":3947,"b":4245,"line":150,"col":0}}};
+const insertNewAvailabilityIR: any = {"name":"insertNewAvailability","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4021,"b":4023,"line":149,"col":5}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4031,"b":4037,"line":150,"col":5}]}},{"name":"availableStart","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4053,"b":4067,"line":152,"col":5}]}},{"name":"availableEnd","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4075,"b":4087,"line":153,"col":5}]}},{"name":"timezone","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4095,"b":4103,"line":154,"col":5}]}},{"name":"day","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4162,"b":4165,"line":160,"col":11}]}}],"usedParamSet":{"id":true,"userId":true,"availableStart":true,"availableEnd":true,"timezone":true,"day":true},"statement":{"body":"INSERT INTO availabilities (id, user_id, weekday_id, available_start, available_end, timezone, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    id,\n    :availableStart!,\n    :availableEnd!,\n    :timezone!,\n    NOW(),\n    NOW()\nFROM\n    weekdays\nWHERE\n    day = :day!\nRETURNING\n    id AS ok","loc":{"a":3890,"b":4188,"line":147,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -373,7 +370,7 @@ export interface IClearAvailabilityForVolunteerQuery {
   result: IClearAvailabilityForVolunteerResult;
 }
 
-const clearAvailabilityForVolunteerIR: any = {"name":"clearAvailabilityForVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4336,"b":4342,"line":170,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM availabilities\nWHERE user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":4292,"b":4370,"line":169,"col":0}}};
+const clearAvailabilityForVolunteerIR: any = {"name":"clearAvailabilityForVolunteer","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4279,"b":4285,"line":167,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM availabilities\nWHERE user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":4235,"b":4313,"line":166,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -405,7 +402,7 @@ export interface ISaveLegacyAvailabilityQuery {
   result: ISaveLegacyAvailabilityResult;
 }
 
-const saveLegacyAvailabilityIR: any = {"name":"saveLegacyAvailability","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4546,"b":4548,"line":178,"col":5}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4556,"b":4562,"line":179,"col":5},{"a":4691,"b":4697,"line":188,"col":15}]}},{"name":"availability","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4610,"b":4622,"line":182,"col":5}]}}],"usedParamSet":{"id":true,"userId":true,"availability":true},"statement":{"body":"INSERT INTO legacy_availability_histories (id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    availabilities.timezone,\n    NOW(),\n    :availability!,\n    NOW(),\n    NOW()\nFROM\n    availabilities\nWHERE\n    user_id = :userId!\nLIMIT 1\nRETURNING\n    id AS ok","loc":{"a":4410,"b":4728,"line":176,"col":0}}};
+const saveLegacyAvailabilityIR: any = {"name":"saveLegacyAvailability","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4489,"b":4491,"line":175,"col":5}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4499,"b":4505,"line":176,"col":5},{"a":4634,"b":4640,"line":185,"col":15}]}},{"name":"availability","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4553,"b":4565,"line":179,"col":5}]}}],"usedParamSet":{"id":true,"userId":true,"availability":true},"statement":{"body":"INSERT INTO legacy_availability_histories (id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    availabilities.timezone,\n    NOW(),\n    :availability!,\n    NOW(),\n    NOW()\nFROM\n    availabilities\nWHERE\n    user_id = :userId!\nLIMIT 1\nRETURNING\n    id AS ok","loc":{"a":4353,"b":4671,"line":173,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -453,7 +450,7 @@ export interface IGetAvailabilityForVolunteerByDateQuery {
   result: IGetAvailabilityForVolunteerByDateResult;
 }
 
-const getAvailabilityForVolunteerByDateIR: any = {"name":"getAvailabilityForVolunteerByDate","params":[{"name":"recordedAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5334,"b":5344,"line":213,"col":28}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5373,"b":5379,"line":214,"col":27},{"a":5459,"b":5465,"line":218,"col":15}]}}],"usedParamSet":{"recordedAt":true,"userId":true},"statement":{"body":"SELECT\n    availability_histories.id,\n    availability_histories.available_start,\n    availability_histories.available_end,\n    availability_histories.timezone,\n    availability_histories.recorded_at,\n    weekdays.day AS weekday\nFROM\n    availability_histories\n    LEFT JOIN weekdays ON availability_histories.weekday_id = weekdays.id\n    LEFT JOIN users ON availability_histories.user_id = users.id\nWHERE\n    recorded_at = (\n        SELECT\n            recorded_at\n        FROM\n            availability_histories\n        WHERE\n            recorded_at <= :recordedAt!\n            AND user_id = :userId!\n        ORDER BY\n            recorded_at DESC\n        LIMIT 1)\nAND user_id = :userId!","loc":{"a":4779,"b":5465,"line":195,"col":0}}};
+const getAvailabilityForVolunteerByDateIR: any = {"name":"getAvailabilityForVolunteerByDate","params":[{"name":"recordedAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5282,"b":5292,"line":210,"col":28}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5321,"b":5327,"line":211,"col":27},{"a":5349,"b":5355,"line":212,"col":19}]}}],"usedParamSet":{"recordedAt":true,"userId":true},"statement":{"body":"SELECT\n    availability_histories.id,\n    availability_histories.available_start,\n    availability_histories.available_end,\n    availability_histories.timezone,\n    availability_histories.recorded_at,\n    weekdays.day AS weekday\nFROM\n    availability_histories\n    LEFT JOIN weekdays ON availability_histories.weekday_id = weekdays.id\n    LEFT JOIN users ON availability_histories.user_id = users.id\nWHERE\n    recorded_at = (\n        SELECT\n            MAX(recorded_at)\n        FROM\n            availability_histories\n        WHERE\n            recorded_at <= :recordedAt!\n            AND user_id = :userId!)\n    AND user_id = :userId!","loc":{"a":4722,"b":5355,"line":192,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -472,16 +469,13 @@ const getAvailabilityForVolunteerByDateIR: any = {"name":"getAvailabilityForVolu
  * WHERE
  *     recorded_at = (
  *         SELECT
- *             recorded_at
+ *             MAX(recorded_at)
  *         FROM
  *             availability_histories
  *         WHERE
  *             recorded_at <= :recordedAt!
- *             AND user_id = :userId!
- *         ORDER BY
- *             recorded_at DESC
- *         LIMIT 1)
- * AND user_id = :userId!
+ *             AND user_id = :userId!)
+ *     AND user_id = :userId!
  * ```
  */
 export const getAvailabilityForVolunteerByDate = new PreparedQuery<IGetAvailabilityForVolunteerByDateParams,IGetAvailabilityForVolunteerByDateResult>(getAvailabilityForVolunteerByDateIR);
