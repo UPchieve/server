@@ -226,7 +226,7 @@
       <i>Still need help? <a href="https://upchieve.org/resources-for-college-students" target="_blank"> Find college resources here. </a></i>
     </p>
 
-    <button
+    <button v-if="!isCollegeStudent"
       class="uc-form-button-big"
       type="button"
       @click="ineligibleContinue"

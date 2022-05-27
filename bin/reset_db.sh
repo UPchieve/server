@@ -4,7 +4,7 @@
 set -o errexit
 
 # temporarily stop pgAmdin container
-docker ps -q --filter "name=subway_pgadmin_1" | grep -q . && docker stop subway_pgadmin_1
+docker ps -q --filter "name=subway-pgadmin-1" | grep -q . && docker stop subway-pgadmin-1
 
 PGURL='postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable' 
 
@@ -27,4 +27,4 @@ PGPASSFILE="database/.pgpass" psql -w -h localhost -p 5432 -d upchieve -U admin 
 PGPASSFILE="database/.pgpass" psql -w -h localhost -p 5432 -d upchieve -f ./database/db_init/auth.sql -U admin >/dev/null
 
 # restart mgAdmin container
-docker ps -q --all --filter "name=subway_pgadmin_1" | grep -q . && docker start subway_pgadmin_1
+docker ps -q --all --filter "name=subway-pgadmin-1" | grep -q . && docker start subway-pgadmin-1
