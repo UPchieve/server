@@ -200,7 +200,6 @@ export async function registerPartnerStudent(
   }
 
   let school: School | undefined
-  console.log(college)
   if (highSchoolUpchieveId) {
     school = await findSchoolByUpchieveId(highSchoolUpchieveId)
   } else if (studentPartnerManifest.schoolSignupRequired && !college) {
