@@ -14,7 +14,11 @@ const main = async (): Promise<void> => {
     await db.connect()
     logger.info('Starting queue')
     const queue = new Queue(config.workerQueueName, {
-      createClient: () => new Redis(config.redisConnectionString),
+      createClient: () =>
+        new Redis(config.redisConnectionString, {
+          enableReadyCheck: false,
+          maxRetriesPerRequest: null,
+        }),
       settings: {
         // to prevent stalling long jobs
         stalledInterval: 1000 * 60 * 30,
