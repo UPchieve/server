@@ -132,6 +132,7 @@ export async function getLegacyUserObject(
       }
       volunteerUser.trainingCourses = trainingCourses
       volunteerUser.certifications = {
+        // legacyCertifications is a map of all of the quizzes defined via the `quizzes` table
         ...legacyCertifications,
         ...(await getCertificationsForVolunteers([userId], client))[userId],
       }

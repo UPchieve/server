@@ -254,12 +254,12 @@ export async function getQuizScore(
       : SUBJECT_THRESHOLD
   const passed = percent >= threshold
 
-  const certificationMap = await VolunteerModel.getCertificationsForVolunteers([
+  const userQuizzesMap = await VolunteerModel.getCertificationsForVolunteers([
     user.id,
   ])
-  const certifications = certificationMap[user.id]
+  const userQuizzes = userQuizzesMap[user.id]
 
-  const tries = certifications[cert] ? certifications[cert].tries : 1
+  const tries = userQuizzes[cert] ? userQuizzes[cert].tries : 1
 
   await VolunteerModel.updateVolunteerQuiz(
     user.id,
@@ -268,7 +268,7 @@ export async function getQuizScore(
   )
 
   if (passed) {
-    const unlockedSubjects = getUnlockedSubjects(cert, certifications)
+    const unlockedSubjects = getUnlockedSubjects(cert, userQuizzes)
 
     // set custom field passedUpchieve101 in SendGrid
     if (cert === TRAINING.UPCHIEVE_101) await createContact(user.id)
@@ -300,7 +300,7 @@ export async function getQuizScore(
       !volunteerProfile.onboarded &&
       volunteerProfile.availabilityLastModifiedAt &&
       unlockedSubjects.length > 0 &&
-      certifications.upchieve101?.passed
+      userQuizzes.upchieve101?.passed
     ) {
       await VolunteerModel.updateVolunteerOnboarded(user.id)
       await queueOnboardingEventEmails(user.id)
