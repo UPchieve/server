@@ -1494,7 +1494,7 @@ paths:
       responses:
         '200':
           description: Responds with number of remaining volunteers a student is allowed to favorite
-  /api/survey/presession/{:sessionId}:
+  /api/survey/presession:
     get:
       tags:
         - survey
@@ -1503,14 +1503,14 @@ paths:
       security:
         - cookieAuth: []
       parameters:
-        - name: sessionId
+        - name: subjectName
           required: true
-          in: path
+          in: body
           schema:
-            $ref: '#/components/schemas/SessionId'
+            $ref: '#/components/schemas/Category'
       responses:
         '200':
-          description: Responds with an object of the survey
+          description: Responds with an object of the survey with the survey questions and response choices
     post:
       tags:
         - survey

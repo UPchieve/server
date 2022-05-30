@@ -20,17 +20,43 @@ ON CONFLICT (session_id)
         updated_at;
 
 
+/* @name getPresessionSurveyLegacy */
+-- to be removed
+-- SELECT
+--     id,
+--     user_id,
+--     session_id,
+--     response_data,
+--     created_at,
+--     updated_at
+-- FROM
+--     pre_session_surveys
+-- WHERE
+--     user_id = :userId!
+--     AND session_id = :sessionId!;
 /* @name getPresessionSurvey */
 SELECT
-    id,
-    user_id,
-    session_id,
-    response_data,
-    created_at,
-    updated_at
+    survey_questions.id,
+    survey_questions.question_text,
+    ssq.display_priority,
+    qt.name,
+    sub.*
 FROM
-    pre_session_surveys
+    surveys_presession
+    JOIN surveys ON survey_id = surveys.id
+    JOIN subjects ON subject_id = subjects.id
+    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
+    JOIN survey_questions ON ssq.survey_question_id = survey_questions.id
+    JOIN question_types qt ON qt.id = survey_questions.question_type_id
+    JOIN LATERAL (
+        SELECT
+            array_agg(choice_text) AS responses,
+            array_agg(display_priority) AS response_display_priority
+        FROM
+            survey_questions_response_choices sqrc
+            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
+        WHERE
+            sqrc.survey_question_id = survey_questions.id) sub ON TRUE
 WHERE
-    user_id = :userId!
-    AND session_id = :sessionId!;
+    subjects.name = :subjectName!;
 

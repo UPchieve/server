@@ -46,22 +46,45 @@ export async function savePresessionSurvey(
 
 // NOTE: this query can be replaced by a JOIN that happens when we fetch
 // the session on the feedback page
+// @todo: remove and replace this function with the new one
+// export async function getPresessionSurveyLegacy(
+//   userId: Ulid,
+//   sessionId: Ulid
+// ): Promise<Survey | undefined> {
+//   try {
+//     const result = await pgQueries.getPresessionSurveyLegacy.run(
+//       {
+//         userId,
+//         sessionId,
+//       },
+//       getClient()
+//     )
+//     if (result.length) {
+//       const survey = makeRequired(result[0])
+//       return parseQueryResult(survey)
+//     }
+//   } catch (err) {
+//     throw new RepoReadError(err)
+//   }
+// }
+
+export type PresessionSurvey = {
+  questionText: string
+  displayPriority: number
+  questionType: string
+  responseChoices: string[]
+}
+
 export async function getPresessionSurvey(
-  userId: Ulid,
-  sessionId: Ulid
-): Promise<Survey | undefined> {
+  subjectName: string
+): Promise<PresessionSurvey> {
   try {
     const result = await pgQueries.getPresessionSurvey.run(
-      {
-        userId,
-        sessionId,
-      },
+      { subjectName },
       getClient()
     )
-    if (result.length) {
-      const survey = makeRequired(result[0])
-      return parseQueryResult(survey)
-    }
+
+    if (result.length) return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -1,7 +1,9 @@
 import expressWs from 'express-ws'
 import { savePresessionSurvey, getPresessionSurvey } from '../../models/Survey'
-import { asUlid } from '../../utils/type-utils'
+import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
+import * as SurveyService from '../../services/SurveyService'
+import { resError } from '../res-error'
 
 export function routeSurvey(router: expressWs.Router): void {
   router.post('/survey/presession/:sessionId', async (req, res, next) => {
@@ -20,15 +22,18 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
-  router.get('/survey/presession/:sessionId', async (req, res, next) => {
-    const user = extractUser(req)
-    const { sessionId } = req.params
+  router.get('/survey/presession', async (req, res, next) => {
+    // const user = extractUser(req)
+    // const { sessionId } = req.params
+    const { subjectName } = req.body.subjectName
 
     try {
-      const survey = await getPresessionSurvey(user.id, asUlid(sessionId))
+      const survey = await SurveyService.getPresessionSurvey(
+        asString(subjectName)
+      )
       res.json({ survey })
     } catch (error) {
-      next(error)
+      resError(res, error)
     }
   })
 }
