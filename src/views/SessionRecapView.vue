@@ -35,7 +35,9 @@
           class="document"
         >
           <h2 class="document__title">Doc Editor</h2>
-          <div class="quill-container"></div>
+          <div class="document__container">
+            <div class="quill-container"></div>
+          </div>
         </div>
         <div
           v-if="session.hasWhiteboardDoc"
@@ -189,21 +191,12 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .ql-container {
   max-width: fit-content;
 }
 
-.ql-editor {
-  overflow-y: unset;
-}
 
-.unfavoriting-modal-title {
-  text-align: center;
-}
-</style>
-
-<style lang="scss" scoped>
 .card-title{
   @include font-category('display-small');
   text-align: left;
@@ -265,6 +258,7 @@ export default {
 }
 
 .document {
+  @include flex-container(column);
   margin-right: 1.8em;
   margin-bottom: 1.8em;
   font-size: 20px;
@@ -283,6 +277,11 @@ export default {
 
   @include breakpoint-below('large') {
     margin-right: 0;
+  }
+
+  &__container {
+    overflow-y: auto;
+    height: 100%;
   }
 }
 

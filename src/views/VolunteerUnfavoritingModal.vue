@@ -66,6 +66,7 @@ export default {
 
   &-title {
     @include font-category('heading');
+    text-align: center;
   }
 
   &-coach {
