@@ -1,7 +1,6 @@
 -- migrate:up
 CREATE TABLE IF NOT EXISTS upchieve.survey_questions (
-    id serial PRIMARY KEY,
-    question_tag_ids int[],
+    id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     question_type_id integer NOT NULL REFERENCES upchieve.question_types (id),
     question_text text NOT NULL,
     created_at timestamptz NOT NULL,

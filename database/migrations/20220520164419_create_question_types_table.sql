@@ -1,6 +1,6 @@
 -- migrate:up
 CREATE TABLE IF NOT EXISTS upchieve.question_types (
-    id serial PRIMARY KEY,
+    id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name text NOT NULL
 );
 
