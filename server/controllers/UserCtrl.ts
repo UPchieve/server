@@ -11,6 +11,7 @@ import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
 import { emitter } from '../services/EventsService'
 import { ACCOUNT_USER_ACTIONS, STUDENT_EVENTS } from '../constants'
+import { queueOnboardingEmails } from '../services/StudentService'
 
 export async function checkReferral(
   referredByCode: string | undefined
@@ -65,6 +66,8 @@ export async function createStudent(
   } catch (err) {
     captureException(err)
   }
+
+  await queueOnboardingEmails(student.id)
 
   emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, student.id)
 
