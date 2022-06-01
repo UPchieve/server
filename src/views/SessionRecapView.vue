@@ -192,10 +192,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.ql-container {
-  max-width: fit-content;
-}
-
 .chat-card-editor-container {
   @include flex-container(column);
   flex-basis: 60%;
