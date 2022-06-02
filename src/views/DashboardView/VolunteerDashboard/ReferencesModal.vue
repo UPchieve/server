@@ -10,7 +10,7 @@
           Before providing the name and email for your references, please make
           sure they’re eligible by reviewing our
           <a
-            href="https://upc-training-materials.s3.us-east-2.amazonaws.com/choosing-references.pdf"
+            :href="referenceDocUrl"
             target="_blank"
             rel="noopener noreferrer"
             >References Guide</a
@@ -152,7 +152,7 @@ import validator from 'validator'
 import TrashIcon from '@/assets/trash.svg'
 import CrossIcon from '@/assets/cross.svg'
 import AnalyticsService from '@/services/AnalyticsService'
-import { EVENTS } from '@/consts'
+import { EVENTS, DOCS_URL } from '@/consts'
 
 export default {
   name: 'reference-modal',
@@ -167,7 +167,8 @@ export default {
       newReferenceFirstName: '',
       newReferenceLastName: '',
       newReferenceEmail: '',
-      isAddReferenceMode: false
+      isAddReferenceMode: false,
+      referenceDocUrl: `${DOCS_URL}/choosing-references.pdf`
     }
   },
   mounted() {
