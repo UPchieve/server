@@ -8,6 +8,7 @@ export async function studentPartnerOrgsTest(): Promise<NameToId> {
       key: 'college-mentors',
       name: 'College Mentors',
       highSchoolSignup: true,
+      collegeSignup: false,
       schoolSignupRequired: true,
       signupCode: 'MENTORS',
     },
@@ -16,6 +17,7 @@ export async function studentPartnerOrgsTest(): Promise<NameToId> {
       key: 'community-org',
       name: 'Community Org',
       highSchoolSignup: true,
+      collegeSignup: false,
       schoolSignupRequired: false,
       signupCode: 'COMMUNITY',
     },
@@ -23,10 +25,29 @@ export async function studentPartnerOrgsTest(): Promise<NameToId> {
       id: getDbUlid(),
       key: 'school-helpers',
       name: 'School Helpers',
-      highSchoolSignup: false,
+      highSchoolSignup: false,  
+      collegeSignup: false,
       schoolSignupRequired: false,
       signupCode: 'SCHOOLHELPERS',
     },
+    {
+      id: getDbUlid(),
+      key: 'college-learners',
+      name: 'College Learners',
+      highSchoolSignup: false,
+      collegeSignup: true,
+      schoolSignupRequired: true,
+      signupCode: 'COLLEGELEARNERS'
+    },
+    {
+      id: getDbUlid(),
+      key: 'all-the-students',
+      name: 'All The Students',
+      highSchoolSignup: true,
+      collegeSignup: true,
+      schoolSignupRequired: true,
+      signupCode: 'ALLTHESTUDENTS'
+    }    
   ]
   const temp: NameToId = {}
   for (const org of orgs) {
