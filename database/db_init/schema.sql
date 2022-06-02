@@ -1361,6 +1361,26 @@ ALTER TABLE upchieve.surveys ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 
 --
+-- Name: surveys_postsession; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.surveys_postsession (
+    survey_id integer NOT NULL,
+    subject_id integer NOT NULL
+);
+
+
+--
+-- Name: surveys_presession; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.surveys_presession (
+    survey_id integer NOT NULL,
+    subject_id integer NOT NULL
+);
+
+
+--
 -- Name: surveys_survey_questions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3749,6 +3769,38 @@ ALTER TABLE ONLY upchieve.survey_questions_response_choices
 
 
 --
+-- Name: surveys_postsession surveys_postsession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_postsession
+    ADD CONSTRAINT surveys_postsession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
+-- Name: surveys_postsession surveys_postsession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_postsession
+    ADD CONSTRAINT surveys_postsession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+
+
+--
+-- Name: surveys_presession surveys_presession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_presession
+    ADD CONSTRAINT surveys_presession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
+-- Name: surveys_presession surveys_presession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_presession
+    ADD CONSTRAINT surveys_presession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+
+
+--
 -- Name: surveys_survey_questions surveys_survey_questions_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4107,4 +4159,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220520214846'),
     ('20220522224209'),
     ('20220522224430'),
-    ('20220601154505');
+    ('20220601154505'),
+    ('20220602170321'),
+    ('20220602170346');
