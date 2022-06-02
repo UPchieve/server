@@ -20,23 +20,8 @@ ON CONFLICT (session_id)
         updated_at;
 
 
-/* @name getPresessionSurveyLegacy */
--- to be removed
--- SELECT
---     id,
---     user_id,
---     session_id,
---     response_data,
---     created_at,
---     updated_at
--- FROM
---     pre_session_surveys
--- WHERE
---     user_id = :userId!
---     AND session_id = :sessionId!;
 /* @name getPresessionSurvey */
 SELECT
-    survey_questions.id,
     survey_questions.question_text,
     ssq.display_priority,
     qt.name,
@@ -50,8 +35,7 @@ FROM
     JOIN question_types qt ON qt.id = survey_questions.question_type_id
     JOIN LATERAL (
         SELECT
-            array_agg(choice_text) AS responses,
-            array_agg(display_priority) AS response_display_priority
+            json_build_object('choiceText', choice_text, 'displayPriority', display_priority) AS responses
         FROM
             survey_questions_response_choices sqrc
             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id

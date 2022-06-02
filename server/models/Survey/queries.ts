@@ -68,23 +68,30 @@ export async function savePresessionSurvey(
 //   }
 // }
 
+export type SurveyResponseDataType = {
+  choiceText: string,
+  displayPriority: number
+}
+
 export type PresessionSurvey = {
   questionText: string
   displayPriority: number
   questionType: string
-  responseChoices: string[]
+  responses: SurveyResponseDataType[]
 }
 
 export async function getPresessionSurvey(
   subjectName: string
-): Promise<PresessionSurvey> {
+): Promise<PresessionSurvey[]> {
   try {
     const result = await pgQueries.getPresessionSurvey.run(
       { subjectName },
       getClient()
     )
-
-    if (result.length) return result.map(v => makeRequired(v))
+  
+    if (result.length) 
+      return result.map(v => makeRequired(v))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }

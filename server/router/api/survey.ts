@@ -23,8 +23,6 @@ export function routeSurvey(router: expressWs.Router): void {
   })
 
   router.get('/survey/presession', async (req, res, next) => {
-    // const user = extractUser(req)
-    // const { sessionId } = req.params
     const { subjectName } = req.body.subjectName
 
     try {

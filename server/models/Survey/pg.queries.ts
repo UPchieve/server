@@ -56,78 +56,39 @@ const savePresessionSurveyIR: any = {"name":"savePresessionSurvey","params":[{"n
 export const savePresessionSurvey = new PreparedQuery<ISavePresessionSurveyParams,ISavePresessionSurveyResult>(savePresessionSurveyIR);
 
 
-/** 'GetPresessionSurveyLegacy' parameters type */
-export interface IGetPresessionSurveyLegacyParams {
-  sessionId: string;
-  userId: string;
-}
-
-/** 'GetPresessionSurveyLegacy' return type */
-export interface IGetPresessionSurveyLegacyResult {
-  createdAt: Date;
-  id: string;
-  responseData: Json | null;
-  sessionId: string;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetPresessionSurveyLegacy' query type */
-export interface IGetPresessionSurveyLegacyQuery {
-  params: IGetPresessionSurveyLegacyParams;
-  result: IGetPresessionSurveyLegacyResult;
-}
-
-const getPresessionSurveyLegacyIR: any = {"name":"getPresessionSurveyLegacy","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":645,"b":651,"line":34,"col":15}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":675,"b":684,"line":35,"col":22}]}}],"usedParamSet":{"userId":true,"sessionId":true},"statement":{"body":"SELECT\n    id,\n    user_id,\n    session_id,\n    response_data,\n    created_at,\n    updated_at\nFROM\n    pre_session_surveys\nWHERE\n    user_id = :userId!\n    AND session_id = :sessionId!","loc":{"a":501,"b":684,"line":24,"col":0}}};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     id,
- *     user_id,
- *     session_id,
- *     response_data,
- *     created_at,
- *     updated_at
- * FROM
- *     pre_session_surveys
- * WHERE
- *     user_id = :userId!
- *     AND session_id = :sessionId!
- * ```
- */
-export const getPresessionSurveyLegacy = new PreparedQuery<IGetPresessionSurveyLegacyParams,IGetPresessionSurveyLegacyResult>(getPresessionSurveyLegacyIR);
-
-
 /** Query 'GetPresessionSurvey' is invalid, so its result is assigned type 'never' */
 export type IGetPresessionSurveyResult = never;
 
 /** Query 'GetPresessionSurvey' is invalid, so its parameters are assigned type 'never' */
 export type IGetPresessionSurveyParams = never;
 
-const getPresessionSurveyIR: any = {"name":"getPresessionSurvey","params":[{"name":"subjectName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1459,"b":1470,"line":54,"col":23}]}}],"usedParamSet":{"subjectName":true},"statement":{"body":"select \nsurvey_questions.id,\nsurvey_questions.question_text, \nssq.display_priority, qt.name, sub.*\nfrom surveys_presession\njoin surveys on survey_id = surveys.id\njoin subjects on subject_id = subjects.id\njoin surveys_survey_questions ssq on ssq.survey_id = surveys.id\njoin survey_questions on ssq.survey_question_id = survey_questions.id\njoin question_types qt on qt.id = survey_questions.question_type_id\njoin lateral (\n    select array_agg(choice_text) as responses, array_agg(display_priority) as response_display_priority\n  from survey_questions_response_choices sqrc \n    join survey_response_choices src on src.id = sqrc.response_choice_id\n    where sqrc.survey_question_id = survey_questions.id\n) sub on true\nwhere subjects.name = :subjectName!","loc":{"a":720,"b":1470,"line":38,"col":0}}};
+const getPresessionSurveyIR: any = {"name":"getPresessionSurvey","params":[{"name":"subjectName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1315,"b":1326,"line":44,"col":21}]}}],"usedParamSet":{"subjectName":true},"statement":{"body":"SELECT\n    survey_questions.question_text,\n    ssq.display_priority,\n    qt.name,\n    sub.*\nFROM\n    surveys_presession\n    JOIN surveys ON survey_id = surveys.id\n    JOIN subjects ON subject_id = subjects.id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id\n    JOIN survey_questions ON ssq.survey_question_id = survey_questions.id\n    JOIN question_types qt ON qt.id = survey_questions.question_type_id\n    JOIN LATERAL (\n        SELECT\n            json_build_object('choiceText', choice_text, 'displayPriority', display_priority) AS responses\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.survey_question_id = survey_questions.id) sub ON TRUE\nWHERE\n    subjects.name = :subjectName!","loc":{"a":494,"b":1326,"line":23,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * select 
- * survey_questions.id,
- * survey_questions.question_text, 
- * ssq.display_priority, qt.name, sub.*
- * from surveys_presession
- * join surveys on survey_id = surveys.id
- * join subjects on subject_id = subjects.id
- * join surveys_survey_questions ssq on ssq.survey_id = surveys.id
- * join survey_questions on ssq.survey_question_id = survey_questions.id
- * join question_types qt on qt.id = survey_questions.question_type_id
- * join lateral (
- *     select array_agg(choice_text) as responses, array_agg(display_priority) as response_display_priority
- *   from survey_questions_response_choices sqrc 
- *     join survey_response_choices src on src.id = sqrc.response_choice_id
- *     where sqrc.survey_question_id = survey_questions.id
- * ) sub on true
- * where subjects.name = :subjectName!
+ * SELECT
+ *     survey_questions.question_text,
+ *     ssq.display_priority,
+ *     qt.name,
+ *     sub.*
+ * FROM
+ *     surveys_presession
+ *     JOIN surveys ON survey_id = surveys.id
+ *     JOIN subjects ON subject_id = subjects.id
+ *     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
+ *     JOIN survey_questions ON ssq.survey_question_id = survey_questions.id
+ *     JOIN question_types qt ON qt.id = survey_questions.question_type_id
+ *     JOIN LATERAL (
+ *         SELECT
+ *             json_build_object('choiceText', choice_text, 'displayPriority', display_priority) AS responses
+ *         FROM
+ *             survey_questions_response_choices sqrc
+ *             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
+ *         WHERE
+ *             sqrc.survey_question_id = survey_questions.id) sub ON TRUE
+ * WHERE
+ *     subjects.name = :subjectName!
  * ```
  */
 export const getPresessionSurvey = new PreparedQuery<IGetPresessionSurveyParams,IGetPresessionSurveyResult>(getPresessionSurveyIR);
