@@ -170,7 +170,8 @@ export function routes(app: Express) {
       await IpAddressService.checkIpAddress(req.ip)
       res.sendStatus(200)
     } catch (err) {
-      resError(res, err)
+      res.sendStatus(200)
+      // resError(res, err)
     }
   })
 
