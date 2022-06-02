@@ -46,51 +46,44 @@ export async function savePresessionSurvey(
 
 // NOTE: this query can be replaced by a JOIN that happens when we fetch
 // the session on the feedback page
-// @todo: remove and replace this function with the new one
-// export async function getPresessionSurveyLegacy(
-//   userId: Ulid,
-//   sessionId: Ulid
-// ): Promise<Survey | undefined> {
-//   try {
-//     const result = await pgQueries.getPresessionSurveyLegacy.run(
-//       {
-//         userId,
-//         sessionId,
-//       },
-//       getClient()
-//     )
-//     if (result.length) {
-//       const survey = makeRequired(result[0])
-//       return parseQueryResult(survey)
-//     }
-//   } catch (err) {
-//     throw new RepoReadError(err)
-//   }
-// }
-
-export type SurveyResponseDataType = {
-  choiceText: string,
-  displayPriority: number
+export async function getPresessionSurvey(
+  userId: Ulid,
+  sessionId: Ulid
+): Promise<Survey | undefined> {
+  try {
+    const result = await pgQueries.getPresessionSurvey.run(
+      {
+        userId,
+        sessionId,
+      },
+      getClient()
+    )
+    if (result.length) {
+      const survey = makeRequired(result[0])
+      return parseQueryResult(survey)
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 export type PresessionSurvey = {
   questionText: string
   displayPriority: number
   questionType: string
-  responses: SurveyResponseDataType[]
+  responses: pgQueries.Json
 }
 
-export async function getPresessionSurvey(
+export async function getPresessionSurveyNew(
   subjectName: string
 ): Promise<PresessionSurvey[]> {
   try {
-    const result = await pgQueries.getPresessionSurvey.run(
+    const result = await pgQueries.getPresessionSurveyNew.run(
       { subjectName },
       getClient()
     )
-  
-    if (result.length) 
-      return result.map(v => makeRequired(v))
+
+    if (result.length) return result.map(v => makeRequired(v))
     return []
   } catch (err) {
     throw new RepoReadError(err)

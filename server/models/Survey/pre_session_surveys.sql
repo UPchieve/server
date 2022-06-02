@@ -22,9 +22,24 @@ ON CONFLICT (session_id)
 
 /* @name getPresessionSurvey */
 SELECT
+    id,
+    user_id,
+    session_id,
+    response_data,
+    created_at,
+    updated_at
+FROM
+    pre_session_surveys
+WHERE
+    user_id = :userId!
+    AND session_id = :sessionId!;
+
+
+/* @name getPresessionSurveyNew */
+SELECT
     survey_questions.question_text,
     ssq.display_priority,
-    qt.name,
+    qt.name AS question_type,
     sub.*
 FROM
     surveys_presession
