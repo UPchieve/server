@@ -287,7 +287,7 @@ export default {
       return (
         this.user.isOnboarded &&
         !this.user.certifications['upchieve101'].passed &&
-        new Date(this.user.createdAt).getTime() >= new Date('01/01/2022') && 
+        new Date(this.user.createdAt) >= new Date('01/01/2022') && 
         this.isUpchieve101GracePeriodBannerActive
       )
     },
