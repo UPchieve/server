@@ -655,20 +655,14 @@ CREATE TABLE upchieve.question_tags (
 -- Name: question_tags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
 --
 
-CREATE SEQUENCE upchieve.question_tags_id_seq
-    AS integer
+ALTER TABLE upchieve.question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.question_tags_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: question_tags_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.question_tags_id_seq OWNED BY upchieve.question_tags.id;
+    CACHE 1
+);
 
 
 --
@@ -685,20 +679,14 @@ CREATE TABLE upchieve.question_types (
 -- Name: question_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
 --
 
-CREATE SEQUENCE upchieve.question_types_id_seq
-    AS integer
+ALTER TABLE upchieve.question_types ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.question_types_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: question_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.question_types_id_seq OWNED BY upchieve.question_types.id;
+    CACHE 1
+);
 
 
 --
@@ -1258,7 +1246,6 @@ ALTER SEQUENCE upchieve.subjects_id_seq OWNED BY upchieve.subjects.id;
 
 CREATE TABLE upchieve.survey_questions (
     id integer NOT NULL,
-    question_tag_ids integer[],
     question_type_id integer NOT NULL,
     question_text text NOT NULL,
     created_at timestamp with time zone NOT NULL,
@@ -1270,20 +1257,41 @@ CREATE TABLE upchieve.survey_questions (
 -- Name: survey_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
 --
 
-CREATE SEQUENCE upchieve.survey_questions_id_seq
-    AS integer
+ALTER TABLE upchieve.survey_questions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_questions_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1;
+    CACHE 1
+);
 
 
 --
--- Name: survey_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+-- Name: survey_questions_question_tags; Type: TABLE; Schema: upchieve; Owner: -
 --
 
-ALTER SEQUENCE upchieve.survey_questions_id_seq OWNED BY upchieve.survey_questions.id;
+CREATE TABLE upchieve.survey_questions_question_tags (
+    id integer NOT NULL,
+    survey_question_id integer NOT NULL,
+    question_tag_id integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: survey_questions_question_tags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.survey_questions_question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_questions_question_tags_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
 
 --
@@ -1316,20 +1324,14 @@ CREATE TABLE upchieve.survey_response_choices (
 -- Name: survey_response_choices_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
 --
 
-CREATE SEQUENCE upchieve.survey_response_choices_id_seq
-    AS integer
+ALTER TABLE upchieve.survey_response_choices ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_response_choices_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: survey_response_choices_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.survey_response_choices_id_seq OWNED BY upchieve.survey_response_choices.id;
+    CACHE 1
+);
 
 
 --
@@ -1348,20 +1350,34 @@ CREATE TABLE upchieve.surveys (
 -- Name: surveys_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
 --
 
-CREATE SEQUENCE upchieve.surveys_id_seq
-    AS integer
+ALTER TABLE upchieve.surveys ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.surveys_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1;
+    CACHE 1
+);
 
 
 --
--- Name: surveys_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+-- Name: surveys_postsession; Type: TABLE; Schema: upchieve; Owner: -
 --
 
-ALTER SEQUENCE upchieve.surveys_id_seq OWNED BY upchieve.surveys.id;
+CREATE TABLE upchieve.surveys_postsession (
+    survey_id integer NOT NULL,
+    subject_id integer NOT NULL
+);
+
+
+--
+-- Name: surveys_presession; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.surveys_presession (
+    survey_id integer NOT NULL,
+    subject_id integer NOT NULL
+);
 
 
 --
@@ -1382,20 +1398,14 @@ CREATE TABLE upchieve.surveys_survey_questions (
 -- Name: surveys_survey_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
 --
 
-CREATE SEQUENCE upchieve.surveys_survey_questions_id_seq
-    AS integer
+ALTER TABLE upchieve.surveys_survey_questions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.surveys_survey_questions_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: surveys_survey_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.surveys_survey_questions_id_seq OWNED BY upchieve.surveys_survey_questions.id;
+    CACHE 1
+);
 
 
 --
@@ -1961,20 +1971,6 @@ ALTER TABLE ONLY upchieve.photo_id_statuses ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- Name: question_tags id; Type: DEFAULT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.question_tags ALTER COLUMN id SET DEFAULT nextval('upchieve.question_tags_id_seq'::regclass);
-
-
---
--- Name: question_types id; Type: DEFAULT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.question_types ALTER COLUMN id SET DEFAULT nextval('upchieve.question_types_id_seq'::regclass);
-
-
---
 -- Name: quiz_questions id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -2021,34 +2017,6 @@ ALTER TABLE ONLY upchieve.signup_sources ALTER COLUMN id SET DEFAULT nextval('up
 --
 
 ALTER TABLE ONLY upchieve.subjects ALTER COLUMN id SET DEFAULT nextval('upchieve.subjects_id_seq'::regclass);
-
-
---
--- Name: survey_questions id; Type: DEFAULT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.survey_questions ALTER COLUMN id SET DEFAULT nextval('upchieve.survey_questions_id_seq'::regclass);
-
-
---
--- Name: survey_response_choices id; Type: DEFAULT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.survey_response_choices ALTER COLUMN id SET DEFAULT nextval('upchieve.survey_response_choices_id_seq'::regclass);
-
-
---
--- Name: surveys id; Type: DEFAULT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.surveys ALTER COLUMN id SET DEFAULT nextval('upchieve.surveys_id_seq'::regclass);
-
-
---
--- Name: surveys_survey_questions id; Type: DEFAULT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.surveys_survey_questions ALTER COLUMN id SET DEFAULT nextval('upchieve.surveys_survey_questions_id_seq'::regclass);
 
 
 --
@@ -2754,6 +2722,14 @@ ALTER TABLE ONLY upchieve.subjects
 
 ALTER TABLE ONLY upchieve.survey_questions
     ADD CONSTRAINT survey_questions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: survey_questions_question_tags survey_questions_question_tags_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_question_tags
+    ADD CONSTRAINT survey_questions_question_tags_pkey PRIMARY KEY (id);
 
 
 --
@@ -3761,6 +3737,22 @@ ALTER TABLE ONLY upchieve.subjects
 
 
 --
+-- Name: survey_questions_question_tags survey_questions_question_tags_question_tag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_question_tags
+    ADD CONSTRAINT survey_questions_question_tags_question_tag_id_fkey FOREIGN KEY (question_tag_id) REFERENCES upchieve.question_tags(id);
+
+
+--
+-- Name: survey_questions_question_tags survey_questions_question_tags_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_question_tags
+    ADD CONSTRAINT survey_questions_question_tags_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
+
+
+--
 -- Name: survey_questions survey_questions_question_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3782,6 +3774,38 @@ ALTER TABLE ONLY upchieve.survey_questions_response_choices
 
 ALTER TABLE ONLY upchieve.survey_questions_response_choices
     ADD CONSTRAINT survey_questions_response_choices_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
+
+
+--
+-- Name: surveys_postsession surveys_postsession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_postsession
+    ADD CONSTRAINT surveys_postsession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
+-- Name: surveys_postsession surveys_postsession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_postsession
+    ADD CONSTRAINT surveys_postsession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+
+
+--
+-- Name: surveys_presession surveys_presession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_presession
+    ADD CONSTRAINT surveys_presession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
+-- Name: surveys_presession surveys_presession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_presession
+    ADD CONSTRAINT surveys_presession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
 
 
 --
@@ -4142,4 +4166,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220520214733'),
     ('20220520214846'),
     ('20220522224209'),
-    ('20220522224430');
+    ('20220522224430'),
+    ('20220601154505'),
+    ('20220602170321'),
+    ('20220602170346');
