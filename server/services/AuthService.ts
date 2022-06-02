@@ -117,7 +117,6 @@ export async function registerOpenStudent(
 
   await Promise.all([
     checkCredential({ email, password }),
-    checkIpAddress(ip),
     checkNames(firstName, lastName),
     checkEmail(email),
   ])
