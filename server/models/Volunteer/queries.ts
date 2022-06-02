@@ -208,9 +208,7 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
     const rows = result.map(v =>
       makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail'])
     )
-    const certifications = await getQuizzesForVolunteers(
-      rows.map(v => v.id)
-    )
+    const certifications = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
       certifications: certifications[v.id],
@@ -276,9 +274,7 @@ export async function getVolunteersForTotalHours(): Promise<
       getClient()
     )
     const rows = result.map(v => makeRequired(v))
-    const certifications = await getQuizzesForVolunteers(
-      rows.map(v => v.id)
-    )
+    const certifications = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
       certifications: certifications[v.id],
@@ -339,9 +335,7 @@ export async function getVolunteersForTelecomReport(
       getRoClient()
     )
     const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
-    const certifications = await getQuizzesForVolunteers(
-      rows.map(v => v.id)
-    )
+    const certifications = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
       certifications: certifications[v.id],
