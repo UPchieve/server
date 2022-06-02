@@ -161,13 +161,13 @@ export type VolunteerTypeMap<T> = {
   [key: Ulid]: T
 }
 export type VolunteerCertMap = VolunteerTypeMap<Certifications>
-export async function getCertificationsForVolunteers(
+export async function getQuizzesForVolunteers(
   userIds: Ulid[],
   poolClient?: PoolClient
 ): Promise<VolunteerCertMap> {
   const client = poolClient ? poolClient : getClient()
   try {
-    const result = await pgQueries.getCertificationsForVolunteers.run(
+    const result = await pgQueries.getQuizzesForVolunteers.run(
       { userIds },
       client
     )
@@ -208,7 +208,7 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
     const rows = result.map(v =>
       makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail'])
     )
-    const certifications = await getCertificationsForVolunteers(
+    const certifications = await getQuizzesForVolunteers(
       rows.map(v => v.id)
     )
     return rows.map(v => ({
@@ -276,7 +276,7 @@ export async function getVolunteersForTotalHours(): Promise<
       getClient()
     )
     const rows = result.map(v => makeRequired(v))
-    const certifications = await getCertificationsForVolunteers(
+    const certifications = await getQuizzesForVolunteers(
       rows.map(v => v.id)
     )
     return rows.map(v => ({
@@ -339,7 +339,7 @@ export async function getVolunteersForTelecomReport(
       getRoClient()
     )
     const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
-    const certifications = await getCertificationsForVolunteers(
+    const certifications = await getQuizzesForVolunteers(
       rows.map(v => v.id)
     )
     return rows.map(v => ({

@@ -13,7 +13,7 @@ import { getClient } from '../../db'
 import _ from 'lodash'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
-  getCertificationsForVolunteers,
+  getQuizzesForVolunteers,
   getReferencesByVolunteer,
 } from '../Volunteer/queries'
 
@@ -134,7 +134,7 @@ export async function getLegacyUserObject(
       volunteerUser.certifications = {
         // legacyCertifications is a map of all of the quizzes defined via the `quizzes` table
         ...legacyCertifications,
-        ...(await getCertificationsForVolunteers([userId], client))[userId],
+        ...(await getQuizzesForVolunteers([userId], client))[userId],
       }
     }
     const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser)

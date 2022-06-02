@@ -254,7 +254,7 @@ export async function getQuizScore(
       : SUBJECT_THRESHOLD
   const passed = percent >= threshold
 
-  const userQuizzesMap = await VolunteerModel.getCertificationsForVolunteers([
+  const userQuizzesMap = await VolunteerModel.getQuizzesForVolunteers([
     user.id,
   ])
   const userQuizzes = userQuizzesMap[user.id]

@@ -1142,7 +1142,7 @@ RETURNING
     user_id AS ok;
 
 
-/* @name getCertificationsForVolunteers */
+/* @name getQuizzesForVolunteers */
 SELECT
     user_id,
     attempts AS tries,
