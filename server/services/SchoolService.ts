@@ -13,11 +13,19 @@ function escapeRegex(str: string) {
   return str.replace(/[.*|\\+?{}()[^$]/g, c => '\\' + c)
 }
 
+type SchoolForFrontend = {
+  id: Ulid,
+  upchieveId: Ulid,
+  name: string,
+  districtName: string | undefined,
+  city: string | undefined,
+  state: string,
+}
+
 // search for schools by name
-export async function search(query: string): Promise<any> {
+export async function search(query: string): Promise<SchoolForFrontend[]> {
   const results = await SchoolRepo.schoolSearch(query)
 
-  if (results)
     return results
       .sort((s1: SchoolRepo.School, s2: SchoolRepo.School) => {
         if (s1.name && s2.name) {

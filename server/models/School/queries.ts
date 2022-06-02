@@ -209,11 +209,10 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
 
 export async function schoolSearch(
   query: string
-): Promise<School[] | undefined> {
+): Promise<School[]> {
   try {
     const results = await pgQueries.schoolSearch.run({ query }, getClient())
-    if (results.length)
-      return results.map(v => makeSomeRequired(v, ['districtNameStored']))
+    return results.map(v => makeSomeRequired(v, ['districtNameStored']))
   } catch (err) {
     throw new RepoReadError(err)
   }

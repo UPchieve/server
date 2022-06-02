@@ -94,9 +94,8 @@
       <label for="inputHighschool" class="uc-form-label"
         >What school do you go to?</label
       >
-
-      <div class="school-search">
-        <autocomplete
+<!-- HERE -->
+<!-- <autocomplete
           id="inputHighschool"
           class="school-search__autocomplete"
           :search="autocompleteSchool"
@@ -105,11 +104,35 @@
           auto-select
           placeholder="Search for your school"
           aria-label="Search for your school"
-          @submit="handleSelectHighSchool"
-        ></autocomplete>
+          @submit="handleSelectHighSchool" -->
 
-        <div
-          v-if="eligibility.noSchoolResults"
+      <div class="school-search">
+       <autocomplete
+  :search="autocompleteSchool"
+  placeholder="Search for your school"
+  aria-label="Search for your school"
+  :get-result-value="getSchoolDisplayName"
+  @submit="handleSelectHighSchool"
+>
+  <template #result="{ result, props }">
+    <li v-bind="props">
+      <div>
+      <span v-if="result.name"> {{ result.name }}</span>
+       
+         <a v-if="result.name === 'Approved Partner School'"
+            href="https://upchieve.org/cant-find-school"
+            target="_blank"
+            @click="cantFindSchool"
+          >
+            Can't find your high school?
+          </a>
+      </div>
+    </li>
+  </template>
+</autocomplete>
+
+        <!-- <div
+          v-if="eligibility.showCantFindSchool"
           class="school-search__no-results"
         >
           <a
@@ -119,7 +142,7 @@
           >
             Can't find your high school?
           </a>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -281,14 +304,14 @@
           @submit="handleSelectHighSchool"
         ></autocomplete>
 
-        <div
-          v-if="eligibility.noSchoolResults"
+        <!-- <div
+          v-if="eligibility.showCantFindSchool"
           class="school-search__no-results"
         >
           <a href="https://upchieve.org/cant-find-school" target="_blank">
             Can't find your high school?
           </a>
-        </div>
+        </div> -->
       </div>
     </div>
 
