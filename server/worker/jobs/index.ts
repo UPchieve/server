@@ -39,6 +39,8 @@ import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-mee
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
+import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
+import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -98,6 +100,10 @@ export enum Jobs {
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
+  BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
+
+  // Delete scripts
+  DeleteDuplicatePushTokens = 'DeleteDuplicatePushTokens',
 }
 
 // register new job processors here
@@ -302,6 +308,14 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendWeeklyHourSummaryApology,
     processor: sendWeeklyHourSummaryApology,
+  },
+  {
+    name: Jobs.DeleteDuplicatePushTokens,
+    processor: deleteDuplicatePushTokens,
+  },
+  {
+    name: Jobs.BackfillUpdateElapsedAvailability,
+    processor: backfillUpdateElapsedAvailability,
   },
 ]
 

@@ -1,5 +1,6 @@
 export type StudentPartnerOrgForRegistration = {
   key: string
+  schoolSignupRequired: boolean
   sites?: string[]
 }
 

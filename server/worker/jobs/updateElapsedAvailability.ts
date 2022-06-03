@@ -12,6 +12,7 @@ import {
   saveCurrentAvailabilityAsHistory,
 } from '../../models/Availability'
 import { Jobs } from '.'
+import countAvailabilitySelected from '../../utils/count-availability-selected'
 
 export default async (): Promise<void> => {
   const volunteerIds = await getVolunteerIdsForElapsedAvailability()
@@ -21,7 +22,7 @@ export default async (): Promise<void> => {
 
   for (const volunteerId of volunteerIds) {
     const availability = await getAvailabilityForVolunteer(volunteerId)
-    if (!availability) return
+    if (!availability || countAvailabilitySelected(availability) === 0) continue
 
     const yesterday = moment()
       .utc()
