@@ -97,6 +97,7 @@
 <!-- HERE -->
       <div class="school-search">
        <autocomplete
+       class="uc-form-input"
   :search="autocompleteSchool"
   placeholder="Search for your school"
   aria-label="Search for your school"
@@ -104,7 +105,8 @@
   @submit="handleSelectHighSchool"
 >
   <template #result="{ result, props }">
-    <li v-bind="props">
+    <li v-bind="props"
+    class="school-search-result">
       <div>
       <span v-if="result.name"> {{ result.name }}</span>
        
@@ -885,6 +887,25 @@ export default {
 }
 </script>
 
+<style lang="scss">
+.autocomplete-input {
+  width: 100%;
+  border: none;
+  outline: none;
+}
+
+.autocomplete-result-list {
+  padding: 0;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-top: none;
+
+  &:hover {
+    background-color: #eeeeee;
+  }
+}
+</style>
+
 <style lang="scss" scoped>
 .uc-form-body {
   @include child-spacing(top, 25px);
@@ -989,6 +1010,13 @@ p.small-paragraph {
     a {
       text-decoration: underline;
     }
+  }
+
+  &-result {
+    background-color: #fff;
+    list-style: none;
+    text-align: left;
+    padding: 10px 12px;
   }
 }
 
