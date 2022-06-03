@@ -4170,4 +4170,3 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220601154505'),
     ('20220602170321'),
     ('20220602170346');
-    ('20220517154624');
