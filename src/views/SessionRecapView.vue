@@ -1,68 +1,70 @@
 <template>
   <div class="session-recap-page">
     <div class="chat-card-editor-container">
-        <div class="recap-card">
-          <h2 class="card-title" >Session Recap</h2>
-          <div class="spacing--grid">
-            <span class="card-detail__title">Subject:</span>
-            <div class="card-detail__sub-container">
-              <div class="card-detail" >{{ session.subject }} </div>
-              <component v-bind:is="session.svg" class="subject-icon card-detail" />
-            </div>
-            <span class="card-detail__title">Time:</span>
-            <div class="card-detail">{{ getSessionTime(session.createdAt) }} </div>
-            <span class="card-detail__title">Coach:</span> 
-            <div class="card-detail card-detail__sub-container">
-              <div class="card-detail">{{ session.volunteerFirstName }} </div>
-              <favoriting-toggle 
+      <div class="recap-card">
+        <h2 class="card-title">Session Recap</h2>
+        <div class="spacing--grid">
+          <span class="card-detail__title">Subject:</span>
+          <div class="card-detail__sub-container">
+            <div class="card-detail">{{ session.subject }}</div>
+            <component v-bind:is="session.svg" class="subject-icon card-detail" />
+          </div>
+          <span class="card-detail__title">Time:</span>
+          <div class="card-detail">{{ getSessionTime(session.createdAt) }}</div>
+          <span class="card-detail__title">Coach:</span>
+          <div class="card-detail card-detail__sub-container">
+            <div class="card-detail">{{ session.volunteerFirstName }}</div>
+            <favoriting-toggle
               :initialIsFavorite="session.isFavorited"
               :volunteerName="session.volunteerFirstName"
               :volunteerId="session.volunteerId"
               class="heart"
-              />
-            </div>
+            />
           </div>
         </div>
-        <chat-log
-          v-if="mobileMode"
-          class="chat"
-          :messages="session.messages"
-          :studentId="session.studentId"
-          :volunteerId="session.volunteerId"
-        />
-        <div
-          v-if="session.quillDoc"
-          class="document"
-        >
-          <h2 class="document__title">Doc Editor</h2>
+      </div>
+      <chat-log
+        v-if="mobileMode"
+        class="chat"
+        :messages="session.messages"
+        :studentId="session.studentId"
+        :volunteerId="session.volunteerId"
+      />
+      <div
+        v-if="session.quillDoc"
+        class="document"
+      >
+        <h2 class="document__title">Doc Editor</h2>
+        <div class="document__container">
           <div class="quill-container"></div>
         </div>
-        <div
-          v-if="session.hasWhiteboardDoc"
-          class="document"
-        >
-          <h2 class="document__title">Whiteboard</h2>
-          <p v-if="loadingWhiteboardError" class="error">
-            {{ loadingWhiteboardError }}
-          </p>
-          <div class="whiteboard-wrapper">
-            <transition name="whiteboard-warning">
-              <loading-message
-                message="Loading the whiteboard"
-                class="whiteboard-warning whiteboard-warning--connection"
-                v-show="!isConnectedToWhiteboard && !loadingWhiteboardError"
-              />
-            </transition>
-            <div id="zwibbler-container"></div>
-          </div>
+      </div>
+      <div
+        v-if="session.hasWhiteboardDoc"
+        class="document"
+      >
+        <h2 class="document__title">Whiteboard</h2>
+        <p v-if="loadingWhiteboardError" class="error">
+          {{ loadingWhiteboardError }}
+        </p>
+        <div class="whiteboard-wrapper">
+          <transition name="whiteboard-warning">
+            <loading-message
+              message="Loading the whiteboard"
+              class="whiteboard-warning whiteboard-warning--connection"
+              v-show="!isConnectedToWhiteboard && !loadingWhiteboardError"
+            />
+          </transition>
+          <div id="zwibbler-container"></div>
         </div>
+      </div>
+    </div>
       <chat-log
         v-if="!mobileMode"
         :messages="session.messages"
         :studentId="session.studentId"
         :volunteerId="session.volunteerId"
       />
-    </div>
   </div>
 </template>
 
@@ -189,40 +191,29 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.ql-container {
-  max-width: fit-content;
-}
-
-.ql-editor {
-  overflow-y: unset;
-}
-
-.unfavoriting-modal-title {
-  text-align: center;
-}
-</style>
-
 <style lang="scss" scoped>
-.card-title{
+.chat-card-editor-container {
+  @include flex-container(column);
+  flex-basis: 60%;
+}
+
+.card-title {
   @include font-category('display-small');
   text-align: left;
   border-bottom: 2px solid $c-background-grey;
   padding-bottom: 0.5em;
 }
 
-.chat-card-editor-container {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-  height: 1300px;
-
-  @include breakpoint-below('large') {
-    height: 100%;
-  }
-}
 .session-recap-page {
   padding: 35px;
+  height: 100%;
+  max-width: 1200px;
+
+  @include breakpoint-above('large') {
+    display: flex;
+    flex-flow: row wrap;
+    height: 1300px;
+  }
 }
 
 .recap-card {
@@ -255,16 +246,18 @@ export default {
   }
 
   &__sub-container {
-    @include flex-container(row,normal,center);
+    @include flex-container(row, normal, center);
     margin: 0;
   }
 }
 
 .chat {
   margin-bottom: 1.8em;
+  flex-basis: 40%;
 }
 
 .document {
+  @include flex-container(column);
   margin-right: 1.8em;
   margin-bottom: 1.8em;
   font-size: 20px;
@@ -283,6 +276,11 @@ export default {
 
   @include breakpoint-below('large') {
     margin-right: 0;
+  }
+
+  &__container {
+    overflow-y: auto;
+    height: 100%;
   }
 }
 
@@ -312,5 +310,4 @@ export default {
   width: 100%;
   position: relative;
 }
-
 </style>
