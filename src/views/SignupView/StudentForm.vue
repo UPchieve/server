@@ -95,17 +95,6 @@
         >What school do you go to?</label
       >
 <!-- HERE -->
-<!-- <autocomplete
-          id="inputHighschool"
-          class="school-search__autocomplete"
-          :search="autocompleteSchool"
-          :get-result-value="getSchoolDisplayName"
-          base-class="uc-autocomplete"
-          auto-select
-          placeholder="Search for your school"
-          aria-label="Search for your school"
-          @submit="handleSelectHighSchool" -->
-
       <div class="school-search">
        <autocomplete
   :search="autocompleteSchool"
@@ -130,19 +119,6 @@
     </li>
   </template>
 </autocomplete>
-
-        <!-- <div
-          v-if="eligibility.showCantFindSchool"
-          class="school-search__no-results"
-        >
-          <a
-            href="https://upchieve.org/cant-find-school"
-            target="_blank"
-            @click="cantFindSchool"
-          >
-            Can't find your high school?
-          </a>
-        </div> -->
       </div>
     </div>
 
@@ -290,7 +266,7 @@
       <label for="inputHighschool" class="uc-form-label"
         >What school do you go to?</label
       >
-
+<!-- EDIT THIS AFTER -->
       <div class="school-search">
         <autocomplete
           id="inputHighschool"
@@ -548,7 +524,6 @@ export default {
       errors: [],
       invalidInputs: [],
       eligibility: {
-        noSchoolResults: false,
         highSchool: {},
         zipCode: '',
         email: ''
@@ -811,7 +786,6 @@ export default {
 
       return new Promise(resolve => {
         if (input.length < 3) {
-          this.eligibility.noSchoolResults = false
           return resolve([])
         }
 
@@ -826,7 +800,6 @@ export default {
       NetworkService.searchSchool(this, { query: input })
           .then(response => response.body.results)
           .then(schools => {
-            this.eligibility.noSchoolResults = schools.length === 0
             schools.push(cantFindSchoolItem);
             resolve(schools)
           })
