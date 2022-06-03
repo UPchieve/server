@@ -119,7 +119,7 @@
       <div>
       <span v-if="result.name"> {{ result.name }}</span>
        
-         <a v-if="result.name === 'Approved Partner School'"
+         <a v-if="result.cantFindSchool"
             href="https://upchieve.org/cant-find-school"
             target="_blank"
             @click="cantFindSchool"
@@ -819,10 +819,15 @@ export default {
           AnalyticsService.captureEvent(EVENTS.STUDENT_SEARCHED_SCHOOL)
         this.hasStartedSearchingForSchool = true
 
-        NetworkService.searchSchool(this, { query: input })
+      let cantFindSchoolItem = {
+        cantFindSchool: true,
+      }
+
+      NetworkService.searchSchool(this, { query: input })
           .then(response => response.body.results)
           .then(schools => {
             this.eligibility.noSchoolResults = schools.length === 0
+            schools.push(cantFindSchoolItem);
             resolve(schools)
           })
       })
