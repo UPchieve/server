@@ -95,6 +95,56 @@ to start the dev server and a watch for changes to the frontend build and server
 
 Even though the frontend is doing a production build, Vue dev tools should still be available as long as your NODE_ENV is `dev` which is the default.
 
+### Database updates
+
+If you change anything in the `.sql` files in `server/models`, run [`npm run pgtyped`][https://pgtyped.vercel.app/] to pick up the changes and regenerate the associated `.ts` files. This generates typescript versions of the queries that can be referenced in code, as well as entity types.
+
+For schema changes:
+
+1. Update `~/.zshrc` to include absolute paths needed for `dbmate` to run
+```
+export DBMATE_SCHEMA_FILE="/path/to/repo/subway/database/db_init/schema.sql"
+export DBMATE_MIGRATIONS_DIR="/path/to/repo/subway/database/migrations"
+export DATABASE_URL="postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable"
+```
+
+2. Create a new migration in `database/migrations`. Start the file name with the current datetime (YYYYMMDDhhmmss format).
+3. Write the migration, including both rollout and rollback instructions - for example:
+```
+-- migrate:up
+ALTER TABLE upchieve.schools
+  ADD COLUMN legacy_city_name text;
+
+-- migrate:down
+ALTER TABLE upchieve.schools
+  DROP COLUMN legacy_city_name;
+```
+4. When finished, run `dbmate up` to apply migration to local db setup. To roll back migrations one at a time, run `dbmate down`. (`dbmate up` will run all available migrations, in order)
+
+### Seed updates
+
+There are 2 types of seeds: static and test.
+
+For test data seeds, find the file that represents the objects you want to add and just add new data to teh array. If you are adding a new table, copy the template into a new file and change the underlying query/data array.
+
+Running the seeds involves three commands:
+
+```
+$ npm run seeds:reset
+```
+Drops the entire database, brings it back up with schema and user auth roles
+
+```
+$ npm run seeds:build:test
+```
+Runs static and test seed generation files against local DB and then runs 'seed migrations' against db (seed migrations record changes made to static seeds in production)
+
+```
+$ npm run seeds:copy:test
+```
+`pg_dump`s the data within your tables into `database/db_init/test_seeds.sql` so next time you bring up a fresh db container it's seeded with the new values
+
+
 ## Test Users
 
 The database is populated with the following users for local development:
