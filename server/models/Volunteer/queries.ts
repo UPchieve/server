@@ -11,7 +11,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
-import { Certifications, VolunteersForAnalyticsReport } from './types'
+import { Quizzes, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS } from '../../constants'
@@ -160,11 +160,11 @@ export async function getPartnerVolunteerForCollege(
 export type VolunteerTypeMap<T> = {
   [key: Ulid]: T
 }
-export type VolunteerCertMap = VolunteerTypeMap<Certifications>
+export type VolunteerQuizMap = VolunteerTypeMap<Quizzes>
 export async function getQuizzesForVolunteers(
   userIds: Ulid[],
   poolClient?: PoolClient
-): Promise<VolunteerCertMap> {
+): Promise<VolunteerQuizMap> {
   const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getQuizzesForVolunteers.run(
@@ -173,9 +173,9 @@ export async function getQuizzesForVolunteers(
     )
     const rows = result.map(v => makeRequired(v))
     const rowsByUser = _.groupBy(rows, v => v.userId)
-    const map: VolunteerCertMap = {}
+    const map: VolunteerQuizMap = {}
     for (const user of userIds) {
-      const temp: Certifications = {}
+      const temp: Quizzes = {}
       const rows = rowsByUser[user] || []
       for (const row of rows) {
         temp[row.name] = {
@@ -194,7 +194,7 @@ export async function getQuizzesForVolunteers(
 
 export type VolunteerForWeeklyHourSummary = VolunteerContactInfo & {
   sentHourSummaryIntroEmail: boolean
-  certifications: Certifications
+  quizzes: Quizzes
 }
 
 export async function getVolunteersForWeeklyHourSummary(): Promise<
@@ -208,10 +208,10 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
     const rows = result.map(v =>
       makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail'])
     )
-    const certifications = await getQuizzesForVolunteers(rows.map(v => v.id))
+    const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
-      certifications: certifications[v.id],
+      quizzes: quizzes[v.id],
     }))
   } catch (err) {
     throw new RepoReadError(err)
@@ -263,7 +263,7 @@ export async function getVolunteerIdsForElapsedAvailability(): Promise<Ulid[]> {
 }
 
 export type VolunteerForTotalHours = Pick<VolunteerContactInfo, 'id'> & {
-  certifications: Certifications
+  quizzes: Quizzes
 }
 export async function getVolunteersForTotalHours(): Promise<
   VolunteerForTotalHours[]
@@ -274,10 +274,10 @@ export async function getVolunteersForTotalHours(): Promise<
       getClient()
     )
     const rows = result.map(v => makeRequired(v))
-    const certifications = await getQuizzesForVolunteers(rows.map(v => v.id))
+    const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
-      certifications: certifications[v.id],
+      quizzes: quizzes[v.id],
     }))
   } catch (err) {
     throw new RepoReadError(err)
@@ -335,10 +335,10 @@ export async function getVolunteersForTelecomReport(
       getRoClient()
     )
     const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
-    const certifications = await getQuizzesForVolunteers(rows.map(v => v.id))
+    const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
-      certifications: certifications[v.id],
+      quizzes: quizzes[v.id],
     }))
   } catch (err) {
     throw new RepoReadError(err)

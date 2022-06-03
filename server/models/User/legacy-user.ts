@@ -87,7 +87,7 @@ export async function getLegacyUserObject(
     baseUser.hoursTutored =
       baseUser.hoursTutored || Number(baseUser.hoursTutored)
     // The frontend still expects ALL possible certification objects on the legacy user
-    // So we get all quizzes and map their name to a fresh CertificationInfo object
+    // So we get all quizzes and map their name to a fresh QuizInfo object
     const legacyCertificationsResult = await pgQueries.getLegacyCertifications.run(
       undefined,
       client
