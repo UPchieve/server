@@ -97,7 +97,7 @@ Even though the frontend is doing a production build, Vue dev tools should still
 
 ### Database updates
 
-If you change anything in the `.sql` files in `server/models`, run [`npm run pgtyped`][https://pgtyped.vercel.app/] to pick up the changes and regenerate the associated `.ts` files. This generates typescript versions of the queries that can be referenced in code, as well as entity types.
+If you change anything in the `.sql` files in `server/models`, run [`npm run pgtyped`](https://pgtyped.vercel.app/) to pick up the changes and regenerate the associated `.ts` files. This generates typescript versions of the queries that can be referenced in code, as well as entity types.
 
 For schema changes:
 
@@ -119,7 +119,7 @@ ALTER TABLE upchieve.schools
 ALTER TABLE upchieve.schools
   DROP COLUMN legacy_city_name;
 ```
-4. When finished, run `dbmate up` to apply migration to local db setup. To roll back migrations one at a time, run `dbmate down`. (`dbmate up` will run all available migrations, in order)
+4. When finished, run `dbmate up` to apply migration to local db setup (this will run all available migrations that have not currently been applied to the database, in order). To roll back migrations one at a time, run `dbmate down`.
 
 ### Seed updates
 
@@ -129,20 +129,11 @@ For test data seeds, find the file that represents the objects you want to add a
 
 Running the seeds involves three commands:
 
-```
-$ npm run seeds:reset
-```
-Drops the entire database, brings it back up with schema and user auth roles
+1. `npm run seeds:reset` drops the entire database, brings it back up with schema and user auth roles
 
-```
-$ npm run seeds:build:test
-```
-Runs static and test seed generation files against local DB and then runs 'seed migrations' against db (seed migrations record changes made to static seeds in production)
+2. `npm run seeds:build:test` runs static and test seed generation files against local db and then runs 'seed migrations' against db (seed migrations record changes made to static seeds in production)
 
-```
-$ npm run seeds:copy:test
-```
-`pg_dump`s the data within your tables into `database/db_init/test_seeds.sql` so next time you bring up a fresh db container it's seeded with the new values
+3. `npm run seeds:copy:test` `pg_dump`s the data within your tables into `database/db_init/test_seeds.sql` so next time you bring up a fresh db container it's seeded with the new values
 
 
 ## Test Users
