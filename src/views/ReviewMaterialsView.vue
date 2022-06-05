@@ -194,12 +194,11 @@ export default {
   },
   computed: {
     ...mapGetters({
-      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
     }),
     categoryDisplayName() {
       const subtopics = allSubtopics()
       // TODO: remove condition below in algebra 2 launch cleanup
-      if (!this.isAlgebraTwoLaunchActive && this.category === 'algebra') 
+      if (this.category === 'algebra') 
         return 'Algebra'
       if (this.category) return subtopics[this.category].displayName
 

@@ -87,7 +87,6 @@ export default {
       user: state => state.user.user
     }),
     ...mapGetters({
-      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
     }),
     currentSubject() {
       return this[this.currentSubjectType]
@@ -131,9 +130,7 @@ export default {
       ]
     },
     math() {
-      return this.isAlgebraTwoLaunchActive ? 
-        this.algebraTwoLaunchMath : 
-        this.legacyMath
+      return this.algebraTwoLaunchMath
     },
     legacyMath() {
       return {

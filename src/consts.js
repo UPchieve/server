@@ -430,7 +430,6 @@ export const FEATURE_FLAGS = {
   STUDENT_BANNED_STATE: 'student-banned-state',
   DASHBOARD_REDESIGN: 'dashboard-redesign',
   GATES_STUDY: 'gates-study',
-  ALGEBRA_TWO_LAUNCH: 'algebra-two-launch',
   DOWNTIME_BANNER: 'downtime-banner',
   CHATBOT: 'chatbot',
   COACH_FAVORITING: 'coach-favoriting',
