@@ -60,7 +60,6 @@ export default {
       [FEATURE_FLAGS.SESSION_HISTORY]: false,
       [FEATURE_FLAGS.DASHBOARD_BANNER]: false,
       [FEATURE_FLAGS.ZIP_CODE_CHECK]: false,
-      [FEATURE_FLAGS.DISCOVERY_SOURCE]: false,
     },
   },
   mutations: {
@@ -98,6 +97,5 @@ export default {
     isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY],
     isDashboardBannerActive: state => state.flags[FEATURE_FLAGS.DASHBOARD_BANNER],
     isZipCodeCheckActive: state => state.flags[FEATURE_FLAGS.ZIP_CODE_CHECK],
-    isDiscoverySourceActive: state => state.flags[FEATURE_FLAGS.DISCOVERY_SOURCE],
   },
 }

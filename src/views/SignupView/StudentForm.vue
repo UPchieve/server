@@ -427,7 +427,7 @@
       </p>
     </div>
 
-     <div class="uc-column" v-if="isDiscoverySourceActive">
+     <div class="uc-column">
         <label for="signup-source" class="uc-form-label"
           >How did you hear about us?</label
         >
@@ -568,7 +568,6 @@ export default {
     }),
     ...mapGetters({
       isZipCodeCheckActive: 'featureFlags/isZipCodeCheckActive',
-      isDiscoverySourceActive: 'featureFlags/isDiscoverySourceActive'
     }),
     trimCurrentGrade() {
       // extracting the first word out of the gradeLevels
@@ -832,7 +831,7 @@ export default {
         this.errors.push('A password is required.')
         this.invalidInputs.push('inputPassword')
       }
-      if (this.isDiscoverySourceActive && !this.signupSourceId) {
+      if (!this.signupSourceId) {
         this.errors.push('Please select an option for how you heard about us.')
       }
       if (!this.errors.length) this.submit()
@@ -869,7 +868,6 @@ export default {
       AnalyticsService.captureEvent(EVENTS.STUDENT_CLICKED_CANT_FIND_SCHOOL)
     },
     async getSignupSources() {
-      if (!this.isDiscoverySourceActive) return
       this.isLoadingSignupSource = true
       try {
         const data = await backOff(() => NetworkService.getStudentSignupSources())

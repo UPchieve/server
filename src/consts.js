@@ -437,7 +437,6 @@ export const FEATURE_FLAGS = {
   SESSION_HISTORY: 'session-history',
   DASHBOARD_BANNER: 'dashboard-banner',
   ZIP_CODE_CHECK: 'zip-code-check',
-  DISCOVERY_SOURCE: 'discovery-source',
 }
 
 export const ANALYTICS_REPORT_ROW = {
