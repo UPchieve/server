@@ -435,10 +435,9 @@ export const FEATURE_FLAGS = {
   CHATBOT: 'chatbot',
   COACH_FAVORITING: 'coach-favoriting',
   SESSION_HISTORY: 'session-history',
-  READING_LAUNCH: 'reading-launch',
+  DASHBOARD_BANNER: 'dashboard-banner',
   ZIP_CODE_CHECK: 'zip-code-check',
   DISCOVERY_SOURCE: 'discovery-source',
-  READING_STUDENT_LAUNCH: 'reading-student-launch',
 }
 
 export const ANALYTICS_REPORT_ROW = {

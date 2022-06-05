@@ -1,5 +1,6 @@
 <template>
   <div class="header">
+    <!-- Edit the text below to display on dashboard banner to volunteers -->
     <div class="header-message"><span>Introducing our new subject: READING!</span> Take the quiz today.</div>
     <router-link to="/training" tag="button" class="header-button">Get Certified</router-link>
   </div>
@@ -8,7 +9,7 @@
 <script>
 
 export default {
-  name: 'reading-launch-header',
+  name: 'dashboard-banner-header',
 }
 </script>
 

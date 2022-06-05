@@ -58,10 +58,9 @@ export default {
       [FEATURE_FLAGS.CHATBOT]: false,
       [FEATURE_FLAGS.COACH_FAVORITING]: false,
       [FEATURE_FLAGS.SESSION_HISTORY]: false,
-      [FEATURE_FLAGS.READING_LAUNCH]: false,
+      [FEATURE_FLAGS.DASHBOARD_BANNER]: false,
       [FEATURE_FLAGS.ZIP_CODE_CHECK]: false,
       [FEATURE_FLAGS.DISCOVERY_SOURCE]: false,
-      [FEATURE_FLAGS.READING_STUDENT_LAUNCH]: false,
     },
   },
   mutations: {
@@ -97,9 +96,8 @@ export default {
     isChatbotActive: state => state.flags[FEATURE_FLAGS.CHATBOT],
     isCoachFavoritingActive: state => state.flags[FEATURE_FLAGS.COACH_FAVORITING],
     isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY],
-    isReadingLaunchActive: state => state.flags[FEATURE_FLAGS.READING_LAUNCH],
+    isDashboardBannerActive: state => state.flags[FEATURE_FLAGS.DASHBOARD_BANNER],
     isZipCodeCheckActive: state => state.flags[FEATURE_FLAGS.ZIP_CODE_CHECK],
     isDiscoverySourceActive: state => state.flags[FEATURE_FLAGS.DISCOVERY_SOURCE],
-    isReadingStudentLaunchActive: state => state.flags[FEATURE_FLAGS.READING_STUDENT_LAUNCH],
   },
 }
