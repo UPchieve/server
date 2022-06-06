@@ -233,7 +233,7 @@
           />
         </div>
 
-        <div class="uc-column" v-if="isDiscoverySourceActive && studentPartner.isManuallyApproved">
+        <div class="uc-column" v-if="studentPartner.isManuallyApproved">
           <label for="signup-source" class="uc-form-label"
             >How did you hear about us?</label
           >
@@ -345,7 +345,6 @@ export default {
   },
   computed: {
     ...mapGetters({
-      isDiscoverySourceActive: 'featureFlags/isDiscoverySourceActive'
     }),
     showHighSchoolCheckbox() {
       // Don't show if high school input is disabled
@@ -536,7 +535,7 @@ export default {
         this.invalidInputs.push('college')
       }
 
-      if (this.isDiscoverySourceActive && this.studentPartner.isManuallyApproved && !this.signupSourceId) {
+      if (this.studentPartner.isManuallyApproved && !this.signupSourceId) {
         this.errors.push('Please select an option for how you heard about us.')
       }
 
@@ -575,7 +574,6 @@ export default {
     },
 
     async getSignupSources() {
-      if (!this.isDiscoverySourceActive) return
       this.isLoadingSignupSource = true
       try {
         const data = await backOff(() => NetworkService.getStudentSignupSources())
