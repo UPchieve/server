@@ -256,7 +256,7 @@ export default {
       hasCertification: 'user/hasCertification',
       hasSelectedAvailability: 'user/hasSelectedAvailability',
       isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
-      isDashboardBannerActive: 'featureFlags/isDashboardBannerActive'
+      isDashboardBannerActive: 'featureFlags/isDashboardBannerActive',
       isUpchieve101GracePeriodBannerActive: 'featureFlags/isUpchieve101GracePeriodBannerActive',
     }),
 
