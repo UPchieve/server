@@ -41,6 +41,7 @@ import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
+import removeUnqualifiedOnboardedVolunteers from '../../scripts/remove-unqualified-onboarded-volunteers'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -104,6 +105,8 @@ export enum Jobs {
 
   // Delete scripts
   DeleteDuplicatePushTokens = 'DeleteDuplicatePushTokens',
+
+  RemoveUnqualifiedOnboardedVolunteers = 'RemoveUnqualifiedOnboardedVolunteers',
 }
 
 // register new job processors here
@@ -316,6 +319,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillUpdateElapsedAvailability,
     processor: backfillUpdateElapsedAvailability,
+  },
+  {
+    name: Jobs.RemoveUnqualifiedOnboardedVolunteers,
+    processor: removeUnqualifiedOnboardedVolunteers,
   },
 ]
 

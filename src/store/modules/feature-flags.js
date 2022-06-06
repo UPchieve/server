@@ -59,6 +59,8 @@ export default {
       [FEATURE_FLAGS.SESSION_HISTORY]: false,
       [FEATURE_FLAGS.DASHBOARD_BANNER]: false,
       [FEATURE_FLAGS.ZIP_CODE_CHECK]: false,
+      [FEATURE_FLAGS.DISCOVERY_SOURCE]: false,
+      [FEATURE_FLAGS.UPCHIEVE_101_GRACE_PERIOD_BANNER]: false,
     },
   },
   mutations: {
@@ -94,5 +96,7 @@ export default {
     isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY],
     isDashboardBannerActive: state => state.flags[FEATURE_FLAGS.DASHBOARD_BANNER],
     isZipCodeCheckActive: state => state.flags[FEATURE_FLAGS.ZIP_CODE_CHECK],
+    isDiscoverySourceActive: state => state.flags[FEATURE_FLAGS.DISCOVERY_SOURCE],
+    isUpchieve101GracePeriodBannerActive: state => state.flags[FEATURE_FLAGS.UPCHIEVE_101_GRACE_PERIOD_BANNER],
   },
 }
