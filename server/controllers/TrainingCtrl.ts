@@ -17,7 +17,7 @@ import {
 import { getSubjectType } from '../utils/getSubjectType'
 import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
-import { Certifications } from '../models/Volunteer'
+import { Quizzes } from '../models/Volunteer'
 import {
   queueOnboardingEventEmails,
   queuePartnerOnboardingEventEmails,
@@ -56,9 +56,9 @@ const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
 
 // Check if a user is certified in a given group of subject certs
-function isCertifiedIn(givenCerts: any, userCerts: Certifications): boolean {
+function isCertifiedIn(givenCerts: any, userCerts: Quizzes): boolean {
   for (const cert in givenCerts) {
-    const subject = givenCerts[cert] as keyof Certifications
+    const subject = givenCerts[cert] as keyof Quizzes
     if (userCerts[subject]?.passed) return true
   }
 
@@ -95,8 +95,8 @@ export async function getQuestions(
 
 // Check if a given cert has the required training completed
 export function hasRequiredTraining(
-  subjectCert: keyof Certifications,
-  userCertifications: Certifications
+  subjectCert: keyof Quizzes,
+  userCertifications: Quizzes
 ): boolean {
   const subjectCertType = getSubjectType(subjectCert as string)
 
@@ -125,8 +125,8 @@ export function hasRequiredTraining(
 
 // Check if a required training cert has any associated passed certifications for it
 export function hasCertForRequiredTraining(
-  trainingCert: keyof Certifications,
-  userCertifications: Certifications
+  trainingCert: keyof Quizzes,
+  userCertifications: Quizzes
 ): boolean {
   // UPchieve 101 doesn't need any associated certs
   if (trainingCert === TRAINING.UPCHIEVE_101) return true
@@ -150,8 +150,8 @@ export function hasCertForRequiredTraining(
 }
 
 export function getUnlockedSubjects(
-  cert: keyof Certifications,
-  userCertifications: Certifications
+  cert: keyof Quizzes,
+  userCertifications: Quizzes
 ): string[] {
   // update certifications to have the current cert completed set to passed
   Object.assign(userCertifications, {
@@ -187,8 +187,8 @@ export function getUnlockedSubjects(
     // Check that the required training was completed for every certification that a user has
     // Add all the other subjects that a certification unlocks to the Set
     if (
-      userCertifications[cert as keyof Certifications].passed &&
-      hasRequiredTraining(cert as keyof Certifications, userCertifications) &&
+      userCertifications[cert as keyof Quizzes].passed &&
+      hasRequiredTraining(cert as keyof Quizzes, userCertifications) &&
       CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING]
     )
       CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING].forEach(subject =>
@@ -223,7 +223,7 @@ type AnswerMap = { [k: number]: string }
 export interface GetQuizScoreOptions {
   user: UserModel.UserContactInfo
   idAnswerMap: AnswerMap
-  category: keyof Certifications
+  category: keyof Quizzes
   ip: string
 }
 
@@ -254,12 +254,10 @@ export async function getQuizScore(
       : SUBJECT_THRESHOLD
   const passed = percent >= threshold
 
-  const certificationMap = await VolunteerModel.getCertificationsForVolunteers([
-    user.id,
-  ])
-  const certifications = certificationMap[user.id]
+  const userQuizzesMap = await VolunteerModel.getQuizzesForVolunteers([user.id])
+  const userQuizzes = userQuizzesMap[user.id]
 
-  const tries = certifications[cert] ? certifications[cert].tries : 1
+  const tries = userQuizzes[cert] ? userQuizzes[cert].tries : 1
 
   await VolunteerModel.updateVolunteerQuiz(
     user.id,
@@ -268,7 +266,7 @@ export async function getQuizScore(
   )
 
   if (passed) {
-    let unlockedSubjects = getUnlockedSubjects(cert, certifications)
+    const unlockedSubjects = getUnlockedSubjects(cert, userQuizzes)
 
     // set custom field passedUpchieve101 in SendGrid
     if (cert === TRAINING.UPCHIEVE_101) await createContact(user.id)
@@ -299,7 +297,8 @@ export async function getQuizScore(
       volunteerProfile &&
       !volunteerProfile.onboarded &&
       volunteerProfile.availabilityLastModifiedAt &&
-      unlockedSubjects.length > 0
+      unlockedSubjects.length > 0 &&
+      userQuizzes.upchieve101?.passed
     ) {
       await VolunteerModel.updateVolunteerOnboarded(user.id)
       await queueOnboardingEventEmails(user.id)

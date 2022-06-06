@@ -60,6 +60,10 @@ const jobTemplates: JobTemplate[] = [
     name: Jobs.GenerateAndStoreWaitTimeHeatMap,
     options: { repeat: { cron: '0 8 * * MON', tz: 'America/New_York' } }, // every Monday at 8am EST
   },
+  {
+    name: Jobs.RemoveUnqualifiedOnboardedVolunteers,
+    options: { repeat: { cron: '0 12 1 7 *', tz: 'America/New_York' } }, // On July 1st at 12pm EST
+  },
 ]
 
 const main = async (): Promise<void> => {

@@ -219,7 +219,7 @@ async function telecomProcessVolunteer<V extends VolunteerForTelecomReport>(
   start: Date,
   end: Date
 ): Promise<TelecomRow[]> {
-  const totalCerts = countCerts(volunteer.certifications)
+  const totalCerts = countCerts(volunteer.quizzes)
   if (totalCerts === 0) return []
   const {
     sessions,
@@ -297,7 +297,7 @@ export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
   end: Date
 ): Promise<HourSummaryStats> {
   try {
-    const totalCerts = countCerts(volunteer.certifications)
+    const totalCerts = countCerts(volunteer.quizzes)
     if (totalCerts === 0) return emptyHours()
 
     const {
