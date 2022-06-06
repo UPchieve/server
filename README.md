@@ -102,7 +102,7 @@ If you change anything in the `.sql` files in `server/models`, run [`npm run pgt
 For schema changes:
 
 1. Update `~/.zshrc` (or `~/.bashrc` if using Bash for your shell) to include absolute paths needed for `dbmate` to run
-```
+```shell
 export DBMATE_SCHEMA_FILE="/path/to/repo/subway/database/db_init/schema.sql"
 export DBMATE_MIGRATIONS_DIR="/path/to/repo/subway/database/migrations"
 export DATABASE_URL="postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable"
@@ -110,7 +110,7 @@ export DATABASE_URL="postgres://admin:Password123@localhost:5432/upchieve?sslmod
 
 2. Create a new migration in `database/migrations` by running `dbmate new file-name-here`.
 3. Write the migration, including both rollout and rollback instructions - for example:
-```
+```sql
 -- migrate:up
 ALTER TABLE upchieve.schools
   ADD COLUMN legacy_city_name text;
@@ -120,6 +120,11 @@ ALTER TABLE upchieve.schools
   DROP COLUMN legacy_city_name;
 ```
 4. When finished, run `dbmate up` to apply migration to local db setup (this will run all available migrations that have not currently been applied to the database, in order). To roll back migrations one at a time, run `dbmate down`.
+
+Notes:
+- If the database/schema end up in an irrecoverable state, you can drop everything with `dbmate drop` and then use `dbmate up` to re-apply all migrations in order from scratch.
+- After every `dbmate up`, dbmate will dump the schema to `databse/db_init_schema.sql`, which overwrites anything previously in that file.
+- Everything in `db_init` is programmatically generated and can be ignored in diff examinations
 
 ### Seed updates
 
