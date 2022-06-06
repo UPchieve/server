@@ -39,13 +39,11 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 import Case from 'case'
 import NetworkService from '@/services/NetworkService'
 import AnalyticsService from '@/services/AnalyticsService'
 import isPhysics from '@/utils/is-physics'
 import { PHYSICS_MAPPING, EVENTS } from '@/consts'
-import { allSubtopics } from '@/utils/topics'
 
 export default {
   components: {},
@@ -192,17 +190,6 @@ export default {
       }/${this.category.toLowerCase()}-topics-and-resources.${ext}`
     }
   },
-  computed: {
-    ...mapGetters({
-    }),
-    categoryDisplayName() {
-      const subtopics = allSubtopics()
-        return 'Algebra'
-      if (this.category) return subtopics[this.category].displayName
-
-      return ''
-    }
-  }
 }
 </script>
 
