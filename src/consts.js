@@ -439,6 +439,7 @@ export const FEATURE_FLAGS = {
   ZIP_CODE_CHECK: 'zip-code-check',
   DISCOVERY_SOURCE: 'discovery-source',
   READING_STUDENT_LAUNCH: 'reading-student-launch',
+  UPCHIEVE_101_GRACE_PERIOD_BANNER: 'training-grace-period-banner'
 }
 
 export const ANALYTICS_REPORT_ROW = {
