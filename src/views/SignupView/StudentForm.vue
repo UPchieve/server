@@ -95,30 +95,28 @@
         >What school do you go to?</label
       >
       <div class="school-search">
-       <autocomplete
-       class="uc-form-input"
-  :search="autocompleteSchool"
-  placeholder="Search for your school"
-  aria-label="Search for your school"
-  :get-result-value="getSchoolDisplayName"
-  @submit="handleSelectHighSchool"
->
-  <template #result="{ result, props }">
-    <li v-bind="props"
-    class="school-search-result">
-      <div>
-      <span v-if="result.name"> {{ result.name }}</span>
-       
-         <a v-if="result.cantFindSchool"
-            href="https://upchieve.org/cant-find-school"
-            @click="cantFindSchool"
-          >
-            Can't find your high school?
-          </a>
-      </div>
-    </li>
-  </template>
-</autocomplete>
+        <autocomplete
+          base-class="uc-autocomplete"
+          :search="autocompleteSchool"
+          placeholder="Search for your school"
+          aria-label="Search for your school"
+          :get-result-value="getSchoolDisplayName"
+          @submit="handleSelectHighSchool"
+        >
+          <template #result="{ result, props }">
+            <li v-bind="props">
+              <div>
+                <span v-if="result.name"> {{ result.name }}</span>
+                  <a v-if="result.cantFindSchool"
+                    href="https://upchieve.org/cant-find-school"
+                    @click="cantFindSchool"
+                  >
+                    Can't find your high school?
+                  </a>
+              </div>
+            </li>
+          </template>
+        </autocomplete>
       </div>
     </div>
 
@@ -267,30 +265,28 @@
         >What school do you go to?</label
       >
       <div class="school-search">
-         <autocomplete
-          class="uc-form-input"
+        <autocomplete
+          base-class="uc-autocomplete"
           :search="autocompleteSchool"
           placeholder="Search for your school"
           aria-label="Search for your school"
           :get-result-value="getSchoolDisplayName"
           @submit="handleSelectHighSchool"
         >
-        <template #result="{ result, props }">
-          <li v-bind="props"
-          class="school-search-result">
-      <div>
-      <span v-if="result.name"> {{ result.name }}</span>
-       
-         <a v-if="result.cantFindSchool"
-            href="https://upchieve.org/cant-find-school"
-            @click="cantFindSchool"
-          >
-            Can't find your high school?
-          </a>
-      </div>
-    </li>
-  </template>
-</autocomplete>
+          <template #result="{ result, props }">
+            <li v-bind="props">
+              <div>
+                <span v-if="result.name"> {{ result.name }}</span>
+                <a v-if="result.cantFindSchool"
+                  href="https://upchieve.org/cant-find-school"
+                  @click="cantFindSchool"
+                >
+                  Can't find your high school?
+                </a>
+              </div>
+            </li>
+          </template>
+        </autocomplete>
       </div>
     </div>
 
@@ -888,23 +884,6 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.autocomplete-input {
-  width: 100%;
-  border: none;
-  outline: none;
-}
-
-.autocomplete-result-list {
-  padding: 0;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-top: none;
-  margin-top: 13px;
-}
-
-</style>
-
 <style lang="scss" scoped>
 .uc-form-body {
   @include child-spacing(top, 25px);
@@ -1008,18 +987,6 @@ p.small-paragraph {
 
     a {
       text-decoration: underline;
-    }
-  }
-
-  &-result {
-    background-color: #fff;
-    list-style: none;
-    text-align: left;
-    padding: 10px 12px;
-    cursor: pointer;
-
-     &:hover {
-      background-color: #eeeeee;
     }
   }
 }
