@@ -207,9 +207,7 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
   }
 }
 
-export async function schoolSearch(
-  query: string
-): Promise<School[]> {
+export async function schoolSearch(query: string): Promise<School[]> {
   try {
     const results = await pgQueries.schoolSearch.run({ query }, getClient())
     return results.map(v => makeSomeRequired(v, ['districtNameStored']))

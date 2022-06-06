@@ -94,7 +94,6 @@
       <label for="inputHighschool" class="uc-form-label"
         >What school do you go to?</label
       >
-<!-- HERE -->
       <div class="school-search">
        <autocomplete
        class="uc-form-input"
@@ -267,7 +266,6 @@
       <label for="inputHighschool" class="uc-form-label"
         >What school do you go to?</label
       >
-<!-- EDIT THIS AFTER -->
       <div class="school-search">
          <autocomplete
           class="uc-form-input"
@@ -279,7 +277,7 @@
         >
         <template #result="{ result, props }">
           <li v-bind="props"
-            class="school-search-result">
+          class="school-search-result">
       <div>
       <span v-if="result.name"> {{ result.name }}</span>
        
