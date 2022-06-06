@@ -899,11 +899,9 @@ export default {
   width: 100%;
   border: 1px solid #ccc;
   border-top: none;
-
-  &:hover {
-    background-color: #eeeeee;
-  }
+  margin-top: 13px;
 }
+
 </style>
 
 <style lang="scss" scoped>
@@ -1017,6 +1015,11 @@ p.small-paragraph {
     list-style: none;
     text-align: left;
     padding: 10px 12px;
+    cursor: pointer;
+
+     &:hover {
+      background-color: #eeeeee;
+    }
   }
 }
 
