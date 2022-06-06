@@ -112,7 +112,6 @@
        
          <a v-if="result.cantFindSchool"
             href="https://upchieve.org/cant-find-school"
-            target="_blank"
             @click="cantFindSchool"
           >
             Can't find your high school?
@@ -270,26 +269,30 @@
       >
 <!-- EDIT THIS AFTER -->
       <div class="school-search">
-        <autocomplete
-          id="inputHighschool"
-          class="school-search__autocomplete"
+         <autocomplete
+          class="uc-form-input"
           :search="autocompleteSchool"
-          :get-result-value="getSchoolDisplayName"
-          base-class="uc-autocomplete"
-          auto-select
           placeholder="Search for your school"
           aria-label="Search for your school"
+          :get-result-value="getSchoolDisplayName"
           @submit="handleSelectHighSchool"
-        ></autocomplete>
-
-        <!-- <div
-          v-if="eligibility.showCantFindSchool"
-          class="school-search__no-results"
         >
-          <a href="https://upchieve.org/cant-find-school" target="_blank">
+        <template #result="{ result, props }">
+          <li v-bind="props"
+            class="school-search-result">
+      <div>
+      <span v-if="result.name"> {{ result.name }}</span>
+       
+         <a v-if="result.cantFindSchool"
+            href="https://upchieve.org/cant-find-school"
+            @click="cantFindSchool"
+          >
             Can't find your high school?
           </a>
-        </div> -->
+      </div>
+    </li>
+  </template>
+</autocomplete>
       </div>
     </div>
 
