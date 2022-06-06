@@ -138,8 +138,6 @@ export default {
         in the "certifiedSubject". */
     getAvailability(certifiedSubject) {
       let cert = certifiedSubject
-      // TODO: remove condition below in algebra 2 launch cleanup
-      if (certifiedSubject.match(/^algebra/i)) cert = 'algebra'
       UserService.getVolunteersAvailability(this, cert)
         .then(availability => {
           this.availabilityTable = availability
