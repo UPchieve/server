@@ -117,7 +117,6 @@ export default {
     ...mapGetters({
       mobileMode: 'app/mobileMode',
       isSessionAlive: 'user/isSessionAlive',
-      isReadingStudentLaunchActive: 'featureFlags/isReadingStudentLaunchActive'
     }),
     waitingPeriodMessage() {
       const countdown = calculateWaitingPeriodCountdown(
@@ -148,14 +147,6 @@ export default {
             return !temporarilyHiddenSubjects.includes(subject)
           })
 
-        // Temporarily hide Reading subject from students
-        if (card.topic === 'readingWriting' && !this.isReadingStudentLaunchActive)
-          card.subtopics = card.subtopics.filter(subject => {
-            const temporarilyHiddenSubjects = [
-              'reading'
-            ]
-            return !temporarilyHiddenSubjects.includes(subject)
-          })
      }   
       return cards;
     }

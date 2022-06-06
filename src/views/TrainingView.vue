@@ -87,7 +87,6 @@ export default {
       user: state => state.user.user
     }),
     ...mapGetters({
-      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
     }),
     currentSubject() {
       return this[this.currentSubjectType]
@@ -131,127 +130,7 @@ export default {
       ]
     },
     math() {
-      return this.isAlgebraTwoLaunchActive ? 
-        this.algebraTwoLaunchMath : 
-        this.legacyMath
-    },
-    legacyMath() {
-      return {
-        training: [
-          { displayName: 'UPchieve 101', key: 'upchieve101' }
-          // { displayName: "Tutoring Skills", key: "tutoringSkills" }
-        ],
-        certifications: [
-          {
-            displayName: 'Pre-algebra',
-            subjectsIncluded: [
-              { displayName: 'Pre-algebra', key: 'prealgebra' }
-            ],
-            key: 'prealgebra'
-          },
-          {
-            displayName: 'Algebra',
-            subjectsIncluded: [
-              { displayName: 'Pre-algebra', key: 'prealgebra' },
-              { displayName: 'Algebra 1', key: 'algebraOne' },
-              { displayName: 'Algebra 2', key: 'algebraTwo' }
-            ],
-            key: 'algebra'
-          },
-          {
-            displayName: 'Geometry',
-            subjectsIncluded: [{ displayName: 'Geometry', key: 'geometry' }],
-            key: 'geometry'
-          },
-          {
-            displayName: 'Trigonometry',
-            subjectsIncluded: [
-              { displayName: 'Trigonometry', key: 'trigonometry' }
-            ],
-            key: 'trigonometry'
-          },
-          {
-            displayName: 'Statistics',
-            subjectsIncluded: [
-              { displayName: 'Statistics', key: 'statistics' }
-            ],
-            key: 'statistics'
-          },
-          {
-            displayName: 'Precalculus',
-            subjectsIncluded: [
-              { displayName: 'Pre-algebra', key: 'prealgebra' },
-              { displayName: 'Algebra 1', key: 'algebraOne' },
-              { displayName: 'Algebra 2', key: 'algebraTwo' },
-              { displayName: 'Trigonometry', key: 'trigonometry' },
-              { displayName: 'Precalculus', key: 'precalculus' }
-            ],
-            key: 'precalculus'
-          },
-          {
-            displayName: 'Calculus AB',
-            subjectsIncluded: [
-              { displayName: 'Pre-algebra', key: 'prealgebra' },
-              { displayName: 'Algebra 1', key: 'algebraOne' },
-              { displayName: 'Algebra 2', key: 'algebraTwo' },
-              { displayName: 'Trigonometry', key: 'trigonometry' },
-              { displayName: 'Precalculus', key: 'precalculus' },
-              { displayName: 'Calculus AB', key: 'calculusAB' }
-            ],
-            key: 'calculusAB'
-          },
-          {
-            displayName: 'Calculus BC',
-            subjectsIncluded: [
-              { displayName: 'Pre-algebra', key: 'prealgebra' },
-              { displayName: 'Algebra 1', key: 'algebraOne' },
-              { displayName: 'Algebra 2', key: 'algebraTwo' },
-              { displayName: 'Trigonometry', key: 'trigonometry' },
-              { displayName: 'Precalculus', key: 'precalculus' },
-              { displayName: 'Calculus AB', key: 'calculusAB' },
-              { displayName: 'Calculus BC', key: 'calculusBC' }
-            ],
-            key: 'calculusBC'
-          }
-        ],
-        additionalSubjects: [
-          {
-            displayName: 'Integrated Math 1',
-            subjectsIncluded: [
-              { displayName: 'Algebra', key: 'algebraOne' },
-              { displayName: 'Geometry', key: 'geometry' },
-              { displayName: 'Statistics', key: 'statistics' }
-            ],
-            key: 'integratedMathOne'
-          },
-          {
-            displayName: 'Integrated Math 2',
-            subjectsIncluded: [
-              { displayName: 'Algebra', key: 'algebraOne' },
-              { displayName: 'Geometry', key: 'geometry' },
-              { displayName: 'Trigonometry', key: 'trigonometry' },
-              { displayName: 'Statistics', key: 'statistics' }
-            ],
-            key: 'integratedMathTwo'
-          },
-          {
-            displayName: 'Integrated Math 3',
-            subjectsIncluded: [
-              { displayName: 'Precalculus', key: 'precalculus' },
-              { displayName: 'Statistics', key: 'statistics' }
-            ],
-            key: 'integratedMathThree'
-          },
-          {
-            displayName: 'Integrated Math 4',
-            subjectsIncluded: [
-              { displayName: 'Precalculus', key: 'precalculus' }
-            ],
-
-            key: 'integratedMathFour'
-          }
-        ]
-      }
+      return this.algebraTwoLaunchMath
     },
     algebraTwoLaunchMath(){
       return {

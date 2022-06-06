@@ -430,15 +430,13 @@ export const FEATURE_FLAGS = {
   STUDENT_BANNED_STATE: 'student-banned-state',
   DASHBOARD_REDESIGN: 'dashboard-redesign',
   GATES_STUDY: 'gates-study',
-  ALGEBRA_TWO_LAUNCH: 'algebra-two-launch',
   DOWNTIME_BANNER: 'downtime-banner',
   CHATBOT: 'chatbot',
   COACH_FAVORITING: 'coach-favoriting',
   SESSION_HISTORY: 'session-history',
-  READING_LAUNCH: 'reading-launch',
+  DASHBOARD_BANNER: 'dashboard-banner',
   ZIP_CODE_CHECK: 'zip-code-check',
   DISCOVERY_SOURCE: 'discovery-source',
-  READING_STUDENT_LAUNCH: 'reading-student-launch',
   UPCHIEVE_101_GRACE_PERIOD_BANNER: 'training-grace-period-banner'
 }
 
