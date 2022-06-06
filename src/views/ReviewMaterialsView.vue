@@ -194,7 +194,6 @@ export default {
   },
   computed: {
     ...mapGetters({
-      isAlgebraTwoLaunchActive: 'featureFlags/isAlgebraTwoLaunchActive'
     }),
     categoryDisplayName() {
       const subtopics = allSubtopics()
