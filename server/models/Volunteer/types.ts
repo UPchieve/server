@@ -20,14 +20,18 @@ export interface Reference {
   additionalInfo?: string
 }
 
-export type CertificationInfo = {
+export type QuizInfo = {
   passed: boolean
   tries: number
   lastAttemptedAt?: Date
 }
 
 export type Certifications = {
-  [subject: string]: CertificationInfo
+  [subject: string]: QuizInfo
+}
+
+export type Quizzes = {
+  [subject: string]: QuizInfo
 }
 
 export type TrainingCourseData = {

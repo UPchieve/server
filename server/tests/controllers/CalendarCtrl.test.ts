@@ -61,7 +61,8 @@ export type VolunteerForScheduleUpdate = {
 function buildVolunteerForScheduleUpdate(
   userId?: Ulid,
   subjects?: string[],
-  onboarded = true
+  onboarded = true,
+  passedUpchieve101 = false
 ): VolunteerRepo.VolunteerForScheduleUpdate {
   return {
     id: userId || getDbUlid(),
@@ -69,6 +70,7 @@ function buildVolunteerForScheduleUpdate(
     onboarded: onboarded,
     availability: buildAvailability(),
     subjects: subjects || ['algebraOne'],
+    passedRequiredTraining: passedUpchieve101,
   }
 }
 
@@ -153,7 +155,8 @@ describe('Save availability and time zone', () => {
     const volunteer = buildVolunteerForScheduleUpdate(
       user.id,
       ['algebraOne'],
-      false
+      false,
+      true
     )
     mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(
       volunteer

@@ -13,7 +13,7 @@ import { getClient } from '../../db'
 import _ from 'lodash'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
-  getCertificationsForVolunteers,
+  getQuizzesForVolunteers,
   getReferencesByVolunteer,
 } from '../Volunteer/queries'
 
@@ -87,7 +87,7 @@ export async function getLegacyUserObject(
     baseUser.hoursTutored =
       baseUser.hoursTutored || Number(baseUser.hoursTutored)
     // The frontend still expects ALL possible certification objects on the legacy user
-    // So we get all quizzes and map their name to a fresh CertificationInfo object
+    // So we get all quizzes and map their name to a fresh QuizInfo object
     const legacyCertificationsResult = await pgQueries.getLegacyCertifications.run(
       undefined,
       client
@@ -132,13 +132,9 @@ export async function getLegacyUserObject(
       }
       volunteerUser.trainingCourses = trainingCourses
       volunteerUser.certifications = {
+        // legacyCertifications is a map of all of the quizzes defined via the `quizzes` table
         ...legacyCertifications,
-        upchieve101: {
-          passed: trainingCourses['upchieve101'].complete,
-          tries: 1,
-          lastAttemptedAt: trainingCourses['upchieve101'].updatedAt,
-        },
-        ...(await getCertificationsForVolunteers([userId], client))[userId],
+        ...(await getQuizzesForVolunteers([userId], client))[userId],
       }
     }
     const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser)

@@ -43,7 +43,8 @@ export async function updateSchedule(
   if (
     !volunteer.onboarded &&
     volunteer.subjects &&
-    volunteer.subjects.length > 0
+    volunteer.subjects.length > 0 &&
+    volunteer.passedRequiredTraining
   ) {
     onboarded = true
     await queueOnboardingEventEmails(volunteer.id)

@@ -193,22 +193,26 @@
 
           <div class="school-search">
             <autocomplete
-              id="inputHighschool"
-              class="school-search__autocomplete"
-              :search="autocompleteSchool"
-              :get-result-value="getSchoolDisplayName"
               base-class="uc-autocomplete"
-              auto-select
-              placeholder="Search for your high school"
-              aria-label="Search for your high school"
+              :search="autocompleteSchool"
+              placeholder="Search for your school"
+              aria-label="Search for your school"
+              :get-result-value="getSchoolDisplayName"
               @submit="handleSelectHighSchool"
-            ></autocomplete>
-
-            <div v-if="noHighSchoolResults" class="school-search__no-results">
-              <a href="https://upchieve.org/cant-find-school" target="_blank">
-                Can't find your high school?
-              </a>
-            </div>
+            >
+              <template #result="{ result, props }">
+                <li v-bind="props">
+                  <div>
+                    <span v-if="result.name"> {{ result.name }}</span>
+                    <a v-if="result.cantFindSchool"
+                    href="https://upchieve.org/cant-find-school"
+                    >
+                      Can't find your high school?
+                    </a>
+                  </div>
+                </li>
+              </template>
+            </autocomplete>
           </div>
         </div>
 
@@ -233,7 +237,7 @@
           />
         </div>
 
-        <div class="uc-column" v-if="isDiscoverySourceActive && studentPartner.isManuallyApproved">
+        <div class="uc-column" v-if="studentPartner.isManuallyApproved">
           <label for="signup-source" class="uc-form-label"
             >How did you hear about us?</label
           >
@@ -324,7 +328,6 @@ export default {
       formStep: 'step-1',
       isHighSchoolStudent: false,
       isCollegeStudent: false,
-      noHighSchoolResults: false,
       formData: {
         partnerSite: undefined,
         email: '',
@@ -345,7 +348,6 @@ export default {
   },
   computed: {
     ...mapGetters({
-      isDiscoverySourceActive: 'featureFlags/isDiscoverySourceActive'
     }),
     showHighSchoolCheckbox() {
       // Don't show if high school input is disabled
@@ -421,14 +423,17 @@ export default {
 
       return new Promise(resolve => {
         if (input.length < 3) {
-          this.noHighSchoolResults = false
           return resolve([])
+        }
+
+        let cantFindSchoolItem = {
+          cantFindSchool: true,
         }
 
         NetworkService.searchSchool(this, { query: input })
           .then(response => response.body.results)
           .then(schools => {
-            this.noHighSchoolResults = schools.length === 0
+            schools.push(cantFindSchoolItem)
             resolve(schools)
           })
       })
@@ -440,7 +445,6 @@ export default {
 
     handleSelectHighSchool(school) {
       this.formData.highSchoolUpchieveId = school.upchieveId
-      this.noHighSchoolResults = false
     },
 
     formStepTwo() {
@@ -536,7 +540,7 @@ export default {
         this.invalidInputs.push('college')
       }
 
-      if (this.isDiscoverySourceActive && this.studentPartner.isManuallyApproved && !this.signupSourceId) {
+      if (this.studentPartner.isManuallyApproved && !this.signupSourceId) {
         this.errors.push('Please select an option for how you heard about us.')
       }
 
@@ -575,7 +579,6 @@ export default {
     },
 
     async getSignupSources() {
-      if (!this.isDiscoverySourceActive) return
       this.isLoadingSignupSource = true
       try {
         const data = await backOff(() => NetworkService.getStudentSignupSources())
