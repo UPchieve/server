@@ -206,7 +206,6 @@
                     <span v-if="result.name"> {{ result.name }}</span>
                     <a v-if="result.cantFindSchool"
                     href="https://upchieve.org/cant-find-school"
-                    @click="cantFindSchool"
                     >
                       Can't find your high school?
                     </a>
@@ -329,7 +328,6 @@ export default {
       formStep: 'step-1',
       isHighSchoolStudent: false,
       isCollegeStudent: false,
-      noHighSchoolResults: false,
       formData: {
         partnerSite: undefined,
         email: '',
@@ -448,7 +446,6 @@ export default {
 
     handleSelectHighSchool(school) {
       this.formData.highSchoolUpchieveId = school.upchieveId
-      this.noHighSchoolResults = false
     },
 
     formStepTwo() {
