@@ -11,7 +11,10 @@
             <loading-message message="Contacting coaches" />
           </template>
           <template v-else-if="isSessionInProgress">
-            <span class="volunteer-name">{{ sessionPartner.firstname }}</span>
+            <div class="volunteer-info">
+              <span class="volunteer-name">{{ sessionPartner.firstname }}</span><br />
+              <span class="in-session-label">In Session</span>
+            </div>
           </template>
           <template v-else-if="isSessionOver">
             <template v-if="sessionPartner.firstname">
@@ -375,7 +378,7 @@ export default {
 .session-header {
   position: relative;
   height: 100%;
-  background-color: $c-success-green;
+  background-color: $c-information-blue;
   padding: 0 20px;
   text-align: left;
   display: flex;
@@ -423,9 +426,19 @@ h1 {
   }
 }
 
+.volunteer-info {
+  display: inline-block;
+  line-height: 1.25;
+}
+
 .volunteer-name {
-  font-weight: 500;
+  font-weight: 600;
   font-size: 18px;
+}
+
+.in-session-label {
+  font-weight: 400;
+  font-size: 12px;
 }
 
 .button-container {
@@ -455,12 +468,19 @@ h1 {
   cursor: pointer;
   border: solid 1px #fff;
   color: #fff;
-  font-size: 14px;
-  padding: 5px 10px;
-  border-radius: 5px;
+  font-size: 16px;
+  line-height: 125%;
+  padding: 12px 24px;
+  border-radius: 9999px;
 
   &:hover {
     background: rgba(255, 255, 255, 0.2);
+  }
+
+  @include breakpoint-below('large') {
+    line-height: 1;
+    padding: 9px;
+    min-height: 46px;
   }
 }
 
