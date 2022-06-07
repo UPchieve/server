@@ -180,7 +180,7 @@ export default {
       ]
       return options
         .filter((_, index) =>
-          Object.values(this.feedback.volunteerFeedback['session-obstacles']).includes(
+          this.feedback.volunteerFeedback['session-obstacles'].includes(
             index + 1
           )
         )
