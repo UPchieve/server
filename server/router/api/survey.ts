@@ -1,8 +1,11 @@
 import expressWs from 'express-ws'
-import { savePresessionSurvey, getPresessionSurvey } from '../../models/Survey'
+import {
+  savePresessionSurvey,
+  getPresessionSurvey,
+  getPresessionSurveyNew,
+} from '../../models/Survey'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
-import * as SurveyService from '../../services/SurveyService'
 import { resError } from '../res-error'
 
 export function routeSurvey(router: expressWs.Router): void {
@@ -38,9 +41,7 @@ export function routeSurvey(router: expressWs.Router): void {
     const { subjectName } = req.body.subjectName
 
     try {
-      const survey = await SurveyService.getPresessionSurveyNew(
-        asString(subjectName)
-      )
+      const survey = await getPresessionSurveyNew(asString(subjectName))
       res.json({ survey })
     } catch (error) {
       resError(res, error)

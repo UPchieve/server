@@ -108,9 +108,12 @@ export interface IGetPresessionSurveyNewParams {
 /** 'GetPresessionSurveyNew' return type */
 export interface IGetPresessionSurveyNewResult {
   displayPriority: number;
+  questionId: number;
   questionText: string;
   questionType: string;
-  responses: Json | null;
+  responseChoiceId: number;
+  responseChoiceText: string;
+  responseDisplayPriority: number;
 }
 
 /** 'GetPresessionSurveyNew' query type */
@@ -119,12 +122,13 @@ export interface IGetPresessionSurveyNewQuery {
   result: IGetPresessionSurveyNewResult;
 }
 
-const getPresessionSurveyNewIR: any = {"name":"getPresessionSurveyNew","params":[{"name":"subjectName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1556,"b":1567,"line":60,"col":21}]}}],"usedParamSet":{"subjectName":true},"statement":{"body":"SELECT\n    survey_questions.question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sub.*\nFROM\n    surveys_presession\n    JOIN surveys ON survey_id = surveys.id\n    JOIN subjects ON subject_id = subjects.id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id\n    JOIN survey_questions ON ssq.survey_question_id = survey_questions.id\n    JOIN question_types qt ON qt.id = survey_questions.question_type_id\n    JOIN LATERAL (\n        SELECT\n            json_build_object('choiceText', choice_text, 'displayPriority', display_priority) AS responses\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.survey_question_id = survey_questions.id) sub ON TRUE\nWHERE\n    subjects.name = :subjectName!","loc":{"a":718,"b":1567,"line":39,"col":0}}};
+const getPresessionSurveyNewIR: any = {"name":"getPresessionSurveyNew","params":[{"name":"subjectName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1634,"b":1645,"line":63,"col":21}]}}],"usedParamSet":{"subjectName":true},"statement":{"body":"SELECT\n    survey_questions.id AS question_id,\n    survey_questions.question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sub.*\nFROM\n    surveys_presession\n    JOIN surveys ON survey_id = surveys.id\n    JOIN subjects ON subject_id = subjects.id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id\n    JOIN survey_questions ON ssq.survey_question_id = survey_questions.id\n    JOIN question_types qt ON qt.id = survey_questions.question_type_id\n    JOIN LATERAL (\n        SELECT\n            id AS response_choice_id,\n            choice_text AS response_choice_text,\n            display_priority AS response_display_priority\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.survey_question_id = survey_questions.id) sub ON TRUE\nWHERE\n    subjects.name = :subjectName!","loc":{"a":718,"b":1645,"line":39,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
+ *     survey_questions.id AS question_id,
  *     survey_questions.question_text,
  *     ssq.display_priority,
  *     qt.name AS question_type,
@@ -138,7 +142,9 @@ const getPresessionSurveyNewIR: any = {"name":"getPresessionSurveyNew","params":
  *     JOIN question_types qt ON qt.id = survey_questions.question_type_id
  *     JOIN LATERAL (
  *         SELECT
- *             json_build_object('choiceText', choice_text, 'displayPriority', display_priority) AS responses
+ *             id AS response_choice_id,
+ *             choice_text AS response_choice_text,
+ *             display_priority AS response_display_priority
  *         FROM
  *             survey_questions_response_choices sqrc
  *             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id

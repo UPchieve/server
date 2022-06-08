@@ -67,11 +67,21 @@ export async function getPresessionSurvey(
   }
 }
 
-export type PresessionSurvey = {
+export type PresessionSurveyResponse = {
+  responseChoiceId: number
+  choiceText: string
+  displayPriority: number
+}
+
+export type PresessionSurveyQuestion = {
   questionText: string
   displayPriority: number
   questionType: string
-  responses: pgQueries.Json
+}
+export type PresessionSurvey = {
+  questionId: string
+  question: PresessionSurveyQuestion
+  responses: PresessionSurveyResponse[]
 }
 
 export async function getPresessionSurveyNew(
@@ -83,8 +93,27 @@ export async function getPresessionSurveyNew(
       getClient()
     )
 
-    if (result.length) return result.map(v => makeRequired(v))
-    return []
+    const rows = result.map(v => makeRequired(v))
+    const rowsByQuestion = _.groupBy(rows, v => v.questionId) // dictionary with question: key, and values: array of objects with that id
+
+    const survey: PresessionSurvey[] = []
+    // for(const [questionId, rows] of Object.entries(rowsByQuestion)){
+    //   const question: PresessionSurveyQuestion = {}
+    //   for(const row of rows) {
+    //     question[row.questionId] = {
+    //       responseChoiceId: row.responseChoiceId,
+    //       responseChoiceText: row.responseChoiceText,
+    //       responseDisplayPriority: row.responseDisplayPriority
+    //     }
+    //   }
+    //   // survey[question] = responses
+    //   survey.push({
+    //     questionId: questionId,
+    //     questionText: rows.questionText,
+
+    //   })
+    // }
+    return survey
   } catch (err) {
     throw new RepoReadError(err)
   }

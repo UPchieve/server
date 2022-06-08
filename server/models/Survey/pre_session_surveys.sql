@@ -37,6 +37,7 @@ WHERE
 
 /* @name getPresessionSurveyNew */
 SELECT
+    survey_questions.id AS question_id,
     survey_questions.question_text,
     ssq.display_priority,
     qt.name AS question_type,
@@ -50,7 +51,9 @@ FROM
     JOIN question_types qt ON qt.id = survey_questions.question_type_id
     JOIN LATERAL (
         SELECT
-            json_build_object('choiceText', choice_text, 'displayPriority', display_priority) AS responses
+            id AS response_choice_id,
+            choice_text AS response_choice_text,
+            display_priority AS response_display_priority
         FROM
             survey_questions_response_choices sqrc
             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
