@@ -68,19 +68,16 @@ export async function getPresessionSurvey(
 }
 
 export type PresessionSurveyResponse = {
-  responseChoiceId: number
-  choiceText: string
-  displayPriority: number
+  responseId: number
+  responseText: string
+  responseDisplayPriority: number
 }
 
-export type PresessionSurveyQuestion = {
+export type PresessionSurvey = {
+  questionId: string
   questionText: string
   displayPriority: number
   questionType: string
-}
-export type PresessionSurvey = {
-  questionId: string
-  question: PresessionSurveyQuestion
   responses: PresessionSurveyResponse[]
 }
 
@@ -94,25 +91,30 @@ export async function getPresessionSurveyNew(
     )
 
     const rows = result.map(v => makeRequired(v))
-    const rowsByQuestion = _.groupBy(rows, v => v.questionId) // dictionary with question: key, and values: array of objects with that id
+    const rowsByQuestion = _.groupBy(rows, v => v.questionId)
 
     const survey: PresessionSurvey[] = []
-    // for(const [questionId, rows] of Object.entries(rowsByQuestion)){
-    //   const question: PresessionSurveyQuestion = {}
-    //   for(const row of rows) {
-    //     question[row.questionId] = {
-    //       responseChoiceId: row.responseChoiceId,
-    //       responseChoiceText: row.responseChoiceText,
-    //       responseDisplayPriority: row.responseDisplayPriority
-    //     }
-    //   }
-    //   // survey[question] = responses
-    //   survey.push({
-    //     questionId: questionId,
-    //     questionText: rows.questionText,
+    for (const [question, rows] of Object.entries(rowsByQuestion)) {
+      const responses: PresessionSurveyResponse[] = []
+      const questionIndex = 0
 
-    //   })
-    // }
+      for (const row of rows) {
+        const responseItem: PresessionSurveyResponse = {
+          responseId: row.responseId,
+          responseText: row.responseText,
+          responseDisplayPriority: row.responseDisplayPriority,
+        }
+        responses.push(responseItem)
+      }
+
+      survey.push({
+        questionId: question,
+        questionText: rows[questionIndex].questionText,
+        displayPriority: rows[questionIndex].displayPriority,
+        questionType: rows[questionIndex].questionType,
+        responses: responses,
+      })
+    }
     return survey
   } catch (err) {
     throw new RepoReadError(err)

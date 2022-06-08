@@ -51,8 +51,8 @@ FROM
     JOIN question_types qt ON qt.id = survey_questions.question_type_id
     JOIN LATERAL (
         SELECT
-            id AS response_choice_id,
-            choice_text AS response_choice_text,
+            id AS response_id,
+            choice_text AS response_text,
             display_priority AS response_display_priority
         FROM
             survey_questions_response_choices sqrc
