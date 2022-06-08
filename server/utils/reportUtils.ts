@@ -343,6 +343,30 @@ function getOnboardingStatus({
   return ONBOARDING_STATUS.NOT_STARTED
 }
 
+type GetDateOnboardedOptions = Pick<
+  PartnerVolunteerAnalytics,
+  'createdAt' | 'isOnboarded' | 'dateOnboarded'
+>
+
+function getDateOnboarded({
+  createdAt,
+  isOnboarded,
+  dateOnboarded,
+}: GetDateOnboardedOptions): string {
+  // Earliest record of having an ONBOARDED user action row
+  const defaultLegacyVolunteerOnboardedDate = '2020-07-28 12:44:47.648+00'
+  const isLegacyVolunteerOnboarded =
+    new Date(createdAt) <= new Date(defaultLegacyVolunteerOnboardedDate) &&
+    isOnboarded
+
+  if (dateOnboarded) return moment(dateOnboarded).format('MM/DD/YYYY HH:mm')
+  else if (isLegacyVolunteerOnboarded)
+    return moment(defaultLegacyVolunteerOnboardedDate).format(
+      'MM/DD/YYYY HH:mm'
+    )
+  else return ''
+}
+
 function isDateWithin(date: string, startDate: Date, endDate: Date) {
   const formatDate = new Date(date).getTime()
   return formatDate >= startDate.getTime() && formatDate < endDate.getTime()
@@ -451,9 +475,12 @@ export function getAnalyticsReportRow(
   )
   row.dateRangeVolunteerHours =
     volunteer.hourSummaryDateRange.totalVolunteerHours
-  row.dateOnboarded = volunteer.dateOnboarded
-    ? moment(volunteer.dateOnboarded).format('MM/DD/YYYY HH:mm')
-    : ''
+
+  row.dateOnboarded = getDateOnboarded({
+    createdAt: volunteer.createdAt,
+    isOnboarded: volunteer.isOnboarded,
+    dateOnboarded: volunteer.dateOnboarded,
+  })
 
   return row
 }
