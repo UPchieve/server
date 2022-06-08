@@ -1,10 +1,10 @@
 // Fix to parse out $numberInt subobject from postgres jsonb values
 // TODO: remove this once we fix postgres data
 export function fixNumberInt<T>(obj: T): any {
-  if (!obj) return;
+  if (!obj) return
 
   if (obj instanceof Array) {
-    return obj.map(v => fixNumberInt(v));
+    return obj.map(v => fixNumberInt(v))
   }
 
   if (obj instanceof Object) {
@@ -18,5 +18,5 @@ export function fixNumberInt<T>(obj: T): any {
     }
     return temp
   }
-  return obj;
+  return obj
 }
