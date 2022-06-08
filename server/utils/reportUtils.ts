@@ -325,19 +325,16 @@ export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
 
 interface GetOnboardingStatusOptions {
   isOnboarded: boolean
-  isDeactivated: boolean
   availabilityLastModifiedAt?: Date
   totalQuizzesPassed: number
 }
 
 function getOnboardingStatus({
   isOnboarded,
-  isDeactivated,
   availabilityLastModifiedAt,
   totalQuizzesPassed,
 }: GetOnboardingStatusOptions): ONBOARDING_STATUS {
   if (isOnboarded) return ONBOARDING_STATUS.ONBOARDED
-  if (isDeactivated) return ONBOARDING_STATUS.DEACTIVATED
   if (availabilityLastModifiedAt || totalQuizzesPassed > 0)
     return ONBOARDING_STATUS.IN_PROGRESS
   return ONBOARDING_STATUS.NOT_STARTED
@@ -429,7 +426,6 @@ export function getAnalyticsReportRow(
   row.onboardingStatus = getOnboardingStatus({
     isOnboarded: volunteer.isOnboarded,
     availabilityLastModifiedAt: volunteer.availabilityLastModifiedAt,
-    isDeactivated: volunteer.isDeactivated,
     totalQuizzesPassed: volunteer.totalQuizzesPassed,
   })
   row.dateAccountCreated = moment(volunteer.createdAt).format(
