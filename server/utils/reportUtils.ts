@@ -325,22 +325,43 @@ export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
 
 interface GetOnboardingStatusOptions {
   isOnboarded: boolean
-  isDeactivated: boolean
   availabilityLastModifiedAt?: Date
   totalQuizzesPassed: number
 }
 
 function getOnboardingStatus({
   isOnboarded,
-  isDeactivated,
   availabilityLastModifiedAt,
   totalQuizzesPassed,
 }: GetOnboardingStatusOptions): ONBOARDING_STATUS {
   if (isOnboarded) return ONBOARDING_STATUS.ONBOARDED
-  if (isDeactivated) return ONBOARDING_STATUS.DEACTIVATED
   if (availabilityLastModifiedAt || totalQuizzesPassed > 0)
     return ONBOARDING_STATUS.IN_PROGRESS
   return ONBOARDING_STATUS.NOT_STARTED
+}
+
+type GetDateOnboardedOptions = Pick<
+  PartnerVolunteerAnalytics,
+  'createdAt' | 'isOnboarded' | 'dateOnboarded'
+>
+
+function getDateOnboarded({
+  createdAt,
+  isOnboarded,
+  dateOnboarded,
+}: GetDateOnboardedOptions): string {
+  // Earliest record of having an ONBOARDED user action row
+  const defaultLegacyVolunteerOnboardedDate = '2020-07-28 12:44:47.648+00'
+  const isLegacyVolunteerOnboarded =
+    new Date(createdAt) <= new Date(defaultLegacyVolunteerOnboardedDate) &&
+    isOnboarded
+
+  if (dateOnboarded) return moment(dateOnboarded).format('MM/DD/YYYY HH:mm')
+  else if (isLegacyVolunteerOnboarded)
+    return moment(defaultLegacyVolunteerOnboardedDate).format(
+      'MM/DD/YYYY HH:mm'
+    )
+  else return ''
 }
 
 function isDateWithin(date: string, startDate: Date, endDate: Date) {
@@ -405,7 +426,6 @@ export function getAnalyticsReportRow(
   row.onboardingStatus = getOnboardingStatus({
     isOnboarded: volunteer.isOnboarded,
     availabilityLastModifiedAt: volunteer.availabilityLastModifiedAt,
-    isDeactivated: volunteer.isDeactivated,
     totalQuizzesPassed: volunteer.totalQuizzesPassed,
   })
   row.dateAccountCreated = moment(volunteer.createdAt).format(
@@ -451,9 +471,12 @@ export function getAnalyticsReportRow(
   )
   row.dateRangeVolunteerHours =
     volunteer.hourSummaryDateRange.totalVolunteerHours
-  row.dateOnboarded = volunteer.dateOnboarded
-    ? moment(volunteer.dateOnboarded).format('MM/DD/YYYY HH:mm')
-    : ''
+
+  row.dateOnboarded = getDateOnboarded({
+    createdAt: volunteer.createdAt,
+    isOnboarded: volunteer.isOnboarded,
+    dateOnboarded: volunteer.dateOnboarded,
+  })
 
   return row
 }
