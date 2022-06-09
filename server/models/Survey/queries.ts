@@ -90,13 +90,18 @@ export async function getPresessionSurveyNew(
       getClient()
     )
 
-    const rows = result.map(v => makeRequired(v))
-    const rowsByQuestion = _.groupBy(rows, v => v.questionId)
+    const resultArr = result.map(v => makeRequired(v))
+    const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
 
     const survey: PresessionSurvey[] = []
     for (const [question, rows] of Object.entries(rowsByQuestion)) {
       const responses: PresessionSurveyResponse[] = []
-      const questionIndex = 0
+      const questionData = {
+        questionId: question,
+        questionText: rows[0].questionText,
+        displayPriority: rows[0].displayPriority,
+        questionType: rows[0].questionType,
+      }
 
       for (const row of rows) {
         const responseItem: PresessionSurveyResponse = {
@@ -108,10 +113,7 @@ export async function getPresessionSurveyNew(
       }
 
       survey.push({
-        questionId: question,
-        questionText: rows[questionIndex].questionText,
-        displayPriority: rows[questionIndex].displayPriority,
-        questionType: rows[questionIndex].questionType,
+        ...questionData,
         responses: responses,
       })
     }
