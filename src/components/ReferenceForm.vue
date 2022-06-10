@@ -47,6 +47,7 @@
           />
         </div>
         <template v-if="!isAdminReview">
+          <div v-if="!mobileMode">
           <div
             class="question-row"
             v-for="(question, question_index) in multipleRadioQuestions"
@@ -130,6 +131,26 @@
               </div>
             </div>
           </div>
+          </div>
+          <!-- HERE mobile mode -->
+            <div v-else>
+              <div 
+              v-for="(question, questionIndex) in multipleRadioQuestions"
+              v-bind:key="questionIndex"> 
+                <div class="uc-form-label"> {{ question.title }} </div>
+                  <div 
+                  v-for="(subquestion, subquestionIndex) in question.options"
+                  v-bind:key="subquestionIndex">
+                    <div class="uc-form-label"> {{ subquestion }} </div>
+                      <v-select
+                      class="uc-form__select"
+                      placeholder="Select your answer"
+                      :options="question.tableTitle"
+                      :searchable="false"
+                    ></v-select>
+                  </div>
+              </div>
+            </div>
         </template>
 
         <div v-else>
@@ -380,6 +401,12 @@ export default {
 }
 </script>
 
+<style lang="scss">
+.uc-form__select .vs__dropdown-menu {
+  font-size: 14px;
+}
+</style>
+
 <style lang="scss" scoped>
 .helper-message {
   text-align: center;
@@ -399,6 +426,7 @@ textarea.uc-form-input {
 .uc-form {
   &-label {
     font-weight: 500;
+    margin-top: 1.5em;
   }
 
   &-input {
@@ -406,6 +434,17 @@ textarea.uc-form-input {
     &:focus {
       outline: none;
       border-bottom: 3px solid darken($c-information-blue, 15%);
+    }
+  }
+
+  &__select {
+    height: 40px;
+    width: 100%;
+    margin-top: 1.5em;
+    font-size: 14px;
+
+    ::placeholder {
+    color: $c-banned-grey;
     }
   }
 }
