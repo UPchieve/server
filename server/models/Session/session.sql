@@ -974,7 +974,6 @@ WHERE
     AND sessions.time_tutored IS NOT NULL
     AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
-    AND volunteers.test_user IS FALSE
     AND students.test_user IS FALSE
     AND sessions.ended_at IS NOT NULL
 ORDER BY
@@ -996,7 +995,6 @@ WHERE
     AND sessions.time_tutored IS NOT NULL
     AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
-    AND volunteers.test_user IS FALSE
     AND students.test_user IS FALSE;
 
 
