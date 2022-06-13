@@ -38,10 +38,8 @@ export function routeSurvey(router: expressWs.Router): void {
   })
 
   router.get('/survey/presession', async (req, res, next) => {
-    const { subjectName } = req.body.subjectName
-
     try {
-      const survey = await getPresessionSurveyNew(asString(subjectName))
+      const survey = await getPresessionSurveyNew(asString(req.body.subjectName))
       res.json({ survey })
     } catch (error) {
       resError(res, error)
