@@ -37,18 +37,20 @@ WHERE
 
 /* @name getPresessionSurveyNew */
 SELECT
-    survey_questions.id AS question_id,
-    survey_questions.question_text,
+    sq.id AS question_id,
+    sq.question_text,
     ssq.display_priority,
     qt.name AS question_type,
-    sub.*
+    sub.response_id,
+    sub.response_text,
+    sub.response_display_priority
 FROM
     surveys_presession
     JOIN surveys ON survey_id = surveys.id
     JOIN subjects ON subject_id = subjects.id
     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
-    JOIN survey_questions ON ssq.survey_question_id = survey_questions.id
-    JOIN question_types qt ON qt.id = survey_questions.question_type_id
+    JOIN survey_questions sq ON ssq.survey_question_id = sq.id
+    JOIN question_types qt ON qt.id = sq.question_type_id
     JOIN LATERAL (
         SELECT
             id AS response_id,
@@ -58,7 +60,7 @@ FROM
             survey_questions_response_choices sqrc
             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
         WHERE
-            sqrc.survey_question_id = survey_questions.id) sub ON TRUE
+            sqrc.survey_question_id = sq.id) sub ON TRUE
 WHERE
     subjects.name = :subjectName!;
 

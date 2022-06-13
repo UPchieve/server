@@ -96,11 +96,12 @@ export async function getPresessionSurveyNew(
     const survey: PresessionSurvey[] = []
     for (const [question, rows] of Object.entries(rowsByQuestion)) {
       const responses: PresessionSurveyResponse[] = []
+      const temp = rows[0]
       const questionData = {
         questionId: question,
-        questionText: rows[0].questionText,
-        displayPriority: rows[0].displayPriority,
-        questionType: rows[0].questionType,
+        questionText: temp.questionText,
+        displayPriority: temp.displayPriority,
+        questionType: temp.questionType,
       }
 
       for (const row of rows) {
