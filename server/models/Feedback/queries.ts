@@ -24,7 +24,7 @@ function buildFeedback(rows: FeedbackByResult[]): Feedback {
   if (rows.length > 2) {
     // TODO: temporary workaround to deal with feedbacks getting added multiple times
     //  remove once root cause is found
-    rows = _.uniqBy(rows, 'user_role');
+    rows = _.uniqBy(rows, 'user_role')
     //throw new Error('Found more than 2 feedbacks for a session')
   }
   const newRows = rows.map(v =>
