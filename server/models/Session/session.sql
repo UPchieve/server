@@ -857,8 +857,7 @@ WHERE
         OR sessions.student_banned IS FALSE
         OR (:showBannedUsers)::boolean IS TRUE)
     AND ((:showTestUsers)::boolean IS NULL
-        OR (:showTestUsers)::boolean IS TRUE
-        OR students.test_user IS FALSE)
+        OR (:showTestUsers)::boolean IS TRUE)
     AND ((:firstTimeStudent)::boolean IS NULL
         OR (:firstTimeStudent)::boolean IS FALSE
         OR student_sessions.total = 1)
@@ -974,7 +973,6 @@ WHERE
     AND sessions.time_tutored IS NOT NULL
     AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
-    AND students.test_user IS FALSE
     AND sessions.ended_at IS NOT NULL
 ORDER BY
     sessions.created_at DESC
@@ -994,8 +992,7 @@ WHERE
     AND NOW()
     AND sessions.time_tutored IS NOT NULL
     AND sessions.time_tutored > :minSessionLength!::int
-    AND sessions.volunteer_id IS NOT NULL
-    AND students.test_user IS FALSE;
+    AND sessions.volunteer_id IS NOT NULL;
 
 
 /* @name getSessionRecap */
