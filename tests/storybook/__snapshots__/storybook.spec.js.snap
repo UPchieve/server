@@ -1162,6 +1162,418 @@ exports[`Storyshots Availability/Cell Vanilla 1`] = `
 </div>
 `;
 
+exports[`Storyshots Components/Stepper All Steps Completed 1`] = `
+<div
+  class="stepper"
+>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--complete"
+      >
+        <!---->
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar progress-bar--complete"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--complete"
+      >
+        <!---->
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar progress-bar--complete"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--complete"
+      >
+        <!---->
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar progress-bar--complete"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--complete"
+      >
+        <!---->
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar progress-bar--complete"
+    />
+  </div>
+  <div
+    class="step step--last-step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--complete"
+      >
+        <!---->
+      </div>
+    </div>
+     
+    <!---->
+  </div>
+</div>
+`;
+
+exports[`Storyshots Components/Stepper In Progress 1`] = `
+<div
+  class="stepper"
+>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--complete"
+      >
+        <!---->
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar progress-bar--complete"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--complete"
+      >
+        <!---->
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar progress-bar--complete"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle"
+      >
+        <span
+          class="step-display"
+        >
+          3
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          4
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step step--last-step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          5
+        </span>
+      </div>
+    </div>
+     
+    <!---->
+  </div>
+</div>
+`;
+
+exports[`Storyshots Components/Stepper No Steps Completed 1`] = `
+<div
+  class="stepper"
+>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle"
+      >
+        <span
+          class="step-display"
+        >
+          1
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          2
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          3
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          4
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step step--last-step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          5
+        </span>
+      </div>
+    </div>
+     
+    <!---->
+  </div>
+</div>
+`;
+
+exports[`Storyshots Components/Stepper Vanilla 1`] = `
+<div
+  class="stepper"
+>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          1
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          2
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          3
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          4
+        </span>
+      </div>
+    </div>
+     
+    <div
+      class="progress-bar"
+    />
+  </div>
+  <div
+    class="step step--last-step"
+  >
+    <div
+      class="circle-container"
+    >
+      <div
+        class="circle circle--not-started"
+      >
+        <span
+          class="step-display step-display--not-started"
+        >
+          5
+        </span>
+      </div>
+    </div>
+     
+    <!---->
+  </div>
+</div>
+`;
+
 exports[`Storyshots Example/Button Large 1`] = `
 <button
   class="storybook-button storybook-button--secondary storybook-button--large"
