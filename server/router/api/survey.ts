@@ -37,7 +37,6 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
-  // @todo: clean up old presession survey code and rename functions without the "new" keyword
   router.get('/survey/presession', async (req, res, next) => {
     try {
       const survey = await getPresessionSurveyNew(

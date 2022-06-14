@@ -81,6 +81,7 @@ export type PresessionSurvey = {
   responses: PresessionSurveyResponse[]
 }
 
+// @todo: clean up old presession survey code and rename functions without the "new" keyword
 export async function getPresessionSurveyNew(
   subjectName: string
 ): Promise<PresessionSurvey[]> {
