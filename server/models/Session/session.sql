@@ -857,7 +857,8 @@ WHERE
         OR sessions.student_banned IS FALSE
         OR (:showBannedUsers)::boolean IS TRUE)
     AND ((:showTestUsers)::boolean IS NULL
-        OR (:showTestUsers)::boolean IS TRUE)
+        OR (:showTestUsers)::boolean IS TRUE
+        OR students.test_user IS FALSE)
     AND ((:firstTimeStudent)::boolean IS NULL
         OR (:firstTimeStudent)::boolean IS FALSE
         OR student_sessions.total = 1)
