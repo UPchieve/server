@@ -8,7 +8,9 @@ import { resError } from '../res-error'
 export function routeFeedback(router: expressWs.Router): void {
   router.post('/feedback', async (req, res) => {
     try {
-      const feedbackId = await FeedbackService.saveFeedback(req.body)
+      const feedbackId = await FeedbackService.upsertFeedback(req.body)
+      //const feedbackId2 = await FeedbackService.upsertFeedback(req.body)
+      //console.log(feedbackId2)
       res.json({
         feedback: feedbackId,
       })
