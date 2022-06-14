@@ -2,31 +2,22 @@
   <div class="stepper">
     <div
       class="step"
-      v-for="(numStep, index) of totalSteps"
-      :key="`step-${index}`"
+      v-for="numStep of totalSteps"
+      :key="`step-${numStep}`"
       :class="numStep == totalSteps && 'step--last-step'"
     >
       <div class="circle-container">
-        <div
-          class="circle"
-          :class="{
-            'circle--complete': index + 1 < currentStep,
-            'circle--not-started': numStep > currentStep,
-          }"
-        >
-          <check-mark class="check-mark" v-if="currentStep > index + 1" />
-          <span
-            v-else
-            class="step-display"
-            :class="numStep > currentStep && 'step-display--not-started'"
-            >{{ numStep }}</span
-          >
+        <div class="circle" :class="circleStepStatus(numStep)">
+          <check-mark class="check-mark" v-if="currentStep > numStep" />
+          <span v-else class="step-display" :class="checkMarkStatus(numStep)">{{
+            numStep
+          }}</span>
         </div>
       </div>
       <div
         v-if="numStep < totalSteps"
         class="progress-bar"
-        :class="numStep < currentStep && 'progress-bar--complete'"
+        :class="progressBarStatus(numStep)"
       />
     </div>
   </div>
@@ -43,6 +34,21 @@ export default {
   props: {
     totalSteps: { type: Number, required: true },
     currentStep: { type: Number, required: true },
+  },
+  methods: {
+    circleStepStatus(numStep) {
+      if (numStep < this.currentStep) return 'circle--complete'
+      if (numStep > this.currentStep) return 'circle--not-started'
+      return ''
+    },
+    checkMarkStatus(numStep) {
+      if (numStep > this.currentStep) return 'step-display--not-started'
+      return ''
+    },
+    progressBarStatus(numStep) {
+      if (numStep < this.currentStep) return 'progress-bar--complete'
+      return ''
+    },
   },
 }
 </script>
