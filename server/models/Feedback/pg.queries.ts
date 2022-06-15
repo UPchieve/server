@@ -284,3 +284,43 @@ const getFeedbackByUserIdIR: any = {"name":"getFeedbackByUserId","params":[{"nam
 export const getFeedbackByUserId = new PreparedQuery<IGetFeedbackByUserIdParams,IGetFeedbackByUserIdResult>(getFeedbackByUserIdIR);
 
 
+/** 'RemoveDuplicateFeedbacks' parameters type */
+export type IRemoveDuplicateFeedbacksParams = void;
+
+/** 'RemoveDuplicateFeedbacks' return type */
+export type IRemoveDuplicateFeedbacksResult = void;
+
+/** 'RemoveDuplicateFeedbacks' query type */
+export interface IRemoveDuplicateFeedbacksQuery {
+  params: IRemoveDuplicateFeedbacksParams;
+  result: IRemoveDuplicateFeedbacksResult;
+}
+
+const removeDuplicateFeedbacksIR: any = {"name":"removeDuplicateFeedbacks","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM feedbacks\nWHERE id IN (\n    SELECT id\n        FROM (\n        SELECT\n        id,\n        user_id,\n        user_role_id,\n        created_at,\n        row_number() OVER w as rnum\n        FROM feedbacks\n        WINDOW w AS (\n            PARTITION BY user_id, created_at\n            ORDER BY id\n        )\n    ) as subquery\n    where rnum > 1\n)","loc":{"a":3148,"b":3496,"line":122,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM feedbacks
+ * WHERE id IN (
+ *     SELECT id
+ *         FROM (
+ *         SELECT
+ *         id,
+ *         user_id,
+ *         user_role_id,
+ *         created_at,
+ *         row_number() OVER w as rnum
+ *         FROM feedbacks
+ *         WINDOW w AS (
+ *             PARTITION BY user_id, created_at
+ *             ORDER BY id
+ *         )
+ *     ) as subquery
+ *     where rnum > 1
+ * )
+ * ```
+ */
+export const removeDuplicateFeedbacks = new PreparedQuery<IRemoveDuplicateFeedbacksParams,IRemoveDuplicateFeedbacksResult>(removeDuplicateFeedbacksIR);
+
+

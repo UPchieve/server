@@ -116,3 +116,23 @@ FROM
 WHERE
     feedbacks.user_id = :userId!;
 
+
+/* @name removeDuplicateFeedbacks */
+DELETE FROM feedbacks
+WHERE id IN (
+    SELECT id
+        FROM (
+        SELECT
+        id,
+        user_id,
+        user_role_id,
+        created_at,
+        row_number() OVER w as rnum
+        FROM feedbacks
+        WINDOW w AS (
+            PARTITION BY user_id, created_at
+            ORDER BY id
+        )
+    ) as subquery
+    where rnum > 1
+);
