@@ -4,6 +4,7 @@ import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { Feedback } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
+import * as _ from 'lodash'
 
 export type FeedbackByResult = {
   id: string
@@ -20,8 +21,9 @@ export type FeedbackByResult = {
 }
 
 function buildFeedback(rows: FeedbackByResult[]): Feedback {
-  if (rows.length > 2)
+  if (rows.length > 2) {
     throw new Error('Found more than 2 feedbacks for a session')
+  }
   const newRows = rows.map(v =>
     makeSomeRequired(v, [
       'legacyFeedbacks',
@@ -125,13 +127,13 @@ export type FeedbackPayload = Pick<
   | 'volunteerFeedback'
   | 'comment'
 >
-export async function saveFeedback(
+export async function upsertFeedback(
   sessionId: Ulid,
   userRole: 'student' | 'volunteer',
   feedback: FeedbackPayload
 ): Promise<Ulid> {
   try {
-    const result = await pgQueries.saveFeedback.run(
+    const result = await pgQueries.upsertFeedback.run(
       {
         id: getDbUlid(),
         sessionId,

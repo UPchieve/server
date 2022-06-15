@@ -63,7 +63,7 @@ WHERE
     AND user_roles.name = :userRole!;
 
 
-/* @name saveFeedback */
+/* @name upsertFeedback */
 INSERT INTO feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, created_at, updated_at)
 SELECT
     :id!,
@@ -89,6 +89,7 @@ FROM
     JOIN user_roles ON user_roles.name = :userRole!
 WHERE
     sessions.id = :sessionId!
+ON CONFLICT (user_role_id, session_id) DO NOTHING
 RETURNING
     feedbacks.id;
 
