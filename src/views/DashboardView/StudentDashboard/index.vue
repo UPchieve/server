@@ -17,6 +17,14 @@
       >
         <a href="https://upchieve.statuspage.io" target="_blank">{{ downtimeMessage }}</a>
       </div>
+
+      <div
+        v-if="this.isSummerPrepActive && !downtimeMessage"
+        class="dashboard-notice"
+        :class="'dashboard-notice--summer-prep'"
+      >
+        <span><a href="https://bit.ly/upchievesummer" target="_blank">Sign up</a> for our Summer College Prep Programs</span>
+      </div>
     </div>
 
     <subject-selection />
@@ -96,6 +104,7 @@ export default {
       isSessionAlive: 'user/isSessionAlive',
       isReferFriendsActive: 'featureFlags/isReferFriendsActive',
       isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
+      isSummerPrepActive: 'featureFlags/isSummerPrepActive',
     }),
     isLowCoachHour() {
       return this.currentHour < 12
@@ -198,5 +207,15 @@ export default {
     color: #fff;
     background-color: $c-information-blue;
   }
+
+  &--summer-prep {
+    color: #fff;
+    background-color: $c-information-blue;
+    a {
+      text-decoration: underline;
+      font-weight: bold;
+    }
+  }
+  
 }
 </style>

@@ -437,7 +437,8 @@ export const FEATURE_FLAGS = {
   DASHBOARD_BANNER: 'dashboard-banner',
   ZIP_CODE_CHECK: 'zip-code-check',
   DISCOVERY_SOURCE: 'discovery-source',
-  UPCHIEVE_101_GRACE_PERIOD_BANNER: 'training-grace-period-banner'
+  UPCHIEVE_101_GRACE_PERIOD_BANNER: 'training-grace-period-banner',
+  SUMMER_PREP_BANNER: 'summer-prep-banner'
 }
 
 export const ANALYTICS_REPORT_ROW = {
