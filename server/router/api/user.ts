@@ -77,6 +77,7 @@ export function routeUser(router: Router): void {
       const user = extractUser(req)
       await UserService.addReference({
         userId: user.id,
+        userEmail: user.email,
         ip,
         ...req.body,
       } as unknown)

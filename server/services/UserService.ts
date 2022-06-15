@@ -6,8 +6,9 @@ import {
   EVENTS,
   IP_ADDRESS_STATUS,
   PHOTO_ID_STATUS,
+  REFERENCE_STATUS,
 } from '../constants'
-import { UserNotFoundError } from '../models/Errors'
+import { UserNotFoundError, NotAllowedError } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
 import {
@@ -26,6 +27,9 @@ import {
   deleteVolunteerReferenceByEmail,
   updateVolunteerForAdmin,
   updateVolunteerReferenceSubmission,
+  getReferencesByVolunteer,
+  ReferenceContactInfo,
+  updateVolunteerReferenceStatus,
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
@@ -71,6 +75,7 @@ export async function addPhotoId(userId: Ulid, ip: string): Promise<string> {
 
 interface AddReferencePayload {
   userId: Ulid
+  userEmail: string
   referenceFirstName: string
   referenceLastName: string
   referenceEmail: string
@@ -78,6 +83,7 @@ interface AddReferencePayload {
 }
 const asAddReferencePayload = asFactory<AddReferencePayload>({
   userId: asString,
+  userEmail: asString,
   referenceFirstName: asString,
   referenceLastName: asString,
   referenceEmail: asString,
@@ -87,6 +93,7 @@ const asAddReferencePayload = asFactory<AddReferencePayload>({
 export async function addReference(data: unknown) {
   const {
     userId,
+    userEmail,
     referenceFirstName,
     referenceLastName,
     referenceEmail,
@@ -97,7 +104,26 @@ export async function addReference(data: unknown) {
     lastName: referenceLastName,
     email: referenceEmail,
   }
-  await addVolunteerReferenceById(userId, referenceData)
+
+  if (userEmail === referenceData.email) {
+    throw new NotAllowedError('Cannot use yourself as a reference')
+  } else {
+    const existingReferences: ReferenceContactInfo[] = await getReferencesByVolunteer(
+      userId
+    )
+    for (const reference of existingReferences) {
+      if (
+        reference.email === referenceEmail &&
+        reference.status !== REFERENCE_STATUS.REJECTED
+      ) {
+        await updateVolunteerReferenceStatus(
+          reference.id,
+          REFERENCE_STATUS.UNSENT
+        )
+      } else await addVolunteerReferenceById(userId, referenceData)
+    }
+  }
+
   await createAccountAction({
     userId,
     ipAddress: ip,
