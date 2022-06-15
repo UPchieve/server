@@ -647,7 +647,9 @@ CREATE TABLE upchieve.push_tokens (
 
 CREATE TABLE upchieve.question_tags (
     id integer NOT NULL,
-    name text NOT NULL
+    name text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -671,7 +673,9 @@ ALTER TABLE upchieve.question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENT
 
 CREATE TABLE upchieve.question_types (
     id integer NOT NULL,
-    name text NOT NULL
+    name text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -1366,7 +1370,9 @@ ALTER TABLE upchieve.surveys ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 CREATE TABLE upchieve.surveys_postsession (
     survey_id integer NOT NULL,
-    subject_id integer NOT NULL
+    subject_id integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -1376,7 +1382,9 @@ CREATE TABLE upchieve.surveys_postsession (
 
 CREATE TABLE upchieve.surveys_presession (
     survey_id integer NOT NULL,
-    subject_id integer NOT NULL
+    subject_id integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -3099,13 +3107,6 @@ CREATE INDEX availability_histories_user_id_recorded_at ON upchieve.availability
 
 
 --
--- Name: feedbacks_session_id_user_role_id; Type: INDEX; Schema: upchieve; Owner: -
---
-
-CREATE UNIQUE INDEX feedbacks_session_id_user_role_id ON upchieve.feedbacks USING btree (session_id, user_role_id);
-
-
---
 -- Name: legacy_availability_histories_user_id_recorded_at; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4178,4 +4179,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220601154505'),
     ('20220602170321'),
     ('20220602170346'),
-    ('20220614202247');
+    ('20220609150924');

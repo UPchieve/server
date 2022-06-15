@@ -62,7 +62,6 @@ export type VolunteersForAnalyticsReport = {
   email: string
   state?: string
   isOnboarded: boolean
-  isDeactivated: boolean
   createdAt: Date
   dateOnboarded?: Date
   availabilityLastModifiedAt?: Date

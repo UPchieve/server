@@ -1,7 +1,12 @@
 import expressWs from 'express-ws'
-import { savePresessionSurvey, getPresessionSurvey } from '../../models/Survey'
-import { asUlid } from '../../utils/type-utils'
+import {
+  savePresessionSurvey,
+  getPresessionSurvey,
+  getPresessionSurveyNew,
+} from '../../models/Survey'
+import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
+import { resError } from '../res-error'
 
 export function routeSurvey(router: expressWs.Router): void {
   router.post('/survey/presession/:sessionId', async (req, res, next) => {
@@ -29,6 +34,17 @@ export function routeSurvey(router: expressWs.Router): void {
       res.json({ survey })
     } catch (error) {
       next(error)
+    }
+  })
+
+  router.get('/survey/presession', async (req, res, next) => {
+    try {
+      const survey = await getPresessionSurveyNew(
+        asString(req.body.subjectName)
+      )
+      res.json({ survey })
+    } catch (error) {
+      resError(res, error)
     }
   })
 }
