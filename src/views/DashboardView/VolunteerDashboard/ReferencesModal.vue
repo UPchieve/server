@@ -28,7 +28,7 @@
               <h4>Reference {{ index + 1 }}</h4>
               <trash-icon
                 class="trash-icon"
-                v-if="reference.status !== 'APPROVED'"
+                v-if="reference.status !== 'APPROVED' && reference.status !== 'SUBMITTED'"
                 @click="removeReference(index)"
               />
             </div>

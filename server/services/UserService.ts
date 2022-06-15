@@ -106,30 +106,36 @@ export async function addReference(data: unknown) {
   }
 
   if (userEmail === referenceData.email) {
-    throw new NotAllowedError('Cannot use yourself as a reference')
-  } else {
-    const existingReferences: ReferenceContactInfo[] = await getReferencesByVolunteer(
-      userId
+    throw new NotAllowedError(
+      'Your reference cannot have the same email address as you.'
     )
-    for (const reference of existingReferences) {
-      if (
-        reference.email === referenceEmail &&
-        reference.status !== REFERENCE_STATUS.REJECTED
-      ) {
-        await updateVolunteerReferenceStatus(
-          reference.id,
-          REFERENCE_STATUS.UNSENT
-        )
-      } else await addVolunteerReferenceById(userId, referenceData)
-    }
   }
 
-  await createAccountAction({
-    userId,
-    ipAddress: ip,
-    action: ACCOUNT_USER_ACTIONS.ADDED_REFERENCE,
-    referenceEmail,
-  })
+  const existingReferences: ReferenceContactInfo[] = await getReferencesByVolunteer(
+    userId
+  )
+  let referenceExists = false
+  for (const reference of existingReferences) {
+    if (
+      reference.email === referenceEmail &&
+      reference.status !== REFERENCE_STATUS.REJECTED
+    ) {
+      referenceExists = true
+      await updateVolunteerReferenceStatus(
+        reference.id,
+        REFERENCE_STATUS.UNSENT
+      )
+    }
+  }
+  if (!referenceExists) {
+    await addVolunteerReferenceById(userId, referenceData)
+    await createAccountAction({
+      userId,
+      ipAddress: ip,
+      action: ACCOUNT_USER_ACTIONS.ADDED_REFERENCE,
+      referenceEmail,
+    })
+  }
 }
 
 export async function saveReferenceForm(
