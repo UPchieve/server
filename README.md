@@ -101,7 +101,7 @@ If you change anything in the `.sql` files in `server/models`, run [`npm run pgt
 
 For schema changes:
 
-1. Update `~/.zshrc` (or `~/.bashrc` if using Bash for your shell) to include absolute paths needed for `dbmate` to run
+1. Update `~/.zshrc` or `.env` file to include absolute paths needed for `dbmate` to run
 ```shell
 export DBMATE_SCHEMA_FILE="/path/to/repo/subway/database/db_init/schema.sql"
 export DBMATE_MIGRATIONS_DIR="/path/to/repo/subway/database/migrations"
