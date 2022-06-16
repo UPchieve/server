@@ -328,8 +328,8 @@ const jobProcessors: JobProcessor[] = [
   },
   {
     name: Jobs.DeleteDuplicateFeedbacks,
-    processor: deleteDuplicateFeedbacks
-  }
+    processor: deleteDuplicateFeedbacks,
+  },
 ]
 
 // Each Bull processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615
