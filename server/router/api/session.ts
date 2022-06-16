@@ -8,6 +8,14 @@ import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
 import { asString, asUlid } from '../../utils/type-utils'
+import multer from 'multer'
+import { storeWhiteboardImage } from '../../services/AwsService'
+// TODO: fix error - convert is still exported fine
+// @ts-ignore-error
+import convert from 'heic-convert' 
+// uses memory storage. we can use a different storage method as well
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage })
 
 // TODO: figure out a better way to expose SocketService
 export function routeSession(router: Router, io: Server) {
@@ -135,6 +143,47 @@ export function routeSession(router: Router, io: Server) {
       const { uploadUrl, imageUrl } = await SessionService.getImageAndUploadUrl(
         sessionId as unknown
       )
+      res.json({ uploadUrl, imageUrl })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.post('/session/:sessionId/photo-url',upload.single('test-images'), async function(req, res) {
+    try {
+      const { sessionId } = req.params
+      /**
+       * 
+       * 
+       * If we pursue this, this should definitely be feature flagged in case of spiked
+       * usage of resources
+       * 
+       * 
+       * NOTE: There is a synchronous work that is done with heic-convert. We may need to move
+       * off-load that work to a worker. Curious how many concurrent image loads we can
+       * defer to workers
+       * 
+       * 
+       * 
+       */
+      const { uploadUrl, imageUrl } = await SessionService.getImageAndUploadUrl(
+        sessionId as unknown
+      )
+      if (req.file && req.file.mimetype === 'image/heic'){
+        const inputBuffer = req.file?.buffer!
+        const outputBuffer = await convert({
+          buffer: inputBuffer, // the HEIC file buffer
+          format: 'JPEG',      // output format
+          quality: 1           // the jpeg compression quality, between 0 and 1
+        });
+        req.file.buffer = outputBuffer
+        req.file.mimetype = 'image/jpeg'
+      }
+
+      console.log('the req file', req.file)
+      console.log('Sending to AWS..')
+      await storeWhiteboardImage(req.file, uploadUrl)
+      console.log('Sent to AWS')
       res.json({ uploadUrl, imageUrl })
     } catch (error) {
       resError(res, error)

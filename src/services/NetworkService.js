@@ -254,11 +254,17 @@ export default {
       })
       .then(this._successHandler, this._errorHandler)
   },
-  getSessionPhotoUploadUrl(sessionId) {
+  getSessionPhotoUploadUrl(sessionId, data) {
     return Vue.http
-      .get(`${API_ROOT}/session/${sessionId}/photo-url`)
+      .post(`${API_ROOT}/session/${sessionId}/photo-url`, data
+      )
       .then(this._successHandler, this._errorHandler)
   },
+  // getSessionPhotoUploadUrl(sessionId) {
+  //   return Vue.http
+  //     .get(`${API_ROOT}/session/${sessionId}/photo-url`)
+  //     .then(this._successHandler, this._errorHandler)
+  // },
   timedOutSession(sessionId, data) {
     return Vue.http
       .post(`${API_ROOT}/session/${sessionId}/timed-out`, data)

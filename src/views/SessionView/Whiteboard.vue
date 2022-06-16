@@ -198,7 +198,7 @@
         <FileDialog
           ref="fileDialog"
           class="upload-photo"
-          accept="image/*"
+          accept="image/*, image/heic"
           @file-selected="uploadPhoto"
         />
         <PhotoUploadIcon class="toolbar-item__svg--photo" />
@@ -230,7 +230,6 @@
 
 <script>
 import { mapState, mapGetters } from 'vuex'
-import axios from 'axios'
 import NetworkService from '@/services/NetworkService'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
 import SelectionIcon from '@/assets/whiteboard_icons/selection.svg'
@@ -462,23 +461,18 @@ export default {
 
       this.usePickTool(uploadEvents.dialogOpeningEvent)
 
+      // for testing purposes we are going to allow multiple submissions
+      const formData = new FormData();
+      formData.append("test-images", file);
+      // this.isLoading = true
       const response = await NetworkService.getSessionPhotoUploadUrl(
-        this.sessionId
+        this.sessionId, formData
       )
       const {
-        body: { uploadUrl, imageUrl }
+        body: { imageUrl }
       } = response
 
-      if (uploadUrl) {
-        this.isLoading = true
-        await axios.put(uploadUrl, file, {
-          headers: {
-            'Content-Type': file.type
-          }
-        })
-
         this.insertPhoto(imageUrl)
-      }
 
       // Reset the file input
       event.target.value = ''

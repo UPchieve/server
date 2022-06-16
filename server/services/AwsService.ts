@@ -1,6 +1,7 @@
 import AWS from 'aws-sdk'
 import * as Sentry from '@sentry/node'
 import config from '../config'
+import axios from 'axios'
 
 const s3 = new AWS.S3({
   accessKeyId: config.awsS3.accessKeyId,
@@ -27,6 +28,18 @@ export async function getObject(
     Sentry.captureException(error)
     return ''
   }
+}
+
+export async function storeWhiteboardImage(file: any, uploadUrl: string): Promise<void> {
+  console.log('the file brooo', file)
+  // must `put` from the file buffer
+  await axios.put(uploadUrl, file.buffer
+    , {
+    headers: {
+      'Content-Type': file.mimetype,
+    },
+  }
+  )
 }
 
 export async function getPhotoIdUploadUrl(
