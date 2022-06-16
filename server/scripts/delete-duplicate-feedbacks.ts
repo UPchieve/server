@@ -1,7 +1,7 @@
 import * as db from '../db'
 import { removeDuplicateFeedbacks } from '../models/Feedback/queries';
 
-async function main() {
+export default async function DeleteDuplicateFeedbacks() {
   let exitCode = 0
   try {
     await db.connect()
@@ -15,4 +15,3 @@ async function main() {
   }
 }
 
-main()
