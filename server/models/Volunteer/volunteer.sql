@@ -688,7 +688,7 @@ WHERE
     AND volunteer_reference_statuses.name != 'removed';
 
 
-/* @name getReferencesByVolunteerForReadding */
+/* @name checkReferenceExistsBeforeAdding */
 SELECT
     volunteer_references.id,
     first_name,
@@ -707,7 +707,8 @@ FROM
         WHERE
             user_actions.user_id = :userId!) sub ON TRUE
 WHERE
-    volunteer_references.user_id = :userId!;
+    volunteer_references.user_id = :userId!
+    AND volunteer_references.email = :email!;
 
 
 /* @name getReferencesByVolunteerForAdminDetail */

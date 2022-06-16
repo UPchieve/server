@@ -27,8 +27,7 @@ import {
   deleteVolunteerReferenceByEmail,
   updateVolunteerForAdmin,
   updateVolunteerReferenceSubmission,
-  getReferencesByVolunteerForReadding,
-  ReferenceForReadding,
+  checkReferenceExistsBeforeAdding,
   updateVolunteerReferenceStatus,
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
@@ -111,21 +110,24 @@ export async function addReference(data: unknown) {
     )
   }
 
-  const existingReferences: ReferenceForReadding[] = await getReferencesByVolunteerForReadding(
-    userId
+  const isExistingReference = await checkReferenceExistsBeforeAdding(
+    userId,
+    referenceEmail
   )
-  for (const reference of existingReferences) {
-    if (
-      reference.email === referenceEmail &&
-      !reference.actions.includes(ACCOUNT_USER_ACTIONS.REJECTED_REFERENCE)
-    ) {
-      await updateVolunteerReferenceStatus(
-        reference.id,
-        REFERENCE_STATUS.UNSENT
-      )
-      return
-    }
+  if (
+    isExistingReference &&
+    isExistingReference.email === referenceEmail &&
+    !isExistingReference.actions.includes(
+      ACCOUNT_USER_ACTIONS.REJECTED_REFERENCE
+    )
+  ) {
+    await updateVolunteerReferenceStatus(
+      isExistingReference.id,
+      REFERENCE_STATUS.UNSENT
+    )
+    return
   }
+
   await addVolunteerReferenceById(userId, referenceData)
   await createAccountAction({
     userId,

@@ -923,26 +923,20 @@ export async function getReferencesByVolunteerForAdminDetail(
   }
 }
 
-export type ReferenceForReadding = {
-  id: Ulid
-  status: string
-  email: string
-  firstName: string
-  lastName: string
+export type ReferenceWithUserActions = ReferenceContactInfo & {
   actions: string[]
 }
 
-export async function getReferencesByVolunteerForReadding(
+export async function checkReferenceExistsBeforeAdding(
   userId: Ulid,
-  poolClient?: PoolClient
-): Promise<ReferenceForReadding[]> {
-  const client = poolClient ? poolClient : getClient()
+  email: string
+): Promise<ReferenceWithUserActions | undefined> {
   try {
-    const result = await pgQueries.getReferencesByVolunteerForReadding.run(
-      { userId },
-      client
+    const result = await pgQueries.checkReferenceExistsBeforeAdding.run(
+      { userId, email },
+      getClient()
     )
-    return result.map(v => makeRequired(v))
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }
