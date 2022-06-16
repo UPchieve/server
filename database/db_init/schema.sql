@@ -642,6 +642,58 @@ CREATE TABLE upchieve.push_tokens (
 
 
 --
+-- Name: question_tags; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.question_tags (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: question_tags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.question_tags_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: question_types; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.question_types (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: question_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.question_types ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.question_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: quiz_certification_grants; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1193,6 +1245,178 @@ ALTER SEQUENCE upchieve.subjects_id_seq OWNED BY upchieve.subjects.id;
 
 
 --
+-- Name: survey_questions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.survey_questions (
+    id integer NOT NULL,
+    question_type_id integer NOT NULL,
+    question_text text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: survey_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.survey_questions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_questions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: survey_questions_question_tags; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.survey_questions_question_tags (
+    id integer NOT NULL,
+    survey_question_id integer NOT NULL,
+    question_tag_id integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: survey_questions_question_tags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.survey_questions_question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_questions_question_tags_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: survey_questions_response_choices; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.survey_questions_response_choices (
+    survey_question_id integer NOT NULL,
+    response_choice_id integer NOT NULL,
+    display_priority smallint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: survey_response_choices; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.survey_response_choices (
+    id integer NOT NULL,
+    score smallint NOT NULL,
+    choice_text text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: survey_response_choices_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.survey_response_choices ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_response_choices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: surveys; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.surveys (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: surveys_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.surveys ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.surveys_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: surveys_postsession; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.surveys_postsession (
+    survey_id integer NOT NULL,
+    subject_id integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: surveys_presession; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.surveys_presession (
+    survey_id integer NOT NULL,
+    subject_id integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: surveys_survey_questions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.surveys_survey_questions (
+    id integer NOT NULL,
+    survey_id integer NOT NULL,
+    survey_question_id integer NOT NULL,
+    display_priority smallint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: surveys_survey_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.surveys_survey_questions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.surveys_survey_questions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: tool_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1499,6 +1723,33 @@ CREATE TABLE upchieve.users_quizzes (
 CREATE TABLE upchieve.users_roles (
     user_id uuid NOT NULL,
     role_id integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: users_surveys; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_surveys (
+    id uuid NOT NULL,
+    survey_id integer NOT NULL,
+    user_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: users_surveys_submissions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_surveys_submissions (
+    user_survey_id uuid NOT NULL,
+    survey_question_id integer NOT NULL,
+    survey_response_choice_id integer,
+    open_response text,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
 );
@@ -2162,6 +2413,22 @@ ALTER TABLE ONLY upchieve.push_tokens
 
 
 --
+-- Name: question_tags question_tags_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.question_tags
+    ADD CONSTRAINT question_tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: question_types question_types_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.question_types
+    ADD CONSTRAINT question_types_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: quiz_certification_grants quiz_certification_grants_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2458,6 +2725,54 @@ ALTER TABLE ONLY upchieve.subjects
 
 
 --
+-- Name: survey_questions survey_questions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions
+    ADD CONSTRAINT survey_questions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: survey_questions_question_tags survey_questions_question_tags_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_question_tags
+    ADD CONSTRAINT survey_questions_question_tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: survey_response_choices survey_response_choices_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_response_choices
+    ADD CONSTRAINT survey_response_choices_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: surveys surveys_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys
+    ADD CONSTRAINT surveys_name_key UNIQUE (name);
+
+
+--
+-- Name: surveys surveys_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys
+    ADD CONSTRAINT surveys_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: surveys_survey_questions surveys_survey_questions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_survey_questions
+    ADD CONSTRAINT surveys_survey_questions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: tool_types tool_types_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2687,6 +3002,14 @@ ALTER TABLE ONLY upchieve.users
 
 ALTER TABLE ONLY upchieve.users_roles
     ADD CONSTRAINT users_roles_pkey PRIMARY KEY (user_id, role_id);
+
+
+--
+-- Name: users_surveys users_surveys_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys
+    ADD CONSTRAINT users_surveys_pkey PRIMARY KEY (id);
 
 
 --
@@ -3422,6 +3745,94 @@ ALTER TABLE ONLY upchieve.subjects
 
 
 --
+-- Name: survey_questions_question_tags survey_questions_question_tags_question_tag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_question_tags
+    ADD CONSTRAINT survey_questions_question_tags_question_tag_id_fkey FOREIGN KEY (question_tag_id) REFERENCES upchieve.question_tags(id);
+
+
+--
+-- Name: survey_questions_question_tags survey_questions_question_tags_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_question_tags
+    ADD CONSTRAINT survey_questions_question_tags_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
+
+
+--
+-- Name: survey_questions survey_questions_question_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions
+    ADD CONSTRAINT survey_questions_question_type_id_fkey FOREIGN KEY (question_type_id) REFERENCES upchieve.question_types(id);
+
+
+--
+-- Name: survey_questions_response_choices survey_questions_response_choices_response_choice_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_response_choices
+    ADD CONSTRAINT survey_questions_response_choices_response_choice_id_fkey FOREIGN KEY (response_choice_id) REFERENCES upchieve.survey_response_choices(id);
+
+
+--
+-- Name: survey_questions_response_choices survey_questions_response_choices_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_response_choices
+    ADD CONSTRAINT survey_questions_response_choices_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
+
+
+--
+-- Name: surveys_postsession surveys_postsession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_postsession
+    ADD CONSTRAINT surveys_postsession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
+-- Name: surveys_postsession surveys_postsession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_postsession
+    ADD CONSTRAINT surveys_postsession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+
+
+--
+-- Name: surveys_presession surveys_presession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_presession
+    ADD CONSTRAINT surveys_presession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
+-- Name: surveys_presession surveys_presession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_presession
+    ADD CONSTRAINT surveys_presession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+
+
+--
+-- Name: surveys_survey_questions surveys_survey_questions_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_survey_questions
+    ADD CONSTRAINT surveys_survey_questions_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+
+
+--
+-- Name: surveys_survey_questions surveys_survey_questions_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_survey_questions
+    ADD CONSTRAINT surveys_survey_questions_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
+
+
+--
 -- Name: user_actions user_actions_ip_address_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3531,6 +3942,46 @@ ALTER TABLE ONLY upchieve.users_roles
 
 ALTER TABLE ONLY upchieve.users
     ADD CONSTRAINT users_signup_source_id_fkey FOREIGN KEY (signup_source_id) REFERENCES upchieve.signup_sources(id);
+
+
+--
+-- Name: users_surveys_submissions users_surveys_submissions_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys_submissions
+    ADD CONSTRAINT users_surveys_submissions_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
+
+
+--
+-- Name: users_surveys_submissions users_surveys_submissions_survey_response_choice_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys_submissions
+    ADD CONSTRAINT users_surveys_submissions_survey_response_choice_id_fkey FOREIGN KEY (survey_response_choice_id) REFERENCES upchieve.survey_response_choices(id);
+
+
+--
+-- Name: users_surveys_submissions users_surveys_submissions_user_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys_submissions
+    ADD CONSTRAINT users_surveys_submissions_user_survey_id_fkey FOREIGN KEY (user_survey_id) REFERENCES upchieve.users_surveys(id);
+
+
+--
+-- Name: users_surveys users_surveys_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys
+    ADD CONSTRAINT users_surveys_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+
+
+--
+-- Name: users_surveys users_surveys_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys
+    ADD CONSTRAINT users_surveys_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -3715,4 +4166,17 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220405224635'),
     ('20220405232100'),
     ('20220504152804'),
-    ('20220517154624');
+    ('20220517154624'),
+    ('20220517213052'),
+    ('20220520164318'),
+    ('20220520164419'),
+    ('20220520214438'),
+    ('20220520214552'),
+    ('20220520214733'),
+    ('20220520214846'),
+    ('20220522224209'),
+    ('20220522224430'),
+    ('20220601154505'),
+    ('20220602170321'),
+    ('20220602170346'),
+    ('20220609150924');

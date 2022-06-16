@@ -66,3 +66,61 @@ export async function getPresessionSurvey(
     throw new RepoReadError(err)
   }
 }
+
+export type PresessionSurveyResponse = {
+  responseId: number
+  responseText: string
+  responseDisplayPriority: number
+}
+
+export type PresessionSurvey = {
+  questionId: string
+  questionText: string
+  displayPriority: number
+  questionType: string
+  responses: PresessionSurveyResponse[]
+}
+
+// @todo: clean up old presession survey code and rename functions without the "new" keyword
+export async function getPresessionSurveyNew(
+  subjectName: string
+): Promise<PresessionSurvey[]> {
+  try {
+    const result = await pgQueries.getPresessionSurveyNew.run(
+      { subjectName },
+      getClient()
+    )
+
+    const resultArr = result.map(v => makeRequired(v))
+    const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
+
+    const survey: PresessionSurvey[] = []
+    for (const [question, rows] of Object.entries(rowsByQuestion)) {
+      const responses: PresessionSurveyResponse[] = []
+      const temp = rows[0]
+      const questionData = {
+        questionId: question,
+        questionText: temp.questionText,
+        displayPriority: temp.displayPriority,
+        questionType: temp.questionType,
+      }
+
+      for (const row of rows) {
+        const responseItem: PresessionSurveyResponse = {
+          responseId: row.responseId,
+          responseText: row.responseText,
+          responseDisplayPriority: row.responseDisplayPriority,
+        }
+        responses.push(responseItem)
+      }
+
+      survey.push({
+        ...questionData,
+        responses: responses,
+      })
+    }
+    return survey
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

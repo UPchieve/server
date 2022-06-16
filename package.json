@@ -254,8 +254,8 @@
     "webpack-bundle-analyzer": "^3.7.0"
   },
   "engines": {
-    "node": "^16.8",
-    "npm": "^7.21"
+    "node": "~16.8.0",
+    "npm": "~7.21.0"
   },
   "standard": {
     "parser": "babel-eslint"

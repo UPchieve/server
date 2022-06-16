@@ -59,6 +59,7 @@ export async function getSessionRequestedUserAgentFromSessionId(
         'browser',
         'browserVersion',
         'operatingSystemVersion',
+        'operatingSystem',
       ])
   } catch (err) {
     throw new RepoReadError(err)
