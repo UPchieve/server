@@ -923,6 +923,31 @@ export async function getReferencesByVolunteerForAdminDetail(
   }
 }
 
+export type ReferenceForReadding = {
+  id: Ulid
+  status: string
+  email: string
+  firstName: string
+  lastName: string
+  actions: string[]
+}
+
+export async function getReferencesByVolunteerForReadding(
+  userId: Ulid,
+  poolClient?: PoolClient
+): Promise<ReferenceForReadding[]> {
+  const client = poolClient ? poolClient : getClient()
+  try {
+    const result = await pgQueries.getReferencesByVolunteerForReadding.run(
+      { userId },
+      client
+    )
+    return result.map(v => makeRequired(v))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type VolunteerForPendingStatus = VolunteerContactInfo & {
   occupations: string[]
   country?: string

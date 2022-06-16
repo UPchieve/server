@@ -688,6 +688,28 @@ WHERE
     AND volunteer_reference_statuses.name != 'removed';
 
 
+/* @name getReferencesByVolunteerForReadding */
+SELECT
+    volunteer_references.id,
+    first_name,
+    last_name,
+    email,
+    volunteer_reference_statuses.name AS status,
+    sub.actions
+FROM
+    volunteer_references
+    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+    LEFT JOIN (
+        SELECT
+            array_agg(action) AS actions
+        FROM
+            user_actions
+        WHERE
+            user_actions.user_id = :userId!) sub ON TRUE
+WHERE
+    volunteer_references.user_id = :userId!;
+
+
 /* @name getReferencesByVolunteerForAdminDetail */
 SELECT
     volunteer_references.id,
