@@ -2,35 +2,35 @@
 CREATE MATERIALIZED VIEW IF NOT EXISTS upchieve.users_subjects_mview AS
 WITH subject_totals AS (
     SELECT
-        upchieve.subjects.name,
+        upchieve.subjects.id,
         COUNT(*)::int AS total
     FROM
         upchieve.certification_subject_unlocks
         JOIN upchieve.subjects ON upchieve.subjects.id = upchieve.certification_subject_unlocks.subject_id
     GROUP BY
-        upchieve.subjects.name
+        upchieve.subjects.id
 )
 SELECT
-    upchieve.users.id,
-    subjects_unlocked.subject
+    upchieve.users.id as user_id,
+    subjects_unlocked.subject_id
 FROM
     upchieve.users
     JOIN upchieve.volunteer_profiles vp ON vp.user_id = upchieve.users.id
     LEFT JOIN (
         SELECT
             user_id,
-            sub_unlocked.subject AS subject
+            sub_unlocked.subject AS subject_id
         FROM (
             SELECT
                 user_id,
-                upchieve.subjects.name AS subject
+                upchieve.subjects.id AS subject
             FROM
                 upchieve.users_certifications
                 JOIN upchieve.certification_subject_unlocks USING (certification_id)
                 JOIN upchieve.subjects ON upchieve.certification_subject_unlocks.subject_id = upchieve.subjects.id
-                JOIN subject_totals ON subject_totals.name = upchieve.subjects.name
+                JOIN subject_totals ON subject_totals.id = upchieve.subjects.id
             GROUP BY
-                user_id, upchieve.subjects.name, subject_totals.total
+                user_id, upchieve.subjects.id, subject_totals.total
             HAVING
                 COUNT(*)::int >= subject_totals.total) AS sub_unlocked
         GROUP BY
