@@ -4,7 +4,6 @@ import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { Feedback } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
-import * as _ from 'lodash'
 
 export type FeedbackByResult = {
   id: string
