@@ -126,6 +126,13 @@ export async function addReference(data: unknown) {
       REFERENCE_STATUS.UNSENT
     )
     return
+  } else if (
+    isExistingReference &&
+    isExistingReference.actions.includes(
+      ACCOUNT_USER_ACTIONS.REJECTED_REFERENCE
+    )
+  ) {
+    throw new NotAllowedError('You cannot re-add a rejected reference.')
   }
 
   await addVolunteerReferenceById(userId, referenceData)
