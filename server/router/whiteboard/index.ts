@@ -288,7 +288,12 @@ export function routes(app: Express): void {
       if (message.messageType === MessageType.INIT) {
         try {
           // Active session's document
-          let document = await WhiteboardService.getDoc(asUlid(sessionId))
+          let document: string | undefined
+          try {
+            document = await WhiteboardService.getDoc(asUlid(sessionId))
+          } catch (err) {
+            if (!(err instanceof KeyNotFoundError)) throw err
+          }
           // Get the completed session's whiteboard document from storage
           if (!document)
             document = await WhiteboardService.getDocFromStorage(sessionId)

@@ -1549,6 +1549,23 @@ paths:
       responses:
         '200':
           description: OK
+  /api/survey/presession:
+    get:
+      tags:
+        - survey
+      summary: Gets presession survey
+      description: Gets presession survey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: subjectName
+          required: true
+          in: body
+          schema:
+            $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Responds with an object of the survey with the survey questions and response choices
   /api/training/course/{:courseKey}:
     get:
       tags:

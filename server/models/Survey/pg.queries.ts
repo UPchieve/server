@@ -100,3 +100,62 @@ const getPresessionSurveyIR: any = {"name":"getPresessionSurvey","params":[{"nam
 export const getPresessionSurvey = new PreparedQuery<IGetPresessionSurveyParams,IGetPresessionSurveyResult>(getPresessionSurveyIR);
 
 
+/** 'GetPresessionSurveyNew' parameters type */
+export interface IGetPresessionSurveyNewParams {
+  subjectName: string;
+}
+
+/** 'GetPresessionSurveyNew' return type */
+export interface IGetPresessionSurveyNewResult {
+  displayPriority: number;
+  questionId: number;
+  questionText: string;
+  questionType: string;
+  responseDisplayPriority: number;
+  responseId: number;
+  responseText: string;
+}
+
+/** 'GetPresessionSurveyNew' query type */
+export interface IGetPresessionSurveyNewQuery {
+  params: IGetPresessionSurveyNewParams;
+  result: IGetPresessionSurveyNewResult;
+}
+
+const getPresessionSurveyNewIR: any = {"name":"getPresessionSurveyNew","params":[{"name":"subjectName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1621,"b":1632,"line":65,"col":21}]}}],"usedParamSet":{"subjectName":true},"statement":{"body":"SELECT\n    sq.id AS question_id,\n    sq.question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sub.response_id,\n    sub.response_text,\n    sub.response_display_priority\nFROM\n    surveys_presession\n    JOIN surveys ON survey_id = surveys.id\n    JOIN subjects ON subject_id = subjects.id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id\n    JOIN survey_questions sq ON ssq.survey_question_id = sq.id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    JOIN LATERAL (\n        SELECT\n            id AS response_id,\n            choice_text AS response_text,\n            display_priority AS response_display_priority\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.survey_question_id = sq.id) sub ON TRUE\nWHERE\n    subjects.name = :subjectName!","loc":{"a":718,"b":1632,"line":39,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sq.id AS question_id,
+ *     sq.question_text,
+ *     ssq.display_priority,
+ *     qt.name AS question_type,
+ *     sub.response_id,
+ *     sub.response_text,
+ *     sub.response_display_priority
+ * FROM
+ *     surveys_presession
+ *     JOIN surveys ON survey_id = surveys.id
+ *     JOIN subjects ON subject_id = subjects.id
+ *     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
+ *     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
+ *     JOIN question_types qt ON qt.id = sq.question_type_id
+ *     JOIN LATERAL (
+ *         SELECT
+ *             id AS response_id,
+ *             choice_text AS response_text,
+ *             display_priority AS response_display_priority
+ *         FROM
+ *             survey_questions_response_choices sqrc
+ *             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
+ *         WHERE
+ *             sqrc.survey_question_id = sq.id) sub ON TRUE
+ * WHERE
+ *     subjects.name = :subjectName!
+ * ```
+ */
+export const getPresessionSurveyNew = new PreparedQuery<IGetPresessionSurveyNewParams,IGetPresessionSurveyNewResult>(getPresessionSurveyNewIR);
+
+
