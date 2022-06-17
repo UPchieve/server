@@ -49,12 +49,12 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE TRIGGER on_users_certifications_change AFTER UPDATE
+CREATE OR REPLACE TRIGGER update_users_subjects AFTER UPDATE
     OR INSERT
     OR DELETE ON upchieve.users_certifications FOR EACH ROW EXECUTE PROCEDURE upchieve.refresh_users_subjects_mview ();
 
 -- migrate:down
-DROP TRIGGER IF EXISTS on_users_certifications_change ON upchieve.users_certifications;
+DROP TRIGGER IF EXISTS update_users_subjects ON upchieve.users_certifications;
 
 DROP FUNCTION IF EXISTS upchieve.refresh_users_subjects_mview;
 
