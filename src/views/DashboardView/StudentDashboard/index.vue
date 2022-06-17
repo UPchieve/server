@@ -17,6 +17,17 @@
       >
         <a href="https://upchieve.statuspage.io" target="_blank">{{ downtimeMessage }}</a>
       </div>
+
+      <div
+        v-if="this.isSummerPrepActive && user.pastSessions.length && !user.isBanned> 0"
+        class="dashboard-notice"
+        :class="'dashboard-notice--summer-prep'"
+      >
+        <!-- Show Below Message Until July 5th: -->
+        <span v-if="new Date() < new Date('7-05-2022')">Need to write your college essay? Take our 2 week <a href="https://bit.ly/upchievesummer" target="_blank">College Essay Challenge</a>!</span>
+        <!-- Show Below Message From July 5th-July 26th: -->
+        <span v-if="new Date() >= new Date('7-05-2022') && new Date() <= new Date('7-26-2022')">Want to get college ready? <a href="https://bit.ly/upchievesummer" target="_blank">Sign up</a> for our 2 week bootcamp!</span>
+      </div>
     </div>
 
     <subject-selection />
@@ -96,6 +107,7 @@ export default {
       isSessionAlive: 'user/isSessionAlive',
       isReferFriendsActive: 'featureFlags/isReferFriendsActive',
       isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
+      isSummerPrepActive: 'featureFlags/isSummerPrepActive',
     }),
     isLowCoachHour() {
       return this.currentHour < 12
@@ -198,5 +210,15 @@ export default {
     color: #fff;
     background-color: $c-information-blue;
   }
+
+  &--summer-prep {
+    color: #fff;
+    background-color: $c-information-blue;
+    a {
+      text-decoration: underline;
+      font-weight: bold;
+    }
+  }
+  
 }
 </style>
