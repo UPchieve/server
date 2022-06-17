@@ -19,11 +19,14 @@
       </div>
 
       <div
-        v-if="this.isSummerPrepActive && !downtimeMessage"
+        v-if="this.isSummerPrepActive && user.pastSessions.length > 0"
         class="dashboard-notice"
         :class="'dashboard-notice--summer-prep'"
       >
-        <span><a href="https://bit.ly/upchievesummer" target="_blank">Sign up</a> for our Summer College Prep Programs</span>
+        <!-- Show Bellow Message Until July 5th: -->
+        <span>Need to write your college essay? Take our 2 week <a href="https://bit.ly/upchievesummer" target="_blank">College Essay Challenge</a>!</span>
+        <!-- Show Bellow Message From July 5th-July 26th: -->
+        <!-- <span>Want to get college ready? <a href="https://bit.ly/upchievesummer" target="_blank">Sign up</a> for our 2 week bootcamp!</span> -->
       </div>
     </div>
 
