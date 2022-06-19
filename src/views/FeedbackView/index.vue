@@ -84,6 +84,7 @@ import FeedbackRadio from '@/components/FeedbackRadio'
 import FeedbackTextarea from '@/components/FeedbackTextarea'
 import FeedbackCheckbox from '@/components/FeedbackCheckbox'
 import Loader from '@/components/Loader'
+import FeedbackThankYouModal from './FeedbackThankYouModal'
 
 export default {
   name: 'FeedbackView',
@@ -409,7 +410,15 @@ export default {
             )
           )
         await Promise.all(requests)
-        this.$router.push('/')
+        
+        this.$store.dispatch('app/modal/show', {
+          component: FeedbackThankYouModal,
+          data: {
+            acceptText: "Go to my dashboard",
+            alertModal: true
+          }
+        })
+
       } catch (error) {
         if (error.body.success === false) this.error = error.body.message
         else if (error.status === 422) this.error = error.body.err
