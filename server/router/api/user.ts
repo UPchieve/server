@@ -83,7 +83,10 @@ export function routeUser(router: Router): void {
       } as unknown)
       res.sendStatus(200)
     } catch (err) {
-      resError(res, err)
+      res.json({
+        success: false,
+        message: 'You cannot re-add a rejected reference.',
+      })
     }
   })
 

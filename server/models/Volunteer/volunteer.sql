@@ -705,7 +705,8 @@ FROM
         FROM
             user_actions
         WHERE
-            user_actions.user_id = :userId!) sub ON TRUE
+            user_actions.user_id = :userId!
+            AND user_actions.reference_email = :email!) sub ON TRUE
 WHERE
     volunteer_references.user_id = :userId!
     AND volunteer_references.email = :email!;
