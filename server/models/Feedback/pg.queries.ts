@@ -285,3 +285,40 @@ const getFeedbackByUserIdIR: any = {"name":"getFeedbackByUserId","params":[{"nam
 export const getFeedbackByUserId = new PreparedQuery<IGetFeedbackByUserIdParams,IGetFeedbackByUserIdResult>(getFeedbackByUserIdIR);
 
 
+/** 'RemoveDuplicateFeedbacks' parameters type */
+export type IRemoveDuplicateFeedbacksParams = void;
+
+/** 'RemoveDuplicateFeedbacks' return type */
+export type IRemoveDuplicateFeedbacksResult = void;
+
+/** 'RemoveDuplicateFeedbacks' query type */
+export interface IRemoveDuplicateFeedbacksQuery {
+  params: IRemoveDuplicateFeedbacksParams;
+  result: IRemoveDuplicateFeedbacksResult;
+}
+
+const removeDuplicateFeedbacksIR: any = {"name":"removeDuplicateFeedbacks","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM feedbacks\nWHERE id IN (\n    SELECT id\n        FROM (\n        SELECT\n        id,\n        row_number() OVER w as rnum\n        FROM feedbacks\n        WINDOW w AS (\n            PARTITION BY user_id, session_id\n            ORDER BY created_at\n        )\n    ) as subquery\n    where rnum > 1\n)","loc":{"a":3096,"b":3393,"line":121,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM feedbacks
+ * WHERE id IN (
+ *     SELECT id
+ *         FROM (
+ *         SELECT
+ *         id,
+ *         row_number() OVER w as rnum
+ *         FROM feedbacks
+ *         WINDOW w AS (
+ *             PARTITION BY user_id, session_id
+ *             ORDER BY created_at
+ *         )
+ *     ) as subquery
+ *     where rnum > 1
+ * )
+ * ```
+ */
+export const removeDuplicateFeedbacks = new PreparedQuery<IRemoveDuplicateFeedbacksParams,IRemoveDuplicateFeedbacksResult>(removeDuplicateFeedbacksIR);
+
+

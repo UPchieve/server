@@ -181,3 +181,7 @@ export async function getFeedbackByUserId(
     throw new RepoReadError(err)
   }
 }
+
+export async function removeDuplicateFeedbacks() {
+  await pgQueries.removeDuplicateFeedbacks.run(undefined, getClient())
+}
