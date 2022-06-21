@@ -3107,6 +3107,13 @@ CREATE INDEX availability_histories_user_id_recorded_at ON upchieve.availability
 
 
 --
+-- Name: feedbacks_session_id_user_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX feedbacks_session_id_user_id ON upchieve.feedbacks USING btree (session_id, user_id);
+
+
+--
 -- Name: legacy_availability_histories_user_id_recorded_at; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4179,4 +4186,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220601154505'),
     ('20220602170321'),
     ('20220602170346'),
-    ('20220609150924');
+    ('20220609150924'),
+    ('20220614202247');
