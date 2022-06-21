@@ -56,7 +56,7 @@ const asFeedbackPayload = asFactory({
   userType: asString,
 })
 
-export async function saveFeedback(data: unknown): Promise<Ulid> {
+export async function upsertFeedback(data: unknown): Promise<Ulid> {
   const {
     sessionId,
     studentTutoringFeedback,
@@ -74,7 +74,7 @@ export async function saveFeedback(data: unknown): Promise<Ulid> {
   if (!(userType === 'student' || userType === 'volunteer'))
     throw new Error('User type unrecognized')
 
-  const feedbackId = await FeedbackRepo.saveFeedback(sessionId, userType, {
+  const feedbackId = await FeedbackRepo.upsertFeedback(sessionId, userType, {
     studentTutoringFeedback,
     studentCounselingFeedback,
     volunteerFeedback,
