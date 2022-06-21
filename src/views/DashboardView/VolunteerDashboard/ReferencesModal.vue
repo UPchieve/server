@@ -213,6 +213,8 @@ export default {
         return
       }
 
+      this.addReferenceError = ''
+
       NetworkService.addReference({
         referenceFirstName: this.newReferenceFirstName,
         referenceLastName: this.newReferenceLastName,
@@ -222,7 +224,7 @@ export default {
           this.addReferenceError = response.body.message
           return
         }
-
+        
         this.addReferenceError = ''
 
         const newReference = {

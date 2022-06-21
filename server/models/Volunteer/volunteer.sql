@@ -367,9 +367,6 @@ FROM
     volunteer_reference_statuses
 WHERE
     name = 'unsent'::text
-ON CONFLICT (user_id,
-    email)
-    DO NOTHING
 RETURNING
     id AS ok;
 

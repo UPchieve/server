@@ -14,6 +14,7 @@ import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
+import { NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
@@ -83,10 +84,12 @@ export function routeUser(router: Router): void {
       } as unknown)
       res.sendStatus(200)
     } catch (err) {
-      res.json({
-        success: false,
-        message: 'You cannot re-add a rejected reference.',
-      })
+      if (err instanceof NotAllowedError) {
+        res.json({
+          success: false,
+          message: err.message,
+        })
+      } else resError(res, err)
     }
   })
 
