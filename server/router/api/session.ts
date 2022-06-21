@@ -170,6 +170,7 @@ export function routeSession(router: Router, io: Server) {
         sessionId as unknown
       )
       if (req.file && req.file.mimetype === 'image/heic'){
+        console.log('~~~~ Converting HEIC image ~~~~')
         const inputBuffer = req.file?.buffer!
         const outputBuffer = await convert({
           buffer: inputBuffer, // the HEIC file buffer
@@ -178,6 +179,7 @@ export function routeSession(router: Router, io: Server) {
         });
         req.file.buffer = outputBuffer
         req.file.mimetype = 'image/jpeg'
+        console.log('Done converting!')
       }
 
       console.log('the req file', req.file)
