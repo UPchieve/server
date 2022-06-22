@@ -40,6 +40,7 @@ import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunte
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
+import deleteDuplicateFeedbacks from '../../scripts/delete-duplicate-feedbacks'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 import removeUnqualifiedOnboardedVolunteers from '../../scripts/remove-unqualified-onboarded-volunteers'
 
@@ -105,6 +106,7 @@ export enum Jobs {
 
   // Delete scripts
   DeleteDuplicatePushTokens = 'DeleteDuplicatePushTokens',
+  DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
 
   RemoveUnqualifiedOnboardedVolunteers = 'RemoveUnqualifiedOnboardedVolunteers',
 }
@@ -323,6 +325,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.RemoveUnqualifiedOnboardedVolunteers,
     processor: removeUnqualifiedOnboardedVolunteers,
+  },
+  {
+    name: Jobs.DeleteDuplicateFeedbacks,
+    processor: deleteDuplicateFeedbacks,
   },
 ]
 
