@@ -145,6 +145,7 @@
                   <div class="uc-form-label"> {{ subquestion }} </div>
                     <v-select
                       class="uc-reference-form__select"
+                      @input="(value) => storeIndexForMultipleRadioResponse(value, question.optionsAlias[subquestionIndex], question.tableTitle)"
                       placeholder="Select your answer"
                       :options="question.tableTitle"
                       :searchable="false"
@@ -397,6 +398,11 @@ export default {
       // Ratings recorded from a reference are 1-based indexed, subtract 1 to make 0-based indexed
       const responseRating = question.tableTitle[referenceResponse - 1]
       return responseRating
+    },
+    // The database expects the index of the inputted value and not the value text itself
+    storeIndexForMultipleRadioResponse(value, path, possibleAnswers) {
+      // ratings recorded from a reference are 1-based index
+      this.multipleRadioResponse[path] = possibleAnswers.indexOf(value) + 1 
     }
   }
 }
