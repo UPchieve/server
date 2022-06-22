@@ -125,6 +125,7 @@ export default {
         { displayName: 'Math', key: 'math' },
         { displayName: 'Science', key: 'science' },
         { displayName: 'Reading and Writing', key: 'readingWriting' },
+        { displayName: 'Social Studies', key: 'socialStudies' },
         { displayName: 'College Counseling', key: 'college' },
         { displayName: 'Standardized Testing', key: 'sat' }
       ]
@@ -325,7 +326,27 @@ export default {
               }
             ],
             key: 'reading'
-          }
+          },
+        ],
+        additionalSubjects: []
+      }
+    },
+    socialStudies() {
+      return {
+        training: [
+          { displayName: 'UPchieve 101', key: 'upchieve101' }
+        ],
+        certifications: [
+          {
+            displayName: 'U.S. History',
+            subjectsIncluded: [
+              {
+                displayName: 'U.S. History',
+                key: 'usHistory'
+              }
+            ],
+            key: 'usHistory'
+          },
         ],
         additionalSubjects: []
       }
