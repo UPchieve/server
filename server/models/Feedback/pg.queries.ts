@@ -297,7 +297,7 @@ export interface IRemoveDuplicateFeedbacksQuery {
   result: IRemoveDuplicateFeedbacksResult;
 }
 
-const removeDuplicateFeedbacksIR: any = {"name":"removeDuplicateFeedbacks","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM feedbacks\nWHERE id IN (\n    SELECT id\n        FROM (\n        SELECT\n        id,\n        row_number() OVER w as rnum\n        FROM feedbacks\n        WINDOW w AS (\n            PARTITION BY user_id, session_id\n            ORDER BY created_at\n        )\n    ) as subquery\n    where rnum > 1\n)","loc":{"a":3096,"b":3393,"line":121,"col":0}}};
+const removeDuplicateFeedbacksIR: any = {"name":"removeDuplicateFeedbacks","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM feedbacks\nWHERE id IN (\n    SELECT id\n        FROM (\n        SELECT\n        id,\n        row_number() OVER w as rnum\n        FROM feedbacks\n        WINDOW w AS (\n            PARTITION BY user_id, session_id\n            ORDER BY created_at\n        )\n    ) as subquery\n    where rnum > 1\n)","loc":{"a":3148,"b":3445,"line":122,"col":0}}};
 
 /**
  * Query generated from SQL:
