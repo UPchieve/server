@@ -475,7 +475,7 @@ export default {
         this.insertPhoto(imageUrl)
 
       // Reset the file input
-      uploadEvents.target.value = ''
+      uploadEvents.fileSelectionEvent.target.value = ''
     },
     insertPhoto(imageUrl) {
       const nodeId = this.zwibblerCtx.createNode('ImageNode', {
