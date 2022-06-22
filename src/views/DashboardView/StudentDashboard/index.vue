@@ -19,7 +19,7 @@
       </div>
 
       <div
-        v-if="this.isSummerPrepActive && user.pastSessions.length && !user.isBanned> 0"
+        v-if="this.isSummerPrepActive && user.pastSessions && user.pastSessions.length && !user.isBanned> 0"
         class="dashboard-notice"
         :class="'dashboard-notice--summer-prep'"
       >
