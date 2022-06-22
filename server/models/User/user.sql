@@ -438,7 +438,7 @@ SELECT
     volunteer_profiles.country,
     volunteer_profiles.timezone,
     photo_id_statuses.name AS photo_id_status,
-    past_sessions.sessions AS past_sessions,
+    COALESCE(past_sessions.sessions, '{}') AS past_sessions,
     round(past_sessions.time_tutored / 3600000::numeric, 2)::float AS hours_tutored,
     total_subjects.subjects AS subjects,
     recent_availability.updated_at AS availability_last_modified_at,
