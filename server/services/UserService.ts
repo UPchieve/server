@@ -125,6 +125,12 @@ export async function addReference(data: unknown) {
       isExistingReference.id,
       REFERENCE_STATUS.UNSENT
     )
+    await createAccountAction({
+      userId,
+      ipAddress: ip,
+      action: ACCOUNT_USER_ACTIONS.ADDED_REFERENCE,
+      referenceEmail,
+    })
     return
   } else if (
     isExistingReference &&
