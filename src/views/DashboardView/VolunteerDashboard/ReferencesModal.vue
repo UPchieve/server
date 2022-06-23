@@ -28,7 +28,7 @@
               <h4>Reference {{ index + 1 }}</h4>
               <trash-icon
                 class="trash-icon"
-                v-if="reference.status !== 'APPROVED'"
+                v-if="reference.status !== 'APPROVED' && reference.status !== 'SUBMITTED'"
                 @click="removeReference(index)"
               />
             </div>
@@ -215,26 +215,36 @@ export default {
 
       this.addReferenceError = ''
 
-      const newReference = {
-        firstName: this.newReferenceFirstName,
-        lastName: this.newReferenceLastName,
-        email: this.newReferenceEmail,
-        status: 'UNSENT'
-      }
-      this.references.push(newReference)
       NetworkService.addReference({
         referenceFirstName: this.newReferenceFirstName,
         referenceLastName: this.newReferenceLastName,
-        referenceEmail: this.newReferenceEmail
-      })
-      AnalyticsService.captureEvent(EVENTS.REFERENCE_ADDED, {
-        event: EVENTS.REFERENCE_ADDED,
-        referenceFirstName: newReference.firstName,
-        referenceEmail: newReference.email
-      })
-      this.toggleAddReferenceMode()
-      this.$store.dispatch('user/addToUser', {
-        references: this.references
+        referenceEmail: this.newReferenceEmail,
+      }).then(response => {
+        if (response.body.success === false) {
+          this.addReferenceError = response.body.message
+          return
+        }
+        
+        this.addReferenceError = ''
+
+        const newReference = {
+          firstName: this.newReferenceFirstName,
+          lastName: this.newReferenceLastName,
+          email: this.newReferenceEmail,
+          status: 'UNSENT',
+        }
+        this.references.push(newReference)
+
+        AnalyticsService.captureEvent(EVENTS.REFERENCE_ADDED, {
+          event: EVENTS.REFERENCE_ADDED,
+          referenceFirstName: newReference.firstName,
+          referenceEmail: newReference.email,
+        })
+
+        this.toggleAddReferenceMode()
+        this.$store.dispatch('user/addToUser', {
+          references: this.references,
+        })
       })
     },
     removeReference(position) {
