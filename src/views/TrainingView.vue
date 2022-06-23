@@ -87,6 +87,7 @@ export default {
       user: state => state.user.user
     }),
     ...mapGetters({
+      isUsHistroyLaunchVolunteerActive: 'featureFlags/isUsHistroyLaunchVolunteerActive',
     }),
     currentSubject() {
       return this[this.currentSubjectType]
@@ -121,14 +122,24 @@ export default {
         }
     },
     subjectTypes() {
-      return [
-        { displayName: 'Math', key: 'math' },
-        { displayName: 'Science', key: 'science' },
-        { displayName: 'Reading and Writing', key: 'readingWriting' },
-        { displayName: 'Social Studies', key: 'socialStudies' },
-        { displayName: 'College Counseling', key: 'college' },
-        { displayName: 'Standardized Testing', key: 'sat' }
-      ]
+      if(this.isUsHistroyLaunchVolunteerActive){
+        return [
+          { displayName: 'Math', key: 'math' },
+          { displayName: 'Science', key: 'science' },
+          { displayName: 'Reading and Writing', key: 'readingWriting' },
+          { displayName: 'Social Studies', key: 'socialStudies' },
+          { displayName: 'College Counseling', key: 'college' },
+          { displayName: 'Standardized Testing', key: 'sat' }
+        ]
+      } else {
+        return [
+          { displayName: 'Math', key: 'math' },
+          { displayName: 'Science', key: 'science' },
+          { displayName: 'Reading and Writing', key: 'readingWriting' },
+          { displayName: 'College Counseling', key: 'college' },
+          { displayName: 'Standardized Testing', key: 'sat' }
+        ]
+      }
     },
     math() {
       return this.algebraTwoLaunchMath
