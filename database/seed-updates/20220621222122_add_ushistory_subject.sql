@@ -1,10 +1,10 @@
 -- migrate:up
 INSERT INTO upchieve.topics (name, icon_link, color, dashboard_order, display_name, created_at, updated_at)
-     VALUES ('socialstudies', null, null, 6, 'Social Studies', NOW(), NOW());
+     VALUES ('socialStudies', null, null, 6, 'Social Studies', NOW(), NOW());
 
 INSERT INTO upchieve.subjects (name, display_name, display_order, topic_id, tool_type_id, created_at, updated_at)
 SELECT
-    'ushistory',
+    'usHistory',
     'U.S. History',
     1,
     subquery.topic_id,
@@ -19,14 +19,14 @@ FROM (
         upchieve.topics
         JOIN upchieve.tool_types ON upchieve.tool_types.name = 'documenteditor' 
     WHERE
-        upchieve.topics.name = 'socialstudies') AS subquery
+        upchieve.topics.name = 'socialStudies') AS subquery
 ON CONFLICT (display_name)
     DO NOTHING
 RETURNING
     id AS ok;
 
 INSERT INTO upchieve.certifications (name, created_at, updated_at)
-    VALUES ('ushistory', NOW(), NOW());
+    VALUES ('usHistory', NOW(), NOW());
 
 INSERT INTO upchieve.certification_subject_unlocks (subject_id, certification_id, created_at, updated_at)
 SELECT
@@ -40,9 +40,9 @@ FROM (
         upchieve.subjects.id AS subject_id
     FROM
         upchieve.certifications
-        JOIN upchieve.subjects ON upchieve.subjects.name = 'ushistory'
+        JOIN upchieve.subjects ON upchieve.subjects.name = 'usHistory'
     WHERE
-        upchieve.certifications.name = 'ushistory') AS subquery
+        upchieve.certifications.name = 'usHistory') AS subquery
 ON CONFLICT (subject_id,
     certification_id)
     DO NOTHING
@@ -50,7 +50,7 @@ RETURNING
     subject_id AS ok;
 
 INSERT INTO upchieve.quizzes (name, created_at, updated_at)
-    VALUES ('ushistory', NOW(), NOW());
+    VALUES ('usHistory', NOW(), NOW());
 
 INSERT INTO upchieve.quiz_certification_grants (quiz_id, certification_id, created_at, updated_at)
 SELECT
@@ -64,9 +64,9 @@ FROM (
         upchieve.certifications.id AS certification_id
     FROM
         upchieve.certifications
-        JOIN upchieve.quizzes ON upchieve.quizzes.name = 'ushistory'
+        JOIN upchieve.quizzes ON upchieve.quizzes.name = 'usHistory'
     WHERE
-        upchieve.certifications.name = 'ushistory') AS subquery
+        upchieve.certifications.name = 'usHistory') AS subquery
 ON CONFLICT (quiz_id,
     certification_id)
     DO NOTHING
@@ -78,21 +78,21 @@ RETURNING
 
 DELETE FROM upchieve.quiz_certification_grants USING upchieve.quizzes
 WHERE upchieve.quizzes.id = upchieve.quiz_certification_grants.quiz_id
-    AND upchieve.quizzes.name = 'ushistory';
+    AND upchieve.quizzes.name = 'usHistory';
 
 DELETE FROM upchieve.certification_subject_unlocks USING upchieve.subjects
 WHERE upchieve.subjects.id = upchieve.certification_subject_unlocks.subject_id
-    AND upchieve.subjects.name = 'ushistory';
+    AND upchieve.subjects.name = 'usHistory';
 
 
 DELETE FROM upchieve.quizzes
-WHERE upchieve.quizzes.name = 'ushistory';
+WHERE upchieve.quizzes.name = 'usHistory';
 
 DELETE FROM upchieve.certifications
-WHERE upchieve.certifications.name = 'ushistory';
+WHERE upchieve.certifications.name = 'usHistory';
 
 DELETE FROM upchieve.subjects
-WHERE upchieve.subjects.name = 'ushistory';
+WHERE upchieve.subjects.name = 'usHistory';
 
 DELETE FROM  upchieve.topics
-WHERE upchieve.topics.name = 'socialstudies';
+WHERE upchieve.topics.name = 'socialStudies';
