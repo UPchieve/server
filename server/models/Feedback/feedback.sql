@@ -89,7 +89,7 @@ FROM
     JOIN user_roles ON user_roles.name = :userRole!
 WHERE
     sessions.id = :sessionId!
-ON CONFLICT (user_role_id, session_id) DO NOTHING
+ON CONFLICT (user_id, session_id) DO NOTHING
 RETURNING
     feedbacks.id;
 
