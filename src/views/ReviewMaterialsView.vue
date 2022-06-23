@@ -92,6 +92,7 @@ export default {
         case 'calculusAB':
         case 'calculusBC':
         case 'chemistry':
+        case 'environmentalScience':
           this.reviewMaterials = [
             {
               title: 'Topics & Resources',
@@ -149,9 +150,6 @@ export default {
               image: `${this.hostPath}/sat-math-review-guide.png`
             }
           ]
-          break
-        case 'environmentalScience':
-          this.reviewMaterials = []
           break
         case 'humanitiesEssays':
           this.reviewMaterials = [

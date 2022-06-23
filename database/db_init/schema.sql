@@ -2885,14 +2885,6 @@ ALTER TABLE ONLY upchieve.user_actions
 
 
 --
--- Name: volunteer_references user_id_ref_email_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.volunteer_references
-    ADD CONSTRAINT user_id_ref_email_unique UNIQUE (user_id, email);
-
-
---
 -- Name: push_tokens user_id_token; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4187,4 +4179,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220602170321'),
     ('20220602170346'),
     ('20220609150924'),
-    ('20220614202247');
+    ('20220614202247'),
+    ('20220615162628');

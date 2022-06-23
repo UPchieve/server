@@ -923,6 +923,25 @@ export async function getReferencesByVolunteerForAdminDetail(
   }
 }
 
+export type ReferenceWithUserActions = ReferenceContactInfo & {
+  actions: string[]
+}
+
+export async function checkReferenceExistsBeforeAdding(
+  userId: Ulid,
+  email: string
+): Promise<ReferenceWithUserActions | undefined> {
+  try {
+    const result = await pgQueries.checkReferenceExistsBeforeAdding.run(
+      { userId, email },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type VolunteerForPendingStatus = VolunteerContactInfo & {
   occupations: string[]
   country?: string

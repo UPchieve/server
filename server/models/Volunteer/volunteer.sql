@@ -367,9 +367,6 @@ FROM
     volunteer_reference_statuses
 WHERE
     name = 'unsent'::text
-ON CONFLICT (user_id,
-    email)
-    DO NOTHING
 RETURNING
     id AS ok;
 
@@ -686,6 +683,30 @@ FROM
 WHERE
     volunteer_references.user_id = :userId!
     AND volunteer_reference_statuses.name != 'removed';
+
+
+/* @name checkReferenceExistsBeforeAdding */
+SELECT
+    volunteer_references.id,
+    first_name,
+    last_name,
+    email,
+    volunteer_reference_statuses.name AS status,
+    sub.actions
+FROM
+    volunteer_references
+    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+    LEFT JOIN (
+        SELECT
+            array_agg(action) AS actions
+        FROM
+            user_actions
+        WHERE
+            user_actions.user_id = :userId!
+            AND user_actions.reference_email = :email!) sub ON TRUE
+WHERE
+    volunteer_references.user_id = :userId!
+    AND volunteer_references.email = :email!;
 
 
 /* @name getReferencesByVolunteerForAdminDetail */

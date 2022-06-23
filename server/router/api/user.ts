@@ -14,6 +14,7 @@ import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
+import { NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
@@ -77,12 +78,18 @@ export function routeUser(router: Router): void {
       const user = extractUser(req)
       await UserService.addReference({
         userId: user.id,
+        userEmail: user.email,
         ip,
         ...req.body,
       } as unknown)
       res.sendStatus(200)
     } catch (err) {
-      resError(res, err)
+      if (err instanceof NotAllowedError) {
+        res.json({
+          success: false,
+          message: err.message,
+        })
+      } else resError(res, err)
     }
   })
 
