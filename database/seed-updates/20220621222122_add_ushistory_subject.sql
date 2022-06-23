@@ -1,6 +1,6 @@
 -- migrate:up
 INSERT INTO upchieve.topics (name, icon_link, color, dashboard_order, display_name, created_at, updated_at)
-    VALUES ('socialstudies', null, null, 6, 'Social Studies', NOW(), NOW());
+     VALUES ('socialstudies', null, null, 6, 'Social Studies', NOW(), NOW());
 
 INSERT INTO upchieve.subjects (name, display_name, display_order, topic_id, tool_type_id, created_at, updated_at)
 SELECT
@@ -74,8 +74,7 @@ RETURNING
     quiz_id AS ok;
 
 -- migrate:down
-DELETE FROM  upchieve.topics
-WHERE upchieve.topics.name = 'socialstudies';
+
 
 DELETE FROM upchieve.quiz_certification_grants USING upchieve.quizzes
 WHERE upchieve.quizzes.id = upchieve.quiz_certification_grants.quiz_id
@@ -85,11 +84,15 @@ DELETE FROM upchieve.certification_subject_unlocks USING upchieve.subjects
 WHERE upchieve.subjects.id = upchieve.certification_subject_unlocks.subject_id
     AND upchieve.subjects.name = 'ushistory';
 
-DELETE FROM upchieve.subjects
-WHERE upchieve.subjects.name = 'ushistory';
 
 DELETE FROM upchieve.quizzes
 WHERE upchieve.quizzes.name = 'ushistory';
 
 DELETE FROM upchieve.certifications
 WHERE upchieve.certifications.name = 'ushistory';
+
+DELETE FROM upchieve.subjects
+WHERE upchieve.subjects.name = 'ushistory';
+
+DELETE FROM  upchieve.topics
+WHERE upchieve.topics.name = 'socialstudies';
