@@ -147,15 +147,6 @@ export default {
             return !temporarilyHiddenSubjects.includes(subject)
           })
 
-         // Temporarily hide U.S. History subject from students
-        if (card.topic === 'socialScience')
-          card.subtopics = card.subtopics.filter(subject => {
-            const temporarilyHiddenSubjects = [
-              'usHistory',
-            ]
-            return !temporarilyHiddenSubjects.includes(subject)
-          })
-
      }   
       return cards;
     }
