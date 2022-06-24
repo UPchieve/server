@@ -198,7 +198,7 @@
         <FileDialog
           ref="fileDialog"
           class="upload-photo"
-          accept="image/*"
+          accept="image/*, image/heic"
           @file-selected="uploadPhoto"
         />
         <PhotoUploadIcon class="toolbar-item__svg--photo" />
@@ -255,6 +255,7 @@ import ResetWhiteboardModal from './ResetWhiteboardModal'
 import LoadingMessage from '@/components/LoadingMessage'
 import * as Sentry from '@sentry/browser'
 import config from '../../config'
+import heic2any from 'heic2any'
 
 export default {
   components: {
@@ -449,7 +450,7 @@ export default {
     },
     async uploadPhoto(uploadEvents) {
       const { files } = uploadEvents.fileSelectionEvent.target
-      const file = files[0]
+      let file = files[0]
       const tenMegabytes = 10 * 1000000
 
       if (!this.isWhiteboardOpen && this.mobileMode) this.toggleWhiteboard()
@@ -462,22 +463,44 @@ export default {
 
       this.usePickTool(uploadEvents.dialogOpeningEvent)
 
-      const response = await NetworkService.getSessionPhotoUploadUrl(
-        this.sessionId
-      )
-      const {
-        body: { uploadUrl, imageUrl }
-      } = response
+      this.isLoading = true
 
-      if (uploadUrl) {
-        this.isLoading = true
-        await axios.put(uploadUrl, file, {
-          headers: {
-            'Content-Type': file.type
-          }
-        })
+      try {
+        // TODO: a better way to target desktop devices?
+        // Convert HEIC images to jpeg on desktop devices
+        if (!this.mobileMode && file.type === 'image/heic') {
+          const convertedBlob = await heic2any({
+            blob: file,
+            toType: 'image/jpeg',
+          })
 
-        this.insertPhoto(imageUrl)
+          const fileType = convertedBlob.type.split('/')[1]
+          const previousFileName = file.name.split('.')[0]
+          const newFileName = `${previousFileName}.${fileType}`
+          file = new File([convertedBlob], newFileName, {
+            lastModified: new Date().getTime(),
+          })
+        }
+
+        const response = await NetworkService.getSessionPhotoUploadUrl(
+          this.sessionId
+        )
+        const {
+          body: { uploadUrl, imageUrl }
+        } = response
+
+        if (uploadUrl) {
+          await axios.put(uploadUrl, file, {
+            headers: {
+              'Content-Type': file.type
+            }
+          })
+
+          this.insertPhoto(imageUrl)
+        }
+      } catch(error) {
+        // TODO: better error handling
+        this.isLoading = false
       }
 
       // Reset the file input
