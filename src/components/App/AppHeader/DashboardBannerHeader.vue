@@ -1,7 +1,7 @@
 <template>
   <div class="header">
     <!-- Edit the text below to display on dashboard banner to volunteers -->
-    <div class="header-message"><span>Introducing our new subject: READING!</span> Take the quiz today.</div>
+    <div class="header-message"><span>Introducing our new subject: U.S. History!</span> Take the quiz by July 15th to help us launch to students.</div>
     <router-link to="/training" tag="button" class="header-button">Get Certified</router-link>
   </div>
 </template>
