@@ -439,7 +439,8 @@ export const FEATURE_FLAGS = {
   DISCOVERY_SOURCE: 'discovery-source',
   UPCHIEVE_101_GRACE_PERIOD_BANNER: 'training-grace-period-banner',
   SUMMER_PREP_BANNER: 'summer-prep-banner',
-  US_HISTORY_LAUNCH_VOLUNTEER: 'us-history-launch-volunteer'
+  US_HISTORY_LAUNCH_VOLUNTEER: 'us-history-launch-volunteer',
+  US_HISTORY_LAUNCH_STUDENT: 'us-history-launch-student'
 }
 
 export const ANALYTICS_REPORT_ROW = {

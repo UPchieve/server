@@ -63,6 +63,7 @@ export default {
       [FEATURE_FLAGS.UPCHIEVE_101_GRACE_PERIOD_BANNER]: false,
       [FEATURE_FLAGS.SUMMER_PREP_BANNER]: false,
       [FEATURE_FLAGS.US_HISTORY_LAUNCH_VOLUNTEER]: false,
+      [FEATURE_FLAGS.US_HISTORY_LAUNCH_STUDENT]: false,
     },
   },
   mutations: {
@@ -102,5 +103,6 @@ export default {
     isUpchieve101GracePeriodBannerActive: state => state.flags[FEATURE_FLAGS.UPCHIEVE_101_GRACE_PERIOD_BANNER],
     isSummerPrepActive: state => state.flags[FEATURE_FLAGS.SUMMER_PREP_BANNER],
     isUsHistroyLaunchVolunteerActive: state => state.flags[FEATURE_FLAGS.US_HISTORY_LAUNCH_VOLUNTEER],
+    isUsHistroyLaunchStudentActive: state => state.flags[FEATURE_FLAGS.US_HISTORY_LAUNCH_STUDENT],
   },
 }
