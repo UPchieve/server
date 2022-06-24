@@ -193,7 +193,7 @@ const routes = [
       const isValidTopicAndSubtopic =
         Object.prototype.hasOwnProperty.call(topics, topic) &&
         Object.prototype.hasOwnProperty.call(topics[topic].subtopics, subtopic)
-      if (isValidTopicAndSubtopic) next()
+      if (isValidTopicAndSubtopic && subtopic != 'environmentalScience' && subtopic != 'usHistory') next()
       else next('/dashboard')
     }
   },
