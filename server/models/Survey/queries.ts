@@ -2,7 +2,7 @@ import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { Survey } from './types'
+import { PresessionSurveyResponseData, Survey } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 
 export type SurveyQueryResult = Omit<Survey, 'responseData'> & {
@@ -123,4 +123,14 @@ export async function getPresessionSurveyNew(
   } catch (err) {
     throw new RepoReadError(err)
   }
+}
+
+export async function getPresessionSurveyResponse(sessionId: Ulid): 
+Promise<PresessionSurveyResponseData | undefined> {
+  const result = await pgQueries.getPresessionSurveyResponse.run(
+    { sessionId },
+    getClient()
+  )
+  const x = makeRequired(result[0])
+  return x
 }

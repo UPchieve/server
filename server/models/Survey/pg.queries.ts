@@ -159,3 +159,46 @@ const getPresessionSurveyNewIR: any = {"name":"getPresessionSurveyNew","params":
 export const getPresessionSurveyNew = new PreparedQuery<IGetPresessionSurveyNewParams,IGetPresessionSurveyNewResult>(getPresessionSurveyNewIR);
 
 
+/** 'GetPresessionSurveyResponse' parameters type */
+export interface IGetPresessionSurveyResponseParams {
+  sessionId: string;
+}
+
+/** 'GetPresessionSurveyResponse' return type */
+export interface IGetPresessionSurveyResponseResult {
+  id: string;
+  openResponse: string | null;
+  surveyId: number;
+  surveyQuestionId: number;
+  surveyResponseChoiceId: number | null;
+  userId: string;
+}
+
+/** 'GetPresessionSurveyResponse' query type */
+export interface IGetPresessionSurveyResponseQuery {
+  params: IGetPresessionSurveyResponseParams;
+  result: IGetPresessionSurveyResponseResult;
+}
+
+const getPresessionSurveyResponseIR: any = {"name":"getPresessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2029,"b":2038,"line":80,"col":14}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    s.id,\n    us.user_id,\n    sp.survey_id,\n    uss.survey_question_id,\n    uss.survey_response_choice_id,\n    uss.open_response\nFROM users_surveys AS us\nJOIN sessions AS s ON s.student_id = us.user_id\nJOIN surveys_presession AS sp ON sp.survey_id = us.survey_id\nJOIN users_surveys_submissions AS uss ON uss.user_survey_id = us.id\nWHERE s.id = :sessionId!","loc":{"a":1677,"b":2038,"line":69,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     s.id,
+ *     us.user_id,
+ *     sp.survey_id,
+ *     uss.survey_question_id,
+ *     uss.survey_response_choice_id,
+ *     uss.open_response
+ * FROM users_surveys AS us
+ * JOIN sessions AS s ON s.student_id = us.user_id
+ * JOIN surveys_presession AS sp ON sp.survey_id = us.survey_id
+ * JOIN users_surveys_submissions AS uss ON uss.user_survey_id = us.id
+ * WHERE s.id = :sessionId!
+ * ```
+ */
+export const getPresessionSurveyResponse = new PreparedQuery<IGetPresessionSurveyResponseParams,IGetPresessionSurveyResponseResult>(getPresessionSurveyResponseIR);
+
+
