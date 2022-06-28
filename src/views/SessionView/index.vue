@@ -37,6 +37,15 @@
           'chat-container--hidden': shouldHideChatSection
         }"
       >
+        <div v-if="user.isVolunteer" class="about-session-container">
+          <div 
+          class="about-session-button"
+          v-on:click="toggleAboutSessionModal"
+          >
+            About the session
+            <caret-icon class="caret" />
+          </div>
+        </div>
         <session-chat
           :shouldHideChatSection="shouldHideChatSection"
           :setHasSeenNewMessage="setHasSeenNewMessage"
@@ -69,6 +78,10 @@
       v-if="showNotificationModal"
       :closeModal="() => setShowNotificationModal(false)"
     />
+    <about-session-modal
+      v-if="showAboutSessionModal"
+      :closeModal="toggleAboutSessionModal"
+    />
   </div>
 </template>
 
@@ -86,7 +99,9 @@ import SessionFulfilledModal from './SessionFulfilledModal'
 import ConnectionTroubleModal from './ConnectionTroubleModal'
 import PhotoUploadIcon from '@/assets/whiteboard_icons/photo-upload.svg'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
+import CaretIcon from '@/assets/caret.svg'
 import WebNotificationsModal from '@/components/WebNotificationsModal'
+import AboutSessionModal from './AboutSessionModal'
 import getNotificationPermission from '@/utils/get-notification-permission'
 import { EVENTS } from '@/consts'
 import Gleap from 'gleap'
@@ -103,7 +118,9 @@ export default {
     Whiteboard,
     PhotoUploadIcon,
     DocumentEditor,
-    WebNotificationsModal
+    WebNotificationsModal,
+    CaretIcon,
+    AboutSessionModal
   },
   created() {
     if (this.mobileMode) {
@@ -129,7 +146,8 @@ export default {
       auxiliaryOpen: false,
       sessionId: null,
       hasSeenNewMessage: true,
-      showNotificationModal: false
+      showNotificationModal: false,
+      showAboutSessionModal :false
     }
   },
   beforeRouteEnter(to, from, next) {
@@ -371,6 +389,9 @@ export default {
     },
     setShowNotificationModal(value) {
       this.showNotificationModal = value
+    },
+    toggleAboutSessionModal() {
+      this.showAboutSessionModal = !this.showAboutSessionModal
     }
   },
   watch: {
@@ -440,6 +461,29 @@ export default {
 
   @include breakpoint-below('medium') {
     padding-top: 80px;
+  }
+}
+
+.about-session {
+  &-container {
+    background-color: #F1F8FE; // @todo: save this background in styles file
+    z-index: 1;
+    padding: 0.75rem 0.68rem;
+    width: 100%;
+    }
+  
+  &-button {
+    @include font-category('subheading');
+     background-color: #F1F8FE;
+
+    &:hover {
+      background-color:rgba(196, 196, 196, 0.2);
+    }
+    
+    text-align: left;
+    border-radius: 4px;
+    width: 11.5rem;
+    padding: 0.4rem 0.5rem;
   }
 }
 
@@ -548,5 +592,9 @@ export default {
 
 .photo-upload--icon {
   margin-top: 5px !important;
+}
+
+.caret {
+  fill: #000;
 }
 </style>
