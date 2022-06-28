@@ -804,7 +804,6 @@ export default {
       })
     },
     getSchoolDisplayName(school) {
-      console.log(school)
       return `${school.name} (${school.city}, ${school.state})`
     },
     handleSelectHighSchool(school) {
