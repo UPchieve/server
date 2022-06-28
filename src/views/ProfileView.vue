@@ -586,7 +586,14 @@ button:hover {
 }
 
 .SOCIALSTUDIES {
-  background-color: #9675ce;
+  background-color: #3eaaf7;
+}
+
+.SAT {
+  background-color: #f0912b;
+}
+
+.READINGWRITING {
 }
 
 .errors {
