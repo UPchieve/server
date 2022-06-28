@@ -64,3 +64,17 @@ FROM
 WHERE
     subjects.name = :subjectName!;
 
+
+/* @name getPresessionSurveyResponse */
+SELECT
+    s.id,
+    us.user_id,
+    sp.survey_id,
+    uss.survey_question_id,
+    uss.survey_response_choice_id,
+    uss.open_response
+FROM users_surveys AS us
+JOIN sessions AS s ON s.student_id = us.user_id
+JOIN surveys_presession AS sp ON sp.survey_id = us.survey_id
+JOIN users_surveys_submissions AS uss ON uss.user_survey_id = us.id
+WHERE s.id = :sessionId!;
