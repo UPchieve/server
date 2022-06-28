@@ -64,7 +64,8 @@ export default {
     }
 
     const cards = Object.entries(topics)
-      .filter(([key]) => key !== 'training')
+    // unfilter socialStudies when ready to launch to students
+      .filter(([key]) => key !== 'training' && key !== 'socialStudies')
       .map(([key, topicObj]) => {
         return {
           title: topicObj.displayName,
@@ -143,6 +144,15 @@ export default {
             const temporarilyHiddenSubjects = [
               'physicsTwo',
               'environmentalScience'
+            ]
+            return !temporarilyHiddenSubjects.includes(subject)
+          })
+
+        // Temporarily hide U.S. History subject from students
+        if (card.topic === 'socialStudies')
+          card.subtopics = card.subtopics.filter(subject => {
+            const temporarilyHiddenSubjects = [
+              'usHistory',
             ]
             return !temporarilyHiddenSubjects.includes(subject)
           })

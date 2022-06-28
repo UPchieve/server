@@ -108,6 +108,7 @@ export default {
       isReferFriendsActive: 'featureFlags/isReferFriendsActive',
       isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
       isSummerPrepActive: 'featureFlags/isSummerPrepActive',
+      isUsHistroyLaunchVolunteerActive: 'featureFlags/isUsHistroyLaunchVolunteerActive',
     }),
     isLowCoachHour() {
       return this.currentHour < 12

@@ -93,6 +93,7 @@ export default {
         case 'calculusBC':
         case 'chemistry':
         case 'environmentalScience':
+        case 'usHistory':
           this.reviewMaterials = [
             {
               title: 'Topics & Resources',
