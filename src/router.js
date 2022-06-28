@@ -48,6 +48,7 @@ import VerificationView from './views/VerificationView'
 import VolunteerPartnerSignupView from './views/VolunteerPartnerSignupView'
 import SessionHistoryView from './views/SessionHistoryView'
 import SessionRecapView from './views/SessionRecapView'
+// import {isUsHistroyLaunchStudentActive, isEnvironmentalScienceLaunchStudentActive} from './store/modules/feature-flags'
 
 Vue.use(VueResource)
 Vue.http.options.credentials = true
@@ -193,8 +194,8 @@ const routes = [
       const isValidTopicAndSubtopic =
         Object.prototype.hasOwnProperty.call(topics, topic) &&
         Object.prototype.hasOwnProperty.call(topics[topic].subtopics, subtopic)
-      if (isValidTopicAndSubtopic && subtopic != 'environmentalScience' && subtopic != 'usHistory') next()
-      else next('/dashboard')
+        if (isValidTopicAndSubtopic) next()
+        else next('/dashboard')
     }
   },
   {

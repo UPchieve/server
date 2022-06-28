@@ -239,8 +239,7 @@ export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
   ACTIVE_QUIZ_CATEGORIES,
   string[]
 > = {
-  [SOCIAL_STUDIES_CERTS.US_HISTORY]: [
-  ],
+  [SOCIAL_STUDIES_CERTS.US_HISTORY]: [],
   [MATH_CERTS.PREALGREBA]: [
     'numbers',
     'arithmetic properties',
