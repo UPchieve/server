@@ -585,6 +585,10 @@ button:hover {
   background-color: #9675ce;
 }
 
+.SOCIALSTUDIES {
+  background-color: #9675ce;
+}
+
 .errors {
   text-align: left;
   padding: 30px;
