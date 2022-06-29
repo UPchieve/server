@@ -26,10 +26,11 @@ const getWrapper = (mobileMode = false) => {
 describe('SubjectSelection', () => {
   const cards = [
     { title: 'Math Tutoring', topic: 'math' },
-    { title: 'Standardized Testing Tutoring', topic: 'sat' },
-    { title: 'College Counseling', topic: 'college' },
-    { title: 'Science Tutoring', topic: 'science' },
     { title: 'Reading and Writing Tutoring', topic: 'readingWriting' },
+    { title: 'Science Tutoring', topic: 'science' },
+    // { title: 'Social Studies', topic: 'socialStudies' },
+    { title: 'College Counseling', topic: 'college' },
+    { title: 'Standardized Testing Tutoring', topic: 'sat' },
     {
       title: 'Give Feedback',
       subtitle:
