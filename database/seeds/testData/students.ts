@@ -44,6 +44,7 @@ export async function students(spoIds: NameToId, schoolIds: NameToId) {
   const userMap: NameToId = {}
   for (const user of users) {
     userMap[user.id] = await wrapInsert('users', pgQueries.insertStudentUser.run, { ...user })
+    await wrapInsert('user_session_metrics', pgQueries.insertUserSessionMetrics.run, { id: user.id })
   }
 
   const profiles = [
