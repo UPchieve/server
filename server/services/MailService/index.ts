@@ -800,27 +800,6 @@ export async function sendVolunteerQuickTips(
   )
 }
 
-export async function sendPartnerVolunteerOnlyCollegeCerts(
-  email: string,
-  firstName: string
-): Promise<void> {
-  const sender = config.mail.senders.volunteerManager
-  const overrides = {
-    reply_to: {
-      email: sender,
-    },
-    categories: ['partner volunteer - only college certs'],
-  }
-  await sendEmail(
-    email,
-    sender,
-    `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
-    config.sendgrid.partnerVolunteerOnlyCollegeCertsTemplate,
-    { firstName },
-    overrides
-  )
-}
-
 export async function sendPartnerVolunteerLowHoursSelected(
   email: string,
   firstName: string
@@ -859,30 +838,6 @@ export async function sendVolunteerFirstSessionCongrats(
     `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
     config.sendgrid.volunteerFirstSessionCongratsTemplate,
     { firstName },
-    overrides
-  )
-}
-
-export async function sendPartnerVolunteerReferACoworker(
-  email: string,
-  firstName: string,
-  partnerOrg: string,
-  partnerOrgDisplay: string
-): Promise<void> {
-  const partnerOrgSignupLink = buildLink(`signup/volunteer/${partnerOrg}`)
-  const sender = config.mail.senders.corporatePartnershipsManager
-  const overrides = {
-    reply_to: {
-      email: sender,
-    },
-    categories: ['partner volunteer - refer a coworker'],
-  }
-  await sendEmail(
-    email,
-    sender,
-    `${config.mail.people.corporatePartnershipsManager.firstName} ${config.mail.people.corporatePartnershipsManager.lastName}`,
-    config.sendgrid.partnerVolunteerReferACoworkerTemplate,
-    { firstName, partnerOrgSignupLink, partnerOrgDisplay },
     overrides
   )
 }

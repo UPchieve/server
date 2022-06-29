@@ -327,14 +327,6 @@ export async function processEmailPartnerVolunteer(sessionId: Ulid) {
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.volunteer?.volunteerPartnerOrg) {
     const delay = 1000 * 60 * 5
-    if (session.volunteer.numPastSessions === 5)
-      await QueueService.add(
-        Jobs.EmailPartnerVolunteerReferACoworker,
-        {
-          volunteerId: session.volunteer.id,
-        },
-        { delay }
-      )
 
     if (session.volunteer.numPastSessions === 10)
       await QueueService.add(
