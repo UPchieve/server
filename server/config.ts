@@ -104,7 +104,7 @@ const config: Static<typeof Config> = {
     volunteerFirstSessionCongratsTemplate: 'd-ebd561df99a7497d9401cec3f54ef23a',
     partnerVolunteerReferACoworkerTemplate:
       'd-f129a964b34446e3962433851459b17a',
-    partnerVolunteerTenSessionMilestoneTemplate:
+    volunteerTenSessionMilestoneTemplate:
       'd-0447cf80536a430881262f8f92044b73',
     volunteerGentleWarningTemplate: 'd-5f7366fbde7841beb757b8694afdc6a4',
     volunteerInactiveThirtyDaysTemplate: 'd-e2c9917e22c24d72a187ff00a5eff5e9',

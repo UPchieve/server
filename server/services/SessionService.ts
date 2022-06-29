@@ -338,7 +338,7 @@ export async function processEmailPartnerVolunteer(sessionId: Ulid) {
 
     if (session.volunteer.numPastSessions === 10)
       await QueueService.add(
-        Jobs.EmailPartnerVolunteerTenSessionMilestone,
+        Jobs.EmailVolunteerTenSessionMilestone,
         {
           volunteerId: session.volunteer.id,
         },
