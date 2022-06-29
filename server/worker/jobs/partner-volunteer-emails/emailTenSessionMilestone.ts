@@ -29,20 +29,8 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
   const sessions = await getSessionsVolunteerRating(volunteerId)
 
   if (sessions.length === 10) {
-    let totalLowSessionRatings = 0
-    const lowSessionRating = 3
-    const totalLowSessionRatingsLimit = 3
-    for (const session of sessions) {
-      if (
-        typeof session.sessionRating === 'number' &&
-        session.sessionRating <= lowSessionRating
-      )
-        totalLowSessionRatings++
-    }
-    if (totalLowSessionRatings >= totalLowSessionRatingsLimit) return
-
     try {
-      await MailService.sendPartnerVolunteerTenSessionMilestone(
+      await MailService.sendVolunteerTenSessionMilestone(
         volunteer.email,
         volunteer.firstName
       )
