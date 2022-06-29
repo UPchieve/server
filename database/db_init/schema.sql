@@ -143,15 +143,6 @@ CREATE TABLE public.seed_migrations (
 
 
 --
--- Name: view_migrations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.view_migrations (
-    version character varying(255) NOT NULL
-);
-
-
---
 -- Name: admin_profiles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2144,14 +2135,6 @@ ALTER TABLE ONLY auth.session
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
---
--- Name: view_migrations view_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.view_migrations
-    ADD CONSTRAINT view_migrations_pkey PRIMARY KEY (version);
 
 
 --
