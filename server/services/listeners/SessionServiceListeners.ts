@@ -30,6 +30,11 @@ export function listeners() {
   )
   register(
     SESSION_EVENTS.SESSION_METRICS_CALCULATED,
+    SessionService.processEmailVolunteer,
+    'processEmailVolunteer'
+  )
+  register(
+    SESSION_EVENTS.SESSION_METRICS_CALCULATED,
     SessionService.processFirstSessionCongratsEmail,
     'processFirstSessionCongratsEmail'
   )
