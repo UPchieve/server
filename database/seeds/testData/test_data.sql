@@ -45,9 +45,6 @@ WHERE
 INSERT INTO user_session_metrics(user_id, created_at, updated_at)
 VALUES (:id!, NOW(), NOW())
 RETURNING user_id AS ok;
-/* INSERT INTO user_session_metrics (user_id, absent_student, absent_volunteer, low_session_rating_from_coach, low_session_rating_from_student, low_coach_rating_from_student, reported, only_looking_for_answers,rude_or_inappropriate, comment_from_student, comment_from_volunteer, has_been_unmatched, has_had_technical_issues, created_at, updated_at)
-*/
-
 
 /* @name insertVolunteerProfile */
 INSERT INTO volunteer_profiles (user_id, timezone, approved, onboarded, college, volunteer_partner_org_id, created_at, updated_at) VALUES (:userId!, :timezone!, :approved!, :onboarded!, :college!, :volunteerPartnerOrgId, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok;
