@@ -9,9 +9,7 @@ import { asString } from '../../../utils/type-utils'
 /**
  *
  * conditions for sending the email:
- * - partner volunteer who has had 10 sessions
- * - each session must be 15+ minutes long and must have a session flag for an absent user
- * - must have not left 3 ratings of 1 - 3 session ratings
+ * - volunteer who has had 10 sessions
  *
  */
 

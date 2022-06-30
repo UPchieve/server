@@ -340,14 +340,12 @@ export async function processEmailPartnerVolunteer(sessionId: Ulid) {
 
 export async function processEmailVolunteer(sessionId: Ulid) {
   const session = await SessionRepo.getSessionToEndById(sessionId)
-  const delay = 1000 * 60 * 5
   if (session.volunteer.numPastSessions === 10)
     await QueueService.add(
       Jobs.EmailVolunteerTenSessionMilestone,
       {
         volunteerId: session.volunteer.id,
-      },
-      { delay }
+      }
     )
 }
 
