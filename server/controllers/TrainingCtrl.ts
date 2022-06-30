@@ -105,6 +105,7 @@ export function hasRequiredTraining(
   if (
     (subjectCertType === SUBJECT_TYPES.MATH ||
       subjectCertType === SUBJECT_TYPES.SCIENCE ||
+      subjectCertType === SUBJECT_TYPES.SOCIAL_STUDIES ||
       subjectCertType === SUBJECT_TYPES.READING_WRITING) &&
     userCertifications[TRAINING.TUTORING_SKILLS].passed
   )
