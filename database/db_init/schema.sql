@@ -1370,7 +1370,7 @@ ALTER TABLE upchieve.surveys ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 CREATE TABLE upchieve.surveys_postsession (
     survey_id integer NOT NULL,
-    subject_id integer NOT NULL,
+    subject_id integer,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
 );
@@ -1382,7 +1382,7 @@ CREATE TABLE upchieve.surveys_postsession (
 
 CREATE TABLE upchieve.surveys_presession (
     survey_id integer NOT NULL,
-    subject_id integer NOT NULL,
+    subject_id integer,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
 );
@@ -3957,14 +3957,6 @@ ALTER TABLE ONLY upchieve.users_surveys_submissions
 
 ALTER TABLE ONLY upchieve.users_surveys_submissions
     ADD CONSTRAINT users_surveys_submissions_survey_response_choice_id_fkey FOREIGN KEY (survey_response_choice_id) REFERENCES upchieve.survey_response_choices(id);
-
-
---
--- Name: users_surveys_submissions users_surveys_submissions_user_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.users_surveys_submissions
-    ADD CONSTRAINT users_surveys_submissions_user_survey_id_fkey FOREIGN KEY (user_survey_id) REFERENCES upchieve.users_surveys(id);
 
 
 --
