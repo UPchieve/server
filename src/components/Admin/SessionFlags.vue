@@ -14,7 +14,7 @@
 
 <script>
 import Case from 'case'
-import Chip from '../Chip.vue'
+import Chip from '../../stories/Chip.vue'
 
 const SESSION_FLAGS_CLASS = {
   absentStudent: 'flags-item--absent',
