@@ -6,6 +6,7 @@ import {
   READING_WRITING_CERTS,
   SAT_CERTS,
   TRAINING,
+  SOCIAL_STUDIES_CERTS,
 } from '../../constants'
 import { getSubjectType } from '../../utils/getSubjectType'
 
@@ -37,6 +38,11 @@ describe('Get subject type', () => {
   test('Training', () => {
     expect(getSubjectType(TRAINING.UPCHIEVE_101)).toEqual(
       SUBJECT_TYPES.TRAINING
+    )
+  })
+  test('Social Studies', () => {
+    expect(getSubjectType(SOCIAL_STUDIES_CERTS.US_HISTORY)).toEqual(
+      SUBJECT_TYPES.SOCIAL_STUDIES
     )
   })
   test('Invalid subject', () => {
