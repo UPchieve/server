@@ -1,12 +1,14 @@
 <template>
   <ul class="flags-list">
-    <Chip
+    <li
       v-for="flag in flags"
-      :key="flag"
-      class="flags-item"
-      :class="getFlagColor(flag)"
-      :chipContent="flag"
-    />
+      :key="flag">
+      <Chip
+        class="flags-item"
+        :class="getFlagColor(flag)"
+        :chipContent="flag"
+      />
+    </li>
   </ul>
 </template>
 
@@ -50,6 +52,8 @@ export default {
 }
 
 .flags-item {
+  margin-top: 1em;
+  margin-right: 1em;
   color: #fff;
   border: 0px;
 
