@@ -279,7 +279,6 @@ export async function getQuizScore(
       const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(
         user.id
       )
-      console.log('currentSubjects', currentSubjects)
       if (!currentSubjects.includes(subject)) {
         await createQuizAction({
           action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
