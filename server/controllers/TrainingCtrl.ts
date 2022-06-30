@@ -105,6 +105,7 @@ export function hasRequiredTraining(
   if (
     (subjectCertType === SUBJECT_TYPES.MATH ||
       subjectCertType === SUBJECT_TYPES.SCIENCE ||
+      subjectCertType === SUBJECT_TYPES.SOCIAL_STUDIES || 
       subjectCertType === SUBJECT_TYPES.READING_WRITING) &&
     userCertifications[TRAINING.TUTORING_SKILLS].passed
   )
@@ -278,6 +279,7 @@ export async function getQuizScore(
       const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(
         user.id
       )
+      console.log('currentSubjects', currentSubjects)
       if (!currentSubjects.includes(subject)) {
         await createQuizAction({
           action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
