@@ -1303,11 +1303,11 @@ ALTER TABLE upchieve.survey_questions_question_tags ALTER COLUMN id ADD GENERATE
 --
 
 CREATE TABLE upchieve.survey_questions_response_choices (
-    survey_question_id integer NOT NULL,
     response_choice_id integer NOT NULL,
     display_priority smallint NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    surveys_survey_question_id integer NOT NULL
 );
 
 
@@ -3768,19 +3768,19 @@ ALTER TABLE ONLY upchieve.survey_questions
 
 
 --
+-- Name: survey_questions_response_choices survey_questions_response_choic_surveys_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_response_choices
+    ADD CONSTRAINT survey_questions_response_choic_surveys_survey_question_id_fkey FOREIGN KEY (surveys_survey_question_id) REFERENCES upchieve.surveys_survey_questions(id);
+
+
+--
 -- Name: survey_questions_response_choices survey_questions_response_choices_response_choice_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.survey_questions_response_choices
     ADD CONSTRAINT survey_questions_response_choices_response_choice_id_fkey FOREIGN KEY (response_choice_id) REFERENCES upchieve.survey_response_choices(id);
-
-
---
--- Name: survey_questions_response_choices survey_questions_response_choices_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.survey_questions_response_choices
-    ADD CONSTRAINT survey_questions_response_choices_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
 
 
 --
@@ -4179,5 +4179,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220602170321'),
     ('20220602170346'),
     ('20220609150924'),
+    ('20220614163056'),
     ('20220614202247'),
     ('20220615162628');

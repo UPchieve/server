@@ -60,7 +60,7 @@ FROM
             survey_questions_response_choices sqrc
             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
         WHERE
-            sqrc.survey_question_id = sq.id) sub ON TRUE
+            sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
     subjects.name = :subjectName!;
 
