@@ -177,7 +177,8 @@ export default {
         'applications',
         'satReading',
         'humanitiesEssays',
-        'reading'
+        'reading',
+        'usHistory'
       ]
       if (documentEditorSubTopics.includes(this.session.subTopic))
         return 'DOCUMENT'

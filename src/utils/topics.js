@@ -34,6 +34,12 @@ export const topics = {
     },
     displayName: 'Reading and Writing Tutoring'
   },
+  socialStudies: {
+    subtopics: {
+      usHistory: {displayName: 'U.S. History'}
+    },
+    displayName: 'Social Studies'
+  },
   college: {
     subtopics: {
       planning: { displayName: 'Planning' },
