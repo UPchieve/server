@@ -1,0 +1,23 @@
+import { getSessionById } from '../models/Session'
+import {
+  getPresessionSurveyResponse,
+  StudentPresessionSurveyResponse,
+} from '../models/Survey'
+import { getTotalSessionsByUserId } from '../models/User'
+
+type VolunteerContextResponse = {
+  totalStudentSessions: number
+  responses: StudentPresessionSurveyResponse[]
+}
+
+export async function getSessionVolunteerContext(
+  sessionId: string
+): Promise<VolunteerContextResponse> {
+  const responses = await getPresessionSurveyResponse(sessionId)
+  const session = await getSessionById(sessionId)
+  const totalStudentSessions = await getTotalSessionsByUserId(session.studentId)
+  return {
+    totalStudentSessions,
+    responses,
+  }
+}
