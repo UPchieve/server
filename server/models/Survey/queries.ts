@@ -126,12 +126,25 @@ export async function getPresessionSurveyNew(
   }
 }
 
-export async function getPresessionSurveyResponse(sessionId: Ulid): 
-Promise<PresessionSurveyResponseData | undefined> {
-  const result = await pgQueries.getPresessionSurveyResponse.run(
-    { sessionId },
-    getClient()
-  )
-  const x = makeRequired(result[0])
-  return x
+export type StudentPresessionSurveyResponse = {
+  displayLabel: string
+  response: string
+  score: number
+  displayOrder: number
+}
+
+export async function getPresessionSurveyResponse(
+  sessionId: string
+): Promise<StudentPresessionSurveyResponse[]> {
+  try {
+    const result = await pgQueries.getPresessionSurveyResponse.run(
+      { sessionId },
+      getClient()
+    )
+
+    if (result.length) return result.map(row => makeRequired(row))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }

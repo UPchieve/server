@@ -67,14 +67,28 @@ WHERE
 
 /* @name getPresessionSurveyResponse */
 SELECT
-    s.id,
-    us.user_id,
-    sp.survey_id,
-    uss.survey_question_id,
-    uss.survey_response_choice_id,
-    uss.open_response
-FROM users_surveys AS us
-JOIN sessions AS s ON s.student_id = us.user_id
-JOIN surveys_presession AS sp ON sp.survey_id = us.survey_id
-JOIN users_surveys_submissions AS uss ON uss.user_survey_id = us.id
-WHERE s.id = :sessionId!;
+    sq.response_display_text AS display_label,
+    (
+        CASE WHEN src.choice_text = 'Other' THEN
+            uss.open_response
+        ELSE
+            src.choice_text
+        END) AS response,
+    COALESCE(src.score, 0) AS score,
+    ssq.display_priority AS display_order
+FROM
+    users_surveys AS us
+    JOIN sessions AS s ON s.student_id = us.user_id
+    JOIN survey_types AS st ON us.survey_type_id = st.id
+    JOIN users_surveys_submissions AS uss ON us.id = uss.user_survey_id
+    LEFT JOIN survey_response_choices AS src ON uss.survey_response_choice_id = src.id
+    JOIN survey_questions AS sq ON uss.survey_question_id = sq.id
+    LEFT JOIN surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
+        AND uss.survey_question_id = ssq.survey_question_id
+WHERE
+    us.session_id = :sessionId!
+    AND s.id = :sessionId!
+    AND st.name = 'presession'
+ORDER BY
+    ssq.display_priority ASC;
+
