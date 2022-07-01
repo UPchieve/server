@@ -4,6 +4,7 @@ import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { PresessionSurveyResponseData, Survey } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
+import _ from 'lodash'
 
 export type SurveyQueryResult = Omit<Survey, 'responseData'> & {
   responseData: pgQueries.Json
