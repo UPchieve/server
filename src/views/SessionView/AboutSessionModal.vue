@@ -7,10 +7,10 @@
       <div class="header-info">
         <cross-icon class="cross-icon" @click="closeModal"/>
         <div class="header">About the session</div>
-        <div v-if="!hasMoreThanTwoSessions" class="alert-container">
+        <div v-if="showSessionHistory" class="alert-container">
           <div class="alert">
             <alert-icon class="alert-icon"/>
-            <div class="subheading">This is Jennifer's first session!</div>
+            <div class="subheading">{{ totalSessionsTextTitle }}</div>
           </div>  
           <div class="subtitle">Be sure to be welcoming and extra patient as they get used to our platform.</div>
         </div>
@@ -20,17 +20,17 @@
           <stepper :totalSteps=3 class="session-info-stepper" />
           <div class="session-info-responses">
             <div 
-            v-for="response in mockData"
-            :key="response.title"
+            v-for="response in responses"
+            :key="response.displayLabel"
             >
-              <div class="session-info-title"> {{ response.title}} </div>
-              <div class="session-info-response"> {{ response.subtitle }} </div>
+              <div class="session-info-title"> {{ response.displayLabel}} </div>
+              <div class="session-info-response"> {{ response.response }} </div>
             </div>
           </div>
         </div>
-        <div v-if="hasMoreThanTwoSessions && confidenceLow" class="tip">
-          <div class="tip-title"> UPchieve's tip</div>
-          <div class="tip-text"> Start the session off by checking in about what has got them feeling stressed.</div>
+        <div v-if="!showSessionHistory && hasLowConfidence" class="tip">
+          <div class="tip-title">UPchieve's tip</div>
+          <div class="tip-text">Start the session off by checking in about what has got them feeling stressed.</div>
         </div>
       </div>
     </div>
@@ -42,36 +42,37 @@ import Modal from '@/components/Modal'
 import Stepper from '@/components/Stepper'
 import AlertIcon from '@/assets/blue-alert.svg'
 import CrossIcon from '@/assets/cross.svg'
+import { mapState } from 'vuex'
 
 export default {
  name: 'about-session-modal',
  components: { Modal, Stepper, AlertIcon, CrossIcon },
   props: {
     closeModal: { type: Function, required: true },
-    volunteerName: { type: String, required: true, default: '' }
+    responses: { type: Array, requied: true },
+    studentTotalSessions: { type: Number, requied: true }
   },
-  data() {
-    const mockData = [
-      {
-      title: 'Their goal:',
-      subtitle: 'Solve a specific problem'
-      },
-      {
-      title: 'Their level of understanding:',
-      subtitle: 'They think they know how to do it, but need some help'
-      },
-      {
-      title: 'Their confidence:',
-      subtitle: 'They think they know how to do it, but need some help'
-      },   
-    ],
-    hasMoreThanTwoSessions = true,
-    confidenceLow = false
+  computed: {
+    ...mapState({
+      session: state => state.user.session,
+    }),
+    showSessionHistory(){
+      return this.studentTotalSessions === 1 || this.studentTotalSessions === 2
+    },
+    totalSessionsTextTitle() {
+      let sessionStr = ''
+      if (this.studentTotalSessions === 1) sessionStr = 'first'
+      if (this.studentTotalSessions === 2) sessionStr = 'second'
 
-    return {
-      mockData,
-      hasMoreThanTwoSessions,
-      confidenceLow
+      return `This is ${this.session.student.firstname}'s ${sessionStr} session!`
+    },
+    // TODO: the score of an emoji needs to map with a particular response for both CC and nonCC subjects
+    hasLowConfidence() {
+      const label = 'Their confidence:'
+      for(const response of this.responses) {
+        if(response.label === label && response.score === 1) return true
+      }
+      return false
     }
   }
 }
