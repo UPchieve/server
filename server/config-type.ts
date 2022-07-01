@@ -62,7 +62,7 @@ export const Config = Record({
     partnerVolunteerLowHoursSelectedTemplate: String,
     volunteerFirstSessionCongratsTemplate: String,
     partnerVolunteerReferACoworkerTemplate: String,
-    partnerVolunteerTenSessionMilestoneTemplate: String,
+    volunteerTenSessionMilestoneTemplate: String,
     volunteerGentleWarningTemplate: String,
     volunteerInactiveThirtyDaysTemplate: String,
     volunteerInactiveSixtyDaysTemplate: String,

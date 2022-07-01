@@ -9,9 +9,7 @@ import { asString } from '../../../utils/type-utils'
 /**
  *
  * conditions for sending the email:
- * - partner volunteer who has had 10 sessions
- * - each session must be 15+ minutes long and must have a session flag for an absent user
- * - must have not left 3 ratings of 1 - 3 session ratings
+ * - volunteer who has had 10 sessions
  *
  */
 
@@ -29,20 +27,8 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
   const sessions = await getSessionsVolunteerRating(volunteerId)
 
   if (sessions.length === 10) {
-    let totalLowSessionRatings = 0
-    const lowSessionRating = 3
-    const totalLowSessionRatingsLimit = 3
-    for (const session of sessions) {
-      if (
-        typeof session.sessionRating === 'number' &&
-        session.sessionRating <= lowSessionRating
-      )
-        totalLowSessionRatings++
-    }
-    if (totalLowSessionRatings >= totalLowSessionRatingsLimit) return
-
     try {
-      await MailService.sendPartnerVolunteerTenSessionMilestone(
+      await MailService.sendVolunteerTenSessionMilestone(
         volunteer.email,
         volunteer.firstName
       )

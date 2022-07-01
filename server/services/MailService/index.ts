@@ -887,22 +887,22 @@ export async function sendPartnerVolunteerReferACoworker(
   )
 }
 
-export async function sendPartnerVolunteerTenSessionMilestone(
+export async function sendVolunteerTenSessionMilestone(
   email: string,
   firstName: string
 ): Promise<void> {
-  const sender = config.mail.senders.corporatePartnershipsManager
+  const sender = config.mail.senders.volunteerManager
   const overrides = {
     reply_to: {
       email: sender,
     },
-    categories: ['partner volunteer - ten session milestone'],
+    categories: ['volunteer - ten session milestone'],
   }
   await sendEmail(
     email,
     sender,
-    `${config.mail.people.corporatePartnershipsManager.firstName} ${config.mail.people.corporatePartnershipsManager.lastName}`,
-    config.sendgrid.partnerVolunteerTenSessionMilestoneTemplate,
+    `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
+    config.sendgrid.volunteerTenSessionMilestoneTemplate,
     { firstName },
     overrides
   )

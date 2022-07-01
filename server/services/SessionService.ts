@@ -335,16 +335,15 @@ export async function processEmailPartnerVolunteer(sessionId: Ulid) {
         },
         { delay }
       )
-
-    if (session.volunteer.numPastSessions === 10)
-      await QueueService.add(
-        Jobs.EmailPartnerVolunteerTenSessionMilestone,
-        {
-          volunteerId: session.volunteer.id,
-        },
-        { delay }
-      )
   }
+}
+
+export async function processEmailVolunteer(sessionId: Ulid) {
+  const session = await SessionRepo.getSessionToEndById(sessionId)
+  if (session.volunteer.numPastSessions === 10)
+    await QueueService.add(Jobs.EmailVolunteerTenSessionMilestone, {
+      volunteerId: session.volunteer.id,
+    })
 }
 
 /**
