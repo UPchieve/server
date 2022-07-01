@@ -41,6 +41,10 @@ FROM
 WHERE
     email = :email!;
 
+/* @name insertUserSessionMetrics */
+INSERT INTO user_session_metrics(user_id, created_at, updated_at)
+VALUES (:id!, NOW(), NOW())
+RETURNING user_id AS ok;
 
 /* @name insertVolunteerProfile */
 INSERT INTO volunteer_profiles (user_id, timezone, approved, onboarded, college, volunteer_partner_org_id, created_at, updated_at) VALUES (:userId!, :timezone!, :approved!, :onboarded!, :college!, :volunteerPartnerOrgId, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok;
