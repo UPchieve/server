@@ -40,7 +40,7 @@
         <div v-if="user.isVolunteer" class="about-session-container">
           <div 
           class="about-session-button"
-          v-on:click="toggleAboutSessionModal"
+          @click="toggleAboutSessionModal"
           >
             About the session
             <caret-icon class="caret" />
@@ -79,8 +79,10 @@
       :closeModal="() => setShowNotificationModal(false)"
     />
     <about-session-modal
-      v-if="showAboutSessionModal"
+      v-if="showAboutSessionModal && volunteerContext"
       :closeModal="toggleAboutSessionModal"
+      :responses="volunteerContext.responses"
+      :studentTotalSessions="volunteerContext.totalStudentSessions"
     />
   </div>
 </template>
@@ -147,7 +149,12 @@ export default {
       sessionId: null,
       hasSeenNewMessage: true,
       showNotificationModal: false,
-      showAboutSessionModal :false
+      showAboutSessionModal: false,
+      // TODO: not crazy about this below
+      volunteerContext: {
+        responses: [],
+        totalStudentSessions: 0        
+      },
     }
   },
   beforeRouteEnter(to, from, next) {
@@ -272,6 +279,11 @@ export default {
         this.joinSession(sessionId)
         Gleap.setCustomData("sessionId", sessionId)
         this.$store.dispatch('user/sessionConnected')
+
+        if (this.user.isVolunteer) {
+          const res = await NetworkService.getPresessionSurveyResponse(sessionId)
+          this.volunteerContext = res.data
+        }
 
         if (
           (this.user.isVolunteer &&
