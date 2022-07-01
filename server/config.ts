@@ -97,13 +97,9 @@ const config: Static<typeof Config> = {
     studentUnmatchedApologyTemplate: 'd-73756dd129344032bc4ca5d1055e1b7b',
     studentOnlyLookingForAnswersTemplate: 'd-d78c20e2cfbe41968e458a93a6d5c7ac',
     volunteerQuickTipsTemplate: 'd-b85620ef95b443878a6aeca1e99c94ef',
-    partnerVolunteerOnlyCollegeCertsTemplate:
-      'd-031f89e788c2481ea912e5840e7d92e1',
     partnerVolunteerLowHoursSelectedTemplate:
       'd-476522cdd78e4c4ebc2af51a2086a640',
     volunteerFirstSessionCongratsTemplate: 'd-ebd561df99a7497d9401cec3f54ef23a',
-    partnerVolunteerReferACoworkerTemplate:
-      'd-f129a964b34446e3962433851459b17a',
     volunteerTenSessionMilestoneTemplate: 'd-0447cf80536a430881262f8f92044b73',
     volunteerGentleWarningTemplate: 'd-5f7366fbde7841beb757b8694afdc6a4',
     volunteerInactiveThirtyDaysTemplate: 'd-e2c9917e22c24d72a187ff00a5eff5e9',

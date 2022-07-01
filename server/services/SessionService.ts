@@ -323,21 +323,6 @@ export async function processSessionEditors(sessionId: Ulid) {
   else await storeAndDeleteWhiteboardDoc(sessionId)
 }
 
-export async function processEmailPartnerVolunteer(sessionId: Ulid) {
-  const session = await SessionRepo.getSessionToEndById(sessionId)
-  if (session.volunteer?.volunteerPartnerOrg) {
-    const delay = 1000 * 60 * 5
-    if (session.volunteer.numPastSessions === 5)
-      await QueueService.add(
-        Jobs.EmailPartnerVolunteerReferACoworker,
-        {
-          volunteerId: session.volunteer.id,
-        },
-        { delay }
-      )
-  }
-}
-
 export async function processEmailVolunteer(sessionId: Ulid) {
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.volunteer.numPastSessions === 10)

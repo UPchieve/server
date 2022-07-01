@@ -104,60 +104,6 @@ AND total_sessions.total > 0
 AND users.test_user IS FALSE;
 
 
-/* @name getPartnerVolunteerForCollege */
-WITH CTE AS (
-    SELECT
-        subjects.name,
-        COUNT(*)::int AS total
-    FROM
-        certification_subject_unlocks
-        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-    GROUP BY
-        subjects.name
-)
-SELECT
-    users.id,
-    first_name,
-    last_name,
-    phone,
-    email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN (
-        SELECT
-            array_agg(DISTINCT subjects_unlocked.topic) AS topics
-        FROM (
-            SELECT
-                subjects.name AS subject,
-                topics.name AS topic
-            FROM
-                users_certifications
-                JOIN certification_subject_unlocks USING (certification_id)
-                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN users ON users.id = users_certifications.user_id
-                JOIN topics ON topics.id = subjects.topic_id
-                JOIN CTE ON CTE.name = subjects.name
-            WHERE
-                users.id::uuid = :userId
-                OR users.mongo_id::text = :mongoUserId
-            GROUP BY
-                subjects.name, CTE.total, topics.name
-            HAVING
-                COUNT(*)::int >= CTE.total) AS subjects_unlocked) AS topics_unlocked ON TRUE
-WHERE (users.id::uuid = :userId
-    OR users.mongo_id::text = :mongoUserId)
-AND volunteer_profiles.onboarded IS TRUE
-AND array_length(topics_unlocked.topics, 1) = 1
-    AND topics_unlocked.topics = ARRAY['college']
-    AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
-    AND users.banned IS FALSE
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
-
-
 /* @name getVolunteersForWeeklyHourSummary */
 SELECT
     users.id,

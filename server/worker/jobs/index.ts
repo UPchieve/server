@@ -18,11 +18,9 @@ import emailNiceToMeetYou from './emailNiceToMeetYou'
 import emailWeeklyHourSummary from './emailWeeklyHourSummary'
 import emailOnboardingReminder from './volunteer-emails/emailOnboardingReminder'
 import emailQuickTips from './volunteer-emails/emailQuickTips'
-import emailPartnerVolunteerOnlyCollegeCerts from './partner-volunteer-emails/emailOnlyCollegeCerts'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
 import emailStudentOnboardingSeries from './student-emails/emailStudentOnboardingSeries'
 import emailStudentSessionActions from './student-emails/emailStudentSessionActions'
-import emailPartnerVolunteerReferACoworker from './partner-volunteer-emails/emailReferACoworker'
 import emailVolunteerTenSessionMilestone from './volunteer-emails/emailTenSessionMilestone'
 import emailVolunteerGentleWarning from './volunteer-emails/emailGentleWarning'
 import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
@@ -70,9 +68,7 @@ export enum Jobs {
   EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
   EmailSessionReported = 'EmailSessionReported',
   EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
-  EmailPartnerVolunteerOnlyCollegeCerts = 'EmailVolunteerCollegeCertsOnly',
   EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
-  EmailPartnerVolunteerReferACoworker = 'EmailPartnerVolunteerReferACoworker',
   EmailVolunteerTenSessionMilestone = 'EmailVolunteerTenSessionMilestone',
   EmailVolunteerInactiveBlackoutOver = 'EmailVolunteerInactiveBlackoutOver',
   EmailVolunteerGentleWarning = 'EmailVolunteerGentleWarning',
@@ -219,16 +215,8 @@ const jobProcessors: JobProcessor[] = [
     processor: emailQuickTips,
   },
   {
-    name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
-    processor: emailPartnerVolunteerOnlyCollegeCerts,
-  },
-  {
     name: Jobs.EmailPartnerVolunteerLowHoursSelected,
     processor: emailPartnerVolunteerLowHoursSelected,
-  },
-  {
-    name: Jobs.EmailPartnerVolunteerReferACoworker,
-    processor: emailPartnerVolunteerReferACoworker,
   },
   {
     name: Jobs.EmailVolunteerTenSessionMilestone,
