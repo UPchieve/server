@@ -447,3 +447,16 @@ export async function getUserToCreateSendGridContact(
     throw new RepoReadError(err)
   }
 }
+
+export async function getTotalSessionsByUserId(userId: Ulid): Promise<number> {
+  try {
+    const result = await pgQueries.getTotalSessionsByUserId.run(
+      { userId },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0]).total
+    return 0
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
