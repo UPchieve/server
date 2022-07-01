@@ -5,6 +5,7 @@ import {
   getPresessionSurveyNew,
   getPresessionSurveyResponse,
 } from '../../models/Survey'
+import { getSessionVolunteerContext } from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
@@ -49,12 +50,16 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
-  router.get('survey/presession/response/:sessionId/', async (req, res, next) => {
-    try {
-      const { sessionId } = req.params
-      const surveyResponse = await getPresessionSurveyResponse(sessionId)
-    } catch (error) {
-      resError(res, error)
+  router.get(
+    '/survey/presession/response/:sessionId',
+    async (req, res, next) => {
+      try {
+        const { sessionId } = req.params
+        const surveyResponse = await getSessionVolunteerContext(sessionId)
+        res.json(surveyResponse)
+      } catch (error) {
+        resError(res, error)
+      }
     }
-  })
+  )
 }
