@@ -1253,7 +1253,8 @@ CREATE TABLE upchieve.survey_questions (
     question_type_id integer NOT NULL,
     question_text text NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    response_display_text text
 );
 
 
@@ -4215,4 +4216,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220614163056'),
     ('20220614202247'),
     ('20220615162628'),
-    ('20220630141321');
+    ('20220630141321'),
+    ('20220701142259');
