@@ -25,8 +25,8 @@ export function listeners() {
   )
   register(
     SESSION_EVENTS.SESSION_METRICS_CALCULATED,
-    SessionService.processEmailPartnerVolunteer,
-    'processEmailPartnerVolunteer'
+    SessionService.processEmailVolunteer,
+    'processEmailVolunteer'
   )
   register(
     SESSION_EVENTS.SESSION_METRICS_CALCULATED,

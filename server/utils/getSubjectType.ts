@@ -7,6 +7,7 @@ import {
   READING_WRITING_SUBJECTS,
   TRAINING,
   SUBJECT_TYPES,
+  SOCIAL_STUDIES_SUBJECTS,
 } from '../constants'
 
 export function getSubjectType(subject: string): string {
@@ -26,6 +27,8 @@ export function getSubjectType(subject: string): string {
     type = SUBJECT_TYPES.TRAINING
   if (Object.values<string>(READING_WRITING_SUBJECTS).includes(subject))
     type = SUBJECT_TYPES.READING_WRITING
+  if (Object.values<string>(SOCIAL_STUDIES_SUBJECTS).includes(subject))
+    type = SUBJECT_TYPES.SOCIAL_STUDIES
 
   if (!type) throw Error(`Cannot determine subject type for ${subject}`)
   return type
