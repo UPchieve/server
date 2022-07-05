@@ -47,7 +47,7 @@
         >
           <div 
           class="about-session-button"
-          @click="toggleAboutSessionModal"
+          @click="handleAboutSessionClick"
           >
             About the session
             <caret-icon class="caret" />
@@ -406,6 +406,10 @@ export default {
     },
     setShowNotificationModal(value) {
       this.showNotificationModal = value
+    },
+    handleAboutSessionClick(){
+      AnalyticsService.captureEvent(EVENTS.VOLUNTEER_CLICKED_ABOUT_SESSION)
+      this.toggleAboutSessionModal()
     },
     toggleAboutSessionModal() {
       this.showAboutSessionModal = !this.showAboutSessionModal
