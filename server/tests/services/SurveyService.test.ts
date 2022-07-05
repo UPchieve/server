@@ -5,9 +5,6 @@ import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
 import { buildPresessionSurveyResponse, buildSession } from '../pg-generate'
 import { getDbUlid } from '../../models/pgUtils'
-import { buildTestClient } from '../postgres-test-hook'
-import { Pool } from 'pg'
-import { Session } from '../../models/Session'
 
 jest.mock('../../models/Survey/queries')
 jest.mock('../../models/User/queries')
@@ -22,20 +19,10 @@ beforeEach(async () => {
 })
 
 describe('getContextSharingForVolunteer', () => {
-  let client: Pool
-  let mockSession: Session
-  beforeAll(async () => {
-    client = buildTestClient()
-    mockSession = await buildSession({ studentId: getDbUlid() }, client)
-  })
-
-  afterAll(async () => {
-    await client.end()
-  })
-
   test('Should get session context sharing for volunteer', async () => {
     const mockedSurveyReponse = [buildPresessionSurveyResponse()]
     const mockTotalSessions = 2
+    const mockSession = await buildSession({ studentId: getDbUlid() })
     mockedSurveyRepo.getPresessionSurveyResponse.mockResolvedValueOnce(
       mockedSurveyReponse
     )

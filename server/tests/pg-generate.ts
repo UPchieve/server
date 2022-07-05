@@ -177,11 +177,11 @@ export function buildAssistmentsData(
 type SessionRow = any
 export async function buildSession(
   overrides: Partial<SessionRow> & { studentId: Ulid },
-  client: Pool
+  client?: Pool
 ): Promise<SessionRow> {
   return {
     id: getDbUlid(),
-    subjectId: await getSubjectIdByName('algebraOne', client),
+    subjectId: client ? await getSubjectIdByName('algebraOne', client) : 1,
     hasWhiteboardDoc: true,
     reviewed: false,
     toReview: false,
