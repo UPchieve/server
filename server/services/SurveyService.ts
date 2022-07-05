@@ -1,3 +1,4 @@
+import { Ulid } from '../models/pgUtils'
 import { getSessionById } from '../models/Session'
 import {
   getPresessionSurveyResponse,
@@ -10,8 +11,8 @@ type VolunteerContextResponse = {
   responses: StudentPresessionSurveyResponse[]
 }
 
-export async function getSessionVolunteerContext(
-  sessionId: string
+export async function getContextSharingForVolunteer(
+  sessionId: Ulid
 ): Promise<VolunteerContextResponse> {
   const responses = await getPresessionSurveyResponse(sessionId)
   const session = await getSessionById(sessionId)

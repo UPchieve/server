@@ -3,15 +3,14 @@ import {
   savePresessionSurvey,
   getPresessionSurvey,
   getPresessionSurveyNew,
-  getPresessionSurveyResponse,
 } from '../../models/Survey'
-import { getSessionVolunteerContext } from '../../services/SurveyService'
+import { getContextSharingForVolunteer } from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 
 export function routeSurvey(router: expressWs.Router): void {
-  router.post('/survey/presession/:sessionId', async (req, res, next) => {
+  router.post('/survey/presession/:sessionId', async (req, res) => {
     const user = extractUser(req)
     const { sessionId } = req.params
     const { responseData } = req.body
@@ -23,11 +22,11 @@ export function routeSurvey(router: expressWs.Router): void {
       )
       res.sendStatus(200)
     } catch (error) {
-      next(error)
+      resError(res, error)
     }
   })
 
-  router.get('/survey/presession/:sessionId', async (req, res, next) => {
+  router.get('/survey/presession/:sessionId', async (req, res) => {
     const user = extractUser(req)
     const { sessionId } = req.params
 
@@ -35,7 +34,7 @@ export function routeSurvey(router: expressWs.Router): void {
       const survey = await getPresessionSurvey(user.id, asUlid(sessionId))
       res.json({ survey })
     } catch (error) {
-      next(error)
+      resError(res, error)
     }
   })
 
@@ -50,16 +49,15 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
-  router.get(
-    '/survey/presession/response/:sessionId',
-    async (req, res, next) => {
-      try {
-        const { sessionId } = req.params
-        const surveyResponse = await getSessionVolunteerContext(sessionId)
-        res.json(surveyResponse)
-      } catch (error) {
-        resError(res, error)
-      }
+  router.get('/survey/presession/response/:sessionId', async (req, res) => {
+    try {
+      const { sessionId } = req.params
+      const surveyResponse = await getContextSharingForVolunteer(
+        asUlid(sessionId)
+      )
+      res.json(surveyResponse)
+    } catch (error) {
+      resError(res, error)
     }
-  )
+  })
 }
