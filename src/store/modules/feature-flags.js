@@ -64,6 +64,7 @@ export default {
       [FEATURE_FLAGS.SUMMER_PREP_BANNER]: false,
       [FEATURE_FLAGS.US_HISTORY_LAUNCH_VOLUNTEER]: false,
       [FEATURE_FLAGS.US_HISTORY_LAUNCH_STUDENT]: false,
+      [FEATURE_FLAGS.CONTEXT_SHARING_WITH_VOLUNTEER]: false,
     },
   },
   mutations: {
@@ -104,5 +105,6 @@ export default {
     isSummerPrepActive: state => state.flags[FEATURE_FLAGS.SUMMER_PREP_BANNER],
     isUsHistroyLaunchVolunteerActive: state => state.flags[FEATURE_FLAGS.US_HISTORY_LAUNCH_VOLUNTEER],
     isUsHistroyLaunchStudentActive: state => state.flags[FEATURE_FLAGS.US_HISTORY_LAUNCH_STUDENT],
+    isContextSharingWithVolunteerActive: state => state.flags[FEATURE_FLAGS.CONTEXT_SHARING_WITH_VOLUNTEER]
   },
 }
