@@ -7,7 +7,7 @@
       <div class="header-info">
         <cross-icon class="cross-icon" @click="closeModal"/>
         <div class="header">About the session</div>
-        <div v-if="showSessionHistory" class="alert-container">
+        <div v-if="isNewStudent" class="alert-container">
           <div class="alert">
             <alert-icon class="alert-icon"/>
             <div class="subheading">{{ totalSessionsTextTitle }}</div>
@@ -20,7 +20,7 @@
           <stepper :totalSteps=3 class="session-info-stepper" />
           <div class="session-info-responses">
             <div 
-            v-for="response in responses"
+            v-for="response in mappedResponses"
             :key="response.displayLabel"
             >
               <div class="session-info-title"> {{ response.displayLabel}} </div>
@@ -28,7 +28,7 @@
             </div>
           </div>
         </div>
-        <div v-if="!showSessionHistory && hasLowConfidence" class="tip">
+        <div v-if="!isNewStudent && hasLowConfidence" class="tip">
           <div class="tip-title">UPchieve's tip</div>
           <div class="tip-text">Start the session off by checking in about what has got them feeling stressed.</div>
         </div>
@@ -50,31 +50,50 @@ export default {
   props: {
     closeModal: { type: Function, required: true },
     responses: { type: Array, requied: true },
-    studentTotalSessions: { type: Number, requied: true }
+    totalStudentSessions: { type: Number, requied: true }
   },
   computed: {
     ...mapState({
       session: state => state.user.session,
     }),
-    showSessionHistory(){
-      return this.studentTotalSessions === 1 || this.studentTotalSessions === 2
+    isNewStudent(){
+      return this.totalStudentSessions === 1 || this.totalStudentSessions === 2
     },
     totalSessionsTextTitle() {
       let display = ''
-      if (this.studentTotalSessions === 1) display = 'first'
-      if (this.studentTotalSessions === 2) display = 'second'
+      if (this.totalStudentSessions === 1) display = 'first'
+      if (this.totalStudentSessions === 2) display = 'second'
 
       return `This is ${this.session.student.firstname}'s ${display} session!`
     },
-    // TODO: the score of an emoji needs to map with a particular response for both CC and nonCC subjects
-    hasLowConfidence() {
+    confidenceLabel() {
       const label = 'Their confidence:'
-      for(const response of this.responses) {
-        if(response.label === label && response.score === 1) return true
+      return label
+    },
+    // Maps the emoji responses for `Their confidence:` to a display text
+    mappedResponses() {
+      return this.responses.map(response => {
+        if (response.displayLabel === this.confidenceLabel) {
+          if (this.session.type === 'college')
+            return {
+              ...response,
+              response: `They feel ${response.response} about their ability to get accepted to college`,
+            }
+          else
+            return {
+              ...response,
+              response: `They feel ${response.response} about this topic`,
+            }
+        } else return response
+      })
+    },
+    hasLowConfidence() {
+      for (const response of this.responses) {
+        if (response.displayLabel === this.confidenceLabel && response.score === 1) return true
       }
       return false
     }
-  }
+  },
 }
 </script>
 
@@ -181,8 +200,8 @@ export default {
 }
 
 .cross-icon {
-  height: 9px;
-  width: 9px;
+  height: 10px;
+  width: 10px;
   margin-left: 100%;
 
   &:hover {
