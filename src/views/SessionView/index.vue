@@ -40,8 +40,7 @@
         <div
           v-if="
             user.isVolunteer &&
-            studentPresessionResponses.length &&
-            isSharingContextWithVolunteerActive
+            studentPresessionResponses.length > 0
           "
           class="about-session-container"
         >
@@ -178,7 +177,8 @@ export default {
       mobileMode: 'app/mobileMode',
       isAuthenticated: 'user/isAuthenticated',
       isVolunteer: 'user/isVolunteer',
-      isSessionOver: 'user/isSessionOver'
+      isSessionOver: 'user/isSessionOver',
+      isContextSharingWithVolunteerActive: 'featureFlags/isContextSharingWithVolunteerActive',
     }),
 
     auxiliaryType() {
@@ -285,8 +285,7 @@ export default {
         this.$store.dispatch('user/sessionConnected')
 
         if (this.user.isVolunteer && this.isContextSharingWithVolunteerActive) {
-            // TODO: what if an error? Should we show the about session tab?
-            await this.getSharingContext(sessionId)
+          await this.getSharingContext(sessionId)
         }
 
         if (
@@ -416,13 +415,12 @@ export default {
     },
     async getSharingContext(sessionId) {
       try {
-        const presssionSurveyResponse =
+        const pressionSurveyResponse =
           await NetworkService.getPresessionSurveyResponse(sessionId)
         this.totalStudentSessions =
-          presssionSurveyResponse.data.totalStudentSessions
-        this.studentPresessionResponses = presssionSurveyResponse.data.responses
+          pressionSurveyResponse.data.totalStudentSessions
+        this.studentPresessionResponses = pressionSurveyResponse.data.responses
       } catch(err) {
-        // TODO: do we want this to silently error?
         // silently error
       }
     },
@@ -503,24 +501,19 @@ export default {
       z-index: 1;
       padding: 0.75em 0.6em;
       width: 100%;
-
-      &:hover {
-        cursor: pointer;
-      }
+      @include flex-container(row);
     }
   
   &-button {
     @include font-category('subheading');
      background-color: $light-blue-background;
 
-    // TODO: hover or allow whole section to be clickable
     &:hover {
       background-color:rgba(196, 196, 196, 0.2);
+      cursor: pointer;
     }
     
-    text-align: left;
-    border-radius: 4px; // not needed if hover is removed
-    width: 50%;
+    border-radius: 4px;
     padding: 0.4rem 0.5rem;
   }
 }
