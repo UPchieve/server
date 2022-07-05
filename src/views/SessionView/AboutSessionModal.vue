@@ -60,11 +60,11 @@ export default {
       return this.studentTotalSessions === 1 || this.studentTotalSessions === 2
     },
     totalSessionsTextTitle() {
-      let sessionStr = ''
-      if (this.studentTotalSessions === 1) sessionStr = 'first'
-      if (this.studentTotalSessions === 2) sessionStr = 'second'
+      let display = ''
+      if (this.studentTotalSessions === 1) display = 'first'
+      if (this.studentTotalSessions === 2) display = 'second'
 
-      return `This is ${this.session.student.firstname}'s ${sessionStr} session!`
+      return `This is ${this.session.student.firstname}'s ${display} session!`
     },
     // TODO: the score of an emoji needs to map with a particular response for both CC and nonCC subjects
     hasLowConfidence() {
@@ -99,15 +99,15 @@ export default {
 }
 
 .about-session-modal .step-display {
-  color: #1855D166;
+  color: $step-blue;
 }
 
 .about-session-modal .circle {
-  border: 1px solid #1855D166;
+  border: 1px solid $step-blue;
 }
 
 .about-session-modal .progress-bar {
-  background-color: #1855D166;
+  background-color: $step-blue;
   height: 41px;
   width: 1px;
 }
@@ -134,12 +134,12 @@ export default {
 .subtitle {
   font-size: 12px;
   font-weight: 400;
-  margin-top: 0.5rem;
+  margin-top: 0.8em;
 }
 
 .session-info {
   background-color: #F7FBFE;
-  padding: 2rem 3.5rem 3.5rem 3.5rem;
+  padding: 2em 3.5em 3.5em 3.5em;
 
   &-stepper-container {
     @include flex-container(row);
@@ -147,7 +147,7 @@ export default {
   
   &-responses {
     @include flex-container(column, space-between, normal);
-    margin-left: 1.06rem;
+    margin-left: 1em;
   }
 
   &-title {
@@ -171,12 +171,12 @@ export default {
 .alert {
   @include flex-container(row, normal, center);
   padding: 0;
-  margin-top: 1.25rem;
+  margin-top: 1.25em;
 
   &-icon {
     height: 14.25px;
     width: 14px;
-    margin-right: 0.5rem;
+    margin-right: 0.5em;
   }
 }
 
@@ -184,13 +184,17 @@ export default {
   height: 9px;
   width: 9px;
   margin-left: 100%;
+
+  &:hover {
+    cursor: pointer;
+  }
 }
 
 .tip {
   background-color: $c-background-blue;
   font-size: 12px;
-  margin-top: 1rem;
-  padding: 1rem;
+  margin-top: 1.4em;
+  padding: 1.4em;
 
   &-title {
     color: $c-information-blue;
