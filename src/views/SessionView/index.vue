@@ -37,7 +37,14 @@
           'chat-container--hidden': shouldHideChatSection
         }"
       >
-        <div v-if="user.isVolunteer" class="about-session-container">
+        <div
+          v-if="
+            user.isVolunteer &&
+            studentPresessionResponses.length &&
+            isSharingContextWithVolunteerActive
+          "
+          class="about-session-container"
+        >
           <div 
           class="about-session-button"
           @click="toggleAboutSessionModal"
@@ -79,10 +86,10 @@
       :closeModal="() => setShowNotificationModal(false)"
     />
     <about-session-modal
-      v-if="showAboutSessionModal && volunteerContext"
+      v-if="showAboutSessionModal"
       :closeModal="toggleAboutSessionModal"
-      :responses="volunteerContext.responses"
-      :studentTotalSessions="volunteerContext.totalStudentSessions"
+      :responses="studentPresessionResponses"
+      :totalStudentSessions="totalStudentSessions"
     />
   </div>
 </template>
@@ -150,11 +157,8 @@ export default {
       hasSeenNewMessage: true,
       showNotificationModal: false,
       showAboutSessionModal: false,
-      // TODO: not crazy about this below
-      volunteerContext: {
-        responses: [],
-        totalStudentSessions: 0        
-      },
+      studentPresessionResponses: [],
+      totalStudentSessions: 0
     }
   },
   beforeRouteEnter(to, from, next) {
@@ -280,9 +284,9 @@ export default {
         Gleap.setCustomData("sessionId", sessionId)
         this.$store.dispatch('user/sessionConnected')
 
-        if (this.user.isVolunteer) {
-          const res = await NetworkService.getPresessionSurveyResponse(sessionId)
-          this.volunteerContext = res.data
+        if (this.user.isVolunteer && this.isContextSharingWithVolunteerActive) {
+            // TODO: what if an error? Should we show the about session tab?
+            await this.getSharingContext(sessionId)
         }
 
         if (
@@ -405,7 +409,19 @@ export default {
     },
     toggleAboutSessionModal() {
       this.showAboutSessionModal = !this.showAboutSessionModal
-    }
+    },
+    async getSharingContext(sessionId) {
+      try {
+        const presssionSurveyResponse =
+          await NetworkService.getPresessionSurveyResponse(sessionId)
+        this.totalStudentSessions =
+          presssionSurveyResponse.data.totalStudentSessions
+        this.studentPresessionResponses = presssionSurveyResponse.data.responses
+      } catch(err) {
+        // TODO: do we want this to silently error?
+        // silently error
+      }
+    },
   },
   watch: {
     isSessionConnectionAlive(newValue, oldValue) {
@@ -479,23 +495,28 @@ export default {
 
 .about-session {
   &-container {
-    background-color: #F1F8FE; // @todo: save this background in styles file
-    z-index: 1;
-    padding: 0.75rem 0.68rem;
-    width: 100%;
+      background-color: $light-blue-background;
+      z-index: 1;
+      padding: 0.75em 0.6em;
+      width: 100%;
+
+      &:hover {
+        cursor: pointer;
+      }
     }
   
   &-button {
     @include font-category('subheading');
-     background-color: #F1F8FE;
+     background-color: $light-blue-background;
 
+    // TODO: hover or allow whole section to be clickable
     &:hover {
       background-color:rgba(196, 196, 196, 0.2);
     }
     
     text-align: left;
-    border-radius: 4px;
-    width: 11.5rem;
+    border-radius: 4px; // not needed if hover is removed
+    width: 50%;
     padding: 0.4rem 0.5rem;
   }
 }
