@@ -33,6 +33,7 @@ import ReadingWritingSVG from '@/assets/subject_icons/more-resources.svg'
 import calculateWaitingPeriodCountdown from '@/utils/calculate-waiting-period-countdown'
 import ReferralSVG from '@/assets/dashboard_icons/student/referral.svg'
 import LightBulbSVG from '@/assets/dashboard_icons/student/light-bulb.svg'
+import SocialStudiesSVG from '@/assets/subject_icons/social-studies.svg'
 
 import { topics } from '@/utils/topics'
 
@@ -52,20 +53,21 @@ export default {
       college: CollegeSVG,
       science: ScienceSVG,
       readingWriting: ReadingWritingSVG,
-      sat: SATSVG
+      sat: SATSVG,
+      socialStudies: SocialStudiesSVG,
     }
 
     const topicOrderMapping = {
       math: 0,
-      college: 2,
-      science: 3,
-      readingWriting: 4,
-      sat: 1
+      readingWriting: 1,
+      science: 2,
+      socialStudies: 3,
+      college: 4,
+      sat: 5,
     }
 
     const cards = Object.entries(topics)
-    // unfilter socialStudies when ready to launch to students
-      .filter(([key]) => key !== 'training' && key !== 'socialStudies')
+      .filter(([key]) => key !== 'training')
       .map(([key, topicObj]) => {
         return {
           title: topicObj.displayName,
@@ -118,6 +120,8 @@ export default {
     ...mapGetters({
       mobileMode: 'app/mobileMode',
       isSessionAlive: 'user/isSessionAlive',
+      isUsHistroyLaunchStudentActive: 'featureFlags/isUsHistroyLaunchStudentActive',
+      isEnvironmentalScienceLaunchStudentActive: 'featureFlags/isEnvironmentalScienceLaunchStudentActive'
     }),
     waitingPeriodMessage() {
       const countdown = calculateWaitingPeriodCountdown(
@@ -129,7 +133,7 @@ export default {
     },
 
     filteredCards(){
-      const cards = [...this.cards]
+    const cards = [...this.cards]
      for (const card of cards) {
         // Temporarily hide Statistics and Calculus BC from students
         if (card.topic === 'math')
@@ -138,26 +142,26 @@ export default {
             return !temporarilyHiddenSubjects.includes(subject)
           })
 
-        // Temporarily hide Physics subjects and Environmental Science from students
+        // Temporarily hide Physics 2 subject from students
         if (card.topic === 'science')
           card.subtopics = card.subtopics.filter(subject => {
             const temporarilyHiddenSubjects = [
               'physicsTwo',
+            ]
+            return !temporarilyHiddenSubjects.includes(subject)
+          })
+
+        // Temporarily hide Environmental Science from students
+        if (card.topic === 'science' && !this.isEnvironmentalScienceLaunchStudentActive)
+          card.subtopics = card.subtopics.filter(subject => {
+            const temporarilyHiddenSubjects = [
               'environmentalScience'
             ]
             return !temporarilyHiddenSubjects.includes(subject)
-          })
+          })  
 
-        // Temporarily hide U.S. History subject from students
-        if (card.topic === 'socialStudies')
-          card.subtopics = card.subtopics.filter(subject => {
-            const temporarilyHiddenSubjects = [
-              'usHistory',
-            ]
-            return !temporarilyHiddenSubjects.includes(subject)
-          })
-
-     }   
+     }  
+      if(!this.isUsHistroyLaunchStudentActive)  cards.splice(3, 1); 
       return cards;
     }
   },

@@ -585,6 +585,17 @@ button:hover {
   background-color: #9675ce;
 }
 
+.SOCIALSTUDIES {
+  background-color: #3eaaf7;
+}
+
+.SAT {
+  background-color: #f0912b;
+}
+
+.READINGWRITING {
+}
+
 .errors {
   text-align: left;
   padding: 30px;

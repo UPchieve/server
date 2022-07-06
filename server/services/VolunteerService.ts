@@ -103,12 +103,6 @@ export async function queuePartnerOnboardingEventEmails(
     // process job 10 days after the volunteer is onboarded
     { delay: 1000 * 60 * 60 * 24 * 10 }
   )
-  await QueueService.add(
-    Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
-    { volunteerId },
-    // process job 15 days after the volunteer is onboarded
-    { delay: 1000 * 60 * 60 * 24 * 15 }
-  )
 }
 
 export async function getVolunteersToReview(

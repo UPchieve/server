@@ -12,6 +12,7 @@ export function countCertsByType(
   [SUBJECT_TYPES.SAT]: number
   [SUBJECT_TYPES.TRAINING]: number
   [SUBJECT_TYPES.READING_WRITING]: number
+  [SUBJECT_TYPES.SOCIAL_STUDIES]: number
 } {
   const totals: any = {
     total: 0,
@@ -21,6 +22,7 @@ export function countCertsByType(
     [SUBJECT_TYPES.SAT]: 0,
     [SUBJECT_TYPES.TRAINING]: 0,
     [SUBJECT_TYPES.READING_WRITING]: 0,
+    [SUBJECT_TYPES.SOCIAL_STUDIES]: 0,
   }
 
   for (const cert in certifications) {

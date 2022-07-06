@@ -715,41 +715,6 @@ describe('processEmailPartnerVolunteer', () => {
     expect(QueueService.add).toHaveBeenCalledTimes(0)
   })
 
-  test('Should queue email if partner volunteer has completed 5 sessions', async () => {
-    const pastSessions = []
-    for (let i = 0; i < 5; i++) {
-      pastSessions.push(getObjectId())
-    }
-    const volunteer = buildVolunteer({
-      volunteerPartnerOrg: 'example',
-      pastSessions,
-    })
-    const mockedSession = mockedGetSessionToEnd({
-      volunteer: {
-        _id: volunteer._id,
-        firstname: volunteer.firstname,
-        email: volunteer.email,
-        pastSessions: volunteer.pastSessions,
-        volunteerPartnerOrg: volunteer.volunteerPartnerOrg,
-      },
-    })
-    const sessionId = mockedSession._id
-    mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
-      async () => mockedSession
-    )
-    await SessionService.processEmailPartnerVolunteer(sessionId)
-    expect(QueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailPartnerVolunteerReferACoworker,
-      {
-        volunteerId: volunteer._id,
-        firstName: volunteer.firstname,
-        email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg,
-      },
-      expect.anything()
-    )
-  })
-
   test('Should queue email if partner volunteer has completed 10 sessions', async () => {
     const pastSessions = []
     for (let i = 0; i < 10; i++) {
