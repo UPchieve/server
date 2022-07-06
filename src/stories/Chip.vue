@@ -24,7 +24,6 @@ export default {
 .chip-item {
   display: inline-block;
   padding: 0.5em 1em;
-  border-radius: 100px;
   font-size: 12px;
   color: #000;
   background-color: #fff;
