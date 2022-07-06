@@ -45,7 +45,7 @@ SELECT
     sub.response_text,
     sub.response_display_priority
 FROM
-    surveys_presession
+    surveys_context
     JOIN surveys ON survey_id = surveys.id
     JOIN subjects ON subject_id = subjects.id
     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id

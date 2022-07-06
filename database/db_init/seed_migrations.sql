@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.1 (Debian 14.1-1.pgdg110+1)
+-- Dumped from database version 14.2 (Debian 14.2-1.pgdg110+1)
 -- Dumped by pg_dump version 14.2
 
 SET statement_timeout = 0;
@@ -27,6 +27,7 @@ COPY public.seed_migrations (version) FROM stdin;
 20220512174157
 20220609145559
 20220621222122
+20220630141940
 \.
 
 
