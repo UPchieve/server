@@ -605,3 +605,13 @@ SELECT
 FROM
     quizzes;
 
+
+/* @name getTotalSessionsByUserId */
+SELECT
+    count(*)::int AS total
+FROM
+    sessions
+WHERE
+    sessions.student_id = :userId!
+    OR sessions.volunteer_id = :userId!;
+
