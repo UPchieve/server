@@ -138,7 +138,7 @@ export default {
 }
 
 .header-info {
-  padding: 2rem 2rem 2rem 3.5rem;
+  padding: 2em 2.5em 2em 2em;
 }
 
 .header {
@@ -203,6 +203,7 @@ export default {
   height: 10px;
   width: 10px;
   margin-left: 100%;
+  vertical-align: top;
 
   &:hover {
     cursor: pointer;
