@@ -63,7 +63,7 @@ WHERE
     AND user_roles.name = :userRole!;
 
 
-/* @name saveFeedback */
+/* @name upsertFeedback */
 INSERT INTO feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, created_at, updated_at)
 SELECT
     :id!,
@@ -89,6 +89,7 @@ FROM
     JOIN user_roles ON user_roles.name = :userRole!
 WHERE
     sessions.id = :sessionId!
+ON CONFLICT (user_id, session_id) DO NOTHING
 RETURNING
     feedbacks.id;
 
@@ -116,3 +117,20 @@ FROM
 WHERE
     feedbacks.user_id = :userId!;
 
+
+/* @name removeDuplicateFeedbacks */
+DELETE FROM feedbacks
+WHERE id IN (
+    SELECT id
+        FROM (
+        SELECT
+        id,
+        row_number() OVER w as rnum
+        FROM feedbacks
+        WINDOW w AS (
+            PARTITION BY user_id, session_id
+            ORDER BY created_at
+        )
+    ) as subquery
+    where rnum > 1
+);

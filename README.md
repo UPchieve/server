@@ -95,6 +95,52 @@ to start the dev server and a watch for changes to the frontend build and server
 
 Even though the frontend is doing a production build, Vue dev tools should still be available as long as your NODE_ENV is `dev` which is the default.
 
+### Database updates
+
+If you change anything in the `.sql` files in `server/models`, run [`npm run pgtyped`](https://pgtyped.vercel.app/) to pick up the changes and regenerate the associated `.ts` files. This generates typescript versions of the queries that can be referenced in code, as well as entity types.
+
+For schema changes:
+
+1. Update `~/.zshrc` or `.env` file to include absolute paths needed for `dbmate` to run
+```shell
+export DBMATE_SCHEMA_FILE="/path/to/repo/subway/database/db_init/schema.sql"
+export DBMATE_MIGRATIONS_DIR="/path/to/repo/subway/database/migrations"
+export DATABASE_URL="postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable"
+```
+
+2. Create a new migration in `database/migrations` by running `dbmate new file-name-here`.
+3. Write the migration, including both rollout and rollback instructions - for example:
+```sql
+-- migrate:up
+ALTER TABLE upchieve.schools
+  ADD COLUMN legacy_city_name text;
+
+-- migrate:down
+ALTER TABLE upchieve.schools
+  DROP COLUMN legacy_city_name;
+```
+4. When finished, run `dbmate up` to apply migration to local db setup (this will run all available migrations that have not currently been applied to the database, in order). To roll back migrations one at a time, run `dbmate down`.
+
+Notes:
+- If the database/schema end up in an irrecoverable state, you can drop everything with `dbmate drop` and then use `dbmate up` to re-apply all migrations in order from scratch.
+- After every `dbmate up`, dbmate will dump the schema to `databse/db_init_schema.sql`, which overwrites anything previously in that file.
+- Everything in `db_init` is programmatically generated and can be ignored in diff examinations
+
+### Seed updates
+
+There are 2 types of seeds: static and test.
+
+For test data seeds, find the file that represents the objects you want to add and just add new data to teh array. If you are adding a new table, copy the template into a new file and change the underlying query/data array.
+
+Running the seeds involves three commands:
+
+1. `npm run seeds:reset` drops the entire database, brings it back up with schema and user auth roles
+
+2. `npm run seeds:build:test` runs static and test seed generation files against local db and then runs 'seed migrations' against db (seed migrations record changes made to static seeds in production)
+
+3. `npm run seeds:copy:test` `pg_dump`s the data within your tables into `database/db_init/test_seeds.sql` so next time you bring up a fresh db container it's seeded with the new values
+
+
 ## Test Users
 
 The database is populated with the following users for local development:

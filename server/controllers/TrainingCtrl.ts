@@ -13,6 +13,7 @@ import {
   ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
   EVENTS,
+  SOCIAL_STUDIES_CERTS,
 } from '../constants'
 import { getSubjectType } from '../utils/getSubjectType'
 import { createQuizAction, createAccountAction } from '../models/UserAction'
@@ -51,6 +52,7 @@ const numQuestions = {
   [SAT_CERTS.SAT_READING]: 1,
   [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: 1,
   [READING_WRITING_CERTS.READING]: 1,
+  [SOCIAL_STUDIES_CERTS.US_HISTORY]: 1,
 }
 const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
@@ -103,6 +105,7 @@ export function hasRequiredTraining(
   if (
     (subjectCertType === SUBJECT_TYPES.MATH ||
       subjectCertType === SUBJECT_TYPES.SCIENCE ||
+      subjectCertType === SUBJECT_TYPES.SOCIAL_STUDIES ||
       subjectCertType === SUBJECT_TYPES.READING_WRITING) &&
     userCertifications[TRAINING.TUTORING_SKILLS].passed
   )

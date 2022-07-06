@@ -220,10 +220,11 @@ export default {
     },
   },
   async created() {
+    const hasUnlockedUSHistory = this.user.certifications.usHistory.passed
 
     if (this.isSessionAlive) {
       this.$store.dispatch('app/header/show', rejoinHeaderData)
-    } else if (this.isDashboardBannerActive){
+    } else if (this.isDashboardBannerActive && !hasUnlockedUSHistory){
       this.$store.dispatch('app/header/show', dashboardBannerData)
     }
 

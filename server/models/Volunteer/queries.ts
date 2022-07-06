@@ -134,29 +134,6 @@ export async function getPartnerVolunteerForLowHours(
   }
 }
 
-export async function getPartnerVolunteerForCollege(
-  userId: Ulid
-): Promise<VolunteerContactAndAvailability | undefined> {
-  try {
-    const vResult = await pgQueries.getPartnerVolunteerForCollege.run(
-      {
-        userId: isPgId(userId) ? userId : undefined,
-        mongoUserId: isPgId(userId) ? undefined : userId,
-      },
-      getClient()
-    )
-    if (!vResult.length) return
-    const volunteer = makeRequired(vResult[0]) // volunteerPartnerOrg must exist
-    const availability = await getAvailabilityForVolunteer(userId)
-    return {
-      ...volunteer,
-      availability,
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export type VolunteerTypeMap<T> = {
   [key: Ulid]: T
 }
@@ -918,6 +895,25 @@ export async function getReferencesByVolunteerForAdminDetail(
     return result.map(v =>
       makeSomeOptional(v, ['id', 'firstName', 'lastName', 'status', 'email'])
     )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export type ReferenceWithUserActions = ReferenceContactInfo & {
+  actions: string[]
+}
+
+export async function checkReferenceExistsBeforeAdding(
+  userId: Ulid,
+  email: string
+): Promise<ReferenceWithUserActions | undefined> {
+  try {
+    const result = await pgQueries.checkReferenceExistsBeforeAdding.run(
+      { userId, email },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }

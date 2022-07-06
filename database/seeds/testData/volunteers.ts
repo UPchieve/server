@@ -91,6 +91,7 @@ export async function volunteers(
   const userMap: NameToId = {}
   for (const user of users) {
     userMap[user.id] = await wrapInsert('users', pgQueries.insertVolunteerUser.run, { ...user })
+    await wrapInsert('user_session_metrics', pgQueries.insertUserSessionMetrics.run, { id: user.id })
   }
 
   const profiles = [

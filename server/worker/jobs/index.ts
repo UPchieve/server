@@ -18,12 +18,10 @@ import emailNiceToMeetYou from './emailNiceToMeetYou'
 import emailWeeklyHourSummary from './emailWeeklyHourSummary'
 import emailOnboardingReminder from './volunteer-emails/emailOnboardingReminder'
 import emailQuickTips from './volunteer-emails/emailQuickTips'
-import emailPartnerVolunteerOnlyCollegeCerts from './partner-volunteer-emails/emailOnlyCollegeCerts'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
 import emailStudentOnboardingSeries from './student-emails/emailStudentOnboardingSeries'
 import emailStudentSessionActions from './student-emails/emailStudentSessionActions'
-import emailPartnerVolunteerReferACoworker from './partner-volunteer-emails/emailReferACoworker'
-import emailPartnerVolunteerTenSessionMilestone from './partner-volunteer-emails/emailTenSessionMilestone'
+import emailVolunteerTenSessionMilestone from './volunteer-emails/emailTenSessionMilestone'
 import emailVolunteerGentleWarning from './volunteer-emails/emailGentleWarning'
 import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
 import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVolunteerFirstSessionCongrats'
@@ -40,6 +38,7 @@ import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunte
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
+import deleteDuplicateFeedbacks from '../../scripts/delete-duplicate-feedbacks'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 import removeUnqualifiedOnboardedVolunteers from '../../scripts/remove-unqualified-onboarded-volunteers'
 
@@ -69,10 +68,8 @@ export enum Jobs {
   EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
   EmailSessionReported = 'EmailSessionReported',
   EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
-  EmailPartnerVolunteerOnlyCollegeCerts = 'EmailVolunteerCollegeCertsOnly',
   EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
-  EmailPartnerVolunteerReferACoworker = 'EmailPartnerVolunteerReferACoworker',
-  EmailPartnerVolunteerTenSessionMilestone = 'EmailPartnerVolunteerTenSessionMilestone',
+  EmailVolunteerTenSessionMilestone = 'EmailVolunteerTenSessionMilestone',
   EmailVolunteerInactiveBlackoutOver = 'EmailVolunteerInactiveBlackoutOver',
   EmailVolunteerGentleWarning = 'EmailVolunteerGentleWarning',
   EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
@@ -105,6 +102,7 @@ export enum Jobs {
 
   // Delete scripts
   DeleteDuplicatePushTokens = 'DeleteDuplicatePushTokens',
+  DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
 
   RemoveUnqualifiedOnboardedVolunteers = 'RemoveUnqualifiedOnboardedVolunteers',
 }
@@ -217,20 +215,12 @@ const jobProcessors: JobProcessor[] = [
     processor: emailQuickTips,
   },
   {
-    name: Jobs.EmailPartnerVolunteerOnlyCollegeCerts,
-    processor: emailPartnerVolunteerOnlyCollegeCerts,
-  },
-  {
     name: Jobs.EmailPartnerVolunteerLowHoursSelected,
     processor: emailPartnerVolunteerLowHoursSelected,
   },
   {
-    name: Jobs.EmailPartnerVolunteerReferACoworker,
-    processor: emailPartnerVolunteerReferACoworker,
-  },
-  {
-    name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
-    processor: emailPartnerVolunteerTenSessionMilestone,
+    name: Jobs.EmailVolunteerTenSessionMilestone,
+    processor: emailVolunteerTenSessionMilestone,
   },
   {
     name: Jobs.EmailVolunteerGentleWarning,
@@ -323,6 +313,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.RemoveUnqualifiedOnboardedVolunteers,
     processor: removeUnqualifiedOnboardedVolunteers,
+  },
+  {
+    name: Jobs.DeleteDuplicateFeedbacks,
+    processor: deleteDuplicateFeedbacks,
   },
 ]
 

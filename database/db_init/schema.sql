@@ -1317,11 +1317,11 @@ ALTER TABLE upchieve.survey_questions_question_tags ALTER COLUMN id ADD GENERATE
 --
 
 CREATE TABLE upchieve.survey_questions_response_choices (
-    survey_question_id integer NOT NULL,
     response_choice_id integer NOT NULL,
     display_priority smallint NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    surveys_survey_question_id integer NOT NULL
 );
 
 
@@ -1353,12 +1353,51 @@ ALTER TABLE upchieve.survey_response_choices ALTER COLUMN id ADD GENERATED ALWAY
 
 
 --
+-- Name: survey_types; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.survey_types (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: survey_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.survey_types ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: surveys; Type: TABLE; Schema: upchieve; Owner: -
 --
 
 CREATE TABLE upchieve.surveys (
     id integer NOT NULL,
     name text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: surveys_context; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.surveys_context (
+    survey_id integer NOT NULL,
+    subject_id integer,
+    survey_type_id integer NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
 );
@@ -1375,30 +1414,6 @@ ALTER TABLE upchieve.surveys ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
     NO MINVALUE
     NO MAXVALUE
     CACHE 1
-);
-
-
---
--- Name: surveys_postsession; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.surveys_postsession (
-    survey_id integer NOT NULL,
-    subject_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
-);
-
-
---
--- Name: surveys_presession; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.surveys_presession (
-    survey_id integer NOT NULL,
-    subject_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -1808,6 +1823,8 @@ CREATE TABLE upchieve.users_surveys (
     id uuid NOT NULL,
     survey_id integer NOT NULL,
     user_id uuid NOT NULL,
+    session_id uuid,
+    survey_type_id integer NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
 );
@@ -1867,6 +1884,33 @@ CREATE TABLE upchieve.volunteer_partner_orgs (
     receive_weekly_hour_summary_email boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: volunteer_profiles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.volunteer_profiles (
+    user_id uuid NOT NULL,
+    volunteer_partner_org_id uuid,
+    timezone text,
+    approved boolean DEFAULT false NOT NULL,
+    onboarded boolean DEFAULT false NOT NULL,
+    photo_id_s3_key text,
+    photo_id_status integer,
+    linkedin_url text,
+    college text,
+    company text,
+    languages text[],
+    experience jsonb,
+    city text,
+    state text,
+    country text,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    total_volunteer_hours double precision,
+    elapsed_availability bigint
 );
 
 
@@ -2794,6 +2838,22 @@ ALTER TABLE ONLY upchieve.survey_response_choices
 
 
 --
+-- Name: survey_types survey_types_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_types
+    ADD CONSTRAINT survey_types_name_key UNIQUE (name);
+
+
+--
+-- Name: survey_types survey_types_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_types
+    ADD CONSTRAINT survey_types_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: surveys surveys_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2927,14 +2987,6 @@ ALTER TABLE ONLY upchieve.user_actions
 
 ALTER TABLE ONLY upchieve.user_actions
     ADD CONSTRAINT user_actions_pkey PRIMARY KEY (id);
-
-
---
--- Name: volunteer_references user_id_ref_email_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.volunteer_references
-    ADD CONSTRAINT user_id_ref_email_unique UNIQUE (user_id, email);
 
 
 --
@@ -3152,6 +3204,13 @@ CREATE INDEX availability_histories_user_id_recorded_at ON upchieve.availability
 
 
 --
+-- Name: feedbacks_session_id_user_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX feedbacks_session_id_user_id ON upchieve.feedbacks USING btree (session_id, user_id);
+
+
+--
 -- Name: legacy_availability_histories_user_id_recorded_at; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -3219,13 +3278,6 @@ CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id)
 --
 
 CREATE INDEX volunteer_partner_orgs_key ON upchieve.volunteer_partner_orgs USING btree (key);
-
-
---
--- Name: users_certifications update_users_subjects; Type: TRIGGER; Schema: upchieve; Owner: -
---
-
-CREATE TRIGGER update_users_subjects AFTER INSERT OR DELETE OR UPDATE ON upchieve.users_certifications FOR EACH ROW EXECUTE FUNCTION upchieve.refresh_users_subjects_mview();
 
 
 --
@@ -3821,6 +3873,14 @@ ALTER TABLE ONLY upchieve.survey_questions
 
 
 --
+-- Name: survey_questions_response_choices survey_questions_response_choic_surveys_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_response_choices
+    ADD CONSTRAINT survey_questions_response_choic_surveys_survey_question_id_fkey FOREIGN KEY (surveys_survey_question_id) REFERENCES upchieve.surveys_survey_questions(id);
+
+
+--
 -- Name: survey_questions_response_choices survey_questions_response_choices_response_choice_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3829,43 +3889,27 @@ ALTER TABLE ONLY upchieve.survey_questions_response_choices
 
 
 --
--- Name: survey_questions_response_choices survey_questions_response_choices_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: surveys_context surveys_context_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.survey_questions_response_choices
-    ADD CONSTRAINT survey_questions_response_choices_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
-
-
---
--- Name: surveys_postsession surveys_postsession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.surveys_postsession
-    ADD CONSTRAINT surveys_postsession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+ALTER TABLE ONLY upchieve.surveys_context
+    ADD CONSTRAINT surveys_context_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
 
 
 --
--- Name: surveys_postsession surveys_postsession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: surveys_context surveys_context_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.surveys_postsession
-    ADD CONSTRAINT surveys_postsession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
-
-
---
--- Name: surveys_presession surveys_presession_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.surveys_presession
-    ADD CONSTRAINT surveys_presession_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+ALTER TABLE ONLY upchieve.surveys_context
+    ADD CONSTRAINT surveys_context_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
 
 
 --
--- Name: surveys_presession surveys_presession_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: surveys_context surveys_context_survey_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.surveys_presession
-    ADD CONSTRAINT surveys_presession_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+ALTER TABLE ONLY upchieve.surveys_context
+    ADD CONSTRAINT surveys_context_survey_type_id_fkey FOREIGN KEY (survey_type_id) REFERENCES upchieve.survey_types(id);
 
 
 --
@@ -3997,6 +4041,14 @@ ALTER TABLE ONLY upchieve.users
 
 
 --
+-- Name: users_surveys users_surveys_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys
+    ADD CONSTRAINT users_surveys_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
 -- Name: users_surveys_submissions users_surveys_submissions_survey_question_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4013,19 +4065,19 @@ ALTER TABLE ONLY upchieve.users_surveys_submissions
 
 
 --
--- Name: users_surveys_submissions users_surveys_submissions_user_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.users_surveys_submissions
-    ADD CONSTRAINT users_surveys_submissions_user_survey_id_fkey FOREIGN KEY (user_survey_id) REFERENCES upchieve.users_surveys(id);
-
-
---
 -- Name: users_surveys users_surveys_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.users_surveys
     ADD CONSTRAINT users_surveys_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+
+
+--
+-- Name: users_surveys users_surveys_survey_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys
+    ADD CONSTRAINT users_surveys_survey_type_id_fkey FOREIGN KEY (survey_type_id) REFERENCES upchieve.survey_types(id);
 
 
 --
@@ -4232,4 +4284,8 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220602170321'),
     ('20220602170346'),
     ('20220609150924'),
-    ('20220617192340');
+    ('20220609150924'),
+    ('20220614163056'),
+    ('20220614202247'),
+    ('20220615162628'),
+    ('20220630141321');

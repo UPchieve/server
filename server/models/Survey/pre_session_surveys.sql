@@ -45,7 +45,7 @@ SELECT
     sub.response_text,
     sub.response_display_priority
 FROM
-    surveys_presession
+    surveys_context
     JOIN surveys ON survey_id = surveys.id
     JOIN subjects ON subject_id = subjects.id
     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
@@ -60,7 +60,7 @@ FROM
             survey_questions_response_choices sqrc
             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
         WHERE
-            sqrc.survey_question_id = sq.id) sub ON TRUE
+            sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
     subjects.name = :subjectName!;
 

@@ -804,6 +804,9 @@ export default {
       })
     },
     getSchoolDisplayName(school) {
+      if (school.cantFindSchool) {
+        return `Can't Find School`
+      }
       return `${school.name} (${school.city}, ${school.state})`
     },
     handleSelectHighSchool(school) {
