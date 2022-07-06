@@ -95,6 +95,20 @@ END
 $$;
 
 
+--
+-- Name: refresh_users_subjects_mview(); Type: FUNCTION; Schema: upchieve; Owner: -
+--
+
+CREATE FUNCTION upchieve.refresh_users_subjects_mview() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW upchieve.users_subjects_mview;
+    RETURN NEW;
+END;
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -1744,6 +1758,64 @@ CREATE TABLE upchieve.users_roles (
 
 
 --
+-- Name: volunteer_profiles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.volunteer_profiles (
+    user_id uuid NOT NULL,
+    volunteer_partner_org_id uuid,
+    timezone text,
+    approved boolean DEFAULT false NOT NULL,
+    onboarded boolean DEFAULT false NOT NULL,
+    photo_id_s3_key text,
+    photo_id_status integer,
+    linkedin_url text,
+    college text,
+    company text,
+    languages text[],
+    experience jsonb,
+    city text,
+    state text,
+    country text,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    total_volunteer_hours double precision,
+    elapsed_availability bigint
+);
+
+
+--
+-- Name: users_subjects_mview; Type: MATERIALIZED VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE MATERIALIZED VIEW upchieve.users_subjects_mview AS
+ WITH subject_totals AS (
+         SELECT subjects.id,
+            (count(*))::integer AS total
+           FROM (upchieve.certification_subject_unlocks
+             JOIN upchieve.subjects ON ((subjects.id = certification_subject_unlocks.subject_id)))
+          GROUP BY subjects.id
+        )
+ SELECT users.id AS user_id,
+    subjects_unlocked.subject_id
+   FROM ((upchieve.users
+     JOIN upchieve.volunteer_profiles vp ON ((vp.user_id = users.id)))
+     LEFT JOIN ( SELECT sub_unlocked.user_id,
+            sub_unlocked.subject AS subject_id
+           FROM ( SELECT users_certifications.user_id,
+                    subjects.id AS subject
+                   FROM (((upchieve.users_certifications
+                     JOIN upchieve.certification_subject_unlocks USING (certification_id))
+                     JOIN upchieve.subjects ON ((certification_subject_unlocks.subject_id = subjects.id)))
+                     JOIN subject_totals ON ((subject_totals.id = subjects.id)))
+                  GROUP BY users_certifications.user_id, subjects.id, subject_totals.total
+                 HAVING ((count(*))::integer >= subject_totals.total)) sub_unlocked
+          GROUP BY sub_unlocked.user_id, sub_unlocked.subject) subjects_unlocked ON ((subjects_unlocked.user_id = users.id)))
+  WHERE (subjects_unlocked.* IS NOT NULL)
+  WITH NO DATA;
+
+
+--
 -- Name: users_surveys; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1812,33 +1884,6 @@ CREATE TABLE upchieve.volunteer_partner_orgs (
     receive_weekly_hour_summary_email boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
-);
-
-
---
--- Name: volunteer_profiles; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.volunteer_profiles (
-    user_id uuid NOT NULL,
-    volunteer_partner_org_id uuid,
-    timezone text,
-    approved boolean DEFAULT false NOT NULL,
-    onboarded boolean DEFAULT false NOT NULL,
-    photo_id_s3_key text,
-    photo_id_status integer,
-    linkedin_url text,
-    college text,
-    company text,
-    languages text[],
-    experience jsonb,
-    city text,
-    state text,
-    country text,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    total_volunteer_hours double precision,
-    elapsed_availability bigint
 );
 
 
@@ -2918,6 +2963,14 @@ ALTER TABLE ONLY upchieve.user_actions
 
 
 --
+-- Name: volunteer_references user_id_ref_email_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_references
+    ADD CONSTRAINT user_id_ref_email_unique UNIQUE (user_id, email);
+
+
+--
 -- Name: push_tokens user_id_token; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3206,6 +3259,13 @@ CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id)
 --
 
 CREATE INDEX volunteer_partner_orgs_key ON upchieve.volunteer_partner_orgs USING btree (key);
+
+
+--
+-- Name: users_certifications update_users_subjects; Type: TRIGGER; Schema: upchieve; Owner: -
+--
+
+CREATE TRIGGER update_users_subjects AFTER INSERT OR DELETE OR UPDATE ON upchieve.users_certifications FOR EACH ROW EXECUTE FUNCTION upchieve.refresh_users_subjects_mview();
 
 
 --
@@ -4215,4 +4275,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220614163056'),
     ('20220614202247'),
     ('20220615162628'),
-    ('20220630141321');
+    ('20220630141321'),
+    ('20220630192340');
