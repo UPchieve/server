@@ -8,6 +8,11 @@ VALUES ('STEM Pre-Session Survey', NOW(), NOW()),
        ('College Applications Pre-Session Survey', NOW(), NOW()),
        ('SAT Prep Pre-Session Survey', NOW(), NOW());
 
+/*
+* Removed due to dropping `surveys_presession` from schema in later schema
+* migration. Tables removed in schema migrations are applied before any seed
+* migrations so we need to remove "old" seed on newly dropped tables
+
 INSERT INTO upchieve.surveys_presession (survey_id, subject_id, created_at, updated_at)
 SELECT
   upchieve.surveys.id,
@@ -41,6 +46,7 @@ WHERE
   (upchieve.surveys.name = 'College Applications Pre-Session Survey' AND upchieve.subjects.name = 'applications') OR
   (upchieve.surveys.name = 'SAT Prep Pre-Session Survey' AND upchieve.subjects.name = 'satMath') OR
   (upchieve.surveys.name = 'SAT Prep Pre-Session Survey' AND upchieve.subjects.name = 'satReading');
+*/
 
 INSERT INTO upchieve.question_types (name, created_at, updated_at)
 VALUES ('multiple choice', NOW(), NOW()),
