@@ -52,6 +52,15 @@
             <caret-icon class="caret" />
           </div>
         </div>
+        <div
+          v-if="
+            user.isVolunteer &&
+            showNoPressionSurveyResponse
+          "
+          class="about-session-container"
+        >
+          <div class="about-session-no-responses">No goal found for this session</div>
+        </div>
         <session-chat
           :shouldHideChatSection="shouldHideChatSection"
           :setHasSeenNewMessage="setHasSeenNewMessage"
@@ -157,7 +166,8 @@ export default {
       showNotificationModal: false,
       showAboutSessionModal: false,
       studentPresessionResponses: [],
-      totalStudentSessions: 0
+      totalStudentSessions: 0,
+      showNoPressionSurveyResponse: false
     }
   },
   beforeRouteEnter(to, from, next) {
@@ -421,7 +431,7 @@ export default {
           pressionSurveyResponse.data.totalStudentSessions
         this.studentPresessionResponses = pressionSurveyResponse.data.responses
       } catch(err) {
-        // silently error
+        this.showNoPressionSurveyResponse = true
       }
     },
   },
@@ -514,6 +524,11 @@ export default {
     }
     
     border-radius: 4px;
+    padding: 0.4rem 0.5rem;
+  }
+
+  &-no-responses {
+    @include font-category('subheading');
     padding: 0.4rem 0.5rem;
   }
 }
