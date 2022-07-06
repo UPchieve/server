@@ -94,12 +94,21 @@ export enum READING_WRITING_SUBJECTS {
   READING = 'reading',
 }
 
+export enum SOCIAL_STUDIES_CERTS {
+  US_HISTORY = 'usHistory',
+}
+
+export enum SOCIAL_STUDIES_SUBJECTS {
+  US_HISTORY = 'usHistory',
+}
+
 export const SUBJECTS = {
   ...MATH_SUBJECTS,
   ...SCIENCE_SUBJECTS,
   ...COLLEGE_SUBJECTS,
   ...SAT_SUBJECTS,
   ...READING_WRITING_SUBJECTS,
+  ...SOCIAL_STUDIES_SUBJECTS,
 }
 
 export const CERTS = {
@@ -108,6 +117,7 @@ export const CERTS = {
   ...COLLEGE_CERTS,
   ...SAT_CERTS,
   ...READING_WRITING_CERTS,
+  ...SOCIAL_STUDIES_CERTS,
   ...TRAINING,
 }
 
@@ -156,6 +166,7 @@ export const CERT_UNLOCKING = {
   [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: [
     SCIENCE_SUBJECTS.ENVIRONMENTAL_SCIENCE,
   ],
+  [SOCIAL_STUDIES_CERTS.US_HISTORY]: [SOCIAL_STUDIES_SUBJECTS.US_HISTORY],
   [COLLEGE_CERTS.ESSAYS]: [COLLEGE_SUBJECTS.ESSAYS],
   // @note: move applications and planning to computed certs once College Counseling is added
   [COLLEGE_CERTS.APPLICATIONS]: [COLLEGE_SUBJECTS.APPLICATIONS],
@@ -202,6 +213,7 @@ export enum SUBJECT_TYPES {
   SAT = 'sat',
   TRAINING = 'training',
   READING_WRITING = 'readingWriting',
+  SOCIAL_STUDIES = 'socialStudies',
 }
 
 export type ACTIVE_COLLEGE_CERTS = Exclude<
@@ -221,11 +233,13 @@ export type ACTIVE_QUIZ_CATEGORIES =
   | SAT_CERTS
   | READING_WRITING_CERTS
   | ACTIVE_TRAINING_CERTS
+  | SOCIAL_STUDIES_CERTS
 
 export const CATEGORY_TO_SUBCATEGORY_MAP: Record<
   ACTIVE_QUIZ_CATEGORIES,
   string[]
 > = {
+  [SOCIAL_STUDIES_CERTS.US_HISTORY]: [],
   [MATH_CERTS.PREALGREBA]: [
     'numbers',
     'arithmetic properties',
