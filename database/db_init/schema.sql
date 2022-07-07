@@ -120,6 +120,15 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: seed-migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."seed-migrations" (
+    version character varying(255) NOT NULL
+);
+
+
+--
 -- Name: seed_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -648,8 +657,8 @@ CREATE TABLE upchieve.push_tokens (
 CREATE TABLE upchieve.question_tags (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -674,8 +683,8 @@ ALTER TABLE upchieve.question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENT
 CREATE TABLE upchieve.question_types (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1307,7 +1316,7 @@ CREATE TABLE upchieve.survey_questions_response_choices (
     display_priority smallint NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    surveys_survey_question_id integer NOT NULL
+    surveys_survey_question_id integer DEFAULT 1 NOT NULL
 );
 
 
@@ -2107,6 +2116,14 @@ ALTER TABLE ONLY auth.session
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: seed-migrations seed-migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."seed-migrations"
+    ADD CONSTRAINT "seed-migrations_pkey" PRIMARY KEY (version);
 
 
 --
@@ -4197,7 +4214,11 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220405223145'),
     ('20220405224635'),
     ('20220405232100'),
+    ('20220414230259'),
+    ('20220420175302'),
+    ('20220429162202'),
     ('20220504152804'),
+    ('20220512174157'),
     ('20220517154624'),
     ('20220517213052'),
     ('20220520164318'),
