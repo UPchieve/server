@@ -363,6 +363,12 @@ export default {
     this.loadZwibbler()
   },
   methods: {
+    isMobile() {
+      if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+        return true
+      else
+        return false
+    },
     resizeViewRectangle() {
       this.zwibblerCtx.setViewRectangle({
         x: 0,
@@ -468,7 +474,7 @@ export default {
       try {
         // TODO: a better way to target desktop devices?
         // Convert HEIC images to jpeg on desktop devices
-        if (!this.mobileMode && file.type === 'image/heic') {
+        if (!this.isMobile() && file.type === 'image/heic') {
           const convertedBlob = await heic2any({
             blob: file,
             toType: 'image/jpeg',
