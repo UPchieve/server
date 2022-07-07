@@ -60,7 +60,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA upchieve GRANT ALL PRIVILEGES ON tables TO re
 
 -- mat view owner role
 -- subway needs to be able to refresh mat views, which requires ownership,
--- but avnadmin needs superuser control over everything
+-- but admin/avnadmin needs superuser control over everything for down migrations to work correctly
 CREATE ROLE mat_view_owners;
 GRANT CREATE ON SCHEMA upchieve to mat_view_owners;
 GRANT SELECT ON ALL tables IN SCHEMA upchieve to mat_view_owners;
@@ -74,6 +74,7 @@ BEGIN
   GRANT mat_view_owners TO avnadmin;
 EXCEPTION
   -- ignore if one of the above fails because the role doesn't exist
+  -- local dev fails if this script has an error so we have to catch and ignore
   WHEN OTHERS THEN NULL;
 END;
 $$;
