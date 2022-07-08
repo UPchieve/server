@@ -478,7 +478,6 @@ export default {
       this.isLoading = true
 
       try {
-        // TODO: a better way to target desktop devices?
         // Convert HEIC images to jpeg on desktop devices
         if (!this.isMobile() && file.type === 'image/heic') {
           const convertedBlob = await heic2any({
@@ -511,7 +510,7 @@ export default {
           this.insertPhoto(imageUrl)
         }
       } catch(error) {
-        // TODO: better error handling
+         this.isLoading = false
          this.uploadingPictureError = true
         setTimeout(() => {
           this.uploadingPictureError = false
