@@ -10,7 +10,7 @@ export type PresessionSurveyResponseData = {
   }
 }
 
-export type Survey = {
+export type LegacySurvey = {
   id: Ulid
   userId: Ulid
   sessionId: Ulid
@@ -18,3 +18,32 @@ export type Survey = {
   createdAt: Date
   updatedAt: Date
 }
+
+export type UserSurvey = {
+  id: Ulid
+  surveyId: number
+  userId: Ulid
+  sessionId: Ulid
+  surveyTypeId: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type SaveUserSurvey = Pick<
+  UserSurvey,
+  'surveyId' | 'sessionId' | 'surveyTypeId'
+>
+
+export type UserSurveySubmission = {
+  userSurveyId: Ulid
+  questionId: number
+  responseChoiceId: number
+  openResponse: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type SaveUserSurveySubmission = Pick<
+  UserSurveySubmission,
+  'questionId' | 'responseChoiceId' | 'openResponse'
+>
