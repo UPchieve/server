@@ -4,7 +4,10 @@ import {
   getPresessionSurvey,
   getPresessionSurveyNew,
 } from '../../models/Survey'
-import { getContextSharingForVolunteer } from '../../services/SurveyService'
+import {
+  getContextSharingForVolunteer,
+  validateSaveUserSurveyAndSubmissions,
+} from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
@@ -20,6 +23,24 @@ export function routeSurvey(router: expressWs.Router): void {
         asUlid(sessionId),
         responseData // TODO: duck type validation
       )
+      res.sendStatus(200)
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.post('/survey/save', async (req, res) => {
+    const user = extractUser(req)
+    const { surveyId, sessionId, surveyTypeId, submissions } = req.body
+    const data = {
+      surveyId,
+      sessionId,
+      surveyTypeId,
+      submissions,
+    }
+
+    try {
+      await validateSaveUserSurveyAndSubmissions(user.id, data as unknown)
       res.sendStatus(200)
     } catch (error) {
       resError(res, error)
