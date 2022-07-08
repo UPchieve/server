@@ -12,6 +12,8 @@ import {
   buildPressionSurvey,
   buildPressionSurveyLegacy,
   buildUserContactInfo,
+  buildUserSurvey,
+  buildUserSurveySubmission,
 } from '../pg-generate'
 
 jest.mock('../../services/SurveyService')
@@ -122,5 +124,35 @@ describe(GET_PRESSION_SURVEY_RESPONSE, () => {
     ).toHaveBeenCalledTimes(1)
     expect(response.body).toEqual(mockedSurveyResponse)
     expect(response.status).toBe(200)
+  })
+})
+
+const SAVE_USER_SURVEY = `/survey/save`
+describe(SAVE_USER_SURVEY, () => {
+  test('Should save user survey and submissions', async () => {
+    const userSurvey = buildUserSurvey()
+    const submissions = [buildUserSurveySubmission()]
+    const payload = { ...userSurvey, submissions }
+    mockedSurveyService.validateSaveUserSurveyAndSubmissions.mockResolvedValueOnce()
+    const response = await sendPost(SAVE_USER_SURVEY, payload)
+    expect(
+      mockedSurveyService.validateSaveUserSurveyAndSubmissions
+    ).toHaveBeenCalledTimes(1)
+    expect(response.status).toBe(200)
+  })
+
+  test('Should catch and send error when user survey and submissions validation errors', async () => {
+    const userSurvey = buildUserSurvey()
+    const submissions = [buildUserSurveySubmission()]
+    const payload = { ...userSurvey, submissions }
+    const testError = new Error('Test error')
+    mockedSurveyService.validateSaveUserSurveyAndSubmissions.mockRejectedValueOnce(
+      testError
+    )
+    const response = await sendPost(SAVE_USER_SURVEY, payload)
+    expect(
+      mockedSurveyService.validateSaveUserSurveyAndSubmissions
+    ).toHaveBeenCalledTimes(1)
+    expect(response.status).toBe(500)
   })
 })

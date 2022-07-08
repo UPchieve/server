@@ -21,10 +21,12 @@ import {
 import { GRADES } from '../constants'
 import { AppStudent, AppUser, AppVolunteer } from './types'
 import {
+  LegacySurvey,
   PresessionSurvey,
   PresessionSurveyResponseData,
   StudentPresessionSurveyResponse,
-  Survey,
+  UserSurvey,
+  UserSurveySubmission,
 } from '../models/Survey'
 
 export function getEmail(): string {
@@ -327,8 +329,8 @@ export function buildPresessionLegacySurveyResponse(
 }
 
 export const buildPressionSurveyLegacy = (
-  overrides: Partial<Survey> = {}
-): Survey => {
+  overrides: Partial<LegacySurvey> = {}
+): LegacySurvey => {
   const survey = {
     id: getDbUlid(),
     userId: getDbUlid(),
@@ -371,6 +373,39 @@ export const buildPresessionSurveyResponse = (
     response: 'Complete a homework assignment',
     score: 1,
     displayOrder: 10,
+    ...overrides,
+  }
+
+  return survey
+}
+
+export const buildUserSurveySubmission = (
+  overrides: Partial<UserSurveySubmission> = {}
+): UserSurveySubmission => {
+  const survey = {
+    userSurveyId: getDbUlid(),
+    questionId: 1,
+    responseChoiceId: 2,
+    openResponse: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
+
+  return survey
+}
+
+export const buildUserSurvey = (
+  overrides: Partial<UserSurvey> = {}
+): UserSurvey => {
+  const survey = {
+    id: getDbUlid(),
+    userId: getDbUlid(),
+    sessionId: getDbUlid(),
+    surveyId: 1,
+    surveyTypeId: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
     ...overrides,
   }
 
