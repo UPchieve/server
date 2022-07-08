@@ -20,6 +20,39 @@ ON CONFLICT (session_id)
         updated_at;
 
 
+/* @name saveUserSurvey */
+INSERT INTO users_surveys (id, survey_id, user_id, session_id, survey_type_id, created_at, updated_at)
+SELECT
+    generate_ulid (),
+    :surveyId!,
+    :userId!,
+    :sessionId!,
+    :surveyTypeId!,
+    NOW(),
+    NOW()
+RETURNING
+    id,
+    survey_id,
+    user_id,
+    session_id,
+    survey_type_id,
+    created_at,
+    updated_at;
+
+
+/* @name saveUserSurveySubmissions */
+INSERT INTO users_surveys_submissions (user_survey_id, survey_question_id, survey_response_choice_id, open_response, created_at, updated_at)
+SELECT
+    :userSurveyId!,
+    :questionId!,
+    :responseChoiceId!,
+    :openResponse,
+    NOW(),
+    NOW()
+RETURNING
+    user_survey_id AS ok;
+
+
 /* @name getPresessionSurvey */
 SELECT
     id,
