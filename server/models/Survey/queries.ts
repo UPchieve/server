@@ -2,11 +2,7 @@ import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import {
-  LegacySurvey,
-  SaveUserSurveySubmission,
-  SaveUserSurvey,
-} from './types'
+import { LegacySurvey, SaveUserSurveySubmission, SaveUserSurvey } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
 
@@ -75,19 +71,23 @@ export async function saveUserSurveyAndSubmissions(
 
     const survey = makeRequired(result[0])
     const errors: string[] = []
-    for (const s of submissions) {
+    for (const submission of submissions) {
       const result = await pgQueries.saveUserSurveySubmissions.run(
         {
           userSurveyId: survey.id,
-          questionId: s.questionId,
-          responseChoiceId: s.responseChoiceId,
-          openResponse: s.openResponse ? s.openResponse : undefined,
+          questionId: submission.questionId,
+          responseChoiceId: submission.responseChoiceId,
+          openResponse: submission.openResponse
+            ? submission.openResponse
+            : undefined,
         },
         client
       )
       if (!result.length && makeRequired(result[0]).ok)
         errors.push(
-          `Insert query for user survey submission ${JSON.stringify(s)} did not return ok`
+          `Insert query for user survey submission ${JSON.stringify(
+            submission
+          )} did not return ok`
         )
     }
     if (errors.length) throw new RepoReadError(errors.join('\n'))
