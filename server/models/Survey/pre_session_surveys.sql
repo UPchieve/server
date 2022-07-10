@@ -75,7 +75,8 @@ SELECT
             src.choice_text
         END) AS response,
     COALESCE(src.score, 0) AS score,
-    ssq.display_priority AS display_order
+    ssq.display_priority AS display_order,
+    src.display_image as display_image
 FROM
     users_surveys AS us
     JOIN sessions AS s ON s.student_id = us.user_id
