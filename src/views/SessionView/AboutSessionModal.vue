@@ -24,7 +24,7 @@
             :key="response.displayLabel"
             >
               <div class="session-info-title"> {{ response.displayLabel}} </div>
-              <div class="session-info-response"> {{ response.response }} </div>
+              <div class="session-info-response" v-html="response.displayResponse"></div>
             </div>
           </div>
         </div>
@@ -74,17 +74,21 @@ export default {
     mappedResponses() {
       return this.responses.map(response => {
         if (response.displayLabel === this.confidenceLabel) {
+          const lowerCasedResponse = response.response.toLowerCase()
           if (this.session.type === 'college')
             return {
               ...response,
-              response: `They feel ${response.response} about their ability to get accepted to college`,
+              displayResponse: `<span>They feel <img class='response-image' src=${response.displayImage} /> ${lowerCasedResponse} about their ability to get accepted to college</span>`,
             }
           else
             return {
               ...response,
-              response: `They feel ${response.response} about this topic`,
+              displayResponse: `<span>They feel <img class='response-image' src=${response.displayImage} /> ${lowerCasedResponse} about this topic`,
             }
-        } else return response
+        } else return {
+          ...response,
+          displayResponse: `<span>${response.response}</span>`
+        }
       })
     },
     hasLowConfidence() {
@@ -129,6 +133,10 @@ export default {
   background-color: $step-blue;
   height: 41px;
   width: 1px;
+}
+
+.session-info-stepper-container .response-image {
+  width: 20px;
 }
 </style>
 
