@@ -109,6 +109,7 @@ export DATABASE_URL="postgres://admin:Password123@localhost:5432/upchieve?sslmod
 ```
 
 2. Create a new migration in `database/migrations` by running `dbmate new file-name-here`.
+
 3. Write the migration, including both rollout and rollback instructions - for example:
 ```sql
 -- migrate:up
@@ -140,6 +141,7 @@ Running the seeds involves three commands:
 
 3. `npm run seeds:copy:test` `pg_dump`s the data within your tables into `database/db_init/test_seeds.sql` so next time you bring up a fresh db container it's seeded with the new values
 
+To seed data used in production, see Database Updates, step 2.
 
 ## Test Users
 

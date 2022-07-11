@@ -278,5 +278,5 @@ DELETE FROM upchieve.surveys_survey_questions CASCADE;
 DELETE FROM upchieve.survey_response_choices CASCADE;
 DELETE FROM upchieve.survey_questions CASCADE;
 DELETE FROM upchieve.question_types CASCADE;
-DELETE FROM upchieve.surveys_presession CASCADE;
+-- DELETE FROM upchieve.surveys_presession CASCADE;
 DELETE FROM upchieve.surveys CASCADE;
