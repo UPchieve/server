@@ -2980,14 +2980,6 @@ ALTER TABLE ONLY upchieve.user_actions
 
 
 --
--- Name: volunteer_references user_id_ref_email_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.volunteer_references
-    ADD CONSTRAINT user_id_ref_email_unique UNIQUE (user_id, email);
-
-
---
 -- Name: push_tokens user_id_token; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
