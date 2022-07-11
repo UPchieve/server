@@ -1162,6 +1162,16 @@ exports[`Storyshots Availability/Cell Vanilla 1`] = `
 </div>
 `;
 
+exports[`Storyshots Components/Chip Basic 1`] = `
+<div
+  class="chip-item"
+>
+  
+  Chip content
+
+</div>
+`;
+
 exports[`Storyshots Components/Stepper All Steps Completed 1`] = `
 <div
   class="stepper"

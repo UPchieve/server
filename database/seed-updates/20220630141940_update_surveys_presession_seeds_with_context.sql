@@ -1,7 +1,9 @@
 -- migrate:up
 INSERT INTO upchieve.survey_types (name, created_at, updated_at)
-VALUES ('presession', NOW(), NOW());
-
+VALUES ('presession', NOW(), NOW())
+ON CONFLICT ON CONSTRAINT survey_types_name_key
+  DO NOTHING;
+ß
 INSERT INTO upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at)
 SELECT
   upchieve.surveys.id,
