@@ -76,7 +76,8 @@ SELECT
     qt.name AS question_type,
     sub.response_id,
     sub.response_text,
-    sub.response_display_priority
+    sub.response_display_priority,
+    sub.response_display_image
 FROM
     surveys_context
     JOIN surveys ON survey_id = surveys.id
@@ -88,7 +89,8 @@ FROM
         SELECT
             id AS response_id,
             choice_text AS response_text,
-            display_priority AS response_display_priority
+            display_priority AS response_display_priority,
+            display_image AS response_display_image
         FROM
             survey_questions_response_choices sqrc
             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
@@ -109,7 +111,7 @@ SELECT
         END) AS response,
     COALESCE(src.score, 0) AS score,
     ssq.display_priority AS display_order,
-    src.display_image as display_image
+    src.display_image AS display_image
 FROM
     users_surveys AS us
     JOIN sessions AS s ON s.student_id = us.user_id

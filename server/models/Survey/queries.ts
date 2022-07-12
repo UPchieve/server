@@ -127,6 +127,7 @@ export type PresessionSurveyResponse = {
   responseId: number
   responseText: string
   responseDisplayPriority: number
+  responseDisplayImage: string | undefined
 }
 
 export type PresessionSurvey = {
@@ -147,7 +148,7 @@ export async function getPresessionSurveyNew(
       getClient()
     )
 
-    const resultArr = result.map(v => makeRequired(v))
+    const resultArr = result.map(v => makeSomeRequired(v, ['responseDisplayImage']))
     const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
 
     const survey: PresessionSurvey[] = []
@@ -161,11 +162,14 @@ export async function getPresessionSurveyNew(
         questionType: temp.questionType,
       }
 
-      for (const row of rows) {
+      const sortedRows = rows.sort((a, b) => a.responseDisplayPriority - b.responseDisplayPriority)
+
+      for (const row of sortedRows) {
         const responseItem: PresessionSurveyResponse = {
           responseId: row.responseId,
           responseText: row.responseText,
           responseDisplayPriority: row.responseDisplayPriority,
+          responseDisplayImage: row.responseDisplayImage,
         }
         responses.push(responseItem)
       }
