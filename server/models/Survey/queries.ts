@@ -2,7 +2,7 @@ import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { PresessionSurveyResponseData, Survey } from './types'
+import { Survey } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
 
@@ -142,7 +142,8 @@ export async function getPresessionSurveyResponse(
       getClient()
     )
 
-    if (result.length) return result.map(row => makeSomeRequired(row, ['displayImage']))
+    if (result.length)
+      return result.map(row => makeSomeRequired(row, ['displayImage']))
     return []
   } catch (err) {
     throw new RepoReadError(err)
