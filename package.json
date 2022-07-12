@@ -33,6 +33,7 @@
     "test:frontend": "vue-cli-service test:unit -c jest.config.vue.js",
     "worker": "node build/worker",
     "storybook": "start-storybook -p 6006",
+    "storybook:snapshot": "npm run test:frontend -- -u",
     "build-storybook": "build-storybook",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
