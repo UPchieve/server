@@ -107,7 +107,7 @@ export DBMATE_SCHEMA_FILE="/path/to/repo/subway/database/db_init/schema.sql"
 export DBMATE_MIGRATIONS_DIR="/path/to/repo/subway/database/migrations"
 export DATABASE_URL="postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable"
 ```
-ß
+
 2. Create a new migration in `database/migrations` by running `dbmate new file_name_here` for table migrations.
 3. Write the migration, including both rollout and rollback instructions - for example:
 ```sql
