@@ -357,6 +357,7 @@ export const buildPressionSurvey = (
         responseId: 1,
         responseText: 'Complete a homework assignment',
         responseDisplayPriority: 1,
+        responseDisplayImage: ''
       },
     ],
     ...overrides,
