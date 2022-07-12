@@ -1601,6 +1601,23 @@ paths:
       responses:
         '200':
           description: Responds with an object of the survey with the survey questions and response choices
+  /api/survey/postsession:
+    get:
+      tags:
+        - survey
+      summary: Gets postsession survey
+      description: Gets postsession survey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: subjectName
+          required: true
+          in: body
+          schema:
+            $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Responds with an object of the survey with the survey questions and response choices
   /api/survey/presession/response/{:sessionId}:
     get:
       tags:

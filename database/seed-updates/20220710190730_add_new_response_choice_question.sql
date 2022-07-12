@@ -27,16 +27,17 @@ INSERT INTO upchieve.survey_questions_response_choices (response_choice_id, disp
 SELECT
     subquery.response_choice_id,
     60,
-    subquery.survey_id,
+    subquery.surveys_survey_question_id,
     NOW(),
     NOW()
 FROM (
     SELECT
         upchieve.survey_response_choices.id AS response_choice_id,
-        upchieve.surveys.id AS survey_id
+        upchieve.surveys_survey_questions.id AS surveys_survey_question_id
     FROM
         upchieve.survey_response_choices
-        JOIN upchieve.surveys ON TRUE
+        JOIN upchieve.surveys_survey_questions ON TRUE
+        JOIN upchieve.surveys ON upchieve.surveys.id = upchieve.surveys_survey_questions.survey_id
     WHERE
         upchieve.survey_response_choices.choice_text = 'I''m curious and want to learn something new'
         AND upchieve.surveys.name = 'STEM Pre-Session Survey') AS subquery;

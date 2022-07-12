@@ -47,3 +47,18 @@ export type SaveUserSurveySubmission = Pick<
   UserSurveySubmission,
   'questionId' | 'responseChoiceId' | 'openResponse'
 >
+
+export type SurveyResponseDefinition = {
+  responseId: number
+  responseText: string
+  responseDisplayPriority: number
+  responseDisplayImage: string | undefined
+}
+
+export type SurveyQuestionDefinition = {
+  questionId: string
+  questionText: string
+  displayPriority: number
+  questionType: string
+  responses: SurveyResponseDefinition[]
+}
