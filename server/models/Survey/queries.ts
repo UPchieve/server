@@ -201,7 +201,8 @@ export async function getPresessionSurveyResponse(
       getClient()
     )
 
-    if (result.length) return result.map(row => makeSomeRequired(row, ['displayImage']))
+    if (result.length)
+      return result.map(row => makeSomeRequired(row, ['displayImage']))
     return []
   } catch (err) {
     throw new RepoReadError(err)
