@@ -4,7 +4,7 @@ INSERT INTO
 SELECT
   3,
   'Neutral',
-  'https://upchievecdn.blob.core.windows.net/docs/neutral-emoji.png',
+  'https://cdn.upchieve.org/site-images/emojis/neutral-emoji.svg',
   NOW(),
   NOW();
 
@@ -13,7 +13,7 @@ UPDATE
   upchieve.survey_response_choices
 SET
   choice_text = 'Stressed',
-  display_image = 'https://upchievecdn.blob.core.windows.net/docs/stressed-emoji.png',
+  display_image = 'https://cdn.upchieve.org/site-images/emojis/stressed-emoji.svg',
   updated_at = NOW()
 WHERE
   upchieve.survey_response_choices.choice_text = '😭';
@@ -23,7 +23,7 @@ UPDATE
   upchieve.survey_response_choices
 SET
   choice_text = 'Nervous',
-  display_image = 'https://upchievecdn.blob.core.windows.net/docs/nervous-emoji.png',
+  display_image = 'https://cdn.upchieve.org/site-images/emojis/nervous-emoji.svg',
   updated_at = NOW()
 WHERE
   upchieve.survey_response_choices.choice_text = '😟';
@@ -33,7 +33,7 @@ UPDATE
   upchieve.survey_response_choices
 SET
   choice_text = 'Optimistic',
-  display_image = 'https://upchievecdn.blob.core.windows.net/docs/optimistic-emoji.png',
+  display_image = 'https://cdn.upchieve.org/site-images/emojis/optimistic-emoji.svg',
   score = 4,
   updated_at = NOW()
 WHERE
@@ -44,7 +44,7 @@ UPDATE
   upchieve.survey_response_choices
 SET
   choice_text = 'Confident',
-  display_image = 'https://upchievecdn.blob.core.windows.net/docs/confident-emoji.png',
+  display_image = 'https://cdn.upchieve.org/site-images/emojis/confident-emoji.svg',
   score = 5,
   updated_at = NOW()
 WHERE
@@ -109,15 +109,17 @@ WHERE
 
 -- migrate:down
 DELETE FROM
-  upchieve.survey_response_choices
-WHERE
-  upchieve.survey_response_choices.choice_text = 'Neutral'
-
-DELETE FROM
   upchieve.survey_questions_response_choices USING upchieve.survey_response_choices
 WHERE
   upchieve.survey_questions_response_choices.response_choice_id = upchieve.survey_response_choices.id
   AND upchieve.survey_response_choices.choice_text = 'Neutral';
+
+
+DELETE FROM
+  upchieve.survey_response_choices
+WHERE
+  upchieve.survey_response_choices.choice_text = 'Neutral';
+
 
 UPDATE
   upchieve.survey_response_choices
