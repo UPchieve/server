@@ -1257,3 +1257,36 @@ const getLegacyCertificationsIR: any = {"name":"getLegacyCertifications","params
 export const getLegacyCertifications = new PreparedQuery<IGetLegacyCertificationsParams,IGetLegacyCertificationsResult>(getLegacyCertificationsIR);
 
 
+/** 'GetTotalSessionsByUserId' parameters type */
+export interface IGetTotalSessionsByUserIdParams {
+  userId: string;
+}
+
+/** 'GetTotalSessionsByUserId' return type */
+export interface IGetTotalSessionsByUserIdResult {
+  total: number | null;
+}
+
+/** 'GetTotalSessionsByUserId' query type */
+export interface IGetTotalSessionsByUserIdQuery {
+  params: IGetTotalSessionsByUserIdParams;
+  result: IGetTotalSessionsByUserIdResult;
+}
+
+const getTotalSessionsByUserIdIR: any = {"name":"getTotalSessionsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":17445,"b":17451,"line":615,"col":27},{"a":17485,"b":17491,"line":616,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    count(*)::int AS total\nFROM\n    sessions\nWHERE\n    sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!","loc":{"a":17360,"b":17491,"line":610,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     count(*)::int AS total
+ * FROM
+ *     sessions
+ * WHERE
+ *     sessions.student_id = :userId!
+ *     OR sessions.volunteer_id = :userId!
+ * ```
+ */
+export const getTotalSessionsByUserId = new PreparedQuery<IGetTotalSessionsByUserIdParams,IGetTotalSessionsByUserIdResult>(getTotalSessionsByUserIdIR);
+
+

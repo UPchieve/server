@@ -1549,6 +1549,41 @@ paths:
       responses:
         '200':
           description: OK
+  /api/survey/save:
+    post:
+      tags:
+        - survey
+      summary:  Sends user survey and user survey answers to be saved
+      description: Sends user survey and user survey answers to be saved
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                surveyId:
+                  type: integer
+                sessionId:
+                  type: string
+                surveyTypeId:
+                  type: number
+                submissions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      questionId:
+                        type: integer
+                      responseChoiceId:
+                        type: integer
+                      openResponse:
+                        type: string
+      responses:
+        '200':
+          description: OK
   /api/survey/presession:
     get:
       tags:
@@ -1566,6 +1601,23 @@ paths:
       responses:
         '200':
           description: Responds with an object of the survey with the survey questions and response choices
+  /api/survey/presession/response/{:sessionId}:
+    get:
+      tags:
+        - survey
+      summary: Gets presession survey response from student
+      description: Gets presession survey response from student
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Responds with total number of sessions a student has and an array of their presession survey responses
   /api/training/course/{:courseKey}:
     get:
       tags:

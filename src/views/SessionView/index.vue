@@ -37,6 +37,30 @@
           'chat-container--hidden': shouldHideChatSection
         }"
       >
+        <div
+          v-if="
+            user.isVolunteer &&
+            studentPresessionResponses.length > 0
+          "
+          class="about-session-container"
+        >
+          <div 
+          class="about-session-button"
+          @click="handleAboutSessionClick"
+          >
+            About the session
+            <caret-icon class="caret" />
+          </div>
+        </div>
+        <div
+          v-if="
+            user.isVolunteer &&
+            showNoPressionSurveyResponse
+          "
+          class="about-session-container"
+        >
+          <div class="about-session-no-responses">No goal found for this session</div>
+        </div>
         <session-chat
           :shouldHideChatSection="shouldHideChatSection"
           :setHasSeenNewMessage="setHasSeenNewMessage"
@@ -69,6 +93,12 @@
       v-if="showNotificationModal"
       :closeModal="() => setShowNotificationModal(false)"
     />
+    <about-session-modal
+      v-if="showAboutSessionModal"
+      :closeModal="toggleAboutSessionModal"
+      :responses="studentPresessionResponses"
+      :totalStudentSessions="totalStudentSessions"
+    />
   </div>
 </template>
 
@@ -86,7 +116,9 @@ import SessionFulfilledModal from './SessionFulfilledModal'
 import ConnectionTroubleModal from './ConnectionTroubleModal'
 import PhotoUploadIcon from '@/assets/whiteboard_icons/photo-upload.svg'
 import isOutdatedMobileAppVersion from '@/utils/is-outdated-mobile-app-version'
+import CaretIcon from '@/assets/caret.svg'
 import WebNotificationsModal from '@/components/WebNotificationsModal'
+import AboutSessionModal from './AboutSessionModal'
 import getNotificationPermission from '@/utils/get-notification-permission'
 import { EVENTS } from '@/consts'
 import Gleap from 'gleap'
@@ -103,7 +135,9 @@ export default {
     Whiteboard,
     PhotoUploadIcon,
     DocumentEditor,
-    WebNotificationsModal
+    WebNotificationsModal,
+    CaretIcon,
+    AboutSessionModal
   },
   created() {
     if (this.mobileMode) {
@@ -129,7 +163,11 @@ export default {
       auxiliaryOpen: false,
       sessionId: null,
       hasSeenNewMessage: true,
-      showNotificationModal: false
+      showNotificationModal: false,
+      showAboutSessionModal: false,
+      studentPresessionResponses: [],
+      totalStudentSessions: 0,
+      showNoPressionSurveyResponse: false
     }
   },
   beforeRouteEnter(to, from, next) {
@@ -149,7 +187,8 @@ export default {
       mobileMode: 'app/mobileMode',
       isAuthenticated: 'user/isAuthenticated',
       isVolunteer: 'user/isVolunteer',
-      isSessionOver: 'user/isSessionOver'
+      isSessionOver: 'user/isSessionOver',
+      isContextSharingWithVolunteerActive: 'featureFlags/isContextSharingWithVolunteerActive',
     }),
 
     auxiliaryType() {
@@ -254,6 +293,10 @@ export default {
         this.joinSession(sessionId)
         Gleap.setCustomData("sessionId", sessionId)
         this.$store.dispatch('user/sessionConnected')
+
+        if (this.user.isVolunteer && this.isContextSharingWithVolunteerActive) {
+          await this.getSharingContext(sessionId)
+        }
 
         if (
           (this.user.isVolunteer &&
@@ -372,7 +415,25 @@ export default {
     },
     setShowNotificationModal(value) {
       this.showNotificationModal = value
-    }
+    },
+    handleAboutSessionClick(){
+      AnalyticsService.captureEvent(EVENTS.VOLUNTEER_CLICKED_ABOUT_SESSION)
+      this.toggleAboutSessionModal()
+    },
+    toggleAboutSessionModal() {
+      this.showAboutSessionModal = !this.showAboutSessionModal
+    },
+    async getSharingContext(sessionId) {
+      try {
+        const pressionSurveyResponse =
+          await NetworkService.getPresessionSurveyResponse(sessionId)
+        this.totalStudentSessions =
+          pressionSurveyResponse.data.totalStudentSessions
+        this.studentPresessionResponses = pressionSurveyResponse.data.responses
+      } catch(err) {
+        this.showNoPressionSurveyResponse = true
+      }
+    },
   },
   watch: {
     isSessionConnectionAlive(newValue, oldValue) {
@@ -441,6 +502,34 @@ export default {
 
   @include breakpoint-below('medium') {
     padding-top: 80px;
+  }
+}
+
+.about-session {
+  &-container {
+      background-color: $light-blue-background;
+      z-index: 1;
+      padding: 0.75em 0.6em;
+      width: 100%;
+      @include flex-container(row);
+    }
+  
+  &-button {
+    @include font-category('subheading');
+     background-color: $light-blue-background;
+
+    &:hover {
+      background-color:rgba(196, 196, 196, 0.2);
+      cursor: pointer;
+    }
+    
+    border-radius: 4px;
+    padding: 0.4rem 0.5rem;
+  }
+
+  &-no-responses {
+    @include font-category('subheading');
+    padding: 0.4rem 0.5rem;
   }
 }
 
@@ -549,5 +638,9 @@ export default {
 
 .photo-upload--icon {
   margin-top: 5px !important;
+}
+
+.caret {
+  fill: #000;
 }
 </style>
