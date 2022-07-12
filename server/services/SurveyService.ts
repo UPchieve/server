@@ -28,7 +28,6 @@ export const asSaveUserSurveyAndSubmissions = asFactory<
   submissions: asArray(asSurveySubmissions),
 })
 
-
 type VolunteerContextResponse = {
   totalStudentSessions: number
   responses: StudentPresessionSurveyResponse[]
