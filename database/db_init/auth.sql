@@ -57,3 +57,26 @@ GRANT ALL privileges ON ALL sequences IN SCHEMA auth TO retool;
 GRANT usage ON SCHEMA auth TO retool;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA upchieve GRANT ALL PRIVILEGES ON tables TO retool;
+
+-- mat view owner role
+-- subway needs to be able to refresh mat views, which requires ownership,
+-- but admin/avnadmin needs superuser control over everything for down migrations to work correctly
+CREATE ROLE mat_view_owners;
+GRANT CREATE ON SCHEMA upchieve to mat_view_owners;
+GRANT SELECT ON ALL tables IN SCHEMA upchieve to mat_view_owners;
+ALTER DEFAULT PRIVILEGES IN SCHEMA upchieve GRANT SELECT ON tables TO mat_view_owners;
+GRANT mat_view_owners TO subway;
+DO $$
+BEGIN
+  -- this is for local dev db owner user
+  GRANT mat_view_owners to admin;
+  -- this is for our cloud vendor owner user
+  GRANT mat_view_owners TO avnadmin;
+EXCEPTION
+  -- ignore if one of the above fails because the role doesn't exist
+  -- local dev fails if this script has an error so we have to catch and ignore
+  WHEN OTHERS THEN NULL;
+END;
+$$;
+-- put all mat view ownership moves below here
+ALTER MATERIALIZED VIEW upchieve.users_subjects_mview OWNER TO mat_view_owners;
