@@ -1335,7 +1335,8 @@ CREATE TABLE upchieve.survey_response_choices (
     score smallint NOT NULL,
     choice_text text NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    display_image text
 );
 
 
@@ -4278,4 +4279,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220615162628'),
     ('20220630141321'),
     ('20220630192340'),
-    ('20220701142259');
+    ('20220701142259'),
+    ('20220710195206');
