@@ -23,23 +23,31 @@ WHERE
     upchieve.survey_questions_response_choices.response_choice_id = subquery.id;
 
 
-INSERT INTO upchieve.survey_questions_response_choices (response_choice_id, display_priority, surveys_survey_question_id, created_at, updated_at)
+INSERT INTO
+  upchieve.survey_questions_response_choices (
+    surveys_survey_question_id,
+    response_choice_id,
+    display_priority,
+    created_at,
+    updated_at
+  )
 SELECT
-    subquery.response_choice_id,
-    60,
-    subquery.survey_id,
-    NOW(),
-    NOW()
-FROM (
-    SELECT
-        upchieve.survey_response_choices.id AS response_choice_id,
-        upchieve.surveys.id AS survey_id
-    FROM
-        upchieve.survey_response_choices
-        JOIN upchieve.surveys ON TRUE
-    WHERE
-        upchieve.survey_response_choices.choice_text = 'I''m curious and want to learn something new'
-        AND upchieve.surveys.name = 'STEM Pre-Session Survey') AS subquery;
+  ssq.id,
+  rc.id,
+  60,
+  NOW(),
+  NOW()
+FROM
+  upchieve.surveys_survey_questions ssq
+  JOIN upchieve.survey_response_choices rc ON TRUE
+  JOIN upchieve.surveys ON upchieve.surveys.id = ssq.survey_id
+  JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
+WHERE
+  (
+    upchieve.surveys.name = 'STEM Pre-Session Survey'
+    AND sq.question_text = 'What is your primary goal for today''s session?'
+    AND rc.choice_text = 'I''m curious and want to learn something new'
+  )
 
 
 -- migrate:down
