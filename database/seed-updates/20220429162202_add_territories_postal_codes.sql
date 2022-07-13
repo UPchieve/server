@@ -859,5 +859,5 @@ ON CONFLICT ON CONSTRAINT postal_codes_pkey
   DO NOTHING;
 
 -- migrate:down
-DELETE FROM upchieve.postal_codes WHERE us_state_code IN '{"AE","AA","AP","PW","FM","MP","MH"}';
-DELETE FROM upchieve.us_states WHERE code IN '{"AE","AA","AP","PW","FM","MP","MH"}';
+DELETE FROM upchieve.postal_codes WHERE us_state_code IN ('AE','AA','AP','PW','FM','MP','MH');
+DELETE FROM upchieve.us_states WHERE code IN ('AE','AA','AP','PW','FM','MP','MH');
