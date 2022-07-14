@@ -281,5 +281,7 @@ DELETE FROM upchieve.surveys_survey_questions CASCADE;
 DELETE FROM upchieve.survey_response_choices CASCADE;
 DELETE FROM upchieve.survey_questions CASCADE;
 DELETE FROM upchieve.question_types CASCADE;
--- DELETE FROM upchieve.surveys_presession CASCADE;
 DELETE FROM upchieve.surveys CASCADE;
+
+-- NOTE: this down migration does not work quite right (the CASCADEs don't work as intended, if there is data relying
+--  foreign keys that would be deleted in this migration it simply fails); there is ongoing discussion on how to handle this right
