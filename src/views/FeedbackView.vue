@@ -331,7 +331,7 @@ export default {
         userType: this.userType
       }),
       NetworkService.getSession(sessionId),
-      NetworkService.getPresessionSurvey(sessionId)
+      NetworkService.getPresessionSurveyForFeedback(sessionId)
     ])
 
     const {
