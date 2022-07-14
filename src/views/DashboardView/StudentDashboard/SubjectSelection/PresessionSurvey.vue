@@ -289,8 +289,7 @@ export default {
     /**
      *
      *
-     * We must override the default styles that are set by the ModalTemplate form.
-     * the Presession sruvey component is rendered within the SubjectSelectionModal,
+     * The Presession survey component is rendered within the SubjectSelectionModal,
      * which is uses the ModalTemplate. Since the ModalTemplate has styles that are
      * not desired for this design, and to avoid a refactor of multiple components,
      * we are overriding styles of the ModalTemplate within this component and only
@@ -369,7 +368,7 @@ export default {
     prevStep() {
       this.currentStep--
     },
-    // builds a default user response state depending on the survey's question ids
+    // builds a default user response to be stored in state that maps a survey question ID to a response map
     buildUserResponse() {
       const userResponse = Object.assign({}, this.userResponse)
       const questionResponse = {
@@ -397,8 +396,8 @@ export default {
       const value = Number(event.target.value)
       const update = {
         responseId: value,
-        // reset the openResponse on every selection to ensure that it is only populated
-        // when the response with a text field is selected
+        // reset openResponse on every selection to ensure that it is only populated
+        // when a radio option with a text field is selected
         openResponse: '',
       }
       this.updateUserResponse(update)
