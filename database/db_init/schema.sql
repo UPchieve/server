@@ -1330,7 +1330,7 @@ CREATE TABLE upchieve.survey_questions_response_choices (
     display_priority smallint NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    surveys_survey_question_id integer DEFAULT 1 NOT NULL
+    surveys_survey_question_id integer NOT NULL
 );
 
 
