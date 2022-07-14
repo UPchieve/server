@@ -86,9 +86,8 @@ export default {
   }
 
   &__display {
-    margin: 2em 0;
+    margin: 1em 0;
     text-align: center;
-    // height: 40px;
     visibility: hidden;
 
     &--show {
