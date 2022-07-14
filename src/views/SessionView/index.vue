@@ -277,10 +277,17 @@ export default {
 
         // If we have a pre-session survey, submit it now
         if (Object.keys(this.presessionSurvey).length) {
-          NetworkService.submitPresessionSurvey(
-            sessionId,
-            this.presessionSurvey
-          )
+          if (this.isContextSharingWithVolunteerActive) {
+              // TODO: error handling - how to handle this case? we currently don't error handle presession survey submissions
+              await NetworkService.submitSurvey(
+                Object.assign({}, this.presessionSurvey, { sessionId })
+              ) 
+          } else {
+            NetworkService.submitPresessionSurvey(
+              sessionId,
+              this.presessionSurvey
+            )
+          }
           this.$store.dispatch('user/clearPresessionSurvey')
         }
 
