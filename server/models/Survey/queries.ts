@@ -102,12 +102,12 @@ export async function saveUserSurveyAndSubmissions(
 
 // NOTE: this query can be replaced by a JOIN that happens when we fetch
 // the session on the feedback page
-export async function getPresessionSurvey(
+export async function getPresessionSurveyForFeedback(
   userId: Ulid,
   sessionId: Ulid
 ): Promise<LegacySurvey | undefined> {
   try {
-    const result = await pgQueries.getPresessionSurvey.run(
+    const result = await pgQueries.getPresessionSurveyForFeedback.run(
       {
         userId,
         sessionId,
@@ -138,12 +138,17 @@ export type PresessionSurvey = {
   responses: PresessionSurveyResponse[]
 }
 
-// @todo: clean up old presession survey code and rename functions without the "new" keyword
-export async function getPresessionSurveyNew(
+export type PressionSurveyResponse = {
+  surveyId: number
+  surveyTypeId: number
+  survey: PresessionSurvey[]
+}
+
+export async function getPresessionSurvey(
   subjectName: string
-): Promise<PresessionSurvey[]> {
+): Promise<PressionSurveyResponse> {
   try {
-    const result = await pgQueries.getPresessionSurveyNew.run(
+    const result = await pgQueries.getPresessionSurvey.run(
       { subjectName },
       getClient()
     )
@@ -183,7 +188,14 @@ export async function getPresessionSurveyNew(
         responses: responses,
       })
     }
-    return survey
+
+    const data = {
+      surveyId: resultArr[0].surveyId,
+      surveyTypeId: resultArr[0].surveyTypeId,
+      survey,
+    }
+
+    return data
   } catch (err) {
     throw new RepoReadError(err)
   }

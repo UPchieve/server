@@ -72,16 +72,18 @@ describe(SAVE_PRESSION_SURVEY, () => {
   })
 })
 
-const GET_PRESSION_SURVEY = `/survey/presession/${sessionId}`
-describe(GET_PRESSION_SURVEY, () => {
+const GET_PRESSION_SURVEY_FOR_FEEDBACK = `/survey/presession/${sessionId}`
+describe(GET_PRESSION_SURVEY_FOR_FEEDBACK, () => {
   test('Should get presession survey questions', async () => {
     const payload = {}
     const mockedSurvey = buildPressionSurveyLegacy()
-    mockedSurveyRepo.getPresessionSurvey.mockImplementationOnce(
+    mockedSurveyRepo.getPresessionSurveyForFeedback.mockImplementationOnce(
       async () => mockedSurvey
     )
-    const response = await sendGet(GET_PRESSION_SURVEY, payload)
-    expect(mockedSurveyRepo.getPresessionSurvey).toHaveBeenCalledTimes(1)
+    const response = await sendGet(GET_PRESSION_SURVEY_FOR_FEEDBACK, payload)
+    expect(
+      mockedSurveyRepo.getPresessionSurveyForFeedback
+    ).toHaveBeenCalledTimes(1)
     const expected = {
       ...mockedSurvey,
       createdAt: mockedSurvey.createdAt.toISOString(),
@@ -92,17 +94,25 @@ describe(GET_PRESSION_SURVEY, () => {
   })
 })
 
-const GET_PRESSION_SURVEY_NEW = `/survey/presession`
-describe(GET_PRESSION_SURVEY_NEW, () => {
+const GET_PRESSION_SURVEY = (subject: string) =>
+  `/survey/presession?subject=${subject}`
+describe(GET_PRESSION_SURVEY, () => {
   test('Should get presession survey questions', async () => {
-    const payload = { subjectName: SUBJECTS.ALGEBRA_ONE }
-    const mockedSurvey = [buildPressionSurvey()]
-    mockedSurveyRepo.getPresessionSurveyNew.mockImplementationOnce(
+    const payload = {}
+    const mockedSurvey = {
+      surveyId: 1,
+      surveyTypeId: 1,
+      survey: [buildPressionSurvey()],
+    }
+    mockedSurveyRepo.getPresessionSurvey.mockImplementationOnce(
       async () => mockedSurvey
     )
-    const response = await sendGet(GET_PRESSION_SURVEY_NEW, payload)
-    expect(mockedSurveyRepo.getPresessionSurveyNew).toHaveBeenCalledTimes(1)
-    expect(response.body.survey).toEqual(mockedSurvey)
+    const response = await sendGet(
+      GET_PRESSION_SURVEY(SUBJECTS.ALGEBRA_ONE),
+      payload
+    )
+    expect(mockedSurveyRepo.getPresessionSurvey).toHaveBeenCalledTimes(1)
+    expect(response.body).toEqual(mockedSurvey)
     expect(response.status).toBe(200)
   })
 })

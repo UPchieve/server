@@ -53,7 +53,7 @@ RETURNING
     user_survey_id AS ok;
 
 
-/* @name getPresessionSurvey */
+/* @name getPresessionSurveyForFeedback */
 SELECT
     id,
     user_id,
@@ -68,7 +68,7 @@ WHERE
     AND session_id = :sessionId!;
 
 
-/* @name getPresessionSurveyNew */
+/* @name getPresessionSurvey */
 SELECT
     sq.id AS question_id,
     sq.question_text,
@@ -77,10 +77,13 @@ SELECT
     sub.response_id,
     sub.response_text,
     sub.response_display_priority,
-    sub.response_display_image
+    sub.response_display_image,
+    surveys.id as survey_id,
+    survey_types.id as survey_type_id
 FROM
     surveys_context
     JOIN surveys ON survey_id = surveys.id
+    JOIN survey_types ON surveys_context.survey_type_id = survey_types.id
     JOIN subjects ON subject_id = subjects.id
     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
@@ -97,7 +100,8 @@ FROM
         WHERE
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
-    subjects.name = :subjectName!;
+    subjects.name = :subjectName! 
+    AND survey_types.name = 'presession';
 
 
 /* @name getPresessionSurveyResponse */

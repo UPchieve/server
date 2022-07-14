@@ -1,8 +1,8 @@
 import expressWs from 'express-ws'
 import {
   savePresessionSurvey,
+  getPresessionSurveyForFeedback,
   getPresessionSurvey,
-  getPresessionSurveyNew,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
@@ -52,19 +52,21 @@ export function routeSurvey(router: expressWs.Router): void {
     const { sessionId } = req.params
 
     try {
-      const survey = await getPresessionSurvey(user.id, asUlid(sessionId))
+      const survey = await getPresessionSurveyForFeedback(
+        user.id,
+        asUlid(sessionId)
+      )
       res.json({ survey })
     } catch (error) {
       resError(res, error)
     }
   })
 
-  router.get('/survey/presession', async (req, res, next) => {
+  router.get('/survey/presession', async (req, res) => {
+    const { subject } = req.query
     try {
-      const survey = await getPresessionSurveyNew(
-        asString(req.body.subjectName)
-      )
-      res.json({ survey })
+      const survey = await getPresessionSurvey(asString(subject))
+      res.json(survey)
     } catch (error) {
       resError(res, error)
     }
