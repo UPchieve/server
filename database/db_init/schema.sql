@@ -134,6 +134,15 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: seed-migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."seed-migrations" (
+    version character varying(255) NOT NULL
+);
+
+
+--
 -- Name: seed_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -148,8 +157,8 @@ CREATE TABLE public.seed_migrations (
 
 CREATE TABLE upchieve.admin_profiles (
     user_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -164,8 +173,8 @@ CREATE TABLE upchieve.assistments_data (
     student_id uuid NOT NULL,
     session_id uuid NOT NULL,
     sent boolean DEFAULT false,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     sent_at timestamp with time zone,
     mongo_id character varying(24)
 );
@@ -181,8 +190,8 @@ CREATE TABLE upchieve.associated_partners (
     volunteer_partner_org_id uuid NOT NULL,
     student_partner_org_id uuid,
     student_sponsor_org_id uuid,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -197,8 +206,8 @@ CREATE TABLE upchieve.availabilities (
     available_start smallint NOT NULL,
     available_end smallint NOT NULL,
     timezone text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -214,8 +223,8 @@ CREATE TABLE upchieve.availability_histories (
     available_end smallint NOT NULL,
     timezone text NOT NULL,
     recorded_at timestamp with time zone NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -226,8 +235,8 @@ CREATE TABLE upchieve.availability_histories (
 CREATE TABLE upchieve.ban_reasons (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -258,8 +267,8 @@ ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
 CREATE TABLE upchieve.certification_subject_unlocks (
     subject_id integer NOT NULL,
     certification_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -270,8 +279,8 @@ CREATE TABLE upchieve.certification_subject_unlocks (
 CREATE TABLE upchieve.certifications (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -303,8 +312,8 @@ CREATE TABLE upchieve.cities (
     id integer NOT NULL,
     name text NOT NULL,
     us_state_code character varying(2),
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -338,8 +347,8 @@ CREATE TABLE upchieve.contact_form_submissions (
     user_email text,
     message text NOT NULL,
     topic text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -359,8 +368,8 @@ CREATE TABLE upchieve.feedbacks (
     comment text,
     user_id uuid NOT NULL,
     legacy_feedbacks jsonb,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24)
 );
 
@@ -372,8 +381,8 @@ CREATE TABLE upchieve.feedbacks (
 CREATE TABLE upchieve.grade_levels (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -408,8 +417,8 @@ CREATE TABLE upchieve.ineligible_students (
     ip_address_id bigint,
     school_id uuid,
     grade_level_id integer,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24),
     referred_by uuid
 );
@@ -423,8 +432,8 @@ CREATE TABLE upchieve.ip_addresses (
     id bigint NOT NULL,
     ip inet NOT NULL,
     status text,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24)
 );
 
@@ -459,8 +468,8 @@ CREATE TABLE upchieve.legacy_availability_histories (
     timezone text,
     recorded_at timestamp with time zone NOT NULL,
     legacy_availability jsonb NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -471,8 +480,8 @@ CREATE TABLE upchieve.legacy_availability_histories (
 CREATE TABLE upchieve.notification_methods (
     id integer NOT NULL,
     method text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -504,8 +513,8 @@ CREATE TABLE upchieve.notification_priority_groups (
     id integer NOT NULL,
     name text NOT NULL,
     priority smallint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -536,8 +545,8 @@ ALTER SEQUENCE upchieve.notification_priority_groups_id_seq OWNED BY upchieve.no
 CREATE TABLE upchieve.notification_types (
     id integer NOT NULL,
     type text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -575,8 +584,8 @@ CREATE TABLE upchieve.notifications (
     successful boolean,
     session_id uuid NOT NULL,
     message_carrier_id text,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24)
 );
 
@@ -588,8 +597,8 @@ CREATE TABLE upchieve.notifications (
 CREATE TABLE upchieve.photo_id_statuses (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -622,8 +631,8 @@ CREATE TABLE upchieve.postal_codes (
     us_state_code character varying(2),
     income integer,
     location point,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -636,8 +645,8 @@ CREATE TABLE upchieve.pre_session_surveys (
     response_data jsonb,
     session_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24)
 );
 
@@ -650,8 +659,8 @@ CREATE TABLE upchieve.push_tokens (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
     token text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -662,8 +671,8 @@ CREATE TABLE upchieve.push_tokens (
 CREATE TABLE upchieve.question_tags (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -688,8 +697,8 @@ ALTER TABLE upchieve.question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENT
 CREATE TABLE upchieve.question_types (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -714,8 +723,8 @@ ALTER TABLE upchieve.question_types ALTER COLUMN id ADD GENERATED ALWAYS AS IDEN
 CREATE TABLE upchieve.quiz_certification_grants (
     quiz_id integer NOT NULL,
     certification_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -730,8 +739,8 @@ CREATE TABLE upchieve.quiz_questions (
     correct_answer text NOT NULL,
     quiz_subcategory_id integer NOT NULL,
     image_source text,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24)
 );
 
@@ -764,8 +773,8 @@ CREATE TABLE upchieve.quiz_subcategories (
     id integer NOT NULL,
     name text NOT NULL,
     quiz_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -796,8 +805,8 @@ ALTER SEQUENCE upchieve.quiz_subcategories_id_seq OWNED BY upchieve.quiz_subcate
 CREATE TABLE upchieve.quizzes (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -828,8 +837,8 @@ ALTER SEQUENCE upchieve.quizzes_id_seq OWNED BY upchieve.quizzes.id;
 CREATE TABLE upchieve.report_reasons (
     id integer NOT NULL,
     reason text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -861,8 +870,8 @@ CREATE TABLE upchieve.required_email_domains (
     id uuid NOT NULL,
     domain text NOT NULL,
     volunteer_partner_org_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -872,8 +881,8 @@ CREATE TABLE upchieve.required_email_domains (
 
 CREATE TABLE upchieve.school_nces_metadata (
     school_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     school_year text,
     fipst integer,
     statename text,
@@ -951,8 +960,8 @@ CREATE TABLE upchieve.schools (
     approved boolean DEFAULT false NOT NULL,
     partner boolean DEFAULT false NOT NULL,
     city_id integer,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24),
     legacy_city_name text
 );
@@ -965,8 +974,8 @@ CREATE TABLE upchieve.schools (
 CREATE TABLE upchieve.schools_sponsor_orgs (
     school_id uuid NOT NULL,
     sponsor_org_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -977,8 +986,8 @@ CREATE TABLE upchieve.schools_sponsor_orgs (
 CREATE TABLE upchieve.session_failed_joins (
     session_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -989,8 +998,8 @@ CREATE TABLE upchieve.session_failed_joins (
 CREATE TABLE upchieve.session_flags (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1023,8 +1032,8 @@ CREATE TABLE upchieve.session_messages (
     sender_id uuid NOT NULL,
     contents text NOT NULL,
     session_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24)
 );
 
@@ -1036,8 +1045,8 @@ CREATE TABLE upchieve.session_messages (
 CREATE TABLE upchieve.session_photos (
     session_id uuid NOT NULL,
     photo_key text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1064,8 +1073,8 @@ CREATE TABLE upchieve.session_reports (
 CREATE TABLE upchieve.session_review_reasons (
     session_id uuid NOT NULL,
     session_flag_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1087,8 +1096,8 @@ CREATE TABLE upchieve.sessions (
     to_review boolean DEFAULT false NOT NULL,
     student_banned boolean,
     time_tutored bigint DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24)
 );
 
@@ -1100,8 +1109,8 @@ CREATE TABLE upchieve.sessions (
 CREATE TABLE upchieve.sessions_session_flags (
     session_id uuid NOT NULL,
     session_flag_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1112,8 +1121,8 @@ CREATE TABLE upchieve.sessions_session_flags (
 CREATE TABLE upchieve.signup_sources (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1144,8 +1153,8 @@ ALTER SEQUENCE upchieve.signup_sources_id_seq OWNED BY upchieve.signup_sources.i
 CREATE TABLE upchieve.sponsor_orgs (
     id uuid NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     key text NOT NULL
 );
 
@@ -1157,8 +1166,8 @@ CREATE TABLE upchieve.sponsor_orgs (
 CREATE TABLE upchieve.student_favorite_volunteers (
     student_id uuid NOT NULL,
     volunteer_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1170,8 +1179,8 @@ CREATE TABLE upchieve.student_partner_org_sites (
     id uuid NOT NULL,
     name text NOT NULL,
     student_partner_org_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1187,8 +1196,8 @@ CREATE TABLE upchieve.student_partner_orgs (
     high_school_signup boolean DEFAULT false NOT NULL,
     college_signup boolean DEFAULT false NOT NULL,
     school_signup_required boolean DEFAULT false NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1199,8 +1208,8 @@ CREATE TABLE upchieve.student_partner_orgs (
 CREATE TABLE upchieve.student_partner_orgs_sponsor_orgs (
     student_partner_org_id uuid NOT NULL,
     sponsor_org_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1217,8 +1226,8 @@ CREATE TABLE upchieve.student_profiles (
     student_partner_org_user_id text,
     student_partner_org_id uuid,
     student_partner_org_site_id uuid,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1233,8 +1242,8 @@ CREATE TABLE upchieve.subjects (
     display_order integer NOT NULL,
     topic_id integer NOT NULL,
     tool_type_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1266,8 +1275,8 @@ CREATE TABLE upchieve.survey_questions (
     id integer NOT NULL,
     question_type_id integer NOT NULL,
     question_text text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1293,8 +1302,8 @@ CREATE TABLE upchieve.survey_questions_question_tags (
     id integer NOT NULL,
     survey_question_id integer NOT NULL,
     question_tag_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1319,8 +1328,8 @@ ALTER TABLE upchieve.survey_questions_question_tags ALTER COLUMN id ADD GENERATE
 CREATE TABLE upchieve.survey_questions_response_choices (
     response_choice_id integer NOT NULL,
     display_priority smallint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     surveys_survey_question_id integer NOT NULL
 );
 
@@ -1333,8 +1342,8 @@ CREATE TABLE upchieve.survey_response_choices (
     id integer NOT NULL,
     score smallint NOT NULL,
     choice_text text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1359,8 +1368,8 @@ ALTER TABLE upchieve.survey_response_choices ALTER COLUMN id ADD GENERATED ALWAY
 CREATE TABLE upchieve.survey_types (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1385,8 +1394,8 @@ ALTER TABLE upchieve.survey_types ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTI
 CREATE TABLE upchieve.surveys (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1398,8 +1407,8 @@ CREATE TABLE upchieve.surveys_context (
     survey_id integer NOT NULL,
     subject_id integer,
     survey_type_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1426,8 +1435,8 @@ CREATE TABLE upchieve.surveys_survey_questions (
     survey_id integer NOT NULL,
     survey_question_id integer NOT NULL,
     display_priority smallint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1452,8 +1461,8 @@ ALTER TABLE upchieve.surveys_survey_questions ALTER COLUMN id ADD GENERATED ALWA
 CREATE TABLE upchieve.tool_types (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1488,8 +1497,8 @@ CREATE TABLE upchieve.topics (
     color text,
     dashboard_order smallint NOT NULL,
     display_name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1520,8 +1529,8 @@ ALTER SEQUENCE upchieve.topics_id_seq OWNED BY upchieve.topics.id;
 CREATE TABLE upchieve.training_courses (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1552,8 +1561,8 @@ ALTER SEQUENCE upchieve.training_courses_id_seq OWNED BY upchieve.training_cours
 CREATE TABLE upchieve.us_states (
     code character varying(2) NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1575,8 +1584,8 @@ CREATE TABLE upchieve.user_actions (
     operating_system_version text,
     quiz_subcategory text,
     quiz_category text,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24),
     reference_email text,
     volunteer_id uuid,
@@ -1615,8 +1624,8 @@ CREATE TABLE upchieve.user_product_flags (
     sent_inactive_sixty_day_email boolean DEFAULT false NOT NULL,
     sent_inactive_ninety_day_email boolean DEFAULT false NOT NULL,
     gates_qualified boolean DEFAULT false NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     in_gates_study boolean DEFAULT false NOT NULL
 );
 
@@ -1628,8 +1637,8 @@ CREATE TABLE upchieve.user_product_flags (
 CREATE TABLE upchieve.user_roles (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1671,8 +1680,8 @@ CREATE TABLE upchieve.user_session_metrics (
     comment_from_volunteer integer DEFAULT 0 NOT NULL,
     has_been_unmatched integer DEFAULT 0 NOT NULL,
     has_had_technical_issues integer DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1699,8 +1708,8 @@ CREATE TABLE upchieve.users (
     ban_reason_id integer,
     time_tutored bigint,
     signup_source_id integer,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     phone text,
     mongo_id character varying(24)
 );
@@ -1713,8 +1722,8 @@ CREATE TABLE upchieve.users (
 CREATE TABLE upchieve.users_certifications (
     user_id uuid NOT NULL,
     certification_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1726,8 +1735,8 @@ CREATE TABLE upchieve.users_ip_addresses (
     id uuid NOT NULL,
     ip_address_id integer NOT NULL,
     user_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1740,8 +1749,8 @@ CREATE TABLE upchieve.users_quizzes (
     quiz_id integer NOT NULL,
     attempts integer DEFAULT 0 NOT NULL,
     passed boolean DEFAULT false NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1752,8 +1761,8 @@ CREATE TABLE upchieve.users_quizzes (
 CREATE TABLE upchieve.users_roles (
     user_id uuid NOT NULL,
     role_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1777,8 +1786,8 @@ CREATE TABLE upchieve.volunteer_profiles (
     city text,
     state text,
     country text,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     total_volunteer_hours double precision,
     elapsed_availability bigint
 );
@@ -1825,8 +1834,8 @@ CREATE TABLE upchieve.users_surveys (
     user_id uuid NOT NULL,
     session_id uuid,
     survey_type_id integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1839,8 +1848,8 @@ CREATE TABLE upchieve.users_surveys_submissions (
     survey_question_id integer NOT NULL,
     survey_response_choice_id integer,
     open_response text,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1854,8 +1863,8 @@ CREATE TABLE upchieve.users_training_courses (
     complete boolean DEFAULT false NOT NULL,
     progress smallint DEFAULT 0 NOT NULL,
     completed_materials text[],
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT users_training_courses_progress_check CHECK ((progress >= 0)),
     CONSTRAINT users_training_courses_progress_check1 CHECK ((progress <= 100))
 );
@@ -1868,8 +1877,8 @@ CREATE TABLE upchieve.users_training_courses (
 CREATE TABLE upchieve.volunteer_occupations (
     user_id uuid NOT NULL,
     occupation text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1882,8 +1891,8 @@ CREATE TABLE upchieve.volunteer_partner_orgs (
     key text NOT NULL,
     name text NOT NULL,
     receive_weekly_hour_summary_email boolean DEFAULT false NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1894,8 +1903,8 @@ CREATE TABLE upchieve.volunteer_partner_orgs (
 CREATE TABLE upchieve.volunteer_reference_statuses (
     id integer NOT NULL,
     name text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1952,8 +1961,8 @@ CREATE TABLE upchieve.volunteer_references (
 CREATE TABLE upchieve.weekdays (
     id integer NOT NULL,
     day text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -2152,6 +2161,14 @@ ALTER TABLE ONLY auth.session
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: seed-migrations seed-migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."seed-migrations"
+    ADD CONSTRAINT "seed-migrations_pkey" PRIMARY KEY (version);
 
 
 --
@@ -2960,14 +2977,6 @@ ALTER TABLE ONLY upchieve.user_actions
 
 ALTER TABLE ONLY upchieve.user_actions
     ADD CONSTRAINT user_actions_pkey PRIMARY KEY (id);
-
-
---
--- Name: volunteer_references user_id_ref_email_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.volunteer_references
-    ADD CONSTRAINT user_id_ref_email_unique UNIQUE (user_id, email);
 
 
 --
@@ -4257,7 +4266,11 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220405223145'),
     ('20220405224635'),
     ('20220405232100'),
+    ('20220414230259'),
+    ('20220420175302'),
+    ('20220429162202'),
     ('20220504152804'),
+    ('20220512174157'),
     ('20220517154624'),
     ('20220517213052'),
     ('20220520164318'),
@@ -4276,4 +4289,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220614202247'),
     ('20220615162628'),
     ('20220630141321'),
-    ('20220630192340');
+    ('20220630192340'),
+    ('20220713170236');

@@ -108,7 +108,7 @@ export DBMATE_MIGRATIONS_DIR="/path/to/repo/subway/database/migrations"
 export DATABASE_URL="postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable"
 ```
 
-2. Create a new migration in `database/migrations` by running `dbmate new file-name-here`.
+2. Create a new migration in `database/migrations` by running `dbmate new file_name_here` for table migrations.
 3. Write the migration, including both rollout and rollback instructions - for example:
 ```sql
 -- migrate:up
@@ -125,12 +125,13 @@ Notes:
 - If the database/schema end up in an irrecoverable state, you can drop everything with `dbmate drop` and then use `dbmate up` to re-apply all migrations in order from scratch.
 - After every `dbmate up`, dbmate will dump the schema to `databse/db_init_schema.sql`, which overwrites anything previously in that file.
 - Everything in `db_init` is programmatically generated and can be ignored in diff examinations
+-  For seed migrations, run `dbmate -d ./database/seed-updates --migrations-table seed_migrations --no-dump-schema up`, `down`, or `new file_name_here`. `--no-dump-schema` is particularly important because leaving it out causes dbmate to overwrite the list of migrations in `db_init/schema.sql` - this leaves the database in a bugged state it is difficult to recover from as docker/dbmate try to apply seed migrations to tables that require schema migrations without the schema migrations being applied.
 
 ### Seed updates
 
 There are 2 types of seeds: static and test.
 
-For test data seeds, find the file that represents the objects you want to add and just add new data to teh array. If you are adding a new table, copy the template into a new file and change the underlying query/data array.
+For test data seeds, find the file that represents the objects you want to add and just add new data to the array. If you are adding a new table, copy the template into a new file and change the underlying query/data array.
 
 Running the seeds involves three commands:
 

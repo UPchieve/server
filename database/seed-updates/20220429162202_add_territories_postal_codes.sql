@@ -7,7 +7,9 @@ VALUES
   ('PW', 'Palau', NOW(), NOW()),
   ('FM', 'Micronesia', NOW(), NOW()),
   ('MP', 'Norther Mariana Islands', NOW(), NOW()),
-  ('MH', 'Marshall Islands', NOW(), NOW());
+  ('MH', 'Marshall Islands', NOW(), NOW())
+ON CONFLICT ON CONSTRAINT us_states_name_key
+  DO NOTHING;
 
 INSERT INTO upchieve.postal_codes (code, us_state_code, income, location, created_at, updated_at)
 VALUES
@@ -852,8 +854,10 @@ VALUES
   (96951, 'MP', 0, POINT(14.15,145.21), NOW(), NOW()),
   (96952, 'MP', 0, POINT(15,145.63), NOW(), NOW()),
   (96960, 'MH', 0, POINT(7.11,171.18), NOW(), NOW()),
-  (96970, 'MH', 0, POINT(8.78,167.73), NOW(), NOW());
+  (96970, 'MH', 0, POINT(8.78,167.73), NOW(), NOW())
+ON CONFLICT ON CONSTRAINT postal_codes_pkey
+  DO NOTHING;
 
 -- migrate:down
-DELETE FROM upchieve.postal_codes WHERE us_state_code IN '{"AE","AA","AP","PW","FM","MP","MH"}';
-DELETE FROM upchieve.us_states WHERE code IN '{"AE","AA","AP","PW","FM","MP","MH"}';
+DELETE FROM upchieve.postal_codes WHERE us_state_code IN ('AE','AA','AP','PW','FM','MP','MH');
+DELETE FROM upchieve.us_states WHERE code IN ('AE','AA','AP','PW','FM','MP','MH');
