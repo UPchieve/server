@@ -71,15 +71,15 @@ WHERE
 /* @name getPresessionSurvey */
 SELECT
     sq.id AS question_id,
-    sq.question_text,
+    regexp_replace(sq.question_text, '<subject_name>', subjects.display_name) AS question_text,
     ssq.display_priority,
     qt.name AS question_type,
     sub.response_id,
     sub.response_text,
     sub.response_display_priority,
     sub.response_display_image,
-    surveys.id as survey_id,
-    survey_types.id as survey_type_id
+    surveys.id AS survey_id,
+    survey_types.id AS survey_type_id
 FROM
     surveys_context
     JOIN surveys ON survey_id = surveys.id
@@ -100,7 +100,7 @@ FROM
         WHERE
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
-    subjects.name = :subjectName! 
+    subjects.name = :subjectName!
     AND survey_types.name = 'presession';
 
 
