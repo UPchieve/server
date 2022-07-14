@@ -315,7 +315,20 @@ export default {
     },
     isSurveyComplete() {
       for (const question of this.survey) {
-        if (!this.userResponse[question.questionId].responseId) return false
+        const questionId = question.questionId
+        const userResponse = this.userResponse[questionId]
+        if (!userResponse.responseId) return false
+
+        // check if a response that should have an open response was entered
+        const response = question.responses.find(
+          (response) => response.responseText === 'Other'
+        )
+        if (
+          response &&
+          response.responseId === userResponse.responseId &&
+          !userResponse.openResponse
+        )
+          return false
       }
       return true
     },
@@ -531,6 +544,7 @@ export default {
 
     &-images {
       @include flex-container(row, center);
+      margin-top: 2em;
     }
   }
 
