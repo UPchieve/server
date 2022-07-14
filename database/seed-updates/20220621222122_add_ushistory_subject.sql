@@ -1,6 +1,8 @@
 -- migrate:up
 INSERT INTO upchieve.topics (name, icon_link, color, dashboard_order, display_name, created_at, updated_at)
-     VALUES ('socialStudies', null, null, 6, 'Social Studies', NOW(), NOW());
+     VALUES ('socialStudies', null, null, 6, 'Social Studies', NOW(), NOW())
+ON CONFLICT ON CONSTRAINT topics_dashboard_order_key
+    DO NOTHING;
 
 INSERT INTO upchieve.subjects (name, display_name, display_order, topic_id, tool_type_id, created_at, updated_at)
 SELECT
@@ -26,7 +28,9 @@ RETURNING
     id AS ok;
 
 INSERT INTO upchieve.certifications (name, created_at, updated_at)
-    VALUES ('usHistory', NOW(), NOW());
+    VALUES ('usHistory', NOW(), NOW())
+ON CONFLICT ON CONSTRAINT certifications_name_key
+    DO NOTHING;
 
 INSERT INTO upchieve.certification_subject_unlocks (subject_id, certification_id, created_at, updated_at)
 SELECT
@@ -50,7 +54,9 @@ RETURNING
     subject_id AS ok;
 
 INSERT INTO upchieve.quizzes (name, created_at, updated_at)
-    VALUES ('usHistory', NOW(), NOW());
+    VALUES ('usHistory', NOW(), NOW())
+ON CONFLICT ON CONSTRAINT quizzes_name_key
+    DO NOTHING;
 
 INSERT INTO upchieve.quiz_certification_grants (quiz_id, certification_id, created_at, updated_at)
 SELECT
