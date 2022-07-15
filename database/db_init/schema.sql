@@ -1275,8 +1275,8 @@ CREATE TABLE upchieve.survey_questions (
     id integer NOT NULL,
     question_type_id integer NOT NULL,
     question_text text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     response_display_text text
 );
 
@@ -1343,8 +1343,8 @@ CREATE TABLE upchieve.survey_response_choices (
     id integer NOT NULL,
     score smallint NOT NULL,
     choice_text text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     display_image text
 );
 
