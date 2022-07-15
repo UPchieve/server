@@ -24,9 +24,9 @@
         :class="'dashboard-notice--summer-prep'"
       >
         <!-- Show Below Message Until July 5th: -->
-        <span v-if="new Date() < new Date('7-05-2022')">Need to write your college essay? Take our 2 week <a href="https://bit.ly/upchievesummer" target="_blank">College Essay Challenge</a>!</span>
+        <span v-if="new Date() < new Date('07/05/2022')">Need to write your college essay? Take our 2 week <a href="https://bit.ly/upchievesummer" target="_blank">College Essay Challenge</a>!</span>
         <!-- Show Below Message From July 5th-July 26th: -->
-        <span v-if="new Date() >= new Date('7-05-2022')">Want to get college ready? <a href="https://bit.ly/upchievesummer" target="_blank">Sign up</a> for our 2 week bootcamp!</span>
+        <span v-if="new Date() >= new Date('07/05/2022')">Want to get college ready? <a href="https://bit.ly/upchievesummer" target="_blank">Sign up</a> for our 2 week bootcamp!</span>
       </div>
     </div>
 
