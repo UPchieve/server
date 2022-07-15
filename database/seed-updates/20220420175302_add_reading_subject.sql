@@ -23,7 +23,9 @@ RETURNING
     id AS ok;
 
 INSERT INTO upchieve.certifications (name, created_at, updated_at)
-    VALUES ('reading', NOW(), NOW());
+    VALUES ('reading', NOW(), NOW())
+ON CONFLICT ON CONSTRAINT certifications_name_key
+    DO NOTHING;
 
 INSERT INTO upchieve.certification_subject_unlocks (subject_id, certification_id, created_at, updated_at)
 SELECT

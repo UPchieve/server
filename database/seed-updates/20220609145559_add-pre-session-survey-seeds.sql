@@ -6,7 +6,9 @@ VALUES ('STEM Pre-Session Survey', NOW(), NOW()),
        ('College Planning Pre-Session Survey', NOW(), NOW()),
        ('College Essays Pre-Session Survey', NOW(), NOW()),
        ('College Applications Pre-Session Survey', NOW(), NOW()),
-       ('SAT Prep Pre-Session Survey', NOW(), NOW());
+       ('SAT Prep Pre-Session Survey', NOW(), NOW())
+ON CONFLICT ON CONSTRAINT surveys_name_key
+  DO NOTHING;
 
 /*
 * Removed due to dropping `surveys_presession` from schema in later schema
@@ -273,10 +275,13 @@ WHERE
   (upchieve.surveys.name = 'College Applications Pre-Session Survey' AND sq.question_text = 'How do you feel about your ability to get accepted to college?' AND rc.choice_text = '😀' AND sub.text::int = 40);
 
 -- migrate:down
+DELETE FROM upchieve.surveys_context CASCADE;
 DELETE FROM upchieve.survey_questions_response_choices CASCADE;
 DELETE FROM upchieve.surveys_survey_questions CASCADE;
 DELETE FROM upchieve.survey_response_choices CASCADE;
 DELETE FROM upchieve.survey_questions CASCADE;
 DELETE FROM upchieve.question_types CASCADE;
-DELETE FROM upchieve.surveys_presession CASCADE;
 DELETE FROM upchieve.surveys CASCADE;
+
+-- NOTE: this down migration does not work quite right (the CASCADEs don't work as intended, if there is data relying
+--  foreign keys that would be deleted in this migration it simply fails); there is ongoing discussion on how to handle this right
