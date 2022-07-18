@@ -85,11 +85,12 @@ export function routeSurvey(router: expressWs.Router): void {
 
   router.get('/survey/postsession', async (req, res) => {
     try {
+      const { subject } = req.query
       const survey = await getSurveyDefinition(
-        asString(req.body.subjectName),
+        asString(subject),
         'postsession'
       )
-      res.json({ survey })
+      res.json(survey)
     } catch (error) {
       resError(res, error)
     }

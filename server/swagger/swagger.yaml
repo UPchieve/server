@@ -1612,7 +1612,7 @@ paths:
       parameters:
         - name: subjectName
           required: true
-          in: body
+          in: query
           schema:
             $ref: '#/components/schemas/Category'
       responses:
