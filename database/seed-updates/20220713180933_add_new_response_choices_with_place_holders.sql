@@ -11,7 +11,7 @@ INSERT INTO
   )
 SELECT
   upchieve.question_types.id,
-  'Overall, how do you feel about the <subject_name> section?',
+  'Overall, how do you feel about the %s section?',
   'Their confidence:',
   NOW(),
   NOW()
@@ -42,7 +42,7 @@ FROM
         FROM
           upchieve.survey_questions
         WHERE
-          question_text = 'Overall, how do you feel about the <subject_name> section?'
+          question_text = 'Overall, how do you feel about the %s section?'
       ) AS new_question ON TRUE
     WHERE
       upchieve.surveys.name = 'SAT Prep Pre-Session Survey'
@@ -79,7 +79,7 @@ WHERE
 UPDATE
   upchieve.survey_questions
 SET
-  question_text = 'Overall, how do you feel about <subject_name>?',
+  question_text = 'Overall, how do you feel about %s?',
   updated_at = NOW()
 WHERE
   upchieve.survey_questions.question_text = 'How do you feel about your ability to learn this topic?';
@@ -236,7 +236,7 @@ SET
   question_text = 'How do you feel about your ability to learn this topic?',
   updated_at = NOW()
 WHERE
-  upchieve.survey_questions.question_text = 'Overall, how do you feel about <subject_name>?';
+  upchieve.survey_questions.question_text = 'Overall, how do you feel about %s?';
 
 
 UPDATE
@@ -264,7 +264,7 @@ FROM
       ) AS new_question ON TRUE
     WHERE
       upchieve.surveys.name = 'SAT Prep Pre-Session Survey'
-      AND upchieve.survey_questions.question_text = 'Overall, how do you feel about the <subject_name> section?'
+      AND upchieve.survey_questions.question_text = 'Overall, how do you feel about the %s section?'
   ) AS subquery
 WHERE
   upchieve.surveys_survey_questions.survey_id = subquery.survey_id
@@ -274,4 +274,4 @@ WHERE
 DELETE FROM
   upchieve.survey_questions
 WHERE
-  upchieve.survey_questions.question_text = 'Overall, how do you feel about the <subject_name> section?';
+  upchieve.survey_questions.question_text = 'Overall, how do you feel about the %s section?';
