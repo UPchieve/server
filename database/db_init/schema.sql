@@ -3876,7 +3876,7 @@ ALTER TABLE ONLY upchieve.survey_questions
 --
 
 ALTER TABLE ONLY upchieve.survey_questions_response_choices
-    ADD CONSTRAINT survey_questions_response_choic_surveys_survey_question_id_fkey FOREIGN KEY (surveys_survey_question_id) REFERENCES upchieve.surveys_survey_questions(id);
+    ADD CONSTRAINT survey_questions_response_choic_surveys_survey_question_id_fkey FOREIGN KEY (surveys_survey_question_id) REFERENCES upchieve.surveys_survey_questions(id) ON DELETE CASCADE;
 
 
 --
@@ -3884,7 +3884,7 @@ ALTER TABLE ONLY upchieve.survey_questions_response_choices
 --
 
 ALTER TABLE ONLY upchieve.survey_questions_response_choices
-    ADD CONSTRAINT survey_questions_response_choices_response_choice_id_fkey FOREIGN KEY (response_choice_id) REFERENCES upchieve.survey_response_choices(id);
+    ADD CONSTRAINT survey_questions_response_choices_response_choice_id_fkey FOREIGN KEY (response_choice_id) REFERENCES upchieve.survey_response_choices(id) ON DELETE CASCADE;
 
 
 --
@@ -3892,7 +3892,7 @@ ALTER TABLE ONLY upchieve.survey_questions_response_choices
 --
 
 ALTER TABLE ONLY upchieve.surveys_context
-    ADD CONSTRAINT surveys_context_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+    ADD CONSTRAINT surveys_context_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id) ON DELETE CASCADE;
 
 
 --
@@ -3900,7 +3900,7 @@ ALTER TABLE ONLY upchieve.surveys_context
 --
 
 ALTER TABLE ONLY upchieve.surveys_context
-    ADD CONSTRAINT surveys_context_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+    ADD CONSTRAINT surveys_context_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id) ON DELETE CASCADE;
 
 
 --
@@ -3908,7 +3908,7 @@ ALTER TABLE ONLY upchieve.surveys_context
 --
 
 ALTER TABLE ONLY upchieve.surveys_context
-    ADD CONSTRAINT surveys_context_survey_type_id_fkey FOREIGN KEY (survey_type_id) REFERENCES upchieve.survey_types(id);
+    ADD CONSTRAINT surveys_context_survey_type_id_fkey FOREIGN KEY (survey_type_id) REFERENCES upchieve.survey_types(id) ON DELETE CASCADE;
 
 
 --
@@ -3916,7 +3916,7 @@ ALTER TABLE ONLY upchieve.surveys_context
 --
 
 ALTER TABLE ONLY upchieve.surveys_survey_questions
-    ADD CONSTRAINT surveys_survey_questions_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id);
+    ADD CONSTRAINT surveys_survey_questions_survey_id_fkey FOREIGN KEY (survey_id) REFERENCES upchieve.surveys(id) ON DELETE CASCADE;
 
 
 --
@@ -3924,7 +3924,7 @@ ALTER TABLE ONLY upchieve.surveys_survey_questions
 --
 
 ALTER TABLE ONLY upchieve.surveys_survey_questions
-    ADD CONSTRAINT surveys_survey_questions_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id);
+    ADD CONSTRAINT surveys_survey_questions_survey_question_id_fkey FOREIGN KEY (survey_question_id) REFERENCES upchieve.survey_questions(id) ON DELETE CASCADE;
 
 
 --
@@ -4294,4 +4294,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220630192340'),
     ('20220701142259'),
     ('20220710195206'),
+    ('20220711163000'),
     ('20220713170236');
