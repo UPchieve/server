@@ -1,4 +1,8 @@
+import { String } from 'aws-sdk/clients/cloudsearch'
 import { Ulid } from '../pgUtils'
+
+const SURVEY_TYPES = <const>['presession', 'postsession']
+export type SurveyType = typeof SURVEY_TYPES[number]
 
 export type PresessionSurveyResponseData = {
   'primary-goal': {
@@ -59,6 +63,6 @@ export type SurveyQuestionDefinition = {
   questionId: string
   questionText: string
   displayPriority: number
-  questionType: string
+  questionType: String
   responses: SurveyResponseDefinition[]
 }

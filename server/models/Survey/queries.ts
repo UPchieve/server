@@ -8,6 +8,7 @@ import {
   SaveUserSurvey,
   SurveyResponseDefinition,
   SurveyQuestionDefinition,
+  SurveyType,
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
@@ -132,10 +133,10 @@ export async function getPresessionSurvey(
 
 export async function getSurveyDefinition(
   subjectName: string,
-  surveyType: string
+  surveyType: SurveyType
 ): Promise<SurveyQuestionDefinition[]> {
   try {
-    const result = await pgQueries.getPresessionSurveyNew.run(
+    const result = await pgQueries.getSurveyDefinition.run(
       { subjectName, surveyType },
       getClient()
     )

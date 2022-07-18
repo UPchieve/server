@@ -68,7 +68,7 @@ WHERE
     AND session_id = :sessionId!;
 
 
-/* @name getPresessionSurveyNew */
+/* @name getSurveyDefinition */
 SELECT
     sq.id AS question_id,
     sq.question_text,
