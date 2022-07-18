@@ -71,7 +71,7 @@ WHERE
 /* @name getPresessionSurvey */
 SELECT
     sq.id AS question_id,
-    regexp_replace(sq.question_text, '<subject_name>', subjects.display_name) AS question_text,
+    FORMAT(sq.question_text, subjects.display_name) AS question_text,
     ssq.display_priority,
     qt.name AS question_type,
     sub.response_id,
