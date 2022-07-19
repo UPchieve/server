@@ -97,11 +97,11 @@ describe(GET_PRESSION_SURVEY_NEW, () => {
   test('Should get presession survey questions', async () => {
     const payload = { subjectName: SUBJECTS.ALGEBRA_ONE }
     const mockedSurvey = [buildPressionSurvey()]
-    mockedSurveyRepo.getPresessionSurveyNew.mockImplementationOnce(
+    mockedSurveyRepo.getSurveyDefinition.mockImplementationOnce(
       async () => mockedSurvey
     )
     const response = await sendGet(GET_PRESSION_SURVEY_NEW, payload)
-    expect(mockedSurveyRepo.getPresessionSurveyNew).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyRepo.getSurveyDefinition).toHaveBeenCalledTimes(1)
     expect(response.body.survey).toEqual(mockedSurvey)
     expect(response.status).toBe(200)
   })
