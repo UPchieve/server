@@ -68,7 +68,7 @@ WHERE
     AND session_id = :sessionId!;
 
 
-/* @name getPresessionSurveyNew */
+/* @name getSurveyDefinition */
 SELECT
     sq.id AS question_id,
     sq.question_text,
@@ -85,6 +85,7 @@ FROM
     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
     JOIN question_types qt ON qt.id = sq.question_type_id
+    JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id
     JOIN LATERAL (
         SELECT
             id AS response_id,
@@ -97,7 +98,8 @@ FROM
         WHERE
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
-    subjects.name = :subjectName!;
+    subjects.name = :subjectName!
+    AND st.name = :surveyType!;
 
 
 /* @name getPresessionSurveyResponse */

@@ -22,7 +22,7 @@ import { GRADES } from '../constants'
 import { AppStudent, AppUser, AppVolunteer } from './types'
 import {
   LegacySurvey,
-  PresessionSurvey,
+  SurveyQuestionDefinition,
   PresessionSurveyResponseData,
   StudentPresessionSurveyResponse,
   UserSurvey,
@@ -345,8 +345,8 @@ export const buildPressionSurveyLegacy = (
 }
 
 export const buildPressionSurvey = (
-  overrides: Partial<PresessionSurvey> = {}
-): PresessionSurvey => {
+  overrides: Partial<SurveyQuestionDefinition> = {}
+): SurveyQuestionDefinition => {
   const survey = {
     questionId: '1',
     questionText: "What is your primary goal for today's session?",

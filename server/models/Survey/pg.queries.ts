@@ -191,13 +191,14 @@ const getPresessionSurveyIR: any = {"name":"getPresessionSurvey","params":[{"nam
 export const getPresessionSurvey = new PreparedQuery<IGetPresessionSurveyParams,IGetPresessionSurveyResult>(getPresessionSurveyIR);
 
 
-/** 'GetPresessionSurveyNew' parameters type */
-export interface IGetPresessionSurveyNewParams {
+/** 'GetSurveyDefinition' parameters type */
+export interface IGetSurveyDefinitionParams {
   subjectName: string;
+  surveyType: string;
 }
 
-/** 'GetPresessionSurveyNew' return type */
-export interface IGetPresessionSurveyNewResult {
+/** 'GetSurveyDefinition' return type */
+export interface IGetSurveyDefinitionResult {
   displayPriority: number;
   questionId: number;
   questionText: string;
@@ -208,13 +209,13 @@ export interface IGetPresessionSurveyNewResult {
   responseText: string;
 }
 
-/** 'GetPresessionSurveyNew' query type */
-export interface IGetPresessionSurveyNewQuery {
-  params: IGetPresessionSurveyNewParams;
-  result: IGetPresessionSurveyNewResult;
+/** 'GetSurveyDefinition' query type */
+export interface IGetSurveyDefinitionQuery {
+  params: IGetSurveyDefinitionParams;
+  result: IGetSurveyDefinitionResult;
 }
 
-const getPresessionSurveyNewIR: any = {"name":"getPresessionSurveyNew","params":[{"name":"subjectName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2401,"b":2412,"line":100,"col":21}]}}],"usedParamSet":{"subjectName":true},"statement":{"body":"SELECT\n    sq.id AS question_id,\n    sq.question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sub.response_id,\n    sub.response_text,\n    sub.response_display_priority,\n    sub.response_display_image\nFROM\n    surveys_context\n    JOIN surveys ON survey_id = surveys.id\n    JOIN subjects ON subject_id = subjects.id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id\n    JOIN survey_questions sq ON ssq.survey_question_id = sq.id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    JOIN LATERAL (\n        SELECT\n            id AS response_id,\n            choice_text AS response_text,\n            display_priority AS response_display_priority,\n            display_image AS response_display_image\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE\nWHERE\n    subjects.name = :subjectName!","loc":{"a":1407,"b":2412,"line":72,"col":0}}};
+const getSurveyDefinitionIR: any = {"name":"getSurveyDefinition","params":[{"name":"subjectName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2474,"b":2485,"line":101,"col":21}]}},{"name":"surveyType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2506,"b":2516,"line":102,"col":19}]}}],"usedParamSet":{"subjectName":true,"surveyType":true},"statement":{"body":"SELECT\n    sq.id AS question_id,\n    sq.question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sub.response_id,\n    sub.response_text,\n    sub.response_display_priority,\n    sub.response_display_image\nFROM\n    surveys_context\n    JOIN surveys ON survey_id = surveys.id\n    JOIN subjects ON subject_id = subjects.id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id\n    JOIN survey_questions sq ON ssq.survey_question_id = sq.id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id\n    JOIN LATERAL (\n        SELECT\n            id AS response_id,\n            choice_text AS response_text,\n            display_priority AS response_display_priority,\n            display_image AS response_display_image\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE\nWHERE\n    subjects.name = :subjectName!\n    AND st.name = :surveyType!","loc":{"a":1404,"b":2516,"line":72,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -235,6 +236,7 @@ const getPresessionSurveyNewIR: any = {"name":"getPresessionSurveyNew","params":
  *     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
  *     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
  *     JOIN question_types qt ON qt.id = sq.question_type_id
+ *     JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id
  *     JOIN LATERAL (
  *         SELECT
  *             id AS response_id,
@@ -248,9 +250,10 @@ const getPresessionSurveyNewIR: any = {"name":"getPresessionSurveyNew","params":
  *             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
  * WHERE
  *     subjects.name = :subjectName!
+ *     AND st.name = :surveyType!
  * ```
  */
-export const getPresessionSurveyNew = new PreparedQuery<IGetPresessionSurveyNewParams,IGetPresessionSurveyNewResult>(getPresessionSurveyNewIR);
+export const getSurveyDefinition = new PreparedQuery<IGetSurveyDefinitionParams,IGetSurveyDefinitionResult>(getSurveyDefinitionIR);
 
 
 /** 'GetPresessionSurveyResponse' parameters type */
@@ -273,7 +276,7 @@ export interface IGetPresessionSurveyResponseQuery {
   result: IGetPresessionSurveyResponseResult;
 }
 
-const getPresessionSurveyResponseIR: any = {"name":"getPresessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3310,"b":3319,"line":125,"col":21},{"a":3337,"b":3346,"line":126,"col":16}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    sq.response_display_text AS display_label,\n    (\n        CASE WHEN src.choice_text = 'Other' THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image\nFROM\n    users_surveys AS us\n    JOIN sessions AS s ON s.student_id = us.user_id\n    JOIN survey_types AS st ON us.survey_type_id = st.id\n    JOIN users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    AND st.name = 'presession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":2457,"b":3415,"line":104,"col":0}}};
+const getPresessionSurveyResponseIR: any = {"name":"getPresessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3414,"b":3423,"line":127,"col":21},{"a":3441,"b":3450,"line":128,"col":16}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    sq.response_display_text AS display_label,\n    (\n        CASE WHEN src.choice_text = 'Other' THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image\nFROM\n    users_surveys AS us\n    JOIN sessions AS s ON s.student_id = us.user_id\n    JOIN survey_types AS st ON us.survey_type_id = st.id\n    JOIN users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    AND st.name = 'presession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":2561,"b":3519,"line":106,"col":0}}};
 
 /**
  * Query generated from SQL:

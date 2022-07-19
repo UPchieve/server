@@ -2,7 +2,14 @@ import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { LegacySurvey, SaveUserSurveySubmission, SaveUserSurvey } from './types'
+import {
+  LegacySurvey,
+  SaveUserSurveySubmission,
+  SaveUserSurvey,
+  SurveyResponseDefinition,
+  SurveyQuestionDefinition,
+  SurveyType,
+} from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
 
@@ -100,6 +107,7 @@ export async function saveUserSurveyAndSubmissions(
   }
 }
 
+// @todo: clean up old presession survey code
 // NOTE: this query can be replaced by a JOIN that happens when we fetch
 // the session on the feedback page
 export async function getPresessionSurvey(
@@ -123,28 +131,13 @@ export async function getPresessionSurvey(
   }
 }
 
-export type PresessionSurveyResponse = {
-  responseId: number
-  responseText: string
-  responseDisplayPriority: number
-  responseDisplayImage: string | undefined
-}
-
-export type PresessionSurvey = {
-  questionId: string
-  questionText: string
-  displayPriority: number
-  questionType: string
-  responses: PresessionSurveyResponse[]
-}
-
-// @todo: clean up old presession survey code and rename functions without the "new" keyword
-export async function getPresessionSurveyNew(
-  subjectName: string
-): Promise<PresessionSurvey[]> {
+export async function getSurveyDefinition(
+  subjectName: string,
+  surveyType: SurveyType
+): Promise<SurveyQuestionDefinition[]> {
   try {
-    const result = await pgQueries.getPresessionSurveyNew.run(
-      { subjectName },
+    const result = await pgQueries.getSurveyDefinition.run(
+      { subjectName, surveyType },
       getClient()
     )
 
@@ -153,9 +146,9 @@ export async function getPresessionSurveyNew(
     )
     const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
 
-    const survey: PresessionSurvey[] = []
+    const survey: SurveyQuestionDefinition[] = []
     for (const [question, rows] of Object.entries(rowsByQuestion)) {
-      const responses: PresessionSurveyResponse[] = []
+      const responses: SurveyResponseDefinition[] = []
       const temp = rows[0]
       const questionData = {
         questionId: question,
@@ -169,7 +162,7 @@ export async function getPresessionSurveyNew(
       )
 
       for (const row of sortedRows) {
-        const responseItem: PresessionSurveyResponse = {
+        const responseItem: SurveyResponseDefinition = {
           responseId: row.responseId,
           responseText: row.responseText,
           responseDisplayPriority: row.responseDisplayPriority,

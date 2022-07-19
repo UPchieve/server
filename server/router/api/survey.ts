@@ -2,7 +2,7 @@ import expressWs from 'express-ws'
 import {
   savePresessionSurvey,
   getPresessionSurvey,
-  getPresessionSurveyNew,
+  getSurveyDefinition,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
@@ -59,10 +59,11 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
-  router.get('/survey/presession', async (req, res, next) => {
+  router.get('/survey/presession', async (req, res) => {
     try {
-      const survey = await getPresessionSurveyNew(
-        asString(req.body.subjectName)
+      const survey = await getSurveyDefinition(
+        asString(req.body.subjectName),
+        'presession'
       )
       res.json({ survey })
     } catch (error) {
@@ -77,6 +78,16 @@ export function routeSurvey(router: expressWs.Router): void {
         asUlid(sessionId)
       )
       res.json(surveyResponse)
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.get('/survey/postsession', async (req, res) => {
+    try {
+      const { subject } = req.query
+      const survey = await getSurveyDefinition(asString(subject), 'postsession')
+      res.json(survey)
     } catch (error) {
       resError(res, error)
     }
