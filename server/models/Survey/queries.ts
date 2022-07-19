@@ -123,6 +123,22 @@ export async function getPresessionSurveyForFeedback(
   }
 }
 
+export async function getStudentsPresessionGoal(
+  sessionId: Ulid
+): Promise<string | undefined> {
+  try {
+    const result = await pgQueries.getStudentsPresessionGoal.run(
+      {
+        sessionId,
+      },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0]).goal
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type PresessionSurveyResponse = {
   responseId: number
   responseText: string

@@ -1,8 +1,11 @@
 import expressWs from 'express-ws'
+import { isEnabled } from 'unleash-client'
+import { FEATURE_FLAGS } from '../../constants'
 import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,
   getPresessionSurvey,
+  getStudentsPresessionGoal,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
@@ -52,11 +55,17 @@ export function routeSurvey(router: expressWs.Router): void {
     const { sessionId } = req.params
 
     try {
-      const survey = await getPresessionSurveyForFeedback(
-        user.id,
-        asUlid(sessionId)
-      )
-      res.json({ survey })
+      if (isEnabled(FEATURE_FLAGS.CONTEXT_SHARING_WITH_VOLUNTEER)) {
+        const goal = await getStudentsPresessionGoal(sessionId)
+        res.json({ goal })
+      } else {
+        // TODO: remove in context sharing feature flag cleanup.
+        const survey = await getPresessionSurveyForFeedback(
+          user.id,
+          asUlid(sessionId)
+        )
+        res.json({ survey })
+      }
     } catch (error) {
       resError(res, error)
     }

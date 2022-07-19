@@ -68,6 +68,24 @@ WHERE
     AND session_id = :sessionId!;
 
 
+/* @name getStudentsPresessionGoal */
+SELECT
+  (
+    CASE
+      WHEN src.choice_text = 'Other' THEN uss.open_response
+      ELSE src.choice_text
+    END
+  ) AS goal
+FROM
+  users_surveys
+  JOIN users_surveys_submissions uss on users_surveys.id = uss.user_survey_id
+  JOIN survey_questions sq ON uss.survey_question_id = sq.id
+  JOIN survey_response_choices src ON uss.survey_response_choice_id = src.id
+WHERE
+  users_surveys.session_id = :sessionId!
+  AND sq.question_text = 'What is your primary goal for today''s session?';
+
+
 /* @name getPresessionSurvey */
 SELECT
     sq.id AS question_id,
