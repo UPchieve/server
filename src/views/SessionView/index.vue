@@ -122,6 +122,7 @@ import AboutSessionModal from './AboutSessionModal'
 import getNotificationPermission from '@/utils/get-notification-permission'
 import { EVENTS } from '@/consts'
 import Gleap from 'gleap'
+import { backOff } from 'exponential-backoff'
 
 const activeHeaderData = {
   component: 'SessionHeader'
@@ -278,10 +279,15 @@ export default {
         // If we have a pre-session survey, submit it now
         if (Object.keys(this.presessionSurvey).length) {
           if (this.isContextSharingWithVolunteerActive) {
-              // TODO: error handling - how to handle this case? we currently don't error handle presession survey submissions
-              await NetworkService.submitSurvey(
-                Object.assign({}, this.presessionSurvey, { sessionId })
-              ) 
+            try {
+              await backOff(() =>
+                NetworkService.submitSurvey(
+                  Object.assign({}, this.presessionSurvey, { sessionId })
+                )
+              )
+            } catch (err) {
+              Sentry.captureException(err)
+            }
           } else {
             NetworkService.submitPresessionSurvey(
               sessionId,
