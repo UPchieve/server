@@ -76,8 +76,8 @@ describe(SAVE_PRESSION_SURVEY, () => {
 const GET_PRESSION_SURVEY_FOR_FEEDBACK = `/survey/presession/${sessionId}`
 describe(GET_PRESSION_SURVEY_FOR_FEEDBACK, () => {
   test('Should get presession survey questions', async () => {
-    const spy = jest.spyOn(unleash, 'isEnabled');
-    spy.mockReturnValue(false);
+    const spy = jest.spyOn(unleash, 'isEnabled')
+    spy.mockReturnValue(false)
     const payload = {}
     const mockedSurvey = buildPressionSurveyLegacy()
     mockedSurveyRepo.getPresessionSurveyForFeedback.mockImplementationOnce(
@@ -104,9 +104,7 @@ describe(GET_PRESSION_SURVEY_FOR_FEEDBACK, () => {
       async () => mockedGoal
     )
     const response = await sendGet(GET_PRESSION_SURVEY_FOR_FEEDBACK, payload)
-    expect(
-      mockedSurveyRepo.getStudentsPresessionGoal
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyRepo.getStudentsPresessionGoal).toHaveBeenCalledTimes(1)
     expect(mockedGoal).toEqual(response.body.goal)
     expect(response.status).toBe(200)
   })
