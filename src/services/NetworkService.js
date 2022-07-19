@@ -642,9 +642,19 @@ export default {
       .post(`${API_ROOT}/survey/presession/${sessionId}`, { responseData })
       .then(this._successHandler, this._errorHandler)
   },
-  getPresessionSurvey(sessionId) {
+  submitSurvey(survey) {
+    return Vue.http
+      .post(`${API_ROOT}/survey/save`, survey)
+      .then(this._successHandler, this._errorHandler)
+  },
+  getPresessionSurveyForFeedback(sessionId) {
     return Vue.http
       .get(`${API_ROOT}/survey/presession/${sessionId}`)
+      .then(this._successHandler, this._errorHandler)
+  },
+  getPresessionSurvey(subjectName) {
+    return Vue.http
+      .get(`${API_ROOT}/survey/presession?subject=${subjectName}`)
       .then(this._successHandler, this._errorHandler)
   },
   getPresessionSurveyResponse(sessionId) {

@@ -95,6 +95,7 @@ export default {
     return {
       session: {},
       presessionSurvey: {},
+      studentPresessionGoal: '',
       isSubmittingFeedback: false,
       completedFeedback: false,
       isFavoriteCoach: false,
@@ -109,7 +110,7 @@ export default {
            *        because that HTML is not processed by Vue’s template compiler
            **/
           dynamicQuestion: () =>
-            `Your goal for this session was to <span class="feedback__session-goal">${this.sessionGoal}</span>. On a scale of 1 to 5, did UPchieve help you achieve your goal?`,
+            `Your goal for this session was to <span class="feedback__session-goal">${this.sessionGoal.toLowerCase()}</span>. On a scale of 1 to 5, did UPchieve help you achieve your goal?`,
           options: ['Not at all', '', 'Kind of', '', 'Yes, completely!'],
           component: FeedbackRadio,
           direction: 'row',
@@ -254,6 +255,8 @@ export default {
     }),
     ...mapGetters({
       isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
+      isContextSharingWithVolunteerActive:
+        'featureFlags/isContextSharingWithVolunteerActive',
     }),
     sessionPartnerFirstName() {
       return this.user.isVolunteer
@@ -275,21 +278,28 @@ export default {
         .format('MMMM Do, YYYY')
     },
     sessionGoal() {
-      if (this.presessionSurvey && this.presessionSurvey.createdAt) {
-        if (
-          this.presessionSurvey.responseData['primary-goal'].answer === 'other'
-        ) {
-          if (this.presessionSurvey.responseData['primary-goal'].other)
-            return this.presessionSurvey.responseData[
-              'primary-goal'
-            ].other.toLowerCase()
-          else return 'get help'
+      if (
+        this.isContextSharingWithVolunteerActive &&
+        this.studentPresessionGoal
+      ) {
+        return this.studentPresessionGoal
+      } else {
+        if (this.presessionSurvey && this.presessionSurvey.createdAt) {
+          if (
+            this.presessionSurvey.responseData['primary-goal'].answer ===
+            'other'
+          ) {
+            if (this.presessionSurvey.responseData['primary-goal'].other)
+              return this.presessionSurvey.responseData[
+                'primary-goal'
+              ].other.toLowerCase()
+            else return 'get help'
+          }
+          return formatSurveyAnswers(
+            this.presessionSurvey.responseData['primary-goal'].answer
+          ).toLowerCase()
         }
-        return formatSurveyAnswers(
-          this.presessionSurvey.responseData['primary-goal'].answer
-        ).toLowerCase()
       }
-
       return 'get help'
     },
     userType() {
@@ -331,7 +341,7 @@ export default {
         userType: this.userType
       }),
       NetworkService.getSession(sessionId),
-      NetworkService.getPresessionSurvey(sessionId)
+      NetworkService.getPresessionSurveyForFeedback(sessionId)
     ])
 
     const {
@@ -341,10 +351,12 @@ export default {
       body: { session }
     } = sessionResponse
     const {
-      body: { survey }
+      body: { survey, goal }
     } = presessionResponse
 
     this.session = session
+    this.studentPresessionGoal = goal
+    // TODO: remove in context sharing feature flag cleanup
     this.presessionSurvey = survey
     if (feedback) {
       this.completedFeedback = true

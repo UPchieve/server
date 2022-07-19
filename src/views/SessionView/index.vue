@@ -122,6 +122,7 @@ import AboutSessionModal from './AboutSessionModal'
 import getNotificationPermission from '@/utils/get-notification-permission'
 import { EVENTS } from '@/consts'
 import Gleap from 'gleap'
+import { backOff } from 'exponential-backoff'
 
 const activeHeaderData = {
   component: 'SessionHeader'
@@ -277,10 +278,22 @@ export default {
 
         // If we have a pre-session survey, submit it now
         if (Object.keys(this.presessionSurvey).length) {
-          NetworkService.submitPresessionSurvey(
-            sessionId,
-            this.presessionSurvey
-          )
+          if (this.isContextSharingWithVolunteerActive) {
+            try {
+              await backOff(() =>
+                NetworkService.submitSurvey(
+                  Object.assign({}, this.presessionSurvey, { sessionId })
+                )
+              )
+            } catch (err) {
+              Sentry.captureException(err)
+            }
+          } else {
+            NetworkService.submitPresessionSurvey(
+              sessionId,
+              this.presessionSurvey
+            )
+          }
           this.$store.dispatch('user/clearPresessionSurvey')
         }
 

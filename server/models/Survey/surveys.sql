@@ -53,7 +53,7 @@ RETURNING
     user_survey_id AS ok;
 
 
-/* @name getPresessionSurvey */
+/* @name getPresessionSurveyForFeedback */
 SELECT
     id,
     user_id,
@@ -67,20 +67,40 @@ WHERE
     user_id = :userId!
     AND session_id = :sessionId!;
 
+/* @name getStudentsPresessionGoal */
+SELECT
+  (
+    CASE
+      WHEN src.choice_text = 'Other' THEN uss.open_response
+      ELSE src.choice_text
+    END
+  ) AS goal
+FROM
+  users_surveys
+  JOIN users_surveys_submissions uss on users_surveys.id = uss.user_survey_id
+  JOIN survey_questions sq ON uss.survey_question_id = sq.id
+  JOIN survey_response_choices src ON uss.survey_response_choice_id = src.id
+WHERE
+  users_surveys.session_id = :sessionId!
+  AND sq.question_text = 'What is your primary goal for today''s session?';
+
 
 /* @name getSurveyDefinition */
 SELECT
     sq.id AS question_id,
-    sq.question_text,
+    FORMAT(sq.question_text, subjects.display_name) AS question_text,
     ssq.display_priority,
     qt.name AS question_type,
     sub.response_id,
     sub.response_text,
     sub.response_display_priority,
-    sub.response_display_image
+    sub.response_display_image,
+    surveys.id AS survey_id,
+    survey_types.id AS survey_type_id
 FROM
     surveys_context
     JOIN surveys ON survey_id = surveys.id
+    JOIN survey_types ON surveys_context.survey_type_id = survey_types.id
     JOIN subjects ON subject_id = subjects.id
     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
@@ -99,7 +119,8 @@ FROM
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
     subjects.name = :subjectName!
-    AND st.name = :surveyType!;
+    AND st.name = :surveyType!
+    AND survey_types.name = 'presession';
 
 
 /* @name getPresessionSurveyResponse */
