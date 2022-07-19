@@ -18,8 +18,13 @@
       ref="zwibDiv"
     ></div>
     <transition name="reset-whiteboard-error">
-      <p class="reset-whiteboard-error " v-show="resetWhiteboardError">
+      <p class="error" v-show="resetWhiteboardError">
         Unable to reset the whiteboard.
+      </p>
+    </transition>
+    <transition name="uploading-picture-error">
+      <p class="error" v-show="uploadingPictureError">
+        Unable to upload the picture.
       </p>
     </transition>
     <div id="toolbar" class="toolbar">
@@ -313,7 +318,8 @@ export default {
       hadConnectionIssue: false,
       showResetWhiteboardModal: false,
       shouldResetWhiteboard: false,
-      resetWhiteboardError: false
+      resetWhiteboardError: false,
+      uploadingPictureError: false
     }
   },
   computed: {
@@ -363,6 +369,9 @@ export default {
     this.loadZwibbler()
   },
   methods: {
+    isMobile() {
+      return /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    },
     resizeViewRectangle() {
       this.zwibblerCtx.setViewRectangle({
         x: 0,
@@ -466,9 +475,8 @@ export default {
       this.isLoading = true
 
       try {
-        // TODO: a better way to target desktop devices?
         // Convert HEIC images to jpeg on desktop devices
-        if (!this.mobileMode && file.type === 'image/heic') {
+        if (!this.isMobile() && file.type === 'image/heic') {
           const convertedBlob = await heic2any({
             blob: file,
             toType: 'image/jpeg',
@@ -499,8 +507,12 @@ export default {
           this.insertPhoto(imageUrl)
         }
       } catch(error) {
-        // TODO: better error handling
-        this.isLoading = false
+         this.isLoading = false
+         this.uploadingPictureError = true
+        setTimeout(() => {
+          this.uploadingPictureError = false
+        }, 2000)
+        return
       }
 
       // Reset the file input
@@ -1028,7 +1040,7 @@ export default {
   justify-content: center;
 }
 
-.reset-whiteboard-error {
+.error {
   width: 100%;
   background-color: $c-error-red;
   color: #fff;
