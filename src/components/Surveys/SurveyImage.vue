@@ -2,20 +2,18 @@
   <div class="survey-image__container">
     <img
       :src="src"
-      @mouseover="onMouseOverImage"
-      @mouseleave="onMouseLeaveImage"
-      @click="onImageClick"
+      @click="handleImageClick"
       class="survey-image__image"
       :class="{
         'survey-image__image--not-selected':
-          isImageGreyedOut,
+         !isSelected, 
       }"
     />
-    <!-- TODO figure out better naming for isLabelSHowing and not as confusing -->
     <div
-      class="survey-image__display"
+      v-if="label"
+      class="survey-image__label"
       :class="{
-        'survey-image__display--show': isLabelShowing
+        'survey-image__label--show': isSelected
       }"
     >
       {{ label }}
@@ -35,25 +33,19 @@ export default {
       default: '',
       required: false
     },
-    isImageGreyedOut: {
+    isSelected: {
       type: Boolean,
       required: true,
     },
-    isLabelShowing: {
-      type: Boolean,
+    responseId: {
+      type: [String, Number],
       required: true,
     },
   },
 
   methods: {
-    onMouseOverImage(event) {
-      this.$emit('mouse-over-image', event)
-    },
-    onMouseLeaveImage(event) {
-      this.$emit('mouse-leave-image', event)
-    },
-    onImageClick(event) {
-      this.$emit('survey-image-click', event)
+    handleImageClick() {
+      this.$emit('survey-image-click', this.responseId)
     },
   },
 }
@@ -73,6 +65,11 @@ export default {
     &:hover {
       filter: grayscale(0);
       transform: scale(1.2);
+
+      // show the label for the image when hovering over the image
+      & + .survey-image__label {
+        visibility: initial;
+      }
     }
 
     &:active {
@@ -85,7 +82,7 @@ export default {
     }
   }
 
-  &__display {
+  &__label {
     margin: 1em 0;
     text-align: center;
     visibility: hidden;

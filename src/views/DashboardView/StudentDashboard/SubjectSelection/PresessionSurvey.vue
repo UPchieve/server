@@ -12,7 +12,7 @@
           :currentStep="currentStep"
           class="stepper"
         />
-        <div>
+        <div v-if="survey.length">
             <div class="question__title">
               {{ currentQuestion.questionText }}
             </div>
@@ -31,22 +31,12 @@
                   :key="`${response.responseId}-image`"
                   :src="response.responseDisplayImage"
                   :label="response.responseText"
-                  :isImageGreyedOut="
-                    userResponse[currentQuestion.questionId].responseId !==
+                  :responseId="response.responseId"
+                  :isSelected="
+                    userResponse[currentQuestion.questionId].responseId ===
                     response.responseId
                   "
-                  :isLabelShowing="userResponse[currentQuestion.questionId].displayImageLabel === response.responseText
-                  "
-                  @mouse-over-image="
-                    handleImageLabelDisplay(response.responseText)
-                  "
-                  @mouse-leave-image="handleImageLabelMouseLeave"
-                  @survey-image-click="
-                    handleImageLabelClick(
-                      response.responseId,
-                      response.responseText
-                    )
-                  "
+                  @survey-image-click="updateUserResponse" 
                 />
 
                 <survey-radio
@@ -63,13 +53,8 @@
                     userResponse[currentQuestion.questionId].responseId ===
                     response.responseId
                   "
-                  :keyDownFocus="
-                    () =>
-                      (userResponse[currentQuestion.questionId].responseId =
-                        response.responseId)
-                  "
+                  :responseId="response.responseId"
                   :label="response.responseText"
-                  :showOpenResponse="response.responseText === 'Other'"
                   :isOpenResponseDisabled="
                     userResponse[currentQuestion.questionId].responseId !==
                     response.responseId
@@ -77,8 +62,7 @@
                   :openResponseValue="
                     userResponse[currentQuestion.questionId].openResponse
                   "
-                  @radio-checked="handleResponseSelection"
-                  @open-response-input="handleOpenResponse"
+                  @survey-radio-input="updateUserResponse"
                 />
               </template>
             </div>
@@ -384,75 +368,28 @@ export default {
     // builds a default user response to be stored in state that maps a survey question ID to a response map
     buildUserResponse() {
       const userResponse = Object.assign({}, this.userResponse)
-      const questionResponse = {
-        responseId: null,
-        openResponse: '',
-        displayImageLabel: '',
-      }
 
       for (const question of this.survey) {
+        const questionResponse = {
+          responseId: null,
+          openResponse: '',
+        }
         userResponse[question.questionId] = questionResponse
       }
 
       this.userResponse = userResponse
     },
-    updateUserResponse(update) {
+    updateUserResponse(responseId, openResponseText = '') {
       const questionId = this.currentQuestion.questionId
       // Vue cannot detect property addition or deletion on objects. A new object
       // must be created for Vue to recognize changes on said object
       const responseAnswer = {
-        [questionId]: Object.assign({}, this.userResponse[questionId], update),
+        [questionId]: Object.assign({}, this.userResponse[questionId], {
+          responseId,
+          openResponse: openResponseText,
+        }),
       }
       this.userResponse = Object.assign({}, this.userResponse, responseAnswer)
-    },
-    handleResponseSelection(event) {
-      const value = Number(event.target.value)
-      const update = {
-        responseId: value,
-        // reset openResponse on every selection to ensure that it is only populated
-        // when a radio option with a text field is selected
-        openResponse: '',
-      }
-      this.updateUserResponse(update)
-    },
-    handleOpenResponse(event) {
-      const value = event.target.value
-      const update = {
-        openResponse: value,
-      }
-      this.updateUserResponse(update)
-    },
-    handleResponseImage(responseId) {
-      const update = {
-        responseId,
-      }
-      this.updateUserResponse(update)
-    },
-    handleImageLabelDisplay(label) {
-      const update = {
-        displayImageLabel: label,
-      }
-      this.updateUserResponse(update)
-    },
-    handleImageLabelClick(responseId, responseText) {
-      this.handleResponseImage(responseId)
-      this.handleImageLabelDisplay(responseText)
-    },
-    handleImageLabelMouseLeave() {
-      const responseSelectedByUser =
-        this.userResponse[this.currentQuestion.questionId].responseId
-      let imageLabel = ''
-
-      // Search for the display label for a selected image,
-      // otherwise set the display label to an empty string
-      if (responseSelectedByUser) {
-        const response = this.currentQuestion.responses.find(
-          (response) => response.responseId === responseSelectedByUser
-        )
-        imageLabel = response.responseText
-      }
-
-      this.handleImageLabelDisplay(imageLabel)
     },
     overrideModalTemplateStyles() {
       const formElem = document.querySelector('.ModalTemplate-form')

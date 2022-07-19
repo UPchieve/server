@@ -1,7 +1,7 @@
 <template>
   <div>
     <input
-      @input="onInput"
+      @input="handleRadioSelection"
       type="radio"
       tabindex="-1"
       :id="id"
@@ -10,14 +10,14 @@
       :checked="checked"
     />
 
-    <label :for="id" tabindex="0" @keydown.space="keyDownFocus">
+    <label :for="id" tabindex="0" @keydown.space="handleRadioSelection">
       <span>{{ label }}</span>
 
       <input
         v-if="showOpenResponse"
         type="text"
         tabindex="-1"
-        @input="onOpenResponse"
+        @input="handleOpenResponse"
         :disabled="isOpenResponseDisabled"
         :value="openResponseValue"
       />
@@ -44,18 +44,13 @@ export default {
       type: Boolean,
       required: true,
     },
-    keyDownFocus: {
-      type: Function,
-      required: true,
-    },
     label: {
       type: String,
       required: true,
     },
-    showOpenResponse: {
-      type: Boolean,
-      required: false,
-      default: false,
+    responseId: {
+      type: [String, Number],
+      required: true,
     },
     isOpenResponseDisabled: {
       type: Boolean,
@@ -69,13 +64,19 @@ export default {
   },
 
   methods: {
-    onInput(event) {
-      this.$emit('radio-checked', event)
+    handleRadioSelection() {
+      this.$emit('survey-radio-input', this.responseId, '')
     },
-    onOpenResponse(event) {
-      this.$emit('open-response-input', event)
+    handleOpenResponse(event) {
+      this.$emit('survey-radio-input', this.responseId, event.target.value)
     },
   },
+
+  computed: {
+    showOpenResponse(){
+      return this.label === 'Other'
+    }
+  }
 }
 </script>
 
