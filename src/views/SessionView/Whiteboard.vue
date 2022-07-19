@@ -370,10 +370,7 @@ export default {
   },
   methods: {
     isMobile() {
-      if(/iPhone|iPad|iPod/i.test(navigator.userAgent))
-        return true
-      else
-        return false
+      return /iPhone|iPad|iPod/i.test(navigator.userAgent)
     },
     resizeViewRectangle() {
       this.zwibblerCtx.setViewRectangle({
