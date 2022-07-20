@@ -2,7 +2,14 @@ import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { LegacySurvey, SaveUserSurveySubmission, SaveUserSurvey } from './types'
+import {
+  LegacySurvey,
+  SaveUserSurveySubmission,
+  SaveUserSurvey,
+  GetPressesionSurveyResponse,
+  PresessionSurvey,
+  PresessionSurveyResponse,
+} from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
 
@@ -139,30 +146,9 @@ export async function getStudentsPresessionGoal(
   }
 }
 
-export type PresessionSurveyResponse = {
-  responseId: number
-  responseText: string
-  responseDisplayPriority: number
-  responseDisplayImage: string | undefined
-}
-
-export type PresessionSurvey = {
-  questionId: string
-  questionText: string
-  displayPriority: number
-  questionType: string
-  responses: PresessionSurveyResponse[]
-}
-
-export type PressionSurveyResponse = {
-  surveyId: number
-  surveyTypeId: number
-  survey: PresessionSurvey[]
-}
-
 export async function getPresessionSurvey(
   subjectName: string
-): Promise<PressionSurveyResponse> {
+): Promise<GetPressesionSurveyResponse> {
   try {
     const result = await pgQueries.getPresessionSurvey.run(
       { subjectName },

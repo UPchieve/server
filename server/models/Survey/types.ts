@@ -47,3 +47,24 @@ export type SaveUserSurveySubmission = Pick<
   UserSurveySubmission,
   'questionId' | 'responseChoiceId' | 'openResponse'
 >
+
+export type PresessionSurveyResponse = {
+  responseId: number
+  responseText: string
+  responseDisplayPriority: number
+  responseDisplayImage: string | undefined
+}
+
+export type PresessionSurvey = {
+  questionId: string
+  questionText: string
+  displayPriority: number
+  questionType: string
+  responses: PresessionSurveyResponse[]
+}
+
+export type GetPressesionSurveyResponse = {
+  surveyId: number
+  surveyTypeId: number
+  survey: PresessionSurvey[]
+}
