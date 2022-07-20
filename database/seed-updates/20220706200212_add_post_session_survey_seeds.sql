@@ -21,11 +21,24 @@ JOIN UNNEST(ARRAY[
   'Sorry to hear that, what happened?',
   'Would you like to favorite your coach %s?',
   'Overall, how supportive was your coach today?',
-  'Overall, how much did your coach push you to do your best work today?',
-  'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.'
+  'Overall, how much did your coach push you to do your best work today?'
 ]) AS sub ON TRUE
 WHERE
   upchieve.question_types.name = 'multiple choice';
+
+INSERT INTO upchieve.survey_questions (question_type_id, question_text, created_at, updated_at)
+SELECT
+  upchieve.question_types.id,
+  sub.text,
+  NOW(),
+  NOW()
+FROM upchieve.question_types
+JOIN UNNEST(ARRAY[
+  'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.'
+]) AS sub ON TRUE
+WHERE
+  upchieve.question_types.name = 'free response';
+
 
 INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
 VALUES (1, 'Not at all', NOW(), NOW()),
