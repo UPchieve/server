@@ -128,7 +128,7 @@ describe(GET_PRESSION_SURVEY, () => {
       payload
     )
     expect(mockedSurveyRepo.getSurveyDefinition).toHaveBeenCalledTimes(1)
-    expect(response.body.survey).toEqual(mockedSurvey)
+    expect(response.body).toEqual(mockedSurvey)
     expect(response.status).toBe(200)
   })
 })

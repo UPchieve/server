@@ -78,7 +78,7 @@ export function routeSurvey(router: expressWs.Router): void {
         asString(subject),
         'presession'
       )
-      res.json({ survey })
+      res.json(survey)
     } catch (error) {
       resError(res, error)
     }
