@@ -72,5 +72,3 @@ export type SurveyQueryResponse = {
   surveyTypeId: number
   survey: SurveyQuestionDefinition[]
 }
-
-
