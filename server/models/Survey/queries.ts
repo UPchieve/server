@@ -6,9 +6,10 @@ import {
   LegacySurvey,
   SaveUserSurveySubmission,
   SaveUserSurvey,
-  GetPressesionSurveyResponse,
-  PresessionSurvey,
-  PresessionSurveyResponse,
+  SurveyQueryResponse,
+  SurveyResponseDefinition,
+  SurveyQuestionDefinition,
+  SurveyType,
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
@@ -107,6 +108,7 @@ export async function saveUserSurveyAndSubmissions(
   }
 }
 
+// @todo: clean up old presession survey code
 // NOTE: this query can be replaced by a JOIN that happens when we fetch
 // the session on the feedback page
 export async function getPresessionSurveyForFeedback(
@@ -146,12 +148,13 @@ export async function getStudentsPresessionGoal(
   }
 }
 
-export async function getPresessionSurvey(
-  subjectName: string
-): Promise<GetPressesionSurveyResponse> {
+export async function getSurveyDefinition(
+  subjectName: string,
+  surveyType: SurveyType
+): Promise<SurveyQueryResponse> {
   try {
-    const result = await pgQueries.getPresessionSurvey.run(
-      { subjectName },
+    const result = await pgQueries.getSurveyDefinition.run(
+      { subjectName, surveyType },
       getClient()
     )
 
@@ -160,9 +163,9 @@ export async function getPresessionSurvey(
     )
     const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
 
-    const survey: PresessionSurvey[] = []
+    const survey: SurveyQuestionDefinition[] = []
     for (const [question, rows] of Object.entries(rowsByQuestion)) {
-      const responses: PresessionSurveyResponse[] = []
+      const responses: SurveyResponseDefinition[] = []
       const temp = rows[0]
       const questionData = {
         questionId: question,
@@ -176,7 +179,7 @@ export async function getPresessionSurvey(
       )
 
       for (const row of sortedRows) {
-        const responseItem: PresessionSurveyResponse = {
+        const responseItem: SurveyResponseDefinition = {
           responseId: row.responseId,
           responseText: row.responseText,
           responseDisplayPriority: row.responseDisplayPriority,

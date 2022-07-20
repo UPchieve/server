@@ -4,8 +4,8 @@ import { FEATURE_FLAGS } from '../../constants'
 import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,
-  getPresessionSurvey,
   getStudentsPresessionGoal,
+  getSurveyDefinition,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
@@ -72,10 +72,13 @@ export function routeSurvey(router: expressWs.Router): void {
   })
 
   router.get('/survey/presession', async (req, res) => {
-    const { subject } = req.query
     try {
-      const survey = await getPresessionSurvey(asString(subject))
-      res.json(survey)
+      const { subject } = req.query
+      const survey = await getSurveyDefinition(
+        asString(subject),
+        'presession'
+      )
+      res.json({ survey })
     } catch (error) {
       resError(res, error)
     }
@@ -88,6 +91,16 @@ export function routeSurvey(router: expressWs.Router): void {
         asUlid(sessionId)
       )
       res.json(surveyResponse)
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.get('/survey/postsession', async (req, res) => {
+    try {
+      const { subject } = req.query
+      const survey = await getSurveyDefinition(asString(subject), 'postsession')
+      res.json(survey)
     } catch (error) {
       resError(res, error)
     }

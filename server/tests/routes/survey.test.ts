@@ -120,15 +120,15 @@ describe(GET_PRESSION_SURVEY, () => {
       surveyTypeId: 1,
       survey: [buildPressionSurvey()],
     }
-    mockedSurveyRepo.getPresessionSurvey.mockImplementationOnce(
+    mockedSurveyRepo.getSurveyDefinition.mockImplementationOnce(
       async () => mockedSurvey
     )
     const response = await sendGet(
       GET_PRESSION_SURVEY(SUBJECTS.ALGEBRA_ONE),
       payload
     )
-    expect(mockedSurveyRepo.getPresessionSurvey).toHaveBeenCalledTimes(1)
-    expect(response.body).toEqual(mockedSurvey)
+    expect(mockedSurveyRepo.getSurveyDefinition).toHaveBeenCalledTimes(1)
+    expect(response.body.survey).toEqual(mockedSurvey)
     expect(response.status).toBe(200)
   })
 })

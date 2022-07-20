@@ -86,7 +86,7 @@ WHERE
   AND sq.question_text = 'What is your primary goal for today''s session?';
 
 
-/* @name getPresessionSurvey */
+/* @name getSurveyDefinition */
 SELECT
     sq.id AS question_id,
     FORMAT(sq.question_text, subjects.display_name) AS question_text,
@@ -106,6 +106,7 @@ FROM
     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
     JOIN question_types qt ON qt.id = sq.question_type_id
+    JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id
     JOIN LATERAL (
         SELECT
             id AS response_id,
@@ -119,7 +120,7 @@ FROM
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
     subjects.name = :subjectName!
-    AND survey_types.name = 'presession';
+    AND st.name = :surveyType!;
 
 
 /* @name getPresessionSurveyResponse */
