@@ -50,22 +50,28 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
+  // This route only services the mobile app atm. Remove once
+  // the mobile app uses new presession survey work
   router.get('/survey/presession/:sessionId', async (req, res) => {
     const user = extractUser(req)
     const { sessionId } = req.params
 
     try {
-      if (isEnabled(FEATURE_FLAGS.CONTEXT_SHARING_WITH_VOLUNTEER)) {
-        const goal = await getStudentsPresessionGoal(sessionId)
-        res.json({ goal })
-      } else {
-        // TODO: remove in context sharing feature flag cleanup.
-        const survey = await getPresessionSurveyForFeedback(
-          user.id,
-          asUlid(sessionId)
-        )
-        res.json({ survey })
-      }
+      const survey = await getPresessionSurveyForFeedback(
+        user.id,
+        asUlid(sessionId)
+      )
+      res.json({ survey })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.get('/survey/presession/:sessionId/goal', async (req, res) => {
+    const { sessionId } = req.params
+    try {
+      const goal = await getStudentsPresessionGoal(sessionId)
+      res.json({ goal })
     } catch (error) {
       resError(res, error)
     }

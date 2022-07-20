@@ -60,7 +60,7 @@ beforeEach(async () => {
 const sessionId = getDbUlid()
 
 const SAVE_PRESSION_SURVEY = `/survey/presession/${sessionId}`
-describe(SAVE_PRESSION_SURVEY, () => {
+describe('/survey/presession/:sessionId', () => {
   test('Should save the presession survey', async () => {
     const payload = buildPresessionSurveyResponse()
     const mockedSurvey = buildPressionSurveyLegacy()
@@ -74,10 +74,8 @@ describe(SAVE_PRESSION_SURVEY, () => {
 })
 
 const GET_PRESSION_SURVEY_FOR_FEEDBACK = `/survey/presession/${sessionId}`
-describe(GET_PRESSION_SURVEY_FOR_FEEDBACK, () => {
+describe('/survey/presession/:sessionId', () => {
   test('Should get presession survey questions', async () => {
-    const spy = jest.spyOn(unleash, 'isEnabled')
-    spy.mockReturnValue(false)
     const payload = {}
     const mockedSurvey = buildPressionSurveyLegacy()
     mockedSurveyRepo.getPresessionSurveyForFeedback.mockImplementationOnce(
@@ -94,16 +92,18 @@ describe(GET_PRESSION_SURVEY_FOR_FEEDBACK, () => {
     }
     expect(expected).toEqual(response.body.survey)
     expect(response.status).toBe(200)
-    spy.mockRestore()
   })
+})
 
+const GET_STUDENTS_PRESSESSION_GOAL = `/survey/presession/${sessionId}/goal`
+describe('/survey/presession/:sessionId/goal', () => {
   test('Should get the students presession goal', async () => {
     const payload = {}
     const mockedGoal = 'To get help with homework'
     mockedSurveyRepo.getStudentsPresessionGoal.mockImplementationOnce(
       async () => mockedGoal
     )
-    const response = await sendGet(GET_PRESSION_SURVEY_FOR_FEEDBACK, payload)
+    const response = await sendGet(GET_STUDENTS_PRESSESSION_GOAL, payload)
     expect(mockedSurveyRepo.getStudentsPresessionGoal).toHaveBeenCalledTimes(1)
     expect(mockedGoal).toEqual(response.body.goal)
     expect(response.status).toBe(200)
@@ -112,7 +112,7 @@ describe(GET_PRESSION_SURVEY_FOR_FEEDBACK, () => {
 
 const GET_PRESSION_SURVEY = (subject: string) =>
   `/survey/presession?subject=${subject}`
-describe(GET_PRESSION_SURVEY, () => {
+describe('/survey/presession?subject=', () => {
   test('Should get presession survey questions', async () => {
     const payload = {}
     const mockedSurvey = {
@@ -134,7 +134,7 @@ describe(GET_PRESSION_SURVEY, () => {
 })
 
 const GET_PRESSION_SURVEY_RESPONSE = `/survey/presession/response/${sessionId}`
-describe(GET_PRESSION_SURVEY_RESPONSE, () => {
+describe('/survey/presession/response/:sessionId', () => {
   test('Should get presession survey questions', async () => {
     const payload = {}
     const mockedSurveyResponse = {
