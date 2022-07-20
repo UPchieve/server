@@ -80,6 +80,8 @@ export default {
         return 'Choose a standardized testing subject'
       if (this.modalData.topic === 'readingWriting')
         return 'Choose a reading and writing subject'
+      if (this.modalData.topic === 'socialStudies')
+        return `Choose a social studies subject`
       return this.modalData.topic
         ? `Choose a ${this.modalData.topic} subject`
         : 'Choose a subject'
