@@ -30,7 +30,7 @@
         </div>
         <div v-if="!isNewStudent && hasLowConfidence" class="tip">
           <div class="tip-title">UPchieve's tip</div>
-          <div class="tip-text">Start the session off by checking in about what has got them feeling stressed.</div>
+          <div class="tip-text">Praise their effort and start with easy questions so that they can experience small wins!</div>
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@ export default {
     },
     hasLowConfidence() {
       for (const response of this.responses) {
-        if (response.displayLabel === this.confidenceLabel && response.score === 1) return true
+        if (response.displayLabel === this.confidenceLabel && response.score <= 2) return true
       }
       return false
     }
