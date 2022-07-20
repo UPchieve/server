@@ -426,7 +426,7 @@ export default {
 
 .presession-survey {
   width: 100%;
-  padding: 40px 20px 0;
+  padding: 1em;
   display: flex;
   flex-direction: column;
   text-align: left;
@@ -455,9 +455,10 @@ export default {
   &__buttons {
     width: 100%;
     @include flex-container(row, flex-end, center);
+    margin: 1.5em 0;
 
     button {
-      margin: 1em 1em 2em 0;
+      margin-right: 1em;
 
       &:last-child {
         margin-right: initial;
@@ -477,26 +478,31 @@ export default {
 
   &__responses {
     text-align: left;
-    margin: 1em 0;
+    margin: 1.5em 0;
 
     &-images {
       @include flex-container(row, center);
+      flex-wrap: wrap;
       margin-top: 2em;
     }
   }
 
   &__response {
-    margin: 0.5em 0;
+    margin: 0.75em 0;
 
     &-image {
-      flex-basis: 20%;
+      flex-basis: 30%;
+  
+      @include breakpoint-above('medium') {
+        flex-basis: 20%;
+      }
     }
   }
 }
 
 .stepper {
   width: 200px;
-  margin: 1em 0;
+  margin: 1em 0 1.5em 0;
 }
 
 .cross-icon {

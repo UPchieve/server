@@ -61,6 +61,14 @@ export default {
   &__image {
     cursor: pointer;
     transition: transform 0.2s;
+    height: 38px;
+    width: 38px;
+
+    @include breakpoint-above('small') {
+      height: 50px;
+      width: 50px;
+    }
+    
 
     &:hover {
       filter: grayscale(0);
@@ -83,7 +91,7 @@ export default {
   }
 
   &__label {
-    margin: 1em 0;
+    margin-top: 1em;
     text-align: center;
     visibility: hidden;
 
