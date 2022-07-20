@@ -67,7 +67,7 @@ export type SurveyQuestionDefinition = {
   responses: SurveyResponseDefinition[]
 }
 
-export type GetPressesionSurveyResponse = {
+export type SurveyQueryResponse = {
   surveyId: number
   surveyTypeId: number
   survey: SurveyQuestionDefinition[]
