@@ -334,14 +334,16 @@ export default {
     const [
       feedbackResponse,
       sessionResponse,
-      presessionResponse
+      presessionResponse,
+      presessionGoalResponse
     ] = await Promise.all([
       NetworkService.getFeedback({
         sessionId,
         userType: this.userType
       }),
       NetworkService.getSession(sessionId),
-      NetworkService.getPresessionSurveyForFeedback(sessionId)
+      NetworkService.getPresessionSurveyForFeedback(sessionId),
+      NetworkService.getStudentsPresessionGoal(sessionId)
     ])
 
     const {
@@ -351,8 +353,11 @@ export default {
       body: { session }
     } = sessionResponse
     const {
-      body: { survey, goal }
+      body: { survey }
     } = presessionResponse
+    const {
+      body: { goal }
+    } = presessionGoalResponse
 
     this.session = session
     this.studentPresessionGoal = goal
