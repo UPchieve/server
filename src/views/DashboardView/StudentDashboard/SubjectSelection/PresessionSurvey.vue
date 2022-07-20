@@ -78,6 +78,7 @@
             primary
             @click.native="nextStep"
             v-if="currentStep !== survey.length"
+            :disabled="isNextButtonDisabled"
             >Next</large-button
           >
 
@@ -327,6 +328,13 @@ export default {
     questionTypes() {
       return QUESTION_TYPES
     },
+    isNextButtonDisabled(){
+      return (
+        this.currentQuestion &&
+        this.userResponse[this.currentQuestion.questionId] &&
+        !this.userResponse[this.currentQuestion.questionId].responseId
+      )
+    }
   },
 
   methods: {
