@@ -10,7 +10,7 @@
       :checked="checked"
     />
 
-    <label :for="id" tabindex="0" @keydown.space="handleRadioSelection">
+    <label :for="id" tabindex="0">
       <span>{{ label }}</span>
 
       <input
