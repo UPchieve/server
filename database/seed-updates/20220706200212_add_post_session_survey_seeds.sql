@@ -103,6 +103,7 @@ WHERE
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Coach didn''t know topic' AND sub.text::int = 20) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Coach slow to respond' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Ran out of time' AND sub.text::int = 40) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Tech issue' AND sub.text::int = 50) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Other' AND sub.text::int = 60) OR
 
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Would you like to favorite your coach %s?' AND rc.choice_text = 'Yes' AND sub.text::int = 10) OR
@@ -156,10 +157,6 @@ WHERE
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'satMath' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'satReading' AND upchieve.survey_types.name = 'postsession');
 -- migrate:down
-
--- DELETE FROM upchieve.survey_types
---   WHERE upchieve.survey_types.name = 'postsession';
-
 DELETE FROM upchieve.surveys
   WHERE upchieve.surveys.name = 'Student Post-Session Survey';
 
@@ -180,11 +177,11 @@ DELETE FROM upchieve.survey_response_choices
 
     'Yes', 'Maybe later');
 
-DELETE FROM upchieve.surveys_survey_questions USING upchieve.surveys_context, upchieve.survey_types
-  WHERE upchieve.surveys_survey_questions.id = upchieve.surveys_context.survey_id
-  AND upchieve.surveys_context.survey_type_id = upchieve.survey_types.id
-  AND upchieve.survey_types.name = 'postsession';
+-- DELETE FROM upchieve.surveys_survey_questions USING upchieve.surveys_context, upchieve.survey_types
+--   WHERE upchieve.surveys_survey_questions.survey_id = upchieve.surveys_context.survey_id
+--   AND upchieve.surveys_context.survey_type_id = upchieve.survey_types.id
+--   AND upchieve.survey_types.name = 'postsession';
 
-DELETE FROM upchieve.surveys_context USING upchieve.survey_types
-  WHERE upchieve.surveys_context.survey_type_id = upchieve.survey_types.id
-  AND upchieve.survey_types.name = 'postsession';
+-- DELETE FROM upchieve.surveys_context USING upchieve.survey_types
+--   WHERE upchieve.surveys_context.survey_type_id = upchieve.survey_types.id
+--   AND upchieve.survey_types.name = 'postsession';
