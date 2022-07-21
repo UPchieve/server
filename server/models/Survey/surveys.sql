@@ -70,20 +70,20 @@ WHERE
 
 /* @name getStudentsPresessionGoal */
 SELECT
-  (
-    CASE
-      WHEN src.choice_text = 'Other' THEN uss.open_response
-      ELSE src.choice_text
-    END
-  ) AS goal
+    (
+        CASE WHEN src.choice_text = 'Other' THEN
+            uss.open_response
+        ELSE
+            src.choice_text
+        END) AS goal
 FROM
-  users_surveys
-  JOIN users_surveys_submissions uss on users_surveys.id = uss.user_survey_id
-  JOIN survey_questions sq ON uss.survey_question_id = sq.id
-  JOIN survey_response_choices src ON uss.survey_response_choice_id = src.id
+    users_surveys
+    JOIN users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id
+    JOIN survey_questions sq ON uss.survey_question_id = sq.id
+    JOIN survey_response_choices src ON uss.survey_response_choice_id = src.id
 WHERE
-  users_surveys.session_id = :sessionId!
-  AND sq.question_text = 'What is your primary goal for today''s session?';
+    users_surveys.session_id = :sessionId!
+    AND sq.question_text = 'What is your primary goal for today''s session?';
 
 
 /* @name getSurveyDefinition */
@@ -125,7 +125,7 @@ WHERE
 
 /* @name getPresessionSurveyResponse */
 SELECT
-    sq.response_display_text AS display_label,
+    FORMAT(sq.response_display_text, subjects.display_name) AS display_label,
     (
         CASE WHEN src.choice_text = 'Other' THEN
             uss.open_response
@@ -138,6 +138,7 @@ SELECT
 FROM
     users_surveys AS us
     JOIN sessions AS s ON s.student_id = us.user_id
+    JOIN subjects ON s.subject_id = subjects.id
     JOIN survey_types AS st ON us.survey_type_id = st.id
     JOIN users_surveys_submissions AS uss ON us.id = uss.user_survey_id
     LEFT JOIN survey_response_choices AS src ON uss.survey_response_choice_id = src.id
