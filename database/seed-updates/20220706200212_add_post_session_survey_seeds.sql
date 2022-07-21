@@ -78,7 +78,8 @@ WHERE
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?' AND sub.text::int = 20) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'Would you like to favorite your coach %s?' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'Overall, how supportive was your coach today?' AND sub.text::int = 40) OR
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.' AND sub.text::int = 50);
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'Overall, how much did your coach push you to do your best work today?' AND sub.text::int = 50) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.' AND sub.text::int = 60);
 
 INSERT INTO upchieve.survey_questions_response_choices (surveys_survey_question_id, response_choice_id, display_priority, created_at, updated_at)
 SELECT
@@ -153,6 +154,7 @@ WHERE
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'humanitiesEssays' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'reading' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'planning' AND upchieve.survey_types.name = 'postsession') OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'essays' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'applications' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'satMath' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'satReading' AND upchieve.survey_types.name = 'postsession');
