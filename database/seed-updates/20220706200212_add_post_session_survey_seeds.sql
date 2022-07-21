@@ -17,7 +17,7 @@ SELECT
   NOW()
 FROM upchieve.question_types
 JOIN UNNEST(ARRAY[
-  'Your goal for this session was to %s. Did UPChieve help you achieve your goal?',
+  'Your goal for this session was to %s. Did UPchieve help you achieve your goal?',
   'Sorry to hear that, what happened?',
   'Would you like to favorite your coach %s?',
   'Overall, how supportive was your coach today?',
@@ -74,7 +74,7 @@ FROM upchieve.surveys
 JOIN upchieve.survey_questions ON TRUE
 JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
 WHERE
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'Your goal for this session was to %s. Did UPChieve help you achieve your goal?' AND sub.text::int = 10) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?' AND sub.text::int = 20) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'Would you like to favorite your coach %s?' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.survey_questions.question_text = 'Overall, how supportive was your coach today?' AND sub.text::int = 40) OR
@@ -93,11 +93,11 @@ JOIN upchieve.surveys ON upchieve.surveys.id = ssq.survey_id
 JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
 JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
 WHERE
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPChieve help you achieve your goal?' AND rc.choice_text = 'Not at all' AND sub.text::int = 10) OR
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPChieve help you achieve your goal?' AND rc.choice_text = 'Sorta but not really' AND sub.text::int = 20) OR
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPChieve help you achieve your goal?' AND rc.choice_text = 'I guess so' AND sub.text::int = 30) OR
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPChieve help you achieve your goal?' AND rc.choice_text = 'I''m def closer to my goal' AND sub.text::int = 40) OR
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPChieve help you achieve your goal?' AND rc.choice_text = 'GOAL ACHIEVED' AND sub.text::int = 50) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'Not at all' AND sub.text::int = 10) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'Sorta but not really' AND sub.text::int = 20) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'I guess so' AND sub.text::int = 30) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'I''m def closer to my goal' AND sub.text::int = 40) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'GOAL ACHIEVED' AND sub.text::int = 50) OR
 
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Rude coach' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Coach didn''t know topic' AND sub.text::int = 20) OR
@@ -161,7 +161,7 @@ DELETE FROM upchieve.surveys
   WHERE upchieve.surveys.name = 'Student Post-Session Survey';
 
 DELETE FROM upchieve.survey_questions
-  WHERE upchieve.survey_questions.question_text in ('Your goal for this session was to %s. Did UPChieve help you achieve your goal?',
+  WHERE upchieve.survey_questions.question_text in ('Your goal for this session was to %s. Did UPchieve help you achieve your goal?',
   'Sorry to hear that, what happened?',
   'Would you like to favorite your coach %s?',
   'Overall, how supportive was your coach today?',
