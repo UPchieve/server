@@ -35,7 +35,7 @@
         </div>
         <div v-if="!isNewStudent && hasLowConfidence" class="tip">
           <div class="tip-title">UPchieve's tip</div>
-          <div class="tip-text">Praise their effort and start with easy questions so that they can experience small wins!</div>
+          <div class="tip-text">{{studentsFirstName}} is feeling {{studentsConfidence}}. Praise their effort and start with easy questions so that they can experience small wins!</div>
         </div>
       </div>
     </div>
@@ -69,13 +69,22 @@ export default {
       if (this.totalStudentSessions === 1) display = 'first'
       if (this.totalStudentSessions === 2) display = 'second'
 
-      return `This is ${this.session.student.firstname}'s ${display} session!`
+      return `This is ${this.studentsFirstName}'s ${display} session!`
     },
     hasLowConfidence() {
       for (const response of this.responses) {
         if (response.displayImage && response.score <= 2) return true
       }
       return false
+    },
+    studentsFirstName() {
+      return this.session.student.firstname
+    },
+    studentsConfidence() {
+      for (const response of this.responses) {
+        if (response.displayImage && response.score <= 2) return response.response.toLowerCase()
+      }
+      return ''
     }
   },
 }
