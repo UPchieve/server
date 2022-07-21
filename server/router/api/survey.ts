@@ -1,11 +1,9 @@
 import expressWs from 'express-ws'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '../../constants'
 import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,
   getStudentsPresessionGoal,
-  getSurveyDefinition,
+  getSurveyDefinition
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
@@ -103,7 +101,7 @@ export function routeSurvey(router: expressWs.Router): void {
     try {
       const { subject } = req.query
       const survey = await getSurveyDefinition(asString(subject), 'postsession')
-      res.json(survey)
+      res.json({ survey })
     } catch (error) {
       resError(res, error)
     }

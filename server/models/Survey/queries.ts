@@ -150,14 +150,14 @@ export async function getStudentsPresessionGoal(
 
 export async function getSurveyDefinition(
   subjectName: string,
-  surveyType: SurveyType
+  surveyType: SurveyType,
+  sessionId: Ulid
 ): Promise<SurveyQueryResponse> {
   try {
     const result = await pgQueries.getSurveyDefinition.run(
-      { subjectName, surveyType },
+      { subjectName, surveyType, sessionId },
       getClient()
     )
-
     const resultArr = result.map(v =>
       makeSomeRequired(v, ['responseDisplayImage'])
     )
@@ -187,7 +187,7 @@ export async function getSurveyDefinition(
         }
         responses.push(responseItem)
       }
-
+      console.log(questionData)
       survey.push({
         ...questionData,
         responses: responses,
@@ -199,7 +199,6 @@ export async function getSurveyDefinition(
       surveyTypeId: resultArr[0].surveyTypeId,
       survey,
     }
-
     return data
   } catch (err) {
     throw new RepoReadError(err)
@@ -221,7 +220,6 @@ export async function getPresessionSurveyResponse(
       { sessionId },
       getClient()
     )
-
     if (result.length)
       return result.map(row => makeSomeRequired(row, ['displayImage']))
     return []

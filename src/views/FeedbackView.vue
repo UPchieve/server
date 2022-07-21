@@ -29,32 +29,83 @@
             :key="question.id"
             class="feedback__questions-item"
           >
-            <h2
-              class="feedback__question"
-              v-html="
-                question.question
-                  ? question.question
-                  : question.dynamicQuestion()
-              "
-            >
-              {{ index + 1 }}.
-              {{
-                question.question
-                  ? question.question
-                  : question.dynamicQuestion()
-              }}
-            </h2>
-            <p class="feedback__subtext">
-              {{ question.subtext }}
-            </p>
-            <component
-              :is="question.component"
-              :id="question.id"
-              :position="index"
-              :options="question.options"
-              :direction="question.direction"
-              v-model="question.answer"
-            />
+            <div v-if="isContextSharingWithVolunteerActive">
+              <div class="question__title">
+                {{ question.questionText }}
+              </div>
+              <div class="question__responses" :class="{'question__responses-images': isRowOfImages}">
+                <template
+                  v-for="response in question.responses"
+                >
+                  <survey-image
+                    v-if="isRowOfImages"
+                    class='question__response question__response-image'
+                    :key="`${response.responseId}-image`"
+                    :src="response.responseDisplayImage"
+                    :label="response.responseText"
+                    :responseId="response.responseId"
+                    :isSelected="
+                      userResponse[currentQuestion.questionId].responseId ===
+                      response.responseId
+                    "
+                    @survey-image-click="updateUserResponse" 
+                  />
+
+                  <survey-radio
+                    v-else-if="
+                      question.questionType ===
+                      questionTypes.multipleChoice
+                    "
+                    class="question__response"
+                    :key="`${response.responseId}-radio`"
+                    :id="`${question.questionId}_${response.responseId}`"
+                    :radioValue="response.responseId"
+                    :name="question.questionId"
+                    :checked="
+                      userResponse[question.questionId].responseId ===
+                      response.responseId
+                    "
+                    :responseId="response.responseId"
+                    :label="response.responseText"
+                    :isOpenResponseDisabled="
+                      userResponse[question.questionId].responseId !==
+                      response.responseId
+                    "
+                    :openResponseValue="
+                      userResponse[question.questionId].openResponse
+                    "
+                    @survey-radio-input="updateUserResponse"
+                  />
+                </template>
+              </div>
+            </div>
+            <div v-else>
+              <h2
+                class="feedback__question"
+                v-html="
+                  question.question
+                    ? question.question
+                    : question.dynamicQuestion()
+                "
+              >
+                {{ index + 1 }}.
+                {{
+                  question.question
+                    ? question.question
+                    : question.dynamicQuestion()
+                }}
+              </h2>
+              <p class="feedback__subtext">
+                {{ question.subtext }}
+              </p>
+              <component
+                :is="question.component"
+                :id="question.id"
+                :position="index"
+                :options="question.options"
+                v-model="question.answer"
+              />
+            </div>
           </li>
         </ul>
 
@@ -84,12 +135,17 @@ import FeedbackRadio from '@/components/FeedbackRadio'
 import FeedbackTextarea from '@/components/FeedbackTextarea'
 import FeedbackCheckbox from '@/components/FeedbackCheckbox'
 import Loader from '@/components/Loader'
+import { QUESTION_TYPES } from '@/consts'
+import SurveyRadio from '@/components/Surveys/SurveyRadio'
+import SurveyImage from '@/components/Surveys/SurveyImage'
 
 export default {
   name: 'FeedbackView',
   components: {
     LargeButton,
-    Loader
+    Loader,
+    SurveyImage,
+    SurveyRadio
   },
   data() {
     return {
@@ -100,6 +156,8 @@ export default {
       completedFeedback: false,
       isFavoriteCoach: false,
       isFavoriteCoachLimitReached: false,
+
+      // TODO: remove in context sharing feature flag cleanup
       studentQuestions: [
         {
           id: 'session-goal',
@@ -183,6 +241,8 @@ export default {
           answer: null
         }
       ],
+
+      // TODO: remove in context sharing feature flag cleanup
       volunteerQuestions: [
         {
           id: 'session-enjoyable',
@@ -246,7 +306,8 @@ export default {
           answer: null
         }
       ],
-      error: ''
+      error: '',
+      userResponse: {},
     }
   },
   computed: {
@@ -310,7 +371,14 @@ export default {
         ? this.volunteerQuestions
         : this.studentQuestions
     },
+    questionTypes() {
+      return QUESTION_TYPES
+    },
     filteredQuestions() {
+      if (this.isContextSharingWithVolunteerActive) {
+        return this.questions
+      }
+
       return this.questions.filter(item => !item.show || item.show())
     },
     isFavoritingCoach() {
@@ -360,6 +428,18 @@ export default {
     } = presessionGoalResponse
 
     this.session = session
+
+    if (this.isContextSharingWithVolunteerActive) {
+      const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic)
+      const postsessionSurveyDefinition = postsessionSurveyDefinitionResponse.body.survey
+      this.survey = postsessionSurveyDefinition
+      if (this.user.isVolunteer) {
+      } else {
+        this.studentQuestions = postsessionSurveyDefinition
+      }
+      this.buildUserResponse()
+    }
+
     this.studentPresessionGoal = goal
     // TODO: remove in context sharing feature flag cleanup
     this.presessionSurvey = survey
@@ -434,6 +514,19 @@ export default {
       } finally {
         this.isSubmittingFeedback = false
       }
+    },
+    // builds a default user response to be stored in state that maps a survey question ID to a response map
+    buildUserResponse() {
+      const userResponse = Object.assign({}, this.userResponse)
+      for (const question of this.survey) {
+        const questionResponse = {
+          responseId: null,
+          openResponse: '',
+        }
+        userResponse[question.questionId] = questionResponse
+      }
+
+      this.userResponse = userResponse
     },
   }
 }
