@@ -1,7 +1,10 @@
 import expressWs from 'express-ws'
+import { isEnabled } from 'unleash-client'
+import { FEATURE_FLAGS } from '../../constants'
 import {
   savePresessionSurvey,
-  getPresessionSurvey,
+  getPresessionSurveyForFeedback,
+  getStudentsPresessionGoal,
   getSurveyDefinition,
 } from '../../models/Survey'
 import {
@@ -47,13 +50,28 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
+  // This route only services the mobile app atm. Remove once
+  // the mobile app uses new presession survey work
   router.get('/survey/presession/:sessionId', async (req, res) => {
     const user = extractUser(req)
     const { sessionId } = req.params
 
     try {
-      const survey = await getPresessionSurvey(user.id, asUlid(sessionId))
+      const survey = await getPresessionSurveyForFeedback(
+        user.id,
+        asUlid(sessionId)
+      )
       res.json({ survey })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.get('/survey/presession/:sessionId/goal', async (req, res) => {
+    const { sessionId } = req.params
+    try {
+      const goal = await getStudentsPresessionGoal(sessionId)
+      res.json({ goal })
     } catch (error) {
       resError(res, error)
     }
@@ -61,11 +79,9 @@ export function routeSurvey(router: expressWs.Router): void {
 
   router.get('/survey/presession', async (req, res) => {
     try {
-      const survey = await getSurveyDefinition(
-        asString(req.body.subjectName),
-        'presession'
-      )
-      res.json({ survey })
+      const { subject } = req.query
+      const survey = await getSurveyDefinition(asString(subject), 'presession')
+      res.json(survey)
     } catch (error) {
       resError(res, error)
     }

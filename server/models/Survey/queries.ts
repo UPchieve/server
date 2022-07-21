@@ -6,6 +6,7 @@ import {
   LegacySurvey,
   SaveUserSurveySubmission,
   SaveUserSurvey,
+  SurveyQueryResponse,
   SurveyResponseDefinition,
   SurveyQuestionDefinition,
   SurveyType,
@@ -110,12 +111,12 @@ export async function saveUserSurveyAndSubmissions(
 // @todo: clean up old presession survey code
 // NOTE: this query can be replaced by a JOIN that happens when we fetch
 // the session on the feedback page
-export async function getPresessionSurvey(
+export async function getPresessionSurveyForFeedback(
   userId: Ulid,
   sessionId: Ulid
 ): Promise<LegacySurvey | undefined> {
   try {
-    const result = await pgQueries.getPresessionSurvey.run(
+    const result = await pgQueries.getPresessionSurveyForFeedback.run(
       {
         userId,
         sessionId,
@@ -131,10 +132,26 @@ export async function getPresessionSurvey(
   }
 }
 
+export async function getStudentsPresessionGoal(
+  sessionId: Ulid
+): Promise<string | undefined> {
+  try {
+    const result = await pgQueries.getStudentsPresessionGoal.run(
+      {
+        sessionId,
+      },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0]).goal
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getSurveyDefinition(
   subjectName: string,
   surveyType: SurveyType
-): Promise<SurveyQuestionDefinition[]> {
+): Promise<SurveyQueryResponse> {
   try {
     const result = await pgQueries.getSurveyDefinition.run(
       { subjectName, surveyType },
@@ -176,7 +193,14 @@ export async function getSurveyDefinition(
         responses: responses,
       })
     }
-    return survey
+
+    const data = {
+      surveyId: resultArr[0].surveyId,
+      surveyTypeId: resultArr[0].surveyTypeId,
+      survey,
+    }
+
+    return data
   } catch (err) {
     throw new RepoReadError(err)
   }

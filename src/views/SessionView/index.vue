@@ -38,10 +38,13 @@
         }"
       >
         <div
-          v-if="
-            user.isVolunteer &&
-            studentPresessionResponses.length > 0
-          "
+          v-if="user.isVolunteer && isLoadingPresessionResponse"
+          class="about-session-container"
+        >
+          <loading-message message="Loading" class="about-session-loader" />
+        </div>
+        <div
+          v-else-if="user.isVolunteer && studentPresessionResponses.length > 0"
           class="about-session-container"
         >
           <div 
@@ -53,9 +56,9 @@
           </div>
         </div>
         <div
-          v-if="
+          v-else-if="
             user.isVolunteer &&
-            showNoPressionSurveyResponse
+            (showNoPressionSurveyResponse || studentPresessionResponses.length === 0)
           "
           class="about-session-container"
         >
@@ -122,6 +125,8 @@ import AboutSessionModal from './AboutSessionModal'
 import getNotificationPermission from '@/utils/get-notification-permission'
 import { EVENTS } from '@/consts'
 import Gleap from 'gleap'
+import { backOff } from 'exponential-backoff'
+import LoadingMessage from '@/components/LoadingMessage'
 
 const activeHeaderData = {
   component: 'SessionHeader'
@@ -137,7 +142,8 @@ export default {
     DocumentEditor,
     WebNotificationsModal,
     CaretIcon,
-    AboutSessionModal
+    AboutSessionModal,
+    LoadingMessage
   },
   created() {
     if (this.mobileMode) {
@@ -167,7 +173,8 @@ export default {
       showAboutSessionModal: false,
       studentPresessionResponses: [],
       totalStudentSessions: 0,
-      showNoPressionSurveyResponse: false
+      showNoPressionSurveyResponse: false,
+      isLoadingPresessionResponse: false,
     }
   },
   beforeRouteEnter(to, from, next) {
@@ -277,10 +284,22 @@ export default {
 
         // If we have a pre-session survey, submit it now
         if (Object.keys(this.presessionSurvey).length) {
-          NetworkService.submitPresessionSurvey(
-            sessionId,
-            this.presessionSurvey
-          )
+          if (this.isContextSharingWithVolunteerActive) {
+            try {
+              await backOff(() =>
+                NetworkService.submitSurvey(
+                  Object.assign({}, this.presessionSurvey, { sessionId })
+                )
+              )
+            } catch (err) {
+              Sentry.captureException(err)
+            }
+          } else {
+            NetworkService.submitPresessionSurvey(
+              sessionId,
+              this.presessionSurvey
+            )
+          }
           this.$store.dispatch('user/clearPresessionSurvey')
         }
 
@@ -295,7 +314,7 @@ export default {
         this.$store.dispatch('user/sessionConnected')
 
         if (this.user.isVolunteer && this.isContextSharingWithVolunteerActive) {
-          await this.getSharingContext(sessionId)
+          await this.getSessionContext(sessionId)
         }
 
         if (
@@ -423,8 +442,9 @@ export default {
     toggleAboutSessionModal() {
       this.showAboutSessionModal = !this.showAboutSessionModal
     },
-    async getSharingContext(sessionId) {
+    async getSessionContext(sessionId) {
       try {
+        this.isLoadingPresessionResponse = true
         const pressionSurveyResponse =
           await NetworkService.getPresessionSurveyResponse(sessionId)
         this.totalStudentSessions =
@@ -432,6 +452,8 @@ export default {
         this.studentPresessionResponses = pressionSurveyResponse.data.responses
       } catch(err) {
         this.showNoPressionSurveyResponse = true
+      } finally {
+        this.isLoadingPresessionResponse = false
       }
     },
   },
@@ -528,6 +550,11 @@ export default {
   }
 
   &-no-responses {
+    @include font-category('subheading');
+    padding: 0.4rem 0.5rem;
+  }
+
+  &-loader {
     @include font-category('subheading');
     padding: 0.4rem 0.5rem;
   }
