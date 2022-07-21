@@ -193,6 +193,7 @@ WHERE
   (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND upchieve.subjects.name = 'reading' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND upchieve.subjects.name = 'planning' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND upchieve.subjects.name = 'applications' AND upchieve.survey_types.name = 'postsession') OR
+  (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND upchieve.subjects.name = 'essays' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND upchieve.subjects.name = 'satMath' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND upchieve.subjects.name = 'satReading' AND upchieve.survey_types.name = 'postsession');
 
