@@ -1,6 +1,6 @@
 import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { Survey } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
@@ -121,6 +121,30 @@ export async function getPresessionSurveyNew(
       })
     }
     return survey
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export type StudentPresessionSurveyResponse = {
+  displayLabel: string
+  response: string
+  score: number
+  displayOrder: number
+}
+
+export async function getPresessionSurveyResponse(
+  sessionId: string
+): Promise<StudentPresessionSurveyResponse[]> {
+  try {
+    const result = await pgQueries.getPresessionSurveyResponse.run(
+      { sessionId },
+      getClient()
+    )
+
+    if (result.length)
+      return result.map(row => makeSomeRequired(row, ['displayImage']))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }

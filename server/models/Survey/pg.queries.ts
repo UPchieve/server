@@ -159,3 +159,59 @@ const getPresessionSurveyNewIR: any = {"name":"getPresessionSurveyNew","params":
 export const getPresessionSurveyNew = new PreparedQuery<IGetPresessionSurveyNewParams,IGetPresessionSurveyNewResult>(getPresessionSurveyNewIR);
 
 
+/** 'GetPresessionSurveyResponse' parameters type */
+export interface IGetPresessionSurveyResponseParams {
+  sessionId: string;
+}
+
+/** 'GetPresessionSurveyResponse' return type */
+export interface IGetPresessionSurveyResponseResult {
+  displayImage: string | null;
+  displayLabel: string | null;
+  displayOrder: number;
+  response: string | null;
+  score: number | null;
+}
+
+/** 'GetPresessionSurveyResponse' query type */
+export interface IGetPresessionSurveyResponseQuery {
+  params: IGetPresessionSurveyResponseParams;
+  result: IGetPresessionSurveyResponseResult;
+}
+
+const getPresessionSurveyResponseIR: any = {"name":"getPresessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2536,"b":2545,"line":90,"col":21},{"a":2563,"b":2572,"line":91,"col":16}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    sq.response_display_text AS display_label,\n    (\n        CASE WHEN src.choice_text = 'Other' THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    src.display_image as display_image\nFROM\n    users_surveys AS us\n    JOIN sessions AS s ON s.student_id = us.user_id\n    JOIN survey_types AS st ON us.survey_type_id = st.id\n    JOIN users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    AND st.name = 'presession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":1683,"b":2641,"line":69,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sq.response_display_text AS display_label,
+ *     (
+ *         CASE WHEN src.choice_text = 'Other' THEN
+ *             uss.open_response
+ *         ELSE
+ *             src.choice_text
+ *         END) AS response,
+ *     COALESCE(src.score, 0) AS score,
+ *     ssq.display_priority AS display_order,
+ *     src.display_image as display_image
+ * FROM
+ *     users_surveys AS us
+ *     JOIN sessions AS s ON s.student_id = us.user_id
+ *     JOIN survey_types AS st ON us.survey_type_id = st.id
+ *     JOIN users_surveys_submissions AS uss ON us.id = uss.user_survey_id
+ *     LEFT JOIN survey_response_choices AS src ON uss.survey_response_choice_id = src.id
+ *     JOIN survey_questions AS sq ON uss.survey_question_id = sq.id
+ *     LEFT JOIN surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
+ *         AND uss.survey_question_id = ssq.survey_question_id
+ * WHERE
+ *     us.session_id = :sessionId!
+ *     AND s.id = :sessionId!
+ *     AND st.name = 'presession'
+ * ORDER BY
+ *     ssq.display_priority ASC
+ * ```
+ */
+export const getPresessionSurveyResponse = new PreparedQuery<IGetPresessionSurveyResponseParams,IGetPresessionSurveyResponseResult>(getPresessionSurveyResponseIR);
+
+

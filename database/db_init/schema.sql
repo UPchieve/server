@@ -1276,7 +1276,8 @@ CREATE TABLE upchieve.survey_questions (
     question_type_id integer NOT NULL,
     question_text text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    response_display_text text
 );
 
 
@@ -1343,7 +1344,8 @@ CREATE TABLE upchieve.survey_response_choices (
     score smallint NOT NULL,
     choice_text text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    display_image text
 );
 
 
@@ -4290,4 +4292,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220615162628'),
     ('20220630141321'),
     ('20220630192340'),
+    ('20220701142259'),
+    ('20220710195206'),
     ('20220713170236');
