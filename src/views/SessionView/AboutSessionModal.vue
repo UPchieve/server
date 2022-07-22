@@ -62,7 +62,7 @@ export default {
       session: state => state.user.session,
     }),
     isNewStudent(){
-      return this.totalStudentSessions === 1 || this.totalStudentSessions === 2
+      return this.totalStudentSessions < 3
     },
     totalSessionsTextTitle() {
       let display = ''
