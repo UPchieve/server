@@ -29,7 +29,7 @@ import {
   buildVolunteerPartnerOrg,
   buildStudentPartnerOrg,
   buildVolunteer,
-} from '../pg-generate'
+} from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
 
 // Mocks
