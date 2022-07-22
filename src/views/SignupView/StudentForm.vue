@@ -563,9 +563,6 @@ export default {
     ...mapState({
       isMobileApp: state => state.app.isMobileApp
     }),
-    ...mapGetters({
-      isZipCodeCheckActive: 'featureFlags/isZipCodeCheckActive',
-    }),
     trimCurrentGrade() {
       // extracting the first word out of the gradeLevels
       // example: "8th grade" --> "8th"
@@ -680,15 +677,10 @@ export default {
       const zipCodeRegex = /^\d{5}$/
       const zipCode = this.eligibility.zipCode
 
-      if (!zipCode || !zipCodeRegex.test(zipCode)) {
-        this.errors.push('You must enter a properly formatted zip code')
+      const { body: { isValidZipCode } } = await NetworkService.checkZipCode(this, { zipCode })
+      if (!isValidZipCode) {
+        this.errors.push('You must enter a valid United States zip code')
         this.invalidInputs.push('inputZipCode')
-      } else if (this.isZipCodeCheckActive) {
-        const { body: { isValidZipCode } } = await NetworkService.checkZipCode(this, { zipCode })
-        if (!isValidZipCode) {
-          this.errors.push('You must enter a valid United States zip code')
-          this.invalidInputs.push('inputZipCode')
-        }
       }
 
       if (!this.eligibility.email) {
@@ -874,7 +866,7 @@ export default {
       this.isLoadingSignupSource = true
       try {
         const data = await backOff(() => NetworkService.getStudentSignupSources())
-        this.signupSourcesOptions = data.body.signupSources 
+        this.signupSourcesOptions = data.body.signupSources
       } catch (err) {
         Sentry.captureException(err)
       } finally {
