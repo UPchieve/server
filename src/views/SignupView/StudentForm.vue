@@ -486,7 +486,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'vuex'
 import validator from 'validator'
 import Autocomplete from '@trevoreyre/autocomplete-vue'
 import * as Sentry from '@sentry/browser'
@@ -674,7 +674,6 @@ export default {
         this.errors.push('You must select your high school.')
       }
 
-      const zipCodeRegex = /^\d{5}$/
       const zipCode = this.eligibility.zipCode
 
       const { body: { isValidZipCode } } = await NetworkService.checkZipCode(this, { zipCode })
