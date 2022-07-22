@@ -430,7 +430,7 @@ export default {
     this.session = session
 
     if (this.isContextSharingWithVolunteerActive) {
-      const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic)
+      const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic, this.session.id)
       const postsessionSurveyDefinition = postsessionSurveyDefinitionResponse.body.survey
       this.survey = postsessionSurveyDefinition
       if (this.user.isVolunteer) {
@@ -517,6 +517,7 @@ export default {
     },
     // builds a default user response to be stored in state that maps a survey question ID to a response map
     buildUserResponse() {
+      console.log(this.survey)
       const userResponse = Object.assign({}, this.userResponse)
       for (const question of this.survey) {
         const questionResponse = {

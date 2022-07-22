@@ -13,6 +13,7 @@ import {
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
+import { SURVEY_TYPES } from '../../constants'
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -151,13 +152,23 @@ export async function getStudentsPresessionGoal(
 export async function getSurveyDefinition(
   subjectName: string,
   surveyType: SurveyType,
-  sessionId: Ulid
+  sessionId?: Ulid
 ): Promise<SurveyQueryResponse> {
   try {
-    const result = await pgQueries.getSurveyDefinition.run(
-      { subjectName, surveyType, sessionId },
-      getClient()
-    )
+    let result: any[] = [];
+    if (surveyType === 'presession') {
+      result = await pgQueries.getPresessionSurveyDefinition.run(
+        { subjectName, surveyType },
+        getClient()
+      )
+    } else if (surveyType === 'postsession' && sessionId) {
+      result = await pgQueries.getPostsessionSurveyDefinition.run(
+        { subjectName, surveyType, sessionId },
+        getClient()
+      )
+    } else {
+      throw new Error('unrecognized survey type or missing sessionId')
+    }
     const resultArr = result.map(v =>
       makeSomeRequired(v, ['responseDisplayImage'])
     )
