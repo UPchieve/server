@@ -9,13 +9,12 @@ import { authPassport } from '../../utils/auth-utils'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import {
   buildPresessionSurveyResponse,
-  buildPressionSurvey,
-  buildPressionSurveyLegacy,
+  buildPresessionSurvey,
+  buildPresessionSurveyLegacy,
   buildUserContactInfo,
   buildUserSurvey,
   buildUserSurveySubmission,
 } from '../pg-generate'
-import unleash from 'unleash-client'
 
 jest.mock('../../services/SurveyService')
 jest.mock('../../models/Survey')
@@ -59,29 +58,29 @@ beforeEach(async () => {
 
 const sessionId = getDbUlid()
 
-const SAVE_PRESSION_SURVEY = `/survey/presession/${sessionId}`
+const SAVE_PRESESSION_SURVEY = `/survey/presession/${sessionId}`
 describe('/survey/presession/:sessionId', () => {
   test('Should save the presession survey', async () => {
     const payload = buildPresessionSurveyResponse()
-    const mockedSurvey = buildPressionSurveyLegacy()
+    const mockedSurvey = buildPresessionSurveyLegacy()
     mockedSurveyRepo.savePresessionSurvey.mockImplementationOnce(
       async () => mockedSurvey
     )
-    const response = await sendPost(SAVE_PRESSION_SURVEY, payload)
+    const response = await sendPost(SAVE_PRESESSION_SURVEY, payload)
     expect(mockedSurveyRepo.savePresessionSurvey).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
   })
 })
 
-const GET_PRESSION_SURVEY_FOR_FEEDBACK = `/survey/presession/${sessionId}`
+const GET_PRESESSION_SURVEY_FOR_FEEDBACK = `/survey/presession/${sessionId}`
 describe('/survey/presession/:sessionId', () => {
   test('Should get presession survey questions', async () => {
     const payload = {}
-    const mockedSurvey = buildPressionSurveyLegacy()
+    const mockedSurvey = buildPresessionSurveyLegacy()
     mockedSurveyRepo.getPresessionSurveyForFeedback.mockImplementationOnce(
       async () => mockedSurvey
     )
-    const response = await sendGet(GET_PRESSION_SURVEY_FOR_FEEDBACK, payload)
+    const response = await sendGet(GET_PRESESSION_SURVEY_FOR_FEEDBACK, payload)
     expect(
       mockedSurveyRepo.getPresessionSurveyForFeedback
     ).toHaveBeenCalledTimes(1)
@@ -95,7 +94,7 @@ describe('/survey/presession/:sessionId', () => {
   })
 })
 
-const GET_STUDENTS_PRESSESSION_GOAL = `/survey/presession/${sessionId}/goal`
+const GET_STUDENTS_PRESESSION_GOAL = `/survey/presession/${sessionId}/goal`
 describe('/survey/presession/:sessionId/goal', () => {
   test('Should get the students presession goal', async () => {
     const payload = {}
@@ -103,14 +102,14 @@ describe('/survey/presession/:sessionId/goal', () => {
     mockedSurveyRepo.getStudentsPresessionGoal.mockImplementationOnce(
       async () => mockedGoal
     )
-    const response = await sendGet(GET_STUDENTS_PRESSESSION_GOAL, payload)
+    const response = await sendGet(GET_STUDENTS_PRESESSION_GOAL, payload)
     expect(mockedSurveyRepo.getStudentsPresessionGoal).toHaveBeenCalledTimes(1)
     expect(mockedGoal).toEqual(response.body.goal)
     expect(response.status).toBe(200)
   })
 })
 
-const GET_PRESSION_SURVEY = (subject: string) =>
+const GET_PRESESSION_SURVEY = (subject: string) =>
   `/survey/presession?subject=${subject}`
 describe('/survey/presession?subject=', () => {
   test('Should get presession survey questions', async () => {
@@ -118,13 +117,13 @@ describe('/survey/presession?subject=', () => {
     const mockedSurvey = {
       surveyId: 1,
       surveyTypeId: 1,
-      survey: [buildPressionSurvey()],
+      survey: [buildPresessionSurvey()],
     }
     mockedSurveyRepo.getSurveyDefinition.mockImplementationOnce(
       async () => mockedSurvey
     )
     const response = await sendGet(
-      GET_PRESSION_SURVEY(SUBJECTS.ALGEBRA_ONE),
+      GET_PRESESSION_SURVEY(SUBJECTS.ALGEBRA_ONE),
       payload
     )
     expect(mockedSurveyRepo.getSurveyDefinition).toHaveBeenCalledTimes(1)
@@ -133,7 +132,7 @@ describe('/survey/presession?subject=', () => {
   })
 })
 
-const GET_PRESSION_SURVEY_RESPONSE = `/survey/presession/response/${sessionId}`
+const GET_PRESESSION_SURVEY_RESPONSE = `/survey/presession/response/${sessionId}`
 describe('/survey/presession/response/:sessionId', () => {
   test('Should get presession survey questions', async () => {
     const payload = {}
@@ -144,7 +143,7 @@ describe('/survey/presession/response/:sessionId', () => {
     mockedSurveyService.getContextSharingForVolunteer.mockImplementationOnce(
       async () => mockedSurveyResponse
     )
-    const response = await sendGet(GET_PRESSION_SURVEY_RESPONSE, payload)
+    const response = await sendGet(GET_PRESESSION_SURVEY_RESPONSE, payload)
     expect(
       mockedSurveyService.getContextSharingForVolunteer
     ).toHaveBeenCalledTimes(1)
