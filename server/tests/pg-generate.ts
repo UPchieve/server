@@ -20,6 +20,12 @@ import {
 } from '../utils/auth-utils'
 import { GRADES } from '../constants'
 import { AppStudent, AppUser, AppVolunteer } from './types'
+import {
+  PresessionSurvey,
+  PresessionSurveyResponseData,
+  StudentPresessionSurveyResponse,
+  Survey,
+} from '../models/Survey'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -171,11 +177,11 @@ export function buildAssistmentsData(
 type SessionRow = any
 export async function buildSession(
   overrides: Partial<SessionRow> & { studentId: Ulid },
-  client: Pool
+  client?: Pool
 ): Promise<SessionRow> {
   return {
     id: getDbUlid(),
-    subjectId: await getSubjectIdByName('algebraOne', client),
+    subjectId: client ? await getSubjectIdByName('algebraOne', client) : 1,
     hasWhiteboardDoc: true,
     reviewed: false,
     toReview: false,
@@ -304,6 +310,71 @@ export const buildPartnerVolunteerRegistrationForm = (
   } as PartnerVolunteerRegData
 
   return form
+}
+
+export function buildPresessionLegacySurveyResponse(
+  overrides: Partial<PresessionSurveyResponseData> = {}
+): PresessionSurveyResponseData {
+  return {
+    'primary-goal': {
+      answer: 'To finish my homework.',
+    },
+    'topic-understanding': {
+      answer: 2,
+    },
+    ...overrides,
+  }
+}
+
+export const buildPressionSurveyLegacy = (
+  overrides: Partial<Survey> = {}
+): Survey => {
+  const survey = {
+    id: getDbUlid(),
+    userId: getDbUlid(),
+    sessionId: getDbUlid(),
+    responseData: buildPresessionLegacySurveyResponse(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
+
+  return survey
+}
+
+export const buildPressionSurvey = (
+  overrides: Partial<PresessionSurvey> = {}
+): PresessionSurvey => {
+  const survey = {
+    questionId: '1',
+    questionText: "What is your primary goal for today's session?",
+    displayPriority: 1,
+    questionType: 'multiple choice',
+    responses: [
+      {
+        responseId: 1,
+        responseText: 'Complete a homework assignment',
+        responseDisplayPriority: 1,
+      },
+    ],
+    ...overrides,
+  }
+
+  return survey
+}
+
+export const buildPresessionSurveyResponse = (
+  overrides: Partial<StudentPresessionSurveyResponse> = {}
+): StudentPresessionSurveyResponse => {
+  const survey = {
+    displayLabel: 'Their goal:',
+    response: 'Complete a homework assignment',
+    score: 1,
+    displayOrder: 10,
+    ...overrides,
+  }
+
+  return survey
 }
 
 /**
