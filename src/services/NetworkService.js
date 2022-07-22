@@ -647,6 +647,11 @@ export default {
       .get(`${API_ROOT}/survey/presession/${sessionId}`)
       .then(this._successHandler, this._errorHandler)
   },
+  getPresessionSurveyResponse(sessionId) {
+    return Vue.http
+      .get(`${API_ROOT}/survey/presession/response/${sessionId}`)
+      .then(this._successHandler, this._errorHandler)
+  },
   getUserProductFlags() {
     return Vue.http
       .get(`${API_ROOT}/product-flags`)
