@@ -16,7 +16,6 @@ export async function processGatesQualifiedCheck(userId: Ulid) {
     .utc()
     .toDate()
   if (
-    isEnabled(FEATURE_FLAGS.GATES_STUDY) ||
     isDateWithinRange(
       todaysDate,
       GATES_STUDY_PERIOD_START,

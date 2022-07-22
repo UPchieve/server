@@ -50,16 +50,13 @@ export default {
   state: {
     flags: {
       [FEATURE_FLAGS.REFER_FRIENDS]: false,
-      [FEATURE_FLAGS.STUDENT_BANNED_STATE]: true,
       [FEATURE_FLAGS.DASHBOARD_REDESIGN]: false,
-      [FEATURE_FLAGS.GATES_STUDY]: true,
       [FEATURE_FLAGS.DOWNTIME_BANNER]: false,
       [FEATURE_FLAGS.CHATBOT]: false,
       [FEATURE_FLAGS.COACH_FAVORITING]: false,
       [FEATURE_FLAGS.SESSION_HISTORY]: false,
       [FEATURE_FLAGS.DASHBOARD_BANNER]: false,
       [FEATURE_FLAGS.ZIP_CODE_CHECK]: false,
-      [FEATURE_FLAGS.DISCOVERY_SOURCE]: false,
       [FEATURE_FLAGS.UPCHIEVE_101_GRACE_PERIOD_BANNER]: false,
       [FEATURE_FLAGS.SUMMER_PREP_BANNER]: false,
       [FEATURE_FLAGS.US_HISTORY_LAUNCH_VOLUNTEER]: false,
@@ -90,18 +87,14 @@ export default {
   },
   getters: {
     isReferFriendsActive: state => state.flags[FEATURE_FLAGS.REFER_FRIENDS],
-    isStudentBannedStateActive: state =>
-      state.flags[FEATURE_FLAGS.STUDENT_BANNED_STATE],
     isDashboardRedesignActive: state =>
       state.flags[FEATURE_FLAGS.DASHBOARD_REDESIGN],
-    isGatesStudyActive: state => state.flags[FEATURE_FLAGS.GATES_STUDY],
     isDowntimeBannerActive: state => state.flags[FEATURE_FLAGS.DOWNTIME_BANNER],
     isChatbotActive: state => state.flags[FEATURE_FLAGS.CHATBOT],
     isCoachFavoritingActive: state => state.flags[FEATURE_FLAGS.COACH_FAVORITING],
     isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY],
     isDashboardBannerActive: state => state.flags[FEATURE_FLAGS.DASHBOARD_BANNER],
     isZipCodeCheckActive: state => state.flags[FEATURE_FLAGS.ZIP_CODE_CHECK],
-    isDiscoverySourceActive: state => state.flags[FEATURE_FLAGS.DISCOVERY_SOURCE],
     isUpchieve101GracePeriodBannerActive: state => state.flags[FEATURE_FLAGS.UPCHIEVE_101_GRACE_PERIOD_BANNER],
     isSummerPrepActive: state => state.flags[FEATURE_FLAGS.SUMMER_PREP_BANNER],
     isUsHistroyLaunchVolunteerActive: state => state.flags[FEATURE_FLAGS.US_HISTORY_LAUNCH_VOLUNTEER],
