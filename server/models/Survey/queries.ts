@@ -9,11 +9,11 @@ import {
   SurveyQueryResponse,
   SurveyResponseDefinition,
   SurveyQuestionDefinition,
-  SurveyType,
+  SurveyType
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
-import { SURVEY_TYPES } from '../../constants'
+import { SURVEY_TYPES, USER_ROLES } from '../../constants'
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -152,22 +152,24 @@ export async function getStudentsPresessionGoal(
 export async function getSurveyDefinition(
   subjectName: string,
   surveyType: SurveyType,
-  sessionId?: Ulid
+  sessionId?: Ulid,
+  userRole?: USER_ROLES
 ): Promise<SurveyQueryResponse> {
   try {
     let result: any[] = [];
+    console.log(userRole)
     if (surveyType === 'presession') {
       result = await pgQueries.getPresessionSurveyDefinition.run(
         { subjectName, surveyType },
         getClient()
       )
-    } else if (surveyType === 'postsession' && sessionId) {
+    } else if (surveyType === 'postsession' && sessionId && userRole) {
       result = await pgQueries.getPostsessionSurveyDefinition.run(
-        { subjectName, surveyType, sessionId },
+        { subjectName, surveyType, sessionId, userRole },
         getClient()
       )
     } else {
-      throw new Error('unrecognized survey type or missing sessionId')
+      throw new Error('unrecognized survey type or missing parameter necessary for this survey type')
     }
     const resultArr = result.map(v =>
       makeSomeRequired(v, ['responseDisplayImage'])
@@ -198,7 +200,6 @@ export async function getSurveyDefinition(
         }
         responses.push(responseItem)
       }
-      console.log(questionData)
       survey.push({
         ...questionData,
         responses: responses,

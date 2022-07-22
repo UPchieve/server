@@ -667,9 +667,9 @@ export default {
       .get(`${API_ROOT}/survey/presession/response/${sessionId}`)
       .then(this._successHandler, this._errorHandler)
   },
-  getPostsessionSurvey(subjectName, sessionId) {
+  getPostsessionSurvey(subjectName, sessionId, role) {
     return Vue.http
-      .get(`${API_ROOT}/survey/postsession?subject=${subjectName}&sessionId=${sessionId}`)
+      .get(`${API_ROOT}/survey/postsession?subject=${subjectName}&sessionId=${sessionId}&role=${role}`)
       .then(this._successHandler, this._errorHandler)
   },
   getUserProductFlags() {

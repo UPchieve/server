@@ -33,19 +33,19 @@
               <div class="question__title">
                 {{ question.questionText }}
               </div>
-              <div class="question__responses" :class="{'question__responses-images': isRowOfImages}">
+              <div class="question__responses" :class="{'question__responses-images': isRowOfImages(question)}">
                 <template
                   v-for="response in question.responses"
                 >
                   <survey-image
-                    v-if="isRowOfImages"
+                    v-if="isRowOfImages(question)"
                     class='question__response question__response-image'
                     :key="`${response.responseId}-image`"
                     :src="response.responseDisplayImage"
                     :label="response.responseText"
                     :responseId="response.responseId"
                     :isSelected="
-                      userResponse[currentQuestion.questionId].responseId ===
+                      userResponse[question.questionId].responseId ===
                       response.responseId
                     "
                     @survey-image-click="updateUserResponse" 
@@ -156,6 +156,7 @@ export default {
       completedFeedback: false,
       isFavoriteCoach: false,
       isFavoriteCoachLimitReached: false,
+      allQuestions: [],
 
       // TODO: remove in context sharing feature flag cleanup
       studentQuestions: [
@@ -367,6 +368,9 @@ export default {
       return this.user.isVolunteer ? 'volunteer' : 'student'
     },
     questions() {
+      if (this.isContextSharingWithVolunteerActive) {
+        return this.allQuestions
+      }
       return this.user.isVolunteer
         ? this.volunteerQuestions
         : this.studentQuestions
@@ -430,13 +434,10 @@ export default {
     this.session = session
 
     if (this.isContextSharingWithVolunteerActive) {
-      const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic, this.session.id)
+      const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic, this.session.id, this.userType)
       const postsessionSurveyDefinition = postsessionSurveyDefinitionResponse.body.survey
-      this.survey = postsessionSurveyDefinition
-      if (this.user.isVolunteer) {
-      } else {
-        this.studentQuestions = postsessionSurveyDefinition
-      }
+      this.surveyDefinition = postsessionSurveyDefinition
+      this.allQuestions = postsessionSurveyDefinition.survey
       this.buildUserResponse()
     }
 
@@ -462,6 +463,10 @@ export default {
     }
   },
   methods: {
+    // checks if the current question has a row of responses that require to show a display image
+    isRowOfImages(currentQuestion) {
+      return currentQuestion.responses.some((a) => a.responseDisplayImage)
+    },
     async submitFeedback() {
       if (this.isSubmittingFeedback) return
       this.isSubmittingFeedback = true
@@ -517,9 +522,8 @@ export default {
     },
     // builds a default user response to be stored in state that maps a survey question ID to a response map
     buildUserResponse() {
-      console.log(this.survey)
       const userResponse = Object.assign({}, this.userResponse)
-      for (const question of this.survey) {
+      for (const question of this.surveyDefinition.survey) {
         const questionResponse = {
           responseId: null,
           openResponse: '',

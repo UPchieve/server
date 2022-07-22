@@ -1399,7 +1399,8 @@ CREATE TABLE upchieve.surveys (
     id integer NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    role_id integer
 );
 
 
@@ -4298,4 +4299,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220710195206'),
     ('20220711163000'),
     ('20220713170236'),
-    ('20220721180659');
+    ('20220721180659'),
+    ('20220722164711');

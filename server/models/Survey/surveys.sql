@@ -169,6 +169,7 @@ WITH replacement_column_cte AS (
   and s.id = :sessionId!
 )
 SELECT
+    surveys.name,
     sq.id AS question_id,
     FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS question_text,
     ssq.display_priority,
@@ -189,6 +190,7 @@ FROM
     JOIN question_types qt ON qt.id = sq.question_type_id
     JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id
     JOIN replacement_column_cte rcc ON rcc.id = sq.id
+    JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
     JOIN LATERAL (
         SELECT
             id AS response_id,
@@ -202,7 +204,8 @@ FROM
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
     subjects.name = :subjectName!
-    AND st.name = :surveyType!;
+    AND st.name = :surveyType!
+    AND ur.name = :userRole!;
 
 
 /* @name getPresessionSurveyResponse */

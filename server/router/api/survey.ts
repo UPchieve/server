@@ -1,4 +1,5 @@
 import expressWs from 'express-ws'
+import { USER_ROLES } from '../../constants'
 import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,
@@ -9,6 +10,7 @@ import {
   getContextSharingForVolunteer,
   validateSaveUserSurveyAndSubmissions,
 } from '../../services/SurveyService'
+import { checkValuePresentInEnum, getEnumKeyByEnumValue } from '../../utils/enum-utils'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
@@ -99,8 +101,9 @@ export function routeSurvey(router: expressWs.Router): void {
 
   router.get('/survey/postsession', async (req, res) => {
     try {
-      const { subject, sessionId } = req.query
-      const survey = await getSurveyDefinition(asString(subject), 'postsession', asString(sessionId))
+      const { subject, sessionId, role } = req.query
+      let parsedRole = getEnumKeyByEnumValue(USER_ROLES, asString(role))
+      const survey = await getSurveyDefinition(asString(subject), 'postsession', asString(sessionId), parsedRole)
       res.json({ survey })
     } catch (error) {
       resError(res, error)
