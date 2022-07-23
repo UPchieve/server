@@ -278,23 +278,23 @@ export default {
     },
 
     /**
-     * Volunteers in 2022 who got to skip completing the UPchieve 101 quiz but 
+     * Volunteers in 2022 who got to skip completing the UPchieve 101 quiz but
      * became onboarded will see a grace period banner that prompts
      * them to take the UPchieve 101 quiz
      */
-    // TODO: Remove with feature flag upchieve-101-grace-period-banner cleanup 
+    // TODO: Remove with feature flag upchieve-101-grace-period-banner cleanup
     showUpchieve101NoticeForGracePeriod() {
       return (
         this.user.isOnboarded &&
         !this.user.certifications['upchieve101'].passed &&
-        new Date(this.user.createdAt) >= new Date('01/01/2022') && 
+        new Date(this.user.createdAt) >= new Date('01/01/2022') &&
         this.isUpchieve101GracePeriodBannerActive
       )
     },
 
     downtimeMessage() {
       if (this.isDowntimeBannerActive) {
-        return 'UPchieve is experiencing recurring interruptions. If your session is interrupted, please wait a few seconds and refresh.'
+        return 'UPchieve will be down for maintenance Tuesday, July 26th from 9-10 AM ET.'
       } else {
         return ''
       }
