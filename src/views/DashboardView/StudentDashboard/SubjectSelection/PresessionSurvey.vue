@@ -31,6 +31,7 @@
                   :key="`${response.responseId}-image`"
                   :src="response.responseDisplayImage"
                   :label="response.responseText"
+                  :questionId="currentQuestion.questionId"
                   :responseId="response.responseId"
                   :isSelected="
                     userResponse[currentQuestion.questionId].responseId ===
@@ -53,6 +54,7 @@
                     userResponse[currentQuestion.questionId].responseId ===
                     response.responseId
                   "
+                  :questionId="currentQuestion.questionId"
                   :responseId="response.responseId"
                   :label="response.responseText"
                   :isOpenResponseDisabled="
@@ -387,8 +389,7 @@ export default {
 
       this.userResponse = userResponse
     },
-    updateUserResponse(responseId, openResponseText = '') {
-      const questionId = this.currentQuestion.questionId
+    updateUserResponse(questionId, responseId, openResponseText = '') {
       // Vue cannot detect property addition or deletion on objects. A new object
       // must be created for Vue to recognize changes on said object
       const responseAnswer = {

@@ -22,6 +22,7 @@
 </template>
 
 <script>
+
 export default {
   props: {
     src: {
@@ -41,11 +42,15 @@ export default {
       type: [String, Number],
       required: true,
     },
+    questionId: {
+      type: [String, Number],
+      required: true
+    }
   },
 
   methods: {
     handleImageClick() {
-      this.$emit('survey-image-click', this.responseId)
+      this.$emit('survey-image-click', this.questionId, this.responseId)
     },
   },
 }

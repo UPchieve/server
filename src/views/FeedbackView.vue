@@ -43,6 +43,7 @@
                     :key="`${response.responseId}-image`"
                     :src="response.responseDisplayImage"
                     :label="response.responseText"
+                    :questionId="question.questionId"
                     :responseId="response.responseId"
                     :isSelected="
                       userResponse[question.questionId].responseId ===
@@ -65,6 +66,7 @@
                       userResponse[question.questionId].responseId ===
                       response.responseId
                     "
+                    :questionId="question.questionId"
                     :responseId="response.responseId"
                     :label="response.responseText"
                     :isOpenResponseDisabled="
@@ -345,6 +347,7 @@ export default {
         this.studentPresessionGoal
       ) {
         return this.studentPresessionGoal
+      // todo: remove in context sharing feature flag cleanup
       } else {
         if (this.presessionSurvey && this.presessionSurvey.createdAt) {
           if (
@@ -369,7 +372,7 @@ export default {
     },
     questions() {
       if (this.isContextSharingWithVolunteerActive) {
-        return this.allQuestions
+        return this.allQuestions.map(q => q.question);
       }
       return this.user.isVolunteer
         ? this.volunteerQuestions
@@ -380,7 +383,7 @@ export default {
     },
     filteredQuestions() {
       if (this.isContextSharingWithVolunteerActive) {
-        return this.questions
+        return this.allQuestions.filter(q => q.isVisible).map(q => q.question)
       }
 
       return this.questions.filter(item => !item.show || item.show())
@@ -432,18 +435,21 @@ export default {
     } = presessionGoalResponse
 
     this.session = session
-<<<<<<< HEAD
 
     if (this.isContextSharingWithVolunteerActive) {
       const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic, this.session.id, this.userType)
       const postsessionSurveyDefinition = postsessionSurveyDefinitionResponse.body.survey
       this.surveyDefinition = postsessionSurveyDefinition
-      this.allQuestions = postsessionSurveyDefinition.survey
+      this.allQuestions = _.map(postsessionSurveyDefinition.survey, q => {
+        const isHiddenOnStart = this.isLowRatingQuestion(q) || this.isHighRatingQuestion(q)
+        return {
+          question: q,
+          isVisible: !isHiddenOnStart
+        }
+      });
       this.buildUserResponse()
     }
 
-=======
->>>>>>> save-user-survey
     this.studentPresessionGoal = goal
     // TODO: remove in context sharing feature flag cleanup
     this.presessionSurvey = survey
@@ -466,9 +472,17 @@ export default {
     }
   },
   methods: {
-    // checks if the current question has a row of responses that require to show a display image
-    isRowOfImages(currentQuestion) {
-      return currentQuestion.responses.some((a) => a.responseDisplayImage)
+    // checks if the question has a row of responses that require to show a display image
+    isRowOfImages(question) {
+      return question.responses.some((a) => a.responseDisplayImage)
+    },
+    // checks if this is the question we show if session rating is low
+    isLowRatingQuestion(question) {
+      return question.questionText.startsWith('Sorry to hear that');
+    },
+    // checks if this is the question we show if session rating is high
+    isHighRatingQuestion(question){
+      return question.questionText.startsWith('Would you like to favorite your coach');
     },
     async submitFeedback() {
       if (this.isSubmittingFeedback) return
@@ -535,6 +549,57 @@ export default {
       }
 
       this.userResponse = userResponse
+    },
+    updateUserResponse(questionId, responseId, openResponseText = '') {
+      // if question changed is ratings question, show/hide conditional questions that depend on it
+      const ratingQuestion = _.find(this.questions, q => q.questionText.startsWith("Your goal for this session"))
+      if (ratingQuestion && questionId === ratingQuestion.questionId) {
+        const ratingResponse = _.find(ratingQuestion.responses, r => r.responseId === responseId)
+        if (ratingResponse.responseText === 'Not at all' || ratingResponse.responseText === 'Sorta but not really') {
+          // show low-rating question and hide high-rating question
+          this.allQuestions = _.map(this.allQuestions, q => {
+            const shouldHideQuestion = this.isHighRatingQuestion(q.question)
+            return {
+              question: q.question,
+              isVisible: !shouldHideQuestion
+            }
+          })
+        } else if (ratingResponse.responseText === 'I\'m def closer to my goal' || ratingResponse.responseText === 'GOAL ACHIEVED') {
+          // show high-rating question and hide low-rating question
+          this.allQuestions = _.map(this.allQuestions, q => {
+            const shouldHideQuestion = this.isLowRatingQuestion(q.question)
+            return {
+              question: q.question,
+              isVisible: !shouldHideQuestion
+            }
+          })
+        } else {
+          // hide both low-rating and high-rating questions
+          this.allQuestions = _.map(this.allQuestions, q => {
+            const shouldHideQuestion = this.isHighRatingQuestion(q.question) || this.isLowRatingQuestion(q.question)
+            return {
+              question: q.question,
+              isVisible: !shouldHideQuestion
+            }
+          })
+        }
+
+        // clear out responses for all hidden questions so we don't save junk data (change to actually-selected answer will handle re-render)
+        const questionIdsToClear = this.allQuestions.filter(item => !item.isVisible).map(item => item.question.questionId)
+        _.forEach(questionIdsToClear, q => {
+          this.userResponse[q] = {responseId: null, openResponse: ''}
+        })
+      }
+
+      // Vue cannot detect property addition or deletion on objects. A new object
+      // must be created for Vue to recognize changes on said object
+      const responseAnswer = {
+        [questionId]: Object.assign({}, this.userResponse[questionId], {
+          responseId,
+          openResponse: openResponseText,
+        }),
+      }
+      this.userResponse = Object.assign({}, this.userResponse, responseAnswer)
     },
   }
 }

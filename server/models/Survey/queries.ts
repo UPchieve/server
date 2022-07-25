@@ -157,7 +157,6 @@ export async function getSurveyDefinition(
 ): Promise<SurveyQueryResponse> {
   try {
     let result: any[] = [];
-    console.log(userRole)
     if (surveyType === 'presession') {
       result = await pgQueries.getPresessionSurveyDefinition.run(
         { subjectName, surveyType },
