@@ -58,7 +58,7 @@
         <div
           v-else-if="
             user.isVolunteer &&
-            (showNoPressionSurveyResponse || studentPresessionResponses.length === 0)
+            (showNoPresessionSurveyResponse || studentPresessionResponses.length === 0)
           "
           class="about-session-container"
         >
@@ -173,7 +173,7 @@ export default {
       showAboutSessionModal: false,
       studentPresessionResponses: [],
       totalStudentSessions: 0,
-      showNoPressionSurveyResponse: false,
+      showNoPresessionSurveyResponse: false,
       isLoadingPresessionResponse: false,
     }
   },
@@ -445,13 +445,13 @@ export default {
     async getSessionContext(sessionId) {
       try {
         this.isLoadingPresessionResponse = true
-        const pressionSurveyResponse =
+        const presessionSurveyResponse =
           await NetworkService.getPresessionSurveyResponse(sessionId)
         this.totalStudentSessions =
-          pressionSurveyResponse.data.totalStudentSessions
-        this.studentPresessionResponses = pressionSurveyResponse.data.responses
+          presessionSurveyResponse.data.totalStudentSessions
+        this.studentPresessionResponses = presessionSurveyResponse.data.responses
       } catch(err) {
-        this.showNoPressionSurveyResponse = true
+        this.showNoPresessionSurveyResponse = true
       } finally {
         this.isLoadingPresessionResponse = false
       }

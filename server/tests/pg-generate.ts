@@ -1,6 +1,5 @@
 import { getDbUlid, getUuid, Pgid, Ulid } from '../models/pgUtils'
 import { AssistmentsData } from '../models/AssistmentsData'
-import { Session } from '../models/Session'
 import { Student } from '../models/Student'
 import { Availability } from '../models/Availability'
 import { User, UserContactInfo } from '../models/User'
@@ -328,7 +327,7 @@ export function buildPresessionLegacySurveyResponse(
   }
 }
 
-export const buildPressionSurveyLegacy = (
+export const buildPresessionSurveyLegacy = (
   overrides: Partial<LegacySurvey> = {}
 ): LegacySurvey => {
   const survey = {
@@ -344,7 +343,7 @@ export const buildPressionSurveyLegacy = (
   return survey
 }
 
-export const buildPressionSurvey = (
+export const buildPresessionSurvey = (
   overrides: Partial<SurveyQuestionDefinition> = {}
 ): SurveyQuestionDefinition => {
   const survey = {

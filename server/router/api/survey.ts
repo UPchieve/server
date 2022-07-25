@@ -10,7 +10,7 @@ import {
   getContextSharingForVolunteer,
   validateSaveUserSurveyAndSubmissions,
 } from '../../services/SurveyService'
-import { checkValuePresentInEnum, getEnumKeyByEnumValue } from '../../utils/enum-utils'
+import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'

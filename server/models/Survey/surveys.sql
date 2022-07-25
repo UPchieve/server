@@ -85,7 +85,6 @@ WHERE
     users_surveys.session_id = :sessionId!
     AND sq.question_text = 'What is your primary goal for today''s session?';
 
-
 /* @name getPresessionSurveyDefinition */
 SELECT
     sq.id AS question_id,

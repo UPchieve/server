@@ -432,6 +432,7 @@ export default {
     } = presessionGoalResponse
 
     this.session = session
+<<<<<<< HEAD
 
     if (this.isContextSharingWithVolunteerActive) {
       const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic, this.session.id, this.userType)
@@ -441,6 +442,8 @@ export default {
       this.buildUserResponse()
     }
 
+=======
+>>>>>>> save-user-survey
     this.studentPresessionGoal = goal
     // TODO: remove in context sharing feature flag cleanup
     this.presessionSurvey = survey

@@ -657,7 +657,7 @@ export default {
       .get(`${API_ROOT}/survey/presession/${sessionId}/goal`)
       .then(this._successHandler, this._errorHandler)
   },
-  getPresessionSurvey(subjectName, sessionId) {
+  getPresessionSurvey(subjectName) {
     return Vue.http
       .get(`${API_ROOT}/survey/presession?subject=${subjectName}`)
       .then(this._successHandler, this._errorHandler)
