@@ -66,3 +66,9 @@ export type SurveyQuestionDefinition = {
   questionType: String
   responses: SurveyResponseDefinition[]
 }
+
+export type SurveyQueryResponse = {
+  surveyId: number
+  surveyTypeId: number
+  survey: SurveyQuestionDefinition[]
+}
