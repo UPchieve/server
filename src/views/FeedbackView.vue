@@ -68,7 +68,7 @@
                     "
                     @survey-image-click="updateUserResponse" 
                   />
-                  <survey-rate-numbers
+                  <survey-rate-number
                     v-else-if="
                       (question.questionType === 'multiple-choice')
                     "
@@ -83,6 +83,16 @@
                       response.responseId
                     "
                     @survey-rate-click="updateUserResponse" 
+                  />
+                  <survey-chip-option
+                    v-else-if="question.questionType === 'chip'"
+                    :key="`${response.responseId}-chip`"
+                    :label="response.responseText"
+                    :questionId="question.questionId"
+                    :responseId="response.responseId"
+                    :isSelected="userResponse[question.questionId].responseId &&
+                      userResponse[question.questionId].responseId.find(r => r === response.responseId)"
+                    @chip-click="updateUserResponseMultiselect"
                   />
                   <div v-else>
                     {{question.questionType}}
@@ -152,7 +162,8 @@ import Loader from '@/components/Loader'
 import { QUESTION_TYPES } from '@/consts'
 import SurveyRadio from '@/components/Surveys/SurveyRadio'
 import SurveyImage from '@/components/Surveys/SurveyImage'
-import SurveyRateNumbers from '../components/Surveys/SurveyRateNumbers.vue'
+import SurveyRateNumber from '../components/Surveys/SurveyRateNumber'
+import SurveyChipOption from '../components/Surveys/SurveyChipOption'
 import _ from 'lodash'
 
 export default {
@@ -162,7 +173,8 @@ export default {
     Loader,
     SurveyImage,
     SurveyRadio,
-    SurveyRateNumbers
+    SurveyRateNumber,
+    SurveyChipOption
 },
   data() {
     return {
@@ -457,7 +469,6 @@ export default {
       this.surveyDefinition = postsessionSurveyDefinition
       this.allQuestions = _.map(postsessionSurveyDefinition.survey, q => {
         const isHiddenOnStart = this.isLowRatingQuestion(q) || this.isHighRatingQuestion(q)
-        console.log(q)
         // update question types to be more specific
         if (q.questionType === 'multiple choice') {
           if (q.questionText.startsWith('How do you think')) {
@@ -588,6 +599,28 @@ export default {
       }
 
       this.userResponse = userResponse
+    },
+    updateUserResponseMultiselect(questionId, responseId) {
+      let currentSelected = this.userResponse[questionId].responseId
+      if (!currentSelected) {
+        // list is currently empty, create it
+        currentSelected = [responseId]
+      } else if (currentSelected.find(r => r === responseId)) {
+        // clicked item is already in list; deselect it
+        _.remove(currentSelected, r => r === responseId)
+      } else {
+        // clicked item is not in list yet; select it
+        currentSelected.push(responseId)
+      }
+
+      // Vue cannot detect property addition or deletion on objects. A new object
+      // must be created for Vue to recognize changes on said object
+      const responseAnswer = {
+        [questionId]: Object.assign({}, this.userResponse[questionId], {
+          responseId: currentSelected
+        }),
+      }
+      this.userResponse = Object.assign({}, this.userResponse, responseAnswer)
     },
     updateUserResponse(questionId, responseId, openResponseText = '') {
       // if question changed is ratings question, show/hide conditional questions that depend on it
@@ -730,6 +763,7 @@ export default {
 .question__responses {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .response-answer-text {

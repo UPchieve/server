@@ -8,7 +8,8 @@
 
 <script>
 export default {
-   props: {
+  name: 'SurveyRateNumber',
+  props: {
     label: {
       type: String,
       default: '',

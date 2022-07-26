@@ -58,7 +58,6 @@ VALUES (1, 'Not at all', NOW(), NOW()),
        (0, 'Coach slow to respond', NOW(), NOW()),
        (0, 'Ran out of time', NOW(), NOW()),
        (0, 'Tech issue', NOW(), NOW()),
-       (0, 'Other', NOW(), NOW()),
 
        (0, 'Yes', NOW(), NOW()),
        (0, 'Maybe later', NOW(), NOW());
@@ -175,7 +174,7 @@ DELETE FROM upchieve.survey_response_choices
     'Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED',
     'Somewhat', 'Mostly', 'Extremely',
     'A lot',
-    'Rude coach', 'Coach didn''t know topic', 'Coach slow to respond', 'Ran out of time', 'Tech issue', 'Other',
+    'Rude coach', 'Coach didn''t know topic', 'Coach slow to respond', 'Ran out of time', 'Tech issue',
 
     'Yes', 'Maybe later');
 
