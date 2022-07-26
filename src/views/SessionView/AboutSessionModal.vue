@@ -20,17 +20,22 @@
           <stepper :totalSteps=3 class="session-info-stepper" />
           <div class="session-info-responses">
             <div 
-            v-for="response in mappedResponses"
+            v-for="response in responses"
             :key="response.displayLabel"
             >
               <div class="session-info-title"> {{ response.displayLabel}} </div>
-              <div class="session-info-response" v-html="response.displayResponse"></div>
+              <div class="session-info-response">
+                <span v-if="response.displayImage">
+                  <img class='response-image' :src="response.displayImage" /> {{response.response.toLowerCase()}}
+                </span>
+                <span v-else>{{response.response}}</span>
+              </div>
             </div>
           </div>
         </div>
         <div v-if="!isNewStudent && hasLowConfidence" class="tip">
           <div class="tip-title">UPchieve's tip</div>
-          <div class="tip-text">Start the session off by checking in about what has got them feeling stressed.</div>
+          <div class="tip-text">{{studentsFirstName}} is feeling {{studentsConfidence}}. Praise their effort and start with easy questions so that they can experience small wins!</div>
         </div>
       </div>
     </div>
@@ -64,38 +69,22 @@ export default {
       if (this.totalStudentSessions === 1) display = 'first'
       if (this.totalStudentSessions === 2) display = 'second'
 
-      return `This is ${this.session.student.firstname}'s ${display} session!`
-    },
-    confidenceLabel() {
-      const label = 'Their confidence:'
-      return label
-    },
-    // Maps the emoji responses for `Their confidence:` to a display text
-    mappedResponses() {
-      return this.responses.map(response => {
-        if (response.displayLabel === this.confidenceLabel) {
-          const lowerCasedResponse = response.response.toLowerCase()
-          if (this.session.type === 'college')
-            return {
-              ...response,
-              displayResponse: `<span>They feel <img class='response-image' src=${response.displayImage} /> ${lowerCasedResponse} about their ability to get accepted to college</span>`,
-            }
-          else
-            return {
-              ...response,
-              displayResponse: `<span>They feel <img class='response-image' src=${response.displayImage} /> ${lowerCasedResponse} about this topic`,
-            }
-        } else return {
-          ...response,
-          displayResponse: `<span>${response.response}</span>`
-        }
-      })
+      return `This is ${this.studentsFirstName}'s ${display} session!`
     },
     hasLowConfidence() {
       for (const response of this.responses) {
-        if (response.displayLabel === this.confidenceLabel && response.score === 1) return true
+        if (response.displayImage && response.score <= 2) return true
       }
       return false
+    },
+    studentsFirstName() {
+      return this.session.student.firstname
+    },
+    studentsConfidence() {
+      for (const response of this.responses) {
+        if (response.displayImage && response.score <= 2) return response.response.toLowerCase()
+      }
+      return ''
     }
   },
 }

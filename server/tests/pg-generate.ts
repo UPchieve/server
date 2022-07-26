@@ -1,6 +1,5 @@
 import { getDbUlid, getUuid, Pgid, Ulid } from '../models/pgUtils'
 import { AssistmentsData } from '../models/AssistmentsData'
-import { Session } from '../models/Session'
 import { Student } from '../models/Student'
 import { Availability } from '../models/Availability'
 import { User, UserContactInfo } from '../models/User'
@@ -21,10 +20,12 @@ import {
 import { GRADES } from '../constants'
 import { AppStudent, AppUser, AppVolunteer } from './types'
 import {
-  PresessionSurvey,
+  LegacySurvey,
+  SurveyQuestionDefinition,
   PresessionSurveyResponseData,
   StudentPresessionSurveyResponse,
-  Survey,
+  UserSurvey,
+  UserSurveySubmission,
 } from '../models/Survey'
 
 export function getEmail(): string {
@@ -326,9 +327,9 @@ export function buildPresessionLegacySurveyResponse(
   }
 }
 
-export const buildPressionSurveyLegacy = (
-  overrides: Partial<Survey> = {}
-): Survey => {
+export const buildPresessionSurveyLegacy = (
+  overrides: Partial<LegacySurvey> = {}
+): LegacySurvey => {
   const survey = {
     id: getDbUlid(),
     userId: getDbUlid(),
@@ -342,9 +343,9 @@ export const buildPressionSurveyLegacy = (
   return survey
 }
 
-export const buildPressionSurvey = (
-  overrides: Partial<PresessionSurvey> = {}
-): PresessionSurvey => {
+export const buildPresessionSurvey = (
+  overrides: Partial<SurveyQuestionDefinition> = {}
+): SurveyQuestionDefinition => {
   const survey = {
     questionId: '1',
     questionText: "What is your primary goal for today's session?",
@@ -355,6 +356,7 @@ export const buildPressionSurvey = (
         responseId: 1,
         responseText: 'Complete a homework assignment',
         responseDisplayPriority: 1,
+        responseDisplayImage: '',
       },
     ],
     ...overrides,
@@ -371,6 +373,39 @@ export const buildPresessionSurveyResponse = (
     response: 'Complete a homework assignment',
     score: 1,
     displayOrder: 10,
+    ...overrides,
+  }
+
+  return survey
+}
+
+export const buildUserSurveySubmission = (
+  overrides: Partial<UserSurveySubmission> = {}
+): UserSurveySubmission => {
+  const survey = {
+    userSurveyId: getDbUlid(),
+    questionId: 1,
+    responseChoiceId: 2,
+    openResponse: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
+
+  return survey
+}
+
+export const buildUserSurvey = (
+  overrides: Partial<UserSurvey> = {}
+): UserSurvey => {
+  const survey = {
+    id: getDbUlid(),
+    userId: getDbUlid(),
+    sessionId: getDbUlid(),
+    surveyId: 1,
+    surveyTypeId: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
     ...overrides,
   }
 
