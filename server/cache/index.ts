@@ -56,7 +56,7 @@ export async function saveWithExpiration(
 }
 
 export async function getTimeToExpiration(key: string): Promise<number> {
-  return redisClient.ttl(key)
+  return await redisClient.ttl(key)
 }
 
 export async function get(key: string): Promise<string> {

@@ -3,19 +3,6 @@
 import { Static } from 'runtypes'
 import { Config } from './config-type'
 
-const mongoHost = process.env.SUBWAY_DB_HOST || 'localhost'
-const mongoPort = process.env.SUBWAY_DB_PORT || '27017'
-const mongoName = process.env.SUBWAY_DB_NAME || 'upchieve'
-const mongoPass = process.env.SUBWAY_DB_PASS
-const mongoUser = process.env.SUBWAY_DB_USER
-
-let mongoConn: string
-if (mongoPass) {
-  mongoConn = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/${mongoName}`
-} else {
-  mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`
-}
-
 let redisConnectionString: string
 const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
 const redisPort = process.env.SUBWAY_REDIS_PORT || '6379'
@@ -41,7 +28,6 @@ const config: Static<typeof Config> = {
   // set host to your public IP address to test Twilio voice calling
   host: process.env.SUBWAY_SERVER_HOST || 'localhost:3000',
   additionalAllowedOrigins: process.env.SUBWAY_ADDITIONAL_ALLOWED_ORIGINS || '',
-  database: mongoConn,
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
   sessionCookieMaxAge: parseInt(
     process.env.SUBWAY_SESSION_COOKIE_MAX_AGE || '5184000000'
