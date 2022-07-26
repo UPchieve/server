@@ -127,7 +127,7 @@ export default {
     },
     downtimeMessage() {
       if (this.isDowntimeBannerActive) {
-        return 'UPchieve is experiencing recurring interruptions. If your session is interrupted, please wait a few seconds and refresh.'
+        return 'UPchieve will be down for maintenance Tuesday, July 26th from 9-10 AM ET.'
       } else {
         return ''
       }
@@ -219,6 +219,6 @@ export default {
       font-weight: bold;
     }
   }
-  
+
 }
 </style>
