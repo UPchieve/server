@@ -2,16 +2,26 @@ import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { Survey } from './types'
+import {
+  LegacySurvey,
+  SaveUserSurveySubmission,
+  SaveUserSurvey,
+  SurveyQueryResponse,
+  SurveyResponseDefinition,
+  SurveyQuestionDefinition,
+  SurveyType,
+} from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
 
-export type SurveyQueryResult = Omit<Survey, 'responseData'> & {
+export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
 }
 
 // parse a query result containing `responseData` from JSON to an object
-export function parseQueryResult(result: SurveyQueryResult): Survey {
+export function parseQueryResult(
+  result: LegacySurveyQueryResult
+): LegacySurvey {
   const responseData =
     typeof result.responseData === 'string'
       ? JSON.parse(result.responseData)
@@ -24,7 +34,7 @@ export async function savePresessionSurvey(
   userId: Ulid,
   sessionId: Ulid,
   responseData: object
-): Promise<Survey> {
+): Promise<LegacySurvey> {
   try {
     const result = await pgQueries.savePresessionSurvey.run(
       {
@@ -45,14 +55,68 @@ export async function savePresessionSurvey(
   }
 }
 
+export async function saveUserSurveyAndSubmissions(
+  userId: Ulid,
+  surveyData: SaveUserSurvey,
+  submissions: SaveUserSurveySubmission[]
+): Promise<void> {
+  const client = await getClient().connect()
+  try {
+    await client.query('BEGIN')
+
+    const result = await pgQueries.saveUserSurvey.run(
+      {
+        surveyId: surveyData.surveyId,
+        userId,
+        sessionId: surveyData.sessionId,
+        surveyTypeId: surveyData.surveyTypeId,
+      },
+      getClient()
+    )
+    if (!result.length) {
+      throw new RepoCreateError('Error upserting user survey')
+    }
+
+    const survey = makeRequired(result[0])
+    const errors: string[] = []
+    for (const submission of submissions) {
+      const result = await pgQueries.saveUserSurveySubmissions.run(
+        {
+          userSurveyId: survey.id,
+          questionId: submission.questionId,
+          responseChoiceId: submission.responseChoiceId,
+          openResponse: submission.openResponse
+            ? submission.openResponse
+            : undefined,
+        },
+        client
+      )
+      if (!result.length && makeRequired(result[0]).ok)
+        errors.push(
+          `Insert query for user survey submission ${JSON.stringify(
+            submission
+          )} did not return ok`
+        )
+    }
+    if (errors.length) throw new RepoReadError(errors.join('\n'))
+    await client.query('COMMIT')
+  } catch (err) {
+    await client.query('ROLLBACK')
+    throw new RepoCreateError(err)
+  } finally {
+    client.release()
+  }
+}
+
+// @todo: clean up old presession survey code
 // NOTE: this query can be replaced by a JOIN that happens when we fetch
 // the session on the feedback page
-export async function getPresessionSurvey(
+export async function getPresessionSurveyForFeedback(
   userId: Ulid,
   sessionId: Ulid
-): Promise<Survey | undefined> {
+): Promise<LegacySurvey | undefined> {
   try {
-    const result = await pgQueries.getPresessionSurvey.run(
+    const result = await pgQueries.getPresessionSurveyForFeedback.run(
       {
         userId,
         sessionId,
@@ -68,36 +132,40 @@ export async function getPresessionSurvey(
   }
 }
 
-export type PresessionSurveyResponse = {
-  responseId: number
-  responseText: string
-  responseDisplayPriority: number
-}
-
-export type PresessionSurvey = {
-  questionId: string
-  questionText: string
-  displayPriority: number
-  questionType: string
-  responses: PresessionSurveyResponse[]
-}
-
-// @todo: clean up old presession survey code and rename functions without the "new" keyword
-export async function getPresessionSurveyNew(
-  subjectName: string
-): Promise<PresessionSurvey[]> {
+export async function getStudentsPresessionGoal(
+  sessionId: Ulid
+): Promise<string | undefined> {
   try {
-    const result = await pgQueries.getPresessionSurveyNew.run(
-      { subjectName },
+    const result = await pgQueries.getStudentsPresessionGoal.run(
+      {
+        sessionId,
+      },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0]).goal
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSurveyDefinition(
+  subjectName: string,
+  surveyType: SurveyType
+): Promise<SurveyQueryResponse> {
+  try {
+    const result = await pgQueries.getSurveyDefinition.run(
+      { subjectName, surveyType },
       getClient()
     )
 
-    const resultArr = result.map(v => makeRequired(v))
+    const resultArr = result.map(v =>
+      makeSomeRequired(v, ['responseDisplayImage'])
+    )
     const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
 
-    const survey: PresessionSurvey[] = []
+    const survey: SurveyQuestionDefinition[] = []
     for (const [question, rows] of Object.entries(rowsByQuestion)) {
-      const responses: PresessionSurveyResponse[] = []
+      const responses: SurveyResponseDefinition[] = []
       const temp = rows[0]
       const questionData = {
         questionId: question,
@@ -106,11 +174,16 @@ export async function getPresessionSurveyNew(
         questionType: temp.questionType,
       }
 
-      for (const row of rows) {
-        const responseItem: PresessionSurveyResponse = {
+      const sortedRows = rows.sort(
+        (a, b) => a.responseDisplayPriority - b.responseDisplayPriority
+      )
+
+      for (const row of sortedRows) {
+        const responseItem: SurveyResponseDefinition = {
           responseId: row.responseId,
           responseText: row.responseText,
           responseDisplayPriority: row.responseDisplayPriority,
+          responseDisplayImage: row.responseDisplayImage,
         }
         responses.push(responseItem)
       }
@@ -120,7 +193,14 @@ export async function getPresessionSurveyNew(
         responses: responses,
       })
     }
-    return survey
+
+    const data = {
+      surveyId: resultArr[0].surveyId,
+      surveyTypeId: resultArr[0].surveyTypeId,
+      survey,
+    }
+
+    return data
   } catch (err) {
     throw new RepoReadError(err)
   }

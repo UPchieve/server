@@ -1,7 +1,10 @@
 <template>
   <div class="SubjectSelectionModal">
     <div v-if="showSurvey" class="presession-survey-container">
-      <presession-survey v-on:survey-completed="onSurveyCompleted" />
+      <presession-survey
+        v-on:survey-completed="onSurveyCompleted"
+        :subject="selectedSubtopic"
+      />
     </div>
     <div v-else>
       <component v-if="!mobileMode" :is="modalData.svg" class="icon" />
@@ -66,7 +69,10 @@ export default {
         )
       }
     }),
-    ...mapGetters({ mobileMode: 'app/mobileMode' }),
+    ...mapGetters({ 
+        mobileMode: 'app/mobileMode',       
+        isContextSharingWithVolunteerActive: 'featureFlags/isContextSharingWithVolunteerActive', 
+      }),
     title() {
       if (this.modalData.topic === 'college')
         return `Choose a ${this.modalData.topic} counseling subject`
@@ -74,6 +80,8 @@ export default {
         return 'Choose a standardized testing subject'
       if (this.modalData.topic === 'readingWriting')
         return 'Choose a reading and writing subject'
+      if (this.modalData.topic === 'socialStudies')
+        return `Choose a social studies subject`
       return this.modalData.topic
         ? `Choose a ${this.modalData.topic} subject`
         : 'Choose a subject'
@@ -109,7 +117,7 @@ export default {
     },
     onAccept() {
       if (this.selectedSubtopic === '') return
-      if (this.isTopicSkippingSurvey) this.onSurveyCompleted()
+      if (!this.isContextSharingWithVolunteerActive && this.isTopicSkippingSurvey) this.onSurveyCompleted()
       else this.showSurvey = true
     },
     onSurveyCompleted() {
@@ -201,11 +209,8 @@ p {
 }
 
 .presession-survey-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
   width: 100%;
   background: #fff;
+  border-radius: 22px;
 }
 </style>

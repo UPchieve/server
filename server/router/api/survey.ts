@@ -1,10 +1,16 @@
 import expressWs from 'express-ws'
+import { isEnabled } from 'unleash-client'
+import { FEATURE_FLAGS } from '../../constants'
 import {
   savePresessionSurvey,
-  getPresessionSurvey,
-  getPresessionSurveyNew,
+  getPresessionSurveyForFeedback,
+  getStudentsPresessionGoal,
+  getSurveyDefinition,
 } from '../../models/Survey'
-import { getContextSharingForVolunteer } from '../../services/SurveyService'
+import {
+  getContextSharingForVolunteer,
+  validateSaveUserSurveyAndSubmissions,
+} from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
@@ -26,24 +32,56 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
+  router.post('/survey/save', async (req, res) => {
+    const user = extractUser(req)
+    const { surveyId, sessionId, surveyTypeId, submissions } = req.body
+    const data = {
+      surveyId,
+      sessionId,
+      surveyTypeId,
+      submissions,
+    }
+
+    try {
+      await validateSaveUserSurveyAndSubmissions(user.id, data as unknown)
+      res.sendStatus(200)
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  // This route only services the mobile app atm. Remove once
+  // the mobile app uses new presession survey work
   router.get('/survey/presession/:sessionId', async (req, res) => {
     const user = extractUser(req)
     const { sessionId } = req.params
 
     try {
-      const survey = await getPresessionSurvey(user.id, asUlid(sessionId))
+      const survey = await getPresessionSurveyForFeedback(
+        user.id,
+        asUlid(sessionId)
+      )
       res.json({ survey })
     } catch (error) {
       resError(res, error)
     }
   })
 
-  router.get('/survey/presession', async (req, res, next) => {
+  router.get('/survey/presession/:sessionId/goal', async (req, res) => {
+    const { sessionId } = req.params
     try {
-      const survey = await getPresessionSurveyNew(
-        asString(req.body.subjectName)
-      )
-      res.json({ survey })
+      const goal = await getStudentsPresessionGoal(sessionId)
+      res.json({ goal })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.get('/survey/presession', async (req, res) => {
+    try {
+      const { subject } = req.query
+      const survey = await getSurveyDefinition(asString(subject), 'presession')
+      res.json(survey)
     } catch (error) {
       resError(res, error)
     }
@@ -56,6 +94,16 @@ export function routeSurvey(router: expressWs.Router): void {
         asUlid(sessionId)
       )
       res.json(surveyResponse)
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.get('/survey/postsession', async (req, res) => {
+    try {
+      const { subject } = req.query
+      const survey = await getSurveyDefinition(asString(subject), 'postsession')
+      res.json(survey)
     } catch (error) {
       resError(res, error)
     }
