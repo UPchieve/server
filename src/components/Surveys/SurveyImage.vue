@@ -58,6 +58,9 @@ export default {
 
 <style lang="scss" scoped>
 .survey-image {
+
+    margin: 20px 20px;
+
   &__container {
     @include flex-container(column, center, center);
   }
@@ -68,6 +71,7 @@ export default {
     transition: transform 0.2s;
     height: 38px;
     width: 38px;
+    margin: 20px 20px;
 
     @include breakpoint-above('small') {
       height: 50px;

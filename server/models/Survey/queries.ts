@@ -204,7 +204,6 @@ export async function getSurveyDefinition(
         responses: responses,
       })
     }
-
     const data = {
       surveyId: resultArr[0].surveyId,
       surveyTypeId: resultArr[0].surveyTypeId,

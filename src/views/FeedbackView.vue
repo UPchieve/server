@@ -33,12 +33,16 @@
               <div class="question__title">
                 {{ question.questionText }}
               </div>
-              <div class="question__responses" :class="{'question__responses-images': isRowOfImages(question)}">
+              <div class="question__responses"
+                   :class="{
+                     'question__responses-images': isRowOfImages(question),
+                     'question__responses-rating': !isRowOfImages(question)
+                   }">
                 <template
-                  v-for="response in question.responses"
+                  v-for="(response, index) in question.responses"
                 >
                   <survey-image
-                    v-if="isRowOfImages(question)"
+                    v-if="question.questionType === 'emoji'"
                     class='question__response question__response-image'
                     :key="`${response.responseId}-image`"
                     :src="response.responseDisplayImage"
@@ -51,34 +55,42 @@
                     "
                     @survey-image-click="updateUserResponse" 
                   />
-
-                  <survey-radio
-                    v-else-if="
-                      question.questionType ===
-                      questionTypes.multipleChoice
+                  <survey-image
+                    v-if="question.questionType === 'star'"
+                    class='question__response question__response-star'
+                    :key="`${response.responseId}-star`"
+                    :src="response.responseDisplayImage"
+                    :questionId="question.questionId"
+                    :responseId="response.responseId"
+                    :isSelected="
+                      userResponse[question.questionId].responseId >=
+                      response.responseId
                     "
-                    class="question__response"
-                    :key="`${response.responseId}-radio`"
-                    :id="`${question.questionId}_${response.responseId}`"
-                    :radioValue="response.responseId"
-                    :name="question.questionId"
-                    :checked="
+                    @survey-image-click="updateUserResponse" 
+                  />
+                  <survey-rate-numbers
+                    v-else-if="
+                      (question.questionType === 'multiple-choice')
+                    "
+                    class='question__response question__response-numbers'
+                    :key="`${response.responseId}-rating`"
+                    :src="response.responseDisplayImage"
+                    :label="(index + 1)"
+                    :questionId="question.questionId"
+                    :responseId="response.responseId"
+                    :isSelected="
                       userResponse[question.questionId].responseId ===
                       response.responseId
                     "
-                    :questionId="question.questionId"
-                    :responseId="response.responseId"
-                    :label="response.responseText"
-                    :isOpenResponseDisabled="
-                      userResponse[question.questionId].responseId !==
-                      response.responseId
-                    "
-                    :openResponseValue="
-                      userResponse[question.questionId].openResponse
-                    "
-                    @survey-radio-input="updateUserResponse"
+                    @survey-rate-click="updateUserResponse" 
                   />
+                  <div v-else>
+                    {{question.questionType}}
+                  </div>
                 </template>
+              </div>
+              <div class="response-answer-text" v-if="question.questionType === 'star' && userResponse[question.questionId].responseId">
+                {{getAnswerToQuestion(question)}}
               </div>
             </div>
             <div v-else>
@@ -140,6 +152,7 @@ import Loader from '@/components/Loader'
 import { QUESTION_TYPES } from '@/consts'
 import SurveyRadio from '@/components/Surveys/SurveyRadio'
 import SurveyImage from '@/components/Surveys/SurveyImage'
+import SurveyRateNumbers from '../components/Surveys/SurveyRateNumbers.vue'
 
 export default {
   name: 'FeedbackView',
@@ -147,8 +160,9 @@ export default {
     LargeButton,
     Loader,
     SurveyImage,
-    SurveyRadio
-  },
+    SurveyRadio,
+    SurveyRateNumbers
+},
   data() {
     return {
       session: {},
@@ -442,11 +456,27 @@ export default {
       this.surveyDefinition = postsessionSurveyDefinition
       this.allQuestions = _.map(postsessionSurveyDefinition.survey, q => {
         const isHiddenOnStart = this.isLowRatingQuestion(q) || this.isHighRatingQuestion(q)
+        console.log(q)
+        // update question types to be more specific
+        if (q.questionType === 'multiple choice') {
+          if (q.questionText.startsWith('How do you think')) {
+            q.questionType = 'emoji'
+          } else if (this.isLowRatingQuestion(q)) {
+            q.questionType = 'chip'
+          } else if (q.questionText.startsWith('Your goal for this session')) {
+            q.questionType = 'star'
+          } else if (this.isHighRatingQuestion(q)) {
+            q.questionType = 'multiple-choice'
+          } else {
+            q.questionType = 'multiple-choice'
+          }
+        }
         return {
           question: q,
-          isVisible: !isHiddenOnStart
+          isVisible: !isHiddenOnStart,
+          questionType: q.questionType
         }
-      });
+      })
       this.buildUserResponse()
     }
 
@@ -474,6 +504,9 @@ export default {
   methods: {
     // checks if the question has a row of responses that require to show a display image
     isRowOfImages(question) {
+      if (this.isContextSharingWithVolunteerActive) {
+        return question.questionType === 'emoji' || question.questionType === 'star'
+      }
       return question.responses.some((a) => a.responseDisplayImage)
     },
     // checks if this is the question we show if session rating is low
@@ -483,6 +516,11 @@ export default {
     // checks if this is the question we show if session rating is high
     isHighRatingQuestion(question){
       return question.questionText.startsWith('Would you like to favorite your coach');
+    },
+    getAnswerToQuestion(question) {
+      const questionResponseId = this.userResponse[question.questionId].responseId
+      const selectedResponse = question.responses.find(r => r.responseId === questionResponseId)
+      return selectedResponse.responseText
     },
     async submitFeedback() {
       if (this.isSubmittingFeedback) return
@@ -687,4 +725,17 @@ export default {
     color: $c-error-red;
   }
 }
+
+.question__responses {
+  display: flex;
+  justify-content: center;
+}
+
+.response-answer-text {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  color: $c-secondary-grey;
+}
+
 </style>

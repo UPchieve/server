@@ -41,7 +41,6 @@ WHERE
 
 INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
 VALUES 
-  (0, 'Yes', NOW(), NOW()),
   (0, 'No', NOW(), NOW()),
   (0, 'I didn''t know topic', NOW(), NOW()),
   (0, 'Wrong subject', NOW(), NOW()),
