@@ -4,7 +4,7 @@ import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,
   getStudentsPresessionGoal,
-  getSurveyDefinition
+  getSurveyDefinition,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
@@ -103,7 +103,12 @@ export function routeSurvey(router: expressWs.Router): void {
     try {
       const { subject, sessionId, role } = req.query
       let parsedRole = getEnumKeyByEnumValue(USER_ROLES, asString(role))
-      const survey = await getSurveyDefinition(asString(subject), 'postsession', asString(sessionId), parsedRole)
+      const survey = await getSurveyDefinition(
+        asString(subject),
+        'postsession',
+        asString(sessionId),
+        parsedRole
+      )
       res.json({ survey })
     } catch (error) {
       resError(res, error)

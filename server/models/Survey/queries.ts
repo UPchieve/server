@@ -9,7 +9,7 @@ import {
   SurveyQueryResponse,
   SurveyResponseDefinition,
   SurveyQuestionDefinition,
-  SurveyType
+  SurveyType,
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
@@ -156,7 +156,7 @@ export async function getSurveyDefinition(
   userRole?: USER_ROLES
 ): Promise<SurveyQueryResponse> {
   try {
-    let result: any[] = [];
+    let result: any[] = []
     if (surveyType === 'presession') {
       result = await pgQueries.getPresessionSurveyDefinition.run(
         { subjectName, surveyType },
@@ -168,7 +168,9 @@ export async function getSurveyDefinition(
         getClient()
       )
     } else {
-      throw new Error('unrecognized survey type or missing parameter necessary for this survey type')
+      throw new Error(
+        'unrecognized survey type or missing parameter necessary for this survey type'
+      )
     }
     const resultArr = result.map(v =>
       makeSomeRequired(v, ['responseDisplayImage'])

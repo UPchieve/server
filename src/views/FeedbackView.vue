@@ -153,6 +153,7 @@ import { QUESTION_TYPES } from '@/consts'
 import SurveyRadio from '@/components/Surveys/SurveyRadio'
 import SurveyImage from '@/components/Surveys/SurveyImage'
 import SurveyRateNumbers from '../components/Surveys/SurveyRateNumbers.vue'
+import _ from 'lodash'
 
 export default {
   name: 'FeedbackView',

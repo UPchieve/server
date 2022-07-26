@@ -141,8 +141,6 @@ export enum GRADES {
 export const USER_ROLES = <const>{
   student: 'student',
   volunteer: 'volunteer',
-  admin: 'admin'
+  admin: 'admin',
 }
 export type USER_ROLES = ExtractValues<typeof USER_ROLES>
-
-
