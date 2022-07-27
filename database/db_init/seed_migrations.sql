@@ -34,7 +34,10 @@ COPY public.seed_migrations (version) FROM stdin;
 20220710190730
 20220710195731
 20220713180933
+<<<<<<< HEAD
 20220720220602
+=======
+>>>>>>> main
 \.
 
 

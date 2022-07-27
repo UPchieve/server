@@ -374,7 +374,6 @@ export default {
         this.studentPresessionGoal
       ) {
         return this.studentPresessionGoal
-      // todo: remove in context sharing feature flag cleanup
       } else {
         if (this.presessionSurvey && this.presessionSurvey.createdAt) {
           if (
@@ -491,7 +490,6 @@ export default {
       })
       this.buildUserResponse()
     }
-
     this.studentPresessionGoal = goal
     // TODO: remove in context sharing feature flag cleanup
     this.presessionSurvey = survey

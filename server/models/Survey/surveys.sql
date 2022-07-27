@@ -206,7 +206,6 @@ WHERE
     AND st.name = :surveyType!
     AND ur.name = :userRole!;
 
-
 /* @name getPresessionSurveyResponse */
 SELECT
     FORMAT(sq.response_display_text, subjects.display_name) AS display_label,
