@@ -106,7 +106,8 @@
                     class='question__response question__response-numbers'
                     :key="`${response.responseId}-rating`"
                     :src="response.responseDisplayImage"
-                    :label="(index + 1)"
+                    :rating="(index + 1)"
+                    :label="(index%2 === 0) ? response.responseText : ''"
                     :questionId="question.questionId"
                     :responseId="response.responseId"
                     :isSelected="
@@ -567,44 +568,48 @@ export default {
         volunteerId: this.session.volunteer._id
       }
 
-      const feedbackPath = this.user.isVolunteer
-        ? 'volunteerFeedback'
-        : 'studentTutoringFeedback'
-      data[feedbackPath] = {}
+      if (this.isContextSharingWithVolunteerActive) {
+        console.log(this.userResponse)
+      } else {
+        const feedbackPath = this.user.isVolunteer
+          ? 'volunteerFeedback'
+          : 'studentTutoringFeedback'
+        data[feedbackPath] = {}
 
-      for (const option of this.filteredQuestions) {
-        const { id, answer } = option
-        // the answer to the coach-favoriting question is not included in the feedback submission
-        if (id === 'coach-favoriting') continue
+        for (const option of this.filteredQuestions) {
+          const { id, answer } = option
+          // the answer to the coach-favoriting question is not included in the feedback submission
+          if (id === 'coach-favoriting') continue
 
-        if (answer && !Array.isArray(answer)) data[feedbackPath][id] = answer
-        // sort answers with multiple selections
-        if (answer && Array.isArray(answer) && answer.length > 0)
-          data[feedbackPath][id] = answer.sort((a, b) => a - b)
-      }
+          if (answer && !Array.isArray(answer)) data[feedbackPath][id] = answer
+          // sort answers with multiple selections
+          if (answer && Array.isArray(answer) && answer.length > 0)
+            data[feedbackPath][id] = answer.sort((a, b) => a - b)
+        }
 
-      try {
-        const requests = []
-        requests.push(NetworkService.feedback(this, data))
-        if (
-          !this.isVolunteer &&
-          this.isFavoritingCoach &&
-          this.isCoachFavoritingActive
-        )
-          requests.push(
-            NetworkService.updateFavoriteVolunteerStatus(
-              this.session.volunteer._id,
-              { isFavorite: true, sessionId: this.session._id }
-            )
+        try {
+          const requests = []
+          requests.push(NetworkService.feedback(this, data))
+          if (
+            !this.isVolunteer &&
+            this.isFavoritingCoach &&
+            this.isCoachFavoritingActive
           )
-        await Promise.all(requests)
-        this.$router.push('/')
-      } catch (error) {
-        if (error.body.success === false) this.error = error.body.message
-        else if (error.status === 422) this.error = error.body.err
-        else this.error = 'There was an error sending your feedback'
-      } finally {
-        this.isSubmittingFeedback = false
+            requests.push(
+              NetworkService.updateFavoriteVolunteerStatus(
+                this.session.volunteer._id,
+                { isFavorite: true, sessionId: this.session._id }
+              )
+            )
+          await Promise.all(requests)
+          this.$router.push('/')
+        } catch (error) {
+          if (error.body.success === false) this.error = error.body.message
+          else if (error.status === 422) this.error = error.body.err
+          else this.error = 'There was an error sending your feedback'
+        } finally {
+          this.isSubmittingFeedback = false
+        }
       }
     },
     // builds a default user response to be stored in state that maps a survey question ID to a response map

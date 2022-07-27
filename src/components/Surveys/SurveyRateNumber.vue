@@ -1,6 +1,11 @@
 <template>
-  <div class='survey-rate-container round-container' @click="handleRateClick" :class="{'selected-container': isSelected}">
-    <div class='round-text' :class="{'selected-text': isSelected}">
+  <div>
+    <div class='survey-rate-container round-container' @click="handleRateClick" :class="{'selected-container': isSelected}">
+      <div class='round-text' :class="{'selected-text': isSelected}">
+        {{ rating }}
+      </div>
+    </div>
+    <div class="survey-rate-label" v-if="label">
       {{ label }}
     </div>
   </div>
@@ -10,10 +15,9 @@
 export default {
   name: 'SurveyRateNumber',
   props: {
-    label: {
+    rating: {
       type: String,
-      default: '',
-      required: false
+      required: true
     },
     isSelected: {
       type: Boolean,
@@ -26,6 +30,11 @@ export default {
     questionId: {
       type: [String, Number],
       required: true
+    },
+    label: {
+      type: String,
+      default: '',
+      required: false
     }
   },
   methods: {
@@ -55,6 +64,8 @@ export default {
     font-size: 18pt;
     color: $c-secondary-grey;
     text-align: center;
+    margin-top: 10px;
+    cursor: pointer;
   }
   .selected-container {
     border-color: $c-success-green;
@@ -66,6 +77,11 @@ export default {
 
   .disabled-container {
     background-color: $c-background-grey;
+  }
+
+  .survey-rate-label {
+    margin-top: -10px;
+    text-align: center;
   }
 
 </style>
