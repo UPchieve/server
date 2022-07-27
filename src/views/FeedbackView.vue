@@ -27,16 +27,17 @@
           <li
             v-for="(question, index) in filteredQuestions"
             :key="question.id"
-            class="feedback__questions-item"
+            :class="{'feedback__questions-item': !(question.questionType === 'radio')}"
           >
             <div v-if="isContextSharingWithVolunteerActive">
               <div class="question__title">
                 {{ question.questionText }}
               </div>
-              <div class="question__responses"
-                   :class="{
+              <div :class="{
                      'question__responses-images': isRowOfImages(question),
-                     'question__responses-rating': !isRowOfImages(question)
+                     'question__responses-rating': (question.questionType === 'multiple-choice'),
+                     'feedback_question__responses': !(question.questionType === 'radio'),
+                     'feedback_question__radio': (question.questionType === 'radio')
                    }">
                 <template
                   v-for="(response, index) in question.responses"
@@ -55,8 +56,18 @@
                     "
                     @survey-image-click="updateUserResponse" 
                   />
+                  <survey-chip-option
+                    v-else-if="question.questionType === 'chip'"
+                    :key="`${response.responseId}-chip`"
+                    :label="response.responseText"
+                    :questionId="question.questionId"
+                    :responseId="response.responseId"
+                    :isSelected="userResponse[question.questionId].responseId &&
+                      userResponse[question.questionId].responseId.find(r => r === response.responseId)"
+                    @chip-click="updateUserResponseMultiselect"
+                  />
                   <survey-image
-                    v-if="question.questionType === 'star'"
+                    v-else-if="question.questionType === 'star'"
                     class='question__response question__response-star'
                     :key="`${response.responseId}-star`"
                     :src="response.responseDisplayImage"
@@ -67,6 +78,26 @@
                       response.responseId
                     "
                     @survey-image-click="updateUserResponse" 
+                  />
+                  <survey-radio
+                    v-else-if="question.questionType === 'radio'"
+                    class="question__response question__response-radio"
+                    :class="{
+                      'question__response-radio-selected': userResponse[question.questionId].responseId ===
+                      response.responseId}"
+                    :key="`${response.responseId}-radio`"
+                    :id="`${question.questionId}_${response.responseId}`"
+                    :radioValue="response.responseId"
+                    :name="question.questionId"
+                    :checked="
+                      userResponse[question.questionId].responseId ===
+                      response.responseId
+                    "
+                    :questionId="question.questionId"
+                    :responseId="response.responseId"
+                    :label="response.responseText"
+                    :isOpenResponseDisabled="true"
+                    @survey-radio-input="updateUserResponse"
                   />
                   <survey-rate-number
                     v-else-if="
@@ -84,16 +115,7 @@
                     "
                     @survey-rate-click="updateUserResponse" 
                   />
-                  <survey-chip-option
-                    v-else-if="question.questionType === 'chip'"
-                    :key="`${response.responseId}-chip`"
-                    :label="response.responseText"
-                    :questionId="question.questionId"
-                    :responseId="response.responseId"
-                    :isSelected="userResponse[question.questionId].responseId &&
-                      userResponse[question.questionId].responseId.find(r => r === response.responseId)"
-                    @chip-click="updateUserResponseMultiselect"
-                  />
+
                   <div v-else>
                     {{question.questionType}}
                   </div>
@@ -477,7 +499,7 @@ export default {
           } else if (q.questionText.startsWith('Your goal for this session')) {
             q.questionType = 'star'
           } else if (this.isHighRatingQuestion(q)) {
-            q.questionType = 'multiple-choice'
+            q.questionType = 'radio'
           } else {
             q.questionType = 'multiple-choice'
           }
@@ -756,12 +778,28 @@ export default {
   &__error {
     color: $c-error-red;
   }
+
+  &_question__responses {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  &_question__radio {
+    padding: 20px;
+  }
 }
 
-.question__responses {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
+.question__response-radio {
+    border: solid 1px $c-border-grey;
+    border-radius: 5px;
+    margin: 15px;
+    padding: 15px;
+}
+
+.question__response-radio-selected {
+    background-color: $selected-green;
+    border-color: $c-accent;
 }
 
 .response-answer-text {
