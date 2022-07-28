@@ -13,8 +13,8 @@ import {
   buildUserRow,
   buildStudentProfile,
   buildAssistmentsData,
+  buildSession,
 } from '../mocks/generate'
-import { buildSession } from '../pg-generate'
 import { insertSingleRow, dropTables, executeQuery } from '../db-utils'
 import { AssistmentsData } from '../../models/AssistmentsData'
 import { Student } from '../../models/Student'

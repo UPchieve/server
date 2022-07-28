@@ -1,6 +1,18 @@
 import { Pool } from 'pg'
+import { Pgid } from '../models/pgUtils'
 import _ from 'lodash'
 import { CamelCasedProperties } from 'type-fest'
+
+export async function getSubjectIdByName(
+  name: string,
+  client: Pool
+): Promise<Pgid> {
+  const result = await client.query('SELECT id FROM subjects WHERE name = $1', [
+    name,
+  ])
+  if (result.rows.length && result.rows[0]) return result.rows[0].id
+  throw new Error(`Subject ${name} not found`)
+}
 
 /**
  * The following functions are VERY DANGEROUS and their patterns should not be used

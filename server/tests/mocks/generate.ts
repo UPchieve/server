@@ -9,12 +9,6 @@ import createNewAvailability from '../../utils/create-new-availability'
 import { VolunteerPartnerOrg } from '../../models/VolunteerPartnerOrg'
 import { StudentPartnerOrg } from '../../models/StudentPartnerOrg'
 import { School } from '../../models/School'
-import {
-  OpenStudentRegData,
-  PartnerStudentRegData,
-  PartnerVolunteerRegData,
-  VolunteerRegData,
-} from '../../utils/auth-utils'
 import { GRADES } from '../../constants'
 import { AppStudent, AppUser, AppVolunteer } from '../types'
 import {
@@ -25,6 +19,8 @@ import {
   UserSurvey,
   UserSurveySubmission,
 } from '../../models/Survey'
+import { Pool } from 'pg'
+import { getSubjectIdByName } from '../db-utils'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -144,6 +140,24 @@ export function buildStudentRow(overrides: Partial<Student> = {}): Student {
   const userId = buildUserRow().id
   return {
     userId,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
+}
+
+type SessionRow = any
+export async function buildSession(
+  overrides: Partial<SessionRow> & { studentId: Ulid },
+  client?: Pool
+): Promise<SessionRow> {
+  return {
+    id: getDbUlid(),
+    subjectId: client ? await getSubjectIdByName('algebraOne', client) : 1,
+    hasWhiteboardDoc: true,
+    reviewed: false,
+    toReview: false,
+    timeTutored: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
