@@ -15,7 +15,7 @@ export const unleashProxy = createApp({
   environment: config.unleashName,
   unleashAppName: config.unleashName,
   logLevel: 'debug',
-  refreshInterval: 1000,
+  refreshInterval: 5000,
   unleashApiToken: 'notused',
   clientKeys: [config.featureFlagClientKey],
   port: config.featureFlagPort,
@@ -36,6 +36,6 @@ export const initializeUnleash = (): void => {
       appName: config.unleashName,
       environment: config.unleashName,
       instanceId: config.unleashId,
-      refreshInterval: 1000,
+      refreshInterval: 5000,
     })
 }
