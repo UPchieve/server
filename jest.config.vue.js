@@ -1,5 +1,8 @@
 module.exports = {
   moduleFileExtensions: ["js", "jsx", "json", "vue"],
+  setupFiles: [
+    "<rootDir>/tests/setup.js",
+  ],
   transform: {
     "^.+\\.vue$": "vue-jest",
     ".+\\.(css|styl|less|sass|scss|png|jpg|svg|ttf|woff|woff2)$":

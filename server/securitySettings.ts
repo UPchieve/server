@@ -64,6 +64,7 @@ export const scriptSrc = [
   gleapScriptUrl,
   "'unsafe-eval'",
   "'unsafe-inline'",
+  'blob:',
 ]
 
 export const imgSrc = [
