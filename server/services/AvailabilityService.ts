@@ -1,4 +1,5 @@
 import moment from 'moment'
+import _ from 'lodash'
 import {
   AvailabilityDay,
   AvailabilityHistory,
@@ -53,7 +54,12 @@ export async function getTotalElapsedAvailabilityForDateRange(
   )
 
   let totalElapsedAvailability = 0
-  for (const doc of historyDocs.concat(legacyDocs)) {
+  const allDocs = historyDocs.concat(legacyDocs)
+  const byDay = _.groupBy(allDocs, doc => moment(doc.recordedAt).startOf('day'))
+  for (const day in byDay) {
+    const doc = byDay[day].sort((a, b) =>
+      a.recordedAt > b.recordedAt ? 1 : -1
+    )[0]
     const dayOfWeek = getAvailabilityDay(moment(doc.recordedAt).day())
     totalElapsedAvailability += getElapsedAvailabilityForDay(
       doc.availability[dayOfWeek]

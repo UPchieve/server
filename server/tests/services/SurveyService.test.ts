@@ -4,11 +4,11 @@ import * as SurveyRepo from '../../models/Survey/queries'
 import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
 import {
-  buildPresessionSurveyResponse,
   buildSession,
+  buildPresessionSurveyResponse,
   buildUserSurvey,
   buildUserSurveySubmission,
-} from '../pg-generate'
+} from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
 import { InputError } from '../../models/Errors'
 

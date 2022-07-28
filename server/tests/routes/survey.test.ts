@@ -14,7 +14,7 @@ import {
   buildUserContactInfo,
   buildUserSurvey,
   buildUserSurveySubmission,
-} from '../pg-generate'
+} from '../mocks/generate'
 
 jest.mock('../../services/SurveyService')
 jest.mock('../../models/Survey')
