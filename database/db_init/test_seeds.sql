@@ -155,100 +155,6 @@ COPY upchieve.assistments_data (id, problem_id, assignment_id, student_id, sessi
 
 
 --
--- Data for Name: us_states; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.us_states (code, name, created_at, updated_at) FROM stdin;
-AL	Alabama	2022-07-28 15:18:12.032424+00	2022-07-28 15:18:12.032424+00
-AK	Alaska	2022-07-28 15:18:12.034689+00	2022-07-28 15:18:12.034689+00
-AR	Arkansas	2022-07-28 15:18:12.035814+00	2022-07-28 15:18:12.035814+00
-AZ	Arizona	2022-07-28 15:18:12.036746+00	2022-07-28 15:18:12.036746+00
-CA	California	2022-07-28 15:18:12.037671+00	2022-07-28 15:18:12.037671+00
-CO	Colorado	2022-07-28 15:18:12.038769+00	2022-07-28 15:18:12.038769+00
-CT	Connecticut	2022-07-28 15:18:12.039808+00	2022-07-28 15:18:12.039808+00
-DE	Delaware	2022-07-28 15:18:12.040665+00	2022-07-28 15:18:12.040665+00
-DC	District of Columbia	2022-07-28 15:18:12.041401+00	2022-07-28 15:18:12.041401+00
-FL	Florida	2022-07-28 15:18:12.042288+00	2022-07-28 15:18:12.042288+00
-GA	Georgia	2022-07-28 15:18:12.043089+00	2022-07-28 15:18:12.043089+00
-HI	Hawaii	2022-07-28 15:18:12.043871+00	2022-07-28 15:18:12.043871+00
-ID	Idaho	2022-07-28 15:18:12.044645+00	2022-07-28 15:18:12.044645+00
-IL	Illinois	2022-07-28 15:18:12.045448+00	2022-07-28 15:18:12.045448+00
-IN	Indiana	2022-07-28 15:18:12.046236+00	2022-07-28 15:18:12.046236+00
-IA	Iowa	2022-07-28 15:18:12.046962+00	2022-07-28 15:18:12.046962+00
-KS	Kansas	2022-07-28 15:18:12.047773+00	2022-07-28 15:18:12.047773+00
-KY	Kentucky	2022-07-28 15:18:12.048627+00	2022-07-28 15:18:12.048627+00
-LA	Louisiana	2022-07-28 15:18:12.049446+00	2022-07-28 15:18:12.049446+00
-ME	Maine	2022-07-28 15:18:12.050311+00	2022-07-28 15:18:12.050311+00
-MD	Maryland	2022-07-28 15:18:12.051091+00	2022-07-28 15:18:12.051091+00
-MA	Massachusetts	2022-07-28 15:18:12.051833+00	2022-07-28 15:18:12.051833+00
-MI	Michigan	2022-07-28 15:18:12.052607+00	2022-07-28 15:18:12.052607+00
-MN	Minnesota	2022-07-28 15:18:12.053466+00	2022-07-28 15:18:12.053466+00
-MS	Mississippi	2022-07-28 15:18:12.054327+00	2022-07-28 15:18:12.054327+00
-MO	Missouri	2022-07-28 15:18:12.055157+00	2022-07-28 15:18:12.055157+00
-MT	Montana	2022-07-28 15:18:12.056068+00	2022-07-28 15:18:12.056068+00
-NE	Nebraska	2022-07-28 15:18:12.056947+00	2022-07-28 15:18:12.056947+00
-NV	Nevada	2022-07-28 15:18:12.057752+00	2022-07-28 15:18:12.057752+00
-NH	New Hampshire	2022-07-28 15:18:12.058656+00	2022-07-28 15:18:12.058656+00
-NJ	New Jersey	2022-07-28 15:18:12.059557+00	2022-07-28 15:18:12.059557+00
-NM	New Mexico	2022-07-28 15:18:12.060605+00	2022-07-28 15:18:12.060605+00
-NY	New York	2022-07-28 15:18:12.061736+00	2022-07-28 15:18:12.061736+00
-NC	North Carolina	2022-07-28 15:18:12.062775+00	2022-07-28 15:18:12.062775+00
-ND	North Dakota	2022-07-28 15:18:12.063963+00	2022-07-28 15:18:12.063963+00
-OH	Ohio	2022-07-28 15:18:12.065011+00	2022-07-28 15:18:12.065011+00
-OK	Oklahoma	2022-07-28 15:18:12.065856+00	2022-07-28 15:18:12.065856+00
-OR	Oregon	2022-07-28 15:18:12.066672+00	2022-07-28 15:18:12.066672+00
-PA	Pennsylvania	2022-07-28 15:18:12.067394+00	2022-07-28 15:18:12.067394+00
-RI	Rhode Island	2022-07-28 15:18:12.068105+00	2022-07-28 15:18:12.068105+00
-SC	South Carolina	2022-07-28 15:18:12.068836+00	2022-07-28 15:18:12.068836+00
-SD	South Dakota	2022-07-28 15:18:12.069488+00	2022-07-28 15:18:12.069488+00
-TN	Tennessee	2022-07-28 15:18:12.070181+00	2022-07-28 15:18:12.070181+00
-TX	Texas	2022-07-28 15:18:12.070868+00	2022-07-28 15:18:12.070868+00
-UT	Utah	2022-07-28 15:18:12.071514+00	2022-07-28 15:18:12.071514+00
-VT	Vermont	2022-07-28 15:18:12.072224+00	2022-07-28 15:18:12.072224+00
-VA	Virginia	2022-07-28 15:18:12.072961+00	2022-07-28 15:18:12.072961+00
-WA	Washington	2022-07-28 15:18:12.073604+00	2022-07-28 15:18:12.073604+00
-WV	West Virginia	2022-07-28 15:18:12.074257+00	2022-07-28 15:18:12.074257+00
-WI	Wisconsin	2022-07-28 15:18:12.074941+00	2022-07-28 15:18:12.074941+00
-WY	Wyoming	2022-07-28 15:18:12.075677+00	2022-07-28 15:18:12.075677+00
-PR	Puerto Rico	2022-07-28 15:18:12.076367+00	2022-07-28 15:18:12.076367+00
-GU	Guam	2022-07-28 15:18:12.0771+00	2022-07-28 15:18:12.0771+00
-VI	Virgin Islands	2022-07-28 15:18:12.077857+00	2022-07-28 15:18:12.077857+00
-AS	American Samoa	2022-07-28 15:18:12.078568+00	2022-07-28 15:18:12.078568+00
-BI	Bureau of Indian Education	2022-07-28 15:18:12.07932+00	2022-07-28 15:18:12.07932+00
-NA	NA	2022-07-28 15:18:12.080158+00	2022-07-28 15:18:12.080158+00
-AE	U.S. Armed Forced - Europe	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
-AA	U.S. Armed Forced - Americas	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
-AP	U.S. Armed Forced - Pacific	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
-PW	Palau	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
-FM	Micronesia	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
-MP	Norther Mariana Islands	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
-MH	Marshall Islands	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
-\.
-
-
---
--- Data for Name: cities; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.cities (id, name, us_state_code, created_at, updated_at) FROM stdin;
-1	Denver	CO	2022-07-28 15:18:14.72642+00	2022-07-28 15:18:14.72642+00
-2	Brooklyn	NY	2022-07-28 15:18:14.72794+00	2022-07-28 15:18:14.72794+00
-\.
-
-
---
--- Data for Name: schools; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.schools (id, name, approved, partner, city_id, created_at, updated_at, mongo_id, legacy_city_name) FROM stdin;
-01824563-09c8-d7c9-21d0-f0686d4ac410	Unapproved School	f	f	1	2022-07-28 15:18:14.728939+00	2022-07-28 15:18:14.728939+00	\N	\N
-01824563-09c8-03f2-90cd-e21b11257b5c	Approved School	t	f	1	2022-07-28 15:18:14.73066+00	2022-07-28 15:18:14.73066+00	\N	\N
-01824563-09c8-516f-d9d9-0b346dcbb739	Approved Partner School	t	t	2	2022-07-28 15:18:14.731676+00	2022-07-28 15:18:14.731676+00	\N	\N
-01824563-09c8-dca0-c9a0-1238e6438b18	Another Approved Partner School	t	t	2	2022-07-28 15:18:14.732823+00	2022-07-28 15:18:14.732823+00	\N	\N
-\.
-
-
---
 -- Data for Name: sponsor_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -263,12 +169,12 @@ COPY upchieve.sponsor_orgs (id, name, created_at, updated_at, key) FROM stdin;
 -- Data for Name: student_partner_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.student_partner_orgs (id, key, name, signup_code, high_school_signup, college_signup, school_signup_required, created_at, updated_at, school_id, active) FROM stdin;
-01824563-0985-bfdf-2864-34d7a0b4e567	college-mentors	College Mentors	MENTORS	t	f	t	2022-07-28 15:18:14.707833+00	2022-07-28 15:18:14.707833+00	\N	t
-01824563-0985-b0a2-9767-5876a6a01d99	community-org	Community Org	COMMUNITY	t	f	f	2022-07-28 15:18:14.712162+00	2022-07-28 15:18:14.712162+00	\N	t
-01824563-0985-46fb-4e0c-de4559293307	school-helpers	School Helpers	SCHOOLHELPERS	f	f	f	2022-07-28 15:18:14.713948+00	2022-07-28 15:18:14.713948+00	\N	t
-01824563-0985-23ba-f148-c612589a8a1e	college-learners	College Learners	COLLEGELEARNERS	f	t	t	2022-07-28 15:18:14.715367+00	2022-07-28 15:18:14.715367+00	\N	t
-01824563-0985-e6b9-c6b0-0f4b70915568	all-the-students	All The Students	ALLTHESTUDENTS	t	t	t	2022-07-28 15:18:14.716903+00	2022-07-28 15:18:14.716903+00	\N	t
+COPY upchieve.student_partner_orgs (id, key, name, signup_code, high_school_signup, college_signup, school_signup_required, created_at, updated_at) FROM stdin;
+01824563-0985-bfdf-2864-34d7a0b4e567	college-mentors	College Mentors	MENTORS	t	f	t	2022-07-28 15:18:14.707833+00	2022-07-28 15:18:14.707833+00
+01824563-0985-b0a2-9767-5876a6a01d99	community-org	Community Org	COMMUNITY	t	f	f	2022-07-28 15:18:14.712162+00	2022-07-28 15:18:14.712162+00
+01824563-0985-46fb-4e0c-de4559293307	school-helpers	School Helpers	SCHOOLHELPERS	f	f	f	2022-07-28 15:18:14.713948+00	2022-07-28 15:18:14.713948+00
+01824563-0985-23ba-f148-c612589a8a1e	college-learners	College Learners	COLLEGELEARNERS	f	t	t	2022-07-28 15:18:14.715367+00	2022-07-28 15:18:14.715367+00
+01824563-0985-e6b9-c6b0-0f4b70915568	all-the-students	All The Students	ALLTHESTUDENTS	t	t	t	2022-07-28 15:18:14.716903+00	2022-07-28 15:18:14.716903+00
 \.
 
 
@@ -391,6 +297,88 @@ COPY upchieve.certification_subject_unlocks (subject_id, certification_id, creat
 8	21	2022-07-28 15:18:12.713095+00	2022-07-28 15:18:12.713095+00
 25	22	2022-07-28 15:18:12.803059+00	2022-07-28 15:18:12.803059+00
 26	23	2022-07-28 15:18:12.844489+00	2022-07-28 15:18:12.844489+00
+\.
+
+
+--
+-- Data for Name: us_states; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.us_states (code, name, created_at, updated_at) FROM stdin;
+AL	Alabama	2022-07-28 15:18:12.032424+00	2022-07-28 15:18:12.032424+00
+AK	Alaska	2022-07-28 15:18:12.034689+00	2022-07-28 15:18:12.034689+00
+AR	Arkansas	2022-07-28 15:18:12.035814+00	2022-07-28 15:18:12.035814+00
+AZ	Arizona	2022-07-28 15:18:12.036746+00	2022-07-28 15:18:12.036746+00
+CA	California	2022-07-28 15:18:12.037671+00	2022-07-28 15:18:12.037671+00
+CO	Colorado	2022-07-28 15:18:12.038769+00	2022-07-28 15:18:12.038769+00
+CT	Connecticut	2022-07-28 15:18:12.039808+00	2022-07-28 15:18:12.039808+00
+DE	Delaware	2022-07-28 15:18:12.040665+00	2022-07-28 15:18:12.040665+00
+DC	District of Columbia	2022-07-28 15:18:12.041401+00	2022-07-28 15:18:12.041401+00
+FL	Florida	2022-07-28 15:18:12.042288+00	2022-07-28 15:18:12.042288+00
+GA	Georgia	2022-07-28 15:18:12.043089+00	2022-07-28 15:18:12.043089+00
+HI	Hawaii	2022-07-28 15:18:12.043871+00	2022-07-28 15:18:12.043871+00
+ID	Idaho	2022-07-28 15:18:12.044645+00	2022-07-28 15:18:12.044645+00
+IL	Illinois	2022-07-28 15:18:12.045448+00	2022-07-28 15:18:12.045448+00
+IN	Indiana	2022-07-28 15:18:12.046236+00	2022-07-28 15:18:12.046236+00
+IA	Iowa	2022-07-28 15:18:12.046962+00	2022-07-28 15:18:12.046962+00
+KS	Kansas	2022-07-28 15:18:12.047773+00	2022-07-28 15:18:12.047773+00
+KY	Kentucky	2022-07-28 15:18:12.048627+00	2022-07-28 15:18:12.048627+00
+LA	Louisiana	2022-07-28 15:18:12.049446+00	2022-07-28 15:18:12.049446+00
+ME	Maine	2022-07-28 15:18:12.050311+00	2022-07-28 15:18:12.050311+00
+MD	Maryland	2022-07-28 15:18:12.051091+00	2022-07-28 15:18:12.051091+00
+MA	Massachusetts	2022-07-28 15:18:12.051833+00	2022-07-28 15:18:12.051833+00
+MI	Michigan	2022-07-28 15:18:12.052607+00	2022-07-28 15:18:12.052607+00
+MN	Minnesota	2022-07-28 15:18:12.053466+00	2022-07-28 15:18:12.053466+00
+MS	Mississippi	2022-07-28 15:18:12.054327+00	2022-07-28 15:18:12.054327+00
+MO	Missouri	2022-07-28 15:18:12.055157+00	2022-07-28 15:18:12.055157+00
+MT	Montana	2022-07-28 15:18:12.056068+00	2022-07-28 15:18:12.056068+00
+NE	Nebraska	2022-07-28 15:18:12.056947+00	2022-07-28 15:18:12.056947+00
+NV	Nevada	2022-07-28 15:18:12.057752+00	2022-07-28 15:18:12.057752+00
+NH	New Hampshire	2022-07-28 15:18:12.058656+00	2022-07-28 15:18:12.058656+00
+NJ	New Jersey	2022-07-28 15:18:12.059557+00	2022-07-28 15:18:12.059557+00
+NM	New Mexico	2022-07-28 15:18:12.060605+00	2022-07-28 15:18:12.060605+00
+NY	New York	2022-07-28 15:18:12.061736+00	2022-07-28 15:18:12.061736+00
+NC	North Carolina	2022-07-28 15:18:12.062775+00	2022-07-28 15:18:12.062775+00
+ND	North Dakota	2022-07-28 15:18:12.063963+00	2022-07-28 15:18:12.063963+00
+OH	Ohio	2022-07-28 15:18:12.065011+00	2022-07-28 15:18:12.065011+00
+OK	Oklahoma	2022-07-28 15:18:12.065856+00	2022-07-28 15:18:12.065856+00
+OR	Oregon	2022-07-28 15:18:12.066672+00	2022-07-28 15:18:12.066672+00
+PA	Pennsylvania	2022-07-28 15:18:12.067394+00	2022-07-28 15:18:12.067394+00
+RI	Rhode Island	2022-07-28 15:18:12.068105+00	2022-07-28 15:18:12.068105+00
+SC	South Carolina	2022-07-28 15:18:12.068836+00	2022-07-28 15:18:12.068836+00
+SD	South Dakota	2022-07-28 15:18:12.069488+00	2022-07-28 15:18:12.069488+00
+TN	Tennessee	2022-07-28 15:18:12.070181+00	2022-07-28 15:18:12.070181+00
+TX	Texas	2022-07-28 15:18:12.070868+00	2022-07-28 15:18:12.070868+00
+UT	Utah	2022-07-28 15:18:12.071514+00	2022-07-28 15:18:12.071514+00
+VT	Vermont	2022-07-28 15:18:12.072224+00	2022-07-28 15:18:12.072224+00
+VA	Virginia	2022-07-28 15:18:12.072961+00	2022-07-28 15:18:12.072961+00
+WA	Washington	2022-07-28 15:18:12.073604+00	2022-07-28 15:18:12.073604+00
+WV	West Virginia	2022-07-28 15:18:12.074257+00	2022-07-28 15:18:12.074257+00
+WI	Wisconsin	2022-07-28 15:18:12.074941+00	2022-07-28 15:18:12.074941+00
+WY	Wyoming	2022-07-28 15:18:12.075677+00	2022-07-28 15:18:12.075677+00
+PR	Puerto Rico	2022-07-28 15:18:12.076367+00	2022-07-28 15:18:12.076367+00
+GU	Guam	2022-07-28 15:18:12.0771+00	2022-07-28 15:18:12.0771+00
+VI	Virgin Islands	2022-07-28 15:18:12.077857+00	2022-07-28 15:18:12.077857+00
+AS	American Samoa	2022-07-28 15:18:12.078568+00	2022-07-28 15:18:12.078568+00
+BI	Bureau of Indian Education	2022-07-28 15:18:12.07932+00	2022-07-28 15:18:12.07932+00
+NA	NA	2022-07-28 15:18:12.080158+00	2022-07-28 15:18:12.080158+00
+AE	U.S. Armed Forced - Europe	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
+AA	U.S. Armed Forced - Americas	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
+AP	U.S. Armed Forced - Pacific	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
+PW	Palau	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
+FM	Micronesia	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
+MP	Norther Mariana Islands	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
+MH	Marshall Islands	2022-07-28 15:18:12.808482+00	2022-07-28 15:18:12.808482+00
+\.
+
+
+--
+-- Data for Name: cities; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.cities (id, name, us_state_code, created_at, updated_at) FROM stdin;
+1	Denver	CO	2022-07-28 15:18:14.72642+00	2022-07-28 15:18:14.72642+00
+2	Brooklyn	NY	2022-07-28 15:18:14.72794+00	2022-07-28 15:18:14.72794+00
 \.
 
 
@@ -1384,6 +1372,18 @@ COPY upchieve.postal_codes (code, us_state_code, income, location, created_at, u
 
 
 --
+-- Data for Name: schools; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.schools (id, name, approved, partner, city_id, created_at, updated_at, mongo_id, legacy_city_name) FROM stdin;
+01824563-09c8-d7c9-21d0-f0686d4ac410	Unapproved School	f	f	1	2022-07-28 15:18:14.728939+00	2022-07-28 15:18:14.728939+00	\N	\N
+01824563-09c8-03f2-90cd-e21b11257b5c	Approved School	t	f	1	2022-07-28 15:18:14.73066+00	2022-07-28 15:18:14.73066+00	\N	\N
+01824563-09c8-516f-d9d9-0b346dcbb739	Approved Partner School	t	t	2	2022-07-28 15:18:14.731676+00	2022-07-28 15:18:14.731676+00	\N	\N
+01824563-09c8-dca0-c9a0-1238e6438b18	Another Approved Partner School	t	t	2	2022-07-28 15:18:14.732823+00	2022-07-28 15:18:14.732823+00	\N	\N
+\.
+
+
+--
 -- Data for Name: ineligible_students; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -1457,10 +1457,42 @@ COPY upchieve.notifications (id, user_id, sent_at, type_id, method_id, priority_
 
 
 --
--- Data for Name: partner_org_lifecycle_events; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: partner_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.partner_org_lifecycle_events (id, name, created_at, updated_at) FROM stdin;
+COPY upchieve.partner_orgs (id, name, school_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: partner_org_association_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.partner_org_association_profiles (partner_org_id, associated_partner_org_id, active, deactivated_on, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: partner_org_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.partner_org_instances (id, partner_org_id, active, deactivated_on, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: partner_org_sites; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.partner_org_sites (id, name, partner_org_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: partner_org_sponsor_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.partner_org_sponsor_profiles (partner_org_id, sponsor_org_id, active, deactivated_on, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -2018,18 +2050,18 @@ COPY upchieve.sessions_session_flags (session_id, session_flag_id, created_at, u
 
 
 --
--- Data for Name: student_favorite_volunteers; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: sponsor_org_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) FROM stdin;
+COPY upchieve.sponsor_org_instances (id, sponsor_org_id, active, deactivated_on, created_at, updated_at) FROM stdin;
 \.
 
 
 --
--- Data for Name: student_partner_org_lifecycle_event; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: student_favorite_volunteers; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.student_partner_org_lifecycle_event (student_partner_org_id, lifecycle_event_id, created_at, updated_at) FROM stdin;
+COPY upchieve.student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -2051,14 +2083,6 @@ COPY upchieve.student_partner_org_sites (id, name, student_partner_org_id, creat
 COPY upchieve.student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor_org_id, created_at, updated_at) FROM stdin;
 01824563-0985-b0a2-9767-5876a6a01d99	01824563-09cd-be98-ee23-e4094adab9f4	2022-07-28 15:18:14.738276+00	2022-07-28 15:18:14.738276+00
 01824563-0985-46fb-4e0c-de4559293307	01824563-09cd-b813-4781-93c1288c276e	2022-07-28 15:18:14.739467+00	2022-07-28 15:18:14.739467+00
-\.
-
-
---
--- Data for Name: student_partner_profile; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.student_partner_profile (user_id, student_partner_org_user_id, student_partner_org_id, student_partner_org_site_id, active, deactivated_on, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -2531,6 +2555,14 @@ COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_add
 
 
 --
+-- Data for Name: user_partner_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.user_partner_profiles (user_id, partner_org_id, partner_org_site_id, partner_org_user_id, active, deactivated_on, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: user_product_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -2696,22 +2728,6 @@ COPY upchieve.users_training_courses (user_id, training_course_id, complete, pro
 --
 
 COPY upchieve.volunteer_occupations (user_id, occupation, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: volunteer_partner_org_lifecycle_event; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.volunteer_partner_org_lifecycle_event (volunteer_partner_org_id, lifecycle_event_id, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: volunteer_partner_profile; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.volunteer_partner_profile (user_id, volunteer_partner_org_user_id, volunteer_partner_org_id, active, deactivated_on, created_at, updated_at) FROM stdin;
 \.
 
 
