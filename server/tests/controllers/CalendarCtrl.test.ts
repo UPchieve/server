@@ -11,7 +11,7 @@ import {
   buildUserContactInfo,
   buildAvailability,
   getIpAddress,
-} from '../pg-generate'
+} from '../mocks/generate'
 import * as UserActionRepo from '../../models/UserAction'
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
