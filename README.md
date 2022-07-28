@@ -20,6 +20,10 @@ NOTE: Active development on this project has moved to https://gitlab.com/upchiev
     - [App Dependencies](#app-dependencies)
     - [Prepare to run the server](#prepare-to-run-the-server)
     - [Run the app](#run-the-app)
+    - [Database updates](#database-updates)
+      - [Important files](#important-files)
+      - [Package.json Scripts](#packagejson-scripts)
+      - [Migrations](#migrations)
   - [Test Users](#test-users)
   - [Structure](#structure)
   - [Server](#server)
@@ -99,17 +103,30 @@ Even though the frontend is doing a production build, Vue dev tools should still
 
 If you change anything in the `.sql` files in `server/models`, run [`npm run pgtyped`](https://pgtyped.vercel.app/) to pick up the changes and regenerate the associated `.ts` files. This generates typescript versions of the queries that can be referenced in code, as well as entity types.
 
-For schema changes:
+#### Important files
+All database administration files live in `/database`. The `db_init` directory houses files used to bring up a fresh database for local dev or staging. To bring up a fresh database run:
+1. `schema.sql` to create the UPchieve schema
+2. `auth.sql` to create relevant app roles and grant them permission over the schema
+3. `test_seeds.sql` to fill the db with static seeds and test data for local development
+4. `seed_migrations.sql` to populate the `public.seed_migrations` table so we know how to apply future seed migrations 
 
-1. Update `~/.zshrc` or `.env` file to include absolute paths needed for `dbmate` to run
-```shell
-export DBMATE_SCHEMA_FILE="/path/to/repo/subway/database/db_init/schema.sql"
-export DBMATE_MIGRATIONS_DIR="/path/to/repo/subway/database/migrations"
-export DATABASE_URL="postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable"
-```
+#### Package.json Scripts
+1. `db:reset`: resets the local postgres container's `pchieve` database to an empty state
+2. `db:schema`: applies `db_init/schema.sql` to the local db
+3. `db:auth`: applies `db_init/auth.sql` to the local tb
+4. `db:seeds`: applies `db_init/test_seeds.sql` to the local db
+5. `db:reset-schema`: runs 1-3 above
+6. `db:reset-seeds`: runs 1-4 above; equivalent to restarting the docker container
+7. `db:build-seeds`: runs 1-3, builds static seeds from `seeds/static`, and applies all seed migrations
+8. `db:dump`: dumps contents of local db to `schema.sql`, `test_seeds.sql`, and `seed_migrations.sql`
+9. `db:schema-new`: creates a new blank schema migration (same as `dbmate new`)
+10. `db:seeds-new`: creates a new blank seed migration (same as `dbmate new`)
+11. `db:schema-up`: applies any pending schema migrations without writing out the new schema
+12. `db:schema-down`: rollsback the most recent applied schema migration without writing out the new schema
+13. `db:seeds-up` applies any pending seed migrations
 
-2. Create a new migration in `database/migrations` by running `dbmate new file_name_here` for table migrations.
-3. Write the migration, including both rollout and rollback instructions - for example:
+#### Migrations
+When writing a schema migration include both rollout and rollback instructions - for example:
 ```sql
 -- migrate:up
 ALTER TABLE upchieve.schools
@@ -119,29 +136,12 @@ ALTER TABLE upchieve.schools
 ALTER TABLE upchieve.schools
   DROP COLUMN legacy_city_name;
 ```
-4. When finished, run `dbmate up` to apply migration to local db setup (this will run all available migrations that have not currently been applied to the database, in order). To roll back migrations one at a time, run `dbmate down`.
+Test that the rollback script actually works by running `npm run db:schema-down`. Note that a `seeds-down` script does not exist because writing reversible seed migrations is often mroe trouble than it's worth.
 
 Notes:
-- If the database/schema end up in an irrecoverable state, you can drop everything with `dbmate drop` and then use `dbmate up` to re-apply all migrations in order from scratch.
-- After every `dbmate up`, dbmate will dump the schema to `databse/db_init_schema.sql`, which overwrites anything previously in that file.
+- If the database/schema end up in an irrecoverable state, you can drop everything with `npm run db:reset-seeds` to get the database to a fresh state (alternatively destroy and rebuild the container)
+- After verifying the migrations are good dump the schema and data for the next developer with `npm run db:dump`
 - Everything in `db_init` is programmatically generated and can be ignored in diff examinations
--  For seed migrations, run `dbmate -d ./database/seed-updates --migrations-table seed_migrations --no-dump-schema up`, `down`, or `new file_name_here`. `--no-dump-schema` is particularly important because leaving it out causes dbmate to overwrite the list of migrations in `db_init/schema.sql` - this leaves the database in a bugged state it is difficult to recover from as docker/dbmate try to apply seed migrations to tables that require schema migrations without the schema migrations being applied.
-
-### Seed updates
-
-There are 2 types of seeds: static and test.
-
-For test data seeds, find the file that represents the objects you want to add and just add new data to the array. If you are adding a new table, copy the template into a new file and change the underlying query/data array.
-
-Running the seeds involves three commands:
-
-1. `npm run seeds:reset` drops the entire database, brings it back up with schema and user auth roles
-
-2. `npm run seeds:build:test` runs static and test seed generation files against local db and then runs 'seed migrations' against db (seed migrations record changes made to static seeds in production)
-
-3. `npm run seeds:copy:test` `pg_dump`s the data within your tables into `database/db_init/test_seeds.sql` so next time you bring up a fresh db container it's seeded with the new values
-
-To seed data used in production, see Database Updates, step 2.
 
 ## Test Users
 

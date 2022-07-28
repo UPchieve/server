@@ -17,9 +17,6 @@ dbmate \
   -u "$PGURL" \
   up > /dev/null
 
-# dump migrations
-PGPASSFILE="database/.pgpass" pg_dump -a -f database/db_init/seed_migrations.sql -t seed_migrations -h localhost -p 5432 -U admin upchieve
-
 if [[ -n "$1" ]]
 then
   npx ts-node -P tsconfig.seeds.json database/seeds/testSeeds.ts
