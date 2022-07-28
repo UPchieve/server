@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
 import * as SessionService from '../../services/SessionService'
-import { buildUserContactInfo } from '../pg-generate'
+import { buildUserContactInfo } from '../mocks/generate'
 import { KeyNotFoundError } from '../../cache'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { authPassport } from '../../utils/auth-utils'

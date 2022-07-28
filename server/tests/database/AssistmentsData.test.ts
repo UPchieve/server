@@ -10,14 +10,12 @@ import {
 } from '../../models/AssistmentsData/queries'
 import { Pool } from 'pg'
 import {
-  buildSession,
-  insertSingleRow,
   buildUserRow,
   buildStudentProfile,
   buildAssistmentsData,
-  dropTables,
-  executeQuery,
-} from '../pg-generate'
+  buildSession,
+} from '../mocks/generate'
+import { insertSingleRow, dropTables, executeQuery } from '../db-utils'
 import { AssistmentsData } from '../../models/AssistmentsData'
 import { Student } from '../../models/Student'
 import { Session } from '../../models/Session'

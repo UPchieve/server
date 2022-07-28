@@ -22,14 +22,16 @@ import {
   buildUserContactInfo,
   buildStudent,
   buildSchool,
+  buildVolunteerPartnerOrg,
+  buildStudentPartnerOrg,
+  buildVolunteer,
+} from '../mocks/generate'
+import {
   buildStudentRegistrationForm,
   buildPartnerStudentRegistrationForm,
   buildVolunteerRegistrationForm,
   buildPartnerVolunteerRegistrationForm,
-  buildVolunteerPartnerOrg,
-  buildStudentPartnerOrg,
-  buildVolunteer,
-} from '../pg-generate'
+} from '../mocks/services/AuthService.mock'
 import { getDbUlid } from '../../models/pgUtils'
 
 // Mocks
