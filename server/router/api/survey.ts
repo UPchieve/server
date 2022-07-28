@@ -41,7 +41,6 @@ export function routeSurvey(router: expressWs.Router): void {
       surveyTypeId,
       submissions,
     }
-
     try {
       await validateSaveUserSurveyAndSubmissions(user.id, data as unknown)
       res.sendStatus(200)

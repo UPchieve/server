@@ -108,6 +108,8 @@ WHERE
 
 
 -- migrate:down
+
+-- NOTE: run `truncate trable upchieve.users_surveys_submissions` if this down migration fails
 DELETE FROM
   upchieve.survey_questions_response_choices USING upchieve.survey_response_choices
 WHERE

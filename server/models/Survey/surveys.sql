@@ -158,7 +158,6 @@ WITH replacement_column_cte AS (
   JOIN upchieve.users u_student ON u_student.id = s.student_id
   JOIN upchieve.users u_volunteer ON u_volunteer.id = s.volunteer_id
 
-  -- this part is for Goal and I'm really not sure it's right
   JOIN upchieve.users_surveys us ON us.session_id = s.id
   JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
   JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id

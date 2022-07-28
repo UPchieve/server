@@ -112,7 +112,6 @@ WHERE
 
 
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?' AND rc.choice_text = 'Not at all' AND sub.text::int = 10) OR
-  (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?' AND rc.choice_text = 'Not at all' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?' AND rc.choice_text = 'Sorta but not really' AND sub.text::int = 20) OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?' AND rc.choice_text = 'Somewhat' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?' AND rc.choice_text = 'Mostly' AND sub.text::int = 40) OR
@@ -212,3 +211,22 @@ DELETE FROM upchieve.survey_questions
 
 DELETE FROM upchieve.survey_response_choices
   WHERE upchieve.survey_response_choices.choice_text in ('Yes', 'No', 'I didn''t know topic', 'Wrong subject', 'Student participation');
+
+DELETE FROM upchieve.surveys_survey_questions USING upchieve.surveys
+  WHERE upchieve.surveys_survey_questions.survey_id = upchieve.surveys.id
+  AND (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
+    OR upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
+    OR upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'); 
+
+DELETE FROM upchieve.survey_questions_response_choices USING upchieve.surveys_survey_questions, upchieve.surveys
+  WHERE upchieve.surveys_survey_questions.id = upchieve.surveys_survey_questions.id
+    AND upchieve.surveys_survey_questions.survey_id = upchieve.surveys.id
+  AND (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
+    OR upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
+    OR upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'); 
+
+DELETE FROM upchieve.surveys_context USING upchieve.surveys
+  WHERE upchieve.surveys_context.survey_id = upchieve.surveys.id
+  AND (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
+    OR upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
+    OR upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'); 

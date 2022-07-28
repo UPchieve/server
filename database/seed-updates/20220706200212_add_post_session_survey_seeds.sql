@@ -41,8 +41,7 @@ WHERE
 
 
 INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
-VALUES (1, 'Not at all', NOW(), NOW()),
-       (2, 'Sorta but not really', NOW(), NOW()),
+VALUES (2, 'Sorta but not really', NOW(), NOW()),
        (3, 'I guess so', NOW(), NOW()),
        (4, 'I''m def closer to my goal', NOW(), NOW()),
        (5, 'GOAL ACHIEVED', NOW(), NOW()),
@@ -93,7 +92,7 @@ JOIN upchieve.surveys ON upchieve.surveys.id = ssq.survey_id
 JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
 JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
 WHERE
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'Not at all' AND sub.text::int = 10) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'I don''t know how to do it yet' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'Sorta but not really' AND sub.text::int = 20) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'I guess so' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?' AND rc.choice_text = 'I''m def closer to my goal' AND sub.text::int = 40) OR
@@ -109,13 +108,13 @@ WHERE
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Would you like to favorite your coach %s?' AND rc.choice_text = 'Yes' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Would you like to favorite your coach %s?' AND rc.choice_text = 'Maybe later' AND sub.text::int = 20) OR
 
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how supportive was your coach today?' AND rc.choice_text = 'Not at all' AND sub.text::int = 10) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how supportive was your coach today?' AND rc.choice_text = 'I don''t know how to do it yet' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how supportive was your coach today?' AND rc.choice_text = 'Sorta but not really' AND sub.text::int = 20) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how supportive was your coach today?' AND rc.choice_text = 'Somewhat' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how supportive was your coach today?' AND rc.choice_text = 'Mostly' AND sub.text::int = 40) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how supportive was your coach today?' AND rc.choice_text = 'Extremely' AND sub.text::int = 50) OR
 
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'Not at all' AND sub.text::int = 10) OR
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'I don''t know how to do it yet' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'Sorta but not really' AND sub.text::int = 20) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'Somewhat' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'Mostly' AND sub.text::int = 40) OR
@@ -157,7 +156,10 @@ WHERE
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'applications' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'satMath' AND upchieve.survey_types.name = 'postsession') OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'satReading' AND upchieve.survey_types.name = 'postsession');
+
 -- migrate:down
+-- NOTE: run `truncate trable upchieve.users_surveys` if this down migration fails
+
 DELETE FROM upchieve.surveys
   WHERE upchieve.surveys.name = 'Student Post-Session Survey';
 
@@ -171,7 +173,7 @@ DELETE FROM upchieve.survey_questions
 
 DELETE FROM upchieve.survey_response_choices
   WHERE upchieve.survey_response_choices.choice_text in (
-    'Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED',
+    'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED',
     'Somewhat', 'Mostly', 'Extremely',
     'A lot',
     'Rude coach', 'Coach didn''t know topic', 'Coach slow to respond', 'Ran out of time', 'Tech issue',

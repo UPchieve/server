@@ -49,12 +49,14 @@ export async function validateSaveUserSurveyAndSubmissions(
   userId: Ulid,
   data: unknown
 ): Promise<void> {
+  console.log(data)
   const survey = asSaveUserSurveyAndSubmissions(data)
   const userSurvey = {
     surveyId: survey.surveyId,
     sessionId: survey.sessionId,
     surveyTypeId: survey.surveyTypeId,
   }
-  const submissions = survey.submissions
+  // filter out questions the user didn't answer
+  const submissions = survey.submissions.filter(resp => resp.responseChoiceId !== null)
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
 }

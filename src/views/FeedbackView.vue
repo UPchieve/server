@@ -436,17 +436,6 @@ export default {
       }
 
       return this.questions.filter(item => !item.show || item.show())
-    },
-    isFavoritingCoach() {
-      if (!this.isVolunteer) {
-        const coachFavoritingQuestion = this.filteredQuestions.find(
-          (q) => q.id === 'coach-favoriting'
-        )
-        // `1` is the first answer option when asking the student if they would like
-        // to favorite the coach. That means the student wants to favorite them
-        return coachFavoritingQuestion && coachFavoritingQuestion.answer === 1
-      }
-      return false
     }
   },
   async beforeMount() {
@@ -490,16 +479,16 @@ export default {
       const postsessionSurveyDefinition = postsessionSurveyDefinitionResponse.body.survey
       this.surveyDefinition = postsessionSurveyDefinition
       this.allQuestions = _.map(postsessionSurveyDefinition.survey, q => {
-        const isHiddenOnStart = this.isLowRatingQuestion(q) || this.isHighRatingQuestion(q)
+        const isHiddenOnStart = this.isLowRatingQuestion(q) || this.isHighRatingQuestion(q) || this.isGuidelineIssueListQuestion(q)
         // update question types to be more specific
         if (q.questionType === 'multiple choice') {
           if (q.questionText.startsWith('How do you think')) {
             q.questionType = 'emoji'
-          } else if (this.isLowRatingQuestion(q)) {
+          } else if (this.isLowRatingQuestion(q) || this.isGuidelineIssueListQuestion(q)) {
             q.questionType = 'chip'
-          } else if (q.questionText.startsWith('Your goal for this session')) {
+          } else if (this.isStarRankingQuestion(q)) {
             q.questionType = 'star'
-          } else if (this.isHighRatingQuestion(q)) {
+          } else if (this.isHighRatingQuestion(q) || this.isIssuePresentQuestion(q)) {
             q.questionType = 'radio'
           } else {
             q.questionType = 'multiple-choice'
@@ -542,9 +531,18 @@ export default {
       }
       return question.responses.some((a) => a.responseDisplayImage)
     },
+    isStarRankingQuestion(question) {
+      return question.questionText.startsWith("Your goal for this session") || question.questionText.endsWith('achieve their goal?')
+    },
     // checks if this is the question we show if session rating is low
     isLowRatingQuestion(question) {
       return question.questionText.startsWith('Sorry to hear that');
+    },
+    isGuidelineIssueListQuestion(question) {
+      return question.questionText.startsWith('Please select all that apply')
+    },
+    isIssuePresentQuestion(question) {
+      return question.questionText.startsWith('Were there any student safety')
     },
     // checks if this is the question we show if session rating is high
     isHighRatingQuestion(question){
@@ -555,22 +553,94 @@ export default {
       const selectedResponse = question.responses.find(r => r.responseId === questionResponseId)
       return selectedResponse.responseText
     },
+    isFavoritingCoach() {
+      if (!this.isVolunteer) {
+        if (this.isContextSharingWithVolunteerActive) {
+          const coachFavoritingQuestion = this.filteredQuestions.find(q => this.isHighRatingQuestion(q))
+          console.log(coachFavoritingQuestion)
+          const coachFavoritingAnswer = this.getAnswerToQuestion(coachFavoritingQuestion)
+          return coachFavoritingAnswer && coachFavoritingAnswer === 'Yes'
+        }
+        const coachFavoritingQuestion = this.filteredQuestions.find(
+          (q) => q.id === 'coach-favoriting'
+        )
+        // `1` is the first answer option when asking the student if they would like
+        // to favorite the coach. That means the student wants to favorite them
+        return coachFavoritingQuestion && coachFavoritingQuestion.answer === 1
+      }
+      return false
+    },
     async submitFeedback() {
       if (this.isSubmittingFeedback) return
       this.isSubmittingFeedback = true
       this.error = ''
-      const data = {
-        sessionId: this.session._id,
-        topic: this.session.type,
-        subTopic: this.session.subTopic,
-        userType: this.userType,
-        studentId: this.session.student._id,
-        volunteerId: this.session.volunteer._id
-      }
-
       if (this.isContextSharingWithVolunteerActive) {
-        console.log(this.userResponse)
+        const submissions = []
+        for (const question of this.filteredQuestions) {
+          const response = this.userResponse[question.questionId]
+          if (this.isHighRatingQuestion(question)) {
+            // the answer to the coach-favoriting question is not included in the feedback submission
+            continue
+          } else if ((this.isLowRatingQuestion(question) || this.isGuidelineIssueListQuestion(question)) && response.responseId) {
+            // the answer to the what-went-wrong question is multiselect; convert it to several single-response answers for saving
+            response.responseId.forEach(resp => {
+              submissions.push({
+                questionId: Number(question.questionId),
+                responseChoiceId: resp,
+                openResponse: response.openResponse
+              })
+            })
+          } else {
+            if (response.responseId) {
+              submissions.push({
+                questionId: Number(question.questionId),
+                responseChoiceId: response.responseId,
+                openResponse: response.openResponse
+              }) 
+            }
+          }
+        }
+        const surveyResponse = {
+          surveyId: this.surveyDefinition.surveyId,
+          surveyTypeId: this.surveyDefinition.surveyTypeId,
+          sessionId: this.session._id,
+          submissions
+        }
+        try {
+          const requests = []
+          requests.push(NetworkService.submitSurvey(surveyResponse))
+          if (
+            !this.isVolunteer &&
+            this.isFavoritingCoach &&
+            this.isCoachFavoritingActive
+          ) {
+            requests.push(
+              NetworkService.updateFavoriteVolunteerStatus(
+                this.session.volunteer._id,
+                { isFavorite: true, sessionId: this.session._id }
+              )
+            )
+          }
+         await Promise.all(requests)
+         this.$router.push('/')
+        } catch (error) {
+          console.log(error)
+          if (error.body.success === false) this.error = error.body.message
+          else if (error.status === 422) this.error = error.body.err
+          else this.error = 'There was an error sending your feedback'
+        } finally {
+          this.isSubmittingFeedback = false
+        }
+
       } else {
+        const data = {
+          sessionId: this.session._id,
+          topic: this.session.type,
+          subTopic: this.session.subTopic,
+          userType: this.userType,
+          studentId: this.session.student._id,
+          volunteerId: this.session.volunteer._id
+        }
         const feedbackPath = this.user.isVolunteer
           ? 'volunteerFeedback'
           : 'studentTutoringFeedback'
@@ -680,13 +750,25 @@ export default {
             }
           })
         }
-
-        // clear out responses for all hidden questions so we don't save junk data (change to actually-selected answer will handle re-render)
-        const questionIdsToClear = this.allQuestions.filter(item => !item.isVisible).map(item => item.question.questionId)
-        _.forEach(questionIdsToClear, q => {
-          this.userResponse[q] = {responseId: null, openResponse: ''}
+      }
+      // if question changed is student safety & guideline violation question, show/hide conditional question that depends on it
+      const guidelineQuestion = _.find(this.questions, q => q.questionText.startsWith("Were there any student safety"))
+      const guidelineResponse = _.find(guidelineQuestion.responses, r => r.responseId === responseId)
+      if (guidelineQuestion && questionId === guidelineQuestion.questionId) {
+        this.allQuestions = _.map(this.allQuestions, q => {
+            const shouldToggleQuestionVisibility = this.isGuidelineIssueListQuestion(q.question)
+            return {
+              question: q.question,
+              isVisible: shouldToggleQuestionVisibility ? guidelineResponse.responseText === 'Yes' : q.isVisible
+            }
         })
       }
+
+      // clear out responses for all hidden questions so we don't save junk data (change to actually-selected answer will handle re-render)
+      const questionIdsToClear = this.allQuestions.filter(item => !item.isVisible).map(item => item.question.questionId)
+      _.forEach(questionIdsToClear, q => {
+        this.userResponse[q] = {responseId: null, openResponse: ''}
+      })
 
       // Vue cannot detect property addition or deletion on objects. A new object
       // must be created for Vue to recognize changes on said object
