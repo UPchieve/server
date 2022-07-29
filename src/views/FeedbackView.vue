@@ -557,7 +557,6 @@ export default {
       if (!this.isVolunteer) {
         if (this.isContextSharingWithVolunteerActive) {
           const coachFavoritingQuestion = this.filteredQuestions.find(q => this.isHighRatingQuestion(q))
-          console.log(coachFavoritingQuestion)
           const coachFavoritingAnswer = this.getAnswerToQuestion(coachFavoritingQuestion)
           return coachFavoritingAnswer && coachFavoritingAnswer === 'Yes'
         }
@@ -622,9 +621,8 @@ export default {
             )
           }
          await Promise.all(requests)
-         this.$router.push('/')
+         this.$router.push('/dashboard')
         } catch (error) {
-          console.log(error)
           if (error.body.success === false) this.error = error.body.message
           else if (error.status === 422) this.error = error.body.err
           else this.error = 'There was an error sending your feedback'
@@ -753,8 +751,8 @@ export default {
       }
       // if question changed is student safety & guideline violation question, show/hide conditional question that depends on it
       const guidelineQuestion = _.find(this.questions, q => q.questionText.startsWith("Were there any student safety"))
-      const guidelineResponse = _.find(guidelineQuestion.responses, r => r.responseId === responseId)
       if (guidelineQuestion && questionId === guidelineQuestion.questionId) {
+        const guidelineResponse = _.find(guidelineQuestion.responses, r => r.responseId === responseId)
         this.allQuestions = _.map(this.allQuestions, q => {
             const shouldToggleQuestionVisibility = this.isGuidelineIssueListQuestion(q.question)
             return {

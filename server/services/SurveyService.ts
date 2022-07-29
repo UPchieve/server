@@ -57,6 +57,8 @@ export async function validateSaveUserSurveyAndSubmissions(
     surveyTypeId: survey.surveyTypeId,
   }
   // filter out questions the user didn't answer
-  const submissions = survey.submissions.filter(resp => resp.responseChoiceId !== null)
+  const submissions = survey.submissions.filter(
+    resp => resp.responseChoiceId !== null
+  )
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
 }
