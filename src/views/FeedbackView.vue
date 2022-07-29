@@ -100,9 +100,7 @@
                     @survey-radio-input="updateUserResponse"
                   />
                   <survey-rate-number
-                    v-else-if="
-                      (question.questionType === 'multiple-choice')
-                    "
+                    v-else-if="question.questionType === 'multiple choice'"
                     class='question__response question__response-numbers'
                     :key="`${response.responseId}-rating`"
                     :src="response.responseDisplayImage"
@@ -117,9 +115,12 @@
                     @survey-rate-click="updateUserResponse" 
                   />
 
-                  <div v-else>
-                    {{question.questionType}}
-                  </div>
+                  <feedback-textarea
+                    v-else-if="question.questionType === 'free response'"
+                    :key="`${response.responseId}-free-response`"
+                    :id="`${question.questionId}_${response.responseId}`"
+                    @change="(responseText) => updateUserResponse(question.questionId, response.responseId, responseText)">
+                  </feedback-textarea>
                 </template>
               </div>
               <div class="response-answer-text" v-if="question.questionType === 'star' && userResponse[question.questionId].responseId">
@@ -197,7 +198,8 @@ export default {
     SurveyImage,
     SurveyRadio,
     SurveyRateNumber,
-    SurveyChipOption
+    SurveyChipOption,
+    FeedbackTextarea
 },
   data() {
     return {
@@ -491,7 +493,7 @@ export default {
           } else if (this.isHighRatingQuestion(q) || this.isIssuePresentQuestion(q)) {
             q.questionType = 'radio'
           } else {
-            q.questionType = 'multiple-choice'
+            q.questionType = 'multiple choice'
           }
         }
         return {
@@ -581,7 +583,7 @@ export default {
             // the answer to the coach-favoriting question is not included in the feedback submission
             continue
           } else if ((this.isLowRatingQuestion(question) || this.isGuidelineIssueListQuestion(question)) && response.responseId) {
-            // the answer to the what-went-wrong question is multiselect; convert it to several single-response answers for saving
+            // the answers to the what-went-wrong questions are multiselect; convert to several single-response answers for saving
             response.responseId.forEach(resp => {
               submissions.push({
                 questionId: Number(question.questionId),

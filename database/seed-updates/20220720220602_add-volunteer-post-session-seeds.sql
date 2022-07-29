@@ -110,6 +110,8 @@ WHERE
   (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Student participation' AND sub.text::int = 50) OR
   (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Other' AND sub.text::int = 60) OR
 
+  (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'This can be about the web app, the student you helped, technical issues, etc.' AND rc.choice_text = 'Your thoughts' AND sub.text::int = 10) OR
+
 
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?' AND rc.choice_text = 'Not at all' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?' AND rc.choice_text = 'Sorta but not really' AND sub.text::int = 20) OR
@@ -134,6 +136,8 @@ WHERE
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Student participation' AND sub.text::int = 50) OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Other' AND sub.text::int = 60) OR
 
+  (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'This can be about the web app, the student you helped, technical issues, etc.' AND rc.choice_text = 'Your thoughts' AND sub.text::int = 10) OR
+
 
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?' AND rc.choice_text = 'Not at all' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?' AND rc.choice_text = 'Sorta but not really' AND sub.text::int = 20) OR
@@ -155,8 +159,9 @@ WHERE
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'I didn''t know topic' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Wrong subject' AND sub.text::int = 40) OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Student participation' AND sub.text::int = 50) OR
-  (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Other' AND sub.text::int = 60);
+  (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Other' AND sub.text::int = 60) OR
 
+  (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'This can be about the web app, the student you helped, technical issues, etc.' AND rc.choice_text = 'Your thoughts' AND sub.text::int = 10);
 
 INSERT INTO upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at)
 SELECT

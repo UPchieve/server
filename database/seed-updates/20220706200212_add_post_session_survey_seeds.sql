@@ -59,7 +59,8 @@ VALUES (2, 'Sorta but not really', NOW(), NOW()),
        (0, 'Tech issue', NOW(), NOW()),
 
        (0, 'Yes', NOW(), NOW()),
-       (0, 'Maybe later', NOW(), NOW());
+       (0, 'Maybe later', NOW(), NOW()),
+       (0, 'Your thoughts', NOW(), NOW());
 
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
 SELECT
@@ -118,7 +119,10 @@ WHERE
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'Sorta but not really' AND sub.text::int = 20) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'Somewhat' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'Mostly' AND sub.text::int = 40) OR
-  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'A lot' AND sub.text::int = 50);
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'Overall, how much did your coach push you to do your best work today?' AND rc.choice_text = 'A lot' AND sub.text::int = 50) OR
+
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.' AND rc.choice_text = 'Your thoughts' AND sub.text::int = 10);
+
 
 INSERT INTO upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at)
 SELECT
@@ -158,7 +162,7 @@ WHERE
   (upchieve.surveys.name = 'Student Post-Session Survey' AND upchieve.subjects.name = 'satReading' AND upchieve.survey_types.name = 'postsession');
 
 -- migrate:down
--- NOTE: run `truncate trable upchieve.users_surveys` if this down migration fails
+-- NOTE: run `truncate table upchieve.users_surveys` if this down migration fails
 
 DELETE FROM upchieve.surveys
   WHERE upchieve.surveys.name = 'Student Post-Session Survey';
@@ -178,7 +182,9 @@ DELETE FROM upchieve.survey_response_choices
     'A lot',
     'Rude coach', 'Coach didn''t know topic', 'Coach slow to respond', 'Ran out of time', 'Tech issue',
 
-    'Yes', 'Maybe later');
+    'Yes', 'Maybe later',
+    
+    'Your thoughts');
 
 -- DELETE FROM upchieve.surveys_survey_questions USING upchieve.surveys_context, upchieve.survey_types
 --   WHERE upchieve.surveys_survey_questions.survey_id = upchieve.surveys_context.survey_id
