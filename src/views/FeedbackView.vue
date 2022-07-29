@@ -36,8 +36,9 @@
               <div :class="{
                      'question__responses-images': isRowOfImages(question),
                      'question__responses-rating': (question.questionType === 'multiple-choice'),
-                     'feedback_question__responses': !(question.questionType === 'radio'),
-                     'feedback_question__radio': (question.questionType === 'radio')
+                     'question__responses-radio': (question.questionType === 'radio'),
+                     'question__responses-vertical-radio': isHighRatingQuestion(question),
+                     'question__responses': !(isHighRatingQuestion(question))
                    }">
                 <template
                   v-for="(response, index) in question.responses"
@@ -864,28 +865,35 @@ export default {
   &__error {
     color: $c-error-red;
   }
+}
 
-  &_question__responses {
+.question {
+  &__responses {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
   }
 
-  &_question__radio {
+  &__responses-vertical-radio {
+    width: 100%
+  }
+
+  &__responses-radio {
     padding: 20px;
   }
-}
 
-.question__response-radio {
+  &__response-radio {
     border: solid 1px $c-border-grey;
     border-radius: 5px;
     margin: 15px;
     padding: 15px;
-}
+    width: 45%;
+  }
 
-.question__response-radio-selected {
+  &__response-radio-selected {
     background-color: $selected-green;
     border-color: $c-accent;
+  }
 }
 
 .response-answer-text {
