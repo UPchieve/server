@@ -482,7 +482,6 @@ export default {
       this.surveyDefinition = postsessionSurveyDefinition
       this.allQuestions = _.map(postsessionSurveyDefinition.survey, q => {
         const isHiddenOnStart = this.isLowRatingQuestion(q) || this.isHighRatingQuestion(q) || this.isGuidelineIssueListQuestion(q)
-        // update question types to be more specific
         if (q.questionType === 'multiple choice') {
           if (q.questionText.startsWith('How do you think')) {
             q.questionType = 'emoji'

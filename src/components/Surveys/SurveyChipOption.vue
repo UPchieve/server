@@ -38,10 +38,6 @@ export default {
     handleChipClick() {
       this.$emit('chip-click', this.questionId, this.responseId)
     },
-  },
-  async beforeMount() {
-  },
-  computed: {
   }
 }
 </script>

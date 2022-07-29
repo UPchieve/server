@@ -41,9 +41,6 @@ export default {
     handleRateClick() {
       this.$emit('survey-rate-click', this.questionId, this.responseId)
     },
-  },
-
-  computed: {
   }
 }
 </script>

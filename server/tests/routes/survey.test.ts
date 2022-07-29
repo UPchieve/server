@@ -15,7 +15,6 @@ import {
   buildUserSurvey,
   buildUserSurveySubmission,
 } from '../pg-generate'
-import unleash from 'unleash-client'
 
 jest.mock('../../services/SurveyService')
 jest.mock('../../models/Survey')

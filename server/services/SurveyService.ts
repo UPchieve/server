@@ -49,7 +49,6 @@ export async function validateSaveUserSurveyAndSubmissions(
   userId: Ulid,
   data: unknown
 ): Promise<void> {
-  console.log(data)
   const survey = asSaveUserSurveyAndSubmissions(data)
   const userSurvey = {
     surveyId: survey.surveyId,

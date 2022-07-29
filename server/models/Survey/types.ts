@@ -2,7 +2,6 @@ import { String } from 'aws-sdk/clients/cloudsearch'
 import { Ulid } from '../pgUtils'
 
 const SURVEY_TYPES = <const>['presession', 'postsession']
-
 export type SurveyType = typeof SURVEY_TYPES[number]
 
 export type PresessionSurveyResponseData = {

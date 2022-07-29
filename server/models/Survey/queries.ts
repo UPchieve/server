@@ -81,7 +81,6 @@ export async function saveUserSurveyAndSubmissions(
     const survey = makeRequired(result[0])
     const errors: string[] = []
     for (const submission of submissions) {
-      console.log(submission)
       const result = await pgQueries.saveUserSurveySubmissions.run(
         {
           userSurveyId: survey.id,
@@ -164,13 +163,10 @@ export async function getSurveyDefinition(
         getClient()
       )
     } else if (surveyType === 'postsession' && sessionId && userRole) {
-      console.log(subjectName, sessionId, userRole)
-      console.log('bbbbbbbbbb')
       result = await pgQueries.getPostsessionSurveyDefinition.run(
         { subjectName, surveyType, sessionId, userRole },
         getClient()
       )
-      console.log(result)
     } else {
       throw new Error(
         'unrecognized survey type or missing parameter necessary for this survey type'

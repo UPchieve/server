@@ -60,6 +60,7 @@ VALUES (2, 'Sorta but not really', NOW(), NOW()),
 
        (0, 'Yes', NOW(), NOW()),
        (0, 'Maybe later', NOW(), NOW()),
+
        (0, 'Your thoughts', NOW(), NOW());
 
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
