@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils'
 
 import { GRADES } from '../../constants'
-import { buildUser, getIpAddress, getEmail } from '../pg-generate'
+import { buildUser, getIpAddress, getEmail } from '../mocks/generate'
 import * as IneligibleStudentRepo from '../../models/IneligibleStudent/queries'
 import * as SchoolRepo from '../../models/School/queries'
 import * as UserCtrl from '../../controllers/UserCtrl'

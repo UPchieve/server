@@ -1,223 +1,85 @@
-/*
-import bcrypt from 'bcrypt'
-import UserModel from '../models/User'
-import VolunteerModel, { Volunteer } from '../models/Volunteer'
-import StudentModel, { Student } from '../models/Student'
-import UserActionModel, { UserAction } from '../models/UserAction'
-import SessionModel, { Session } from '../models/Session'
-import NotificationModel, { Notification } from '../models/Notification'
-import FeedbackModel, {
-  FeedbackVersionOne,
-  FeedbackVersionTwo,
-  Feedback,
-} from '../models/Feedback'
-import config from '../config'
-import AvailabilitySnapshotModel, {
-  AvailabilitySnapshot,
-} from '../models/Availability/Snapshot'
-import AvailabilityHistoryModel, {
-  AvailabilityHistory,
-} from '../models/Availability/History'
-import {
-  buildNotification,
-  buildSession,
-  buildStudent,
-  buildVolunteer,
-  buildAvailabilitySnapshot,
-  buildAvailabilityHistory,
-  buildUserAction,
-  buildFeedback,
-} from './generate'
-import { FEEDBACK_VERSIONS } from '../constants'
+import { Pool } from 'pg'
+import { Pgid } from '../models/pgUtils'
+import _ from 'lodash'
+import { CamelCasedProperties } from 'type-fest'
 
-const hashPassword = async function(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(config.saltRounds)
-  const hash = await bcrypt.hash(password, salt)
-  return hash
+export async function getSubjectIdByName(
+  name: string,
+  client: Pool
+): Promise<Pgid> {
+  const result = await client.query('SELECT id FROM subjects WHERE name = $1', [
+    name,
+  ])
+  if (result.rows.length && result.rows[0]) return result.rows[0].id
+  throw new Error(`Subject ${name} not found`)
 }
 
-export const resetDb = async (): Promise<void> => {
-  await NotificationModel.deleteMany({})
-  await SessionModel.deleteMany({})
-  await UserModel.deleteMany({})
-  await VolunteerModel.deleteMany({})
-  await UserActionModel.deleteMany({})
-  await AvailabilitySnapshotModel.deleteMany({})
-}
+/**
+ * The following functions are VERY DANGEROUS and their patterns should not be used
+ * anywhere else in the ap outside testing. We need to convert incoming camelCase
+ * javascript object keys into  snake_case and back.
+ *
+ * We provide quick and dirty utility functions for inserting a single row,
+ * dropping tables, and making a simple SELECT query for the purposes of writing
+ * database query tests ONLY. Check out tests/database/AssistmentsData.test.ts
+ * for exmaples of how to use these functions
+ */
 
-export const insertVolunteer = async (
-  overrides: Partial<Volunteer> = {}
-): Promise<Volunteer> => {
-  const volunteer = buildVolunteer(overrides)
-  const hashedPassword = await hashPassword(volunteer.password)
-  const createdVolunteer = await VolunteerModel.create({
-    ...volunteer,
-    password: hashedPassword,
-  })
-  // Return volunteer with non-hashed password
-  return { ...createdVolunteer.toObject(), password: volunteer.password }
-}
-
-export const insertVolunteerMany = async (
-  volunteers: Volunteer[]
-): Promise<any> => {
-  // @note: Reasons for using collection.insertMany is because Mongoose casts each document in insertMany()
-  // this bypasses the overhead and speeds up the test
-  return VolunteerModel.collection.insertMany(volunteers)
-}
-
-export const insertStudent = async (
-  overrides: Partial<Student> = {}
-): Promise<Student> => {
-  const student = buildStudent(overrides)
-  const hashedPassword = await hashPassword(student.password)
-  const createdStudent = await StudentModel.create({
-    ...student,
-    password: hashedPassword,
-  })
-  // Return student with non-hashed password
-  return { ...createdStudent.toObject(), password: student.password }
-}
-
-export const insertSession = async (
-  overrides: Partial<Session> = {},
-  studentOverrides: Partial<Student> = {}
-): Promise<{
-  session: Session
-  student: Student
-}> => {
-  const student = await insertStudent(studentOverrides)
-  const session = buildSession({
-    student: student._id, // created student can be overridden
-    ...overrides,
-  })
-  const createdSession = await SessionModel.create(session)
-  // Return the session and the student
-  return { session: createdSession.toObject(), student }
-}
-
-export const insertSessionMany = async (sessions: Session[]): Promise<any> => {
-  return SessionModel.collection.insertMany(sessions)
-}
-
-// TODO: make the student and volunteer configurable
-export const insertSessionWithVolunteer = async (
-  overrides = {}
-): Promise<{
-  session: Session
-  student: Student
-  volunteer: Volunteer
-}> => {
-  const student = await insertStudent()
-  const volunteer = await insertVolunteer()
-  const session = buildSession({
-    student: student._id,
-    volunteer: volunteer._id,
-    volunteerJoinedAt: new Date(),
-    ...overrides,
-  })
-  const createdSession = await SessionModel.create(session)
-  // Return the session and the student
-  return { session: createdSession.toObject(), student, volunteer }
-}
-
-export const insertNotification = async (
-  volunteer = buildVolunteer(),
-  overrides = {}
-): Promise<{
-  notification: Notification
-  volunteer: Partial<Volunteer>
-}> => {
-  const notification = buildNotification({
-    volunteer: volunteer._id,
-    ...overrides,
-  })
-  const createdNotification = await NotificationModel.create(notification)
-  // Return the notification and the volunteer
-  return { notification: createdNotification.toObject(), volunteer }
-}
-
-export const insertNotificationMany = async (
-  notifications: Notification[]
-): Promise<any> => {
-  return NotificationModel.collection.insertMany(notifications)
-}
-
-export const getStudent = async (
-  query: any,
-  projection = {}
-): Promise<Partial<Student>> => {
-  const student = await StudentModel.findOne(query)
-    .select(projection)
-    .lean()
-    .exec()
-  if (student) return student
-  else return {}
-}
-
-export const getVolunteer = async (
-  query: any,
-  projection = {}
-): Promise<Partial<Volunteer>> => {
-  const volunteer = await VolunteerModel.findOne(query)
-    .select(projection)
-    .lean()
-    .exec()
-  if (volunteer) return volunteer
-  else return {}
-}
-
-export const getSession = async (
-  query: any,
-  projection = {}
-): Promise<Partial<Session>> => {
-  const session = await SessionModel.findOne(query)
-    .select(projection)
-    .lean()
-    .exec()
-  if (session) return session
-  else return {}
-}
-
-export const insertAvailabilitySnapshot = async (
-  overrides = {}
-): Promise<AvailabilitySnapshot> => {
-  const snapshot = buildAvailabilitySnapshot(overrides)
-  const createdSnapshot = await AvailabilitySnapshotModel.create(snapshot)
-  return { ...createdSnapshot.toObject() }
-}
-
-export const insertAvailabilityHistory = async (
-  overrides: Partial<AvailabilityHistory> = {}
-): Promise<AvailabilityHistory> => {
-  const availabilityHistory = buildAvailabilityHistory(overrides)
-  const createdAvailabilityHistory = await AvailabilityHistoryModel.create(
-    availabilityHistory
-  )
-  return { ...createdAvailabilityHistory.toObject() }
-}
-
-export const insertUserAction = async (
-  overrides: Partial<UserAction> = {}
-): Promise<UserAction> => {
-  const userAction = buildUserAction(overrides)
-  const createdUserAction = await UserActionModel.create(userAction)
-  return createdUserAction.toObject()
-}
-
-export const insertFeedback = async (
-  overrides: Partial<FeedbackVersionOne | FeedbackVersionTwo> & {
-    versionNumber: FEEDBACK_VERSIONS
+export function camelCaseKeys<T extends { [k: string]: any }>(
+  obj: T
+): CamelCasedProperties<T> {
+  let newObj: any = {}
+  for (const key in obj) {
+    const newKey = _.camelCase(key)
+    newObj[newKey] = obj[key]
   }
-): Promise<FeedbackVersionOne | FeedbackVersionTwo> => {
-  const feedback = buildFeedback(overrides)
-  const createdFeedback = await FeedbackModel.create(feedback)
-  return createdFeedback.toObject() as FeedbackVersionOne | FeedbackVersionTwo
+  return newObj as CamelCasedProperties<T>
 }
 
-export const insertFeedbackMany = async (
-  feedback: Feedback[]
-): Promise<any> => {
-  return FeedbackModel.collection.insertMany(feedback)
+export async function insertSingleRow<T>(
+  table: string,
+  object: T,
+  client: Pool
+): Promise<CamelCasedProperties<T>> {
+  const entries = Object.entries(object)
+  let keyString = ''
+  let valueString = ''
+  const values: string[] = []
+  for (let i = 0; i < entries.length; i++) {
+    keyString += `${_.snakeCase(entries[i][0])}`
+    valueString += `$${i + 1}`
+    if (i !== entries.length - 1) {
+      keyString += ', '
+      valueString += ', '
+    }
+    values.push(entries[i][1])
+  }
+  const query = `INSERT INTO ${table} (${keyString}) VALUES (${valueString}) RETURNING ${keyString};`
+  const result = await client.query(query, values)
+  if (result.rows[0]) return camelCaseKeys(result.rows[0])
+  throw new Error(`Inserting into ${table} failed`)
 }
-*/
+
+export async function dropTables(
+  tables: string[],
+  client: Pool
+): Promise<void> {
+  let deleteString = ''
+  for (const table of tables) {
+    deleteString += `DELETE FROM ${table} CASCADE;\n`
+  }
+  await client.query(deleteString)
+}
+
+export async function executeQuery(
+  queryString: string,
+  params: string[],
+  client: Pool
+) {
+  const result = await client.query(queryString, params)
+  const rows = []
+  for (const row of result.rows) {
+    rows.push(camelCaseKeys(row))
+  }
+  return { rows }
+}
