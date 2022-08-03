@@ -30,6 +30,12 @@
             :class="{'feedback__questions-item': !(question.questionType === 'radio')}"
           >
             <div v-if="isContextSharingWithVolunteerActive">
+              <div v-if="question.headerText">
+                <hr/>
+                <div class="question__section-header">
+                  {{ question.headerText }}
+                </div>
+              </div>
               <div class="question__title">
                 {{ question.questionText }}
               </div>
@@ -38,7 +44,7 @@
                      'question__responses-rating': (question.questionType === 'multiple-choice'),
                      'question__responses-radio': (question.questionType === 'radio'),
                      'question__responses-vertical-radio': isHighRatingQuestion(question),
-                     'question__responses': !(isHighRatingQuestion(question))
+                     'question__responses-postsession': !(isHighRatingQuestion(question))
                    }">
                 <template
                   v-for="(response, index) in question.responses"
@@ -115,13 +121,17 @@
                     "
                     @survey-rate-click="updateUserResponse" 
                   />
-
-                  <feedback-textarea
-                    v-else-if="question.questionType === 'free response'"
-                    :key="`${response.responseId}-free-response`"
-                    :id="`${question.questionId}_${response.responseId}`"
-                    @change="(responseText) => updateUserResponse(question.questionId, response.responseId, responseText)">
-                  </feedback-textarea>
+                  <div v-else-if="question.questionType === 'free response'"
+                    :key="`${response.responseId}-free-response`">
+                    <div class="question__subtext">
+                      We read every single comment, but if you need to connect with UPchieve staff about a question or concern please email us directly:
+                      <a href="mailto:support@upchieve.org">support@upchieve.org</a>
+                    </div>
+                    <feedback-textarea
+                      :id="`${question.questionId}_${response.responseId}`"
+                      @change="(responseText) => updateUserResponse(question.questionId, response.responseId, responseText)">
+                    </feedback-textarea>
+                  </div>
                 </template>
               </div>
               <div class="response-answer-text" v-if="question.questionType === 'star' && userResponse[question.questionId].responseId">
@@ -476,7 +486,6 @@ export default {
     } = presessionGoalResponse
 
     this.session = session
-
     if (this.isContextSharingWithVolunteerActive) {
       const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic, this.session.id, this.userType)
       const postsessionSurveyDefinition = postsessionSurveyDefinitionResponse.body.survey
@@ -486,15 +495,25 @@ export default {
         if (q.questionType === 'multiple choice') {
           if (q.questionText.startsWith('How do you think')) {
             q.questionType = 'emoji'
+            q.headerText = 'Student\'s Feelings'
           } else if (this.isLowRatingQuestion(q) || this.isGuidelineIssueListQuestion(q)) {
             q.questionType = 'chip'
           } else if (this.isStarRankingQuestion(q)) {
             q.questionType = 'star'
-          } else if (this.isHighRatingQuestion(q) || this.isIssuePresentQuestion(q)) {
+            q.headerText = this.user.isVolunteer ? 'Student\'s Progress' : 'Your Goal'
+          } else if (this.isHighRatingQuestion(q)) {
             q.questionType = 'radio'
+          } else if (this.isIssuePresentQuestion(q)) {
+            q.questionType = 'radio'
+            q.headerText = 'Your Concerns'
           } else {
             q.questionType = 'multiple choice'
+            if (q.questionText.startsWith('Overall, how supportive')) {
+              q.headerText = 'Your Coach'
+            }
           }
+        } else if (q.questionType === 'free response') {
+          q.headerText = 'Your Thoughts'
         }
         return {
           question: q,
@@ -868,7 +887,14 @@ export default {
 }
 
 .question {
-  &__responses {
+  &__section-header {
+    font-weight: 600;
+    font-size: 22pt;
+    margin-top: 30px;
+    margin-bottom: 10px;
+  }
+
+  &__responses-postsession {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -893,6 +919,14 @@ export default {
   &__response-radio-selected {
     background-color: $selected-green;
     border-color: $c-accent;
+  }
+
+  &__subtext {
+    font-weight: 400;
+    font-size: 10pt;
+    color: $c-secondary-grey;
+    margin-top: 10px;
+    margin-bottom: 14px;
   }
 }
 

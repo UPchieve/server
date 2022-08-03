@@ -3,7 +3,7 @@ INSERT INTO upchieve.surveys (name, created_at, updated_at)
   VALUES
     ('General Volunteer Post-Session Survey', NOW(), NOW()),
     ('SAT Prep Volunteer Post-Session Survey', NOW(), NOW()),
-    ('College Counseling Post-Session Survey', NOW(), NOW())
+    ('College Counseling Volunteer Post-Session Survey', NOW(), NOW())
 ON CONFLICT ON CONSTRAINT surveys_name_key
   DO NOTHING;
 

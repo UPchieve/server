@@ -308,6 +308,8 @@ export default {
     }),
     ...mapGetters({
       isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
+      isContextSharingWithVolunteerActive:
+        'featureFlags/isContextSharingWithVolunteerActive'
     }),
     showFavoriteQuestion() {
       return (
@@ -319,7 +321,15 @@ export default {
     },
   },
   async beforeMount() {
+
+
     this.sessionId = this.$route.params.sessionId
+
+    // NOTE: can get rid of this entire component once we've fully transferred over to context sharing
+    if (this.isContextSharingWithVolunteerActive) {
+      this.$router.push(`/feedback/${this.sessionId}`)
+    }
+
     this.topic = Case.camel(this.$route.params.topic)
     this.subTopic = Case.camel(this.$route.params.subTopic)
     this.userType = this.$route.params.userType
