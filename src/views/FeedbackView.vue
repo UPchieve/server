@@ -29,7 +29,7 @@
             :key="question.id"
             :class="{'feedback__questions-item': !(question.questionType === 'radio')}"
           >
-            <div v-if="isContextSharingWithVolunteerActive">
+            <div v-if="isPostsessionSurveyActive">
               <div v-if="question.headerText">
                 <hr/>
                 <div class="question__section-header">
@@ -382,8 +382,8 @@ export default {
     }),
     ...mapGetters({
       isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
-      isContextSharingWithVolunteerActive:
-        'featureFlags/isContextSharingWithVolunteerActive',
+      isPostsessionSurveyActive:
+        'featureFlags/isPostsessionSurveyActive',
     }),
     sessionPartnerFirstName() {
       return this.user.isVolunteer
@@ -406,7 +406,7 @@ export default {
     },
     sessionGoal() {
       if (
-        this.isContextSharingWithVolunteerActive &&
+        this.isPostsessionSurveyActive &&
         this.studentPresessionGoal
       ) {
         return this.studentPresessionGoal
@@ -433,7 +433,7 @@ export default {
       return this.user.isVolunteer ? 'volunteer' : 'student'
     },
     questions() {
-      if (this.isContextSharingWithVolunteerActive) {
+      if (this.isPostsessionSurveyActive) {
         return this.allQuestions.map(q => q.question);
       }
       return this.user.isVolunteer
@@ -444,7 +444,7 @@ export default {
       return QUESTION_TYPES
     },
     filteredQuestions() {
-      if (this.isContextSharingWithVolunteerActive) {
+      if (this.isPostsessionSurveyActive) {
         return this.allQuestions.filter(q => q.isVisible).map(q => q.question)
       }
 
@@ -486,7 +486,7 @@ export default {
     } = presessionGoalResponse
 
     this.session = session
-    if (this.isContextSharingWithVolunteerActive) {
+    if (this.isPostsessionSurveyActive) {
       const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic, this.session.id, this.userType)
       const postsessionSurveyDefinition = postsessionSurveyDefinitionResponse.body.survey
       this.surveyDefinition = postsessionSurveyDefinition
@@ -547,7 +547,7 @@ export default {
   methods: {
     // checks if the question has a row of responses that require to show a display image
     isRowOfImages(question) {
-      if (this.isContextSharingWithVolunteerActive) {
+      if (this.isPostsessionSurveyActive) {
         return question.questionType === 'emoji' || question.questionType === 'star'
       }
       return question.responses.some((a) => a.responseDisplayImage)
@@ -576,7 +576,7 @@ export default {
     },
     isFavoritingCoach() {
       if (!this.isVolunteer) {
-        if (this.isContextSharingWithVolunteerActive) {
+        if (this.isPostsessionSurveyActive) {
           const coachFavoritingQuestion = this.filteredQuestions.find(q => this.isHighRatingQuestion(q))
           const coachFavoritingAnswer = this.getAnswerToQuestion(coachFavoritingQuestion)
           return coachFavoritingAnswer && coachFavoritingAnswer === 'Yes'
@@ -594,7 +594,7 @@ export default {
       if (this.isSubmittingFeedback) return
       this.isSubmittingFeedback = true
       this.error = ''
-      if (this.isContextSharingWithVolunteerActive) {
+      if (this.isPostsessionSurveyActive) {
         const submissions = []
         for (const question of this.filteredQuestions) {
           const response = this.userResponse[question.questionId]

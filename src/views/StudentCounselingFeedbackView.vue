@@ -308,8 +308,8 @@ export default {
     }),
     ...mapGetters({
       isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
-      isContextSharingWithVolunteerActive:
-        'featureFlags/isContextSharingWithVolunteerActive'
+      isPostsessionSurveyActive:
+        'featureFlags/isPostsessionSurveyActive'
     }),
     showFavoriteQuestion() {
       return (
@@ -325,8 +325,8 @@ export default {
 
     this.sessionId = this.$route.params.sessionId
 
-    // NOTE: can get rid of this entire component once we've fully transferred over to context sharing
-    if (this.isContextSharingWithVolunteerActive) {
+    // NOTE: can get rid of this entire component once we've fully transferred over to new postsession survey
+    if (this.isPostsessionSurveyActive) {
       this.$router.push(`/feedback/${this.sessionId}`)
     }
 

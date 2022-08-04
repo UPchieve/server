@@ -444,6 +444,7 @@ export const FEATURE_FLAGS = {
   US_HISTORY_LAUNCH_STUDENT: 'us-history-launch-student',
   CONTEXT_SHARING_WITH_VOLUNTEER: 'context-sharing-with-volunteer',
   ENVIRONMENTAL_SCIENCE_LAUNCH_STUDENT: 'environmental-science-launch-student',
+  POSTSESSION_SURVEY: 'postsession-survey',
 }
 
 export const ANALYTICS_REPORT_ROW = {
