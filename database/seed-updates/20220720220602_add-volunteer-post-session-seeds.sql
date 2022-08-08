@@ -215,7 +215,7 @@ DELETE FROM upchieve.survey_questions
   'This can be about the web app, the student you helped, technical issues, etc.');
 
 DELETE FROM upchieve.survey_response_choices
-  WHERE upchieve.survey_response_choices.choice_text in ('Yes', 'No', 'I didn''t know topic', 'Wrong subject', 'Student participation');
+  WHERE upchieve.survey_response_choices.choice_text in ('No', 'I didn''t know topic', 'Wrong subject', 'Student participation');
 
 DELETE FROM upchieve.surveys_survey_questions USING upchieve.surveys
   WHERE upchieve.surveys_survey_questions.survey_id = upchieve.surveys.id
