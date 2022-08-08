@@ -1457,46 +1457,6 @@ COPY upchieve.notifications (id, user_id, sent_at, type_id, method_id, priority_
 
 
 --
--- Data for Name: partner_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.partner_orgs (id, name, school_id, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: partner_org_association_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.partner_org_association_profiles (partner_org_id, associated_partner_org_id, active, deactivated_on, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: partner_org_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.partner_org_instances (id, partner_org_id, active, deactivated_on, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: partner_org_sites; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.partner_org_sites (id, name, partner_org_id, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: partner_org_sponsor_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.partner_org_sponsor_profiles (partner_org_id, sponsor_org_id, active, deactivated_on, created_at, updated_at) FROM stdin;
-\.
-
-
---
 -- Data for Name: photo_id_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -2050,10 +2010,10 @@ COPY upchieve.sessions_session_flags (session_id, session_flag_id, created_at, u
 
 
 --
--- Data for Name: sponsor_org_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: sponsor_orgs_upchieve_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.sponsor_org_instances (id, sponsor_org_id, active, deactivated_on, created_at, updated_at) FROM stdin;
+COPY upchieve.sponsor_orgs_upchieve_instances (id, sponsor_org_id, deactivated_on, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -2083,6 +2043,30 @@ COPY upchieve.student_partner_org_sites (id, name, student_partner_org_id, creat
 COPY upchieve.student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor_org_id, created_at, updated_at) FROM stdin;
 01824563-0985-b0a2-9767-5876a6a01d99	01824563-09cd-be98-ee23-e4094adab9f4	2022-07-28 15:18:14.738276+00	2022-07-28 15:18:14.738276+00
 01824563-0985-46fb-4e0c-de4559293307	01824563-09cd-b813-4781-93c1288c276e	2022-07-28 15:18:14.739467+00	2022-07-28 15:18:14.739467+00
+\.
+
+
+--
+-- Data for Name: student_partner_orgs_sponsor_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.student_partner_orgs_sponsor_orgs_instances (student_partner_org_id, sponsor_org_id, deactivated_on, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: student_partner_orgs_upchieve_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.student_partner_orgs_upchieve_instances (id, student_partner_org_id, deactivated_on, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: student_partner_orgs_volunteer_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, deactivated_on, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -2555,14 +2539,6 @@ COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_add
 
 
 --
--- Data for Name: user_partner_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.user_partner_profiles (user_id, partner_org_id, partner_org_site_id, partner_org_user_id, active, deactivated_on, created_at, updated_at) FROM stdin;
-\.
-
-
---
 -- Data for Name: user_product_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -2700,6 +2676,14 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 
 
 --
+-- Data for Name: users_student_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, deactivated_on, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: users_surveys; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -2724,10 +2708,26 @@ COPY upchieve.users_training_courses (user_id, training_course_id, complete, pro
 
 
 --
+-- Data for Name: users_volunteer_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, deactivated_on, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: volunteer_occupations; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
 COPY upchieve.volunteer_occupations (user_id, occupation, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: volunteer_partner_orgs_upchieve_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, deactivated_on, created_at, updated_at) FROM stdin;
 \.
 
 
