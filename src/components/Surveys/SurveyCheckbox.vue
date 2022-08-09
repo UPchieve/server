@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="uc-form-checkbox">
     <input
       @input="handleCheckboxSelection"
       type="checkbox"
@@ -60,15 +60,15 @@ export default {
 <style lang="scss" scoped>
 label {
   font-weight: 400;
+  font-size: 12pt;
   margin-top: 5px;
 }
 
-input[type='checkbox'] {
-  margin: 10px;
-  border: 1px solid $border-grey;
-
-  &:checked + label:before {
-    border: 6px solid $c-success-green;
+input[type="checkbox"] {
+  &:checked {
+    background-color: $c-accent;
+    color: white;
+    border-color: $c-accent;
   }
 }
 </style>
