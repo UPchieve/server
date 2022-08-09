@@ -43,8 +43,8 @@
                      'question__responses-images': isRowOfImages(question),
                      'question__responses-rating': (question.questionType === 'multiple-choice'),
                      'question__responses-radio': (question.questionType === 'radio'),
-                     'question__responses-vertical-radio': isHighRatingQuestion(question),
-                     'question__responses-postsession': !(isHighRatingQuestion(question))
+                     'question__responses-vertical': isHighRatingQuestion(question) || isGuidelineIssueListQuestion(question),
+                     'question__responses-postsession': !(isHighRatingQuestion(question) || isGuidelineIssueListQuestion(question))
                    }">
                 <template
                   v-for="(response, index) in question.responses"
@@ -88,9 +88,9 @@
                   />
                   <survey-radio
                     v-else-if="question.questionType === 'radio'"
-                    class="question__response question__response-radio"
+                    class="question__response question__response-boxed question__response-radio"
                     :class="{
-                      'question__response-radio-selected': userResponse[question.questionId].responseId ===
+                      'question__response-boxed-selected': userResponse[question.questionId].responseId ===
                       response.responseId}"
                     :key="`${response.responseId}-radio`"
                     :id="`${question.questionId}_${response.responseId}`"
@@ -105,6 +105,25 @@
                     :label="response.responseText"
                     :isOpenResponseDisabled="true"
                     @survey-radio-input="updateUserResponse"
+                  />
+                  <survey-checkbox
+                    v-else-if="question.questionType === 'checkbox'"
+                    class="question__response question__response-boxed"
+                    :class="{
+                      'question__response-boxed-selected': (userResponse[question.questionId].responseId &&
+                      userResponse[question.questionId].responseId.find(r => r === response.responseId))}"
+                    :key="`${response.responseId}-checkbox`"
+                    :id="`${question.questionId}_${response.responseId}`"
+                    :checkboxValue="response.responseId"
+                    :name="question.questionId"
+                    :checked="
+                      userResponse[question.questionId].responseId ===
+                      response.responseId
+                    "
+                    :questionId="question.questionId"
+                    :responseId="response.responseId"
+                    :label="response.responseText"
+                    @survey-checkbox-input="updateUserResponseMultiselect"
                   />
                   <survey-rate-number
                     v-else-if="question.questionType === 'multiple choice'"
@@ -199,6 +218,7 @@ import SurveyRadio from '@/components/Surveys/SurveyRadio'
 import SurveyImage from '@/components/Surveys/SurveyImage'
 import SurveyRateNumber from '../components/Surveys/SurveyRateNumber'
 import SurveyChipOption from '../components/Surveys/SurveyChipOption'
+import SurveyCheckbox from '../components/Surveys/SurveyCheckbox'
 import _ from 'lodash'
 
 export default {
@@ -210,6 +230,7 @@ export default {
     SurveyRadio,
     SurveyRateNumber,
     SurveyChipOption,
+    SurveyCheckbox,
     FeedbackTextarea
 },
   data() {
@@ -496,7 +517,7 @@ export default {
           if (q.questionText.startsWith('How do you think')) {
             q.questionType = 'emoji'
             q.headerText = 'Student\'s Feelings'
-          } else if (this.isLowRatingQuestion(q) || this.isGuidelineIssueListQuestion(q)) {
+          } else if (this.isLowRatingQuestion(q)) {
             q.questionType = 'chip'
           } else if (this.isStarRankingQuestion(q)) {
             q.questionType = 'star'
@@ -506,6 +527,8 @@ export default {
           } else if (this.isIssuePresentQuestion(q)) {
             q.questionType = 'radio'
             q.headerText = 'Your Concerns'
+          } else if (this.isGuidelineIssueListQuestion(q)) {
+            q.questionType = 'checkbox'
           } else {
             q.questionType = 'multiple choice'
             if (q.questionText.startsWith('Overall, how supportive')) {
@@ -521,6 +544,7 @@ export default {
           questionType: q.questionType
         }
       })
+      this.allQuestions = _.orderBy(this.allQuestions, q => q.question.displayPriority)
       this.buildUserResponse()
     }
     this.studentPresessionGoal = goal
@@ -568,6 +592,13 @@ export default {
     // checks if this is the question we show if session rating is high
     isHighRatingQuestion(question){
       return question.questionText.startsWith('Would you like to favorite your coach');
+    },
+    isHighRatingResponse(responseText) {
+      return (responseText === 'I\'m def closer to my goal' || responseText === 'GOAL ACHIEVED'
+        || responseText === 'Mostly' || responseText === 'A lot')
+    },
+    isLowRatingResponse(responseText) {
+      return (responseText === 'Not at all' || responseText === 'Sorta but not really')
     },
     getAnswerToQuestion(question) {
       const questionResponseId = this.userResponse[question.questionId].responseId
@@ -738,35 +769,53 @@ export default {
     },
     updateUserResponse(questionId, responseId, openResponseText = '') {
       // if question changed is ratings question, show/hide conditional questions that depend on it
-      const ratingQuestion = _.find(this.questions, q => q.questionText.startsWith("Your goal for this session"))
+      const ratingQuestion = _.find(this.questions, q => this.isStarRankingQuestion(q))
       if (ratingQuestion && questionId === ratingQuestion.questionId) {
         const ratingResponse = _.find(ratingQuestion.responses, r => r.responseId === responseId)
-        if (ratingResponse.responseText === 'Not at all' || ratingResponse.responseText === 'Sorta but not really') {
+        if (this.isLowRatingResponse(ratingResponse.responseText)) {
           // show low-rating question and hide high-rating question
           this.allQuestions = _.map(this.allQuestions, q => {
-            const shouldHideQuestion = this.isHighRatingQuestion(q.question)
-            return {
-              question: q.question,
-              isVisible: !shouldHideQuestion
+            if (this.isHighRatingQuestion(q.question)) {
+              return {
+                question: q.question,
+                isVisible: false
+              }
             }
+            if (this.isLowRatingQuestion(q.question)) {
+              return {
+                question: q.question,
+                isVisible: true
+              }
+            }
+            return q
           })
-        } else if (ratingResponse.responseText === 'I\'m def closer to my goal' || ratingResponse.responseText === 'GOAL ACHIEVED') {
+        } else if (this.isHighRatingResponse(ratingResponse.questionText)) {
           // show high-rating question and hide low-rating question
           this.allQuestions = _.map(this.allQuestions, q => {
-            const shouldHideQuestion = this.isLowRatingQuestion(q.question)
-            return {
-              question: q.question,
-              isVisible: !shouldHideQuestion
+            if (this.isLowRatingQuestion(q.question)) {
+              return {
+                question: q.question,
+                isVisible: false
+              }
             }
+            if (this.isHighRatingQuestion(q.question)) {
+              return {
+                question: q.question,
+                isVisible: true
+              }
+            }
+            return q
           })
         } else {
           // hide both low-rating and high-rating questions
           this.allQuestions = _.map(this.allQuestions, q => {
-            const shouldHideQuestion = this.isHighRatingQuestion(q.question) || this.isLowRatingQuestion(q.question)
-            return {
-              question: q.question,
-              isVisible: !shouldHideQuestion
+            if (this.isHighRatingQuestion(q.question) || this.isLowRatingQuestion(q.question)) {
+              return {
+                question: q.question,
+                isVisible: false
+              }
             }
+            return q
           })
         }
       }
@@ -900,7 +949,7 @@ export default {
     flex-wrap: wrap;
   }
 
-  &__responses-vertical-radio {
+  &__responses-vertical {
     width: 100%
   }
 
@@ -909,14 +958,18 @@ export default {
   }
 
   &__response-radio {
+    width: 45%;
+  }
+
+  &__response-boxed {
     border: solid 1px $c-border-grey;
     border-radius: 5px;
     margin: 15px;
     padding: 15px;
-    width: 45%;
+    display: flex;
   }
 
-  &__response-radio-selected {
+  &__response-boxed-selected {
     background-color: $selected-green;
     border-color: $c-accent;
   }

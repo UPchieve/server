@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.1 (Debian 14.1-1.pgdg110+1)
--- Dumped by pg_dump version 14.2
+-- Dumped from database version 14.3 (Debian 14.3-1.pgdg110+1)
+-- Dumped by pg_dump version 14.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -143,6 +143,7 @@ COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id) FROM stdin;
+01827ef3-98f0-7f63-69cf-e66ec92db982	01823c1b-6dd9-67a3-ee09-a62a6c0e4a3d	01823c1b-6d4d-8285-b5f4-7c360574c513	1	f	\N	2022-08-08 19:35:34.650578+00	2022-08-08 19:35:44.157+00	1	f	f	f	6906	2022-08-08 19:34:29.871016+00	2022-08-08 19:35:44.456665+00	\N
 \.
 
 
@@ -417,6 +418,7 @@ COPY upchieve.grade_levels (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.ip_addresses (id, ip, status, created_at, updated_at, mongo_id) FROM stdin;
+1	::1	\N	2022-08-08 19:34:29.888344+00	2022-08-08 19:34:29.888344+00	\N
 \.
 
 
@@ -1974,6 +1976,8 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.session_messages (id, sender_id, contents, session_id, created_at, updated_at, mongo_id) FROM stdin;
+01827ef4-a010-61b0-6c3e-419ee3b02f00	01823c1b-6d4d-8285-b5f4-7c360574c513	argh	01827ef3-98f0-7f63-69cf-e66ec92db982	2022-08-08 19:35:37.241543+00	2022-08-08 19:35:37.241543+00	\N
+01827ef4-b0ec-831b-d78e-eec5a8bbab69	01823c1b-6dd9-67a3-ee09-a62a6c0e4a3d	boo	01827ef3-98f0-7f63-69cf-e66ec92db982	2022-08-08 19:35:41.556681+00	2022-08-08 19:35:41.556681+00	\N
 \.
 
 
@@ -2053,26 +2057,26 @@ COPY upchieve.student_profiles (user_id, college, school_id, postal_code, grade_
 -- Data for Name: survey_questions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.survey_questions (id, question_type_id, question_text, created_at, updated_at, response_display_text) FROM stdin;
-6	1	Your goal for this session was to %s. Did UPchieve help you achieve your goal?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N
-7	1	Sorry to hear that, what happened?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N
-8	1	Would you like to favorite your coach %s?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N
-9	1	Overall, how supportive was your coach today?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N
-10	1	Overall, how much did your coach push you to do your best work today?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N
-11	3	This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N
-1	1	What is your primary goal for today's session?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	Their goal for the session:
-2	1	Where are you in the process of reaching your goal?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	How much progress they've made towards their goal:
-3	1	Overall, how do you feel about applying to college?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	How they feel about applying to college:
-4	1	How well do you understand the topic you want to talk about today?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	How well they understand the topic:
-12	1	Overall, how do you feel about the %s section?	2022-07-26 20:03:24.801406+00	2022-07-26 20:03:24.801406+00	How they feel about %s:
-5	1	Overall, how do you feel about %s?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	How they feel about %s:
-13	1	%s's goal for this session was to %s. Were you able to help them achieve their goal?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
-14	1	How do you think %s feels about %s at the end of this session?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
-15	1	How do you think %s feels about the %s at the end of this session?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
-16	1	How do you think %s feels about applying to college at the end of this session?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
-17	1	Were there any student safety, academic integrity, or community guideline issues during this session?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
-18	1	Please select all that apply	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
-19	3	This can be about the web app, the student you helped, technical issues, etc.	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
+COPY upchieve.survey_questions (id, question_type_id, question_text, created_at, updated_at, response_display_text, replacement_column_1, replacement_column_2) FROM stdin;
+6	1	Your goal for this session was to %s. Did UPchieve help you achieve your goal?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N	\N	\N
+7	1	Sorry to hear that, what happened?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N	\N	\N
+8	1	Would you like to favorite your coach %s?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N	\N	\N
+9	1	Overall, how supportive was your coach today?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N	\N	\N
+10	1	Overall, how much did your coach push you to do your best work today?	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N	\N	\N
+11	3	This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N	\N	\N
+1	1	What is your primary goal for today's session?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	Their goal for the session:	\N	\N
+2	1	Where are you in the process of reaching your goal?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	How much progress they've made towards their goal:	\N	\N
+3	1	Overall, how do you feel about applying to college?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	How they feel about applying to college:	\N	\N
+4	1	How well do you understand the topic you want to talk about today?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	How well they understand the topic:	\N	\N
+12	1	Overall, how do you feel about the %s section?	2022-07-26 20:03:24.801406+00	2022-07-26 20:03:24.801406+00	How they feel about %s:	\N	\N
+5	1	Overall, how do you feel about %s?	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.801406+00	How they feel about %s:	\N	\N
+13	1	%s's goal for this session was to %s. Were you able to help them achieve their goal?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N	\N	\N
+14	1	How do you think %s feels about %s at the end of this session?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N	\N	\N
+15	1	How do you think %s feels about the %s at the end of this session?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N	\N	\N
+16	1	How do you think %s feels about applying to college at the end of this session?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N	\N	\N
+17	1	Were there any student safety, academic integrity, or community guideline issues during this session?	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N	\N	\N
+18	1	Please select all that apply	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N	\N	\N
+19	3	This can be about the web app, the student you helped, technical issues, etc.	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N	\N	\N
 \.
 
 
@@ -2163,18 +2167,18 @@ COPY upchieve.survey_response_choices (id, score, choice_text, created_at, updat
 -- Data for Name: surveys; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.surveys (id, name, created_at, updated_at) FROM stdin;
-1	STEM Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00
-2	Humanities Essays Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00
-3	Reading Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00
-4	College Planning Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00
-5	College Essays Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00
-6	College Applications Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00
-7	SAT Prep Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00
-8	Student Post-Session Survey	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00
-9	General Volunteer Post-Session Survey	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00
-10	SAT Prep Volunteer Post-Session Survey	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00
-11	College Counseling Post-Session Survey	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00
+COPY upchieve.surveys (id, name, created_at, updated_at, role_id) FROM stdin;
+1	STEM Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00	\N
+2	Humanities Essays Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00	\N
+3	Reading Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00	\N
+4	College Planning Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00	\N
+5	College Essays Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00	\N
+6	College Applications Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00	\N
+7	SAT Prep Pre-Session Survey	2022-07-26 20:03:24.753655+00	2022-07-26 20:03:24.753655+00	\N
+8	Student Post-Session Survey	2022-07-26 20:03:24.783222+00	2022-07-26 20:03:24.783222+00	\N
+9	General Volunteer Post-Session Survey	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
+10	SAT Prep Volunteer Post-Session Survey	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
+11	College Counseling Post-Session Survey	2022-07-26 20:03:24.808861+00	2022-07-26 20:03:24.808861+00	\N
 \.
 
 
@@ -2503,6 +2507,11 @@ COPY upchieve.training_courses (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason) FROM stdin;
+1	01823c1b-6dd9-67a3-ee09-a62a6c0e4a3d	01827ef3-98f0-7f63-69cf-e66ec92db982	SESSION	REQUESTED SESSION	1	Mac	Chrome	103.0.0.0	Mac OS	10.15.7	\N	\N	2022-08-08 19:34:29.890661+00	2022-08-08 19:34:29.890661+00	\N	\N	\N	\N
+2	01823c1b-6dd9-67a3-ee09-a62a6c0e4a3d	01827ef3-98f0-7f63-69cf-e66ec92db982	SESSION	REJOINED SESSION	1	Mac	Chrome	103.0.0.0	Mac OS	10.15.7	\N	\N	2022-08-08 19:35:07.251787+00	2022-08-08 19:35:07.251787+00	\N	\N	\N	\N
+3	01823c1b-6dd9-67a3-ee09-a62a6c0e4a3d	01827ef3-98f0-7f63-69cf-e66ec92db982	SESSION	REJOINED SESSION	1	Mac	Chrome	103.0.0.0	Mac OS	10.15.7	\N	\N	2022-08-08 19:35:28.709243+00	2022-08-08 19:35:28.709243+00	\N	\N	\N	\N
+4	01823c1b-6d4d-8285-b5f4-7c360574c513	01827ef3-98f0-7f63-69cf-e66ec92db982	SESSION	JOINED SESSION	1	Mac	Chrome	103.0.0.0	Mac OS	10.15.7	\N	\N	2022-08-08 19:35:34.657036+00	2022-08-08 19:35:34.657036+00	\N	\N	\N	\N
+5	01823c1b-6dd9-67a3-ee09-a62a6c0e4a3d	01827ef3-98f0-7f63-69cf-e66ec92db982	SESSION	ENDED SESSION	1	Mac	Chrome	103.0.0.0	Mac OS	10.15.7	\N	\N	2022-08-08 19:35:44.236871+00	2022-08-08 19:35:44.236871+00	\N	\N	\N	\N
 \.
 
 
@@ -2520,14 +2529,14 @@ COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_
 
 COPY upchieve.user_session_metrics (user_id, absent_student, absent_volunteer, low_session_rating_from_coach, low_session_rating_from_student, low_coach_rating_from_student, reported, only_looking_for_answers, rude_or_inappropriate, comment_from_student, comment_from_volunteer, has_been_unmatched, has_had_technical_issues, created_at, updated_at) FROM stdin;
 01823c1b-6d4d-e283-311f-b5326fa63905	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.67104+00	2022-07-26 20:03:26.67104+00
-01823c1b-6d4d-8285-b5f4-7c360574c513	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.673106+00	2022-07-26 20:03:26.673106+00
 01823c1b-6d4d-c569-e57b-df50330031c1	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.674794+00	2022-07-26 20:03:26.674794+00
 01823c1b-6d4d-c734-985e-54c0f17e0efe	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.676649+00	2022-07-26 20:03:26.676649+00
 01823c1b-6d4d-f6ee-0f83-718fa9abdb26	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.678469+00	2022-07-26 20:03:26.678469+00
 01823c1b-6d4d-b683-6881-9d70bf85e126	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.680423+00	2022-07-26 20:03:26.680423+00
-01823c1b-6dd9-67a3-ee09-a62a6c0e4a3d	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.81098+00	2022-07-26 20:03:26.81098+00
 01823c1b-6dd9-82ff-7678-7fa09e8b9fbc	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.812906+00	2022-07-26 20:03:26.812906+00
 01823c1b-6dd9-d896-91d7-6498f71f4962	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.814771+00	2022-07-26 20:03:26.814771+00
+01823c1b-6d4d-8285-b5f4-7c360574c513	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.673106+00	2022-08-08 19:35:44.240855+00
+01823c1b-6dd9-67a3-ee09-a62a6c0e4a3d	0	0	0	0	0	0	0	0	0	0	0	0	2022-07-26 20:03:26.81098+00	2022-08-08 19:35:44.241547+00
 \.
 
 
@@ -2648,6 +2657,7 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.users_surveys (id, survey_id, user_id, session_id, survey_type_id, created_at, updated_at) FROM stdin;
+01827ef3-992f-324d-94c8-e6980691ec8c	1	01823c1b-6dd9-67a3-ee09-a62a6c0e4a3d	01827ef3-98f0-7f63-69cf-e66ec92db982	1	2022-08-08 19:34:29.935339+00	2022-08-08 19:34:29.935339+00
 \.
 
 
@@ -2656,6 +2666,9 @@ COPY upchieve.users_surveys (id, survey_id, user_id, session_id, survey_type_id,
 --
 
 COPY upchieve.users_surveys_submissions (user_survey_id, survey_question_id, survey_response_choice_id, open_response, created_at, updated_at) FROM stdin;
+01827ef3-992f-324d-94c8-e6980691ec8c	1	1	\N	2022-08-08 19:34:29.933667+00	2022-08-08 19:34:29.933667+00
+01827ef3-992f-324d-94c8-e6980691ec8c	4	41	\N	2022-08-08 19:34:29.933667+00	2022-08-08 19:34:29.933667+00
+01827ef3-992f-324d-94c8-e6980691ec8c	5	61	\N	2022-08-08 19:34:29.933667+00	2022-08-08 19:34:29.933667+00
 \.
 
 
@@ -2743,7 +2756,7 @@ SELECT pg_catalog.setval('upchieve.grade_levels_id_seq', 6, true);
 -- Name: ip_addresses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 5, true);
 
 
 --
@@ -2904,7 +2917,7 @@ SELECT pg_catalog.setval('upchieve.training_courses_id_seq', 1, true);
 -- Name: user_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 5, true);
 
 
 --

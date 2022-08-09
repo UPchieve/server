@@ -163,8 +163,11 @@ WITH replacement_column_cte AS (
   JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
   JOIN upchieve.survey_questions sq_goal ON uss.survey_question_id = sq_goal.id 
   	AND sq_goal.question_text = 'What is your primary goal for today''s session?'
+  JOIN upchieve.surveys ON sc.survey_id = surveys.id
+  JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
   WHERE st.name=:surveyType!
-  and s.id = :sessionId!
+  AND s.id = :sessionId!
+  AND ur.name = :userRole!
 )
 SELECT
     surveys.name,
