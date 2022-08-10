@@ -512,11 +512,13 @@ export default {
         setTimeout(() => {
           this.uploadingPictureError = false
         }, 2000)
+        Sentry.captureException(error)
         return
+      } finally {
+        // Reset the file input
+        uploadEvents.fileSelectionEvent.target.value = ''
       }
 
-      // Reset the file input
-      event.target.value = ''
     },
     insertPhoto(imageUrl) {
       const nodeId = this.zwibblerCtx.createNode('ImageNode', {
