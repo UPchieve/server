@@ -509,9 +509,8 @@ export default {
     this.session = session
     if (this.isPostsessionSurveyActive) {
       const postsessionSurveyDefinitionResponse = await NetworkService.getPostsessionSurvey(this.session.subTopic, this.session.id, this.userType)
-      const postsessionSurveyDefinition = postsessionSurveyDefinitionResponse.body.survey
-      this.surveyDefinition = postsessionSurveyDefinition
-      this.allQuestions = _.map(postsessionSurveyDefinition.survey, q => {
+      this.surveyDefinition = postsessionSurveyDefinitionResponse.body.survey
+      this.allQuestions = _.map(this.surveyDefinition.survey, q => {
         const isHiddenOnStart = this.isLowRatingQuestion(q) || this.isHighRatingQuestion(q) || this.isGuidelineIssueListQuestion(q)
         if (q.questionType === 'multiple choice') {
           if (q.questionText.startsWith('How do you think')) {
@@ -579,17 +578,16 @@ export default {
     isStarRankingQuestion(question) {
       return question.questionText.startsWith("Your goal for this session") || question.questionText.endsWith('achieve their goal?')
     },
-    // checks if this is the question we show if session rating is low
-    isLowRatingQuestion(question) {
-      return question.questionText.startsWith('Sorry to hear that');
-    },
     isGuidelineIssueListQuestion(question) {
       return question.questionText.startsWith('Please select all that apply')
     },
     isIssuePresentQuestion(question) {
       return question.questionText.startsWith('Were there any student safety')
     },
-    // checks if this is the question we show if session rating is high
+    isHowSupportiveQuestion(question) {
+      return question.questionText.startsWith('Overall, how supportive')
+    },
+
     isHighRatingQuestion(question){
       return question.questionText.startsWith('Would you like to favorite your coach');
     },
@@ -597,9 +595,13 @@ export default {
       return (responseText === 'I\'m def closer to my goal' || responseText === 'GOAL ACHIEVED'
         || responseText === 'Mostly' || responseText === 'A lot')
     },
+    isLowRatingQuestion(question) {
+      return question.questionText.startsWith('Sorry to hear that');
+    },
     isLowRatingResponse(responseText) {
       return (responseText === 'Not at all' || responseText === 'Sorta but not really')
     },
+
     getAnswerToQuestion(question) {
       const questionResponseId = this.userResponse[question.questionId].responseId
       const selectedResponse = question.responses.find(r => r.responseId === questionResponseId)
@@ -758,8 +760,6 @@ export default {
         currentSelected.push(responseId)
       }
 
-      // Vue cannot detect property addition or deletion on objects. A new object
-      // must be created for Vue to recognize changes on said object
       const responseAnswer = {
         [questionId]: Object.assign({}, this.userResponse[questionId], {
           responseId: currentSelected
@@ -838,8 +838,6 @@ export default {
         this.userResponse[q] = {responseId: null, openResponse: ''}
       })
 
-      // Vue cannot detect property addition or deletion on objects. A new object
-      // must be created for Vue to recognize changes on said object
       const responseAnswer = {
         [questionId]: Object.assign({}, this.userResponse[questionId], {
           responseId,

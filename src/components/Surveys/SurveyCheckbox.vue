@@ -60,7 +60,7 @@ export default {
 <style lang="scss" scoped>
 label {
   font-weight: 400;
-  font-size: 12pt;
+  font-size: 16px;
   margin-top: 5px;
 }
 

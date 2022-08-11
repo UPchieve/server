@@ -191,6 +191,8 @@
 </template>
 
 <script>
+// NOTE: can get rid of this entire component once we've fully transferred over to new postsession survey
+
 import { mapState, mapGetters } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import Case from 'case'
@@ -307,9 +309,7 @@ export default {
       user: state => state.user.user
     }),
     ...mapGetters({
-      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
-      isPostsessionSurveyActive:
-        'featureFlags/isPostsessionSurveyActive'
+      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive'
     }),
     showFavoriteQuestion() {
       return (
@@ -324,12 +324,6 @@ export default {
 
 
     this.sessionId = this.$route.params.sessionId
-
-    // NOTE: can get rid of this entire component once we've fully transferred over to new postsession survey
-    if (this.isPostsessionSurveyActive) {
-      this.$router.push(`/feedback/${this.sessionId}`)
-    }
-
     this.topic = Case.camel(this.$route.params.topic)
     this.subTopic = Case.camel(this.$route.params.subTopic)
     this.userType = this.$route.params.userType

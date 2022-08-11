@@ -139,8 +139,8 @@ export enum GRADES {
 }
 
 export const USER_ROLES = <const>{
-  student: 'student',
-  volunteer: 'volunteer',
-  admin: 'admin',
+  STUDENT: 'student',
+  VOLUNTEER: 'volunteer',
+  ADMIN: 'admin',
 }
 export type USER_ROLES_TYPE = (typeof USER_ROLES)[keyof typeof USER_ROLES]
