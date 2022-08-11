@@ -127,26 +127,14 @@ WITH replacement_column_cte AS (
   SELECT sq.id,
   CASE
     WHEN sq.replacement_column_1 = 'student_name' THEN u_student.first_name
-    WHEN sq.replacement_column_1 = 'student_goal' THEN (
-      SELECT (
-        CASE WHEN src.choice_text = 'Other' THEN
-            COALESCE(uss.open_response)
-        ELSE
-            COALESCE(src.choice_text)
-        END)
-    )
+    WHEN sq.replacement_column_1 = 'student_goal' AND src.choice_text = 'Other' THEN COALESCE(uss.open_response)
+    WHEN sq.replacement_column_1 = 'student_goal' AND src.choice_text <> 'Other' THEN COALESCE(src.choice_text)
     WHEN sq.replacement_column_1 = 'coach_name' THEN u_volunteer.first_name
     WHEN sq.replacement_column_1 = 'subject_name' THEN subjects.display_name
   END AS replacement_text_1,
   CASE
-    WHEN sq.replacement_column_2 = 'student_goal' THEN (
-      SELECT (
-        CASE WHEN src.choice_text = 'Other' THEN
-            COALESCE(uss.open_response)
-        ELSE
-            COALESCE(src.choice_text)
-        END)
-    )
+    WHEN sq.replacement_column_2 = 'student_goal' AND src.choice_text = 'Other' THEN COALESCE(uss.open_response)
+    WHEN sq.replacement_column_2 = 'student_goal' AND src.choice_text <> 'OTHER' THEN COALESCE(src.choice_text)
     WHEN sq.replacement_column_2 = 'subject_name' THEN subjects.display_name
   END AS replacement_text_2
   FROM upchieve.sessions s
@@ -192,6 +180,7 @@ FROM
     JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id
     JOIN replacement_column_cte rcc ON rcc.id = sq.id
     JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
+    JOIN upchieve.sessions s ON s.subject_id = subjects.id
     JOIN LATERAL (
         SELECT
             id AS response_id,
@@ -204,7 +193,7 @@ FROM
         WHERE
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
-    subjects.name = :subjectName!
+    s.id = :sessionId!
     AND st.name = :surveyType!
     AND ur.name = :userRole!;
 

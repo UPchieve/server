@@ -4,13 +4,14 @@ import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,
   getStudentsPresessionGoal,
-  getSurveyDefinition,
+  getPresessionSurveyDefinition,
+  getPostsessionSurveyDefinition
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
   validateSaveUserSurveyAndSubmissions,
+  parseUserRole
 } from '../../services/SurveyService'
-import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
@@ -79,7 +80,7 @@ export function routeSurvey(router: expressWs.Router): void {
   router.get('/survey/presession', async (req, res) => {
     try {
       const { subject } = req.query
-      const survey = await getSurveyDefinition(asString(subject), 'presession')
+      const survey = await getPresessionSurveyDefinition(asString(subject), 'presession')
       res.json(survey)
     } catch (error) {
       resError(res, error)
@@ -100,10 +101,9 @@ export function routeSurvey(router: expressWs.Router): void {
 
   router.get('/survey/postsession', async (req, res) => {
     try {
-      const { subject, sessionId, role } = req.query
-      let parsedRole = getEnumKeyByEnumValue(USER_ROLES, asString(role))
-      const survey = await getSurveyDefinition(
-        asString(subject),
+      const { sessionId, role } = req.query
+      let parsedRole = parseUserRole(asString(role))
+      const survey = await getPostsessionSurveyDefinition(
         'postsession',
         asString(sessionId),
         parsedRole
