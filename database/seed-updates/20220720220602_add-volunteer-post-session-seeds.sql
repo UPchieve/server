@@ -51,7 +51,8 @@ VALUES
   (0, 'Student was working on a quiz or exam', NOW(), NOW()),
   (0, 'Student was mean or inappropriate', NOW(), NOW()),
   (0, 'Student made me feel uncomfortable', NOW(), NOW()),
-  (0, 'Other (please provide details below)', NOW(), NOW());
+  (0, 'Other (please provide details below)', NOW(), NOW()),
+  (0, 'Your thoughts', NOW(), NOW());
 
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
 SELECT
@@ -194,7 +195,11 @@ WHERE
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Student made me feel uncomfortable' AND sub.text::int = 60) OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Please select all that apply' AND rc.choice_text = 'Other (please provide details below)' AND sub.text::int = 70) OR
 
-  (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'This can be about the web app, the student you helped, technical issues, etc.' AND rc.choice_text = 'Your thoughts' AND sub.text::int = 10);
+  (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'This can be about the web app, the student you helped, technical issues, etc.' AND rc.choice_text = 'Your thoughts' AND sub.text::int = 10) OR
+
+  -- student survey response that was missed in original seeding
+  (upchieve.surveys.name = 'Student Post-Session Survey' AND sq.question_text = 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.' AND rc.choice_text = 'Your thoughts' AND sub.text::int = 10);
+
 
 INSERT INTO upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at)
 SELECT
@@ -251,7 +256,7 @@ DELETE FROM upchieve.survey_response_choices
   WHERE upchieve.survey_response_choices.choice_text in ('No', 'I didn''t know topic', 'Wrong subject', 'Student participation',
     'Student shared their email, last name, or other personally identifiable information', 'Student is in severe emotional distress and/or unsafe',
     'Student was pressuring me to do their work for them', 'Student was working on a quiz or exam', 'Student was mean or inappropriate', 
-    'Student made me feel uncomfortable', 'Other (please provide details below)');
+    'Student made me feel uncomfortable', 'Other (please provide details below)', 'Your thoughts');
 
 DELETE FROM upchieve.surveys_survey_questions USING upchieve.surveys
   WHERE upchieve.surveys_survey_questions.survey_id = upchieve.surveys.id
