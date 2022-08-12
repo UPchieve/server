@@ -126,7 +126,9 @@ describe('/survey/presession?subject=', () => {
       GET_PRESESSION_SURVEY(SUBJECTS.ALGEBRA_ONE),
       payload
     )
-    expect(mockedSurveyRepo.getPresessionSurveyDefinition).toHaveBeenCalledTimes(1)
+    expect(
+      mockedSurveyRepo.getPresessionSurveyDefinition
+    ).toHaveBeenCalledTimes(1)
     expect(response.body).toEqual(mockedSurvey)
     expect(response.status).toBe(200)
   })
