@@ -309,7 +309,7 @@ export default {
       user: state => state.user.user
     }),
     ...mapGetters({
-      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive'
+      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
     }),
     showFavoriteQuestion() {
       return (
@@ -321,8 +321,6 @@ export default {
     },
   },
   async beforeMount() {
-
-
     this.sessionId = this.$route.params.sessionId
     this.topic = Case.camel(this.$route.params.topic)
     this.subTopic = Case.camel(this.$route.params.subTopic)

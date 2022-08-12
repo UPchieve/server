@@ -186,7 +186,6 @@ export async function getPostsessionSurveyDefinition(
   }
 }
 
-
 export function formatSurveyDefinition(resultArr: any): SurveyQueryResponse {
   const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
 

@@ -175,12 +175,10 @@ DELETE FROM upchieve.survey_questions
 
 DELETE FROM upchieve.survey_response_choices
   WHERE upchieve.survey_response_choices.choice_text in (
-    'Not at all', 'Sorta but not really', 'I guess so',
-    'I''m def closer to my goal', 'GOAL ACHIEVED',
+    'Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED',
     'Somewhat', 'Mostly', 'Extremely',
     'A lot',
-    'Rude coach', 'Coach didn''t know topic', 'Coach slow to
-     respond', 'Ran out of time', 'Tech issue', 'Other',
+    'Rude coach', 'Coach didn''t know topic', 'Coach slow to respond', 'Ran out of time', 'Tech issue', 'Other',
 
     'Yes', 'Maybe later');
 

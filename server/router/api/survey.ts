@@ -5,12 +5,12 @@ import {
   getPresessionSurveyForFeedback,
   getStudentsPresessionGoal,
   getPresessionSurveyDefinition,
-  getPostsessionSurveyDefinition
+  getPostsessionSurveyDefinition,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
   validateSaveUserSurveyAndSubmissions,
-  parseUserRole
+  parseUserRole,
 } from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
@@ -80,7 +80,10 @@ export function routeSurvey(router: expressWs.Router): void {
   router.get('/survey/presession', async (req, res) => {
     try {
       const { subject } = req.query
-      const survey = await getPresessionSurveyDefinition(asString(subject), 'presession')
+      const survey = await getPresessionSurveyDefinition(
+        asString(subject),
+        'presession'
+      )
       res.json(survey)
     } catch (error) {
       resError(res, error)
