@@ -1101,6 +1101,18 @@ FROM
 WHERE
     KEY = :volunteerPartnerOrg!;
 
+/* @name createUserStudentPartnerOrgInstance */
+INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
+SELECT
+    :userId!,
+    vpo.id,
+    NOW(),
+    NOW()
+FROM volunteer_partner_orgs vpo
+WHERE 
+    vpo.name = :vpoName!
+LIMIT 1
+RETURNING user_id as ok;
 
 /* @name createVolunteerProfile */
 INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)

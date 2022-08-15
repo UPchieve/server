@@ -425,6 +425,17 @@ export async function createStudent(
       },
       transactionClient
     )
+
+    if (studentData.studentPartnerOrg) {
+      const spoInstanceResult = await pgQueries.createUserStudentPartnerOrgInstance.run({
+        userId,
+        spoName: studentData.studentPartnerOrg,
+        spoSiteName: studentData.partnerSite
+      }, transactionClient)
+      if (!makeRequired(spoInstanceResult)[0].ok) 
+        throw new RepoCreateError('Could not create student: user partner org instance creation did not return rows')
+    }
+
     if (userResult.length && profileResult.length) {
       const profile = makeSomeRequired(profileResult[0], [
         'studentPartnerOrg',
