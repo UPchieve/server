@@ -963,10 +963,10 @@ export async function getSessionsForAdminFilter(
       let volunteer = undefined
       if (session.volunteerEmail) {
         volunteer = {
-            firstname: session.volunteerFirstName,
-            isBanned: session.volunteerIsBanned,
-            isTestUser: session.volunteerTestUser,
-            totalPastSessions: session.volunteerTotalPastSessions,
+          firstname: session.volunteerFirstName,
+          isBanned: session.volunteerIsBanned,
+          isTestUser: session.volunteerTestUser,
+          totalPastSessions: session.volunteerTotalPastSessions,
         }
         session.volunteerEmail = session.volunteerEmail.toLowerCase()
       }

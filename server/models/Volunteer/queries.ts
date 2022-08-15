@@ -914,7 +914,13 @@ export async function getReferencesByVolunteerForAdminDetail(
       client
     )
     return result.map(v => {
-      const ret = makeSomeOptional(v, ['id', 'firstName', 'lastName', 'status', 'email'])
+      const ret = makeSomeOptional(v, [
+        'id',
+        'firstName',
+        'lastName',
+        'status',
+        'email',
+      ])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -933,8 +939,7 @@ export async function checkReferenceExistsBeforeAdding(
 ): Promise<ReferenceWithUserActions | undefined> {
   try {
     const result = await pgQueries.checkReferenceExistsBeforeAdding.run(
-      { userId, 
-        email: email.toLowerCase() },
+      { userId, email: email.toLowerCase() },
       getClient()
     )
     if (result.length) return makeRequired(result[0])

@@ -282,8 +282,7 @@ export async function addFavoriteVolunteer(
 export async function deleteStudent(studentId: Ulid, email: string) {
   try {
     const result = await pgQueries.deleteStudent.run(
-      { userId: studentId,
-        email: email.toLowerCase() },
+      { userId: studentId, email: email.toLowerCase() },
       getClient()
     )
     if (result.length && makeRequired(result[0].ok)) return

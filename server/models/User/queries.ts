@@ -28,7 +28,10 @@ export async function getUserIdByEmail(
   email: string
 ): Promise<Ulid | undefined> {
   try {
-    const result = await pgQueries.getUserIdByEmail.run({ email: email.toLowerCase() }, getClient())
+    const result = await pgQueries.getUserIdByEmail.run(
+      { email: email.toLowerCase() },
+      getClient()
+    )
     if (result.length) return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoReadError(err)
@@ -38,8 +41,7 @@ export async function getUserIdByEmail(
 export async function deleteUser(userId: Ulid, email: string) {
   try {
     const result = await pgQueries.deleteUser.run(
-      { userId: userId,
-        email: email.toLowerCase() },
+      { userId: userId, email: email.toLowerCase() },
       getClient()
     )
     if (result.length && makeRequired(result[0].ok)) return
