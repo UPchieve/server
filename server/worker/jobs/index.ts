@@ -108,7 +108,7 @@ export enum Jobs {
   RemoveUnqualifiedOnboardedVolunteers = 'RemoveUnqualifiedOnboardedVolunteers',
 
   // Migration scripts
-  MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData'
+  MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
 }
 
 // register new job processors here

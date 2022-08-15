@@ -142,18 +142,32 @@ export async function getAssociatedPartnersAndSchools(
   return { associatedStudentPartnerOrgs, associatedPartnerSchools }
 }
 
-export async function migrateStudentPartnerOrgAssociatedPartners(client?: PoolClient): Promise<void> {
+export async function migrateStudentPartnerOrgAssociatedPartners(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateStudentPartnerOrgAssociatedPartners.run(undefined, client || getClient())
+    await pgQueries.migrateStudentPartnerOrgAssociatedPartners.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoUpdateError(`Failed to migrate student partner orgs for associated partners: ${err}`)
+    throw new RepoUpdateError(
+      `Failed to migrate student partner orgs for associated partners: ${err}`
+    )
   }
 }
 
-export async function migrateSponsorOrgAssociatedPartners(client?: PoolClient): Promise<void> {
+export async function migrateSponsorOrgAssociatedPartners(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateSponsorOrgAssociatedPartners.run(undefined, client || getClient())
+    await pgQueries.migrateSponsorOrgAssociatedPartners.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoUpdateError(`Failed to migrate sponsor orgs for associated partners: ${err}`)
+    throw new RepoUpdateError(
+      `Failed to migrate sponsor orgs for associated partners: ${err}`
+    )
   }
 }

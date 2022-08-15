@@ -4,7 +4,9 @@ import * as SpoRepo from '../models/StudentPartnerOrg'
 import * as VpoRepo from '../models/VolunteerPartnerOrg'
 import { getClient } from '../db'
 
-export default async function migrateHistoricalPartnershipsData(): Promise<void> {
+export default async function migrateHistoricalPartnershipsData(): Promise<
+  void
+> {
   const client = await getClient().connect()
 
   try {

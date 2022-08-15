@@ -72,38 +72,66 @@ export async function getStudentPartnerOrgKeyByCode(
   }
 }
 
-export async function migrateExistingStudentPartnerOrgs(client?: PoolClient): Promise<void> {
+export async function migrateExistingStudentPartnerOrgs(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateExistingStudentPartnerOrgs.run(undefined, client || getClient())
+    await pgQueries.migrateExistingStudentPartnerOrgs.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoReadError(`Failed to migrate existing instances for student partner orgs: ${err}`)
+    throw new RepoReadError(
+      `Failed to migrate existing instances for student partner orgs: ${err}`
+    )
   }
 }
 
-export async function migrateExistingStudentPartnerOrgRelationships(client?: PoolClient): Promise<void> {
+export async function migrateExistingStudentPartnerOrgRelationships(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateExistingStudentPartnerOrgRelationships.run(undefined, client || getClient())
+    await pgQueries.migrateExistingStudentPartnerOrgRelationships.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoReadError(`Failed to migrate existing user relationships for student partner orgs: ${err}`)
+    throw new RepoReadError(
+      `Failed to migrate existing user relationships for student partner orgs: ${err}`
+    )
   }
 }
 
 // TODO: waiting on programs to get list mapping partnerSchool->partnership start date
 // Will need custom mapping of school names to student_partner_orgs_upchieve_instance.created_at
 // MUST BE RUN FIRST
-export async function migratePartnerSchoolsToPartnerOrgs(client?: PoolClient): Promise<void> {
+export async function migratePartnerSchoolsToPartnerOrgs(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migratepPartnerSchoolsToPartnerOrgs.run(undefined, client || getClient())
+    await pgQueries.migratepPartnerSchoolsToPartnerOrgs.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoReadError(`Failed to migrate schools to student partner orgs: ${err}`)
+    throw new RepoReadError(
+      `Failed to migrate schools to student partner orgs: ${err}`
+    )
   }
 }
 
 // must be run after migrating schools to partner orgs
-export async function migrateExistingPartnerSchoolRelationships(client?: PoolClient): Promise<void> {
+export async function migrateExistingPartnerSchoolRelationships(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateExistingPartnerSchoolRelationships.run(undefined, client || getClient())
+    await pgQueries.migrateExistingPartnerSchoolRelationships.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoReadError(`Failed to migrate user-school relationship for student partner orgs: ${err}`)
+    throw new RepoReadError(
+      `Failed to migrate user-school relationship for student partner orgs: ${err}`
+    )
   }
 }

@@ -37,26 +37,47 @@ export async function getSponsorOrgsByKey(sponsorOrg: string) {
   }
 }
 
-export async function migrateExistingSponsorOrgs(client?: PoolClient): Promise<void> {
+export async function migrateExistingSponsorOrgs(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateExistingSponsorOrgs.run(undefined, client || getClient())
+    await pgQueries.migrateExistingSponsorOrgs.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoUpdateError(`Failed to migrate existing sponsor orgs to instances: ${err}`)
+    throw new RepoUpdateError(
+      `Failed to migrate existing sponsor orgs to instances: ${err}`
+    )
   }
 }
 
-export async function migrateExistingPartnerOrgSponsorOrgRelationships(client?: PoolClient): Promise<void> {
+export async function migrateExistingPartnerOrgSponsorOrgRelationships(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateExistingPartnerOrgSponsorOrgRelationships.run(undefined, client || getClient())
+    await pgQueries.migrateExistingPartnerOrgSponsorOrgRelationships.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoUpdateError(`Failed to migrate partner orgs for sponsor orgs: ${err}`)
+    throw new RepoUpdateError(
+      `Failed to migrate partner orgs for sponsor orgs: ${err}`
+    )
   }
 }
 
-export async function migrateExistingSchoolsSponsorOrgRelationships(client?: PoolClient): Promise<void> {
+export async function migrateExistingSchoolsSponsorOrgRelationships(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateExistingSchoolsSponsorOrgRelationships.run(undefined, client || getClient())
+    await pgQueries.migrateExistingSchoolsSponsorOrgRelationships.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoUpdateError(`Failed to migrate schools for sponsor orgs: ${err}`)
+    throw new RepoUpdateError(
+      `Failed to migrate schools for sponsor orgs: ${err}`
+    )
   }
 }

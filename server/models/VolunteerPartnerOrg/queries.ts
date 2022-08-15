@@ -62,18 +62,32 @@ export async function getVolunteerPartnerOrgs(): Promise<
   }
 }
 
-export async function migrateExistingVolunteerPartnerOrgs(client?: PoolClient): Promise<void> {
+export async function migrateExistingVolunteerPartnerOrgs(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateExistingVolunteerPartnerOrgs.run(undefined, client || getClient())
+    await pgQueries.migrateExistingVolunteerPartnerOrgs.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoUpdateError(`Failed to mgirate existing instances for volunteer partner orgs: ${err}`)
+    throw new RepoUpdateError(
+      `Failed to mgirate existing instances for volunteer partner orgs: ${err}`
+    )
   }
 }
 
-export async function migrateExistingvolunteerPartnerOrgRelationships(client?: PoolClient): Promise<void> {
+export async function migrateExistingvolunteerPartnerOrgRelationships(
+  client?: PoolClient
+): Promise<void> {
   try {
-    await pgQueries.migrateExistingvolunteerPartnerOrgRelationships.run(undefined, client || getClient())
+    await pgQueries.migrateExistingvolunteerPartnerOrgRelationships.run(
+      undefined,
+      client || getClient()
+    )
   } catch (err) {
-    throw new RepoUpdateError(`Failed to mgirate user-vpo relationships for volunteer partner orgs: ${err}`)
+    throw new RepoUpdateError(
+      `Failed to mgirate user-vpo relationships for volunteer partner orgs: ${err}`
+    )
   }
 }
