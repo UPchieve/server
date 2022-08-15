@@ -134,15 +134,6 @@ CREATE TABLE public.schema_migrations (
 
 
 --
--- Name: seed-migrations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."seed-migrations" (
-    version character varying(255) NOT NULL
-);
-
-
---
 -- Name: seed_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1160,6 +1151,19 @@ CREATE TABLE upchieve.sponsor_orgs (
 
 
 --
+-- Name: sponsor_orgs_upchieve_instances; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.sponsor_orgs_upchieve_instances (
+    id uuid NOT NULL,
+    sponsor_org_id uuid,
+    deactivated_on timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: student_favorite_volunteers; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1208,6 +1212,45 @@ CREATE TABLE upchieve.student_partner_orgs (
 CREATE TABLE upchieve.student_partner_orgs_sponsor_orgs (
     student_partner_org_id uuid NOT NULL,
     sponsor_org_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: student_partner_orgs_sponsor_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.student_partner_orgs_sponsor_orgs_instances (
+    student_partner_org_id uuid,
+    sponsor_org_id uuid,
+    deactivated_on timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: student_partner_orgs_upchieve_instances; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.student_partner_orgs_upchieve_instances (
+    id uuid NOT NULL,
+    student_partner_org_id uuid,
+    deactivated_on timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: student_partner_orgs_volunteer_partner_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.student_partner_orgs_volunteer_partner_orgs_instances (
+    student_partner_org_id uuid,
+    volunteer_partner_org_id uuid,
+    deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -1772,6 +1815,21 @@ CREATE TABLE upchieve.users_roles (
 
 
 --
+-- Name: users_student_partner_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_student_partner_orgs_instances (
+    user_id uuid,
+    student_partner_org_id uuid,
+    student_partner_org_site_id uuid,
+    student_partner_org_user_id uuid,
+    deactivated_on timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: volunteer_profiles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1876,6 +1934,19 @@ CREATE TABLE upchieve.users_training_courses (
 
 
 --
+-- Name: users_volunteer_partner_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_volunteer_partner_orgs_instances (
+    user_id uuid,
+    volunteer_partner_org_id uuid,
+    deactivated_on timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: volunteer_occupations; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1896,6 +1967,19 @@ CREATE TABLE upchieve.volunteer_partner_orgs (
     key text NOT NULL,
     name text NOT NULL,
     receive_weekly_hour_summary_email boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: volunteer_partner_orgs_upchieve_instances; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.volunteer_partner_orgs_upchieve_instances (
+    id uuid NOT NULL,
+    volunteer_partner_org_id uuid,
+    deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -2166,14 +2250,6 @@ ALTER TABLE ONLY auth.session
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
---
--- Name: seed-migrations seed-migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."seed-migrations"
-    ADD CONSTRAINT "seed-migrations_pkey" PRIMARY KEY (version);
 
 
 --
@@ -2721,6 +2797,14 @@ ALTER TABLE ONLY upchieve.sponsor_orgs
 
 
 --
+-- Name: sponsor_orgs_upchieve_instances sponsor_orgs_upchieve_instances_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sponsor_orgs_upchieve_instances
+    ADD CONSTRAINT sponsor_orgs_upchieve_instances_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: student_partner_org_sites student_partner_org_sites_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2774,6 +2858,14 @@ ALTER TABLE ONLY upchieve.student_partner_orgs
 
 ALTER TABLE ONLY upchieve.student_partner_orgs_sponsor_orgs
     ADD CONSTRAINT student_partner_orgs_sponsor_orgs_pkey PRIMARY KEY (student_partner_org_id, sponsor_org_id);
+
+
+--
+-- Name: student_partner_orgs_upchieve_instances student_partner_orgs_upchieve_instances_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_partner_orgs_upchieve_instances
+    ADD CONSTRAINT student_partner_orgs_upchieve_instances_pkey PRIMARY KEY (id);
 
 
 --
@@ -3134,6 +3226,14 @@ ALTER TABLE ONLY upchieve.volunteer_partner_orgs
 
 ALTER TABLE ONLY upchieve.volunteer_partner_orgs
     ADD CONSTRAINT volunteer_partner_orgs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: volunteer_partner_orgs_upchieve_instances volunteer_partner_orgs_upchieve_instances_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_partner_orgs_upchieve_instances
+    ADD CONSTRAINT volunteer_partner_orgs_upchieve_instances_pkey PRIMARY KEY (id);
 
 
 --
@@ -3747,6 +3847,14 @@ ALTER TABLE ONLY upchieve.sessions
 
 
 --
+-- Name: sponsor_orgs_upchieve_instances sponsor_orgs_upchieve_instances_sponsor_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sponsor_orgs_upchieve_instances
+    ADD CONSTRAINT sponsor_orgs_upchieve_instances_sponsor_org_id_fkey FOREIGN KEY (sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
+
+
+--
 -- Name: student_favorite_volunteers student_favorite_volunteers_student_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3771,6 +3879,22 @@ ALTER TABLE ONLY upchieve.student_partner_org_sites
 
 
 --
+-- Name: student_partner_orgs_sponsor_orgs_instances student_partner_orgs_sponsor_orgs_i_student_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_partner_orgs_sponsor_orgs_instances
+    ADD CONSTRAINT student_partner_orgs_sponsor_orgs_i_student_partner_org_id_fkey FOREIGN KEY (student_partner_org_id) REFERENCES upchieve.student_partner_orgs(id);
+
+
+--
+-- Name: student_partner_orgs_sponsor_orgs_instances student_partner_orgs_sponsor_orgs_instances_sponsor_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_partner_orgs_sponsor_orgs_instances
+    ADD CONSTRAINT student_partner_orgs_sponsor_orgs_instances_sponsor_org_id_fkey FOREIGN KEY (sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
+
+
+--
 -- Name: student_partner_orgs_sponsor_orgs student_partner_orgs_sponsor_orgs_sponsor_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3784,6 +3908,30 @@ ALTER TABLE ONLY upchieve.student_partner_orgs_sponsor_orgs
 
 ALTER TABLE ONLY upchieve.student_partner_orgs_sponsor_orgs
     ADD CONSTRAINT student_partner_orgs_sponsor_orgs_student_partner_org_id_fkey FOREIGN KEY (student_partner_org_id) REFERENCES upchieve.student_partner_orgs(id);
+
+
+--
+-- Name: student_partner_orgs_upchieve_instances student_partner_orgs_upchieve_insta_student_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_partner_orgs_upchieve_instances
+    ADD CONSTRAINT student_partner_orgs_upchieve_insta_student_partner_org_id_fkey FOREIGN KEY (student_partner_org_id) REFERENCES upchieve.student_partner_orgs(id);
+
+
+--
+-- Name: student_partner_orgs_volunteer_partner_orgs_instances student_partner_orgs_volunteer_pa_volunteer_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_partner_orgs_volunteer_partner_orgs_instances
+    ADD CONSTRAINT student_partner_orgs_volunteer_pa_volunteer_partner_org_id_fkey FOREIGN KEY (volunteer_partner_org_id) REFERENCES upchieve.volunteer_partner_orgs(id);
+
+
+--
+-- Name: student_partner_orgs_volunteer_partner_orgs_instances student_partner_orgs_volunteer_part_student_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_partner_orgs_volunteer_partner_orgs_instances
+    ADD CONSTRAINT student_partner_orgs_volunteer_part_student_partner_org_id_fkey FOREIGN KEY (student_partner_org_id) REFERENCES upchieve.student_partner_orgs(id);
 
 
 --
@@ -4043,6 +4191,30 @@ ALTER TABLE ONLY upchieve.users
 
 
 --
+-- Name: users_student_partner_orgs_instances users_student_partner_orgs_ins_student_partner_org_site_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_student_partner_orgs_instances
+    ADD CONSTRAINT users_student_partner_orgs_ins_student_partner_org_site_id_fkey FOREIGN KEY (student_partner_org_site_id) REFERENCES upchieve.student_partner_org_sites(id);
+
+
+--
+-- Name: users_student_partner_orgs_instances users_student_partner_orgs_instance_student_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_student_partner_orgs_instances
+    ADD CONSTRAINT users_student_partner_orgs_instance_student_partner_org_id_fkey FOREIGN KEY (student_partner_org_id) REFERENCES upchieve.student_partner_orgs(id);
+
+
+--
+-- Name: users_student_partner_orgs_instances users_student_partner_orgs_instances_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_student_partner_orgs_instances
+    ADD CONSTRAINT users_student_partner_orgs_instances_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: users_surveys users_surveys_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4107,11 +4279,35 @@ ALTER TABLE ONLY upchieve.users_training_courses
 
 
 --
+-- Name: users_volunteer_partner_orgs_instances users_volunteer_partner_orgs_inst_volunteer_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_volunteer_partner_orgs_instances
+    ADD CONSTRAINT users_volunteer_partner_orgs_inst_volunteer_partner_org_id_fkey FOREIGN KEY (volunteer_partner_org_id) REFERENCES upchieve.volunteer_partner_orgs(id);
+
+
+--
+-- Name: users_volunteer_partner_orgs_instances users_volunteer_partner_orgs_instances_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_volunteer_partner_orgs_instances
+    ADD CONSTRAINT users_volunteer_partner_orgs_instances_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: volunteer_occupations volunteer_occupations_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.volunteer_occupations
     ADD CONSTRAINT volunteer_occupations_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: volunteer_partner_orgs_upchieve_instances volunteer_partner_orgs_upchieve_i_volunteer_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_partner_orgs_upchieve_instances
+    ADD CONSTRAINT volunteer_partner_orgs_upchieve_i_volunteer_partner_org_id_fkey FOREIGN KEY (volunteer_partner_org_id) REFERENCES upchieve.volunteer_partner_orgs(id);
 
 
 --
@@ -4271,11 +4467,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220405223145'),
     ('20220405224635'),
     ('20220405232100'),
-    ('20220414230259'),
-    ('20220420175302'),
-    ('20220429162202'),
     ('20220504152804'),
-    ('20220512174157'),
     ('20220517154624'),
     ('20220517213052'),
     ('20220520164318'),
@@ -4300,4 +4492,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220711163000'),
     ('20220713170236'),
     ('20220721180659'),
-    ('20220722164711');
+    ('20220722164711'),
+    ('20220727162548');
