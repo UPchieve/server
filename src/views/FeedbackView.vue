@@ -25,136 +25,133 @@
       <template v-else>
         <ul class="feedback__questions-list">
           <li
-            v-for="(question, index) in filteredQuestions"
-            :key="question.id"
-            :class="{'feedback__questions-item': !(question.questionType === 'radio')}"
+            v-for="(questionInfo, index) in filteredQuestions"
+            :key="questionInfo.question.id"
+            :class="{'feedback__questions-item': !(questionInfo.questionType === 'radio')}"
           >
             <div v-if="isPostsessionSurveyActive">
-              <div v-if="question.headerText">
+              <div v-if="questionInfo.headerText">
                 <hr/>
                 <div class="question__section-header">
-                  {{ question.headerText }}
+                  {{ questionInfo.headerText }}
                 </div>
               </div>
               <div class="question__title">
-                {{ question.questionText }}
+                {{ questionInfo.question.questionText }}
               </div>
               <div :class="{
-                     'question__responses-images': isRowOfImages(question),
-                     'question__responses-rating': (question.questionType === 'multiple-choice'),
-                     'question__responses-radio': (question.questionType === 'radio'),
-                     'question__responses-vertical': isHighRatingQuestion(question) || isGuidelineIssueListQuestion(question),
-                     'question__responses-postsession': !(isHighRatingQuestion(question) || isGuidelineIssueListQuestion(question))
+                     'question__responses-images': isRowOfImages(questionInfo.question),
+                     'question__responses-rating': (questionInfo.questionType === 'number-rating'),
+                     'question__responses-radio': (questionInfo.questionType === 'radio'),
+                     'question__responses-vertical': isHighRatingQuestion(questionInfo.question) || isGuidelineIssueListQuestion(questionInfo.question),
+                     'question__responses-postsession': !(isHighRatingQuestion(questionInfo.question) || isGuidelineIssueListQuestion(questionInfo.question))
                    }">
                 <template
-                  v-for="(response, index) in question.responses"
+                  v-for="(response, index) in questionInfo.question.responses"
                 >
                   <survey-image
-                    v-if="question.questionType === 'emoji'"
+                    v-if="questionInfo.questionType === 'emoji'"
                     class='question__response question__response-image'
                     :key="`${response.responseId}-image`"
                     :src="response.responseDisplayImage"
                     :label="response.responseText"
-                    :questionId="question.questionId"
+                    :questionId="questionInfo.questionId"
                     :responseId="response.responseId"
                     :isSelected="
-                      userResponse[question.questionId].responseId ===
+                      userResponse[questionInfo.questionId].responseId ===
                       response.responseId
                     "
                     @survey-image-click="updateUserResponse" 
                   />
                   <survey-chip-option
-                    v-else-if="question.questionType === 'chip'"
+                    v-else-if="questionInfo.questionType === 'chip'"
                     :key="`${response.responseId}-chip`"
                     :label="response.responseText"
-                    :questionId="question.questionId"
+                    :questionId="questionInfo.questionId"
                     :responseId="response.responseId"
-                    :isSelected="userResponse[question.questionId].responseId &&
-                      userResponse[question.questionId].responseId.find(r => r === response.responseId)"
+                    :isSelected="userResponse[questionInfo.questionId].responseId &&
+                      userResponse[questionInfo.questionId].responseId.find(r => r === response.responseId)"
                     @chip-click="updateUserResponseMultiselect"
                   />
                   <survey-image
-                    v-else-if="question.questionType === 'star'"
+                    v-else-if="questionInfo.questionType === 'star'"
                     class='question__response question__response-star'
                     :key="`${response.responseId}-star`"
                     :src="response.responseDisplayImage"
-                    :questionId="question.questionId"
+                    :questionId="questionInfo.questionId"
                     :responseId="response.responseId"
-                    :isSelected="
-                      userResponse[question.questionId].responseId >=
-                      response.responseId
-                    "
+                    :isSelected="shouldStarShowSelected(questionInfo.question, response)"
                     @survey-image-click="updateUserResponse" 
                   />
                   <survey-radio
-                    v-else-if="question.questionType === 'radio'"
+                    v-else-if="questionInfo.questionType === 'radio'"
                     class="question__response question__response-boxed question__response-radio"
                     :class="{
-                      'question__response-boxed-selected': userResponse[question.questionId].responseId ===
+                      'question__response-boxed-selected': userResponse[questionInfo.questionId].responseId ===
                       response.responseId}"
                     :key="`${response.responseId}-radio`"
-                    :id="`${question.questionId}_${response.responseId}`"
+                    :id="`${questionInfo.questionId}_${response.responseId}`"
                     :radioValue="response.responseId"
-                    :name="question.questionId"
+                    :name="questionInfo.questionId"
                     :checked="
-                      userResponse[question.questionId].responseId ===
+                      userResponse[questionInfo.questionId].responseId ===
                       response.responseId
                     "
-                    :questionId="question.questionId"
+                    :questionId="questionInfo.questionId"
                     :responseId="response.responseId"
                     :label="response.responseText"
                     :isOpenResponseDisabled="true"
                     @survey-radio-input="updateUserResponse"
                   />
                   <survey-checkbox
-                    v-else-if="question.questionType === 'checkbox'"
+                    v-else-if="questionInfo.questionType === 'checkbox'"
                     class="question__response question__response-boxed"
                     :class="{
-                      'question__response-boxed-selected': (userResponse[question.questionId].responseId &&
-                      userResponse[question.questionId].responseId.find(r => r === response.responseId))}"
+                      'question__response-boxed-selected': (userResponse[questionInfo.questionId].responseId &&
+                      userResponse[questionInfo.questionId].responseId.find(r => r === response.responseId))}"
                     :key="`${response.responseId}-checkbox`"
-                    :id="`${question.questionId}_${response.responseId}`"
+                    :id="`${questionInfo.questionId}_${response.responseId}`"
                     :checkboxValue="response.responseId"
-                    :name="question.questionId"
+                    :name="questionInfo.questionId"
                     :checked="
-                      userResponse[question.questionId].responseId ===
+                      userResponse[questionInfo.questionId].responseId ===
                       response.responseId
                     "
-                    :questionId="question.questionId"
+                    :questionId="questionInfo.questionId"
                     :responseId="response.responseId"
                     :label="response.responseText"
                     @survey-checkbox-input="updateUserResponseMultiselect"
                   />
                   <survey-rate-number
-                    v-else-if="question.questionType === 'multiple choice'"
+                    v-else-if="questionInfo.questionType === 'number-rating'"
                     class='question__response question__response-numbers'
                     :key="`${response.responseId}-rating`"
                     :src="response.responseDisplayImage"
                     :rating="(index + 1)"
                     :label="(index%2 === 0) ? response.responseText : ''"
-                    :questionId="question.questionId"
+                    :questionId="questionInfo.questionId"
                     :responseId="response.responseId"
                     :isSelected="
-                      userResponse[question.questionId].responseId ===
+                      userResponse[questionInfo.questionId].responseId ===
                       response.responseId
                     "
                     @survey-rate-click="updateUserResponse" 
                   />
-                  <div v-else-if="question.questionType === 'free response'"
+                  <div v-else-if="questionInfo.questionType === 'free response'"
                     :key="`${response.responseId}-free-response`">
                     <div class="question__subtext">
                       We read every single comment, but if you need to connect with UPchieve staff about a question or concern please email us directly:
                       <a href="mailto:support@upchieve.org">support@upchieve.org</a>
                     </div>
                     <feedback-textarea
-                      :id="`${question.questionId}_${response.responseId}`"
-                      @change="(responseText) => updateUserResponse(question.questionId, response.responseId, responseText)">
+                      :id="`${questionInfo.questionId}_${response.responseId}`"
+                      @change="(responseText) => updateUserResponse(questionInfo.questionId, response.responseId, responseText)">
                     </feedback-textarea>
                   </div>
                 </template>
               </div>
-              <div class="response-answer-text" v-if="question.questionType === 'star' && userResponse[question.questionId].responseId">
-                {{getAnswerToQuestion(question)}}
+              <div class="response-answer-text" v-if="questionInfo.questionType === 'star' && userResponse[questionInfo.questionId].responseId">
+                {{getAnswerToQuestion(questionInfo.question)}}
               </div>
             </div>
             <div v-else>
@@ -466,7 +463,7 @@ export default {
     },
     filteredQuestions() {
       if (this.isPostsessionSurveyActive) {
-        return this.allQuestions.filter(q => q.isVisible).map(q => q.question)
+        return this.allQuestions.filter(q => q.isVisible)
       }
 
       return this.questions.filter(item => !item.show || item.show())
@@ -512,35 +509,13 @@ export default {
       this.surveyDefinition = postsessionSurveyDefinitionResponse.body.survey
       this.allQuestions = _.map(this.surveyDefinition.survey, q => {
         const isHiddenOnStart = this.isLowRatingQuestion(q) || this.isHighRatingQuestion(q) || this.isGuidelineIssueListQuestion(q)
-        if (q.questionType === 'multiple choice') {
-          if (q.questionText.startsWith('How do you think')) {
-            q.questionType = 'emoji'
-            q.headerText = 'Student\'s Feelings'
-          } else if (this.isLowRatingQuestion(q)) {
-            q.questionType = 'chip'
-          } else if (this.isStarRankingQuestion(q)) {
-            q.questionType = 'star'
-            q.headerText = this.user.isVolunteer ? 'Student\'s Progress' : 'Your Goal'
-          } else if (this.isHighRatingQuestion(q)) {
-            q.questionType = 'radio'
-          } else if (this.isIssuePresentQuestion(q)) {
-            q.questionType = 'radio'
-            q.headerText = 'Your Concerns'
-          } else if (this.isGuidelineIssueListQuestion(q)) {
-            q.questionType = 'checkbox'
-          } else {
-            q.questionType = 'multiple choice'
-            if (q.questionText.startsWith('Overall, how supportive')) {
-              q.headerText = 'Your Coach'
-            }
-          }
-        } else if (q.questionType === 'free response') {
-          q.headerText = 'Your Thoughts'
-        }
+        q.responses = _.orderBy(q.responses, r => r.displayPriority)
         return {
+          questionId: q.questionId,
           question: q,
           isVisible: !isHiddenOnStart,
-          questionType: q.questionType
+          questionType: this.getQuestionDisplayType(q),
+          headerText: this.getQuestionSectionHeader(q)
         }
       })
       this.allQuestions = _.orderBy(this.allQuestions, q => q.question.displayPriority)
@@ -568,6 +543,42 @@ export default {
     }
   },
   methods: {
+    getQuestionDisplayType(question) {
+      if (question.questionType === 'multiple choice') {
+        if (question.questionText.startsWith('How do you think')) {
+          return 'emoji'
+        } else if (this.isLowRatingQuestion(question)) {
+          return  'chip'
+        } else if (this.isStarRankingQuestion(question)) {
+          return 'star'
+        } else if (this.isHighRatingQuestion(question) || this.isIssuePresentQuestion(question)) {
+          return 'radio'
+        } else if (this.isGuidelineIssueListQuestion(question)) {
+          return 'checkbox'
+        } else if (this.isNumericalRatingQuestion(question)) {
+          return 'number-rating'
+        }
+      } 
+      return question.questionType
+    },
+    getQuestionSectionHeader(question) {
+      if (question.questionType === 'multiple choice') {
+        if (question.questionText.startsWith('How do you think')) {
+        return 'Student\'s Feelings'
+        } else if (this.isStarRankingQuestion(question)) {
+          return this.user.isVolunteer ? 'Student\'s Progress' : 'Your Goal'
+        } else if (this.isIssuePresentQuestion(question)) {
+          return 'Your Concerns'
+        } else if (this.isHowSupportiveQuestion(question)) {
+          return 'Your Coach' 
+        }
+      } 
+      else if (question.questionType === 'free response') {
+        return 'Your Thoughts'
+      }
+      return undefined
+    },
+
     // checks if the question has a row of responses that require to show a display image
     isRowOfImages(question) {
       if (this.isPostsessionSurveyActive) {
@@ -587,6 +598,9 @@ export default {
     isHowSupportiveQuestion(question) {
       return question.questionText.startsWith('Overall, how supportive')
     },
+    isNumericalRatingQuestion (question) {
+      return (this.isHowSupportiveQuestion(question) || question.questionText.startsWith('Overall, how much did your coach'))
+    },
 
     isHighRatingQuestion(question){
       return question.questionText.startsWith('Would you like to favorite your coach');
@@ -600,6 +614,20 @@ export default {
     },
     isLowRatingResponse(responseText) {
       return (responseText === 'Not at all' || responseText === 'Sorta but not really')
+    },
+
+    shouldStarShowSelected(question, response) {
+      if (!this.userResponse[question.questionId]) {
+        return false;
+      }
+      const currentDisplayPriority = response.responseDisplayPriority
+
+      const selectedResponseId = this.userResponse[question.questionId].responseId
+      const responseForSelectedResponseId = question.responses.find(r => r.responseId === selectedResponseId)
+      if (currentDisplayPriority && responseForSelectedResponseId) {
+        return responseForSelectedResponseId.responseDisplayPriority >= currentDisplayPriority
+      }
+      return false;
     },
 
     getAnswerToQuestion(question) {
@@ -629,7 +657,8 @@ export default {
       this.error = ''
       if (this.isPostsessionSurveyActive) {
         const submissions = []
-        for (const question of this.filteredQuestions) {
+        for (const questionInfo of this.filteredQuestions) {
+          const question = questionInfo.question
           const response = this.userResponse[question.questionId]
           if (this.isHighRatingQuestion(question)) {
             // the answer to the coach-favoriting question is not included in the feedback submission
@@ -776,16 +805,12 @@ export default {
           // show low-rating question and hide high-rating question
           this.allQuestions = _.map(this.allQuestions, q => {
             if (this.isHighRatingQuestion(q.question)) {
-              return {
-                question: q.question,
-                isVisible: false
-              }
+              q.isVisible = false
+              return q
             }
             if (this.isLowRatingQuestion(q.question)) {
-              return {
-                question: q.question,
-                isVisible: true
-              }
+              q.isVisible = true
+              return q
             }
             return q
           })
@@ -793,16 +818,12 @@ export default {
           // show high-rating question and hide low-rating question
           this.allQuestions = _.map(this.allQuestions, q => {
             if (this.isLowRatingQuestion(q.question)) {
-              return {
-                question: q.question,
-                isVisible: false
-              }
+              q.isVisible = false
+              return q
             }
             if (this.isHighRatingQuestion(q.question)) {
-              return {
-                question: q.question,
-                isVisible: true
-              }
+              q.isVisible = true
+              return q
             }
             return q
           })
@@ -810,10 +831,8 @@ export default {
           // hide both low-rating and high-rating questions
           this.allQuestions = _.map(this.allQuestions, q => {
             if (this.isHighRatingQuestion(q.question) || this.isLowRatingQuestion(q.question)) {
-              return {
-                question: q.question,
-                isVisible: false
-              }
+              q.isVisible = false
+              return q
             }
             return q
           })
@@ -821,14 +840,13 @@ export default {
       }
       // if question changed is student safety & guideline violation question, show/hide conditional question that depends on it
       const guidelineQuestion = _.find(this.questions, q => q.questionText.startsWith("Were there any student safety"))
+
       if (guidelineQuestion && questionId === guidelineQuestion.questionId) {
         const guidelineResponse = _.find(guidelineQuestion.responses, r => r.responseId === responseId)
         this.allQuestions = _.map(this.allQuestions, q => {
             const shouldToggleQuestionVisibility = this.isGuidelineIssueListQuestion(q.question)
-            return {
-              question: q.question,
-              isVisible: shouldToggleQuestionVisibility ? guidelineResponse.responseText === 'Yes' : q.isVisible
-            }
+            q.isVisible = shouldToggleQuestionVisibility ? guidelineResponse.responseText === 'Yes' : q.isVisible
+            return q
         })
       }
 
