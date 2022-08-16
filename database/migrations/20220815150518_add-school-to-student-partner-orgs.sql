@@ -32,3 +32,4 @@ ALTER TABLE upchieve.users_student_partner_orgs_instances
   ADD COLUMN student_partner_org_user_id uuid;
 
 DROP TABLE upchieve.schools_sponsor_orgs_instances;
+DROP TABLE upchieve.sponsor_orgs_volunteer_partner_orgs_instances;
