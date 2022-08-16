@@ -796,51 +796,29 @@ export default {
       }
       this.userResponse = Object.assign({}, this.userResponse, responseAnswer)
     },
-    updateUserResponse(questionId, responseId, openResponseText = '') {
-      // if question changed is ratings question, show/hide conditional questions that depend on it
+
+    // if question changed is ratings question, show/hide conditional questions that depend on it
+    ratingQuestionShowHide(questionId, responseId) {
       const ratingQuestion = _.find(this.questions, q => this.isStarRankingQuestion(q))
       if (ratingQuestion && questionId === ratingQuestion.questionId) {
         const ratingResponse = _.find(ratingQuestion.responses, r => r.responseId === responseId)
-        if (this.isLowRatingResponse(ratingResponse.responseText)) {
-          // show low-rating question and hide high-rating question
-          this.allQuestions = _.map(this.allQuestions, q => {
-            if (this.isHighRatingQuestion(q.question)) {
-              q.isVisible = false
-              return q
-            }
-            if (this.isLowRatingQuestion(q.question)) {
-              q.isVisible = true
-              return q
-            }
-            return q
-          })
-        } else if (this.isHighRatingResponse(ratingResponse.questionText)) {
-          // show high-rating question and hide low-rating question
-          this.allQuestions = _.map(this.allQuestions, q => {
-            if (this.isLowRatingQuestion(q.question)) {
-              q.isVisible = false
-              return q
-            }
-            if (this.isHighRatingQuestion(q.question)) {
-              q.isVisible = true
-              return q
-            }
-            return q
-          })
-        } else {
-          // hide both low-rating and high-rating questions
-          this.allQuestions = _.map(this.allQuestions, q => {
-            if (this.isHighRatingQuestion(q.question) || this.isLowRatingQuestion(q.question)) {
-              q.isVisible = false
-              return q
-            }
-            return q
-          })
-        }
-      }
-      // if question changed is student safety & guideline violation question, show/hide conditional question that depends on it
-      const guidelineQuestion = _.find(this.questions, q => q.questionText.startsWith("Were there any student safety"))
+        const showHighRatingQuestion = this.isHighRatingResponse(ratingResponse.responseText)
+        const showLowRatingQuestion = this.isLowRatingResponse(ratingResponse.responseText)
 
+        _.map(this.allQuestions, q => {
+          if (this.isHighRatingQuestion(q.question)) {
+            q.isVisible = showHighRatingQuestion
+            return q
+          } else if (this.isLowRatingQuestion(q.question)) {
+            q.isVisible = showLowRatingQuestion
+            return q
+          }
+        })
+      }
+    },
+    // if question changed is student safety & guideline violation question, show/hide conditional question that depends on it
+    guidelineQuestionShowHide(questionId, responseId) {
+      const guidelineQuestion = _.find(this.questions, q => q.questionText.startsWith("Were there any student safety"))
       if (guidelineQuestion && questionId === guidelineQuestion.questionId) {
         const guidelineResponse = _.find(guidelineQuestion.responses, r => r.responseId === responseId)
         this.allQuestions = _.map(this.allQuestions, q => {
@@ -849,6 +827,11 @@ export default {
             return q
         })
       }
+    },
+
+    updateUserResponse(questionId, responseId, openResponseText = '') {
+      this.ratingQuestionShowHide(questionId, responseId)
+      this.guidelineQuestionShowHide(questionId, responseId)
 
       // clear out responses for all hidden questions so we don't save junk data (change to actually-selected answer will handle re-render)
       const questionIdsToClear = this.allQuestions.filter(item => !item.isVisible).map(item => item.question.questionId)
