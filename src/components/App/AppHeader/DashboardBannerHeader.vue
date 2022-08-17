@@ -1,7 +1,7 @@
 <template>
   <div class="header">
     <!-- Edit the text below to display on dashboard banner to volunteers -->
-    <div v-if="new Date() >= new Date('7/15/2022')" class="header-message"><span>Introducing our new subject: U.S. History!</span> Take the quiz today.</div>
+    <div class="header-message"><span>Introducing our new subject: U.S. History!</span> Take the quiz today.</div>
     <router-link to="/training" tag="button" class="header-button">Get Certified</router-link>
   </div>
 </template>
