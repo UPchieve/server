@@ -213,13 +213,13 @@ export async function getSessionToEndById(
       student: {
         id: rawSession.studentId,
         firstName: rawSession.studentFirstName,
-        email: rawSession.studentEmail,
+        email: rawSession.studentEmail.toLowerCase(),
         numPastSessions: rawSession.studentNumPastSessions,
       },
       volunteer: {
         id: rawSession.volunteerId,
         firstName: rawSession.volunteerFirstName,
-        email: rawSession.volunteerEmail,
+        email: rawSession.volunteerEmail.toLowerCase(),
         numPastSessions: rawSession.volunteerNumPastSessions,
         volunteerPartnerOrg: rawSession.volunteerPartnerOrg,
       },
@@ -821,7 +821,11 @@ export async function getVolunteersForGentleWarning(
       },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => {
+      const ret = makeRequired(v)
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -844,7 +848,9 @@ export async function getStudentForEmailFirstSession(
       getClient()
     )
     if (!result.length) return
-    return makeRequired(result[0])
+    const ret = makeRequired(result[0])
+    ret.email = ret.email.toLowerCase()
+    return ret
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -862,7 +868,9 @@ export async function getVolunteerForEmailFirstSession(
       getClient()
     )
     if (!result.length) return
-    return makeRequired(result[0])
+    const ret = makeRequired(result[0])
+    ret.email = ret.email.toLowerCase()
+    return ret
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -952,20 +960,24 @@ export async function getSessionsForAdminFilter(
       const volunteerRating = extractVolunteerRating(
         session.volunteerFeedback as any
       )
-      const volunteer = session.volunteerEmail
-        ? {
-            firstname: session.volunteerFirstName,
-            isBanned: session.volunteerIsBanned,
-            isTestUser: session.volunteerTestUser,
-            totalPastSessions: session.volunteerTotalPastSessions,
-          }
-        : undefined
+      let volunteer = undefined
+      if (session.volunteerEmail) {
+        volunteer = {
+          firstname: session.volunteerFirstName,
+          isBanned: session.volunteerIsBanned,
+          isTestUser: session.volunteerTestUser,
+          totalPastSessions: session.volunteerTotalPastSessions,
+        }
+        session.volunteerEmail = session.volunteerEmail.toLowerCase()
+      }
+
       const student = {
         firstname: session.studentFirstName,
         isBanned: session.studentIsBanned,
         isTestUser: session.studentTestUser,
         totalPastSessions: session.studentTotalPastSessions,
       }
+
       return {
         ...session,
         studentRating,

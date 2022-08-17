@@ -15,7 +15,7 @@ export async function getIneligibleStudentByEmail(
 ): Promise<IneligibleStudent | undefined> {
   try {
     const result = await pgQueries.getIneligibleStudentByEmail.run(
-      { email },
+      { email: email.toLowerCase() },
       getClient()
     )
     if (!result.length) return
@@ -54,9 +54,11 @@ export async function getIneligibleStudentsPaginated(
       { limit, offset },
       getClient()
     )
-    return result.map(v =>
-      makeSomeOptional(v, ['createdAt', 'email', 'updatedAt'])
-    )
+    return result.map(v => {
+      const ret = makeSomeOptional(v, ['createdAt', 'email', 'updatedAt'])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -74,7 +76,7 @@ export async function insertIneligibleStudent(
     const result = await pgQueries.insertIneligibleStudent.run(
       {
         id: getDbUlid(),
-        email,
+        email: email.toLowerCase(),
         schoolId,
         postalCode,
         gradeLevel,
