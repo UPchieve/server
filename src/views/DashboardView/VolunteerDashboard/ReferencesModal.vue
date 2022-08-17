@@ -259,7 +259,7 @@ export default {
     isUniqueEmail(email) {
       let isUnique = true
       for (const reference of this.references) {
-        if (reference.email === email) {
+        if (reference.email.toLowerCase() === email.toLowerCase()) {
           isUnique = false
           break
         }

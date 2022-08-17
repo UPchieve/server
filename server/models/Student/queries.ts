@@ -42,7 +42,11 @@ export async function getReportedStudent(
       },
       getClient()
     )
-    if (result.length) return makeSomeRequired(result[0], ['studentPartnerOrg'])
+    if (result.length) {
+      const ret = makeSomeRequired(result[0], ['studentPartnerOrg'])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -92,8 +96,11 @@ export async function getStudentContactInfoById(
       },
       getClient()
     )
-    if (result.length)
-      return makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg'])
+    if (result.length) {
+      const ret = makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg'])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -275,7 +282,7 @@ export async function addFavoriteVolunteer(
 export async function deleteStudent(studentId: Ulid, email: string) {
   try {
     const result = await pgQueries.deleteStudent.run(
-      { userId: studentId, email },
+      { userId: studentId, email: email.toLowerCase() },
       getClient()
     )
     if (result.length && makeRequired(result[0].ok)) return
@@ -324,7 +331,7 @@ export async function adminUpdateStudent(
         userId: studentId,
         firstName: update.firstName,
         lastName: update.lastName,
-        email: update.email,
+        email: update.email.toLowerCase(),
         verified: update.isVerified,
         banned: update.isBanned,
         deactivated: update.isDeactivated,
@@ -404,7 +411,7 @@ export async function createStudent(
       {
         userId,
         referralCode: generateReferralCode(userId),
-        email: studentData.email,
+        email: studentData.email.toLowerCase(),
         firstName: studentData.firstName,
         lastName: studentData.lastName,
         password: studentData.password,
@@ -442,7 +449,7 @@ export async function createStudent(
         firstname: user.firstName,
         firstName: user.firstName,
         lastname: user.lastName,
-        email: user.email,
+        email: user.email.toLowerCase(),
         isBanned: user.banned,
         isDeactivated: user.deactivated,
         isTestUser: user.testUser,
@@ -553,7 +560,7 @@ export async function getSessionReport(
             counselingFeedback?.['rate-session']?.rating ||
             responseData?.['rate-session']?.rating
         }
-
+        row.email = row.email.toLowerCase()
         report.push({ ...session, sessionRating })
       }
 
@@ -626,6 +633,7 @@ export async function getUsageReport(
           'school',
           'sponsorOrg',
         ])
+        row.email = row.email.toLowerCase()
         report.push({
           ...session,
           feedbacks: feedbacks?.length ? feedbacks : [],

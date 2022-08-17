@@ -191,7 +191,9 @@ export async function createAccountAction(params: AccountActionParams) {
         action: params.action,
         actionType: USER_ACTION_TYPES.ACCOUNT,
         ipAddressId: ip,
-        referenceEmail: params.referenceEmail ? params.referenceEmail : null,
+        referenceEmail: params.referenceEmail
+          ? params.referenceEmail.toLowerCase()
+          : null,
         sessionId: params.sessionId ? params.sessionId : null,
         userId: params.userId,
         volunteerId: params.volunteerId ? params.volunteerId : null,
