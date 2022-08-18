@@ -300,7 +300,7 @@ function cleanPayload(payload: UserQuery): UserQuery {
     temp[key] = value === '' ? undefined : value
   }
   if (payload.email) {
-    temp.email = payload.email.toLowerCase
+    temp.email = payload.email?.toLowerCase()
   }
   return temp as UserQuery
 }
