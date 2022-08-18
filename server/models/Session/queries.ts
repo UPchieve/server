@@ -213,13 +213,13 @@ export async function getSessionToEndById(
       student: {
         id: rawSession.studentId,
         firstName: rawSession.studentFirstName,
-        email: rawSession.studentEmail.toLowerCase(),
+        email: rawSession.studentEmail?.toLowerCase(),
         numPastSessions: rawSession.studentNumPastSessions,
       },
       volunteer: {
         id: rawSession.volunteerId,
         firstName: rawSession.volunteerFirstName,
-        email: rawSession.volunteerEmail.toLowerCase(),
+        email: rawSession.volunteerEmail?.toLowerCase(),
         numPastSessions: rawSession.volunteerNumPastSessions,
         volunteerPartnerOrg: rawSession.volunteerPartnerOrg,
       },
