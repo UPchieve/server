@@ -123,7 +123,7 @@ export interface IGetAssociatedPartnerBySponsorOrgKeyQuery {
   result: IGetAssociatedPartnerBySponsorOrgKeyResult;
 }
 
-const getAssociatedPartnerBySponsorOrgKeyIR: any = {"name":"getAssociatedPartnerBySponsorOrgKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1948,"b":1951,"line":55,"col":14}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    so.key = :key!","loc":{"a":1332,"b":1951,"line":39,"col":0}}};
+const getAssociatedPartnerBySponsorOrgKeyIR: any = {"name":"getAssociatedPartnerBySponsorOrgKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1949,"b":1952,"line":56,"col":14}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    so.key = :key!","loc":{"a":1333,"b":1952,"line":40,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -174,7 +174,7 @@ export interface IGetAssociatedPartnerByPartnerOrgKeyQuery {
   result: IGetAssociatedPartnerByPartnerOrgKeyResult;
 }
 
-const getAssociatedPartnerByPartnerOrgKeyIR: any = {"name":"getAssociatedPartnerByPartnerOrgKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2620,"b":2623,"line":74,"col":15}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    spo.key = :key!","loc":{"a":2003,"b":2623,"line":58,"col":0}}};
+const getAssociatedPartnerByPartnerOrgKeyIR: any = {"name":"getAssociatedPartnerByPartnerOrgKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2622,"b":2625,"line":76,"col":15}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    spo.key = :key!","loc":{"a":2005,"b":2625,"line":60,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -225,7 +225,7 @@ export interface IGetAssociatedPartnerByVolunteerPartnerKeyQuery {
   result: IGetAssociatedPartnerByVolunteerPartnerKeyResult;
 }
 
-const getAssociatedPartnerByVolunteerPartnerKeyIR: any = {"name":"getAssociatedPartnerByVolunteerPartnerKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3299,"b":3302,"line":94,"col":15}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    vpo.key = :key!","loc":{"a":2682,"b":3302,"line":78,"col":0}}};
+const getAssociatedPartnerByVolunteerPartnerKeyIR: any = {"name":"getAssociatedPartnerByVolunteerPartnerKey","params":[{"name":"key","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3301,"b":3304,"line":96,"col":15}]}}],"usedParamSet":{"key":true},"statement":{"body":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    vpo.key = :key!","loc":{"a":2684,"b":3304,"line":80,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -250,5 +250,69 @@ const getAssociatedPartnerByVolunteerPartnerKeyIR: any = {"name":"getAssociatedP
  * ```
  */
 export const getAssociatedPartnerByVolunteerPartnerKey = new PreparedQuery<IGetAssociatedPartnerByVolunteerPartnerKeyParams,IGetAssociatedPartnerByVolunteerPartnerKeyResult>(getAssociatedPartnerByVolunteerPartnerKeyIR);
+
+
+/** 'MigrateStudentPartnerOrgAssociatedPartners' parameters type */
+export type IMigrateStudentPartnerOrgAssociatedPartnersParams = void;
+
+/** 'MigrateStudentPartnerOrgAssociatedPartners' return type */
+export type IMigrateStudentPartnerOrgAssociatedPartnersResult = void;
+
+/** 'MigrateStudentPartnerOrgAssociatedPartners' query type */
+export interface IMigrateStudentPartnerOrgAssociatedPartnersQuery {
+  params: IMigrateStudentPartnerOrgAssociatedPartnersParams;
+  result: IMigrateStudentPartnerOrgAssociatedPartnersResult;
+}
+
+const migrateStudentPartnerOrgAssociatedPartnersIR: any = {"name":"migrateStudentPartnerOrgAssociatedPartners","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_partner_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_partner_org_id IS NOT NULL","loc":{"a":3364,"b":3683,"line":100,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     ap.student_partner_org_id,
+ *     ap.volunteer_partner_org_id,
+ *     ap.created_at,
+ *     NOW()
+ * FROM
+ *     associated_partners ap
+ * WHERE
+ *     ap.student_partner_org_id IS NOT NULL
+ * ```
+ */
+export const migrateStudentPartnerOrgAssociatedPartners = new PreparedQuery<IMigrateStudentPartnerOrgAssociatedPartnersParams,IMigrateStudentPartnerOrgAssociatedPartnersResult>(migrateStudentPartnerOrgAssociatedPartnersIR);
+
+
+/** 'MigrateSponsorOrgAssociatedPartners' parameters type */
+export type IMigrateSponsorOrgAssociatedPartnersParams = void;
+
+/** 'MigrateSponsorOrgAssociatedPartners' return type */
+export type IMigrateSponsorOrgAssociatedPartnersResult = void;
+
+/** 'MigrateSponsorOrgAssociatedPartners' query type */
+export interface IMigrateSponsorOrgAssociatedPartnersQuery {
+  params: IMigrateSponsorOrgAssociatedPartnersParams;
+  result: IMigrateSponsorOrgAssociatedPartnersResult;
+}
+
+const migrateSponsorOrgAssociatedPartnersIR: any = {"name":"migrateSponsorOrgAssociatedPartners","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_sponsor_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_sponsor_org_id IS NOT NULL","loc":{"a":3736,"b":4039,"line":113,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, volunteer_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     ap.student_sponsor_org_id,
+ *     ap.volunteer_partner_org_id,
+ *     ap.created_at,
+ *     NOW()
+ * FROM
+ *     associated_partners ap
+ * WHERE
+ *     ap.student_sponsor_org_id IS NOT NULL
+ * ```
+ */
+export const migrateSponsorOrgAssociatedPartners = new PreparedQuery<IMigrateSponsorOrgAssociatedPartnersParams,IMigrateSponsorOrgAssociatedPartnersResult>(migrateSponsorOrgAssociatedPartnersIR);
 
 

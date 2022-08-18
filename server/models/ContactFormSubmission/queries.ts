@@ -35,7 +35,7 @@ export async function createContactFormByEmail(
     const result = await pgQueries.insertContactFormSubmissionByEmail.run(
       {
         id: getDbUlid(),
-        userEmail,
+        userEmail: userEmail.toLowerCase(),
         message,
         topic,
       },

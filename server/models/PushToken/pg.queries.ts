@@ -89,21 +89,23 @@ export interface IDeleteDuplicatePushTokensQuery {
   result: IDeleteDuplicatePushTokensResult;
 }
 
-const deleteDuplicatePushTokensIR: any = {"name":"deleteDuplicatePushTokens","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM push_tokens\nWHERE id IN\n    (SELECT id\n    FROM \n        (SELECT id,\n         ROW_NUMBER() OVER( PARTITION BY user_id,\n         token\n        ORDER BY  id ) AS row_num\n        FROM push_tokens ) t\n        WHERE t.row_num > 1 )","loc":{"a":426,"b":663,"line":21,"col":0}}};
+const deleteDuplicatePushTokensIR: any = {"name":"deleteDuplicatePushTokens","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM push_tokens\nWHERE id IN (\n        SELECT\n            id\n        FROM (\n            SELECT\n                id,\n                ROW_NUMBER() OVER (PARTITION BY user_id, token ORDER BY id) AS row_num\n            FROM\n                push_tokens) t\n        WHERE\n            t.row_num > 1)","loc":{"a":427,"b":723,"line":22,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * DELETE FROM push_tokens
- * WHERE id IN
- *     (SELECT id
- *     FROM 
- *         (SELECT id,
- *          ROW_NUMBER() OVER( PARTITION BY user_id,
- *          token
- *         ORDER BY  id ) AS row_num
- *         FROM push_tokens ) t
- *         WHERE t.row_num > 1 )
+ * WHERE id IN (
+ *         SELECT
+ *             id
+ *         FROM (
+ *             SELECT
+ *                 id,
+ *                 ROW_NUMBER() OVER (PARTITION BY user_id, token ORDER BY id) AS row_num
+ *             FROM
+ *                 push_tokens) t
+ *         WHERE
+ *             t.row_num > 1)
  * ```
  */
 export const deleteDuplicatePushTokens = new PreparedQuery<IDeleteDuplicatePushTokensParams,IDeleteDuplicatePushTokensResult>(deleteDuplicatePushTokensIR);

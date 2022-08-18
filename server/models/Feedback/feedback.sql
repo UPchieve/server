@@ -89,7 +89,9 @@ FROM
     JOIN user_roles ON user_roles.name = :userRole!
 WHERE
     sessions.id = :sessionId!
-ON CONFLICT (user_id, session_id) DO NOTHING
+ON CONFLICT (user_id,
+    session_id)
+    DO NOTHING
 RETURNING
     feedbacks.id;
 
@@ -121,16 +123,15 @@ WHERE
 /* @name removeDuplicateFeedbacks */
 DELETE FROM feedbacks
 WHERE id IN (
-    SELECT id
-        FROM (
         SELECT
-        id,
-        row_number() OVER w as rnum
-        FROM feedbacks
-        WINDOW w AS (
-            PARTITION BY user_id, session_id
-            ORDER BY created_at
-        )
-    ) as subquery
-    where rnum > 1
-);
+            id
+        FROM (
+            SELECT
+                id,
+                row_number() OVER w AS rnum
+                FROM
+                    feedbacks
+WINDOW w AS (PARTITION BY user_id, session_id ORDER BY created_at)) AS subquery
+WHERE
+    rnum > 1);
+
