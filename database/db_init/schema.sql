@@ -971,6 +971,19 @@ CREATE TABLE upchieve.schools_sponsor_orgs (
 
 
 --
+-- Name: schools_sponsor_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.schools_sponsor_orgs_instances (
+    school_id uuid,
+    sponsor_org_id uuid,
+    deactivated_on timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: session_failed_joins; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1164,6 +1177,19 @@ CREATE TABLE upchieve.sponsor_orgs_upchieve_instances (
 
 
 --
+-- Name: sponsor_orgs_volunteer_partner_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.sponsor_orgs_volunteer_partner_orgs_instances (
+    sponsor_org_id uuid,
+    volunteer_partner_org_id uuid,
+    deactivated_on timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: student_favorite_volunteers; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1201,7 +1227,8 @@ CREATE TABLE upchieve.student_partner_orgs (
     college_signup boolean DEFAULT false NOT NULL,
     school_signup_required boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    school_id uuid
 );
 
 
@@ -1819,10 +1846,10 @@ CREATE TABLE upchieve.users_student_partner_orgs_instances (
     user_id uuid,
     student_partner_org_id uuid,
     student_partner_org_site_id uuid,
-    student_partner_org_user_id uuid,
     deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    student_partner_org_user_id text
 );
 
 
@@ -3692,6 +3719,22 @@ ALTER TABLE ONLY upchieve.schools
 
 
 --
+-- Name: schools_sponsor_orgs_instances schools_sponsor_orgs_instances_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.schools_sponsor_orgs_instances
+    ADD CONSTRAINT schools_sponsor_orgs_instances_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: schools_sponsor_orgs_instances schools_sponsor_orgs_instances_sponsor_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.schools_sponsor_orgs_instances
+    ADD CONSTRAINT schools_sponsor_orgs_instances_sponsor_org_id_fkey FOREIGN KEY (sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
+
+
+--
 -- Name: schools_sponsor_orgs schools_sponsor_orgs_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3849,6 +3892,22 @@ ALTER TABLE ONLY upchieve.sessions
 
 ALTER TABLE ONLY upchieve.sponsor_orgs_upchieve_instances
     ADD CONSTRAINT sponsor_orgs_upchieve_instances_sponsor_org_id_fkey FOREIGN KEY (sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
+
+
+--
+-- Name: sponsor_orgs_volunteer_partner_orgs_instances sponsor_orgs_volunteer_partner_or_volunteer_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sponsor_orgs_volunteer_partner_orgs_instances
+    ADD CONSTRAINT sponsor_orgs_volunteer_partner_or_volunteer_partner_org_id_fkey FOREIGN KEY (volunteer_partner_org_id) REFERENCES upchieve.volunteer_partner_orgs(id);
+
+
+--
+-- Name: sponsor_orgs_volunteer_partner_orgs_instances sponsor_orgs_volunteer_partner_orgs_instanc_sponsor_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sponsor_orgs_volunteer_partner_orgs_instances
+    ADD CONSTRAINT sponsor_orgs_volunteer_partner_orgs_instanc_sponsor_org_id_fkey FOREIGN KEY (sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
 
 
 --
@@ -4488,4 +4547,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220710195206'),
     ('20220711163000'),
     ('20220713170236'),
-    ('20220727162548');
+    ('20220727162548'),
+    ('20220815150518');
