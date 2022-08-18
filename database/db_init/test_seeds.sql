@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.2 (Debian 14.2-1.pgdg110+1)
+-- Dumped from database version 14.1 (Debian 14.1-1.pgdg110+1)
 -- Dumped by pg_dump version 14.2
 
 SET statement_timeout = 0;
@@ -169,12 +169,12 @@ COPY upchieve.sponsor_orgs (id, name, created_at, updated_at, key) FROM stdin;
 -- Data for Name: student_partner_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.student_partner_orgs (id, key, name, signup_code, high_school_signup, college_signup, school_signup_required, created_at, updated_at) FROM stdin;
-01829283-f5e5-ad07-2a45-5bd22239d5ce	college-mentors	College Mentors	MENTORS	t	f	t	2022-08-12 14:44:58.083249+00	2022-08-12 14:44:58.083249+00
-01829283-f5e6-0b7b-5599-0c135cc805d8	community-org	Community Org	COMMUNITY	t	f	f	2022-08-12 14:44:58.089235+00	2022-08-12 14:44:58.089235+00
-01829283-f5e6-a2b2-5bc2-47601973084b	school-helpers	School Helpers	SCHOOLHELPERS	f	f	f	2022-08-12 14:44:58.092334+00	2022-08-12 14:44:58.092334+00
-01829283-f5e6-506d-8490-e88897fb68d5	college-learners	College Learners	COLLEGELEARNERS	f	t	t	2022-08-12 14:44:58.094834+00	2022-08-12 14:44:58.094834+00
-01829283-f5e6-a00f-1e3e-009cf82699f0	all-the-students	All The Students	ALLTHESTUDENTS	t	t	t	2022-08-12 14:44:58.099224+00	2022-08-12 14:44:58.099224+00
+COPY upchieve.student_partner_orgs (id, key, name, signup_code, high_school_signup, college_signup, school_signup_required, created_at, updated_at, school_id) FROM stdin;
+01829283-f5e5-ad07-2a45-5bd22239d5ce	college-mentors	College Mentors	MENTORS	t	f	t	2022-08-12 14:44:58.083249+00	2022-08-12 14:44:58.083249+00	\N
+01829283-f5e6-0b7b-5599-0c135cc805d8	community-org	Community Org	COMMUNITY	t	f	f	2022-08-12 14:44:58.089235+00	2022-08-12 14:44:58.089235+00	\N
+01829283-f5e6-a2b2-5bc2-47601973084b	school-helpers	School Helpers	SCHOOLHELPERS	f	f	f	2022-08-12 14:44:58.092334+00	2022-08-12 14:44:58.092334+00	\N
+01829283-f5e6-506d-8490-e88897fb68d5	college-learners	College Learners	COLLEGELEARNERS	f	t	t	2022-08-12 14:44:58.094834+00	2022-08-12 14:44:58.094834+00	\N
+01829283-f5e6-a00f-1e3e-009cf82699f0	all-the-students	All The Students	ALLTHESTUDENTS	t	t	t	2022-08-12 14:44:58.099224+00	2022-08-12 14:44:58.099224+00	\N
 \.
 
 
@@ -1942,6 +1942,14 @@ COPY upchieve.schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updat
 
 
 --
+-- Data for Name: schools_sponsor_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.schools_sponsor_orgs_instances (school_id, sponsor_org_id, deactivated_on, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: session_failed_joins; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -2014,6 +2022,14 @@ COPY upchieve.sessions_session_flags (session_id, session_flag_id, created_at, u
 --
 
 COPY upchieve.sponsor_orgs_upchieve_instances (id, sponsor_org_id, deactivated_on, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: sponsor_orgs_volunteer_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, volunteer_partner_org_id, deactivated_on, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -2695,7 +2711,7 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 -- Data for Name: users_student_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, deactivated_on, created_at, updated_at) FROM stdin;
+COPY upchieve.users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, deactivated_on, created_at, updated_at, student_partner_org_user_id) FROM stdin;
 \.
 
 

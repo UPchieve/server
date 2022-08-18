@@ -42,3 +42,28 @@ FROM
 GROUP BY
     vpo.key;
 
+
+/* @name migrateExistingVolunteerPartnerOrgs */
+INSERT INTO volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, created_at, updated_at)
+SELECT
+    generate_ulid (),
+    vpo.id,
+    vpo.created_at,
+    NOW()
+FROM
+    volunteer_partner_orgs vpo;
+
+
+/* @name migrateExistingvolunteerPartnerOrgRelationships */
+INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
+SELECT
+    users.id,
+    vp.volunteer_partner_org_id,
+    vp.created_at,
+    NOW()
+FROM
+    users
+    JOIN volunteer_profiles vp ON vp.user_id = users.id
+WHERE
+    vp.volunteer_partner_org_id IS NOT NULL;
+
