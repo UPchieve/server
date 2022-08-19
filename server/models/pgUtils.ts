@@ -42,7 +42,6 @@ type Required<T> = T extends null ? never : T extends undefined ? never : T
 type SetRequired<BaseType, Keys extends keyof BaseType> = BaseType &
   { [K in Keys]: Required<BaseType[K]> }
 
-
 type NullToUndefined<T> = T extends null ? undefined : T
 type Optional<T> = NullToUndefined<T> | undefined
 type SetOptional<BaseType, Keys extends keyof BaseType> = {

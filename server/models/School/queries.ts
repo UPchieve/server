@@ -35,7 +35,7 @@ export async function findSchoolByUpchieveId(
         // @ts-expect-error
         'g11Offered',
         // @ts-expect-error
-        'g12Offered'
+        'g12Offered',
       ])
     }
   } catch (err) {

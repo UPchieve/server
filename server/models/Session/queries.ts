@@ -210,7 +210,12 @@ export async function getSessionToEndById(
     ])
 
     let volunteerValue: SessionToEndUserInfo | undefined = undefined
-    if (rawSession.volunteerId && rawSession.volunteerFirstName && rawSession.volunteerEmail && !!rawSession.volunteerNumPastSessions) {
+    if (
+      rawSession.volunteerId &&
+      rawSession.volunteerFirstName &&
+      rawSession.volunteerEmail &&
+      !!rawSession.volunteerNumPastSessions
+    ) {
       volunteerValue = {
         id: rawSession.volunteerId,
         firstName: rawSession.volunteerFirstName,
@@ -228,7 +233,7 @@ export async function getSessionToEndById(
         email: rawSession.studentEmail?.toLowerCase(),
         numPastSessions: rawSession.studentNumPastSessions,
       },
-      volunteer: volunteerValue
+      volunteer: volunteerValue,
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -615,9 +620,10 @@ export async function getCurrentSessionByUserId(
     return {
       ...session,
       student: { _id: session.studentId, ...student },
-      volunteer: (!!volunteer && session.volunteerId)
-        ? { _id: session.volunteerId, ...volunteer }
-        : undefined,
+      volunteer:
+        !!volunteer && session.volunteerId
+          ? { _id: session.volunteerId, ...volunteer }
+          : undefined,
       _id: session.id,
       messages,
     }
@@ -654,9 +660,10 @@ export async function getCurrentSessionBySessionId(
     return {
       ...session,
       student: { _id: session.studentId, ...student },
-      volunteer: (!!volunteer && session.volunteerId)
-        ? { _id: session.volunteerId, ...volunteer }
-        : undefined,
+      volunteer:
+        !!volunteer && session.volunteerId
+          ? { _id: session.volunteerId, ...volunteer }
+          : undefined,
       _id: session.id,
       messages,
     }
@@ -967,7 +974,13 @@ export async function getSessionsForAdminFilter(
         session.volunteerFeedback as any
       )
       let volunteer = undefined
-      if (session.volunteerFirstName && session.volunteerEmail && !!session.volunteerIsBanned && !!session.volunteerTestUser && !!session.volunteerTotalPastSessions) {
+      if (
+        session.volunteerFirstName &&
+        session.volunteerEmail &&
+        !!session.volunteerIsBanned &&
+        !!session.volunteerTestUser &&
+        !!session.volunteerTotalPastSessions
+      ) {
         volunteer = {
           firstname: session.volunteerFirstName,
           isBanned: session.volunteerIsBanned,
