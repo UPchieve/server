@@ -1,10 +1,19 @@
 import * as ZCRepo from '../models/ZipCode'
 import logger from '../logger'
+import fs from 'fs'
+import parse from 'csv-parse/lib/sync'
 
 export default async function upsertPostalCodes(): Promise<void> {
   try {
-    const result = await ZCRepo.upsertZipcodes()
+    const zipFile = fs.readFileSync(
+      `${__dirname}/../../database/seeds/geography/postal-codes/aggregated_data.csv`
+    )
+    const zipRecords: ZCRepo.csvPostalCodeRecord[] = await parse(zipFile, {
+      delimiter: ',',
+      columns: true,
+    })
+    await ZCRepo.upsertZipcodes(zipRecords)
   } catch (err) {
-    logger.error(`Error upserting new zipcode data: ${err}`)
+    throw new Error(`error upserting postal code records: ${err}`)
   }
 }

@@ -4,10 +4,8 @@ import { makeRequired } from '../pgUtils'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import config from '../../config'
-import fs from 'fs'
-import parse from 'csv-parse/lib/sync'
 
-interface csvPostalCodeRecord {
+export interface csvPostalCodeRecord {
   zipcode: string
   income: number
   state: string
@@ -33,14 +31,7 @@ export async function getZipCodeByZipCode(
   }
 }
 
-export async function upsertZipcodes() {
-  const zipFile = fs.readFileSync(
-    `${__dirname}/../../../database/seeds/geography/postal-codes/aggregated_data.csv`
-  )
-  const zipRecords: csvPostalCodeRecord[] = await parse(zipFile, {
-    delimiter: ',',
-    columns: true,
-  })
+export async function upsertZipcodes(zipRecords: csvPostalCodeRecord[]) {
   const transactionClient = await getClient().connect()
   try {
     await transactionClient.query('BEGIN')
