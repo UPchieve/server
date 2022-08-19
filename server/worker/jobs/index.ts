@@ -110,7 +110,7 @@ export enum Jobs {
 
   // Migration scripts
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
-  UpsertPostalCodes = 'UpsertPostalCodes'
+  UpsertPostalCodes = 'UpsertPostalCodes',
 }
 
 // register new job processors here
@@ -331,8 +331,8 @@ const jobProcessors: JobProcessor[] = [
   //},
   {
     name: Jobs.UpsertPostalCodes,
-    processor: upsertPostalCodes
-  }
+    processor: upsertPostalCodes,
+  },
 ]
 
 // Each Bull processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615

@@ -34,7 +34,9 @@ export async function getZipCodeByZipCode(
 }
 
 export async function upsertZipcodes() {
-  const zipFile = fs.readFileSync(`${__dirname}/../../../database/seeds/geography/postal-codes/aggregated_data.csv`)
+  const zipFile = fs.readFileSync(
+    `${__dirname}/../../../database/seeds/geography/postal-codes/aggregated_data.csv`
+  )
   const zipRecords: csvPostalCodeRecord[] = await parse(zipFile, {
     delimiter: ',',
     columns: true,
@@ -44,22 +46,28 @@ export async function upsertZipcodes() {
     await transactionClient.query('BEGIN')
     const recordInsertions = zipRecords.map((record: csvPostalCodeRecord) => {
       const typedRecord = record as csvPostalCodeRecord
-      return pgQueries.upsertZipCode.run({
-        code: typedRecord.zipcode,
-        usStateCode: typedRecord.state,
-        income: typedRecord.income,
-        latitude: typedRecord.latitude,
-        longitude: typedRecord.longitude,
-      }, transactionClient)
+      return pgQueries.upsertZipCode.run(
+        {
+          code: typedRecord.zipcode,
+          usStateCode: typedRecord.state,
+          income: typedRecord.income,
+          latitude: typedRecord.latitude,
+          longitude: typedRecord.longitude,
+        },
+        transactionClient
+      )
     })
     await Promise.all(recordInsertions)
-    await pgQueries.upsertZipCode.run({
-      code: '00000',
-      usStateCode: 'NA',
-      income: 0,
-      latitude: 0,
-      longitude: 0
-    }, transactionClient)
+    await pgQueries.upsertZipCode.run(
+      {
+        code: '00000',
+        usStateCode: 'NA',
+        income: 0,
+        latitude: 0,
+        longitude: 0,
+      },
+      transactionClient
+    )
     await transactionClient.query('COMMIT')
   } catch (err) {
     await transactionClient.query('ROLLBACK')
