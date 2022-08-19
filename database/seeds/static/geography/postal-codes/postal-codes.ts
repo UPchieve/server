@@ -19,6 +19,20 @@ export async function postalCodes(numZipCodes: number | undefined) {
   })
   const recordInsertions = zipRecords.slice(0, numZipCodes).map((record: csvPostalCodeRecord) => {
     const typedRecord = record as csvPostalCodeRecord
+    const excludedTerritories = [
+      'VI',
+      'GU',
+      'AE',
+      'AA',
+      'AP',
+      'AS',
+      'PR',
+      'PW',
+      'FM',
+      'MP',
+      'MH',
+    ]
+    if (excludedTerritories.includes(record.state)) return Promise.resolve()
     return wrapInsert('postal_codes', pgQueries.insertZipCode.run, {
       code: typedRecord.zipcode,
       usStateCode: typedRecord.state,
