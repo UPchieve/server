@@ -33,7 +33,7 @@ export const insertUsState = new PreparedQuery<IInsertUsStateParams,IInsertUsSta
 export interface IInsertZipCodeParams {
   code: string;
   income: number;
-  lattitude: number;
+  latitude: number;
   longitude: number;
   usStateCode: string;
 }
@@ -49,12 +49,12 @@ export interface IInsertZipCodeQuery {
   result: IInsertZipCodeResult;
 }
 
-const insertZipCodeIR: any = {"name":"insertZipCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":293,"b":297,"line":5,"col":98}]}},{"name":"usStateCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":301,"b":312,"line":5,"col":106}]}},{"name":"income","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":316,"b":322,"line":5,"col":121}]}},{"name":"lattitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":332,"b":341,"line":5,"col":137}]}},{"name":"longitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":345,"b":354,"line":5,"col":150}]}}],"usedParamSet":{"code":true,"usStateCode":true,"income":true,"lattitude":true,"longitude":true},"statement":{"body":"INSERT INTO postal_codes (code, us_state_code, income, location, created_at, updated_at) VALUES (:code!, :usStateCode!, :income!, POINT(:lattitude!, :longitude!), NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING code AS ok","loc":{"a":195,"b":414,"line":5,"col":0}}};
+const insertZipCodeIR: any = {"name":"insertZipCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":293,"b":297,"line":5,"col":98}]}},{"name":"usStateCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":301,"b":312,"line":5,"col":106}]}},{"name":"income","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":316,"b":322,"line":5,"col":121}]}},{"name":"latitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":332,"b":340,"line":5,"col":137}]}},{"name":"longitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":344,"b":353,"line":5,"col":149}]}}],"usedParamSet":{"code":true,"usStateCode":true,"income":true,"latitude":true,"longitude":true},"statement":{"body":"INSERT INTO postal_codes (code, us_state_code, income, location, created_at, updated_at) VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING code AS ok","loc":{"a":195,"b":413,"line":5,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO postal_codes (code, us_state_code, income, location, created_at, updated_at) VALUES (:code!, :usStateCode!, :income!, POINT(:lattitude!, :longitude!), NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING code AS ok
+ * INSERT INTO postal_codes (code, us_state_code, income, location, created_at, updated_at) VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING code AS ok
  * ```
  */
 export const insertZipCode = new PreparedQuery<IInsertZipCodeParams,IInsertZipCodeResult>(insertZipCodeIR);
@@ -77,7 +77,7 @@ export interface IInsertWeekdayQuery {
   result: IInsertWeekdayResult;
 }
 
-const insertWeekdayIR: any = {"name":"insertWeekday","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":508,"b":510,"line":8,"col":64}]}},{"name":"day","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":514,"b":517,"line":8,"col":70}]}}],"usedParamSet":{"id":true,"day":true},"statement":{"body":"INSERT INTO weekdays (id, day, created_at, updated_at) VALUES (:id!, :day!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":444,"b":574,"line":8,"col":0}}};
+const insertWeekdayIR: any = {"name":"insertWeekday","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":507,"b":509,"line":8,"col":64}]}},{"name":"day","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":513,"b":516,"line":8,"col":70}]}}],"usedParamSet":{"id":true,"day":true},"statement":{"body":"INSERT INTO weekdays (id, day, created_at, updated_at) VALUES (:id!, :day!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok","loc":{"a":443,"b":573,"line":8,"col":0}}};
 
 /**
  * Query generated from SQL:
