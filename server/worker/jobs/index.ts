@@ -42,6 +42,7 @@ import deleteDuplicateFeedbacks from '../../scripts/delete-duplicate-feedbacks'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 import removeUnqualifiedOnboardedVolunteers from '../../scripts/remove-unqualified-onboarded-volunteers'
 import migrateHistoricalPartnerData from '../../scripts/migrate-partner-orgs'
+import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -109,6 +110,7 @@ export enum Jobs {
 
   // Migration scripts
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
+  UpsertPostalCodes = 'UpsertPostalCodes'
 }
 
 // register new job processors here
@@ -326,7 +328,11 @@ const jobProcessors: JobProcessor[] = [
   //{
   //  name: Jobs.MigrateHistoricalPartnerData,
   //  processor: migrateHistoricalPartnerData
-  //}
+  //},
+  {
+    name: Jobs.UpsertPostalCodes,
+    processor: upsertPostalCodes
+  }
 ]
 
 // Each Bull processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615
